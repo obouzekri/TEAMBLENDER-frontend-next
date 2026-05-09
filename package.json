@@ -6,7 +6,8 @@
     "dev": "next dev -p 3100",
     "build": "next build",
     "start": "next start -p 3100",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "next": "16.2.6",
@@ -14,5 +15,8 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "socket.io-client": "^4.7.2"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
   }
 }
