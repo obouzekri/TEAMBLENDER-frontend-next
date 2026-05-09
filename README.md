@@ -42,18 +42,35 @@ Copier .env.local.example vers .env.local et ajuster si besoin:
 - Le home manager Next utilise un guard (manager/admin) et couvre le pilotage des sessions.
 - Le panel admin Next.js est disponible en V1 pour les operations principales.
 
-## Runbook go-live (checklist)
+## Runbook go-live (checklist actionnable)
 
-1. Preparer les variables de production (frontend + backend).
-2. Lancer les smoke tests locaux: npm run test:smoke.
-3. Build de verification: npm run build.
-4. Deployer frontend-next sur Vercel (branche main).
-5. Configurer NEXT_PUBLIC_API_BASE vers l'API de production.
-6. Verifier les parcours critiques post-deploiement:
-	- manager (login -> home -> session-builder -> session-live -> results)
-	- participant (join -> challenge actif)
-	- admin (/admin)
-7. Geler le legacy frontend pour nouvelles features (patch critique uniquement).
+### Roles
+
+- Tech lead: decision Go / No-Go et rollback
+- Dev frontend: deploiement Vercel + verification UI
+- Dev backend: verification API/sockets + logs serveur
+- Produit/QA: validation parcours metier manager/participant/admin
+
+### Execution (ordre strict)
+
+1. Verifier les variables de prod (frontend + backend).
+2. Lancer localement: `npm run test:smoke` puis `npm run build`.
+3. Tagger la version pre-deploiement (commit SHA conservee pour rollback).
+4. Deployer frontend-next sur Vercel (branche `main`).
+5. Configurer `NEXT_PUBLIC_API_BASE` vers l'API de production.
+6. Verifier en production les parcours critiques:
+   - manager: login -> home -> session-builder -> session-live -> results
+   - participant: join -> challenge actif
+   - admin: /admin (create/edit/delete)
+7. Ouvrir les logs backend 30 min apres release (erreurs 5xx, latency, sockets).
+8. Si stable: geler le legacy frontend pour nouvelles features (patch critique uniquement).
+
+### Rollback (si No-Go)
+
+1. Re-pointer Vercel sur le commit precedent stable.
+2. Re-valider login manager + participant sur la version rollback.
+3. Communiquer "rollback effectue" avec cause et action corrective.
+4. Ouvrir correctif sur branche de hotfix avant nouvelle tentative.
 
 ## Go / No-Go (release)
 
@@ -61,12 +78,13 @@ Go si tous les points sont vrais:
 
 - `npm run test:smoke` = PASS
 - `npm run build` = PASS
-- Login manager + participant + admin = PASS
-- Creation/edition/suppression session depuis home/admin = PASS
-- Aucune erreur critique console/API sur parcours principal
+- login manager + participant + admin = PASS
+- create/edit/delete session depuis home/admin = PASS
+- aucune erreur critique console/API sur parcours principal
 
-No-Go si un seul point est faux:
+No-Go immediat si un seul point est faux:
 
 - erreur 5xx sur un endpoint critique (`/auth`, `/sessions`, `/challenges`, `/users`)
 - regression sur session live ou challenge actif participant
 - page blanche ou redirection inattendue apres login
+- echec du rollback dry-run (incapacite a revenir au commit precedent)
