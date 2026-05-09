@@ -36,6 +36,11 @@ export default function AdminClient() {
 
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
+  const [busySaveKey, setBusySaveKey] = useState('');
+
+  const [editingUser, setEditingUser] = useState(null);
+  const [editingSession, setEditingSession] = useState(null);
+  const [editingChallenge, setEditingChallenge] = useState(null);
 
   const [newUser, setNewUser] = useState({
     first_name: '',
@@ -200,6 +205,58 @@ export default function AdminClient() {
     }
   }
 
+  function beginEditUser(targetUser) {
+    setEditingUser({
+      id: targetUser.id,
+      first_name: targetUser.first_name || '',
+      last_name: targetUser.last_name || '',
+      email: targetUser.email || '',
+      role: targetUser.role || 'user',
+      job_title: targetUser.job_title || '',
+      department: targetUser.department || '',
+      password: '',
+    });
+  }
+
+  async function submitEditUser(event) {
+    event.preventDefault();
+    if (!token || !editingUser?.id) return;
+
+    const key = `save:user:${editingUser.id}`;
+    setBusySaveKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/users/${editingUser.id}`), {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: editingUser.first_name,
+          last_name: editingUser.last_name,
+          email: editingUser.email,
+          role: editingUser.role,
+          job_title: editingUser.job_title,
+          department: editingUser.department,
+          ...(editingUser.password ? { password: editingUser.password } : {}),
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || payload.details || `Mise a jour impossible (${response.status})`);
+      }
+
+      setEditingUser(null);
+      await loadAll();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de la mise a jour utilisateur.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
   async function handleDeleteSession(sessionItem) {
     if (!token || !sessionItem?.id) return;
     const accepted = window.confirm(`Supprimer la session ${sessionItem.name || sessionItem.id} ?`);
@@ -227,6 +284,56 @@ export default function AdminClient() {
       setError(err.message || 'Erreur lors de la suppression session.');
     } finally {
       setBusyDeleteKey('');
+    }
+  }
+
+  function beginEditSession(sessionItem) {
+    setEditingSession({
+      id: sessionItem.id,
+      name: sessionItem.name || '',
+      status: sessionItem.status || 'preparee',
+      format: sessionItem.format || '',
+      modality: sessionItem.modality || '',
+      session_date: sessionItem.session_date ? String(sessionItem.session_date).slice(0, 10) : '',
+      duration_minutes: sessionItem.duration_minutes || '',
+    });
+  }
+
+  async function submitEditSession(event) {
+    event.preventDefault();
+    if (!token || !editingSession?.id) return;
+
+    const key = `save:session:${editingSession.id}`;
+    setBusySaveKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/sessions/${editingSession.id}`), {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: editingSession.name,
+          status: editingSession.status,
+          format: editingSession.format || null,
+          modality: editingSession.modality || null,
+          session_date: editingSession.session_date || null,
+          duration_minutes: editingSession.duration_minutes ? Number(editingSession.duration_minutes) : null,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || payload.details || `Mise a jour impossible (${response.status})`);
+      }
+
+      setEditingSession(null);
+      await loadAll();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de la mise a jour session.');
+    } finally {
+      setBusySaveKey('');
     }
   }
 
@@ -258,6 +365,56 @@ export default function AdminClient() {
       setError(err.message || 'Erreur lors de la suppression challenge.');
     } finally {
       setBusyDeleteKey('');
+    }
+  }
+
+  function beginEditChallenge(challengeItem) {
+    setEditingChallenge({
+      id: challengeItem.id,
+      name: challengeItem.name || '',
+      type: challengeItem.type || 'individuel',
+      status: challengeItem.status || 'actif',
+      duration: challengeItem.duration || '',
+      engine_key: challengeItem.engine_key || '',
+      description: challengeItem.description || '',
+    });
+  }
+
+  async function submitEditChallenge(event) {
+    event.preventDefault();
+    if (!token || !editingChallenge?.id) return;
+
+    const key = `save:challenge:${editingChallenge.id}`;
+    setBusySaveKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/challenges/${editingChallenge.id}`), {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: editingChallenge.name,
+          type: editingChallenge.type,
+          status: editingChallenge.status,
+          duration: editingChallenge.duration || null,
+          engine_key: editingChallenge.engine_key || null,
+          description: editingChallenge.description || null,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || payload.details || `Mise a jour impossible (${response.status})`);
+      }
+
+      setEditingChallenge(null);
+      await loadAll();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de la mise a jour challenge.');
+    } finally {
+      setBusySaveKey('');
     }
   }
 
@@ -327,6 +484,13 @@ export default function AdminClient() {
                     <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
                     <p className="session-meta">{u.email} · {u.role || 'user'}</p>
                   </div>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => beginEditUser(u)}
+                  >
+                    Modifier
+                  </button>
                   <button
                     type="button"
                     className="btn-secondary"
@@ -401,6 +565,53 @@ export default function AdminClient() {
             </form>
             {newUserMessage ? <p className="session-meta">{newUserMessage}</p> : null}
           </div>
+
+          <div className="admin-column">
+            <h2>Modifier utilisateur</h2>
+            {!editingUser ? (
+              <p>Selectionnez "Modifier" sur un utilisateur actif.</p>
+            ) : (
+              <form className="auth-form" onSubmit={submitEditUser}>
+                <label>
+                  Prenom
+                  <input value={editingUser.first_name} onChange={(e) => setEditingUser((p) => ({ ...p, first_name: e.target.value }))} required />
+                </label>
+                <label>
+                  Nom
+                  <input value={editingUser.last_name} onChange={(e) => setEditingUser((p) => ({ ...p, last_name: e.target.value }))} />
+                </label>
+                <label>
+                  Email
+                  <input type="email" value={editingUser.email} onChange={(e) => setEditingUser((p) => ({ ...p, email: e.target.value }))} required />
+                </label>
+                <label>
+                  Role
+                  <select value={editingUser.role} onChange={(e) => setEditingUser((p) => ({ ...p, role: e.target.value }))}>
+                    <option value="user">Utilisateur</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </label>
+                <label>
+                  Fonction
+                  <input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} />
+                </label>
+                <label>
+                  Departement
+                  <input value={editingUser.department} onChange={(e) => setEditingUser((p) => ({ ...p, department: e.target.value }))} />
+                </label>
+                <label>
+                  Nouveau mot de passe (optionnel)
+                  <input type="password" minLength={8} value={editingUser.password} onChange={(e) => setEditingUser((p) => ({ ...p, password: e.target.value }))} />
+                </label>
+                <div className="hero-actions" style={{ marginTop: 0 }}>
+                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:user:${editingUser.id}`}>
+                    {busySaveKey === `save:user:${editingUser.id}` ? 'Enregistrement...' : 'Enregistrer'}
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>Annuler</button>
+                </div>
+              </form>
+            )}
+          </div>
         </section>
 
         <section className="feature-card admin-grid">
@@ -416,6 +627,13 @@ export default function AdminClient() {
                   <button
                     type="button"
                     className="btn-secondary"
+                    onClick={() => beginEditSession(s)}
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
                     onClick={() => handleDeleteSession(s)}
                     disabled={busyDeleteKey === `session:${s.id}`}
                   >
@@ -424,6 +642,50 @@ export default function AdminClient() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="admin-column">
+            <h2>Modifier session</h2>
+            {!editingSession ? (
+              <p>Selectionnez "Modifier" sur une session.</p>
+            ) : (
+              <form className="auth-form" onSubmit={submitEditSession}>
+                <label>
+                  Nom
+                  <input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required />
+                </label>
+                <label>
+                  Statut
+                  <select value={editingSession.status} onChange={(e) => setEditingSession((p) => ({ ...p, status: e.target.value }))}>
+                    <option value="preparee">En preparation</option>
+                    <option value="en_cours">En cours</option>
+                    <option value="terminee">Terminee</option>
+                  </select>
+                </label>
+                <label>
+                  Format
+                  <input value={editingSession.format} onChange={(e) => setEditingSession((p) => ({ ...p, format: e.target.value }))} />
+                </label>
+                <label>
+                  Modalite
+                  <input value={editingSession.modality} onChange={(e) => setEditingSession((p) => ({ ...p, modality: e.target.value }))} placeholder="remote|hybrid|in-person" />
+                </label>
+                <label>
+                  Date
+                  <input type="date" value={editingSession.session_date} onChange={(e) => setEditingSession((p) => ({ ...p, session_date: e.target.value }))} />
+                </label>
+                <label>
+                  Duree (minutes)
+                  <input type="number" min={1} value={editingSession.duration_minutes} onChange={(e) => setEditingSession((p) => ({ ...p, duration_minutes: e.target.value }))} />
+                </label>
+                <div className="hero-actions" style={{ marginTop: 0 }}>
+                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:session:${editingSession.id}`}>
+                    {busySaveKey === `save:session:${editingSession.id}` ? 'Enregistrement...' : 'Enregistrer'}
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={() => setEditingSession(null)}>Annuler</button>
+                </div>
+              </form>
+            )}
           </div>
 
           <div className="admin-column">
@@ -438,6 +700,13 @@ export default function AdminClient() {
                   <button
                     type="button"
                     className="btn-secondary"
+                    onClick={() => beginEditChallenge(c)}
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
                     onClick={() => handleDeleteChallenge(c)}
                     disabled={busyDeleteKey === `challenge:${c.id}`}
                   >
@@ -446,6 +715,54 @@ export default function AdminClient() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="admin-column">
+            <h2>Modifier challenge</h2>
+            {!editingChallenge ? (
+              <p>Selectionnez "Modifier" sur un challenge.</p>
+            ) : (
+              <form className="auth-form" onSubmit={submitEditChallenge}>
+                <label>
+                  Nom
+                  <input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required />
+                </label>
+                <label>
+                  Type
+                  <select value={editingChallenge.type} onChange={(e) => setEditingChallenge((p) => ({ ...p, type: e.target.value }))}>
+                    <option value="individuel">Individuel</option>
+                    <option value="equipe">Equipe</option>
+                    <option value="icebreaker">Icebreaker</option>
+                  </select>
+                </label>
+                <label>
+                  Statut
+                  <select value={editingChallenge.status} onChange={(e) => setEditingChallenge((p) => ({ ...p, status: e.target.value }))}>
+                    <option value="actif">Actif</option>
+                    <option value="brouillon">Brouillon</option>
+                    <option value="archive">Archive</option>
+                  </select>
+                </label>
+                <label>
+                  Duree
+                  <input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} />
+                </label>
+                <label>
+                  Engine key
+                  <input value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} />
+                </label>
+                <label>
+                  Description
+                  <textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} />
+                </label>
+                <div className="hero-actions" style={{ marginTop: 0 }}>
+                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>
+                    {busySaveKey === `save:challenge:${editingChallenge.id}` ? 'Enregistrement...' : 'Enregistrer'}
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={() => setEditingChallenge(null)}>Annuler</button>
+                </div>
+              </form>
+            )}
           </div>
         </section>
       </main>
