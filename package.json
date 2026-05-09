@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start -p 3100",
     "lint": "next lint",
-    "test:smoke": "node scripts/smoke.mjs"
+    "test:smoke": "npm run test:smoke:manager && npm run test:smoke:participant",
+    "test:smoke:manager": "node scripts/smoke.mjs",
+    "test:smoke:participant": "node scripts/smoke-participant.mjs"
   },
   "dependencies": {
     "next": "16.2.6",
