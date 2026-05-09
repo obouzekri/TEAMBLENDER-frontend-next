@@ -162,14 +162,14 @@ export default function SessionLiveClient() {
         <section className="hero">
           <p className="eyebrow">SESSION EN COURS</p>
           <h1>{session?.name || `Session ${sessionId}`}</h1>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+          <div className="session-live-meta">
             <span className="eyebrow">{memberCount} participant{memberCount !== 1 ? 's' : ''}</span>
             {activeChallenge && (
               <span className="eyebrow">Challenge actif : {activeChallenge.name || activeEngineKey}</span>
             )}
             {session?.status && <span className="eyebrow">Statut : {{ en_cours: 'En cours', preparee: 'En préparation', terminee: 'Terminée' }[session.status] || session.status}</span>}
           </div>
-          <div className="hero-actions" style={{ marginTop: '1.5rem' }}>
+          <div className="hero-actions">
             <button
               type="button"
               className="btn-primary"
@@ -213,30 +213,18 @@ export default function SessionLiveClient() {
         {challenges.length > 1 && (
           <section className="feature-card">
             <h2>Challenges de la session</h2>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <ul className="challenge-list">
               {challenges.map((ch) => (
                 <li
                   key={ch.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.5rem 0',
-                    borderBottom: '1px solid var(--border)',
-                  }}
+                  className="challenge-list-item"
                 >
                   <span
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: '50%',
-                      background: ch.id === session?.active_challenge_id ? 'var(--accent)' : 'var(--border)',
-                      flexShrink: 0,
-                    }}
+                    className={`challenge-dot ${ch.id === session?.active_challenge_id ? 'challenge-dot--active' : 'challenge-dot--inactive'}`}
                   />
                   <span>{ch.name || ch.engine_key}</span>
                   {ch.id === session?.active_challenge_id && (
-                    <span className="eyebrow" style={{ marginLeft: 'auto' }}>actif</span>
+                    <span className="eyebrow challenge-label-active">actif</span>
                   )}
                 </li>
               ))}

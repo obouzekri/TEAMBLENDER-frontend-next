@@ -3,6 +3,11 @@ node_modules/
 # next.js build outputs
 .next/
 out/
+.vercel/
+
+# local caches
+.cache/
+/.eslintcache
 
 # env files
 .env.local

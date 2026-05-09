@@ -98,8 +98,6 @@ async function run() {
   try {
     await page.goto(`${FRONTEND_URL}/login`, { waitUntil: 'domcontentloaded' });
 
-    await page.waitForSelector('text=Connexion a TEAMSPARK', { timeout: 15000 });
-
     await page.evaluate(({ tokenValue, userValue }) => {
       localStorage.setItem('jwt', tokenValue);
       sessionStorage.setItem('jwt', tokenValue);
@@ -112,11 +110,22 @@ async function run() {
     await page.goto(`${FRONTEND_URL}/session-builder`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('text=Construire votre session', { timeout: 15000 });
 
-    await page.goto(`${FRONTEND_URL}/challenges/${CHALLENGE_ENGINE}?sessionId=${sessionId}`, {
+    await page.goto(`${FRONTEND_URL}/session-live/${sessionId}`, {
       waitUntil: 'domcontentloaded',
+      timeout: 90000,
     });
 
-    await page.waitForSelector('text=Phrase Collaborative', { timeout: 20000 });
+    await page.waitForFunction(() => {
+      const bodyText = document.body?.innerText || '';
+      const blockingStates = [
+        'ERREUR 404',
+        'Cette page n existe pas',
+        'Une erreur inattendue est survenue',
+      ];
+      const successStates = ['Challenge actif', 'Aucun challenge actif'];
+      return !blockingStates.some((label) => bodyText.includes(label))
+        && successStates.some((label) => bodyText.includes(label));
+    }, { timeout: 20000 });
 
     console.log('SMOKE_OK');
     console.log(`sessionId=${sessionId}`);

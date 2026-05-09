@@ -20,11 +20,13 @@ Le reste du produit continue de fonctionner sur le frontend legacy (port 3000).
 
 ## Configuration
 
-Copier .env.local.example vers .env.local et ajuster si besoin:
+Copier .env.example vers .env.local et ajuster si besoin:
 
 - NEXT_PUBLIC_API_BASE=http://localhost:3000/api
 - NEXT_PUBLIC_LEGACY_BASE=http://localhost:3000
 - LEGACY_BASE_CANDIDATES=http://localhost:3001 (optionnel, liste separee par virgules)
+- SMOKE_FRONTEND_URL=http://localhost:3100
+- SMOKE_BACKEND_URL=http://localhost:3000
 
 ## Scripts
 

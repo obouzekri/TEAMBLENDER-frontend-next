@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
@@ -48,6 +48,7 @@ export default function AdminClient() {
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
   const [busySaveKey, setBusySaveKey] = useState('');
+  const noticeTimer = useRef(null);
   const [userQuery, setUserQuery] = useState('');
   const [sessionQuery, setSessionQuery] = useState('');
   const [challengeQuery, setChallengeQuery] = useState('');
@@ -143,7 +144,7 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      setNotice(approval_status === 'approved' ? 'Compte valide avec succes.' : 'Compte refuse avec succes.');
+      showNotice(approval_status === 'approved' ? 'Compte valide avec succes.' : 'Compte refuse avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur pendant la mise a jour.');
     } finally {
@@ -190,7 +191,7 @@ export default function AdminClient() {
       setNewUser({ first_name: '', last_name: '', email: '', password: '', role: 'user' });
       setNewUserMessage('Utilisateur cree avec succes.');
       await loadAll();
-      setNotice('Utilisateur cree avec succes.');
+      showNotice('Utilisateur cree avec succes.');
     } catch {
       setNewUserMessage('Erreur reseau pendant la creation.');
     }
@@ -224,7 +225,7 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      setNotice('Utilisateur supprime avec succes.');
+      showNotice('Utilisateur supprime avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression utilisateur.');
     } finally {
@@ -287,7 +288,7 @@ export default function AdminClient() {
 
       setEditingUser(null);
       await loadAll();
-      setNotice('Utilisateur mis a jour avec succes.');
+      showNotice('Utilisateur mis a jour avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la mise a jour utilisateur.');
     } finally {
@@ -323,7 +324,7 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      setNotice('Session supprimee avec succes.');
+      showNotice('Session supprimee avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression session.');
     } finally {
@@ -394,7 +395,7 @@ export default function AdminClient() {
 
       setEditingSession(null);
       await loadAll();
-      setNotice('Session mise a jour avec succes.');
+      showNotice('Session mise a jour avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la mise a jour session.');
     } finally {
@@ -426,7 +427,7 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      setNotice('Challenge supprime avec succes.');
+      showNotice('Challenge supprime avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression challenge.');
     } finally {
@@ -492,7 +493,7 @@ export default function AdminClient() {
 
       setEditingChallenge(null);
       await loadAll();
-      setNotice('Challenge mis a jour avec succes.');
+      showNotice('Challenge mis a jour avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la mise a jour challenge.');
     } finally {
@@ -506,6 +507,14 @@ export default function AdminClient() {
     sessionStorage.removeItem('currentUser');
     window.location.replace('/login');
   }
+
+  function showNotice(msg) {
+    setNotice(msg);
+    clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setNotice(''), 4000);
+  }
+
+  useEffect(() => () => clearTimeout(noticeTimer.current), []);
 
   const stats = useMemo(
     () => ({
@@ -579,14 +588,16 @@ export default function AdminClient() {
         </section>
 
         {error ? (
-          <section className="feature-card">
+          <section className="feature-card admin-banner">
             <p className="form-error">{error}</p>
+            <button type="button" className="banner-close" onClick={() => setError('')} aria-label="Fermer">✕</button>
           </section>
         ) : null}
 
         {notice ? (
-          <section className="feature-card">
+          <section className="feature-card admin-banner">
             <p className="notice-ok">{notice}</p>
+            <button type="button" className="banner-close" onClick={() => setNotice('')} aria-label="Fermer">✕</button>
           </section>
         ) : null}
 
@@ -600,7 +611,7 @@ export default function AdminClient() {
 
         <section className="feature-card admin-grid">
           <div className="admin-column">
-            <h2>Utilisateurs actifs</h2>
+            <h2>Utilisateurs actifs{users.length > 0 ? <span className="list-count"> ({filteredUsers.length}/{users.length})</span> : null}</h2>
             <input
               type="search"
               className="inline-input"
@@ -609,6 +620,7 @@ export default function AdminClient() {
               onChange={(e) => setUserQuery(e.target.value)}
             />
             <ul className="session-list">
+              {filteredUsers.length === 0 ? <li className="list-empty">Aucun utilisateur ne correspond.</li> : null}
               {filteredUsers.slice(0, 10).map((u) => (
                 <li key={String(u.id)} className="session-item">
                   <div>
@@ -749,7 +761,7 @@ export default function AdminClient() {
 
         <section className="feature-card admin-grid">
           <div className="admin-column">
-            <h2>Dernieres sessions</h2>
+            <h2>Sessions{sessions.length > 0 ? <span className="list-count"> ({filteredSessions.length}/{sessions.length})</span> : null}</h2>
             <input
               type="search"
               className="inline-input"
@@ -758,6 +770,7 @@ export default function AdminClient() {
               onChange={(e) => setSessionQuery(e.target.value)}
             />
             <ul className="session-list">
+              {filteredSessions.length === 0 ? <li className="list-empty">Aucune session ne correspond.</li> : null}
               {filteredSessions.slice(0, 8).map((s) => (
                 <li key={String(s.id)} className="session-item">
                   <div>
@@ -810,7 +823,12 @@ export default function AdminClient() {
                 </label>
                 <label>
                   Modalite
-                  <input value={editingSession.modality} onChange={(e) => setEditingSession((p) => ({ ...p, modality: e.target.value }))} placeholder="remote|hybrid|in-person" />
+                  <select value={editingSession.modality} onChange={(e) => setEditingSession((p) => ({ ...p, modality: e.target.value }))}>
+                    <option value="">Non definie</option>
+                    <option value="remote">A distance</option>
+                    <option value="hybrid">Hybride</option>
+                    <option value="in-person">Presentiel</option>
+                  </select>
                 </label>
                 <label>
                   Date
@@ -831,7 +849,7 @@ export default function AdminClient() {
           </div>
 
           <div className="admin-column">
-            <h2>Catalogue challenges</h2>
+            <h2>Challenges{challenges.length > 0 ? <span className="list-count"> ({filteredChallenges.length}/{challenges.length})</span> : null}</h2>
             <input
               type="search"
               className="inline-input"
@@ -840,6 +858,7 @@ export default function AdminClient() {
               onChange={(e) => setChallengeQuery(e.target.value)}
             />
             <ul className="session-list">
+              {filteredChallenges.length === 0 ? <li className="list-empty">Aucun challenge ne correspond.</li> : null}
               {filteredChallenges.slice(0, 8).map((c) => (
                 <li key={String(c.id)} className="session-item">
                   <div>
