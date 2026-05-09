@@ -33,7 +33,7 @@ function useManagerGuard() {
     }
 
     if (user.role === 'participant') {
-      window.location.replace(toLegacy('/src/pages/participant-dashboard.html'));
+      window.location.replace('/participant');
       return;
     }
 

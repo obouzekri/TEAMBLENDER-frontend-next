@@ -27,7 +27,8 @@ const REALTIME_ENGINES = new Set([
  * - Manage auth & ownership
  */
 export default function ChallengeWrapper({ sessionId, engineKey }) {
-  const initialEngineNeedsRealtime = REALTIME_ENGINES.has(String(engineKey || '').trim());
+  const normalizedEngineKey = String(engineKey || '').trim();
+  const initialEngineNeedsRealtime = REALTIME_ENGINES.has(normalizedEngineKey);
   const { socket, connected, error: socketError } = useSocket(initialEngineNeedsRealtime);
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast } = useToast();
   
@@ -37,8 +38,7 @@ export default function ChallengeWrapper({ sessionId, engineKey }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
-  const effectiveEngineKey = runtimePayload?.engine_key || engineKey;
-  const requiresRealtime = REALTIME_ENGINES.has(String(effectiveEngineKey || '').trim());
+  const requiresRealtime = REALTIME_ENGINES.has(normalizedEngineKey);
 
   // Load session runtime configuration
   useEffect(() => {
@@ -83,6 +83,9 @@ export default function ChallengeWrapper({ sessionId, engineKey }) {
       })
       .then((payload) => {
         if (!cancelled) {
+          if (payload?.engine_key && String(payload.engine_key).trim() !== normalizedEngineKey) {
+            showErrorToast(`Engine actif en session (${payload.engine_key}) different de l'URL (${normalizedEngineKey}).`);
+          }
           setRuntimePayload(payload);
           setContext({
             role: payload.context?.role || 'participant',
@@ -109,7 +112,7 @@ export default function ChallengeWrapper({ sessionId, engineKey }) {
     return () => {
       cancelled = true;
     };
-  }, [sessionId, showErrorToast, showLoadingToast, removeToast]);
+  }, [sessionId, showErrorToast, showLoadingToast, removeToast, normalizedEngineKey]);
 
   // Load engine component once runtime is ready (and socket if required)
   useEffect(() => {
@@ -120,7 +123,7 @@ export default function ChallengeWrapper({ sessionId, engineKey }) {
     const loadingId = showLoadingToast('Initialisation du challenge...');
 
     mountRuntimeChallenge(
-      runtimePayload.engine_key || engineKey,
+      normalizedEngineKey,
       runtimePayload,
       socket,
       context
@@ -147,7 +150,7 @@ export default function ChallengeWrapper({ sessionId, engineKey }) {
     runtimePayload,
     socket,
     connected,
-    engineKey,
+    normalizedEngineKey,
     context,
     requiresRealtime,
     showErrorToast,
