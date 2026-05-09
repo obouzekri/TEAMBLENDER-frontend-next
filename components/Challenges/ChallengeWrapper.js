@@ -26,7 +26,7 @@ const REALTIME_ENGINES = new Set([
  * - Handle errors and loading states
  * - Manage auth & ownership
  */
-export default function ChallengeWrapper({ sessionId, engineKey }) {
+export default function ChallengeWrapper({ sessionId, engineKey, noNav = false }) {
   const normalizedEngineKey = String(engineKey || '').trim();
   const initialEngineNeedsRealtime = REALTIME_ENGINES.has(normalizedEngineKey);
   const { socket, connected, error: socketError } = useSocket(initialEngineNeedsRealtime);
@@ -250,15 +250,23 @@ export default function ChallengeWrapper({ sessionId, engineKey }) {
   // Render: Challenge UI
   const { component: EngineComponent, props } = engineComponent;
 
+  function handleLogout() {
+    localStorage.removeItem('jwt');
+    sessionStorage.removeItem('jwt');
+    sessionStorage.removeItem('currentUser');
+    window.location.replace('/login');
+  }
+
   return (
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      <AppNav userLabel={user?.first_name || user?.email || 'User'} onLogout={() => {
-        localStorage.removeItem('jwt');
-        sessionStorage.removeItem('jwt');
-        sessionStorage.removeItem('currentUser');
-        window.location.replace('/login');
-      }} />
+      {!noNav && (
+        <AppNav
+          userLabel={user?.first_name || user?.email || 'User'}
+          onLogout={handleLogout}
+          role={user?.role}
+        />
+      )}
       <div className={styles.challengeContainer}>
         <EngineComponent {...props} />
       </div>

@@ -193,7 +193,7 @@ export default function SessionLiveClient() {
 
         {activeEngineKey ? (
           <section className="feature-card" style={{ padding: 0 }}>
-            <ChallengeWrapper sessionId={sessionId} engineKey={activeEngineKey} />
+            <ChallengeWrapper sessionId={sessionId} engineKey={activeEngineKey} noNav />
           </section>
         ) : (
           <section className="feature-card">
