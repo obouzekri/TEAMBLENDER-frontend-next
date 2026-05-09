@@ -12,7 +12,6 @@ import useToast from '@/lib/useToast';
 import useSessionBuilder from '@/lib/useSessionBuilder';
 import { fetchWithRetry } from '@/lib/api';
 import { getApiUrl } from '@/lib/config';
-import { getFacilitatorLaunchPathCandidates, toLegacy } from '@/lib/legacy';
 import styles from './SessionBuilder.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
 
@@ -182,30 +181,6 @@ export default function SessionBuilder() {
     toIntegerId,
   ]);
 
-  const resolveLegacyLaunchUrl = useCallback(async () => {
-    const paths = getFacilitatorLaunchPathCandidates(sessionId);
-    const fallbackUrl = toLegacy(paths[0]);
-
-    try {
-      const response = await fetch('/api/legacy/resolve', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ paths }),
-      });
-
-      if (!response.ok) {
-        return fallbackUrl;
-      }
-
-      const payload = await response.json().catch(() => ({}));
-      return String(payload?.resolvedUrl || fallbackUrl);
-    } catch {
-      return fallbackUrl;
-    }
-  }, [sessionId]);
-
   const handleLaunchSession = useCallback(async () => {
     if (!selectedChallenges.length || isLaunching) {
       return;
@@ -223,8 +198,13 @@ export default function SessionBuilder() {
       await persistSelectionToBackend();
       removeToast(loadingId);
 
-      const resolvedUrl = await resolveLegacyLaunchUrl();
-      window.location.replace(resolvedUrl);
+      // Redirect to Next.js live session view (replaces legacy facilitator-session)
+      const targetId = sessionId || sessionStorage.getItem('sessionId') || '';
+      if (targetId) {
+        window.location.replace(`/session-live/${encodeURIComponent(targetId)}`);
+      } else {
+        window.location.replace('/home');
+      }
     } catch (error) {
       removeToast(loadingId);
       showErrorToast(error.message || 'Impossible de lancer la session pour le moment.');
@@ -233,9 +213,9 @@ export default function SessionBuilder() {
   }, [
     isLaunching,
     persistSelectionToBackend,
-    resolveLegacyLaunchUrl,
     removeToast,
     selectedChallenges,
+    sessionId,
     showErrorToast,
     showLoadingToast,
   ]);

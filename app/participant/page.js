@@ -131,7 +131,7 @@ export default function ParticipantPage() {
 
   return (
     <>
-      <AppNav userLabel={participantLabel} onLogout={logout} />
+      <AppNav userLabel={participantLabel} onLogout={logout} role="participant" />
       <main className="shell app-home">
         <section className="hero">
           <p className="eyebrow">ESPACE PARTICIPANT</p>
