@@ -139,13 +139,17 @@ export default function ParticipantPage() {
         <section className="hero">
           <p className="eyebrow">ESPACE PARTICIPANT</p>
           <h1>Bienvenue {participantLabel}</h1>
-          <p>Rejoignez la session et ouvrez le challenge actif depuis cette page.</p>
+          <p>Votre session est en cours. Le challenge actif s'affichera ici automatiquement.</p>
           <div className="hero-actions">
             {sessionId && challengeLink ? (
               <Link className="btn-primary" href={challengeLink}>Rejoindre le challenge actif</Link>
+            ) : sessionId && !joining && !runtimeError ? (
+              <button type="button" className="btn-primary" disabled>
+                En attente d&apos;un challenge...
+              </button>
             ) : sessionId ? (
               <button type="button" className="btn-primary" disabled>
-                {joining ? 'Chargement du challenge...' : 'Challenge indisponible'}
+                {joining ? 'Chargement...' : 'Challenge indisponible'}
               </button>
             ) : (
               <Link className="btn-primary" href="/login">Revenir a la connexion</Link>
@@ -158,7 +162,9 @@ export default function ParticipantPage() {
           <h2>Informations de session</h2>
           <p>Session cible : <strong>{sessionId || 'Aucune session détectée dans l URL'}</strong></p>
           {runtime?.engine_key ? (
-            <p>Challenge actif : <strong>{runtime.engine_key}</strong></p>
+            <p>Challenge actif : <strong>{runtime.challenge_name || runtime.engine_key}</strong></p>
+          ) : sessionId && !joining ? (
+            <p style={{ color: 'var(--muted)' }}>Aucun challenge en cours — le facilitateur n&apos;a pas encore lancé.</p>
           ) : null}
           {joining && !runtime ? <p style={{ color: 'var(--muted)' }}>Chargement du challenge actif...</p> : null}
           {runtimeError ? <p style={{ color: 'var(--danger, #ef4444)' }}>Erreur : {runtimeError}</p> : null}
