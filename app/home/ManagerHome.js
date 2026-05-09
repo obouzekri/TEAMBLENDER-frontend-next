@@ -32,11 +32,6 @@ function useManagerGuard() {
       return;
     }
 
-    if (user.role === 'admin') {
-      window.location.replace(toLegacy('/src/ui/admin/admin.html'));
-      return;
-    }
-
     if (user.role === 'participant') {
       window.location.replace(toLegacy('/src/pages/participant-dashboard.html'));
       return;

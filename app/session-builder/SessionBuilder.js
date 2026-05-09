@@ -34,11 +34,6 @@ function useManagerGuard() {
       return;
     }
 
-    if (user.role === 'admin') {
-      window.location.replace(toLegacy('/src/ui/admin/admin.html'));
-      return;
-    }
-
     if (user.role === 'participant') {
       window.location.replace(toLegacy('/src/pages/participant-dashboard.html'));
       return;
@@ -245,9 +240,9 @@ export default function SessionBuilder() {
     showLoadingToast,
   ]);
 
-  // Load existing session if sessionId is provided and allChallenges are available
+  // Load existing session if sessionId is provided and challenge catalog is available
   useEffect(() => {
-    if (!sessionId || !guard.allowed || allChallenges.length === 0 || sessionChallengesLoaded) {
+    if (!sessionId || !guard.allowed || filteredChallenges.length === 0 || sessionChallengesLoaded) {
       return;
     }
 
@@ -291,7 +286,7 @@ export default function SessionBuilder() {
     return () => {
       cancelled = true;
     };
-  }, [sessionId, guard.allowed, allChallenges, getAuthToken, sessionChallengesLoaded, selectChallenge, updateChallengeConfig]);
+  }, [sessionId, guard.allowed, filteredChallenges, getAuthToken, sessionChallengesLoaded, selectChallenge, updateChallengeConfig]);
 
   // Charger les challenges au mount
   useEffect(() => {
