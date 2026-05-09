@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
@@ -23,6 +23,7 @@ export default function ParticipantPage() {
   const [runtimeError, setRuntimeError] = useState('');
   const [joining, setJoining] = useState(false);
   const [sessionInput, setSessionInput] = useState('');
+  const pollRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -51,43 +52,45 @@ export default function ParticipantPage() {
   useEffect(() => {
     if (!ready || !sessionId) return;
 
-    let cancelled = false;
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     if (!token) return;
 
-    setJoining(true);
-    setRuntimeError('');
+    let cancelled = false;
 
-    fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/runtime-challenge`), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(async (res) => {
+    async function fetchRuntime() {
+      try {
+        const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/runtime-challenge`), {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        });
         if (!res.ok) {
           const text = await res.text();
           throw new Error(text || `Erreur ${res.status}`);
         }
-        return res.json();
-      })
-      .then((payload) => {
+        const payload = await res.json();
         if (!cancelled) {
           setRuntime(payload || null);
+          setRuntimeError('');
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!cancelled) {
           setRuntime(null);
           setRuntimeError(err?.message || 'Impossible de charger le challenge actif.');
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setJoining(false);
-      });
+      }
+    }
+
+    setJoining(true);
+    setRuntimeError('');
+    fetchRuntime();
+
+    // Poll every 5s so participant sees new challenge when manager advances
+    pollRef.current = setInterval(fetchRuntime, 5000);
 
     return () => {
       cancelled = true;
+      clearInterval(pollRef.current);
     };
   }, [ready, sessionId]);
 
@@ -153,9 +156,12 @@ export default function ParticipantPage() {
 
         <section className="feature-card">
           <h2>Informations de session</h2>
-          <p>Session cible: {sessionId || 'Aucune session detectee dans l URL'}</p>
-          {runtime?.engine_key ? <p>Challenge actif: {runtime.engine_key}</p> : null}
-          {runtimeError ? <p>Erreur runtime: {runtimeError}</p> : null}
+          <p>Session cible : <strong>{sessionId || 'Aucune session détectée dans l URL'}</strong></p>
+          {runtime?.engine_key ? (
+            <p>Challenge actif : <strong>{runtime.engine_key}</strong></p>
+          ) : null}
+          {joining && !runtime ? <p style={{ color: 'var(--muted)' }}>Chargement du challenge actif...</p> : null}
+          {runtimeError ? <p style={{ color: 'var(--danger, #ef4444)' }}>Erreur : {runtimeError}</p> : null}
           <form onSubmit={openSessionById} className="auth-form" style={{ marginTop: '1rem' }}>
             <label>
               Ouvrir une session par ID
