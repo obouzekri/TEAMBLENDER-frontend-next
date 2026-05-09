@@ -35,6 +35,7 @@ export default function AdminClient() {
   const [challenges, setChallenges] = useState([]);
 
   const [busyApprovalId, setBusyApprovalId] = useState(null);
+  const [busyDeleteKey, setBusyDeleteKey] = useState('');
 
   const [newUser, setNewUser] = useState({
     first_name: '',
@@ -164,6 +165,102 @@ export default function AdminClient() {
     }
   }
 
+  async function handleDeleteUser(targetUser) {
+    if (!token || !targetUser?.id) return;
+    if (String(targetUser.id) === String(user?.id)) {
+      setError('Vous ne pouvez pas supprimer votre propre compte admin.');
+      return;
+    }
+
+    const accepted = window.confirm(`Supprimer l'utilisateur ${targetUser.email || targetUser.id} ?`);
+    if (!accepted) return;
+
+    const key = `user:${targetUser.id}`;
+    setBusyDeleteKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/users/${targetUser.id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || `Suppression impossible (${response.status})`);
+      }
+
+      await loadAll();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de la suppression utilisateur.');
+    } finally {
+      setBusyDeleteKey('');
+    }
+  }
+
+  async function handleDeleteSession(sessionItem) {
+    if (!token || !sessionItem?.id) return;
+    const accepted = window.confirm(`Supprimer la session ${sessionItem.name || sessionItem.id} ?`);
+    if (!accepted) return;
+
+    const key = `session:${sessionItem.id}`;
+    setBusyDeleteKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/sessions/${sessionItem.id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(body || `Suppression impossible (${response.status})`);
+      }
+
+      await loadAll();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de la suppression session.');
+    } finally {
+      setBusyDeleteKey('');
+    }
+  }
+
+  async function handleDeleteChallenge(challengeItem) {
+    if (!token || !challengeItem?.id) return;
+    const label = challengeItem.name || challengeItem.title || challengeItem.id;
+    const accepted = window.confirm(`Supprimer le challenge ${label} ?`);
+    if (!accepted) return;
+
+    const key = `challenge:${challengeItem.id}`;
+    setBusyDeleteKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/challenges/${challengeItem.id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(body || `Suppression impossible (${response.status})`);
+      }
+
+      await loadAll();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de la suppression challenge.');
+    } finally {
+      setBusyDeleteKey('');
+    }
+  }
+
   function logout() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
@@ -221,6 +318,28 @@ export default function AdminClient() {
         </section>
 
         <section className="feature-card admin-grid">
+          <div className="admin-column">
+            <h2>Utilisateurs actifs</h2>
+            <ul className="session-list">
+              {users.slice(0, 10).map((u) => (
+                <li key={String(u.id)} className="session-item">
+                  <div>
+                    <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
+                    <p className="session-meta">{u.email} · {u.role || 'user'}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => handleDeleteUser(u)}
+                    disabled={busyDeleteKey === `user:${u.id}` || String(u.id) === String(user?.id)}
+                  >
+                    {busyDeleteKey === `user:${u.id}` ? 'Suppression...' : 'Supprimer'}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <div className="admin-column">
             <h2>Demandes en attente</h2>
             {pendingUsers.length === 0 ? <p>Aucune demande en attente.</p> : null}
@@ -294,6 +413,14 @@ export default function AdminClient() {
                     <p className="session-title">{s.name || `Session #${s.id}`}</p>
                     <p className="session-meta">{s.status || 'preparee'}</p>
                   </div>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => handleDeleteSession(s)}
+                    disabled={busyDeleteKey === `session:${s.id}`}
+                  >
+                    {busyDeleteKey === `session:${s.id}` ? 'Suppression...' : 'Supprimer'}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -308,6 +435,14 @@ export default function AdminClient() {
                     <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
                     <p className="session-meta">{c.engine_key || c.type || 'sans engine'}</p>
                   </div>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => handleDeleteChallenge(c)}
+                    disabled={busyDeleteKey === `challenge:${c.id}`}
+                  >
+                    {busyDeleteKey === `challenge:${c.id}` ? 'Suppression...' : 'Supprimer'}
+                  </button>
                 </li>
               ))}
             </ul>

@@ -128,7 +128,9 @@ export default function SessionLiveClient() {
     ? challenges.find((c) => c.id === session.active_challenge_id) || null
     : challenges[0] || null;
   const activeEngineKey = activeChallenge?.engine_key || '';
-  const memberCount = Array.isArray(session?.members) ? session.members.length : 0;
+  const assignedParticipantCount = Array.isArray(session?.assigned_participants) ? session.assigned_participants.length : 0;
+  const participantCount = Array.isArray(session?.participants) ? session.participants.length : 0;
+  const memberCount = assignedParticipantCount || participantCount || (Array.isArray(session?.members) ? session.members.length : 0);
   const userLabel = user ? (user.first_name || user.email || 'Manager') : 'Manager';
 
   if (loading) {

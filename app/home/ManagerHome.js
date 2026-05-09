@@ -54,9 +54,10 @@ async function fetchSessions(token) {
 
 export default function ManagerHome() {
   const guard = useManagerGuard();
-  const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast } = useToast();
+  const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
   const [sessions, setSessions] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
+  const [deletingSessionId, setDeletingSessionId] = useState(null);
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
 
@@ -103,6 +104,36 @@ export default function ManagerHome() {
     sessionStorage.removeItem('currentUser');
     sessionStorage.removeItem('selectedChallenges');
     window.location.replace('/login');
+  }
+
+  async function handleDeleteSession(session) {
+    if (!guard.token || !session?.id) return;
+    const label = session.name || `Session #${session.id}`;
+    const accepted = window.confirm(`Supprimer ${label} ? Cette action est irreversible.`);
+    if (!accepted) return;
+
+    setDeletingSessionId(session.id);
+    try {
+      const response = await fetch(getApiUrl(`/sessions/${encodeURIComponent(session.id)}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${guard.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(body || `Erreur ${response.status}`);
+      }
+
+      setSessions((prev) => prev.filter((item) => String(item.id) !== String(session.id)));
+      showSuccessToast('Session supprimee.');
+    } catch (err) {
+      showErrorToast(err.message || 'Suppression impossible.');
+    } finally {
+      setDeletingSessionId(null);
+    }
   }
 
   if (guard.loading) {
@@ -199,6 +230,15 @@ export default function ManagerHome() {
                   >
                     {session.status === 'en_cours' ? 'Reprendre' : session.status === 'terminee' ? 'Résultats' : 'Ouvrir'}
                   </Link>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => handleDeleteSession(session)}
+                    disabled={deletingSessionId === session.id}
+                    style={{ minWidth: '96px' }}
+                  >
+                    {deletingSessionId === session.id ? 'Suppression...' : 'Supprimer'}
+                  </button>
                 </li>
               ))}
             </ul>
