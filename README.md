@@ -41,3 +41,16 @@ Copier .env.local.example vers .env.local et ajuster si besoin:
 - Les redirections apres login pointent vers les routes Next.js selon le role.
 - Le home manager Next utilise un guard (manager/admin) et couvre le pilotage des sessions.
 - Le panel admin Next.js est disponible en V1 pour les operations principales.
+
+## Runbook go-live (checklist)
+
+1. Preparer les variables de production (frontend + backend).
+2. Lancer les smoke tests locaux: npm run test:smoke.
+3. Build de verification: npm run build.
+4. Deployer frontend-next sur Vercel (branche main).
+5. Configurer NEXT_PUBLIC_API_BASE vers l'API de production.
+6. Verifier les parcours critiques post-deploiement:
+	- manager (login -> home -> session-builder -> session-live -> results)
+	- participant (join -> challenge actif)
+	- admin (/admin)
+7. Geler le legacy frontend pour nouvelles features (patch critique uniquement).

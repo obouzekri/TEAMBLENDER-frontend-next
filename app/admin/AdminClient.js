@@ -28,6 +28,7 @@ export default function AdminClient() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   const [users, setUsers] = useState([]);
   const [pendingUsers, setPendingUsers] = useState([]);
@@ -37,6 +38,9 @@ export default function AdminClient() {
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
   const [busySaveKey, setBusySaveKey] = useState('');
+  const [userQuery, setUserQuery] = useState('');
+  const [sessionQuery, setSessionQuery] = useState('');
+  const [challengeQuery, setChallengeQuery] = useState('');
 
   const [editingUser, setEditingUser] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
@@ -129,6 +133,7 @@ export default function AdminClient() {
       }
 
       await loadAll();
+      setNotice(approval_status === 'approved' ? 'Compte valide avec succes.' : 'Compte refuse avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur pendant la mise a jour.');
     } finally {
@@ -165,6 +170,7 @@ export default function AdminClient() {
       setNewUser({ first_name: '', last_name: '', email: '', password: '', role: 'user' });
       setNewUserMessage('Utilisateur cree avec succes.');
       await loadAll();
+      setNotice('Utilisateur cree avec succes.');
     } catch {
       setNewUserMessage('Erreur reseau pendant la creation.');
     }
@@ -198,6 +204,7 @@ export default function AdminClient() {
       }
 
       await loadAll();
+      setNotice('Utilisateur supprime avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression utilisateur.');
     } finally {
@@ -250,6 +257,7 @@ export default function AdminClient() {
 
       setEditingUser(null);
       await loadAll();
+      setNotice('Utilisateur mis a jour avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la mise a jour utilisateur.');
     } finally {
@@ -280,6 +288,7 @@ export default function AdminClient() {
       }
 
       await loadAll();
+      setNotice('Session supprimee avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression session.');
     } finally {
@@ -330,6 +339,7 @@ export default function AdminClient() {
 
       setEditingSession(null);
       await loadAll();
+      setNotice('Session mise a jour avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la mise a jour session.');
     } finally {
@@ -361,6 +371,7 @@ export default function AdminClient() {
       }
 
       await loadAll();
+      setNotice('Challenge supprime avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression challenge.');
     } finally {
@@ -411,6 +422,7 @@ export default function AdminClient() {
 
       setEditingChallenge(null);
       await loadAll();
+      setNotice('Challenge mis a jour avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la mise a jour challenge.');
     } finally {
@@ -435,6 +447,42 @@ export default function AdminClient() {
     }),
     [users, pendingUsers, sessions, challenges]
   );
+
+  const filteredUsers = useMemo(() => {
+    const query = userQuery.trim().toLowerCase();
+    if (!query) return users;
+    return users.filter((u) => {
+      const haystack = [u.first_name, u.last_name, u.email, u.role, u.job_title, u.department]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [users, userQuery]);
+
+  const filteredSessions = useMemo(() => {
+    const query = sessionQuery.trim().toLowerCase();
+    if (!query) return sessions;
+    return sessions.filter((s) => {
+      const haystack = [s.name, s.status, s.format, s.modality]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [sessions, sessionQuery]);
+
+  const filteredChallenges = useMemo(() => {
+    const query = challengeQuery.trim().toLowerCase();
+    if (!query) return challenges;
+    return challenges.filter((c) => {
+      const haystack = [c.name, c.title, c.engine_key, c.type, c.status]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [challenges, challengeQuery]);
 
   if (loading) {
     return (
@@ -466,6 +514,12 @@ export default function AdminClient() {
           </section>
         ) : null}
 
+        {notice ? (
+          <section className="feature-card">
+            <p className="notice-ok">{notice}</p>
+          </section>
+        ) : null}
+
         <section className="cards-grid" aria-label="Statistiques admin">
           <article className="feature-card"><h2>{stats.users}</h2><p>Utilisateurs</p></article>
           <article className="feature-card"><h2>{stats.pending}</h2><p>Demandes en attente</p></article>
@@ -477,8 +531,15 @@ export default function AdminClient() {
         <section className="feature-card admin-grid">
           <div className="admin-column">
             <h2>Utilisateurs actifs</h2>
+            <input
+              type="search"
+              className="inline-input"
+              placeholder="Rechercher un utilisateur..."
+              value={userQuery}
+              onChange={(e) => setUserQuery(e.target.value)}
+            />
             <ul className="session-list">
-              {users.slice(0, 10).map((u) => (
+              {filteredUsers.slice(0, 10).map((u) => (
                 <li key={String(u.id)} className="session-item">
                   <div>
                     <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
@@ -617,8 +678,15 @@ export default function AdminClient() {
         <section className="feature-card admin-grid">
           <div className="admin-column">
             <h2>Dernieres sessions</h2>
+            <input
+              type="search"
+              className="inline-input"
+              placeholder="Rechercher une session..."
+              value={sessionQuery}
+              onChange={(e) => setSessionQuery(e.target.value)}
+            />
             <ul className="session-list">
-              {sessions.slice(0, 8).map((s) => (
+              {filteredSessions.slice(0, 8).map((s) => (
                 <li key={String(s.id)} className="session-item">
                   <div>
                     <p className="session-title">{s.name || `Session #${s.id}`}</p>
@@ -690,8 +758,15 @@ export default function AdminClient() {
 
           <div className="admin-column">
             <h2>Catalogue challenges</h2>
+            <input
+              type="search"
+              className="inline-input"
+              placeholder="Rechercher un challenge..."
+              value={challengeQuery}
+              onChange={(e) => setChallengeQuery(e.target.value)}
+            />
             <ul className="session-list">
-              {challenges.slice(0, 8).map((c) => (
+              {filteredChallenges.slice(0, 8).map((c) => (
                 <li key={String(c.id)} className="session-item">
                   <div>
                     <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>

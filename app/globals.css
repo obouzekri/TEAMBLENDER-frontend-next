@@ -247,6 +247,27 @@ a {
   font-weight: 600;
 }
 
+.notice-ok {
+  margin: 0;
+  color: #116329;
+  font-weight: 600;
+}
+
+.filters-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.inline-input {
+  width: 100%;
+  padding: 0.62rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  background: #fff;
+}
+
 .success-box {
   margin-top: 0.9rem;
   display: grid;
@@ -423,6 +444,10 @@ a {
   .session-item {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .filters-row {
+    width: 100%;
   }
 
   .app-user-box {

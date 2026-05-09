@@ -58,6 +58,9 @@ export default function ManagerHome() {
   const [sessions, setSessions] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [visibleCount, setVisibleCount] = useState(8);
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
 
@@ -68,6 +71,22 @@ export default function ManagerHome() {
     preparee: sessions.filter((s) => s.status === 'preparee').length,
     terminee: sessions.filter((s) => s.status === 'terminee').length,
   }), [sessions]);
+
+  const filteredSessions = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return sessions.filter((session) => {
+      const statusOk = statusFilter === 'all' || session.status === statusFilter;
+      if (!statusOk) return false;
+      if (!query) return true;
+      const haystack = [session.name, session.status, session.format, session.modality]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [sessions, searchTerm, statusFilter]);
+
+  const visibleSessions = useMemo(() => filteredSessions.slice(0, visibleCount), [filteredSessions, visibleCount]);
 
   useEffect(() => {
     if (!guard.allowed || !guard.token) return;
@@ -198,6 +217,32 @@ export default function ManagerHome() {
             <Link className="btn-secondary" href="/session-builder">Voir le builder</Link>
           </div>
 
+          <div className="filters-row">
+            <input
+              type="search"
+              className="inline-input"
+              placeholder="Rechercher une session..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setVisibleCount(8);
+              }}
+            />
+            <select
+              className="inline-input"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setVisibleCount(8);
+              }}
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="en_cours">En cours</option>
+              <option value="preparee">En preparation</option>
+              <option value="terminee">Terminee</option>
+            </select>
+          </div>
+
           {loadingSessions ? (
             <div className="session-skeletons">
               {[...Array(3)].map((_, i) => (
@@ -206,13 +251,13 @@ export default function ManagerHome() {
             </div>
           ) : null}
 
-          {!loadingSessions && sessions.length === 0 ? (
+          {!loadingSessions && filteredSessions.length === 0 ? (
             <p>Aucune session trouvee pour le moment.</p>
           ) : null}
 
-          {!loadingSessions && sessions.length > 0 ? (
+          {!loadingSessions && filteredSessions.length > 0 ? (
             <ul className="session-list">
-              {sessions.slice(0, 8).map((session) => (
+              {visibleSessions.map((session) => (
                 <li key={String(session.id)} className="session-item">
                   <div>
                     <p className="session-title">{session.name || `Session #${session.id}`}</p>
@@ -242,6 +287,26 @@ export default function ManagerHome() {
                 </li>
               ))}
             </ul>
+          ) : null}
+
+          {!loadingSessions && filteredSessions.length > visibleCount ? (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setVisibleCount((prev) => prev + 8)}
+            >
+              Afficher plus
+            </button>
+          ) : null}
+
+          {!loadingSessions && filteredSessions.length > 8 && visibleCount > 8 ? (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setVisibleCount(8)}
+            >
+              Replier la liste
+            </button>
           ) : null}
         </section>
 
