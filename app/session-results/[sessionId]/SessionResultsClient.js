@@ -159,7 +159,7 @@ export default function SessionResultsClient() {
           <p className="eyebrow">RÉSULTATS DE SESSION</p>
           <h1>{session?.name || `Session ${sessionId}`}</h1>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-            {session?.status && <span className="eyebrow">Statut : {session.status}</span>}
+            {session?.status && <span className="eyebrow">Statut : {{ en_cours: 'En cours', preparee: 'En préparation', terminee: 'Terminée' }[session.status] || session.status}</span>}
             {session?.session_date && (
               <span className="eyebrow">Date : {new Date(session.session_date).toLocaleDateString('fr-FR')}</span>
             )}

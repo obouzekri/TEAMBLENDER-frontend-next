@@ -165,7 +165,7 @@ export default function SessionLiveClient() {
             {activeChallenge && (
               <span className="eyebrow">Challenge actif : {activeChallenge.name || activeEngineKey}</span>
             )}
-            {session?.status && <span className="eyebrow">Statut : {session.status}</span>}
+            {session?.status && <span className="eyebrow">Statut : {{ en_cours: 'En cours', preparee: 'En préparation', terminee: 'Terminée' }[session.status] || session.status}</span>}
           </div>
           <div className="hero-actions" style={{ marginTop: '1.5rem' }}>
             <button

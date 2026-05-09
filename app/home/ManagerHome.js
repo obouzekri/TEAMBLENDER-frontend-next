@@ -60,6 +60,8 @@ export default function ManagerHome() {
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
 
+  const STATUS_LABEL = { en_cours: 'En cours', preparee: 'En préparation', terminee: 'Terminée' };
+
   const sessionStats = useMemo(() => ({
     enCours: sessions.filter((s) => s.status === 'en_cours').length,
     preparee: sessions.filter((s) => s.status === 'preparee').length,
@@ -180,7 +182,7 @@ export default function ManagerHome() {
                 <li key={String(session.id)} className="session-item">
                   <div>
                     <p className="session-title">{session.name || `Session #${session.id}`}</p>
-                    <p className="session-meta">Statut: {session.status || 'preparee'}</p>
+                    <p className="session-meta">{STATUS_LABEL[session.status] || session.status || 'En préparation'}</p>
                   </div>
                   <Link
                     className="btn-mini"
