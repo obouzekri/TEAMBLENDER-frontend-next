@@ -7,7 +7,6 @@ import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
 import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import { getApiUrl } from '@/lib/config';
-import { toLegacy } from '@/lib/legacy';
 import useToast from '@/lib/useToast';
 import { fetchSessionsWithRetry } from '@/lib/api';
 
@@ -112,7 +111,7 @@ export default function ManagerHome() {
   return (
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      <AppNav userLabel={userLabel} onLogout={logout} />
+      <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
       <main className="shell app-home">
         <section className="hero">
           <p className="eyebrow">ESPACE MANAGER</p>
@@ -165,7 +164,18 @@ export default function ManagerHome() {
                     <p className="session-title">{session.name || `Session #${session.id}`}</p>
                     <p className="session-meta">Statut: {session.status || 'preparee'}</p>
                   </div>
-                  <Link className="btn-mini" href={`/session-builder?sessionId=${session.id}`}>Ouvrir</Link>
+                  <Link
+                    className="btn-mini"
+                    href={
+                      session.status === 'en_cours'
+                        ? `/session-live/${session.id}`
+                        : session.status === 'terminee'
+                          ? `/session-results/${session.id}`
+                          : `/session-builder?sessionId=${session.id}`
+                    }
+                  >
+                    {session.status === 'en_cours' ? 'Reprendre' : session.status === 'terminee' ? 'Résultats' : 'Ouvrir'}
+                  </Link>
                 </li>
               ))}
             </ul>
