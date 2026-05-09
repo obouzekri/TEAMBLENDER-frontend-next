@@ -60,6 +60,12 @@ export default function ManagerHome() {
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
 
+  const sessionStats = useMemo(() => ({
+    enCours: sessions.filter((s) => s.status === 'en_cours').length,
+    preparee: sessions.filter((s) => s.status === 'preparee').length,
+    terminee: sessions.filter((s) => s.status === 'terminee').length,
+  }), [sessions]);
+
   useEffect(() => {
     if (!guard.allowed || !guard.token) return;
 
@@ -116,25 +122,37 @@ export default function ManagerHome() {
         <section className="hero">
           <p className="eyebrow">ESPACE MANAGER</p>
           <h1>Bonjour {userLabel}</h1>
-          <p>Le parcours manager principal est maintenant disponible dans l'application Next.js.</p>
+          <p>Planifiez, lancez et analysez vos sessions de team building en quelques clics.</p>
           <div className="hero-actions">
             <Link className="btn-primary" href="/session-builder">Construire une session</Link>
             <Link className="btn-secondary" href="/session-builder">Lancer une session</Link>
           </div>
         </section>
 
-        <section className="cards-grid" aria-label="Actions manager">
+        <section className="cards-grid" aria-label="Statistiques sessions">
           <article className="feature-card">
-            <h2>Sessions</h2>
-            <p>Consultez vos sessions recemment creees et poursuivez dans le flux actuel.</p>
+            <p className="eyebrow">EN COURS</p>
+            <h2 style={{ fontSize: '2.5rem', margin: '0.25rem 0' }}>{loadingSessions ? '…' : sessionStats.enCours}</h2>
+            <p>session{sessionStats.enCours !== 1 ? 's' : ''} active{sessionStats.enCours !== 1 ? 's' : ''}</p>
+            {sessionStats.enCours > 0 && (
+              <Link className="btn-mini" href={`/session-live/${sessions.find((s) => s.status === 'en_cours')?.id}`} style={{ marginTop: '0.75rem' }}>Reprendre</Link>
+            )}
           </article>
           <article className="feature-card">
-            <h2>Migration progressive</h2>
-            <p>Le guard auth et la navigation manager sont maintenant dans Next.js.</p>
+            <p className="eyebrow">A CONFIGURER</p>
+            <h2 style={{ fontSize: '2.5rem', margin: '0.25rem 0' }}>{loadingSessions ? '…' : sessionStats.preparee}</h2>
+            <p>session{sessionStats.preparee !== 1 ? 's' : ''} en preparation</p>
+            {sessionStats.preparee > 0 && (
+              <Link className="btn-mini" href="/session-builder" style={{ marginTop: '0.75rem' }}>Continuer</Link>
+            )}
           </article>
           <article className="feature-card">
-            <h2>Zero regression</h2>
-            <p>Les parcours live/challenges restent sur le socle vanilla en production.</p>
+            <p className="eyebrow">TERMINEES</p>
+            <h2 style={{ fontSize: '2.5rem', margin: '0.25rem 0' }}>{loadingSessions ? '…' : sessionStats.terminee}</h2>
+            <p>session{sessionStats.terminee !== 1 ? 's' : ''} cloturee{sessionStats.terminee !== 1 ? 's' : ''}</p>
+            {sessionStats.terminee > 0 && (
+              <Link className="btn-mini" href={`/session-results/${sessions.find((s) => s.status === 'terminee')?.id}`} style={{ marginTop: '0.75rem' }}>Voir resultats</Link>
+            )}
           </article>
         </section>
 
@@ -183,9 +201,9 @@ export default function ManagerHome() {
         </section>
 
         <section className="feature-card">
-          <h2>Prochaine etape</h2>
-          <p>Lot 3: migration du Session Builder dans Next.js.</p>
-          <Link className="btn-secondary" href="/contact">Contacter l equipe produit</Link>
+          <h2>Nouvelle session</h2>
+          <p>Creez une session, selectionnez vos challenges et invitez vos participants en quelques minutes.</p>
+          <Link className="btn-primary" href="/session-builder">Creer une session</Link>
         </section>
       </main>
       <Footer />
