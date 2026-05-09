@@ -1,7 +1,6 @@
 "use client";
 
 import Link from 'next/link';
-import { toLegacy } from '@/lib/legacy';
 
 export default function AppNav({ userLabel, onLogout }) {
   return (
@@ -10,8 +9,7 @@ export default function AppNav({ userLabel, onLogout }) {
         <Link href="/home" className="brand">TEAMSPARK</Link>
         <nav className="nav-links" aria-label="Navigation manager">
           <Link href="/home">Home</Link>
-          <a href={toLegacy('/src/pages/session_view.html')}>Session builder</a>
-          <a href={toLegacy('/src/ui/admin/admin.html')}>Admin legacy</a>
+          <Link href="/session-builder">Session builder</Link>
         </nav>
         <div className="app-user-box">
           <span className="app-user-name">{userLabel || 'Manager'}</span>

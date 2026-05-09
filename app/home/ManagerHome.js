@@ -117,10 +117,10 @@ export default function ManagerHome() {
         <section className="hero">
           <p className="eyebrow">ESPACE MANAGER</p>
           <h1>Bonjour {userLabel}</h1>
-          <p>Ce lot migre le home manager et conserve les flux sensibles sur le frontend legacy.</p>
+          <p>Le parcours manager principal est maintenant disponible dans l'application Next.js.</p>
           <div className="hero-actions">
             <Link className="btn-primary" href="/session-builder">Construire une session</Link>
-            <a className="btn-secondary" href={toLegacy('/src/pages/facilitator_launch.html')}>Lancer une session (legacy)</a>
+            <Link className="btn-secondary" href="/session-builder">Lancer une session</Link>
           </div>
         </section>
 
@@ -142,7 +142,7 @@ export default function ManagerHome() {
         <section className="feature-card sessions-panel">
           <div className="panel-head">
             <h2>Dernieres sessions</h2>
-            <a className="btn-secondary" href={toLegacy('/src/pages/home.html')}>Voir home legacy</a>
+            <Link className="btn-secondary" href="/session-builder">Voir le builder</Link>
           </div>
 
           {loadingSessions ? (
