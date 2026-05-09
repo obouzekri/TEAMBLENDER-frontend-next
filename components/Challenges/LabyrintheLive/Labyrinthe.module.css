@@ -1,0 +1,83 @@
+.labyrinthContainer {
+	display: flex;
+	flex-direction: column;
+	min-height: 100%;
+	background: #0f172a;
+	color: #e2e8f0;
+}
+
+.hero {
+	padding: 1.25rem;
+	background: linear-gradient(135deg, #22c55e 0%, #0ea5e9 100%);
+	color: #fff;
+}
+
+.hero h1 {
+	margin: 0;
+}
+
+.hero p {
+	margin: 0.35rem 0 0;
+}
+
+.layout {
+	padding: 1rem;
+	display: grid;
+	grid-template-columns: 1.1fr 1fr;
+	gap: 0.75rem;
+}
+
+.panel {
+	background: rgba(15, 23, 42, 0.75);
+	border: 1px solid rgba(148, 163, 184, 0.35);
+	border-radius: 10px;
+	padding: 0.9rem;
+}
+
+.actions {
+	display: grid;
+	gap: 0.45rem;
+}
+
+.btnPrimary,
+.btnSecondary {
+	border: 0;
+	border-radius: 8px;
+	cursor: pointer;
+	padding: 0.55rem 0.75rem;
+	font-weight: 600;
+}
+
+.btnPrimary {
+	background: #0284c7;
+	color: #fff;
+}
+
+.btnSecondary {
+	background: #1e293b;
+	color: #e2e8f0;
+	border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.error {
+	color: #fca5a5;
+}
+
+.debug {
+	margin: 0.25rem 1rem 1rem;
+}
+
+.debug pre {
+	max-height: 220px;
+	overflow: auto;
+	border: 1px solid rgba(148, 163, 184, 0.35);
+	border-radius: 8px;
+	padding: 0.7rem;
+	background: #020617;
+}
+
+@media (max-width: 960px) {
+	.layout {
+		grid-template-columns: 1fr;
+	}
+}

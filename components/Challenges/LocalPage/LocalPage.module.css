@@ -1,0 +1,16 @@
+.localPageContainer { display: flex; flex-direction: column; min-height: 100%; }
+.hero { padding: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; }
+.hero h1 { margin: 0; }
+.placeholder { padding: 2rem; background: white; border-radius: 8px; margin: 2rem; color: #0f172a; }
+
+.link {
+	display: inline-block;
+	margin-top: 0.75rem;
+	color: #0369a1;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.link:hover {
+	text-decoration: underline;
+}

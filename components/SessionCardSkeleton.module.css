@@ -1,0 +1,87 @@
+.skeleton {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  flex: 1;
+  height: 1.5rem;
+  background: #e5e7eb;
+  border-radius: 0.375rem;
+}
+
+.badge {
+  width: 4rem;
+  height: 1.5rem;
+  background: #e5e7eb;
+  border-radius: 0.375rem;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  height: 0.75rem;
+  width: 50%;
+  background: #e5e7eb;
+  border-radius: 0.375rem;
+}
+
+.value {
+  height: 1rem;
+  background: #e5e7eb;
+  border-radius: 0.375rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.button {
+  flex: 1;
+  height: 2.5rem;
+  background: #e5e7eb;
+  border-radius: 0.375rem;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (max-width: 640px) {
+  .skeleton {
+    padding: 1rem;
+  }
+
+  .details {
+    grid-template-columns: 1fr;
+  }
+}

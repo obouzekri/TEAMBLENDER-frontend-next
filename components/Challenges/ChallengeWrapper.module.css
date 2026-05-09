@@ -1,0 +1,12 @@
+.challengeContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 60px);
+  flex: 1;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
