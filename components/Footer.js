@@ -11,8 +11,8 @@ export default function Footer() {
         <nav className="footer-links" aria-label="Liens footer">
           <Link href="/">Accueil</Link>
           <Link href="/contact">Contact</Link>
-          <a href="/mentions-legales.html">Mentions legales</a>
-          <a href="/politique-confidentialite.html">Confidentialite</a>
+          <Link href="/mentions-legales">Mentions legales</Link>
+          <Link href="/politique-confidentialite">Confidentialite</Link>
         </nav>
       </div>
     </footer>
