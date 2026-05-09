@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 export default function AppNav({ userLabel, onLogout, role }) {
   const isParticipant = role === 'participant';
+  const isAdmin = role === 'admin';
 
   return (
     <header className="top-nav">
@@ -13,6 +14,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
           <nav className="nav-links" aria-label="Navigation manager">
             <Link href="/home">Home</Link>
             <Link href="/session-builder">Session builder</Link>
+            {isAdmin && <Link href="/admin">Admin</Link>}
           </nav>
         )}
         <div className="app-user-box">

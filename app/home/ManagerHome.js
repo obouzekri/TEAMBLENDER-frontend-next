@@ -128,6 +128,9 @@ export default function ManagerHome() {
           <div className="hero-actions">
             <Link className="btn-primary" href="/session-builder">Construire une session</Link>
             <Link className="btn-secondary" href="/session-builder">Lancer une session</Link>
+            {guard.user?.role === 'admin' && (
+              <Link className="btn-secondary" href="/admin">Console admin</Link>
+            )}
           </div>
         </section>
 

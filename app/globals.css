@@ -162,6 +162,35 @@ a {
   color: var(--ink-soft);
 }
 
+.showcase-block,
+.metrics-block,
+.logo-strip {
+  margin-top: 1.2rem;
+}
+
+.showcase-grid,
+.testimonials-grid,
+.metrics-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.logo-grid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.logo-grid span {
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 0.9rem;
+  text-align: center;
+  color: var(--ink-soft);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 .auth-page {
   padding: 2rem 0;
 }
@@ -282,6 +311,32 @@ a {
   gap: 1rem;
 }
 
+.admin-page {
+  gap: 1.1rem;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-column {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.admin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: #fcfdfb;
+}
+
 .app-user-box {
   display: inline-flex;
   align-items: center;
@@ -343,6 +398,14 @@ a {
 @media (max-width: 860px) {
   .cards-grid,
   .contact-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .showcase-grid,
+  .testimonials-grid,
+  .metrics-grid,
+  .logo-grid,
+  .admin-grid {
     grid-template-columns: 1fr;
   }
 
