@@ -263,27 +263,29 @@ export default function ManagerHome() {
                     <p className="session-title">{session.name || `Session #${session.id}`}</p>
                     <p className="session-meta">{STATUS_LABEL[session.status] || session.status || 'En préparation'}</p>
                   </div>
-                  <Link
-                    className="btn-mini"
-                    href={
-                      session.status === 'en_cours'
-                        ? `/session-live/${session.id}`
-                        : session.status === 'terminee'
-                          ? `/session-results/${session.id}`
-                          : `/session-builder?sessionId=${session.id}`
-                    }
-                  >
-                    {session.status === 'en_cours' ? 'Reprendre' : session.status === 'terminee' ? 'Résultats' : 'Ouvrir'}
-                  </Link>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => handleDeleteSession(session)}
-                    disabled={deletingSessionId === session.id}
-                    style={{ minWidth: '96px' }}
-                  >
-                    {deletingSessionId === session.id ? 'Suppression...' : 'Supprimer'}
-                  </button>
+                  <div className="session-item-actions">
+                    <Link
+                      className="btn-mini"
+                      href={
+                        session.status === 'en_cours'
+                          ? `/session-live/${session.id}`
+                          : session.status === 'terminee'
+                            ? `/session-results/${session.id}`
+                            : `/session-builder?sessionId=${session.id}`
+                      }
+                    >
+                      {session.status === 'en_cours' ? 'Reprendre' : session.status === 'terminee' ? 'Résultats' : 'Ouvrir'}
+                    </Link>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => handleDeleteSession(session)}
+                      disabled={deletingSessionId === session.id}
+                      style={{ minWidth: '96px' }}
+                    >
+                      {deletingSessionId === session.id ? 'Suppression...' : 'Supprimer'}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

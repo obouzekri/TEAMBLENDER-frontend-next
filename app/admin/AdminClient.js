@@ -5,6 +5,16 @@ import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 
+const USER_ROLES = new Set(['user', 'admin']);
+const SESSION_STATUSES = new Set(['preparee', 'en_cours', 'terminee']);
+const SESSION_MODALITIES = new Set(['', 'remote', 'hybrid', 'in-person']);
+const CHALLENGE_TYPES = new Set(['icebreaker', 'individuel', 'equipe']);
+const CHALLENGE_STATUSES = new Set(['actif', 'brouillon', 'archive']);
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+}
+
 function parseList(payload) {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.items)) return payload.items;
@@ -150,6 +160,16 @@ export default function AdminClient() {
       return;
     }
 
+    if (!isValidEmail(newUser.email)) {
+      setNewUserMessage('Email invalide.');
+      return;
+    }
+
+    if (!USER_ROLES.has(newUser.role)) {
+      setNewUserMessage('Role invalide.');
+      return;
+    }
+
     try {
       const response = await fetch(getApiUrl('/users'), {
         method: 'POST',
@@ -229,6 +249,16 @@ export default function AdminClient() {
     event.preventDefault();
     if (!token || !editingUser?.id) return;
 
+    if (!editingUser.first_name.trim() || !isValidEmail(editingUser.email)) {
+      setError('Le prenom et un email valide sont requis.');
+      return;
+    }
+
+    if (!USER_ROLES.has(editingUser.role)) {
+      setError('Role utilisateur invalide.');
+      return;
+    }
+
     const key = `save:user:${editingUser.id}`;
     setBusySaveKey(key);
     setError('');
@@ -267,7 +297,12 @@ export default function AdminClient() {
 
   async function handleDeleteSession(sessionItem) {
     if (!token || !sessionItem?.id) return;
-    const accepted = window.confirm(`Supprimer la session ${sessionItem.name || sessionItem.id} ?`);
+    const isLive = sessionItem.status === 'en_cours';
+    const accepted = window.confirm(
+      isLive
+        ? `La session ${sessionItem.name || sessionItem.id} est en cours. Confirmer la suppression ?`
+        : `Supprimer la session ${sessionItem.name || sessionItem.id} ?`
+    );
     if (!accepted) return;
 
     const key = `session:${sessionItem.id}`;
@@ -311,6 +346,26 @@ export default function AdminClient() {
   async function submitEditSession(event) {
     event.preventDefault();
     if (!token || !editingSession?.id) return;
+
+    if (!editingSession.name.trim()) {
+      setError('Le nom de session est requis.');
+      return;
+    }
+
+    if (!SESSION_STATUSES.has(editingSession.status)) {
+      setError('Statut de session invalide.');
+      return;
+    }
+
+    if (!SESSION_MODALITIES.has(editingSession.modality || '')) {
+      setError('Modalite invalide. Utilisez remote, hybrid ou in-person.');
+      return;
+    }
+
+    if (editingSession.duration_minutes && Number(editingSession.duration_minutes) <= 0) {
+      setError('La duree doit etre superieure a 0.');
+      return;
+    }
 
     const key = `save:session:${editingSession.id}`;
     setBusySaveKey(key);
@@ -394,6 +449,21 @@ export default function AdminClient() {
   async function submitEditChallenge(event) {
     event.preventDefault();
     if (!token || !editingChallenge?.id) return;
+
+    if (!editingChallenge.name.trim()) {
+      setError('Le nom du challenge est requis.');
+      return;
+    }
+
+    if (!CHALLENGE_TYPES.has(editingChallenge.type)) {
+      setError('Type de challenge invalide.');
+      return;
+    }
+
+    if (!CHALLENGE_STATUSES.has(editingChallenge.status)) {
+      setError('Statut de challenge invalide.');
+      return;
+    }
 
     const key = `save:challenge:${editingChallenge.id}`;
     setBusySaveKey(key);
@@ -545,21 +615,23 @@ export default function AdminClient() {
                     <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
                     <p className="session-meta">{u.email} · {u.role || 'user'}</p>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => beginEditUser(u)}
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => handleDeleteUser(u)}
-                    disabled={busyDeleteKey === `user:${u.id}` || String(u.id) === String(user?.id)}
-                  >
-                    {busyDeleteKey === `user:${u.id}` ? 'Suppression...' : 'Supprimer'}
-                  </button>
+                  <div className="session-item-actions">
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => beginEditUser(u)}
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => handleDeleteUser(u)}
+                      disabled={busyDeleteKey === `user:${u.id}` || String(u.id) === String(user?.id)}
+                    >
+                      {busyDeleteKey === `user:${u.id}` ? 'Suppression...' : 'Supprimer'}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -692,21 +764,23 @@ export default function AdminClient() {
                     <p className="session-title">{s.name || `Session #${s.id}`}</p>
                     <p className="session-meta">{s.status || 'preparee'}</p>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => beginEditSession(s)}
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => handleDeleteSession(s)}
-                    disabled={busyDeleteKey === `session:${s.id}`}
-                  >
-                    {busyDeleteKey === `session:${s.id}` ? 'Suppression...' : 'Supprimer'}
-                  </button>
+                  <div className="session-item-actions">
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => beginEditSession(s)}
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => handleDeleteSession(s)}
+                      disabled={busyDeleteKey === `session:${s.id}`}
+                    >
+                      {busyDeleteKey === `session:${s.id}` ? 'Suppression...' : 'Supprimer'}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -772,21 +846,23 @@ export default function AdminClient() {
                     <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
                     <p className="session-meta">{c.engine_key || c.type || 'sans engine'}</p>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => beginEditChallenge(c)}
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => handleDeleteChallenge(c)}
-                    disabled={busyDeleteKey === `challenge:${c.id}`}
-                  >
-                    {busyDeleteKey === `challenge:${c.id}` ? 'Suppression...' : 'Supprimer'}
-                  </button>
+                  <div className="session-item-actions">
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => beginEditChallenge(c)}
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => handleDeleteChallenge(c)}
+                      disabled={busyDeleteKey === `challenge:${c.id}`}
+                    >
+                      {busyDeleteKey === `challenge:${c.id}` ? 'Suppression...' : 'Supprimer'}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

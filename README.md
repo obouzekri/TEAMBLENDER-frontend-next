@@ -54,3 +54,19 @@ Copier .env.local.example vers .env.local et ajuster si besoin:
 	- participant (join -> challenge actif)
 	- admin (/admin)
 7. Geler le legacy frontend pour nouvelles features (patch critique uniquement).
+
+## Go / No-Go (release)
+
+Go si tous les points sont vrais:
+
+- `npm run test:smoke` = PASS
+- `npm run build` = PASS
+- Login manager + participant + admin = PASS
+- Creation/edition/suppression session depuis home/admin = PASS
+- Aucune erreur critique console/API sur parcours principal
+
+No-Go si un seul point est faux:
+
+- erreur 5xx sur un endpoint critique (`/auth`, `/sessions`, `/challenges`, `/users`)
+- regression sur session live ou challenge actif participant
+- page blanche ou redirection inattendue apres login
