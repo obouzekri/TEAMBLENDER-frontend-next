@@ -130,9 +130,17 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false }
             ...payload,
             challenge_id: resolvedChallengeId,
           });
+          const resolvedUserId = currentUser.id
+            || currentUser.userId
+            || currentUser.user_id
+            || currentUser.participantId
+            || currentUser.participant_id
+            || payload.context?.participantId
+            || null;
+
           setContext({
             role: payload.context?.role || 'participant',
-            userId: currentUser.id,
+            userId: resolvedUserId,
             sessionId: Number(sessionId),
             challengeId: resolvedChallengeId,
           });
