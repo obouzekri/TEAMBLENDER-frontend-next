@@ -7,6 +7,7 @@ import ToastContainer from '@/components/ToastContainer';
 import ChallengesCatalog from '@/components/SessionBuilder/ChallengesCatalog';
 import SelectedChallengesList from '@/components/SessionBuilder/SelectedChallengesList';
 import ChallengeConfigModal from '@/components/SessionBuilder/ChallengeConfigModal';
+import ParticipantAssigner from '@/components/SessionBuilder/ParticipantAssigner';
 import SessionBuilderHeader from '@/components/SessionBuilder/SessionBuilderHeader';
 import useToast from '@/lib/useToast';
 import useSessionBuilder from '@/lib/useSessionBuilder';
@@ -78,6 +79,7 @@ export default function SessionBuilder() {
 
   const [isLaunching, setIsLaunching] = useState(false);
   const [sessionChallengesLoaded, setSessionChallengesLoaded] = useState(false);
+  const [sessionStep, setSessionStep] = useState('name'); // 'name' | 'participants' | 'challenges'
   const [sessionId, setSessionId] = useState(() => {
     if (typeof window === 'undefined') return '';
     const params = new URLSearchParams(window.location.search);
@@ -85,12 +87,20 @@ export default function SessionBuilder() {
   });
   const [sessionName, setSessionName] = useState('');
   const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [isAssigningParticipants, setIsAssigningParticipants] = useState(false);
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
   const currentConfiguringChallenge = useMemo(
     () => selectedChallenges.find((c) => c.id === configuring) || null,
     [configuring, selectedChallenges]
   );
+
+  // Initialize step to 'challenges' if sessionId already exists
+  useEffect(() => {
+    if (sessionId && sessionStep === 'name') {
+      setSessionStep('challenges');
+    }
+  }, [sessionId, sessionStep]);
 
   const getAuthToken = useCallback(
     () => localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '',
@@ -338,6 +348,8 @@ export default function SessionBuilder() {
       sessionStorage.setItem('sessionId', newId);
       setSessionId(newId);
       removeToast(loadingId);
+      // Move to participants assignment step
+      setSessionStep('participants');
     } catch (err) {
       removeToast(loadingId);
       showErrorToast(err.message || 'Impossible de creer la session.');
@@ -345,6 +357,38 @@ export default function SessionBuilder() {
       setIsCreatingSession(false);
     }
   }, [apiRequest, getAuthToken, removeToast, sessionName, showErrorToast, showLoadingToast]);
+
+  const handleAssignParticipants = useCallback(async (selectedParticipantIds) => {
+    setIsAssigningParticipants(true);
+    const loadingId = showLoadingToast('Assignation des participants...');
+    const token = getAuthToken();
+
+    try {
+      // Update session with member_ids (backend will sync participants)
+      await apiRequest(`/sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ member_ids: selectedParticipantIds }),
+      });
+      removeToast(loadingId);
+      sessionStorage.setItem('sessionId', sessionId);
+      // Move to challenges selection step
+      setSessionStep('challenges');
+    } catch (err) {
+      removeToast(loadingId);
+      showErrorToast(err.message || 'Impossible d\'assigner les participants.');
+    } finally {
+      setIsAssigningParticipants(false);
+    }
+  }, [apiRequest, getAuthToken, sessionId, removeToast, showErrorToast, showLoadingToast]);
+
+  const handleSkipParticipantAssignment = useCallback(() => {
+    // Skip to challenges step
+    setSessionStep('challenges');
+  }, []);
 
   function logout() {
     localStorage.removeItem('jwt');
@@ -398,6 +442,32 @@ export default function SessionBuilder() {
       </>
     );
   }
+
+  // Step 2: Assign Participants
+  if (sessionStep === 'participants') {
+    return (
+      <>
+        <ToastContainer toasts={toasts} onRemove={removeToast} />
+        <AppNav userLabel={userLabel} onLogout={logout} />
+        <main className="shell">
+          <ParticipantAssigner
+            isLoading={isAssigningParticipants}
+            onAssign={handleAssignParticipants}
+            onCancel={() => {
+              setSessionId('');
+              setSessionName('');
+              setSessionStep('name');
+              sessionStorage.removeItem('sessionId');
+            }}
+            onSkip={handleSkipParticipantAssignment}
+          />
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // Step 3: Select Challenges
 
   return (
     <>
