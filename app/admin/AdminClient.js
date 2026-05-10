@@ -10,6 +10,20 @@ const SESSION_STATUSES = new Set(['preparee', 'en_cours', 'terminee']);
 const SESSION_MODALITIES = new Set(['', 'remote', 'hybrid', 'in-person']);
 const CHALLENGE_TYPES = new Set(['icebreaker', 'individuel', 'equipe']);
 const CHALLENGE_STATUSES = new Set(['actif', 'brouillon', 'archive']);
+const SESSION_STATUS_LABELS = {
+  preparee: 'En preparation',
+  en_cours: 'En cours',
+  terminee: 'Terminee',
+};
+
+const DEFAULT_NEW_SESSION = {
+  name: '',
+  status: 'preparee',
+  modality: '',
+  format: '',
+  session_date: '',
+  duration_minutes: '',
+};
 
 function getParticipantFirstName(participant) {
   return String(participant?.first_name || participant?.firstname || '').trim();
@@ -94,6 +108,8 @@ export default function AdminClient() {
     department: '',
   });
   const [newParticipantMessage, setNewParticipantMessage] = useState('');
+  const [newSession, setNewSession] = useState(DEFAULT_NEW_SESSION);
+  const [newSessionMessage, setNewSessionMessage] = useState('');
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -744,6 +760,82 @@ export default function AdminClient() {
     }
   }
 
+  async function submitNewSession(event) {
+    event.preventDefault();
+    if (!token) return;
+
+    setNewSessionMessage('');
+
+    if (!newSession.name.trim()) {
+      setNewSessionMessage('Le nom de session est requis.');
+      return;
+    }
+
+    if (!SESSION_STATUSES.has(newSession.status)) {
+      setNewSessionMessage('Statut de session invalide.');
+      return;
+    }
+
+    if (!SESSION_MODALITIES.has(newSession.modality || '')) {
+      setNewSessionMessage('Modalite invalide. Utilisez remote, hybrid ou in-person.');
+      return;
+    }
+
+    if (newSession.duration_minutes && Number(newSession.duration_minutes) <= 0) {
+      setNewSessionMessage('La duree doit etre superieure a 0.');
+      return;
+    }
+
+    const key = 'create:session';
+    setBusySaveKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl('/sessions'), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: newSession.name.trim(),
+          status: newSession.status,
+          format: newSession.format.trim() || null,
+          modality: newSession.modality || null,
+          session_date: newSession.session_date || null,
+          duration_minutes: newSession.duration_minutes ? Number(newSession.duration_minutes) : null,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || payload.details || `Creation session impossible (${response.status})`);
+      }
+
+      const createdSession = payload?.session || payload;
+      setNewSession(DEFAULT_NEW_SESSION);
+      setNewSessionMessage('Session creee avec succes.');
+      await loadAll();
+      setActiveTab('sessions');
+      setSessionQuery('');
+      if (createdSession?.id) {
+        setEditingSession({
+          id: createdSession.id,
+          name: createdSession.name || '',
+          status: createdSession.status || 'preparee',
+          format: createdSession.format || '',
+          modality: createdSession.modality || '',
+          session_date: createdSession.session_date ? String(createdSession.session_date).slice(0, 10) : '',
+          duration_minutes: createdSession.duration_minutes || '',
+        });
+      }
+      showNotice('Session creee avec succes depuis la console admin.');
+    } catch (err) {
+      setNewSessionMessage(err.message || 'Creation session impossible.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
   async function handleDeleteChallenge(challengeItem) {
     if (!token || !challengeItem?.id) return;
     const label = challengeItem.name || challengeItem.title || challengeItem.id;
@@ -1095,6 +1187,51 @@ export default function AdminClient() {
                 ))}
               </div>
 
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                <div style={{
+                  background: 'var(--color-surface, #fff)',
+                  border: '1px solid var(--color-border, #e5e7eb)',
+                  borderRadius: '10px',
+                  padding: '20px 24px',
+                }}>
+                  <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px' }}>Actions admin prioritaires</h2>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: '0 0 14px', fontSize: '13px' }}>
+                    La console admin centralise la creation et la supervision des sessions. Le builder reste optionnel.
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <button type="button" className="btn-primary" onClick={() => setActiveTab('sessions')}>Gerer les sessions</button>
+                    <button type="button" className="btn-secondary" onClick={() => setActiveTab('users')}>Valider les comptes</button>
+                    <button type="button" className="btn-secondary" onClick={() => setActiveTab('participants')}>Gerer les participants</button>
+                  </div>
+                </div>
+
+                <div style={{
+                  background: 'var(--color-surface, #fff)',
+                  border: '1px solid var(--color-border, #e5e7eb)',
+                  borderRadius: '10px',
+                  padding: '20px 24px',
+                }}>
+                  <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px' }}>Creer une session</h2>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: '0 0 12px', fontSize: '13px' }}>
+                    Creez rapidement une session depuis la console, puis ajustez son statut dans l'onglet Sessions.
+                  </p>
+                  <form className="auth-form" onSubmit={submitNewSession} style={{ marginTop: 0 }}>
+                    <label>Nom de session
+                      <input
+                        value={newSession.name}
+                        onChange={(e) => setNewSession((prev) => ({ ...prev, name: e.target.value }))}
+                        placeholder="Ex: Comite Direction - Juin"
+                        required
+                      />
+                    </label>
+                    <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:session'}>
+                      {busySaveKey === 'create:session' ? 'Creation...' : 'Creer la session'}
+                    </button>
+                  </form>
+                  {newSessionMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newSessionMessage}</p> : null}
+                </div>
+              </div>
+
               {/* Pending approvals on dashboard */}
               {pendingUsers.length > 0 ? (
                 <div style={{
@@ -1140,7 +1277,7 @@ export default function AdminClient() {
                 <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion des comptes utilisateurs et demandes d'acces.</p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
                 {/* User list */}
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
@@ -1254,7 +1391,7 @@ export default function AdminClient() {
                 <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion des participants rattaches aux utilisateurs.</p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
                 {/* Participant list */}
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
@@ -1351,10 +1488,10 @@ export default function AdminClient() {
             <div>
               <div style={{ marginBottom: '28px' }}>
                 <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Sessions</h1>
-                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Supervision et modification des sessions existantes.</p>
+                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Creation, supervision et modification des sessions depuis la console admin.</p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
                 {/* Session list */}
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
@@ -1374,7 +1511,12 @@ export default function AdminClient() {
                       <li key={String(s.id)} className="session-item">
                         <div>
                           <p className="session-title">{s.name || `Session #${s.id}`}</p>
-                          <p className="session-meta">{s.status || 'preparee'} {s.modality ? `· ${s.modality}` : ''}</p>
+                          <p className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span className={`status-pill status-${s.status || 'preparee'}`}>
+                              {SESSION_STATUS_LABELS[s.status] || SESSION_STATUS_LABELS.preparee}
+                            </span>
+                            {s.modality ? <span>Modalite: {s.modality}</span> : null}
+                          </p>
                         </div>
                         <div className="session-item-actions">
                           <button type="button" className="btn-secondary" onClick={() => beginEditSession(s)}>Modifier</button>
@@ -1387,38 +1529,70 @@ export default function AdminClient() {
                   </ul>
                 </div>
 
-                {/* Edit session */}
-                <div style={{ background: 'var(--color-surface, #fff)', border: editingSession ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier une session</h2>
-                  {!editingSession ? (
-                    <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>Selectionnez "Modifier" sur une session pour l'editer ici.</p>
-                  ) : (
-                    <form className="auth-form" onSubmit={submitEditSession}>
-                      <label>Nom<input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required /></label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Create session */}
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer une session</h2>
+                    <form className="auth-form" onSubmit={submitNewSession}>
+                      <label>Nom<input value={newSession.name} onChange={(e) => setNewSession((p) => ({ ...p, name: e.target.value }))} required /></label>
                       <label>Statut
-                        <select value={editingSession.status} onChange={(e) => setEditingSession((p) => ({ ...p, status: e.target.value }))}>
+                        <select value={newSession.status} onChange={(e) => setNewSession((p) => ({ ...p, status: e.target.value }))}>
                           <option value="preparee">En preparation</option>
                           <option value="en_cours">En cours</option>
                           <option value="terminee">Terminee</option>
                         </select>
                       </label>
-                      <label>Format<input value={editingSession.format} onChange={(e) => setEditingSession((p) => ({ ...p, format: e.target.value }))} /></label>
+                      <label>Format<input value={newSession.format} onChange={(e) => setNewSession((p) => ({ ...p, format: e.target.value }))} placeholder="Ex: atelier" /></label>
                       <label>Modalite
-                        <select value={editingSession.modality} onChange={(e) => setEditingSession((p) => ({ ...p, modality: e.target.value }))}>
+                        <select value={newSession.modality} onChange={(e) => setNewSession((p) => ({ ...p, modality: e.target.value }))}>
                           <option value="">Non definie</option>
                           <option value="remote">A distance</option>
                           <option value="hybrid">Hybride</option>
                           <option value="in-person">Presentiel</option>
                         </select>
                       </label>
-                      <label>Date<input type="date" value={editingSession.session_date} onChange={(e) => setEditingSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
-                      <label>Duree (minutes)<input type="number" min={1} value={editingSession.duration_minutes} onChange={(e) => setEditingSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                        <button type="submit" className="btn-primary" disabled={busySaveKey === `save:session:${editingSession.id}`}>{busySaveKey === `save:session:${editingSession.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
-                        <button type="button" className="btn-secondary" onClick={() => setEditingSession(null)}>Annuler</button>
-                      </div>
+                      <label>Date<input type="date" value={newSession.session_date} onChange={(e) => setNewSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
+                      <label>Duree (minutes)<input type="number" min={1} value={newSession.duration_minutes} onChange={(e) => setNewSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
+                      <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:session'}>
+                        {busySaveKey === 'create:session' ? 'Creation...' : 'Creer la session'}
+                      </button>
                     </form>
-                  )}
+                    {newSessionMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newSessionMessage}</p> : null}
+                  </div>
+
+                  {/* Edit session */}
+                  <div style={{ background: 'var(--color-surface, #fff)', border: editingSession ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier une session</h2>
+                    {!editingSession ? (
+                      <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>Selectionnez "Modifier" sur une session pour l'editer ici.</p>
+                    ) : (
+                      <form className="auth-form" onSubmit={submitEditSession}>
+                        <label>Nom<input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required /></label>
+                        <label>Statut
+                          <select value={editingSession.status} onChange={(e) => setEditingSession((p) => ({ ...p, status: e.target.value }))}>
+                            <option value="preparee">En preparation</option>
+                            <option value="en_cours">En cours</option>
+                            <option value="terminee">Terminee</option>
+                          </select>
+                        </label>
+                        <label>Format<input value={editingSession.format} onChange={(e) => setEditingSession((p) => ({ ...p, format: e.target.value }))} /></label>
+                        <label>Modalite
+                          <select value={editingSession.modality} onChange={(e) => setEditingSession((p) => ({ ...p, modality: e.target.value }))}>
+                            <option value="">Non definie</option>
+                            <option value="remote">A distance</option>
+                            <option value="hybrid">Hybride</option>
+                            <option value="in-person">Presentiel</option>
+                          </select>
+                        </label>
+                        <label>Date<input type="date" value={editingSession.session_date} onChange={(e) => setEditingSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
+                        <label>Duree (minutes)<input type="number" min={1} value={editingSession.duration_minutes} onChange={(e) => setEditingSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:session:${editingSession.id}`}>{busySaveKey === `save:session:${editingSession.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
+                          <button type="button" className="btn-secondary" onClick={() => setEditingSession(null)}>Annuler</button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1432,7 +1606,7 @@ export default function AdminClient() {
                 <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion du catalogue de challenges disponibles.</p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
                 {/* Challenge list */}
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>

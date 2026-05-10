@@ -12,9 +12,17 @@ export default function AppNav({ userLabel, onLogout, role }) {
         <Link href={isParticipant ? '/participant' : '/home'} className="brand">TEAMSPARK</Link>
         {!isParticipant && (
           <nav className="nav-links" aria-label="Navigation manager">
-            <Link href="/home">Home</Link>
-            <Link href="/session-builder">Session builder</Link>
-            {isAdmin && <Link href="/admin">Admin</Link>}
+            {isAdmin ? (
+              <>
+                <Link href="/admin">Console admin</Link>
+                <Link href="/home">Home</Link>
+              </>
+            ) : (
+              <>
+                <Link href="/home">Home</Link>
+                <Link href="/session-builder">Session builder</Link>
+              </>
+            )}
           </nav>
         )}
         <div className="app-user-box">
