@@ -40,6 +40,13 @@ function getParticipantDisplayName(participant) {
   return full || participant?.email || `Participant #${participant?.id || '?'}`;
 }
 
+function getMemberDisplayName(member) {
+  const first = String(member?.first_name || '').trim();
+  const last = String(member?.last_name || '').trim();
+  const full = `${first} ${last}`.trim();
+  return full || String(member?.name || member?.email || `Membre #${member?.id || '?'}`);
+}
+
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 }
@@ -51,6 +58,7 @@ function parseList(payload) {
   if (Array.isArray(payload?.users)) return payload.users;
   if (Array.isArray(payload?.sessions)) return payload.sessions;
   if (Array.isArray(payload?.challenges)) return payload.challenges;
+  if (Array.isArray(payload?.members)) return payload.members;
   return [];
 }
 
@@ -74,6 +82,7 @@ export default function AdminClient() {
   const [sessions, setSessions] = useState([]);
   const [challenges, setChallenges] = useState([]);
   const [participants, setParticipants] = useState([]);
+  const [members, setMembers] = useState([]);
 
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
@@ -110,6 +119,8 @@ export default function AdminClient() {
   const [newParticipantMessage, setNewParticipantMessage] = useState('');
   const [newSession, setNewSession] = useState(DEFAULT_NEW_SESSION);
   const [newSessionMessage, setNewSessionMessage] = useState('');
+  const [newSessionMemberIds, setNewSessionMemberIds] = useState([]);
+  const [newSessionMemberQuery, setNewSessionMemberQuery] = useState('');
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -137,24 +148,26 @@ export default function AdminClient() {
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      const [usersRes, pendingRes, sessionsRes, challengesRes, participantsRes] = await Promise.all([
+      const [usersRes, pendingRes, sessionsRes, challengesRes, participantsRes, membersRes] = await Promise.all([
         fetch(getApiUrl('/users'), { headers }),
         fetch(getApiUrl('/users/pending'), { headers }),
         fetch(getApiUrl('/sessions'), { headers }),
         fetch(getApiUrl('/challenges'), { headers }),
         fetch(getApiUrl('/participants?includeDisabled=true'), { headers }),
+        fetch(getApiUrl('/members'), { headers }),
       ]);
 
-      if (!usersRes.ok || !pendingRes.ok || !sessionsRes.ok || !challengesRes.ok || !participantsRes.ok) {
+      if (!usersRes.ok || !pendingRes.ok || !sessionsRes.ok || !challengesRes.ok || !participantsRes.ok || !membersRes.ok) {
         throw new Error('Impossible de charger les donnees admin.');
       }
 
-      const [usersPayload, pendingPayload, sessionsPayload, challengesPayload, participantsPayload] = await Promise.all([
+      const [usersPayload, pendingPayload, sessionsPayload, challengesPayload, participantsPayload, membersPayload] = await Promise.all([
         usersRes.json(),
         pendingRes.json(),
         sessionsRes.json(),
         challengesRes.json(),
         participantsRes.json(),
+        membersRes.json(),
       ]);
 
       setUsers(parseList(usersPayload));
@@ -162,6 +175,7 @@ export default function AdminClient() {
       setSessions(parseList(sessionsPayload));
       setChallenges(parseList(challengesPayload));
       setParticipants(parseList(participantsPayload));
+      setMembers(parseList(membersPayload));
     } catch (err) {
       setError(err.message || 'Erreur de chargement admin.');
     }
@@ -803,6 +817,7 @@ export default function AdminClient() {
           modality: newSession.modality || null,
           session_date: newSession.session_date || null,
           duration_minutes: newSession.duration_minutes ? Number(newSession.duration_minutes) : null,
+          member_ids: newSessionMemberIds.map((id) => Number(id)).filter(Number.isInteger),
         }),
       });
 
@@ -813,6 +828,8 @@ export default function AdminClient() {
 
       const createdSession = payload?.session || payload;
       setNewSession(DEFAULT_NEW_SESSION);
+      setNewSessionMemberIds([]);
+      setNewSessionMemberQuery('');
       setNewSessionMessage('Session creee avec succes.');
       await loadAll();
       setActiveTab('sessions');
@@ -1020,6 +1037,36 @@ export default function AdminClient() {
       return haystack.includes(query);
     });
   }, [challenges, challengeQuery]);
+
+  const filteredAssignableMembers = useMemo(() => {
+    const query = newSessionMemberQuery.trim().toLowerCase();
+    const source = members.filter((member) => !Boolean(member?.disabled));
+    if (!query) return source;
+    return source.filter((member) => {
+      const haystack = [
+        member.first_name,
+        member.last_name,
+        member.email,
+        member.department,
+        member.job_title,
+        member.name,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [members, newSessionMemberQuery]);
+
+  function toggleNewSessionMember(memberId) {
+    setNewSessionMemberIds((prev) => {
+      const normalized = String(memberId);
+      if (prev.includes(normalized)) {
+        return prev.filter((id) => id !== normalized);
+      }
+      return [...prev, normalized];
+    });
+  }
 
   if (loading) {
     return (
@@ -1534,6 +1581,7 @@ export default function AdminClient() {
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer une session</h2>
                     <form className="auth-form" onSubmit={submitNewSession}>
+                      <p style={{ margin: 0, fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>Etape 1</p>
                       <label>Nom<input value={newSession.name} onChange={(e) => setNewSession((p) => ({ ...p, name: e.target.value }))} required /></label>
                       <label>Statut
                         <select value={newSession.status} onChange={(e) => setNewSession((p) => ({ ...p, status: e.target.value }))}>
@@ -1553,6 +1601,69 @@ export default function AdminClient() {
                       </label>
                       <label>Date<input type="date" value={newSession.session_date} onChange={(e) => setNewSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
                       <label>Duree (minutes)<input type="number" min={1} value={newSession.duration_minutes} onChange={(e) => setNewSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
+
+                      <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '12px' }}>
+                        <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>Etape 2 (optionnelle)</p>
+                        <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
+                          Assignez des membres maintenant pour qu'ils voient directement la session.
+                        </p>
+                        <input
+                          type="search"
+                          className="inline-input"
+                          placeholder="Rechercher un membre..."
+                          value={newSessionMemberQuery}
+                          onChange={(e) => setNewSessionMemberQuery(e.target.value)}
+                          style={{ marginBottom: '8px' }}
+                        />
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            onClick={() => setNewSessionMemberIds(filteredAssignableMembers.map((m) => String(m.id)))}
+                            disabled={filteredAssignableMembers.length === 0}
+                          >
+                            Tout selectionner
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            onClick={() => setNewSessionMemberIds([])}
+                            disabled={newSessionMemberIds.length === 0}
+                          >
+                            Tout deselectionner
+                          </button>
+                        </div>
+                        <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '8px' }}>
+                          {filteredAssignableMembers.length === 0 ? (
+                            <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>Aucun membre disponible.</p>
+                          ) : (
+                            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '6px' }}>
+                              {filteredAssignableMembers.map((member) => {
+                                const selected = newSessionMemberIds.includes(String(member.id));
+                                return (
+                                  <li key={String(member.id)}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={selected}
+                                        onChange={() => toggleNewSessionMember(member.id)}
+                                      />
+                                      <span style={{ fontSize: '13px' }}>
+                                        {getMemberDisplayName(member)}
+                                        {member.email ? <span style={{ color: 'var(--color-muted, #6b7280)' }}> · {member.email}</span> : null}
+                                      </span>
+                                    </label>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
+                        </div>
+                        <p className="session-meta" style={{ marginTop: '8px' }}>
+                          {newSessionMemberIds.length} membre{newSessionMemberIds.length > 1 ? 's' : ''} assigne{newSessionMemberIds.length > 1 ? 's' : ''}
+                        </p>
+                      </div>
+
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:session'}>
                         {busySaveKey === 'create:session' ? 'Creation...' : 'Creer la session'}
                       </button>
