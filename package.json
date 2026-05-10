@@ -8,7 +8,10 @@
     "start": "next start -p 3100",
     "test:smoke": "npm run test:smoke:manager && npm run test:smoke:participant",
     "test:smoke:manager": "node scripts/smoke.mjs",
-    "test:smoke:participant": "node scripts/smoke-participant.mjs"
+    "test:smoke:participant": "node scripts/smoke-participant.mjs",
+    "test:smoke:session-builder": "node scripts/smoke-session-builder-catalog.mjs",
+    "test:smoke:login": "node scripts/smoke-login-redirect.mjs",
+    "test:smoke:preview": "npm run test:smoke:login && npm run test:smoke:session-builder"
   },
   "dependencies": {
     "next": "16.2.6",
