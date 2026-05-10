@@ -278,19 +278,64 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
 
           {kind === 'phrase' && (
             <>
+              {/* Mode: Template ou Custom */}
               <div className={styles.configField}>
-                <label htmlFor="phraseText" className={styles.label}>Phrase</label>
-                <textarea
-                  id="phraseText"
-                  rows="3"
-                  value={stringValue('textePhrase', '')}
-                  onChange={(e) => updateValue('textePhrase', e.target.value)}
-                  className={styles.input}
-                />
+                <label className={styles.label}>Mode de phrase</label>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      checked={stringValue('mode', 'template') === 'template'}
+                      onChange={() => updateValue('mode', 'template')}
+                    />
+                    <span>Prédéfini</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      checked={stringValue('mode', 'template') === 'custom'}
+                      onChange={() => updateValue('mode', 'custom')}
+                    />
+                    <span>Personnalisé</span>
+                  </label>
+                </div>
               </div>
 
+              {/* Templates disponibles */}
+              {stringValue('mode', 'template') === 'template' && (
+                <div className={styles.configField}>
+                  <label htmlFor="phraseTemplate" className={styles.label}>Sélectionner un template</label>
+                  <select
+                    id="phraseTemplate"
+                    value={stringValue('templateId', 'tpl_cohesion')}
+                    onChange={(e) => updateValue('templateId', e.target.value)}
+                    className={styles.input}
+                  >
+                    <option value="tpl_cohesion">Cohésion d'équipe (facile, 4 joueurs)</option>
+                    <option value="tpl_communication">Communication efficace (moyen, 5 joueurs)</option>
+                    <option value="tpl_innovation">Innovation (difficile, 6 joueurs)</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Phrase personnalisée */}
+              {stringValue('mode', 'template') === 'custom' && (
+                <div className={styles.configField}>
+                  <label htmlFor="phraseCustom" className={styles.label}>Votre phrase</label>
+                  <textarea
+                    id="phraseCustom"
+                    rows="3"
+                    placeholder="Ex: La collaboration est la clé du succès"
+                    value={stringValue('textePhrase', '')}
+                    onChange={(e) => updateValue('textePhrase', e.target.value)}
+                    className={styles.input}
+                  />
+                </div>
+              )}
+
+              {/* Nombre de joueurs */}
               <div className={styles.configField}>
-                <label htmlFor="phrasePlayers" className={styles.label}>Nombre de joueurs</label>
+                <label htmlFor="phrasePlayers" className={styles.label}>Nombre de joueurs (2-16)</label>
                 <input
                   id="phrasePlayers"
                   type="number"
@@ -300,6 +345,58 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                   onChange={(e) => updateValue('nombreJoueurs', Number(e.target.value || 4))}
                   className={styles.input}
                 />
+              </div>
+
+              {/* Options avancées */}
+              <div className={styles.configField}>
+                <label htmlFor="phraseFauxMots" className={styles.label}>Nombre de faux mots</label>
+                <input
+                  id="phraseFauxMots"
+                  type="number"
+                  min="0"
+                  max="12"
+                  value={numberValue('nombreFauxMots', 2)}
+                  onChange={(e) => updateValue('nombreFauxMots', Number(e.target.value || 2))}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="phraseIndices" className={styles.label}>Nombre d'indices</label>
+                <input
+                  id="phraseIndices"
+                  type="number"
+                  min="0"
+                  max="12"
+                  value={numberValue('nombreIndices', 2)}
+                  onChange={(e) => updateValue('nombreIndices', Number(e.target.value || 2))}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="phraseTimer" className={styles.label}>Durée (secondes)</label>
+                <input
+                  id="phraseTimer"
+                  type="number"
+                  min="60"
+                  max="3600"
+                  step="30"
+                  value={numberValue('timerTotal', 420)}
+                  onChange={(e) => updateValue('timerTotal', Number(e.target.value || 420))}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.configField}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={boolValue('modeCommunication', 'libre') === 'restreint' ? false : true}
+                    onChange={(e) => updateValue('modeCommunication', e.target.checked ? 'libre' : 'restreint')}
+                  />
+                  <span>Chat activé</span>
+                </label>
               </div>
             </>
           )}
