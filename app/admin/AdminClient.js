@@ -70,6 +70,7 @@ export default function AdminClient() {
   const [sessionQuery, setSessionQuery] = useState('');
   const [challengeQuery, setChallengeQuery] = useState('');
 
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [editingUser, setEditingUser] = useState(null);
   const [editingParticipant, setEditingParticipant] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
@@ -939,533 +940,569 @@ export default function AdminClient() {
     );
   }
 
+  const TAB_ITEMS = [
+    { id: 'dashboard', label: 'Tableau de bord', badge: null },
+    { id: 'users', label: 'Utilisateurs', badge: stats.pending > 0 ? stats.pending : null },
+    { id: 'participants', label: 'Participants', badge: null },
+    { id: 'sessions', label: 'Sessions', badge: stats.activeSessions > 0 ? stats.activeSessions : null },
+    { id: 'challenges', label: 'Challenges', badge: null },
+  ];
+
   return (
     <>
       <AppNav userLabel={pickUserLabel(user)} onLogout={logout} role="admin" />
-      <main className="shell app-home admin-page">
-        <section className="hero">
-          <p className="eyebrow">CONSOLE ADMIN</p>
-          <h1>Pilotage plateforme</h1>
-          <p>Gestion des comptes, validation des demandes et supervision des sessions/challenges.</p>
-          <div className="hero-actions">
-            <button type="button" className="btn-secondary" onClick={loadAll}>Rafraichir</button>
-          </div>
-        </section>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg, #f8f9fa)' }}>
 
-        {error ? (
-          <section className="feature-card admin-banner">
-            <p className="form-error">{error}</p>
-            <button type="button" className="banner-close" onClick={() => setError('')} aria-label="Fermer">✕</button>
-          </section>
-        ) : null}
-
-        {notice ? (
-          <section className="feature-card admin-banner">
-            <p className="notice-ok">{notice}</p>
-            <button type="button" className="banner-close" onClick={() => setNotice('')} aria-label="Fermer">✕</button>
-          </section>
-        ) : null}
-
-        <section className="cards-grid" aria-label="Statistiques admin">
-          <article className="feature-card"><h2>{stats.users}</h2><p>Utilisateurs</p></article>
-          <article className="feature-card"><h2>{stats.activeUsers}</h2><p>Utilisateurs actifs</p></article>
-          <article className="feature-card"><h2>{stats.disabledUsers}</h2><p>Utilisateurs inactifs</p></article>
-          <article className="feature-card"><h2>{stats.pending}</h2><p>Demandes en attente</p></article>
-          <article className="feature-card"><h2>{stats.participants}</h2><p>Participants</p></article>
-          <article className="feature-card"><h2>{stats.activeParticipants}</h2><p>Participants actifs</p></article>
-          <article className="feature-card"><h2>{stats.sessions}</h2><p>Sessions</p></article>
-          <article className="feature-card"><h2>{stats.activeSessions}</h2><p>Sessions en cours</p></article>
-          <article className="feature-card"><h2>{stats.challenges}</h2><p>Challenges</p></article>
-        </section>
-
-        <section className="feature-card admin-grid">
-          <div className="admin-column">
-            <h2>Utilisateurs actifs{users.length > 0 ? <span className="list-count"> ({filteredUsers.length}/{users.length})</span> : null}</h2>
-            <input
-              type="search"
-              className="inline-input"
-              placeholder="Rechercher un utilisateur..."
-              value={userQuery}
-              onChange={(e) => setUserQuery(e.target.value)}
-            />
-            <ul className="session-list">
-              {filteredUsers.length === 0 ? <li className="list-empty">Aucun utilisateur ne correspond.</li> : null}
-              {filteredUsers.slice(0, 10).map((u) => (
-                <li key={String(u.id)} className="session-item">
-                  <div>
-                    <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
-                    <p className="session-meta">{u.email} · {u.role || 'user'} · {u.disabled ? 'Inactif' : 'Actif'}</p>
-                  </div>
-                  <div className="session-item-actions">
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => beginEditUser(u)}
-                    >
-                      Modifier
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => handleToggleUserStatus(u)}
-                      disabled={busySaveKey === `status:user:${u.id}` || String(u.id) === String(user?.id)}
-                    >
-                      {busySaveKey === `status:user:${u.id}` ? 'Mise a jour...' : u.disabled ? 'Activer' : 'Desactiver'}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => handleResetUserPassword(u)}
-                      disabled={busySaveKey === `password:user:${u.id}`}
-                    >
-                      {busySaveKey === `password:user:${u.id}` ? 'Reset...' : 'Mot de passe'}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => handleDeleteUser(u)}
-                      disabled={busyDeleteKey === `user:${u.id}` || String(u.id) === String(user?.id)}
-                    >
-                      {busyDeleteKey === `user:${u.id}` ? 'Suppression...' : 'Supprimer'}
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+        {/* Sidebar */}
+        <aside style={{
+          width: '220px',
+          minWidth: '220px',
+          background: 'var(--color-surface, #fff)',
+          borderRight: '1px solid var(--color-border, #e5e7eb)',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '0',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflowY: 'auto',
+        }}>
+          <div style={{
+            padding: '24px 20px 16px',
+            borderBottom: '1px solid var(--color-border, #e5e7eb)',
+          }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-muted, #6b7280)', textTransform: 'uppercase', margin: '0 0 4px' }}>TEAMSPARK</p>
+            <p style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text, #111)', margin: 0 }}>Console Admin</p>
+            <p style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', margin: '4px 0 0' }}>{pickUserLabel(user)}</p>
           </div>
 
-          <div className="admin-column">
-            <h2>Demandes en attente</h2>
-            {pendingUsers.length === 0 ? <p>Aucune demande en attente.</p> : null}
-            {pendingUsers.map((u) => (
-              <div key={String(u.id)} className="admin-row">
-                <div>
-                  <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
-                  <p className="session-meta">{u.email}</p>
+          <nav style={{ flex: 1, padding: '12px 0' }}>
+            {TAB_ITEMS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  padding: '10px 20px',
+                  background: activeTab === tab.id ? 'var(--color-primary-light, #eef2ff)' : 'transparent',
+                  border: 'none',
+                  borderLeft: activeTab === tab.id ? '3px solid var(--color-primary, #4f46e5)' : '3px solid transparent',
+                  color: activeTab === tab.id ? 'var(--color-primary, #4f46e5)' : 'var(--color-text, #374151)',
+                  fontWeight: activeTab === tab.id ? 600 : 400,
+                  fontSize: '14px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {tab.label}
+                {tab.badge != null ? (
+                  <span style={{
+                    background: 'var(--color-primary, #4f46e5)',
+                    color: '#fff',
+                    borderRadius: '10px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 7px',
+                    minWidth: '20px',
+                    textAlign: 'center',
+                  }}>{tab.badge}</span>
+                ) : null}
+              </button>
+            ))}
+          </nav>
+
+          <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border, #e5e7eb)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button type="button" className="btn-secondary" onClick={loadAll} style={{ width: '100%', fontSize: '13px' }}>Rafraichir</button>
+            <button type="button" className="btn-secondary" onClick={logout} style={{ width: '100%', fontSize: '13px' }}>Deconnexion</button>
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main style={{ flex: 1, padding: '32px 36px', overflowY: 'auto' }}>
+
+          {/* Notifications */}
+          {error ? (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '20px',
+              color: '#b91c1c',
+              fontSize: '14px',
+            }}>
+              <span>{error}</span>
+              <button type="button" onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
+            </div>
+          ) : null}
+
+          {notice ? (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '20px',
+              color: '#15803d',
+              fontSize: '14px',
+            }}>
+              <span>{notice}</span>
+              <button type="button" onClick={() => setNotice('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#15803d', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
+            </div>
+          ) : null}
+
+          {/* ── DASHBOARD ── */}
+          {activeTab === 'dashboard' ? (
+            <div>
+              <div style={{ marginBottom: '28px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-muted, #6b7280)', textTransform: 'uppercase', margin: '0 0 4px' }}>CONSOLE ADMIN</p>
+                <h1 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 6px' }}>Tableau de bord</h1>
+                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Vue d'ensemble de la plateforme en temps reel.</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+                {[
+                  { value: stats.users, label: 'Utilisateurs' },
+                  { value: stats.activeUsers, label: 'Utilisateurs actifs' },
+                  { value: stats.disabledUsers, label: 'Utilisateurs inactifs' },
+                  { value: stats.pending, label: 'Demandes en attente', highlight: stats.pending > 0 },
+                  { value: stats.participants, label: 'Participants' },
+                  { value: stats.activeParticipants, label: 'Participants actifs' },
+                  { value: stats.sessions, label: 'Sessions' },
+                  { value: stats.activeSessions, label: 'Sessions en cours', highlight: stats.activeSessions > 0 },
+                  { value: stats.challenges, label: 'Challenges' },
+                ].map((item) => (
+                  <div key={item.label} style={{
+                    background: 'var(--color-surface, #fff)',
+                    border: item.highlight ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)',
+                    borderRadius: '10px',
+                    padding: '20px 16px',
+                    textAlign: 'center',
+                  }}>
+                    <p style={{ fontSize: '28px', fontWeight: 700, color: item.highlight ? 'var(--color-primary, #4f46e5)' : 'var(--color-text, #111)', margin: '0 0 4px' }}>{item.value}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', margin: 0 }}>{item.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pending approvals on dashboard */}
+              {pendingUsers.length > 0 ? (
+                <div style={{
+                  background: 'var(--color-surface, #fff)',
+                  border: '1px solid var(--color-primary, #4f46e5)',
+                  borderRadius: '10px',
+                  padding: '20px 24px',
+                }}>
+                  <h2 style={{ fontSize: '16px', fontWeight: 700, marginTop: 0, marginBottom: '16px' }}>Demandes en attente ({pendingUsers.length})</h2>
+                  <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {pendingUsers.map((u) => (
+                      <li key={String(u.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '12px 0', borderBottom: '1px solid var(--color-border, #e5e7eb)' }}>
+                        <div>
+                          <p style={{ fontWeight: 600, margin: '0 0 2px', fontSize: '14px' }}>{u.first_name || ''} {u.last_name || ''}</p>
+                          <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>{u.email}</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                          <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '13px', padding: '6px 14px' }}>Valider</button>
+                          <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '13px', padding: '6px 14px' }}>Refuser</button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div className="hero-actions" style={{ marginTop: 0 }}>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    disabled={busyApprovalId === u.id}
-                    onClick={() => updateApproval(u.id, 'approved')}
-                  >
-                    Valider
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    disabled={busyApprovalId === u.id}
-                    onClick={() => updateApproval(u.id, 'rejected')}
-                  >
-                    Refuser
-                  </button>
+              ) : (
+                <div style={{
+                  background: 'var(--color-surface, #fff)',
+                  border: '1px solid var(--color-border, #e5e7eb)',
+                  borderRadius: '10px',
+                  padding: '20px 24px',
+                }}>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Aucune demande de compte en attente de validation.</p>
+                </div>
+              )}
+            </div>
+          ) : null}
+
+          {/* ── UTILISATEURS ── */}
+          {activeTab === 'users' ? (
+            <div>
+              <div style={{ marginBottom: '28px' }}>
+                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Utilisateurs</h1>
+                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion des comptes utilisateurs et demandes d'acces.</p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {/* User list */}
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
+                    Liste {users.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredUsers.length}/{users.length})</span> : null}
+                  </h2>
+                  <input
+                    type="search"
+                    className="inline-input"
+                    placeholder="Rechercher..."
+                    value={userQuery}
+                    onChange={(e) => setUserQuery(e.target.value)}
+                    style={{ marginBottom: '12px', width: '100%' }}
+                  />
+                  <ul className="session-list" style={{ margin: 0 }}>
+                    {filteredUsers.length === 0 ? <li className="list-empty">Aucun utilisateur ne correspond.</li> : null}
+                    {filteredUsers.slice(0, 15).map((u) => (
+                      <li key={String(u.id)} className="session-item">
+                        <div>
+                          <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
+                          <p className="session-meta">{u.email} · {u.role || 'user'} · {u.disabled ? 'Inactif' : 'Actif'}</p>
+                        </div>
+                        <div className="session-item-actions">
+                          <button type="button" className="btn-secondary" onClick={() => beginEditUser(u)}>Modifier</button>
+                          <button type="button" className="btn-secondary" onClick={() => handleToggleUserStatus(u)} disabled={busySaveKey === `status:user:${u.id}` || String(u.id) === String(user?.id)}>
+                            {busySaveKey === `status:user:${u.id}` ? '...' : u.disabled ? 'Activer' : 'Desactiver'}
+                          </button>
+                          <button type="button" className="btn-secondary" onClick={() => handleResetUserPassword(u)} disabled={busySaveKey === `password:user:${u.id}`}>
+                            {busySaveKey === `password:user:${u.id}` ? '...' : 'Mot de passe'}
+                          </button>
+                          <button type="button" className="btn-secondary" onClick={() => handleDeleteUser(u)} disabled={busyDeleteKey === `user:${u.id}` || String(u.id) === String(user?.id)}>
+                            {busyDeleteKey === `user:${u.id}` ? '...' : 'Supprimer'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Pending approvals */}
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Demandes en attente</h2>
+                    {pendingUsers.length === 0 ? <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>Aucune demande.</p> : null}
+                    {pendingUsers.map((u) => (
+                      <div key={String(u.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '10px' }}>
+                        <div>
+                          <p style={{ fontWeight: 600, margin: '0 0 2px', fontSize: '14px' }}>{u.first_name || ''} {u.last_name || ''}</p>
+                          <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '12px' }}>{u.email}</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                          <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '12px', padding: '5px 10px' }}>Valider</button>
+                          <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '12px', padding: '5px 10px' }}>Refuser</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Create user */}
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un compte</h2>
+                    <form className="auth-form" onSubmit={submitNewUser}>
+                      <label>Prenom<input value={newUser.first_name} onChange={(e) => setNewUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
+                      <label>Nom<input value={newUser.last_name} onChange={(e) => setNewUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
+                      <label>Email<input type="email" value={newUser.email} onChange={(e) => setNewUser((p) => ({ ...p, email: e.target.value }))} required /></label>
+                      <label>Mot de passe<input type="password" minLength={8} value={newUser.password} onChange={(e) => setNewUser((p) => ({ ...p, password: e.target.value }))} required /></label>
+                      <label>Role
+                        <select value={newUser.role} onChange={(e) => setNewUser((p) => ({ ...p, role: e.target.value }))}>
+                          <option value="user">Utilisateur</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </label>
+                      <button type="submit" className="btn-primary">Creer le compte</button>
+                    </form>
+                    {newUserMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newUserMessage}</p> : null}
+                  </div>
+
+                  {/* Edit user */}
+                  {editingUser ? (
+                    <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
+                      <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier utilisateur</h2>
+                      <form className="auth-form" onSubmit={submitEditUser}>
+                        <label>Prenom<input value={editingUser.first_name} onChange={(e) => setEditingUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
+                        <label>Nom<input value={editingUser.last_name} onChange={(e) => setEditingUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
+                        <label>Email<input type="email" value={editingUser.email} onChange={(e) => setEditingUser((p) => ({ ...p, email: e.target.value }))} required /></label>
+                        <label>Role
+                          <select value={editingUser.role} onChange={(e) => setEditingUser((p) => ({ ...p, role: e.target.value }))}>
+                            <option value="user">Utilisateur</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </label>
+                        <label>Fonction<input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} /></label>
+                        <label>Departement<input value={editingUser.department} onChange={(e) => setEditingUser((p) => ({ ...p, department: e.target.value }))} /></label>
+                        <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingUser.password} onChange={(e) => setEditingUser((p) => ({ ...p, password: e.target.value }))} /></label>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:user:${editingUser.id}`}>{busySaveKey === `save:user:${editingUser.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
+                          <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>Annuler</button>
+                        </div>
+                      </form>
+                    </div>
+                  ) : null}
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : null}
 
-          <div className="admin-column">
-            <h2>Creer un utilisateur</h2>
-            <form className="auth-form" onSubmit={submitNewUser}>
-              <label>
-                Prenom
-                <input value={newUser.first_name} onChange={(e) => setNewUser((p) => ({ ...p, first_name: e.target.value }))} required />
-              </label>
-              <label>
-                Nom
-                <input value={newUser.last_name} onChange={(e) => setNewUser((p) => ({ ...p, last_name: e.target.value }))} />
-              </label>
-              <label>
-                Email
-                <input type="email" value={newUser.email} onChange={(e) => setNewUser((p) => ({ ...p, email: e.target.value }))} required />
-              </label>
-              <label>
-                Mot de passe temporaire
-                <input type="password" minLength={8} value={newUser.password} onChange={(e) => setNewUser((p) => ({ ...p, password: e.target.value }))} required />
-              </label>
-              <label>
-                Role
-                <select value={newUser.role} onChange={(e) => setNewUser((p) => ({ ...p, role: e.target.value }))}>
-                  <option value="user">Utilisateur</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </label>
-              <button type="submit" className="btn-primary">Creer le compte</button>
-            </form>
-            {newUserMessage ? <p className="session-meta">{newUserMessage}</p> : null}
-          </div>
+          {/* ── PARTICIPANTS ── */}
+          {activeTab === 'participants' ? (
+            <div>
+              <div style={{ marginBottom: '28px' }}>
+                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Participants</h1>
+                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion des participants rattaches aux utilisateurs.</p>
+              </div>
 
-          <div className="admin-column">
-            <h2>Modifier utilisateur</h2>
-            {!editingUser ? (
-              <p>Selectionnez "Modifier" sur un utilisateur actif.</p>
-            ) : (
-              <form className="auth-form" onSubmit={submitEditUser}>
-                <label>
-                  Prenom
-                  <input value={editingUser.first_name} onChange={(e) => setEditingUser((p) => ({ ...p, first_name: e.target.value }))} required />
-                </label>
-                <label>
-                  Nom
-                  <input value={editingUser.last_name} onChange={(e) => setEditingUser((p) => ({ ...p, last_name: e.target.value }))} />
-                </label>
-                <label>
-                  Email
-                  <input type="email" value={editingUser.email} onChange={(e) => setEditingUser((p) => ({ ...p, email: e.target.value }))} required />
-                </label>
-                <label>
-                  Role
-                  <select value={editingUser.role} onChange={(e) => setEditingUser((p) => ({ ...p, role: e.target.value }))}>
-                    <option value="user">Utilisateur</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </label>
-                <label>
-                  Fonction
-                  <input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} />
-                </label>
-                <label>
-                  Departement
-                  <input value={editingUser.department} onChange={(e) => setEditingUser((p) => ({ ...p, department: e.target.value }))} />
-                </label>
-                <label>
-                  Nouveau mot de passe (optionnel)
-                  <input type="password" minLength={8} value={editingUser.password} onChange={(e) => setEditingUser((p) => ({ ...p, password: e.target.value }))} />
-                </label>
-                <div className="hero-actions" style={{ marginTop: 0 }}>
-                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:user:${editingUser.id}`}>
-                    {busySaveKey === `save:user:${editingUser.id}` ? 'Enregistrement...' : 'Enregistrer'}
-                  </button>
-                  <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>Annuler</button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {/* Participant list */}
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
+                    Liste {participants.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredParticipants.length}/{participants.length})</span> : null}
+                  </h2>
+                  <input
+                    type="search"
+                    className="inline-input"
+                    placeholder="Rechercher..."
+                    value={participantQuery}
+                    onChange={(e) => setParticipantQuery(e.target.value)}
+                    style={{ marginBottom: '12px', width: '100%' }}
+                  />
+                  <ul className="session-list" style={{ margin: 0 }}>
+                    {filteredParticipants.length === 0 ? <li className="list-empty">Aucun participant ne correspond.</li> : null}
+                    {filteredParticipants.slice(0, 15).map((p) => (
+                      <li key={String(p.id)} className="session-item">
+                        <div>
+                          <p className="session-title">{getParticipantDisplayName(p)}</p>
+                          <p className="session-meta">{p.email} · {p.disabled ? 'Inactif' : 'Actif'} · {p.creator?.email || `Createur #${p.created_by || '?'}`}</p>
+                        </div>
+                        <div className="session-item-actions">
+                          <button type="button" className="btn-secondary" onClick={() => beginEditParticipant(p)}>Modifier</button>
+                          <button type="button" className="btn-secondary" onClick={() => handleToggleParticipantStatus(p)} disabled={busySaveKey === `status:participant:${p.id}`}>
+                            {busySaveKey === `status:participant:${p.id}` ? '...' : p.disabled ? 'Activer' : 'Desactiver'}
+                          </button>
+                          <button type="button" className="btn-secondary" onClick={() => handleResetParticipantPassword(p)} disabled={busySaveKey === `password:participant:${p.id}`}>
+                            {busySaveKey === `password:participant:${p.id}` ? '...' : 'Mot de passe'}
+                          </button>
+                          <button type="button" className="btn-secondary" onClick={() => handleDeleteParticipant(p)} disabled={busyDeleteKey === `participant:${p.id}`}>
+                            {busyDeleteKey === `participant:${p.id}` ? '...' : 'Supprimer'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </form>
-            )}
-          </div>
-        </section>
 
-        <section className="feature-card admin-grid">
-          <div className="admin-column">
-            <h2>Participants{participants.length > 0 ? <span className="list-count"> ({filteredParticipants.length}/{participants.length})</span> : null}</h2>
-            <input
-              type="search"
-              className="inline-input"
-              placeholder="Rechercher un participant..."
-              value={participantQuery}
-              onChange={(e) => setParticipantQuery(e.target.value)}
-            />
-            <ul className="session-list">
-              {filteredParticipants.length === 0 ? <li className="list-empty">Aucun participant ne correspond.</li> : null}
-              {filteredParticipants.slice(0, 12).map((p) => (
-                <li key={String(p.id)} className="session-item">
-                  <div>
-                    <p className="session-title">{getParticipantDisplayName(p)}</p>
-                    <p className="session-meta">{p.email} · {p.disabled ? 'Inactif' : 'Actif'} · {p.creator?.email || `Createur #${p.created_by || '?'}`}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Create participant */}
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un participant</h2>
+                    <form className="auth-form" onSubmit={submitNewParticipant}>
+                      <label>Createur
+                        <select value={newParticipant.owner_id} onChange={(e) => setNewParticipant((prev) => ({ ...prev, owner_id: e.target.value }))} required>
+                          <option value="">Selectionner un utilisateur</option>
+                          {users.filter((u) => String(u.role || '') === 'user').map((u) => (
+                            <option key={String(u.id)} value={String(u.id)}>{u.first_name || ''} {u.last_name || ''} ({u.email})</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>Prenom<input value={newParticipant.first_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
+                      <label>Nom<input value={newParticipant.last_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
+                      <label>Email<input type="email" value={newParticipant.email} onChange={(e) => setNewParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
+                      <label>Mot de passe<input type="password" minLength={8} value={newParticipant.password} onChange={(e) => setNewParticipant((prev) => ({ ...prev, password: e.target.value }))} required /></label>
+                      <label>Fonction<input value={newParticipant.job_title} onChange={(e) => setNewParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
+                      <label>Departement<input value={newParticipant.department} onChange={(e) => setNewParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
+                      <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>{busySaveKey === 'create:participant' ? 'Creation...' : 'Creer participant'}</button>
+                    </form>
+                    {newParticipantMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newParticipantMessage}</p> : null}
                   </div>
-                  <div className="session-item-actions">
-                    <button type="button" className="btn-secondary" onClick={() => beginEditParticipant(p)}>
-                      Modifier
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => handleToggleParticipantStatus(p)}
-                      disabled={busySaveKey === `status:participant:${p.id}`}
-                    >
-                      {busySaveKey === `status:participant:${p.id}` ? 'Mise a jour...' : p.disabled ? 'Activer' : 'Desactiver'}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => handleResetParticipantPassword(p)}
-                      disabled={busySaveKey === `password:participant:${p.id}`}
-                    >
-                      {busySaveKey === `password:participant:${p.id}` ? 'Reset...' : 'Mot de passe'}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => handleDeleteParticipant(p)}
-                      disabled={busyDeleteKey === `participant:${p.id}`}
-                    >
-                      {busyDeleteKey === `participant:${p.id}` ? 'Suppression...' : 'Supprimer'}
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          <div className="admin-column">
-            <h2>Creer un participant</h2>
-            <form className="auth-form" onSubmit={submitNewParticipant}>
-              <label>
-                Createur
-                <select value={newParticipant.owner_id} onChange={(e) => setNewParticipant((prev) => ({ ...prev, owner_id: e.target.value }))} required>
-                  <option value="">Selectionner un utilisateur</option>
-                  {users.filter((u) => String(u.role || '') === 'user').map((u) => (
-                    <option key={String(u.id)} value={String(u.id)}>
-                      {u.first_name || ''} {u.last_name || ''} ({u.email})
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Prenom
-                <input value={newParticipant.first_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required />
-              </label>
-              <label>
-                Nom
-                <input value={newParticipant.last_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, last_name: e.target.value }))} />
-              </label>
-              <label>
-                Email
-                <input type="email" value={newParticipant.email} onChange={(e) => setNewParticipant((prev) => ({ ...prev, email: e.target.value }))} required />
-              </label>
-              <label>
-                Mot de passe
-                <input type="password" minLength={8} value={newParticipant.password} onChange={(e) => setNewParticipant((prev) => ({ ...prev, password: e.target.value }))} required />
-              </label>
-              <label>
-                Fonction
-                <input value={newParticipant.job_title} onChange={(e) => setNewParticipant((prev) => ({ ...prev, job_title: e.target.value }))} />
-              </label>
-              <label>
-                Departement
-                <input value={newParticipant.department} onChange={(e) => setNewParticipant((prev) => ({ ...prev, department: e.target.value }))} />
-              </label>
-              <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>
-                {busySaveKey === 'create:participant' ? 'Creation...' : 'Creer participant'}
-              </button>
-            </form>
-            {newParticipantMessage ? <p className="session-meta">{newParticipantMessage}</p> : null}
-          </div>
-
-          <div className="admin-column">
-            <h2>Modifier participant</h2>
-            {!editingParticipant ? (
-              <p>Selectionnez "Modifier" sur un participant.</p>
-            ) : (
-              <form className="auth-form" onSubmit={submitEditParticipant}>
-                <label>
-                  Prenom
-                  <input value={editingParticipant.first_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required />
-                </label>
-                <label>
-                  Nom
-                  <input value={editingParticipant.last_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, last_name: e.target.value }))} />
-                </label>
-                <label>
-                  Email
-                  <input type="email" value={editingParticipant.email} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, email: e.target.value }))} required />
-                </label>
-                <label>
-                  Statut
-                  <select value={editingParticipant.disabled ? 'disabled' : 'active'} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, disabled: e.target.value === 'disabled' }))}>
-                    <option value="active">Actif</option>
-                    <option value="disabled">Inactif</option>
-                  </select>
-                </label>
-                <label>
-                  Fonction
-                  <input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} />
-                </label>
-                <label>
-                  Departement
-                  <input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} />
-                </label>
-                <label>
-                  Nouveau mot de passe (optionnel)
-                  <input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} />
-                </label>
-                <div className="hero-actions" style={{ marginTop: 0 }}>
-                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>
-                    {busySaveKey === `save:participant:${editingParticipant.id}` ? 'Enregistrement...' : 'Enregistrer'}
-                  </button>
-                  <button type="button" className="btn-secondary" onClick={() => setEditingParticipant(null)}>Annuler</button>
+                  {/* Edit participant */}
+                  {editingParticipant ? (
+                    <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
+                      <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier participant</h2>
+                      <form className="auth-form" onSubmit={submitEditParticipant}>
+                        <label>Prenom<input value={editingParticipant.first_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
+                        <label>Nom<input value={editingParticipant.last_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
+                        <label>Email<input type="email" value={editingParticipant.email} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
+                        <label>Statut
+                          <select value={editingParticipant.disabled ? 'disabled' : 'active'} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, disabled: e.target.value === 'disabled' }))}>
+                            <option value="active">Actif</option>
+                            <option value="disabled">Inactif</option>
+                          </select>
+                        </label>
+                        <label>Fonction<input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
+                        <label>Departement<input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
+                        <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} /></label>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>{busySaveKey === `save:participant:${editingParticipant.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
+                          <button type="button" className="btn-secondary" onClick={() => setEditingParticipant(null)}>Annuler</button>
+                        </div>
+                      </form>
+                    </div>
+                  ) : null}
                 </div>
-              </form>
-            )}
-          </div>
-        </section>
+              </div>
+            </div>
+          ) : null}
 
-        <section className="feature-card admin-grid">
-          <div className="admin-column">
-            <h2>Sessions{sessions.length > 0 ? <span className="list-count"> ({filteredSessions.length}/{sessions.length})</span> : null}</h2>
-            <input
-              type="search"
-              className="inline-input"
-              placeholder="Rechercher une session..."
-              value={sessionQuery}
-              onChange={(e) => setSessionQuery(e.target.value)}
-            />
-            <ul className="session-list">
-              {filteredSessions.length === 0 ? <li className="list-empty">Aucune session ne correspond.</li> : null}
-              {filteredSessions.slice(0, 8).map((s) => (
-                <li key={String(s.id)} className="session-item">
-                  <div>
-                    <p className="session-title">{s.name || `Session #${s.id}`}</p>
-                    <p className="session-meta">{s.status || 'preparee'}</p>
-                  </div>
-                  <div className="session-item-actions">
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => beginEditSession(s)}
-                    >
-                      Modifier
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => handleDeleteSession(s)}
-                      disabled={busyDeleteKey === `session:${s.id}`}
-                    >
-                      {busyDeleteKey === `session:${s.id}` ? 'Suppression...' : 'Supprimer'}
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* ── SESSIONS ── */}
+          {activeTab === 'sessions' ? (
+            <div>
+              <div style={{ marginBottom: '28px' }}>
+                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Sessions</h1>
+                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Supervision et modification des sessions existantes.</p>
+              </div>
 
-          <div className="admin-column">
-            <h2>Modifier session</h2>
-            {!editingSession ? (
-              <p>Selectionnez "Modifier" sur une session.</p>
-            ) : (
-              <form className="auth-form" onSubmit={submitEditSession}>
-                <label>
-                  Nom
-                  <input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required />
-                </label>
-                <label>
-                  Statut
-                  <select value={editingSession.status} onChange={(e) => setEditingSession((p) => ({ ...p, status: e.target.value }))}>
-                    <option value="preparee">En preparation</option>
-                    <option value="en_cours">En cours</option>
-                    <option value="terminee">Terminee</option>
-                  </select>
-                </label>
-                <label>
-                  Format
-                  <input value={editingSession.format} onChange={(e) => setEditingSession((p) => ({ ...p, format: e.target.value }))} />
-                </label>
-                <label>
-                  Modalite
-                  <select value={editingSession.modality} onChange={(e) => setEditingSession((p) => ({ ...p, modality: e.target.value }))}>
-                    <option value="">Non definie</option>
-                    <option value="remote">A distance</option>
-                    <option value="hybrid">Hybride</option>
-                    <option value="in-person">Presentiel</option>
-                  </select>
-                </label>
-                <label>
-                  Date
-                  <input type="date" value={editingSession.session_date} onChange={(e) => setEditingSession((p) => ({ ...p, session_date: e.target.value }))} />
-                </label>
-                <label>
-                  Duree (minutes)
-                  <input type="number" min={1} value={editingSession.duration_minutes} onChange={(e) => setEditingSession((p) => ({ ...p, duration_minutes: e.target.value }))} />
-                </label>
-                <div className="hero-actions" style={{ marginTop: 0 }}>
-                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:session:${editingSession.id}`}>
-                    {busySaveKey === `save:session:${editingSession.id}` ? 'Enregistrement...' : 'Enregistrer'}
-                  </button>
-                  <button type="button" className="btn-secondary" onClick={() => setEditingSession(null)}>Annuler</button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {/* Session list */}
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
+                    Liste {sessions.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredSessions.length}/{sessions.length})</span> : null}
+                  </h2>
+                  <input
+                    type="search"
+                    className="inline-input"
+                    placeholder="Rechercher..."
+                    value={sessionQuery}
+                    onChange={(e) => setSessionQuery(e.target.value)}
+                    style={{ marginBottom: '12px', width: '100%' }}
+                  />
+                  <ul className="session-list" style={{ margin: 0 }}>
+                    {filteredSessions.length === 0 ? <li className="list-empty">Aucune session ne correspond.</li> : null}
+                    {filteredSessions.slice(0, 12).map((s) => (
+                      <li key={String(s.id)} className="session-item">
+                        <div>
+                          <p className="session-title">{s.name || `Session #${s.id}`}</p>
+                          <p className="session-meta">{s.status || 'preparee'} {s.modality ? `· ${s.modality}` : ''}</p>
+                        </div>
+                        <div className="session-item-actions">
+                          <button type="button" className="btn-secondary" onClick={() => beginEditSession(s)}>Modifier</button>
+                          <button type="button" className="btn-secondary" onClick={() => handleDeleteSession(s)} disabled={busyDeleteKey === `session:${s.id}`}>
+                            {busyDeleteKey === `session:${s.id}` ? '...' : 'Supprimer'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </form>
-            )}
-          </div>
 
-          <div className="admin-column">
-            <h2>Challenges{challenges.length > 0 ? <span className="list-count"> ({filteredChallenges.length}/{challenges.length})</span> : null}</h2>
-            <input
-              type="search"
-              className="inline-input"
-              placeholder="Rechercher un challenge..."
-              value={challengeQuery}
-              onChange={(e) => setChallengeQuery(e.target.value)}
-            />
-            <ul className="session-list">
-              {filteredChallenges.length === 0 ? <li className="list-empty">Aucun challenge ne correspond.</li> : null}
-              {filteredChallenges.slice(0, 8).map((c) => (
-                <li key={String(c.id)} className="session-item">
-                  <div>
-                    <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
-                    <p className="session-meta">{c.engine_key || c.type || 'sans engine'}</p>
-                  </div>
-                  <div className="session-item-actions">
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => beginEditChallenge(c)}
-                    >
-                      Modifier
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => handleDeleteChallenge(c)}
-                      disabled={busyDeleteKey === `challenge:${c.id}`}
-                    >
-                      {busyDeleteKey === `challenge:${c.id}` ? 'Suppression...' : 'Supprimer'}
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="admin-column">
-            <h2>Modifier challenge</h2>
-            {!editingChallenge ? (
-              <p>Selectionnez "Modifier" sur un challenge.</p>
-            ) : (
-              <form className="auth-form" onSubmit={submitEditChallenge}>
-                <label>
-                  Nom
-                  <input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required />
-                </label>
-                <label>
-                  Type
-                  <select value={editingChallenge.type} onChange={(e) => setEditingChallenge((p) => ({ ...p, type: e.target.value }))}>
-                    <option value="individuel">Individuel</option>
-                    <option value="equipe">Equipe</option>
-                    <option value="icebreaker">Icebreaker</option>
-                  </select>
-                </label>
-                <label>
-                  Statut
-                  <select value={editingChallenge.status} onChange={(e) => setEditingChallenge((p) => ({ ...p, status: e.target.value }))}>
-                    <option value="actif">Actif</option>
-                    <option value="brouillon">Brouillon</option>
-                    <option value="archive">Archive</option>
-                  </select>
-                </label>
-                <label>
-                  Duree
-                  <input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} />
-                </label>
-                <label>
-                  Engine key
-                  <input value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} />
-                </label>
-                <label>
-                  Description
-                  <textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} />
-                </label>
-                <div className="hero-actions" style={{ marginTop: 0 }}>
-                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>
-                    {busySaveKey === `save:challenge:${editingChallenge.id}` ? 'Enregistrement...' : 'Enregistrer'}
-                  </button>
-                  <button type="button" className="btn-secondary" onClick={() => setEditingChallenge(null)}>Annuler</button>
+                {/* Edit session */}
+                <div style={{ background: 'var(--color-surface, #fff)', border: editingSession ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier une session</h2>
+                  {!editingSession ? (
+                    <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>Selectionnez "Modifier" sur une session pour l'editer ici.</p>
+                  ) : (
+                    <form className="auth-form" onSubmit={submitEditSession}>
+                      <label>Nom<input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required /></label>
+                      <label>Statut
+                        <select value={editingSession.status} onChange={(e) => setEditingSession((p) => ({ ...p, status: e.target.value }))}>
+                          <option value="preparee">En preparation</option>
+                          <option value="en_cours">En cours</option>
+                          <option value="terminee">Terminee</option>
+                        </select>
+                      </label>
+                      <label>Format<input value={editingSession.format} onChange={(e) => setEditingSession((p) => ({ ...p, format: e.target.value }))} /></label>
+                      <label>Modalite
+                        <select value={editingSession.modality} onChange={(e) => setEditingSession((p) => ({ ...p, modality: e.target.value }))}>
+                          <option value="">Non definie</option>
+                          <option value="remote">A distance</option>
+                          <option value="hybrid">Hybride</option>
+                          <option value="in-person">Presentiel</option>
+                        </select>
+                      </label>
+                      <label>Date<input type="date" value={editingSession.session_date} onChange={(e) => setEditingSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
+                      <label>Duree (minutes)<input type="number" min={1} value={editingSession.duration_minutes} onChange={(e) => setEditingSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                        <button type="submit" className="btn-primary" disabled={busySaveKey === `save:session:${editingSession.id}`}>{busySaveKey === `save:session:${editingSession.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
+                        <button type="button" className="btn-secondary" onClick={() => setEditingSession(null)}>Annuler</button>
+                      </div>
+                    </form>
+                  )}
                 </div>
-              </form>
-            )}
-          </div>
-        </section>
-      </main>
+              </div>
+            </div>
+          ) : null}
+
+          {/* ── CHALLENGES ── */}
+          {activeTab === 'challenges' ? (
+            <div>
+              <div style={{ marginBottom: '28px' }}>
+                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Challenges</h1>
+                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion du catalogue de challenges disponibles.</p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {/* Challenge list */}
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
+                    Liste {challenges.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredChallenges.length}/{challenges.length})</span> : null}
+                  </h2>
+                  <input
+                    type="search"
+                    className="inline-input"
+                    placeholder="Rechercher..."
+                    value={challengeQuery}
+                    onChange={(e) => setChallengeQuery(e.target.value)}
+                    style={{ marginBottom: '12px', width: '100%' }}
+                  />
+                  <ul className="session-list" style={{ margin: 0 }}>
+                    {filteredChallenges.length === 0 ? <li className="list-empty">Aucun challenge ne correspond.</li> : null}
+                    {filteredChallenges.slice(0, 15).map((c) => (
+                      <li key={String(c.id)} className="session-item">
+                        <div>
+                          <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
+                          <p className="session-meta">{c.type || 'individuel'} · {c.status || 'actif'} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
+                        </div>
+                        <div className="session-item-actions">
+                          <button type="button" className="btn-secondary" onClick={() => beginEditChallenge(c)}>Modifier</button>
+                          <button type="button" className="btn-secondary" onClick={() => handleDeleteChallenge(c)} disabled={busyDeleteKey === `challenge:${c.id}`}>
+                            {busyDeleteKey === `challenge:${c.id}` ? '...' : 'Supprimer'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Edit challenge */}
+                <div style={{ background: 'var(--color-surface, #fff)', border: editingChallenge ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier un challenge</h2>
+                  {!editingChallenge ? (
+                    <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>Selectionnez "Modifier" sur un challenge pour l'editer ici.</p>
+                  ) : (
+                    <form className="auth-form" onSubmit={submitEditChallenge}>
+                      <label>Nom<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
+                      <label>Type
+                        <select value={editingChallenge.type} onChange={(e) => setEditingChallenge((p) => ({ ...p, type: e.target.value }))}>
+                          <option value="individuel">Individuel</option>
+                          <option value="equipe">Equipe</option>
+                          <option value="icebreaker">Icebreaker</option>
+                        </select>
+                      </label>
+                      <label>Statut
+                        <select value={editingChallenge.status} onChange={(e) => setEditingChallenge((p) => ({ ...p, status: e.target.value }))}>
+                          <option value="actif">Actif</option>
+                          <option value="brouillon">Brouillon</option>
+                          <option value="archive">Archive</option>
+                        </select>
+                      </label>
+                      <label>Duree<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
+                      <label>Engine key<input value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
+                      <label>Description<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                        <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>{busySaveKey === `save:challenge:${editingChallenge.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
+                        <button type="button" className="btn-secondary" onClick={() => setEditingChallenge(null)}>Annuler</button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+        </main>
+      </div>
       <Footer />
     </>
   );
