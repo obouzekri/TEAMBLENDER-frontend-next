@@ -383,6 +383,111 @@ a {
   gap: 1rem;
 }
 
+.manager-home {
+  --home-primary: #0f766e;
+  --home-primary-strong: #115e59;
+  --home-surface: #ffffff;
+  --home-line: #d7e2d4;
+  --home-muted: #4f6356;
+}
+
+.home-hero {
+  background: linear-gradient(130deg, #f7fcf9 0%, #eff7f0 50%, #eef4f8 100%);
+  border-color: var(--home-line);
+}
+
+.home-hero .eyebrow {
+  color: var(--home-primary-strong);
+}
+
+.home-hero-actions .btn-primary {
+  background: linear-gradient(135deg, var(--home-primary) 0%, var(--home-primary-strong) 100%);
+}
+
+.home-hero-actions .btn-primary:hover {
+  filter: brightness(0.97);
+}
+
+.home-hero-actions .btn-secondary {
+  border-color: var(--home-line);
+  background: #fcfefd;
+}
+
+.stat-card {
+  border-color: var(--home-line);
+  box-shadow: 0 8px 20px rgba(28, 49, 36, 0.06);
+}
+
+.stat-value {
+  font-size: 2.35rem;
+  margin: 0.25rem 0;
+  line-height: 1;
+  color: #12362a;
+}
+
+.stat-card-live .stat-value {
+  color: #0f766e;
+}
+
+.stat-card-ready .stat-value {
+  color: #1d4ed8;
+}
+
+.stat-card-done .stat-value {
+  color: #7c3aed;
+}
+
+.stat-link {
+  margin-top: 0.75rem;
+  width: fit-content;
+}
+
+.sessions-panel {
+  border-color: var(--home-line);
+}
+
+.session-item {
+  border-color: var(--home-line);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdf9 100%);
+}
+
+.session-title {
+  color: #1b2d24;
+}
+
+.session-meta {
+  margin-top: 6px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.status-en_cours {
+  background: rgba(15, 118, 110, 0.12);
+  border-color: rgba(15, 118, 110, 0.35);
+  color: #115e59;
+}
+
+.status-preparee {
+  background: rgba(29, 78, 216, 0.12);
+  border-color: rgba(29, 78, 216, 0.35);
+  color: #1e40af;
+}
+
+.status-terminee {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(124, 58, 237, 0.35);
+  color: #6d28d9;
+}
+
 .admin-page {
   gap: 1.1rem;
 }
@@ -618,6 +723,11 @@ a {
   }
 
   .session-item-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stat-link {
     width: 100%;
     justify-content: center;
   }

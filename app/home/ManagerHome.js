@@ -340,14 +340,14 @@ export default function ManagerHome() {
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
-      <main className="shell app-home">
-        <section className="hero">
+      <main className="shell app-home manager-home">
+        <section className="hero home-hero">
           <p className="eyebrow">ESPACE MANAGER</p>
           <h1>Bonjour {userLabel}</h1>
           <p>Planifiez, lancez et analysez vos sessions de team building en quelques clics.</p>
-          <div className="hero-actions">
-            <Link className="btn-primary" href="/session-builder">Construire une session</Link>
-            <Link className="btn-secondary" href="/session-builder">Lancer une session</Link>
+          <div className="hero-actions home-hero-actions">
+            <Link className="btn-primary" href="/session-builder">Créer une session</Link>
+            <Link className="btn-secondary" href="/session-builder">Ouvrir le builder</Link>
             {guard.user?.role === 'admin' && (
               <Link className="btn-secondary" href="/admin">Console admin</Link>
             )}
@@ -355,28 +355,28 @@ export default function ManagerHome() {
         </section>
 
         <section className="cards-grid" aria-label="Statistiques sessions">
-          <article className="feature-card">
+          <article className="feature-card stat-card stat-card-live">
             <p className="eyebrow">EN COURS</p>
-            <h2 style={{ fontSize: '2.5rem', margin: '0.25rem 0' }}>{loadingSessions ? '…' : sessionStats.enCours}</h2>
+            <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.enCours}</h2>
             <p>session{sessionStats.enCours !== 1 ? 's' : ''} active{sessionStats.enCours !== 1 ? 's' : ''}</p>
             {sessionStats.enCours > 0 && (
-              <Link className="btn-mini" href={`/session-live/${sessions.find((s) => s.status === 'en_cours')?.id}`} style={{ marginTop: '0.75rem' }}>Reprendre</Link>
+              <Link className="btn-mini stat-link" href={`/session-live/${sessions.find((s) => s.status === 'en_cours')?.id}`}>Reprendre</Link>
             )}
           </article>
-          <article className="feature-card">
+          <article className="feature-card stat-card stat-card-ready">
             <p className="eyebrow">A CONFIGURER</p>
-            <h2 style={{ fontSize: '2.5rem', margin: '0.25rem 0' }}>{loadingSessions ? '…' : sessionStats.preparee}</h2>
+            <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.preparee}</h2>
             <p>session{sessionStats.preparee !== 1 ? 's' : ''} en preparation</p>
             {sessionStats.preparee > 0 && (
-              <Link className="btn-mini" href="/session-builder" style={{ marginTop: '0.75rem' }}>Continuer</Link>
+              <Link className="btn-mini stat-link" href="/session-builder">Continuer</Link>
             )}
           </article>
-          <article className="feature-card">
+          <article className="feature-card stat-card stat-card-done">
             <p className="eyebrow">TERMINEES</p>
-            <h2 style={{ fontSize: '2.5rem', margin: '0.25rem 0' }}>{loadingSessions ? '…' : sessionStats.terminee}</h2>
+            <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.terminee}</h2>
             <p>session{sessionStats.terminee !== 1 ? 's' : ''} cloturee{sessionStats.terminee !== 1 ? 's' : ''}</p>
             {sessionStats.terminee > 0 && (
-              <Link className="btn-mini" href={`/session-results/${sessions.find((s) => s.status === 'terminee')?.id}`} style={{ marginTop: '0.75rem' }}>Voir resultats</Link>
+              <Link className="btn-mini stat-link" href={`/session-results/${sessions.find((s) => s.status === 'terminee')?.id}`}>Voir resultats</Link>
             )}
           </article>
         </section>
@@ -431,7 +431,11 @@ export default function ManagerHome() {
                 <li key={String(session.id)} className="session-item">
                   <div>
                     <p className="session-title">{session.name || `Session #${session.id}`}</p>
-                    <p className="session-meta">{STATUS_LABEL[session.status] || session.status || 'En préparation'}</p>
+                    <p className="session-meta">
+                      <span className={`status-pill status-${session.status || 'preparee'}`}>
+                        {STATUS_LABEL[session.status] || session.status || 'En préparation'}
+                      </span>
+                    </p>
                   </div>
                   <div className="session-item-actions">
                     <Link
