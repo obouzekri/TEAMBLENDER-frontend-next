@@ -111,8 +111,12 @@ export default function SessionBuilder() {
     setHasRouteSessionId(Boolean(routeSessionId));
     if (!routeSessionId) {
       sessionStorage.removeItem('sessionId');
+      sessionStorage.removeItem('selectedChallenges');
+      localStorage.removeItem('selectedChallenges');
+      clearAll();
+      setSessionChallengesLoaded(false);
     }
-  }, []);
+  }, [clearAll]);
 
   const getAuthToken = useCallback(
     () => localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '',

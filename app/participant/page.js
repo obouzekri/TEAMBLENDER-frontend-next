@@ -17,15 +17,15 @@ function parseUser() {
 }
 
 export default function ParticipantPage() {
-    {/* Assigned sessions card */}
+  {/* Assigned sessions card */}
   const [user, setUser] = useState(null);
   const [runtime, setRuntime] = useState(null);
   const [runtimeError, setRuntimeError] = useState('');
   const [joining, setJoining] = useState(false);
-  const [sessionInput, setSessionInput] = useState('');
   const [teamMembers, setTeamMembers] = useState([]);
   const [assignedSessions, setAssignedSessions] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
+  const [sessionId, setSessionId] = useState('');
   const pollRef = useRef(null);
   const [ready, setReady] = useState(false);
 
@@ -47,10 +47,27 @@ export default function ParticipantPage() {
     return user.first_name || user.firstname || user.email || 'Participant';
   }, [user]);
 
-  const sessionId = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    const params = new URLSearchParams(window.location.search);
-    return params.get('sessionId') || sessionStorage.getItem('targetSessionId') || '';
+  useEffect(() => {
+    if (!ready || typeof window === 'undefined') return;
+
+    function syncSessionFromLocation() {
+      const params = new URLSearchParams(window.location.search);
+      const fromQuery = String(params.get('sessionId') || '').trim();
+      const resolved = fromQuery || String(sessionStorage.getItem('targetSessionId') || '').trim();
+      if (fromQuery) {
+        sessionStorage.setItem('targetSessionId', fromQuery);
+      }
+      setSessionId(resolved);
+    }
+
+    syncSessionFromLocation();
+    window.addEventListener('popstate', syncSessionFromLocation);
+    return () => window.removeEventListener('popstate', syncSessionFromLocation);
+  }, [ready]);
+
+  const getSessionIdentifier = useCallback((session) => {
+    const id = session?.id ?? session?.session_id ?? session?.sessionId;
+    return id == null ? '' : String(id).trim();
   }, []);
 
   useEffect(() => {
@@ -99,32 +116,32 @@ export default function ParticipantPage() {
   }, [ready, sessionId]);
 
 // Load participant's assigned sessions
-useEffect(() => {
-  if (!ready) return;
+  useEffect(() => {
+    if (!ready) return;
 
-  const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-  if (!token) return;
+    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+    if (!token) return;
 
-  async function fetchAssignedSessions() {
-    setLoadingSessions(true);
-    try {
-      const res = await fetch(getApiUrl('/participants/me/sessions'), {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const sessions = Array.isArray(data) ? data : (data?.data || data?.sessions || []);
-        setAssignedSessions(sessions);
+    async function fetchAssignedSessions() {
+      setLoadingSessions(true);
+      try {
+        const res = await fetch(getApiUrl('/participants/me/sessions'), {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const sessions = Array.isArray(data) ? data : (data?.data || data?.sessions || []);
+          setAssignedSessions(Array.isArray(sessions) ? sessions : []);
+        }
+      } catch (err) {
+        // Silently fail - assigned sessions are nice to have
+      } finally {
+        setLoadingSessions(false);
       }
-    } catch (err) {
-      // Silently fail - assigned sessions are nice to have
-    } finally {
-      setLoadingSessions(false);
     }
-  }
 
-  fetchAssignedSessions();
-}, [ready]);
+    fetchAssignedSessions();
+  }, [ready]);
   // Load team members for the session
   useEffect(() => {
     if (!ready || !sessionId) return;
@@ -215,8 +232,12 @@ useEffect(() => {
               <h2>Vos sessions assignées</h2>
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {assignedSessions.map((session) => (
+                  (() => {
+                    const sessionIdentifier = getSessionIdentifier(session);
+                    if (!sessionIdentifier) return null;
+                    return (
                   <li
-                    key={String(session.id)}
+                    key={sessionIdentifier}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -230,7 +251,7 @@ useEffect(() => {
                   >
                     <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: 600, margin: '0 0 4px', fontSize: '14px', color: 'var(--color-text, #111)' }}>
-                        {session.name || `Session #${session.id}`}
+                        {session.name || `Session #${sessionIdentifier}`}
                       </p>
                       {session.status && (
                         <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '12px' }}>
@@ -239,13 +260,22 @@ useEffect(() => {
                       )}
                     </div>
                     <Link
-                      href={`/participant?sessionId=${encodeURIComponent(session.id)}`}
+                      href={`/participant?sessionId=${encodeURIComponent(sessionIdentifier)}`}
                       className="btn-secondary"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        if (typeof window !== 'undefined') {
+                          sessionStorage.setItem('targetSessionId', sessionIdentifier);
+                          window.location.assign(`/participant?sessionId=${encodeURIComponent(sessionIdentifier)}`);
+                        }
+                      }}
                       style={{ fontSize: '13px', padding: '6px 12px', whiteSpace: 'nowrap' }}
                     >
                       Rejoindre
                     </Link>
                   </li>
+                    );
+                  })()
                 ))}
               </ul>
             </section>

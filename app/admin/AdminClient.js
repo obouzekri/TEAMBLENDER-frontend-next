@@ -1191,6 +1191,20 @@ export default function AdminClient() {
             </div>
           ) : null}
 
+          <div className="admin-mobile-tabs" aria-label="Navigation admin mobile">
+            {TAB_ITEMS.map((tab) => (
+              <button
+                key={`mobile-${tab.id}`}
+                type="button"
+                className={`admin-mobile-tab-btn${activeTab === tab.id ? ' active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+                {tab.badge != null ? <span className="admin-mobile-tab-badge">{tab.badge}</span> : null}
+              </button>
+            ))}
+          </div>
+
           {/* ── DASHBOARD ── */}
           {activeTab === 'dashboard' ? (
             <div>
@@ -1310,7 +1324,7 @@ export default function AdminClient() {
                             title="Supprimer"
                             aria-label="Supprimer utilisateur"
                           >
-                            {busyDeleteKey === `user:${u.id}` ? '…' : '✕'}
+                            {busyDeleteKey === `user:${u.id}` ? '…' : '🗑'}
                           </button>
                         </div>
                       </li>
@@ -1443,7 +1457,7 @@ export default function AdminClient() {
                             title="Supprimer"
                             aria-label="Supprimer participant"
                           >
-                            {busyDeleteKey === `participant:${p.id}` ? '…' : '✕'}
+                            {busyDeleteKey === `participant:${p.id}` ? '…' : '🗑'}
                           </button>
                         </div>
                       </li>
@@ -1731,7 +1745,7 @@ export default function AdminClient() {
                             title="Supprimer"
                             aria-label="Supprimer challenge"
                           >
-                            {busyDeleteKey === `challenge:${c.id}` ? '…' : '✕'}
+                            {busyDeleteKey === `challenge:${c.id}` ? '…' : '🗑'}
                           </button>
                         </div>
                       </li>

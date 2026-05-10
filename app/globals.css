@@ -988,6 +988,7 @@ a {
 
 .icon-only-actions {
   gap: 0.35rem;
+  flex-wrap: nowrap;
 }
 
 .icon-action-btn {
@@ -1030,6 +1031,43 @@ a {
   border-color: rgba(180, 35, 24, 0.38);
   color: #8f1e16;
   box-shadow: 0 6px 12px rgba(180, 35, 24, 0.14);
+}
+
+.admin-mobile-tabs {
+  display: none;
+}
+
+.admin-mobile-tab-btn {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.admin-mobile-tab-btn.active {
+  color: var(--accent-strong);
+  border-color: rgba(15, 118, 110, 0.32);
+  background: var(--accent-soft);
+}
+
+.admin-mobile-tab-badge {
+  min-width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.2rem;
+  background: var(--accent);
+  color: #fff;
 }
 
 .session-title {
@@ -1130,6 +1168,15 @@ a {
   /* Hide sidebar on mobile */
   aside {
     display: none !important;
+  }
+
+  .admin-mobile-tabs {
+    display: flex;
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding: 0.2rem 0 0.85rem;
+    margin-bottom: 0.45rem;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Adjust main content padding on mobile */
