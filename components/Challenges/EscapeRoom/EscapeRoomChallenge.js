@@ -385,8 +385,54 @@ export default function EscapeRoomChallenge({
           </div>
 
           <section className={styles.timerCard}>
-            <div className={styles.timerClock}>{timerLabel}</div>
-            <p className={styles.timerMeta}>Etat timer: {String(state?.status || '-')}</p>
+            <h3 className={styles.timerTitle}>Chronomètre</h3>
+            
+            <div className={styles.timerRingContainer}>
+              <div 
+                className={styles.timerRing}
+                style={{
+                  background: `conic-gradient(#0ea5e9 ${(100 - (timerSeconds / (Number(runtimePayload?.config?.timer?.duration_seconds || 300)) * 100))}deg, rgba(148, 163, 184, 0.25) ${(100 - (timerSeconds / (Number(runtimePayload?.config?.timer?.duration_seconds || 300)) * 100))}deg)`
+                }}
+              >
+                <div className={styles.timerDisplay}>
+                  <div className={styles.timerTime}>{timerLabel}</div>
+                  <div className={styles.timerState}>{state?.status ? 'En cours' : 'Attente'}</div>
+                </div>
+              </div>
+            </div>
+
+            {isFacilitator ? (
+              <div className={styles.timerActionsGroup}>
+                <button 
+                  className={styles.timerBtnStart} 
+                  type="button" 
+                  onClick={() => facilitatorAction('start', '/timer-start')}
+                  disabled={!!busyAction}
+                >
+                  ▶️ Démarrer
+                </button>
+                <button 
+                  className={styles.timerBtnPauseResume} 
+                  type="button" 
+                  onClick={() => facilitatorAction('pause', '/timer-pause')}
+                  disabled={!!busyAction}
+                >
+                  ⏸️ Pause
+                </button>
+                <button 
+                  className={styles.timerBtnStop} 
+                  type="button" 
+                  onClick={() => facilitatorAction('reset', '/timer-reset')}
+                  disabled={!!busyAction}
+                >
+                  ⏹️ Réinitialiser
+                </button>
+              </div>
+            ) : (
+              <p style={{ margin: '0', fontSize: '0.8rem', color: '#7dd3fc', textAlign: 'center' }}>
+                ⏳ Géré par le facilitateur
+              </p>
+            )}
           </section>
 
           <section className={styles.teamList}>

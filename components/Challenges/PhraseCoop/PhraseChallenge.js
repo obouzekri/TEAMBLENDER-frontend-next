@@ -292,12 +292,64 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
               </>
             ) : (
               <div className={styles.actions}>
-                <button className={styles.btnPrimary} onClick={() => emitEvent('timer.start')} disabled={timerStatus === 'running'}>Demarrer timer</button>
-                <button className={styles.btnSecondary} onClick={() => emitEvent('timer.pause')} disabled={timerStatus !== 'running'}>Pause</button>
-                <button className={styles.btnSecondary} onClick={() => emitEvent('timer.resume')} disabled={timerStatus !== 'paused'}>Reprendre</button>
-                <button className={styles.btnSecondary} onClick={() => emitEvent('timer.stop')} disabled={timerStatus === 'stopped'}>Arreter</button>
-                <button className={styles.btnSecondary} onClick={requestHint}>Indice</button>
+                <button className={styles.btnPrimary} onClick={requestHint}>💡 Indice</button>
               </div>
+            )}
+          </section>
+
+          <section className={`${styles.sideCard} ${styles.timerCard}`}>
+            <h3 className={styles.timerTitle}>Chronomètre</h3>
+            
+            <div className={styles.timerRingContainer}>
+              <div 
+                className={styles.timerRing}
+                style={{
+                  background: `conic-gradient(#0284c7 ${timerStatus === 'running' ? 360 : timerStatus === 'paused' ? 180 : 0}deg, #e2e8f0 ${timerStatus === 'running' ? 360 : timerStatus === 'paused' ? 180 : 0}deg)`
+                }}
+              >
+                <div className={styles.timerDisplay}>
+                  <div className={styles.timerTime}>
+                    {String(Math.floor(Number(timer?.remaining_seconds || 0) / 60)).padStart(2, '0')}:
+                    {String(Number(timer?.remaining_seconds || 0) % 60).padStart(2, '0')}
+                  </div>
+                  <div className={styles.timerState}>
+                    {timerStatus === 'running' ? 'En cours' : timerStatus === 'paused' ? 'Pause' : 'Attente'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {isFacilitator ? (
+              <div className={styles.timerActionsGroup}>
+                <button 
+                  className={styles.timerBtnStart} 
+                  type="button" 
+                  onClick={() => emitEvent('timer.start')}
+                  disabled={timerStatus === 'running'}
+                >
+                  ▶️ Démarrer
+                </button>
+                <button 
+                  className={styles.timerBtnPauseResume} 
+                  type="button" 
+                  onClick={() => timerStatus === 'paused' ? emitEvent('timer.resume') : emitEvent('timer.pause')}
+                  disabled={timerStatus !== 'running' && timerStatus !== 'paused'}
+                >
+                  {timerStatus === 'paused' ? '⏯️ Reprendre' : '⏸️ Pause'}
+                </button>
+                <button 
+                  className={styles.timerBtnStop} 
+                  type="button" 
+                  onClick={() => emitEvent('timer.stop')}
+                  disabled={timerStatus === 'idle'}
+                >
+                  ⏹️ Arrêter
+                </button>
+              </div>
+            ) : (
+              <p style={{ margin: '0', fontSize: '0.8rem', color: '#0c4a6e', textAlign: 'center' }}>
+                ⏳ En attente du facilitateur
+              </p>
             )}
           </section>
 

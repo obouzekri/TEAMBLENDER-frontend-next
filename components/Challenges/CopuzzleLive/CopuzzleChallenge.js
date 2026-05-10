@@ -460,6 +460,62 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             </div>
           </section>
 
+          <section className={`${styles.sideCard} ${styles.timerCard}`}>
+            <h3 className={styles.timerTitle}>Chronomètre</h3>
+            
+            <div className={styles.timerRingContainer}>
+              <div 
+                className={styles.timerRing}
+                style={{
+                  background: `conic-gradient(#0284c7 ${timerState === 'running' ? 360 : timerState === 'paused' ? 180 : 0}deg, #e2e8f0 ${timerState === 'running' ? 360 : timerState === 'paused' ? 180 : 0}deg)`
+                }}
+              >
+                <div className={styles.timerDisplay}>
+                  <div className={styles.timerTime}>
+                    {String(Math.floor(Number(state?.timer?.remaining_seconds || 0) / 60)).padStart(2, '0')}:
+                    {String(Number(state?.timer?.remaining_seconds || 0) % 60).padStart(2, '0')}
+                  </div>
+                  <div className={styles.timerState}>
+                    {timerState === 'running' ? 'En cours' : timerState === 'paused' ? 'Pause' : 'Attente'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {isFacilitator ? (
+              <div className={styles.timerActionsGroup}>
+                <button 
+                  className={styles.timerBtnStart} 
+                  type="button" 
+                  onClick={() => emitEvent('timer.start')}
+                  disabled={timerState === 'running'}
+                >
+                  ▶️ Démarrer
+                </button>
+                <button 
+                  className={styles.timerBtnPauseResume} 
+                  type="button" 
+                  onClick={() => timerState === 'paused' ? emitEvent('timer.resume') : emitEvent('timer.pause')}
+                  disabled={timerState !== 'running' && timerState !== 'paused'}
+                >
+                  {timerState === 'paused' ? '⏯️ Reprendre' : '⏸️ Pause'}
+                </button>
+                <button 
+                  className={styles.timerBtnStop} 
+                  type="button" 
+                  onClick={() => emitEvent('timer.stop')}
+                  disabled={timerState === 'idle'}
+                >
+                  ⏹️ Arrêter
+                </button>
+              </div>
+            ) : (
+              <p style={{ margin: '0', fontSize: '0.8rem', color: '#0c4a6e', textAlign: 'center' }}>
+                ⏳ En attente du facilitateur
+              </p>
+            )}
+          </section>
+
           <section className={styles.sideCard}>
             <h2>Controles</h2>
             {error ? <p className={styles.error}>{error}</p> : null}
@@ -477,12 +533,8 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
               </div>
             ) : (
               <div className={styles.actions}>
-                <button className={styles.btnPrimary} type="button" onClick={() => emitEvent('timer.start')}>Demarrer timer</button>
-                <button className={styles.btnSecondary} type="button" onClick={() => emitEvent('timer.pause')}>Pause timer</button>
-                <button className={styles.btnSecondary} type="button" onClick={() => emitEvent('timer.resume')}>Reprendre timer</button>
-                <button className={styles.btnSecondary} type="button" onClick={() => emitEvent('timer.stop')}>Arreter timer</button>
-                <button className={styles.btnSecondary} type="button" onClick={() => emitEvent('puzzle.reference_visibility.update', { visible: true })}>Reference ON participants</button>
-                <button className={styles.btnSecondary} type="button" onClick={() => emitEvent('puzzle.reference_visibility.update', { visible: false })}>Reference OFF participants</button>
+                <button className={styles.btnPrimary} type="button" onClick={() => emitEvent('puzzle.reference_visibility.update', { visible: true })}>📷 Reference ON</button>
+                <button className={styles.btnSecondary} type="button" onClick={() => emitEvent('puzzle.reference_visibility.update', { visible: false })}>📷 Reference OFF</button>
               </div>
             )}
           </section>
