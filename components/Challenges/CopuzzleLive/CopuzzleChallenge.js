@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import { getBackendOrigin } from '@/lib/config';
 import styles from './Copuzzle.module.css';
@@ -31,6 +31,9 @@ function normalizeRuntimeConfig(config = {}) {
     },
     participants: {
       show_reference_image: config?.participants?.show_reference_image === true,
+    },
+    chat: {
+      enabled: config?.chat?.enabled !== false,
     },
     timer: {
       enabled: config?.timer?.enabled !== false,
@@ -63,6 +66,10 @@ function computePieceStyle(piece, config, imageUrl) {
 
 export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, context }) {
   const [selectedPieceId, setSelectedPieceId] = useState('');
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState([]);
+  const [dragOverCellKey, setDragOverCellKey] = useState('');
+  const [draggingPieceId, setDraggingPieceId] = useState('');
 
   const {
     state,
@@ -70,6 +77,15 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     isFacilitator,
     emitEvent,
   } = useRealtimeChallenge({ runtimePayload, socket, context });
+
+  const displayName = useMemo(() => {
+    const fromPayload = String(runtimePayload?.context?.displayName || '').trim();
+    if (fromPayload) return fromPayload;
+    const fromContext = String(context?.displayName || '').trim();
+    if (fromContext) return fromContext;
+    const userId = String(context?.userId || context?.participantId || '').trim();
+    return `participant-${userId || 'unknown'}`;
+  }, [runtimePayload, context]);
 
   const pieces = Array.isArray(state?.puzzle?.pieces) ? state.puzzle.pieces : [];
   const participantSlot = Number(state?.participantSlot || 0) || null;
@@ -133,19 +149,112 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     [trayPieces, selectedPieceId]
   );
 
-  function placeOnCell(x, y) {
-    if (!selectedPiece || !canPlay) return;
+  useEffect(() => {
+    if (!socket) return () => {};
+
+    const onEvent = (packet = {}) => {
+      if (String(packet?.type || '').trim() !== 'chat.message') return;
+      const payload = packet?.payload || {};
+      const text = String(payload?.text || '').trim();
+      if (!text) return;
+
+      const entry = {
+        id: String(payload?.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+        author: String(payload?.author || 'system').trim() || 'system',
+        text,
+        ts: String(payload?.ts || ''),
+      };
+
+      setChatMessages((prev) => {
+        if (prev.some((msg) => msg.id === entry.id)) return prev;
+        return [...prev.slice(-79), entry];
+      });
+    };
+
+    socket.on('challenge:event', onEvent);
+    return () => {
+      socket.off('challenge:event', onEvent);
+    };
+  }, [socket]);
+
+  function placeOnCell(x, y, pieceId = selectedPiece?.id) {
+    if (!pieceId || !canPlay) return;
     emitEvent('puzzle.place', {
-      pieceId: selectedPiece.id,
+      pieceId,
       x,
       y,
     });
-    setSelectedPieceId('');
+    setSelectedPieceId((prev) => (String(prev) === String(pieceId) ? '' : prev));
   }
 
   function removePiece(pieceId) {
     if (!canPlay) return;
     emitEvent('puzzle.unplace', { pieceId });
+  }
+
+  function onTrayDragStart(event, piece) {
+    if (!canPlay) {
+      event.preventDefault();
+      return;
+    }
+    const pieceId = String(piece?.id || '').trim();
+    if (!pieceId) {
+      event.preventDefault();
+      return;
+    }
+    event.dataTransfer.setData('text/plain', pieceId);
+    event.dataTransfer.effectAllowed = 'move';
+    setDraggingPieceId(pieceId);
+    setSelectedPieceId(pieceId);
+  }
+
+  function onBoardDragStart(event, piece) {
+    if (!canPlay) {
+      event.preventDefault();
+      return;
+    }
+    const pieceId = String(piece?.id || '').trim();
+    if (!pieceId) {
+      event.preventDefault();
+      return;
+    }
+    event.dataTransfer.setData('text/plain', pieceId);
+    event.dataTransfer.effectAllowed = 'move';
+    setDraggingPieceId(pieceId);
+  }
+
+  function onDragEnd() {
+    setDraggingPieceId('');
+    setDragOverCellKey('');
+  }
+
+  function onCellDragOver(event, cellKey, occupant) {
+    if (!canPlay || occupant) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    setDragOverCellKey(cellKey);
+  }
+
+  function onCellDrop(event, cell, occupant) {
+    if (!canPlay || occupant) return;
+    event.preventDefault();
+    const droppedPieceId = String(event.dataTransfer.getData('text/plain') || '').trim();
+    const targetPieceId = droppedPieceId || draggingPieceId || selectedPieceId;
+    if (!targetPieceId) return;
+    placeOnCell(cell.x, cell.y, targetPieceId);
+    setDraggingPieceId('');
+    setDragOverCellKey('');
+  }
+
+  function submitChat(event) {
+    event.preventDefault();
+    const text = String(chatInput || '').trim();
+    if (!text) return;
+    emitEvent('chat.message', {
+      text,
+      author: displayName,
+    });
+    setChatInput('');
   }
 
   const rowCount = Number(effectiveConfig.grid.rows || 4);
@@ -189,21 +298,36 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             {boardCells.map((cell) => {
               const occupant = boardOccupancy.get(cell.key) || null;
               const isMyPiece = occupant && participantSlot && Number(occupant.assigned_slot) === participantSlot;
+              const canDragBoardPiece = Boolean(occupant && canPlay && (isFacilitator || isMyPiece));
+              const cellClass = `${styles.cell}${occupant ? ` ${styles.cellFilled}` : ''}${dragOverCellKey === cell.key ? ` ${styles.cellDropTarget}` : ''}`;
 
               return (
                 <button
                   key={cell.key}
                   type="button"
-                  className={`${styles.cell}${occupant ? ` ${styles.cellFilled}` : ''}`}
+                  className={cellClass}
                   onClick={() => {
                     if (!occupant) {
                       placeOnCell(cell.x, cell.y);
                     }
                   }}
-                  disabled={Boolean(occupant) || !selectedPiece || !canPlay}
+                  onDragOver={(event) => onCellDragOver(event, cell.key, occupant)}
+                  onDragEnter={() => {
+                    if (!occupant) {
+                      setDragOverCellKey(cell.key);
+                    }
+                  }}
+                  onDragLeave={() => setDragOverCellKey((prev) => (prev === cell.key ? '' : prev))}
+                  onDrop={(event) => onCellDrop(event, cell, occupant)}
+                  disabled={Boolean(occupant) || !canPlay}
                 >
                   {occupant ? (
-                    <div className={styles.cellContent}>
+                    <div
+                      className={styles.cellContent}
+                      draggable={canDragBoardPiece}
+                      onDragStart={(event) => onBoardDragStart(event, occupant)}
+                      onDragEnd={onDragEnd}
+                    >
                       <div
                         className={styles.piecePreview}
                         style={computePieceStyle(occupant, effectiveConfig, imageUrl)}
@@ -239,6 +363,38 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
               <p>Messages: {Number(state.summary?.message_count || 0)}</p>
               <p>Score collectif: {Number(state.summary?.collective_score || 0)}</p>
             </div>
+          ) : null}
+
+          {effectiveConfig.chat.enabled ? (
+            <section className={styles.chatCard}>
+              <h3>Chat equipe</h3>
+              <div className={styles.chatLog}>
+                {chatMessages.length === 0 ? (
+                  <p className={styles.empty}>Aucun message pour le moment.</p>
+                ) : chatMessages.map((message) => {
+                  const mine = String(message.author || '') === displayName;
+                  return (
+                    <div key={message.id} className={`${styles.chatRow}${mine ? ` ${styles.chatRowMine}` : ''}`}>
+                      <span className={styles.chatAuthor}>{message.author}</span>
+                      <p className={styles.chatText}>{message.text}</p>
+                    </div>
+                  );
+                })}
+              </div>
+              <form className={styles.chatForm} onSubmit={submitChat}>
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(event) => setChatInput(event.target.value)}
+                  placeholder="Ecrire un message d'equipe"
+                  className={styles.chatInput}
+                  maxLength={240}
+                />
+                <button type="submit" className={styles.btnPrimary} disabled={!chatInput.trim()}>
+                  Envoyer
+                </button>
+              </form>
+            </section>
           ) : null}
         </section>
 
@@ -282,11 +438,14 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
                     <button
                       key={piece.id}
                       type="button"
-                      className={`${styles.trayPiece}${selected ? ` ${styles.trayPieceSelected}` : ''}`}
+                      className={`${styles.trayPiece}${selected ? ` ${styles.trayPieceSelected}` : ''}${draggingPieceId === String(piece.id) ? ` ${styles.trayPieceDragging}` : ''}`}
                       onClick={() => {
                         if (!canPlay) return;
                         setSelectedPieceId((prev) => (String(prev) === String(piece.id) ? '' : piece.id));
                       }}
+                      draggable={canPlay}
+                      onDragStart={(event) => onTrayDragStart(event, piece)}
+                      onDragEnd={onDragEnd}
                       disabled={!canPlay}
                       title={`Piece ${piece.id}`}
                     >
@@ -333,7 +492,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
       {!isFacilitator && selectedPiece ? (
         <section className={styles.selectionBanner}>
           <p>
-            Piece selectionnee: <strong>{selectedPiece.id}</strong>. Cliquez sur une case libre du plateau pour la placer.
+            Piece selectionnee: <strong>{selectedPiece.id}</strong>. Glissez-la vers une case libre ou cliquez sur une case pour la placer.
           </p>
         </section>
       ) : null}

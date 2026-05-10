@@ -102,6 +102,11 @@
   background: #f0fdf4;
 }
 
+.slotDropTarget {
+  border-color: #0284c7;
+  box-shadow: inset 0 0 0 2px rgba(2, 132, 199, 0.22);
+}
+
 .slotIndex {
   font-size: 0.7rem;
   color: #64748b;
@@ -201,6 +206,75 @@
   color: #1d4ed8;
 }
 
+.wordChipDragging {
+  opacity: 0.5;
+}
+
+.chatLog {
+  border-radius: 10px;
+  border: 1px solid #d8e4f5;
+  background: #f8fbff;
+  padding: 8px;
+  max-height: 180px;
+  overflow: auto;
+  display: grid;
+  gap: 7px;
+}
+
+.chatRow {
+  display: grid;
+  gap: 3px;
+}
+
+.chatRowMine {
+  justify-items: end;
+}
+
+.chatAuthor {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.chatText {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #0f172a;
+  line-height: 1.35;
+  background: #ffffff;
+  border: 1px solid #dbe5f5;
+  border-radius: 10px;
+  padding: 6px 8px;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.chatRowMine .chatText {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e3a8a;
+}
+
+.chatForm {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.chatInput {
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+}
+
+.chatInput:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.25);
+  outline-offset: 1px;
+}
+
 .actions {
   display: grid;
   gap: 8px;
@@ -289,6 +363,10 @@
 @media (max-width: 640px) {
   .header {
     flex-direction: column;
+  }
+
+  .chatForm {
+    grid-template-columns: 1fr;
   }
 
   .board {
