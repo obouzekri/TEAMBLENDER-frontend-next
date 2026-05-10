@@ -2,12 +2,20 @@
 
 import styles from './ParticipantAssigner.module.css';
 import { useState, useEffect } from 'react';
+import { getApiUrl } from '@/lib/config';
 
 export default function ParticipantAssigner({ isLoading, onAssign, onCancel, onSkip }) {
   const [participants, setParticipants] = useState([]);
   const [selected, setSelected] = useState([]);
   const [loadingParticipants, setLoadingParticipants] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  function getMemberDisplayName(member) {
+    const first = String(member?.first_name || '').trim();
+    const last = String(member?.last_name || '').trim();
+    const full = `${first} ${last}`.trim();
+    return full || String(member?.name || member?.email || 'Sans nom');
+  }
 
   useEffect(() => {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -17,18 +25,34 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel, onS
     }
 
     setLoadingParticipants(true);
-    fetch('/api/members', {
+    fetch(getApiUrl('/members'), {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     })
-      .then((res) => {
-        if (!res.ok) throw new Error('Impossible de charger les participants');
-        return res.json();
+      .then(async (res) => {
+        const text = await res.text();
+        let payload = {};
+        try {
+          payload = text ? JSON.parse(text) : {};
+        } catch {
+          payload = {};
+        }
+
+        if (!res.ok) throw new Error(payload.error || 'Impossible de charger les participants');
+        return payload;
       })
       .then((data) => {
-        const list = Array.isArray(data) ? data : data.data || data.members || [];
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data.items)
+            ? data.items
+            : Array.isArray(data.data)
+              ? data.data
+              : Array.isArray(data.members)
+                ? data.members
+                : [];
         setParticipants(list);
       })
       .catch((err) => {
@@ -43,7 +67,7 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel, onS
   const filteredParticipants = participants.filter((p) => {
     const term = searchTerm.toLowerCase();
     return (
-      String(p.name || '').toLowerCase().includes(term) ||
+      getMemberDisplayName(p).toLowerCase().includes(term) ||
       String(p.email || '').toLowerCase().includes(term)
     );
   });
@@ -95,7 +119,7 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel, onS
             {participants.length === 0 ? (
               <div className={styles.empty}>
                 <p>Aucun participant disponible</p>
-                <small>Créez d'abord des participants dans l'administration</small>
+                <small>Ajoutez des membres dans votre espace utilisateur pour les assigner à une session</small>
               </div>
             ) : (
               <>
@@ -126,7 +150,7 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel, onS
                         onChange={() => toggleParticipant(participant.id)}
                       />
                       <div className={styles.info}>
-                        <strong>{participant.name || 'Sans nom'}</strong>
+                        <strong>{getMemberDisplayName(participant)}</strong>
                         {participant.email && (
                           <span className={styles.email}>{participant.email}</span>
                         )}
