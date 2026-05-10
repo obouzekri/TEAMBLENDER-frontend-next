@@ -60,8 +60,8 @@
 
 .input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
 }
 
 .controls {
@@ -76,7 +76,7 @@
 .btnLink {
   background: none;
   border: none;
-  color: #3b82f6;
+  color: var(--accent);
   cursor: pointer;
   padding: 0;
   font-size: 0.9rem;
@@ -85,7 +85,7 @@
 }
 
 .btnLink:hover {
-  color: #2563eb;
+  color: var(--accent-strong);
 }
 
 .btnLink:disabled {
@@ -126,7 +126,7 @@
 .item input[type='checkbox'] {
   margin-top: 0.35rem;
   cursor: pointer;
-  accent-color: #3b82f6;
+  accent-color: var(--accent);
 }
 
 .info {
@@ -200,13 +200,12 @@
 }
 
 .btnPrimary {
-  background-color: #3b82f6;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
   color: white;
 }
 
 .btnPrimary:hover:not(:disabled) {
-  background-color: #2563eb;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  box-shadow: var(--button-primary-shadow-hover);
 }
 
 .btnPrimary:disabled {

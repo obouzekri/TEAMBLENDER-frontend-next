@@ -4,7 +4,7 @@ import styles from './ParticipantAssigner.module.css';
 import { useState, useEffect } from 'react';
 import { getApiUrl } from '@/lib/config';
 
-export default function ParticipantAssigner({ isLoading, onAssign, onCancel, onSkip }) {
+export default function ParticipantAssigner({ isLoading, onAssign, onCancel }) {
   const [participants, setParticipants] = useState([]);
   const [selected, setSelected] = useState([]);
   const [loadingParticipants, setLoadingParticipants] = useState(true);
@@ -174,16 +174,6 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel, onS
               >
                 Annuler
               </button>
-              {participants.length > 0 && (
-                <button
-                  type="button"
-                  onClick={onSkip}
-                  className={styles.btnTertiary}
-                  disabled={isLoading}
-                >
-                  Passer
-                </button>
-              )}
               <button
                 type="button"
                 onClick={handleAssign}

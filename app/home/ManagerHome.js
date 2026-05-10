@@ -72,8 +72,7 @@ export default function ManagerHome() {
   const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [deletingMemberId, setDeletingMemberId] = useState(null);
   const [creatingMember, setCreatingMember] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [editingMemberId, setEditingMemberId] = useState(null);
   const [visibleCount, setVisibleCount] = useState(8);
   const [memberForm, setMemberForm] = useState({
     first_name: '',
@@ -94,21 +93,7 @@ export default function ManagerHome() {
     terminee: sessions.filter((s) => s.status === 'terminee').length,
   }), [sessions]);
 
-  const filteredSessions = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-    return sessions.filter((session) => {
-      const statusOk = statusFilter === 'all' || session.status === statusFilter;
-      if (!statusOk) return false;
-      if (!query) return true;
-      const haystack = [session.name, session.status, session.format, session.modality]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [sessions, searchTerm, statusFilter]);
-
-  const visibleSessions = useMemo(() => filteredSessions.slice(0, visibleCount), [filteredSessions, visibleCount]);
+  const visibleSessions = useMemo(() => sessions.slice(0, visibleCount), [sessions, visibleCount]);
 
   useEffect(() => {
     if (!guard.allowed || !guard.token) return;
@@ -230,7 +215,24 @@ export default function ManagerHome() {
     }
   }
 
-  async function handleCreateMember(event) {
+  function beginEditMember(member) {
+    setEditingMemberId(member.id);
+    setMemberForm({
+      first_name: String(member.first_name || '').trim(),
+      last_name: String(member.last_name || '').trim(),
+      email: String(member.email || '').trim(),
+      password: '',
+      job_title: String(member.job_title || '').trim(),
+      department: String(member.department || '').trim(),
+    });
+  }
+
+  function resetMemberForm() {
+    setEditingMemberId(null);
+    setMemberForm({ first_name: '', last_name: '', email: '', password: '', job_title: '', department: '' });
+  }
+
+  async function handleSubmitMember(event) {
     event.preventDefault();
     if (!guard.token || !guard.user?.id || creatingMember) return;
 
@@ -241,27 +243,38 @@ export default function ManagerHome() {
     const jobTitle = String(memberForm.job_title || '').trim();
     const department = String(memberForm.department || '').trim();
 
-    if (!firstName || !email || !password) {
-      showErrorToast('Prénom, email et mot de passe sont obligatoires.');
+    if (!firstName || !email || (!editingMemberId && !password)) {
+      showErrorToast(editingMemberId
+        ? 'Prénom et email sont obligatoires.'
+        : 'Prénom, email et mot de passe sont obligatoires.');
       return;
     }
 
     setCreatingMember(true);
     try {
-      const response = await fetch(getApiUrl(`/users/${encodeURIComponent(guard.user.id)}/participants`), {
-        method: 'POST',
+      const targetUrl = editingMemberId
+        ? getApiUrl(`/participants/${encodeURIComponent(editingMemberId)}`)
+        : getApiUrl(`/users/${encodeURIComponent(guard.user.id)}/participants`);
+      const method = editingMemberId ? 'PATCH' : 'POST';
+      const body = {
+        first_name: firstName,
+        last_name: lastName || null,
+        email,
+        job_title: jobTitle || null,
+        department: department || null,
+      };
+
+      if (!editingMemberId || password) {
+        body.password = password;
+      }
+
+      const response = await fetch(targetUrl, {
+        method,
         headers: {
           Authorization: `Bearer ${guard.token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          password,
-          job_title: jobTitle || undefined,
-          department: department || undefined,
-        }),
+        body: JSON.stringify(body),
       });
 
       const text = await response.text();
@@ -273,11 +286,11 @@ export default function ManagerHome() {
       }
 
       if (!response.ok) {
-        throw new Error(payload.error || `Création participant impossible (${response.status})`);
+        throw new Error(payload.error || `${editingMemberId ? 'Mise à jour' : 'Création'} participant impossible (${response.status})`);
       }
 
-      showSuccessToast('Participant ajouté avec succès.');
-      setMemberForm({ first_name: '', last_name: '', email: '', password: '', job_title: '', department: '' });
+      showSuccessToast(editingMemberId ? 'Participant mis à jour avec succès.' : 'Participant ajouté avec succès.');
+      resetMemberForm();
 
       const refresh = await fetch(getApiUrl('/participants'), {
         headers: {
@@ -304,7 +317,7 @@ export default function ManagerHome() {
         setMembers(items);
       }
     } catch (err) {
-      showErrorToast(err.message || 'Impossible de créer le participant.');
+      showErrorToast(err.message || `Impossible de ${editingMemberId ? 'mettre à jour' : 'créer'} le participant.`);
     } finally {
       setCreatingMember(false);
     }
@@ -374,9 +387,6 @@ export default function ManagerHome() {
             <p className="eyebrow">EN COURS</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.enCours}</h2>
             <p>session{sessionStats.enCours !== 1 ? 's' : ''} active{sessionStats.enCours !== 1 ? 's' : ''}</p>
-            {sessionStats.enCours > 0 && (
-              <Link className="btn-mini stat-link" href={`/session-live/${sessions.find((s) => s.status === 'en_cours')?.id}`}>Reprendre</Link>
-            )}
           </article>
           <article className="feature-card stat-card stat-card-ready">
             <p className="eyebrow">A CONFIGURER</p>
@@ -406,32 +416,6 @@ export default function ManagerHome() {
             <Link className="btn-primary" href="/session-builder">Créer une session</Link>
           </div>
 
-          <div className="filters-row">
-            <input
-              type="search"
-              className="inline-input"
-              placeholder="Rechercher une session..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setVisibleCount(8);
-              }}
-            />
-            <select
-              className="inline-input"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setVisibleCount(8);
-              }}
-            >
-              <option value="all">Tous les statuts</option>
-              <option value="en_cours">En cours</option>
-              <option value="preparee">En preparation</option>
-              <option value="terminee">Terminee</option>
-            </select>
-          </div>
-
           {loadingSessions ? (
             <div className="session-skeletons">
               {[...Array(3)].map((_, i) => (
@@ -440,11 +424,11 @@ export default function ManagerHome() {
             </div>
           ) : null}
 
-          {!loadingSessions && filteredSessions.length === 0 ? (
+          {!loadingSessions && sessions.length === 0 ? (
             <p>Aucune session trouvee pour le moment.</p>
           ) : null}
 
-          {!loadingSessions && filteredSessions.length > 0 ? (
+          {!loadingSessions && sessions.length > 0 ? (
             <ul className="session-list">
               {visibleSessions.map((session) => (
                 <li key={String(session.id)} className="session-item">
@@ -487,7 +471,7 @@ export default function ManagerHome() {
             </ul>
           ) : null}
 
-          {!loadingSessions && filteredSessions.length > visibleCount ? (
+          {!loadingSessions && sessions.length > visibleCount ? (
             <button
               type="button"
               className="btn-secondary"
@@ -497,7 +481,7 @@ export default function ManagerHome() {
             </button>
           ) : null}
 
-          {!loadingSessions && filteredSessions.length > 8 && visibleCount > 8 ? (
+          {!loadingSessions && sessions.length > 8 && visibleCount > 8 ? (
             <button
               type="button"
               className="btn-secondary"
@@ -510,11 +494,15 @@ export default function ManagerHome() {
 
         <section className="participants-grid" aria-label="Participants de l'équipe">
           <article className="feature-card participant-card participant-form-card">
-            <p className="eyebrow">NOUVEAU PARTICIPANT</p>
-            <h2>Créer un profil</h2>
-            <p>Ajoutez un participant pour l’assigner ensuite à vos sessions.</p>
+            <p className="eyebrow">{editingMemberId ? 'MODIFIER PARTICIPANT' : 'NOUVEAU PARTICIPANT'}</p>
+            <h2>{editingMemberId ? 'Mettre à jour le profil' : 'Créer un profil'}</h2>
+            <p>
+              {editingMemberId
+                ? 'Modifiez les informations du participant sélectionné.'
+                : 'Ajoutez un participant pour l’assigner ensuite à vos sessions.'}
+            </p>
 
-            <form className="participant-form" onSubmit={handleCreateMember}>
+            <form className="participant-form" onSubmit={handleSubmitMember}>
               <label>
                 Prénom *
                 <input
@@ -545,14 +533,14 @@ export default function ManagerHome() {
                 />
               </label>
               <label>
-                Mot de passe *
+                Mot de passe {editingMemberId ? '(optionnel)' : '*'}
                 <input
                   type="password"
                   value={memberForm.password}
                   onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
-                  placeholder="Minimum 8 caractères"
+                  placeholder={editingMemberId ? 'Laisser vide pour conserver le mot de passe actuel' : 'Minimum 8 caractères'}
                   minLength={8}
-                  required
+                  required={!editingMemberId}
                 />
               </label>
               <label>
@@ -573,9 +561,18 @@ export default function ManagerHome() {
                   placeholder="Ex: RH"
                 />
               </label>
-              <button type="submit" className="btn-primary" disabled={creatingMember}>
-                {creatingMember ? 'Ajout en cours...' : 'Ajouter un participant'}
-              </button>
+              <div className="participant-form-actions">
+                {editingMemberId ? (
+                  <button type="button" className="btn-secondary" onClick={resetMemberForm} disabled={creatingMember}>
+                    Annuler
+                  </button>
+                ) : null}
+                <button type="submit" className="btn-primary" disabled={creatingMember}>
+                  {creatingMember
+                    ? (editingMemberId ? 'Mise à jour...' : 'Ajout en cours...')
+                    : (editingMemberId ? 'Enregistrer' : 'Ajouter un participant')}
+                </button>
+              </div>
             </form>
           </article>
 
@@ -609,14 +606,26 @@ export default function ManagerHome() {
                           {details ? ` · ${details}` : ''}
                         </p>
                       </div>
-                      <div className="session-item-actions">
+                      <div className="session-item-actions icon-only-actions">
                         <button
                           type="button"
-                          className="btn-secondary"
+                          className="icon-action-btn"
+                          title="Modifier"
+                          aria-label="Modifier ce participant"
+                          onClick={() => beginEditMember(member)}
+                          disabled={deletingMemberId === member.id}
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          type="button"
+                          className="icon-action-btn icon-action-danger"
+                          title="Supprimer"
+                          aria-label="Supprimer ce participant"
                           onClick={() => handleDeleteMember(member)}
                           disabled={deletingMemberId === member.id}
                         >
-                          {deletingMemberId === member.id ? 'Suppression...' : 'Supprimer'}
+                          {deletingMemberId === member.id ? '…' : '🗑️'}
                         </button>
                       </div>
                     </li>

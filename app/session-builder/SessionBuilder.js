@@ -411,11 +411,6 @@ export default function SessionBuilder() {
     }
   }, [apiRequest, getAuthToken, sessionId, removeToast, showErrorToast, showLoadingToast]);
 
-  const handleSkipParticipantAssignment = useCallback(() => {
-    // Skip to challenges step
-    setSessionStep('challenges');
-  }, []);
-
   function logout() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
@@ -499,7 +494,6 @@ export default function SessionBuilder() {
               setSessionStep('name');
               sessionStorage.removeItem('sessionId');
             }}
-            onSkip={handleSkipParticipantAssignment}
           />
         </main>
         <Footer />

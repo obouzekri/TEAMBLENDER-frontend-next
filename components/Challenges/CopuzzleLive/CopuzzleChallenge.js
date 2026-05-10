@@ -298,6 +298,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             {boardCells.map((cell) => {
               const occupant = boardOccupancy.get(cell.key) || null;
               const isMyPiece = occupant && participantSlot && Number(occupant.assigned_slot) === participantSlot;
+              const isHiddenPiece = occupant && !isFacilitator && !isMyPiece;
               const canDragBoardPiece = Boolean(occupant && canPlay && (isFacilitator || isMyPiece));
               const cellClass = `${styles.cell}${occupant ? ` ${styles.cellFilled}` : ''}${dragOverCellKey === cell.key ? ` ${styles.cellDropTarget}` : ''}`;
 
@@ -322,31 +323,37 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
                   disabled={Boolean(occupant) || !canPlay}
                 >
                   {occupant ? (
-                    <div
-                      className={styles.cellContent}
-                      draggable={canDragBoardPiece}
-                      onDragStart={(event) => onBoardDragStart(event, occupant)}
-                      onDragEnd={onDragEnd}
-                    >
+                    isHiddenPiece ? (
+                      <div className={styles.cellContentHidden}>
+                        <span className={styles.hiddenCellLabel}>Pièce assignée</span>
+                      </div>
+                    ) : (
                       <div
-                        className={styles.piecePreview}
-                        style={computePieceStyle(occupant, effectiveConfig, imageUrl)}
-                      />
-                      <span className={styles.pieceLabel}>{occupant.id}</span>
-                      {isMyPiece && canPlay ? (
-                        <button
-                          type="button"
-                          className={styles.removeBtn}
-                          onClick={(event) => {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            removePiece(occupant.id);
-                          }}
-                        >
-                          Retirer
-                        </button>
-                      ) : null}
-                    </div>
+                        className={styles.cellContent}
+                        draggable={canDragBoardPiece}
+                        onDragStart={(event) => onBoardDragStart(event, occupant)}
+                        onDragEnd={onDragEnd}
+                      >
+                        <div
+                          className={styles.piecePreview}
+                          style={computePieceStyle(occupant, effectiveConfig, imageUrl)}
+                        />
+                        <span className={styles.pieceLabel}>{occupant.id}</span>
+                        {isMyPiece && canPlay ? (
+                          <button
+                            type="button"
+                            className={styles.removeBtn}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              removePiece(occupant.id);
+                            }}
+                          >
+                            Retirer
+                          </button>
+                        ) : null}
+                      </div>
+                    )
                   ) : (
                     <span className={styles.cellHint}>{cell.x + 1}x{cell.y + 1}</span>
                   )}
@@ -438,14 +445,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
                   disabled={timerState !== 'running' && timerState !== 'paused'}
                 >
                   {timerState === 'paused' ? '⏯️ Reprendre' : '⏸️ Pause'}
-                </button>
-                <button
-                  className={styles.timerBtnStop}
-                  type="button"
-                  onClick={() => emitEvent('timer.stop')}
-                  disabled={timerState === 'idle'}
-                >
-                  ⏹️ Arrêter
                 </button>
               </div>
             ) : (
