@@ -87,6 +87,7 @@ export default function SessionBuilder() {
     return params.get('sessionId') || params.get('id') || '';
   });
   const [sessionName, setSessionName] = useState('');
+  const [sessionDateTime, setSessionDateTime] = useState('');
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isAssigningParticipants, setIsAssigningParticipants] = useState(false);
 
@@ -350,14 +351,23 @@ export default function SessionBuilder() {
   const handleCreateSession = useCallback(async (e) => {
     e.preventDefault();
     const name = sessionName.trim() || `Session du ${new Date().toLocaleDateString('fr-FR')}`;
+    const sessionDate = sessionDateTime ? new Date(sessionDateTime) : null;
+    if (sessionDateTime && Number.isNaN(sessionDate?.getTime())) {
+      showErrorToast('Veuillez choisir une date et heure valides.');
+      return;
+    }
     const token = getAuthToken();
     setIsCreatingSession(true);
     const loadingId = showLoadingToast('Creation de la session...');
     try {
+      const payload = { name };
+      if (sessionDate) {
+        payload.session_date = sessionDate.toISOString();
+      }
       const created = await apiRequest('/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify(payload),
       });
       const newId = String(created.id || created.session?.id || '');
       if (!newId) throw new Error('Identifiant de session manquant dans la reponse.');
@@ -372,7 +382,7 @@ export default function SessionBuilder() {
     } finally {
       setIsCreatingSession(false);
     }
-  }, [apiRequest, getAuthToken, removeToast, sessionName, showErrorToast, showLoadingToast]);
+  }, [apiRequest, getAuthToken, removeToast, sessionDateTime, sessionName, showErrorToast, showLoadingToast]);
 
   const handleAssignParticipants = useCallback(async (selectedParticipantIds) => {
     setIsAssigningParticipants(true);
@@ -433,21 +443,35 @@ export default function SessionBuilder() {
         <main className="shell auth-page">
           <section className="feature-card" style={{ maxWidth: '480px', margin: '0 auto' }}>
             <p className="eyebrow">NOUVELLE SESSION</p>
-            <h1 style={{ fontSize: '1.6rem', margin: '0.25rem 0 0.75rem' }}>Nommer la session</h1>
-            <p style={{ color: 'var(--color-muted, #6b7280)', marginBottom: '1.5rem', fontSize: '14px' }}>
-              Donnez un nom a votre session pour la retrouver facilement. Vous pourrez ensuite choisir vos challenges.
+            <h1 style={{ fontSize: '1.6rem', margin: '0.25rem 0 0.75rem' }}>Préparer la session</h1>
+            <p style={{ color: 'var(--color-muted, #6b7280)', marginBottom: '1.25rem', fontSize: '14px' }}>
+              Donnez un nom à votre session et indiquez sa date prévue pour garder un cadrage clair avant l’animation.
             </p>
-            <form onSubmit={handleCreateSession} className="auth-form">
-              <label>
-                Nom de la session
-                <input
-                  value={sessionName}
-                  onChange={(e) => setSessionName(e.target.value)}
-                  placeholder="Ex: Team Building Q2 2026"
-                  autoFocus
-                  required
-                />
-              </label>
+            <form onSubmit={handleCreateSession} className={styles.creationForm}>
+              <div className={styles.creationGrid}>
+                <label className={styles.creationField}>
+                  <span>Nom de la session</span>
+                  <input
+                    value={sessionName}
+                    onChange={(e) => setSessionName(e.target.value)}
+                    placeholder="Ex: Team Building Q2 2026"
+                    autoFocus
+                    required
+                  />
+                </label>
+                <label className={styles.creationField}>
+                  <span>Date et heure prévues</span>
+                  <input
+                    type="datetime-local"
+                    value={sessionDateTime}
+                    onChange={(e) => setSessionDateTime(e.target.value)}
+                    step="60"
+                  />
+                </label>
+              </div>
+              <p className={styles.creationHint}>
+                La date de session est facultative, mais elle aide à planifier et relire vos sessions plus vite.
+              </p>
               <button type="submit" className="btn-primary" disabled={isCreatingSession}>
                 {isCreatingSession ? 'Creation...' : 'Creer la session'}
               </button>

@@ -10,6 +10,57 @@
   margin-top: 2rem;
 }
 
+.creationForm {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fbfcf9 0%, #f4f8ef 100%);
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 28px rgba(30, 42, 35, 0.06);
+}
+
+.creationGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.9fr);
+  gap: 0.9rem;
+}
+
+.creationField {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.creationField span {
+  color: var(--ink-soft);
+}
+
+.creationField input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 0.85rem 0.95rem;
+  color: var(--ink);
+  font: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.creationField input:focus {
+  outline: none;
+  border-color: rgba(15, 118, 110, 0.36);
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.08);
+}
+
+.creationHint {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
 @media (max-width: 1200px) {
   .mainLayout {
     grid-template-columns: 300px 1fr;
@@ -21,5 +72,9 @@
   .mainLayout {
     grid-template-columns: 1fr;
     gap: 2rem;
+  }
+
+  .creationGrid {
+    grid-template-columns: 1fr;
   }
 }

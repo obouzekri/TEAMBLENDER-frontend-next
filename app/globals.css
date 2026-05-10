@@ -55,6 +55,48 @@ a {
   border-bottom: 1px solid var(--line);
 }
 
+.top-nav--compact .nav-inner {
+  min-height: 56px;
+}
+
+.top-nav--compact .brand {
+  font-size: 0.92rem;
+}
+
+.top-nav--compact .nav-links {
+  gap: 0.7rem;
+  font-size: 0.95rem;
+}
+
+.top-nav--compact .app-user-box {
+  gap: 0.45rem;
+}
+
+.top-nav--compact .app-user-name {
+  font-size: 0.92rem;
+}
+
+.top-nav--compact .nav-inner {
+  min-height: 56px;
+}
+
+.top-nav--compact .brand {
+  font-size: 0.92rem;
+}
+
+.top-nav--compact .nav-links {
+  gap: 0.7rem;
+  font-size: 0.95rem;
+}
+
+.top-nav--compact .app-user-box {
+  gap: 0.45rem;
+}
+
+.top-nav--compact .app-user-name {
+  font-size: 0.92rem;
+}
+
 .nav-inner {
   min-height: 68px;
   display: flex;
@@ -826,6 +868,61 @@ a {
   margin-top: 0.5rem;
 }
 
+.home-sessions-panel {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.home-sessions-head {
+  align-items: flex-start;
+}
+
+.home-sessions-head p {
+  max-width: 68ch;
+}
+
+.participants-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
+  gap: 1rem;
+}
+
+.participant-card {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.participant-form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.participant-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.participant-form input {
+  width: 100%;
+}
+
+.participant-list-card {
+  align-content: start;
+}
+
+.session-date {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
 .challenge-list {
   list-style: none;
   padding: 0;
@@ -912,6 +1009,16 @@ a {
 
   .challenge-label-active {
     margin-left: 0;
+  }
+
+  .participants-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .participants-grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -18,6 +18,16 @@ function pickDisplayName(user) {
   return full || String(user.name || user.email || 'Manager');
 }
 
+function formatSessionDate(value) {
+  if (!value) return '';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return new Intl.DateTimeFormat('fr-FR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(parsed);
+}
+
 function useManagerGuard() {
   const [state, setState] = useState({ loading: true, allowed: false, user: null, token: '' });
 
@@ -386,10 +396,14 @@ export default function ManagerHome() {
           </article>
         </section>
 
-        <section className="feature-card sessions-panel">
-          <div className="panel-head">
-            <h2>Dernieres sessions</h2>
-            <Link className="btn-secondary" href="/session-builder">Voir le builder</Link>
+        <section className="feature-card sessions-panel home-sessions-panel">
+          <div className="panel-head home-sessions-head">
+            <div>
+              <p className="eyebrow">VOS SESSIONS</p>
+              <h2>Mes sessions</h2>
+              <p>Suivez les sessions préparées, actives ou terminées depuis un seul bloc.</p>
+            </div>
+            <Link className="btn-primary" href="/session-builder">Créer une session</Link>
           </div>
 
           <div className="filters-row">
@@ -440,6 +454,9 @@ export default function ManagerHome() {
                       <span className={`status-pill status-${session.status || 'preparee'}`}>
                         {STATUS_LABEL[session.status] || session.status || 'En préparation'}
                       </span>
+                      {session.session_date ? (
+                        <span className="session-date">{formatSessionDate(session.session_date)}</span>
+                      ) : null}
                     </p>
                   </div>
                   <div className="session-item-actions">
@@ -491,81 +508,87 @@ export default function ManagerHome() {
           ) : null}
         </section>
 
-        <section className="feature-card">
-          <h2>Nouvelle session</h2>
-          <p>Creez une session, selectionnez vos challenges et invitez vos participants en quelques minutes.</p>
-          <Link className="btn-primary" href="/session-builder">Creer une session</Link>
-        </section>
+        <section className="participants-grid" aria-label="Participants de l'équipe">
+          <article className="feature-card participant-card participant-form-card">
+            <p className="eyebrow">NOUVEAU PARTICIPANT</p>
+            <h2>Créer un profil</h2>
+            <p>Ajoutez un participant pour l’assigner ensuite à vos sessions.</p>
 
-        <section className="feature-card">
-          <h2>Participants de l'équipe</h2>
-          <p>Ajoutez des participants pour les assigner ensuite a vos sessions (membres d'equipe).</p>
+            <form className="participant-form" onSubmit={handleCreateMember}>
+              <label>
+                Prénom *
+                <input
+                  type="text"
+                  value={memberForm.first_name}
+                  onChange={(e) => setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))}
+                  placeholder="Ex: Sophie"
+                  required
+                />
+              </label>
+              <label>
+                Nom
+                <input
+                  type="text"
+                  value={memberForm.last_name}
+                  onChange={(e) => setMemberForm((prev) => ({ ...prev, last_name: e.target.value }))}
+                  placeholder="Ex: Martin"
+                />
+              </label>
+              <label>
+                Email *
+                <input
+                  type="email"
+                  value={memberForm.email}
+                  onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="sophie@entreprise.com"
+                  required
+                />
+              </label>
+              <label>
+                Mot de passe *
+                <input
+                  type="password"
+                  value={memberForm.password}
+                  onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
+                  placeholder="Minimum 8 caractères"
+                  minLength={8}
+                  required
+                />
+              </label>
+              <label>
+                Fonction
+                <input
+                  type="text"
+                  value={memberForm.job_title}
+                  onChange={(e) => setMemberForm((prev) => ({ ...prev, job_title: e.target.value }))}
+                  placeholder="Ex: Product Manager"
+                />
+              </label>
+              <label>
+                Département
+                <input
+                  type="text"
+                  value={memberForm.department}
+                  onChange={(e) => setMemberForm((prev) => ({ ...prev, department: e.target.value }))}
+                  placeholder="Ex: RH"
+                />
+              </label>
+              <button type="submit" className="btn-primary" disabled={creatingMember}>
+                {creatingMember ? 'Ajout en cours...' : 'Ajouter un participant'}
+              </button>
+            </form>
+          </article>
 
-          <form className="auth-form" onSubmit={handleCreateMember} style={{ marginTop: '1rem' }}>
-            <label>
-              Prénom *
-              <input
-                type="text"
-                value={memberForm.first_name}
-                onChange={(e) => setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))}
-                placeholder="Ex: Sophie"
-                required
-              />
-            </label>
-            <label>
-              Nom
-              <input
-                type="text"
-                value={memberForm.last_name}
-                onChange={(e) => setMemberForm((prev) => ({ ...prev, last_name: e.target.value }))}
-                placeholder="Ex: Martin"
-              />
-            </label>
-            <label>
-              Email *
-              <input
-                type="email"
-                value={memberForm.email}
-                onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
-                placeholder="sophie@entreprise.com"
-                required
-              />
-            </label>
-            <label>
-              Mot de passe *
-              <input
-                type="password"
-                value={memberForm.password}
-                onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
-                placeholder="Minimum 8 caractères"
-                minLength={8}
-                required
-              />
-            </label>
-            <label>
-              Fonction
-              <input
-                type="text"
-                value={memberForm.job_title}
-                onChange={(e) => setMemberForm((prev) => ({ ...prev, job_title: e.target.value }))}
-                placeholder="Ex: Product Manager"
-              />
-            </label>
-            <label>
-              Département
-              <input
-                type="text"
-                value={memberForm.department}
-                onChange={(e) => setMemberForm((prev) => ({ ...prev, department: e.target.value }))}
-                placeholder="Ex: RH"
-              />
-            </label>
-            <button type="submit" className="btn-primary" disabled={creatingMember}>
-              {creatingMember ? 'Ajout en cours...' : 'Ajouter un participant'}
-            </button>
-          </form>
+          <article className="feature-card participant-card participant-list-card">
+            <div className="panel-head">
+              <div>
+                <p className="eyebrow">ÉQUIPE</p>
+                <h2>Participants de l'équipe</h2>
+                <p>Visualisez les profils disponibles avant d’assigner vos sessions.</p>
+              </div>
+              <span className="list-count">{members.length} profil{members.length !== 1 ? 's' : ''}</span>
+            </div>
 
-          <div style={{ marginTop: '1rem' }}>
             {loadingMembers ? <p>Chargement des participants...</p> : null}
 
             {!loadingMembers && members.length === 0 ? (
@@ -601,7 +624,7 @@ export default function ManagerHome() {
                 })}
               </ul>
             ) : null}
-          </div>
+          </article>
         </section>
       </main>
       <Footer />

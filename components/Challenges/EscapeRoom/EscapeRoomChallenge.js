@@ -372,23 +372,11 @@ export default function EscapeRoomChallenge({
         </article>
 
         <aside className={styles.card}>
-          <h3>Panneau équipe</h3>
-          <p>
-            Réponses reçues: <strong>{Number(state.submission_status?.responded || 0)}</strong> /
-            <strong> {Number(state.submission_status?.total || 0)}</strong>
-          </p>
-          <p>Tentatives: {Number(state.attempts_on_current || 0)} / {Number(state.max_attempts || 0)}</p>
-          <p>Rôle: {isFacilitator ? 'Facilitateur' : 'Participant'}</p>
-
-          <div className={styles.teamProgressTrack}>
-            <div className={styles.teamProgressFill} style={{ width: `${responseProgress}%` }} />
-          </div>
-
           <section className={styles.timerCard}>
             <h3 className={styles.timerTitle}>Chronomètre</h3>
-            
+
             <div className={styles.timerRingContainer}>
-              <div 
+              <div
                 className={styles.timerRing}
                 style={{
                   background: `conic-gradient(#0ea5e9 ${(100 - (timerSeconds / (Number(runtimePayload?.config?.timer?.duration_seconds || 300)) * 100))}deg, rgba(148, 163, 184, 0.25) ${(100 - (timerSeconds / (Number(runtimePayload?.config?.timer?.duration_seconds || 300)) * 100))}deg)`
@@ -403,25 +391,25 @@ export default function EscapeRoomChallenge({
 
             {isFacilitator ? (
               <div className={styles.timerActionsGroup}>
-                <button 
-                  className={styles.timerBtnStart} 
-                  type="button" 
+                <button
+                  className={styles.timerBtnStart}
+                  type="button"
                   onClick={() => facilitatorAction('start', '/timer-start')}
                   disabled={!!busyAction}
                 >
                   ▶️ Démarrer
                 </button>
-                <button 
-                  className={styles.timerBtnPauseResume} 
-                  type="button" 
+                <button
+                  className={styles.timerBtnPauseResume}
+                  type="button"
                   onClick={() => facilitatorAction('pause', '/timer-pause')}
                   disabled={!!busyAction}
                 >
                   ⏸️ Pause
                 </button>
-                <button 
-                  className={styles.timerBtnStop} 
-                  type="button" 
+                <button
+                  className={styles.timerBtnStop}
+                  type="button"
                   onClick={() => facilitatorAction('reset', '/timer-reset')}
                   disabled={!!busyAction}
                 >
@@ -434,6 +422,18 @@ export default function EscapeRoomChallenge({
               </p>
             )}
           </section>
+
+          <h3>Panneau équipe</h3>
+          <p>
+            Réponses reçues: <strong>{Number(state.submission_status?.responded || 0)}</strong> /
+            <strong> {Number(state.submission_status?.total || 0)}</strong>
+          </p>
+          <p>Tentatives: {Number(state.attempts_on_current || 0)} / {Number(state.max_attempts || 0)}</p>
+          <p>Rôle: {isFacilitator ? 'Facilitateur' : 'Participant'}</p>
+
+          <div className={styles.teamProgressTrack}>
+            <div className={styles.teamProgressFill} style={{ width: `${responseProgress}%` }} />
+          </div>
 
           <section className={styles.teamList}>
             {participantRows.length === 0 ? (

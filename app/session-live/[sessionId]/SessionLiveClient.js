@@ -19,6 +19,14 @@ function parseUser() {
   try { return JSON.parse(raw); } catch { return null; }
 }
 
+function pickDisplayName(user) {
+  if (!user || typeof user !== 'object') return 'Manager';
+  const first = String(user.first_name || user.firstName || '').trim();
+  const last = String(user.last_name || user.lastName || '').trim();
+  const full = `${first} ${last}`.trim();
+  return full || String(user.name || user.email || 'Manager');
+}
+
 function authHeaders() {
   const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -131,7 +139,7 @@ export default function SessionLiveClient() {
   const assignedParticipantCount = Array.isArray(session?.assigned_participants) ? session.assigned_participants.length : 0;
   const participantCount = Array.isArray(session?.participants) ? session.participants.length : 0;
   const memberCount = assignedParticipantCount || participantCount || (Array.isArray(session?.members) ? session.members.length : 0);
-  const userLabel = user ? (user.first_name || user.email || 'Manager') : 'Manager';
+  const userLabel = pickDisplayName(user);
 
   if (loading) {
     return (
@@ -157,7 +165,7 @@ export default function SessionLiveClient() {
 
   return (
     <>
-      <AppNav userLabel={userLabel} onLogout={logout} role={user?.role} />
+      <AppNav userLabel={userLabel} onLogout={logout} role="participant-live" />
       <main className="shell app-home">
         <section className="hero">
           <p className="eyebrow">SESSION EN COURS</p>
