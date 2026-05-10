@@ -88,6 +88,18 @@
 	border: 1px solid rgba(148, 163, 184, 0.35);
 }
 
+.btnPrimary:disabled,
+.btnSecondary:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.helper {
+	margin: 0;
+	font-size: 12px;
+	color: #93c5fd;
+}
+
 .error {
 	color: #fca5a5;
 }

@@ -36,10 +36,10 @@ export default function IcebreakerChallenge({ engineKey, runtimePayload, socket,
           <h2>Contrôles</h2>
           {isFacilitator ? (
             <div className={styles.actions}>
-              <button className={styles.btnPrimary} onClick={() => emitEvent('timer.start')}>Start timer</button>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.pause')}>Pause timer</button>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.resume')}>Resume timer</button>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.stop')}>Stop timer</button>
+              <button className={styles.btnPrimary} onClick={() => emitEvent('timer.start')} disabled={timer?.status === 'running'}>Démarrer le timer</button>
+              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.pause')} disabled={timer?.status !== 'running'}>Mettre en pause</button>
+              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.resume')} disabled={timer?.status !== 'paused'}>Reprendre</button>
+              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.stop')} disabled={timer?.status === 'stopped'}>Arrêter</button>
             </div>
           ) : (
             <p>Le facilitateur pilote le timing de la session.</p>

@@ -23,6 +23,9 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
 
   const availableWords = Array.isArray(state?.phrase?.available_words) ? state.phrase.available_words : [];
   const timer = state?.timer || null;
+  const parsedSlot = Number(selectedSlot);
+  const canPlace = Number.isInteger(parsedSlot) && Boolean(word.trim());
+  const canClear = Number.isInteger(parsedSlot);
 
   function placeWord() {
     const index = Number(selectedSlot);
@@ -72,15 +75,16 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
               <input className={styles.input} value={selectedSlot} onChange={(e) => setSelectedSlot(e.target.value)} placeholder="ex: 2" />
               <label className={styles.label}>Mot</label>
               <input className={styles.input} value={word} onChange={(e) => setWord(e.target.value)} placeholder="mot" />
-              <button className={styles.btnPrimary} onClick={placeWord}>Placer</button>
-              <button className={styles.btnSecondary} onClick={clearWord}>Effacer</button>
+              <button className={styles.btnPrimary} onClick={placeWord} disabled={!canPlace}>Placer</button>
+              <button className={styles.btnSecondary} onClick={clearWord} disabled={!canClear}>Effacer</button>
+              {!canPlace ? <p className={styles.helper}>Sélectionnez un index valide et un mot.</p> : null}
             </div>
           ) : (
             <div className={styles.actions}>
-              <button className={styles.btnPrimary} onClick={() => emitEvent('timer.start')}>Start timer</button>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.pause')}>Pause timer</button>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.resume')}>Resume timer</button>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.stop')}>Stop timer</button>
+              <button className={styles.btnPrimary} onClick={() => emitEvent('timer.start')} disabled={timer?.status === 'running'}>Démarrer le timer</button>
+              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.pause')} disabled={timer?.status !== 'running'}>Mettre en pause</button>
+              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.resume')} disabled={timer?.status !== 'paused'}>Reprendre</button>
+              <button className={styles.btnSecondary} onClick={() => emitEvent('timer.stop')} disabled={timer?.status === 'stopped'}>Arrêter</button>
               <button className={styles.btnSecondary} onClick={() => emitEvent('phrase.request_hint')}>Indice</button>
             </div>
           )}

@@ -5,8 +5,49 @@
   flex: 1;
 }
 
+.statusShell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+}
+
+.statusCard {
+  width: 100%;
+  max-width: 640px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  padding: 24px;
+}
+
+.statusCard h1 {
+  margin: 0 0 8px;
+  color: #0f172a;
+}
+
+.statusCard p {
+  margin: 0;
+  color: #334155;
+}
+
+.statusActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
 .error {
   color: #dc2626;
   font-size: 0.875rem;
   margin-top: 0.5rem;
+}
+
+@media (max-width: 720px) {
+  .statusActions {
+    flex-direction: column;
+  }
 }

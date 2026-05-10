@@ -59,6 +59,12 @@
 	border: 1px solid rgba(148, 163, 184, 0.35);
 }
 
+.btnPrimary:disabled,
+.btnSecondary:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
 .error {
 	color: #fda4af;
 }

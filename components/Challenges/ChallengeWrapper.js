@@ -211,10 +211,10 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false }
   // Render: Loading state
   if (loading) {
     return (
-      <main className="shell auth-page">
-        <section className="feature-card">
-          <h1>Chargement du challenge...</h1>
-          <p>Veuillez patienter</p>
+      <main className={styles.statusShell}>
+        <section className={styles.statusCard}>
+          <h1>Chargement du challenge</h1>
+          <p>Préparation de votre expérience en cours...</p>
         </section>
       </main>
     );
@@ -223,11 +223,14 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false }
   // Render: Error state
   if (error) {
     return (
-      <main className="shell auth-page">
-        <section className="feature-card">
+      <main className={styles.statusShell}>
+        <section className={styles.statusCard}>
           <h1>Erreur</h1>
-          <p className="error">{error}</p>
-          <a href="/home" className="btn-secondary">Retour à l'accueil</a>
+          <p className={styles.error}>{error}</p>
+          <div className={styles.statusActions}>
+            <button className="btn-primary" onClick={() => window.location.reload()}>Réessayer</button>
+            <a href="/home" className="btn-secondary">Retour à l'accueil</a>
+          </div>
         </section>
       </main>
     );
@@ -236,12 +239,13 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false }
   // Render: Waiting for socket connection
   if ((requiresRealtime && !connected) || !engineComponent) {
     return (
-      <main className="shell auth-page">
-        <section className="feature-card">
-          <h1>Connexion en cours...</h1>
+      <main className={styles.statusShell}>
+        <section className={styles.statusCard}>
+          <h1>Connexion en cours</h1>
           <p>
             {requiresRealtime && !connected ? 'Connexion au serveur temps réel...' : 'Initialisation du challenge...'}
           </p>
+          {socketError ? <p className={styles.error}>Détail: {socketError}</p> : null}
         </section>
       </main>
     );
