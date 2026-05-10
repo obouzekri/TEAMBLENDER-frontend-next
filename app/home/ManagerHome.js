@@ -392,9 +392,6 @@ export default function ManagerHome() {
             <p className="eyebrow">A CONFIGURER</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.preparee}</h2>
             <p>session{sessionStats.preparee !== 1 ? 's' : ''} en preparation</p>
-            {sessionStats.preparee > 0 && (
-              <Link className="btn-mini stat-link" href="/session-builder">Continuer</Link>
-            )}
           </article>
           <article className="feature-card stat-card stat-card-done">
             <p className="eyebrow">TERMINEES</p>
@@ -454,7 +451,7 @@ export default function ManagerHome() {
                             : `/session-builder?sessionId=${session.id}`
                       }
                     >
-                      {session.status === 'en_cours' ? 'Reprendre' : session.status === 'terminee' ? 'Résultats' : 'Ouvrir'}
+                      {session.status === 'terminee' ? 'Résultats' : 'Ouvrir'}
                     </Link>
                     <button
                       type="button"
