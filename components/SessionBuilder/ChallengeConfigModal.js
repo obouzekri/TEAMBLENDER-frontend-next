@@ -111,6 +111,27 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
           {kind === 'copuzzle' && (
             <>
               <div className={styles.configField}>
+                <label htmlFor="imageUrl" className={styles.label}>Image du puzzle (URL)</label>
+                <input
+                  id="imageUrl"
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={stringValue('image_url', '')}
+                  onChange={(e) => updateValue('image_url', e.target.value)}
+                  className={styles.input}
+                />
+                {stringValue('image_url', '') && (
+                  <img
+                    src={stringValue('image_url', '')}
+                    alt="Apercu puzzle"
+                    style={{ marginTop: '8px', maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    onLoad={(e) => { e.currentTarget.style.display = 'block'; }}
+                  />
+                )}
+              </div>
+
+              <div className={styles.configField}>
                 <label htmlFor="rows" className={styles.label}>Lignes de grille</label>
                 <input
                   id="rows"
