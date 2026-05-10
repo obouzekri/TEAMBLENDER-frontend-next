@@ -1,6 +1,7 @@
 'use client';
 import React, { useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import { getBackendOrigin } from '@/lib/config';
 import styles from './Copuzzle.module.css';
 
 export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, context }) {
@@ -18,7 +19,23 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
 
   const pieces = Array.isArray(state?.puzzle?.pieces) ? state.puzzle.pieces : [];
   const participantSlot = Number(state?.participantSlot || 0);
-  const imageUrl = runtimePayload?.config?.image_url || state?.config?.image_url || '';
+  const backendOrigin = useMemo(() => getBackendOrigin(), []);
+
+  const imageUrl = useMemo(() => {
+    const raw =
+      runtimePayload?.config?.image?.src
+      || runtimePayload?.config?.image_url
+      || runtimePayload?.config?.imageUrl
+      || state?.config?.image?.src
+      || state?.config?.image_url
+      || state?.config?.imageUrl
+      || '';
+
+    if (!raw) return '';
+    if (raw.startsWith('/')) return `${backendOrigin}${raw}`;
+    if (raw.startsWith('http://')) return raw.replace(/^http:\/\//i, 'https://');
+    return raw;
+  }, [backendOrigin, runtimePayload, state]);
   const myPieces = useMemo(
     () => pieces.filter((piece) => Number(piece.assigned_slot) === participantSlot),
     [pieces, participantSlot]
@@ -42,12 +59,14 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
         <h1>Copuzzle Live</h1>
         <p>Puzzle collaboratif en temps réel</p>
         {imageUrl && (
-          <img
-            src={imageUrl}
-            alt="Image du puzzle"
-            className={styles.puzzleImage}
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-          />
+          <div className={styles.puzzleImageWrap}>
+            <img
+              src={imageUrl}
+              alt="Image du puzzle"
+              className={styles.puzzleImage}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
         )}
       </section>
 

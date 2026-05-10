@@ -90,6 +90,58 @@
   line-height: 1.6;
 }
 
+.enigmeUiBlock {
+  margin: 10px 0 14px;
+  border: 1px solid rgba(125, 211, 252, 0.25);
+  background: rgba(15, 23, 42, 0.52);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.enigmeUiTitle {
+  margin: 0 0 8px;
+  color: #dbeafe;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.enigmeUiInstruction {
+  margin: 0 0 8px;
+  color: #bfdbfe;
+  font-size: 13px;
+}
+
+.matrixGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(56px, 1fr));
+  gap: 8px;
+  max-width: 300px;
+}
+
+.matrixCell {
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 8px;
+  background: #0b1220;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.textMysteryLines {
+  display: grid;
+  gap: 4px;
+}
+
+.textMysteryLine {
+  margin: 0;
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+  font-size: 13px;
+}
+
 .hintBox {
   border-left: 3px solid #fbbf24;
   background: rgba(251, 191, 36, 0.12);

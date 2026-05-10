@@ -2,7 +2,7 @@
 
 import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect } from 'react';
-import { getApiUrl } from '@/lib/config';
+import { getApiUrl, getBackendOrigin } from '@/lib/config';
 
 export default function ChallengeConfigModal({ challengeId, challenge, onSave, onClose }) {
   const [config, setConfig] = useState(challenge?.config || {});
@@ -135,7 +135,14 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
         throw new Error(payload.error || 'Upload image impossible.');
       }
 
-      const nextUrl = payload.url || payload.path || '';
+      const backendOrigin = getBackendOrigin();
+      let nextUrl = payload.url || payload.path || '';
+      if (nextUrl.startsWith('/')) {
+        nextUrl = `${backendOrigin}${nextUrl}`;
+      }
+      if (nextUrl.startsWith('http://')) {
+        nextUrl = nextUrl.replace(/^http:\/\//i, 'https://');
+      }
       if (!nextUrl) {
         throw new Error('URL image manquante dans la reponse upload.');
       }

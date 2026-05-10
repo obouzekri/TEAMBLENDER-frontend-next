@@ -97,6 +97,10 @@ export default function EscapeRoomChallenge({
   }, [endpointBase, token, loadState]);
 
   const currentEnigme = state?.current_enigme || null;
+  const currentUiType = String(currentEnigme?.ui_type || '').toLowerCase();
+  const currentUiData = currentEnigme?.ui_data && typeof currentEnigme.ui_data === 'object'
+    ? currentEnigme.ui_data
+    : {};
 
   const runAction = useCallback(
     async (actionKey, runner) => {
@@ -202,6 +206,33 @@ export default function EscapeRoomChallenge({
               ) : null}
               <p className={styles.description}>{currentEnigme?.description || 'Aucune description.'}</p>
 
+              {currentUiType === 'grid_3x3' && Array.isArray(currentUiData?.grid) ? (
+                <div className={styles.enigmeUiBlock}>
+                  <p className={styles.enigmeUiTitle}>Grille de l'énigme</p>
+                  <div className={styles.matrixGrid}>
+                    {currentUiData.grid.flat().map((cell, idx) => (
+                      <div key={`grid-cell-${idx}`} className={styles.matrixCell}>
+                        {cell == null ? '-' : String(cell)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {currentUiType === 'text_mystery' ? (
+                <div className={styles.enigmeUiBlock}>
+                  <p className={styles.enigmeUiTitle}>{currentUiData?.title || 'Énigme texte'}</p>
+                  {currentUiData?.instruction ? <p className={styles.enigmeUiInstruction}>{currentUiData.instruction}</p> : null}
+                  {Array.isArray(currentUiData?.question_lines) && currentUiData.question_lines.length > 0 ? (
+                    <div className={styles.textMysteryLines}>
+                      {currentUiData.question_lines.map((line, idx) => (
+                        <p key={`mystery-line-${idx}`} className={styles.textMysteryLine}>{String(line)}</p>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
               {state.hint_unlocked && currentEnigme?.hint ? (
                 <div className={styles.hintBox}>
                   <strong>Indice:</strong> {currentEnigme.hint}
@@ -213,7 +244,7 @@ export default function EscapeRoomChallenge({
                   <input
                     value={answer}
                     onChange={(event) => setAnswer(event.target.value)}
-                    placeholder="Votre reponse"
+                    placeholder={String(currentUiData?.placeholder || 'Votre reponse')}
                     className={styles.input}
                     disabled={busyAction === 'submit' || !currentEnigme}
                   />
