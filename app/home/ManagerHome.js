@@ -56,11 +56,21 @@ export default function ManagerHome() {
   const guard = useManagerGuard();
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
   const [sessions, setSessions] = useState([]);
+  const [members, setMembers] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
+  const [loadingMembers, setLoadingMembers] = useState(true);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
+  const [deletingMemberId, setDeletingMemberId] = useState(null);
+  const [creatingMember, setCreatingMember] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [visibleCount, setVisibleCount] = useState(8);
+  const [memberForm, setMemberForm] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    password: '',
+  });
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
 
@@ -117,6 +127,59 @@ export default function ManagerHome() {
     };
   }, [guard.allowed, guard.token, showErrorToast, showLoadingToast, removeToast]);
 
+  useEffect(() => {
+    if (!guard.allowed || !guard.token) return;
+
+    let cancelled = false;
+    setLoadingMembers(true);
+
+    fetch(getApiUrl('/participants'), {
+      headers: {
+        Authorization: `Bearer ${guard.token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(async (response) => {
+        const text = await response.text();
+        let payload = {};
+        try {
+          payload = text ? JSON.parse(text) : {};
+        } catch {
+          payload = {};
+        }
+
+        if (!response.ok) {
+          throw new Error(payload.error || `Erreur API membres (${response.status})`);
+        }
+
+        const items = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload.items)
+            ? payload.items
+            : Array.isArray(payload.data)
+              ? payload.data
+              : [];
+
+        if (!cancelled) {
+          setMembers(items);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          showErrorToast(err.message || 'Impossible de charger les membres.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingMembers(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [guard.allowed, guard.token, showErrorToast]);
+
   function logout() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
@@ -152,6 +215,113 @@ export default function ManagerHome() {
       showErrorToast(err.message || 'Suppression impossible.');
     } finally {
       setDeletingSessionId(null);
+    }
+  }
+
+  async function handleCreateMember(event) {
+    event.preventDefault();
+    if (!guard.token || !guard.user?.id || creatingMember) return;
+
+    const firstName = String(memberForm.first_name || '').trim();
+    const lastName = String(memberForm.last_name || '').trim();
+    const email = String(memberForm.email || '').trim().toLowerCase();
+    const password = String(memberForm.password || '').trim();
+
+    if (!firstName || !email || !password) {
+      showErrorToast('Prénom, email et mot de passe sont obligatoires.');
+      return;
+    }
+
+    setCreatingMember(true);
+    try {
+      const response = await fetch(getApiUrl(`/users/${encodeURIComponent(guard.user.id)}/participants`), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${guard.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          password,
+        }),
+      });
+
+      const text = await response.text();
+      let payload = {};
+      try {
+        payload = text ? JSON.parse(text) : {};
+      } catch {
+        payload = {};
+      }
+
+      if (!response.ok) {
+        throw new Error(payload.error || `Création membre impossible (${response.status})`);
+      }
+
+      showSuccessToast('Membre ajouté avec succès.');
+      setMemberForm({ first_name: '', last_name: '', email: '', password: '' });
+
+      const refresh = await fetch(getApiUrl('/participants'), {
+        headers: {
+          Authorization: `Bearer ${guard.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const refreshText = await refresh.text();
+      let refreshPayload = {};
+      try {
+        refreshPayload = refreshText ? JSON.parse(refreshText) : {};
+      } catch {
+        refreshPayload = {};
+      }
+
+      if (refresh.ok) {
+        const items = Array.isArray(refreshPayload)
+          ? refreshPayload
+          : Array.isArray(refreshPayload.items)
+            ? refreshPayload.items
+            : Array.isArray(refreshPayload.data)
+              ? refreshPayload.data
+              : [];
+        setMembers(items);
+      }
+    } catch (err) {
+      showErrorToast(err.message || 'Impossible de créer le membre.');
+    } finally {
+      setCreatingMember(false);
+    }
+  }
+
+  async function handleDeleteMember(member) {
+    if (!guard.token || !member?.id || deletingMemberId) return;
+
+    const label = member.email || `${member.first_name || ''} ${member.last_name || ''}`.trim() || `Membre #${member.id}`;
+    const accepted = window.confirm(`Supprimer ${label} ? Cette action est irreversible.`);
+    if (!accepted) return;
+
+    setDeletingMemberId(member.id);
+    try {
+      const response = await fetch(getApiUrl(`/participants/${encodeURIComponent(member.id)}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${guard.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(body || `Suppression membre impossible (${response.status})`);
+      }
+
+      setMembers((prev) => prev.filter((item) => String(item.id) !== String(member.id)));
+      showSuccessToast('Membre supprimé.');
+    } catch (err) {
+      showErrorToast(err.message || 'Suppression membre impossible.');
+    } finally {
+      setDeletingMemberId(null);
     }
   }
 
@@ -316,6 +486,91 @@ export default function ManagerHome() {
           <h2>Nouvelle session</h2>
           <p>Creez une session, selectionnez vos challenges et invitez vos participants en quelques minutes.</p>
           <Link className="btn-primary" href="/session-builder">Creer une session</Link>
+        </section>
+
+        <section className="feature-card">
+          <h2>Membres de l'équipe</h2>
+          <p>Ajoutez des membres (participants) pour les assigner ensuite a vos sessions.</p>
+
+          <form className="auth-form" onSubmit={handleCreateMember} style={{ marginTop: '1rem' }}>
+            <label>
+              Prénom *
+              <input
+                type="text"
+                value={memberForm.first_name}
+                onChange={(e) => setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))}
+                placeholder="Ex: Sophie"
+                required
+              />
+            </label>
+            <label>
+              Nom
+              <input
+                type="text"
+                value={memberForm.last_name}
+                onChange={(e) => setMemberForm((prev) => ({ ...prev, last_name: e.target.value }))}
+                placeholder="Ex: Martin"
+              />
+            </label>
+            <label>
+              Email *
+              <input
+                type="email"
+                value={memberForm.email}
+                onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
+                placeholder="sophie@entreprise.com"
+                required
+              />
+            </label>
+            <label>
+              Mot de passe *
+              <input
+                type="password"
+                value={memberForm.password}
+                onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
+                placeholder="Minimum 8 caractères"
+                minLength={8}
+                required
+              />
+            </label>
+            <button type="submit" className="btn-primary" disabled={creatingMember}>
+              {creatingMember ? 'Ajout en cours...' : 'Ajouter un membre'}
+            </button>
+          </form>
+
+          <div style={{ marginTop: '1rem' }}>
+            {loadingMembers ? <p>Chargement des membres...</p> : null}
+
+            {!loadingMembers && members.length === 0 ? (
+              <p>Aucun membre pour l'instant.</p>
+            ) : null}
+
+            {!loadingMembers && members.length > 0 ? (
+              <ul className="session-list">
+                {members.slice(0, 8).map((member) => {
+                  const title = [member.first_name, member.last_name].filter(Boolean).join(' ').trim() || `Membre #${member.id}`;
+                  return (
+                    <li key={String(member.id)} className="session-item">
+                      <div>
+                        <p className="session-title">{title}</p>
+                        <p className="session-meta">{member.email || 'Email non renseigné'}</p>
+                      </div>
+                      <div className="session-item-actions">
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => handleDeleteMember(member)}
+                          disabled={deletingMemberId === member.id}
+                        >
+                          {deletingMemberId === member.id ? 'Suppression...' : 'Supprimer'}
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
+          </div>
         </section>
       </main>
       <Footer />

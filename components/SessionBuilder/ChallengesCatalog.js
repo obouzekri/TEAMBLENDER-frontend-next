@@ -111,6 +111,7 @@ export default function ChallengesCatalog({
         <div className={styles.grid}>
           {challenges.map((challenge) => {
             const isSelected = selectedIds.includes(challenge.id);
+            const isLegacyOnly = String(challenge?.engine_key || '').trim() === 'local_page_v1';
             return (
               <div key={challenge.id} className={`${styles.card} ${isSelected ? styles.selected : ''}`}>
                 <div className={styles.cardHeader}>
@@ -119,6 +120,12 @@ export default function ChallengesCatalog({
                 </div>
 
                 <p className={styles.cardDescription}>{challenge.description}</p>
+
+                {isLegacyOnly ? (
+                  <p className={styles.cardDescription}>
+                    Challenge legacy: indisponible sur Vercel tant que le frontend legacy n'est pas expose.
+                  </p>
+                ) : null}
 
                 <div className={styles.cardMeta}>
                   <span className={styles.badge}>{challenge.category}</span>
@@ -129,13 +136,13 @@ export default function ChallengesCatalog({
                   <button
                     className={isSelected ? 'btn-secondary' : 'btn-primary'}
                     onClick={() => {
-                      if (!isSelected) {
+                      if (!isSelected && !isLegacyOnly) {
                         onSelect(challenge.id);
                       }
                     }}
-                    disabled={isSelected}
+                    disabled={isSelected || isLegacyOnly}
                   >
-                    {isSelected ? '✓ Ajoutée' : '+ Ajouter'}
+                    {isSelected ? '✓ Ajoutée' : isLegacyOnly ? 'Legacy seulement' : '+ Ajouter'}
                   </button>
                   {isSelected && (
                     <button
