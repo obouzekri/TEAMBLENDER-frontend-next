@@ -8,6 +8,17 @@
   --accent-soft: #d9f1ee;
   --line: #cfd8ca;
   --card: #ffffff;
+  --card-shadow: 0 10px 28px rgba(30, 42, 35, 0.06);
+  --card-shadow-hover: 0 16px 34px rgba(30, 42, 35, 0.1);
+  --field-bg: #f9fbf7;
+  --field-line: #cfe0d3;
+  --field-line-focus: rgba(15, 118, 110, 0.42);
+  --error-bg: #fff1f1;
+  --error-line: #ef4444;
+  --error-ink: #991b1b;
+  --success-bg: #eefbf6;
+  --success-line: #10b981;
+  --success-ink: #065f46;
   --button-primary-shadow: 0 8px 20px rgba(15, 118, 110, 0.18);
   --button-primary-shadow-hover: 0 12px 24px rgba(10, 95, 89, 0.22);
 }
@@ -191,6 +202,13 @@ a {
   border-radius: 16px;
   background: var(--card);
   padding: 1rem;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.feature-card:hover {
+  border-color: rgba(15, 118, 110, 0.22);
+  box-shadow: var(--card-shadow-hover);
 }
 
 .feature-card h2 {
@@ -243,17 +261,17 @@ a {
 
 .auth-card {
   width: min(370px, 100%);
-  border: 1px solid #d9e4f1;
+  border: 1px solid var(--line);
   border-radius: 18px;
   background: #fff;
   padding: 2.5rem 2.5rem 2rem;
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.1);
+  box-shadow: var(--card-shadow-hover);
 }
 
 .auth-card h1 {
   margin: 0;
   font-size: 1.5rem;
-  color: #0369a1;
+  color: var(--accent-strong);
   text-align: center;
 }
 
@@ -275,19 +293,22 @@ a {
 .auth-form textarea {
   width: 100%;
   padding: 0.7rem 1rem;
-  border: 1.5px solid #d9e4f1;
+  border: 1.5px solid var(--field-line);
   border-radius: 8px;
   font: inherit;
-  background: #f8fafc;
-  color: #222;
+  background: var(--field-bg);
+  color: var(--ink);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
 }
 
 .auth-form input:focus,
 .auth-form select:focus,
 .auth-form textarea:focus {
   outline: none;
-  border-color: #0ea5e9;
+  border-color: var(--field-line-focus);
   background: #fff;
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
 }
 
 .auth-footer {
@@ -297,24 +318,34 @@ a {
 }
 
 .auth-footer a {
-  color: #0ea5e9;
+  color: var(--accent);
   font-weight: 600;
 }
 
 .auth-footer a:hover {
-  color: #0369a1;
+  color: var(--accent-strong);
 }
 
 .form-error {
   margin: 0;
-  color: #b42318;
+  color: var(--error-ink);
   font-weight: 600;
+  background: var(--error-bg);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-left: 4px solid var(--error-line);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
 }
 
 .notice-ok {
   margin: 0;
-  color: #116329;
+  color: var(--success-ink);
   font-weight: 600;
+  background: var(--success-bg);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-left: 4px solid var(--success-line);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
 }
 
 .filters-row {
@@ -326,10 +357,19 @@ a {
 .inline-input {
   width: 100%;
   padding: 0.62rem 0.7rem;
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--field-line);
   border-radius: 10px;
   font: inherit;
+  background: var(--field-bg);
+  color: var(--ink);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.inline-input:focus {
+  outline: none;
+  border-color: var(--field-line-focus);
   background: #fff;
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
 }
 
 .success-box {
