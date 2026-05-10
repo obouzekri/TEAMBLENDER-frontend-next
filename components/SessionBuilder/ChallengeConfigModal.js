@@ -2,9 +2,12 @@
 
 import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect } from 'react';
+import { getApiUrl } from '@/lib/config';
 
 export default function ChallengeConfigModal({ challengeId, challenge, onSave, onClose }) {
   const [config, setConfig] = useState(challenge?.config || {});
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   useEffect(() => {
     setConfig(challenge?.config || {});
@@ -96,6 +99,56 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
     onSave(config);
   };
 
+  const handleUploadCopuzzleImage = async (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    setUploadError('');
+    setIsUploadingImage(true);
+
+    try {
+      const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+      if (!token) {
+        throw new Error('Session expirée. Reconnectez-vous.');
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch(getApiUrl('/challenges/upload-image'), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const rawText = await response.text();
+      let payload = {};
+      try {
+        payload = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        payload = {};
+      }
+
+      if (!response.ok) {
+        throw new Error(payload.error || 'Upload image impossible.');
+      }
+
+      const nextUrl = payload.url || payload.path || '';
+      if (!nextUrl) {
+        throw new Error('URL image manquante dans la reponse upload.');
+      }
+
+      updateValue('image_url', nextUrl);
+    } catch (err) {
+      setUploadError(err.message || 'Upload image impossible.');
+    } finally {
+      setIsUploadingImage(false);
+      event.target.value = '';
+    }
+  };
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -123,6 +176,25 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                   onChange={(e) => updateValue('image_url', e.target.value)}
                   className={styles.input}
                 />
+
+                <label htmlFor="copuzzleUpload" className={styles.label} style={{ marginTop: '10px' }}>
+                  Ou uploader une image (JPG/PNG)
+                </label>
+                <input
+                  id="copuzzleUpload"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  onChange={handleUploadCopuzzleImage}
+                  className={styles.input}
+                  disabled={isUploadingImage}
+                />
+                {isUploadingImage ? (
+                  <p style={{ marginTop: '6px', color: '#6b7280', fontSize: '12px' }}>Upload en cours...</p>
+                ) : null}
+                {uploadError ? (
+                  <p style={{ marginTop: '6px', color: '#dc2626', fontSize: '12px' }}>{uploadError}</p>
+                ) : null}
+
                 {stringValue('image_url', '') && (
                   <img
                     src={stringValue('image_url', '')}

@@ -80,10 +80,11 @@ export default function SessionBuilder() {
   const [isLaunching, setIsLaunching] = useState(false);
   const [sessionChallengesLoaded, setSessionChallengesLoaded] = useState(false);
   const [sessionStep, setSessionStep] = useState('name'); // 'name' | 'participants' | 'challenges'
+  const [hasRouteSessionId, setHasRouteSessionId] = useState(false);
   const [sessionId, setSessionId] = useState(() => {
     if (typeof window === 'undefined') return '';
     const params = new URLSearchParams(window.location.search);
-    return params.get('sessionId') || params.get('id') || sessionStorage.getItem('sessionId') || '';
+    return params.get('sessionId') || params.get('id') || '';
   });
   const [sessionName, setSessionName] = useState('');
   const [isCreatingSession, setIsCreatingSession] = useState(false);
@@ -95,12 +96,23 @@ export default function SessionBuilder() {
     [configuring, selectedChallenges]
   );
 
-  // Initialize step to 'challenges' if sessionId already exists
+  // Enter challenge step only when editing an explicit session from URL
   useEffect(() => {
-    if (sessionId && sessionStep === 'name') {
+    if (hasRouteSessionId && sessionId && sessionStep === 'name') {
       setSessionStep('challenges');
     }
-  }, [sessionId, sessionStep]);
+  }, [hasRouteSessionId, sessionId, sessionStep]);
+
+  // On plain /session-builder, reset stale cached session id to start a new flow
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const routeSessionId = params.get('sessionId') || params.get('id') || '';
+    setHasRouteSessionId(Boolean(routeSessionId));
+    if (!routeSessionId) {
+      sessionStorage.removeItem('sessionId');
+    }
+  }, []);
 
   const getAuthToken = useCallback(
     () => localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '',
