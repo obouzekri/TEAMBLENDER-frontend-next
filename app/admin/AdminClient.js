@@ -1162,7 +1162,7 @@ export default function AdminClient() {
         </aside>
 
         {/* Main content */}
-        <main style={{ flex: 1, padding: '32px 36px', overflowY: 'auto' }}>
+        <main style={{ flex: 1, padding: '24px 24px', overflowY: 'auto' }}>
 
           {/* Notifications */}
           {error ? (
@@ -1209,7 +1209,7 @@ export default function AdminClient() {
                 <h1 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 6px' }}>Tableau de bord</h1>
                 <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Vue d'ensemble de la plateforme en temps reel.</p>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: '12px', marginBottom: '24px' }}>
                 {[
                   { value: stats.users, label: 'Utilisateurs' },
                   { value: stats.activeUsers, label: 'Utilisateurs actifs' },
@@ -1221,14 +1221,14 @@ export default function AdminClient() {
                   { value: stats.activeSessions, label: 'Sessions en cours', highlight: stats.activeSessions > 0 },
                   { value: stats.challenges, label: 'Challenges' },
                 ].map((item) => (
-                  <div key={item.label} style={{
+                    <div key={item.label} style={{
                     background: 'var(--color-surface, #fff)',
                     border: item.highlight ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)',
                     borderRadius: '10px',
-                    padding: '20px 16px',
+                      padding: '14px 12px',
                     textAlign: 'center',
                   }}>
-                    <p style={{ fontSize: '28px', fontWeight: 700, color: item.highlight ? 'var(--color-primary, #4f46e5)' : 'var(--color-text, #111)', margin: '0 0 4px' }}>{item.value}</p>
+                    <p style={{ fontSize: '24px', fontWeight: 700, color: item.highlight ? 'var(--color-primary, #4f46e5)' : 'var(--color-text, #111)', margin: '0 0 2px' }}>{item.value}</p>
                     <p style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', margin: 0 }}>{item.label}</p>
                   </div>
                 ))}
@@ -1346,16 +1346,35 @@ export default function AdminClient() {
                           <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
                           <p className="session-meta">{u.email} · {u.role || 'user'} · {u.disabled ? 'Inactif' : 'Actif'}</p>
                         </div>
-                        <div className="session-item-actions">
-                          <button type="button" className="btn-secondary" onClick={() => beginEditUser(u)}>Modifier</button>
-                          <button type="button" className="btn-secondary" onClick={() => handleToggleUserStatus(u)} disabled={busySaveKey === `status:user:${u.id}` || String(u.id) === String(user?.id)}>
-                            {busySaveKey === `status:user:${u.id}` ? '...' : u.disabled ? 'Activer' : 'Desactiver'}
+                        <div className="session-item-actions icon-only-actions">
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => beginEditUser(u)}
+                            title="Modifier"
+                            aria-label="Modifier utilisateur"
+                          >
+                            ✎
                           </button>
-                          <button type="button" className="btn-secondary" onClick={() => handleResetUserPassword(u)} disabled={busySaveKey === `password:user:${u.id}`}>
-                            {busySaveKey === `password:user:${u.id}` ? '...' : 'Mot de passe'}
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => handleToggleUserStatus(u)}
+                            disabled={busySaveKey === `status:user:${u.id}` || String(u.id) === String(user?.id)}
+                            title={u.disabled ? 'Activer' : 'Desactiver'}
+                            aria-label={u.disabled ? 'Activer utilisateur' : 'Desactiver utilisateur'}
+                          >
+                            {busySaveKey === `status:user:${u.id}` ? '…' : u.disabled ? '↺' : '⏸'}
                           </button>
-                          <button type="button" className="btn-secondary" onClick={() => handleDeleteUser(u)} disabled={busyDeleteKey === `user:${u.id}` || String(u.id) === String(user?.id)}>
-                            {busyDeleteKey === `user:${u.id}` ? '...' : 'Supprimer'}
+                          <button
+                            type="button"
+                            className="icon-action-btn icon-action-danger"
+                            onClick={() => handleDeleteUser(u)}
+                            disabled={busyDeleteKey === `user:${u.id}` || String(u.id) === String(user?.id)}
+                            title="Supprimer"
+                            aria-label="Supprimer utilisateur"
+                          >
+                            {busyDeleteKey === `user:${u.id}` ? '…' : '✕'}
                           </button>
                         </div>
                       </li>
@@ -1460,16 +1479,35 @@ export default function AdminClient() {
                           <p className="session-title">{getParticipantDisplayName(p)}</p>
                           <p className="session-meta">{p.email} · {p.disabled ? 'Inactif' : 'Actif'} · {p.creator?.email || `Createur #${p.created_by || '?'}`}</p>
                         </div>
-                        <div className="session-item-actions">
-                          <button type="button" className="btn-secondary" onClick={() => beginEditParticipant(p)}>Modifier</button>
-                          <button type="button" className="btn-secondary" onClick={() => handleToggleParticipantStatus(p)} disabled={busySaveKey === `status:participant:${p.id}`}>
-                            {busySaveKey === `status:participant:${p.id}` ? '...' : p.disabled ? 'Activer' : 'Desactiver'}
+                        <div className="session-item-actions icon-only-actions">
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => beginEditParticipant(p)}
+                            title="Modifier"
+                            aria-label="Modifier participant"
+                          >
+                            ✎
                           </button>
-                          <button type="button" className="btn-secondary" onClick={() => handleResetParticipantPassword(p)} disabled={busySaveKey === `password:participant:${p.id}`}>
-                            {busySaveKey === `password:participant:${p.id}` ? '...' : 'Mot de passe'}
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => handleToggleParticipantStatus(p)}
+                            disabled={busySaveKey === `status:participant:${p.id}`}
+                            title={p.disabled ? 'Activer' : 'Desactiver'}
+                            aria-label={p.disabled ? 'Activer participant' : 'Desactiver participant'}
+                          >
+                            {busySaveKey === `status:participant:${p.id}` ? '…' : p.disabled ? '↺' : '⏸'}
                           </button>
-                          <button type="button" className="btn-secondary" onClick={() => handleDeleteParticipant(p)} disabled={busyDeleteKey === `participant:${p.id}`}>
-                            {busyDeleteKey === `participant:${p.id}` ? '...' : 'Supprimer'}
+                          <button
+                            type="button"
+                            className="icon-action-btn icon-action-danger"
+                            onClick={() => handleDeleteParticipant(p)}
+                            disabled={busyDeleteKey === `participant:${p.id}`}
+                            title="Supprimer"
+                            aria-label="Supprimer participant"
+                          >
+                            {busyDeleteKey === `participant:${p.id}` ? '…' : '✕'}
                           </button>
                         </div>
                       </li>
@@ -1739,10 +1777,25 @@ export default function AdminClient() {
                           <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
                           <p className="session-meta">{c.type || 'individuel'} · {c.status || 'actif'} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
                         </div>
-                        <div className="session-item-actions">
-                          <button type="button" className="btn-secondary" onClick={() => beginEditChallenge(c)}>Modifier</button>
-                          <button type="button" className="btn-secondary" onClick={() => handleDeleteChallenge(c)} disabled={busyDeleteKey === `challenge:${c.id}`}>
-                            {busyDeleteKey === `challenge:${c.id}` ? '...' : 'Supprimer'}
+                        <div className="session-item-actions icon-only-actions">
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => beginEditChallenge(c)}
+                            title="Modifier"
+                            aria-label="Modifier challenge"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-action-btn icon-action-danger"
+                            onClick={() => handleDeleteChallenge(c)}
+                            disabled={busyDeleteKey === `challenge:${c.id}`}
+                            title="Supprimer"
+                            aria-label="Supprimer challenge"
+                          >
+                            {busyDeleteKey === `challenge:${c.id}` ? '…' : '✕'}
                           </button>
                         </div>
                       </li>
