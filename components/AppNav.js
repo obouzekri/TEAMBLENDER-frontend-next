@@ -5,17 +5,17 @@ import Link from 'next/link';
 export default function AppNav({ userLabel, onLogout, role }) {
   const isParticipant = role === 'participant';
   const isAdmin = role === 'admin';
+  const brandHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
 
   return (
     <header className="top-nav">
       <div className="shell nav-inner">
-        <Link href={isParticipant ? '/participant' : '/home'} className="brand">TEAMSPARK</Link>
+        <Link href={brandHref} className="brand">TEAMSPARK</Link>
         {!isParticipant && (
           <nav className="nav-links" aria-label="Navigation manager">
             {isAdmin ? (
               <>
                 <Link href="/admin">Console admin</Link>
-                <Link href="/home">Home</Link>
               </>
             ) : (
               <>
