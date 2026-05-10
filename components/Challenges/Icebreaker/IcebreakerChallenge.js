@@ -3,14 +3,14 @@ import React from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import styles from './Icebreaker.module.css';
 
-export default function IcebreakerChallenge({ engineKey, runtimePayload, socket, context }) {
+export default function IcebreakerChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const {
     state,
     events,
     error,
     isFacilitator,
     emitEvent,
-  } = useRealtimeChallenge({ runtimePayload, socket, context });
+  } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
 
   const timer = state?.timer || null;
   const summary = state?.summary || null;

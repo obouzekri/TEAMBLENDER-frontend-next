@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getApiUrl } from '@/lib/config';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import styles from './EscapeRoom.module.css';
@@ -17,6 +17,7 @@ export default function EscapeRoomChallenge({
   runtimePayload,
   socket,
   context,
+  onChallengeCompleted,
 }) {
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState([]);
@@ -25,6 +26,7 @@ export default function EscapeRoomChallenge({
   const [answer, setAnswer] = useState('');
   const [busyAction, setBusyAction] = useState('');
   const [feedback, setFeedback] = useState('');
+  const completionGuardRef = useRef('');
 
   const sessionId = String(context?.sessionId || runtimePayload?.session_id || '').trim();
   const challengeId = String(context?.challengeId || runtimePayload?.challenge_id || '').trim();
@@ -283,6 +285,26 @@ export default function EscapeRoomChallenge({
   }
 
   const isFinished = state.status && state.status !== 'in_progress';
+
+  useEffect(() => {
+    if (!isFinished || typeof onChallengeCompleted !== 'function') {
+      return;
+    }
+
+    const status = String(state?.status || '').trim();
+    const key = `${sessionId}:${challengeId}:${status}:${Number(state?.current_enigme_index || 0)}`;
+    if (completionGuardRef.current === key) {
+      return;
+    }
+
+    completionGuardRef.current = key;
+    onChallengeCompleted({
+      type: 'escape_room.completed',
+      payload: { status },
+      sessionId,
+      challengeId,
+    });
+  }, [isFinished, onChallengeCompleted, state, sessionId, challengeId]);
 
   return (
     <div className={styles.escapeRoomContainer}>

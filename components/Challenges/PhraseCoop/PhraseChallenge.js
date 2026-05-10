@@ -15,7 +15,7 @@ function formatWord(word) {
   return normalized.replace(/_\d+_\d+$/, '');
 }
 
-export default function PhraseChallenge({ engineKey, runtimePayload, socket, context }) {
+export default function PhraseChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedWord, setSelectedWord] = useState('');
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState([]);
@@ -26,7 +26,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
     error,
     isFacilitator,
     emitEvent,
-  } = useRealtimeChallenge({ runtimePayload, socket, context });
+  } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
 
   const slots = Array.isArray(state?.phrase?.slots) ? state.phrase.slots : [];
   const participantSlot = Number(state?.participantSlot || 0) || null;

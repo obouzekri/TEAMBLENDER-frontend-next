@@ -3,14 +3,14 @@ import React from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import styles from './Labyrinthe.module.css';
 
-export default function LabyrintheLive({ engineKey, runtimePayload, socket, context }) {
+export default function LabyrintheLive({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const {
     state,
     events,
     error,
     isFacilitator,
     emitEvent,
-  } = useRealtimeChallenge({ runtimePayload, socket, context });
+  } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
 
   const laby = state?.labyrinthe || null;
   const timer = state?.timer || null;

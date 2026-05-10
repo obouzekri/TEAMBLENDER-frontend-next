@@ -27,7 +27,7 @@ const REALTIME_ENGINES = new Set([
  * - Handle errors and loading states
  * - Manage auth & ownership
  */
-export default function ChallengeWrapper({ sessionId, engineKey, noNav = false }) {
+export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, onChallengeCompleted = null }) {
   const normalizedEngineKey = String(engineKey || '').trim();
   const initialEngineNeedsRealtime = REALTIME_ENGINES.has(normalizedEngineKey);
   const { socket, connected, error: socketError } = useSocket(initialEngineNeedsRealtime);
@@ -178,7 +178,8 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false }
       normalizedEngineKey,
       runtimePayload,
       socket,
-      context
+      context,
+      { onChallengeCompleted }
     )
       .then((engineDef) => {
         if (!cancelled) {
@@ -204,6 +205,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false }
     connected,
     normalizedEngineKey,
     context,
+    onChallengeCompleted,
     requiresRealtime,
     showErrorToast,
     showLoadingToast,

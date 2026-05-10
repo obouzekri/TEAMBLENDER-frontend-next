@@ -64,7 +64,7 @@ function computePieceStyle(piece, config, imageUrl) {
   };
 }
 
-export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, context }) {
+export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedPieceId, setSelectedPieceId] = useState('');
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState([]);
@@ -76,7 +76,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     error,
     isFacilitator,
     emitEvent,
-  } = useRealtimeChallenge({ runtimePayload, socket, context });
+  } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
 
   const displayName = useMemo(() => {
     const fromPayload = String(runtimePayload?.context?.displayName || '').trim();

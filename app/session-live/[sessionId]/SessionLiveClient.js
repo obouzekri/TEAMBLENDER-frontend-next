@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -43,6 +43,7 @@ export default function SessionLiveClient() {
   const [error, setError] = useState('');
   const [actionPending, setActionPending] = useState(false);
   const [actionMsg, setActionMsg] = useState('');
+  const completedChallengeGuardRef = useRef('');
 
   // Auth guard
   useEffect(() => {
@@ -84,9 +85,11 @@ export default function SessionLiveClient() {
     window.location.replace('/login');
   }
 
-  async function handleNextChallenge() {
+  const handleNextChallenge = useCallback(async ({ auto = false } = {}) => {
     setActionPending(true);
-    setActionMsg('');
+    if (!auto) {
+      setActionMsg('');
+    }
     try {
       const res = await fetch(
         getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/flow/complete-active`),
@@ -94,17 +97,28 @@ export default function SessionLiveClient() {
       );
       if (!res.ok) {
         const body = await res.text();
-        throw new Error(body || `Erreur ${res.status}`);
+        let payload = null;
+        try {
+          payload = body ? JSON.parse(body) : null;
+        } catch {
+          payload = null;
+        }
+        throw new Error(payload?.error || body || `Erreur ${res.status}`);
       }
       const updated = await res.json();
-      setActionMsg('Challenge suivant activé.');
+      setActionMsg(
+        updated?.active_challenge_id
+          ? 'Challenge suivant activé.'
+          : 'Dernier challenge terminé.'
+      );
       setSession((prev) => ({ ...prev, ...updated }));
+      completedChallengeGuardRef.current = '';
     } catch (err) {
       setActionMsg(err.message || 'Erreur lors du passage au challenge suivant.');
     } finally {
       setActionPending(false);
     }
-  }
+  }, [sessionId]);
 
   async function handleEndSession() {
     if (!window.confirm('Terminer la session ?')) return;
@@ -140,6 +154,21 @@ export default function SessionLiveClient() {
   const participantCount = Array.isArray(session?.participants) ? session.participants.length : 0;
   const memberCount = assignedParticipantCount || participantCount || (Array.isArray(session?.members) ? session.members.length : 0);
   const userLabel = pickDisplayName(user);
+
+  const handleChallengeCompleted = useCallback(() => {
+    const activeChallengeId = Number(session?.active_challenge_id || 0);
+    if (!activeChallengeId || actionPending) {
+      return;
+    }
+
+    const guardKey = `${sessionId}:${activeChallengeId}`;
+    if (completedChallengeGuardRef.current === guardKey) {
+      return;
+    }
+
+    completedChallengeGuardRef.current = guardKey;
+    handleNextChallenge({ auto: true });
+  }, [session, sessionId, actionPending, handleNextChallenge]);
 
   if (loading) {
     return (
@@ -203,7 +232,12 @@ export default function SessionLiveClient() {
 
         {activeEngineKey ? (
           <section className="feature-card" style={{ padding: 0 }}>
-            <ChallengeWrapper sessionId={sessionId} engineKey={activeEngineKey} noNav />
+            <ChallengeWrapper
+              sessionId={sessionId}
+              engineKey={activeEngineKey}
+              noNav
+              onChallengeCompleted={handleChallengeCompleted}
+            />
           </section>
         ) : (
           <section className="feature-card">
