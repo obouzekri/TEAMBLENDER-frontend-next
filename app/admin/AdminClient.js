@@ -40,13 +40,6 @@ function getParticipantDisplayName(participant) {
   return full || participant?.email || `Participant #${participant?.id || '?'}`;
 }
 
-function getMemberDisplayName(member) {
-  const first = String(member?.first_name || '').trim();
-  const last = String(member?.last_name || '').trim();
-  const full = `${first} ${last}`.trim();
-  return full || String(member?.name || member?.email || `Membre #${member?.id || '?'}`);
-}
-
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 }
@@ -82,7 +75,6 @@ export default function AdminClient() {
   const [sessions, setSessions] = useState([]);
   const [challenges, setChallenges] = useState([]);
   const [participants, setParticipants] = useState([]);
-  const [members, setMembers] = useState([]);
 
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
@@ -148,26 +140,24 @@ export default function AdminClient() {
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      const [usersRes, pendingRes, sessionsRes, challengesRes, participantsRes, membersRes] = await Promise.all([
+      const [usersRes, pendingRes, sessionsRes, challengesRes, participantsRes] = await Promise.all([
         fetch(getApiUrl('/users'), { headers }),
         fetch(getApiUrl('/users/pending'), { headers }),
         fetch(getApiUrl('/sessions'), { headers }),
         fetch(getApiUrl('/challenges'), { headers }),
         fetch(getApiUrl('/participants?includeDisabled=true'), { headers }),
-        fetch(getApiUrl('/members'), { headers }),
       ]);
 
-      if (!usersRes.ok || !pendingRes.ok || !sessionsRes.ok || !challengesRes.ok || !participantsRes.ok || !membersRes.ok) {
+      if (!usersRes.ok || !pendingRes.ok || !sessionsRes.ok || !challengesRes.ok || !participantsRes.ok) {
         throw new Error('Impossible de charger les donnees admin.');
       }
 
-      const [usersPayload, pendingPayload, sessionsPayload, challengesPayload, participantsPayload, membersPayload] = await Promise.all([
+      const [usersPayload, pendingPayload, sessionsPayload, challengesPayload, participantsPayload] = await Promise.all([
         usersRes.json(),
         pendingRes.json(),
         sessionsRes.json(),
         challengesRes.json(),
         participantsRes.json(),
-        membersRes.json(),
       ]);
 
       setUsers(parseList(usersPayload));
@@ -175,7 +165,6 @@ export default function AdminClient() {
       setSessions(parseList(sessionsPayload));
       setChallenges(parseList(challengesPayload));
       setParticipants(parseList(participantsPayload));
-      setMembers(parseList(membersPayload));
     } catch (err) {
       setError(err.message || 'Erreur de chargement admin.');
     }
@@ -817,7 +806,7 @@ export default function AdminClient() {
           modality: newSession.modality || null,
           session_date: newSession.session_date || null,
           duration_minutes: newSession.duration_minutes ? Number(newSession.duration_minutes) : null,
-          member_ids: newSessionMemberIds.map((id) => Number(id)).filter(Number.isInteger),
+          participant_ids: newSessionMemberIds.map((id) => Number(id)).filter(Number.isInteger),
         }),
       });
 
@@ -1040,23 +1029,24 @@ export default function AdminClient() {
 
   const filteredAssignableMembers = useMemo(() => {
     const query = newSessionMemberQuery.trim().toLowerCase();
-    const source = members.filter((member) => !Boolean(member?.disabled));
+    const source = participants.filter((participant) => !Boolean(participant?.disabled));
     if (!query) return source;
-    return source.filter((member) => {
+    return source.filter((participant) => {
       const haystack = [
-        member.first_name,
-        member.last_name,
-        member.email,
-        member.department,
-        member.job_title,
-        member.name,
+        participant.first_name,
+        participant.firstname,
+        participant.last_name,
+        participant.lastname,
+        participant.email,
+        participant.department,
+        participant.job_title,
       ]
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
       return haystack.includes(query);
     });
-  }, [members, newSessionMemberQuery]);
+  }, [participants, newSessionMemberQuery]);
 
   function toggleNewSessionMember(memberId) {
     setNewSessionMemberIds((prev) => {
@@ -1589,12 +1579,12 @@ export default function AdminClient() {
                       <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '12px' }}>
                         <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>Etape 2 (optionnelle)</p>
                         <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
-                          Assignez des membres maintenant pour qu'ils voient directement la session.
+                          Assignez des participants maintenant pour qu'ils voient directement la session.
                         </p>
                         <input
                           type="search"
                           className="inline-input"
-                          placeholder="Rechercher un membre..."
+                          placeholder="Rechercher un participant..."
                           value={newSessionMemberQuery}
                           onChange={(e) => setNewSessionMemberQuery(e.target.value)}
                           style={{ marginBottom: '8px' }}
@@ -1619,7 +1609,7 @@ export default function AdminClient() {
                         </div>
                         <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '8px' }}>
                           {filteredAssignableMembers.length === 0 ? (
-                            <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>Aucun membre disponible.</p>
+                            <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>Aucun participant disponible.</p>
                           ) : (
                             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '6px' }}>
                               {filteredAssignableMembers.map((member) => {
@@ -1633,7 +1623,7 @@ export default function AdminClient() {
                                         onChange={() => toggleNewSessionMember(member.id)}
                                       />
                                       <span style={{ fontSize: '13px' }}>
-                                        {getMemberDisplayName(member)}
+                                        {getParticipantDisplayName(member)}
                                         {member.email ? <span style={{ color: 'var(--color-muted, #6b7280)' }}> · {member.email}</span> : null}
                                       </span>
                                     </label>
@@ -1644,7 +1634,7 @@ export default function AdminClient() {
                           )}
                         </div>
                         <p className="session-meta" style={{ marginTop: '8px' }}>
-                          {newSessionMemberIds.length} membre{newSessionMemberIds.length > 1 ? 's' : ''} assigne{newSessionMemberIds.length > 1 ? 's' : ''}
+                          {newSessionMemberIds.length} participant{newSessionMemberIds.length > 1 ? 's' : ''} assigne{newSessionMemberIds.length > 1 ? 's' : ''}
                         </p>
                       </div>
 

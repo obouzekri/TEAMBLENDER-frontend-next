@@ -25,7 +25,7 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel, onS
     }
 
     setLoadingParticipants(true);
-    fetch(getApiUrl('/members'), {
+    fetch(getApiUrl('/participants'), {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -50,9 +50,7 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel, onS
             ? data.items
             : Array.isArray(data.data)
               ? data.data
-              : Array.isArray(data.members)
-                ? data.members
-                : [];
+              : [];
         setParticipants(list);
       })
       .catch((err) => {
@@ -96,7 +94,7 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel, onS
         <div className={styles.header}>
           <h2>Assigner les participants</h2>
           <p className={styles.subtitle}>
-            Sélectionnez les membres qui participeront à cette session
+            Sélectionnez les participants qui participeront à cette session
           </p>
         </div>
 
@@ -119,7 +117,7 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel, onS
             {participants.length === 0 ? (
               <div className={styles.empty}>
                 <p>Aucun participant disponible</p>
-                <small>Ajoutez des membres dans votre espace utilisateur pour les assigner à une session</small>
+                <small>Ajoutez des participants dans votre espace manager pour les assigner à une session</small>
               </div>
             ) : (
               <>

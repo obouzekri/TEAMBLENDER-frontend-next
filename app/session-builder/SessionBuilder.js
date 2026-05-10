@@ -376,14 +376,14 @@ export default function SessionBuilder() {
     const token = getAuthToken();
 
     try {
-      // Update session with member_ids (backend will sync participants)
+      // Update session with participant_ids (single source of truth)
       await apiRequest(`/sessions/${sessionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ member_ids: selectedParticipantIds }),
+        body: JSON.stringify({ participant_ids: selectedParticipantIds }),
       });
       removeToast(loadingId);
       sessionStorage.setItem('sessionId', sessionId);

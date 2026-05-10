@@ -70,6 +70,8 @@ export default function ManagerHome() {
     last_name: '',
     email: '',
     password: '',
+    job_title: '',
+    department: '',
   });
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
@@ -149,7 +151,7 @@ export default function ManagerHome() {
         }
 
         if (!response.ok) {
-          throw new Error(payload.error || `Erreur API membres (${response.status})`);
+          throw new Error(payload.error || `Erreur API participants (${response.status})`);
         }
 
         const items = Array.isArray(payload)
@@ -166,7 +168,7 @@ export default function ManagerHome() {
       })
       .catch((err) => {
         if (!cancelled) {
-          showErrorToast(err.message || 'Impossible de charger les membres.');
+          showErrorToast(err.message || 'Impossible de charger les participants.');
         }
       })
       .finally(() => {
@@ -226,6 +228,8 @@ export default function ManagerHome() {
     const lastName = String(memberForm.last_name || '').trim();
     const email = String(memberForm.email || '').trim().toLowerCase();
     const password = String(memberForm.password || '').trim();
+    const jobTitle = String(memberForm.job_title || '').trim();
+    const department = String(memberForm.department || '').trim();
 
     if (!firstName || !email || !password) {
       showErrorToast('Prénom, email et mot de passe sont obligatoires.');
@@ -245,6 +249,8 @@ export default function ManagerHome() {
           last_name: lastName,
           email,
           password,
+          job_title: jobTitle || undefined,
+          department: department || undefined,
         }),
       });
 
@@ -257,11 +263,11 @@ export default function ManagerHome() {
       }
 
       if (!response.ok) {
-        throw new Error(payload.error || `Création membre impossible (${response.status})`);
+        throw new Error(payload.error || `Création participant impossible (${response.status})`);
       }
 
-      showSuccessToast('Membre ajouté avec succès.');
-      setMemberForm({ first_name: '', last_name: '', email: '', password: '' });
+      showSuccessToast('Participant ajouté avec succès.');
+      setMemberForm({ first_name: '', last_name: '', email: '', password: '', job_title: '', department: '' });
 
       const refresh = await fetch(getApiUrl('/participants'), {
         headers: {
@@ -288,7 +294,7 @@ export default function ManagerHome() {
         setMembers(items);
       }
     } catch (err) {
-      showErrorToast(err.message || 'Impossible de créer le membre.');
+      showErrorToast(err.message || 'Impossible de créer le participant.');
     } finally {
       setCreatingMember(false);
     }
@@ -297,7 +303,7 @@ export default function ManagerHome() {
   async function handleDeleteMember(member) {
     if (!guard.token || !member?.id || deletingMemberId) return;
 
-    const label = member.email || `${member.first_name || ''} ${member.last_name || ''}`.trim() || `Membre #${member.id}`;
+    const label = member.email || `${member.first_name || ''} ${member.last_name || ''}`.trim() || `Participant #${member.id}`;
     const accepted = window.confirm(`Supprimer ${label} ? Cette action est irreversible.`);
     if (!accepted) return;
 
@@ -313,13 +319,13 @@ export default function ManagerHome() {
 
       if (!response.ok) {
         const body = await response.text();
-        throw new Error(body || `Suppression membre impossible (${response.status})`);
+        throw new Error(body || `Suppression participant impossible (${response.status})`);
       }
 
       setMembers((prev) => prev.filter((item) => String(item.id) !== String(member.id)));
-      showSuccessToast('Membre supprimé.');
+      showSuccessToast('Participant supprimé.');
     } catch (err) {
-      showErrorToast(err.message || 'Suppression membre impossible.');
+      showErrorToast(err.message || 'Suppression participant impossible.');
     } finally {
       setDeletingMemberId(null);
     }
@@ -492,8 +498,8 @@ export default function ManagerHome() {
         </section>
 
         <section className="feature-card">
-          <h2>Membres de l'équipe</h2>
-          <p>Ajoutez des membres (participants) pour les assigner ensuite a vos sessions.</p>
+          <h2>Participants de l'équipe</h2>
+          <p>Ajoutez des participants pour les assigner ensuite a vos sessions (membres d'equipe).</p>
 
           <form className="auth-form" onSubmit={handleCreateMember} style={{ marginTop: '1rem' }}>
             <label>
@@ -536,27 +542,49 @@ export default function ManagerHome() {
                 required
               />
             </label>
+            <label>
+              Fonction
+              <input
+                type="text"
+                value={memberForm.job_title}
+                onChange={(e) => setMemberForm((prev) => ({ ...prev, job_title: e.target.value }))}
+                placeholder="Ex: Product Manager"
+              />
+            </label>
+            <label>
+              Département
+              <input
+                type="text"
+                value={memberForm.department}
+                onChange={(e) => setMemberForm((prev) => ({ ...prev, department: e.target.value }))}
+                placeholder="Ex: RH"
+              />
+            </label>
             <button type="submit" className="btn-primary" disabled={creatingMember}>
-              {creatingMember ? 'Ajout en cours...' : 'Ajouter un membre'}
+              {creatingMember ? 'Ajout en cours...' : 'Ajouter un participant'}
             </button>
           </form>
 
           <div style={{ marginTop: '1rem' }}>
-            {loadingMembers ? <p>Chargement des membres...</p> : null}
+            {loadingMembers ? <p>Chargement des participants...</p> : null}
 
             {!loadingMembers && members.length === 0 ? (
-              <p>Aucun membre pour l'instant.</p>
+              <p>Aucun participant pour l'instant.</p>
             ) : null}
 
             {!loadingMembers && members.length > 0 ? (
               <ul className="session-list">
                 {members.slice(0, 8).map((member) => {
-                  const title = [member.first_name, member.last_name].filter(Boolean).join(' ').trim() || `Membre #${member.id}`;
+                  const title = [member.first_name, member.last_name].filter(Boolean).join(' ').trim() || `Participant #${member.id}`;
+                  const details = [member.job_title, member.department].filter(Boolean).join(' · ');
                   return (
                     <li key={String(member.id)} className="session-item">
                       <div>
                         <p className="session-title">{title}</p>
-                        <p className="session-meta">{member.email || 'Email non renseigné'}</p>
+                        <p className="session-meta">
+                          {member.email || 'Email non renseigné'}
+                          {details ? ` · ${details}` : ''}
+                        </p>
                       </div>
                       <div className="session-item-actions">
                         <button
