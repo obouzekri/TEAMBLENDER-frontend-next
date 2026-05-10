@@ -36,6 +36,9 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
     if (fingerprint.includes('labyrinthe')) {
       return 'labyrinthe';
     }
+    if ((current?.engine_key || '').toLowerCase() === 'escape_room_v1' || fingerprint.includes('salle') || fingerprint.includes('escape')) {
+      return 'escape_room';
+    }
     return 'generic';
   }
 
@@ -298,6 +301,83 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                   className={styles.input}
                 />
               </div>
+            </>
+          )}
+
+          {kind === 'escape_room' && (
+            <>
+              {/* Configuration de session (overrides) */}
+              <div className={styles.configField}>
+                <label htmlFor="erDuration" className={styles.label}>Durée (secondes)</label>
+                <input
+                  id="erDuration"
+                  type="number"
+                  min="300"
+                  max="3600"
+                  step="60"
+                  value={numberValue('timer.duration_seconds', challenge?.engine_config?.timer?.duration_seconds || 1200)}
+                  onChange={(e) => updateValue('timer.duration_seconds', Number(e.target.value || 1200))}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="erMaxAttempts" className={styles.label}>Tentatives max par énigme</label>
+                <input
+                  id="erMaxAttempts"
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={numberValue('max_attempts_per_enigme', challenge?.engine_config?.max_attempts_per_enigme || 3)}
+                  onChange={(e) => updateValue('max_attempts_per_enigme', Number(e.target.value || 3))}
+                  className={styles.input}
+                />
+              </div>
+
+              {/* Affichage des énigmes configurées (depuis engine_config) */}
+              {Array.isArray(challenge?.engine_config?.enigmes) && challenge.engine_config.enigmes.length > 0 ? (
+                <div style={{ marginTop: '16px' }}>
+                  <p className={styles.label} style={{ marginBottom: '8px', fontWeight: 600 }}>
+                    Énigmes configurées ({challenge.engine_config.enigmes.length})
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {challenge.engine_config.enigmes.map((enigme, idx) => (
+                      <div
+                        key={enigme.id || idx}
+                        style={{
+                          background: '#f8f9fa',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '6px',
+                          padding: '10px 12px',
+                          fontSize: '13px',
+                        }}
+                      >
+                        <strong style={{ color: '#374151' }}>{idx + 1}. {enigme.label}</strong>
+                        {enigme.description && (
+                          <p style={{ margin: '4px 0 0', color: '#6b7280', lineHeight: '1.4' }}>{enigme.description}</p>
+                        )}
+                        <div style={{ marginTop: '6px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                          <span style={{ color: '#059669', fontFamily: 'monospace', fontSize: '12px' }}>
+                            ✓ Réponse: <strong>{enigme.expected_answer}</strong>
+                          </span>
+                          {enigme.hint && (
+                            <span style={{ color: '#6b7280', fontSize: '12px' }}>
+                              💡 {enigme.hint}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p style={{ marginTop: '8px', fontSize: '12px', color: '#9ca3af' }}>
+                    Les énigmes sont gérées depuis l'administration du challenge.
+                  </p>
+                </div>
+              ) : (
+                <p className={styles.noConfigText} style={{ marginTop: '12px' }}>
+                  Aucune énigme trouvée dans la configuration du challenge.
+                </p>
+              )}
             </>
           )}
 
