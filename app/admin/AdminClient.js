@@ -1234,51 +1234,6 @@ export default function AdminClient() {
                 ))}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px', marginBottom: '24px' }}>
-                <div style={{
-                  background: 'var(--color-surface, #fff)',
-                  border: '1px solid var(--color-border, #e5e7eb)',
-                  borderRadius: '10px',
-                  padding: '20px 24px',
-                }}>
-                  <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px' }}>Actions admin prioritaires</h2>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: '0 0 14px', fontSize: '13px' }}>
-                    La console admin centralise la creation et la supervision des sessions. Le builder reste optionnel.
-                  </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    <button type="button" className="btn-primary" onClick={() => setActiveTab('sessions')}>Gerer les sessions</button>
-                    <button type="button" className="btn-secondary" onClick={() => setActiveTab('users')}>Valider les comptes</button>
-                    <button type="button" className="btn-secondary" onClick={() => setActiveTab('participants')}>Gerer les participants</button>
-                  </div>
-                </div>
-
-                <div style={{
-                  background: 'var(--color-surface, #fff)',
-                  border: '1px solid var(--color-border, #e5e7eb)',
-                  borderRadius: '10px',
-                  padding: '20px 24px',
-                }}>
-                  <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px' }}>Creer une session</h2>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: '0 0 12px', fontSize: '13px' }}>
-                    Creez rapidement une session depuis la console, puis ajustez son statut dans l'onglet Sessions.
-                  </p>
-                  <form className="auth-form" onSubmit={submitNewSession} style={{ marginTop: 0 }}>
-                    <label>Nom de session
-                      <input
-                        value={newSession.name}
-                        onChange={(e) => setNewSession((prev) => ({ ...prev, name: e.target.value }))}
-                        placeholder="Ex: Comite Direction - Juin"
-                        required
-                      />
-                    </label>
-                    <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:session'}>
-                      {busySaveKey === 'create:session' ? 'Creation...' : 'Creer la session'}
-                    </button>
-                  </form>
-                  {newSessionMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newSessionMessage}</p> : null}
-                </div>
-              </div>
-
               {/* Pending approvals on dashboard */}
               {pendingUsers.length > 0 ? (
                 <div style={{
@@ -1303,16 +1258,7 @@ export default function AdminClient() {
                     ))}
                   </ul>
                 </div>
-              ) : (
-                <div style={{
-                  background: 'var(--color-surface, #fff)',
-                  border: '1px solid var(--color-border, #e5e7eb)',
-                  borderRadius: '10px',
-                  padding: '20px 24px',
-                }}>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Aucune demande de compte en attente de validation.</p>
-                </div>
-              )}
+              ) : null}
             </div>
           ) : null}
 
