@@ -11,6 +11,21 @@ const SESSION_MODALITIES = new Set(['', 'remote', 'hybrid', 'in-person']);
 const CHALLENGE_TYPES = new Set(['icebreaker', 'individuel', 'equipe']);
 const CHALLENGE_STATUSES = new Set(['actif', 'brouillon', 'archive']);
 
+function getParticipantFirstName(participant) {
+  return String(participant?.first_name || participant?.firstname || '').trim();
+}
+
+function getParticipantLastName(participant) {
+  return String(participant?.last_name || participant?.lastname || '').trim();
+}
+
+function getParticipantDisplayName(participant) {
+  const first = getParticipantFirstName(participant);
+  const last = getParticipantLastName(participant);
+  const full = `${first} ${last}`.trim();
+  return full || participant?.email || `Participant #${participant?.id || '?'}`;
+}
+
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 }
@@ -44,16 +59,19 @@ export default function AdminClient() {
   const [pendingUsers, setPendingUsers] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [challenges, setChallenges] = useState([]);
+  const [participants, setParticipants] = useState([]);
 
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
   const [busySaveKey, setBusySaveKey] = useState('');
   const noticeTimer = useRef(null);
   const [userQuery, setUserQuery] = useState('');
+  const [participantQuery, setParticipantQuery] = useState('');
   const [sessionQuery, setSessionQuery] = useState('');
   const [challengeQuery, setChallengeQuery] = useState('');
 
   const [editingUser, setEditingUser] = useState(null);
+  const [editingParticipant, setEditingParticipant] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
   const [editingChallenge, setEditingChallenge] = useState(null);
 
@@ -65,6 +83,16 @@ export default function AdminClient() {
     role: 'user',
   });
   const [newUserMessage, setNewUserMessage] = useState('');
+  const [newParticipant, setNewParticipant] = useState({
+    owner_id: '',
+    first_name: '',
+    last_name: '',
+    email: '',
+    password: '',
+    job_title: '',
+    department: '',
+  });
+  const [newParticipantMessage, setNewParticipantMessage] = useState('');
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -92,28 +120,31 @@ export default function AdminClient() {
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      const [usersRes, pendingRes, sessionsRes, challengesRes] = await Promise.all([
+      const [usersRes, pendingRes, sessionsRes, challengesRes, participantsRes] = await Promise.all([
         fetch(getApiUrl('/users'), { headers }),
         fetch(getApiUrl('/users/pending'), { headers }),
         fetch(getApiUrl('/sessions'), { headers }),
         fetch(getApiUrl('/challenges'), { headers }),
+        fetch(getApiUrl('/participants?includeDisabled=true'), { headers }),
       ]);
 
-      if (!usersRes.ok || !pendingRes.ok || !sessionsRes.ok || !challengesRes.ok) {
+      if (!usersRes.ok || !pendingRes.ok || !sessionsRes.ok || !challengesRes.ok || !participantsRes.ok) {
         throw new Error('Impossible de charger les donnees admin.');
       }
 
-      const [usersPayload, pendingPayload, sessionsPayload, challengesPayload] = await Promise.all([
+      const [usersPayload, pendingPayload, sessionsPayload, challengesPayload, participantsPayload] = await Promise.all([
         usersRes.json(),
         pendingRes.json(),
         sessionsRes.json(),
         challengesRes.json(),
+        participantsRes.json(),
       ]);
 
       setUsers(parseList(usersPayload));
       setPendingUsers(parseList(pendingPayload));
       setSessions(parseList(sessionsPayload));
       setChallenges(parseList(challengesPayload));
+      setParticipants(parseList(participantsPayload));
     } catch (err) {
       setError(err.message || 'Erreur de chargement admin.');
     }
@@ -233,6 +264,86 @@ export default function AdminClient() {
     }
   }
 
+  async function handleToggleUserStatus(targetUser) {
+    if (!token || !targetUser?.id) return;
+    if (String(targetUser.id) === String(user?.id)) {
+      setError('Vous ne pouvez pas desactiver votre propre compte admin.');
+      return;
+    }
+
+    const currentlyDisabled = Boolean(targetUser.disabled);
+    const accepted = window.confirm(
+      currentlyDisabled
+        ? `Reactiver ${targetUser.email || 'cet utilisateur'} ?`
+        : `Desactiver ${targetUser.email || 'cet utilisateur'} ?`
+    );
+    if (!accepted) return;
+
+    const key = `status:user:${targetUser.id}`;
+    setBusySaveKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/users/${targetUser.id}/status`), {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ active: currentlyDisabled }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || `Mise a jour statut impossible (${response.status})`);
+      }
+
+      await loadAll();
+      showNotice(currentlyDisabled ? 'Utilisateur reactive.' : 'Utilisateur desactive.');
+    } catch (err) {
+      setError(err.message || 'Erreur lors du changement de statut utilisateur.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  async function handleResetUserPassword(targetUser) {
+    if (!token || !targetUser?.id) return;
+
+    const custom = window.prompt(
+      `Nouveau mot de passe pour ${targetUser.email || `user #${targetUser.id}`} (laisser vide pour generation automatique):`,
+      ''
+    );
+    if (custom === null) return;
+
+    const key = `password:user:${targetUser.id}`;
+    setBusySaveKey(key);
+    setError('');
+
+    try {
+      const body = custom.trim() ? { password: custom.trim() } : {};
+      const response = await fetch(getApiUrl(`/users/${targetUser.id}/password`), {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || `Reset mot de passe impossible (${response.status})`);
+      }
+
+      const tempPassword = payload?.tempPassword ? ` Mot de passe: ${payload.tempPassword}` : '';
+      showNotice(`Mot de passe utilisateur reinitialise.${tempPassword}`);
+    } catch (err) {
+      setError(err.message || 'Erreur lors du reset du mot de passe utilisateur.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
   function beginEditUser(targetUser) {
     setEditingUser({
       id: targetUser.id,
@@ -291,6 +402,235 @@ export default function AdminClient() {
       showNotice('Utilisateur mis a jour avec succes.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la mise a jour utilisateur.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  async function submitNewParticipant(event) {
+    event.preventDefault();
+    setNewParticipantMessage('');
+
+    if (!token) return;
+
+    if (!newParticipant.owner_id || !newParticipant.first_name.trim() || !newParticipant.email.trim() || !newParticipant.password.trim()) {
+      setNewParticipantMessage('Createur, prenom, email et mot de passe sont obligatoires.');
+      return;
+    }
+
+    if (!isValidEmail(newParticipant.email)) {
+      setNewParticipantMessage('Email invalide.');
+      return;
+    }
+
+    const key = 'create:participant';
+    setBusySaveKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/users/${newParticipant.owner_id}/participants`), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: newParticipant.email.trim().toLowerCase(),
+          first_name: newParticipant.first_name.trim(),
+          last_name: newParticipant.last_name.trim() || null,
+          password: newParticipant.password,
+          job_title: newParticipant.job_title.trim() || null,
+          department: newParticipant.department.trim() || null,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || `Creation participant impossible (${response.status})`);
+      }
+
+      setNewParticipant({
+        owner_id: '',
+        first_name: '',
+        last_name: '',
+        email: '',
+        password: '',
+        job_title: '',
+        department: '',
+      });
+      const tempPassword = payload?.tempPassword ? ` Mot de passe: ${payload.tempPassword}` : '';
+      setNewParticipantMessage(`Participant cree avec succes.${tempPassword}`);
+      await loadAll();
+      showNotice('Participant cree avec succes.');
+    } catch (err) {
+      setNewParticipantMessage(err.message || 'Creation participant impossible.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  function beginEditParticipant(participant) {
+    setEditingParticipant({
+      id: participant.id,
+      email: participant.email || '',
+      first_name: getParticipantFirstName(participant),
+      last_name: getParticipantLastName(participant),
+      disabled: Boolean(participant.disabled),
+      password: '',
+      job_title: participant.job_title || '',
+      department: participant.department || '',
+    });
+  }
+
+  async function submitEditParticipant(event) {
+    event.preventDefault();
+    if (!token || !editingParticipant?.id) return;
+
+    if (!editingParticipant.first_name.trim() || !isValidEmail(editingParticipant.email)) {
+      setError('Le prenom participant et un email valide sont requis.');
+      return;
+    }
+
+    const key = `save:participant:${editingParticipant.id}`;
+    setBusySaveKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/participants/${editingParticipant.id}`), {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: editingParticipant.email.trim().toLowerCase(),
+          first_name: editingParticipant.first_name.trim(),
+          last_name: editingParticipant.last_name.trim() || null,
+          disabled: Boolean(editingParticipant.disabled),
+          ...(editingParticipant.password ? { password: editingParticipant.password } : {}),
+          job_title: editingParticipant.job_title.trim() || null,
+          department: editingParticipant.department.trim() || null,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || `Mise a jour participant impossible (${response.status})`);
+      }
+
+      setEditingParticipant(null);
+      await loadAll();
+      showNotice('Participant mis a jour avec succes.');
+    } catch (err) {
+      setError(err.message || 'Erreur lors de la mise a jour participant.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  async function handleToggleParticipantStatus(participant) {
+    if (!token || !participant?.id) return;
+    const currentlyDisabled = Boolean(participant.disabled);
+    const accepted = window.confirm(
+      currentlyDisabled
+        ? `Reactiver ${getParticipantDisplayName(participant)} ?`
+        : `Desactiver ${getParticipantDisplayName(participant)} ?`
+    );
+    if (!accepted) return;
+
+    const key = `status:participant:${participant.id}`;
+    setBusySaveKey(key);
+    setError('');
+
+    try {
+      const response = await fetch(getApiUrl(`/participants/${participant.id}`), {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ disabled: !currentlyDisabled }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || `Mise a jour statut participant impossible (${response.status})`);
+      }
+
+      await loadAll();
+      showNotice(currentlyDisabled ? 'Participant reactive.' : 'Participant desactive.');
+    } catch (err) {
+      setError(err.message || 'Erreur lors du changement de statut participant.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  async function handleDeleteParticipant(participant) {
+    if (!token || !participant?.id) return;
+    const accepted = window.confirm(`Supprimer ${getParticipantDisplayName(participant)} ?`);
+    if (!accepted) return;
+
+    const key = `participant:${participant.id}`;
+    setBusyDeleteKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/participants/${participant.id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(body || `Suppression participant impossible (${response.status})`);
+      }
+
+      if (editingParticipant && String(editingParticipant.id) === String(participant.id)) {
+        setEditingParticipant(null);
+      }
+      await loadAll();
+      showNotice('Participant supprime avec succes.');
+    } catch (err) {
+      setError(err.message || 'Erreur lors de la suppression participant.');
+    } finally {
+      setBusyDeleteKey('');
+    }
+  }
+
+  async function handleResetParticipantPassword(participant) {
+    if (!token || !participant?.id) return;
+
+    const custom = window.prompt(
+      `Nouveau mot de passe pour ${getParticipantDisplayName(participant)} (laisser vide pour generation automatique):`,
+      ''
+    );
+    if (custom === null) return;
+
+    const key = `password:participant:${participant.id}`;
+    setBusySaveKey(key);
+    setError('');
+
+    try {
+      const body = custom.trim() ? { password: custom.trim() } : {};
+      const response = await fetch(getApiUrl(`/participants/${participant.id}/password`), {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || `Reset mot de passe participant impossible (${response.status})`);
+      }
+
+      const tempPassword = payload?.tempPassword ? ` Mot de passe: ${payload.tempPassword}` : '';
+      showNotice(`Mot de passe participant reinitialise.${tempPassword}`);
+    } catch (err) {
+      setError(err.message || 'Erreur lors du reset mot de passe participant.');
     } finally {
       setBusySaveKey('');
     }
@@ -519,12 +859,16 @@ export default function AdminClient() {
   const stats = useMemo(
     () => ({
       users: users.length,
+      activeUsers: users.filter((u) => !u.disabled).length,
+      disabledUsers: users.filter((u) => Boolean(u.disabled)).length,
       pending: pendingUsers.length,
+      participants: participants.length,
+      activeParticipants: participants.filter((p) => !p.disabled).length,
       sessions: sessions.length,
       activeSessions: sessions.filter((s) => s.status === 'en_cours').length,
       challenges: challenges.length,
     }),
-    [users, pendingUsers, sessions, challenges]
+    [users, pendingUsers, participants, sessions, challenges]
   );
 
   const filteredUsers = useMemo(() => {
@@ -538,6 +882,27 @@ export default function AdminClient() {
       return haystack.includes(query);
     });
   }, [users, userQuery]);
+
+  const filteredParticipants = useMemo(() => {
+    const query = participantQuery.trim().toLowerCase();
+    if (!query) return participants;
+    return participants.filter((p) => {
+      const haystack = [
+        p.email,
+        p.first_name,
+        p.firstname,
+        p.last_name,
+        p.lastname,
+        p.job_title,
+        p.department,
+        p.creator?.email,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [participants, participantQuery]);
 
   const filteredSessions = useMemo(() => {
     const query = sessionQuery.trim().toLowerCase();
@@ -603,7 +968,11 @@ export default function AdminClient() {
 
         <section className="cards-grid" aria-label="Statistiques admin">
           <article className="feature-card"><h2>{stats.users}</h2><p>Utilisateurs</p></article>
+          <article className="feature-card"><h2>{stats.activeUsers}</h2><p>Utilisateurs actifs</p></article>
+          <article className="feature-card"><h2>{stats.disabledUsers}</h2><p>Utilisateurs inactifs</p></article>
           <article className="feature-card"><h2>{stats.pending}</h2><p>Demandes en attente</p></article>
+          <article className="feature-card"><h2>{stats.participants}</h2><p>Participants</p></article>
+          <article className="feature-card"><h2>{stats.activeParticipants}</h2><p>Participants actifs</p></article>
           <article className="feature-card"><h2>{stats.sessions}</h2><p>Sessions</p></article>
           <article className="feature-card"><h2>{stats.activeSessions}</h2><p>Sessions en cours</p></article>
           <article className="feature-card"><h2>{stats.challenges}</h2><p>Challenges</p></article>
@@ -625,7 +994,7 @@ export default function AdminClient() {
                 <li key={String(u.id)} className="session-item">
                   <div>
                     <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
-                    <p className="session-meta">{u.email} · {u.role || 'user'}</p>
+                    <p className="session-meta">{u.email} · {u.role || 'user'} · {u.disabled ? 'Inactif' : 'Actif'}</p>
                   </div>
                   <div className="session-item-actions">
                     <button
@@ -634,6 +1003,22 @@ export default function AdminClient() {
                       onClick={() => beginEditUser(u)}
                     >
                       Modifier
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => handleToggleUserStatus(u)}
+                      disabled={busySaveKey === `status:user:${u.id}` || String(u.id) === String(user?.id)}
+                    >
+                      {busySaveKey === `status:user:${u.id}` ? 'Mise a jour...' : u.disabled ? 'Activer' : 'Desactiver'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => handleResetUserPassword(u)}
+                      disabled={busySaveKey === `password:user:${u.id}`}
+                    >
+                      {busySaveKey === `password:user:${u.id}` ? 'Reset...' : 'Mot de passe'}
                     </button>
                     <button
                       type="button"
@@ -753,6 +1138,151 @@ export default function AdminClient() {
                     {busySaveKey === `save:user:${editingUser.id}` ? 'Enregistrement...' : 'Enregistrer'}
                   </button>
                   <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>Annuler</button>
+                </div>
+              </form>
+            )}
+          </div>
+        </section>
+
+        <section className="feature-card admin-grid">
+          <div className="admin-column">
+            <h2>Participants{participants.length > 0 ? <span className="list-count"> ({filteredParticipants.length}/{participants.length})</span> : null}</h2>
+            <input
+              type="search"
+              className="inline-input"
+              placeholder="Rechercher un participant..."
+              value={participantQuery}
+              onChange={(e) => setParticipantQuery(e.target.value)}
+            />
+            <ul className="session-list">
+              {filteredParticipants.length === 0 ? <li className="list-empty">Aucun participant ne correspond.</li> : null}
+              {filteredParticipants.slice(0, 12).map((p) => (
+                <li key={String(p.id)} className="session-item">
+                  <div>
+                    <p className="session-title">{getParticipantDisplayName(p)}</p>
+                    <p className="session-meta">{p.email} · {p.disabled ? 'Inactif' : 'Actif'} · {p.creator?.email || `Createur #${p.created_by || '?'}`}</p>
+                  </div>
+                  <div className="session-item-actions">
+                    <button type="button" className="btn-secondary" onClick={() => beginEditParticipant(p)}>
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => handleToggleParticipantStatus(p)}
+                      disabled={busySaveKey === `status:participant:${p.id}`}
+                    >
+                      {busySaveKey === `status:participant:${p.id}` ? 'Mise a jour...' : p.disabled ? 'Activer' : 'Desactiver'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => handleResetParticipantPassword(p)}
+                      disabled={busySaveKey === `password:participant:${p.id}`}
+                    >
+                      {busySaveKey === `password:participant:${p.id}` ? 'Reset...' : 'Mot de passe'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => handleDeleteParticipant(p)}
+                      disabled={busyDeleteKey === `participant:${p.id}`}
+                    >
+                      {busyDeleteKey === `participant:${p.id}` ? 'Suppression...' : 'Supprimer'}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="admin-column">
+            <h2>Creer un participant</h2>
+            <form className="auth-form" onSubmit={submitNewParticipant}>
+              <label>
+                Createur
+                <select value={newParticipant.owner_id} onChange={(e) => setNewParticipant((prev) => ({ ...prev, owner_id: e.target.value }))} required>
+                  <option value="">Selectionner un utilisateur</option>
+                  {users.filter((u) => String(u.role || '') === 'user').map((u) => (
+                    <option key={String(u.id)} value={String(u.id)}>
+                      {u.first_name || ''} {u.last_name || ''} ({u.email})
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Prenom
+                <input value={newParticipant.first_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required />
+              </label>
+              <label>
+                Nom
+                <input value={newParticipant.last_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, last_name: e.target.value }))} />
+              </label>
+              <label>
+                Email
+                <input type="email" value={newParticipant.email} onChange={(e) => setNewParticipant((prev) => ({ ...prev, email: e.target.value }))} required />
+              </label>
+              <label>
+                Mot de passe
+                <input type="password" minLength={8} value={newParticipant.password} onChange={(e) => setNewParticipant((prev) => ({ ...prev, password: e.target.value }))} required />
+              </label>
+              <label>
+                Fonction
+                <input value={newParticipant.job_title} onChange={(e) => setNewParticipant((prev) => ({ ...prev, job_title: e.target.value }))} />
+              </label>
+              <label>
+                Departement
+                <input value={newParticipant.department} onChange={(e) => setNewParticipant((prev) => ({ ...prev, department: e.target.value }))} />
+              </label>
+              <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>
+                {busySaveKey === 'create:participant' ? 'Creation...' : 'Creer participant'}
+              </button>
+            </form>
+            {newParticipantMessage ? <p className="session-meta">{newParticipantMessage}</p> : null}
+          </div>
+
+          <div className="admin-column">
+            <h2>Modifier participant</h2>
+            {!editingParticipant ? (
+              <p>Selectionnez "Modifier" sur un participant.</p>
+            ) : (
+              <form className="auth-form" onSubmit={submitEditParticipant}>
+                <label>
+                  Prenom
+                  <input value={editingParticipant.first_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required />
+                </label>
+                <label>
+                  Nom
+                  <input value={editingParticipant.last_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, last_name: e.target.value }))} />
+                </label>
+                <label>
+                  Email
+                  <input type="email" value={editingParticipant.email} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, email: e.target.value }))} required />
+                </label>
+                <label>
+                  Statut
+                  <select value={editingParticipant.disabled ? 'disabled' : 'active'} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, disabled: e.target.value === 'disabled' }))}>
+                    <option value="active">Actif</option>
+                    <option value="disabled">Inactif</option>
+                  </select>
+                </label>
+                <label>
+                  Fonction
+                  <input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} />
+                </label>
+                <label>
+                  Departement
+                  <input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} />
+                </label>
+                <label>
+                  Nouveau mot de passe (optionnel)
+                  <input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} />
+                </label>
+                <div className="hero-actions" style={{ marginTop: 0 }}>
+                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>
+                    {busySaveKey === `save:participant:${editingParticipant.id}` ? 'Enregistrement...' : 'Enregistrer'}
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={() => setEditingParticipant(null)}>Annuler</button>
                 </div>
               </form>
             )}
