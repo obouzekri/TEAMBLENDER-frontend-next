@@ -78,17 +78,19 @@ export default function SessionBuilder() {
 
   const [isLaunching, setIsLaunching] = useState(false);
   const [sessionChallengesLoaded, setSessionChallengesLoaded] = useState(false);
+  const [sessionId, setSessionId] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    const params = new URLSearchParams(window.location.search);
+    return params.get('sessionId') || params.get('id') || sessionStorage.getItem('sessionId') || '';
+  });
+  const [sessionName, setSessionName] = useState('');
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
   const currentConfiguringChallenge = useMemo(
     () => selectedChallenges.find((c) => c.id === configuring) || null,
     [configuring, selectedChallenges]
   );
-  const sessionId = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    const params = new URLSearchParams(window.location.search);
-    return params.get('sessionId') || params.get('id') || sessionStorage.getItem('sessionId') || '';
-  }, []);
 
   const getAuthToken = useCallback(
     () => localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '',
@@ -319,6 +321,31 @@ export default function SessionBuilder() {
     showLoadingToast,
   ]);
 
+  const handleCreateSession = useCallback(async (e) => {
+    e.preventDefault();
+    const name = sessionName.trim() || `Session du ${new Date().toLocaleDateString('fr-FR')}`;
+    const token = getAuthToken();
+    setIsCreatingSession(true);
+    const loadingId = showLoadingToast('Creation de la session...');
+    try {
+      const created = await apiRequest('/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name }),
+      });
+      const newId = String(created.id || created.session?.id || '');
+      if (!newId) throw new Error('Identifiant de session manquant dans la reponse.');
+      sessionStorage.setItem('sessionId', newId);
+      setSessionId(newId);
+      removeToast(loadingId);
+    } catch (err) {
+      removeToast(loadingId);
+      showErrorToast(err.message || 'Impossible de creer la session.');
+    } finally {
+      setIsCreatingSession(false);
+    }
+  }, [apiRequest, getAuthToken, removeToast, sessionName, showErrorToast, showLoadingToast]);
+
   function logout() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
@@ -335,6 +362,40 @@ export default function SessionBuilder() {
           <p>Chargement en cours.</p>
         </section>
       </main>
+    );
+  }
+
+  if (!sessionId) {
+    return (
+      <>
+        <ToastContainer toasts={toasts} onRemove={removeToast} />
+        <AppNav userLabel={userLabel} onLogout={logout} />
+        <main className="shell auth-page">
+          <section className="feature-card" style={{ maxWidth: '480px', margin: '0 auto' }}>
+            <p className="eyebrow">NOUVELLE SESSION</p>
+            <h1 style={{ fontSize: '1.6rem', margin: '0.25rem 0 0.75rem' }}>Nommer la session</h1>
+            <p style={{ color: 'var(--color-muted, #6b7280)', marginBottom: '1.5rem', fontSize: '14px' }}>
+              Donnez un nom a votre session pour la retrouver facilement. Vous pourrez ensuite choisir vos challenges.
+            </p>
+            <form onSubmit={handleCreateSession} className="auth-form">
+              <label>
+                Nom de la session
+                <input
+                  value={sessionName}
+                  onChange={(e) => setSessionName(e.target.value)}
+                  placeholder="Ex: Team Building Q2 2026"
+                  autoFocus
+                  required
+                />
+              </label>
+              <button type="submit" className="btn-primary" disabled={isCreatingSession}>
+                {isCreatingSession ? 'Creation...' : 'Creer la session'}
+              </button>
+            </form>
+          </section>
+        </main>
+        <Footer />
+      </>
     );
   }
 
