@@ -17,6 +17,7 @@ export default function EscapeRoomChallenge({
   context,
 }) {
   const [state, setState] = useState(null);
+  const [participants, setParticipants] = useState([]);
   const [answer, setAnswer] = useState('');
   const [busyAction, setBusyAction] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -74,6 +75,24 @@ export default function EscapeRoomChallenge({
     setState(payload);
   }, [apiCall, endpointBase, token]);
 
+  const loadParticipants = useCallback(async () => {
+    if (!sessionId || !token) return;
+    const response = await fetch(getApiUrl(`/sessions/${sessionId}/participants`), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) return;
+    const payload = await response.json();
+    const list = Array.isArray(payload)
+      ? payload
+      : (Array.isArray(payload?.participants) ? payload.participants : (Array.isArray(payload?.data) ? payload.data : []));
+    setParticipants(Array.isArray(list) ? list : []);
+  }, [sessionId, token]);
+
   useEffect(() => {
     let cancelled = false;
     if (!endpointBase || !token) return () => {};
@@ -96,6 +115,10 @@ export default function EscapeRoomChallenge({
     };
   }, [endpointBase, token, loadState]);
 
+  useEffect(() => {
+    loadParticipants().catch(() => {});
+  }, [loadParticipants]);
+
   const currentEnigme = state?.current_enigme || null;
   const currentUiType = String(currentEnigme?.ui_type || '').toLowerCase();
   const currentUiData = currentEnigme?.ui_data && typeof currentEnigme.ui_data === 'object'
@@ -109,13 +132,14 @@ export default function EscapeRoomChallenge({
       try {
         await runner();
         await loadState();
+        await loadParticipants();
       } catch (err) {
         setFeedback(err.message || 'Action impossible pour le moment.');
       } finally {
         setBusyAction('');
       }
     },
-    [loadState]
+    [loadParticipants, loadState]
   );
 
   const submitAnswer = useCallback(() => {
@@ -150,6 +174,37 @@ export default function EscapeRoomChallenge({
   );
 
   const remaining = Number(state?.timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0);
+  const respondedIds = Array.isArray(state?.submission_status?.responded_ids) ? state.submission_status.responded_ids : [];
+  const respondedSet = useMemo(() => new Set(respondedIds.map((id) => Number(id))), [respondedIds]);
+  const totalExpected = Number(state?.submission_status?.total || participants.length || 0);
+  const totalResponded = Number(state?.submission_status?.responded || 0);
+  const responseProgress = totalExpected > 0 ? Math.max(0, Math.min(100, Math.round((totalResponded / totalExpected) * 100))) : 0;
+
+  const timerSeconds = Number(state?.timer?.duration_seconds || 0);
+  const timerLabel = useMemo(() => {
+    const minutes = Math.floor(Math.max(0, timerSeconds) / 60);
+    const seconds = Math.max(0, timerSeconds) % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }, [timerSeconds]);
+
+  const participantRows = useMemo(() => {
+    return participants.map((participant) => {
+      const participantId = Number(participant?.id || participant?.participant_id || 0);
+      const responded = respondedSet.has(participantId);
+      const displayName = String(
+        participant?.first_name
+          || participant?.firstname
+          || participant?.name
+          || participant?.email
+          || `Participant ${participantId || '?'}`
+      );
+      return {
+        id: participantId,
+        name: displayName,
+        responded,
+      };
+    });
+  }, [participants, respondedSet]);
 
   if (!endpointBase) {
     return (
@@ -270,6 +325,28 @@ export default function EscapeRoomChallenge({
           <p>Tentatives: {Number(state.attempts_on_current || 0)} / {Number(state.max_attempts || 0)}</p>
           <p>Rôle: {isFacilitator ? 'Facilitateur' : 'Participant'}</p>
 
+          <div className={styles.teamProgressTrack}>
+            <div className={styles.teamProgressFill} style={{ width: `${responseProgress}%` }} />
+          </div>
+
+          <section className={styles.timerCard}>
+            <div className={styles.timerClock}>{timerLabel}</div>
+            <p className={styles.timerMeta}>Etat timer: {String(state?.status || '-')}</p>
+          </section>
+
+          <section className={styles.teamList}>
+            {participantRows.length === 0 ? (
+              <p className={styles.teamEmpty}>Liste participants indisponible.</p>
+            ) : participantRows.map((row) => (
+              <div key={String(row.id || row.name)} className={styles.teamRow}>
+                <span>{row.name}</span>
+                <span className={row.responded ? styles.teamStatusOk : styles.teamStatusPending}>
+                  {row.responded ? 'repondu' : 'en attente'}
+                </span>
+              </div>
+            ))}
+          </section>
+
           {isFacilitator && !isFinished && currentEnigme ? (
             <div className={styles.actions}>
               <button
@@ -305,19 +382,13 @@ export default function EscapeRoomChallenge({
 
           {feedback ? <p className={styles.feedback}>{feedback}</p> : null}
 
-          <details className={styles.debugWrap}>
-            <summary>Runtime debug</summary>
-            <pre className={styles.debug}>{JSON.stringify(runtimePayload, null, 2)}</pre>
-            <pre className={styles.debug}>{JSON.stringify(state, null, 2)}</pre>
-          </details>
+          {isFacilitator ? (
+            <details className={styles.debugWrap}>
+              <summary>Runtime debug</summary>
+              <pre className={styles.debug}>{JSON.stringify(state, null, 2)}</pre>
+            </details>
+          ) : null}
         </aside>
-      </section>
-
-      <section className={styles.footerNote}>
-        <p>
-          Version LOT4 Phase 2: migration fonctionnelle Escape Room via endpoints dédiés,
-          avec polling léger et actions facilitateur.
-        </p>
       </section>
     </div>
   );
