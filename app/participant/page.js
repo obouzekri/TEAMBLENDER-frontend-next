@@ -17,13 +17,17 @@ function parseUser() {
 }
 
 export default function ParticipantPage() {
-  const [ready, setReady] = useState(false);
+    {/* Assigned sessions card */}
   const [user, setUser] = useState(null);
   const [runtime, setRuntime] = useState(null);
   const [runtimeError, setRuntimeError] = useState('');
   const [joining, setJoining] = useState(false);
   const [sessionInput, setSessionInput] = useState('');
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [assignedSessions, setAssignedSessions] = useState([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
   const pollRef = useRef(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -94,6 +98,58 @@ export default function ParticipantPage() {
     };
   }, [ready, sessionId]);
 
+// Load participant's assigned sessions
+useEffect(() => {
+  if (!ready) return;
+
+  const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+  if (!token) return;
+
+  async function fetchAssignedSessions() {
+    setLoadingSessions(true);
+    try {
+      const res = await fetch(getApiUrl('/participants/me/sessions'), {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const sessions = Array.isArray(data) ? data : (data?.data || data?.sessions || []);
+        setAssignedSessions(sessions);
+      }
+    } catch (err) {
+      // Silently fail - assigned sessions are nice to have
+    } finally {
+      setLoadingSessions(false);
+    }
+  }
+
+  fetchAssignedSessions();
+}, [ready]);
+  // Load team members for the session
+  useEffect(() => {
+    if (!ready || !sessionId) return;
+
+    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+    if (!token) return;
+
+    async function fetchTeamMembers() {
+      try {
+        const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/participants`), {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const members = Array.isArray(data) ? data : (data?.data || data?.participants || []);
+          setTeamMembers(members);
+        }
+      } catch (err) {
+        // Silently fail - team members are nice to have but not critical
+      }
+    }
+
+    fetchTeamMembers();
+  }, [ready, sessionId]);
+
   const challengeLink = useMemo(() => {
     const engine = String(runtime?.engine_key || '').trim();
     if (!engine || !sessionId) return '';
@@ -113,15 +169,9 @@ export default function ParticipantPage() {
     window.location.replace('/login');
   }
 
-  function openSessionById(event) {
-    event.preventDefault();
-    const normalized = String(sessionInput || '').trim();
-    if (!normalized) return;
-    sessionStorage.setItem('targetSessionId', normalized);
-    window.location.replace(`/participant?sessionId=${encodeURIComponent(normalized)}`);
-  }
 
-  if (!ready) {
+
+  if (!ready) { 
     return (
       <main className="shell auth-page">
         <section className="feature-card">
@@ -139,7 +189,7 @@ export default function ParticipantPage() {
         <section className="hero">
           <p className="eyebrow">ESPACE PARTICIPANT</p>
           <h1>Bienvenue {participantLabel}</h1>
-          <p>Votre session est en cours. Le challenge actif s'affichera ici automatiquement.</p>
+          <p>{assignedSessions.length > 0 && !sessionId ? 'Selectionnez une session pour commencer.' : 'Votre session est en cours. Le challenge actif s\'affichera ici automatiquement.'}</p>
           <div className="hero-actions">
             {sessionId && challengeLink ? (
               <Link className="btn-primary" href={challengeLink}>Rejoindre le challenge actif</Link>
@@ -151,36 +201,125 @@ export default function ParticipantPage() {
               <button type="button" className="btn-primary" disabled>
                 {joining ? 'Chargement...' : 'Challenge indisponible'}
               </button>
-            ) : (
+            ) : assignedSessions.length === 0 ? (
               <Link className="btn-primary" href="/login">Revenir a la connexion</Link>
-            )}
-            <Link className="btn-secondary" href={userId ? `/home?userId=${encodeURIComponent(userId)}` : '/home'}>Aller a l'accueil</Link>
+            ) : null}
+            <Link className="btn-secondary" href={userId ? `/home?userId=${encodeURIComponent(userId)}` : '/home'}>Retour a l'accueil</Link>
           </div>
         </section>
 
-        <section className="feature-card">
-          <h2>Informations de session</h2>
-          <p>Session cible : <strong>{sessionId || 'Aucune session détectée dans l URL'}</strong></p>
-          {runtime?.engine_key ? (
-            <p>Challenge actif : <strong>{runtime.challenge_name || runtime.engine_key}</strong></p>
-          ) : sessionId && !joining ? (
-            <p style={{ color: 'var(--muted)' }}>Aucun challenge en cours — le facilitateur n&apos;a pas encore lancé.</p>
-          ) : null}
-          {joining && !runtime ? <p style={{ color: 'var(--muted)' }}>Chargement du challenge actif...</p> : null}
-          {runtimeError ? <p style={{ color: 'var(--danger, #ef4444)' }}>Erreur : {runtimeError}</p> : null}
-          <form onSubmit={openSessionById} className="auth-form" style={{ marginTop: '1rem' }}>
-            <label>
-              Ouvrir une session par ID
-              <input
-                type="text"
-                value={sessionInput}
-                onChange={(e) => setSessionInput(e.target.value)}
-                placeholder="Ex: 188"
-              />
-            </label>
-            <button type="submit" className="btn-secondary">Charger session</button>
-          </form>
-        </section>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+          {/* Assigned sessions card - displayed when no session is selected */}
+          {assignedSessions.length > 0 && !sessionId && (
+            <section className="feature-card">
+              <h2>Vos sessions assignées</h2>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {assignedSessions.map((session) => (
+                  <li
+                    key={String(session.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '16px',
+                      padding: '12px',
+                      border: '1px solid var(--color-border, #e5e7eb)',
+                      borderRadius: '8px',
+                      background: 'var(--color-surface, #fff)',
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontWeight: 600, margin: '0 0 4px', fontSize: '14px', color: 'var(--color-text, #111)' }}>
+                        {session.name || `Session #${session.id}`}
+                      </p>
+                      {session.status && (
+                        <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '12px' }}>
+                          Statut: {session.status === 'en_cours' ? 'En cours' : session.status === 'preparee' ? 'En préparation' : 'Terminée'}
+                        </p>
+                      )}
+                    </div>
+                    <Link
+                      href={`/participant?sessionId=${encodeURIComponent(session.id)}`}
+                      className="btn-secondary"
+                      style={{ fontSize: '13px', padding: '6px 12px', whiteSpace: 'nowrap' }}
+                    >
+                      Rejoindre
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Session info card - displayed when a session is selected */}
+          {sessionId && (
+          <section className="feature-card">
+            <h2>Informations de session</h2>
+            <p style={{ margin: '0 0 12px', fontSize: '14px', color: 'var(--color-muted, #6b7280)' }}>
+              ID de session: <strong style={{ color: 'var(--color-text, #111)' }}>{sessionId}</strong>
+            </p>
+            {runtime?.engine_key ? (
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text, #111)' }}>
+                Challenge actif: <strong>{runtime.challenge_name || runtime.engine_key}</strong>
+              </p>
+            ) : sessionId && !joining ? (
+              <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>Aucun challenge en cours — le facilitateur n&apos;a pas encore lancé.</p>
+            ) : null}
+            {joining && !runtime ? <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>Chargement du challenge actif...</p> : null}
+            {runtimeError ? <p style={{ color: 'var(--color-danger, #ef4444)', margin: 0, fontSize: '13px' }}>Erreur : {runtimeError}</p> : null}
+          </section>
+          )}
+
+          {/* Team members card - shown when session is active */}
+          {sessionId && teamMembers.length > 0 && (
+            <section className="feature-card">
+              <h2>Membres de l'équipe</h2>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {teamMembers.slice(0, 6).map((member) => (
+                  <li
+                    key={String(member.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 0',
+                      borderBottom: '1px solid var(--color-border, #e5e7eb)',
+                    }}
+                  >
+                    <div>
+                      <p style={{ fontWeight: 600, margin: '0 0 2px', fontSize: '14px', color: 'var(--color-text, #111)' }}>
+                        {String(member.first_name || member.firstname || '').trim() || 'Participant'} {String(member.last_name || member.lastname || '').trim()}
+                      </p>
+                      {member.email && (
+                        <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '12px' }}>{member.email}</p>
+                      )}
+                    </div>
+                    {member.disabled ? (
+                      <span style={{ fontSize: '12px', padding: '4px 8px', background: '#f3f4f6', color: '#6b7280', borderRadius: '6px' }}>Inactif</span>
+                    ) : (
+                      <span style={{ fontSize: '12px', padding: '4px 8px', background: '#d1fae5', color: '#065f46', borderRadius: '6px' }}>Actif</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {teamMembers.length > 6 && (
+                <p style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', margin: '12px 0 0', textAlign: 'center' }}>
+                  +{teamMembers.length - 6} autre{teamMembers.length - 6 > 1 ? 's' : ''}
+                </p>
+              )}
+            </section>
+          )}
+
+          {/* Empty state when no sessions and not loading */}
+          {!sessionId && assignedSessions.length === 0 && !loadingSessions && (
+            <section className="feature-card">
+              <h2>Aucune session assignée</h2>
+              <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
+                Vous n&apos;avez pas encore de session assignée. Contactez votre administrateur.
+              </p>
+            </section>
+          )}
+        </div>
       </main>
       <Footer />
     </>

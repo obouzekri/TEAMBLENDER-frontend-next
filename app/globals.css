@@ -1124,3 +1124,26 @@ a {
     display: none;
   }
 }
+
+/* Responsive admin console */
+@media (max-width: 768px) {
+  /* Hide sidebar on mobile */
+  aside {
+    display: none !important;
+  }
+
+  /* Adjust main content padding on mobile */
+  main {
+    padding: 16px 12px !important;
+  }
+
+  /* Make dashboard cards more compact on mobile */
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+  }
+
+  /* Stack admin lists vertically on mobile */
+  .admin-list-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

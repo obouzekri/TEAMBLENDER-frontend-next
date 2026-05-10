@@ -1092,7 +1092,7 @@ export default function AdminClient() {
       <AppNav userLabel={pickUserLabel(user)} onLogout={logout} role="admin" />
       <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg, #f8f9fa)' }}>
 
-        {/* Sidebar */}
+        {/* Sidebar - responsive via CSS media query */}
         <aside style={{
           width: '220px',
           minWidth: '220px',

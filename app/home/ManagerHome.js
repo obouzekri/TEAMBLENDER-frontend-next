@@ -347,7 +347,6 @@ export default function ManagerHome() {
           <p>Planifiez, lancez et analysez vos sessions de team building en quelques clics.</p>
           <div className="hero-actions home-hero-actions">
             <Link className="btn-primary" href="/session-builder">Créer une session</Link>
-            <Link className="btn-secondary" href="/session-builder">Ouvrir le builder</Link>
             {guard.user?.role === 'admin' && (
               <Link className="btn-secondary" href="/admin">Console admin</Link>
             )}
