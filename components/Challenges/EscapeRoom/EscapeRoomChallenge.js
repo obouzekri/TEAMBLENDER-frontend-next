@@ -263,6 +263,38 @@ export default function EscapeRoomChallenge({
     });
   }, [participants, respondedSet]);
 
+  const isFinished = Boolean(state?.status && state.status !== 'in_progress');
+
+  useEffect(() => {
+    if (!state || !isFinished || typeof onChallengeCompleted !== 'function') {
+      return;
+    }
+
+    const status = String(state?.status || '').trim();
+    const key = `${sessionId}:${challengeId}:${status}:${Number(state?.current_enigme_index || 0)}`;
+    if (completionGuardRef.current === key) {
+      return;
+    }
+
+    completionGuardRef.current = key;
+    onChallengeCompleted({
+      type: 'escape_room.completed',
+      payload: { status },
+      sessionId,
+      challengeId,
+    });
+  }, [state, isFinished, onChallengeCompleted, sessionId, challengeId]);
+
+  const handleTimerAction = useCallback((actionKey) => {
+    if (actionKey === 'start') {
+      setFeedback('La salle est deja active. Le chrono suit la configuration du challenge.');
+      loadState().catch(() => {});
+      return;
+    }
+
+    setFeedback('Pause/Reinitialisation du chrono non disponibles pour Salle secrete (MVP actuel).');
+  }, [loadState]);
+
   if (!endpointBase) {
     return (
       <div className={styles.escapeRoomContainer}>
@@ -283,28 +315,6 @@ export default function EscapeRoomChallenge({
       </div>
     );
   }
-
-  const isFinished = state.status && state.status !== 'in_progress';
-
-  useEffect(() => {
-    if (!isFinished || typeof onChallengeCompleted !== 'function') {
-      return;
-    }
-
-    const status = String(state?.status || '').trim();
-    const key = `${sessionId}:${challengeId}:${status}:${Number(state?.current_enigme_index || 0)}`;
-    if (completionGuardRef.current === key) {
-      return;
-    }
-
-    completionGuardRef.current = key;
-    onChallengeCompleted({
-      type: 'escape_room.completed',
-      payload: { status },
-      sessionId,
-      challengeId,
-    });
-  }, [isFinished, onChallengeCompleted, state, sessionId, challengeId]);
 
   return (
     <div className={styles.escapeRoomContainer}>
@@ -416,7 +426,7 @@ export default function EscapeRoomChallenge({
                 <button
                   className={styles.timerBtnStart}
                   type="button"
-                  onClick={() => facilitatorAction('start', '/timer-start')}
+                  onClick={() => handleTimerAction('start')}
                   disabled={!!busyAction}
                 >
                   ▶️ Démarrer
@@ -424,7 +434,7 @@ export default function EscapeRoomChallenge({
                 <button
                   className={styles.timerBtnPauseResume}
                   type="button"
-                  onClick={() => facilitatorAction('pause', '/timer-pause')}
+                  onClick={() => handleTimerAction('pause')}
                   disabled={!!busyAction}
                 >
                   ⏸️ Pause
@@ -432,7 +442,7 @@ export default function EscapeRoomChallenge({
                 <button
                   className={styles.timerBtnStop}
                   type="button"
-                  onClick={() => facilitatorAction('reset', '/timer-reset')}
+                  onClick={() => handleTimerAction('reset')}
                   disabled={!!busyAction}
                 >
                   ⏹️ Réinitialiser
