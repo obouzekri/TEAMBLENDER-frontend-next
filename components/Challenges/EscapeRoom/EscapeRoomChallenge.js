@@ -27,6 +27,8 @@ export default function EscapeRoomChallenge({
   const [busyAction, setBusyAction] = useState('');
   const [feedback, setFeedback] = useState('');
   const completionGuardRef = useRef('');
+  const stateRequestIdRef = useRef(0);
+  const appliedStateRequestIdRef = useRef(0);
 
   const sessionId = String(context?.sessionId || runtimePayload?.session_id || '').trim();
   const challengeId = String(context?.challengeId || runtimePayload?.challenge_id || '').trim();
@@ -50,6 +52,7 @@ export default function EscapeRoomChallenge({
   const apiCall = useCallback(
     async (path, init = {}) => {
       const response = await fetch(getApiUrl(`${endpointBase}${path}`), {
+        cache: 'no-store',
         ...init,
         headers: {
           'Content-Type': 'application/json',
@@ -77,8 +80,15 @@ export default function EscapeRoomChallenge({
 
   const loadState = useCallback(async () => {
     if (!endpointBase || !token) return;
+    const requestId = stateRequestIdRef.current + 1;
+    stateRequestIdRef.current = requestId;
     const payload = await apiCall('/state', { method: 'GET' });
+    if (requestId < appliedStateRequestIdRef.current) {
+      return payload;
+    }
+    appliedStateRequestIdRef.current = requestId;
     setState(payload);
+    return payload;
   }, [apiCall, endpointBase, token]);
 
   const loadParticipants = useCallback(async () => {
