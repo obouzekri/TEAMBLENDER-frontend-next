@@ -1170,6 +1170,60 @@ a {
   box-shadow: 0 6px 12px rgba(180, 35, 24, 0.14);
 }
 
+/* Session cards grid */
+.session-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.session-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 1rem 1.1rem;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.session-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(30, 42, 35, 0.1);
+}
+
+.session-card--deleting {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.session-card-body {
+  flex: 1;
+}
+
+.session-card-body .session-title {
+  font-size: 0.97rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+
+.session-card-body .session-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.session-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  justify-content: flex-end;
+}
+
 .admin-mobile-tabs {
   display: none;
 }

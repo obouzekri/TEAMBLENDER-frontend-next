@@ -226,58 +226,73 @@ export default function ParticipantPage() {
         </section>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
-          {/* Assigned sessions card - displayed when no session is selected */}
+          {/* Assigned sessions cards - displayed when no session is selected */}
           {assignedSessions.length > 0 && !sessionId && (
-            <section className="feature-card">
-              <h2>Vos sessions assignées</h2>
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {assignedSessions.map((session) => (
-                  (() => {
-                    const sessionIdentifier = getSessionIdentifier(session);
-                    if (!sessionIdentifier) return null;
-                    return (
-                  <li
-                    key={sessionIdentifier}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '16px',
-                      padding: '12px',
-                      border: '1px solid var(--color-border, #e5e7eb)',
-                      borderRadius: '8px',
-                      background: 'var(--color-surface, #fff)',
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontWeight: 600, margin: '0 0 4px', fontSize: '14px', color: 'var(--color-text, #111)' }}>
-                        {session.name || `Session #${sessionIdentifier}`}
-                      </p>
-                      {session.status && (
-                        <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '12px' }}>
-                          Statut: {session.status === 'en_cours' ? 'En cours' : session.status === 'preparee' ? 'En préparation' : 'Terminée'}
-                        </p>
-                      )}
-                    </div>
-                    <Link
-                      href={`/participant?sessionId=${encodeURIComponent(sessionIdentifier)}`}
-                      className="btn-secondary"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        if (typeof window !== 'undefined') {
-                          sessionStorage.setItem('targetSessionId', sessionIdentifier);
-                          window.location.assign(`/participant?sessionId=${encodeURIComponent(sessionIdentifier)}`);
-                        }
+            <section className="feature-card" style={{ gridColumn: '1 / -1' }}>
+              <h2 style={{ marginBottom: '1rem' }}>Vos sessions assignées</h2>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '16px',
+              }}>
+                {assignedSessions.map((session) => {
+                  const sessionIdentifier = getSessionIdentifier(session);
+                  if (!sessionIdentifier) return null;
+                  const statusLabel = session.status === 'en_cours'
+                    ? 'En cours'
+                    : session.status === 'preparee'
+                      ? 'En préparation'
+                      : session.status === 'terminee'
+                        ? 'Terminée'
+                        : session.status || '';
+                  const joinUrl = `/participant?sessionId=${encodeURIComponent(sessionIdentifier)}`;
+                  return (
+                    <article
+                      key={sessionIdentifier}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        padding: '16px',
+                        border: '1px solid var(--line, #e2e8f0)',
+                        borderRadius: '12px',
+                        background: '#fff',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                       }}
-                      style={{ fontSize: '13px', padding: '6px 12px', whiteSpace: 'nowrap' }}
                     >
-                      Rejoindre
-                    </Link>
-                  </li>
-                    );
-                  })()
-                ))}
-              </ul>
+                      <div>
+                        <p style={{ fontWeight: 700, margin: '0 0 6px', fontSize: '15px', color: 'var(--ink, #1e293b)' }}>
+                          {session.name || `Session #${sessionIdentifier}`}
+                        </p>
+                        {statusLabel && (
+                          <span className={`status-pill status-${session.status || 'preparee'}`}>
+                            {statusLabel}
+                          </span>
+                        )}
+                        {session.session_date && (
+                          <p style={{ color: 'var(--ink-soft, #64748b)', margin: '8px 0 0', fontSize: '12px' }}>
+                            {new Date(session.session_date).toLocaleDateString('fr-FR', { dateStyle: 'medium' })}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        style={{ width: '100%', justifyContent: 'center' }}
+                        onClick={() => {
+                          if (typeof window !== 'undefined') {
+                            sessionStorage.setItem('targetSessionId', sessionIdentifier);
+                            window.location.assign(joinUrl);
+                          }
+                        }}
+                      >
+                        Rejoindre
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
             </section>
           )}
 

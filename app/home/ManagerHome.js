@@ -426,46 +426,63 @@ export default function ManagerHome() {
           ) : null}
 
           {!loadingSessions && sessions.length > 0 ? (
-            <ul className="session-list">
-              {visibleSessions.map((session) => (
-                <li key={String(session.id)} className="session-item">
-                  <div>
-                    <p className="session-title">{session.name || `Session #${session.id}`}</p>
-                    <p className="session-meta">
-                      <span className={`status-pill status-${session.status || 'preparee'}`}>
-                        {STATUS_LABEL[session.status] || session.status || 'En préparation'}
-                      </span>
-                      {session.session_date ? (
-                        <span className="session-date">{formatSessionDate(session.session_date)}</span>
-                      ) : null}
-                    </p>
-                  </div>
-                  <div className="session-item-actions">
-                    <Link
-                      className="btn-mini"
-                      href={
-                        session.status === 'en_cours'
-                          ? `/session-live/${session.id}`
-                          : session.status === 'terminee'
-                            ? `/session-results/${session.id}`
-                            : `/session-builder?sessionId=${session.id}`
-                      }
-                    >
-                      {session.status === 'terminee' ? 'Résultats' : 'Ouvrir'}
-                    </Link>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => handleDeleteSession(session)}
-                      disabled={deletingSessionId === session.id}
-                      style={{ minWidth: '96px' }}
-                    >
-                      {deletingSessionId === session.id ? 'Suppression...' : 'Supprimer'}
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="session-cards-grid">
+              {visibleSessions.map((session) => {
+                const isDeleting = deletingSessionId === session.id;
+                const statusClass = `status-${session.status || 'preparee'}`;
+                const isActive = session.status === 'en_cours';
+                const isDone = session.status === 'terminee';
+                const openLink = isDone
+                  ? `/session-results/${session.id}`
+                  : isActive
+                    ? `/session-live/${session.id}`
+                    : `/session-builder?sessionId=${session.id}`;
+                const editLink = `/session-builder?sessionId=${session.id}`;
+                return (
+                  <article key={String(session.id)} className={`feature-card session-card ${isDeleting ? 'session-card--deleting' : ''}`}>
+                    <div className="session-card-body">
+                      <p className="session-title">{session.name || `Session #${session.id}`}</p>
+                      <p className="session-meta">
+                        <span className={`status-pill ${statusClass}`}>
+                          {STATUS_LABEL[session.status] || session.status || 'En préparation'}
+                        </span>
+                        {session.session_date ? (
+                          <span className="session-date">{formatSessionDate(session.session_date)}</span>
+                        ) : null}
+                      </p>
+                    </div>
+                    <div className="session-card-actions">
+                      <Link
+                        className="icon-action-btn"
+                        href={editLink}
+                        title="Modifier"
+                        aria-label="Modifier la session"
+                      >
+                        ✏️
+                      </Link>
+                      <Link
+                        className="icon-action-btn"
+                        href={openLink}
+                        title={isDone ? 'Voir les résultats' : isActive ? 'Ouvrir la session' : 'Configurer'}
+                        aria-label={isDone ? 'Voir les résultats' : isActive ? 'Ouvrir la session' : 'Configurer'}
+                      >
+                        {isDone ? '📊' : isActive ? '▶️' : '⚙️'}
+                      </Link>
+                      <button
+                        type="button"
+                        className="icon-action-btn icon-action-danger"
+                        title="Supprimer"
+                        aria-label="Supprimer la session"
+                        onClick={() => handleDeleteSession(session)}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? '…' : '🗑️'}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           ) : null}
 
           {!loadingSessions && sessions.length > visibleCount ? (

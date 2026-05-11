@@ -22,7 +22,6 @@ export default function AppNav({ userLabel, onLogout, role }) {
             ) : (
               <>
                 <Link href="/home">Home</Link>
-                <Link href="/session-builder">Session builder</Link>
               </>
             )}
           </nav>
