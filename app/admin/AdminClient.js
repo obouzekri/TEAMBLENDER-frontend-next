@@ -63,6 +63,51 @@ function pickUserLabel(user) {
   return full || user.email || 'Admin';
 }
 
+function cloneJson(value, fallback = null) {
+  if (value === undefined || value === null) return fallback;
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return fallback;
+  }
+}
+
+function ensureEscapeRoomE5Image(engineConfig, imageUrl) {
+  const nextConfig = cloneJson(engineConfig, {}) || {};
+  const enigmes = Array.isArray(nextConfig.enigmes) ? nextConfig.enigmes : [];
+  const e5Index = enigmes.findIndex((e) => String(e?.id || '').toLowerCase() === 'e5');
+
+  if (e5Index >= 0) {
+    const e5 = enigmes[e5Index] && typeof enigmes[e5Index] === 'object' ? enigmes[e5Index] : {};
+    enigmes[e5Index] = {
+      ...e5,
+      image: {
+        ...(e5.image && typeof e5.image === 'object' ? e5.image : {}),
+        src: imageUrl,
+      },
+    };
+    nextConfig.enigmes = enigmes;
+    return nextConfig;
+  }
+
+  // Fallback safety: create e5 entry if missing.
+  nextConfig.enigmes = [
+    ...enigmes,
+    {
+      id: 'e5',
+      label: 'Énigme visuelle',
+      image: { src: imageUrl, fit: 'cover' },
+    },
+  ];
+  return nextConfig;
+}
+
+function getEscapeRoomE5ImageSrc(engineConfig) {
+  const enigmes = Array.isArray(engineConfig?.enigmes) ? engineConfig.enigmes : [];
+  const e5 = enigmes.find((e) => String(e?.id || '').toLowerCase() === 'e5');
+  return String(e5?.image?.src || '').trim();
+}
+
 export default function AdminClient() {
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
@@ -90,6 +135,8 @@ export default function AdminClient() {
   const [editingParticipant, setEditingParticipant] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
   const [editingChallenge, setEditingChallenge] = useState(null);
+  const [challengeImageUploadBusy, setChallengeImageUploadBusy] = useState(false);
+  const [challengeImageUploadError, setChallengeImageUploadError] = useState('');
 
   const [newUser, setNewUser] = useState({
     first_name: '',
@@ -875,6 +922,7 @@ export default function AdminClient() {
   }
 
   function beginEditChallenge(challengeItem) {
+    setChallengeImageUploadError('');
     setEditingChallenge({
       id: challengeItem.id,
       name: challengeItem.name || '',
@@ -883,7 +931,67 @@ export default function AdminClient() {
       duration: challengeItem.duration || '',
       engine_key: challengeItem.engine_key || '',
       description: challengeItem.description || '',
+      engine_config: cloneJson(challengeItem.engine_config, {}) || {},
     });
+  }
+
+  async function handleUploadEscapeRoomImage(event) {
+    if (!token || !editingChallenge) return;
+
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    setChallengeImageUploadError('');
+
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowed.includes(file.type)) {
+      setChallengeImageUploadError('Format non supporte. Utilisez JPG ou PNG.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setChallengeImageUploadError('Image trop volumineuse (max 8 Mo).');
+      event.target.value = '';
+      return;
+    }
+
+    setChallengeImageUploadBusy(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch(getApiUrl('/challenges/upload-image'), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || `Upload impossible (${response.status})`);
+      }
+
+      const uploadedUrl = String(payload.url || payload.path || '').trim();
+      if (!uploadedUrl) {
+        throw new Error('URL image manquante dans la reponse upload.');
+      }
+
+      setEditingChallenge((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          engine_config: ensureEscapeRoomE5Image(prev.engine_config, uploadedUrl),
+        };
+      });
+      showNotice('Image uploadée et injectée dans enigme 5 (non enregistrée tant que vous ne cliquez pas sur Enregistrer).');
+    } catch (err) {
+      setChallengeImageUploadError(err.message || 'Upload image impossible.');
+    } finally {
+      setChallengeImageUploadBusy(false);
+      event.target.value = '';
+    }
   }
 
   async function submitEditChallenge(event) {
@@ -922,6 +1030,7 @@ export default function AdminClient() {
           duration: editingChallenge.duration || null,
           engine_key: editingChallenge.engine_key || null,
           description: editingChallenge.description || null,
+          engine_config: editingChallenge.engine_config || {},
         }),
       });
 
@@ -1778,9 +1887,35 @@ export default function AdminClient() {
                       <label>Duree<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
                       <label>Engine key<input value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
                       <label>Description<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
+                      {(editingChallenge.engine_key || '').toLowerCase() === 'escape_room_v1' ? (
+                        <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '10px' }}>
+                          <p style={{ margin: '0 0 8px', fontWeight: 600 }}>Image énigme 5 (Salle secrète)</p>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={handleUploadEscapeRoomImage}
+                            disabled={challengeImageUploadBusy}
+                          />
+                          {challengeImageUploadBusy ? (
+                            <p className="session-meta" style={{ marginTop: '8px' }}>Upload en cours...</p>
+                          ) : null}
+                          {challengeImageUploadError ? (
+                            <p className="session-meta" style={{ marginTop: '8px', color: '#dc2626' }}>{challengeImageUploadError}</p>
+                          ) : null}
+                          {getEscapeRoomE5ImageSrc(editingChallenge.engine_config) ? (
+                            <img
+                              src={getEscapeRoomE5ImageSrc(editingChallenge.engine_config)}
+                              alt="Aperçu énigme 5"
+                              style={{ marginTop: '8px', maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                            />
+                          ) : (
+                            <p className="session-meta" style={{ marginTop: '8px' }}>Aucune image configurée pour e5.</p>
+                          )}
+                        </div>
+                      ) : null}
                       <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                         <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>{busySaveKey === `save:challenge:${editingChallenge.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
-                        <button type="button" className="btn-secondary" onClick={() => setEditingChallenge(null)}>Annuler</button>
+                        <button type="button" className="btn-secondary" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }}>Annuler</button>
                       </div>
                     </form>
                   )}
