@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import { getBackendOrigin } from '@/lib/config';
 import styles from './Copuzzle.module.css';
@@ -259,8 +259,27 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
 
   const rowCount = Number(effectiveConfig.grid.rows || 4);
   const colCount = Number(effectiveConfig.grid.cols || 4);
-  const largestAxis = Math.max(rowCount, colCount, 1);
-  const adaptiveCellSize = Math.max(34, Math.min(64, Math.floor(460 / largestAxis)));
+
+  const [cellSize, setCellSize] = useState(54);
+
+  useEffect(() => {
+    function computeCellSize() {
+      const vpW = window.innerWidth;
+      const vpH = window.innerHeight;
+      // Board panel is ~60% of viewport width minus padding (~60px)
+      const panelW = Math.floor(vpW * 0.60) - 60;
+      // Board panel height: viewport minus header (~140px), footer (~40px), board padding (~40px)
+      const panelH = vpH - 220;
+      const byWidth = Math.floor(panelW / colCount);
+      const byHeight = Math.floor(panelH / rowCount);
+      const computed = Math.max(28, Math.min(90, Math.min(byWidth, byHeight)));
+      setCellSize(computed);
+    }
+    computeCellSize();
+    window.addEventListener('resize', computeCellSize);
+    return () => window.removeEventListener('resize', computeCellSize);
+  }, [rowCount, colCount]);
+
   const boardCells = useMemo(() => {
     const cells = [];
     for (let y = 0; y < rowCount; y += 1) {
@@ -295,7 +314,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             className={styles.board}
             style={{
               gridTemplateColumns: `repeat(${colCount}, var(--copuzzle-cell-size))`,
-              ['--copuzzle-cell-size']: `${adaptiveCellSize}px`,
+              ['--copuzzle-cell-size']: `${cellSize}px`,
             }}
           >
             {boardCells.map((cell) => {
@@ -367,11 +386,39 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
 
           {state?.summary ? (
             <div className={styles.summary}>
-              <h3>Debrief collectif</h3>
-              <p>Completion: {Number(state.summary?.completion_percent || completion)}%</p>
-              <p>Actions: {Number(state.summary?.action_count || 0)}</p>
-              <p>Messages: {Number(state.summary?.message_count || 0)}</p>
-              <p>Score collectif: {Number(state.summary?.collective_score || 0)}</p>
+              <h3 className={styles.summaryTitle}>🏆 Débrief collectif</h3>
+              <div className={styles.summaryGrid}>
+                <div className={styles.summaryCard}>
+                  <div className={styles.summaryValue} style={{ color: '#34d399' }}>
+                    {Number(state.summary?.completion_percent || completion)}%
+                  </div>
+                  <div className={styles.summaryLabel}>Complétion</div>
+                </div>
+                <div className={styles.summaryCard}>
+                  <div className={styles.summaryValue} style={{ color: '#60a5fa' }}>
+                    {Number(state.summary?.collective_score || 0)}
+                  </div>
+                  <div className={styles.summaryLabel}>Score collectif</div>
+                </div>
+                <div className={styles.summaryCard}>
+                  <div className={styles.summaryValue} style={{ color: '#fbbf24' }}>
+                    {Number(state.summary?.action_count || 0)}
+                  </div>
+                  <div className={styles.summaryLabel}>Actions</div>
+                </div>
+                <div className={styles.summaryCard}>
+                  <div className={styles.summaryValue} style={{ color: '#a78bfa' }}>
+                    {Number(state.summary?.message_count || 0)}
+                  </div>
+                  <div className={styles.summaryLabel}>Messages</div>
+                </div>
+              </div>
+              {state.summary?.total_time_seconds > 0 ? (
+                <div className={styles.summaryTime}>
+                  ⏱ Temps: {Math.floor(Number(state.summary.total_time_seconds) / 60)}m{' '}
+                  {Number(state.summary.total_time_seconds) % 60}s
+                </div>
+              ) : null}
             </div>
           ) : null}
 

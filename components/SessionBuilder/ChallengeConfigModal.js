@@ -215,6 +215,25 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
               </div>
 
               <div className={styles.configField}>
+                <label htmlFor="expectedCount" className={styles.label}>Nombre de participants</label>
+                <input
+                  id="expectedCount"
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={numberValue('participants.expected_count', 4)}
+                  onChange={(e) => {
+                    updateValue('participants.expected_count', Number(e.target.value || 4));
+                    updateValue('participants.expected_count_auto', false);
+                  }}
+                  className={styles.input}
+                />
+                <span style={{ fontSize: '11px', color: '#6b7280', marginTop: '3px', display: 'block' }}>
+                  Détermine combien de pièces chaque participant reçoit (total ÷ participants)
+                </span>
+              </div>
+
+              <div className={styles.configField}>
                 <label htmlFor="durationSeconds" className={styles.label}>Timer (secondes)</label>
                 <input
                   id="durationSeconds"
