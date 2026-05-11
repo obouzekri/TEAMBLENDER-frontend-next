@@ -2,7 +2,7 @@
 
 import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect } from 'react';
-import { getApiUrl, getBackendOrigin } from '@/lib/config';
+import { getApiUrl } from '@/lib/config';
 
 export default function ChallengeConfigModal({ challengeId, challenge, onSave, onClose }) {
   const [config, setConfig] = useState(challenge?.config || {});
@@ -99,61 +99,36 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
     onSave(config);
   };
 
-  const handleUploadCopuzzleImage = async (event) => {
+  const handleUploadCopuzzleImage = (event) => {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
 
     setUploadError('');
-    setIsUploadingImage(true);
 
-    try {
-      const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-      if (!token) {
-        throw new Error('Session expirée. Reconnectez-vous.');
-      }
-
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await fetch(getApiUrl('/challenges/upload-image'), {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const rawText = await response.text();
-      let payload = {};
-      try {
-        payload = rawText ? JSON.parse(rawText) : {};
-      } catch {
-        payload = {};
-      }
-
-      if (!response.ok) {
-        throw new Error(payload.error || 'Upload image impossible.');
-      }
-
-      const backendOrigin = getBackendOrigin();
-      let nextUrl = payload.url || payload.path || '';
-      if (nextUrl.startsWith('/')) {
-        nextUrl = `${backendOrigin}${nextUrl}`;
-      }
-      if (nextUrl.startsWith('http://')) {
-        nextUrl = nextUrl.replace(/^http:\/\//i, 'https://');
-      }
-      if (!nextUrl) {
-        throw new Error('URL image manquante dans la reponse upload.');
-      }
-
-      updateValue('image_url', nextUrl);
-    } catch (err) {
-      setUploadError(err.message || 'Upload image impossible.');
-    } finally {
-      setIsUploadingImage(false);
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowed.includes(file.type)) {
+      setUploadError('Format non supporté. Utilisez JPG ou PNG.');
       event.target.value = '';
+      return;
     }
+    if (file.size > 8 * 1024 * 1024) {
+      setUploadError('Image trop volumineuse (max 8 Mo).');
+      event.target.value = '';
+      return;
+    }
+
+    setIsUploadingImage(true);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      updateValue('image_url', e.target.result);
+      setIsUploadingImage(false);
+    };
+    reader.onerror = () => {
+      setUploadError('Impossible de lire le fichier image.');
+      setIsUploadingImage(false);
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
   };
 
   return (

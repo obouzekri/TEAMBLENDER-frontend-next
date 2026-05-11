@@ -3,6 +3,54 @@
   padding-bottom: 4rem;
 }
 
+.sessionInfoBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding: 10px 16px;
+  background: var(--surface, #f8fafc);
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 10px;
+}
+
+.sessionInfoName {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ink, #1e293b);
+}
+
+.sessionInfoDate {
+  font-size: 0.85rem;
+  color: var(--ink-soft, #64748b);
+}
+
+.sessionInfoBadge {
+  font-size: 0.8rem;
+  color: #0f766e;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+
+.sessionInfoInput {
+  border-radius: 8px;
+  border: 1px solid var(--line, #e2e8f0);
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--ink, #1e293b);
+  min-width: 160px;
+}
+
+.sessionInfoInput:focus {
+  outline: none;
+  border-color: rgba(15, 118, 110, 0.4);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.08);
+}
+
 .mainLayout {
   display: grid;
   grid-template-columns: 350px 1fr;

@@ -88,6 +88,11 @@ export default function SessionBuilder() {
   });
   const [sessionName, setSessionName] = useState('');
   const [sessionDateTime, setSessionDateTime] = useState('');
+  const [sessionParticipantCount, setSessionParticipantCount] = useState(0);
+  const [isEditingSessionInfo, setIsEditingSessionInfo] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDateTime, setEditDateTime] = useState('');
+  const [isSavingSessionInfo, setIsSavingSessionInfo] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isAssigningParticipants, setIsAssigningParticipants] = useState(false);
 
@@ -270,6 +275,18 @@ export default function SessionBuilder() {
       })
       .then((session) => {
         if (!cancelled) {
+          // Pre-populate session metadata
+          if (session.name) setSessionName(session.name);
+          if (session.session_date) {
+            // DATEONLY from DB is "YYYY-MM-DD"; datetime-local needs "YYYY-MM-DDTHH:mm"
+            const raw = String(session.session_date);
+            setSessionDateTime(raw.length === 10 ? `${raw}T00:00` : '');
+          }
+          const assigned = Array.isArray(session.assigned_participants)
+            ? session.assigned_participants
+            : [];
+          setSessionParticipantCount(assigned.length);
+
           // Pre-populate selectedChallenges from session
           const sessionChallenges = Array.isArray(session.challenges) ? session.challenges : [];
           sessionChallenges.forEach((sc) => {
@@ -287,8 +304,15 @@ export default function SessionBuilder() {
       })
       .catch((err) => {
         if (!cancelled) {
-          console.warn('Could not load session:', err.message);
-          setSessionChallengesLoaded(true); // Mark as loaded even on error
+          // If session not found / not owned by current user, reset flow
+          if (err.message.includes('404') || err.message.includes('not found')) {
+            setSessionId('');
+            sessionStorage.removeItem('sessionId');
+            if (typeof window !== 'undefined') {
+              window.history.replaceState({}, '', '/session-builder');
+            }
+          }
+          setSessionChallengesLoaded(true);
         }
       });
 
@@ -384,6 +408,36 @@ export default function SessionBuilder() {
     }
   }, [apiRequest, getAuthToken, removeToast, sessionDateTime, sessionName, showErrorToast, showLoadingToast]);
 
+  const handleSaveSessionInfo = useCallback(async () => {
+    const token = getAuthToken();
+    setIsSavingSessionInfo(true);
+    try {
+      const payload = {};
+      const trimmedName = editName.trim();
+      if (trimmedName) payload.name = trimmedName;
+      if (editDateTime) {
+        const d = new Date(editDateTime);
+        if (!Number.isNaN(d.getTime())) payload.session_date = d.toISOString();
+      }
+      if (!Object.keys(payload).length) {
+        setIsEditingSessionInfo(false);
+        return;
+      }
+      await apiRequest(`/sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      if (trimmedName) setSessionName(trimmedName);
+      setSessionDateTime(editDateTime);
+      setIsEditingSessionInfo(false);
+    } catch (err) {
+      showErrorToast(err.message || 'Impossible de mettre à jour la session.');
+    } finally {
+      setIsSavingSessionInfo(false);
+    }
+  }, [apiRequest, editDateTime, editName, getAuthToken, sessionId, showErrorToast]);
+
   const handleAssignParticipants = useCallback(async (selectedParticipantIds) => {
     setIsAssigningParticipants(true);
     const loadingId = showLoadingToast('Assignation des participants...');
@@ -401,6 +455,7 @@ export default function SessionBuilder() {
       });
       removeToast(loadingId);
       sessionStorage.setItem('sessionId', sessionId);
+      setSessionParticipantCount(selectedParticipantIds.length);
       // Move to challenges selection step
       setSessionStep('challenges');
     } catch (err) {
@@ -516,6 +571,79 @@ export default function SessionBuilder() {
           isLaunching={isLaunching}
           onLaunch={handleLaunchSession}
         />
+
+        {/* Session info bar */}
+        <div className={styles.sessionInfoBar}>
+          {isEditingSessionInfo ? (
+            <>
+              <input
+                className={styles.sessionInfoInput}
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Nom de la session"
+              />
+              <input
+                className={styles.sessionInfoInput}
+                type="datetime-local"
+                value={editDateTime}
+                onChange={(e) => setEditDateTime(e.target.value)}
+                step="60"
+              />
+              <button
+                className="btn-primary"
+                style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
+                onClick={handleSaveSessionInfo}
+                disabled={isSavingSessionInfo}
+              >
+                {isSavingSessionInfo ? 'Sauvegarde...' : 'Sauvegarder'}
+              </button>
+              <button
+                className="btn-secondary"
+                style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
+                onClick={() => setIsEditingSessionInfo(false)}
+              >
+                Annuler
+              </button>
+            </>
+          ) : (
+            <>
+              <span className={styles.sessionInfoName}>{sessionName || 'Session sans nom'}</span>
+              {sessionDateTime && (
+                <span className={styles.sessionInfoDate}>
+                  {new Date(sessionDateTime).toLocaleDateString('fr-FR', {
+                    day: 'numeric', month: 'long', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit',
+                  })}
+                </span>
+              )}
+              {sessionParticipantCount > 0 && (
+                <span className={styles.sessionInfoBadge}>
+                  {sessionParticipantCount} participant{sessionParticipantCount > 1 ? 's' : ''}
+                </span>
+              )}
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                <button
+                  className="btn-secondary"
+                  style={{ padding: '0.4rem 0.9rem', fontSize: '0.82rem' }}
+                  onClick={() => {
+                    setEditName(sessionName);
+                    setEditDateTime(sessionDateTime);
+                    setIsEditingSessionInfo(true);
+                  }}
+                >
+                  Modifier la session
+                </button>
+                <button
+                  className="btn-secondary"
+                  style={{ padding: '0.4rem 0.9rem', fontSize: '0.82rem' }}
+                  onClick={() => setSessionStep('participants')}
+                >
+                  Modifier les participants
+                </button>
+              </div>
+            </>
+          )}
+        </div>
 
         <div className={styles.mainLayout}>
           <SelectedChallengesList
