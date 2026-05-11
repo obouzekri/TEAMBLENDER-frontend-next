@@ -91,8 +91,20 @@ export default function EscapeRoomChallenge({
       },
     });
 
-    if (!response.ok) return;
-    const payload = await response.json();
+    const fallbackResponse = !response.ok
+      ? await fetch(getApiUrl(`/participants/sessions/${sessionId}/participants`), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      : null;
+
+    const effectiveResponse = response.ok ? response : fallbackResponse;
+
+    if (!effectiveResponse || !effectiveResponse.ok) return;
+    const payload = await effectiveResponse.json();
     const list = Array.isArray(payload)
       ? payload
       : (Array.isArray(payload?.participants) ? payload.participants : (Array.isArray(payload?.data) ? payload.data : []));
@@ -136,7 +148,7 @@ export default function EscapeRoomChallenge({
     return `participant-${userId || 'unknown'}`;
   }, [runtimePayload, context]);
 
-  const chatEnabled = runtimePayload?.config?.chat?.enabled !== false;
+  const chatEnabled = runtimePayload?.config?.chat?.enabled !== false && Boolean(socket);
 
   useEffect(() => {
     if (!socket) return () => {};

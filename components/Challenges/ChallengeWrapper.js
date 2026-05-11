@@ -10,7 +10,6 @@ import mountRuntimeChallenge from '@/lib/challenges/runtime';
 import styles from './ChallengeWrapper.module.css';
 
 const REALTIME_ENGINES = new Set([
-  'escape_room_v1',
   'phrase_collaborative_v1',
   'copuzzle_live_v1',
   'labyrinthe_live_v1',
