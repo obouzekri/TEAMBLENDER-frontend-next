@@ -429,8 +429,8 @@ export default function EscapeRoomChallenge({
                 <div className={styles.answerRow}>
                   <input
                     value={answer}
-                    onChange={(event) => setAnswer(event.target.value)}
-                    placeholder={String(currentUiData?.placeholder || 'Votre reponse')}
+                    onChange={(event) => setAnswer(event.target.value.toUpperCase())}
+                    placeholder={String(currentUiData?.placeholder || 'VOTRE RÉPONSE').toUpperCase()}
                     className={styles.input}
                     disabled={busyAction === 'submit' || !currentEnigme}
                   />
