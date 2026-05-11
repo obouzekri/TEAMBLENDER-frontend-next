@@ -158,6 +158,12 @@ export default function EscapeRoomChallenge({
     return `participant-${userId || 'unknown'}`;
   }, [runtimePayload, context]);
 
+  const currentParticipantId = useMemo(() => {
+    const raw = context?.userId || context?.participantId || runtimePayload?.context?.participantId || '';
+    const parsed = Number(raw);
+    return Number.isInteger(parsed) ? parsed : null;
+  }, [context, runtimePayload]);
+
   const chatEnabled = runtimePayload?.config?.chat?.enabled !== false && Boolean(socket);
 
   useEffect(() => {
@@ -265,6 +271,7 @@ export default function EscapeRoomChallenge({
   const totalExpected = Number(state?.submission_status?.total || participants.length || 0);
   const totalResponded = Number(state?.submission_status?.responded || 0);
   const responseProgress = totalExpected > 0 ? Math.max(0, Math.min(100, Math.round((totalResponded / totalExpected) * 100))) : 0;
+  const hasCurrentParticipantResponded = currentParticipantId != null && respondedSet.has(currentParticipantId);
 
   const timerSeconds = Number(state?.timer?.duration_seconds || 0);
   const timerLabel = useMemo(() => {
@@ -293,6 +300,30 @@ export default function EscapeRoomChallenge({
   }, [participants, respondedSet]);
 
   const isFinished = Boolean(state?.status && state.status !== 'in_progress');
+  const shouldUseFastPolling = Boolean(
+    !isFacilitator
+    && currentEnigme
+    && !isFinished
+    && hasCurrentParticipantResponded
+    && totalExpected > 0
+    && totalResponded < totalExpected
+  );
+
+  useEffect(() => {
+    if (!shouldUseFastPolling) {
+      return () => {};
+    }
+
+    const fastPoll = window.setInterval(() => {
+      loadState().catch(() => {
+        // Silent refresh while this participant waits for collective completion.
+      });
+    }, 700);
+
+    return () => {
+      window.clearInterval(fastPoll);
+    };
+  }, [loadState, shouldUseFastPolling]);
 
   useEffect(() => {
     if (!state || !isFinished || typeof onChallengeCompleted !== 'function') {
