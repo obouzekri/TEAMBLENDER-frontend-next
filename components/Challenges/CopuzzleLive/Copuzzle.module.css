@@ -61,10 +61,15 @@
 .board {
   display: grid;
   gap: 8px;
+  width: 100%;
+  justify-content: center;
+  align-content: start;
+  --copuzzle-cell-size: 58px;
 }
 
 .cell {
-  aspect-ratio: 1 / 1;
+  width: var(--copuzzle-cell-size);
+  height: var(--copuzzle-cell-size);
   border-radius: 11px;
   border: 1px dashed #b7cae4;
   background: #ffffff;

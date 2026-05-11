@@ -32,6 +32,10 @@ function authHeaders() {
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 }
 
+function isParticipantRole(role) {
+  return String(role || '').trim().toLowerCase() === 'participant';
+}
+
 export default function SessionLiveClient() {
   const params = useParams();
   const router = useRouter();
@@ -49,7 +53,7 @@ export default function SessionLiveClient() {
   useEffect(() => {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const currentUser = parseUser();
-    if (!token || !currentUser || currentUser.role === 'participant') {
+    if (!token || !currentUser || isParticipantRole(currentUser.role)) {
       window.location.replace('/login');
       return;
     }
@@ -154,8 +158,13 @@ export default function SessionLiveClient() {
   const participantCount = Array.isArray(session?.participants) ? session.participants.length : 0;
   const memberCount = assignedParticipantCount || participantCount || (Array.isArray(session?.members) ? session.members.length : 0);
   const userLabel = pickDisplayName(user);
+  const canManageFlow = user ? !isParticipantRole(user.role) : false;
 
   const handleChallengeCompleted = useCallback(() => {
+    if (!canManageFlow) {
+      return;
+    }
+
     const activeChallengeId = Number(session?.active_challenge_id || 0);
     if (!activeChallengeId || actionPending) {
       return;
@@ -168,7 +177,7 @@ export default function SessionLiveClient() {
 
     completedChallengeGuardRef.current = guardKey;
     handleNextChallenge({ auto: true });
-  }, [session, sessionId, actionPending, handleNextChallenge]);
+  }, [canManageFlow, session, sessionId, actionPending, handleNextChallenge]);
 
   if (loading) {
     return (
@@ -211,7 +220,7 @@ export default function SessionLiveClient() {
               type="button"
               className="btn-primary"
               onClick={handleNextChallenge}
-              disabled={actionPending}
+              disabled={actionPending || !canManageFlow}
             >
               {actionPending ? 'En cours...' : 'Challenge suivant'}
             </button>

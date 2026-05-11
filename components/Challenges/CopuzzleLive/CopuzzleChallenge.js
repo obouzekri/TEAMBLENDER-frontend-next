@@ -259,6 +259,8 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
 
   const rowCount = Number(effectiveConfig.grid.rows || 4);
   const colCount = Number(effectiveConfig.grid.cols || 4);
+  const largestAxis = Math.max(rowCount, colCount, 1);
+  const adaptiveCellSize = Math.max(34, Math.min(64, Math.floor(460 / largestAxis)));
   const boardCells = useMemo(() => {
     const cells = [];
     for (let y = 0; y < rowCount; y += 1) {
@@ -292,7 +294,8 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
           <div
             className={styles.board}
             style={{
-              gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))`,
+              gridTemplateColumns: `repeat(${colCount}, var(--copuzzle-cell-size))`,
+              ['--copuzzle-cell-size']: `${adaptiveCellSize}px`,
             }}
           >
             {boardCells.map((cell) => {
