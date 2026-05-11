@@ -359,6 +359,41 @@
   font-size: 13px;
 }
 
+.anagramLettersWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.anagramLetterChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  background: rgba(14, 165, 233, 0.16);
+  color: #e0f2fe;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.anagramSlots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.anagramSlot {
+  width: 28px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(191, 219, 254, 0.85);
+}
+
 .matrixGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(56px, 1fr));

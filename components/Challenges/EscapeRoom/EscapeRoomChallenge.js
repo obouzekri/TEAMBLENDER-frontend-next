@@ -193,6 +193,13 @@ export default function EscapeRoomChallenge({
   const currentUiData = currentEnigme?.ui_data && typeof currentEnigme.ui_data === 'object'
     ? currentEnigme.ui_data
     : {};
+  const anagramLetters = Array.isArray(currentUiData?.letters)
+    ? currentUiData.letters.map((letter) => String(letter || '').trim()).filter(Boolean)
+    : [];
+  const anagramAnswerLength = Number.parseInt(currentUiData?.answer_length, 10);
+  const safeAnagramLength = Number.isInteger(anagramAnswerLength) && anagramAnswerLength > 0
+    ? anagramAnswerLength
+    : anagramLetters.length;
 
   const runAction = useCallback(
     async (actionKey, runner) => {
@@ -381,6 +388,31 @@ export default function EscapeRoomChallenge({
                     <div className={styles.textMysteryLines}>
                       {currentUiData.question_lines.map((line, idx) => (
                         <p key={`mystery-line-${idx}`} className={styles.textMysteryLine}>{String(line)}</p>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {currentUiType === 'word_anagram' ? (
+                <div className={styles.enigmeUiBlock}>
+                  <p className={styles.enigmeUiTitle}>{currentUiData?.title || 'Anagramme'}</p>
+                  <p className={styles.enigmeUiInstruction}>
+                    Réorganisez les lettres ci-dessous pour former un mot de {safeAnagramLength} lettres.
+                  </p>
+                  <div className={styles.anagramLettersWrap}>
+                    {anagramLetters.length === 0 ? (
+                      <p className={styles.teamEmpty}>Lettres indisponibles pour cette énigme.</p>
+                    ) : anagramLetters.map((letter, idx) => (
+                      <span key={`anagram-letter-${idx}-${letter}`} className={styles.anagramLetterChip}>
+                        {letter}
+                      </span>
+                    ))}
+                  </div>
+                  {safeAnagramLength > 0 ? (
+                    <div className={styles.anagramSlots}>
+                      {Array.from({ length: safeAnagramLength }).map((_, idx) => (
+                        <span key={`anagram-slot-${idx}`} className={styles.anagramSlot} aria-hidden="true" />
                       ))}
                     </div>
                   ) : null}
