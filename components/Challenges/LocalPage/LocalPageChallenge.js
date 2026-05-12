@@ -4,6 +4,8 @@ import { toLegacy } from '@/lib/legacy';
 import styles from './LocalPage.module.css';
 
 export default function LocalPageChallenge({ engineKey, runtimePayload, socket, context }) {
+  const legacyLinksEnabled = process.env.NEXT_PUBLIC_ENABLE_LEGACY_LINKS === 'true';
+
   const route = useMemo(() => {
     const raw = runtimePayload?.config?.route;
     if (typeof raw === 'string' && raw.trim()) {
@@ -21,8 +23,14 @@ export default function LocalPageChallenge({ engineKey, runtimePayload, socket, 
       <div className={styles.placeholder}>
         <p>Engine: {engineKey}</p>
         <p>Route: {route}</p>
-        <p>Utilisez le lien ci-dessous uniquement si votre frontend legacy est bien servi.</p>
-        <a className={styles.link} href={toLegacy(route)}>Ouvrir la page legacy</a>
+        {legacyLinksEnabled ? (
+          <>
+            <p>Le mode legacy est active explicitement. Utilisez ce lien uniquement sur demande.</p>
+            <a className={styles.link} href={toLegacy(route)}>Ouvrir la page legacy</a>
+          </>
+        ) : (
+          <p>Le mode legacy est desactive par defaut. Activez NEXT_PUBLIC_ENABLE_LEGACY_LINKS=true uniquement sur demande explicite.</p>
+        )}
       </div>
     </div>
   );
