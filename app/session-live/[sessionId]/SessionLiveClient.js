@@ -273,7 +273,7 @@ export default function SessionLiveClient() {
   return (
     <>
       <AppNav userLabel={userLabel} onLogout={logout} role="participant-live" />
-      <main className="shell app-home">
+      <main className="shell app-home session-live-shell">
         <section className="session-live-header">
           <div className="session-live-header__row1">
             <strong className="session-live-header__name">{session?.name || `Session ${sessionId}`}</strong>
