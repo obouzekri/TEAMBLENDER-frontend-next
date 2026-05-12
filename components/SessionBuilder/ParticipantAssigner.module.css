@@ -8,6 +8,30 @@
   background: linear-gradient(135deg, #f5f7fa 0%, #f0f4f8 100%);
 }
 
+.containerEmbedded {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.containerEmbedded .card {
+  max-width: none;
+  padding: 1.25rem;
+  border: 1px solid var(--line, #e2e8f0);
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.containerEmbedded .header {
+  margin-bottom: 1.1rem;
+}
+
+.containerEmbedded .header h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.35rem;
+}
+
 .card {
   background: white;
   border-radius: 12px;
