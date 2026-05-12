@@ -87,10 +87,12 @@ export default function SessionBuilder() {
     return params.get('sessionId') || params.get('id') || '';
   });
   const [sessionName, setSessionName] = useState('');
+  const [flowMode, setFlowMode] = useState('manual');
   const [sessionDateTime, setSessionDateTime] = useState('');
   const [sessionParticipantCount, setSessionParticipantCount] = useState(0);
   const [isEditingSessionInfo, setIsEditingSessionInfo] = useState(false);
   const [editName, setEditName] = useState('');
+  const [editFlowMode, setEditFlowMode] = useState('manual');
   const [editDateTime, setEditDateTime] = useState('');
   const [isSavingSessionInfo, setIsSavingSessionInfo] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
@@ -277,6 +279,7 @@ export default function SessionBuilder() {
         if (!cancelled) {
           // Pre-populate session metadata
           if (session.name) setSessionName(session.name);
+          setFlowMode(String(session.flow_mode || session.flowMode || 'manual').trim().toLowerCase() === 'auto' ? 'auto' : 'manual');
           if (session.session_date) {
             // DATEONLY from DB is "YYYY-MM-DD"; datetime-local needs "YYYY-MM-DDTHH:mm"
             const raw = String(session.session_date);
@@ -385,6 +388,7 @@ export default function SessionBuilder() {
     const loadingId = showLoadingToast('Creation de la session...');
     try {
       const payload = { name };
+      payload.flow_mode = flowMode;
       if (sessionDate) {
         payload.session_date = sessionDate.toISOString();
       }
@@ -415,6 +419,7 @@ export default function SessionBuilder() {
       const payload = {};
       const trimmedName = editName.trim();
       if (trimmedName) payload.name = trimmedName;
+      if (editFlowMode !== flowMode) payload.flow_mode = editFlowMode;
       if (editDateTime) {
         const d = new Date(editDateTime);
         if (!Number.isNaN(d.getTime())) payload.session_date = d.toISOString();
@@ -429,6 +434,7 @@ export default function SessionBuilder() {
         body: JSON.stringify(payload),
       });
       if (trimmedName) setSessionName(trimmedName);
+      setFlowMode(editFlowMode);
       setSessionDateTime(editDateTime);
       setIsEditingSessionInfo(false);
     } catch (err) {
@@ -519,6 +525,37 @@ export default function SessionBuilder() {
                   />
                 </label>
               </div>
+              <div className={styles.creationField} style={{ marginTop: '1rem' }}>
+                <span>Mode de progression des challenges</span>
+                <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  <label style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', padding: '0.85rem 1rem', border: '1px solid var(--color-border, #d1d5db)', borderRadius: '12px', background: flowMode === 'manual' ? 'rgba(15, 23, 42, 0.04)' : '#fff' }}>
+                    <input
+                      type="radio"
+                      name="flowMode"
+                      value="manual"
+                      checked={flowMode === 'manual'}
+                      onChange={() => setFlowMode('manual')}
+                    />
+                    <span>
+                      <strong>Manuel</strong><br />
+                      Le facilitateur garde la main et passe au challenge suivant quand il le décide.
+                    </span>
+                  </label>
+                  <label style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', padding: '0.85rem 1rem', border: '1px solid var(--color-border, #d1d5db)', borderRadius: '12px', background: flowMode === 'auto' ? 'rgba(15, 23, 42, 0.04)' : '#fff' }}>
+                    <input
+                      type="radio"
+                      name="flowMode"
+                      value="auto"
+                      checked={flowMode === 'auto'}
+                      onChange={() => setFlowMode('auto')}
+                    />
+                    <span>
+                      <strong>Automatique</strong><br />
+                      Les challenges s&apos;enchaînent automatiquement après la fin du challenge en cours.
+                    </span>
+                  </label>
+                </div>
+              </div>
               <p className={styles.creationHint}>
                 La date de session est facultative, mais elle aide à planifier et relire vos sessions plus vite.
               </p>
@@ -589,6 +626,14 @@ export default function SessionBuilder() {
                 onChange={(e) => setEditDateTime(e.target.value)}
                 step="60"
               />
+              <select
+                className={styles.sessionInfoInput}
+                value={editFlowMode}
+                onChange={(e) => setEditFlowMode(e.target.value)}
+              >
+                <option value="manual">Mode manuel</option>
+                <option value="auto">Mode automatique</option>
+              </select>
               <button
                 className="btn-primary"
                 style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
@@ -621,12 +666,16 @@ export default function SessionBuilder() {
                   {sessionParticipantCount} participant{sessionParticipantCount > 1 ? 's' : ''}
                 </span>
               )}
+              <span className={styles.sessionInfoBadge}>
+                Mode {flowMode === 'auto' ? 'automatique' : 'manuel'}
+              </span>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
                 <button
                   className="btn-secondary"
                   style={{ padding: '0.4rem 0.9rem', fontSize: '0.82rem' }}
                   onClick={() => {
                     setEditName(sessionName);
+                    setEditFlowMode(flowMode);
                     setEditDateTime(sessionDateTime);
                     setIsEditingSessionInfo(true);
                   }}

@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
+import { useSessionState } from '@/lib/useSessionState';
 
 const ChallengeWrapper = dynamic(
   () => import('@/components/Challenges/ChallengeWrapper'),
@@ -47,6 +48,10 @@ export default function SessionLiveClient() {
   const [error, setError] = useState('');
   const [actionPending, setActionPending] = useState(false);
   const [actionMsg, setActionMsg] = useState('');
+  const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(0);
+  const autoAdvanceTimerRef = useRef(null);
+  const completedChallengeKeyRef = useRef('');
+  const { sessionState, refetch: refetchSessionState } = useSessionState(sessionId || null);
 
   // Auth guard
   useEffect(() => {
@@ -88,7 +93,21 @@ export default function SessionLiveClient() {
     window.location.replace('/login');
   }
 
-  const handleNextChallenge = useCallback(async () => {
+  const canManageFlow = user ? !isParticipantRole(user.role) : false;
+
+  const clearAutoAdvanceTimer = useCallback(() => {
+    if (autoAdvanceTimerRef.current) {
+      clearInterval(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
+    setAutoAdvanceCountdown(0);
+  }, []);
+
+  const advanceToNextChallenge = useCallback(async () => {
+    if (!canManageFlow) {
+      return;
+    }
+
     setActionPending(true);
     setActionMsg('');
     try {
@@ -112,13 +131,23 @@ export default function SessionLiveClient() {
           ? 'Challenge suivant activé.'
           : 'Dernier challenge terminé.'
       );
-      setSession((prev) => ({ ...prev, ...updated }));
+      setSession((prev) => prev ? ({
+        ...prev,
+        active_challenge_id: updated?.active_challenge_id ?? prev.active_challenge_id,
+        flow_mode: updated?.flow_mode || updated?.flowMode || prev.flow_mode,
+      }) : prev);
+      refetchSessionState();
     } catch (err) {
       setActionMsg(err.message || 'Erreur lors du passage au challenge suivant.');
     } finally {
       setActionPending(false);
     }
-  }, [sessionId]);
+  }, [canManageFlow, refetchSessionState, sessionId]);
+
+  const handleNextChallenge = useCallback(async () => {
+    clearAutoAdvanceTimer();
+    await advanceToNextChallenge();
+  }, [advanceToNextChallenge, clearAutoAdvanceTimer]);
 
   async function handleEndSession() {
     if (!window.confirm('Terminer la session ?')) return;
@@ -144,17 +173,80 @@ export default function SessionLiveClient() {
     }
   }
 
+  const flowMode = String(
+    sessionState?.flowMode
+    || sessionState?.flow_mode
+    || session?.flowMode
+    || session?.flow_mode
+    || 'manual'
+  ).trim().toLowerCase() === 'auto' ? 'auto' : 'manual';
+
+  const activeChallengeId = sessionState?.active_challenge_id ?? session?.active_challenge_id ?? null;
+
+  const scheduleAutoAdvance = useCallback(() => {
+    clearAutoAdvanceTimer();
+    let remaining = 5;
+    setAutoAdvanceCountdown(remaining);
+    autoAdvanceTimerRef.current = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearAutoAdvanceTimer();
+        advanceToNextChallenge();
+        return;
+      }
+      setAutoAdvanceCountdown(remaining);
+    }, 1000);
+  }, [advanceToNextChallenge, clearAutoAdvanceTimer]);
+
+  const handleChallengeCompleted = useCallback((completion) => {
+    const completedChallengeId = String(
+      completion?.challengeId
+      || sessionState?.current_challenge?.id
+      || activeChallengeId
+      || ''
+    ).trim();
+
+    if (!completedChallengeId) {
+      return;
+    }
+
+    const completionKey = `${completedChallengeId}:${flowMode}`;
+    if (completedChallengeKeyRef.current === completionKey) {
+      return;
+    }
+    completedChallengeKeyRef.current = completionKey;
+
+    if (flowMode === 'auto' && canManageFlow) {
+      setActionMsg('Challenge terminé. Passage automatique en cours...');
+      scheduleAutoAdvance();
+      return;
+    }
+
+    if (canManageFlow) {
+      setActionMsg('Challenge terminé. Passez au challenge suivant quand vous êtes prêt.');
+    }
+  }, [activeChallengeId, canManageFlow, flowMode, scheduleAutoAdvance, sessionState?.current_challenge?.id]);
+
+  useEffect(() => {
+    completedChallengeKeyRef.current = '';
+    clearAutoAdvanceTimer();
+  }, [activeChallengeId, clearAutoAdvanceTimer]);
+
+  useEffect(() => {
+    return () => {
+      clearAutoAdvanceTimer();
+    };
+  }, [clearAutoAdvanceTimer]);
+
   // Derive active challenge info
   const challenges = Array.isArray(session?.challenges) ? session.challenges : [];
-  const activeChallenge = session?.active_challenge_id
-    ? challenges.find((c) => c.id === session.active_challenge_id) || null
-    : challenges[0] || null;
+  const activeChallenge = sessionState?.current_challenge
+    || (activeChallengeId ? challenges.find((c) => c.id === activeChallengeId) || null : challenges[0] || null);
   const activeEngineKey = activeChallenge?.engine_key || '';
   const assignedParticipantCount = Array.isArray(session?.assigned_participants) ? session.assigned_participants.length : 0;
   const participantCount = Array.isArray(session?.participants) ? session.participants.length : 0;
   const memberCount = assignedParticipantCount || participantCount || (Array.isArray(session?.members) ? session.members.length : 0);
   const userLabel = pickDisplayName(user);
-  const canManageFlow = user ? !isParticipantRole(user.role) : false;
 
   if (loading) {
     return (
@@ -191,14 +283,32 @@ export default function SessionLiveClient() {
             )}
           </div>
           <div className="session-live-header__row2">
-            <button
-              type="button"
-              className="btn-primary btn--sm"
-              onClick={handleNextChallenge}
-              disabled={actionPending || !canManageFlow}
-            >
-              {actionPending ? 'En cours...' : 'Challenge suivant'}
-            </button>
+            {flowMode === 'manual' ? (
+              <button
+                type="button"
+                className="btn-primary btn--sm"
+                onClick={handleNextChallenge}
+                disabled={actionPending || !canManageFlow}
+              >
+                {actionPending ? 'En cours...' : 'Passer au challenge suivant'}
+              </button>
+            ) : (
+              <span className="session-live-header__msg">
+                {autoAdvanceCountdown > 0
+                  ? `Passage automatique dans ${autoAdvanceCountdown}s`
+                  : 'Passage automatique activé'}
+              </span>
+            )}
+            {flowMode === 'auto' && canManageFlow ? (
+              <button
+                type="button"
+                className="btn-secondary btn--sm"
+                onClick={handleNextChallenge}
+                disabled={actionPending}
+              >
+                Forcer le passage
+              </button>
+            ) : null}
             <button
               type="button"
               className="btn-secondary btn--sm"
@@ -214,9 +324,11 @@ export default function SessionLiveClient() {
         {activeEngineKey ? (
           <section className="feature-card" style={{ padding: 0 }}>
             <ChallengeWrapper
+              key={`${sessionId}:${activeChallengeId || 'none'}:${activeEngineKey}`}
               sessionId={sessionId}
               engineKey={activeEngineKey}
               noNav
+              onChallengeCompleted={handleChallengeCompleted}
             />
           </section>
         ) : (
@@ -242,10 +354,10 @@ export default function SessionLiveClient() {
                   className="challenge-list-item"
                 >
                   <span
-                    className={`challenge-dot ${ch.id === session?.active_challenge_id ? 'challenge-dot--active' : 'challenge-dot--inactive'}`}
+                    className={`challenge-dot ${ch.id === activeChallengeId ? 'challenge-dot--active' : 'challenge-dot--inactive'}`}
                   />
                   <span>{ch.name || ch.engine_key}</span>
-                  {ch.id === session?.active_challenge_id && (
+                  {ch.id === activeChallengeId && (
                     <span className="eyebrow challenge-label-active">actif</span>
                   )}
                 </li>

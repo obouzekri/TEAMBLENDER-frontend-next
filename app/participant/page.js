@@ -33,6 +33,9 @@ export default function ParticipantPage() {
   const [ready, setReady] = useState(false);
   const router = useRouter();
   const { sessionState } = useSessionState(sessionId || null);
+  const flowMode = String(sessionState?.flowMode || sessionState?.flow_mode || 'manual').trim().toLowerCase() === 'auto'
+    ? 'auto'
+    : 'manual';
 
   useEffect(() => {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -262,7 +265,7 @@ export default function ParticipantPage() {
               </button>
             ) : sessionId && !joining && !runtimeError ? (
               <button type="button" className="btn-primary" disabled>
-                En attente du lancement...
+                {flowMode === 'auto' ? 'Passage automatique en préparation...' : 'En attente du facilitateur...'}
               </button>
             ) : sessionId ? (
               <button type="button" className="btn-primary" disabled>
@@ -353,7 +356,11 @@ export default function ParticipantPage() {
                 Challenge actif: <strong>{runtime.challenge_name || runtime.engine_key}</strong>
               </p>
             ) : sessionId && !joining ? (
-              <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>Aucun challenge en cours — le facilitateur n&apos;a pas encore lancé.</p>
+              <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>
+                {flowMode === 'auto'
+                  ? 'Aucun challenge actif pour le moment. Le passage se fera automatiquement dès que la session avancera.'
+                  : 'Aucun challenge en cours — le facilitateur n&apos;a pas encore lancé ou n&apos;a pas encore passé au challenge suivant.'}
+              </p>
             ) : null}
             {joining && !runtime ? <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>Chargement du challenge actif...</p> : null}
             {runtimeError ? <p style={{ color: 'var(--color-danger, #ef4444)', margin: 0, fontSize: '13px' }}>Erreur : {runtimeError}</p> : null}
