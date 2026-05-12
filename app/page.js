@@ -109,13 +109,13 @@ export default function HomePage() {
               <h1>{heroMain.title || DEFAULT_BLOCKS.hero_main.title}</h1>
               <p>{heroMain.description || DEFAULT_BLOCKS.hero_main.description}</p>
               <div className="hero-v2-actions">
-                <Link href="/signup" className="btn-primary">Demarrer gratuitement</Link>
-                <Link href="/pricing" className="btn-secondary">Voir les formules</Link>
+                <Link href="/signup" className="btn-primary">Demarrer mon pilote</Link>
+                <Link href="/pricing" className="btn-secondary">Comparer les formules</Link>
               </div>
               <div className="hero-v2-trust">
-                <span>Temps de mise en place reduit</span>
-                <span>Live challenge synchronise</span>
-                <span>Insights actionnables</span>
+                <span>Brief manager en moins de 10 min</span>
+                <span>Animation live structuree</span>
+                <span>Debrief directement exploitable</span>
               </div>
             </div>
 
@@ -138,6 +138,46 @@ export default function HomePage() {
               </article>
             </div>
           </div>
+        </section>
+
+        <section className="landing-impact-band reveal-up" aria-label="Indicateurs cles">
+          <article>
+            <strong>-65%</strong>
+            <p>de temps de preparation percu par les managers</p>
+          </article>
+          <article>
+            <strong>3 etapes</strong>
+            <p>pour passer d un objectif a un debrief utile</p>
+          </article>
+          <article>
+            <strong>100%</strong>
+            <p>navigable mobile et desktop sans installation</p>
+          </article>
+          <article>
+            <strong>1 flow</strong>
+            <p>manager, participants et resultats dans un meme cadre</p>
+          </article>
+        </section>
+
+        <section className="landing-contrast reveal-up" aria-label="Avant et avec TEAMSPARK">
+          <article className="feature-card contrast-card contrast-before">
+            <p className="eyebrow">Sans TEAMSPARK</p>
+            <h2>Preparation eparpillee, energie dispersee</h2>
+            <ul>
+              <li>Objectif de session flou ou tardif</li>
+              <li>Animation heterogene selon l animateur</li>
+              <li>Peu de traces exploitables pour la suite</li>
+            </ul>
+          </article>
+          <article className="feature-card contrast-card contrast-after">
+            <p className="eyebrow">Avec TEAMSPARK</p>
+            <h2>Cadre commun, execution nette, decisions facilites</h2>
+            <ul>
+              <li>Cadrage explicite de l enjeu equipe</li>
+              <li>Parcours guide pour manager et participants</li>
+              <li>Debrief concret pour alimenter vos rituels</li>
+            </ul>
+          </article>
         </section>
 
         <section className="landing-highlights reveal-up" aria-label="Benefices principaux">

@@ -8,8 +8,9 @@ import { getApiUrl } from '@/lib/config';
 const USER_ROLES = new Set(['user', 'admin']);
 const SESSION_STATUSES = new Set(['preparee', 'en_cours', 'terminee']);
 const SESSION_MODALITIES = new Set(['', 'remote', 'hybrid', 'in-person']);
-const CHALLENGE_TYPES = new Set(['icebreaker', 'individuel', 'equipe']);
+const CHALLENGE_TYPES = new Set(['individuel', 'equipe']);
 const CHALLENGE_STATUSES = new Set(['actif', 'brouillon', 'archive']);
+const CHALLENGE_SOURCES = new Set(['local', 'external']);
 const PRICING_BILLING_CYCLES = new Set(['monthly', 'yearly', 'one_time', 'custom']);
 const SESSION_STATUS_LABELS = {
   preparee: 'En preparation',
@@ -24,6 +25,16 @@ const DEFAULT_NEW_SESSION = {
   format: '',
   session_date: '',
   duration_minutes: '',
+};
+
+const DEFAULT_NEW_CHALLENGE = {
+  name: '',
+  type: 'individuel',
+  status: 'actif',
+  source: 'local',
+  duration: '',
+  engine_key: '',
+  description: '',
 };
 
 const DEFAULT_NEW_PRICING_PLAN = {
@@ -235,6 +246,8 @@ export default function AdminClient() {
   const [newSessionMessage, setNewSessionMessage] = useState('');
   const [newSessionMemberIds, setNewSessionMemberIds] = useState([]);
   const [newSessionMemberQuery, setNewSessionMemberQuery] = useState('');
+  const [newChallenge, setNewChallenge] = useState(DEFAULT_NEW_CHALLENGE);
+  const [newChallengeMessage, setNewChallengeMessage] = useState('');
   const [newPricingPlan, setNewPricingPlan] = useState(DEFAULT_NEW_PRICING_PLAN);
   const [newPricingMessage, setNewPricingMessage] = useState('');
   const [newLandingBlock, setNewLandingBlock] = useState(DEFAULT_NEW_LANDING_BLOCK);
@@ -1003,6 +1016,71 @@ export default function AdminClient() {
       setError(err.message || 'Erreur lors de la suppression challenge.');
     } finally {
       setBusyDeleteKey('');
+    }
+  }
+
+  async function submitNewChallenge(event) {
+    event.preventDefault();
+    if (!token) return;
+
+    setNewChallengeMessage('');
+
+    if (!newChallenge.name.trim()) {
+      setNewChallengeMessage('Le nom du challenge est requis.');
+      return;
+    }
+
+    if (!CHALLENGE_TYPES.has(newChallenge.type)) {
+      setNewChallengeMessage('Type de challenge invalide.');
+      return;
+    }
+
+    if (!CHALLENGE_STATUSES.has(newChallenge.status)) {
+      setNewChallengeMessage('Statut de challenge invalide.');
+      return;
+    }
+
+    if (!CHALLENGE_SOURCES.has(newChallenge.source)) {
+      setNewChallengeMessage('Source de challenge invalide.');
+      return;
+    }
+
+    const key = 'create:challenge';
+    setBusySaveKey(key);
+    setError('');
+
+    try {
+      const response = await fetch(getApiUrl('/challenges'), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: newChallenge.name.trim(),
+          type: newChallenge.type,
+          status: newChallenge.status,
+          source: newChallenge.source,
+          duration: newChallenge.duration || null,
+          engine_key: newChallenge.engine_key || null,
+          description: newChallenge.description || null,
+          engine_config: {},
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || payload.details || `Creation challenge impossible (${response.status})`);
+      }
+
+      setNewChallenge(DEFAULT_NEW_CHALLENGE);
+      setNewChallengeMessage('Challenge cree avec succes.');
+      await loadAll();
+      showNotice('Challenge cree avec succes.');
+    } catch (err) {
+      setNewChallengeMessage(err.message || 'Creation challenge impossible.');
+    } finally {
+      setBusySaveKey('');
     }
   }
 
@@ -2290,63 +2368,98 @@ export default function AdminClient() {
                   </ul>
                 </div>
 
-                {/* Edit challenge */}
-                <div style={{ background: 'var(--color-surface, #fff)', border: editingChallenge ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier un challenge</h2>
-                  {!editingChallenge ? (
-                    <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>Selectionnez "Modifier" sur un challenge pour l'editer ici.</p>
-                  ) : (
-                    <form className="auth-form" onSubmit={submitEditChallenge}>
-                      <label>Nom<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
+                <div style={{ display: 'grid', gap: '24px' }}>
+                  {/* Create challenge */}
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Ajouter un challenge</h2>
+                    <form className="auth-form" onSubmit={submitNewChallenge}>
+                      <label>Nom<input value={newChallenge.name} onChange={(e) => setNewChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
                       <label>Type
-                        <select value={editingChallenge.type} onChange={(e) => setEditingChallenge((p) => ({ ...p, type: e.target.value }))}>
+                        <select value={newChallenge.type} onChange={(e) => setNewChallenge((p) => ({ ...p, type: e.target.value }))}>
                           <option value="individuel">Individuel</option>
                           <option value="equipe">Equipe</option>
-                          <option value="icebreaker">Icebreaker</option>
                         </select>
                       </label>
                       <label>Statut
-                        <select value={editingChallenge.status} onChange={(e) => setEditingChallenge((p) => ({ ...p, status: e.target.value }))}>
+                        <select value={newChallenge.status} onChange={(e) => setNewChallenge((p) => ({ ...p, status: e.target.value }))}>
                           <option value="actif">Actif</option>
                           <option value="brouillon">Brouillon</option>
                           <option value="archive">Archive</option>
                         </select>
                       </label>
-                      <label>Duree<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
-                      <label>Engine key<input value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
-                      <label>Description<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
-                      {(editingChallenge.engine_key || '').toLowerCase() === 'escape_room_v1' ? (
-                        <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '10px' }}>
-                          <p style={{ margin: '0 0 8px', fontWeight: 600 }}>Image énigme 5 (Salle secrète)</p>
-                          <input
-                            type="file"
-                            accept="image/png,image/jpeg,image/jpg"
-                            onChange={handleUploadEscapeRoomImage}
-                            disabled={challengeImageUploadBusy}
-                          />
-                          {challengeImageUploadBusy ? (
-                            <p className="session-meta" style={{ marginTop: '8px' }}>Upload en cours...</p>
-                          ) : null}
-                          {challengeImageUploadError ? (
-                            <p className="session-meta" style={{ marginTop: '8px', color: '#dc2626' }}>{challengeImageUploadError}</p>
-                          ) : null}
-                          {getEscapeRoomE5ImageSrc(editingChallenge.engine_config) ? (
-                            <img
-                              src={getEscapeRoomE5ImageSrc(editingChallenge.engine_config)}
-                              alt="Aperçu énigme 5"
-                              style={{ marginTop: '8px', maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
-                            />
-                          ) : (
-                            <p className="session-meta" style={{ marginTop: '8px' }}>Aucune image configurée pour e5.</p>
-                          )}
-                        </div>
-                      ) : null}
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                        <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>{busySaveKey === `save:challenge:${editingChallenge.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
-                        <button type="button" className="btn-secondary" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }}>Annuler</button>
-                      </div>
+                      <label>Source
+                        <select value={newChallenge.source} onChange={(e) => setNewChallenge((p) => ({ ...p, source: e.target.value }))}>
+                          <option value="local">Local</option>
+                          <option value="external">Externe</option>
+                        </select>
+                      </label>
+                      <label>Duree<input value={newChallenge.duration} onChange={(e) => setNewChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
+                      <label>Engine key<input value={newChallenge.engine_key} onChange={(e) => setNewChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
+                      <label>Description<textarea rows={4} value={newChallenge.description} onChange={(e) => setNewChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
+                      <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:challenge'}>
+                        {busySaveKey === 'create:challenge' ? 'Creation...' : 'Creer le challenge'}
+                      </button>
                     </form>
-                  )}
+                    {newChallengeMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newChallengeMessage}</p> : null}
+                  </div>
+
+                  {/* Edit challenge */}
+                  <div style={{ background: 'var(--color-surface, #fff)', border: editingChallenge ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier un challenge</h2>
+                    {!editingChallenge ? (
+                      <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>Selectionnez "Modifier" sur un challenge pour l'editer ici.</p>
+                    ) : (
+                      <form className="auth-form" onSubmit={submitEditChallenge}>
+                        <label>Nom<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
+                        <label>Type
+                          <select value={editingChallenge.type} onChange={(e) => setEditingChallenge((p) => ({ ...p, type: e.target.value }))}>
+                            <option value="individuel">Individuel</option>
+                            <option value="equipe">Equipe</option>
+                          </select>
+                        </label>
+                        <label>Statut
+                          <select value={editingChallenge.status} onChange={(e) => setEditingChallenge((p) => ({ ...p, status: e.target.value }))}>
+                            <option value="actif">Actif</option>
+                            <option value="brouillon">Brouillon</option>
+                            <option value="archive">Archive</option>
+                          </select>
+                        </label>
+                        <label>Duree<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
+                        <label>Engine key<input value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
+                        <label>Description<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
+                        {(editingChallenge.engine_key || '').toLowerCase() === 'escape_room_v1' ? (
+                          <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '10px' }}>
+                            <p style={{ margin: '0 0 8px', fontWeight: 600 }}>Image énigme 5 (Salle secrète)</p>
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/jpg"
+                              onChange={handleUploadEscapeRoomImage}
+                              disabled={challengeImageUploadBusy}
+                            />
+                            {challengeImageUploadBusy ? (
+                              <p className="session-meta" style={{ marginTop: '8px' }}>Upload en cours...</p>
+                            ) : null}
+                            {challengeImageUploadError ? (
+                              <p className="session-meta" style={{ marginTop: '8px', color: '#dc2626' }}>{challengeImageUploadError}</p>
+                            ) : null}
+                            {getEscapeRoomE5ImageSrc(editingChallenge.engine_config) ? (
+                              <img
+                                src={getEscapeRoomE5ImageSrc(editingChallenge.engine_config)}
+                                alt="Aperçu énigme 5"
+                                style={{ marginTop: '8px', maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                              />
+                            ) : (
+                              <p className="session-meta" style={{ marginTop: '8px' }}>Aucune image configurée pour e5.</p>
+                            )}
+                          </div>
+                        ) : null}
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>{busySaveKey === `save:challenge:${editingChallenge.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
+                          <button type="button" className="btn-secondary" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }}>Annuler</button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,92 +1,83 @@
-# TEAMSPARK Frontend Next.js
+﻿# TEAMSPARK Frontend Next.js
 
-Migration progressive en parallele du frontend vanilla. Le socle utilisateur est migre, avec landing publique et console admin Next V1.
+Frontend cible du produit TEAMSPARK (migration depuis le legacy).
 
-## Portee migree
+## Quick links
 
-- Landing: /
-- Login: /login
-- Signup: /signup
-- Contact: /contact
-- Home manager (guard): /home
-- Session Builder: /session-builder
-- Session Live: /session-live/[sessionId]
-- Session Results: /session-results/[sessionId]
-- Participant: /participant
-- Admin: /admin (V1)
-- Legal: /mentions-legales, /politique-confidentialite
+- Setup local: section `Setup local`
+- Scripts smoke: section `Scripts`
+- Workflow livraison: `../docs/process/FEATURE_TO_PROD_FLOW.md`
+- Checklist release: `../docs/checklists/RELEASE_CHECKLIST_PRE_MAIN.md`
+- README global: `../README.md`
 
-Le reste du produit continue de fonctionner sur le frontend legacy (port 3000).
+## 1) Portee couverte
 
-## Configuration
+Routes principales migrees:
+- `/`
+- `/login`
+- `/signup`
+- `/contact`
+- `/home`
+- `/session-builder`
+- `/session-live/[sessionId]`
+- `/session-results/[sessionId]`
+- `/participant`
+- `/admin`
+- `/mentions-legales`
+- `/politique-confidentialite`
 
-Copier .env.example vers .env.local et ajuster si besoin:
+## 2) Setup local
 
-- NEXT_PUBLIC_API_BASE=http://localhost:3000/api
-- NEXT_PUBLIC_LEGACY_BASE=http://localhost:3000
-- LEGACY_BASE_CANDIDATES=http://localhost:3001 (optionnel, liste separee par virgules)
-- SMOKE_FRONTEND_URL=http://localhost:3100
-- SMOKE_BACKEND_URL=http://localhost:3000
+```bash
+cd frontend-next
+npm install
+cp .env.local.example .env.local
+npm run dev
+```
 
-## Scripts
+- URL locale: `http://localhost:3100`
 
-- npm run dev (port 3100)
-- npm run build
-- npm run start
-- npm run test:smoke:manager
-- npm run test:smoke:participant
-- npm run test:smoke
+Variables importantes:
+- `NEXT_PUBLIC_API_BASE`
+- `NEXT_PUBLIC_LEGACY_BASE`
+- `LEGACY_BASE_CANDIDATES` (optionnel)
+- `SMOKE_FRONTEND_URL`
+- `SMOKE_BACKEND_URL`
 
-## Notes
+## 3) Scripts
 
-- Aucun fichier du frontend legacy n est modifie dans ce lot.
-- Les redirections apres login pointent vers les routes Next.js selon le role.
-- Le home manager Next utilise un guard (manager/admin) et couvre le pilotage des sessions.
-- Le panel admin Next.js est disponible en V1 pour les operations principales.
+```bash
+npm run dev
+npm run build
+npm run start
+npm run test:smoke
+npm run test:smoke:manager
+npm run test:smoke:participant
+npm run test:smoke:session-builder
+npm run test:smoke:login
+npm run test:smoke:preview
+```
 
-## Runbook go-live (checklist actionnable)
+## 4) Runbook go-live (resume)
 
-### Roles
+1. Verifier variables de production (frontend + backend).
+2. Lancer localement `npm run test:smoke` puis `npm run build`.
+3. Deployer sur Vercel (`main`).
+4. Pointer `NEXT_PUBLIC_API_BASE` vers l'API de production.
+5. Verifier parcours manager, participant, admin.
+6. Surveiller les logs backend apres release.
 
-- Tech lead: decision Go / No-Go et rollback
-- Dev frontend: deploiement Vercel + verification UI
-- Dev backend: verification API/sockets + logs serveur
-- Produit/QA: validation parcours metier manager/participant/admin
+## 5) No-Go immediate (exemples)
 
-### Execution (ordre strict)
+- erreur 5xx sur endpoints critiques,
+- regression session live / challenge actif,
+- redirection inattendue apres login,
+- rollback impossible vers le commit precedent stable.
 
-1. Verifier les variables de prod (frontend + backend).
-2. Lancer localement: `npm run test:smoke` puis `npm run build`.
-3. Tagger la version pre-deploiement (commit SHA conservee pour rollback).
-4. Deployer frontend-next sur Vercel (branche `main`).
-5. Configurer `NEXT_PUBLIC_API_BASE` vers l'API de production.
-6. Verifier en production les parcours critiques:
-   - manager: login -> home -> session-builder -> session-live -> results
-   - participant: join -> challenge actif
-   - admin: /admin (create/edit/delete)
-7. Ouvrir les logs backend 30 min apres release (erreurs 5xx, latency, sockets).
-8. Si stable: geler le legacy frontend pour nouvelles features (patch critique uniquement).
+## 6) Liens utiles
 
-### Rollback (si No-Go)
-
-1. Re-pointer Vercel sur le commit precedent stable.
-2. Re-valider login manager + participant sur la version rollback.
-3. Communiquer "rollback effectue" avec cause et action corrective.
-4. Ouvrir correctif sur branche de hotfix avant nouvelle tentative.
-
-## Go / No-Go (release)
-
-Go si tous les points sont vrais:
-
-- `npm run test:smoke` = PASS
-- `npm run build` = PASS
-- login manager + participant + admin = PASS
-- create/edit/delete session depuis home/admin = PASS
-- aucune erreur critique console/API sur parcours principal
-
-No-Go immediat si un seul point est faux:
-
-- erreur 5xx sur un endpoint critique (`/auth`, `/sessions`, `/challenges`, `/users`)
-- regression sur session live ou challenge actif participant
-- page blanche ou redirection inattendue apres login
-- echec du rollback dry-run (incapacite a revenir au commit precedent)
+- README global: `../README.md`
+- Index docs: `../docs/README.md`
+- Backend API: `../backend/README.md`
+- Workflow livraison: `../docs/process/FEATURE_TO_PROD_FLOW.md`
+- Checklist release: `../docs/checklists/RELEASE_CHECKLIST_PRE_MAIN.md`

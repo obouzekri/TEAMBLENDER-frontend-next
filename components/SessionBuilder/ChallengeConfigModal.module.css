@@ -64,6 +64,17 @@
   overflow-y: auto;
 }
 
+.challengeDescription {
+  margin: 0 0 1rem 0;
+  padding: 0.75rem 1rem;
+  background: var(--bg-soft, #f9fafb);
+  border-left: 3px solid var(--color-primary, #4f46e5);
+  border-radius: 0 0.375rem 0.375rem 0;
+  font-size: 0.9rem;
+  color: var(--ink-base, #374151);
+  line-height: 1.5;
+}
+
 .infoText {
   margin: 0 0 1rem 0;
   font-size: 0.9rem;

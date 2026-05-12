@@ -17,7 +17,6 @@ export default function ChallengesCatalog({
     { value: '', label: 'Tous' },
     { value: 'escape-game', label: 'Escape Game' },
     { value: 'logique-reflexion', label: 'Logique & Réflexion' },
-    { value: 'icebreaker', label: 'Icebreaker' },
   ];
 
   const objectives = [
@@ -111,7 +110,6 @@ export default function ChallengesCatalog({
         <div className={styles.grid}>
           {challenges.map((challenge) => {
             const isSelected = selectedIds.includes(challenge.id);
-            const isLegacyOnly = String(challenge?.engine_key || '').trim() === 'local_page_v1';
             return (
               <div key={challenge.id} className={`${styles.card} ${isSelected ? styles.selected : ''}`}>
                 <div className={styles.cardHeader}>
@@ -120,12 +118,6 @@ export default function ChallengesCatalog({
                 </div>
 
                 <p className={styles.cardDescription}>{challenge.description}</p>
-
-                {isLegacyOnly ? (
-                  <p className={styles.cardDescription}>
-                    Challenge legacy: indisponible sur Vercel tant que le frontend legacy n'est pas expose.
-                  </p>
-                ) : null}
 
                 <div className={styles.cardMeta}>
                   <span className={styles.badge}>{challenge.category}</span>
@@ -136,13 +128,13 @@ export default function ChallengesCatalog({
                   <button
                     className={isSelected ? 'btn-secondary' : 'btn-primary'}
                     onClick={() => {
-                      if (!isSelected && !isLegacyOnly) {
+                      if (!isSelected) {
                         onSelect(challenge.id);
                       }
                     }}
-                    disabled={isSelected || isLegacyOnly}
+                    disabled={isSelected}
                   >
-                    {isSelected ? '✓ Ajoutée' : isLegacyOnly ? 'Legacy seulement' : '+ Ajouter'}
+                    {isSelected ? '✓ Ajoutée' : '+ Ajouter'}
                   </button>
                   {isSelected && (
                     <button

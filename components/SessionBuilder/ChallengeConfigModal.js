@@ -33,12 +33,6 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
     if ((current?.engine_key || '').toLowerCase() === 'labyrinthe_live_v1') {
       return 'labyrinthe_live';
     }
-    if ((current?.engine_key || '').toLowerCase() === 'local_page_v1' && fingerprint.includes('labyrinthe')) {
-      return 'labyrinthe';
-    }
-    if (fingerprint.includes('labyrinthe')) {
-      return 'labyrinthe';
-    }
     if ((current?.engine_key || '').toLowerCase() === 'escape_room_v1' || fingerprint.includes('salle') || fingerprint.includes('escape')) {
       return 'escape_room';
     }
@@ -142,6 +136,9 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
         </div>
 
         <div className={styles.body}>
+          {challenge?.description ? (
+            <p className={styles.challengeDescription}>{challenge.description}</p>
+          ) : null}
           <p className={styles.infoText}>
             Les options de configuration dépendent du type d'activité.
           </p>
@@ -317,32 +314,6 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                   step="0.01"
                   value={numberValue('complexity', 0.62)}
                   onChange={(e) => updateValue('complexity', Number(e.target.value || 0.62))}
-                  className={styles.input}
-                />
-              </div>
-            </>
-          )}
-
-          {kind === 'labyrinthe' && (
-            <>
-              <div className={styles.configField}>
-                <label htmlFor="labTitle" className={styles.label}>Titre</label>
-                <input
-                  id="labTitle"
-                  type="text"
-                  value={stringValue('title', challenge?.name || '')}
-                  onChange={(e) => updateValue('title', e.target.value)}
-                  className={styles.input}
-                />
-              </div>
-
-              <div className={styles.configField}>
-                <label htmlFor="labRoute" className={styles.label}>Route locale</label>
-                <input
-                  id="labRoute"
-                  type="text"
-                  value={stringValue('route', challenge?.route || 'labyrinthe_challenge.html')}
-                  onChange={(e) => updateValue('route', e.target.value)}
                   className={styles.input}
                 />
               </div>

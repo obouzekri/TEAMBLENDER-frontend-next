@@ -6,6 +6,7 @@ import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
+import { useSessionState } from '@/lib/useSessionState';
 
 function parseUser() {
   const raw = sessionStorage.getItem('currentUser');
@@ -28,10 +29,10 @@ export default function ParticipantPage() {
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [sessionId, setSessionId] = useState('');
   const [joiningSessionId, setJoiningSessionId] = useState(null);
-  const pollRef = useRef(null);
   const hasRedirected = useRef(false);
   const [ready, setReady] = useState(false);
   const router = useRouter();
+  const { sessionState } = useSessionState(sessionId || null);
 
   useEffect(() => {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -85,6 +86,14 @@ export default function ParticipantPage() {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     if (!token) return;
 
+    const hasActiveChallenge = Boolean(sessionState?.active_challenge_id);
+    if (!hasActiveChallenge) {
+      setRuntime(null);
+      setRuntimeError('');
+      setJoining(false);
+      return;
+    }
+
     let cancelled = false;
 
     async function fetchRuntime() {
@@ -115,14 +124,10 @@ export default function ParticipantPage() {
     setRuntimeError('');
     fetchRuntime();
 
-    // Poll every 5s so participant sees new challenge when manager advances
-    pollRef.current = setInterval(fetchRuntime, 5000);
-
     return () => {
       cancelled = true;
-      clearInterval(pollRef.current);
     };
-  }, [ready, sessionId]);
+  }, [ready, sessionId, sessionState?.active_challenge_id]);
 
 // Load participant's assigned sessions
   useEffect(() => {
