@@ -545,13 +545,12 @@ export default function ManagerHome() {
               <p>Liste des participants</p>
             </div>
             <div className="participants-panel-actions">
-              <span className="list-count">{members.length} profil{members.length !== 1 ? 's' : ''}</span>
               <button
                 type="button"
                 className="btn-primary"
                 onClick={showParticipantForm || editingMemberId ? resetMemberForm : openNewMemberForm}
               >
-                {showParticipantForm || editingMemberId ? 'Fermer le formulaire' : 'Créer un participant'}
+                {showParticipantForm || editingMemberId ? 'Fermer le formulaire' : '+ Créer un participant'}
               </button>
             </div>
           </div>

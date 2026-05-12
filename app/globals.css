@@ -1791,10 +1791,6 @@ a {
   justify-content: flex-end;
 }
 
-.participants-panel-actions .list-count {
-  flex-shrink: 0;
-}
-
 .participants-panel .participant-inline-form {
   margin-top: 0.15rem;
 }
