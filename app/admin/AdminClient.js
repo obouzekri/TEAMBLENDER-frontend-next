@@ -10,6 +10,7 @@ const SESSION_STATUSES = new Set(['preparee', 'en_cours', 'terminee']);
 const SESSION_MODALITIES = new Set(['', 'remote', 'hybrid', 'in-person']);
 const CHALLENGE_TYPES = new Set(['icebreaker', 'individuel', 'equipe']);
 const CHALLENGE_STATUSES = new Set(['actif', 'brouillon', 'archive']);
+const PRICING_BILLING_CYCLES = new Set(['monthly', 'yearly', 'one_time', 'custom']);
 const SESSION_STATUS_LABELS = {
   preparee: 'En preparation',
   en_cours: 'En cours',
@@ -23,6 +24,23 @@ const DEFAULT_NEW_SESSION = {
   format: '',
   session_date: '',
   duration_minutes: '',
+};
+
+const DEFAULT_NEW_PRICING_PLAN = {
+  name: '',
+  description: '',
+  features: '',
+  price: '',
+  currency: 'EUR',
+  billing_cycle: 'monthly',
+  cta_label: 'Choisir cette formule',
+  is_active: true,
+  highlighted: false,
+  max_users: '',
+  max_sessions_per_month: '',
+  support_level: '',
+  trial_days: '',
+  display_order: '0',
 };
 
 function getParticipantFirstName(participant) {
@@ -108,6 +126,26 @@ function getEscapeRoomE5ImageSrc(engineConfig) {
   return String(e5?.image?.src || '').trim();
 }
 
+function planToDraft(plan) {
+  return {
+    id: plan.id,
+    name: plan.name || '',
+    description: plan.description || '',
+    features: Array.isArray(plan.features) ? plan.features.join('\n') : '',
+    price: typeof plan.price === 'number' ? String(plan.price) : '',
+    currency: plan.currency || 'EUR',
+    billing_cycle: plan.billing_cycle || 'monthly',
+    cta_label: plan.cta_label || 'Choisir cette formule',
+    is_active: Boolean(plan.is_active),
+    highlighted: Boolean(plan.highlighted),
+    max_users: plan.max_users ?? '',
+    max_sessions_per_month: plan.max_sessions_per_month ?? '',
+    support_level: plan.support_level || '',
+    trial_days: plan.trial_days ?? '',
+    display_order: plan.display_order ?? 0,
+  };
+}
+
 export default function AdminClient() {
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
@@ -120,6 +158,7 @@ export default function AdminClient() {
   const [sessions, setSessions] = useState([]);
   const [challenges, setChallenges] = useState([]);
   const [participants, setParticipants] = useState([]);
+  const [pricingPlans, setPricingPlans] = useState([]);
 
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
@@ -129,12 +168,14 @@ export default function AdminClient() {
   const [participantQuery, setParticipantQuery] = useState('');
   const [sessionQuery, setSessionQuery] = useState('');
   const [challengeQuery, setChallengeQuery] = useState('');
+  const [pricingQuery, setPricingQuery] = useState('');
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [editingUser, setEditingUser] = useState(null);
   const [editingParticipant, setEditingParticipant] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
   const [editingChallenge, setEditingChallenge] = useState(null);
+  const [editingPricingPlan, setEditingPricingPlan] = useState(null);
   const [challengeImageUploadBusy, setChallengeImageUploadBusy] = useState(false);
   const [challengeImageUploadError, setChallengeImageUploadError] = useState('');
 
@@ -160,6 +201,8 @@ export default function AdminClient() {
   const [newSessionMessage, setNewSessionMessage] = useState('');
   const [newSessionMemberIds, setNewSessionMemberIds] = useState([]);
   const [newSessionMemberQuery, setNewSessionMemberQuery] = useState('');
+  const [newPricingPlan, setNewPricingPlan] = useState(DEFAULT_NEW_PRICING_PLAN);
+  const [newPricingMessage, setNewPricingMessage] = useState('');
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -187,24 +230,26 @@ export default function AdminClient() {
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      const [usersRes, pendingRes, sessionsRes, challengesRes, participantsRes] = await Promise.all([
+      const [usersRes, pendingRes, sessionsRes, challengesRes, participantsRes, pricingRes] = await Promise.all([
         fetch(getApiUrl('/users'), { headers }),
         fetch(getApiUrl('/users/pending'), { headers }),
         fetch(getApiUrl('/sessions'), { headers }),
         fetch(getApiUrl('/challenges'), { headers }),
         fetch(getApiUrl('/participants?includeDisabled=true'), { headers }),
+        fetch(getApiUrl('/pricing-plans/admin'), { headers }),
       ]);
 
-      if (!usersRes.ok || !pendingRes.ok || !sessionsRes.ok || !challengesRes.ok || !participantsRes.ok) {
+      if (!usersRes.ok || !pendingRes.ok || !sessionsRes.ok || !challengesRes.ok || !participantsRes.ok || !pricingRes.ok) {
         throw new Error('Impossible de charger les donnees admin.');
       }
 
-      const [usersPayload, pendingPayload, sessionsPayload, challengesPayload, participantsPayload] = await Promise.all([
+      const [usersPayload, pendingPayload, sessionsPayload, challengesPayload, participantsPayload, pricingPayload] = await Promise.all([
         usersRes.json(),
         pendingRes.json(),
         sessionsRes.json(),
         challengesRes.json(),
         participantsRes.json(),
+        pricingRes.json(),
       ]);
 
       setUsers(parseList(usersPayload));
@@ -212,6 +257,7 @@ export default function AdminClient() {
       setSessions(parseList(sessionsPayload));
       setChallenges(parseList(challengesPayload));
       setParticipants(parseList(participantsPayload));
+      setPricingPlans(parseList(pricingPayload));
     } catch (err) {
       setError(err.message || 'Erreur de chargement admin.');
     }
@@ -1049,6 +1095,167 @@ export default function AdminClient() {
     }
   }
 
+  function buildPricingPayloadFromDraft(draft) {
+    const features = String(draft.features || '')
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    return {
+      name: String(draft.name || '').trim(),
+      description: String(draft.description || '').trim() || null,
+      features,
+      price: draft.price === '' ? null : Number(String(draft.price).replace(',', '.')),
+      currency: String(draft.currency || 'EUR').trim().toUpperCase(),
+      billing_cycle: String(draft.billing_cycle || 'monthly').trim().toLowerCase(),
+      cta_label: String(draft.cta_label || '').trim() || null,
+      is_active: Boolean(draft.is_active),
+      highlighted: Boolean(draft.highlighted),
+      max_users: draft.max_users === '' ? null : Number(draft.max_users),
+      max_sessions_per_month: draft.max_sessions_per_month === '' ? null : Number(draft.max_sessions_per_month),
+      support_level: String(draft.support_level || '').trim() || null,
+      trial_days: draft.trial_days === '' ? null : Number(draft.trial_days),
+      display_order: draft.display_order === '' ? 0 : Number(draft.display_order),
+    };
+  }
+
+  async function submitNewPricingPlan(event) {
+    event.preventDefault();
+    if (!token) return;
+
+    setNewPricingMessage('');
+    const payload = buildPricingPayloadFromDraft(newPricingPlan);
+
+    if (!payload.name) {
+      setNewPricingMessage('Le nom de la formule est requis.');
+      return;
+    }
+
+    if (!Number.isFinite(payload.price) || payload.price < 0) {
+      setNewPricingMessage('Le prix est requis et doit etre positif.');
+      return;
+    }
+
+    if (!PRICING_BILLING_CYCLES.has(payload.billing_cycle)) {
+      setNewPricingMessage('Cycle de facturation invalide.');
+      return;
+    }
+
+    const key = 'create:pricing-plan';
+    setBusySaveKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl('/pricing-plans'), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(body.error || `Creation formule impossible (${response.status})`);
+      }
+
+      setNewPricingPlan(DEFAULT_NEW_PRICING_PLAN);
+      setNewPricingMessage('Formule creee avec succes.');
+      await loadAll();
+      showNotice('Formule tarifaire creee.');
+    } catch (err) {
+      setNewPricingMessage(err.message || 'Creation formule impossible.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  function beginEditPricingPlan(plan) {
+    setEditingPricingPlan(planToDraft(plan));
+  }
+
+  async function submitEditPricingPlan(event) {
+    event.preventDefault();
+    if (!token || !editingPricingPlan?.id) return;
+
+    const payload = buildPricingPayloadFromDraft(editingPricingPlan);
+    if (!payload.name) {
+      setError('Le nom de la formule est requis.');
+      return;
+    }
+
+    if (!Number.isFinite(payload.price) || payload.price < 0) {
+      setError('Le prix doit etre valide et positif.');
+      return;
+    }
+
+    if (!PRICING_BILLING_CYCLES.has(payload.billing_cycle)) {
+      setError('Cycle de facturation invalide.');
+      return;
+    }
+
+    const key = `save:pricing-plan:${editingPricingPlan.id}`;
+    setBusySaveKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/pricing-plans/${editingPricingPlan.id}`), {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(body.error || `Mise a jour formule impossible (${response.status})`);
+      }
+
+      setEditingPricingPlan(null);
+      await loadAll();
+      showNotice('Formule tarifaire mise a jour.');
+    } catch (err) {
+      setError(err.message || 'Erreur lors de la mise a jour de la formule.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  async function handleDeletePricingPlan(plan) {
+    if (!token || !plan?.id) return;
+    const accepted = window.confirm(`Supprimer la formule ${plan.name || plan.id} ?`);
+    if (!accepted) return;
+
+    const key = `pricing-plan:${plan.id}`;
+    setBusyDeleteKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/pricing-plans/${plan.id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || `Suppression formule impossible (${response.status})`);
+      }
+
+      if (editingPricingPlan && String(editingPricingPlan.id) === String(plan.id)) {
+        setEditingPricingPlan(null);
+      }
+      await loadAll();
+      showNotice('Formule tarifaire supprimee.');
+    } catch (err) {
+      setError(err.message || 'Erreur lors de la suppression de la formule.');
+    } finally {
+      setBusyDeleteKey('');
+    }
+  }
+
   function logout() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
@@ -1075,8 +1282,9 @@ export default function AdminClient() {
       sessions: sessions.length,
       activeSessions: sessions.filter((s) => s.status === 'en_cours').length,
       challenges: challenges.length,
+      pricingPlans: pricingPlans.length,
     }),
-    [users, pendingUsers, participants, sessions, challenges]
+    [users, pendingUsers, participants, sessions, challenges, pricingPlans]
   );
 
   const filteredUsers = useMemo(() => {
@@ -1136,6 +1344,25 @@ export default function AdminClient() {
     });
   }, [challenges, challengeQuery]);
 
+  const filteredPricingPlans = useMemo(() => {
+    const query = pricingQuery.trim().toLowerCase();
+    if (!query) return pricingPlans;
+    return pricingPlans.filter((plan) => {
+      const haystack = [
+        plan.name,
+        plan.description,
+        plan.currency,
+        plan.billing_cycle,
+        plan.support_level,
+        ...(Array.isArray(plan.features) ? plan.features : []),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [pricingPlans, pricingQuery]);
+
   const filteredAssignableMembers = useMemo(() => {
     const query = newSessionMemberQuery.trim().toLowerCase();
     const source = participants.filter((participant) => !Boolean(participant?.disabled));
@@ -1184,6 +1411,7 @@ export default function AdminClient() {
     { id: 'participants', label: 'Participants', badge: null },
     { id: 'sessions', label: 'Sessions', badge: stats.activeSessions > 0 ? stats.activeSessions : null },
     { id: 'challenges', label: 'Challenges', badge: null },
+    { id: 'pricing', label: 'Tarification', badge: stats.pricingPlans > 0 ? stats.pricingPlans : null },
   ];
 
   return (
@@ -1333,6 +1561,7 @@ export default function AdminClient() {
                   { value: stats.sessions, label: 'Sessions' },
                   { value: stats.activeSessions, label: 'Sessions en cours', highlight: stats.activeSessions > 0 },
                   { value: stats.challenges, label: 'Challenges' },
+                  { value: stats.pricingPlans, label: 'Formules tarifaires' },
                 ].map((item) => (
                     <div key={item.label} style={{
                     background: 'var(--color-surface, #fff)',
@@ -1919,6 +2148,180 @@ export default function AdminClient() {
                       </div>
                     </form>
                   )}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* ── TARIFICATION ── */}
+          {activeTab === 'pricing' ? (
+            <div>
+              <div style={{ marginBottom: '28px' }}>
+                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Tarification</h1>
+                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
+                  Creez et administrez vos offres commerciales (nom, fonctionnalites, prix et options avancees).
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
+                    Liste {pricingPlans.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredPricingPlans.length}/{pricingPlans.length})</span> : null}
+                  </h2>
+                  <input
+                    type="search"
+                    className="inline-input"
+                    placeholder="Rechercher une formule..."
+                    value={pricingQuery}
+                    onChange={(e) => setPricingQuery(e.target.value)}
+                    style={{ marginBottom: '12px', width: '100%' }}
+                  />
+
+                  <ul className="session-list" style={{ margin: 0 }}>
+                    {filteredPricingPlans.length === 0 ? <li className="list-empty">Aucune formule ne correspond.</li> : null}
+                    {filteredPricingPlans.map((plan) => (
+                      <li key={String(plan.id)} className="session-item">
+                        <div>
+                          <p className="session-title">
+                            {plan.name}
+                            {plan.highlighted ? ' · Populaire' : ''}
+                          </p>
+                          <p className="session-meta">
+                            {typeof plan.price === 'number' ? `${plan.price.toFixed(2)} ${plan.currency || 'EUR'}` : 'Prix non defini'}
+                            {' · '}
+                            {plan.billing_cycle || 'monthly'}
+                            {' · '}
+                            {plan.is_active ? 'Active' : 'Inactive'}
+                          </p>
+                        </div>
+                        <div className="session-item-actions icon-only-actions">
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => beginEditPricingPlan(plan)}
+                            title="Modifier"
+                            aria-label="Modifier formule"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-action-btn icon-action-danger"
+                            onClick={() => handleDeletePricingPlan(plan)}
+                            disabled={busyDeleteKey === `pricing-plan:${plan.id}`}
+                            title="Supprimer"
+                            aria-label="Supprimer formule"
+                          >
+                            {busyDeleteKey === `pricing-plan:${plan.id}` ? '…' : '🗑'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer une formule</h2>
+                    <form className="auth-form" onSubmit={submitNewPricingPlan}>
+                      <label>Nom de l offre<input value={newPricingPlan.name} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
+                      <label>Description courte<textarea rows={3} value={newPricingPlan.description} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                      <label>Fonctionnalites incluses (une ligne = un point)
+                        <textarea rows={5} value={newPricingPlan.features} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, features: e.target.value }))} placeholder={'Ex: Dashboard manager\nSession live\nSupport email'} />
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <label>Prix<input type="number" min="0" step="0.01" value={newPricingPlan.price} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
+                        <label>Devise<input value={newPricingPlan.currency} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
+                      </div>
+                      <label>Cycle de facturation
+                        <select value={newPricingPlan.billing_cycle} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
+                          <option value="monthly">Mensuel</option>
+                          <option value="yearly">Annuel</option>
+                          <option value="one_time">Paiement unique</option>
+                          <option value="custom">Personnalise</option>
+                        </select>
+                      </label>
+                      <label>Label bouton CTA<input value={newPricingPlan.cta_label} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <label>Max utilisateurs<input type="number" min="0" value={newPricingPlan.max_users} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
+                        <label>Max sessions/mois<input type="number" min="0" value={newPricingPlan.max_sessions_per_month} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                        <label>Niveau support<input value={newPricingPlan.support_level} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} placeholder="Email, Prioritaire..." /></label>
+                        <label>Jours essai<input type="number" min="0" value={newPricingPlan.trial_days} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
+                        <label>Ordre affichage<input type="number" min="0" value={newPricingPlan.display_order} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                      </div>
+                      <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                          <input type="checkbox" checked={newPricingPlan.is_active} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, is_active: e.target.checked }))} />
+                          Offre active
+                        </label>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                          <input type="checkbox" checked={newPricingPlan.highlighted} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, highlighted: e.target.checked }))} />
+                          Mise en avant
+                        </label>
+                      </div>
+                      <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:pricing-plan'}>
+                        {busySaveKey === 'create:pricing-plan' ? 'Creation...' : 'Creer la formule'}
+                      </button>
+                    </form>
+                    {newPricingMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newPricingMessage}</p> : null}
+                  </div>
+
+                  <div style={{ background: 'var(--color-surface, #fff)', border: editingPricingPlan ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier une formule</h2>
+                    {!editingPricingPlan ? (
+                      <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>
+                        Selectionnez "Modifier" sur une formule pour l editer ici.
+                      </p>
+                    ) : (
+                      <form className="auth-form" onSubmit={submitEditPricingPlan}>
+                        <label>Nom de l offre<input value={editingPricingPlan.name} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
+                        <label>Description courte<textarea rows={3} value={editingPricingPlan.description} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                        <label>Fonctionnalites incluses (une ligne = un point)
+                          <textarea rows={5} value={editingPricingPlan.features} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, features: e.target.value }))} />
+                        </label>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                          <label>Prix<input type="number" min="0" step="0.01" value={editingPricingPlan.price} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
+                          <label>Devise<input value={editingPricingPlan.currency} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
+                        </div>
+                        <label>Cycle de facturation
+                          <select value={editingPricingPlan.billing_cycle} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
+                            <option value="monthly">Mensuel</option>
+                            <option value="yearly">Annuel</option>
+                            <option value="one_time">Paiement unique</option>
+                            <option value="custom">Personnalise</option>
+                          </select>
+                        </label>
+                        <label>Label bouton CTA<input value={editingPricingPlan.cta_label} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                          <label>Max utilisateurs<input type="number" min="0" value={editingPricingPlan.max_users} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
+                          <label>Max sessions/mois<input type="number" min="0" value={editingPricingPlan.max_sessions_per_month} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                          <label>Niveau support<input value={editingPricingPlan.support_level} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} /></label>
+                          <label>Jours essai<input type="number" min="0" value={editingPricingPlan.trial_days} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
+                          <label>Ordre affichage<input type="number" min="0" value={editingPricingPlan.display_order} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                        </div>
+                        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            <input type="checkbox" checked={editingPricingPlan.is_active} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, is_active: e.target.checked }))} />
+                            Offre active
+                          </label>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            <input type="checkbox" checked={editingPricingPlan.highlighted} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, highlighted: e.target.checked }))} />
+                            Mise en avant
+                          </label>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:pricing-plan:${editingPricingPlan.id}`}>
+                            {busySaveKey === `save:pricing-plan:${editingPricingPlan.id}` ? 'Enregistrement...' : 'Enregistrer'}
+                          </button>
+                          <button type="button" className="btn-secondary" onClick={() => setEditingPricingPlan(null)}>Annuler</button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
