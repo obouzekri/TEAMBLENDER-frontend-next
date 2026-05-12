@@ -27,6 +27,7 @@ export default function ParticipantPage() {
   const [assignedSessions, setAssignedSessions] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [sessionId, setSessionId] = useState('');
+  const [joiningSessionId, setJoiningSessionId] = useState(null);
   const pollRef = useRef(null);
   const hasRedirected = useRef(false);
   const [ready, setReady] = useState(false);
@@ -194,6 +195,32 @@ export default function ParticipantPage() {
     return String(user.id || user.userId || user.participantId || '').trim();
   }, [user]);
 
+  async function joinSession(sessionIdentifier) {
+    if (!sessionIdentifier) return;
+    setJoiningSessionId(sessionIdentifier);
+    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+    try {
+      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionIdentifier)}/runtime-challenge`), {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const payload = await res.json();
+        const engine = String(payload?.engine_key || '').trim();
+        if (engine) {
+          // Challenge is active — go directly to it
+          sessionStorage.setItem('targetSessionId', sessionIdentifier);
+          router.push(`/challenges/${encodeURIComponent(engine)}?sessionId=${encodeURIComponent(sessionIdentifier)}`);
+          return;
+        }
+      }
+    } catch {
+      // fall through to waiting room
+    }
+    // No active challenge yet — go to participant waiting room for this session
+    sessionStorage.setItem('targetSessionId', sessionIdentifier);
+    router.push(`/participant?sessionId=${encodeURIComponent(sessionIdentifier)}`);
+  }
+
   function logout() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
@@ -297,14 +324,10 @@ export default function ParticipantPage() {
                         type="button"
                         className="btn-primary"
                         style={{ width: '100%', justifyContent: 'center' }}
-                        onClick={() => {
-                          if (typeof window !== 'undefined') {
-                            sessionStorage.setItem('targetSessionId', sessionIdentifier);
-                            window.location.assign(joinUrl);
-                          }
-                        }}
+                        disabled={joiningSessionId === sessionIdentifier}
+                        onClick={() => joinSession(sessionIdentifier)}
                       >
-                        Rejoindre
+                        {joiningSessionId === sessionIdentifier ? 'Connexion...' : 'Rejoindre'}
                       </button>
                     </article>
                   );
