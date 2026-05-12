@@ -875,6 +875,152 @@ a {
   background: rgba(15, 118, 110, 0.05);
 }
 
+/* === PRICING CONTROLS === */
+.pricing-controls {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem 1.2rem;
+}
+
+.controls-group {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.control-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.control-section label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.toggle-group {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  padding: 0.45rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.toggle-btn:not(.active):hover {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.currency-select {
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  color: var(--ink);
+  background: var(--card);
+  cursor: pointer;
+  min-width: 90px;
+}
+
+.currency-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+.pricing-original {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  opacity: 0.65;
+}
+
+.pricing-discount-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.pricing-card-featured {
+  border-color: rgba(15, 118, 110, 0.4);
+  border-top: 3px solid var(--accent);
+  box-shadow: 0 14px 30px rgba(15, 118, 110, 0.14);
+}
+
+.pricing-empty {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--card);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pricing-empty-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.pricing-empty h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.pricing-empty p {
+  margin: 0;
+  color: var(--ink-soft);
+  max-width: 50ch;
+}
+
+.pricing-footer-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  flex-wrap: wrap;
+}
+
+.pricing-footer-cta p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
 .auth-page {
   padding: 2.4rem 0;
 }
@@ -1008,13 +1154,19 @@ a {
 }
 
 .contact-hero {
-  margin-bottom: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(130deg, #f0f7ff 0%, #e8f4f0 55%, #f3f0e8 100%);
+  box-shadow: 0 18px 34px rgba(20, 31, 25, 0.08);
+  padding: 1.4rem;
+  margin-bottom: 1.5rem;
 }
 
 .contact-hero h1 {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 2.5vw, 2.2rem);
   font-weight: 700;
-  color: #1f2937;
+  color: var(--ink);
+  margin: 0.55rem 0 0;
 }
 
 .contact-layout {
@@ -1041,6 +1193,72 @@ a {
 .contact-layout .btn-primary:hover,
 .auth-page .btn-primary:hover {
   box-shadow: var(--button-primary-shadow-hover);
+}
+
+.contact-info-items {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.contact-info-item {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+
+.contact-info-item:last-child {
+  border-bottom: none;
+}
+
+.contact-info-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.contact-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.contact-info-text strong {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.contact-info-text span,
+.contact-info-text a {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.contact-trust-box {
+  margin-top: 1.2rem;
+  padding: 0.85rem 1rem;
+  background: var(--accent-soft);
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+
+.contact-trust-box p {
+  margin: 0 !important;
+  color: var(--ink-soft) !important;
 }
 
 .contact-list {

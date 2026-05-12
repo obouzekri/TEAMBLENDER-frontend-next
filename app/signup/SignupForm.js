@@ -27,7 +27,7 @@ export default function SignupForm() {
       return;
     }
     if (password.length < 8) {
-      setMessage('Le mot de passe doit contenir au moins 8 caracteres.');
+      setMessage('Le mot de passe doit contenir au moins 8 caractères.');
       return;
     }
 
@@ -42,7 +42,7 @@ export default function SignupForm() {
 
       if (res.status === 201) {
         setDone(true);
-        setMessage('Votre compte a bien ete cree. Votre demande est en attente de validation par un administrateur.');
+        setMessage('Votre compte a bien été créé. Votre demande est en attente de validation par un administrateur.');
         return;
       }
 
@@ -51,9 +51,9 @@ export default function SignupForm() {
         return;
       }
 
-      setMessage(data?.message || data?.error || text || 'Une erreur est survenue. Veuillez reessayer.');
+      setMessage(data?.message || data?.error || text || 'Une erreur est survenue. Veuillez réessayer.');
     } catch {
-      setMessage('Impossible de contacter le serveur. Verifiez votre connexion.');
+      setMessage('Impossible de contacter le serveur. Vérifiez votre connexion.');
     } finally {
       setLoading(false);
     }
@@ -62,19 +62,19 @@ export default function SignupForm() {
   return (
     <main className="shell auth-page">
       <AuthCard
-        title="Creer un compte TEAMSPARK"
-        footer={<span>Deja un compte ? <Link href="/login">Se connecter</Link></span>}
+        title="Créer un compte TEAMSPARK"
+        footer={<span>Déjà un compte ? <Link href="/login">Se connecter</Link></span>}
       >
         {done ? (
           <div className="success-box">
             <p>{message}</p>
-            <Link href="/login" className="btn-secondary wide">Retour a la connexion</Link>
+            <Link href="/login" className="btn-secondary wide">Retour à la connexion</Link>
           </div>
         ) : (
           <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
             <label>
-              Prenom *
-              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required placeholder="Votre prenom" />
+              Prénom *
+              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required placeholder="Votre prénom" />
             </label>
 
             <label>
@@ -93,7 +93,7 @@ export default function SignupForm() {
             </label>
 
             <button type="submit" className="btn-primary wide" disabled={loading}>
-              {loading ? 'Creation...' : 'Creer mon compte'}
+              {loading ? 'Création...' : 'Créer mon compte'}
             </button>
 
             {message ? <p className="form-error">{message}</p> : null}

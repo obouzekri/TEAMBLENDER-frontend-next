@@ -7,10 +7,10 @@ import { getRedirectPath, loginWithFallback, resolveConnectedUserId } from '@/li
 
 function errorMessage(resStatus, data) {
   if (data?.code === 'ACCOUNT_PENDING') return 'Votre compte est en attente de validation par un administrateur.';
-  if (data?.code === 'ACCOUNT_REJECTED') return 'Votre demande de compte a ete refusee. Contactez un administrateur.';
-  if (data?.code === 'ACCOUNT_DISABLED') return 'Ce compte a ete desactive. Contactez un administrateur.';
+  if (data?.code === 'ACCOUNT_REJECTED') return 'Votre demande de compte a été refusée. Contactez un administrateur.';
+  if (data?.code === 'ACCOUNT_DISABLED') return 'Ce compte a été désactivé. Contactez un administrateur.';
   if (resStatus === 401) return 'Email ou mot de passe invalide.';
-  return data?.error || 'Une erreur est survenue. Veuillez reessayer.';
+  return data?.error || 'Une erreur est survenue. Veuillez réessayer.';
 }
 
 export default function LoginForm({ requestedSessionId = '' }) {
@@ -52,7 +52,7 @@ export default function LoginForm({ requestedSessionId = '' }) {
 
       setMessage(errorMessage(response.status, data));
     } catch {
-      setMessage('Impossible de contacter le serveur. Verifiez votre connexion.');
+      setMessage('Impossible de contacter le serveur. Vérifiez votre connexion.');
     } finally {
       setLoading(false);
     }
@@ -61,8 +61,8 @@ export default function LoginForm({ requestedSessionId = '' }) {
   return (
     <main className="shell auth-page">
       <AuthCard
-        title="Connexion a TEAMSPARK"
-        footer={<span>Pas encore de compte ? <Link href="/signup">Creer un compte</Link></span>}
+        title="Connexion à TEAMSPARK"
+        footer={<span>Pas encore de compte ? <Link href="/signup">Créer un compte</Link></span>}
       >
         <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
           <label>

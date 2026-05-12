@@ -6,13 +6,6 @@ import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 
-const BILLING_LABELS = {
-  monthly: '/mois',
-  yearly: '/an',
-  one_time: 'paiement unique',
-  custom: 'sur mesure',
-};
-
 const CURRENCY_SYMBOLS = {
   EUR: '€',
   USD: '$',
@@ -104,19 +97,19 @@ export default function PricingPage() {
       <main className="shell pricing-page">
         <section className="pricing-hero reveal-up" aria-label="Tarification TEAMSPARK">
           <p className="eyebrow">Tarification</p>
-          <h1>Des formules simples pour lancer et faire grandir vos sessions d equipe.</h1>
+          <h1>Des formules simples pour faire grandir vos sessions d'équipe.</h1>
           <p>
-            Commencez avec une offre legere, puis montez en puissance avec plus de capacites,
-            d accompagnement et de personnalisation.
+            Commencez avec une offre légère, puis montez en puissance avec plus de capacités,
+            d'accompagnement et de personnalisation.
           </p>
         </section>
 
         {/* Billing Cycle & Currency Selector */}
         {!loading && sortedPlans.length > 0 ? (
-          <section className="pricing-controls reveal-up" aria-label="Options d affichage">
+          <section className="pricing-controls reveal-up" aria-label="Options d'affichage">
             <div className="controls-group">
               <div className="control-section">
-                <label>Frequence de facturation</label>
+                <label>Fréquence de facturation</label>
                 <div className="toggle-group">
                   <button
                     className={`toggle-btn ${selectedBilling === 'monthly' ? 'active' : ''}`}
@@ -165,14 +158,15 @@ export default function PricingPage() {
         ) : null}
 
         {!loading && !error && sortedPlans.length === 0 ? (
-          <section className="feature-card" aria-label="Aucune formule">
+          <section className="pricing-empty reveal-up" aria-label="Aucune formule">
+            <div className="pricing-empty-icon">💬</div>
             <h2>Formules en cours de finalisation</h2>
             <p>
-              Notre equipe prepare les offres. Contactez-nous pour recevoir une proposition adaptee a votre contexte.
+              Notre équipe prépare les offres. Contactez-nous pour recevoir une proposition adaptée à votre contexte.
             </p>
             <div className="hero-actions">
               <Link href="/contact" className="btn-primary">Demander une proposition</Link>
-              <Link href="/signup" className="btn-secondary">Creer un compte</Link>
+              <Link href="/signup" className="btn-secondary">Créer un compte</Link>
             </div>
           </section>
         ) : null}
@@ -181,9 +175,9 @@ export default function PricingPage() {
           <section className="pricing-grid reveal-up" aria-label="Formules disponibles">
             {displayedPlans.map((plan) => (
               <article key={String(plan.id)} className={`feature-card pricing-card${plan.highlighted ? ' pricing-card-featured' : ''}`}>
-                {plan.highlighted ? <span className="pricing-badge">Recommande</span> : null}
+                {plan.highlighted ? <span className="pricing-badge">Recommandé</span> : null}
                 {plan.discountPercentage > 0 && (selectedBilling === 'annual' || selectedBilling === 'yearly') ? (
-                  <span className="pricing-discount-badge">Economisez {plan.discountPercentage}%</span>
+                  <span className="pricing-discount-badge">Économisez {plan.discountPercentage}%</span>
                 ) : null}
                 <p className="eyebrow">{plan.name}</p>
                 <h2>
@@ -192,7 +186,7 @@ export default function PricingPage() {
                 </h2>
                 {plan.originalPriceCents ? (
                   <p className="pricing-original">
-                    ~~{formatPriceCents(plan.originalPriceCents, selectedCurrency)}~~
+                    <s>{formatPriceCents(plan.originalPriceCents, selectedCurrency)}</s>
                   </p>
                 ) : null}
                 {plan.description ? <p>{plan.description}</p> : null}
@@ -208,16 +202,23 @@ export default function PricingPage() {
                 <div className="pricing-meta-row">
                   {plan.max_users ? <span>{plan.max_users} utilisateurs max</span> : null}
                   {plan.max_sessions_per_month ? <span>{plan.max_sessions_per_month} sessions / mois</span> : null}
-                  {plan.trial_days ? <span>{plan.trial_days} jours d essai</span> : null}
+                  {plan.trial_days ? <span>{plan.trial_days} jours d'essai</span> : null}
                   {plan.support_level ? <span>Support {plan.support_level}</span> : null}
                 </div>
 
                 <div className="hero-actions">
                   <Link href="/signup" className="btn-primary">{plan.cta_label || 'Choisir cette formule'}</Link>
-                  <Link href="/contact" className="btn-secondary">Parler a l equipe</Link>
+                  <Link href="/contact" className="btn-secondary">Parler à l'équipe</Link>
                 </div>
               </article>
             ))}
+          </section>
+        ) : null}
+
+        {!loading && !error && sortedPlans.length > 0 ? (
+          <section className="pricing-footer-cta reveal-up">
+            <p>Une question sur les formules ?</p>
+            <Link href="/contact" className="btn-secondary">Contacter l'équipe</Link>
           </section>
         ) : null}
       </main>

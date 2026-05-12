@@ -28,7 +28,7 @@ export default function ContactPage() {
     const subject = encodeURIComponent(`[TEAMSPARK] ${form.need}`);
     const body = encodeURIComponent(
       `Nom: ${form.name}\n` +
-      `Entreprise: ${form.company || 'Non renseignee'}\n` +
+      `Entreprise: ${form.company || 'Non renseignée'}\n` +
       `Email: ${form.email}\n` +
       `Besoin: ${form.need}\n\n` +
       `Message:\n${form.message}`
@@ -41,21 +41,44 @@ export default function ContactPage() {
     <>
       <TopNav />
       <main className="shell contact-page">
-        <section className="hero contact-hero">
+        <section className="contact-hero reveal-up" aria-label="Contactez TEAMSPARK">
           <p className="eyebrow">TEAMSPARK</p>
           <h1>Parlons de votre prochain team building</h1>
-          <p>Cette etape sert a cadrer votre besoin et voir comment lancer un challenge utile pour votre equipe.</p>
+          <p>Cette étape sert à cadrer votre besoin et voir comment lancer un challenge utile pour votre équipe.</p>
         </section>
 
         <section className="contact-layout">
-          <article className="feature-card">
+          <article className="feature-card contact-info-card">
             <h2>Comment nous joindre</h2>
-            <p>Pour un cadrage, une demo MVP ou une question RH, ecrivez-nous.</p>
-            <ul className="contact-list">
-              <li><strong>Email:</strong> <a href="mailto:contact@teamspark.app">contact@teamspark.app</a></li>
-              <li><strong>Delai:</strong> reponse en 24 a 48h ouvrees.</li>
-              <li><strong>A partager:</strong> taille d equipe, objectif, format, echeance.</li>
-            </ul>
+            <p>Pour un cadrage, une démonstration ou une question RH, écrivez-nous.</p>
+
+            <div className="contact-info-items">
+              <div className="contact-info-item">
+                <div className="contact-info-icon">✉</div>
+                <div className="contact-info-text">
+                  <strong>Email direct</strong>
+                  <a href="mailto:contact@teamspark.app">contact@teamspark.app</a>
+                </div>
+              </div>
+              <div className="contact-info-item">
+                <div className="contact-info-icon">⏱</div>
+                <div className="contact-info-text">
+                  <strong>Délai de réponse</strong>
+                  <span>Sous 24 à 48h ouvrées</span>
+                </div>
+              </div>
+              <div className="contact-info-item">
+                <div className="contact-info-icon">📋</div>
+                <div className="contact-info-text">
+                  <strong>Pour un cadrage rapide, partagez</strong>
+                  <span>Taille d'équipe, objectif, format, échéance</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="contact-trust-box">
+              <p>Pas encore prêt ? <a href="/pricing">Consultez nos formules</a> ou <a href="/signup">créez un compte</a> pour explorer librement.</p>
+            </div>
           </article>
 
           <article className="feature-card">
@@ -63,12 +86,12 @@ export default function ContactPage() {
             <form className="auth-form" onSubmit={openEmail}>
               <label>
                 Nom complet *
-                <input type="text" required value={form.name} onChange={(e) => updateField('name', e.target.value)} placeholder="Ex: Sarah Martin" />
+                <input type="text" required value={form.name} onChange={(e) => updateField('name', e.target.value)} placeholder="Ex : Sarah Martin" />
               </label>
 
               <label>
                 Entreprise
-                <input type="text" value={form.company} onChange={(e) => updateField('company', e.target.value)} placeholder="Ex: Agence A2D" />
+                <input type="text" value={form.company} onChange={(e) => updateField('company', e.target.value)} placeholder="Ex : Agence A2D" />
               </label>
 
               <label>
@@ -79,9 +102,9 @@ export default function ContactPage() {
               <label>
                 Votre besoin principal *
                 <select required value={form.need} onChange={(e) => updateField('need', e.target.value)}>
-                  <option value="">Selectionnez un besoin</option>
-                  <option value="Demander une demonstration">Demander une demonstration</option>
-                  <option value="Preparer une session d equipe">Preparer une session d equipe</option>
+                  <option value="">Sélectionnez un besoin</option>
+                  <option value="Demander une démonstration">Demander une démonstration</option>
+                  <option value="Préparer une session d'équipe">Préparer une session d'équipe</option>
                   <option value="Explorer un usage RH">Explorer un usage RH</option>
                   <option value="Poser une question produit">Poser une question produit</option>
                 </select>
@@ -89,10 +112,10 @@ export default function ContactPage() {
 
               <label>
                 Message *
-                <textarea rows={6} required value={form.message} onChange={(e) => updateField('message', e.target.value)} placeholder="Contexte, objectif equipe et format envisage." />
+                <textarea rows={6} required value={form.message} onChange={(e) => updateField('message', e.target.value)} placeholder="Contexte, objectif équipe et format envisagé." />
               </label>
 
-              <button type="submit" className="btn-primary wide">Ouvrir mon email</button>
+              <button type="submit" className="btn-primary wide">Ouvrir mon email →</button>
             </form>
           </article>
         </section>
