@@ -508,81 +508,130 @@ export default function SessionBuilder() {
         <ToastContainer toasts={toasts} onRemove={removeToast} />
         <AppNav userLabel={userLabel} onLogout={logout} />
         <main className="shell auth-page">
-          <section className="feature-card" style={{ maxWidth: '480px', margin: '0 auto' }}>
-            <p className="eyebrow">NOUVELLE SESSION</p>
-            <h1 style={{ fontSize: '1.6rem', margin: '0.25rem 0 0.75rem' }}>Préparer la session</h1>
-            <p style={{ color: 'var(--color-muted, #6b7280)', marginBottom: '1.25rem', fontSize: '14px' }}>
-              Definissez la session puis assignez directement les participants, sans changer d'ecran.
-            </p>
-            <form onSubmit={handleCreateSession} className={styles.creationForm}>
-              <div className={styles.creationGrid}>
-                <label className={styles.creationField}>
-                  <span>Nom de la session</span>
-                  <input
-                    value={sessionName}
-                    onChange={(e) => setSessionName(e.target.value)}
-                    placeholder="Ex: Team Building Q2 2026"
-                    autoFocus
-                    required
-                  />
-                </label>
-                <label className={styles.creationField}>
-                  <span>Date et heure prévues</span>
-                  <input
-                    type="datetime-local"
-                    value={sessionDateTime}
-                    onChange={(e) => setSessionDateTime(e.target.value)}
-                    step="60"
-                  />
-                </label>
+          <section className={styles.creationExperience}>
+            <div className={styles.creationHero}>
+              <div className={styles.creationHeroTop}>
+                <p className="eyebrow">NOUVELLE SESSION</p>
+                <span className={styles.creationHeroBadge}>Configuration en un seul ecran</span>
               </div>
-              <div className={styles.creationField} style={{ marginTop: '1rem' }}>
-                <span>Mode de progression des challenges</span>
-                <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.5rem' }}>
-                  <label style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', padding: '0.85rem 1rem', border: '1px solid var(--color-border, #d1d5db)', borderRadius: '12px', background: flowMode === 'manual' ? 'rgba(15, 23, 42, 0.04)' : '#fff' }}>
-                    <input
-                      type="radio"
-                      name="flowMode"
-                      value="manual"
-                      checked={flowMode === 'manual'}
-                      onChange={() => setFlowMode('manual')}
-                    />
-                    <span>
-                      <strong>Manuel</strong><br />
-                      Le facilitateur garde la main et passe au challenge suivant quand il le décide.
-                    </span>
-                  </label>
-                  <label style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', padding: '0.85rem 1rem', border: '1px solid var(--color-border, #d1d5db)', borderRadius: '12px', background: flowMode === 'auto' ? 'rgba(15, 23, 42, 0.04)' : '#fff' }}>
-                    <input
-                      type="radio"
-                      name="flowMode"
-                      value="auto"
-                      checked={flowMode === 'auto'}
-                      onChange={() => setFlowMode('auto')}
-                    />
-                    <span>
-                      <strong>Automatique</strong><br />
-                      Les challenges s&apos;enchaînent automatiquement après la fin du challenge en cours.
-                    </span>
-                  </label>
+              <h1 className={styles.creationTitle}>Préparer la session</h1>
+              <p className={styles.creationLead}>
+                Organisez le cadre de la session et l&apos;assignation des participants dans une seule vue,
+                claire et immediate.
+              </p>
+
+              <div className={styles.creationStats}>
+                <div className={styles.creationStatCard}>
+                  <span className={styles.creationStatLabel}>Participants assignes</span>
+                  <strong>{draftParticipantIds.length}</strong>
+                  <small>Selection en direct</small>
+                </div>
+                <div className={styles.creationStatCard}>
+                  <span className={styles.creationStatLabel}>Progression</span>
+                  <strong>{flowMode === 'manual' ? 'Manuelle' : 'Automatique'}</strong>
+                  <small>Modifiable avant lancement</small>
                 </div>
               </div>
-              <p className={styles.creationHint}>
-                La date de session est facultative, mais elle aide a planifier et relire vos sessions plus vite.
-              </p>
-              <ParticipantAssigner
-                isLoading={isCreatingSession}
-                selectedIds={draftParticipantIds}
-                onSelectionChange={setDraftParticipantIds}
-                embedded
-                hideActions
-                title="Participants de la session"
-                subtitle="Selectionnez maintenant les participants a assigner a la session."
-              />
-              <button type="submit" className="btn-primary" disabled={isCreatingSession}>
-                {isCreatingSession ? 'Creation...' : 'Creer la session'}
-              </button>
-            </form>
+
+              <div className={styles.creationContent}>
+                <form onSubmit={handleCreateSession} className={styles.creationForm}>
+                  <div className={styles.creationSectionHeader}>
+                    <div>
+                      <h2>Cadre de session</h2>
+                      <p>Renseignez l&apos;essentiel sans quitter cette vue.</p>
+                    </div>
+                  </div>
+
+                  <div className={styles.creationGrid}>
+                    <label className={styles.creationField}>
+                      <span>Nom de la session</span>
+                      <input
+                        value={sessionName}
+                        onChange={(e) => setSessionName(e.target.value)}
+                        placeholder="Ex: Team Building Q2 2026"
+                        autoFocus
+                        required
+                      />
+                    </label>
+                    <label className={styles.creationField}>
+                      <span>Date et heure prévues</span>
+                      <input
+                        type="datetime-local"
+                        value={sessionDateTime}
+                        onChange={(e) => setSessionDateTime(e.target.value)}
+                        step="60"
+                      />
+                    </label>
+                  </div>
+
+                  <div className={styles.flowModeField}>
+                    <div className={styles.creationFieldHeading}>
+                      <span>Mode de progression des challenges</span>
+                      <p>Choisissez le niveau d&apos;autonomie du déroulé.</p>
+                    </div>
+                    <div className={styles.flowModeGrid}>
+                      <label className={`${styles.flowModeCard} ${flowMode === 'manual' ? styles.flowModeCardActive : ''}`}>
+                        <input
+                          type="radio"
+                          name="flowMode"
+                          value="manual"
+                          checked={flowMode === 'manual'}
+                          onChange={() => setFlowMode('manual')}
+                        />
+                        <span className={styles.flowModeContent}>
+                          <strong>Manuel</strong>
+                          <small>Le facilitateur garde la main et pilote le rythme de la session.</small>
+                        </span>
+                      </label>
+                      <label className={`${styles.flowModeCard} ${flowMode === 'auto' ? styles.flowModeCardActive : ''}`}>
+                        <input
+                          type="radio"
+                          name="flowMode"
+                          value="auto"
+                          checked={flowMode === 'auto'}
+                          onChange={() => setFlowMode('auto')}
+                        />
+                        <span className={styles.flowModeContent}>
+                          <strong>Automatique</strong>
+                          <small>Les challenges s&apos;enchaînent automatiquement une fois le precedent terminé.</small>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className={styles.creationFooter}>
+                    <p className={styles.creationHint}>
+                      La date est facultative, mais utile pour planifier et retrouver rapidement vos sessions.
+                    </p>
+                    <button type="submit" className={`btn-primary ${styles.creationSubmit}`} disabled={isCreatingSession}>
+                      {isCreatingSession ? 'Creation...' : 'Creer la session'}
+                    </button>
+                  </div>
+                </form>
+
+                <aside className={styles.creationParticipantsPane}>
+                  <div className={styles.creationSectionHeader}>
+                    <div>
+                      <h2>Participants</h2>
+                      <p>Assignez les bonnes personnes avant de passer au catalogue.</p>
+                    </div>
+                    <span className={styles.creationParticipantsCount}>
+                      {draftParticipantIds.length} selectionne{draftParticipantIds.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <ParticipantAssigner
+                    isLoading={isCreatingSession}
+                    selectedIds={draftParticipantIds}
+                    onSelectionChange={setDraftParticipantIds}
+                    embedded
+                    hideActions
+                    title="Participants de la session"
+                    subtitle="Selectionnez maintenant les participants a assigner a la session."
+                  />
+                </aside>
+              </div>
+            </div>
           </section>
         </main>
         <Footer />
