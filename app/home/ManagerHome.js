@@ -85,8 +85,6 @@ export default function ManagerHome() {
     job_title: '',
     department: '',
   });
-  const [memberQuery, setMemberQuery] = useState('');
-
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
 
   const STATUS_LABEL = { en_cours: 'En cours', preparee: 'En préparation', terminee: 'Terminée' };
@@ -98,30 +96,6 @@ export default function ManagerHome() {
   }), [sessions]);
 
   const visibleSessions = useMemo(() => sessions.slice(0, visibleCount), [sessions, visibleCount]);
-
-  const filteredMembers = useMemo(() => {
-    const query = memberQuery.trim().toLowerCase();
-    if (!query) return members;
-    return members.filter((member) => {
-      const haystack = [
-        member.first_name,
-        member.last_name,
-        member.email,
-        member.department,
-        member.job_title,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [members, memberQuery]);
-
-  const memberStats = useMemo(() => ({
-    total: members.length,
-    completeProfiles: members.filter((m) => m.first_name && m.email && m.job_title && m.department).length,
-    withRole: members.filter((m) => m.job_title).length,
-  }), [members]);
 
   const memberFormChecks = useMemo(() => {
     const firstName = String(memberForm.first_name || '').trim();
@@ -563,208 +537,182 @@ export default function ManagerHome() {
           ) : null}
         </section>
 
-        <section id="home-participants-block" className="participants-grid participants-grid--enhanced home-anchor-target" aria-label="Participants de l'équipe">
-          <article className="feature-card participant-card participant-form-card">
-            <div className="participant-card-head">
-              <div>
+        <section id="home-participants-block" className="feature-card participants-panel home-anchor-target" aria-label="Participants de l'équipe">
+          <div className="participants-panel-head">
+            <div>
+              <p className="eyebrow">PARTICIPANTS</p>
+              <h2>Participants</h2>
+              <p>Liste des participants</p>
+            </div>
+            <div className="participants-panel-actions">
+              <span className="list-count">{members.length} profil{members.length !== 1 ? 's' : ''}</span>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={showParticipantForm || editingMemberId ? resetMemberForm : openNewMemberForm}
+              >
+                {showParticipantForm || editingMemberId ? 'Fermer le formulaire' : 'Créer un participant'}
+              </button>
+            </div>
+          </div>
+
+          {showParticipantForm || editingMemberId ? (
+            <article className="participant-inline-form">
+              <div className="participant-inline-form-head">
                 <p className="eyebrow">{editingMemberId ? 'MODIFIER PARTICIPANT' : 'NOUVEAU PARTICIPANT'}</p>
-                <h2>{editingMemberId ? 'Mettre à jour le profil' : 'Créer un profil'}</h2>
+                <h3>{editingMemberId ? 'Mettre à jour le profil' : 'Créer un participant'}</h3>
                 <p>
                   {editingMemberId
                     ? 'Modifiez les informations du participant sélectionné.'
                     : 'Ajoutez un participant pour l’assigner ensuite à vos sessions.'}
                 </p>
               </div>
-              <span className="participant-head-badge">{editingMemberId ? 'Edition active' : 'Ajout rapide'}</span>
-            </div>
 
-            <form className="participant-form" onSubmit={handleSubmitMember}>
-              <div className="participant-form-grid">
-                <label>
-                  Prénom *
-                  <input
-                    type="text"
-                    value={memberForm.first_name}
-                    onChange={(e) => setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))}
-                    placeholder="Ex: Sophie"
-                    className={formAttempted && !memberFormChecks.firstNameOk ? 'input-invalid' : ''}
-                    required
-                  />
-                  {formAttempted && !memberFormChecks.firstNameOk ? (
-                    <span className="field-error">Le prénom est requis.</span>
-                  ) : null}
-                </label>
-                <label>
-                  Nom
-                  <input
-                    type="text"
-                    value={memberForm.last_name}
-                    onChange={(e) => setMemberForm((prev) => ({ ...prev, last_name: e.target.value }))}
-                    placeholder="Ex: Martin"
-                  />
-                </label>
-                <label className="participant-field-full">
-                  Email *
-                  <input
-                    type="email"
-                    value={memberForm.email}
-                    onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
-                    placeholder="sophie@entreprise.com"
-                    className={formAttempted && !memberFormChecks.emailOk ? 'input-invalid' : ''}
-                    required
-                  />
-                  {formAttempted && !memberFormChecks.emailOk ? (
-                    <span className="field-error">L'email est requis.</span>
-                  ) : null}
-                </label>
-                <label className="participant-field-full">
-                  Mot de passe {editingMemberId ? '(optionnel)' : '*'}
-                  <input
-                    type="password"
-                    value={memberForm.password}
-                    onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
-                    placeholder={editingMemberId ? 'Laisser vide pour conserver le mot de passe actuel' : 'Minimum 8 caractères'}
-                    minLength={8}
-                    className={formAttempted && !memberFormChecks.passwordOk ? 'input-invalid' : ''}
-                    required={!editingMemberId}
-                  />
-                  {!editingMemberId ? (
-                    <span className="field-help">{memberFormChecks.passwordLength}/8 caractères minimum</span>
-                  ) : (
-                    <span className="field-help">Renseignez ce champ uniquement pour remplacer le mot de passe actuel.</span>
-                  )}
-                  {formAttempted && !memberFormChecks.passwordOk ? (
-                    <span className="field-error">Le mot de passe doit contenir au moins 8 caractères.</span>
-                  ) : null}
-                </label>
-                <label>
-                  Fonction
-                  <input
-                    type="text"
-                    value={memberForm.job_title}
-                    onChange={(e) => setMemberForm((prev) => ({ ...prev, job_title: e.target.value }))}
-                    placeholder="Ex: Product Manager"
-                  />
-                </label>
-                <label>
-                  Département
-                  <input
-                    type="text"
-                    value={memberForm.department}
-                    onChange={(e) => setMemberForm((prev) => ({ ...prev, department: e.target.value }))}
-                    placeholder="Ex: RH"
-                  />
-                </label>
-              </div>
-              <p className="participant-form-hint">Les champs marqués * sont requis pour créer un profil exploitable en session.</p>
-              {memberFormStatus ? (
-                <p className={`participant-form-status ${memberFormStatus.includes('succès') || memberFormStatus.includes('créé') ? 'participant-form-status--ok' : 'participant-form-status--warn'}`}>
-                  {memberFormStatus}
-                </p>
-              ) : null}
-              <div className="participant-form-actions">
-                {editingMemberId ? (
+              <form className="participant-form participant-form--embedded" onSubmit={handleSubmitMember}>
+                <div className="participant-form-grid">
+                  <label>
+                    Prénom *
+                    <input
+                      type="text"
+                      value={memberForm.first_name}
+                      onChange={(e) => setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))}
+                      placeholder="Ex: Sophie"
+                      className={formAttempted && !memberFormChecks.firstNameOk ? 'input-invalid' : ''}
+                      required
+                    />
+                    {formAttempted && !memberFormChecks.firstNameOk ? (
+                      <span className="field-error">Le prénom est requis.</span>
+                    ) : null}
+                  </label>
+                  <label>
+                    Nom
+                    <input
+                      type="text"
+                      value={memberForm.last_name}
+                      onChange={(e) => setMemberForm((prev) => ({ ...prev, last_name: e.target.value }))}
+                      placeholder="Ex: Martin"
+                    />
+                  </label>
+                  <label className="participant-field-full">
+                    Email *
+                    <input
+                      type="email"
+                      value={memberForm.email}
+                      onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
+                      placeholder="sophie@entreprise.com"
+                      className={formAttempted && !memberFormChecks.emailOk ? 'input-invalid' : ''}
+                      required
+                    />
+                    {formAttempted && !memberFormChecks.emailOk ? (
+                      <span className="field-error">L'email est requis.</span>
+                    ) : null}
+                  </label>
+                  <label className="participant-field-full">
+                    Mot de passe {editingMemberId ? '(optionnel)' : '*'}
+                    <input
+                      type="password"
+                      value={memberForm.password}
+                      onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
+                      placeholder={editingMemberId ? 'Laisser vide pour conserver le mot de passe actuel' : 'Minimum 8 caractères'}
+                      minLength={8}
+                      className={formAttempted && !memberFormChecks.passwordOk ? 'input-invalid' : ''}
+                      required={!editingMemberId}
+                    />
+                    {!editingMemberId ? (
+                      <span className="field-help">{memberFormChecks.passwordLength}/8 caractères minimum</span>
+                    ) : (
+                      <span className="field-help">Renseignez ce champ uniquement pour remplacer le mot de passe actuel.</span>
+                    )}
+                    {formAttempted && !memberFormChecks.passwordOk ? (
+                      <span className="field-error">Le mot de passe doit contenir au moins 8 caractères.</span>
+                    ) : null}
+                  </label>
+                  <label>
+                    Fonction
+                    <input
+                      type="text"
+                      value={memberForm.job_title}
+                      onChange={(e) => setMemberForm((prev) => ({ ...prev, job_title: e.target.value }))}
+                      placeholder="Ex: Product Manager"
+                    />
+                  </label>
+                  <label>
+                    Département
+                    <input
+                      type="text"
+                      value={memberForm.department}
+                      onChange={(e) => setMemberForm((prev) => ({ ...prev, department: e.target.value }))}
+                      placeholder="Ex: RH"
+                    />
+                  </label>
+                </div>
+                <p className="participant-form-hint">Les champs marqués * sont requis pour créer un profil exploitable en session.</p>
+                {memberFormStatus ? (
+                  <p className={`participant-form-status ${memberFormStatus.includes('succès') || memberFormStatus.includes('créé') ? 'participant-form-status--ok' : 'participant-form-status--warn'}`}>
+                    {memberFormStatus}
+                  </p>
+                ) : null}
+                <div className="participant-form-actions">
                   <button type="button" className="btn-secondary" onClick={resetMemberForm} disabled={creatingMember}>
                     Annuler
                   </button>
-                ) : null}
-                <button type="submit" className="btn-primary" disabled={!canSubmitMember}>
-                  {creatingMember
-                    ? (editingMemberId ? 'Mise à jour...' : 'Ajout en cours...')
-                    : (editingMemberId ? 'Enregistrer' : 'Ajouter un participant')}
-                </button>
-              </div>
-            </form>
-          </article>
+                  <button type="submit" className="btn-primary" disabled={!canSubmitMember}>
+                    {creatingMember
+                      ? (editingMemberId ? 'Mise à jour...' : 'Ajout en cours...')
+                      : (editingMemberId ? 'Enregistrer' : 'Ajouter un participant')}
+                  </button>
+                </div>
+              </form>
+            </article>
+          ) : null}
 
-          <article className="feature-card participant-card participant-list-card">
-            <div className="panel-head">
-              <div>
-                <p className="eyebrow">ÉQUIPE</p>
-                <h2>Participants de l'équipe</h2>
-                <p>Visualisez les profils disponibles avant d’assigner vos sessions.</p>
-              </div>
-              <span className="list-count">{members.length} profil{members.length !== 1 ? 's' : ''}</span>
-            </div>
+          {loadingMembers ? <p>Chargement des participants...</p> : null}
 
-            <div className="team-toolbar">
-              <input
-                type="search"
-                value={memberQuery}
-                onChange={(e) => setMemberQuery(e.target.value)}
-                placeholder="Rechercher un participant"
-                aria-label="Rechercher un participant"
-              />
-              <span>{filteredMembers.length} affiche{filteredMembers.length > 1 ? 's' : ''}</span>
-            </div>
+          {!loadingMembers && members.length === 0 ? (
+            <p className="team-empty">Aucun participant pour l'instant. Commencez par créer votre premier profil.</p>
+          ) : null}
 
-            <div className="team-stats-row" aria-label="Résumé équipe">
-              <div>
-                <span>Total</span>
-                <strong>{memberStats.total}</strong>
-              </div>
-              <div>
-                <span>Profils complets</span>
-                <strong>{memberStats.completeProfiles}</strong>
-              </div>
-              <div>
-                <span>Avec fonction</span>
-                <strong>{memberStats.withRole}</strong>
-              </div>
-            </div>
-
-            {loadingMembers ? <p>Chargement des participants...</p> : null}
-
-            {!loadingMembers && members.length === 0 ? (
-              <p className="team-empty">Aucun participant pour l'instant. Commencez par créer votre premier profil à gauche.</p>
-            ) : null}
-
-            {!loadingMembers && members.length > 0 && filteredMembers.length === 0 ? (
-              <p className="team-empty">Aucun résultat pour cette recherche. Essayez avec un nom, un email ou un département.</p>
-            ) : null}
-
-            {!loadingMembers && filteredMembers.length > 0 ? (
-              <ul className="session-list">
-                {filteredMembers.slice(0, 8).map((member) => {
-                  const title = [member.first_name, member.last_name].filter(Boolean).join(' ').trim() || `Participant #${member.id}`;
-                  const details = [member.job_title, member.department].filter(Boolean).join(' · ');
-                  return (
-                    <li key={String(member.id)} className="session-item team-member-item">
-                      <div>
-                        <p className="session-title">{title}</p>
-                        <p className="session-meta">
-                          {member.email || 'Email non renseigné'}
-                          {details ? ` · ${details}` : ''}
-                        </p>
-                      </div>
-                      <div className="session-item-actions icon-only-actions team-member-actions">
-                        <button
-                          type="button"
-                          className="icon-action-btn"
-                          title="Modifier"
-                          aria-label="Modifier ce participant"
-                          onClick={() => beginEditMember(member)}
-                          disabled={deletingMemberId === member.id}
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          type="button"
-                          className="icon-action-btn icon-action-danger"
-                          title="Supprimer"
-                          aria-label="Supprimer ce participant"
-                          onClick={() => handleDeleteMember(member)}
-                          disabled={deletingMemberId === member.id}
-                        >
-                          {deletingMemberId === member.id ? '…' : '🗑️'}
-                        </button>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : null}
-          </article>
+          {!loadingMembers && members.length > 0 ? (
+            <ul className="session-list">
+              {members.map((member) => {
+                const title = [member.first_name, member.last_name].filter(Boolean).join(' ').trim() || `Participant #${member.id}`;
+                const details = [member.job_title, member.department].filter(Boolean).join(' · ');
+                return (
+                  <li key={String(member.id)} className="session-item team-member-item">
+                    <div>
+                      <p className="session-title">{title}</p>
+                      <p className="session-meta">
+                        {member.email || 'Email non renseigné'}
+                        {details ? ` · ${details}` : ''}
+                      </p>
+                    </div>
+                    <div className="session-item-actions icon-only-actions team-member-actions">
+                      <button
+                        type="button"
+                        className="icon-action-btn"
+                        title="Modifier"
+                        aria-label="Modifier ce participant"
+                        onClick={() => beginEditMember(member)}
+                        disabled={deletingMemberId === member.id}
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-action-btn icon-action-danger"
+                        title="Supprimer"
+                        aria-label="Supprimer ce participant"
+                        onClick={() => handleDeleteMember(member)}
+                        disabled={deletingMemberId === member.id}
+                      >
+                        {deletingMemberId === member.id ? '…' : '🗑️'}
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
         </section>
       </main>
       <Footer />

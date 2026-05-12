@@ -54,7 +54,7 @@
 .mainLayout {
   display: grid;
   grid-template-columns: 350px 1fr;
-  gap: 2rem;
+  gap: 1mm;
   margin-top: 2rem;
 }
 
