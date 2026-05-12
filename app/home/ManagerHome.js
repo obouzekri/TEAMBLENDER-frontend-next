@@ -85,6 +85,7 @@ export default function ManagerHome() {
     job_title: '',
     department: '',
   });
+  const [memberQuery, setMemberQuery] = useState('');
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
 
@@ -97,6 +98,30 @@ export default function ManagerHome() {
   }), [sessions]);
 
   const visibleSessions = useMemo(() => sessions.slice(0, visibleCount), [sessions, visibleCount]);
+
+  const filteredMembers = useMemo(() => {
+    const query = memberQuery.trim().toLowerCase();
+    if (!query) return members;
+    return members.filter((member) => {
+      const haystack = [
+        member.first_name,
+        member.last_name,
+        member.email,
+        member.department,
+        member.job_title,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [members, memberQuery]);
+
+  const memberStats = useMemo(() => ({
+    total: members.length,
+    completeProfiles: members.filter((m) => m.first_name && m.email && m.job_title && m.department).length,
+    withRole: members.filter((m) => m.job_title).length,
+  }), [members]);
 
   const memberFormChecks = useMemo(() => {
     const firstName = String(memberForm.first_name || '').trim();
