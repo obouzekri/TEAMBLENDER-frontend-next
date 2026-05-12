@@ -13,7 +13,12 @@ export default function AppNav({ userLabel, onLogout, role }) {
     <header className={headerClassName}>
       <div className="shell nav-inner">
         <Link href={brandHref} className="brand">TEAMSPARK</Link>
-        {!isParticipant && (
+        {isParticipant && !isCompact && (
+          <nav className="nav-links" aria-label="Navigation participant">
+            <Link href="/participant">Sessions</Link>
+          </nav>
+        )}
+        {!isParticipant && !isCompact && (
           <nav className="nav-links" aria-label="Navigation manager">
             {isAdmin ? (
               <>

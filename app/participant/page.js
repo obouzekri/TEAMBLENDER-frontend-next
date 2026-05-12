@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
@@ -27,7 +28,9 @@ export default function ParticipantPage() {
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [sessionId, setSessionId] = useState('');
   const pollRef = useRef(null);
+  const hasRedirected = useRef(false);
   const [ready, setReady] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -167,11 +170,19 @@ export default function ParticipantPage() {
     fetchTeamMembers();
   }, [ready, sessionId]);
 
+
   const challengeLink = useMemo(() => {
     const engine = String(runtime?.engine_key || '').trim();
     if (!engine || !sessionId) return '';
     return `/challenges/${encodeURIComponent(engine)}?sessionId=${encodeURIComponent(sessionId)}`;
   }, [runtime, sessionId]);
+
+  // Auto-redirect to challenge as soon as it is available (removes the manual second click)
+  useEffect(() => {
+    if (!challengeLink || hasRedirected.current) return;
+    hasRedirected.current = true;
+    router.push(challengeLink);
+  }, [challengeLink, router]);
 
   const userId = useMemo(() => {
     if (!user) return '';
@@ -209,19 +220,20 @@ export default function ParticipantPage() {
           <p>{assignedSessions.length > 0 && !sessionId ? 'Selectionnez une session pour commencer.' : 'Votre session est en cours. Le challenge actif s\'affichera ici automatiquement.'}</p>
           <div className="hero-actions">
             {sessionId && challengeLink ? (
-              <Link className="btn-primary" href={challengeLink}>Rejoindre le challenge actif</Link>
+              <button type="button" className="btn-primary" disabled>
+                Connexion au challenge...
+              </button>
             ) : sessionId && !joining && !runtimeError ? (
               <button type="button" className="btn-primary" disabled>
-                En attente d&apos;un challenge...
+                En attente du lancement...
               </button>
             ) : sessionId ? (
               <button type="button" className="btn-primary" disabled>
                 {joining ? 'Chargement...' : 'Challenge indisponible'}
               </button>
             ) : assignedSessions.length === 0 ? (
-              <Link className="btn-primary" href="/login">Revenir a la connexion</Link>
+              <Link className="btn-primary" href="/login">Revenir à la connexion</Link>
             ) : null}
-            <Link className="btn-secondary" href={userId ? `/home?userId=${encodeURIComponent(userId)}` : '/home'}>Retour a l'accueil</Link>
           </div>
         </section>
 
