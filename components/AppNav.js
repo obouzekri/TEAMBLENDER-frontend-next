@@ -34,6 +34,11 @@ export default function AppNav({ userLabel, onLogout, role }) {
             )}
           </nav>
         )}
+        {!isParticipant && isCompact && (
+          <nav className="nav-links" aria-label="Navigation session live">
+            <Link href="/home" className="btn-mini">Retour Home</Link>
+          </nav>
+        )}
         <div className="app-user-box">
           <span className="app-user-name">{userLabel || (isParticipant ? 'Participant' : 'Manager')}</span>
           <button type="button" className="btn-secondary" onClick={onLogout}>Se deconnecter</button>
