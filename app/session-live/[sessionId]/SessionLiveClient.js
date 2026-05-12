@@ -184,7 +184,6 @@ export default function SessionLiveClient() {
       <main className="shell app-home">
         <section className="session-live-header">
           <div className="session-live-header__row1">
-            <span className="eyebrow session-live-header__kicker">SESSION EN COURS</span>
             <strong className="session-live-header__name">{session?.name || `Session ${sessionId}`}</strong>
             <span className="eyebrow session-live-header__meta">{memberCount} participant{memberCount !== 1 ? 's' : ''}</span>
             {activeChallenge && (
@@ -208,9 +207,6 @@ export default function SessionLiveClient() {
             >
               Terminer
             </button>
-            <Link href={`/session-builder?sessionId=${encodeURIComponent(sessionId)}`} className="btn-secondary btn--sm">
-              Retour au builder
-            </Link>
             {actionMsg && <span className="session-live-header__msg">{actionMsg}</span>}
           </div>
         </section>

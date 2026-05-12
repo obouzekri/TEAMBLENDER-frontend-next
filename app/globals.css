@@ -1552,35 +1552,34 @@ a {
   background: #fff;
   border: 1px solid var(--line, #e2e8f0);
   border-radius: 0.5rem;
-  padding: 0.45rem 0.8rem;
+  padding: 0.38rem 0.62rem;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  margin-bottom: 0.7rem;
+  gap: 0.22rem;
+  margin-bottom: 0.55rem;
   overflow: hidden;
 }
 
 .session-live-header__row1 {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.35rem;
   flex-wrap: nowrap;
   min-height: 0;
   white-space: nowrap;
   overflow: hidden;
 }
 
-.session-live-header__kicker,
 .session-live-header__meta {
   flex: 0 0 auto;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   line-height: 1.1;
 }
 
 .session-live-header__name {
   min-width: 0;
   flex: 1 1 auto;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--ink, #1e293b);
   white-space: nowrap;
@@ -1591,7 +1590,7 @@ a {
 .session-live-header__row2 {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.26rem;
   flex-wrap: nowrap;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1604,7 +1603,7 @@ a {
 
 .session-live-header__msg {
   flex: 0 0 auto;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   color: var(--ink-soft, #64748b);
   margin-left: 0.15rem;
   white-space: nowrap;
@@ -1612,25 +1611,24 @@ a {
 
 .btn--sm {
   flex: 0 0 auto;
-  padding: 0.22rem 0.58rem;
-  font-size: 0.74rem;
+  padding: 0.18rem 0.46rem;
+  font-size: 0.68rem;
   border-radius: 999px;
   line-height: 1.2;
 }
 
 @media (max-width: 900px) {
   .session-live-header {
-    padding: 0.5rem 0.7rem;
+    padding: 0.35rem 0.5rem;
   }
 
   .session-live-header__name {
-    font-size: 0.8rem;
+    font-size: 0.72rem;
   }
 
-  .session-live-header__kicker,
   .session-live-header__meta,
   .btn--sm {
-    font-size: 0.7rem;
+    font-size: 0.64rem;
   }
 }
 
