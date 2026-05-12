@@ -74,6 +74,9 @@ export default function ManagerHome() {
   const [creatingMember, setCreatingMember] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState(null);
   const [visibleCount, setVisibleCount] = useState(8);
+  const [memberQuery, setMemberQuery] = useState('');
+  const [formAttempted, setFormAttempted] = useState(false);
+  const [memberFormStatus, setMemberFormStatus] = useState('');
   const [memberForm, setMemberForm] = useState({
     first_name: '',
     last_name: '',
@@ -105,6 +108,36 @@ export default function ManagerHome() {
   }, [members]);
 
   const visibleSessions = useMemo(() => sessions.slice(0, visibleCount), [sessions, visibleCount]);
+
+  const memberFormChecks = useMemo(() => {
+    const firstName = String(memberForm.first_name || '').trim();
+    const email = String(memberForm.email || '').trim();
+    const password = String(memberForm.password || '').trim();
+    const needsPassword = !editingMemberId;
+    return {
+      firstNameOk: firstName.length > 0,
+      emailOk: email.length > 0,
+      passwordOk: !needsPassword || password.length >= 8,
+      passwordLength: password.length,
+    };
+  }, [memberForm, editingMemberId]);
+
+  const canSubmitMember = memberFormChecks.firstNameOk
+    && memberFormChecks.emailOk
+    && memberFormChecks.passwordOk
+    && !creatingMember;
+
+  const filteredMembers = useMemo(() => {
+    const query = String(memberQuery || '').trim().toLowerCase();
+    if (!query) return members;
+    return members.filter((member) => {
+      const title = `${member.first_name || ''} ${member.last_name || ''}`.trim().toLowerCase();
+      const email = String(member.email || '').toLowerCase();
+      const role = String(member.job_title || '').toLowerCase();
+      const department = String(member.department || '').toLowerCase();
+      return title.includes(query) || email.includes(query) || role.includes(query) || department.includes(query);
+    });
+  }, [members, memberQuery]);
 
   useEffect(() => {
     if (!guard.allowed || !guard.token) return;
@@ -227,6 +260,8 @@ export default function ManagerHome() {
   }
 
   function beginEditMember(member) {
+    setFormAttempted(false);
+    setMemberFormStatus('Edition du profil en cours.');
     setEditingMemberId(member.id);
     setMemberForm({
       first_name: String(member.first_name || '').trim(),
@@ -239,12 +274,16 @@ export default function ManagerHome() {
   }
 
   function resetMemberForm() {
+    setFormAttempted(false);
+    setMemberFormStatus('');
     setEditingMemberId(null);
     setMemberForm({ first_name: '', last_name: '', email: '', password: '', job_title: '', department: '' });
   }
 
   async function handleSubmitMember(event) {
     event.preventDefault();
+    setFormAttempted(true);
+    setMemberFormStatus('');
     if (!guard.token || !guard.user?.id || creatingMember) return;
 
     const firstName = String(memberForm.first_name || '').trim();
@@ -302,6 +341,7 @@ export default function ManagerHome() {
 
       showSuccessToast(editingMemberId ? 'Participant mis à jour avec succès.' : 'Participant ajouté avec succès.');
       resetMemberForm();
+      setMemberFormStatus(editingMemberId ? 'Profil mis à jour avec succès.' : 'Participant créé. Vous pouvez en ajouter un autre.');
 
       const refresh = await fetch(getApiUrl('/participants'), {
         headers: {
@@ -328,6 +368,7 @@ export default function ManagerHome() {
         setMembers(items);
       }
     } catch (err) {
+      setMemberFormStatus(err.message || `Impossible de ${editingMemberId ? 'mettre à jour' : 'créer'} le participant.`);
       showErrorToast(err.message || `Impossible de ${editingMemberId ? 'mettre à jour' : 'créer'} le participant.`);
     } finally {
       setCreatingMember(false);
@@ -541,8 +582,12 @@ export default function ManagerHome() {
                     value={memberForm.first_name}
                     onChange={(e) => setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))}
                     placeholder="Ex: Sophie"
+                    className={formAttempted && !memberFormChecks.firstNameOk ? 'input-invalid' : ''}
                     required
                   />
+                  {formAttempted && !memberFormChecks.firstNameOk ? (
+                    <span className="field-error">Le prénom est requis.</span>
+                  ) : null}
                 </label>
                 <label>
                   Nom
@@ -560,8 +605,12 @@ export default function ManagerHome() {
                     value={memberForm.email}
                     onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
                     placeholder="sophie@entreprise.com"
+                    className={formAttempted && !memberFormChecks.emailOk ? 'input-invalid' : ''}
                     required
                   />
+                  {formAttempted && !memberFormChecks.emailOk ? (
+                    <span className="field-error">L'email est requis.</span>
+                  ) : null}
                 </label>
                 <label className="participant-field-full">
                   Mot de passe {editingMemberId ? '(optionnel)' : '*'}
@@ -571,8 +620,17 @@ export default function ManagerHome() {
                     onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
                     placeholder={editingMemberId ? 'Laisser vide pour conserver le mot de passe actuel' : 'Minimum 8 caractères'}
                     minLength={8}
+                    className={formAttempted && !memberFormChecks.passwordOk ? 'input-invalid' : ''}
                     required={!editingMemberId}
                   />
+                  {!editingMemberId ? (
+                    <span className="field-help">{memberFormChecks.passwordLength}/8 caractères minimum</span>
+                  ) : (
+                    <span className="field-help">Renseignez ce champ uniquement pour remplacer le mot de passe actuel.</span>
+                  )}
+                  {formAttempted && !memberFormChecks.passwordOk ? (
+                    <span className="field-error">Le mot de passe doit contenir au moins 8 caractères.</span>
+                  ) : null}
                 </label>
                 <label>
                   Fonction
@@ -594,13 +652,18 @@ export default function ManagerHome() {
                 </label>
               </div>
               <p className="participant-form-hint">Les champs marqués * sont requis pour créer un profil exploitable en session.</p>
+              {memberFormStatus ? (
+                <p className={`participant-form-status ${memberFormStatus.includes('succès') || memberFormStatus.includes('créé') ? 'participant-form-status--ok' : 'participant-form-status--warn'}`}>
+                  {memberFormStatus}
+                </p>
+              ) : null}
               <div className="participant-form-actions">
                 {editingMemberId ? (
                   <button type="button" className="btn-secondary" onClick={resetMemberForm} disabled={creatingMember}>
                     Annuler
                   </button>
                 ) : null}
-                <button type="submit" className="btn-primary" disabled={creatingMember}>
+                <button type="submit" className="btn-primary" disabled={!canSubmitMember}>
                   {creatingMember
                     ? (editingMemberId ? 'Mise à jour...' : 'Ajout en cours...')
                     : (editingMemberId ? 'Enregistrer' : 'Ajouter un participant')}
@@ -617,6 +680,17 @@ export default function ManagerHome() {
                 <p>Visualisez les profils disponibles avant d’assigner vos sessions.</p>
               </div>
               <span className="list-count">{members.length} profil{members.length !== 1 ? 's' : ''}</span>
+            </div>
+
+            <div className="team-toolbar">
+              <input
+                type="search"
+                value={memberQuery}
+                onChange={(e) => setMemberQuery(e.target.value)}
+                placeholder="Rechercher un participant"
+                aria-label="Rechercher un participant"
+              />
+              <span>{filteredMembers.length} affiche{filteredMembers.length > 1 ? 's' : ''}</span>
             </div>
 
             <div className="team-stats-row" aria-label="Résumé équipe">
@@ -640,9 +714,13 @@ export default function ManagerHome() {
               <p className="team-empty">Aucun participant pour l'instant. Commencez par créer votre premier profil à gauche.</p>
             ) : null}
 
-            {!loadingMembers && members.length > 0 ? (
+            {!loadingMembers && members.length > 0 && filteredMembers.length === 0 ? (
+              <p className="team-empty">Aucun résultat pour cette recherche. Essayez avec un nom, un email ou un département.</p>
+            ) : null}
+
+            {!loadingMembers && filteredMembers.length > 0 ? (
               <ul className="session-list">
-                {members.slice(0, 8).map((member) => {
+                {filteredMembers.slice(0, 8).map((member) => {
                   const title = [member.first_name, member.last_name].filter(Boolean).join(' ').trim() || `Participant #${member.id}`;
                   const details = [member.job_title, member.department].filter(Boolean).join(' · ');
                   return (
