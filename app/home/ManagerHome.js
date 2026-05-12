@@ -435,7 +435,7 @@ export default function ManagerHome() {
           </article>
         </section>
 
-        <section className="feature-card sessions-panel home-sessions-panel">
+        <section id="home-sessions-block" className="feature-card sessions-panel home-sessions-panel home-anchor-target">
           <div className="panel-head home-sessions-head">
             <div>
               <p className="eyebrow">VOS SESSIONS</p>
@@ -538,7 +538,7 @@ export default function ManagerHome() {
           ) : null}
         </section>
 
-        <section className="participants-grid participants-grid--enhanced" aria-label="Participants de l'équipe">
+        <section id="home-participants-block" className="participants-grid participants-grid--enhanced home-anchor-target" aria-label="Participants de l'équipe">
           <article className="feature-card participant-card participant-form-card">
             <div className="participant-card-head">
               <div>
