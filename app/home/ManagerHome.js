@@ -93,6 +93,17 @@ export default function ManagerHome() {
     terminee: sessions.filter((s) => s.status === 'terminee').length,
   }), [sessions]);
 
+  const memberStats = useMemo(() => {
+    const total = members.length;
+    const withRole = members.filter((m) => String(m.job_title || '').trim().length > 0).length;
+    const completeProfiles = members.filter((m) => {
+      const hasName = String(m.first_name || '').trim().length > 0;
+      const hasEmail = String(m.email || '').trim().length > 0;
+      return hasName && hasEmail;
+    }).length;
+    return { total, withRole, completeProfiles };
+  }, [members]);
+
   const visibleSessions = useMemo(() => sessions.slice(0, visibleCount), [sessions, visibleCount]);
 
   useEffect(() => {
@@ -506,75 +517,83 @@ export default function ManagerHome() {
           ) : null}
         </section>
 
-        <section className="participants-grid" aria-label="Participants de l'équipe">
+        <section className="participants-grid participants-grid--enhanced" aria-label="Participants de l'équipe">
           <article className="feature-card participant-card participant-form-card">
-            <p className="eyebrow">{editingMemberId ? 'MODIFIER PARTICIPANT' : 'NOUVEAU PARTICIPANT'}</p>
-            <h2>{editingMemberId ? 'Mettre à jour le profil' : 'Créer un profil'}</h2>
-            <p>
-              {editingMemberId
-                ? 'Modifiez les informations du participant sélectionné.'
-                : 'Ajoutez un participant pour l’assigner ensuite à vos sessions.'}
-            </p>
+            <div className="participant-card-head">
+              <div>
+                <p className="eyebrow">{editingMemberId ? 'MODIFIER PARTICIPANT' : 'NOUVEAU PARTICIPANT'}</p>
+                <h2>{editingMemberId ? 'Mettre à jour le profil' : 'Créer un profil'}</h2>
+                <p>
+                  {editingMemberId
+                    ? 'Modifiez les informations du participant sélectionné.'
+                    : 'Ajoutez un participant pour l’assigner ensuite à vos sessions.'}
+                </p>
+              </div>
+              <span className="participant-head-badge">{editingMemberId ? 'Edition active' : 'Ajout rapide'}</span>
+            </div>
 
             <form className="participant-form" onSubmit={handleSubmitMember}>
-              <label>
-                Prénom *
-                <input
-                  type="text"
-                  value={memberForm.first_name}
-                  onChange={(e) => setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))}
-                  placeholder="Ex: Sophie"
-                  required
-                />
-              </label>
-              <label>
-                Nom
-                <input
-                  type="text"
-                  value={memberForm.last_name}
-                  onChange={(e) => setMemberForm((prev) => ({ ...prev, last_name: e.target.value }))}
-                  placeholder="Ex: Martin"
-                />
-              </label>
-              <label>
-                Email *
-                <input
-                  type="email"
-                  value={memberForm.email}
-                  onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
-                  placeholder="sophie@entreprise.com"
-                  required
-                />
-              </label>
-              <label>
-                Mot de passe {editingMemberId ? '(optionnel)' : '*'}
-                <input
-                  type="password"
-                  value={memberForm.password}
-                  onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
-                  placeholder={editingMemberId ? 'Laisser vide pour conserver le mot de passe actuel' : 'Minimum 8 caractères'}
-                  minLength={8}
-                  required={!editingMemberId}
-                />
-              </label>
-              <label>
-                Fonction
-                <input
-                  type="text"
-                  value={memberForm.job_title}
-                  onChange={(e) => setMemberForm((prev) => ({ ...prev, job_title: e.target.value }))}
-                  placeholder="Ex: Product Manager"
-                />
-              </label>
-              <label>
-                Département
-                <input
-                  type="text"
-                  value={memberForm.department}
-                  onChange={(e) => setMemberForm((prev) => ({ ...prev, department: e.target.value }))}
-                  placeholder="Ex: RH"
-                />
-              </label>
+              <div className="participant-form-grid">
+                <label>
+                  Prénom *
+                  <input
+                    type="text"
+                    value={memberForm.first_name}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))}
+                    placeholder="Ex: Sophie"
+                    required
+                  />
+                </label>
+                <label>
+                  Nom
+                  <input
+                    type="text"
+                    value={memberForm.last_name}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, last_name: e.target.value }))}
+                    placeholder="Ex: Martin"
+                  />
+                </label>
+                <label className="participant-field-full">
+                  Email *
+                  <input
+                    type="email"
+                    value={memberForm.email}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
+                    placeholder="sophie@entreprise.com"
+                    required
+                  />
+                </label>
+                <label className="participant-field-full">
+                  Mot de passe {editingMemberId ? '(optionnel)' : '*'}
+                  <input
+                    type="password"
+                    value={memberForm.password}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
+                    placeholder={editingMemberId ? 'Laisser vide pour conserver le mot de passe actuel' : 'Minimum 8 caractères'}
+                    minLength={8}
+                    required={!editingMemberId}
+                  />
+                </label>
+                <label>
+                  Fonction
+                  <input
+                    type="text"
+                    value={memberForm.job_title}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, job_title: e.target.value }))}
+                    placeholder="Ex: Product Manager"
+                  />
+                </label>
+                <label>
+                  Département
+                  <input
+                    type="text"
+                    value={memberForm.department}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, department: e.target.value }))}
+                    placeholder="Ex: RH"
+                  />
+                </label>
+              </div>
+              <p className="participant-form-hint">Les champs marqués * sont requis pour créer un profil exploitable en session.</p>
               <div className="participant-form-actions">
                 {editingMemberId ? (
                   <button type="button" className="btn-secondary" onClick={resetMemberForm} disabled={creatingMember}>
@@ -600,10 +619,25 @@ export default function ManagerHome() {
               <span className="list-count">{members.length} profil{members.length !== 1 ? 's' : ''}</span>
             </div>
 
+            <div className="team-stats-row" aria-label="Résumé équipe">
+              <div>
+                <span>Total</span>
+                <strong>{memberStats.total}</strong>
+              </div>
+              <div>
+                <span>Profils complets</span>
+                <strong>{memberStats.completeProfiles}</strong>
+              </div>
+              <div>
+                <span>Avec fonction</span>
+                <strong>{memberStats.withRole}</strong>
+              </div>
+            </div>
+
             {loadingMembers ? <p>Chargement des participants...</p> : null}
 
             {!loadingMembers && members.length === 0 ? (
-              <p>Aucun participant pour l'instant.</p>
+              <p className="team-empty">Aucun participant pour l'instant. Commencez par créer votre premier profil à gauche.</p>
             ) : null}
 
             {!loadingMembers && members.length > 0 ? (
@@ -612,7 +646,7 @@ export default function ManagerHome() {
                   const title = [member.first_name, member.last_name].filter(Boolean).join(' ').trim() || `Participant #${member.id}`;
                   const details = [member.job_title, member.department].filter(Boolean).join(' · ');
                   return (
-                    <li key={String(member.id)} className="session-item">
+                    <li key={String(member.id)} className="session-item team-member-item">
                       <div>
                         <p className="session-title">{title}</p>
                         <p className="session-meta">
@@ -620,7 +654,7 @@ export default function ManagerHome() {
                           {details ? ` · ${details}` : ''}
                         </p>
                       </div>
-                      <div className="session-item-actions icon-only-actions">
+                      <div className="session-item-actions icon-only-actions team-member-actions">
                         <button
                           type="button"
                           className="icon-action-btn"
