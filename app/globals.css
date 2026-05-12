@@ -251,7 +251,7 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: inherit;
+  font: inherit;
   border-radius: 12px;
   padding: 0.72rem 1.05rem;
   font-weight: 700;
