@@ -74,9 +74,9 @@ export default function ManagerHome() {
   const [creatingMember, setCreatingMember] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState(null);
   const [visibleCount, setVisibleCount] = useState(8);
-  const [memberQuery, setMemberQuery] = useState('');
   const [formAttempted, setFormAttempted] = useState(false);
   const [memberFormStatus, setMemberFormStatus] = useState('');
+  const [showParticipantForm, setShowParticipantForm] = useState(false);
   const [memberForm, setMemberForm] = useState({
     first_name: '',
     last_name: '',
@@ -95,17 +95,6 @@ export default function ManagerHome() {
     preparee: sessions.filter((s) => s.status === 'preparee').length,
     terminee: sessions.filter((s) => s.status === 'terminee').length,
   }), [sessions]);
-
-  const memberStats = useMemo(() => {
-    const total = members.length;
-    const withRole = members.filter((m) => String(m.job_title || '').trim().length > 0).length;
-    const completeProfiles = members.filter((m) => {
-      const hasName = String(m.first_name || '').trim().length > 0;
-      const hasEmail = String(m.email || '').trim().length > 0;
-      return hasName && hasEmail;
-    }).length;
-    return { total, withRole, completeProfiles };
-  }, [members]);
 
   const visibleSessions = useMemo(() => sessions.slice(0, visibleCount), [sessions, visibleCount]);
 
@@ -127,17 +116,7 @@ export default function ManagerHome() {
     && memberFormChecks.passwordOk
     && !creatingMember;
 
-  const filteredMembers = useMemo(() => {
-    const query = String(memberQuery || '').trim().toLowerCase();
-    if (!query) return members;
-    return members.filter((member) => {
-      const title = `${member.first_name || ''} ${member.last_name || ''}`.trim().toLowerCase();
-      const email = String(member.email || '').toLowerCase();
-      const role = String(member.job_title || '').toLowerCase();
-      const department = String(member.department || '').toLowerCase();
-      return title.includes(query) || email.includes(query) || role.includes(query) || department.includes(query);
-    });
-  }, [members, memberQuery]);
+
 
   useEffect(() => {
     if (!guard.allowed || !guard.token) return;
@@ -261,7 +240,8 @@ export default function ManagerHome() {
 
   function beginEditMember(member) {
     setFormAttempted(false);
-    setMemberFormStatus('Edition du profil en cours.');
+    setMemberFormStatus('');
+    setShowParticipantForm(true);
     setEditingMemberId(member.id);
     setMemberForm({
       first_name: String(member.first_name || '').trim(),
@@ -340,8 +320,8 @@ export default function ManagerHome() {
       }
 
       showSuccessToast(editingMemberId ? 'Participant mis à jour avec succès.' : 'Participant ajouté avec succès.');
+      setShowParticipantForm(false);
       resetMemberForm();
-      setMemberFormStatus(editingMemberId ? 'Profil mis à jour avec succès.' : 'Participant créé. Vous pouvez en ajouter un autre.');
 
       const refresh = await fetch(getApiUrl('/participants'), {
         headers: {
