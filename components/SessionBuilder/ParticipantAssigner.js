@@ -4,7 +4,17 @@ import styles from './ParticipantAssigner.module.css';
 import { useState, useEffect } from 'react';
 import { getApiUrl } from '@/lib/config';
 
-export default function ParticipantAssigner({ isLoading, onAssign, onCancel }) {
+export default function ParticipantAssigner({
+  isLoading,
+  onAssign,
+  onCancel,
+  selectedIds = null,
+  onSelectionChange,
+  embedded = false,
+  hideActions = false,
+  title = 'Assigner les participants',
+  subtitle = 'Selectionnez les participants qui participeront a cette session',
+}) {
   const [participants, setParticipants] = useState([]);
   const [selected, setSelected] = useState([]);
   const [loadingParticipants, setLoadingParticipants] = useState(true);
@@ -16,6 +26,11 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel }) {
     const full = `${first} ${last}`.trim();
     return full || String(member?.name || member?.email || 'Sans nom');
   }
+
+  useEffect(() => {
+    if (!Array.isArray(selectedIds)) return;
+    setSelected(selectedIds);
+  }, [selectedIds]);
 
   useEffect(() => {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -71,17 +86,28 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel }) {
   });
 
   const toggleParticipant = (id) => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setSelected((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      if (typeof onSelectionChange === 'function') {
+        onSelectionChange(next);
+      }
+      return next;
+    });
   };
 
   const selectAll = () => {
-    setSelected(participants.map((p) => p.id));
+    const next = participants.map((p) => p.id);
+    setSelected(next);
+    if (typeof onSelectionChange === 'function') {
+      onSelectionChange(next);
+    }
   };
 
   const deselectAll = () => {
     setSelected([]);
+    if (typeof onSelectionChange === 'function') {
+      onSelectionChange([]);
+    }
   };
 
   const handleAssign = () => {
@@ -89,12 +115,12 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel }) {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={embedded ? styles.containerEmbedded : styles.container}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <h2>Assigner les participants</h2>
+          <h2>{title}</h2>
           <p className={styles.subtitle}>
-            Sélectionnez les participants qui participeront à cette session
+            {subtitle}
           </p>
         </div>
 
@@ -165,24 +191,26 @@ export default function ParticipantAssigner({ isLoading, onAssign, onCancel }) {
               </>
             )}
 
-            <div className={styles.actions}>
-              <button
-                type="button"
-                onClick={onCancel}
-                className={styles.btnSecondary}
-                disabled={isLoading}
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={handleAssign}
-                className={styles.btnPrimary}
-                disabled={isLoading || selected.length === 0}
-              >
-                {isLoading ? 'Assignation...' : 'Assigner'}
-              </button>
-            </div>
+            {!hideActions ? (
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  className={styles.btnSecondary}
+                  disabled={isLoading}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAssign}
+                  className={styles.btnPrimary}
+                  disabled={isLoading || selected.length === 0}
+                >
+                  {isLoading ? 'Assignation...' : 'Assigner'}
+                </button>
+              </div>
+            ) : null}
           </>
         )}
       </div>

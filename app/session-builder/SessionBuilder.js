@@ -97,6 +97,7 @@ export default function SessionBuilder() {
   const [isSavingSessionInfo, setIsSavingSessionInfo] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isAssigningParticipants, setIsAssigningParticipants] = useState(false);
+  const [draftParticipantIds, setDraftParticipantIds] = useState([]);
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
   const currentConfiguringChallenge = useMemo(
@@ -399,18 +400,28 @@ export default function SessionBuilder() {
       });
       const newId = String(created.id || created.session?.id || '');
       if (!newId) throw new Error('Identifiant de session manquant dans la reponse.');
+
+      if (draftParticipantIds.length > 0) {
+        await apiRequest(`/sessions/${newId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ participant_ids: draftParticipantIds }),
+        });
+      }
+
       sessionStorage.setItem('sessionId', newId);
       setSessionId(newId);
+      setSessionParticipantCount(draftParticipantIds.length);
       removeToast(loadingId);
-      // Move to participants assignment step
-      setSessionStep('participants');
+      // Continue to challenges selection; participants are already captured on this screen.
+      setSessionStep('challenges');
     } catch (err) {
       removeToast(loadingId);
       showErrorToast(err.message || 'Impossible de creer la session.');
     } finally {
       setIsCreatingSession(false);
     }
-  }, [apiRequest, getAuthToken, removeToast, sessionDateTime, sessionName, showErrorToast, showLoadingToast]);
+  }, [apiRequest, draftParticipantIds, getAuthToken, removeToast, sessionDateTime, sessionName, showErrorToast, showLoadingToast]);
 
   const handleSaveSessionInfo = useCallback(async () => {
     const token = getAuthToken();
@@ -501,7 +512,7 @@ export default function SessionBuilder() {
             <p className="eyebrow">NOUVELLE SESSION</p>
             <h1 style={{ fontSize: '1.6rem', margin: '0.25rem 0 0.75rem' }}>Préparer la session</h1>
             <p style={{ color: 'var(--color-muted, #6b7280)', marginBottom: '1.25rem', fontSize: '14px' }}>
-              Donnez un nom à votre session et indiquez sa date prévue pour garder un cadrage clair avant l’animation.
+              Definissez la session puis assignez directement les participants, sans changer d'ecran.
             </p>
             <form onSubmit={handleCreateSession} className={styles.creationForm}>
               <div className={styles.creationGrid}>
@@ -557,8 +568,17 @@ export default function SessionBuilder() {
                 </div>
               </div>
               <p className={styles.creationHint}>
-                La date de session est facultative, mais elle aide à planifier et relire vos sessions plus vite.
+                La date de session est facultative, mais elle aide a planifier et relire vos sessions plus vite.
               </p>
+              <ParticipantAssigner
+                isLoading={isCreatingSession}
+                selectedIds={draftParticipantIds}
+                onSelectionChange={setDraftParticipantIds}
+                embedded
+                hideActions
+                title="Participants de la session"
+                subtitle="Selectionnez maintenant les participants a assigner a la session."
+              />
               <button type="submit" className="btn-primary" disabled={isCreatingSession}>
                 {isCreatingSession ? 'Creation...' : 'Creer la session'}
               </button>
