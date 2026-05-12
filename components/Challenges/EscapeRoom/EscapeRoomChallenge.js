@@ -92,49 +92,49 @@ export default function EscapeRoomChallenge({
   }, [apiCall, endpointBase, token]);
 
   const loadParticipants = useCallback(async () => {
-    if (!sessionId || !token) return;
-    const response = await fetch(getApiUrl(`/sessions/${sessionId}/participants`), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const fallbackResponse = !response.ok
-      ? await fetch(getApiUrl(`/participants/sessions/${sessionId}/participants`), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      : null;
-
-    const effectiveResponse = response.ok ? response : fallbackResponse;
-
-    if (!effectiveResponse || !effectiveResponse.ok) return;
-    const payload = await effectiveResponse.json();
-    const list = Array.isArray(payload)
-      ? payload
-      : (Array.isArray(payload?.participants) ? payload.participants : (Array.isArray(payload?.data) ? payload.data : []));
-    setParticipants(Array.isArray(list) ? list : []);
-  }, [sessionId, token]);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!endpointBase || !token) return () => {};
-
-    loadState().catch((err) => {
-      if (!cancelled) {
-        setFeedback(err.message || 'Impossible de charger la salle.');
-      }
-    });
-
     const poll = window.setInterval(() => {
       loadState().catch(() => {
         // Keep polling silent to avoid noisy UI.
       });
+
+    if (state.status === 'waiting_for_start') {
+      return (
+        <div className={styles.escapeRoomContainer}>
+          <section className={styles.header}>
+            <div>
+              <p className={styles.kicker}>Salle secrete</p>
+              <h1>Escape Room</h1>
+              <p className={styles.subtitle}>En attente du démarrage par le facilitateur.</p>
+            </div>
+          </section>
+          <section className={styles.layout}>
+            <article className={styles.card} style={{ textAlign: 'center', padding: '2rem' }}>
+              {isFacilitator ? (
+                <>
+                  <p style={{ marginBottom: '1.5rem', color: 'var(--ink-soft)' }}>
+                    Tous les participants sont prêts. Démarrez le chrono pour lancer le challenge.
+                  </p>
+                  <button
+                    className={styles.timerBtnStart}
+                    type="button"
+                    onClick={() => handleTimerAction('start')}
+                    disabled={busyAction === 'start'}
+                    style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}
+                  >
+                    {busyAction === 'start' ? 'Démarrage...' : '▶️ Démarrer le challenge'}
+                  </button>
+                  {feedback ? <p className={styles.feedback} style={{ marginTop: '1rem' }}>{feedback}</p> : null}
+                </>
+              ) : (
+                <p style={{ fontSize: '1.1rem', color: 'var(--ink-soft)' }}>
+                  ⏳ En attente du facilitateur…
+                </p>
+              )}
+            </article>
+          </section>
+        </div>
+      );
+    }
     }, 3000);
 
     return () => {
