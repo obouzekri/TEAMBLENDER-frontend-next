@@ -1552,45 +1552,86 @@ a {
   background: #fff;
   border: 1px solid var(--line, #e2e8f0);
   border-radius: 0.5rem;
-  padding: 0.6rem 1rem;
+  padding: 0.45rem 0.8rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  margin-bottom: 1rem;
+  gap: 0.3rem;
+  margin-bottom: 0.7rem;
+  overflow: hidden;
 }
 
 .session-live-header__row1 {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+  gap: 0.45rem;
+  flex-wrap: nowrap;
   min-height: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.session-live-header__kicker,
+.session-live-header__meta {
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  line-height: 1.1;
 }
 
 .session-live-header__name {
-  font-size: 0.95rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--ink, #1e293b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .session-live-header__row2 {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.session-live-header__row2::-webkit-scrollbar {
+  display: none;
 }
 
 .session-live-header__msg {
-  font-size: 0.82rem;
+  flex: 0 0 auto;
+  font-size: 0.72rem;
   color: var(--ink-soft, #64748b);
-  margin-left: 0.25rem;
+  margin-left: 0.15rem;
+  white-space: nowrap;
 }
 
 .btn--sm {
-  padding: 0.28rem 0.75rem;
-  font-size: 0.8rem;
+  flex: 0 0 auto;
+  padding: 0.22rem 0.58rem;
+  font-size: 0.74rem;
   border-radius: 999px;
-  line-height: 1.4;
+  line-height: 1.2;
+}
+
+@media (max-width: 900px) {
+  .session-live-header {
+    padding: 0.5rem 0.7rem;
+  }
+
+  .session-live-header__name {
+    font-size: 0.8rem;
+  }
+
+  .session-live-header__kicker,
+  .session-live-header__meta,
+  .btn--sm {
+    font-size: 0.7rem;
+  }
 }
 
 .home-sessions-panel {

@@ -9,7 +9,7 @@ export default function SessionBuilderHeader({
   isLaunching,
   onLaunch,
 }) {
-  const minutes = Math.round(totalDuration);
+  const minutes = Number.isFinite(Number(totalDuration)) ? Math.round(Number(totalDuration)) : 0;
 
   return (
     <header className={styles.header}>

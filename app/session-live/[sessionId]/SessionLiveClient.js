@@ -184,11 +184,11 @@ export default function SessionLiveClient() {
       <main className="shell app-home">
         <section className="session-live-header">
           <div className="session-live-header__row1">
-            <span className="eyebrow">SESSION EN COURS</span>
+            <span className="eyebrow session-live-header__kicker">SESSION EN COURS</span>
             <strong className="session-live-header__name">{session?.name || `Session ${sessionId}`}</strong>
-            <span className="eyebrow">{memberCount} participant{memberCount !== 1 ? 's' : ''}</span>
+            <span className="eyebrow session-live-header__meta">{memberCount} participant{memberCount !== 1 ? 's' : ''}</span>
             {activeChallenge && (
-              <span className="eyebrow">· {activeChallenge.name || activeEngineKey}</span>
+              <span className="eyebrow session-live-header__meta">{activeChallenge.name || activeEngineKey}</span>
             )}
           </div>
           <div className="session-live-header__row2">
