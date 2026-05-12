@@ -43,6 +43,20 @@ const DEFAULT_NEW_PRICING_PLAN = {
   display_order: '0',
 };
 
+const DEFAULT_NEW_LANDING_BLOCK = {
+  block_key: '',
+  label: '',
+  title: '',
+  subtitle: '',
+  description: '',
+  image_url: '',
+  cta_label: '',
+  cta_href: '',
+  badge_text: '',
+  is_active: true,
+  display_order: '0',
+};
+
 function getParticipantFirstName(participant) {
   return String(participant?.first_name || participant?.firstname || '').trim();
 }
@@ -146,6 +160,23 @@ function planToDraft(plan) {
   };
 }
 
+function landingBlockToDraft(block) {
+  return {
+    id: block.id,
+    block_key: block.block_key || '',
+    label: block.label || '',
+    title: block.title || '',
+    subtitle: block.subtitle || '',
+    description: block.description || '',
+    image_url: block.image_url || '',
+    cta_label: block.cta_label || '',
+    cta_href: block.cta_href || '',
+    badge_text: block.badge_text || '',
+    is_active: Boolean(block.is_active),
+    display_order: block.display_order ?? 0,
+  };
+}
+
 export default function AdminClient() {
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
@@ -159,6 +190,7 @@ export default function AdminClient() {
   const [challenges, setChallenges] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [pricingPlans, setPricingPlans] = useState([]);
+  const [landingBlocks, setLandingBlocks] = useState([]);
 
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
@@ -169,6 +201,7 @@ export default function AdminClient() {
   const [sessionQuery, setSessionQuery] = useState('');
   const [challengeQuery, setChallengeQuery] = useState('');
   const [pricingQuery, setPricingQuery] = useState('');
+  const [landingQuery, setLandingQuery] = useState('');
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [editingUser, setEditingUser] = useState(null);
@@ -176,6 +209,7 @@ export default function AdminClient() {
   const [editingSession, setEditingSession] = useState(null);
   const [editingChallenge, setEditingChallenge] = useState(null);
   const [editingPricingPlan, setEditingPricingPlan] = useState(null);
+  const [editingLandingBlock, setEditingLandingBlock] = useState(null);
   const [challengeImageUploadBusy, setChallengeImageUploadBusy] = useState(false);
   const [challengeImageUploadError, setChallengeImageUploadError] = useState('');
 
@@ -203,6 +237,8 @@ export default function AdminClient() {
   const [newSessionMemberQuery, setNewSessionMemberQuery] = useState('');
   const [newPricingPlan, setNewPricingPlan] = useState(DEFAULT_NEW_PRICING_PLAN);
   const [newPricingMessage, setNewPricingMessage] = useState('');
+  const [newLandingBlock, setNewLandingBlock] = useState(DEFAULT_NEW_LANDING_BLOCK);
+  const [newLandingMessage, setNewLandingMessage] = useState('');
 
   useEffect(() => {
     const jwt = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -230,26 +266,28 @@ export default function AdminClient() {
 
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      const [usersRes, pendingRes, sessionsRes, challengesRes, participantsRes, pricingRes] = await Promise.all([
+      const [usersRes, pendingRes, sessionsRes, challengesRes, participantsRes, pricingRes, landingRes] = await Promise.all([
         fetch(getApiUrl('/users'), { headers }),
         fetch(getApiUrl('/users/pending'), { headers }),
         fetch(getApiUrl('/sessions'), { headers }),
         fetch(getApiUrl('/challenges'), { headers }),
         fetch(getApiUrl('/participants?includeDisabled=true'), { headers }),
         fetch(getApiUrl('/pricing-plans/admin'), { headers }),
+        fetch(getApiUrl('/landing-content/admin'), { headers }),
       ]);
 
-      if (!usersRes.ok || !pendingRes.ok || !sessionsRes.ok || !challengesRes.ok || !participantsRes.ok || !pricingRes.ok) {
+      if (!usersRes.ok || !pendingRes.ok || !sessionsRes.ok || !challengesRes.ok || !participantsRes.ok || !pricingRes.ok || !landingRes.ok) {
         throw new Error('Impossible de charger les donnees admin.');
       }
 
-      const [usersPayload, pendingPayload, sessionsPayload, challengesPayload, participantsPayload, pricingPayload] = await Promise.all([
+      const [usersPayload, pendingPayload, sessionsPayload, challengesPayload, participantsPayload, pricingPayload, landingPayload] = await Promise.all([
         usersRes.json(),
         pendingRes.json(),
         sessionsRes.json(),
         challengesRes.json(),
         participantsRes.json(),
         pricingRes.json(),
+        landingRes.json(),
       ]);
 
       setUsers(parseList(usersPayload));
@@ -258,6 +296,7 @@ export default function AdminClient() {
       setChallenges(parseList(challengesPayload));
       setParticipants(parseList(participantsPayload));
       setPricingPlans(parseList(pricingPayload));
+      setLandingBlocks(parseList(landingPayload));
     } catch (err) {
       setError(err.message || 'Erreur de chargement admin.');
     }
@@ -1256,6 +1295,142 @@ export default function AdminClient() {
     }
   }
 
+  function buildLandingPayloadFromDraft(draft) {
+    return {
+      label: String(draft.label || '').trim() || null,
+      title: String(draft.title || '').trim() || null,
+      subtitle: String(draft.subtitle || '').trim() || null,
+      description: String(draft.description || '').trim() || null,
+      image_url: String(draft.image_url || '').trim() || null,
+      cta_label: String(draft.cta_label || '').trim() || null,
+      cta_href: String(draft.cta_href || '').trim() || null,
+      badge_text: String(draft.badge_text || '').trim() || null,
+      is_active: Boolean(draft.is_active),
+      display_order: draft.display_order === '' ? 0 : Number(draft.display_order),
+    };
+  }
+
+  async function submitNewLandingBlock(event) {
+    event.preventDefault();
+    if (!token) return;
+
+    const blockKey = String(newLandingBlock.block_key || '').trim().toLowerCase();
+    if (!blockKey) {
+      setNewLandingMessage('La cle du bloc est requise.');
+      return;
+    }
+
+    const payload = buildLandingPayloadFromDraft(newLandingBlock);
+    const key = `create:landing:${blockKey}`;
+    setBusySaveKey(key);
+    setError('');
+    setNewLandingMessage('');
+
+    try {
+      const response = await fetch(getApiUrl(`/landing-content/${encodeURIComponent(blockKey)}`), {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(body.error || `Creation bloc impossible (${response.status})`);
+      }
+
+      setNewLandingBlock(DEFAULT_NEW_LANDING_BLOCK);
+      setNewLandingMessage('Bloc landing enregistre.');
+      await loadAll();
+      showNotice('Bloc landing cree/mis a jour.');
+    } catch (err) {
+      setNewLandingMessage(err.message || 'Erreur creation bloc landing.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  function beginEditLandingBlock(block) {
+    setEditingLandingBlock(landingBlockToDraft(block));
+  }
+
+  async function submitEditLandingBlock(event) {
+    event.preventDefault();
+    if (!token || !editingLandingBlock?.block_key) return;
+
+    const blockKey = String(editingLandingBlock.block_key || '').trim().toLowerCase();
+    if (!blockKey) {
+      setError('La cle du bloc est requise.');
+      return;
+    }
+
+    const payload = buildLandingPayloadFromDraft(editingLandingBlock);
+    const key = `save:landing:${blockKey}`;
+    setBusySaveKey(key);
+    setError('');
+
+    try {
+      const response = await fetch(getApiUrl(`/landing-content/${encodeURIComponent(blockKey)}`), {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(body.error || `Mise a jour bloc impossible (${response.status})`);
+      }
+
+      setEditingLandingBlock(null);
+      await loadAll();
+      showNotice('Bloc landing mis a jour.');
+    } catch (err) {
+      setError(err.message || 'Erreur mise a jour bloc landing.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  async function handleDeleteLandingBlock(block) {
+    if (!token || !block?.block_key) return;
+    const accepted = window.confirm(`Supprimer le bloc ${block.block_key} ?`);
+    if (!accepted) return;
+
+    const key = `landing:${block.block_key}`;
+    setBusyDeleteKey(key);
+    setError('');
+    try {
+      const response = await fetch(getApiUrl(`/landing-content/${encodeURIComponent(block.block_key)}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || `Suppression bloc impossible (${response.status})`);
+      }
+
+      if (editingLandingBlock && editingLandingBlock.block_key === block.block_key) {
+        setEditingLandingBlock(null);
+      }
+
+      await loadAll();
+      showNotice('Bloc landing supprime.');
+    } catch (err) {
+      setError(err.message || 'Erreur suppression bloc landing.');
+    } finally {
+      setBusyDeleteKey('');
+    }
+  }
+
   function logout() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
@@ -1283,8 +1458,9 @@ export default function AdminClient() {
       activeSessions: sessions.filter((s) => s.status === 'en_cours').length,
       challenges: challenges.length,
       pricingPlans: pricingPlans.length,
+      landingBlocks: landingBlocks.length,
     }),
-    [users, pendingUsers, participants, sessions, challenges, pricingPlans]
+    [users, pendingUsers, participants, sessions, challenges, pricingPlans, landingBlocks]
   );
 
   const filteredUsers = useMemo(() => {
@@ -1363,6 +1539,27 @@ export default function AdminClient() {
     });
   }, [pricingPlans, pricingQuery]);
 
+  const filteredLandingBlocks = useMemo(() => {
+    const query = landingQuery.trim().toLowerCase();
+    if (!query) return landingBlocks;
+    return landingBlocks.filter((block) => {
+      const haystack = [
+        block.block_key,
+        block.label,
+        block.title,
+        block.subtitle,
+        block.description,
+        block.image_url,
+        block.cta_label,
+        block.cta_href,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [landingBlocks, landingQuery]);
+
   const filteredAssignableMembers = useMemo(() => {
     const query = newSessionMemberQuery.trim().toLowerCase();
     const source = participants.filter((participant) => !Boolean(participant?.disabled));
@@ -1412,6 +1609,7 @@ export default function AdminClient() {
     { id: 'sessions', label: 'Sessions', badge: stats.activeSessions > 0 ? stats.activeSessions : null },
     { id: 'challenges', label: 'Challenges', badge: null },
     { id: 'pricing', label: 'Tarification', badge: stats.pricingPlans > 0 ? stats.pricingPlans : null },
+    { id: 'landing', label: 'Landing CMS', badge: stats.landingBlocks > 0 ? stats.landingBlocks : null },
   ];
 
   return (
@@ -1562,6 +1760,7 @@ export default function AdminClient() {
                   { value: stats.activeSessions, label: 'Sessions en cours', highlight: stats.activeSessions > 0 },
                   { value: stats.challenges, label: 'Challenges' },
                   { value: stats.pricingPlans, label: 'Formules tarifaires' },
+                  { value: stats.landingBlocks, label: 'Blocs landing CMS' },
                 ].map((item) => (
                     <div key={item.label} style={{
                     background: 'var(--color-surface, #fff)',
@@ -2318,6 +2517,133 @@ export default function AdminClient() {
                             {busySaveKey === `save:pricing-plan:${editingPricingPlan.id}` ? 'Enregistrement...' : 'Enregistrer'}
                           </button>
                           <button type="button" className="btn-secondary" onClick={() => setEditingPricingPlan(null)}>Annuler</button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* ── LANDING CMS ── */}
+          {activeTab === 'landing' ? (
+            <div>
+              <div style={{ marginBottom: '28px' }}>
+                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Landing CMS</h1>
+                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
+                  Modifiez le contenu texte et les images de chaque bloc de la page d accueil.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
+                    Blocs {landingBlocks.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredLandingBlocks.length}/{landingBlocks.length})</span> : null}
+                  </h2>
+                  <input
+                    type="search"
+                    className="inline-input"
+                    placeholder="Rechercher un bloc..."
+                    value={landingQuery}
+                    onChange={(e) => setLandingQuery(e.target.value)}
+                    style={{ marginBottom: '12px', width: '100%' }}
+                  />
+
+                  <ul className="session-list" style={{ margin: 0 }}>
+                    {filteredLandingBlocks.length === 0 ? <li className="list-empty">Aucun bloc ne correspond.</li> : null}
+                    {filteredLandingBlocks.map((block) => (
+                      <li key={String(block.id)} className="session-item">
+                        <div>
+                          <p className="session-title">{block.label || block.block_key}</p>
+                          <p className="session-meta">{block.block_key} · {block.is_active ? 'Actif' : 'Inactif'}</p>
+                        </div>
+                        <div className="session-item-actions icon-only-actions">
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => beginEditLandingBlock(block)}
+                            title="Modifier"
+                            aria-label="Modifier bloc landing"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-action-btn icon-action-danger"
+                            onClick={() => handleDeleteLandingBlock(block)}
+                            disabled={busyDeleteKey === `landing:${block.block_key}`}
+                            title="Supprimer"
+                            aria-label="Supprimer bloc landing"
+                          >
+                            {busyDeleteKey === `landing:${block.block_key}` ? '…' : '🗑'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un bloc</h2>
+                    <form className="auth-form" onSubmit={submitNewLandingBlock}>
+                      <label>Cle bloc<input value={newLandingBlock.block_key} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} placeholder="hero_main" required /></label>
+                      <label>Label admin<input value={newLandingBlock.label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
+                      <label>Titre<input value={newLandingBlock.title} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
+                      <label>Sous-titre<input value={newLandingBlock.subtitle} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
+                      <label>Description<textarea rows={4} value={newLandingBlock.description} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                      <label>Image URL<input value={newLandingBlock.image_url} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, image_url: e.target.value }))} placeholder="https://..." /></label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <label>CTA label<input value={newLandingBlock.cta_label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                        <label>CTA lien<input value={newLandingBlock.cta_href} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <label>Badge<input value={newLandingBlock.badge_text} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
+                        <label>Ordre<input type="number" min="0" value={newLandingBlock.display_order} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                      </div>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                        <input type="checkbox" checked={newLandingBlock.is_active} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, is_active: e.target.checked }))} />
+                        Bloc actif
+                      </label>
+                      <button type="submit" className="btn-primary" disabled={busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}`}>
+                        {busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}` ? 'Enregistrement...' : 'Creer le bloc'}
+                      </button>
+                    </form>
+                    {newLandingMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newLandingMessage}</p> : null}
+                  </div>
+
+                  <div style={{ background: 'var(--color-surface, #fff)', border: editingLandingBlock ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier un bloc</h2>
+                    {!editingLandingBlock ? (
+                      <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>
+                        Selectionnez "Modifier" sur un bloc pour l editer ici.
+                      </p>
+                    ) : (
+                      <form className="auth-form" onSubmit={submitEditLandingBlock}>
+                        <label>Cle bloc<input value={editingLandingBlock.block_key} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} required /></label>
+                        <label>Label admin<input value={editingLandingBlock.label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
+                        <label>Titre<input value={editingLandingBlock.title} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
+                        <label>Sous-titre<input value={editingLandingBlock.subtitle} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
+                        <label>Description<textarea rows={4} value={editingLandingBlock.description} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                        <label>Image URL<input value={editingLandingBlock.image_url} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, image_url: e.target.value }))} /></label>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                          <label>CTA label<input value={editingLandingBlock.cta_label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                          <label>CTA lien<input value={editingLandingBlock.cta_href} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                          <label>Badge<input value={editingLandingBlock.badge_text} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
+                          <label>Ordre<input type="number" min="0" value={editingLandingBlock.display_order} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                        </div>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                          <input type="checkbox" checked={editingLandingBlock.is_active} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, is_active: e.target.checked }))} />
+                          Bloc actif
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:landing:${String(editingLandingBlock.block_key || '').trim().toLowerCase()}`}>
+                            {busySaveKey === `save:landing:${String(editingLandingBlock.block_key || '').trim().toLowerCase()}` ? 'Enregistrement...' : 'Enregistrer'}
+                          </button>
+                          <button type="button" className="btn-secondary" onClick={() => setEditingLandingBlock(null)}>Annuler</button>
                         </div>
                       </form>
                     )}

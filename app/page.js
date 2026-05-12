@@ -1,31 +1,102 @@
+"use client";
+
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
+import { getApiUrl } from '@/lib/config';
+
+const DEFAULT_BLOCKS = {
+  hero_main: {
+    title: 'Faites de chaque session d equipe un moment utile, fluide et memorable.',
+    description:
+      'TEAMSPARK structure vos ateliers de cohesion avec une approche moderne: preparation en minutes, animation guidee en live et debrief directement exploitable.',
+  },
+  hero_image_a: {
+    image_url: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1200&q=80',
+    description: 'Workshop cadence pour equipes hybrides',
+  },
+  hero_image_b: {
+    image_url: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80',
+    description: 'Pilotage manager en temps reel',
+  },
+  challenge_1: {
+    subtitle: 'Communication',
+    title: 'Phrase Collaborative',
+    description: 'Active rapidement la co-construction avec une dynamique claire et des prises de parole equilibrees.',
+    image_url: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80',
+  },
+  challenge_2: {
+    subtitle: 'Coordination',
+    title: 'Escape Room Live',
+    description: 'Fait emerger les reflexes collectifs sous contrainte de temps, priorisation et partage des roles.',
+    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80',
+  },
+  challenge_3: {
+    subtitle: 'Decision',
+    title: 'Copuzzle Live',
+    description: 'Oriente les equipes vers la resolution conjointe de problemes et des decisions argumentees.',
+    image_url: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80',
+  },
+};
+
+function mapByKey(items) {
+  const out = {};
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    const key = String(item?.block_key || '').trim();
+    if (!key) return;
+    out[key] = item;
+  });
+  return out;
+}
+
+function mergeBlock(key, dynamicBlocks) {
+  return {
+    ...(DEFAULT_BLOCKS[key] || {}),
+    ...(dynamicBlocks[key] || {}),
+  };
+}
 
 export default function HomePage() {
-  const challengeExamples = [
-    {
-      category: 'Communication',
-      title: 'Phrase Collaborative',
-      description: 'Active rapidement la co-construction avec une dynamique claire et des prises de parole equilibrees.',
-      image:
-        'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80',
-    },
-    {
-      category: 'Coordination',
-      title: 'Escape Room Live',
-      description: 'Fait emerger les reflexes collectifs sous contrainte de temps, priorisation et partage des roles.',
-      image:
-        'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80',
-    },
-    {
-      category: 'Decision',
-      title: 'Copuzzle Live',
-      description: 'Oriente les equipes vers la resolution conjointe de problemes et des decisions argumentees.',
-      image:
-        'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80',
-    },
-  ];
+  const [dynamicBlocks, setDynamicBlocks] = useState({});
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadLandingContent() {
+      try {
+        const res = await fetch(getApiUrl('/landing-content'));
+        const payload = await res.json().catch(() => []);
+        if (!res.ok) return;
+        if (!cancelled) {
+          setDynamicBlocks(mapByKey(payload));
+        }
+      } catch {
+        // Keep defaults when API is unavailable.
+      }
+    }
+
+    loadLandingContent();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const challengeExamples = useMemo(
+    () => ['challenge_1', 'challenge_2', 'challenge_3'].map((key) => {
+      const item = mergeBlock(key, dynamicBlocks);
+      return {
+        category: item.subtitle || '',
+        title: item.title || '',
+        description: item.description || '',
+        image: item.image_url || '',
+      };
+    }),
+    [dynamicBlocks]
+  );
+
+  const heroMain = mergeBlock('hero_main', dynamicBlocks);
+  const heroImageA = mergeBlock('hero_image_a', dynamicBlocks);
+  const heroImageB = mergeBlock('hero_image_b', dynamicBlocks);
 
   return (
     <>
@@ -35,11 +106,8 @@ export default function HomePage() {
           <div className="hero-v2-grid">
             <div className="hero-v2-copy">
               <p className="hero-v2-kicker">Platforme team performance</p>
-              <h1>Faites de chaque session d equipe un moment utile, fluide et memorable.</h1>
-              <p>
-                TEAMSPARK structure vos ateliers de cohesion avec une approche moderne: preparation en minutes,
-                animation guidee en live et debrief directement exploitable.
-              </p>
+              <h1>{heroMain.title || DEFAULT_BLOCKS.hero_main.title}</h1>
+              <p>{heroMain.description || DEFAULT_BLOCKS.hero_main.description}</p>
               <div className="hero-v2-actions">
                 <Link href="/signup" className="btn-primary">Demarrer gratuitement</Link>
                 <Link href="/pricing" className="btn-secondary">Voir les formules</Link>
@@ -54,19 +122,19 @@ export default function HomePage() {
             <div className="hero-v2-media" aria-label="Apercus d usage TEAMSPARK">
               <article className="hero-v2-photo-card card-a">
                 <img
-                  src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1200&q=80"
+                  src={heroImageA.image_url || DEFAULT_BLOCKS.hero_image_a.image_url}
                   alt="Equipe en atelier collaboratif"
                   loading="lazy"
                 />
-                <p>Workshop cadence pour equipes hybrides</p>
+                <p>{heroImageA.description || DEFAULT_BLOCKS.hero_image_a.description}</p>
               </article>
               <article className="hero-v2-photo-card card-b">
                 <img
-                  src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80"
+                  src={heroImageB.image_url || DEFAULT_BLOCKS.hero_image_b.image_url}
                   alt="Manager pilotant une session"
                   loading="lazy"
                 />
-                <p>Pilotage manager en temps reel</p>
+                <p>{heroImageB.description || DEFAULT_BLOCKS.hero_image_b.description}</p>
               </article>
             </div>
           </div>
