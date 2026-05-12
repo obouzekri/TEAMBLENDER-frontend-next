@@ -558,8 +558,7 @@ export default function ManagerHome() {
           <div className="participants-panel-head">
             <div>
               <p className="eyebrow">PARTICIPANTS</p>
-              <h2>Participants</h2>
-              <p>Liste des participants</p>
+              <h2>Liste participant</h2>
             </div>
             <div className="participants-panel-actions">
               <button
@@ -567,7 +566,7 @@ export default function ManagerHome() {
                 className="btn-primary"
                 onClick={showParticipantForm || editingMemberId ? resetMemberForm : openNewMemberForm}
               >
-                {showParticipantForm || editingMemberId ? 'Fermer le formulaire' : '+ Créer un participant'}
+                {showParticipantForm || editingMemberId ? 'Fermer le formulaire' : 'Créer un participant'}
               </button>
             </div>
           </div>
