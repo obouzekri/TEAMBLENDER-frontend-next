@@ -347,13 +347,13 @@ export default function EscapeRoomChallenge({
 
   const handleTimerAction = useCallback((actionKey) => {
     if (actionKey === 'start') {
-      setFeedback('La salle est deja active. Le chrono suit la configuration du challenge.');
-      loadState().catch(() => {});
+      runAction('start', async () => {
+        await apiCall('/start', { method: 'POST' });
+      });
       return;
     }
-
     setFeedback('Pause/Reinitialisation du chrono non disponibles pour Salle secrete (MVP actuel).');
-  }, [loadState]);
+  }, [apiCall, runAction]);
 
   if (!endpointBase) {
     return (
@@ -371,6 +371,45 @@ export default function EscapeRoomChallenge({
       <div className={styles.escapeRoomContainer}>
         <div className={styles.card}>
           <h2>Chargement de la salle...</h2>
+
+          if (state.status === 'waiting_for_start') {
+            return (
+              <div className={styles.escapeRoomContainer}>
+                <section className={styles.header}>
+                  <div>
+                    <p className={styles.kicker}>Salle secrete</p>
+                    <h1>Escape Room</h1>
+                    <p className={styles.subtitle}>En attente du démarrage par le facilitateur.</p>
+                  </div>
+                </section>
+                <section className={styles.layout}>
+                  <article className={styles.card} style={{ textAlign: 'center', padding: '2rem' }}>
+                    {isFacilitator ? (
+                      <>
+                        <p style={{ marginBottom: '1.5rem', color: 'var(--ink-soft)' }}>
+                          Tous les participants sont prêts. Démarrez le chrono pour lancer le challenge.
+                        </p>
+                        <button
+                          className={styles.timerBtnStart}
+                          type="button"
+                          onClick={() => handleTimerAction('start')}
+                          disabled={busyAction === 'start'}
+                          style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}
+                        >
+                          {busyAction === 'start' ? 'Démarrage...' : '▶️ Démarrer le challenge'}
+                        </button>
+                        {feedback ? <p className={styles.feedback} style={{ marginTop: '1rem' }}>{feedback}</p> : null}
+                      </>
+                    ) : (
+                      <p style={{ fontSize: '1.1rem', color: 'var(--ink-soft)' }}>
+                        ⏳ En attente du facilitateur…
+                      </p>
+                    )}
+                  </article>
+                </section>
+              </div>
+            );
+          }
         </div>
       </div>
     );

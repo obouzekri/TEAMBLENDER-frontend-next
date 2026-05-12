@@ -182,20 +182,19 @@ export default function SessionLiveClient() {
     <>
       <AppNav userLabel={userLabel} onLogout={logout} role="participant-live" />
       <main className="shell app-home">
-        <section className="hero">
-          <p className="eyebrow">SESSION EN COURS</p>
-          <h1>{session?.name || `Session ${sessionId}`}</h1>
-          <div className="session-live-meta">
+        <section className="session-live-header">
+          <div className="session-live-header__row1">
+            <span className="eyebrow">SESSION EN COURS</span>
+            <strong className="session-live-header__name">{session?.name || `Session ${sessionId}`}</strong>
             <span className="eyebrow">{memberCount} participant{memberCount !== 1 ? 's' : ''}</span>
             {activeChallenge && (
-              <span className="eyebrow">Challenge actif : {activeChallenge.name || activeEngineKey}</span>
+              <span className="eyebrow">· {activeChallenge.name || activeEngineKey}</span>
             )}
-            {session?.status && <span className="eyebrow">Statut : {{ en_cours: 'En cours', preparee: 'En préparation', terminee: 'Terminée' }[session.status] || session.status}</span>}
           </div>
-          <div className="hero-actions">
+          <div className="session-live-header__row2">
             <button
               type="button"
-              className="btn-primary"
+              className="btn-primary btn--sm"
               onClick={handleNextChallenge}
               disabled={actionPending || !canManageFlow}
             >
@@ -203,17 +202,17 @@ export default function SessionLiveClient() {
             </button>
             <button
               type="button"
-              className="btn-secondary"
+              className="btn-secondary btn--sm"
               onClick={handleEndSession}
               disabled={actionPending}
             >
-              Terminer la session
+              Terminer
             </button>
-            <Link href={`/session-builder?sessionId=${encodeURIComponent(sessionId)}`} className="btn-secondary">
+            <Link href={`/session-builder?sessionId=${encodeURIComponent(sessionId)}`} className="btn-secondary btn--sm">
               Retour au builder
             </Link>
+            {actionMsg && <span className="session-live-header__msg">{actionMsg}</span>}
           </div>
-          {actionMsg && <p style={{ marginTop: '0.75rem' }}>{actionMsg}</p>}
         </section>
 
         {activeEngineKey ? (
