@@ -56,11 +56,16 @@ export default function ParticipantPage() {
     function syncSessionFromLocation() {
       const params = new URLSearchParams(window.location.search);
       const fromQuery = String(params.get('sessionId') || '').trim();
-      const resolved = fromQuery || String(sessionStorage.getItem('targetSessionId') || '').trim();
       if (fromQuery) {
+        // Explicit sessionId in URL: store it and use it
         sessionStorage.setItem('targetSessionId', fromQuery);
+        setSessionId(fromQuery);
+      } else {
+        // No sessionId in URL: clear stored session so the list shows
+        sessionStorage.removeItem('targetSessionId');
+        hasRedirected.current = false;
+        setSessionId('');
       }
-      setSessionId(resolved);
     }
 
     syncSessionFromLocation();
