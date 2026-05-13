@@ -545,7 +545,7 @@
 .teamProgressFill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #22c55e, #0ea5e9);
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
   transition: width 0.25s ease;
 }
 
@@ -588,7 +588,7 @@
 }
 
 .teamStatusOk {
-  color: #4ade80;
+  color: #7dd3fc;
   font-weight: 700;
 }
 
