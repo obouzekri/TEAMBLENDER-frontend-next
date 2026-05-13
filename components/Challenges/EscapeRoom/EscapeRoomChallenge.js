@@ -111,7 +111,7 @@ export default function EscapeRoomChallenge({
             <article className={styles.card} style={{ textAlign: 'center', padding: '2rem' }}>
               {isFacilitator ? (
                 <>
-                  <p style={{ marginBottom: '1.5rem', color: 'var(--ink-soft)' }}>
+                  <p style={{ marginBottom: '1.5rem', color: '#bfd3e8' }}>
                     Tous les participants sont prêts. Démarrez le chrono pour lancer le challenge.
                   </p>
                   <button
@@ -126,7 +126,7 @@ export default function EscapeRoomChallenge({
                   {feedback ? <p className={styles.feedback} style={{ marginTop: '1rem' }}>{feedback}</p> : null}
                 </>
               ) : (
-                <p style={{ fontSize: '1.1rem', color: 'var(--ink-soft)' }}>
+                <p style={{ fontSize: '1.1rem', color: '#bfd3e8' }}>
                   ⏳ En attente du facilitateur…
                 </p>
               )}

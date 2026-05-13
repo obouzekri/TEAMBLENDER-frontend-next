@@ -588,12 +588,12 @@
 }
 
 .teamStatusOk {
-  color: #7dd3fc;
+  color: #7dd3fc !important;
   font-weight: 700;
 }
 
 .teamStatusPending {
-  color: #fbbf24;
+  color: #bfd3e8;
   font-weight: 700;
 }
 
