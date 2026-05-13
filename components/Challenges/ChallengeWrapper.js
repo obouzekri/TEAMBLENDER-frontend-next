@@ -165,6 +165,43 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     };
   }, [sessionId, showErrorToast, showLoadingToast, removeToast, normalizedEngineKey]);
 
+  // Listen for challenge advancement from facilitator
+  useEffect(() => {
+    if (!socket) return () => {};
+
+    const handleChallengeAdvanced = () => {
+      // Reload runtime payload when challenge is advanced
+      const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+      fetch(getApiUrl(`/sessions/${sessionId}/runtime-challenge`), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error(`Erreur ${res.status}: ${res.statusText}`);
+          return res.json();
+        })
+        .then((payload) => {
+          setRuntimePayload({
+            ...payload,
+            challenge_id: Number(payload.challenge_id || payload.context?.challengeId || 0),
+          });
+          setError(null);
+        })
+        .catch((err) => {
+          const message = err.message || 'Erreur lors du chargement du nouveau challenge';
+          setError(message);
+          showErrorToast(message);
+        });
+    };
+
+    socket.on('session:challenge-advanced', handleChallengeAdvanced);
+    return () => {
+      socket.off('session:challenge-advanced', handleChallengeAdvanced);
+    };
+  }, [socket, sessionId, getApiUrl, showErrorToast]);
+
   // Load engine component once runtime is ready (and socket if required)
   useEffect(() => {
     if (!runtimePayload) return;

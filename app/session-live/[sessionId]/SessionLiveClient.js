@@ -8,6 +8,7 @@ import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
+import useSocket from '@/lib/socket';
 
 const ChallengeWrapper = dynamic(
   () => import('@/components/Challenges/ChallengeWrapper'),
@@ -52,6 +53,7 @@ export default function SessionLiveClient() {
   const autoAdvanceTimerRef = useRef(null);
   const completedChallengeKeyRef = useRef('');
   const { sessionState, refetch: refetchSessionState } = useSessionState(sessionId || null);
+  const { socket, connected } = useSocket(!!sessionId);
 
   // Auth guard
   useEffect(() => {
@@ -137,12 +139,20 @@ export default function SessionLiveClient() {
         flow_mode: updated?.flow_mode || updated?.flowMode || prev.flow_mode,
       }) : prev);
       refetchSessionState();
+      
+      // Emit Socket event to notify participants of challenge change
+      if (socket && connected && updated?.active_challenge_id) {
+        socket.emit('session:challenge-advanced', {
+          sessionId,
+          active_challenge_id: updated.active_challenge_id,
+        });
+      }
     } catch (err) {
       setActionMsg(err.message || 'Erreur lors du passage au challenge suivant.');
     } finally {
       setActionPending(false);
     }
-  }, [canManageFlow, refetchSessionState, sessionId]);
+  }, [canManageFlow, refetchSessionState, sessionId, socket, connected]);
 
   const handleNextChallenge = useCallback(async () => {
     clearAutoAdvanceTimer();
