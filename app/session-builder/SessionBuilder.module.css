@@ -104,7 +104,7 @@
 
 .creationTitle {
   margin: 0.45rem 0 0;
-  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-size: clamp(1.05rem, 1.35vw, 1.22rem);
   line-height: 1.02;
   color: #0f172a;
 }
@@ -254,6 +254,10 @@
   color: #64748b;
   font-size: 0.92rem;
   line-height: 1.5;
+}
+
+.creationParticipantsLine {
+  white-space: nowrap;
 }
 
 .creationParticipantsCount {

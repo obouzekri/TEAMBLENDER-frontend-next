@@ -121,15 +121,19 @@ export default function ParticipantAssigner({
     onAssign(selected);
   };
 
+  const showHeader = Boolean(String(title || '').trim() || String(subtitle || '').trim());
+
   return (
     <div className={embedded ? styles.containerEmbedded : styles.container}>
       <div className={styles.card}>
-        <div className={styles.header}>
-          <h2>{title}</h2>
-          <p className={styles.subtitle}>
-            {subtitle}
-          </p>
-        </div>
+        {showHeader ? (
+          <div className={styles.header}>
+            <h2>{title}</h2>
+            <p className={styles.subtitle}>
+              {subtitle}
+            </p>
+          </div>
+        ) : null}
 
         {loadingParticipants ? (
           <div className={styles.loading}>

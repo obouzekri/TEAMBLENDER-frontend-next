@@ -522,7 +522,6 @@ export default function SessionBuilder() {
                     <div className={styles.creationSectionHeader}>
                       <div>
                         <h2>Cadre de session</h2>
-                        <p>Renseignez l&apos;essentiel sans quitter cette vue.</p>
                       </div>
                     </div>
 
@@ -595,8 +594,7 @@ export default function SessionBuilder() {
                   <div className={styles.creationParticipantsPane}>
                     <div className={styles.creationSectionHeader}>
                       <div>
-                        <h2>Participant</h2>
-                        <p>Assignez les bonnes personnes avant de passer au catalogue.</p>
+                        <p className={styles.creationParticipantsLine}>Assignez les bonnes personnes avant de passer au catalogue.</p>
                       </div>
                       <span className={styles.creationParticipantsCount}>
                         {draftParticipantIds.length} selectionne{draftParticipantIds.length > 1 ? 's' : ''}
@@ -609,8 +607,8 @@ export default function SessionBuilder() {
                       onSelectionChange={setDraftParticipantIds}
                       embedded
                       hideActions
-                      title="Participant"
-                      subtitle="Nom et prenom des participants a assigner a la session."
+                      title=""
+                      subtitle=""
                     />
                   </div>
                 </aside>
