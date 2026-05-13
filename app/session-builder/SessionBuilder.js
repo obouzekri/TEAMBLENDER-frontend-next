@@ -507,7 +507,7 @@ export default function SessionBuilder() {
       <>
         <ToastContainer toasts={toasts} onRemove={removeToast} />
         <AppNav userLabel={userLabel} onLogout={logout} />
-        <main className="shell auth-page">
+        <main className={`shell auth-page ${styles.creationPageBackground}`}>
           <section className={styles.creationExperience}>
             <div className={styles.creationHero}>
               <div className={styles.creationHeroTop}>
