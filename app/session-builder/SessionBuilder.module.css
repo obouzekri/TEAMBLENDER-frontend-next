@@ -1,6 +1,14 @@
 .sessionBuilder {
+  --builder-inline-pad: clamp(0.65rem, 1.1vw, 0.9rem);
+  display: grid;
+  gap: 1.25rem;
   padding-top: 2rem;
+  padding-inline: var(--builder-inline-pad);
   padding-bottom: 4rem;
+}
+
+.sessionBuilder > * {
+  min-width: 0;
 }
 
 .sessionInfoBar {
@@ -55,7 +63,7 @@
   display: grid;
   grid-template-columns: minmax(300px, 350px) minmax(0, 1fr);
   gap: 2rem;
-  margin-top: 2rem;
+  margin-top: 0;
   min-width: 0;
 }
 
