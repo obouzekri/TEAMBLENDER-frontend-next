@@ -137,7 +137,6 @@
 /* TIMER CARD STYLES */
 .timerCard {
   background: linear-gradient(160deg, rgba(56, 189, 248, 0.09) 0%, rgba(17, 25, 46, 0.58) 100%);
-  border: 1px solid rgba(56, 189, 248, 0.24) !important;
   border-radius: 12px;
   padding: 14px;
   display: grid;
@@ -541,7 +540,6 @@
 .referenceWrap {
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid rgba(125, 211, 252, 0.28);
 }
 
 .referenceImage {
