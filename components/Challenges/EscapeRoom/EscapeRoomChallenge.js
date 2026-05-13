@@ -514,14 +514,6 @@ export default function EscapeRoomChallenge({
             ) : null}
           </section>
 
-          <h3>Panneau équipe</h3>
-          <p>
-            Réponses reçues: <span className={styles.metricValue}>{Number(state.submission_status?.responded || 0)}</span> /
-            <span className={styles.metricValue}> {Number(state.submission_status?.total || 0)}</span>
-          </p>
-          <p>Tentatives: {Number(state.attempts_on_current || 0)} / {Number(state.max_attempts || 0)}</p>
-          <p>Rôle: {isFacilitator ? 'Facilitateur' : 'Participant'}</p>
-
           <div className={styles.teamProgressTrack}>
             <div className={styles.teamProgressFill} style={{ width: `${responseProgress}%` }} />
           </div>
