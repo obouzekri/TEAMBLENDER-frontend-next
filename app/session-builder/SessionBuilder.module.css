@@ -65,8 +65,9 @@
 
 .creationPageBackground {
   position: relative;
-  border-radius: 26px;
-  padding: 1.4rem;
+  width: 100%;
+  min-height: calc(100vh - 84px);
+  padding: 1.4rem clamp(0.8rem, 2vw, 1.6rem);
   background:
     radial-gradient(circle at top left, rgba(16, 185, 129, 0.16), transparent 33%),
     radial-gradient(circle at right 15%, rgba(14, 165, 233, 0.13), transparent 28%),
@@ -76,10 +77,10 @@
 .creationHero {
   position: relative;
   padding: clamp(1.4rem, 2vw, 2rem);
-  border-radius: 22px;
+  border-radius: 18px;
   border: 1px solid var(--line, #e2e8f0);
   background: var(--card, #ffffff);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--card-shadow, 0 10px 28px rgba(30, 42, 35, 0.06));
 }
 
 .creationHeroTop {
@@ -440,8 +441,8 @@
   }
 
   .creationPageBackground {
-    border-radius: 18px;
     padding: 0.75rem;
+    min-height: auto;
   }
 
   .creationLead {
