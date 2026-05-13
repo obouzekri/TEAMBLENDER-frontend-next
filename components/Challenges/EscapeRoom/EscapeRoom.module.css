@@ -570,6 +570,13 @@
   color: #bfdbfe;
 }
 
+.timerQuickActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .teamList {
   display: grid;
   gap: 8px;
@@ -742,6 +749,10 @@
   }
 
   .chatForm {
+    grid-template-columns: 1fr;
+  }
+
+  .timerQuickActions {
     grid-template-columns: 1fr;
   }
 }

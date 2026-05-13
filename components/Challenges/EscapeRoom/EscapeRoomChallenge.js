@@ -512,6 +512,25 @@ export default function EscapeRoomChallenge({
                 ⏳ Géré par le facilitateur
               </p>
             ) : null}
+
+            {isFacilitator && !isFinished && currentEnigme ? (
+              <div className={styles.timerQuickActions}>
+                <button
+                  className={styles.secondaryBtn}
+                  disabled={!!busyAction}
+                  onClick={() => facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })}
+                >
+                  Débloquer indice
+                </button>
+                <button
+                  className={styles.secondaryBtn}
+                  disabled={!!busyAction}
+                  onClick={() => facilitatorAction('skip', '/skip')}
+                >
+                  Passer l'énigme
+                </button>
+              </div>
+            ) : null}
           </section>
 
           <div className={styles.teamProgressTrack}>
@@ -562,39 +581,6 @@ export default function EscapeRoomChallenge({
               </form>
               {realtimeError ? <p className={styles.feedback}>{realtimeError}</p> : null}
             </section>
-          ) : null}
-
-          {isFacilitator && !isFinished && currentEnigme ? (
-            <div className={styles.actions}>
-              <button
-                className={styles.secondaryBtn}
-                disabled={!!busyAction}
-                onClick={() => facilitatorAction('validate', '/validate')}
-              >
-                Valider collectif
-              </button>
-              <button
-                className={styles.secondaryBtn}
-                disabled={!!busyAction}
-                onClick={() => facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })}
-              >
-                Débloquer indice
-              </button>
-              <button
-                className={styles.secondaryBtn}
-                disabled={!!busyAction}
-                onClick={() => facilitatorAction('skip', '/skip')}
-              >
-                Passer énigme
-              </button>
-              <button
-                className={styles.dangerBtn}
-                disabled={!!busyAction}
-                onClick={() => facilitatorAction('timeout', '/timeout')}
-              >
-                Forcer timeout
-              </button>
-            </div>
           ) : null}
 
           {feedback ? <p className={styles.feedback}>{feedback}</p> : null}
