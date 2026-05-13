@@ -329,7 +329,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
       <section className={styles.header}>
         <div className={styles.headerTitleLine}>
           <span className={styles.headerTitle}>{effectiveConfig.title}</span>
-          <span className={styles.headerDescription}>: Puzzle collaboratif en temps reel</span>
+          <span className={styles.headerDescription}>: Puzzle collaboratif en temps réel</span>
         </div>
         <div className={styles.badges}>
           <span className={styles.badge}>Progression: {completion}%</span>
@@ -355,6 +355,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
               const isMyPiece = occupant && participantSlot && Number(occupant.assigned_slot) === participantSlot;
               const isHiddenPiece = occupant && !isFacilitator && !isMyPiece;
               const canDragBoardPiece = Boolean(occupant && canPlay && (isFacilitator || isMyPiece));
+              const canRemoveBoardPiece = Boolean(occupant && canPlay && isMyPiece);
               const cellClass = `${styles.cell}${occupant ? ` ${styles.cellFilled}` : ''}${dragOverCellKey === cell.key ? ` ${styles.cellDropTarget}` : ''}`;
 
               return (
@@ -363,6 +364,11 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
                   type="button"
                   className={cellClass}
                   onClick={() => {
+                    if (occupant && canRemoveBoardPiece) {
+                      removePiece(occupant.id);
+                      setSelectedPieceId(String(occupant.id));
+                      return;
+                    }
                     if (!occupant) {
                       placeOnCell(cell.x, cell.y);
                     }
@@ -485,8 +491,8 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
                         else if (timerState === 'paused') emitEvent('timer.resume');
                         else emitEvent('timer.start');
                       }}
-                      title={timerState === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
-                      aria-label={timerState === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
+                      title={timerState === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
+                      aria-label={timerState === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
                     >
                       {timerState === 'running' ? '⏸' : '▶'}
                     </button>
@@ -503,13 +509,13 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
           </section>
 
           <section className={styles.sideCard}>
-            <h2>{isFacilitator ? 'Image de reference' : 'Pieces assignees'}</h2>
+            <h2>{isFacilitator ? 'Image de référence' : 'Pièces assignées'}</h2>
 
             {imageUrl && (isFacilitator || effectiveConfig.participants.show_reference_image) ? (
               <div className={styles.referenceWrap}>
                 <img
                   src={imageUrl}
-                  alt="Reference du puzzle"
+                  alt="Référence du puzzle"
                   className={styles.referenceImage}
                   onError={(event) => {
                     event.currentTarget.style.display = 'none';
@@ -533,13 +539,13 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
 
             {!isFacilitator ? (
               <>
-                <p className={styles.metaLine}>Vos pieces placees: {placedAssignedCount}/{assignedPieces.length}</p>
+                <p className={styles.metaLine}>Vos pièces placées: {placedAssignedCount}/{assignedPieces.length}</p>
                 <p className={styles.metaLine}>
-                  {canPlay ? 'Le plateau est actif.' : 'En attente du demarrage du facilitateur.'}
+                  {canPlay ? 'Le plateau est actif.' : 'En attente du démarrage du facilitateur.'}
                 </p>
                 <div className={styles.tray}>
                   {trayPieces.length === 0 ? (
-                    <p className={styles.empty}>Aucune piece disponible pour le moment.</p>
+                    <p className={styles.empty}>Aucune pièce disponible pour le moment.</p>
                   ) : (
                     trayPieces.map((piece) => {
                       const selected = String(piece.id) === String(selectedPieceId);
@@ -573,7 +579,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
 
           {effectiveConfig.chat.enabled ? (
             <section className={`${styles.chatCard} ${styles.sideChatCard}`}>
-              <h3>Chat equipe</h3>
+              <h3>Chat équipe</h3>
               <div className={styles.chatLog}>
                 {chatMessages.length === 0 ? (
                   <p className={styles.empty}>Aucun message pour le moment.</p>
@@ -592,7 +598,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
                   type="text"
                   value={chatInput}
                   onChange={(event) => setChatInput(event.target.value)}
-                  placeholder="Ecrire un message d'equipe"
+                  placeholder="Écrire un message d'équipe"
                   className={styles.chatInput}
                   maxLength={240}
                 />
@@ -608,7 +614,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
       {!isFacilitator && selectedPiece ? (
         <section className={styles.selectionBanner}>
           <p>
-            Piece selectionnee: <strong>{selectedPiece.id}</strong>. Glissez-la vers une case libre ou cliquez sur une case pour la placer.
+            Pièce sélectionnée: <strong>{selectedPiece.id}</strong>. Glissez-la vers une case libre, ou cliquez sur une pièce posée pour la retirer.
           </p>
         </section>
       ) : null}

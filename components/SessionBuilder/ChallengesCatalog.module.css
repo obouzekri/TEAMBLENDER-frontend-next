@@ -1,5 +1,7 @@
 .catalog {
   flex: 1;
+  min-width: 0;
+  width: 100%;
 }
 
 .filterBar {
@@ -9,16 +11,17 @@
   padding: 1.25rem 1.25rem;
   margin-bottom: 2rem;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 2rem;
 }
 
 .filterGroup {
   display: grid;
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
   flex: 1;
+  min-width: 0;
 }
 
 .filterField {
