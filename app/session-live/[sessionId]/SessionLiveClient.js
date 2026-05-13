@@ -277,38 +277,20 @@ export default function SessionLiveClient() {
         <section className="session-live-header">
           <div className="session-live-header__row1">
             <strong className="session-live-header__name">{session?.name || `Session ${sessionId}`}</strong>
-            <span className="eyebrow session-live-header__meta">{memberCount} participant{memberCount !== 1 ? 's' : ''}</span>
             {activeChallenge && (
               <span className="eyebrow session-live-header__meta">{activeChallenge.name || activeEngineKey}</span>
             )}
+            <span className="eyebrow session-live-header__meta">{memberCount} participant{memberCount !== 1 ? 's' : ''}</span>
           </div>
           <div className="session-live-header__row2">
-            {flowMode === 'manual' ? (
-              <button
-                type="button"
-                className="btn-primary btn--sm"
-                onClick={handleNextChallenge}
-                disabled={actionPending || !canManageFlow}
-              >
-                {actionPending ? 'En cours...' : 'Passer au challenge suivant'}
-              </button>
-            ) : (
-              <span className="session-live-header__msg">
-                {autoAdvanceCountdown > 0
-                  ? `Passage automatique dans ${autoAdvanceCountdown}s`
-                  : 'Passage automatique activé'}
-              </span>
-            )}
-            {flowMode === 'auto' && canManageFlow ? (
-              <button
-                type="button"
-                className="btn-secondary btn--sm"
-                onClick={handleNextChallenge}
-                disabled={actionPending}
-              >
-                Forcer le passage
-              </button>
-            ) : null}
+            <button
+              type="button"
+              className="btn-primary btn--sm"
+              onClick={handleNextChallenge}
+              disabled={actionPending || !canManageFlow}
+            >
+              {actionPending ? 'En cours...' : 'Passer au challenge suivant'}
+            </button>
             <button
               type="button"
               className="btn-secondary btn--sm"
@@ -317,6 +299,13 @@ export default function SessionLiveClient() {
             >
               Terminer
             </button>
+            {flowMode === 'auto' && (
+              <span className="session-live-header__msg">
+                {autoAdvanceCountdown > 0
+                  ? `Passage auto dans ${autoAdvanceCountdown}s`
+                  : 'Passage auto activé'}
+              </span>
+            )}
             {actionMsg && <span className="session-live-header__msg">{actionMsg}</span>}
           </div>
         </section>

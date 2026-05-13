@@ -327,15 +327,15 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
   return (
     <div className={styles.copuzzleContainer}>
       <section className={styles.header}>
-        <div>
-          <h1>{effectiveConfig.title}</h1>
-          <p>Puzzle collaboratif en temps reel</p>
+        <div className={styles.headerTitleLine}>
+          <span className={styles.headerTitle}>{effectiveConfig.title}</span>
+          <span className={styles.headerDescription}>: Puzzle collaboratif en temps reel</span>
         </div>
         <div className={styles.badges}>
           <span className={styles.badge}>Progression: {completion}%</span>
           <span className={styles.badge}>Chrono: {timerState}</span>
           {!isFacilitator ? (
-            <span className={styles.badge}>Slot {participantSlot || '-'}</span>
+            <span className={styles.badge}>Participant</span>
           ) : (
             <span className={styles.badge}>Facilitateur</span>
           )}
@@ -460,8 +460,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
 
         <aside className={styles.sidePanel}>
           <section className={`${styles.sideCard} ${styles.timerCard}`}>
-            <h3 className={styles.timerTitle}>Chrono</h3>
-
             <div className={styles.timerRingContainer}>
               <div
                 className={timerRingClassName}
