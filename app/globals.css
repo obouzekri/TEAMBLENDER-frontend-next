@@ -311,10 +311,11 @@ a {
 }
 
 .cards-grid {
-  margin-top: 1.2rem;
+  margin-top: 0.65rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
+  margin-bottom: 0.65rem;
 }
 
 .feature-card {
@@ -1821,6 +1822,10 @@ a {
   border-radius: 18px;
   background: linear-gradient(165deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 252, 249, 0.92) 100%);
   box-shadow: 0 14px 32px rgba(18, 50, 37, 0.06);
+  max-height: calc(3 * 220px + 40px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
 }
 
 .home-sessions-head {
@@ -1837,6 +1842,10 @@ a {
   border-radius: 18px;
   background: linear-gradient(165deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 252, 249, 0.92) 100%);
   box-shadow: 0 14px 32px rgba(18, 50, 37, 0.06);
+  max-height: calc(5 * 48px + 120px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
 }
 
 .participants-panel-head {

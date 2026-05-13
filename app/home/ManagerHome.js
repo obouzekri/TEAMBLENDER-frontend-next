@@ -464,9 +464,7 @@ export default function ManagerHome() {
             <p className="eyebrow">TERMINEES</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.terminee}</h2>
             <p>session{sessionStats.terminee !== 1 ? 's' : ''} cloturee{sessionStats.terminee !== 1 ? 's' : ''}</p>
-            {sessionStats.terminee > 0 && (
-              <Link className="btn-mini stat-link" href={`/session-results/${sessions.find((s) => s.status === 'terminee')?.id}`}>Voir resultats</Link>
-            )}
+
           </article>
         </section>
 
