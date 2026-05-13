@@ -174,9 +174,22 @@ export default function ParticipantAssigner({
                         onChange={() => toggleParticipant(participant.id)}
                       />
                       <div className={styles.info}>
-                        <strong>{getMemberDisplayName(participant)}</strong>
-                        {participant.email && (
-                          <span className={styles.email}>{participant.email}</span>
+                        {embedded ? (
+                          <>
+                            <span className={styles.identityLine}>
+                              <strong>Nom:</strong> {String(participant?.last_name || '').trim() || '-'}
+                            </span>
+                            <span className={styles.identityLine}>
+                              <strong>Prenom:</strong> {String(participant?.first_name || '').trim() || '-'}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <strong>{getMemberDisplayName(participant)}</strong>
+                            {participant.email && (
+                              <span className={styles.email}>{participant.email}</span>
+                            )}
+                          </>
                         )}
                       </div>
                     </label>

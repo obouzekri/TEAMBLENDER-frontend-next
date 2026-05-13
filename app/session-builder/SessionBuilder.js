@@ -512,17 +512,13 @@ export default function SessionBuilder() {
             <div className={styles.creationHero}>
               <div className={styles.creationHeroTop}>
                 <p className="eyebrow">NOUVELLE SESSION</p>
-                <span className={styles.creationHeroBadge}>Configuration en un seul ecran</span>
               </div>
               <h1 className={styles.creationTitle}>Préparer la session</h1>
-              <p className={styles.creationLead}>
-                Organisez le cadre de la session et l&apos;assignation des participants dans une seule vue,
-                claire et immediate.
-              </p>
+              <p className={styles.creationLead}>Organisez le cadre de la session et l&apos;assignation des participants dans une seule vue, claire et immediate.</p>
 
               <div className={styles.creationContent}>
                 <div className={styles.creationPrimary}>
-                  <form onSubmit={handleCreateSession} className={styles.creationForm}>
+                  <form id="create-session-form" onSubmit={handleCreateSession} className={styles.creationForm}>
                     <div className={styles.creationSectionHeader}>
                       <div>
                         <h2>Cadre de session</h2>
@@ -591,51 +587,15 @@ export default function SessionBuilder() {
                       <p className={styles.creationHint}>
                         La date est facultative, mais utile pour planifier et retrouver rapidement vos sessions.
                       </p>
-                      <button type="submit" className={`btn-primary ${styles.creationSubmit}`} disabled={isCreatingSession}>
-                        {isCreatingSession ? 'Creation...' : 'Creer la session'}
-                      </button>
                     </div>
                   </form>
                 </div>
 
                 <aside className={styles.creationSecondary}>
-                  <div className={styles.creationOverviewCard}>
-                    <div className={styles.creationSectionHeader}>
-                      <div>
-                        <h2>Vue rapide</h2>
-                        <p>Deux blocs, deux décisions: cadrer la session puis choisir les participants.</p>
-                      </div>
-                    </div>
-
-                    <div className={styles.creationStats}>
-                      <div className={styles.creationStatCard}>
-                        <span className={styles.creationStatLabel}>Participants assignes</span>
-                        <strong>{draftParticipantIds.length}</strong>
-                        <small>Selection en direct</small>
-                      </div>
-                      <div className={styles.creationStatCard}>
-                        <span className={styles.creationStatLabel}>Progression</span>
-                        <strong>{flowMode === 'manual' ? 'Manuelle' : 'Automatique'}</strong>
-                        <small>Modifiable avant lancement</small>
-                      </div>
-                    </div>
-
-                    <div className={styles.creationChecklist}>
-                      <div className={styles.creationChecklistItem}>
-                        <strong>1. Définir le cadre</strong>
-                        <span>Nom, date et mode de progression de la session.</span>
-                      </div>
-                      <div className={styles.creationChecklistItem}>
-                        <strong>2. Vérifier les participants</strong>
-                        <span>Assignez les bonnes personnes avant d&apos;ouvrir le catalogue.</span>
-                      </div>
-                    </div>
-                  </div>
-
                   <div className={styles.creationParticipantsPane}>
                     <div className={styles.creationSectionHeader}>
                       <div>
-                        <h2>Participants</h2>
+                        <h2>Participant</h2>
                         <p>Assignez les bonnes personnes avant de passer au catalogue.</p>
                       </div>
                       <span className={styles.creationParticipantsCount}>
@@ -649,11 +609,22 @@ export default function SessionBuilder() {
                       onSelectionChange={setDraftParticipantIds}
                       embedded
                       hideActions
-                      title="Participants de la session"
-                      subtitle="Selectionnez maintenant les participants a assigner a la session."
+                      title="Participant"
+                      subtitle="Nom et prenom des participants a assigner a la session."
                     />
                   </div>
                 </aside>
+              </div>
+
+              <div className={styles.creationGlobalActions}>
+                <button
+                  type="submit"
+                  form="create-session-form"
+                  className={`btn-primary ${styles.creationSubmit}`}
+                  disabled={isCreatingSession}
+                >
+                  {isCreatingSession ? 'Creation...' : 'Creer la session'}
+                </button>
               </div>
             </div>
           </section>
