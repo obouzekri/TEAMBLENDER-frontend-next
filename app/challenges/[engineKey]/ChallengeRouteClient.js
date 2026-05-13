@@ -94,25 +94,56 @@ export default function ChallengeRouteClient() {
 
   return (
     <>
-      {completionOverlay ? (
-        <section className="feature-card" style={{ maxWidth: '960px', margin: '24px auto 0' }}>
-          <p className="eyebrow">CHALLENGE TERMINE</p>
-          <h1 style={{ marginTop: '0.35rem' }}>
-            {completionOverlay.mode === 'auto' ? 'Passage automatique en cours' : 'En attente du facilitateur'}
-          </h1>
-          <p style={{ margin: '0.75rem 0 0', color: 'var(--color-muted, #64748b)' }}>
-            {completionOverlay.mode === 'auto'
-              ? `Prochain challenge dans ${completionOverlay.countdown}s.`
-              : 'Le facilitateur déclenchera le prochain challenge après le débrief.'}
-          </p>
-        </section>
-      ) : null}
       <ChallengeWrapper
         key={`${sessionId}:${activeChallengeId || 'none'}:${engineKey}`}
         sessionId={sessionId}
         engineKey={engineKey}
         onChallengeCompleted={handleChallengeCompleted}
       />
+      {completionOverlay ? (
+        <section
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            left: '50%',
+            bottom: '18px',
+            transform: 'translateX(-50%)',
+            width: 'min(92vw, 820px)',
+            borderRadius: '14px',
+            border: '1px solid rgba(125, 211, 252, 0.35)',
+            background: 'linear-gradient(140deg, rgba(15,23,42,0.96) 0%, rgba(17,24,39,0.96) 100%)',
+            boxShadow: '0 14px 38px rgba(2, 6, 23, 0.45)',
+            backdropFilter: 'blur(4px)',
+            padding: '12px 16px',
+            zIndex: 1200,
+            color: '#e2e8f0',
+            display: 'grid',
+            gap: '4px',
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              fontSize: '0.72rem',
+              letterSpacing: '0.08em',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              color: '#7dd3fc',
+            }}
+          >
+            Challenge terminé
+          </p>
+          <p style={{ margin: 0, fontSize: '0.94rem', fontWeight: 700 }}>
+            {completionOverlay.mode === 'auto' ? 'Passage automatique en cours' : 'En attente du facilitateur'}
+          </p>
+          <p style={{ margin: 0, fontSize: '0.84rem', color: '#cbd5e1' }}>
+            {completionOverlay.mode === 'auto'
+              ? `Prochain challenge dans ${completionOverlay.countdown}s.`
+              : 'Le facilitateur déclenchera le prochain challenge après le débrief.'}
+          </p>
+        </section>
+      ) : null}
     </>
   );
 }
