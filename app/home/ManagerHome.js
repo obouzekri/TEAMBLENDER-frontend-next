@@ -18,6 +18,25 @@ function pickDisplayName(user) {
   return full || String(user.name || user.email || 'Manager');
 }
 
+function getParticipantFirstName(participant) {
+  return String(participant?.first_name || participant?.firstname || '').trim();
+}
+
+function getParticipantLastName(participant) {
+  return String(participant?.last_name || participant?.lastname || '').trim();
+}
+
+function normalizeParticipant(participant) {
+  if (!participant || typeof participant !== 'object') return participant;
+  const firstName = getParticipantFirstName(participant);
+  const lastName = getParticipantLastName(participant);
+  return {
+    ...participant,
+    first_name: firstName,
+    last_name: lastName,
+  };
+}
+
 function formatSessionDate(value) {
   if (!value) return '';
   const parsed = new Date(value);
@@ -181,7 +200,7 @@ export default function ManagerHome() {
               : [];
 
         if (!cancelled) {
-          setMembers(items);
+          setMembers(items.map(normalizeParticipant));
         }
       })
       .catch((err) => {
@@ -244,8 +263,8 @@ export default function ManagerHome() {
     setShowParticipantForm(true);
     setEditingMemberId(member.id);
     setMemberForm({
-      first_name: String(member.first_name || '').trim(),
-      last_name: String(member.last_name || '').trim(),
+      first_name: getParticipantFirstName(member),
+      last_name: getParticipantLastName(member),
       email: String(member.email || '').trim(),
       password: '',
       job_title: String(member.job_title || '').trim(),
@@ -361,7 +380,7 @@ export default function ManagerHome() {
             : Array.isArray(refreshPayload.data)
               ? refreshPayload.data
               : [];
-        setMembers(items);
+        setMembers(items.map(normalizeParticipant));
       }
     } catch (err) {
       setMemberFormStatus(err.message || `Impossible de ${editingMemberId ? 'mettre à jour' : 'créer'} le participant.`);
@@ -374,7 +393,7 @@ export default function ManagerHome() {
   async function handleDeleteMember(member) {
     if (!guard.token || !member?.id || deletingMemberId) return;
 
-    const label = member.email || `${member.first_name || ''} ${member.last_name || ''}`.trim() || `Participant #${member.id}`;
+    const label = member.email || `${getParticipantFirstName(member)} ${getParticipantLastName(member)}`.trim() || `Participant #${member.id}`;
     const accepted = window.confirm(`Supprimer ${label} ? Cette action est irreversible.`);
     if (!accepted) return;
 
@@ -690,7 +709,7 @@ export default function ManagerHome() {
           {!loadingMembers && members.length > 0 ? (
             <ul className="session-list">
               {members.map((member) => {
-                const title = [member.first_name, member.last_name].filter(Boolean).join(' ').trim() || `Participant #${member.id}`;
+                const title = [getParticipantFirstName(member), getParticipantLastName(member)].filter(Boolean).join(' ').trim() || `Participant #${member.id}`;
                 const details = [member.job_title, member.department].filter(Boolean).join(' · ');
                 return (
                   <li key={String(member.id)} className="session-item team-member-item">

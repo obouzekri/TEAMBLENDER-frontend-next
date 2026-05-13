@@ -21,15 +21,15 @@ export default function ParticipantAssigner({
   const [searchTerm, setSearchTerm] = useState('');
 
   function getMemberDisplayName(member) {
-    const first = String(member?.first_name || '').trim();
-    const last = String(member?.last_name || '').trim();
+    const first = String(member?.first_name || member?.firstname || '').trim();
+    const last = String(member?.last_name || member?.lastname || '').trim();
     const full = `${first} ${last}`.trim();
     return full || String(member?.name || member?.email || 'Sans nom');
   }
 
   function getEmbeddedName(member) {
-    const first = String(member?.first_name || '').trim();
-    const last = String(member?.last_name || '').trim();
+    const first = String(member?.first_name || member?.firstname || '').trim();
+    const last = String(member?.last_name || member?.lastname || '').trim();
     const combined = `${last} ${first}`.trim();
     return combined || getMemberDisplayName(member);
   }
