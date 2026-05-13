@@ -13,12 +13,11 @@
 
 /* TIMER CARD STYLES (Dark Theme) */
 .timerCard {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
-  border: 1px solid rgba(2, 132, 199, 0.35);
+  background: linear-gradient(160deg, rgba(56, 189, 248, 0.09) 0%, rgba(17, 25, 46, 0.58) 100%);
   border-radius: 12px;
-  padding: 10px;
+  padding: 14px;
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .timerTitle {
@@ -135,12 +134,19 @@
 
 /* CHAT CARD STYLES (Dark Theme) */
 .chatCard {
-  background: rgba(17, 25, 46, 0.88);
-  border: 1px solid rgba(125, 211, 252, 0.28);
   border-radius: 12px;
-  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  background: rgba(20, 29, 52, 0.68);
+  padding: 14px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.chatCard:hover {
+  border-color: rgba(125, 211, 252, 0.22);
+  transform: translateY(-1px);
 }
 
 .chatCard h3 {
@@ -328,7 +334,6 @@
   max-height: 260px;
   object-fit: cover;
   border-radius: 10px;
-  border: 1px solid rgba(125, 211, 252, 0.28);
   margin-bottom: 12px;
 }
 
