@@ -356,6 +356,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
               const isHiddenPiece = occupant && !isFacilitator && !isMyPiece;
               const canDragBoardPiece = Boolean(occupant && canPlay && (isFacilitator || isMyPiece));
               const canRemoveBoardPiece = Boolean(occupant && canPlay && isMyPiece);
+              const shouldDisableCell = !canPlay || Boolean(occupant && !canRemoveBoardPiece);
               const cellClass = `${styles.cell}${occupant ? ` ${styles.cellFilled}` : ''}${dragOverCellKey === cell.key ? ` ${styles.cellDropTarget}` : ''}`;
 
               return (
@@ -381,7 +382,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
                   }}
                   onDragLeave={() => setDragOverCellKey((prev) => (prev === cell.key ? '' : prev))}
                   onDrop={(event) => onCellDrop(event, cell, occupant)}
-                  disabled={Boolean(occupant) || !canPlay}
+                  disabled={shouldDisableCell}
                 >
                   {occupant ? (
                     isHiddenPiece ? (
