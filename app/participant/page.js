@@ -299,22 +299,9 @@ export default function ParticipantPage() {
                         : session.status || '';
                   const joinUrl = `/participant?sessionId=${encodeURIComponent(sessionIdentifier)}`;
                   return (
-                    <article
-                      key={sessionIdentifier}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        gap: '12px',
-                        padding: '16px',
-                        border: '1px solid var(--line, #e2e8f0)',
-                        borderRadius: '12px',
-                        background: '#fff',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                      }}
-                    >
-                      <div>
-                        <p style={{ fontWeight: 700, margin: '0 0 6px', fontSize: '15px', color: 'var(--ink, #1e293b)' }}>
+                    <article key={sessionIdentifier} className="participant-session-card">
+                      <div className="participant-session-card__body">
+                        <p className="participant-session-card__name">
                           {session.name || `Session #${sessionIdentifier}`}
                         </p>
                         {statusLabel && (
@@ -323,20 +310,22 @@ export default function ParticipantPage() {
                           </span>
                         )}
                         {session.session_date && (
-                          <p style={{ color: 'var(--ink-soft, #64748b)', margin: '8px 0 0', fontSize: '12px' }}>
-                            {new Date(session.session_date).toLocaleDateString('fr-FR', { dateStyle: 'medium' })}
+                          <p className="participant-session-card__date">
+                            📅 {new Date(session.session_date).toLocaleDateString('fr-FR', { dateStyle: 'medium' })}
                           </p>
                         )}
                       </div>
-                      <button
-                        type="button"
-                        className="btn-primary"
-                        style={{ width: '100%', justifyContent: 'center' }}
-                        disabled={joiningSessionId === sessionIdentifier}
-                        onClick={() => joinSession(sessionIdentifier)}
-                      >
-                        {joiningSessionId === sessionIdentifier ? 'Connexion...' : 'Rejoindre'}
-                      </button>
+                      <div className="participant-session-card__footer">
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          style={{ width: '100%', justifyContent: 'center' }}
+                          disabled={joiningSessionId === sessionIdentifier}
+                          onClick={() => joinSession(sessionIdentifier)}
+                        >
+                          {joiningSessionId === sessionIdentifier ? 'Connexion...' : 'Rejoindre'}
+                        </button>
+                      </div>
                     </article>
                   );
                 })}
