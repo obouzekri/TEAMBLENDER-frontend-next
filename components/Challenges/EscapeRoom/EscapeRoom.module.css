@@ -612,6 +612,15 @@
   font-weight: 800;
 }
 
+.issueRow {
+  color: #bfd3e8 !important;
+}
+
+.issueLabel {
+  color: #dbeafe !important;
+  font-weight: 700;
+}
+
 .teamEmpty {
   margin: 0;
   font-size: 12px;

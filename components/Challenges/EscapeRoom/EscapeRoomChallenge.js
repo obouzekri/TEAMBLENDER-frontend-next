@@ -380,7 +380,10 @@ export default function EscapeRoomChallenge({
           {isFinished ? (
             <>
               <h2>Partie terminée</h2>
-              <p>Issue: <strong className={issueToneClass}>{state.status}</strong></p>
+              <p className={styles.issueRow}>
+                <span className={styles.issueLabel}>Issue:</span>{' '}
+                <strong className={issueToneClass}>{state.status}</strong>
+              </p>
               <p>Début: {state.started_at || '-'}</p>
               <p>Fin: {state.finished_at || '-'}</p>
             </>
