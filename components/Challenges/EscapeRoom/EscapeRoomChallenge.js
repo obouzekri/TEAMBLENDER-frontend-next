@@ -274,6 +274,9 @@ export default function EscapeRoomChallenge({
   const hasCurrentParticipantResponded = currentParticipantId != null && respondedSet.has(currentParticipantId);
 
   const timerSeconds = Number(state?.timer?.duration_seconds || 0);
+  const challengeStatus = String(state?.status || '').trim();
+  const canStartTimer = isFacilitator && challengeStatus === 'waiting_for_start' && !busyAction;
+  const isTimerRunning = challengeStatus === 'in_progress';
   const timerLabel = useMemo(() => {
     const minutes = Math.floor(Math.max(0, timerSeconds) / 60);
     const seconds = Math.max(0, timerSeconds) % 60;
@@ -352,7 +355,7 @@ export default function EscapeRoomChallenge({
       });
       return;
     }
-    setFeedback('Pause/Reinitialisation du chrono non disponibles pour Salle secrete (MVP actuel).');
+    setFeedback('Pause/Reinitialisation du chrono non disponibles pour Salle secrète (MVP actuel).');
   }, [apiCall, runAction]);
 
   if (!endpointBase) {
@@ -501,43 +504,30 @@ export default function EscapeRoomChallenge({
               >
                 <div className={styles.timerDisplay}>
                   <div className={styles.timerTime}>{timerLabel}</div>
-                  <div className={styles.timerState}>{state?.status ? 'En cours' : 'Attente'}</div>
+                  <div className={styles.timerState}>{isTimerRunning ? 'En cours' : 'Attente'}</div>
                 </div>
+                {isFacilitator ? (
+                  <div className={styles.timerRingActions}>
+                    <button
+                      className={styles.timerIconBtn}
+                      type="button"
+                      onClick={() => handleTimerAction(isTimerRunning ? 'pause' : 'start')}
+                      disabled={isTimerRunning ? false : !canStartTimer}
+                      title={isTimerRunning ? 'Mettre en pause' : 'Démarrer'}
+                      aria-label={isTimerRunning ? 'Mettre en pause' : 'Démarrer'}
+                    >
+                      {isTimerRunning ? '⏸' : '▶'}
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </div>
 
-            {isFacilitator ? (
-              <div className={styles.timerActionsGroup}>
-                <button
-                  className={styles.timerBtnStart}
-                  type="button"
-                  onClick={() => handleTimerAction('start')}
-                  disabled={!!busyAction}
-                >
-                  ▶️ Démarrer
-                </button>
-                <button
-                  className={styles.timerBtnPauseResume}
-                  type="button"
-                  onClick={() => handleTimerAction('pause')}
-                  disabled={!!busyAction}
-                >
-                  ⏸️ Pause
-                </button>
-                <button
-                  className={styles.timerBtnStop}
-                  type="button"
-                  onClick={() => handleTimerAction('reset')}
-                  disabled={!!busyAction}
-                >
-                  ⏹️ Réinitialiser
-                </button>
-              </div>
-            ) : (
+            {!isFacilitator ? (
               <p style={{ margin: '0', fontSize: '0.8rem', color: '#7dd3fc', textAlign: 'center' }}>
                 ⏳ Géré par le facilitateur
               </p>
-            )}
+            ) : null}
           </section>
 
           <h3>Panneau équipe</h3>
