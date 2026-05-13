@@ -105,11 +105,12 @@
 }
 
 .creationLead {
-  max-width: 62ch;
+  max-width: none;
   margin: 0.9rem 0 0;
   color: #475569;
   font-size: 1rem;
   line-height: 1.65;
+  white-space: nowrap;
 }
 
 .creationStats {
@@ -155,20 +156,25 @@
 
 .creationPrimary,
 .creationSecondary {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
   align-content: start;
+  min-height: 100%;
+  height: 100%;
 }
 
 .creationSecondary {
-  grid-template-rows: auto minmax(0, 1fr);
+  justify-content: stretch;
 }
 
 .creationForm {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 1.15rem;
   align-content: start;
   min-height: 100%;
+  height: 100%;
   padding: 1.35rem;
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.92) 100%);
@@ -187,10 +193,12 @@
 }
 
 .creationParticipantsPane {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 0.9rem;
   align-content: start;
   min-height: 100%;
+  height: 100%;
   padding: 1.35rem;
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(248, 250, 252, 0.96) 0%, rgba(255, 255, 255, 0.92) 100%);
@@ -376,10 +384,16 @@
 .creationFooter {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 1rem;
   margin-top: auto;
   padding-top: 0.35rem;
+}
+
+.creationGlobalActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
 }
 
 .creationSubmit {
@@ -417,6 +431,10 @@
   .creationHero {
     padding: 1.1rem;
     border-radius: 24px;
+  }
+
+  .creationLead {
+    white-space: normal;
   }
 
   .creationPrimary,
