@@ -513,8 +513,12 @@ export default function SessionBuilder() {
               <div className={styles.creationHeroTop}>
                 <p className="eyebrow">NOUVELLE SESSION</p>
               </div>
-              <h1 className={styles.creationTitle}>Préparer la session</h1>
-              <p className={styles.creationLead}>Organisez le cadre de la session et l&apos;assignation des participants dans une seule vue, claire et immediate.</p>
+              <h1 className={styles.creationTitle}>
+                <span className={styles.creationTitleMain}>Préparer la session:</span>
+                <span className={styles.creationTitleInlineDescription}>
+                  Organisez le cadre de la session et l&apos;assignation des participants dans une seule vue, claire et immediate.
+                </span>
+              </h1>
 
               <div className={styles.creationContent}>
                 <div className={styles.creationPrimary}>
@@ -594,7 +598,7 @@ export default function SessionBuilder() {
                   <div className={styles.creationParticipantsPane}>
                     <div className={styles.creationSectionHeader}>
                       <div>
-                        <p className={styles.creationParticipantsLine}>Assignez les bonnes personnes avant de passer au catalogue.</p>
+                        <h2>Assigner des participants</h2>
                       </div>
                       <span className={styles.creationParticipantsCount}>
                         {draftParticipantIds.length} selectionne{draftParticipantIds.length > 1 ? 's' : ''}
