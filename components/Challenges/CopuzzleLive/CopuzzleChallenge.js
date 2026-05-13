@@ -599,7 +599,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
           </section>
 
           {effectiveConfig.chat.enabled ? (
-            <section className={styles.chatCard}>
+            <section className={`${styles.chatCard} ${styles.sideChatCard}`}>
               <h3>Chat equipe</h3>
               <div className={styles.chatLog}>
                 {chatMessages.length === 0 ? (
