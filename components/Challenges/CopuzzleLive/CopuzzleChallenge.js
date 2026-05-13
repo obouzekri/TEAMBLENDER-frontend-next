@@ -478,37 +478,38 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
                     {timerState === 'running' ? 'En cours' : timerState === 'paused' ? 'Pause' : 'Attente'}
                   </div>
                 </div>
+                {isFacilitator ? (
+                  <div className={styles.timerRingActions}>
+                    <button
+                      className={styles.timerIconBtn}
+                      type="button"
+                      onClick={() => emitEvent('timer.start')}
+                      disabled={timerState === 'running'}
+                      title="Demarrer le chrono"
+                      aria-label="Demarrer le chrono"
+                    >
+                      ▶
+                    </button>
+                    <button
+                      className={styles.timerIconBtn}
+                      type="button"
+                      onClick={() => timerState === 'paused' ? emitEvent('timer.resume') : emitEvent('timer.pause')}
+                      disabled={timerState !== 'running' && timerState !== 'paused'}
+                      title={timerState === 'paused' ? 'Reprendre le chrono' : 'Mettre en pause'}
+                      aria-label={timerState === 'paused' ? 'Reprendre le chrono' : 'Mettre en pause'}
+                    >
+                      {timerState === 'paused' ? '⏯' : '⏸'}
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </div>
 
-            {isFacilitator ? (
-              <div className={styles.timerInlineActions}>
-                <button
-                  className={styles.timerIconBtn}
-                  type="button"
-                  onClick={() => emitEvent('timer.start')}
-                  disabled={timerState === 'running'}
-                  title="Demarrer le chrono"
-                  aria-label="Demarrer le chrono"
-                >
-                  ▶
-                </button>
-                <button
-                  className={styles.timerIconBtn}
-                  type="button"
-                  onClick={() => timerState === 'paused' ? emitEvent('timer.resume') : emitEvent('timer.pause')}
-                  disabled={timerState !== 'running' && timerState !== 'paused'}
-                  title={timerState === 'paused' ? 'Reprendre le chrono' : 'Mettre en pause'}
-                  aria-label={timerState === 'paused' ? 'Reprendre le chrono' : 'Mettre en pause'}
-                >
-                  {timerState === 'paused' ? '⏯' : '⏸'}
-                </button>
-              </div>
-            ) : (
+            {!isFacilitator ? (
               <p className={styles.timerWaitingText}>
                 ⏳ En attente du facilitateur
               </p>
-            )}
+            ) : null}
           </section>
 
           <section className={styles.sideCard}>
