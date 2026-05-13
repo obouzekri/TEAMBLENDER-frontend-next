@@ -92,6 +92,11 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
   const timerState = String(state?.timer?.status || 'idle').trim();
   const canPlay = state?.timer?.enabled === false || timerState === 'running';
   const backendOrigin = useMemo(() => getBackendOrigin(), []);
+  const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
+  const timerDurationSeconds = Math.max(
+    0,
+    Number(state?.timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)
+  );
 
   const effectiveConfig = useMemo(
     () => normalizeRuntimeConfig(state?.config || runtimePayload?.config || {}),
@@ -266,13 +271,13 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     function computeCellSize() {
       const vpW = window.innerWidth;
       const vpH = window.innerHeight;
-      // Board panel is ~60% of viewport width minus padding (~60px)
-      const panelW = Math.floor(vpW * 0.60) - 60;
+      // Board panel takes most of the viewport width for a larger workspace.
+      const panelW = Math.floor(vpW * 0.74) - 64;
       // Board panel height: viewport minus header (~140px), footer (~40px), board padding (~40px)
-      const panelH = vpH - 220;
+      const panelH = vpH - 180;
       const byWidth = Math.floor(panelW / colCount);
       const byHeight = Math.floor(panelH / rowCount);
-      const computed = Math.max(28, Math.min(90, Math.min(byWidth, byHeight)));
+      const computed = Math.max(30, Math.min(118, Math.min(byWidth, byHeight)));
       setCellSize(computed);
     }
     computeCellSize();
@@ -290,6 +295,35 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     return cells;
   }, [rowCount, colCount]);
 
+  const timerProgress = useMemo(() => {
+    if (timerState !== 'running' && timerState !== 'paused') {
+      return 0;
+    }
+    if (!timerDurationSeconds) {
+      return timerState === 'running' ? 100 : 50;
+    }
+    const ratio = timerRemainingSeconds / timerDurationSeconds;
+    return Math.max(0, Math.min(100, Math.round(ratio * 100)));
+  }, [timerDurationSeconds, timerRemainingSeconds, timerState]);
+
+  const timerTone = useMemo(() => {
+    if (timerState !== 'running') return 'idle';
+    if (timerProgress <= 20) return 'danger';
+    if (timerProgress <= 55) return 'warn';
+    return 'safe';
+  }, [timerProgress, timerState]);
+
+  const timerStrokeColor =
+    timerTone === 'danger' ? '#ef4444' : timerTone === 'warn' ? '#f59e0b' : '#22c55e';
+
+  const timerRingClassName = `${styles.timerRing} ${timerTone === 'safe'
+    ? styles.timerRingSafe
+    : timerTone === 'warn'
+      ? styles.timerRingWarn
+      : timerTone === 'danger'
+        ? styles.timerRingDanger
+        : ''}`.trim();
+
   return (
     <div className={styles.copuzzleContainer}>
       <section className={styles.header}>
@@ -299,7 +333,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
         </div>
         <div className={styles.badges}>
           <span className={styles.badge}>Progression: {completion}%</span>
-          <span className={styles.badge}>Timer: {timerState}</span>
+          <span className={styles.badge}>Chrono: {timerState}</span>
           {!isFacilitator ? (
             <span className={styles.badge}>Slot {participantSlot || '-'}</span>
           ) : (
@@ -422,6 +456,148 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             </div>
           ) : null}
 
+        </section>
+
+        <aside className={styles.sidePanel}>
+          <section className={`${styles.sideCard} ${styles.timerCard}`}>
+            <h3 className={styles.timerTitle}>Chrono</h3>
+
+            <div className={styles.timerRingContainer}>
+              <div
+                className={timerRingClassName}
+                style={{
+                  background: `conic-gradient(${timerStrokeColor} ${Math.round((timerProgress / 100) * 360)}deg, rgba(148, 163, 184, 0.18) ${Math.round((timerProgress / 100) * 360)}deg)`
+                }}
+              >
+                <div className={styles.timerDisplay}>
+                  <div className={styles.timerTime}>
+                    {String(Math.floor(timerRemainingSeconds / 60)).padStart(2, '0')}:
+                    {String(timerRemainingSeconds % 60).padStart(2, '0')}
+                  </div>
+                  <div className={styles.timerState}>
+                    {timerState === 'running' ? 'En cours' : timerState === 'paused' ? 'Pause' : 'Attente'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {isFacilitator ? (
+              <div className={styles.timerInlineActions}>
+                <button
+                  className={styles.timerIconBtn}
+                  type="button"
+                  onClick={() => emitEvent('timer.start')}
+                  disabled={timerState === 'running'}
+                  title="Demarrer le chrono"
+                  aria-label="Demarrer le chrono"
+                >
+                  ▶
+                </button>
+                <button
+                  className={styles.timerIconBtn}
+                  type="button"
+                  onClick={() => timerState === 'paused' ? emitEvent('timer.resume') : emitEvent('timer.pause')}
+                  disabled={timerState !== 'running' && timerState !== 'paused'}
+                  title={timerState === 'paused' ? 'Reprendre le chrono' : 'Mettre en pause'}
+                  aria-label={timerState === 'paused' ? 'Reprendre le chrono' : 'Mettre en pause'}
+                >
+                  {timerState === 'paused' ? '⏯' : '⏸'}
+                </button>
+              </div>
+            ) : (
+              <p className={styles.timerWaitingText}>
+                ⏳ En attente du facilitateur
+              </p>
+            )}
+          </section>
+
+          <section className={styles.sideCard}>
+            <h2>{isFacilitator ? 'Image de reference' : 'Pieces assignees'}</h2>
+
+            {imageUrl && (isFacilitator || effectiveConfig.participants.show_reference_image) ? (
+              <div className={styles.referenceWrap}>
+                <img
+                  src={imageUrl}
+                  alt="Reference du puzzle"
+                  className={styles.referenceImage}
+                  onError={(event) => {
+                    event.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+            ) : null}
+
+            {isFacilitator ? (
+              <label className={styles.referenceToggle}>
+                <input
+                  type="checkbox"
+                  checked={effectiveConfig.participants.show_reference_image === true}
+                  onChange={(event) => {
+                    emitEvent('puzzle.reference_visibility.update', { visible: event.target.checked });
+                  }}
+                />
+                <span>Afficher l'image aux participants</span>
+              </label>
+            ) : null}
+
+            {!isFacilitator ? (
+              <>
+                <p className={styles.metaLine}>Vos pieces placees: {placedAssignedCount}/{assignedPieces.length}</p>
+                <p className={styles.metaLine}>
+                  {canPlay ? 'Le plateau est actif.' : 'En attente du demarrage du facilitateur.'}
+                </p>
+                <div className={styles.tray}>
+                  {trayPieces.length === 0 ? (
+                    <p className={styles.empty}>Aucune piece disponible pour le moment.</p>
+                  ) : (
+                    trayPieces.map((piece) => {
+                      const selected = String(piece.id) === String(selectedPieceId);
+                      return (
+                        <button
+                          key={piece.id}
+                          type="button"
+                          className={`${styles.trayPiece}${selected ? ` ${styles.trayPieceSelected}` : ''}${draggingPieceId === String(piece.id) ? ` ${styles.trayPieceDragging}` : ''}`}
+                          onClick={() => {
+                            if (!canPlay) return;
+                            setSelectedPieceId((prev) => (String(prev) === String(piece.id) ? '' : piece.id));
+                          }}
+                          draggable={canPlay}
+                          onDragStart={(event) => onTrayDragStart(event, piece)}
+                          onDragEnd={onDragEnd}
+                          disabled={!canPlay}
+                          title={`Piece ${piece.id}`}
+                        >
+                          <span
+                            className={styles.trayPreview}
+                            style={computePieceStyle(piece, effectiveConfig, imageUrl)}
+                          />
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            ) : null}
+          </section>
+
+          <section className={styles.sideCard}>
+            <h2>Controles</h2>
+            {error ? <p className={styles.error}>{error}</p> : null}
+
+            {!isFacilitator ? (
+              <div className={styles.actions}>
+                <button
+                  className={styles.btnPrimary}
+                  type="button"
+                  onClick={() => setSelectedPieceId('')}
+                  disabled={!selectedPieceId}
+                >
+                  Deselectionner la piece
+                </button>
+              </div>
+            ) : null}
+          </section>
+
           {effectiveConfig.chat.enabled ? (
             <section className={styles.chatCard}>
               <h3>Chat equipe</h3>
@@ -453,140 +629,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
               </form>
             </section>
           ) : null}
-        </section>
-
-        <aside className={styles.sidePanel}>
-          <section className={`${styles.sideCard} ${styles.timerCard}`}>
-            <h3 className={styles.timerTitle}>Chronomètre</h3>
-
-            <div className={styles.timerRingContainer}>
-              <div
-                className={styles.timerRing}
-                style={{
-                  background: `conic-gradient(#0284c7 ${timerState === 'running' ? 360 : timerState === 'paused' ? 180 : 0}deg, #e2e8f0 ${timerState === 'running' ? 360 : timerState === 'paused' ? 180 : 0}deg)`
-                }}
-              >
-                <div className={styles.timerDisplay}>
-                  <div className={styles.timerTime}>
-                    {String(Math.floor(Number(state?.timer?.remaining_seconds || 0) / 60)).padStart(2, '0')}:
-                    {String(Number(state?.timer?.remaining_seconds || 0) % 60).padStart(2, '0')}
-                  </div>
-                  <div className={styles.timerState}>
-                    {timerState === 'running' ? 'En cours' : timerState === 'paused' ? 'Pause' : 'Attente'}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {isFacilitator ? (
-              <div className={styles.timerActionsGroup}>
-                <button
-                  className={styles.timerBtnStart}
-                  type="button"
-                  onClick={() => emitEvent('timer.start')}
-                  disabled={timerState === 'running'}
-                >
-                  ▶️ Démarrer
-                </button>
-                <button
-                  className={styles.timerBtnPauseResume}
-                  type="button"
-                  onClick={() => timerState === 'paused' ? emitEvent('timer.resume') : emitEvent('timer.pause')}
-                  disabled={timerState !== 'running' && timerState !== 'paused'}
-                >
-                  {timerState === 'paused' ? '⏯️ Reprendre' : '⏸️ Pause'}
-                </button>
-              </div>
-            ) : (
-              <p style={{ margin: '0', fontSize: '0.8rem', color: '#0c4a6e', textAlign: 'center' }}>
-                ⏳ En attente du facilitateur
-              </p>
-            )}
-          </section>
-
-          <section className={styles.sideCard}>
-            <h2>Pieces</h2>
-            <p className={styles.metaLine}>Totales: {pieces.length}</p>
-            {!isFacilitator ? (
-              <p className={styles.metaLine}>Vos pieces placees: {placedAssignedCount}/{assignedPieces.length}</p>
-            ) : (
-              <p className={styles.metaLine}>Pieces restantes: {trayPieces.length}</p>
-            )}
-            <p className={styles.metaLine}>
-              {canPlay ? 'Le plateau est actif.' : 'En attente du demarrage du facilitateur.'}
-            </p>
-          </section>
-
-          <section className={styles.sideCard}>
-            <h2>{isFacilitator ? 'Reference' : 'Pieces assignees'}</h2>
-
-            {imageUrl && (isFacilitator || effectiveConfig.participants.show_reference_image) ? (
-              <div className={styles.referenceWrap}>
-                <img
-                  src={imageUrl}
-                  alt="Reference du puzzle"
-                  className={styles.referenceImage}
-                  onError={(event) => {
-                    event.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
-            ) : null}
-
-            <div className={styles.tray}>
-              {trayPieces.length === 0 ? (
-                <p className={styles.empty}>Aucune piece disponible pour le moment.</p>
-              ) : (
-                trayPieces.map((piece) => {
-                  const selected = String(piece.id) === String(selectedPieceId);
-                  return (
-                    <button
-                      key={piece.id}
-                      type="button"
-                      className={`${styles.trayPiece}${selected ? ` ${styles.trayPieceSelected}` : ''}${draggingPieceId === String(piece.id) ? ` ${styles.trayPieceDragging}` : ''}`}
-                      onClick={() => {
-                        if (!canPlay) return;
-                        setSelectedPieceId((prev) => (String(prev) === String(piece.id) ? '' : piece.id));
-                      }}
-                      draggable={canPlay}
-                      onDragStart={(event) => onTrayDragStart(event, piece)}
-                      onDragEnd={onDragEnd}
-                      disabled={!canPlay}
-                      title={`Piece ${piece.id}`}
-                    >
-                      <span
-                        className={styles.trayPreview}
-                        style={computePieceStyle(piece, effectiveConfig, imageUrl)}
-                      />
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </section>
-
-          <section className={styles.sideCard}>
-            <h2>Controles</h2>
-            {error ? <p className={styles.error}>{error}</p> : null}
-
-            {!isFacilitator ? (
-              <div className={styles.actions}>
-                <button
-                  className={styles.btnPrimary}
-                  type="button"
-                  onClick={() => setSelectedPieceId('')}
-                  disabled={!selectedPieceId}
-                >
-                  Deselectionner la piece
-                </button>
-              </div>
-            ) : (
-              <div className={styles.actions}>
-                <button className={styles.btnPrimary} type="button" onClick={() => emitEvent('puzzle.reference_visibility.update', { visible: true })}>📷 Reference ON</button>
-                <button className={styles.btnSecondary} type="button" onClick={() => emitEvent('puzzle.reference_visibility.update', { visible: false })}>📷 Reference OFF</button>
-              </div>
-            )}
-          </section>
         </aside>
       </div>
 
