@@ -580,24 +580,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             ) : null}
           </section>
 
-          <section className={styles.sideCard}>
-            <h2>Controles</h2>
-            {error ? <p className={styles.error}>{error}</p> : null}
-
-            {!isFacilitator ? (
-              <div className={styles.actions}>
-                <button
-                  className={styles.btnPrimary}
-                  type="button"
-                  onClick={() => setSelectedPieceId('')}
-                  disabled={!selectedPieceId}
-                >
-                  Deselectionner la piece
-                </button>
-              </div>
-            ) : null}
-          </section>
-
           {effectiveConfig.chat.enabled ? (
             <section className={`${styles.chatCard} ${styles.sideChatCard}`}>
               <h3>Chat equipe</h3>
@@ -623,8 +605,8 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
                   className={styles.chatInput}
                   maxLength={240}
                 />
-                <button type="submit" className={styles.btnPrimary} disabled={!chatInput.trim()}>
-                  Envoyer
+                <button type="submit" className={styles.btnPrimary} disabled={!chatInput.trim()} aria-label="Envoyer">
+                  <span aria-hidden="true">➤</span>
                 </button>
               </form>
             </section>

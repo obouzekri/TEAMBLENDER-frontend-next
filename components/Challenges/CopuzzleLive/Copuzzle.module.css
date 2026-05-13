@@ -61,7 +61,7 @@
 .shell {
   display: grid;
   gap: 14px;
-  grid-template-columns: minmax(0, 1.55fr) minmax(360px, 1fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(380px, 1.1fr);
 }
 
 /* BOARD PANEL */
