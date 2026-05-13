@@ -347,8 +347,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
           <div
             className={styles.board}
             style={{
-              gridTemplateColumns: `repeat(${colCount}, var(--copuzzle-cell-size))`,
-              ['--copuzzle-cell-size']: `${cellSize}px`,
+              gridTemplateColumns: `repeat(${colCount}, 1fr)`,
             }}
           >
             {boardCells.map((cell) => {
@@ -481,22 +480,15 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
                     <button
                       className={styles.timerIconBtn}
                       type="button"
-                      onClick={() => emitEvent('timer.start')}
-                      disabled={timerState === 'running'}
-                      title="Demarrer le chrono"
-                      aria-label="Demarrer le chrono"
+                      onClick={() => {
+                        if (timerState === 'running') emitEvent('timer.pause');
+                        else if (timerState === 'paused') emitEvent('timer.resume');
+                        else emitEvent('timer.start');
+                      }}
+                      title={timerState === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
+                      aria-label={timerState === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
                     >
-                      ▶
-                    </button>
-                    <button
-                      className={styles.timerIconBtn}
-                      type="button"
-                      onClick={() => timerState === 'paused' ? emitEvent('timer.resume') : emitEvent('timer.pause')}
-                      disabled={timerState !== 'running' && timerState !== 'paused'}
-                      title={timerState === 'paused' ? 'Reprendre le chrono' : 'Mettre en pause'}
-                      aria-label={timerState === 'paused' ? 'Reprendre le chrono' : 'Mettre en pause'}
-                    >
-                      {timerState === 'paused' ? '⏯' : '⏸'}
+                      {timerState === 'running' ? '⏸' : '▶'}
                     </button>
                   </div>
                 ) : null}
