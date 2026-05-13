@@ -27,6 +27,13 @@ export default function ParticipantAssigner({
     return full || String(member?.name || member?.email || 'Sans nom');
   }
 
+  function getEmbeddedName(member) {
+    const first = String(member?.first_name || '').trim();
+    const last = String(member?.last_name || '').trim();
+    const combined = `${last} ${first}`.trim();
+    return combined || getMemberDisplayName(member);
+  }
+
   useEffect(() => {
     if (!Array.isArray(selectedIds)) return;
     setSelected(selectedIds);
@@ -175,14 +182,7 @@ export default function ParticipantAssigner({
                       />
                       <div className={styles.info}>
                         {embedded ? (
-                          <>
-                            <span className={styles.identityLine}>
-                              <strong>Nom:</strong> {String(participant?.last_name || '').trim() || '-'}
-                            </span>
-                            <span className={styles.identityLine}>
-                              <strong>Prenom:</strong> {String(participant?.first_name || '').trim() || '-'}
-                            </span>
-                          </>
+                          <span className={styles.identityInline}>{getEmbeddedName(participant)}</span>
                         ) : (
                           <>
                             <strong>{getMemberDisplayName(participant)}</strong>

@@ -175,12 +175,15 @@ export default function PricingPage() {
           <section className="pricing-grid reveal-up" aria-label="Formules disponibles">
             {displayedPlans.map((plan) => (
               <article key={String(plan.id)} className={`feature-card pricing-card${plan.highlighted ? ' pricing-card-featured' : ''}`}>
-                {plan.highlighted ? <span className="pricing-badge">Recommandé</span> : null}
-                {plan.discountPercentage > 0 && (selectedBilling === 'annual' || selectedBilling === 'yearly') ? (
-                  <span className="pricing-discount-badge">Économisez {plan.discountPercentage}%</span>
-                ) : null}
-                <p className="eyebrow">{plan.name}</p>
-                <h2>
+                <div className="pricing-card-top">
+                  {plan.highlighted ? <span className="pricing-badge">Recommandé</span> : null}
+                  {plan.discountPercentage > 0 && (selectedBilling === 'annual' || selectedBilling === 'yearly') ? (
+                    <span className="pricing-discount-badge">Économisez {plan.discountPercentage}%</span>
+                  ) : null}
+                  <p className="eyebrow">{plan.name}</p>
+                </div>
+
+                <h2 className="pricing-price">
                   {formatPriceCents(plan.displayPriceCents, selectedCurrency)}
                   <span>{selectedBilling === 'annual' ? '/an' : '/mois'}</span>
                 </h2>
@@ -189,7 +192,7 @@ export default function PricingPage() {
                     <s>{formatPriceCents(plan.originalPriceCents, selectedCurrency)}</s>
                   </p>
                 ) : null}
-                {plan.description ? <p>{plan.description}</p> : null}
+                {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
 
                 {Array.isArray(plan.features) && plan.features.length > 0 ? (
                   <ul className="pricing-feature-list">
@@ -206,7 +209,7 @@ export default function PricingPage() {
                   {plan.support_level ? <span>Support {plan.support_level}</span> : null}
                 </div>
 
-                <div className="hero-actions">
+                <div className="hero-actions pricing-actions">
                   <Link href="/signup" className="btn-primary">{plan.cta_label || 'Choisir cette formule'}</Link>
                   <Link href="/contact" className="btn-secondary">Parler à l'équipe</Link>
                 </div>
