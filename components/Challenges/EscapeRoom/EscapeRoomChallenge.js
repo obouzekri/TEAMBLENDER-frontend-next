@@ -92,60 +92,36 @@ export default function EscapeRoomChallenge({
   }, [apiCall, endpointBase, token]);
 
   const loadParticipants = useCallback(async () => {
-    const poll = window.setInterval(() => {
-      loadState().catch(() => {
-        // Keep polling silent to avoid noisy UI.
-      });
-
-    if (state.status === 'waiting_for_start') {
-      return (
-        <div className={styles.escapeRoomContainer}>
-          <section className={styles.header}>
-            <div>
-              <p className={styles.kicker}>Salle secrete</p>
-              <h1>Escape Room</h1>
-              <p className={styles.subtitle}>En attente du démarrage par le facilitateur.</p>
-            </div>
-          </section>
-          <section className={styles.layout}>
-            <article className={styles.card} style={{ textAlign: 'center', padding: '2rem' }}>
-              {isFacilitator ? (
-                <>
-                  <p style={{ marginBottom: '1.5rem', color: '#bfd3e8' }}>
-                    Tous les participants sont prêts. Démarrez le chrono pour lancer le challenge.
-                  </p>
-                  <button
-                    className={styles.timerBtnStart}
-                    type="button"
-                    onClick={() => handleTimerAction('start')}
-                    disabled={busyAction === 'start'}
-                    style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}
-                  >
-                    {busyAction === 'start' ? 'Démarrage...' : '▶️ Démarrer le challenge'}
-                  </button>
-                  {feedback ? <p className={styles.feedback} style={{ marginTop: '1rem' }}>{feedback}</p> : null}
-                </>
-              ) : (
-                <p style={{ fontSize: '1.1rem', color: '#bfd3e8' }}>
-                  ⏳ En attente du facilitateur…
-                </p>
-              )}
-            </article>
-          </section>
-        </div>
-      );
+    if (!endpointBase || !token) return;
+    try {
+      const payload = await apiCall('/participants', { method: 'GET' });
+      const rows = Array.isArray(payload?.participants)
+        ? payload.participants
+        : Array.isArray(payload)
+          ? payload
+          : [];
+      setParticipants(rows);
+    } catch {
+      setParticipants([]);
     }
-    }, 3000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(poll);
-    };
-  }, [endpointBase, token, loadState]);
+  }, [apiCall, endpointBase, token]);
 
   useEffect(() => {
     loadParticipants().catch(() => {});
   }, [loadParticipants]);
+
+  useEffect(() => {
+    if (!endpointBase || !token) return () => {};
+    const poll = window.setInterval(() => {
+      loadState().catch(() => {
+        // Keep polling silent to avoid noisy UI.
+      });
+    }, 3000);
+
+    return () => {
+      window.clearInterval(poll);
+    };
+  }, [endpointBase, token, loadState]);
 
   const { emitEvent, error: realtimeError } = useRealtimeChallenge({ runtimePayload, socket, context });
 
@@ -302,7 +278,12 @@ export default function EscapeRoomChallenge({
     });
   }, [participants, respondedSet]);
 
-  const isFinished = Boolean(state?.status && state.status !== 'in_progress');
+  const finishedStatuses = useMemo(
+    () => new Set(['completed', 'success', 'succeeded', 'timeout', 'timed_out', 'failed']),
+    []
+  );
+  const isFinished = finishedStatuses.has(challengeStatus);
+  const issueToneClass = isFinished ? styles.issueStatusFinished : styles.issueStatusWaiting;
   const shouldUseFastPolling = Boolean(
     !isFacilitator
     && currentEnigme
@@ -399,7 +380,7 @@ export default function EscapeRoomChallenge({
           {isFinished ? (
             <>
               <h2>Partie terminée</h2>
-              <p>Issue: <strong>{state.status}</strong></p>
+              <p>Issue: <strong className={issueToneClass}>{state.status}</strong></p>
               <p>Début: {state.started_at || '-'}</p>
               <p>Fin: {state.finished_at || '-'}</p>
             </>
@@ -532,8 +513,8 @@ export default function EscapeRoomChallenge({
 
           <h3>Panneau équipe</h3>
           <p>
-            Réponses reçues: <strong>{Number(state.submission_status?.responded || 0)}</strong> /
-            <strong> {Number(state.submission_status?.total || 0)}</strong>
+            Réponses reçues: <span className={styles.metricValue}>{Number(state.submission_status?.responded || 0)}</span> /
+            <span className={styles.metricValue}> {Number(state.submission_status?.total || 0)}</span>
           </p>
           <p>Tentatives: {Number(state.attempts_on_current || 0)} / {Number(state.max_attempts || 0)}</p>
           <p>Rôle: {isFacilitator ? 'Facilitateur' : 'Participant'}</p>

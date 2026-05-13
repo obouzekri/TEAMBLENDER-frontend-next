@@ -597,6 +597,21 @@
   font-weight: 700;
 }
 
+.metricValue {
+  color: #7dd3fc !important;
+  font-weight: 800;
+}
+
+.issueStatusWaiting {
+  color: #93c5fd !important;
+  font-weight: 800;
+}
+
+.issueStatusFinished {
+  color: #e0f2fe !important;
+  font-weight: 800;
+}
+
 .teamEmpty {
   margin: 0;
   font-size: 12px;
