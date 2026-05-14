@@ -1,7 +1,7 @@
 .header {
   background: #fff;
   color: var(--ink);
-  padding: 1.25rem 0;
+  padding: 1.1rem clamp(0.9rem, 1.8vw, 1.4rem);
   margin: 0;
   border: 1px solid var(--line);
   border-radius: 0.5rem;
@@ -19,6 +19,7 @@
 
 .titleSection {
   flex: 1;
+  min-width: 0;
 }
 
 .title {
@@ -32,6 +33,7 @@
 .subtitle {
   margin: 0;
   font-size: 0.95rem;
+  line-height: 1.45;
   color: var(--ink-soft);
   font-weight: 500;
 }
@@ -41,7 +43,8 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 1rem;
-  min-width: 300px;
+  min-width: 220px;
+  flex-shrink: 0;
 }
 
 .statusBadges {
@@ -87,7 +90,7 @@
 
 @media (max-width: 860px) {
   .header {
-    padding: 1rem 0;
+    padding: 1rem;
   }
 
   .container {
