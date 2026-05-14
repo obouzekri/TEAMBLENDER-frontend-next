@@ -289,7 +289,12 @@ export default function SessionBuilder() {
           const assigned = Array.isArray(session.assigned_participants)
             ? session.assigned_participants
             : [];
+          const assignedIds = assigned
+            .map((participant) => (typeof participant === 'object' ? participant?.id : participant))
+            .map((value) => Number(value))
+            .filter((value) => Number.isInteger(value));
           setSessionParticipantCount(assigned.length);
+          setDraftParticipantIds(assignedIds);
 
           // Pre-populate selectedChallenges from session
           const sessionChallenges = Array.isArray(session.challenges) ? session.challenges : [];
@@ -413,8 +418,8 @@ export default function SessionBuilder() {
       setSessionId(newId);
       setSessionParticipantCount(draftParticipantIds.length);
       removeToast(loadingId);
-      // Continue to challenges selection; participants are already captured on this screen.
-      setSessionStep('challenges');
+      // Continue to the dedicated participant assignment step before challenge selection.
+      setSessionStep('participants');
     } catch (err) {
       removeToast(loadingId);
       showErrorToast(err.message || 'Impossible de creer la session.');
@@ -646,6 +651,8 @@ export default function SessionBuilder() {
           <ParticipantAssigner
             isLoading={isAssigningParticipants}
             onAssign={handleAssignParticipants}
+            selectedIds={draftParticipantIds}
+            onSelectionChange={setDraftParticipantIds}
             onCancel={() => {
               setSessionId('');
               setSessionName('');
