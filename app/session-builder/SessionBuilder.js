@@ -667,14 +667,6 @@ export default function SessionBuilder() {
       <AppNav userLabel={userLabel} onLogout={logout} />
       
       <main className={`shell ${styles.sessionBuilder}`}>
-        <SessionBuilderHeader
-          selectedCount={selectedChallenges.length}
-          totalDuration={getTotalDuration()}
-          isLaunchDisabled={selectedChallenges.length === 0}
-          isLaunching={isLaunching}
-          onLaunch={handleLaunchSession}
-        />
-
         {/* Session info bar */}
         <div className={styles.sessionInfoBar}>
           {isEditingSessionInfo ? (
@@ -759,6 +751,14 @@ export default function SessionBuilder() {
             </>
           )}
         </div>
+
+        <SessionBuilderHeader
+          selectedCount={selectedChallenges.length}
+          totalDuration={getTotalDuration()}
+          isLaunchDisabled={selectedChallenges.length === 0}
+          isLaunching={isLaunching}
+          onLaunch={handleLaunchSession}
+        />
 
         <div className={styles.mainLayout}>
           <SelectedChallengesList
