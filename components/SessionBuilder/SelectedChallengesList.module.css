@@ -1,11 +1,12 @@
 .sidebar {
-  background: white;
-  border-radius: 0;
-  border: 1px solid #d9e4f1;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 252, 249, 0.96) 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(203, 213, 225, 0.9);
   padding: 1.25rem;
   height: fit-content;
   position: sticky;
   top: 100px;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
 }
 
 .header {
@@ -32,6 +33,7 @@
   font-weight: 600;
   min-width: 24px;
   text-align: center;
+  box-shadow: 0 10px 20px rgba(15, 118, 110, 0.16);
 }
 
 .hint {
@@ -45,6 +47,8 @@
   text-align: center;
   padding: 2rem 1rem;
   color: var(--ink-soft);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
 }
 
 .emptyIcon {
@@ -79,10 +83,11 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.68rem;
-  background: var(--bg-soft);
-  border-radius: 0.25rem;
-  border-left: 3px solid var(--accent);
+  padding: 0.82rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.84) 0%, rgba(243, 248, 246, 0.7) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(15, 118, 110, 0.1);
+  border-left: 4px solid var(--accent);
 }
 
 .itemInfo {
@@ -113,7 +118,7 @@
 .actionBtn {
   background: white;
   border: 1px solid var(--line);
-  border-radius: 0.25rem;
+  border-radius: 10px;
   padding: 0.4rem;
   cursor: pointer;
   font-size: 0.8rem;
@@ -129,6 +134,7 @@
 .actionBtn:hover {
   background: var(--bg);
   border-color: var(--accent);
+  box-shadow: 0 8px 16px rgba(15, 118, 110, 0.08);
 }
 
 .moveBtn {

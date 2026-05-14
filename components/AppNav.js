@@ -7,13 +7,23 @@ import { usePathname } from 'next/navigation';
 export default function AppNav({ userLabel, onLogout, role }) {
   const pathname = usePathname();
   const [activeHomeBlock, setActiveHomeBlock] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isParticipant = role === 'participant';
   const isAdmin = role === 'admin';
-  const brandHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
   const isCompact = role === 'participant-live';
+  const brandHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
   const headerClassName = isCompact ? 'top-nav top-nav--compact' : 'top-nav';
   const isManagerHome = !isParticipant && !isAdmin && !isCompact && pathname === '/home';
   const isActive = (href) => pathname?.startsWith(href);
+  const contextLabel = isParticipant
+    ? 'Espace participant'
+    : isAdmin
+      ? 'Console admin'
+      : isCompact
+        ? 'Session live'
+        : 'Espace manager';
+  const resolvedUserLabel = userLabel || (isParticipant ? 'Participant' : 'Manager');
+  const userInitial = String(resolvedUserLabel).trim().charAt(0).toUpperCase() || 'T';
 
   useEffect(() => {
     if (!isManagerHome) {
@@ -52,6 +62,10 @@ export default function AppNav({ userLabel, onLogout, role }) {
     };
   }, [isManagerHome]);
 
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
   function scrollToHomeBlock(event, blockId, blockKey) {
     if (!isManagerHome) return;
     event.preventDefault();
@@ -65,59 +79,99 @@ export default function AppNav({ userLabel, onLogout, role }) {
   return (
     <header className={headerClassName}>
       <div className="shell nav-inner">
-        <Link href={brandHref} className="brand">TEAMSPARK</Link>
-        {isParticipant && !isCompact && (
-          <nav className="nav-links" aria-label="Navigation participant">
-            <Link href="/participant" className={`nav-link ${isActive('/participant') ? 'is-active' : ''}`} aria-current={isActive('/participant') ? 'page' : undefined}>Sessions</Link>
-          </nav>
-        )}
-        {!isParticipant && !isCompact && (
-          <nav className="nav-links" aria-label="Navigation manager">
-            {isAdmin ? (
-              <>
-                <Link href="/admin" className={`nav-link ${isActive('/admin') ? 'is-active' : ''}`} aria-current={isActive('/admin') ? 'page' : undefined}>Console admin</Link>
-              </>
-            ) : isManagerHome ? (
-              <>
-                <Link
-                  href="/home"
-                  className={`nav-link ${activeHomeBlock ? '' : 'is-active'}`}
-                  aria-current={!activeHomeBlock ? 'page' : undefined}
-                >
-                  Home
-                </Link>
-                <Link
-                  href="/home#sessions"
-                  className={`nav-link nav-link--section ${activeHomeBlock === 'sessions' ? 'is-active' : ''}`}
-                  aria-current={activeHomeBlock === 'sessions' ? 'page' : undefined}
-                  onClick={(event) => scrollToHomeBlock(event, 'home-sessions-block', 'sessions')}
-                >
-                  Sessions
-                </Link>
-                <Link
-                  href="/home#participants"
-                  className={`nav-link nav-link--section ${activeHomeBlock === 'participants' ? 'is-active' : ''}`}
-                  aria-current={activeHomeBlock === 'participants' ? 'page' : undefined}
-                  onClick={(event) => scrollToHomeBlock(event, 'home-participants-block', 'participants')}
-                >
-                  Participants
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link href="/home" className={`nav-link ${isActive('/home') ? 'is-active' : ''}`} aria-current={isActive('/home') ? 'page' : undefined}>Home</Link>
-              </>
-            )}
-          </nav>
-        )}
-        {!isParticipant && isCompact && (
-          <nav className="nav-links" aria-label="Navigation session live">
-            <Link href="/home" className="btn-mini">Retour Home</Link>
-          </nav>
-        )}
-        <div className="app-user-box">
-          <span className="app-user-name">{userLabel || (isParticipant ? 'Participant' : 'Manager')}</span>
-          <button type="button" className="btn-secondary" onClick={onLogout}>Se deconnecter</button>
+        <div className="nav-top-row">
+          <div className="nav-brand-block">
+            <Link href={brandHref} className="brand">TEAMSPARK</Link>
+            <span className="nav-context">{contextLabel}</span>
+          </div>
+
+          <button
+            type="button"
+            className={`nav-toggle ${isMenuOpen ? 'is-open' : ''}`}
+            aria-expanded={isMenuOpen}
+            aria-controls="app-nav-panel"
+            aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            onClick={() => setIsMenuOpen((current) => !current)}
+          >
+            <span className="nav-toggle__line" />
+            <span className="nav-toggle__line" />
+            <span className="nav-toggle__line" />
+          </button>
+        </div>
+
+        <div id="app-nav-panel" className={`nav-panel ${isMenuOpen ? 'is-open' : ''}`}>
+          {isParticipant && !isCompact && (
+            <div className="nav-main-block">
+              <nav className="nav-links" aria-label="Navigation participant">
+                <Link href="/participant" className={`nav-link ${isActive('/participant') ? 'is-active' : ''}`} aria-current={isActive('/participant') ? 'page' : undefined}>Mes sessions</Link>
+              </nav>
+            </div>
+          )}
+
+          {!isParticipant && !isCompact && (
+            <div className="nav-main-block">
+              <nav className="nav-links" aria-label="Navigation manager">
+                {isAdmin ? (
+                  <>
+                    <Link href="/admin" className={`nav-link ${isActive('/admin') ? 'is-active' : ''}`} aria-current={isActive('/admin') ? 'page' : undefined}>Console admin</Link>
+                  </>
+                ) : isManagerHome ? (
+                  <>
+                    <Link
+                      href="/home"
+                      className={`nav-link ${activeHomeBlock ? '' : 'is-active'}`}
+                      aria-current={!activeHomeBlock ? 'page' : undefined}
+                    >
+                      Tableau de bord
+                    </Link>
+                    <Link
+                      href="/home#sessions"
+                      className={`nav-link nav-link--section ${activeHomeBlock === 'sessions' ? 'is-active' : ''}`}
+                      aria-current={activeHomeBlock === 'sessions' ? 'page' : undefined}
+                      onClick={(event) => scrollToHomeBlock(event, 'home-sessions-block', 'sessions')}
+                    >
+                      Sessions
+                    </Link>
+                    <Link
+                      href="/home#participants"
+                      className={`nav-link nav-link--section ${activeHomeBlock === 'participants' ? 'is-active' : ''}`}
+                      aria-current={activeHomeBlock === 'participants' ? 'page' : undefined}
+                      onClick={(event) => scrollToHomeBlock(event, 'home-participants-block', 'participants')}
+                    >
+                      Participants
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/home" className={`nav-link ${isActive('/home') ? 'is-active' : ''}`} aria-current={isActive('/home') ? 'page' : undefined}>Tableau de bord</Link>
+                  </>
+                )}
+              </nav>
+
+              {!isAdmin && (
+                <div className="nav-actions" aria-label="Actions manager">
+                  <Link href="/session-builder" className={`btn-mini nav-cta ${isActive('/session-builder') ? 'is-active' : ''}`} aria-current={isActive('/session-builder') ? 'page' : undefined}>Nouvelle session</Link>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!isParticipant && isCompact && (
+            <div className="nav-main-block nav-main-block--compact">
+              <nav className="nav-links" aria-label="Navigation session live">
+                <Link href="/home" className="btn-mini">Retour tableau de bord</Link>
+              </nav>
+            </div>
+          )}
+
+          <div className="app-user-box">
+            <span className="app-user-avatar" aria-hidden="true">{userInitial}</span>
+            <div className="app-user-meta">
+              <span className="app-user-caption">Compte actif</span>
+              <span className="app-user-name">{resolvedUserLabel}</span>
+            </div>
+            <button type="button" className="btn-secondary" onClick={onLogout}>Se deconnecter</button>
+          </div>
         </div>
       </div>
     </header>

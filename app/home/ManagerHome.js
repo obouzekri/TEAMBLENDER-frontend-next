@@ -438,14 +438,33 @@ export default function ManagerHome() {
       <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
       <main className="shell app-home manager-home">
         <section className="hero home-hero">
-          <p className="eyebrow">ESPACE MANAGER</p>
-          <h1>Bonjour {userLabel}</h1>
-          <p>Planifiez, lancez et analysez vos sessions de team building en quelques clics.</p>
-          <div className="hero-actions home-hero-actions">
-            <Link className="btn-primary" href="/session-builder">Créer une session</Link>
-            {guard.user?.role === 'admin' && (
-              <Link className="btn-secondary" href="/admin">Console admin</Link>
-            )}
+          <div className="home-hero-grid">
+            <div className="home-hero-copy">
+              <p className="eyebrow">ESPACE MANAGER</p>
+              <h1>Bonjour {userLabel}</h1>
+              <p>Planifiez, lancez et analysez vos sessions de team building dans un espace unique, clair et directement exploitable.</p>
+              <div className="hero-actions home-hero-actions">
+                <Link className="btn-primary" href="/session-builder">Créer une session</Link>
+                {guard.user?.role === 'admin' && (
+                  <Link className="btn-secondary" href="/admin">Console admin</Link>
+                )}
+              </div>
+              <div className="home-hero-trust" aria-label="Benefices manager">
+                <span>Preparation guidee</span>
+                <span>Animation live structuree</span>
+                <span>Resultats exploitables</span>
+              </div>
+            </div>
+
+            <aside className="home-hero-summary" aria-label="Synthese manager">
+              <p className="home-hero-summary__eyebrow">Vue rapide</p>
+              <strong className="home-hero-summary__title">Un cockpit simple pour piloter vos sessions.</strong>
+              <ul className="home-hero-summary__list">
+                <li>Creer et configurer une session sans friction</li>
+                <li>Suivre les sessions actives et preparatoires au meme endroit</li>
+                <li>Garder une base participants prete pour les prochains rituels</li>
+              </ul>
+            </aside>
           </div>
         </section>
 

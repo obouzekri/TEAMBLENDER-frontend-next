@@ -253,8 +253,8 @@ export default function ParticipantPage() {
   return (
     <>
       <AppNav userLabel={participantLabel} onLogout={logout} role="participant" />
-      <main className="shell app-home">
-        <section className="hero">
+      <main className="shell app-home participant-home">
+        <section className="hero participant-hero">
           <p className="eyebrow">ESPACE PARTICIPANT</p>
           <h1>Bienvenue {participantLabel}</h1>
           <p>{assignedSessions.length > 0 && !sessionId ? 'Selectionnez une session pour commencer.' : 'Votre session est en cours. Le challenge actif s\'affichera ici automatiquement.'}</p>
@@ -275,18 +275,24 @@ export default function ParticipantPage() {
               <Link className="btn-primary" href="/login">Revenir à la connexion</Link>
             ) : null}
           </div>
+          <div className="participant-hero-trust" aria-label="Repères participant">
+            <span>Acces individuel</span>
+            <span>Session en temps reel</span>
+            <span>Experience guidee</span>
+          </div>
         </section>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+        <div className="participant-grid">
           {/* Assigned sessions cards - displayed when no session is selected */}
           {assignedSessions.length > 0 && !sessionId && (
-            <section className="feature-card" style={{ gridColumn: '1 / -1' }}>
-              <h2 style={{ marginBottom: '1rem' }}>Vos sessions assignées</h2>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                gap: '16px',
-              }}>
+            <section className="feature-card participant-panel participant-panel--wide">
+              <div className="participant-panel__head">
+                <div>
+                  <p className="eyebrow">SESSIONS ASSIGNEES</p>
+                  <h2>Vos sessions assignées</h2>
+                </div>
+              </div>
+              <div className="participant-sessions-grid">
                 {assignedSessions.map((session) => {
                   const sessionIdentifier = getSessionIdentifier(session);
                   if (!sessionIdentifier) return null;
@@ -318,8 +324,7 @@ export default function ParticipantPage() {
                       <div className="participant-session-card__footer">
                         <button
                           type="button"
-                          className="btn-primary"
-                          style={{ width: '100%', justifyContent: 'center' }}
+                          className="btn-primary participant-session-card__cta"
                           disabled={joiningSessionId === sessionIdentifier}
                           onClick={() => joinSession(sessionIdentifier)}
                         >
@@ -335,61 +340,62 @@ export default function ParticipantPage() {
 
           {/* Session info card - displayed when a session is selected */}
           {sessionId && (
-          <section className="feature-card">
-            <h2>Informations de session</h2>
-            <p style={{ margin: '0 0 12px', fontSize: '14px', color: 'var(--color-muted, #6b7280)' }}>
-              ID de session: <strong style={{ color: 'var(--color-text, #111)' }}>{sessionId}</strong>
+          <section className="feature-card participant-panel">
+            <div className="participant-panel__head">
+              <div>
+                <p className="eyebrow">SESSION ACTIVE</p>
+                <h2>Informations de session</h2>
+              </div>
+            </div>
+            <p className="participant-meta-line">
+              ID de session: <strong>{sessionId}</strong>
             </p>
             {runtime?.engine_key ? (
-              <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text, #111)' }}>
+              <p className="participant-meta-line participant-meta-line--strong">
                 Challenge actif: <strong>{runtime.challenge_name || runtime.engine_key}</strong>
               </p>
             ) : sessionId && !joining ? (
-              <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>
+              <p className="participant-help-text">
                 {flowMode === 'auto'
                   ? 'Aucun challenge actif pour le moment. Le passage se fera automatiquement dès que la session avancera.'
                   : 'Aucun challenge en cours — le facilitateur n&apos;a pas encore lancé ou n&apos;a pas encore passé au challenge suivant.'}
               </p>
             ) : null}
-            {joining && !runtime ? <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>Chargement du challenge actif...</p> : null}
-            {runtimeError ? <p style={{ color: 'var(--color-danger, #ef4444)', margin: 0, fontSize: '13px' }}>Erreur : {runtimeError}</p> : null}
+            {joining && !runtime ? <p className="participant-help-text">Chargement du challenge actif...</p> : null}
+            {runtimeError ? <p className="participant-error-text">Erreur : {runtimeError}</p> : null}
           </section>
           )}
 
           {/* Team members card - shown when session is active */}
           {sessionId && teamMembers.length > 0 && (
-            <section className="feature-card">
-              <h2>Membres de l'équipe</h2>
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <section className="feature-card participant-panel">
+              <div className="participant-panel__head">
+                <div>
+                  <p className="eyebrow">EQUIPE</p>
+                  <h2>Membres de l'équipe</h2>
+                </div>
+              </div>
+              <ul className="participant-team-list">
                 {teamMembers.slice(0, 6).map((member) => (
-                  <li
-                    key={String(member.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 0',
-                      borderBottom: '1px solid var(--color-border, #e5e7eb)',
-                    }}
-                  >
-                    <div>
-                      <p style={{ fontWeight: 600, margin: '0 0 2px', fontSize: '14px', color: 'var(--color-text, #111)' }}>
+                  <li key={String(member.id)} className="participant-team-list__item">
+                    <div className="participant-team-list__info">
+                      <p className="participant-team-list__name">
                         {String(member.first_name || member.firstname || '').trim() || 'Participant'} {String(member.last_name || member.lastname || '').trim()}
                       </p>
                       {member.email && (
-                        <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '12px' }}>{member.email}</p>
+                        <p className="participant-team-list__email">{member.email}</p>
                       )}
                     </div>
                     {member.disabled ? (
-                      <span style={{ fontSize: '12px', padding: '4px 8px', background: '#f3f4f6', color: '#6b7280', borderRadius: '6px' }}>Inactif</span>
+                      <span className="participant-team-badge participant-team-badge--inactive">Inactif</span>
                     ) : (
-                      <span style={{ fontSize: '12px', padding: '4px 8px', background: '#d1fae5', color: '#065f46', borderRadius: '6px' }}>Actif</span>
+                      <span className="participant-team-badge participant-team-badge--active">Actif</span>
                     )}
                   </li>
                 ))}
               </ul>
               {teamMembers.length > 6 && (
-                <p style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', margin: '12px 0 0', textAlign: 'center' }}>
+                <p className="participant-team-more">
                   +{teamMembers.length - 6} autre{teamMembers.length - 6 > 1 ? 's' : ''}
                 </p>
               )}
@@ -398,9 +404,9 @@ export default function ParticipantPage() {
 
           {/* Empty state when no sessions and not loading */}
           {!sessionId && assignedSessions.length === 0 && !loadingSessions && (
-            <section className="feature-card">
+            <section className="feature-card participant-panel participant-empty-panel">
               <h2>Aucune session assignée</h2>
-              <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
+              <p className="participant-help-text">
                 Vous n&apos;avez pas encore de session assignée. Contactez votre administrateur.
               </p>
             </section>
