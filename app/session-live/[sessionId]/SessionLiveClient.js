@@ -284,13 +284,13 @@ export default function SessionLiveClient() {
     <>
       <AppNav userLabel={userLabel} onLogout={logout} role="participant-live" />
       <main className="shell app-home session-live-shell">
-        <section className="session-live-header">
+        <section className="session-live-header session-live-surface">
           <div className="session-live-header__row1">
             <strong className="session-live-header__name">{session?.name || `Session ${sessionId}`}</strong>
             {activeChallenge && (
               <span className="eyebrow session-live-header__meta">{activeChallenge.name || activeEngineKey}</span>
             )}
-            <span className="eyebrow session-live-header__meta">{memberCount} participant{memberCount !== 1 ? 's' : ''}</span>
+            <span className="eyebrow session-live-header__meta session-live-header__meta--count">{memberCount} participant{memberCount !== 1 ? 's' : ''}</span>
           </div>
           <div className="session-live-header__row2">
             <button
@@ -310,7 +310,7 @@ export default function SessionLiveClient() {
               Terminer
             </button>
             {flowMode === 'auto' && (
-              <span className="session-live-header__msg">
+              <span className="session-live-header__msg session-live-header__msg--auto">
                 {autoAdvanceCountdown > 0
                   ? `Passage auto dans ${autoAdvanceCountdown}s`
                   : 'Passage auto activé'}
@@ -321,7 +321,7 @@ export default function SessionLiveClient() {
         </section>
 
         {activeEngineKey ? (
-          <section className="feature-card" style={{ padding: 0 }}>
+          <section className="feature-card session-live-challenge-frame surface-flush">
             <ChallengeWrapper
               key={`${sessionId}:${activeChallengeId || 'none'}:${activeEngineKey}`}
               sessionId={sessionId}
@@ -331,7 +331,7 @@ export default function SessionLiveClient() {
             />
           </section>
         ) : (
-          <section className="feature-card">
+          <section className="feature-card session-live-empty-state">
             <h2>Aucun challenge actif</h2>
             <p>
               Activez un challenge depuis le{' '}
@@ -344,7 +344,7 @@ export default function SessionLiveClient() {
         )}
 
         {challenges.length > 1 && (
-          <section className="feature-card">
+          <section className="feature-card session-live-track">
             <h2>Challenges de la session</h2>
             <ul className="challenge-list">
               {challenges.map((ch) => (

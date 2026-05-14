@@ -28,23 +28,13 @@ function formatDuration(ms) {
 
 function StatusBadge({ status }) {
   const map = {
-    completed: { label: 'Terminé', color: 'var(--success, #22c55e)' },
-    in_progress: { label: 'En cours', color: 'var(--warning, #f59e0b)' },
-    abandoned: { label: 'Abandonné', color: 'var(--danger, #ef4444)' },
+    completed: { label: 'Terminé', className: 'session-results-status--completed' },
+    in_progress: { label: 'En cours', className: 'session-results-status--in-progress' },
+    abandoned: { label: 'Abandonné', className: 'session-results-status--abandoned' },
   };
-  const { label, color } = map[status] || { label: status, color: 'var(--muted, #888)' };
+  const { label, className } = map[status] || { label: status, className: 'session-results-status--default' };
   return (
-    <span style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      padding: '2px 10px',
-      borderRadius: 99,
-      background: color + '22',
-      color,
-      fontSize: '0.78rem',
-      fontWeight: 600,
-      letterSpacing: '0.02em',
-    }}>
+    <span className={`session-results-status ${className}`}>
       {label}
     </span>
   );
@@ -154,17 +144,16 @@ export default function SessionResultsClient() {
     <>
       <AppNav userLabel={userLabel} onLogout={logout} role={user?.role} />
       <main className="shell app-home">
-        {/* Header */}
-        <section className="hero">
-          <p className="eyebrow">RÉSULTATS DE SESSION</p>
-          <h1>{session?.name || `Session ${sessionId}`}</h1>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+        <section className="hero session-results-hero">
+          <p className="eyebrow">RESULTATS DE SESSION</p>
+          <h1 className="session-results-title">{session?.name || `Session ${sessionId}`}</h1>
+          <div className="session-results-meta-row">
             {session?.status && <span className="eyebrow">Statut : {{ en_cours: 'En cours', preparee: 'En préparation', terminee: 'Terminée' }[session.status] || session.status}</span>}
             {session?.session_date && (
               <span className="eyebrow">Date : {new Date(session.session_date).toLocaleDateString('fr-FR')}</span>
             )}
           </div>
-          <div className="hero-actions" style={{ marginTop: '1.5rem' }}>
+          <div className="hero-actions session-results-actions">
             {!isParticipant && (
               <Link href="/home" className="btn-primary">Retour a l&apos;accueil</Link>
             )}
@@ -184,15 +173,9 @@ export default function SessionResultsClient() {
           </div>
         </section>
 
-        {/* Stats overview */}
-        <section className="feature-card">
+        <section className="feature-card session-results-overview">
           <h2>Vue d&apos;ensemble</h2>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-            gap: '1rem',
-            marginTop: '1rem',
-          }}>
+          <div className="session-results-stats-grid">
             {[
               { label: 'Participants', value: stats.uniqueParticipants },
               { label: 'Challenges joués', value: stats.uniqueChallenges },
@@ -200,28 +183,22 @@ export default function SessionResultsClient() {
               { label: 'Complétées', value: stats.completed },
               { label: 'Score moyen', value: stats.avgScore != null ? `${stats.avgScore} pts` : '—' },
             ].map(({ label, value }) => (
-              <div key={label} style={{
-                padding: '1rem',
-                border: '1px solid var(--border, #e5e7eb)',
-                borderRadius: 12,
-                textAlign: 'center',
-              }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--muted, #888)', marginBottom: 4 }}>{label}</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>{value}</div>
+              <div key={label} className="session-results-stat-card">
+                <div className="session-results-stat-label">{label}</div>
+                <div className="session-results-stat-value">{value}</div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Results by challenge */}
         {byChallenge.length > 0 ? (
           byChallenge.map(({ challenge, rows }) => (
-            <section key={challenge?.id || 'unknown'} className="feature-card">
+            <section key={challenge?.id || 'unknown'} className="feature-card session-results-challenge-card">
               <h2>{challenge?.name || challenge?.engine_key || 'Challenge'}</h2>
               {challenge?.engine_key && (
-                <p className="eyebrow" style={{ marginBottom: '1rem' }}>{challenge.engine_key}</p>
+                <p className="eyebrow session-results-engine-key">{challenge.engine_key}</p>
               )}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div className="session-results-rows">
                 {rows.map((r) => {
                   const name = [r.participant?.firstname, r.participant?.last_name]
                     .filter(Boolean).join(' ') || r.participant?.email || `Participant ${r.participant_id}`;
@@ -229,26 +206,16 @@ export default function SessionResultsClient() {
                     ? formatDuration(new Date(r.completed_at) - new Date(r.created_at))
                     : '—';
                   return (
-                    <div key={r.id} style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: '0.5rem',
-                      padding: '0.75rem 1rem',
-                      border: '1px solid var(--border, #e5e7eb)',
-                      borderRadius: 10,
-                      background: 'var(--surface-alt, #fafafa)',
-                    }}>
-                      <div>
-                        <div style={{ fontWeight: 600 }}>{name}</div>
-                        <div style={{ fontSize: '0.78rem', color: 'var(--muted, #888)' }}>
+                    <div key={r.id} className="session-results-row">
+                      <div className="session-results-row-main">
+                        <div className="session-results-row-name">{name}</div>
+                        <div className="session-results-row-duration">
                           Durée : {duration}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div className="session-results-row-metrics">
                         {r.score != null && (
-                          <span style={{ fontWeight: 700 }}>{r.score} pts</span>
+                          <span className="session-results-score">{r.score} pts</span>
                         )}
                         <StatusBadge status={r.status} />
                       </div>
