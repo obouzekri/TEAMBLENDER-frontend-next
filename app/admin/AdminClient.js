@@ -188,6 +188,31 @@ function landingBlockToDraft(block) {
   };
 }
 
+async function fetchAdminJson(path, token) {
+  const response = await fetch(getApiUrl(path), {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const text = await response.text();
+  let payload = null;
+
+  try {
+    payload = text ? JSON.parse(text) : null;
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const message = payload?.error || payload?.message || `HTTP ${response.status}`;
+    throw new Error(message);
+  }
+
+  return payload;
+}
+
 export default function AdminClient() {
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
@@ -278,38 +303,51 @@ export default function AdminClient() {
     setError('');
 
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-      const [usersRes, pendingRes, sessionsRes, challengesRes, participantsRes, pricingRes, landingRes] = await Promise.all([
-        fetch(getApiUrl('/users'), { headers }),
-        fetch(getApiUrl('/users/pending'), { headers }),
-        fetch(getApiUrl('/sessions'), { headers }),
-        fetch(getApiUrl('/challenges'), { headers }),
-        fetch(getApiUrl('/participants?includeDisabled=true'), { headers }),
-        fetch(getApiUrl('/pricing-plans/admin'), { headers }),
-        fetch(getApiUrl('/landing-content/admin'), { headers }),
-      ]);
+      const requests = [
+        ['users', '/users'],
+        ['pendingUsers', '/users/pending'],
+        ['sessions', '/sessions'],
+        ['challenges', '/challenges'],
+        ['participants', '/participants?includeDisabled=true'],
+        ['pricingPlans', '/pricing-plans/admin'],
+        ['landingBlocks', '/landing-content/admin'],
+      ];
 
-      if (!usersRes.ok || !pendingRes.ok || !sessionsRes.ok || !challengesRes.ok || !participantsRes.ok || !pricingRes.ok || !landingRes.ok) {
-        throw new Error('Impossible de charger les donnees admin.');
+      const results = await Promise.allSettled(
+        requests.map(([, path]) => fetchAdminJson(path, token))
+      );
+
+      const failures = [];
+
+      results.forEach((result, index) => {
+        const [key] = requests[index];
+
+        if (result.status === 'fulfilled') {
+          const value = parseList(result.value);
+          if (key === 'users') setUsers(value);
+          if (key === 'pendingUsers') setPendingUsers(value);
+          if (key === 'sessions') setSessions(value);
+          if (key === 'challenges') setChallenges(value);
+          if (key === 'participants') setParticipants(value);
+          if (key === 'pricingPlans') setPricingPlans(value);
+          if (key === 'landingBlocks') setLandingBlocks(value);
+          return;
+        }
+
+        failures.push(`${key}: ${result.reason?.message || 'Erreur inconnue'}`);
+
+        if (key === 'users') setUsers([]);
+        if (key === 'pendingUsers') setPendingUsers([]);
+        if (key === 'sessions') setSessions([]);
+        if (key === 'challenges') setChallenges([]);
+        if (key === 'participants') setParticipants([]);
+        if (key === 'pricingPlans') setPricingPlans([]);
+        if (key === 'landingBlocks') setLandingBlocks([]);
+      });
+
+      if (failures.length > 0) {
+        setError(`Certaines donnees admin n'ont pas pu etre chargees: ${failures.join(' | ')}`);
       }
-
-      const [usersPayload, pendingPayload, sessionsPayload, challengesPayload, participantsPayload, pricingPayload, landingPayload] = await Promise.all([
-        usersRes.json(),
-        pendingRes.json(),
-        sessionsRes.json(),
-        challengesRes.json(),
-        participantsRes.json(),
-        pricingRes.json(),
-        landingRes.json(),
-      ]);
-
-      setUsers(parseList(usersPayload));
-      setPendingUsers(parseList(pendingPayload));
-      setSessions(parseList(sessionsPayload));
-      setChallenges(parseList(challengesPayload));
-      setParticipants(parseList(participantsPayload));
-      setPricingPlans(parseList(pricingPayload));
-      setLandingBlocks(parseList(landingPayload));
     } catch (err) {
       setError(err.message || 'Erreur de chargement admin.');
     }
