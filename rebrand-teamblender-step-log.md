@@ -104,3 +104,15 @@ Verification:
 - Scan `app/components`: aucune occurrence restante
 - Build Next.js: succes
 - Conclusion: micro-lot email/domain valide sans regression detectee
+
+## Step 7 - Validation visuelle routes critiques
+Action:
+- Demarrage serveur local `next dev -p 3100`.
+- Controle automatise des pages: `/`, `/contact`, `/mentions-legales`, `/politique-confidentialite`.
+
+Verification:
+- `/`: titre `TeamBlender`, aucun residu Teamspark detecte
+- `/contact`: TeamBlender visible, email `contact@teamblender.io`, aucun email legacy
+- `/mentions-legales`: TeamBlender visible, email `contact@teamblender.io`, aucun email legacy
+- `/politique-confidentialite`: TeamBlender visible, email `contact@teamblender.io`, aucun email legacy
+- Conclusion: validation visuelle OK sur les routes critiques
