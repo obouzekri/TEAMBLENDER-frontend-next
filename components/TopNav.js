@@ -18,7 +18,7 @@ export default function TopNav() {
       <div className="shell nav-inner">
         <div className="nav-top-row">
           <div className="nav-brand-block">
-            <Link href="/" className="brand">TEAMSPARK</Link>
+            <Link href="/" className="brand">TeamBlender</Link>
           </div>
 
           <button
@@ -53,3 +53,4 @@ export default function TopNav() {
     </header>
   );
 }
+

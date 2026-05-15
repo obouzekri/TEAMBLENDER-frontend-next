@@ -95,7 +95,7 @@ export default function PricingPage() {
     <>
       <TopNav />
       <main className="shell pricing-page">
-        <section className="pricing-hero reveal-up" aria-label="Tarification TEAMSPARK">
+        <section className="pricing-hero reveal-up" aria-label="Tarification TeamBlender">
           <p className="eyebrow">Tarification</p>
           <h1>Des formules simples pour faire grandir vos sessions d'équipe.</h1>
           <p>
@@ -229,3 +229,4 @@ export default function PricingPage() {
     </>
   );
 }
+

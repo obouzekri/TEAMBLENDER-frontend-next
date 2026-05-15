@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'TEAMSPARK',
-  description: 'TEAMSPARK frontend migration lot 1',
+  title: 'TeamBlender',
+  description: 'TeamBlender frontend migration lot 1',
 };
 
 export default function RootLayout({ children }) {
@@ -12,3 +12,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+

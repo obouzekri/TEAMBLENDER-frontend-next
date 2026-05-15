@@ -25,7 +25,7 @@ export default function ContactPage() {
       return;
     }
 
-    const subject = encodeURIComponent(`[TEAMSPARK] ${form.need}`);
+    const subject = encodeURIComponent(`[TeamBlender] ${form.need}`);
     const body = encodeURIComponent(
       `Nom: ${form.name}\n` +
       `Entreprise: ${form.company || 'Non renseignée'}\n` +
@@ -41,8 +41,8 @@ export default function ContactPage() {
     <>
       <TopNav />
       <main className="shell contact-page">
-        <section className="contact-hero reveal-up" aria-label="Contactez TEAMSPARK">
-          <p className="eyebrow">TEAMSPARK</p>
+        <section className="contact-hero reveal-up" aria-label="Contactez TeamBlender">
+          <p className="eyebrow">TeamBlender</p>
           <h1>Parlons de votre prochain team building</h1>
           <p>Cette étape sert à cadrer votre besoin et voir comment lancer un challenge utile pour votre équipe.</p>
         </section>
@@ -124,3 +124,4 @@ export default function ContactPage() {
     </>
   );
 }
+

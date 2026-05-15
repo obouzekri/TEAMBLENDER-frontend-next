@@ -3,8 +3,8 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Politique de confidentialité | TEAMSPARK',
-  description: "Politique de confidentialité de TEAMSPARK — comment nous collectons, utilisons et protégeons vos données personnelles.",
+  title: 'Politique de confidentialité | TeamBlender',
+  description: "Politique de confidentialité de TeamBlender — comment nous collectons, utilisons et protégeons vos données personnelles.",
   robots: 'noindex, follow',
 };
 
@@ -20,7 +20,7 @@ export default function PolitiqueConfidentialitePage() {
             Nous nous engageons à protéger vos données personnelles. Cette page explique quelles données nous collectons, pourquoi, et comment vous pouvez exercer vos droits.
           </p>
           <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '1rem' }}>
-            Dernière mise à jour : mai 2026 — Applicable à tous les utilisateurs de la plateforme TEAMSPARK.
+            Dernière mise à jour : mai 2026 — Applicable à tous les utilisateurs de la plateforme TeamBlender.
           </p>
         </section>
 
@@ -129,7 +129,7 @@ export default function PolitiqueConfidentialitePage() {
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>8. Cookies</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
-              TEAMSPARK utilise uniquement des cookies strictement nécessaires au fonctionnement de la plateforme (session, authentification).
+              TeamBlender utilise uniquement des cookies strictement nécessaires au fonctionnement de la plateforme (session, authentification).
               Aucun cookie tiers à des fins publicitaires n&apos;est déposé sans votre consentement explicite.
             </p>
           </section>
@@ -147,7 +147,7 @@ export default function PolitiqueConfidentialitePage() {
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>10. Modifications</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
               Nous nous réservons le droit de modifier cette politique à tout moment. La date de dernière mise à jour figure en haut de page.
-              En continuant à utiliser TEAMSPARK après une modification, vous acceptez la politique mise à jour.
+              En continuant à utiliser TeamBlender après une modification, vous acceptez la politique mise à jour.
             </p>
           </section>
 
@@ -161,3 +161,4 @@ export default function PolitiqueConfidentialitePage() {
     </>
   );
 }
+

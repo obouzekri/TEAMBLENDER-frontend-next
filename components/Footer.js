@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="site-footer">
       <div className="shell footer-inner">
         <div>
-          <p className="footer-brand">TEAMSPARK</p>
+          <p className="footer-brand">TeamBlender</p>
           <p className="footer-copy">Une expérience guidée, simple, claire et utile pour managers et RH.</p>
         </div>
         <nav className="footer-links" aria-label="Liens footer">
@@ -19,3 +19,4 @@ export default function Footer() {
     </footer>
   );
 }
+

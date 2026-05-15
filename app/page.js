@@ -10,7 +10,7 @@ const DEFAULT_BLOCKS = {
   hero_main: {
     title: 'Faites de chaque session d equipe un moment utile, fluide et memorable.',
     description:
-      'TEAMSPARK structure vos ateliers de cohesion avec une approche moderne: preparation en minutes, animation guidee en live et debrief directement exploitable.',
+      'TeamBlender structure vos ateliers de cohesion avec une approche moderne: preparation en minutes, animation guidee en live et debrief directement exploitable.',
   },
   hero_image_a: {
     image_url: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1200&q=80',
@@ -102,7 +102,7 @@ export default function HomePage() {
     <>
       <TopNav />
       <main className="shell landing-v2">
-        <section className="hero-v2 reveal-up" aria-label="Presentation TEAMSPARK">
+        <section className="hero-v2 reveal-up" aria-label="Presentation TeamBlender">
           <div className="hero-v2-grid">
             <div className="hero-v2-copy">
               <p className="hero-v2-kicker">Platforme team performance</p>
@@ -119,7 +119,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="hero-v2-media" aria-label="Apercus d usage TEAMSPARK">
+            <div className="hero-v2-media" aria-label="Apercus d usage TeamBlender">
               <article className="hero-v2-photo-card card-a">
                 <img
                   src={heroImageA.image_url || DEFAULT_BLOCKS.hero_image_a.image_url}
@@ -159,9 +159,9 @@ export default function HomePage() {
           </article>
         </section>
 
-        <section className="landing-contrast reveal-up" aria-label="Avant et avec TEAMSPARK">
+        <section className="landing-contrast reveal-up" aria-label="Avant et avec TeamBlender">
           <article className="feature-card contrast-card contrast-before">
-            <p className="eyebrow">Sans TEAMSPARK</p>
+            <p className="eyebrow">Sans TeamBlender</p>
             <h2>Preparation eparpillee, energie dispersee</h2>
             <ul>
               <li>Objectif de session flou ou tardif</li>
@@ -170,7 +170,7 @@ export default function HomePage() {
             </ul>
           </article>
           <article className="feature-card contrast-card contrast-after">
-            <p className="eyebrow">Avec TEAMSPARK</p>
+            <p className="eyebrow">Avec TeamBlender</p>
             <h2>Cadre commun, execution nette, decisions facilites</h2>
             <ul>
               <li>Cadrage explicite de l enjeu equipe</li>
@@ -202,7 +202,7 @@ export default function HomePage() {
           <div className="panel-head">
             <div>
               <p className="eyebrow">Processus simple</p>
-              <h2>Comment ca se passe avec TEAMSPARK</h2>
+              <h2>Comment ca se passe avec TeamBlender</h2>
             </div>
             <Link href="/signup" className="btn-mini">Lancer une session</Link>
           </div>
@@ -308,3 +308,4 @@ export default function HomePage() {
     </>
   );
 }
+

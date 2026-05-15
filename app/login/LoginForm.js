@@ -61,7 +61,7 @@ export default function LoginForm({ requestedSessionId = '' }) {
   return (
     <main className="shell auth-page">
       <AuthCard
-        title="Connexion à TEAMSPARK"
+        title="Connexion à TeamBlender"
         footer={<span>Pas encore de compte ? <Link href="/signup">Créer un compte</Link></span>}
       >
         <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
@@ -97,3 +97,4 @@ export default function LoginForm({ requestedSessionId = '' }) {
     </main>
   );
 }
+

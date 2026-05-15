@@ -62,7 +62,7 @@ export default function SignupForm() {
   return (
     <main className="shell auth-page">
       <AuthCard
-        title="Créer un compte TEAMSPARK"
+        title="Créer un compte TeamBlender"
         footer={<span>Déjà un compte ? <Link href="/login">Se connecter</Link></span>}
       >
         {done ? (
@@ -103,3 +103,4 @@ export default function SignupForm() {
     </main>
   );
 }
+

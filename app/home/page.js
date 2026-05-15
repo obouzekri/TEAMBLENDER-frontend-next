@@ -1,9 +1,10 @@
 import ManagerHome from './ManagerHome';
 
 export const metadata = {
-  title: 'Home Manager | TEAMSPARK',
+  title: 'Home Manager | TeamBlender',
 };
 
 export default function HomeManagerPage() {
   return <ManagerHome />;
 }
+

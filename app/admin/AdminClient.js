@@ -1713,7 +1713,7 @@ export default function AdminClient() {
             padding: '24px 20px 16px',
             borderBottom: '1px solid var(--color-border, #e5e7eb)',
           }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-muted, #6b7280)', textTransform: 'uppercase', margin: '0 0 4px' }}>TEAMSPARK</p>
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-muted, #6b7280)', textTransform: 'uppercase', margin: '0 0 4px' }}>TeamBlender</p>
             <p style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text, #111)', margin: 0 }}>Console Admin</p>
             <p style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', margin: '4px 0 0' }}>{pickUserLabel(user)}</p>
           </div>
@@ -2772,3 +2772,4 @@ export default function AdminClient() {
     </>
   );
 }
+

@@ -3,8 +3,8 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Mentions légales | TEAMSPARK',
-  description: "Mentions légales de la plateforme TEAMSPARK — éditeur, hébergement, propriété intellectuelle et données personnelles.",
+  title: 'Mentions légales | TeamBlender',
+  description: "Mentions légales de la plateforme TeamBlender — éditeur, hébergement, propriété intellectuelle et données personnelles.",
   robots: 'noindex, follow',
 };
 
@@ -26,7 +26,7 @@ export default function MentionsLegalesPage() {
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>1. Éditeur du site</h2>
-            <p style={{ marginBottom: '0.5rem' }}>Le présent site <strong>TEAMSPARK</strong> est édité par :</p>
+            <p style={{ marginBottom: '0.5rem' }}>Le présent site <strong>TeamBlender</strong> est édité par :</p>
             <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
               <li><strong>Raison sociale :</strong> [NOM DE LA SOCIÉTÉ OU ENTREPRENEUR]</li>
               <li><strong>Forme juridique :</strong> [SAS / SARL / EI / Auto-entrepreneur]</li>
@@ -51,7 +51,7 @@ export default function MentionsLegalesPage() {
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>3. Propriété intellectuelle</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
-              L&apos;ensemble du contenu du site TEAMSPARK (textes, images, graphismes, logo, icônes, structure) est la propriété exclusive de l&apos;éditeur
+              L&apos;ensemble du contenu du site TeamBlender (textes, images, graphismes, logo, icônes, structure) est la propriété exclusive de l&apos;éditeur
               ou fait l&apos;objet d&apos;une autorisation d&apos;utilisation. Toute reproduction, distribution, modification ou exploitation, même partielle,
               est strictement interdite sans autorisation écrite préalable.
             </p>
@@ -76,7 +76,7 @@ export default function MentionsLegalesPage() {
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>5. Liens hypertextes</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
-              Le site peut contenir des liens vers des sites tiers. TEAMSPARK n&apos;exerce aucun contrôle sur ces sites et décline toute responsabilité
+              Le site peut contenir des liens vers des sites tiers. TeamBlender n&apos;exerce aucun contrôle sur ces sites et décline toute responsabilité
               quant à leur contenu ou leurs pratiques en matière de confidentialité.
             </p>
           </section>
@@ -84,7 +84,7 @@ export default function MentionsLegalesPage() {
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>6. Limitation de responsabilité</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
-              TEAMSPARK s&apos;efforce de maintenir les informations publiées à jour et exactes, mais ne peut garantir l&apos;exhaustivité ni l&apos;absence d&apos;erreurs.
+              TeamBlender s&apos;efforce de maintenir les informations publiées à jour et exactes, mais ne peut garantir l&apos;exhaustivité ni l&apos;absence d&apos;erreurs.
               L&apos;éditeur se réserve le droit de modifier le contenu du site à tout moment sans préavis.
             </p>
           </section>
@@ -103,3 +103,4 @@ export default function MentionsLegalesPage() {
     </>
   );
 }
+

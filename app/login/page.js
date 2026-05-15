@@ -2,7 +2,7 @@ import LoginForm from './LoginForm';
 import TopNav from '@/components/TopNav';
 
 export const metadata = {
-  title: 'Connexion | TEAMSPARK',
+  title: 'Connexion | TeamBlender',
 };
 
 export default async function LoginPage({ searchParams }) {
@@ -16,3 +16,4 @@ export default async function LoginPage({ searchParams }) {
     </>
   );
 }
+

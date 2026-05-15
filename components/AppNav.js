@@ -81,7 +81,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
       <div className="shell nav-inner">
         <div className="nav-top-row">
           <div className="nav-brand-block">
-            <Link href={brandHref} className="brand">TEAMSPARK</Link>
+            <Link href={brandHref} className="brand">TeamBlender</Link>
             <span className="nav-context">{contextLabel}</span>
           </div>
 
@@ -177,3 +177,4 @@ export default function AppNav({ userLabel, onLogout, role }) {
     </header>
   );
 }
+
