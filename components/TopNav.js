@@ -19,7 +19,6 @@ export default function TopNav() {
         <div className="nav-top-row">
           <div className="nav-brand-block">
             <Link href="/" className="brand">TEAMSPARK</Link>
-            <span className="nav-context">Espace public</span>
           </div>
 
           <button
