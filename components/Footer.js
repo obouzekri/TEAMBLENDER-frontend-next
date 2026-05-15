@@ -4,17 +4,39 @@ export default function Footer() {
   return (
     <footer className="site-footer">
       <div className="shell footer-inner">
-        <div>
-          <p className="footer-brand">TeamBlender</p>
-          <p className="footer-copy">Une expérience guidée, simple, claire et utile pour managers et RH.</p>
+        <div className="footer-brand-block">
+          <div className="footer-logo" aria-hidden="true">TB</div>
+          <div>
+            <p className="footer-brand">TeamBlender</p>
+            <p className="footer-copy">Activez des sessions d équipe claires et mesurables.</p>
+          </div>
         </div>
-        <nav className="footer-links" aria-label="Liens footer">
-          <Link href="/">Accueil</Link>
-          <Link href="/pricing">Tarification</Link>
-          <Link href="/contact">Contact</Link>
-          <Link href="/mentions-legales">Mentions légales</Link>
-          <Link href="/politique-confidentialite">Confidentialité</Link>
-        </nav>
+        <div className="footer-columns" aria-label="Liens footer">
+          <nav className="footer-col" aria-label="Produit">
+            <p>Produit</p>
+            <Link href="/">Accueil</Link>
+            <Link href="/signup">Créer une session</Link>
+            <Link href="/pricing">Tarification</Link>
+          </nav>
+
+          <nav className="footer-col" aria-label="Ressources">
+            <p>Ressources</p>
+            <Link href="/pricing">Offres</Link>
+            <Link href="/contact">Demander une démo</Link>
+            <Link href="/login">Espace client</Link>
+          </nav>
+
+          <nav className="footer-col" aria-label="Légal">
+            <p>Légal</p>
+            <Link href="/mentions-legales">Mentions légales</Link>
+            <Link href="/politique-confidentialite">Politique de confidentialité</Link>
+          </nav>
+
+          <nav className="footer-col" aria-label="Contact">
+            <p>Contact</p>
+            <Link href="/contact">Parler a un expert</Link>
+          </nav>
+        </div>
       </div>
     </footer>
   );

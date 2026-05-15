@@ -8,9 +8,9 @@ import { getApiUrl } from '@/lib/config';
 
 const DEFAULT_BLOCKS = {
   hero_main: {
-    title: 'Transformez vos sessions d equipe en decisions utiles.',
+    title: 'Créez de la cohésion au sein de vos équipes,',
     description:
-      'TeamBlender vous aide a cadrer vite, animer clairement et debriefer sans friction.',
+      'avec des résultats concrets et mesurables.',
   },
   hero_image_a: {
     image_url: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1200&q=80',
@@ -94,24 +94,43 @@ export default function HomePage() {
     [dynamicBlocks]
   );
 
-  const heroMain = mergeBlock('hero_main', dynamicBlocks);
+  const heroImageA = mergeBlock('hero_image_a', dynamicBlocks);
+  const heroImageB = mergeBlock('hero_image_b', dynamicBlocks);
 
   return (
     <>
       <TopNav />
       <main className="shell landing-v2">
         <section className="hero-v2 reveal-up" aria-label="Presentation TeamBlender">
-          <p className="hero-v2-kicker">Plateforme performance equipe</p>
-          <h1>{heroMain.title || DEFAULT_BLOCKS.hero_main.title}</h1>
-          <p>{heroMain.description || DEFAULT_BLOCKS.hero_main.description}</p>
-          <div className="hero-v2-actions">
-            <Link href="/signup" className="btn-primary">Demarrer un pilote</Link>
-            <Link href="/pricing" className="btn-secondary">Voir les offres</Link>
-          </div>
-          <div className="hero-v2-trust">
-            <span>Cadrage en moins de 10 min</span>
-            <span>Animation live maitrisee</span>
-            <span>Debrief exploitable</span>
+          <div className="hero-v2-grid">
+            <div className="hero-v2-copy">
+              <p className="hero-v2-kicker">Produit SaaS pour managers et RH</p>
+              <h1>
+                <span className="hero-v2-title-line">Créez de la cohésion au sein de vos équipes,</span>
+                <span className="hero-v2-title-line">avec des résultats concrets et mesurables.</span>
+              </h1>
+              <p>Structurez vos sessions d equipe, animez-les avec clarte et pilotez des actions mesurables en sortie.</p>
+              <div className="hero-v2-actions">
+                <Link href="/signup" className="btn-primary">Creer une session</Link>
+                <Link href="/contact" className="btn-secondary">Voir une demo</Link>
+              </div>
+              <div className="hero-v2-trust">
+                <span>+120 equipes accompagnees</span>
+                <span>Activation en moins de 10 min</span>
+                <span>Debrief actionnable des la premiere session</span>
+              </div>
+            </div>
+
+            <div className="hero-v2-media" aria-label="Apercu visuel TeamBlender">
+              <article className="hero-v2-photo-card">
+                <img src={heroImageA.image_url || DEFAULT_BLOCKS.hero_image_a.image_url} alt={heroImageA.description || DEFAULT_BLOCKS.hero_image_a.description} loading="lazy" />
+                <p>{heroImageA.description || DEFAULT_BLOCKS.hero_image_a.description}</p>
+              </article>
+              <article className="hero-v2-photo-card card-b">
+                <img src={heroImageB.image_url || DEFAULT_BLOCKS.hero_image_b.image_url} alt={heroImageB.description || DEFAULT_BLOCKS.hero_image_b.description} loading="lazy" />
+                <p>{heroImageB.description || DEFAULT_BLOCKS.hero_image_b.description}</p>
+              </article>
+            </div>
           </div>
         </section>
 
@@ -136,7 +155,7 @@ export default function HomePage() {
               <p className="eyebrow">Processus</p>
               <h2>Trois etapes. Un cadre clair.</h2>
             </div>
-              <Link href="/signup" className="btn-mini btn-violet" style={{ color: '#fff' }}>Lancer une session</Link>
+              <Link href="/signup" className="btn-primary">Lancer une session</Link>
           </div>
           <div className="cards-grid landing-flow-grid">
             <article className="feature-card flow-card">
@@ -163,7 +182,7 @@ export default function HomePage() {
               <p className="eyebrow">Formats</p>
               <h2>Bibliotheque de challenges prets a lancer</h2>
             </div>
-              <Link href="/signup" className="btn-mini btn-violet" style={{ color: '#fff' }}>Explorer</Link>
+              <Link href="/signup" className="btn-secondary">Explorer</Link>
           </div>
           <div className="challenge-grid">
             {challengeExamples.map((item) => (
