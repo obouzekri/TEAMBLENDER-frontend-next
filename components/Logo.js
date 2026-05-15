@@ -16,7 +16,7 @@ export default function Logo({ size = 'default' }) {
     >
       {/* Icône blending */}
       <circle cx="60" cy="60" r="20" fill="#0f766e" opacity="0.95" />
-      <circle cx="80" cy="60" r="20" fill="#7c3aed" opacity="0.95" />
+      <circle cx="80" cy="60" r="20" fill="#a78bfa" opacity="0.7" />
 
       {/* Texte */}
       <text
