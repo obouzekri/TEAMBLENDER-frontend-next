@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Logo from './Logo';
 
 export default function AppNav({ userLabel, onLogout, role }) {
   const pathname = usePathname();
@@ -81,7 +82,9 @@ export default function AppNav({ userLabel, onLogout, role }) {
       <div className="shell nav-inner">
         <div className="nav-top-row">
           <div className="nav-brand-block">
-            <Link href={brandHref} className="brand">TeamBlender</Link>
+            <Link href={brandHref} className="brand">
+              <Logo size={isCompact ? 'compact' : 'default'} />
+            </Link>
             <span className="nav-context">{contextLabel}</span>
           </div>
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Logo from './Logo';
 
 export default function TopNav() {
   const pathname = usePathname();
@@ -18,7 +19,9 @@ export default function TopNav() {
       <div className="shell nav-inner">
         <div className="nav-top-row">
           <div className="nav-brand-block">
-            <Link href="/" className="brand">TeamBlender</Link>
+            <Link href="/" className="brand">
+              <Logo />
+            </Link>
           </div>
 
           <button
