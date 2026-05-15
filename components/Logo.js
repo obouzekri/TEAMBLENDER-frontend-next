@@ -1,6 +1,6 @@
 export default function Logo({ size = 'default' }) {
   // size can be 'default' (nav header) or 'compact' (compact mode)
-  const height = size === 'compact' ? 44 : 56;
+  const height = size === 'compact' ? 50 : 64;
   const viewBoxHeight = 120;
   const viewBoxWidth = 360;
   const ratio = viewBoxWidth / viewBoxHeight;
