@@ -34,7 +34,7 @@ export default function ContactPage() {
       `Message:\n${form.message}`
     );
 
-    window.location.href = `mailto:contact@teamspark.app?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:contact@teamblender.io?subject=${subject}&body=${body}`;
   }
 
   return (
@@ -57,7 +57,7 @@ export default function ContactPage() {
                 <div className="contact-info-icon">✉</div>
                 <div className="contact-info-text">
                   <strong>Email direct</strong>
-                  <a href="mailto:contact@teamspark.app">contact@teamspark.app</a>
+                  <a href="mailto:contact@teamblender.io">contact@teamblender.io</a>
                 </div>
               </div>
               <div className="contact-info-item">

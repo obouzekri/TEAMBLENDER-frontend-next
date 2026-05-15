@@ -31,7 +31,7 @@ export default function PolitiqueConfidentialitePage() {
             <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
               <li><strong>Entité :</strong> [NOM DE LA SOCIÉTÉ]</li>
               <li><strong>Adresse :</strong> [ADRESSE]</li>
-              <li><strong>Email :</strong> <a href="mailto:contact@teamspark.app">contact@teamspark.app</a></li>
+              <li><strong>Email :</strong> <a href="mailto:contact@teamblender.io">contact@teamblender.io</a></li>
             </ul>
           </section>
 
@@ -107,7 +107,7 @@ export default function PolitiqueConfidentialitePage() {
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>7. Vos droits</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)', marginBottom: '1rem' }}>
               Conformément au RGPD, vous disposez des droits suivants. Pour les exercer, contactez-nous à{' '}
-              <a href="mailto:contact@teamspark.app">contact@teamspark.app</a>.
+              <a href="mailto:contact@teamblender.io">contact@teamblender.io</a>.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
               {[

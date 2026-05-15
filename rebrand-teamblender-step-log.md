@@ -57,3 +57,50 @@ Verification:
 1. Validation visuelle manuelle des pages critiques (`/`, `/login`, `/signup`, `/mentions-legales`, `/politique-confidentialite`).
 2. Decision explicite sur le domaine/email (`contact@teamspark.app`) avant modification.
 3. Commit avec message dedie rebrand texte + build OK.
+
+## Step 4 - Publication du lot branding
+Action:
+- Push du commit garde `0e68a79` vers `origin/main`.
+
+Verification:
+- Remote update: `eb469a2..0e68a79  main -> main`
+- Conclusion: lot branding TeamBlender publie.
+
+## Step 5 - Micro-lot email/domain (1 fichier a la fois)
+Objectif:
+- Aligner les adresses email visibles sur la marque TeamBlender sans toucher a la logique applicative.
+
+### Step 5.1 - app/contact/page.js
+Action:
+- `mailto:contact@teamspark.app` -> `mailto:contact@teamblender.io`
+- Texte visible `contact@teamspark.app` -> `contact@teamblender.io`
+
+Verification:
+- `get_errors` sur le fichier: OK
+- Diff local controle: text-only
+
+### Step 5.2 - app/mentions-legales/page.js
+Action:
+- Deux liens email mis a jour vers `contact@teamblender.io`
+
+Verification:
+- `get_errors` sur le fichier: OK
+- Diff local controle: text-only
+
+### Step 5.3 - app/politique-confidentialite/page.js
+Action:
+- Deux liens email mis a jour vers `contact@teamblender.io`
+
+Verification:
+- `get_errors` sur le fichier: OK
+- Diff local controle: text-only
+
+## Step 6 - Verification de non-regression post micro-lot
+Action:
+- Scan occurrences restantes de `teamspark.app|@teamspark` dans `app` et `components`.
+- Build complet `npm run build`.
+
+Verification:
+- Scan `app/components`: aucune occurrence restante
+- Build Next.js: succes
+- Conclusion: micro-lot email/domain valide sans regression detectee

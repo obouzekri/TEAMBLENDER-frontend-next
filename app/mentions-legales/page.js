@@ -33,7 +33,7 @@ export default function MentionsLegalesPage() {
               <li><strong>Capital social :</strong> [MONTANT] €</li>
               <li><strong>Numéro SIRET :</strong> [SIRET]</li>
               <li><strong>Siège social :</strong> [ADRESSE COMPLÈTE]</li>
-              <li><strong>Email :</strong> <a href="mailto:contact@teamspark.app">contact@teamspark.app</a></li>
+              <li><strong>Email :</strong> <a href="mailto:contact@teamblender.io">contact@teamblender.io</a></li>
               <li><strong>Directeur de la publication :</strong> [NOM DU RESPONSABLE]</li>
             </ul>
           </section>
@@ -69,7 +69,7 @@ export default function MentionsLegalesPage() {
               de rectification, de suppression et de portabilité de vos données.
             </p>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)', marginTop: '0.75rem' }}>
-              Pour exercer ces droits, contactez-nous à : <a href="mailto:contact@teamspark.app">contact@teamspark.app</a>
+              Pour exercer ces droits, contactez-nous à : <a href="mailto:contact@teamblender.io">contact@teamblender.io</a>
             </p>
           </section>
 
