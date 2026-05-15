@@ -204,7 +204,7 @@ export default function HomePage() {
               <p className="eyebrow">Processus simple</p>
               <h2>Comment ca se passe avec TeamBlender</h2>
             </div>
-            <Link href="/signup" className="btn-mini">Lancer une session</Link>
+              <Link href="/signup" className="btn-mini btn-violet" style={{ color: '#fff' }}>Lancer une session</Link>
           </div>
           <div className="cards-grid landing-flow-grid">
             <article className="feature-card flow-card">
@@ -231,7 +231,7 @@ export default function HomePage() {
               <p className="eyebrow">Challenge library</p>
               <h2>Exemples de formats disponibles</h2>
             </div>
-            <Link href="/signup" className="btn-mini">Explorer la bibliotheque</Link>
+              <Link href="/signup" className="btn-mini btn-violet" style={{ color: '#fff' }}>Explorer la bibliotheque</Link>
           </div>
           <div className="challenge-grid">
             {challengeExamples.map((item) => (

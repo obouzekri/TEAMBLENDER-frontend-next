@@ -76,8 +76,8 @@ export default function ContactPage() {
               </div>
             </div>
 
-            <div className="contact-trust-box">
-              <p>Pas encore prêt ? <a href="/pricing">Consultez nos formules</a> ou <a href="/signup">créez un compte</a> pour explorer librement.</p>
+            <div className="contact-trust-box highlight-violet">
+              <p>Pas encore prêt ? <a href="/pricing">Consultez nos formules</a> ou <a href="/signup" className="accent-violet" style={{ fontWeight: '700' }}>créez un compte</a> pour explorer librement.</p>
             </div>
           </article>
 
