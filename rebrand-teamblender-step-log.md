@@ -126,3 +126,39 @@ Verification:
 - Syntaxe script: `node --check scripts/smoke-participant.mjs` OK
 - Build frontend: `npm run build` OK
 - Conclusion: micro-lot docs/smoke local valide sans regression detectee
+
+## Step 9 - Micro-lot identifiants techniques (avec compatibilite explicite)
+Plan de compatibilite:
+- Changer uniquement les metadonnees techniques non fonctionnelles.
+- Ne pas toucher aux noms de scripts npm (`dev`, `build`, `start`, `test:*`).
+- Ne pas toucher aux variables d'environnement, routes, API, ou structure de dossier.
+- Verification obligatoire apres chaque fichier modifie: controle de valeur + build complet.
+- Rollback simple: revert du commit unique de ce micro-lot.
+
+### Step 9.1 - package.json
+Action:
+- `name`: `teamspark-frontend-next` -> `teamblender-frontend-next`.
+
+Verification:
+- Check valeur: `node -e` sur `package.json` OK
+- Build: `npm run build` OK
+
+### Step 9.2 - package-lock.json
+Action:
+- Alignement des 2 occurrences `name` avec `teamblender-frontend-next`.
+
+Verification:
+- Check valeurs: `node -e` sur `package-lock.json` OK
+- Build: `npm run build` OK
+
+### Step 9.3 - .vercel/repo.json
+Action:
+- Metadonnee projet locale Vercel: `name` -> `teamblender-frontend-next`.
+
+Verification:
+- Check valeur: `node -e` sur `.vercel/repo.json` OK
+- Build: `npm run build` OK
+- Scan final `teamspark-frontend-next` hors build/deps: aucune occurrence
+
+Conclusion Step 9:
+- Migration technique des identifiants realisee sans impact mecanique detecte.
