@@ -478,6 +478,35 @@ a {
   box-shadow: 0 10px 20px rgba(30, 42, 35, 0.1);
 }
 
+/* Violet secondary accent classes */
+.btn-violet {
+  background: linear-gradient(135deg, var(--accent-violet) 0%, var(--accent-violet-strong) 100%);
+  border-color: rgba(124, 58, 237, 0.4);
+  color: #fff;
+  box-shadow: var(--button-insight-shadow);
+}
+
+.btn-violet:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--button-insight-shadow-hover);
+  filter: brightness(1.02);
+}
+
+.accent-violet {
+  color: var(--accent-violet);
+}
+
+.accent-violet-soft {
+  background: var(--accent-violet-soft);
+  color: var(--accent-violet-strong);
+}
+
+.highlight-violet {
+  border-left: 3px solid var(--accent-violet);
+  padding-left: 0.75rem;
+  background: linear-gradient(90deg, var(--accent-violet-soft) 0%, transparent 100%);
+}
+
 .btn-insight {
   position: relative;
   overflow: hidden;
