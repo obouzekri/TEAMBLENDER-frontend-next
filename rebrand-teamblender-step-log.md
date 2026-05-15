@@ -116,3 +116,13 @@ Verification:
 - `/mentions-legales`: TeamBlender visible, email `contact@teamblender.io`, aucun email legacy
 - `/politique-confidentialite`: TeamBlender visible, email `contact@teamblender.io`, aucun email legacy
 - Conclusion: validation visuelle OK sur les routes critiques
+
+## Step 8 - Harmonisation docs et smoke local (faible risque)
+Action:
+- README frontend: titre et phrase d'introduction `TEAMSPARK` -> `TeamBlender`.
+- Script `scripts/smoke-participant.mjs`: domaine email local de test `@teamspark.local` -> `@teamblender.local`.
+
+Verification:
+- Syntaxe script: `node --check scripts/smoke-participant.mjs` OK
+- Build frontend: `npm run build` OK
+- Conclusion: micro-lot docs/smoke local valide sans regression detectee

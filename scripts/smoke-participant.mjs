@@ -75,7 +75,7 @@ async function prepareData() {
   });
   assert(setActive.response.ok, `Set active challenge failed (${setActive.response.status})`);
 
-  const participantEmail = `smoke.participant.${Date.now()}@teamspark.local`;
+  const participantEmail = `smoke.participant.${Date.now()}@teamblender.local`;
   const createParticipant = await requestJson(`${BACKEND_URL}/api/users/${manager.id}/participants`, {
     method: 'POST',
     headers,

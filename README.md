@@ -1,6 +1,6 @@
-﻿# TEAMSPARK Frontend Next.js
+﻿# TeamBlender Frontend Next.js
 
-Frontend cible du produit TEAMSPARK (migration depuis le legacy).
+Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 ## Quick links
 
