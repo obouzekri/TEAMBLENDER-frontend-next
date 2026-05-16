@@ -79,7 +79,6 @@ export default function SessionBuilder() {
 
   const [isLaunching, setIsLaunching] = useState(false);
   const [sessionChallengesLoaded, setSessionChallengesLoaded] = useState(false);
-  const [sessionStep, setSessionStep] = useState('name'); // 'name' | 'participants' | 'challenges'
   const [hasRouteSessionId, setHasRouteSessionId] = useState(false);
   const [sessionId, setSessionId] = useState(() => {
     if (typeof window === 'undefined') return '';
@@ -96,7 +95,6 @@ export default function SessionBuilder() {
   const [editDateTime, setEditDateTime] = useState('');
   const [isSavingSessionInfo, setIsSavingSessionInfo] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
-  const [isAssigningParticipants, setIsAssigningParticipants] = useState(false);
   const [draftParticipantIds, setDraftParticipantIds] = useState([]);
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
@@ -104,13 +102,6 @@ export default function SessionBuilder() {
     () => selectedChallenges.find((c) => c.id === configuring) || null,
     [configuring, selectedChallenges]
   );
-
-  // Enter challenge step only when editing an explicit session from URL
-  useEffect(() => {
-    if (hasRouteSessionId && sessionId && sessionStep === 'name') {
-      setSessionStep('challenges');
-    }
-  }, [hasRouteSessionId, sessionId, sessionStep]);
 
   // On plain /session-builder, reset stale cached session id to start a new flow
   useEffect(() => {
@@ -418,8 +409,7 @@ export default function SessionBuilder() {
       setSessionId(newId);
       setSessionParticipantCount(draftParticipantIds.length);
       removeToast(loadingId);
-      // Continue to the dedicated participant assignment step before challenge selection.
-      setSessionStep('participants');
+      // Participants are already assigned in the creation pane; continue directly to challenge selection.
     } catch (err) {
       removeToast(loadingId);
       showErrorToast(err.message || 'Impossible de creer la session.');
@@ -459,34 +449,6 @@ export default function SessionBuilder() {
       setIsSavingSessionInfo(false);
     }
   }, [apiRequest, editDateTime, editName, getAuthToken, sessionId, showErrorToast]);
-
-  const handleAssignParticipants = useCallback(async (selectedParticipantIds) => {
-    setIsAssigningParticipants(true);
-    const loadingId = showLoadingToast('Assignation des participants...');
-    const token = getAuthToken();
-
-    try {
-      // Update session with participant_ids (single source of truth)
-      await apiRequest(`/sessions/${sessionId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ participant_ids: selectedParticipantIds }),
-      });
-      removeToast(loadingId);
-      sessionStorage.setItem('sessionId', sessionId);
-      setSessionParticipantCount(selectedParticipantIds.length);
-      // Move to challenges selection step
-      setSessionStep('challenges');
-    } catch (err) {
-      removeToast(loadingId);
-      showErrorToast(err.message || 'Impossible d\'assigner les participants.');
-    } finally {
-      setIsAssigningParticipants(false);
-    }
-  }, [apiRequest, getAuthToken, sessionId, removeToast, showErrorToast, showLoadingToast]);
 
   function logout() {
     localStorage.removeItem('jwt');
@@ -641,32 +603,7 @@ export default function SessionBuilder() {
     );
   }
 
-  // Step 2: Assign Participants
-  if (sessionStep === 'participants') {
-    return (
-      <>
-        <ToastContainer toasts={toasts} onRemove={removeToast} />
-        <AppNav userLabel={userLabel} onLogout={logout} />
-        <main className="shell">
-          <ParticipantAssigner
-            isLoading={isAssigningParticipants}
-            onAssign={handleAssignParticipants}
-            selectedIds={draftParticipantIds}
-            onSelectionChange={setDraftParticipantIds}
-            onCancel={() => {
-              setSessionId('');
-              setSessionName('');
-              setSessionStep('name');
-              sessionStorage.removeItem('sessionId');
-            }}
-          />
-        </main>
-        <Footer />
-      </>
-    );
-  }
-
-  // Step 3: Select Challenges
+  // Select challenges
 
   return (
     <>
@@ -746,13 +683,6 @@ export default function SessionBuilder() {
                   }}
                 >
                   Modifier la session
-                </button>
-                <button
-                  className="btn-secondary"
-                  style={{ padding: '0.4rem 0.9rem', fontSize: '0.82rem' }}
-                  onClick={() => setSessionStep('participants')}
-                >
-                  Modifier les participants
                 </button>
               </div>
             </>
