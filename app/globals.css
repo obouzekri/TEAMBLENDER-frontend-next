@@ -3915,7 +3915,11 @@ a {
   }
 
   .app-user-box {
-    display: none;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
   }
 }
 

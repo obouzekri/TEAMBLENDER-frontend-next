@@ -12,9 +12,10 @@ export default function AppNav({ userLabel, onLogout, role }) {
   const isParticipant = role === 'participant';
   const isAdmin = role === 'admin';
   const isCompact = role === 'participant-live';
+  const isManager = !isParticipant && !isAdmin && !isCompact;
   const brandHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
   const headerClassName = isCompact ? 'top-nav top-nav--compact' : 'top-nav';
-  const isManagerHome = !isParticipant && !isAdmin && !isCompact && pathname === '/home';
+  const isManagerHome = isManager && pathname === '/home';
   const isActive = (href) => pathname?.startsWith(href);
   const contextLabel = isParticipant
     ? 'Espace participant'
@@ -24,7 +25,6 @@ export default function AppNav({ userLabel, onLogout, role }) {
         ? 'Session live'
         : 'Espace manager';
   const resolvedUserLabel = userLabel || (isParticipant ? 'Participant' : 'Manager');
-  const userInitial = String(resolvedUserLabel).trim().charAt(0).toUpperCase() || 'T';
 
   useEffect(() => {
     if (!isManagerHome) {
@@ -111,22 +111,11 @@ export default function AppNav({ userLabel, onLogout, role }) {
             </div>
           )}
 
-          {!isParticipant && !isCompact && (
+          {!isParticipant && !isCompact && !isAdmin && (
             <div className="nav-main-block">
               <nav className="nav-links" aria-label="Navigation manager">
-                {isAdmin ? (
+                {isManagerHome ? (
                   <>
-                    <Link href="/admin" className={`nav-link ${isActive('/admin') ? 'is-active' : ''}`} aria-current={isActive('/admin') ? 'page' : undefined}>Console admin</Link>
-                  </>
-                ) : isManagerHome ? (
-                  <>
-                    <Link
-                      href="/home"
-                      className={`nav-link ${activeHomeBlock ? '' : 'is-active'}`}
-                      aria-current={!activeHomeBlock ? 'page' : undefined}
-                    >
-                      Tableau de bord
-                    </Link>
                     <Link
                       href="/home#sessions"
                       className={`nav-link nav-link--section ${activeHomeBlock === 'sessions' ? 'is-active' : ''}`}
@@ -168,9 +157,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
           )}
 
           <div className="app-user-box">
-            <span className="app-user-avatar" aria-hidden="true">{userInitial}</span>
             <div className="app-user-meta">
-              <span className="app-user-caption">Compte actif</span>
               <span className="app-user-name">{resolvedUserLabel}</span>
             </div>
             <button type="button" className="btn-secondary" onClick={onLogout}>Se deconnecter</button>

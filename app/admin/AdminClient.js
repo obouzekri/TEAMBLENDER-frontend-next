@@ -240,6 +240,12 @@ export default function AdminClient() {
   const [landingQuery, setLandingQuery] = useState('');
 
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showNewUserForm, setShowNewUserForm] = useState(false);
+  const [showNewParticipantForm, setShowNewParticipantForm] = useState(false);
+  const [showNewSessionForm, setShowNewSessionForm] = useState(false);
+  const [showNewChallengeForm, setShowNewChallengeForm] = useState(false);
+  const [showNewPricingPlanForm, setShowNewPricingPlanForm] = useState(false);
+  const [showNewLandingBlockForm, setShowNewLandingBlockForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [editingParticipant, setEditingParticipant] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
@@ -424,6 +430,7 @@ export default function AdminClient() {
 
       setNewUser({ first_name: '', last_name: '', email: '', password: '', role: 'user' });
       setNewUserMessage('Utilisateur cree avec succes.');
+      setShowNewUserForm(false);
       await loadAll();
       showNotice('Utilisateur cree avec succes.');
     } catch {
@@ -548,6 +555,7 @@ export default function AdminClient() {
   }
 
   function beginEditUser(targetUser) {
+    setShowNewUserForm(false);
     setEditingUser({
       id: targetUser.id,
       first_name: targetUser.first_name || '',
@@ -660,6 +668,7 @@ export default function AdminClient() {
         job_title: '',
         department: '',
       });
+      setShowNewParticipantForm(false);
       const tempPassword = payload?.tempPassword ? ` Mot de passe: ${payload.tempPassword}` : '';
       setNewParticipantMessage(`Participant cree avec succes.${tempPassword}`);
       await loadAll();
@@ -672,6 +681,7 @@ export default function AdminClient() {
   }
 
   function beginEditParticipant(participant) {
+    setShowNewParticipantForm(false);
     setEditingParticipant({
       id: participant.id,
       email: participant.email || '',
@@ -876,6 +886,7 @@ export default function AdminClient() {
   }
 
   function beginEditSession(sessionItem) {
+    setShowNewSessionForm(false);
     setEditingSession({
       id: sessionItem.id,
       name: sessionItem.name || '',
@@ -1003,6 +1014,7 @@ export default function AdminClient() {
       setNewSessionMemberIds([]);
       setNewSessionMemberQuery('');
       setNewSessionMessage('Session creee avec succes.');
+      setShowNewSessionForm(false);
       await loadAll();
       setActiveTab('sessions');
       setSessionQuery('');
@@ -1113,6 +1125,7 @@ export default function AdminClient() {
 
       setNewChallenge(DEFAULT_NEW_CHALLENGE);
       setNewChallengeMessage('Challenge cree avec succes.');
+      setShowNewChallengeForm(false);
       await loadAll();
       showNotice('Challenge cree avec succes.');
     } catch (err) {
@@ -1124,6 +1137,7 @@ export default function AdminClient() {
 
   function beginEditChallenge(challengeItem) {
     setChallengeImageUploadError('');
+    setShowNewChallengeForm(false);
     setEditingChallenge({
       id: challengeItem.id,
       name: challengeItem.name || '',
@@ -1316,6 +1330,7 @@ export default function AdminClient() {
 
       setNewPricingPlan(DEFAULT_NEW_PRICING_PLAN);
       setNewPricingMessage('Formule creee avec succes.');
+      setShowNewPricingPlanForm(false);
       await loadAll();
       showNotice('Formule tarifaire creee.');
     } catch (err) {
@@ -1326,6 +1341,7 @@ export default function AdminClient() {
   }
 
   function beginEditPricingPlan(plan) {
+    setShowNewPricingPlanForm(false);
     setEditingPricingPlan(planToDraft(plan));
   }
 
@@ -1459,6 +1475,7 @@ export default function AdminClient() {
 
       setNewLandingBlock(DEFAULT_NEW_LANDING_BLOCK);
       setNewLandingMessage('Bloc landing enregistre.');
+      setShowNewLandingBlockForm(false);
       await loadAll();
       showNotice('Bloc landing cree/mis a jour.');
     } catch (err) {
@@ -1469,6 +1486,7 @@ export default function AdminClient() {
   }
 
   function beginEditLandingBlock(block) {
+    setShowNewLandingBlockForm(false);
     setEditingLandingBlock(landingBlockToDraft(block));
   }
 
@@ -1922,34 +1940,125 @@ export default function AdminClient() {
           {/* ── UTILISATEURS ── */}
           {activeTab === 'users' ? (
             <div>
-              <div style={{ marginBottom: '28px' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Utilisateurs</h1>
-                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion des comptes utilisateurs et demandes d'acces.</p>
+              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Utilisateurs</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion des comptes utilisateurs et demandes d'acces.</p>
+                </div>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => {
+                    setEditingUser(null);
+                    setNewUserMessage('');
+                    setShowNewUserForm((current) => !current);
+                  }}
+                >
+                  {showNewUserForm ? 'Fermer le formulaire' : 'Creer un utilisateur'}
+                </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-                {/* User list */}
+              <div style={{ display: 'grid', gap: '20px' }}>
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
-                    Liste {users.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredUsers.length}/{users.length})</span> : null}
-                  </h2>
-                  <input
-                    type="search"
-                    className="inline-input"
-                    placeholder="Rechercher..."
-                    value={userQuery}
-                    onChange={(e) => setUserQuery(e.target.value)}
-                    style={{ marginBottom: '12px', width: '100%' }}
-                  />
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Demandes en attente {pendingUsers.length > 0 ? `(${pendingUsers.length})` : ''}</h2>
+                  {pendingUsers.length === 0 ? <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>Aucune demande.</p> : null}
+                  {pendingUsers.length > 0 ? (
+                    <ul className="session-list" style={{ margin: 0 }}>
+                      {pendingUsers.map((u) => (
+                        <li key={String(u.id)} className="session-item" style={{ alignItems: 'center' }}>
+                          <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+                            <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
+                            <p className="session-meta">{u.email}</p>
+                          </div>
+                          <div className="session-item-actions" style={{ flexShrink: 0 }}>
+                            <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '12px', padding: '5px 10px' }}>Valider</button>
+                            <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '12px', padding: '5px 10px' }}>Refuser</button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+
+                {showNewUserForm ? (
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un compte</h2>
+                    <form className="auth-form" onSubmit={submitNewUser}>
+                      <label>Prenom<input value={newUser.first_name} onChange={(e) => setNewUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
+                      <label>Nom<input value={newUser.last_name} onChange={(e) => setNewUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
+                      <label>Email<input type="email" value={newUser.email} onChange={(e) => setNewUser((p) => ({ ...p, email: e.target.value }))} required /></label>
+                      <label>Mot de passe<input type="password" minLength={8} value={newUser.password} onChange={(e) => setNewUser((p) => ({ ...p, password: e.target.value }))} required /></label>
+                      <label>Role
+                        <select value={newUser.role} onChange={(e) => setNewUser((p) => ({ ...p, role: e.target.value }))}>
+                          <option value="user">Utilisateur</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </label>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        <button type="submit" className="btn-primary">Creer le compte</button>
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => {
+                            setShowNewUserForm(false);
+                            setNewUserMessage('');
+                          }}
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </form>
+                    {newUserMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newUserMessage}</p> : null}
+                  </div>
+                ) : null}
+
+                {editingUser ? (
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier utilisateur</h2>
+                    <form className="auth-form" onSubmit={submitEditUser}>
+                      <label>Prenom<input value={editingUser.first_name} onChange={(e) => setEditingUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
+                      <label>Nom<input value={editingUser.last_name} onChange={(e) => setEditingUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
+                      <label>Email<input type="email" value={editingUser.email} onChange={(e) => setEditingUser((p) => ({ ...p, email: e.target.value }))} required /></label>
+                      <label>Role
+                        <select value={editingUser.role} onChange={(e) => setEditingUser((p) => ({ ...p, role: e.target.value }))}>
+                          <option value="user">Utilisateur</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </label>
+                      <label>Fonction<input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} /></label>
+                      <label>Departement<input value={editingUser.department} onChange={(e) => setEditingUser((p) => ({ ...p, department: e.target.value }))} /></label>
+                      <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingUser.password} onChange={(e) => setEditingUser((p) => ({ ...p, password: e.target.value }))} /></label>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        <button type="submit" className="btn-primary" disabled={busySaveKey === `save:user:${editingUser.id}`}>{busySaveKey === `save:user:${editingUser.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
+                        <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>Annuler</button>
+                      </div>
+                    </form>
+                  </div>
+                ) : null}
+
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
+                      Liste {users.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredUsers.length}/{users.length})</span> : null}
+                    </h2>
+                    <input
+                      type="search"
+                      className="inline-input"
+                      placeholder="Rechercher..."
+                      value={userQuery}
+                      onChange={(e) => setUserQuery(e.target.value)}
+                      style={{ width: 'min(360px, 100%)' }}
+                    />
+                  </div>
                   <ul className="session-list" style={{ margin: 0 }}>
                     {filteredUsers.length === 0 ? <li className="list-empty">Aucun utilisateur ne correspond.</li> : null}
-                    {filteredUsers.slice(0, 15).map((u) => (
-                      <li key={String(u.id)} className="session-item">
-                        <div>
+                    {filteredUsers.map((u) => (
+                      <li key={String(u.id)} className="session-item" style={{ alignItems: 'center' }}>
+                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
                           <p className="session-meta">{u.email} · {u.role || 'user'} · {u.disabled ? 'Inactif' : 'Actif'}</p>
                         </div>
-                        <div className="session-item-actions icon-only-actions">
+                        <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
                           <button
                             type="button"
                             className="icon-action-btn"
@@ -1984,70 +2093,6 @@ export default function AdminClient() {
                     ))}
                   </ul>
                 </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {/* Pending approvals */}
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Demandes en attente</h2>
-                    {pendingUsers.length === 0 ? <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>Aucune demande.</p> : null}
-                    {pendingUsers.map((u) => (
-                      <div key={String(u.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '10px' }}>
-                        <div>
-                          <p style={{ fontWeight: 600, margin: '0 0 2px', fontSize: '14px' }}>{u.first_name || ''} {u.last_name || ''}</p>
-                          <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '12px' }}>{u.email}</p>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                          <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '12px', padding: '5px 10px' }}>Valider</button>
-                          <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '12px', padding: '5px 10px' }}>Refuser</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Create user */}
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un compte</h2>
-                    <form className="auth-form" onSubmit={submitNewUser}>
-                      <label>Prenom<input value={newUser.first_name} onChange={(e) => setNewUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
-                      <label>Nom<input value={newUser.last_name} onChange={(e) => setNewUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
-                      <label>Email<input type="email" value={newUser.email} onChange={(e) => setNewUser((p) => ({ ...p, email: e.target.value }))} required /></label>
-                      <label>Mot de passe<input type="password" minLength={8} value={newUser.password} onChange={(e) => setNewUser((p) => ({ ...p, password: e.target.value }))} required /></label>
-                      <label>Role
-                        <select value={newUser.role} onChange={(e) => setNewUser((p) => ({ ...p, role: e.target.value }))}>
-                          <option value="user">Utilisateur</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      </label>
-                      <button type="submit" className="btn-primary">Creer le compte</button>
-                    </form>
-                    {newUserMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newUserMessage}</p> : null}
-                  </div>
-
-                  {/* Edit user */}
-                  {editingUser ? (
-                    <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
-                      <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier utilisateur</h2>
-                      <form className="auth-form" onSubmit={submitEditUser}>
-                        <label>Prenom<input value={editingUser.first_name} onChange={(e) => setEditingUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
-                        <label>Nom<input value={editingUser.last_name} onChange={(e) => setEditingUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
-                        <label>Email<input type="email" value={editingUser.email} onChange={(e) => setEditingUser((p) => ({ ...p, email: e.target.value }))} required /></label>
-                        <label>Role
-                          <select value={editingUser.role} onChange={(e) => setEditingUser((p) => ({ ...p, role: e.target.value }))}>
-                            <option value="user">Utilisateur</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        </label>
-                        <label>Fonction<input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} /></label>
-                        <label>Departement<input value={editingUser.department} onChange={(e) => setEditingUser((p) => ({ ...p, department: e.target.value }))} /></label>
-                        <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingUser.password} onChange={(e) => setEditingUser((p) => ({ ...p, password: e.target.value }))} /></label>
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:user:${editingUser.id}`}>{busySaveKey === `save:user:${editingUser.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
-                          <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>Annuler</button>
-                        </div>
-                      </form>
-                    </div>
-                  ) : null}
-                </div>
               </div>
             </div>
           ) : null}
@@ -2055,34 +2100,108 @@ export default function AdminClient() {
           {/* ── PARTICIPANTS ── */}
           {activeTab === 'participants' ? (
             <div>
-              <div style={{ marginBottom: '28px' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Participants</h1>
-                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion des participants rattaches aux utilisateurs.</p>
+              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Participants</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion des participants rattaches aux utilisateurs.</p>
+                </div>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => {
+                    setEditingParticipant(null);
+                    setNewParticipantMessage('');
+                    setShowNewParticipantForm((current) => !current);
+                  }}
+                >
+                  {showNewParticipantForm ? 'Fermer le formulaire' : 'Creer un participant'}
+                </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-                {/* Participant list */}
+              <div style={{ display: 'grid', gap: '20px' }}>
+                {showNewParticipantForm ? (
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un participant</h2>
+                    <form className="auth-form" onSubmit={submitNewParticipant}>
+                      <label>Createur
+                        <select value={newParticipant.owner_id} onChange={(e) => setNewParticipant((prev) => ({ ...prev, owner_id: e.target.value }))} required>
+                          <option value="">Selectionner un utilisateur</option>
+                          {users.filter((u) => String(u.role || '') === 'user').map((u) => (
+                            <option key={String(u.id)} value={String(u.id)}>{u.first_name || ''} {u.last_name || ''} ({u.email})</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>Prenom<input value={newParticipant.first_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
+                      <label>Nom<input value={newParticipant.last_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
+                      <label>Email<input type="email" value={newParticipant.email} onChange={(e) => setNewParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
+                      <label>Mot de passe<input type="password" minLength={8} value={newParticipant.password} onChange={(e) => setNewParticipant((prev) => ({ ...prev, password: e.target.value }))} required /></label>
+                      <label>Fonction<input value={newParticipant.job_title} onChange={(e) => setNewParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
+                      <label>Departement<input value={newParticipant.department} onChange={(e) => setNewParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>{busySaveKey === 'create:participant' ? 'Creation...' : 'Creer participant'}</button>
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => {
+                            setShowNewParticipantForm(false);
+                            setNewParticipantMessage('');
+                          }}
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </form>
+                    {newParticipantMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newParticipantMessage}</p> : null}
+                  </div>
+                ) : null}
+
+                {editingParticipant ? (
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier participant</h2>
+                    <form className="auth-form" onSubmit={submitEditParticipant}>
+                      <label>Prenom<input value={editingParticipant.first_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
+                      <label>Nom<input value={editingParticipant.last_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
+                      <label>Email<input type="email" value={editingParticipant.email} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
+                      <label>Statut
+                        <select value={editingParticipant.disabled ? 'disabled' : 'active'} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, disabled: e.target.value === 'disabled' }))}>
+                          <option value="active">Actif</option>
+                          <option value="disabled">Inactif</option>
+                        </select>
+                      </label>
+                      <label>Fonction<input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
+                      <label>Departement<input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
+                      <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} /></label>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>{busySaveKey === `save:participant:${editingParticipant.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
+                        <button type="button" className="btn-secondary" onClick={() => setEditingParticipant(null)}>Annuler</button>
+                      </div>
+                    </form>
+                  </div>
+                ) : null}
+
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
-                    Liste {participants.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredParticipants.length}/{participants.length})</span> : null}
-                  </h2>
-                  <input
-                    type="search"
-                    className="inline-input"
-                    placeholder="Rechercher..."
-                    value={participantQuery}
-                    onChange={(e) => setParticipantQuery(e.target.value)}
-                    style={{ marginBottom: '12px', width: '100%' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
+                      Liste {participants.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredParticipants.length}/{participants.length})</span> : null}
+                    </h2>
+                    <input
+                      type="search"
+                      className="inline-input"
+                      placeholder="Rechercher..."
+                      value={participantQuery}
+                      onChange={(e) => setParticipantQuery(e.target.value)}
+                      style={{ width: 'min(360px, 100%)' }}
+                    />
+                  </div>
                   <ul className="session-list" style={{ margin: 0 }}>
                     {filteredParticipants.length === 0 ? <li className="list-empty">Aucun participant ne correspond.</li> : null}
-                    {filteredParticipants.slice(0, 15).map((p) => (
-                      <li key={String(p.id)} className="session-item">
-                        <div>
+                    {filteredParticipants.map((p) => (
+                      <li key={String(p.id)} className="session-item" style={{ alignItems: 'center' }}>
+                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{getParticipantDisplayName(p)}</p>
                           <p className="session-meta">{p.email} · {p.disabled ? 'Inactif' : 'Actif'} · {p.creator?.email || `Createur #${p.created_by || '?'}`}</p>
                         </div>
-                        <div className="session-item-actions icon-only-actions">
+                        <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
                           <button
                             type="button"
                             className="icon-action-btn"
@@ -2117,56 +2236,6 @@ export default function AdminClient() {
                     ))}
                   </ul>
                 </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {/* Create participant */}
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un participant</h2>
-                    <form className="auth-form" onSubmit={submitNewParticipant}>
-                      <label>Createur
-                        <select value={newParticipant.owner_id} onChange={(e) => setNewParticipant((prev) => ({ ...prev, owner_id: e.target.value }))} required>
-                          <option value="">Selectionner un utilisateur</option>
-                          {users.filter((u) => String(u.role || '') === 'user').map((u) => (
-                            <option key={String(u.id)} value={String(u.id)}>{u.first_name || ''} {u.last_name || ''} ({u.email})</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>Prenom<input value={newParticipant.first_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
-                      <label>Nom<input value={newParticipant.last_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
-                      <label>Email<input type="email" value={newParticipant.email} onChange={(e) => setNewParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
-                      <label>Mot de passe<input type="password" minLength={8} value={newParticipant.password} onChange={(e) => setNewParticipant((prev) => ({ ...prev, password: e.target.value }))} required /></label>
-                      <label>Fonction<input value={newParticipant.job_title} onChange={(e) => setNewParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
-                      <label>Departement<input value={newParticipant.department} onChange={(e) => setNewParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
-                      <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>{busySaveKey === 'create:participant' ? 'Creation...' : 'Creer participant'}</button>
-                    </form>
-                    {newParticipantMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newParticipantMessage}</p> : null}
-                  </div>
-
-                  {/* Edit participant */}
-                  {editingParticipant ? (
-                    <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
-                      <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier participant</h2>
-                      <form className="auth-form" onSubmit={submitEditParticipant}>
-                        <label>Prenom<input value={editingParticipant.first_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
-                        <label>Nom<input value={editingParticipant.last_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
-                        <label>Email<input type="email" value={editingParticipant.email} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
-                        <label>Statut
-                          <select value={editingParticipant.disabled ? 'disabled' : 'active'} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, disabled: e.target.value === 'disabled' }))}>
-                            <option value="active">Actif</option>
-                            <option value="disabled">Inactif</option>
-                          </select>
-                        </label>
-                        <label>Fonction<input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
-                        <label>Departement<input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
-                        <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} /></label>
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>{busySaveKey === `save:participant:${editingParticipant.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
-                          <button type="button" className="btn-secondary" onClick={() => setEditingParticipant(null)}>Annuler</button>
-                        </div>
-                      </form>
-                    </div>
-                  ) : null}
-                </div>
               </div>
             </div>
           ) : null}
@@ -2174,51 +2243,26 @@ export default function AdminClient() {
           {/* ── SESSIONS ── */}
           {activeTab === 'sessions' ? (
             <div>
-              <div style={{ marginBottom: '28px' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Sessions</h1>
-                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Creation, supervision et modification des sessions depuis la console admin.</p>
+              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Sessions</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Creation, supervision et modification des sessions depuis la console admin.</p>
+                </div>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => {
+                    setEditingSession(null);
+                    setNewSessionMessage('');
+                    setShowNewSessionForm((current) => !current);
+                  }}
+                >
+                  {showNewSessionForm ? 'Fermer le formulaire' : 'Creer une session'}
+                </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-                {/* Session list */}
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
-                    Liste {sessions.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredSessions.length}/{sessions.length})</span> : null}
-                  </h2>
-                  <input
-                    type="search"
-                    className="inline-input"
-                    placeholder="Rechercher..."
-                    value={sessionQuery}
-                    onChange={(e) => setSessionQuery(e.target.value)}
-                    style={{ marginBottom: '12px', width: '100%' }}
-                  />
-                  <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredSessions.length === 0 ? <li className="list-empty">Aucune session ne correspond.</li> : null}
-                    {filteredSessions.slice(0, 12).map((s) => (
-                      <li key={String(s.id)} className="session-item">
-                        <div>
-                          <p className="session-title">{s.name || `Session #${s.id}`}</p>
-                          <p className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <span className={`status-pill status-${s.status || 'preparee'}`}>
-                              {SESSION_STATUS_LABELS[s.status] || SESSION_STATUS_LABELS.preparee}
-                            </span>
-                            {s.modality ? <span>Modalite: {s.modality}</span> : null}
-                          </p>
-                        </div>
-                        <div className="session-item-actions">
-                          <button type="button" className="btn-secondary" onClick={() => beginEditSession(s)}>Modifier</button>
-                          <button type="button" className="btn-secondary" onClick={() => handleDeleteSession(s)} disabled={busyDeleteKey === `session:${s.id}`}>
-                            {busyDeleteKey === `session:${s.id}` ? '...' : 'Supprimer'}
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {/* Create session */}
+              <div style={{ display: 'grid', gap: '20px' }}>
+                {showNewSessionForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer une session</h2>
                     <form className="auth-form" onSubmit={submitNewSession}>
@@ -2308,17 +2352,25 @@ export default function AdminClient() {
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:session'}>
                         {busySaveKey === 'create:session' ? 'Creation...' : 'Creer la session'}
                       </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => {
+                          setShowNewSessionForm(false);
+                          setNewSessionMessage('');
+                        }}
+                      >
+                        Annuler
+                      </button>
                     </form>
                     {newSessionMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newSessionMessage}</p> : null}
                   </div>
+                ) : null}
 
-                  {/* Edit session */}
-                  <div style={{ background: 'var(--color-surface, #fff)', border: editingSession ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                {editingSession ? (
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier une session</h2>
-                    {!editingSession ? (
-                      <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>Selectionnez "Modifier" sur une session pour l'editer ici.</p>
-                    ) : (
-                      <form className="auth-form" onSubmit={submitEditSession}>
+                    <form className="auth-form" onSubmit={submitEditSession}>
                         <label>Nom<input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required /></label>
                         <label>Statut
                           <select value={editingSession.status} onChange={(e) => setEditingSession((p) => ({ ...p, status: e.target.value }))}>
@@ -2342,9 +2394,46 @@ export default function AdminClient() {
                           <button type="submit" className="btn-primary" disabled={busySaveKey === `save:session:${editingSession.id}`}>{busySaveKey === `save:session:${editingSession.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
                           <button type="button" className="btn-secondary" onClick={() => setEditingSession(null)}>Annuler</button>
                         </div>
-                      </form>
-                    )}
+                    </form>
                   </div>
+                ) : null}
+
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
+                      Liste {sessions.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredSessions.length}/{sessions.length})</span> : null}
+                    </h2>
+                    <input
+                      type="search"
+                      className="inline-input"
+                      placeholder="Rechercher..."
+                      value={sessionQuery}
+                      onChange={(e) => setSessionQuery(e.target.value)}
+                      style={{ width: 'min(360px, 100%)' }}
+                    />
+                  </div>
+                  <ul className="session-list" style={{ margin: 0 }}>
+                    {filteredSessions.length === 0 ? <li className="list-empty">Aucune session ne correspond.</li> : null}
+                    {filteredSessions.map((s) => (
+                      <li key={String(s.id)} className="session-item" style={{ alignItems: 'center' }}>
+                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+                          <p className="session-title">{s.name || `Session #${s.id}`}</p>
+                          <p className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span className={`status-pill status-${s.status || 'preparee'}`}>
+                              {SESSION_STATUS_LABELS[s.status] || SESSION_STATUS_LABELS.preparee}
+                            </span>
+                            {s.modality ? <span>Modalite: {s.modality}</span> : null}
+                          </p>
+                        </div>
+                        <div className="session-item-actions" style={{ flexShrink: 0 }}>
+                          <button type="button" className="btn-secondary" onClick={() => beginEditSession(s)}>Modifier</button>
+                          <button type="button" className="btn-secondary" onClick={() => handleDeleteSession(s)} disabled={busyDeleteKey === `session:${s.id}`}>
+                            {busyDeleteKey === `session:${s.id}` ? '...' : 'Supprimer'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
@@ -2353,61 +2442,27 @@ export default function AdminClient() {
           {/* ── CHALLENGES ── */}
           {activeTab === 'challenges' ? (
             <div>
-              <div style={{ marginBottom: '28px' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Challenges</h1>
-                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion du catalogue de challenges disponibles.</p>
+              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Challenges</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion du catalogue de challenges disponibles.</p>
+                </div>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => {
+                    setEditingChallenge(null);
+                    setChallengeImageUploadError('');
+                    setNewChallengeMessage('');
+                    setShowNewChallengeForm((current) => !current);
+                  }}
+                >
+                  {showNewChallengeForm ? 'Fermer le formulaire' : 'Ajouter un challenge'}
+                </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-                {/* Challenge list */}
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
-                    Liste {challenges.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredChallenges.length}/{challenges.length})</span> : null}
-                  </h2>
-                  <input
-                    type="search"
-                    className="inline-input"
-                    placeholder="Rechercher..."
-                    value={challengeQuery}
-                    onChange={(e) => setChallengeQuery(e.target.value)}
-                    style={{ marginBottom: '12px', width: '100%' }}
-                  />
-                  <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredChallenges.length === 0 ? <li className="list-empty">Aucun challenge ne correspond.</li> : null}
-                    {filteredChallenges.slice(0, 15).map((c) => (
-                      <li key={String(c.id)} className="session-item">
-                        <div>
-                          <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
-                          <p className="session-meta">{c.type || 'individuel'} · {c.status || 'actif'} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
-                        </div>
-                        <div className="session-item-actions icon-only-actions">
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => beginEditChallenge(c)}
-                            title="Modifier"
-                            aria-label="Modifier challenge"
-                          >
-                            ✎
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn icon-action-danger"
-                            onClick={() => handleDeleteChallenge(c)}
-                            disabled={busyDeleteKey === `challenge:${c.id}`}
-                            title="Supprimer"
-                            aria-label="Supprimer challenge"
-                          >
-                            {busyDeleteKey === `challenge:${c.id}` ? '…' : '🗑'}
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div style={{ display: 'grid', gap: '24px' }}>
-                  {/* Create challenge */}
+              <div style={{ display: 'grid', gap: '20px' }}>
+                {showNewChallengeForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Ajouter un challenge</h2>
                     <form className="auth-form" onSubmit={submitNewChallenge}>
@@ -2437,17 +2492,25 @@ export default function AdminClient() {
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:challenge'}>
                         {busySaveKey === 'create:challenge' ? 'Creation...' : 'Creer le challenge'}
                       </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => {
+                          setShowNewChallengeForm(false);
+                          setNewChallengeMessage('');
+                        }}
+                      >
+                        Annuler
+                      </button>
                     </form>
                     {newChallengeMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newChallengeMessage}</p> : null}
                   </div>
+                ) : null}
 
-                  {/* Edit challenge */}
-                  <div style={{ background: 'var(--color-surface, #fff)', border: editingChallenge ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                {editingChallenge ? (
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier un challenge</h2>
-                    {!editingChallenge ? (
-                      <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>Selectionnez "Modifier" sur un challenge pour l'editer ici.</p>
-                    ) : (
-                      <form className="auth-form" onSubmit={submitEditChallenge}>
+                    <form className="auth-form" onSubmit={submitEditChallenge}>
                         <label>Nom<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
                         <label>Type
                           <select value={editingChallenge.type} onChange={(e) => setEditingChallenge((p) => ({ ...p, type: e.target.value }))}>
@@ -2495,9 +2558,56 @@ export default function AdminClient() {
                           <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>{busySaveKey === `save:challenge:${editingChallenge.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
                           <button type="button" className="btn-secondary" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }}>Annuler</button>
                         </div>
-                      </form>
-                    )}
+                    </form>
                   </div>
+                ) : null}
+
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
+                      Liste {challenges.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredChallenges.length}/{challenges.length})</span> : null}
+                    </h2>
+                    <input
+                      type="search"
+                      className="inline-input"
+                      placeholder="Rechercher..."
+                      value={challengeQuery}
+                      onChange={(e) => setChallengeQuery(e.target.value)}
+                      style={{ width: 'min(360px, 100%)' }}
+                    />
+                  </div>
+                  <ul className="session-list" style={{ margin: 0 }}>
+                    {filteredChallenges.length === 0 ? <li className="list-empty">Aucun challenge ne correspond.</li> : null}
+                    {filteredChallenges.map((c) => (
+                      <li key={String(c.id)} className="session-item" style={{ alignItems: 'center' }}>
+                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+                          <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
+                          <p className="session-meta">{c.type || 'individuel'} · {c.status || 'actif'} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
+                        </div>
+                        <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => beginEditChallenge(c)}
+                            title="Modifier"
+                            aria-label="Modifier challenge"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-action-btn icon-action-danger"
+                            onClick={() => handleDeleteChallenge(c)}
+                            disabled={busyDeleteKey === `challenge:${c.id}`}
+                            title="Supprimer"
+                            aria-label="Supprimer challenge"
+                          >
+                            {busyDeleteKey === `challenge:${c.id}` ? '…' : '🗑'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
@@ -2506,71 +2616,28 @@ export default function AdminClient() {
           {/* ── TARIFICATION ── */}
           {activeTab === 'pricing' ? (
             <div>
-              <div style={{ marginBottom: '28px' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Tarification</h1>
-                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                  Creez et administrez vos offres commerciales (nom, fonctionnalites, prix et options avancees).
-                </p>
+              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Tarification</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
+                    Creez et administrez vos offres commerciales (nom, fonctionnalites, prix et options avancees).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => {
+                    setEditingPricingPlan(null);
+                    setNewPricingMessage('');
+                    setShowNewPricingPlanForm((current) => !current);
+                  }}
+                >
+                  {showNewPricingPlanForm ? 'Fermer le formulaire' : 'Creer une formule'}
+                </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
-                    Liste {pricingPlans.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredPricingPlans.length}/{pricingPlans.length})</span> : null}
-                  </h2>
-                  <input
-                    type="search"
-                    className="inline-input"
-                    placeholder="Rechercher une formule..."
-                    value={pricingQuery}
-                    onChange={(e) => setPricingQuery(e.target.value)}
-                    style={{ marginBottom: '12px', width: '100%' }}
-                  />
-
-                  <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredPricingPlans.length === 0 ? <li className="list-empty">Aucune formule ne correspond.</li> : null}
-                    {filteredPricingPlans.map((plan) => (
-                      <li key={String(plan.id)} className="session-item">
-                        <div>
-                          <p className="session-title">
-                            {plan.name}
-                            {plan.highlighted ? ' · Populaire' : ''}
-                          </p>
-                          <p className="session-meta">
-                            {typeof plan.price === 'number' ? `${plan.price.toFixed(2)} ${plan.currency || 'EUR'}` : 'Prix non defini'}
-                            {' · '}
-                            {plan.billing_cycle || 'monthly'}
-                            {' · '}
-                            {plan.is_active ? 'Active' : 'Inactive'}
-                          </p>
-                        </div>
-                        <div className="session-item-actions icon-only-actions">
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => beginEditPricingPlan(plan)}
-                            title="Modifier"
-                            aria-label="Modifier formule"
-                          >
-                            ✎
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn icon-action-danger"
-                            onClick={() => handleDeletePricingPlan(plan)}
-                            disabled={busyDeleteKey === `pricing-plan:${plan.id}`}
-                            title="Supprimer"
-                            aria-label="Supprimer formule"
-                          >
-                            {busyDeleteKey === `pricing-plan:${plan.id}` ? '…' : '🗑'}
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'grid', gap: '20px' }}>
+                {showNewPricingPlanForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer une formule</h2>
                     <form className="auth-form" onSubmit={submitNewPricingPlan}>
@@ -2614,18 +2681,25 @@ export default function AdminClient() {
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:pricing-plan'}>
                         {busySaveKey === 'create:pricing-plan' ? 'Creation...' : 'Creer la formule'}
                       </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => {
+                          setShowNewPricingPlanForm(false);
+                          setNewPricingMessage('');
+                        }}
+                      >
+                        Annuler
+                      </button>
                     </form>
                     {newPricingMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newPricingMessage}</p> : null}
                   </div>
+                ) : null}
 
-                  <div style={{ background: 'var(--color-surface, #fff)', border: editingPricingPlan ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                {editingPricingPlan ? (
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier une formule</h2>
-                    {!editingPricingPlan ? (
-                      <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>
-                        Selectionnez "Modifier" sur une formule pour l editer ici.
-                      </p>
-                    ) : (
-                      <form className="auth-form" onSubmit={submitEditPricingPlan}>
+                    <form className="auth-form" onSubmit={submitEditPricingPlan}>
                         <label>Nom de l offre<input value={editingPricingPlan.name} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
                         <label>Description courte<textarea rows={3} value={editingPricingPlan.description} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
                         <label>Fonctionnalites incluses (une ligne = un point)
@@ -2669,9 +2743,66 @@ export default function AdminClient() {
                           </button>
                           <button type="button" className="btn-secondary" onClick={() => setEditingPricingPlan(null)}>Annuler</button>
                         </div>
-                      </form>
-                    )}
+                    </form>
                   </div>
+                ) : null}
+
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
+                      Liste {pricingPlans.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredPricingPlans.length}/{pricingPlans.length})</span> : null}
+                    </h2>
+                    <input
+                      type="search"
+                      className="inline-input"
+                      placeholder="Rechercher une formule..."
+                      value={pricingQuery}
+                      onChange={(e) => setPricingQuery(e.target.value)}
+                      style={{ width: 'min(360px, 100%)' }}
+                    />
+                  </div>
+
+                  <ul className="session-list" style={{ margin: 0 }}>
+                    {filteredPricingPlans.length === 0 ? <li className="list-empty">Aucune formule ne correspond.</li> : null}
+                    {filteredPricingPlans.map((plan) => (
+                      <li key={String(plan.id)} className="session-item" style={{ alignItems: 'center' }}>
+                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+                          <p className="session-title">
+                            {plan.name}
+                            {plan.highlighted ? ' · Populaire' : ''}
+                          </p>
+                          <p className="session-meta">
+                            {typeof plan.price === 'number' ? `${plan.price.toFixed(2)} ${plan.currency || 'EUR'}` : 'Prix non defini'}
+                            {' · '}
+                            {plan.billing_cycle || 'monthly'}
+                            {' · '}
+                            {plan.is_active ? 'Active' : 'Inactive'}
+                          </p>
+                        </div>
+                        <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => beginEditPricingPlan(plan)}
+                            title="Modifier"
+                            aria-label="Modifier formule"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-action-btn icon-action-danger"
+                            onClick={() => handleDeletePricingPlan(plan)}
+                            disabled={busyDeleteKey === `pricing-plan:${plan.id}`}
+                            title="Supprimer"
+                            aria-label="Supprimer formule"
+                          >
+                            {busyDeleteKey === `pricing-plan:${plan.id}` ? '…' : '🗑'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
@@ -2680,62 +2811,28 @@ export default function AdminClient() {
           {/* ── LANDING CMS ── */}
           {activeTab === 'landing' ? (
             <div>
-              <div style={{ marginBottom: '28px' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Landing CMS</h1>
-                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                  Modifiez le contenu texte et les images de chaque bloc de la page d accueil.
-                </p>
+              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Landing CMS</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
+                    Modifiez le contenu texte et les images de chaque bloc de la page d accueil.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => {
+                    setEditingLandingBlock(null);
+                    setNewLandingMessage('');
+                    setShowNewLandingBlockForm((current) => !current);
+                  }}
+                >
+                  {showNewLandingBlockForm ? 'Fermer le formulaire' : 'Creer un bloc'}
+                </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>
-                    Blocs {landingBlocks.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredLandingBlocks.length}/{landingBlocks.length})</span> : null}
-                  </h2>
-                  <input
-                    type="search"
-                    className="inline-input"
-                    placeholder="Rechercher un bloc..."
-                    value={landingQuery}
-                    onChange={(e) => setLandingQuery(e.target.value)}
-                    style={{ marginBottom: '12px', width: '100%' }}
-                  />
-
-                  <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredLandingBlocks.length === 0 ? <li className="list-empty">Aucun bloc ne correspond.</li> : null}
-                    {filteredLandingBlocks.map((block) => (
-                      <li key={String(block.id)} className="session-item">
-                        <div>
-                          <p className="session-title">{block.label || block.block_key}</p>
-                          <p className="session-meta">{block.block_key} · {block.is_active ? 'Actif' : 'Inactif'}</p>
-                        </div>
-                        <div className="session-item-actions icon-only-actions">
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => beginEditLandingBlock(block)}
-                            title="Modifier"
-                            aria-label="Modifier bloc landing"
-                          >
-                            ✎
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn icon-action-danger"
-                            onClick={() => handleDeleteLandingBlock(block)}
-                            disabled={busyDeleteKey === `landing:${block.block_key}`}
-                            title="Supprimer"
-                            aria-label="Supprimer bloc landing"
-                          >
-                            {busyDeleteKey === `landing:${block.block_key}` ? '…' : '🗑'}
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'grid', gap: '20px' }}>
+                {showNewLandingBlockForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un bloc</h2>
                     <form className="auth-form" onSubmit={submitNewLandingBlock}>
@@ -2760,18 +2857,25 @@ export default function AdminClient() {
                       <button type="submit" className="btn-primary" disabled={busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}`}>
                         {busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}` ? 'Enregistrement...' : 'Creer le bloc'}
                       </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => {
+                          setShowNewLandingBlockForm(false);
+                          setNewLandingMessage('');
+                        }}
+                      >
+                        Annuler
+                      </button>
                     </form>
                     {newLandingMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newLandingMessage}</p> : null}
                   </div>
+                ) : null}
 
-                  <div style={{ background: 'var(--color-surface, #fff)', border: editingLandingBlock ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                {editingLandingBlock ? (
+                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier un bloc</h2>
-                    {!editingLandingBlock ? (
-                      <p style={{ color: 'var(--color-muted, #6b7280)', fontSize: '13px', margin: 0 }}>
-                        Selectionnez "Modifier" sur un bloc pour l editer ici.
-                      </p>
-                    ) : (
-                      <form className="auth-form" onSubmit={submitEditLandingBlock}>
+                    <form className="auth-form" onSubmit={submitEditLandingBlock}>
                         <label>Cle bloc<input value={editingLandingBlock.block_key} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} required /></label>
                         <label>Label admin<input value={editingLandingBlock.label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
                         <label>Titre<input value={editingLandingBlock.title} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
@@ -2796,9 +2900,57 @@ export default function AdminClient() {
                           </button>
                           <button type="button" className="btn-secondary" onClick={() => setEditingLandingBlock(null)}>Annuler</button>
                         </div>
-                      </form>
-                    )}
+                    </form>
                   </div>
+                ) : null}
+
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
+                      Blocs {landingBlocks.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredLandingBlocks.length}/{landingBlocks.length})</span> : null}
+                    </h2>
+                    <input
+                      type="search"
+                      className="inline-input"
+                      placeholder="Rechercher un bloc..."
+                      value={landingQuery}
+                      onChange={(e) => setLandingQuery(e.target.value)}
+                      style={{ width: 'min(360px, 100%)' }}
+                    />
+                  </div>
+
+                  <ul className="session-list" style={{ margin: 0 }}>
+                    {filteredLandingBlocks.length === 0 ? <li className="list-empty">Aucun bloc ne correspond.</li> : null}
+                    {filteredLandingBlocks.map((block) => (
+                      <li key={String(block.id)} className="session-item" style={{ alignItems: 'center' }}>
+                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+                          <p className="session-title">{block.label || block.block_key}</p>
+                          <p className="session-meta">{block.block_key} · {block.is_active ? 'Actif' : 'Inactif'}</p>
+                        </div>
+                        <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => beginEditLandingBlock(block)}
+                            title="Modifier"
+                            aria-label="Modifier bloc landing"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-action-btn icon-action-danger"
+                            onClick={() => handleDeleteLandingBlock(block)}
+                            disabled={busyDeleteKey === `landing:${block.block_key}`}
+                            title="Supprimer"
+                            aria-label="Supprimer bloc landing"
+                          >
+                            {busyDeleteKey === `landing:${block.block_key}` ? '…' : '🗑'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
