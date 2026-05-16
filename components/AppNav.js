@@ -132,10 +132,12 @@ export default function AppNav({ userLabel, onLogout, role }) {
                     >
                       Participants
                     </Link>
+                    <Link href="/account" className={`nav-link ${isActive('/account') ? 'is-active' : ''}`} aria-current={isActive('/account') ? 'page' : undefined}>Compte</Link>
                   </>
                 ) : (
                   <>
                     <Link href="/home" className={`nav-link ${isActive('/home') ? 'is-active' : ''}`} aria-current={isActive('/home') ? 'page' : undefined}>Tableau de bord</Link>
+                    <Link href="/account" className={`nav-link ${isActive('/account') ? 'is-active' : ''}`} aria-current={isActive('/account') ? 'page' : undefined}>Compte</Link>
                   </>
                 )}
               </nav>

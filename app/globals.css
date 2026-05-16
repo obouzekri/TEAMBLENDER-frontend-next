@@ -3974,3 +3974,56 @@ a {
   transform: translateY(-1px);
   box-shadow: 0 12px 24px rgba(124, 58, 237, 0.28);
 }
+
+.account-page {
+  gap: clamp(1.2rem, 2.2vw, 1.8rem);
+}
+
+.account-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.account-card {
+  min-height: 100%;
+}
+
+.account-actions-stack {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.account-select {
+  width: 100%;
+  min-height: 2.8rem;
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--ink-strong) 12%, transparent);
+  background: #fff;
+  padding: 0.55rem 0.8rem;
+  font: inherit;
+  color: var(--ink-strong);
+}
+
+.account-plan-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.account-plan-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.account-plan-history {
+  display: grid;
+  gap: 0.7rem;
+  border-top: 1px solid color-mix(in srgb, var(--ink-strong) 10%, transparent);
+  padding-top: 1rem;
+}
+
+@media (max-width: 720px) {
+  .account-actions-stack {
+    display: grid;
+  }
+}
