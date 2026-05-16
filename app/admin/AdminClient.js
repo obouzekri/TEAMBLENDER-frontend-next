@@ -385,7 +385,6 @@ export default function AdminClient() {
 
       if (shouldForceReauth) {
         setError('Session expirée. Veuillez vous reconnecter.');
-        forceReauth();
         return;
       }
 
@@ -423,7 +422,6 @@ export default function AdminClient() {
     } catch (err) {
       if (err?.status === 401 || String(err?.message || '').toLowerCase().includes('token invalide')) {
         setError('Session expirée. Veuillez vous reconnecter.');
-        forceReauth();
         return;
       }
       setError(err.message || 'Erreur de chargement admin.');
