@@ -41,6 +41,7 @@ Variables importantes:
 - `NEXT_PUBLIC_API_BASE`
 - `NEXT_PUBLIC_LEGACY_BASE`
 - `LEGACY_BASE_CANDIDATES` (optionnel)
+- `NEXT_PUBLIC_LANDING_CMS_STRICT` (optionnel, `true` pour activer l'audit runtime de couverture CMS sur la home)
 - `NEXT_PUBLIC_ENABLE_LEGACY_LINKS` (par defaut desactive, activer explicitement a `true` uniquement si acces archive requis)
 - `SMOKE_FRONTEND_URL`
 - `SMOKE_BACKEND_URL`

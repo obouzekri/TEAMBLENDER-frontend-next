@@ -7,38 +7,120 @@ import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 
 const DEFAULT_BLOCKS = {
-  hero_main: {
-    title: 'Créez de la cohésion au sein de vos équipes,',
-    description:
-      'avec des résultats concrets et mesurables.',
+  impact_1: {
+    title: '-65%',
+    description: 'de preparation manager percue',
   },
-  hero_image_a: {
-    image_url: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1200&q=80',
-    description: 'Workshop cadence pour equipes hybrides',
+  impact_2: {
+    title: '3 etapes',
+    description: 'de l objectif au debrief concret',
   },
-  hero_image_b: {
-    image_url: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80',
-    description: 'Pilotage manager en temps reel',
+  impact_3: {
+    title: '100%',
+    description: 'navigable mobile et desktop sans installation',
   },
-  challenge_1: {
-    subtitle: 'Communication',
-    title: 'Phrase Collaborative',
-    description: 'Active la co-construction avec un cadre clair et engageant.',
-    image_url: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80',
+  flow_header: {
+    label: 'Processus',
+    title: 'Trois etapes. Un cadre clair.',
+    cta_label: 'Lancer une session',
+    cta_href: '/signup',
   },
-  challenge_2: {
-    subtitle: 'Coordination',
-    title: 'Escape Room Live',
-    description: 'Developpe les reflexes collectifs sous contrainte de temps.',
-    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80',
+  flow_step_1: {
+    badge_text: '01',
+    title: 'Cadrer l objectif',
+    description: 'Selectionnez l enjeu prioritaire de l equipe.',
   },
-  challenge_3: {
-    subtitle: 'Decision',
-    title: 'Copuzzle Live',
-    description: 'Favorise la resolution conjointe et des choix argumentes.',
-    image_url: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80',
+  flow_step_2: {
+    badge_text: '02',
+    title: 'Animer en live',
+    description: 'Lancez un challenge et gardez le bon rythme.',
+  },
+  flow_step_3: {
+    badge_text: '03',
+    title: 'Debrief actionnable',
+    description: 'Transformez les signaux en decisions equipe.',
+  },
+  challenge_header: {
+    label: 'Formats',
+    title: 'Bibliotheque de challenges prets a lancer',
+    cta_label: 'Explorer',
+    cta_href: '/signup',
+  },
+  final_cta_secondary: {
+    cta_label: 'Se connecter',
+    cta_href: '/login',
   },
 };
+
+const CMS_BASELINE_COMPLETE_KEYS = new Set([
+  'hero_main',
+  'hero_kicker',
+  'hero_cta_primary',
+  'hero_cta_secondary',
+  'hero_trust_1',
+  'hero_trust_2',
+  'hero_trust_3',
+  'hero_image_a',
+  'hero_image_b',
+  'challenge_1',
+  'challenge_2',
+  'challenge_3',
+  'final_cta',
+]);
+
+const LANDING_CMS_REQUIRED_SCHEMA = {
+  hero_main: ['title', 'description'],
+  hero_kicker: ['title'],
+  hero_cta_primary: ['cta_label', 'cta_href'],
+  hero_cta_secondary: ['cta_label', 'cta_href'],
+  hero_trust_1: ['title'],
+  hero_trust_2: ['title'],
+  hero_trust_3: ['title'],
+  hero_image_a: ['image_url', 'description'],
+  hero_image_b: ['image_url', 'description'],
+  impact_1: ['title', 'description'],
+  impact_2: ['title', 'description'],
+  impact_3: ['title', 'description'],
+  flow_header: ['label', 'title', 'cta_label', 'cta_href'],
+  flow_step_1: ['badge_text', 'title', 'description'],
+  flow_step_2: ['badge_text', 'title', 'description'],
+  flow_step_3: ['badge_text', 'title', 'description'],
+  challenge_header: ['label', 'title', 'cta_label', 'cta_href'],
+  challenge_1: ['subtitle', 'title', 'description', 'image_url'],
+  challenge_2: ['subtitle', 'title', 'description', 'image_url'],
+  challenge_3: ['subtitle', 'title', 'description', 'image_url'],
+  final_cta: ['subtitle', 'title', 'description', 'cta_label', 'cta_href'],
+  final_cta_secondary: ['cta_label', 'cta_href'],
+};
+
+function hasCmsValue(value) {
+  if (value === undefined || value === null) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  return true;
+}
+
+function buildLandingCmsAudit(blocksByKey) {
+  const missingKeys = [];
+  const missingFields = [];
+
+  Object.entries(LANDING_CMS_REQUIRED_SCHEMA).forEach(([key, requiredFields]) => {
+    const block = blocksByKey[key];
+    if (!block) {
+      missingKeys.push(key);
+      return;
+    }
+
+    const gaps = requiredFields.filter((field) => !hasCmsValue(block[field]));
+    if (gaps.length > 0) {
+      missingFields.push({ key, fields: gaps });
+    }
+  });
+
+  return {
+    missingKeys,
+    missingFields,
+  };
+}
 
 function mapByKey(items) {
   const out = {};
@@ -57,8 +139,38 @@ function mergeBlock(key, dynamicBlocks) {
   };
 }
 
+function isCmsBlockComplete(key, dynamicBlocks) {
+  const requiredFields = LANDING_CMS_REQUIRED_SCHEMA[key] || [];
+  const block = dynamicBlocks[key];
+  if (!block) return false;
+  return requiredFields.every((field) => hasCmsValue(block[field]));
+}
+
+function buildSectionBlocks(sectionKeys, dynamicBlocks) {
+  const sectionFullyCovered = sectionKeys.every((key) => isCmsBlockComplete(key, dynamicBlocks));
+  const blocks = {};
+
+  sectionKeys.forEach((key) => {
+    const keyCoveredInBaseline = CMS_BASELINE_COMPLETE_KEYS.has(key) && isCmsBlockComplete(key, dynamicBlocks);
+    blocks[key] = (sectionFullyCovered || keyCoveredInBaseline)
+      ? (dynamicBlocks[key] || {})
+      : mergeBlock(key, dynamicBlocks);
+  });
+
+  return {
+    sectionFullyCovered,
+    blocks,
+  };
+}
+
+function safeHref(value, fallback = '/') {
+  return hasCmsValue(value) ? value : fallback;
+}
+
 export default function HomePage() {
   const [dynamicBlocks, setDynamicBlocks] = useState({});
+  const [landingLoaded, setLandingLoaded] = useState(false);
+  const isLandingCmsStrict = process.env.NEXT_PUBLIC_LANDING_CMS_STRICT === 'true';
 
   useEffect(() => {
     let cancelled = false;
@@ -72,6 +184,10 @@ export default function HomePage() {
         }
       } catch {
         // Keep defaults when API is unavailable.
+      } finally {
+        if (!cancelled) {
+          setLandingLoaded(true);
+        }
       }
     }
 
@@ -81,112 +197,212 @@ export default function HomePage() {
     };
   }, []);
 
+  const heroSection = useMemo(
+    () => buildSectionBlocks([
+      'hero_main',
+      'hero_kicker',
+      'hero_cta_primary',
+      'hero_cta_secondary',
+      'hero_trust_1',
+      'hero_trust_2',
+      'hero_trust_3',
+      'hero_image_a',
+      'hero_image_b',
+    ], dynamicBlocks),
+    [dynamicBlocks]
+  );
+
+  const impactSection = useMemo(
+    () => buildSectionBlocks(['impact_1', 'impact_2', 'impact_3'], dynamicBlocks),
+    [dynamicBlocks]
+  );
+
+  const flowSection = useMemo(
+    () => buildSectionBlocks(['flow_header', 'flow_step_1', 'flow_step_2', 'flow_step_3'], dynamicBlocks),
+    [dynamicBlocks]
+  );
+
+  const challengesSection = useMemo(
+    () => buildSectionBlocks(['challenge_header', 'challenge_1', 'challenge_2', 'challenge_3'], dynamicBlocks),
+    [dynamicBlocks]
+  );
+
+  const finalCtaSection = useMemo(
+    () => buildSectionBlocks(['final_cta', 'final_cta_secondary'], dynamicBlocks),
+    [dynamicBlocks]
+  );
+
+  const heroMain = heroSection.blocks.hero_main || {};
+  const heroKicker = heroSection.blocks.hero_kicker || {};
+  const heroCtaPrimary = heroSection.blocks.hero_cta_primary || {};
+  const heroCtaSecondary = heroSection.blocks.hero_cta_secondary || {};
+  const heroImageA = heroSection.blocks.hero_image_a || {};
+  const heroImageB = heroSection.blocks.hero_image_b || {};
+  const flowHeader = flowSection.blocks.flow_header || {};
+  const challengeHeader = challengesSection.blocks.challenge_header || {};
+  const finalCta = finalCtaSection.blocks.final_cta || {};
+  const finalCtaSecondary = finalCtaSection.blocks.final_cta_secondary || {};
+
   const challengeExamples = useMemo(
-    () => ['challenge_1', 'challenge_2', 'challenge_3'].map((key) => {
-      const item = mergeBlock(key, dynamicBlocks);
+    () => ['challenge_1', 'challenge_2', 'challenge_3'].map((key, index) => {
+      const item = challengesSection.blocks[key] || {};
       return {
+        key: `challenge-${index}-${item.title || 'item'}`,
         category: item.subtitle || '',
         title: item.title || '',
         description: item.description || '',
         image: item.image_url || '',
       };
     }),
-    [dynamicBlocks]
+    [challengesSection]
   );
 
-  const heroImageA = mergeBlock('hero_image_a', dynamicBlocks);
-  const heroImageB = mergeBlock('hero_image_b', dynamicBlocks);
+  const heroTrustItems = useMemo(
+    () => ['hero_trust_1', 'hero_trust_2', 'hero_trust_3']
+      .map((key) => (heroSection.blocks[key] || {}).title)
+      .filter(Boolean),
+    [heroSection]
+  );
+
+  const impactItems = useMemo(
+    () => ['impact_1', 'impact_2', 'impact_3'].map((key) => {
+      const item = impactSection.blocks[key] || {};
+      return {
+        value: item.title || '',
+        description: item.description || '',
+      };
+    }),
+    [impactSection]
+  );
+
+  const flowSteps = useMemo(
+    () => ['flow_step_1', 'flow_step_2', 'flow_step_3'].map((key) => {
+      const item = flowSection.blocks[key] || {};
+      return {
+        index: item.badge_text || '',
+        title: item.title || '',
+        description: item.description || '',
+      };
+    }),
+    [flowSection]
+  );
+
+  const cmsAudit = useMemo(() => buildLandingCmsAudit(dynamicBlocks), [dynamicBlocks]);
+
+  useEffect(() => {
+    if (!isLandingCmsStrict || !landingLoaded) return;
+    if (cmsAudit.missingKeys.length === 0 && cmsAudit.missingFields.length === 0) return;
+
+    const fieldSummary = cmsAudit.missingFields
+      .map((entry) => `${entry.key}: ${entry.fields.join(', ')}`)
+      .join(' | ');
+
+    console.warn(
+      '[Landing CMS strict mode] Incomplete coverage detected.',
+      {
+        missingKeys: cmsAudit.missingKeys,
+        missingFields: cmsAudit.missingFields,
+        fieldSummary,
+      }
+    );
+  }, [isLandingCmsStrict, landingLoaded, cmsAudit]);
 
   return (
     <>
       <TopNav />
       <main className="shell landing-v2">
+        {isLandingCmsStrict && landingLoaded && (cmsAudit.missingKeys.length > 0 || cmsAudit.missingFields.length > 0) ? (
+          <section className="feature-card" aria-label="Audit Landing CMS" style={{ borderColor: '#f59e0b', background: 'linear-gradient(180deg, #fff7ed 0%, #fff 100%)' }}>
+            <p className="eyebrow" style={{ color: '#9a3412' }}>Audit CMS Strict</p>
+            <h2 style={{ marginTop: 0 }}>Couverture CMS incomplete</h2>
+            <p style={{ marginBottom: '0.4rem' }}>
+              Completer les `block_key` manquants avant suppression des defaults locaux.
+            </p>
+            {cmsAudit.missingKeys.length > 0 ? (
+              <p className="session-meta" style={{ margin: '0.2rem 0' }}>
+                Cles manquantes: {cmsAudit.missingKeys.join(', ')}
+              </p>
+            ) : null}
+            {cmsAudit.missingFields.length > 0 ? (
+              <p className="session-meta" style={{ margin: '0.2rem 0' }}>
+                Champs incomplets: {cmsAudit.missingFields.map((entry) => `${entry.key} (${entry.fields.join(', ')})`).join(' | ')}
+              </p>
+            ) : null}
+          </section>
+        ) : null}
+
         <section className="hero-v2 reveal-up" aria-label="Presentation TeamBlender">
           <div className="hero-v2-grid">
             <div className="hero-v2-copy">
-              <p className="hero-v2-kicker">Produit SaaS pour managers et RH</p>
+              <p className="hero-v2-kicker">{heroKicker.title || heroMain.label}</p>
               <h1>
-                <span className="hero-v2-title-line">Créez de la cohésion au sein de vos équipes,</span>
-                <span className="hero-v2-title-line">avec des résultats concrets et mesurables.</span>
+                <span className="hero-v2-title-line">{heroMain.title}</span>
+                {heroMain.subtitle ? <span className="hero-v2-title-line">{heroMain.subtitle}</span> : null}
               </h1>
-              <p>Structurez vos sessions d equipe, animez-les avec clarte et pilotez des actions mesurables en sortie.</p>
+              <p>{heroMain.description}</p>
               <div className="hero-v2-actions">
-                <Link href="/signup" className="btn-primary">Creer une session</Link>
-                <Link href="/contact" className="btn-secondary">Voir une demo</Link>
+                <Link href={safeHref(heroCtaPrimary.cta_href, '/signup')} className="btn-primary">{heroCtaPrimary.cta_label}</Link>
+                <Link href={safeHref(heroCtaSecondary.cta_href, '/contact')} className="btn-secondary">{heroCtaSecondary.cta_label}</Link>
               </div>
               <div className="hero-v2-trust">
-                <span>+120 equipes accompagnees</span>
-                <span>Activation en moins de 10 min</span>
-                <span>Debrief actionnable des la premiere session</span>
+                {heroTrustItems.map((item) => (
+                  <span key={item}>{item}</span>
+                ))}
               </div>
             </div>
 
             <div className="hero-v2-media" aria-label="Apercu visuel TeamBlender">
               <article className="hero-v2-photo-card">
-                <img src={heroImageA.image_url || DEFAULT_BLOCKS.hero_image_a.image_url} alt={heroImageA.description || DEFAULT_BLOCKS.hero_image_a.description} loading="lazy" />
-                <p>{heroImageA.description || DEFAULT_BLOCKS.hero_image_a.description}</p>
+                <img src={heroImageA.image_url} alt={heroImageA.description} loading="lazy" />
+                <p>{heroImageA.description}</p>
               </article>
               <article className="hero-v2-photo-card card-b">
-                <img src={heroImageB.image_url || DEFAULT_BLOCKS.hero_image_b.image_url} alt={heroImageB.description || DEFAULT_BLOCKS.hero_image_b.description} loading="lazy" />
-                <p>{heroImageB.description || DEFAULT_BLOCKS.hero_image_b.description}</p>
+                <img src={heroImageB.image_url} alt={heroImageB.description} loading="lazy" />
+                <p>{heroImageB.description}</p>
               </article>
             </div>
           </div>
         </section>
 
         <section className="landing-impact-band reveal-up" aria-label="Indicateurs cles">
-          <article>
-            <strong>-65%</strong>
-            <p>de preparation manager percue</p>
-          </article>
-          <article>
-            <strong>3 etapes</strong>
-            <p>de l objectif au debrief concret</p>
-          </article>
-          <article>
-            <strong>100%</strong>
-            <p>navigable mobile et desktop sans installation</p>
-          </article>
+          {impactItems.map((item, index) => (
+            <article key={`impact-${index}`}>
+              <strong>{item.value}</strong>
+              <p>{item.description}</p>
+            </article>
+          ))}
         </section>
 
         <section className="feature-card reveal-up landing-flow" aria-label="Parcours en 3 etapes">
           <div className="panel-head">
             <div>
-              <p className="eyebrow">Processus</p>
-              <h2>Trois etapes. Un cadre clair.</h2>
+              <p className="eyebrow">{flowHeader.label}</p>
+              <h2>{flowHeader.title}</h2>
             </div>
-              <Link href="/signup" className="btn-primary">Lancer une session</Link>
+              <Link href={safeHref(flowHeader.cta_href, '/signup')} className="btn-primary">{flowHeader.cta_label}</Link>
           </div>
           <div className="cards-grid landing-flow-grid">
-            <article className="feature-card flow-card">
-              <span className="flow-index">01</span>
-              <h2>Cadrer l objectif</h2>
-              <p>Selectionnez l enjeu prioritaire de l equipe.</p>
-            </article>
-            <article className="feature-card flow-card">
-              <span className="flow-index">02</span>
-              <h2>Animer en live</h2>
-              <p>Lancez un challenge et gardez le bon rythme.</p>
-            </article>
-            <article className="feature-card flow-card">
-              <span className="flow-index">03</span>
-              <h2>Debrief actionnable</h2>
-              <p>Transformez les signaux en decisions equipe.</p>
-            </article>
+            {flowSteps.map((step, index) => (
+              <article key={`flow-step-${index}`} className="feature-card flow-card">
+                <span className="flow-index">{step.index}</span>
+                <h2>{step.title}</h2>
+                <p>{step.description}</p>
+              </article>
+            ))}
           </div>
         </section>
 
         <section className="challenge-showcase reveal-up" aria-label="Exemples de challenges">
           <div className="panel-head">
             <div>
-              <p className="eyebrow">Formats</p>
-              <h2>Bibliotheque de challenges prets a lancer</h2>
+              <p className="eyebrow">{challengeHeader.label}</p>
+              <h2>{challengeHeader.title}</h2>
             </div>
-              <Link href="/signup" className="btn-secondary">Explorer</Link>
+              <Link href={safeHref(challengeHeader.cta_href, '/signup')} className="btn-secondary">{challengeHeader.cta_label}</Link>
           </div>
           <div className="challenge-grid">
             {challengeExamples.map((item) => (
-              <article key={item.title} className="challenge-card">
+              <article key={item.key} className="challenge-card">
                 <div className="challenge-media">
                   <img src={item.image} alt={item.title} loading="lazy" />
                 </div>
@@ -201,12 +417,12 @@ export default function HomePage() {
         </section>
 
         <section className="feature-card landing-cta-block reveal-up" aria-label="Dernier appel a l action">
-          <p className="eyebrow">Prochaine etape</p>
-          <h2>Passez de l intention a la session active.</h2>
-          <p>Creer le compte, choisir le format, lancer votre premiere session.</p>
+          <p className="eyebrow">{finalCta.subtitle || finalCta.label}</p>
+          <h2>{finalCta.title}</h2>
+          <p>{finalCta.description}</p>
           <div className="hero-actions home-hero-actions">
-            <Link href="/signup" className="btn-primary">Creer une session</Link>
-            <Link href="/login" className="btn-secondary">Se connecter</Link>
+            <Link href={safeHref(finalCta.cta_href, '/signup')} className="btn-primary">{finalCta.cta_label}</Link>
+            <Link href={safeHref(finalCtaSecondary.cta_href, '/login')} className="btn-secondary">{finalCtaSecondary.cta_label}</Link>
           </div>
         </section>
       </main>
