@@ -112,11 +112,35 @@ export default function AccountPage() {
     let cancelled = false;
     setLoading(true);
 
-    Promise.all([getMe(), listPricingPlans()])
-      .then(([mePayload, plansPayload]) => {
+    Promise.allSettled([getMe(), listPricingPlans()])
+      .then((results) => {
         if (cancelled) return;
+
+        const [meResult, plansResult] = results;
+
+        const mePayload = meResult.status === 'fulfilled' ? meResult.value : null;
+        const plansPayload = plansResult.status === 'fulfilled' ? plansResult.value : [];
+
+        if (meResult.status === 'rejected') {
+          showError(meResult.reason?.message || 'Impossible de charger les informations du compte.');
+        }
+
+        if (plansResult.status === 'rejected') {
+          showError(plansResult.reason?.message || 'Impossible de charger les plans tarifaires.');
+        }
+
+        const normalizedPlans = normalizePlanList(plansPayload);
+        const currentPlanFromMe = mePayload?.pricing_plan;
+        const hasCurrentPlanInList = normalizedPlans.some(
+          (plan) => String(plan?.id) === String(currentPlanFromMe?.id)
+        );
+
+        const mergedPlans = currentPlanFromMe && !hasCurrentPlanInList
+          ? normalizePlanList([...normalizedPlans, currentPlanFromMe])
+          : normalizedPlans;
+
         setMe(mePayload || null);
-        setPlans(normalizePlanList(plansPayload));
+        setPlans(mergedPlans);
         setProfileForm({
           first_name: String(mePayload?.first_name || '').trim(),
           last_name: String(mePayload?.last_name || '').trim(),
@@ -128,24 +152,22 @@ export default function AccountPage() {
         const existingHistory = parseHistory();
         setPlanHistory(existingHistory);
 
-        setGuard((prev) => {
-          const mergedUser = {
-            ...(prev.user || {}),
-            first_name: mePayload?.first_name,
-            last_name: mePayload?.last_name,
-            name: mePayload?.name,
-            job_title: mePayload?.job_title,
-            department: mePayload?.department,
-            pricing_plan_id: mePayload?.pricing_plan_id || null,
-            pricing_plan: mePayload?.pricing_plan || null,
-          };
-          setStoredCurrentUser(mergedUser);
-          return { ...prev, user: mergedUser };
-        });
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        showError(err.message || 'Impossible de charger les informations du compte.');
+        if (mePayload) {
+          setGuard((prev) => {
+            const mergedUser = {
+              ...(prev.user || {}),
+              first_name: mePayload?.first_name,
+              last_name: mePayload?.last_name,
+              name: mePayload?.name,
+              job_title: mePayload?.job_title,
+              department: mePayload?.department,
+              pricing_plan_id: mePayload?.pricing_plan_id || null,
+              pricing_plan: mePayload?.pricing_plan || null,
+            };
+            setStoredCurrentUser(mergedUser);
+            return { ...prev, user: mergedUser };
+          });
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -471,25 +493,39 @@ export default function AccountPage() {
 
               <label className="participant-field-full">
                 Choisir un plan
-                <select
-                  className="account-select"
-                  value={selectedPlanId}
-                  onChange={(event) => setSelectedPlanId(event.target.value)}
-                >
-                  <option value="">Aucun plan</option>
+                <div className="account-plan-options" role="group" aria-label="Selection plan tarifaire">
+                  <button
+                    type="button"
+                    className={`account-plan-option ${selectedPlanId === '' ? 'is-selected' : ''}`}
+                    onClick={() => setSelectedPlanId('')}
+                  >
+                    Aucun plan
+                  </button>
                   {plans.map((plan) => {
-                    const isCurrent = String(plan.id) === String(currentPlanId || '');
-                    const isRecommended = recommendedPlan && String(plan.id) === String(recommendedPlan.id);
-                    const labelParts = [plan.name];
-                    if (isCurrent) labelParts.push('Plan actuel');
-                    if (isRecommended) labelParts.push('Recommandé');
+                    const planId = String(plan.id);
+                    const isCurrent = planId === String(currentPlanId || '');
+                    const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
+                    const isSelected = selectedPlanId === planId;
                     return (
-                      <option key={String(plan.id)} value={String(plan.id)}>
-                        {labelParts.join(' · ')}
-                      </option>
+                      <button
+                        key={planId}
+                        type="button"
+                        className={`account-plan-option ${isSelected ? 'is-selected' : ''}`}
+                        onClick={() => setSelectedPlanId(planId)}
+                      >
+                        <span>{plan.name}</span>
+                        <span className="account-plan-option__meta">
+                          {isCurrent ? 'Plan actuel' : null}
+                          {isCurrent && isRecommended ? ' · ' : null}
+                          {isRecommended ? 'Recommandé' : null}
+                        </span>
+                      </button>
                     );
                   })}
-                </select>
+                </div>
+                {plans.length === 0 ? (
+                  <span className="field-help">Aucune formule disponible actuellement.</span>
+                ) : null}
               </label>
             </div>
 

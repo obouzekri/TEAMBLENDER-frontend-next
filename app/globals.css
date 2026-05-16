@@ -4022,6 +4022,42 @@ a {
   gap: 1rem;
 }
 
+.account-plan-options {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.account-plan-option {
+  width: 100%;
+  text-align: left;
+  display: grid;
+  gap: 0.15rem;
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  border-radius: 10px;
+  padding: 0.62rem 0.72rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.account-plan-option:hover {
+  border-color: rgba(15, 118, 110, 0.34);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.08);
+}
+
+.account-plan-option.is-selected {
+  border-color: #0f766e;
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.12) 0%, rgba(15, 118, 110, 0.06) 100%);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+.account-plan-option__meta {
+  font-size: 0.78rem;
+  color: #486357;
+  font-weight: 600;
+}
+
 .account-plan-badges {
   display: flex;
   flex-wrap: wrap;
