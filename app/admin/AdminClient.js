@@ -369,25 +369,6 @@ export default function AdminClient() {
         requests.map(([, path]) => fetchAdminJson(path, token))
       );
 
-      const unauthorizedKeys = results
-        .map((result, index) => {
-          if (result.status !== 'rejected') return null;
-          const unauthorized = result.reason?.status === 401
-            || String(result.reason?.message || '').toLowerCase().includes('token invalide');
-          if (!unauthorized) return null;
-          return requests[index][0];
-        })
-        .filter(Boolean);
-
-      const hasGlobalUnauthorized = unauthorizedKeys.length === requests.length;
-      const hasCoreUnauthorized = unauthorizedKeys.includes('users') && unauthorizedKeys.includes('pendingUsers');
-      const shouldForceReauth = hasGlobalUnauthorized || hasCoreUnauthorized;
-
-      if (shouldForceReauth) {
-        setError('Session expirée. Veuillez vous reconnecter.');
-        return;
-      }
-
       const failures = [];
 
       results.forEach((result, index) => {
@@ -405,7 +386,17 @@ export default function AdminClient() {
           return;
         }
 
-        failures.push(`${key}: ${result.reason?.message || 'Erreur inconnue'}`);
+        const reasonMessage = result.reason?.message || 'Erreur inconnue';
+        const isUnauthorized = result.reason?.status === 401
+          || String(reasonMessage).toLowerCase().includes('token invalide');
+
+        // Landing CMS is optional for the rest of admin loading.
+        if (key === 'landingBlocks' && isUnauthorized) {
+          setLandingBlocks([]);
+          return;
+        }
+
+        failures.push(`${key}: ${reasonMessage}`);
 
         if (key === 'users') setUsers([]);
         if (key === 'pendingUsers') setPendingUsers([]);
@@ -420,13 +411,9 @@ export default function AdminClient() {
         setError(`Certaines donnees admin n'ont pas pu etre chargees: ${failures.join(' | ')}`);
       }
     } catch (err) {
-      if (err?.status === 401 || String(err?.message || '').toLowerCase().includes('token invalide')) {
-        setError('Session expirée. Veuillez vous reconnecter.');
-        return;
-      }
       setError(err.message || 'Erreur de chargement admin.');
     }
-  }, [forceReauth, token]);
+  }, [token]);
 
   useEffect(() => {
     if (!token) return;
