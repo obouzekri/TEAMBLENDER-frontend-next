@@ -2908,12 +2908,6 @@ export default function AdminClient() {
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '16px 18px' }}>
-                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
-                    Cles autorisees (alignement landing): {LANDING_ALLOWED_BLOCK_KEY_HINT}
-                  </p>
-                </div>
-
                 {showNewLandingBlockForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un bloc</h2>
