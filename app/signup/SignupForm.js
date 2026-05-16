@@ -72,24 +72,26 @@ export default function SignupForm() {
           </div>
         ) : (
           <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
+            <input type="text" name="fake_signup_username" autoComplete="username" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
+            <input type="password" name="fake_signup_password" autoComplete="current-password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
             <label>
               Prénom *
-              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required placeholder="Votre prénom" />
+              <input type="text" name="signup_first_name" autoComplete="off" value={firstName} onChange={(e) => setFirstName(e.target.value)} required placeholder="Votre prénom" />
             </label>
 
             <label>
               Nom *
-              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required placeholder="Votre nom" />
+              <input type="text" name="signup_last_name" autoComplete="off" value={lastName} onChange={(e) => setLastName(e.target.value)} required placeholder="Votre nom" />
             </label>
 
             <label>
               Email *
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="votre@email.com" />
+              <input type="email" name="signup_email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="votre@email.com" />
             </label>
 
             <label>
               Mot de passe *
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} placeholder="Minimum 8 caracteres" />
+              <input type="password" name="signup_password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} placeholder="Minimum 8 caracteres" />
             </label>
 
             <button type="submit" className="btn-primary wide" disabled={loading}>

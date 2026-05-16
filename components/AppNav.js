@@ -139,12 +139,6 @@ export default function AppNav({ userLabel, onLogout, role }) {
                   </>
                 )}
               </nav>
-
-              {!isAdmin && (
-                <div className="nav-actions" aria-label="Actions manager">
-                  <Link href="/session-builder" className={`btn-mini nav-cta ${isActive('/session-builder') ? 'is-active' : ''}`} aria-current={isActive('/session-builder') ? 'page' : undefined}>Nouvelle session</Link>
-                </div>
-              )}
             </div>
           )}
 
