@@ -22,8 +22,6 @@ const DEFAULT_BLOCKS = {
   flow_header: {
     label: 'Processus',
     title: 'Trois etapes. Un cadre clair.',
-    cta_label: 'Lancer une session',
-    cta_href: '/signup',
   },
   flow_step_1: {
     badge_text: '01',
@@ -39,12 +37,6 @@ const DEFAULT_BLOCKS = {
     badge_text: '03',
     title: 'Debrief actionnable',
     description: 'Transformez les signaux en decisions equipe.',
-  },
-  challenge_header: {
-    label: 'Formats',
-    title: 'Bibliotheque de challenges prets a lancer',
-    cta_label: 'Explorer',
-    cta_href: '/signup',
   },
   final_cta_secondary: {
     cta_label: 'Se connecter',
@@ -81,14 +73,10 @@ const LANDING_CMS_REQUIRED_SCHEMA = {
   impact_1: ['title', 'description'],
   impact_2: ['title', 'description'],
   impact_3: ['title', 'description'],
-  flow_header: ['label', 'title', 'cta_label', 'cta_href'],
+  flow_header: ['label', 'title'],
   flow_step_1: ['badge_text', 'title', 'description'],
   flow_step_2: ['badge_text', 'title', 'description'],
   flow_step_3: ['badge_text', 'title', 'description'],
-  challenge_header: ['label', 'title', 'cta_label', 'cta_href'],
-  challenge_1: ['subtitle', 'title', 'description', 'image_url'],
-  challenge_2: ['subtitle', 'title', 'description', 'image_url'],
-  challenge_3: ['subtitle', 'title', 'description', 'image_url'],
   final_cta: ['subtitle', 'title', 'description', 'cta_label', 'cta_href'],
   final_cta_secondary: ['cta_label', 'cta_href'],
 };
@@ -222,11 +210,6 @@ export default function HomePage() {
     [dynamicBlocks]
   );
 
-  const challengesSection = useMemo(
-    () => buildSectionBlocks(['challenge_header', 'challenge_1', 'challenge_2', 'challenge_3'], dynamicBlocks),
-    [dynamicBlocks]
-  );
-
   const finalCtaSection = useMemo(
     () => buildSectionBlocks(['final_cta', 'final_cta_secondary'], dynamicBlocks),
     [dynamicBlocks]
@@ -239,23 +222,8 @@ export default function HomePage() {
   const heroImageA = heroSection.blocks.hero_image_a || {};
   const heroImageB = heroSection.blocks.hero_image_b || {};
   const flowHeader = flowSection.blocks.flow_header || {};
-  const challengeHeader = challengesSection.blocks.challenge_header || {};
   const finalCta = finalCtaSection.blocks.final_cta || {};
   const finalCtaSecondary = finalCtaSection.blocks.final_cta_secondary || {};
-
-  const challengeExamples = useMemo(
-    () => ['challenge_1', 'challenge_2', 'challenge_3'].map((key, index) => {
-      const item = challengesSection.blocks[key] || {};
-      return {
-        key: `challenge-${index}-${item.title || 'item'}`,
-        category: item.subtitle || '',
-        title: item.title || '',
-        description: item.description || '',
-        image: item.image_url || '',
-      };
-    }),
-    [challengesSection]
-  );
 
   const heroTrustItems = useMemo(
     () => ['hero_trust_1', 'hero_trust_2', 'hero_trust_3']
@@ -331,7 +299,7 @@ export default function HomePage() {
           </section>
         ) : null}
 
-        <section className="hero-v2 reveal-up" aria-label="Presentation TeamBlender">
+        <section className="hero-v2 reveal-up" style={{ '--reveal-delay': '40ms' }} aria-label="Presentation TeamBlender">
           <div className="hero-v2-grid">
             <div className="hero-v2-copy">
               <p className="hero-v2-kicker">{heroKicker.title || heroMain.label}</p>
@@ -364,7 +332,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="landing-impact-band reveal-up" aria-label="Indicateurs cles">
+        <section className="landing-impact-band reveal-up" style={{ '--reveal-delay': '90ms' }} aria-label="Indicateurs cles">
           {impactItems.map((item, index) => (
             <article key={`impact-${index}`}>
               <strong>{item.value}</strong>
@@ -373,13 +341,12 @@ export default function HomePage() {
           ))}
         </section>
 
-        <section className="feature-card reveal-up landing-flow" aria-label="Parcours en 3 etapes">
+        <section className="feature-card reveal-up landing-flow" style={{ '--reveal-delay': '140ms' }} aria-label="Parcours en 3 etapes">
           <div className="panel-head">
             <div>
               <p className="eyebrow">{flowHeader.label}</p>
               <h2>{flowHeader.title}</h2>
             </div>
-              <Link href={safeHref(flowHeader.cta_href, '/signup')} className="btn-primary">{flowHeader.cta_label}</Link>
           </div>
           <div className="cards-grid landing-flow-grid">
             {flowSteps.map((step, index) => (
@@ -392,35 +359,11 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="challenge-showcase reveal-up" aria-label="Exemples de challenges">
-          <div className="panel-head">
-            <div>
-              <p className="eyebrow">{challengeHeader.label}</p>
-              <h2>{challengeHeader.title}</h2>
-            </div>
-              <Link href={safeHref(challengeHeader.cta_href, '/signup')} className="btn-secondary">{challengeHeader.cta_label}</Link>
-          </div>
-          <div className="challenge-grid">
-            {challengeExamples.map((item) => (
-              <article key={item.key} className="challenge-card">
-                <div className="challenge-media">
-                  <img src={item.image} alt={item.title} loading="lazy" />
-                </div>
-                <div className="challenge-body">
-                  <p className="eyebrow">{item.category}</p>
-                  <h3>{item.title}</h3>
-                  <p>{item.description}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="feature-card landing-cta-block reveal-up" aria-label="Dernier appel a l action">
+        <section className="feature-card landing-cta-block reveal-up" style={{ '--reveal-delay': '190ms' }} aria-label="Dernier appel a l action">
           <p className="eyebrow">{finalCta.subtitle || finalCta.label}</p>
           <h2>{finalCta.title}</h2>
           <p>{finalCta.description}</p>
-          <div className="hero-actions home-hero-actions">
+          <div className="hero-actions home-hero-actions landing-cta-actions">
             <Link href={safeHref(finalCta.cta_href, '/signup')} className="btn-primary">{finalCta.cta_label}</Link>
             <Link href={safeHref(finalCtaSecondary.cta_href, '/login')} className="btn-secondary">{finalCtaSecondary.cta_label}</Link>
           </div>

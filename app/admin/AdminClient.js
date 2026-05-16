@@ -68,6 +68,31 @@ const DEFAULT_NEW_LANDING_BLOCK = {
   display_order: '0',
 };
 
+const LANDING_ALLOWED_BLOCK_KEYS = [
+  'hero_main',
+  'hero_kicker',
+  'hero_cta_primary',
+  'hero_cta_secondary',
+  'hero_trust_1',
+  'hero_trust_2',
+  'hero_trust_3',
+  'hero_image_a',
+  'hero_image_b',
+  'impact_1',
+  'impact_2',
+  'impact_3',
+  'flow_header',
+  'flow_step_1',
+  'flow_step_2',
+  'flow_step_3',
+  'final_cta',
+  'final_cta_secondary',
+];
+
+const LANDING_ALLOWED_BLOCK_KEY_SET = new Set(LANDING_ALLOWED_BLOCK_KEYS);
+
+const LANDING_ALLOWED_BLOCK_KEY_HINT = LANDING_ALLOWED_BLOCK_KEYS.join(', ');
+
 function getParticipantFirstName(participant) {
   return String(participant?.first_name || participant?.firstname || '').trim();
 }
@@ -186,6 +211,11 @@ function landingBlockToDraft(block) {
     is_active: Boolean(block.is_active),
     display_order: block.display_order ?? 0,
   };
+}
+
+function isAllowedLandingBlockKey(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return LANDING_ALLOWED_BLOCK_KEY_SET.has(normalized);
 }
 
 async function fetchAdminJson(path, token) {
@@ -1452,6 +1482,11 @@ export default function AdminClient() {
       return;
     }
 
+    if (!isAllowedLandingBlockKey(blockKey)) {
+      setNewLandingMessage(`Cle bloc non autorisee. Utilisez uniquement: ${LANDING_ALLOWED_BLOCK_KEY_HINT}`);
+      return;
+    }
+
     const payload = buildLandingPayloadFromDraft(newLandingBlock);
     const key = `create:landing:${blockKey}`;
     setBusySaveKey(key);
@@ -1497,6 +1532,11 @@ export default function AdminClient() {
     const blockKey = String(editingLandingBlock.block_key || '').trim().toLowerCase();
     if (!blockKey) {
       setError('La cle du bloc est requise.');
+      return;
+    }
+
+    if (!isAllowedLandingBlockKey(blockKey)) {
+      setError(`Cle bloc non autorisee. Utilisez uniquement: ${LANDING_ALLOWED_BLOCK_KEY_HINT}`);
       return;
     }
 
@@ -2815,11 +2855,17 @@ export default function AdminClient() {
           {/* ── LANDING CMS ── */}
           {activeTab === 'landing' ? (
             <div>
+              <datalist id="landing-allowed-keys">
+                {LANDING_ALLOWED_BLOCK_KEYS.map((key) => (
+                  <option key={key} value={key} />
+                ))}
+              </datalist>
+
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
                   <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Landing CMS</h1>
                   <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                    Modifiez le contenu texte et les images de chaque bloc de la page d accueil.
+                    Mode structure reduite: hero, 3 preuves, parcours en 3 etapes et CTA final unique.
                   </p>
                 </div>
                 <button
@@ -2836,11 +2882,17 @@ export default function AdminClient() {
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '16px 18px' }}>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
+                    Cles autorisees (alignement landing): {LANDING_ALLOWED_BLOCK_KEY_HINT}
+                  </p>
+                </div>
+
                 {showNewLandingBlockForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un bloc</h2>
                     <form className="auth-form" onSubmit={submitNewLandingBlock}>
-                      <label>Cle bloc<input value={newLandingBlock.block_key} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} placeholder="hero_main" required /></label>
+                      <label>Cle bloc<input value={newLandingBlock.block_key} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} placeholder="hero_main" list="landing-allowed-keys" required /></label>
                       <label>Label admin<input value={newLandingBlock.label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
                       <label>Titre<input value={newLandingBlock.title} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
                       <label>Sous-titre<input value={newLandingBlock.subtitle} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
@@ -2880,7 +2932,7 @@ export default function AdminClient() {
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier un bloc</h2>
                     <form className="auth-form" onSubmit={submitEditLandingBlock}>
-                        <label>Cle bloc<input value={editingLandingBlock.block_key} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} required /></label>
+                      <label>Cle bloc<input value={editingLandingBlock.block_key} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} list="landing-allowed-keys" required /></label>
                         <label>Label admin<input value={editingLandingBlock.label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
                         <label>Titre<input value={editingLandingBlock.title} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
                         <label>Sous-titre<input value={editingLandingBlock.subtitle} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
