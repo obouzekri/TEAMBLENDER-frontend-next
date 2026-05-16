@@ -47,6 +47,13 @@ function formatSessionDate(value) {
   }).format(parsed);
 }
 
+function getSessionIdentifier(session) {
+  const raw = session?.id ?? session?.session_id ?? session?.sessionId;
+  const normalized = String(raw ?? '').trim();
+  if (!normalized || normalized === 'undefined' || normalized === 'null') return '';
+  return normalized;
+}
+
 function useManagerGuard() {
   const [state, setState] = useState({ loading: true, allowed: false, user: null, token: '' });
 
@@ -134,6 +141,17 @@ export default function ManagerHome() {
     && memberFormChecks.emailOk
     && memberFormChecks.passwordOk
     && !creatingMember;
+
+  const canCreateSession = !loadingMembers && members.length > 0;
+  const createSessionBlockedReason = loadingMembers
+    ? 'Chargement des participants en cours...'
+    : 'Creation indisponible: ajoutez d abord des participants dans votre espace manager.';
+
+  function handleCreateSessionClick(event) {
+    if (canCreateSession) return;
+    event.preventDefault();
+    showErrorToast(createSessionBlockedReason);
+  }
 
 
 
@@ -228,14 +246,15 @@ export default function ManagerHome() {
   }
 
   async function handleDeleteSession(session) {
-    if (!guard.token || !session?.id) return;
-    const label = session.name || `Session #${session.id}`;
+    const sessionIdentifier = getSessionIdentifier(session);
+    if (!guard.token || !sessionIdentifier) return;
+    const label = session.name || `Session #${sessionIdentifier}`;
     const accepted = window.confirm(`Supprimer ${label} ? Cette action est irreversible.`);
     if (!accepted) return;
 
-    setDeletingSessionId(session.id);
+    setDeletingSessionId(sessionIdentifier);
     try {
-      const response = await fetch(getApiUrl(`/sessions/${encodeURIComponent(session.id)}`), {
+      const response = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionIdentifier)}`), {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${guard.token}`,
@@ -248,7 +267,7 @@ export default function ManagerHome() {
         throw new Error(body || `Erreur ${response.status}`);
       }
 
-      setSessions((prev) => prev.filter((item) => String(item.id) !== String(session.id)));
+      setSessions((prev) => prev.filter((item) => getSessionIdentifier(item) !== sessionIdentifier));
       showSuccessToast('Session supprimee.');
     } catch (err) {
       showErrorToast(err.message || 'Suppression impossible.');
@@ -444,11 +463,22 @@ export default function ManagerHome() {
               <h1>Bonjour {userLabel}</h1>
               <p>Planifiez, lancez et analysez vos sessions de team building dans un espace unique, clair et directement exploitable.</p>
               <div className="hero-actions home-hero-actions">
-                <Link className="btn-primary" href="/session-builder">Créer une session</Link>
+                <Link
+                  className={`btn-primary ${canCreateSession ? '' : 'is-disabled'}`}
+                  href="/session-builder"
+                  onClick={handleCreateSessionClick}
+                  aria-disabled={!canCreateSession}
+                  title={canCreateSession ? 'Creer une session' : createSessionBlockedReason}
+                >
+                  Créer une session
+                </Link>
                 {guard.user?.role === 'admin' && (
                   <Link className="btn-secondary" href="/admin">Console admin</Link>
                 )}
               </div>
+              {!canCreateSession ? (
+                <p className="home-prerequisite-hint" role="status">{createSessionBlockedReason}</p>
+              ) : null}
               <div className="home-hero-trust" aria-label="Benefices manager">
                 <span>Preparation guidee</span>
                 <span>Animation live structuree</span>
@@ -494,8 +524,19 @@ export default function ManagerHome() {
               <h2>Mes sessions</h2>
               <p>Suivez les sessions préparées, actives ou terminées depuis un seul bloc.</p>
             </div>
-            <Link className="btn-primary" href="/session-builder">Créer une session</Link>
+            <Link
+              className={`btn-primary ${canCreateSession ? '' : 'is-disabled'}`}
+              href="/session-builder"
+              onClick={handleCreateSessionClick}
+              aria-disabled={!canCreateSession}
+              title={canCreateSession ? 'Creer une session' : createSessionBlockedReason}
+            >
+              Créer une session
+            </Link>
           </div>
+          {!canCreateSession ? (
+            <p className="home-prerequisite-hint" role="status">{createSessionBlockedReason}</p>
+          ) : null}
 
           {loadingSessions ? (
             <div className="session-skeletons">
@@ -512,20 +553,22 @@ export default function ManagerHome() {
           {!loadingSessions && sessions.length > 0 ? (
             <div className="session-cards-grid">
               {visibleSessions.map((session) => {
-                const isDeleting = deletingSessionId === session.id;
+                const sessionIdentifier = getSessionIdentifier(session);
+                if (!sessionIdentifier) return null;
+                const isDeleting = String(deletingSessionId) === sessionIdentifier;
                 const statusClass = `status-${session.status || 'preparee'}`;
                 const isActive = session.status === 'en_cours';
                 const isDone = session.status === 'terminee';
                 const openLink = isDone
-                  ? `/session-results/${session.id}`
+                  ? `/session-results/${sessionIdentifier}`
                   : isActive
-                    ? `/session-live/${session.id}`
-                    : `/session-builder?sessionId=${session.id}`;
-                const editLink = `/session-builder?sessionId=${session.id}`;
+                    ? `/session-live/${sessionIdentifier}`
+                    : `/session-builder?sessionId=${sessionIdentifier}`;
+                const editLink = `/session-builder?sessionId=${sessionIdentifier}`;
                 return (
-                  <article key={String(session.id)} className={`feature-card session-card ${isDeleting ? 'session-card--deleting' : ''}`}>
+                  <article key={sessionIdentifier} className={`feature-card session-card ${isDeleting ? 'session-card--deleting' : ''}`}>
                     <div className="session-card-body">
-                      <p className="session-title">{session.name || `Session #${session.id}`}</p>
+                      <p className="session-title">{session.name || `Session #${sessionIdentifier}`}</p>
                       <p className="session-meta">
                         <span className={`status-pill ${statusClass}`}>
                           {STATUS_LABEL[session.status] || session.status || 'En préparation'}

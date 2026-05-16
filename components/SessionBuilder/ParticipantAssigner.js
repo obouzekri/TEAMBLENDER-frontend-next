@@ -10,6 +10,7 @@ export default function ParticipantAssigner({
   onCancel,
   selectedIds = null,
   onSelectionChange,
+  onParticipantsLoaded,
   embedded = false,
   hideActions = false,
   title = 'Assigner les participants',
@@ -43,6 +44,9 @@ export default function ParticipantAssigner({
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     if (!token) {
       setLoadingParticipants(false);
+      if (typeof onParticipantsLoaded === 'function') {
+        onParticipantsLoaded(0);
+      }
       return;
     }
 
@@ -74,15 +78,21 @@ export default function ParticipantAssigner({
               ? data.data
               : [];
         setParticipants(list);
+        if (typeof onParticipantsLoaded === 'function') {
+          onParticipantsLoaded(list.length);
+        }
       })
       .catch((err) => {
         console.warn('Erreur chargement participants:', err.message);
         setParticipants([]);
+        if (typeof onParticipantsLoaded === 'function') {
+          onParticipantsLoaded(0);
+        }
       })
       .finally(() => {
         setLoadingParticipants(false);
       });
-  }, []);
+  }, [onParticipantsLoaded]);
 
   const filteredParticipants = participants.filter((p) => {
     const term = searchTerm.toLowerCase();
@@ -154,7 +164,10 @@ export default function ParticipantAssigner({
             {participants.length === 0 ? (
               <div className={styles.empty}>
                 <p>Aucun participant disponible</p>
-                <small>Ajoutez des participants dans votre espace manager pour les assigner à une session</small>
+                <small>
+                  Creez d&apos;abord vos participants dans l&apos;espace manager. La creation d&apos;une session est disponible uniquement
+                  apres cette etape.
+                </small>
               </div>
             ) : (
               <>

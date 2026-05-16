@@ -96,6 +96,7 @@ export default function SessionBuilder() {
   const [isSavingSessionInfo, setIsSavingSessionInfo] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [draftParticipantIds, setDraftParticipantIds] = useState([]);
+  const [availableParticipantsCount, setAvailableParticipantsCount] = useState(0);
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
   const currentConfiguringChallenge = useMemo(
@@ -404,6 +405,10 @@ export default function SessionBuilder() {
 
   const handleCreateSession = useCallback(async (e) => {
     e.preventDefault();
+    if (availableParticipantsCount === 0) {
+      showErrorToast('Ajoutez d\'abord des participants dans votre espace manager pour creer une session.');
+      return;
+    }
     const name = sessionName.trim() || `Session du ${new Date().toLocaleDateString('fr-FR')}`;
     const sessionDate = sessionDateTime ? new Date(sessionDateTime) : null;
     if (sessionDateTime && Number.isNaN(sessionDate?.getTime())) {
@@ -446,7 +451,17 @@ export default function SessionBuilder() {
     } finally {
       setIsCreatingSession(false);
     }
-  }, [apiRequest, draftParticipantIds, getAuthToken, removeToast, sessionDateTime, sessionName, showErrorToast, showLoadingToast]);
+  }, [
+    apiRequest,
+    availableParticipantsCount,
+    draftParticipantIds,
+    getAuthToken,
+    removeToast,
+    sessionDateTime,
+    sessionName,
+    showErrorToast,
+    showLoadingToast,
+  ]);
 
   const handleSaveSessionInfo = useCallback(async () => {
     const token = getAuthToken();
@@ -516,6 +531,10 @@ export default function SessionBuilder() {
                   Organisez le cadre de la session et l&apos;assignation des participants dans une seule vue, claire et immediate.
                 </span>
               </h1>
+              <p className={styles.creationPrerequisite}>
+                Prerequis: vous devez disposer d&apos;au moins un participant cree dans l&apos;espace manager avant de creer la
+                session.
+              </p>
 
               <div className={styles.creationContent}>
                 <div className={styles.creationPrimary}>
@@ -606,6 +625,7 @@ export default function SessionBuilder() {
                       isLoading={isCreatingSession}
                       selectedIds={draftParticipantIds}
                       onSelectionChange={setDraftParticipantIds}
+                      onParticipantsLoaded={setAvailableParticipantsCount}
                       embedded
                       hideActions
                       title=""
@@ -616,11 +636,21 @@ export default function SessionBuilder() {
               </div>
 
               <div className={styles.creationGlobalActions}>
+                {availableParticipantsCount === 0 ? (
+                  <p className={styles.creationActionHint}>
+                    Creation indisponible: ajoutez d&apos;abord des participants dans votre espace manager.
+                  </p>
+                ) : null}
                 <button
                   type="submit"
                   form="create-session-form"
                   className={`btn-primary ${styles.creationSubmit}`}
-                  disabled={isCreatingSession}
+                  disabled={isCreatingSession || availableParticipantsCount === 0}
+                  title={
+                    availableParticipantsCount === 0
+                      ? 'Creez d\'abord des participants dans l\'espace manager.'
+                      : 'Creer la session'
+                  }
                 >
                   {isCreatingSession ? 'Creation...' : 'Creer la session'}
                 </button>
