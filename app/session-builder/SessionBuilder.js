@@ -272,13 +272,22 @@ export default function SessionBuilder() {
         'Content-Type': 'application/json',
       },
     })
-      .then((res) => {
+      .then(async (res) => {
+        const rawText = await res.text();
+        let payload = {};
+        try {
+          payload = rawText ? JSON.parse(rawText) : {};
+        } catch {
+          payload = {};
+        }
+
         if (!res.ok) {
-          const fetchError = new Error(`Session not found (${res.status})`);
+          const fetchError = new Error(payload.error || `Erreur API (${res.status})`);
           fetchError.status = res.status;
           throw fetchError;
         }
-        return res.json();
+
+        return payload;
       })
       .then((session) => {
         if (!cancelled) {
@@ -322,13 +331,15 @@ export default function SessionBuilder() {
             return;
           }
 
-          // If session not found / not owned by current user, reset flow
-          if (err.message.includes('404') || err.message.includes('not found')) {
+          // Only a real 404 should reset to the new-session flow.
+          if (err.status === 404) {
             setSessionId('');
             sessionStorage.removeItem('sessionId');
             if (typeof window !== 'undefined') {
               window.history.replaceState({}, '', '/session-builder');
             }
+          } else {
+            showErrorToast(err.message || 'Impossible de charger la session.');
           }
           setSessionChallengesLoaded(true);
         }
