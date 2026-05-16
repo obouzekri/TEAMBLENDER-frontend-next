@@ -123,7 +123,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 1.25rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .nav-top-row {
@@ -148,6 +148,7 @@ a {
   gap: 1rem;
   flex: 1 1 320px;
   min-width: 0;
+  flex-wrap: nowrap;
   transition: opacity 0.24s ease, transform 0.24s ease;
 }
 
@@ -253,6 +254,14 @@ a {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
   color: var(--ink-soft);
   min-width: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.nav-links::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-actions {
@@ -267,6 +276,7 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   min-height: 36px;
   padding: 0.45rem 0.95rem;
   border-radius: 999px;
@@ -3058,6 +3068,7 @@ a {
 .app-user-box {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   gap: 0.6rem;
   padding: 0.25rem 0.38rem 0.25rem 0.62rem;
   border-radius: 999px;
@@ -3107,6 +3118,7 @@ a {
   border-radius: 999px;
   padding: 0.42rem 0.76rem;
   font-size: 0.82rem;
+  white-space: nowrap;
 }
 
 .sessions-panel {
@@ -3727,6 +3739,7 @@ a {
   }
 
   .nav-inner {
+    flex-wrap: wrap;
     align-items: flex-start;
     gap: 0.8rem;
   }
