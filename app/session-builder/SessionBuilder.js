@@ -12,7 +12,7 @@ import SessionBuilderHeader from '@/components/SessionBuilder/SessionBuilderHead
 import useToast from '@/lib/useToast';
 import useSessionBuilder from '@/lib/useSessionBuilder';
 import { fetchWithRetry } from '@/lib/api';
-import { getApiUrl } from '@/lib/config';
+import { ENABLE_CHALLENGES_MOCK_DATA, getApiUrl } from '@/lib/config';
 import styles from './SessionBuilder.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
 
@@ -371,10 +371,17 @@ export default function SessionBuilder() {
             return;
           }
 
-          // Fallback à données mock en développement
-          setAllChallenges(mockChallenges);
-          setError(err.message || 'Catalogue indisponible, fallback local actif.');
-          showErrorToast('Utilisation des données de développement (mock data)');
+          if (ENABLE_CHALLENGES_MOCK_DATA) {
+            // Fallback mock is opt-in only to avoid masking backend issues unexpectedly.
+            setAllChallenges(mockChallenges);
+            setError(err.message || 'Catalogue indisponible, fallback local actif.');
+            showErrorToast('Mode mock actif: catalogue de développement utilisé.');
+            return;
+          }
+
+          setAllChallenges([]);
+          setError(err.message || 'Catalogue indisponible. Vérifiez l API backend ou activez le mode mock.');
+          showErrorToast('Catalogue indisponible. Activez NEXT_PUBLIC_ENABLE_CHALLENGES_MOCK_DATA=true pour le mode mock.');
         }
       })
       .finally(() => {
