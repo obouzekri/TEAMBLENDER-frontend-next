@@ -237,7 +237,10 @@ async function fetchAdminJson(path, token) {
 
   if (!response.ok) {
     const message = payload?.error || payload?.message || `HTTP ${response.status}`;
-    throw new Error(message);
+    const err = new Error(message);
+    err.status = response.status;
+    err.code = payload?.code;
+    throw err;
   }
 
   return payload;
@@ -314,10 +317,23 @@ export default function AdminClient() {
   const [newLandingBlock, setNewLandingBlock] = useState(DEFAULT_NEW_LANDING_BLOCK);
   const [newLandingMessage, setNewLandingMessage] = useState('');
 
+  const forceReauth = useCallback(() => {
+    localStorage.removeItem('jwt');
+    sessionStorage.removeItem('jwt');
+    sessionStorage.removeItem('currentUser');
+    window.location.replace('/login');
+  }, []);
+
   useEffect(() => {
     const jwt = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const raw = sessionStorage.getItem('currentUser');
-    const currentUser = raw ? JSON.parse(raw) : null;
+    let currentUser = null;
+
+    try {
+      currentUser = raw ? JSON.parse(raw) : null;
+    } catch {
+      currentUser = null;
+    }
 
     if (!jwt || !currentUser) {
       window.location.replace('/login');
@@ -353,6 +369,19 @@ export default function AdminClient() {
         requests.map(([, path]) => fetchAdminJson(path, token))
       );
 
+      const hasUnauthorized = results.some(
+        (result) => result.status === 'rejected' && (
+          result.reason?.status === 401
+          || String(result.reason?.message || '').toLowerCase().includes('token invalide')
+        )
+      );
+
+      if (hasUnauthorized) {
+        setError('Session expirée. Veuillez vous reconnecter.');
+        forceReauth();
+        return;
+      }
+
       const failures = [];
 
       results.forEach((result, index) => {
@@ -385,9 +414,14 @@ export default function AdminClient() {
         setError(`Certaines donnees admin n'ont pas pu etre chargees: ${failures.join(' | ')}`);
       }
     } catch (err) {
+      if (err?.status === 401 || String(err?.message || '').toLowerCase().includes('token invalide')) {
+        setError('Session expirée. Veuillez vous reconnecter.');
+        forceReauth();
+        return;
+      }
       setError(err.message || 'Erreur de chargement admin.');
     }
-  }, [token]);
+  }, [forceReauth, token]);
 
   useEffect(() => {
     if (!token) return;
