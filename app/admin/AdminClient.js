@@ -369,14 +369,21 @@ export default function AdminClient() {
         requests.map(([, path]) => fetchAdminJson(path, token))
       );
 
-      const hasUnauthorized = results.some(
-        (result) => result.status === 'rejected' && (
-          result.reason?.status === 401
-          || String(result.reason?.message || '').toLowerCase().includes('token invalide')
-        )
-      );
+      const unauthorizedKeys = results
+        .map((result, index) => {
+          if (result.status !== 'rejected') return null;
+          const unauthorized = result.reason?.status === 401
+            || String(result.reason?.message || '').toLowerCase().includes('token invalide');
+          if (!unauthorized) return null;
+          return requests[index][0];
+        })
+        .filter(Boolean);
 
-      if (hasUnauthorized) {
+      const hasGlobalUnauthorized = unauthorizedKeys.length === requests.length;
+      const hasCoreUnauthorized = unauthorizedKeys.includes('users') && unauthorizedKeys.includes('pendingUsers');
+      const shouldForceReauth = hasGlobalUnauthorized || hasCoreUnauthorized;
+
+      if (shouldForceReauth) {
         setError('Session expirée. Veuillez vous reconnecter.');
         forceReauth();
         return;
