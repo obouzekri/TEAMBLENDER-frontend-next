@@ -130,6 +130,14 @@ export default function SessionBuilder() {
 
   const apiRequest = useCallback(async (path, options = {}) => {
     const response = await fetch(getApiUrl(path), options);
+
+    if (response.status === 401) {
+      logout();
+      const unauthorizedError = new Error('Session expirée. Veuillez vous reconnecter.');
+      unauthorizedError.status = 401;
+      throw unauthorizedError;
+    }
+
     const rawText = await response.text();
     let payload = {};
     try {
@@ -264,7 +272,11 @@ export default function SessionBuilder() {
       },
     })
       .then((res) => {
-        if (!res.ok) throw new Error(`Session not found (${res.status})`);
+        if (!res.ok) {
+          const fetchError = new Error(`Session not found (${res.status})`);
+          fetchError.status = res.status;
+          throw fetchError;
+        }
         return res.json();
       })
       .then((session) => {
@@ -304,6 +316,11 @@ export default function SessionBuilder() {
       })
       .catch((err) => {
         if (!cancelled) {
+          if (err.status === 401) {
+            logout();
+            return;
+          }
+
           // If session not found / not owned by current user, reset flow
           if (err.message.includes('404') || err.message.includes('not found')) {
             setSessionId('');
@@ -348,6 +365,12 @@ export default function SessionBuilder() {
       .catch((err) => {
         if (!cancelled) {
           removeToast(loadingId);
+
+          if (err.status === 401) {
+            logout();
+            return;
+          }
+
           // Fallback à données mock en développement
           setAllChallenges(mockChallenges);
           setError(err.message || 'Catalogue indisponible, fallback local actif.');
