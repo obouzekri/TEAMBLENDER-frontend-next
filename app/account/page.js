@@ -128,18 +128,20 @@ export default function AccountPage() {
         const existingHistory = parseHistory();
         setPlanHistory(existingHistory);
 
-        const mergedUser = {
-          ...(guard.user || {}),
-          first_name: mePayload?.first_name,
-          last_name: mePayload?.last_name,
-          name: mePayload?.name,
-          job_title: mePayload?.job_title,
-          department: mePayload?.department,
-          pricing_plan_id: mePayload?.pricing_plan_id || null,
-          pricing_plan: mePayload?.pricing_plan || null,
-        };
-        setStoredCurrentUser(mergedUser);
-        setGuard((prev) => ({ ...prev, user: mergedUser }));
+        setGuard((prev) => {
+          const mergedUser = {
+            ...(prev.user || {}),
+            first_name: mePayload?.first_name,
+            last_name: mePayload?.last_name,
+            name: mePayload?.name,
+            job_title: mePayload?.job_title,
+            department: mePayload?.department,
+            pricing_plan_id: mePayload?.pricing_plan_id || null,
+            pricing_plan: mePayload?.pricing_plan || null,
+          };
+          setStoredCurrentUser(mergedUser);
+          return { ...prev, user: mergedUser };
+        });
       })
       .catch((err) => {
         if (cancelled) return;
@@ -152,7 +154,7 @@ export default function AccountPage() {
     return () => {
       cancelled = true;
     };
-  }, [guard.allowed, guard.user, showError]);
+  }, [guard.allowed, showError]);
 
   const userLabel = useMemo(() => normalizeDisplayName(guard.user), [guard.user]);
 
