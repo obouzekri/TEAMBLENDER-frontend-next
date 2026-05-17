@@ -29,7 +29,9 @@ const REALTIME_ENGINES = new Set([
  */
 export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, onChallengeCompleted = null }) {
   const normalizedEngineKey = String(engineKey || '').trim();
-  const initialEngineNeedsRealtime = REALTIME_ENGINES.has(normalizedEngineKey);
+  const [activeEngineKey, setActiveEngineKey] = useState(normalizedEngineKey);
+  const effectiveEngineKey = String(activeEngineKey || normalizedEngineKey || '').trim();
+  const initialEngineNeedsRealtime = REALTIME_ENGINES.has(effectiveEngineKey);
   const { socket, connected, error: socketError } = useSocket(initialEngineNeedsRealtime);
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast } = useToast();
   
@@ -39,7 +41,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
-  const requiresRealtime = REALTIME_ENGINES.has(normalizedEngineKey);
+  const requiresRealtime = REALTIME_ENGINES.has(effectiveEngineKey);
 
   // Load session runtime configuration
   useEffect(() => {
@@ -85,6 +87,9 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
       .then(async (payload) => {
         if (!cancelled) {
           const payloadEngineKey = String(payload?.engine_key || '').trim();
+          if (payloadEngineKey) {
+            setActiveEngineKey(payloadEngineKey);
+          }
           let resolvedChallengeId = Number(payload.challenge_id || payload.context?.challengeId || payload.context?.challenge_id || 0);
 
           if (payloadEngineKey && payloadEngineKey !== normalizedEngineKey) {
@@ -107,7 +112,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
                   const itemEngine = String(
                     item?.engine_key || item?.engineKey || item?.challenge?.engine_key || item?.challenge?.engineKey || ''
                   ).trim();
-                  return itemEngine === normalizedEngineKey;
+                  return itemEngine === payloadEngineKey;
                 });
 
                 const mappedChallengeId = Number(
@@ -184,10 +189,22 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
           return res.json();
         })
         .then((payload) => {
+          const payloadEngineKey = String(payload?.engine_key || '').trim();
+          if (payloadEngineKey) {
+            setActiveEngineKey(payloadEngineKey);
+          }
+          const nextChallengeId = Number(payload.challenge_id || payload.context?.challengeId || payload.context?.challenge_id || 0);
           setRuntimePayload({
             ...payload,
-            challenge_id: Number(payload.challenge_id || payload.context?.challengeId || 0),
+            challenge_id: nextChallengeId,
           });
+          setContext((prev) => ({
+            ...(prev || {}),
+            role: payload.context?.role || prev?.role || 'participant',
+            userId: prev?.userId || payload.context?.participantId || null,
+            sessionId: Number(sessionId),
+            challengeId: nextChallengeId,
+          }));
           setError(null);
         })
         .catch((err) => {
@@ -212,7 +229,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     const loadingId = showLoadingToast('Initialisation du challenge...');
 
     mountRuntimeChallenge(
-      normalizedEngineKey,
+      effectiveEngineKey,
       runtimePayload,
       socket,
       context,
@@ -240,7 +257,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     runtimePayload,
     socket,
     connected,
-    normalizedEngineKey,
+    effectiveEngineKey,
     context,
     onChallengeCompleted,
     requiresRealtime,
