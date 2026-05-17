@@ -43,6 +43,14 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
   const [user, setUser] = useState(null);
   const requiresRealtime = REALTIME_ENGINES.has(effectiveEngineKey);
 
+  function shallowEqualContext(a, b) {
+    if (!a || !b) return false;
+    return a.role === b.role
+      && String(a.userId || '') === String(b.userId || '')
+      && Number(a.sessionId || 0) === Number(b.sessionId || 0)
+      && Number(a.challengeId || 0) === Number(b.challengeId || 0);
+  }
+
   // Load session runtime configuration
   useEffect(() => {
     if (!sessionId) {
@@ -132,9 +140,19 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
             }
           }
 
-          setRuntimePayload({
+          const nextRuntimePayload = {
             ...payload,
             challenge_id: resolvedChallengeId,
+          };
+          setRuntimePayload((prev) => {
+            const prevEngineKey = String(prev?.engine_key || '').trim();
+            const nextEngineKey = String(nextRuntimePayload?.engine_key || '').trim();
+            const prevChallengeId = Number(prev?.challenge_id || 0);
+            const nextChallengeId = Number(nextRuntimePayload?.challenge_id || 0);
+            if (prevEngineKey === nextEngineKey && prevChallengeId === nextChallengeId) {
+              return prev;
+            }
+            return nextRuntimePayload;
           });
           const resolvedUserId = currentUser.id
             || currentUser.userId
@@ -144,12 +162,13 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
             || payload.context?.participantId
             || null;
 
-          setContext({
+          const nextContext = {
             role: payload.context?.role || 'participant',
             userId: resolvedUserId,
             sessionId: Number(sessionId),
             challengeId: resolvedChallengeId,
-          });
+          };
+          setContext((prev) => (shallowEqualContext(prev, nextContext) ? prev : nextContext));
           removeToast(loadingId);
           setError(null);
         }
@@ -194,17 +213,29 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
             setActiveEngineKey(payloadEngineKey);
           }
           const nextChallengeId = Number(payload.challenge_id || payload.context?.challengeId || payload.context?.challenge_id || 0);
-          setRuntimePayload({
+          const nextRuntimePayload = {
             ...payload,
             challenge_id: nextChallengeId,
+          };
+          setRuntimePayload((prev) => {
+            const prevEngineKey = String(prev?.engine_key || '').trim();
+            const nextEngineKey = String(nextRuntimePayload?.engine_key || '').trim();
+            const prevChallengeId = Number(prev?.challenge_id || 0);
+            const nextId = Number(nextRuntimePayload?.challenge_id || 0);
+            if (prevEngineKey === nextEngineKey && prevChallengeId === nextId) {
+              return prev;
+            }
+            return nextRuntimePayload;
           });
-          setContext((prev) => ({
-            ...(prev || {}),
-            role: payload.context?.role || prev?.role || 'participant',
-            userId: prev?.userId || payload.context?.participantId || null,
-            sessionId: Number(sessionId),
-            challengeId: nextChallengeId,
-          }));
+          setContext((prev) => {
+            const nextContext = {
+              role: payload.context?.role || prev?.role || 'participant',
+              userId: prev?.userId || payload.context?.participantId || null,
+              sessionId: Number(sessionId),
+              challengeId: nextChallengeId,
+            };
+            return shallowEqualContext(prev, nextContext) ? prev : nextContext;
+          });
           setError(null);
         })
         .catch((err) => {
