@@ -67,21 +67,18 @@ export default function SessionLiveClient() {
   }, []);
 
   // Load session
-  const loadSession = useCallback(() => {
+  const loadSession = useCallback(async () => {
     if (!sessionId) return;
-    fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), { headers: authHeaders() })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Erreur ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        setSession(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message || 'Impossible de charger la session.');
-        setLoading(false);
-      });
+    try {
+      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), { headers: authHeaders() });
+      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      const data = await res.json();
+      setSession(data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message || 'Impossible de charger la session.');
+      setLoading(false);
+    }
   }, [sessionId]);
 
   useEffect(() => {
@@ -133,11 +130,7 @@ export default function SessionLiveClient() {
           ? 'Challenge suivant activé.'
           : 'Dernier challenge terminé.'
       );
-      setSession((prev) => prev ? ({
-        ...prev,
-        active_challenge_id: updated?.active_challenge_id ?? prev.active_challenge_id,
-        flow_mode: updated?.flow_mode || updated?.flowMode || prev.flow_mode,
-      }) : prev);
+      await loadSession();
       refetchSessionState();
       
       // Emit Socket event to notify participants of challenge change
@@ -152,7 +145,7 @@ export default function SessionLiveClient() {
     } finally {
       setActionPending(false);
     }
-  }, [canManageFlow, refetchSessionState, sessionId, socket, connected]);
+  }, [canManageFlow, loadSession, refetchSessionState, sessionId, socket, connected]);
 
   const handleNextChallenge = useCallback(async () => {
     clearAutoAdvanceTimer();

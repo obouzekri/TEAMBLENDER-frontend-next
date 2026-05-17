@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
@@ -177,99 +177,90 @@ export default function ManagerHome() {
     window.location.replace('/login?reason=session_expired');
   }
 
+  const refreshSessions = useCallback(async ({ withToast = false } = {}) => {
+    if (!guard.allowed || !guard.token || authInvalid) return;
 
-
-  useEffect(() => {
-    if (!guard.allowed || !guard.token) return;
-
-    let cancelled = false;
+    let loadingId = null;
     setLoadingSessions(true);
-    const loadingId = showLoadingToast('Chargement des sessions...');
+    if (withToast) {
+      loadingId = showLoadingToast('Chargement des sessions...');
+    }
 
-    fetchSessions(guard.token)
-      .then((data) => {
-        if (!cancelled) {
-          setSessions(data);
-          removeToast(loadingId);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          removeToast(loadingId);
-          if (Number(err?.status) === 401) {
-            handleUnauthorizedAuth();
-            return;
-          }
-          showErrorToast(err.message || 'Impossible de charger les sessions.');
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingSessions(false);
+    try {
+      const data = await fetchSessions(guard.token);
+      setSessions(data);
+      if (loadingId) {
+        removeToast(loadingId);
+      }
+    } catch (err) {
+      if (loadingId) {
+        removeToast(loadingId);
+      }
+      if (Number(err?.status) === 401) {
+        handleUnauthorizedAuth();
+        return;
+      }
+      showErrorToast(err.message || 'Impossible de charger les sessions.');
+    } finally {
+      setLoadingSessions(false);
+    }
+  }, [authInvalid, guard.allowed, guard.token, removeToast, showErrorToast, showLoadingToast]);
+
+  const refreshMembers = useCallback(async () => {
+    if (!guard.allowed || !guard.token || authInvalid) return;
+
+    setLoadingMembers(true);
+    try {
+      const response = await fetch(getApiUrl('/participants'), {
+        headers: {
+          Authorization: `Bearer ${guard.token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [guard.allowed, guard.token, showErrorToast, showLoadingToast, removeToast, authInvalid]);
+      const text = await response.text();
+      let payload = {};
+      try {
+        payload = text ? JSON.parse(text) : {};
+      } catch {
+        payload = {};
+      }
+
+      if (!response.ok) {
+        const error = new Error(payload.error || `Erreur API participants (${response.status})`);
+        error.status = response.status;
+        throw error;
+      }
+
+      const items = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload.items)
+          ? payload.items
+          : Array.isArray(payload.data)
+            ? payload.data
+            : [];
+
+      setMembers(items.map(normalizeParticipant));
+    } catch (err) {
+      if (Number(err?.status) === 401) {
+        handleUnauthorizedAuth();
+        return;
+      }
+      showErrorToast(err.message || 'Impossible de charger les participants.');
+    } finally {
+      setLoadingMembers(false);
+    }
+  }, [authInvalid, guard.allowed, guard.token, showErrorToast]);
+
+
 
   useEffect(() => {
-    if (!guard.allowed || !guard.token) return;
+    refreshSessions({ withToast: true });
+  }, [refreshSessions]);
 
-    let cancelled = false;
-    setLoadingMembers(true);
-
-    fetch(getApiUrl('/participants'), {
-      headers: {
-        Authorization: `Bearer ${guard.token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(async (response) => {
-        const text = await response.text();
-        let payload = {};
-        try {
-          payload = text ? JSON.parse(text) : {};
-        } catch {
-          payload = {};
-        }
-
-        if (!response.ok) {
-          const error = new Error(payload.error || `Erreur API participants (${response.status})`);
-          error.status = response.status;
-          throw error;
-        }
-
-        const items = Array.isArray(payload)
-          ? payload
-          : Array.isArray(payload.items)
-            ? payload.items
-            : Array.isArray(payload.data)
-              ? payload.data
-              : [];
-
-        if (!cancelled) {
-          setMembers(items.map(normalizeParticipant));
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          if (Number(err?.status) === 401) {
-            handleUnauthorizedAuth();
-            return;
-          }
-          showErrorToast(err.message || 'Impossible de charger les participants.');
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoadingMembers(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [guard.allowed, guard.token, showErrorToast, authInvalid]);
+  useEffect(() => {
+    refreshMembers();
+  }, [refreshMembers]);
 
   function logout() {
     localStorage.removeItem('jwt');
@@ -300,8 +291,7 @@ export default function ManagerHome() {
         const body = await response.text();
         throw new Error(body || `Erreur ${response.status}`);
       }
-
-      setSessions((prev) => prev.filter((item) => getSessionIdentifier(item) !== sessionIdentifier));
+      await refreshSessions();
       showSuccessToast('Session supprimee.');
     } catch (err) {
       showErrorToast(err.message || 'Suppression impossible.');
@@ -411,30 +401,7 @@ export default function ManagerHome() {
       setShowParticipantForm(false);
       resetMemberForm();
 
-      const refresh = await fetch(getApiUrl('/participants'), {
-        headers: {
-          Authorization: `Bearer ${guard.token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      const refreshText = await refresh.text();
-      let refreshPayload = {};
-      try {
-        refreshPayload = refreshText ? JSON.parse(refreshText) : {};
-      } catch {
-        refreshPayload = {};
-      }
-
-      if (refresh.ok) {
-        const items = Array.isArray(refreshPayload)
-          ? refreshPayload
-          : Array.isArray(refreshPayload.items)
-            ? refreshPayload.items
-            : Array.isArray(refreshPayload.data)
-              ? refreshPayload.data
-              : [];
-        setMembers(items.map(normalizeParticipant));
-      }
+      await refreshMembers();
     } catch (err) {
       setMemberFormStatus(err.message || `Impossible de ${editingMemberId ? 'mettre à jour' : 'créer'} le participant.`);
       showErrorToast(err.message || `Impossible de ${editingMemberId ? 'mettre à jour' : 'créer'} le participant.`);
@@ -464,8 +431,7 @@ export default function ManagerHome() {
         const body = await response.text();
         throw new Error(body || `Suppression participant impossible (${response.status})`);
       }
-
-      setMembers((prev) => prev.filter((item) => String(item.id) !== String(member.id)));
+      await refreshMembers();
       showSuccessToast('Participant supprimé.');
     } catch (err) {
       showErrorToast(err.message || 'Suppression participant impossible.');

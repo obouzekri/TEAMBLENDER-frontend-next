@@ -227,6 +227,39 @@ export default function SessionBuilder() {
     toIntegerId,
   ]);
 
+  const loadSessionDetails = useCallback(async (targetSessionId, tokenOverride) => {
+    const targetId = String(targetSessionId || '').trim();
+    if (!targetId) return null;
+
+    const token = tokenOverride || getAuthToken();
+    if (!token) return null;
+
+    const session = await apiRequest(`/sessions/${targetId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (session?.name) setSessionName(session.name);
+    setFlowMode(String(session?.flow_mode || session?.flowMode || 'manual').trim().toLowerCase() === 'auto' ? 'auto' : 'manual');
+
+    if (session?.session_date) {
+      const raw = String(session.session_date);
+      setSessionDateTime(raw.length === 10 ? `${raw}T00:00` : '');
+    }
+
+    const assigned = Array.isArray(session?.assigned_participants) ? session.assigned_participants : [];
+    const assignedIds = assigned
+      .map((participant) => (typeof participant === 'object' ? participant?.id : participant))
+      .map((value) => Number(value))
+      .filter((value) => Number.isInteger(value));
+
+    setSessionParticipantCount(assigned.length);
+    setDraftParticipantIds(assignedIds);
+    return session;
+  }, [apiRequest, getAuthToken]);
+
   const handleLaunchSession = useCallback(async () => {
     if (!selectedChallenges.length || isLaunching) {
       return;
@@ -301,22 +334,7 @@ export default function SessionBuilder() {
       .then((session) => {
         if (!cancelled) {
           // Pre-populate session metadata
-          if (session.name) setSessionName(session.name);
-          setFlowMode(String(session.flow_mode || session.flowMode || 'manual').trim().toLowerCase() === 'auto' ? 'auto' : 'manual');
-          if (session.session_date) {
-            // DATEONLY from DB is "YYYY-MM-DD"; datetime-local needs "YYYY-MM-DDTHH:mm"
-            const raw = String(session.session_date);
-            setSessionDateTime(raw.length === 10 ? `${raw}T00:00` : '');
-          }
-          const assigned = Array.isArray(session.assigned_participants)
-            ? session.assigned_participants
-            : [];
-          const assignedIds = assigned
-            .map((participant) => (typeof participant === 'object' ? participant?.id : participant))
-            .map((value) => Number(value))
-            .filter((value) => Number.isInteger(value));
-          setSessionParticipantCount(assigned.length);
-          setDraftParticipantIds(assignedIds);
+          loadSessionDetails(sessionId, token).catch(() => null);
 
           // Pre-populate selectedChallenges from session
           const sessionChallenges = Array.isArray(session.challenges) ? session.challenges : [];
@@ -357,7 +375,7 @@ export default function SessionBuilder() {
     return () => {
       cancelled = true;
     };
-  }, [sessionId, guard.allowed, filteredChallenges, getAuthToken, sessionChallengesLoaded, selectChallenge, updateChallengeConfig]);
+  }, [sessionId, guard.allowed, filteredChallenges, getAuthToken, loadSessionDetails, sessionChallengesLoaded, selectChallenge, updateChallengeConfig]);
 
   // Charger les challenges au mount
   useEffect(() => {
@@ -463,6 +481,7 @@ export default function SessionBuilder() {
       sessionStorage.setItem('sessionId', newId);
       setSessionId(newId);
       setSessionParticipantCount(draftParticipantIds.length);
+      await loadSessionDetails(newId, token);
       removeToast(loadingId);
       // Participants are already assigned in the creation pane; continue directly to challenge selection.
     } catch (err) {
@@ -504,16 +523,14 @@ export default function SessionBuilder() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
-      if (trimmedName) setSessionName(trimmedName);
-      setFlowMode(editFlowMode);
-      setSessionDateTime(editDateTime);
+      await loadSessionDetails(sessionId, token);
       setIsEditingSessionInfo(false);
     } catch (err) {
       showErrorToast(err.message || 'Impossible de mettre à jour la session.');
     } finally {
       setIsSavingSessionInfo(false);
     }
-  }, [apiRequest, editDateTime, editName, getAuthToken, sessionId, showErrorToast]);
+  }, [apiRequest, editDateTime, editName, getAuthToken, loadSessionDetails, sessionId, showErrorToast]);
 
   function logout() {
     localStorage.removeItem('jwt');
