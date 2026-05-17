@@ -252,9 +252,21 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
         });
     };
 
+    const handleSocketConnect = () => {
+      // Force backend-authoritative resync on every (re)connection.
+      handleChallengeAdvanced();
+    };
+
     socket.on('session:challenge-advanced', handleChallengeAdvanced);
+    socket.on('connect', handleSocketConnect);
+
+    if (socket.connected) {
+      handleSocketConnect();
+    }
+
     return () => {
       socket.off('session:challenge-advanced', handleChallengeAdvanced);
+      socket.off('connect', handleSocketConnect);
     };
   }, [socket, sessionId, getApiUrl, showErrorToast]);
 
