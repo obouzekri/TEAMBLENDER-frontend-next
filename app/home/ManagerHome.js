@@ -9,6 +9,7 @@ import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import { getApiUrl } from '@/lib/config';
 import useToast from '@/lib/useToast';
 import { fetchSessionsWithRetry } from '@/lib/api';
+import { clearStoredAuth } from '@/lib/auth';
 
 function pickDisplayName(user) {
   if (!user || typeof user !== 'object') return 'Manager';
@@ -84,7 +85,10 @@ async function fetchSessions(token) {
     const items = Array.isArray(data) ? data : (data.sessions || data.data || []);
     return Array.isArray(items) ? items : [];
   } catch (err) {
-    throw new Error(err.message || `Erreur API sessions`);
+    const wrapped = new Error(err.message || 'Erreur API sessions');
+    wrapped.status = err?.status;
+    wrapped.code = err?.code;
+    throw wrapped;
   }
 }
 
@@ -103,6 +107,7 @@ export default function ManagerHome() {
   const [formAttempted, setFormAttempted] = useState(false);
   const [memberFormStatus, setMemberFormStatus] = useState('');
   const [showParticipantForm, setShowParticipantForm] = useState(false);
+  const [authInvalid, setAuthInvalid] = useState(false);
   const [memberForm, setMemberForm] = useState({
     first_name: '',
     last_name: '',
@@ -153,6 +158,14 @@ export default function ManagerHome() {
     showErrorToast(createSessionBlockedReason);
   }
 
+  function handleUnauthorizedAuth(message = 'Session expirée. Veuillez vous reconnecter.') {
+    if (authInvalid) return;
+    setAuthInvalid(true);
+    showErrorToast(message);
+    clearStoredAuth();
+    window.location.replace('/login?reason=session_expired');
+  }
+
 
 
   useEffect(() => {
@@ -172,6 +185,10 @@ export default function ManagerHome() {
       .catch((err) => {
         if (!cancelled) {
           removeToast(loadingId);
+          if (Number(err?.status) === 401) {
+            handleUnauthorizedAuth();
+            return;
+          }
           showErrorToast(err.message || 'Impossible de charger les sessions.');
         }
       })
@@ -182,7 +199,7 @@ export default function ManagerHome() {
     return () => {
       cancelled = true;
     };
-  }, [guard.allowed, guard.token, showErrorToast, showLoadingToast, removeToast]);
+  }, [guard.allowed, guard.token, showErrorToast, showLoadingToast, removeToast, authInvalid]);
 
   useEffect(() => {
     if (!guard.allowed || !guard.token) return;
@@ -206,7 +223,9 @@ export default function ManagerHome() {
         }
 
         if (!response.ok) {
-          throw new Error(payload.error || `Erreur API participants (${response.status})`);
+          const error = new Error(payload.error || `Erreur API participants (${response.status})`);
+          error.status = response.status;
+          throw error;
         }
 
         const items = Array.isArray(payload)
@@ -223,6 +242,10 @@ export default function ManagerHome() {
       })
       .catch((err) => {
         if (!cancelled) {
+          if (Number(err?.status) === 401) {
+            handleUnauthorizedAuth();
+            return;
+          }
           showErrorToast(err.message || 'Impossible de charger les participants.');
         }
       })
@@ -235,7 +258,7 @@ export default function ManagerHome() {
     return () => {
       cancelled = true;
     };
-  }, [guard.allowed, guard.token, showErrorToast]);
+  }, [guard.allowed, guard.token, showErrorToast, authInvalid]);
 
   function logout() {
     localStorage.removeItem('jwt');
