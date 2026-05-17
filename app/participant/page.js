@@ -32,7 +32,7 @@ export default function ParticipantPage() {
   const hasRedirected = useRef(false);
   const [ready, setReady] = useState(false);
   const router = useRouter();
-  const { sessionState } = useSessionState(sessionId || null);
+  const { sessionState, connected, reconnecting, pollingActive } = useSessionState(sessionId || null);
   const flowMode = String(sessionState?.flowMode || sessionState?.flow_mode || 'manual').trim().toLowerCase() === 'auto'
     ? 'auto'
     : 'manual';
@@ -54,6 +54,20 @@ export default function ParticipantPage() {
     if (!user) return 'Participant';
     return user.first_name || user.firstname || user.email || 'Participant';
   }, [user]);
+
+  const connectionState = useMemo(() => {
+    if (!sessionId) return '';
+    if (connected) return 'connected';
+    if (reconnecting || pollingActive) return 'reconnecting';
+    return 'offline';
+  }, [connected, pollingActive, reconnecting, sessionId]);
+
+  const asyncStatusMessage = useMemo(() => {
+    if (joiningSessionId) return 'Connexion a la session en cours...';
+    if (joining) return 'Chargement du challenge actif...';
+    if (loadingSessions) return 'Chargement des sessions assignees...';
+    return '';
+  }, [joiningSessionId, joining, loadingSessions]);
 
   useEffect(() => {
     if (!ready || typeof window === 'undefined') return;
@@ -252,7 +266,7 @@ export default function ParticipantPage() {
 
   return (
     <>
-      <AppNav userLabel={participantLabel} onLogout={logout} role="participant" />
+      <AppNav userLabel={participantLabel} onLogout={logout} role="participant" connectionState={connectionState} />
       <main className="shell app-home participant-home">
         <section className="hero participant-hero">
           <p className="eyebrow">ESPACE PARTICIPANT</p>
@@ -280,6 +294,9 @@ export default function ParticipantPage() {
             <span>Session en temps reel</span>
             <span>Experience guidee</span>
           </div>
+          {asyncStatusMessage ? (
+            <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
+          ) : null}
         </section>
 
         <div className="participant-grid">

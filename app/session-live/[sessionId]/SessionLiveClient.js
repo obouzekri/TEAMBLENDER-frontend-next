@@ -53,7 +53,7 @@ export default function SessionLiveClient() {
   const autoAdvanceTimerRef = useRef(null);
   const completedChallengeKeyRef = useRef('');
   const { sessionState, refetch: refetchSessionState } = useSessionState(sessionId || null);
-  const { socket, connected } = useSocket(!!sessionId);
+  const { socket, connected, reconnecting } = useSocket(!!sessionId);
 
   // Auth guard
   useEffect(() => {
@@ -257,6 +257,12 @@ export default function SessionLiveClient() {
   const participantCount = Array.isArray(session?.participants) ? session.participants.length : 0;
   const memberCount = assignedParticipantCount || participantCount || (Array.isArray(session?.members) ? session.members.length : 0);
   const userLabel = pickDisplayName(user);
+  const connectionState = connected ? 'connected' : (reconnecting ? 'reconnecting' : 'offline');
+  const asyncStatusMessage = actionPending
+    ? 'Action en cours de traitement...'
+    : loading
+      ? 'Chargement de la session...'
+      : '';
 
   if (loading) {
     return (
@@ -282,8 +288,11 @@ export default function SessionLiveClient() {
 
   return (
     <>
-      <AppNav userLabel={userLabel} onLogout={logout} role="participant-live" />
+      <AppNav userLabel={userLabel} onLogout={logout} role="participant-live" connectionState={connectionState} />
       <main className="shell app-home session-live-shell">
+        {asyncStatusMessage ? (
+          <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
+        ) : null}
         <section className="session-live-header session-live-surface">
           <div className="session-live-header__row1">
             <strong className="session-live-header__name">{session?.name || `Session ${sessionId}`}</strong>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
 
-export default function AppNav({ userLabel, onLogout, role }) {
+export default function AppNav({ userLabel, onLogout, role, connectionState = '' }) {
   const pathname = usePathname();
   const [activeHomeBlock, setActiveHomeBlock] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,6 +25,16 @@ export default function AppNav({ userLabel, onLogout, role }) {
         ? 'Session live'
         : 'Espace manager';
   const resolvedUserLabel = userLabel || (isParticipant ? 'Participant' : 'Manager');
+  const normalizedConnectionState = ['connected', 'reconnecting', 'offline'].includes(String(connectionState || '').trim())
+    ? String(connectionState).trim()
+    : '';
+  const connectionLabel = normalizedConnectionState === 'connected'
+    ? 'Connecte'
+    : normalizedConnectionState === 'reconnecting'
+      ? 'Reconnexion'
+      : normalizedConnectionState === 'offline'
+        ? 'Hors ligne'
+        : '';
 
   useEffect(() => {
     if (!isManagerHome) {
@@ -155,6 +165,15 @@ export default function AppNav({ userLabel, onLogout, role }) {
           <div className="app-user-box">
             <div className="app-user-meta">
               <span className="app-user-name">{resolvedUserLabel}</span>
+              {normalizedConnectionState ? (
+                <span
+                  className={`nav-connection-indicator is-${normalizedConnectionState}`}
+                  aria-live="polite"
+                  role="status"
+                >
+                  {connectionLabel}
+                </span>
+              ) : null}
             </div>
             <button type="button" className="btn-secondary" onClick={onLogout}>Se deconnecter</button>
           </div>

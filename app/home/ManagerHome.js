@@ -151,6 +151,17 @@ export default function ManagerHome() {
   const createSessionBlockedReason = loadingMembers
     ? 'Chargement des participants en cours...'
     : 'Creation indisponible: ajoutez d abord des participants dans votre espace manager.';
+  const asyncStatusMessage = creatingMember
+    ? (editingMemberId ? 'Mise a jour du participant en cours...' : 'Creation du participant en cours...')
+    : deletingMemberId
+      ? 'Suppression du participant en cours...'
+      : deletingSessionId
+        ? 'Suppression de la session en cours...'
+        : loadingSessions
+          ? 'Chargement des sessions en cours...'
+          : loadingMembers
+            ? 'Chargement des participants en cours...'
+            : '';
 
   function handleCreateSessionClick(event) {
     if (canCreateSession) return;
@@ -479,6 +490,9 @@ export default function ManagerHome() {
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
       <main className="shell app-home manager-home">
+        {asyncStatusMessage ? (
+          <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
+        ) : null}
         <section className="hero home-hero">
           <div className="home-hero-grid">
             <div className="home-hero-copy">
@@ -665,7 +679,7 @@ export default function ManagerHome() {
             <div className="participants-panel-actions">
               <button
                 type="button"
-                className="btn-primary"
+                className="btn-secondary"
                 onClick={showParticipantForm || editingMemberId ? resetMemberForm : openNewMemberForm}
               >
                 {showParticipantForm || editingMemberId ? 'Fermer le formulaire' : 'Créer un participant'}

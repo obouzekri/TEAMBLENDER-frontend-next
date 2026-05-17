@@ -42,6 +42,13 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const requiresRealtime = REALTIME_ENGINES.has(effectiveEngineKey);
+  const connectionState = !requiresRealtime
+    ? ''
+    : connected
+      ? 'connected'
+      : socketError
+        ? 'offline'
+        : 'reconnecting';
 
   function shallowEqualContext(a, b) {
     if (!a || !b) return false;
@@ -365,6 +372,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
           userLabel={user?.first_name || user?.email || 'User'}
           onLogout={handleLogout}
           role={user?.role}
+          connectionState={connectionState}
         />
       )}
       <div className={styles.challengeContainer}>

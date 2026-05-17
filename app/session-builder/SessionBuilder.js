@@ -99,6 +99,15 @@ export default function SessionBuilder() {
   const [availableParticipantsCount, setAvailableParticipantsCount] = useState(0);
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
+  const asyncStatusMessage = isCreatingSession
+    ? 'Creation de la session en cours...'
+    : isSavingSessionInfo
+      ? 'Sauvegarde des informations de session en cours...'
+      : isLaunching
+        ? 'Lancement de la session en cours...'
+        : isLoading
+          ? 'Chargement du catalogue en cours...'
+          : '';
   const currentConfiguringChallenge = useMemo(
     () => selectedChallenges.find((c) => c.id === configuring) || null,
     [configuring, selectedChallenges]
@@ -682,6 +691,9 @@ export default function SessionBuilder() {
       <AppNav userLabel={userLabel} onLogout={logout} />
       
       <main className={`shell ${styles.sessionBuilder}`}>
+        {asyncStatusMessage ? (
+          <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
+        ) : null}
         {/* Session info bar */}
         <div className={styles.sessionInfoBar}>
           {isEditingSessionInfo ? (
