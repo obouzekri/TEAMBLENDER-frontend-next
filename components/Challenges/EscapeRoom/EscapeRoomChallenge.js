@@ -5,6 +5,120 @@ import { getApiUrl } from '@/lib/config';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import styles from './EscapeRoom.module.css';
 
+const OUTCOME_UI = {
+  waiting: {
+    tone: 'Info',
+    feedback: 'En attente: tous les participants doivent soumettre avant validation.',
+    title: 'Validation en attente',
+    detail: 'L equipe n a pas encore fini de repondre.',
+    durationMs: 1200,
+    blockProgression: false,
+  },
+  divergent: {
+    tone: 'Warning',
+    feedback: 'Reponses divergentes: alignez-vous puis renvoyez une reponse commune.',
+    title: 'Reponses divergentes',
+    detail: 'Les reponses ne sont pas identiques dans l equipe.',
+    durationMs: 1800,
+    blockProgression: false,
+  },
+  wrong: {
+    tone: 'Danger',
+    feedback: 'Reponse incorrecte. Reessayez avec une proposition commune.',
+    title: 'Reponse incorrecte',
+    detail: 'La reponse commune ne correspond pas a la solution attendue.',
+    durationMs: 1800,
+    blockProgression: false,
+  },
+  correct: {
+    tone: 'Success',
+    feedback: 'Enigme validee. Passage a la suivante...',
+    title: 'Enigme reussie',
+    detail: 'Excellent travail d equipe. Preparation de la prochaine enigme.',
+    durationMs: 2000,
+    blockProgression: true,
+  },
+  escaped: {
+    tone: 'Success',
+    feedback: 'Salle deverrouillee. Bravo, mission accomplie.',
+    title: 'Salle deverrouillee',
+    detail: 'Toutes les enigmes ont ete resolues.',
+    durationMs: 2200,
+    blockProgression: false,
+  },
+  max_attempts: {
+    tone: 'Danger',
+    feedback: 'Nombre maximal de tentatives atteint pour cette enigme.',
+    title: 'Limite de tentatives atteinte',
+    detail: 'Demandez un indice ou passez a l enigme suivante.',
+    durationMs: 2200,
+    blockProgression: false,
+  },
+  already_finished: {
+    tone: 'Info',
+    feedback: 'La partie est deja terminee.',
+    title: 'Partie terminee',
+    detail: 'Aucune action supplementaire n est necessaire.',
+    durationMs: 1200,
+    blockProgression: false,
+  },
+  enigme_not_found: {
+    tone: 'Danger',
+    feedback: 'Enigme introuvable. Rechargez la vue et reessayez.',
+    title: 'Enigme introuvable',
+    detail: 'La synchronisation a echoue entre client et serveur.',
+    durationMs: 2000,
+    blockProgression: false,
+  },
+};
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function formatValidationFeedback(validation = {}) {
+  const outcome = String(validation?.outcome || '').trim();
+  const preset = OUTCOME_UI[outcome];
+
+  if (!preset) {
+    return {
+      feedback: outcome ? `Validation: ${outcome}` : 'Reponse envoyee.',
+      verdict: null,
+      holdBeforeRefreshMs: 0,
+      blockProgression: false,
+    };
+  }
+
+  let detail = preset.detail;
+  if (outcome === 'waiting') {
+    const responded = Number(validation?.responded || 0);
+    const total = Number(validation?.total || 0);
+    if (total > 0) {
+      detail = `Progression equipe: ${responded}/${total} reponses.`;
+    }
+  }
+  if (outcome === 'divergent' || outcome === 'wrong' || outcome === 'max_attempts') {
+    const attempts = Number(validation?.attempts || 0);
+    const maxAttempts = Number(validation?.max_attempts || 0);
+    if (attempts > 0 && maxAttempts > 0) {
+      detail = `${detail} Tentative ${attempts}/${maxAttempts}.`;
+    }
+  }
+
+  return {
+    feedback: preset.feedback,
+    verdict: {
+      tone: preset.tone,
+      title: preset.title,
+      detail,
+    },
+    holdBeforeRefreshMs: Number(preset.durationMs || 0),
+    blockProgression: Boolean(preset.blockProgression),
+  };
+}
+
 /**
  * EscapeRoomChallenge - Escape Room v1 (REST-driven)
  *
@@ -26,9 +140,11 @@ export default function EscapeRoomChallenge({
   const [answer, setAnswer] = useState('');
   const [busyAction, setBusyAction] = useState('');
   const [feedback, setFeedback] = useState('');
+  const [verdict, setVerdict] = useState(null);
   const completionGuardRef = useRef('');
   const stateRequestIdRef = useRef(0);
   const appliedStateRequestIdRef = useRef(0);
+  const verdictTimeoutRef = useRef(null);
 
   const sessionId = String(context?.sessionId || runtimePayload?.session_id || '').trim();
   const challengeId = String(context?.challengeId || runtimePayload?.challenge_id || '').trim();
@@ -109,6 +225,14 @@ export default function EscapeRoomChallenge({
   useEffect(() => {
     loadParticipants().catch(() => {});
   }, [loadParticipants]);
+
+  useEffect(() => {
+    return () => {
+      if (verdictTimeoutRef.current) {
+        window.clearTimeout(verdictTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!endpointBase || !token) return () => {};
@@ -219,12 +343,26 @@ export default function EscapeRoomChallenge({
         body: JSON.stringify({ enigme_id: currentEnigme.id, answer }),
       });
 
-      const outcome = String(payload?.validation?.outcome || '').trim();
-      if (outcome) {
-        setFeedback(`Validation: ${outcome}`);
-      } else {
-        setFeedback('Réponse envoyée.');
+      if (verdictTimeoutRef.current) {
+        window.clearTimeout(verdictTimeoutRef.current);
+        verdictTimeoutRef.current = null;
       }
+
+      const validationFeedback = formatValidationFeedback(payload?.validation || {});
+      setFeedback(validationFeedback.feedback);
+
+      if (validationFeedback.verdict) {
+        setVerdict(validationFeedback.verdict);
+        verdictTimeoutRef.current = window.setTimeout(() => {
+          setVerdict(null);
+          verdictTimeoutRef.current = null;
+        }, validationFeedback.holdBeforeRefreshMs + 300);
+      }
+
+      if (validationFeedback.blockProgression && validationFeedback.holdBeforeRefreshMs > 0) {
+        await wait(validationFeedback.holdBeforeRefreshMs);
+      }
+
       setAnswer('');
     });
   }, [answer, apiCall, currentEnigme, runAction]);
@@ -460,11 +598,11 @@ export default function EscapeRoomChallenge({
                     onChange={(event) => setAnswer(event.target.value.toUpperCase())}
                     placeholder={String(currentUiData?.placeholder || 'VOTRE RÉPONSE').toUpperCase()}
                     className={styles.input}
-                    disabled={busyAction === 'submit' || !currentEnigme}
+                    disabled={busyAction === 'submit' || !currentEnigme || Boolean(verdict)}
                   />
                   <button
                     onClick={submitAnswer}
-                    disabled={busyAction === 'submit' || !answer.trim() || !currentEnigme}
+                    disabled={busyAction === 'submit' || !answer.trim() || !currentEnigme || Boolean(verdict)}
                     className={styles.primaryBtn}
                   >
                     {busyAction === 'submit' ? 'Envoi...' : 'Soumettre'}
@@ -593,6 +731,15 @@ export default function EscapeRoomChallenge({
           ) : null}
         </aside>
       </section>
+
+      {verdict ? (
+        <div className={styles.verdictOverlay} role="status" aria-live="polite" aria-atomic="true">
+          <div className={`${styles.verdictCard} ${styles[`verdict${verdict.tone}`]}`}>
+            <p className={styles.verdictTitle}>{verdict.title}</p>
+            <p className={styles.verdictDetail}>{verdict.detail}</p>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

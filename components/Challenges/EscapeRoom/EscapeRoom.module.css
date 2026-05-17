@@ -1,4 +1,5 @@
 .escapeRoomContainer {
+  position: relative;
   min-height: 100%;
   padding: 16px;
   display: flex;
@@ -731,6 +732,76 @@
   padding: 0 2px;
 }
 
+.verdictOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(2, 6, 23, 0.52);
+  backdrop-filter: blur(1px);
+}
+
+.verdictCard {
+  width: min(520px, 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(15, 23, 42, 0.95);
+  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.5);
+  padding: 18px 20px;
+}
+
+.verdictTitle {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.verdictDetail {
+  margin: 0;
+  color: #dbeafe;
+  line-height: 1.45;
+}
+
+.verdictSuccess {
+  border-color: rgba(34, 197, 94, 0.55);
+  background: linear-gradient(160deg, rgba(6, 78, 59, 0.88), rgba(15, 23, 42, 0.95));
+}
+
+.verdictSuccess .verdictTitle {
+  color: #86efac;
+}
+
+.verdictWarning {
+  border-color: rgba(245, 158, 11, 0.55);
+  background: linear-gradient(160deg, rgba(120, 53, 15, 0.9), rgba(15, 23, 42, 0.95));
+}
+
+.verdictWarning .verdictTitle {
+  color: #fcd34d;
+}
+
+.verdictDanger {
+  border-color: rgba(248, 113, 113, 0.55);
+  background: linear-gradient(160deg, rgba(127, 29, 29, 0.9), rgba(15, 23, 42, 0.95));
+}
+
+.verdictDanger .verdictTitle {
+  color: #fecaca;
+}
+
+.verdictInfo {
+  border-color: rgba(125, 211, 252, 0.55);
+  background: linear-gradient(160deg, rgba(3, 105, 161, 0.78), rgba(15, 23, 42, 0.95));
+}
+
+.verdictInfo .verdictTitle {
+  color: #bae6fd;
+}
+
 @media (max-width: 980px) {
   .header {
     flex-direction: column;
@@ -754,5 +825,13 @@
 
   .timerQuickActions {
     grid-template-columns: 1fr;
+  }
+
+  .verdictCard {
+    padding: 14px 16px;
+  }
+
+  .verdictTitle {
+    font-size: 1rem;
   }
 }
