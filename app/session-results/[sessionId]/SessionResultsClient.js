@@ -47,6 +47,7 @@ export default function SessionResultsClient() {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [results, setResults] = useState([]);
+  const [participationRate, setParticipationRate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -64,9 +65,10 @@ export default function SessionResultsClient() {
   const loadData = useCallback(async () => {
     if (!sessionId) return;
     try {
-      const [sessionRes, resultsRes] = await Promise.all([
+      const [sessionRes, resultsRes, rateRes] = await Promise.all([
         fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), { headers: authHeaders() }),
         fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/results`), { headers: authHeaders() }),
+        fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/participation-rate`), { headers: authHeaders() }),
       ]);
 
       if (!sessionRes.ok) throw new Error(`Session introuvable (${sessionRes.status})`);
@@ -77,6 +79,11 @@ export default function SessionResultsClient() {
       if (resultsRes.ok) {
         const resultsPayload = await resultsRes.json();
         setResults(Array.isArray(resultsPayload?.data) ? resultsPayload.data : []);
+      }
+
+      if (rateRes.ok) {
+        const ratePayload = await rateRes.json();
+        setParticipationRate(ratePayload?.data ?? null);
       }
     } catch (err) {
       setError(err.message || 'Impossible de charger les résultats.');
@@ -177,7 +184,8 @@ export default function SessionResultsClient() {
           <h2>Vue d&apos;ensemble</h2>
           <div className="session-results-stats-grid">
             {[
-              { label: 'Participants', value: stats.uniqueParticipants },
+              { label: 'Participants actifs', value: stats.uniqueParticipants },
+              { label: 'Taux de participation', value: participationRate != null ? `${participationRate.rate}%` : '—' },
               { label: 'Challenges joués', value: stats.uniqueChallenges },
               { label: 'Tentatives', value: stats.total },
               { label: 'Complétées', value: stats.completed },

@@ -283,6 +283,19 @@ export default function ParticipantPage() {
         </section>
 
         <div className="participant-grid">
+          {/* Loading skeleton while sessions are being fetched */}
+          {loadingSessions && !sessionId && (
+            <section className="feature-card participant-panel participant-panel--wide">
+              <div className="participant-panel__head">
+                <div>
+                  <p className="eyebrow">SESSIONS ASSIGNEES</p>
+                  <h2>Chargement de vos sessions...</h2>
+                </div>
+              </div>
+              <p className="participant-help-text">Récupération en cours...</p>
+            </section>
+          )}
+
           {/* Assigned sessions cards - displayed when no session is selected */}
           {assignedSessions.length > 0 && !sessionId && (
             <section className="feature-card participant-panel participant-panel--wide">
