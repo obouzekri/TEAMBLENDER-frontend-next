@@ -10,6 +10,22 @@ const QUICK_CHAT_TEMPLATES = Object.freeze([
   'On verrouille la timeline finale ?'
 ]);
 
+const PHASES = Object.freeze([
+  { key: 'cadrage', label: 'Cadrage', className: 'phaseCadrage' },
+  { key: 'preparation', label: 'Preparation', className: 'phasePreparation' },
+  { key: 'execution', label: 'Execution', className: 'phaseExecution' },
+  { key: 'cloture', label: 'Cloture', className: 'phaseCloture' },
+]);
+
+function inferPhaseKey(index, total) {
+  const safeTotal = Math.max(1, Number(total || 1));
+  const ratio = Number(index || 0) / safeTotal;
+  if (ratio < 0.25) return 'cadrage';
+  if (ratio < 0.5) return 'preparation';
+  if (ratio < 0.75) return 'execution';
+  return 'cloture';
+}
+
 function formatTimer(seconds) {
   const safe = Math.max(0, Number(seconds || 0));
   const mm = String(Math.floor(safe / 60)).padStart(2, '0');
@@ -20,9 +36,10 @@ function formatTimer(seconds) {
 export default function MissionCritiqueChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState([]);
-  const [dropIndex, setDropIndex] = useState(-1);
-  const [dropPulseIndex, setDropPulseIndex] = useState(-1);
+  const [dropTarget, setDropTarget] = useState({ phaseKey: '', index: -1 });
+  const [dropPulseTarget, setDropPulseTarget] = useState({ phaseKey: '', index: -1 });
   const [dragTaskId, setDragTaskId] = useState('');
+  const [phaseByTask, setPhaseByTask] = useState({});
   const [taskFilter, setTaskFilter] = useState('pending');
   const [taskQuery, setTaskQuery] = useState('');
   const [submitResult, setSubmitResult] = useState(null);
@@ -114,6 +131,50 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   }, [timerProgress, timerState]);
 
   useEffect(() => {
+    setPhaseByTask((prev) => {
+      const next = {};
+      timeline.forEach((taskId, index) => {
+        const id = String(taskId);
+        next[id] = prev[id] || inferPhaseKey(index, timeline.length);
+      });
+
+      const prevKeys = Object.keys(prev);
+      const nextKeys = Object.keys(next);
+      const sameSize = prevKeys.length === nextKeys.length;
+      const unchanged = sameSize && nextKeys.every((key) => prev[key] === next[key]);
+      return unchanged ? prev : next;
+    });
+  }, [timeline]);
+
+  const phaseItems = useMemo(() => {
+    const buckets = PHASES.reduce((acc, phase) => {
+      acc[phase.key] = [];
+      return acc;
+    }, {});
+
+    timeline.forEach((taskId, timelineIndex) => {
+      const id = String(taskId);
+      const phaseKey = phaseByTask[id] || inferPhaseKey(timelineIndex, timeline.length);
+      const safePhaseKey = buckets[phaseKey] ? phaseKey : 'cloture';
+      buckets[safePhaseKey].push({
+        taskId: id,
+        timelineIndex,
+      });
+    });
+
+    return buckets;
+  }, [phaseByTask, timeline]);
+
+  const phaseOffsets = useMemo(() => {
+    let offset = 0;
+    return PHASES.reduce((acc, phase) => {
+      acc[phase.key] = offset;
+      offset += (phaseItems[phase.key] || []).length;
+      return acc;
+    }, {});
+  }, [phaseItems]);
+
+  useEffect(() => {
     if (!socket) return () => {};
 
     const onEvent = (packet = {}) => {
@@ -168,21 +229,27 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     });
   }
 
-  function onTaskDragStart(event, taskId, index = -1, from = 'catalog') {
+  function onTaskDragStart(event, taskId, timelineIndex = -1, from = 'catalog', fromPhase = '', fromPhaseIndex = -1) {
     event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('application/json', JSON.stringify({ taskId, index, from }));
+    event.dataTransfer.setData('application/json', JSON.stringify({
+      taskId,
+      timelineIndex,
+      from,
+      fromPhase,
+      fromPhaseIndex,
+    }));
     setDragTaskId(String(taskId));
   }
 
   function onTaskDragEnd() {
     setDragTaskId('');
-    setDropIndex(-1);
+    setDropTarget({ phaseKey: '', index: -1 });
   }
 
-  function onTimelineDrop(event, toIndex) {
+  function onTimelineDrop(event, toPhaseKey, toPhaseIndex) {
     if (!canEditTimeline) return;
     event.preventDefault();
-    setDropIndex(-1);
+    setDropTarget({ phaseKey: '', index: -1 });
 
     let dragData = null;
     try {
@@ -194,22 +261,35 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     const taskId = String(dragData?.taskId || '').trim();
     if (!taskId) return;
 
-    setDropPulseIndex(Number(toIndex));
+    const safePhaseKey = PHASES.some((phase) => phase.key === toPhaseKey) ? toPhaseKey : 'cloture';
+    const phaseOffset = Number(phaseOffsets[safePhaseKey] || 0);
+    const targetIndex = Math.max(0, phaseOffset + Number(toPhaseIndex || 0));
+
+    setDropPulseTarget({ phaseKey: safePhaseKey, index: Number(toPhaseIndex) });
     window.setTimeout(() => {
-      setDropPulseIndex((prev) => (prev === Number(toIndex) ? -1 : prev));
+      setDropPulseTarget((prev) => (
+        prev.phaseKey === safePhaseKey && prev.index === Number(toPhaseIndex)
+          ? { phaseKey: '', index: -1 }
+          : prev
+      ));
     }, 320);
 
-    if (dragData?.from === 'timeline' && Number.isInteger(dragData?.index)) {
+    setPhaseByTask((prev) => ({
+      ...prev,
+      [taskId]: safePhaseKey,
+    }));
+
+    if (dragData?.from === 'timeline' && Number.isInteger(dragData?.timelineIndex)) {
       emitEvent('mission.task.move', {
-        fromIndex: Number(dragData.index),
-        toIndex: Number(toIndex),
+        fromIndex: Number(dragData.timelineIndex),
+        toIndex: Number(targetIndex),
       });
       return;
     }
 
     emitEvent('mission.task.add', {
       taskId,
-      index: Number(toIndex),
+      index: Number(targetIndex),
     });
   }
 
@@ -317,8 +397,8 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                 <section className={`${styles.card} ${styles.timelineCard}`}>
                   <div className={styles.timelineHead}>
                     <div>
-                      <h2>Timeline ordonnee</h2>
-                      <p>De gauche a droite: cadrage, preparation, execution, cloture</p>
+                      <h2>Timeline par phases</h2>
+                      <p>Glissez les taches dans chaque phase, puis ordonnez-les verticalement.</p>
                     </div>
                     <button
                       type="button"
@@ -330,87 +410,99 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                     </button>
                   </div>
 
-                  <div className={styles.phaseRail} aria-hidden>
-                    <span>Cadrage</span>
-                    <span>Preparation</span>
-                    <span>Execution</span>
-                    <span>Cloture</span>
-                  </div>
-
-                  <div className={styles.timelineList}>
-                  <div
-                    className={`${styles.dropZone}${dropIndex === 0 ? ` ${styles.dropZoneActive}` : ''}${dropPulseIndex === 0 ? ` ${styles.dropZonePulse}` : ''}`}
-                    onDragOver={(event) => {
-                      if (!canEditTimeline) return;
-                      event.preventDefault();
-                      event.dataTransfer.dropEffect = 'move';
-                      setDropIndex(0);
-                    }}
-                    onDragLeave={() => setDropIndex((prev) => (prev === 0 ? -1 : prev))}
-                    onDrop={(event) => onTimelineDrop(event, 0)}
-                  >
-                    {dropIndex === 0 ? <span>Deposer ici pour inserer en tete</span> : null}
-                  </div>
-
-                  {timeline.length === 0 ? (
-                    <div className={styles.emptyTimeline}>
-                      <p>Glissez des taches ici pour construire votre plan.</p>
-                      <ol>
-                        <li>Commencez par les taches critiques de cadrage</li>
-                        <li>Ajoutez les taches logistiques et execution</li>
-                        <li>Terminez par le bilan et la cloture</li>
-                      </ol>
-                    </div>
-                  ) : timeline.map((taskId, index) => {
-                    const task = taskMap.get(String(taskId));
-                    const lane = index < Math.ceil(timeline.length / 4)
-                      ? 'Cadrage'
-                      : index < Math.ceil(timeline.length / 2)
-                        ? 'Preparation'
-                        : index < Math.ceil((timeline.length * 3) / 4)
-                          ? 'Execution'
-                          : 'Cloture';
-                    return (
-                      <React.Fragment key={`${taskId}-${index}`}>
-                        <article
-                          className={`${styles.timelineItem}${dragTaskId === String(taskId) ? ` ${styles.timelineItemDragging}` : ''}`}
-                          draggable={canEditTimeline}
-                          onDragStart={(event) => onTaskDragStart(event, taskId, index, 'timeline')}
-                          onDragEnd={onTaskDragEnd}
+                  <div className={`${styles.phaseTimeline}${dragTaskId ? ` ${styles.phaseTimelineDragging}` : ''}`}>
+                    {PHASES.map((phase) => {
+                      const items = phaseItems[phase.key] || [];
+                      return (
+                        <section
+                          key={phase.key}
+                          className={`${styles.phaseCard} ${styles[phase.className]}${dropTarget.phaseKey === phase.key ? ` ${styles.phaseCardActive}` : ''}`}
                         >
-                          <div>
-                            <p className={styles.order}>Etape {index + 1} - {lane}</p>
-                            <h3>{task?.label || taskId}</h3>
-                            {task?.dependencies?.length ? (
-                              <p className={styles.meta}>Dependances: {task.dependencies.join(', ')}</p>
-                            ) : <p className={styles.meta}>Sans dependance</p>}
+                          <header className={styles.phaseHeader}>
+                            <div className={styles.phaseTitleRow}>
+                              <h3>{phase.label}</h3>
+                              <span>{items.length}</span>
+                            </div>
+                            <div className={styles.phaseSeparator} />
+                          </header>
+
+                          <div className={styles.phaseStack}>
+                            <div
+                              className={`${styles.phaseDropZone}${dropTarget.phaseKey === phase.key && dropTarget.index === 0 ? ` ${styles.phaseDropZoneActive}` : ''}${dropPulseTarget.phaseKey === phase.key && dropPulseTarget.index === 0 ? ` ${styles.dropZonePulse}` : ''}`}
+                              onDragOver={(event) => {
+                                if (!canEditTimeline) return;
+                                event.preventDefault();
+                                event.dataTransfer.dropEffect = 'move';
+                                setDropTarget({ phaseKey: phase.key, index: 0 });
+                              }}
+                              onDragLeave={() => {
+                                setDropTarget((prev) => (
+                                  prev.phaseKey === phase.key && prev.index === 0
+                                    ? { phaseKey: '', index: -1 }
+                                    : prev
+                                ));
+                              }}
+                              onDrop={(event) => onTimelineDrop(event, phase.key, 0)}
+                            >
+                              {items.length === 0 ? <span>Deposer une tache ici</span> : null}
+                            </div>
+
+                            {items.map((item, indexInPhase) => {
+                              const task = taskMap.get(String(item.taskId));
+                              const dependencies = Array.isArray(task?.dependencies) ? task.dependencies : [];
+                              return (
+                                <React.Fragment key={`${phase.key}-${item.taskId}-${item.timelineIndex}`}>
+                                  <article
+                                    className={`${styles.timelineItem}${dragTaskId === String(item.taskId) ? ` ${styles.timelineItemDragging}` : ''}`}
+                                    draggable={canEditTimeline}
+                                    onDragStart={(event) => onTaskDragStart(event, item.taskId, item.timelineIndex, 'timeline', phase.key, indexInPhase)}
+                                    onDragEnd={onTaskDragEnd}
+                                  >
+                                    <div className={styles.timelineItemBody}>
+                                      <p className={styles.order}>Etape {item.timelineIndex + 1}</p>
+                                      <h3>{task?.label || item.taskId}</h3>
+                                      {task?.critical ? <strong className={styles.critical}>Critique</strong> : null}
+                                      <p className={styles.meta}>
+                                        {dependencies.length ? `Dependances: ${dependencies.join(', ')}` : 'Sans dependance'}
+                                      </p>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      className={styles.ghostBtn}
+                                      onClick={() => emitEvent('mission.task.remove', { index: item.timelineIndex })}
+                                      disabled={!canEditTimeline}
+                                    >
+                                      Retirer
+                                    </button>
+                                  </article>
+
+                                  <div
+                                    className={`${styles.phaseDropZone}${dropTarget.phaseKey === phase.key && dropTarget.index === indexInPhase + 1 ? ` ${styles.phaseDropZoneActive}` : ''}${dropPulseTarget.phaseKey === phase.key && dropPulseTarget.index === indexInPhase + 1 ? ` ${styles.dropZonePulse}` : ''}`}
+                                    onDragOver={(event) => {
+                                      if (!canEditTimeline) return;
+                                      event.preventDefault();
+                                      event.dataTransfer.dropEffect = 'move';
+                                      setDropTarget({ phaseKey: phase.key, index: indexInPhase + 1 });
+                                    }}
+                                    onDragLeave={() => {
+                                      setDropTarget((prev) => (
+                                        prev.phaseKey === phase.key && prev.index === indexInPhase + 1
+                                          ? { phaseKey: '', index: -1 }
+                                          : prev
+                                      ));
+                                    }}
+                                    onDrop={(event) => onTimelineDrop(event, phase.key, indexInPhase + 1)}
+                                  >
+                                    {dropTarget.phaseKey === phase.key && dropTarget.index === indexInPhase + 1 ? <span>Inserer ici</span> : null}
+                                  </div>
+                                </React.Fragment>
+                              );
+                            })}
                           </div>
-                          <button
-                            type="button"
-                            className={styles.ghostBtn}
-                            onClick={() => emitEvent('mission.task.remove', { index })}
-                            disabled={!canEditTimeline}
-                          >
-                            Retirer
-                          </button>
-                        </article>
-                        <div
-                          className={`${styles.dropZone}${dropIndex === index + 1 ? ` ${styles.dropZoneActive}` : ''}${dropPulseIndex === index + 1 ? ` ${styles.dropZonePulse}` : ''}`}
-                          onDragOver={(event) => {
-                            if (!canEditTimeline) return;
-                            event.preventDefault();
-                            event.dataTransfer.dropEffect = 'move';
-                            setDropIndex(index + 1);
-                          }}
-                          onDragLeave={() => setDropIndex((prev) => (prev === index + 1 ? -1 : prev))}
-                          onDrop={(event) => onTimelineDrop(event, index + 1)}
-                        >
-                          {dropIndex === index + 1 ? <span>Inserer ici</span> : null}
-                        </div>
-                      </React.Fragment>
-                    );
-                  })}
-                </div>
+                        </section>
+                      );
+                    })}
+                  </div>
               </section>
               </section>
 

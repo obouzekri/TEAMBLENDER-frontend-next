@@ -14,3 +14,51 @@
 .link:hover {
 	text-decoration: underline;
 }
+
+@media (max-width: 640px) {
+	.hero {
+		padding: 1.2rem 1rem;
+	}
+
+	.placeholder {
+		margin: 1rem;
+		padding: 1.2rem 1rem;
+	}
+}
+
+@media (max-width: 360px) {
+	.hero {
+		padding: 1rem 0.8rem;
+	}
+
+	.placeholder {
+		margin: 0.75rem;
+		padding: 1rem 0.8rem;
+	}
+}
+
+.localPageContainer a:focus-visible {
+	outline: 2px solid #0369a1;
+	outline-offset: 2px;
+}
+
+@media (max-width: 960px) and (orientation: landscape) and (max-height: 520px) {
+	.hero {
+		padding: 1rem;
+	}
+
+	.placeholder {
+		margin: 0.75rem;
+		padding: 1rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.localPageContainer *,
+	.localPageContainer *::before,
+	.localPageContainer *::after {
+		animation: none !important;
+		transition: none !important;
+		scroll-behavior: auto !important;
+	}
+}

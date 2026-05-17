@@ -721,6 +721,14 @@
     grid-template-columns: 1fr;
   }
 
+  .boardPanel {
+    padding: 12px;
+  }
+
+  .sidePanel {
+    gap: 10px;
+  }
+
   .sidePanel {
     min-height: auto;
   }
@@ -739,16 +747,139 @@
 }
 
 @media (max-width: 640px) {
+  .copuzzleContainer {
+    padding: 10px;
+  }
+
   .header {
     flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .headerTitleLine {
+    white-space: normal;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .headerDescription {
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+
+  .badges {
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 
   .board {
     gap: 4px;
   }
 
+  .boardPanel,
+  .sideCard,
+  .chatCard,
+  .timerCard {
+    padding: 12px;
+  }
+
+  .timerIconBtn {
+    width: 32px;
+    height: 32px;
+  }
+
   .summaryGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sideChatCard {
+    max-height: none;
+  }
+
+  .sideChatCard .chatLog {
+    max-height: 240px;
+  }
+
+  .trayPiece {
+    width: 44px;
+    height: 44px;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    min-height: 44px;
+  }
+
+  .chatInput {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .copuzzleContainer {
+    padding: 8px;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+
+  .trayPiece {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .cell:hover:not(:disabled),
+  .timerIconBtn:hover:not(:disabled),
+  .removeBtn:hover,
+  .chatCard:hover,
+  .sideCard:hover,
+  .trayPiece:hover:not(:disabled),
+  .btnPrimary:hover:not(:disabled),
+  .btnSecondary:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.copuzzleContainer button:focus-visible,
+.copuzzleContainer input:focus-visible {
+  outline: 2px solid #7dd3fc;
+  outline-offset: 2px;
+}
+
+@media (max-width: 960px) and (orientation: landscape) and (max-height: 520px) {
+  .copuzzleContainer {
+    padding: 8px;
+    gap: 10px;
+  }
+
+  .header,
+  .boardPanel,
+  .sideCard,
+  .chatCard,
+  .timerCard {
+    padding: 10px;
+  }
+
+  .sideChatCard .chatLog,
+  .chatLog {
+    max-height: 160px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copuzzleContainer *,
+  .copuzzleContainer *::before,
+  .copuzzleContainer *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
   }
 }
 

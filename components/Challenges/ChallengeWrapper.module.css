@@ -47,6 +47,10 @@
 }
 
 @media (max-width: 720px) {
+  .challengeContainer {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
   .statusActions {
     flex-direction: column;
   }
