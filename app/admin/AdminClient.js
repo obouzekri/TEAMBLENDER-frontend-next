@@ -338,6 +338,22 @@ export default function AdminClient() {
   const [newLandingBlock, setNewLandingBlock] = useState(DEFAULT_NEW_LANDING_BLOCK);
   const [newLandingMessage, setNewLandingMessage] = useState('');
 
+  const getPreferredAuthToken = useCallback(() => {
+    const sessionToken = String(sessionStorage.getItem('jwt') || '').trim();
+    const localToken = String(localStorage.getItem('jwt') || '').trim();
+    return sessionToken || localToken;
+  }, []);
+
+  const getFallbackAuthToken = useCallback((activeToken) => {
+    const active = String(activeToken || '').trim();
+    const sessionToken = String(sessionStorage.getItem('jwt') || '').trim();
+    const localToken = String(localStorage.getItem('jwt') || '').trim();
+
+    if (sessionToken && sessionToken !== active) return sessionToken;
+    if (localToken && localToken !== active) return localToken;
+    return '';
+  }, []);
+
   const forceReauth = useCallback(() => {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
@@ -346,7 +362,7 @@ export default function AdminClient() {
   }, []);
 
   useEffect(() => {
-    const jwt = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+    const jwt = getPreferredAuthToken();
     const raw = sessionStorage.getItem('currentUser');
     let currentUser = null;
 
@@ -369,7 +385,7 @@ export default function AdminClient() {
     setToken(jwt);
     setUser(currentUser);
     setLoading(false);
-  }, []);
+  }, [getPreferredAuthToken]);
 
   const loadAll = useCallback(async () => {
     if (!token) return;
@@ -404,6 +420,12 @@ export default function AdminClient() {
       });
 
       if (hasInvalidTokenOnCriticalEndpoint) {
+        const fallbackToken = getFallbackAuthToken(token);
+        if (fallbackToken) {
+          setToken(fallbackToken);
+          return;
+        }
+
         setError('Session expirée ou invalide. Veuillez vous reconnecter.');
         forceReauth();
         return;
@@ -449,7 +471,7 @@ export default function AdminClient() {
     } catch (err) {
       setError(err.message || 'Erreur de chargement admin.');
     }
-  }, [forceReauth, token]);
+  }, [forceReauth, getFallbackAuthToken, token]);
 
   useEffect(() => {
     if (!token) return;
