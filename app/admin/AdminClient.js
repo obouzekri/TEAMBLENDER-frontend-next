@@ -90,6 +90,7 @@ const LANDING_ALLOWED_BLOCK_KEYS = [
 ];
 
 const LANDING_ALLOWED_BLOCK_KEY_SET = new Set(LANDING_ALLOWED_BLOCK_KEYS);
+const PLATFORM_ADMIN_EMAIL = 'admin@admin.com';
 
 const LANDING_ALLOWED_BLOCK_KEY_HINT = LANDING_ALLOWED_BLOCK_KEYS.join(', ');
 
@@ -110,6 +111,10 @@ function getParticipantDisplayName(participant) {
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+}
+
+function isPlatformAdminEmail(email) {
+  return String(email || '').trim().toLowerCase() === PLATFORM_ADMIN_EMAIL;
 }
 
 function parseList(payload) {
@@ -663,6 +668,38 @@ export default function AdminClient() {
       showNotice(`Mot de passe utilisateur reinitialise.${tempPassword}`);
     } catch (err) {
       setError(err.message || 'Erreur lors du reset du mot de passe utilisateur.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  async function handleResendVerificationLink(targetUser) {
+    if (!targetUser?.email) return;
+
+    const key = `verify:user:${targetUser.id}`;
+    setBusySaveKey(key);
+    setError('');
+
+    try {
+      const response = await fetch(getApiUrl('/auth/resend-verification'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: String(targetUser.email).trim().toLowerCase(),
+          userType: 'user',
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || payload.message || `Renvoi impossible (${response.status})`);
+      }
+
+      showNotice(payload.message || 'Lien de verification renvoye.');
+    } catch (err) {
+      setError(err.message || 'Erreur lors du renvoi du lien de verification.');
     } finally {
       setBusySaveKey('');
     }
@@ -2182,9 +2219,24 @@ export default function AdminClient() {
                       <li key={String(u.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
-                          <p className="session-meta">{u.email} · {u.role || 'user'} · {u.disabled ? 'Inactif' : 'Actif'}</p>
+                          <p className="session-meta">
+                            {u.email} · {u.role || 'user'} · {u.disabled ? 'Inactif' : 'Actif'}
+                            {isPlatformAdminEmail(u.email) ? ' · Verification non requise' : ''}
+                          </p>
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
+                          {!isPlatformAdminEmail(u.email) ? (
+                            <button
+                              type="button"
+                              className="icon-action-btn"
+                              onClick={() => handleResendVerificationLink(u)}
+                              disabled={busySaveKey === `verify:user:${u.id}`}
+                              title="Renvoyer lien verification"
+                              aria-label="Renvoyer lien verification"
+                            >
+                              {busySaveKey === `verify:user:${u.id}` ? '…' : '✉'}
+                            </button>
+                          ) : null}
                           <button
                             type="button"
                             className="icon-action-btn"
