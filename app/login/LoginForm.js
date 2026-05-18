@@ -36,17 +36,26 @@ export default function LoginForm({ requestedSessionId = '' }) {
     try {
       const { response, data } = await loginWithFallback(normalizedEmail, password, { allowParticipantFallback: true });
       if (response.ok) {
-        localStorage.setItem('jwt', data.token);
-        sessionStorage.setItem('currentUser', JSON.stringify(data.user));
+        const token = String(data?.token || '').trim();
+        const user = data?.user || null;
 
-        const connectedUserId = resolveConnectedUserId(data.user);
-        if (data.user.role === 'participant' && normalizedRequestedSessionId) {
+        if (!token || !user) {
+          setMessage('Réponse de connexion invalide. Veuillez réessayer.');
+          return;
+        }
+
+        localStorage.setItem('jwt', token);
+        sessionStorage.setItem('jwt', token);
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
+
+        const connectedUserId = resolveConnectedUserId(user);
+        if (user.role === 'participant' && normalizedRequestedSessionId) {
           sessionStorage.setItem('targetSessionId', normalizedRequestedSessionId);
         } else {
           sessionStorage.removeItem('targetSessionId');
         }
 
-        const redirect = getRedirectPath(data.user.role, normalizedRequestedSessionId, connectedUserId);
+        const redirect = getRedirectPath(user.role, normalizedRequestedSessionId, connectedUserId);
         window.location.href = redirect;
         return;
       }

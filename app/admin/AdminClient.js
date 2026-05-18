@@ -384,7 +384,7 @@ export default function AdminClient() {
       });
 
       if (hasUnauthorizedOnCriticalEndpoint) {
-        forceReauth();
+        setError("Session expirée ou invalide. Veuillez vous reconnecter depuis le bouton Déconnexion.");
         return;
       }
 
