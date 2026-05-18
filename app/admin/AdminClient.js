@@ -371,14 +371,19 @@ export default function AdminClient() {
 
       const failures = [];
 
-      // Check for 401 on any result — if the token is expired/invalid, force reauth immediately.
-      const hasUnauthorized = results.some(
-        (result) =>
+      // Check for 401 on critical endpoints — if token expired, force reauth.
+      // (landingBlocks is optional, so 401 there doesn't trigger reauth)
+      const hasUnauthorizedOnCriticalEndpoint = results.some((result, index) => {
+        const [key] = requests[index];
+        return (
+          key !== 'landingBlocks' &&
           result.status === 'rejected' &&
           (result.reason?.status === 401 ||
             String(result.reason?.message || '').toLowerCase().includes('token invalide'))
-      );
-      if (hasUnauthorized) {
+        );
+      });
+
+      if (hasUnauthorizedOnCriticalEndpoint) {
         forceReauth();
         return;
       }
