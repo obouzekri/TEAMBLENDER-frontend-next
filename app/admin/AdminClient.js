@@ -246,6 +246,27 @@ async function fetchAdminJson(path, token) {
   return payload;
 }
 
+function isTokenAuthError(error) {
+  const status = Number(error?.status);
+  const code = String(error?.code || '').trim().toUpperCase();
+  const message = String(error?.message || '').toLowerCase();
+
+  if (code === 'TOKEN_INVALID' || code === 'TOKEN_EXPIRED' || code === 'UNAUTHORIZED') {
+    return true;
+  }
+
+  if (status !== 401) return false;
+
+  return (
+    message.includes('token invalide')
+    || message.includes('token manquant')
+    || message.includes('token expired')
+    || message.includes('jwt')
+    || message.includes('utilisateur inconnu')
+    || message.includes('participant inconnu')
+  );
+}
+
 export default function AdminClient() {
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
@@ -373,18 +394,18 @@ export default function AdminClient() {
 
       // Check for 401 on critical endpoints — if token expired, force reauth.
       // (landingBlocks is optional, so 401 there doesn't trigger reauth)
-      const hasUnauthorizedOnCriticalEndpoint = results.some((result, index) => {
+      const hasInvalidTokenOnCriticalEndpoint = results.some((result, index) => {
         const [key] = requests[index];
         return (
           key !== 'landingBlocks' &&
           result.status === 'rejected' &&
-          (result.reason?.status === 401 ||
-            String(result.reason?.message || '').toLowerCase().includes('token invalide'))
+          isTokenAuthError(result.reason)
         );
       });
 
-      if (hasUnauthorizedOnCriticalEndpoint) {
-        setError("Session expirée ou invalide. Veuillez vous reconnecter depuis le bouton Déconnexion.");
+      if (hasInvalidTokenOnCriticalEndpoint) {
+        setError('Session expirée ou invalide. Veuillez vous reconnecter.');
+        forceReauth();
         return;
       }
 
@@ -428,7 +449,7 @@ export default function AdminClient() {
     } catch (err) {
       setError(err.message || 'Erreur de chargement admin.');
     }
-  }, [token]);
+  }, [forceReauth, token]);
 
   useEffect(() => {
     if (!token) return;
