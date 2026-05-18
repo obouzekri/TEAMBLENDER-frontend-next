@@ -371,6 +371,18 @@ export default function AdminClient() {
 
       const failures = [];
 
+      // Check for 401 on any result — if the token is expired/invalid, force reauth immediately.
+      const hasUnauthorized = results.some(
+        (result) =>
+          result.status === 'rejected' &&
+          (result.reason?.status === 401 ||
+            String(result.reason?.message || '').toLowerCase().includes('token invalide'))
+      );
+      if (hasUnauthorized) {
+        forceReauth();
+        return;
+      }
+
       results.forEach((result, index) => {
         const [key] = requests[index];
 
@@ -387,11 +399,9 @@ export default function AdminClient() {
         }
 
         const reasonMessage = result.reason?.message || 'Erreur inconnue';
-        const isUnauthorized = result.reason?.status === 401
-          || String(reasonMessage).toLowerCase().includes('token invalide');
 
         // Landing CMS is optional for the rest of admin loading.
-        if (key === 'landingBlocks' && isUnauthorized) {
+        if (key === 'landingBlocks') {
           setLandingBlocks([]);
           return;
         }
