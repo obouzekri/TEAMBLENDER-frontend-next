@@ -77,7 +77,7 @@ export default function SignupForm() {
 
       if (res.status === 201) {
         setDone(true);
-        setMessage('Votre compte a bien été créé. Votre demande est en attente de validation par un administrateur.');
+        setMessage('Votre compte a bien été créé. Un email de confirmation vous a été envoyé. Cliquez sur le lien dans cet email pour activer votre compte.');
         return;
       }
 

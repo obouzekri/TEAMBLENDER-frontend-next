@@ -9,6 +9,7 @@ function errorMessage(resStatus, data) {
   if (data?.code === 'ACCOUNT_PENDING') return 'Votre compte est en attente de validation par un administrateur.';
   if (data?.code === 'ACCOUNT_REJECTED') return 'Votre demande de compte a été refusée. Contactez un administrateur.';
   if (data?.code === 'ACCOUNT_DISABLED') return 'Ce compte a été désactivé. Contactez un administrateur.';
+  if (data?.code === 'EMAIL_NOT_VERIFIED') return 'Veuillez confirmer votre adresse email avant de vous connecter. Vérifiez votre boîte mail (et les spams).';
   if (resStatus === 401) return 'Email ou mot de passe invalide.';
   return data?.error || 'Une erreur est survenue. Veuillez réessayer.';
 }
@@ -92,6 +93,10 @@ export default function LoginForm({ requestedSessionId = '' }) {
           </button>
 
           {message ? <p className="form-error">{message}</p> : null}
+
+          <p style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+            <Link href="/forgot-password" className="form-help">Mot de passe oublié ?</Link>
+          </p>
         </form>
       </AuthCard>
     </main>
