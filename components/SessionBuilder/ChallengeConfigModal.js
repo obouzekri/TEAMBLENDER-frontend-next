@@ -89,6 +89,14 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
     return String(cursor);
   }
 
+  function matrixSizeValue() {
+    const rows = numberValue('grid.rows', NaN);
+    const cols = numberValue('grid.cols', NaN);
+    if (Number.isFinite(rows)) return rows;
+    if (Number.isFinite(cols)) return cols;
+    return 5;
+  }
+
   const handleSave = () => {
     onSave(config);
   };
@@ -159,6 +167,9 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                 <label htmlFor="copuzzleUpload" className={styles.label} style={{ marginTop: '10px' }}>
                   Ou uploader une image (JPG/PNG)
                 </label>
+                <span className={styles.helpText}>
+                  (i) Recommandé: grille 5x5, 240 px par pièce, format JPEG, 1200x1200 px, idéalement &lt; 300 KB (max 500 KB).
+                </span>
                 <input
                   id="copuzzleUpload"
                   type="file"
@@ -186,29 +197,21 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="rows" className={styles.label}>Lignes de grille</label>
+                <label htmlFor="matrixSize" className={styles.label}>Taille de matrice</label>
                 <input
-                  id="rows"
+                  id="matrixSize"
                   type="number"
                   min="2"
                   max="16"
-                  value={numberValue('grid.rows', 4)}
-                  onChange={(e) => updateValue('grid.rows', Number(e.target.value || 4))}
+                  value={matrixSizeValue()}
+                  onChange={(e) => {
+                    const size = Number(e.target.value || 5);
+                    updateValue('grid.rows', size);
+                    updateValue('grid.cols', size);
+                  }}
                   className={styles.input}
                 />
-              </div>
-
-              <div className={styles.configField}>
-                <label htmlFor="cols" className={styles.label}>Colonnes de grille</label>
-                <input
-                  id="cols"
-                  type="number"
-                  min="2"
-                  max="16"
-                  value={numberValue('grid.cols', 4)}
-                  onChange={(e) => updateValue('grid.cols', Number(e.target.value || 4))}
-                  className={styles.input}
-                />
+                <span className={styles.helpText}>Appliqué à la fois aux lignes et aux colonnes.</span>
               </div>
 
               <div className={styles.configField}>
@@ -256,18 +259,20 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                 />
               </div>
 
-              <label className={styles.configField}>
+              <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="copuzzleTimerEnabled">
                 <span className={styles.label}>Activer le timer</span>
                 <input
+                  id="copuzzleTimerEnabled"
                   type="checkbox"
                   checked={boolValue('timer.enabled', true)}
                   onChange={(e) => updateValue('timer.enabled', e.target.checked)}
                 />
               </label>
 
-              <label className={styles.configField}>
+              <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="copuzzleChatEnabled">
                 <span className={styles.label}>Activer le chat</span>
                 <input
+                  id="copuzzleChatEnabled"
                   type="checkbox"
                   checked={boolValue('chat.enabled', true)}
                   onChange={(e) => updateValue('chat.enabled', e.target.checked)}
