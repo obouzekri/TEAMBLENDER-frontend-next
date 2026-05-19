@@ -13,9 +13,9 @@ const CHALLENGE_STATUSES = new Set(['actif', 'brouillon', 'archive']);
 const CHALLENGE_SOURCES = new Set(['local', 'external']);
 const PRICING_BILLING_CYCLES = new Set(['monthly', 'yearly', 'one_time', 'custom']);
 const SESSION_STATUS_LABELS = {
-  preparee: 'En preparation',
+  preparee: 'En préparation',
   en_cours: 'En cours',
-  terminee: 'Terminee',
+  terminee: 'Terminée',
 };
 
 const DEFAULT_NEW_SESSION = {
@@ -503,9 +503,9 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice(approval_status === 'approved' ? 'Compte valide avec succes.' : 'Compte refuse avec succes.');
+      showNotice(approval_status === 'approved' ? 'Compte validé avec succès.' : 'Compte refusé avec succès.');
     } catch (err) {
-      setError(err.message || 'Erreur pendant la mise a jour.');
+      setError(err.message || 'Erreur pendant la mise à jour.');
     } finally {
       setBusyApprovalId(null);
     }
@@ -516,7 +516,7 @@ export default function AdminClient() {
     setNewUserMessage('');
 
     if (!newUser.first_name.trim() || !newUser.email.trim() || !newUser.password.trim()) {
-      setNewUserMessage('Prenom, email et mot de passe sont obligatoires.');
+      setNewUserMessage('Prénom, email et mot de passe sont obligatoires.');
       return;
     }
 
@@ -526,7 +526,7 @@ export default function AdminClient() {
     }
 
     if (!USER_ROLES.has(newUser.role)) {
-      setNewUserMessage('Role invalide.');
+      setNewUserMessage('Rôle invalide.');
       return;
     }
 
@@ -543,17 +543,17 @@ export default function AdminClient() {
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setNewUserMessage(payload.error || 'Creation utilisateur impossible.');
+        setNewUserMessage(payload.error || 'Création utilisateur impossible.');
         return;
       }
 
       setNewUser({ first_name: '', last_name: '', email: '', password: '', role: 'user' });
-      setNewUserMessage('Utilisateur cree avec succes.');
+      setNewUserMessage('Utilisateur créé avec succès.');
       setShowNewUserForm(false);
       await loadAll();
-      showNotice('Utilisateur cree avec succes.');
+      showNotice('Utilisateur créé avec succès.');
     } catch {
-      setNewUserMessage('Erreur reseau pendant la creation.');
+      setNewUserMessage('Erreur réseau pendant la création.');
     }
   }
 
@@ -585,7 +585,7 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice('Utilisateur supprime avec succes.');
+      showNotice('Utilisateur supprimé avec succès.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression utilisateur.');
     } finally {
@@ -596,15 +596,15 @@ export default function AdminClient() {
   async function handleToggleUserStatus(targetUser) {
     if (!token || !targetUser?.id) return;
     if (String(targetUser.id) === String(user?.id)) {
-      setError('Vous ne pouvez pas desactiver votre propre compte admin.');
+      setError('Vous ne pouvez pas désactiver votre propre compte admin.');
       return;
     }
 
     const currentlyDisabled = Boolean(targetUser.disabled);
     const accepted = window.confirm(
       currentlyDisabled
-        ? `Reactiver ${targetUser.email || 'cet utilisateur'} ?`
-        : `Desactiver ${targetUser.email || 'cet utilisateur'} ?`
+        ? `Réactiver ${targetUser.email || 'cet utilisateur'} ?`
+        : `Désactiver ${targetUser.email || 'cet utilisateur'} ?`
     );
     if (!accepted) return;
 
@@ -623,11 +623,11 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || `Mise a jour statut impossible (${response.status})`);
+        throw new Error(payload.error || `Mise à jour statut impossible (${response.status})`);
       }
 
       await loadAll();
-      showNotice(currentlyDisabled ? 'Utilisateur reactive.' : 'Utilisateur desactive.');
+      showNotice(currentlyDisabled ? 'Utilisateur réactivé.' : 'Utilisateur désactivé.');
     } catch (err) {
       setError(err.message || 'Erreur lors du changement de statut utilisateur.');
     } finally {
@@ -665,7 +665,7 @@ export default function AdminClient() {
       }
 
       const tempPassword = payload?.tempPassword ? ` Mot de passe: ${payload.tempPassword}` : '';
-      showNotice(`Mot de passe utilisateur reinitialise.${tempPassword}`);
+      showNotice(`Mot de passe utilisateur réinitialisé.${tempPassword}`);
     } catch (err) {
       setError(err.message || 'Erreur lors du reset du mot de passe utilisateur.');
     } finally {
@@ -724,12 +724,12 @@ export default function AdminClient() {
     if (!token || !editingUser?.id) return;
 
     if (!editingUser.first_name.trim() || !isValidEmail(editingUser.email)) {
-      setError('Le prenom et un email valide sont requis.');
+      setError('Le prénom et un email valide sont requis.');
       return;
     }
 
     if (!USER_ROLES.has(editingUser.role)) {
-      setError('Role utilisateur invalide.');
+      setError('Rôle utilisateur invalide.');
       return;
     }
 
@@ -756,14 +756,14 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.details || `Mise a jour impossible (${response.status})`);
+        throw new Error(payload.error || payload.details || `Mise à jour impossible (${response.status})`);
       }
 
       setEditingUser(null);
       await loadAll();
-      showNotice('Utilisateur mis a jour avec succes.');
+      showNotice('Utilisateur mis à jour avec succès.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise a jour utilisateur.');
+      setError(err.message || 'Erreur lors de la mise à jour utilisateur.');
     } finally {
       setBusySaveKey('');
     }
@@ -807,7 +807,7 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || `Creation participant impossible (${response.status})`);
+        throw new Error(payload.error || `Création participant impossible (${response.status})`);
       }
 
       setNewParticipant({
@@ -821,11 +821,11 @@ export default function AdminClient() {
       });
       setShowNewParticipantForm(false);
       const tempPassword = payload?.tempPassword ? ` Mot de passe: ${payload.tempPassword}` : '';
-      setNewParticipantMessage(`Participant cree avec succes.${tempPassword}`);
+      setNewParticipantMessage(`Participant créé avec succès.${tempPassword}`);
       await loadAll();
-      showNotice('Participant cree avec succes.');
+      showNotice('Participant créé avec succès.');
     } catch (err) {
-      setNewParticipantMessage(err.message || 'Creation participant impossible.');
+      setNewParticipantMessage(err.message || 'Création participant impossible.');
     } finally {
       setBusySaveKey('');
     }
@@ -877,14 +877,14 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || `Mise a jour participant impossible (${response.status})`);
+        throw new Error(payload.error || `Mise à jour participant impossible (${response.status})`);
       }
 
       setEditingParticipant(null);
       await loadAll();
-      showNotice('Participant mis a jour avec succes.');
+      showNotice('Participant mis à jour avec succès.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise a jour participant.');
+      setError(err.message || 'Erreur lors de la mise à jour participant.');
     } finally {
       setBusySaveKey('');
     }
@@ -895,8 +895,8 @@ export default function AdminClient() {
     const currentlyDisabled = Boolean(participant.disabled);
     const accepted = window.confirm(
       currentlyDisabled
-        ? `Reactiver ${getParticipantDisplayName(participant)} ?`
-        : `Desactiver ${getParticipantDisplayName(participant)} ?`
+        ? `Réactiver ${getParticipantDisplayName(participant)} ?`
+        : `Désactiver ${getParticipantDisplayName(participant)} ?`
     );
     if (!accepted) return;
 
@@ -916,11 +916,11 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || `Mise a jour statut participant impossible (${response.status})`);
+        throw new Error(payload.error || `Mise à jour statut participant impossible (${response.status})`);
       }
 
       await loadAll();
-      showNotice(currentlyDisabled ? 'Participant reactive.' : 'Participant desactive.');
+      showNotice(currentlyDisabled ? 'Participant réactivé.' : 'Participant désactivé.');
     } catch (err) {
       setError(err.message || 'Erreur lors du changement de statut participant.');
     } finally {
@@ -954,7 +954,7 @@ export default function AdminClient() {
         setEditingParticipant(null);
       }
       await loadAll();
-      showNotice('Participant supprime avec succes.');
+      showNotice('Participant supprimé avec succès.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression participant.');
     } finally {
@@ -992,7 +992,7 @@ export default function AdminClient() {
       }
 
       const tempPassword = payload?.tempPassword ? ` Mot de passe: ${payload.tempPassword}` : '';
-      showNotice(`Mot de passe participant reinitialise.${tempPassword}`);
+      showNotice(`Mot de passe participant réinitialisé.${tempPassword}`);
     } catch (err) {
       setError(err.message || 'Erreur lors du reset mot de passe participant.');
     } finally {
@@ -1028,7 +1028,7 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice('Session supprimee avec succes.');
+      showNotice('Session supprimée avec succès.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression session.');
     } finally {
@@ -1064,12 +1064,12 @@ export default function AdminClient() {
     }
 
     if (!SESSION_MODALITIES.has(editingSession.modality || '')) {
-      setError('Modalite invalide. Utilisez remote, hybrid ou in-person.');
+      setError('Modalité invalide. Utilisez remote, hybrid ou in-person.');
       return;
     }
 
     if (editingSession.duration_minutes && Number(editingSession.duration_minutes) <= 0) {
-      setError('La duree doit etre superieure a 0.');
+      setError('La durée doit être supérieure à 0.');
       return;
     }
 
@@ -1095,14 +1095,14 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.details || `Mise a jour impossible (${response.status})`);
+        throw new Error(payload.error || payload.details || `Mise à jour impossible (${response.status})`);
       }
 
       setEditingSession(null);
       await loadAll();
-      showNotice('Session mise a jour avec succes.');
+      showNotice('Session mise à jour avec succès.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise a jour session.');
+      setError(err.message || 'Erreur lors de la mise à jour session.');
     } finally {
       setBusySaveKey('');
     }
@@ -1125,12 +1125,12 @@ export default function AdminClient() {
     }
 
     if (!SESSION_MODALITIES.has(newSession.modality || '')) {
-      setNewSessionMessage('Modalite invalide. Utilisez remote, hybrid ou in-person.');
+      setNewSessionMessage('Modalité invalide. Utilisez remote, hybrid ou in-person.');
       return;
     }
 
     if (newSession.duration_minutes && Number(newSession.duration_minutes) <= 0) {
-      setNewSessionMessage('La duree doit etre superieure a 0.');
+      setNewSessionMessage('La durée doit être supérieure à 0.');
       return;
     }
 
@@ -1157,14 +1157,14 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.details || `Creation session impossible (${response.status})`);
+        throw new Error(payload.error || payload.details || `Création session impossible (${response.status})`);
       }
 
       const createdSession = payload?.session || payload;
       setNewSession(DEFAULT_NEW_SESSION);
       setNewSessionMemberIds([]);
       setNewSessionMemberQuery('');
-      setNewSessionMessage('Session creee avec succes.');
+      setNewSessionMessage('Session créée avec succès.');
       setShowNewSessionForm(false);
       await loadAll();
       setActiveTab('sessions');
@@ -1180,9 +1180,9 @@ export default function AdminClient() {
           duration_minutes: createdSession.duration_minutes || '',
         });
       }
-      showNotice('Session creee avec succes depuis la console admin.');
+      showNotice('Session creee avec succès depuis la console admin.');
     } catch (err) {
-      setNewSessionMessage(err.message || 'Creation session impossible.');
+      setNewSessionMessage(err.message || 'Création session impossible.');
     } finally {
       setBusySaveKey('');
     }
@@ -1212,7 +1212,7 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice('Challenge supprime avec succes.');
+      showNotice('Challenge supprimé avec succès.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression challenge.');
     } finally {
@@ -1271,16 +1271,16 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.details || `Creation challenge impossible (${response.status})`);
+        throw new Error(payload.error || payload.details || `Création challenge impossible (${response.status})`);
       }
 
       setNewChallenge(DEFAULT_NEW_CHALLENGE);
-      setNewChallengeMessage('Challenge cree avec succes.');
+      setNewChallengeMessage('Challenge cree avec succès.');
       setShowNewChallengeForm(false);
       await loadAll();
-      showNotice('Challenge cree avec succes.');
+      showNotice('Challenge cree avec succès.');
     } catch (err) {
-      setNewChallengeMessage(err.message || 'Creation challenge impossible.');
+      setNewChallengeMessage(err.message || 'Création challenge impossible.');
     } finally {
       setBusySaveKey('');
     }
@@ -1402,14 +1402,14 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.details || `Mise a jour impossible (${response.status})`);
+        throw new Error(payload.error || payload.details || `Mise à jour impossible (${response.status})`);
       }
 
       setEditingChallenge(null);
       await loadAll();
-      showNotice('Challenge mis a jour avec succes.');
+      showNotice('Challenge mis à jour avec succès.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise a jour challenge.');
+      setError(err.message || 'Erreur lors de la mise à jour challenge.');
     } finally {
       setBusySaveKey('');
     }
@@ -1476,16 +1476,16 @@ export default function AdminClient() {
 
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(body.error || `Creation formule impossible (${response.status})`);
+        throw new Error(body.error || `Création formule impossible (${response.status})`);
       }
 
       setNewPricingPlan(DEFAULT_NEW_PRICING_PLAN);
-      setNewPricingMessage('Formule creee avec succes.');
+      setNewPricingMessage('Formule creee avec succès.');
       setShowNewPricingPlanForm(false);
       await loadAll();
       showNotice('Formule tarifaire creee.');
     } catch (err) {
-      setNewPricingMessage(err.message || 'Creation formule impossible.');
+      setNewPricingMessage(err.message || 'Création formule impossible.');
     } finally {
       setBusySaveKey('');
     }
@@ -1531,14 +1531,14 @@ export default function AdminClient() {
 
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(body.error || `Mise a jour formule impossible (${response.status})`);
+        throw new Error(body.error || `Mise à jour formule impossible (${response.status})`);
       }
 
       setEditingPricingPlan(null);
       await loadAll();
-      showNotice('Formule tarifaire mise a jour.');
+      showNotice('Formule tarifaire mise à jour.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise a jour de la formule.');
+      setError(err.message || 'Erreur lors de la mise à jour de la formule.');
     } finally {
       setBusySaveKey('');
     }
@@ -1570,7 +1570,7 @@ export default function AdminClient() {
         setEditingPricingPlan(null);
       }
       await loadAll();
-      showNotice('Formule tarifaire supprimee.');
+      showNotice('Formule tarifaire supprimée.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression de la formule.');
     } finally {
@@ -1626,16 +1626,16 @@ export default function AdminClient() {
 
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(body.error || `Creation bloc impossible (${response.status})`);
+        throw new Error(body.error || `Création bloc impossible (${response.status})`);
       }
 
       setNewLandingBlock(DEFAULT_NEW_LANDING_BLOCK);
-      setNewLandingMessage('Bloc landing enregistre.');
+      setNewLandingMessage('Bloc landing enregistré.');
       setShowNewLandingBlockForm(false);
       await loadAll();
-      showNotice('Bloc landing cree/mis a jour.');
+      showNotice('Bloc landing créé/mis à jour.');
     } catch (err) {
-      setNewLandingMessage(err.message || 'Erreur creation bloc landing.');
+      setNewLandingMessage(err.message || 'Erreur création bloc landing.');
     } finally {
       setBusySaveKey('');
     }
@@ -1678,14 +1678,14 @@ export default function AdminClient() {
 
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(body.error || `Mise a jour bloc impossible (${response.status})`);
+        throw new Error(body.error || `Mise à jour bloc impossible (${response.status})`);
       }
 
       setEditingLandingBlock(null);
       await loadAll();
-      showNotice('Bloc landing mis a jour.');
+      showNotice('Bloc landing mis à jour.');
     } catch (err) {
-      setError(err.message || 'Erreur mise a jour bloc landing.');
+      setError(err.message || 'Erreur mise à jour bloc landing.');
     } finally {
       setBusySaveKey('');
     }
@@ -2251,8 +2251,8 @@ export default function AdminClient() {
                             className="icon-action-btn"
                             onClick={() => handleToggleUserStatus(u)}
                             disabled={busySaveKey === `status:user:${u.id}` || String(u.id) === String(user?.id)}
-                            title={u.disabled ? 'Activer' : 'Desactiver'}
-                            aria-label={u.disabled ? 'Activer utilisateur' : 'Desactiver utilisateur'}
+                            title={u.disabled ? 'Activer' : 'Désactiver'}
+                            aria-label={u.disabled ? 'Activer utilisateur' : 'Désactiver utilisateur'}
                           >
                             {busySaveKey === `status:user:${u.id}` ? '…' : u.disabled ? '↺' : '⏸'}
                           </button>
@@ -2318,7 +2318,7 @@ export default function AdminClient() {
                       <label>Fonction<input value={newParticipant.job_title} onChange={(e) => setNewParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
                       <label>Departement<input value={newParticipant.department} onChange={(e) => setNewParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
                       <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>{busySaveKey === 'create:participant' ? 'Creation...' : 'Creer participant'}</button>
+                        <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>{busySaveKey === 'create:participant' ? 'Création...' : 'Creer participant'}</button>
                         <button
                           type="button"
                           className="btn-secondary"
@@ -2396,8 +2396,8 @@ export default function AdminClient() {
                             className="icon-action-btn"
                             onClick={() => handleToggleParticipantStatus(p)}
                             disabled={busySaveKey === `status:participant:${p.id}`}
-                            title={p.disabled ? 'Activer' : 'Desactiver'}
-                            aria-label={p.disabled ? 'Activer participant' : 'Desactiver participant'}
+                            title={p.disabled ? 'Activer' : 'Désactiver'}
+                            aria-label={p.disabled ? 'Activer participant' : 'Désactiver participant'}
                           >
                             {busySaveKey === `status:participant:${p.id}` ? '…' : p.disabled ? '↺' : '⏸'}
                           </button>
@@ -2426,7 +2426,7 @@ export default function AdminClient() {
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
                   <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Sessions</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Creation, supervision et modification des sessions depuis la console admin.</p>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Création, supervision et modification des sessions depuis la console admin.</p>
                 </div>
                 <button
                   type="button"
@@ -2530,7 +2530,7 @@ export default function AdminClient() {
                       </div>
 
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:session'}>
-                        {busySaveKey === 'create:session' ? 'Creation...' : 'Creer la session'}
+                        {busySaveKey === 'create:session' ? 'Création...' : 'Creer la session'}
                       </button>
                       <button
                         type="button"
@@ -2670,7 +2670,7 @@ export default function AdminClient() {
                       <label>Engine key<input value={newChallenge.engine_key} onChange={(e) => setNewChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
                       <label>Description<textarea rows={4} value={newChallenge.description} onChange={(e) => setNewChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:challenge'}>
-                        {busySaveKey === 'create:challenge' ? 'Creation...' : 'Creer le challenge'}
+                        {busySaveKey === 'create:challenge' ? 'Création...' : 'Creer le challenge'}
                       </button>
                       <button
                         type="button"
@@ -2859,7 +2859,7 @@ export default function AdminClient() {
                         </label>
                       </div>
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:pricing-plan'}>
-                        {busySaveKey === 'create:pricing-plan' ? 'Creation...' : 'Creer la formule'}
+                        {busySaveKey === 'create:pricing-plan' ? 'Création...' : 'Creer la formule'}
                       </button>
                       <button
                         type="button"

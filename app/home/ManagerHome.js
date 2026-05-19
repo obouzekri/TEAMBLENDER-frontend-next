@@ -150,9 +150,9 @@ export default function ManagerHome() {
   const canCreateSession = !loadingMembers && members.length > 0;
   const createSessionBlockedReason = loadingMembers
     ? 'Chargement des participants en cours...'
-    : 'Creation indisponible: ajoutez d abord des participants dans votre espace manager.';
+    : 'Création indisponible : ajoutez d\'abord des participants dans votre espace manager.';
   const asyncStatusMessage = creatingMember
-    ? (editingMemberId ? 'Mise a jour du participant en cours...' : 'Creation du participant en cours...')
+    ? (editingMemberId ? 'Mise à jour du participant en cours...' : 'Création du participant en cours...')
     : deletingMemberId
       ? 'Suppression du participant en cours...'
       : deletingSessionId
@@ -292,7 +292,7 @@ export default function ManagerHome() {
         throw new Error(body || `Erreur ${response.status}`);
       }
       await refreshSessions();
-      showSuccessToast('Session supprimee.');
+      showSuccessToast('Session supprimée.');
     } catch (err) {
       showErrorToast(err.message || 'Suppression impossible.');
     } finally {
@@ -471,7 +471,7 @@ export default function ManagerHome() {
                   href="/session-builder"
                   onClick={handleCreateSessionClick}
                   aria-disabled={!canCreateSession}
-                  title={canCreateSession ? 'Creer une session' : createSessionBlockedReason}
+                  title={canCreateSession ? 'Créer une session' : createSessionBlockedReason}
                 >
                   Créer une session
                 </Link>
@@ -482,20 +482,20 @@ export default function ManagerHome() {
               {!canCreateSession ? (
                 <p className="home-prerequisite-hint" role="status">{createSessionBlockedReason}</p>
               ) : null}
-              <div className="home-hero-trust" aria-label="Benefices manager">
-                <span>Preparation guidee</span>
-                <span>Animation live structuree</span>
-                <span>Resultats exploitables</span>
+              <div className="home-hero-trust" aria-label="Bénéfices manager">
+                <span>Préparation guidée</span>
+                <span>Animation live structurée</span>
+                <span>Résultats exploitables</span>
               </div>
             </div>
 
-            <aside className="home-hero-summary" aria-label="Synthese manager">
+            <aside className="home-hero-summary" aria-label="Synthèse manager">
               <p className="home-hero-summary__eyebrow">Vue rapide</p>
               <strong className="home-hero-summary__title">Un cockpit simple pour piloter vos sessions.</strong>
               <ul className="home-hero-summary__list">
-                <li>Creer et configurer une session sans friction</li>
-                <li>Suivre les sessions actives et preparatoires au meme endroit</li>
-                <li>Garder une base participants prete pour les prochains rituels</li>
+                <li>Créer et configurer une session sans friction</li>
+                <li>Suivre les sessions actives et préparatoires au même endroit</li>
+                <li>Garder une base participants prête pour les prochains rituels</li>
               </ul>
             </aside>
           </div>
@@ -508,14 +508,14 @@ export default function ManagerHome() {
             <p>session{sessionStats.enCours !== 1 ? 's' : ''} active{sessionStats.enCours !== 1 ? 's' : ''}</p>
           </article>
           <article className="feature-card stat-card stat-card-ready">
-            <p className="eyebrow">A CONFIGURER</p>
+            <p className="eyebrow">À CONFIGURER</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.preparee}</h2>
-            <p>session{sessionStats.preparee !== 1 ? 's' : ''} en preparation</p>
+            <p>session{sessionStats.preparee !== 1 ? 's' : ''} en préparation</p>
           </article>
           <article className="feature-card stat-card stat-card-done">
-            <p className="eyebrow">TERMINEES</p>
+            <p className="eyebrow">TERMINÉES</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.terminee}</h2>
-            <p>session{sessionStats.terminee !== 1 ? 's' : ''} cloturee{sessionStats.terminee !== 1 ? 's' : ''}</p>
+            <p>session{sessionStats.terminee !== 1 ? 's' : ''} clôturée{sessionStats.terminee !== 1 ? 's' : ''}</p>
 
           </article>
         </section>
@@ -532,7 +532,7 @@ export default function ManagerHome() {
               href="/session-builder"
               onClick={handleCreateSessionClick}
               aria-disabled={!canCreateSession}
-              title={canCreateSession ? 'Creer une session' : createSessionBlockedReason}
+              title={canCreateSession ? 'Créer une session' : createSessionBlockedReason}
             >
               Créer une session
             </Link>
