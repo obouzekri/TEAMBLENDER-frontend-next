@@ -156,7 +156,7 @@ export default function SessionBuilder() {
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
   const asyncStatusMessage = isCreatingSession
-    ? 'Création de la session en cours...'
+    ? 'Crï¿½ation de la session en cours...'
     : isSavingSessionInfo
       ? 'Sauvegarde des informations de session en cours...'
       : isLaunching
@@ -236,6 +236,18 @@ export default function SessionBuilder() {
     }
 
     if (!response.ok) {
+      const method = String(options.method || 'GET').toUpperCase();
+      const normalizedPath = String(path || '');
+      const isChallengeConfigPatch =
+        method === 'PATCH' &&
+        /\/sessions\/[^/]+\/challenges\/[^/]+\/config$/.test(normalizedPath);
+
+      if (response.status === 404 && isChallengeConfigPatch) {
+        throw new Error(
+          'Endpoint introuvable (404) pendant la sauvegarde de la configuration challenge. VÃ©rifiez NEXT_PUBLIC_API_BASE (utiliser /api ou https://.../api) et que la session existe toujours.'
+        );
+      }
+
       throw new Error(payload.error || `Erreur API (${response.status})`);
     }
 
@@ -607,7 +619,7 @@ export default function SessionBuilder() {
     }
     const token = getAuthToken();
     setIsCreatingSession(true);
-    const loadingId = showLoadingToast('Création de la session...');
+    const loadingId = showLoadingToast('Crï¿½ation de la session...');
     try {
       const payload = { name };
       payload.flow_mode = flowMode;
@@ -827,7 +839,7 @@ export default function SessionBuilder() {
               <div className={styles.creationGlobalActions}>
                 {availableParticipantsCount === 0 ? (
                   <p className={styles.creationActionHint}>
-                    Création indisponible: ajoutez d&apos;abord des participants dans votre espace manager.
+                    Crï¿½ation indisponible: ajoutez d&apos;abord des participants dans votre espace manager.
                   </p>
                 ) : null}
                 <button
@@ -838,10 +850,10 @@ export default function SessionBuilder() {
                   title={
                     availableParticipantsCount === 0
                       ? 'Creez d\'abord des participants dans l\'espace manager.'
-                      : 'Créer la session'
+                      : 'Crï¿½er la session'
                   }
                 >
-                  {isCreatingSession ? 'Création...' : 'Créer la session'}
+                  {isCreatingSession ? 'Crï¿½ation...' : 'Crï¿½er la session'}
                 </button>
               </div>
             </div>
