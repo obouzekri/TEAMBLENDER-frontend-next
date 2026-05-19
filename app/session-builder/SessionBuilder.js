@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
@@ -15,6 +15,56 @@ import { fetchWithRetry } from '@/lib/api';
 import { ENABLE_CHALLENGES_MOCK_DATA, getApiUrl } from '@/lib/config';
 import styles from './SessionBuilder.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
+
+const SESSION_ID_STORAGE_KEY = 'sessionId';
+const SELECTED_CHALLENGES_STORAGE_KEY = 'selectedChallenges';
+const DRAFT_STORAGE_PREFIX = 'sessionBuilderDraft:';
+
+function getDraftStorageKey(sessionId) {
+  const normalizedId = String(sessionId || '').trim();
+  if (!normalizedId) return null;
+  return `${DRAFT_STORAGE_PREFIX}${normalizedId}`;
+}
+
+function readDraftFromStorage(sessionId) {
+  if (typeof window === 'undefined') return null;
+  const storageKey = getDraftStorageKey(sessionId);
+  if (!storageKey) return null;
+
+  const raw = localStorage.getItem(storageKey);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.selectedChallenges)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function persistDraftToStorage(sessionId, selectedChallenges) {
+  if (typeof window === 'undefined') return null;
+  const storageKey = getDraftStorageKey(sessionId);
+  if (!storageKey) return null;
+
+  const nowIso = new Date().toISOString();
+  localStorage.setItem(
+    storageKey,
+    JSON.stringify({
+      sessionId: String(sessionId),
+      selectedChallenges,
+      updatedAt: nowIso,
+    })
+  );
+
+  // Kept for compatibility with existing manager flow and live page reads.
+  sessionStorage.setItem(SELECTED_CHALLENGES_STORAGE_KEY, JSON.stringify(selectedChallenges));
+  localStorage.setItem(SELECTED_CHALLENGES_STORAGE_KEY, JSON.stringify(selectedChallenges));
+  sessionStorage.setItem(SESSION_ID_STORAGE_KEY, String(sessionId));
+
+  return nowIso;
+}
 
 function useManagerGuard() {
   const [state, setState] = React.useState({ loading: true, allowed: false, user: null });
@@ -83,7 +133,7 @@ export default function SessionBuilder() {
   const [sessionId, setSessionId] = useState(() => {
     if (typeof window === 'undefined') return '';
     const params = new URLSearchParams(window.location.search);
-    return params.get('sessionId') || params.get('id') || '';
+    return params.get('sessionId') || params.get('id') || sessionStorage.getItem(SESSION_ID_STORAGE_KEY) || '';
   });
   const [sessionName, setSessionName] = useState('');
   const [flowMode, setFlowMode] = useState('manual');
@@ -95,8 +145,14 @@ export default function SessionBuilder() {
   const [editDateTime, setEditDateTime] = useState('');
   const [isSavingSessionInfo, setIsSavingSessionInfo] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [lastLocalDraftSaveAt, setLastLocalDraftSaveAt] = useState('');
+  const [lastBackendSaveAt, setLastBackendSaveAt] = useState('');
   const [draftParticipantIds, setDraftParticipantIds] = useState([]);
   const [availableParticipantsCount, setAvailableParticipantsCount] = useState(0);
+  const [loadedFromLocalDraft, setLoadedFromLocalDraft] = useState(false);
+  const [selectedChallengesSnapshot, setSelectedChallengesSnapshot] = useState('[]');
+  const hasHydratedSessionSelectionRef = useRef(false);
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
   const asyncStatusMessage = isCreatingSession
@@ -112,6 +168,11 @@ export default function SessionBuilder() {
     () => selectedChallenges.find((c) => c.id === configuring) || null,
     [configuring, selectedChallenges]
   );
+  const selectedChallengesJson = useMemo(
+    () => JSON.stringify(selectedChallenges),
+    [selectedChallenges]
+  );
+  const hasUnsavedBackendChanges = sessionId && selectedChallengesJson !== selectedChallengesSnapshot;
 
   // On plain /session-builder, reset stale cached session id to start a new flow
   useEffect(() => {
@@ -119,14 +180,32 @@ export default function SessionBuilder() {
     const params = new URLSearchParams(window.location.search);
     const routeSessionId = params.get('sessionId') || params.get('id') || '';
     setHasRouteSessionId(Boolean(routeSessionId));
-    if (!routeSessionId) {
-      sessionStorage.removeItem('sessionId');
-      sessionStorage.removeItem('selectedChallenges');
-      localStorage.removeItem('selectedChallenges');
+    if (routeSessionId) {
+      sessionStorage.setItem(SESSION_ID_STORAGE_KEY, routeSessionId);
+      if (routeSessionId !== sessionId) {
+        setSessionId(routeSessionId);
+      }
+      return;
+    }
+
+    const cachedSessionId = sessionStorage.getItem(SESSION_ID_STORAGE_KEY) || '';
+    const hasCachedDraft = Boolean(cachedSessionId && readDraftFromStorage(cachedSessionId));
+    if (cachedSessionId && hasCachedDraft) {
+      if (cachedSessionId !== sessionId) {
+        setSessionId(cachedSessionId);
+      }
+      return;
+    }
+
+    if (!routeSessionId && (!cachedSessionId || !hasCachedDraft)) {
+      sessionStorage.removeItem(SESSION_ID_STORAGE_KEY);
+      sessionStorage.removeItem(SELECTED_CHALLENGES_STORAGE_KEY);
+      localStorage.removeItem(SELECTED_CHALLENGES_STORAGE_KEY);
       clearAll();
       setSessionChallengesLoaded(false);
+      hasHydratedSessionSelectionRef.current = false;
     }
-  }, [clearAll]);
+  }, [clearAll, sessionId]);
 
   const getAuthToken = useCallback(
     () => localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '',
@@ -188,7 +267,7 @@ export default function SessionBuilder() {
     [apiRequest, sessionId]
   );
 
-  const persistSelectionToBackend = useCallback(async () => {
+  const persistSelectionToBackend = useCallback(async (markInProgress = false) => {
     const token = getAuthToken();
     if (!sessionId || !token) return;
 
@@ -200,7 +279,7 @@ export default function SessionBuilder() {
       throw new Error('Aucun challenge API valide a enregistrer pour cette session.');
     }
 
-    await ensureChallengesLinkedToSession(selectedChallengeIds, token, true);
+    await ensureChallengesLinkedToSession(selectedChallengeIds, token, markInProgress);
 
     for (const challenge of selectedChallenges) {
       const challengeId = toIntegerId(challenge.id);
@@ -218,6 +297,9 @@ export default function SessionBuilder() {
         body: JSON.stringify({ config }),
       });
     }
+
+    setSelectedChallengesSnapshot(JSON.stringify(selectedChallenges));
+    setLastBackendSaveAt(new Date().toISOString());
   }, [
     apiRequest,
     ensureChallengesLinkedToSession,
@@ -226,6 +308,23 @@ export default function SessionBuilder() {
     sessionId,
     toIntegerId,
   ]);
+
+  const restoreSelectedChallenges = useCallback(
+    (challenges) => {
+      const source = Array.isArray(challenges) ? challenges : [];
+      clearAll();
+
+      source.forEach((challenge) => {
+        const challengeId = challenge?.id ?? challenge?.challenge_id;
+        if (!challengeId) return;
+        selectChallenge(challengeId);
+        if (challenge?.config && typeof challenge.config === 'object') {
+          updateChallengeConfig(challengeId, challenge.config);
+        }
+      });
+    },
+    [clearAll, selectChallenge, updateChallengeConfig]
+  );
 
   const loadSessionDetails = useCallback(async (targetSessionId, tokenOverride) => {
     const targetId = String(targetSessionId || '').trim();
@@ -274,7 +373,7 @@ export default function SessionBuilder() {
         sessionStorage.setItem('sessionId', sessionId);
       }
 
-      await persistSelectionToBackend();
+      await persistSelectionToBackend(true);
       removeToast(loadingId);
 
       // Redirect to Next.js live session view (replaces legacy facilitator-session)
@@ -294,6 +393,45 @@ export default function SessionBuilder() {
     persistSelectionToBackend,
     removeToast,
     selectedChallenges,
+    sessionId,
+    showErrorToast,
+    showLoadingToast,
+  ]);
+
+  useEffect(() => {
+    if (!sessionId || !hasHydratedSessionSelectionRef.current) return;
+
+    const savedAt = persistDraftToStorage(sessionId, selectedChallenges);
+    if (savedAt) {
+      setLastLocalDraftSaveAt(savedAt);
+    }
+  }, [selectedChallenges, sessionId]);
+
+  const handleSaveDraft = useCallback(async () => {
+    if (!sessionId || isSavingDraft) return;
+
+    if (selectedChallenges.length === 0) {
+      showErrorToast('Ajoutez au moins un challenge avant de sauvegarder.');
+      return;
+    }
+
+    setIsSavingDraft(true);
+    const loadingId = showLoadingToast('Sauvegarde des challenges en cours...');
+
+    try {
+      await persistSelectionToBackend(false);
+      removeToast(loadingId);
+    } catch (error) {
+      removeToast(loadingId);
+      showErrorToast(error.message || 'Impossible de sauvegarder les challenges.');
+    } finally {
+      setIsSavingDraft(false);
+    }
+  }, [
+    isSavingDraft,
+    persistSelectionToBackend,
+    removeToast,
+    selectedChallenges.length,
     sessionId,
     showErrorToast,
     showLoadingToast,
@@ -338,16 +476,21 @@ export default function SessionBuilder() {
 
           // Pre-populate selectedChallenges from session
           const sessionChallenges = Array.isArray(session.challenges) ? session.challenges : [];
-          sessionChallenges.forEach((sc) => {
-            const challengeId = sc.id || sc.challenge_id;
-            if (challengeId) {
-              selectChallenge(challengeId);
-              // After selection, update config if available
-              if (sc.config) {
-                updateChallengeConfig(challengeId, sc.config);
-              }
+
+          restoreSelectedChallenges(sessionChallenges);
+
+          setLoadedFromLocalDraft(false);
+          const savedDraft = readDraftFromStorage(sessionId);
+          if (savedDraft && Array.isArray(savedDraft.selectedChallenges)) {
+            restoreSelectedChallenges(savedDraft.selectedChallenges);
+            setLoadedFromLocalDraft(true);
+            if (savedDraft.updatedAt) {
+              setLastLocalDraftSaveAt(savedDraft.updatedAt);
             }
-          });
+          }
+
+          setSelectedChallengesSnapshot(JSON.stringify(sessionChallenges));
+          hasHydratedSessionSelectionRef.current = true;
           setSessionChallengesLoaded(true);
         }
       })
@@ -375,7 +518,16 @@ export default function SessionBuilder() {
     return () => {
       cancelled = true;
     };
-  }, [sessionId, guard.allowed, filteredChallenges, getAuthToken, loadSessionDetails, sessionChallengesLoaded, selectChallenge, updateChallengeConfig]);
+  }, [
+    filteredChallenges,
+    getAuthToken,
+    guard.allowed,
+    loadSessionDetails,
+    restoreSelectedChallenges,
+    sessionChallengesLoaded,
+    sessionId,
+    showErrorToast,
+  ]);
 
   // Charger les challenges au mount
   useEffect(() => {
@@ -478,7 +630,7 @@ export default function SessionBuilder() {
         });
       }
 
-      sessionStorage.setItem('sessionId', newId);
+      sessionStorage.setItem(SESSION_ID_STORAGE_KEY, newId);
       setSessionId(newId);
       setSessionParticipantCount(draftParticipantIds.length);
       await loadSessionDetails(newId, token);
@@ -536,7 +688,7 @@ export default function SessionBuilder() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
     sessionStorage.removeItem('currentUser');
-    sessionStorage.removeItem('selectedChallenges');
+    sessionStorage.removeItem(SELECTED_CHALLENGES_STORAGE_KEY);
     window.location.replace('/login');
   }
 
@@ -771,7 +923,29 @@ export default function SessionBuilder() {
               <span className={styles.sessionInfoBadge}>
                 Mode {flowMode === 'auto' ? 'automatique' : 'manuel'}
               </span>
+              {lastLocalDraftSaveAt && (
+                <span className={styles.sessionInfoLocalSave}>
+                  Brouillon local: {new Date(lastLocalDraftSaveAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+              {lastBackendSaveAt && (
+                <span className={styles.sessionInfoBackendSave}>
+                  Serveur: {new Date(lastBackendSaveAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+              {loadedFromLocalDraft && (
+                <span className={styles.sessionInfoDraftRestored}>Brouillon restaure</span>
+              )}
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                <button
+                  className={hasUnsavedBackendChanges ? 'btn-primary' : 'btn-secondary'}
+                  style={{ padding: '0.4rem 0.9rem', fontSize: '0.82rem' }}
+                  onClick={handleSaveDraft}
+                  disabled={isSavingDraft || selectedChallenges.length === 0}
+                  title={selectedChallenges.length === 0 ? 'Ajoutez au moins une activite.' : 'Enregistrer les challenges sur le serveur'}
+                >
+                  {isSavingDraft ? 'Sauvegarde...' : 'Enregistrer'}
+                </button>
                 <button
                   className="btn-secondary"
                   style={{ padding: '0.4rem 0.9rem', fontSize: '0.82rem' }}
