@@ -29,33 +29,33 @@ Verification:
 - Conclusion: pas de regression de compilation detectee
 
 ## Step 3 - Changelog par fichier (branding uniquement)
-- app/admin/AdminClient.js: TEAMSPARK -> TeamBlender
-- app/admin/page.js: TEAMSPARK -> TeamBlender
-- app/challenges/layout.js: TEAMSPARK -> TeamBlender
-- app/contact/page.js: TEAMSPARK -> TeamBlender (labels/sujet email)
-- app/home/page.js: TEAMSPARK -> TeamBlender
-- app/layout.js: TEAMSPARK -> TeamBlender (metadata)
-- app/login/LoginForm.js: TEAMSPARK -> TeamBlender
-- app/login/page.js: TEAMSPARK -> TeamBlender
-- app/mentions-legales/page.js: TEAMSPARK -> TeamBlender
-- app/page.js: TEAMSPARK -> TeamBlender
-- app/politique-confidentialite/page.js: TEAMSPARK -> TeamBlender
-- app/pricing/page.js: TEAMSPARK -> TeamBlender
-- app/signup/SignupForm.js: TEAMSPARK -> TeamBlender
-- app/signup/page.js: TEAMSPARK -> TeamBlender
-- components/AppNav.js: TEAMSPARK -> TeamBlender
-- components/Footer.js: TEAMSPARK -> TeamBlender
-- components/TopNav.js: TEAMSPARK -> TeamBlender
+- app/admin/AdminClient.js: TeamBlender -> TeamBlender
+- app/admin/page.js: TeamBlender -> TeamBlender
+- app/challenges/layout.js: TeamBlender -> TeamBlender
+- app/contact/page.js: TeamBlender -> TeamBlender (labels/sujet email)
+- app/home/page.js: TeamBlender -> TeamBlender
+- app/layout.js: TeamBlender -> TeamBlender (metadata)
+- app/login/LoginForm.js: TeamBlender -> TeamBlender
+- app/login/page.js: TeamBlender -> TeamBlender
+- app/mentions-legales/page.js: TeamBlender -> TeamBlender
+- app/page.js: TeamBlender -> TeamBlender
+- app/politique-confidentialite/page.js: TeamBlender -> TeamBlender
+- app/pricing/page.js: TeamBlender -> TeamBlender
+- app/signup/SignupForm.js: TeamBlender -> TeamBlender
+- app/signup/page.js: TeamBlender -> TeamBlender
+- components/AppNav.js: TeamBlender -> TeamBlender
+- components/Footer.js: TeamBlender -> TeamBlender
+- components/TopNav.js: TeamBlender -> TeamBlender
 
 ## Garde-fous appliques
 - Aucun renommage de routes
-- Aucun renommage de variables techniques (`teamspark_*`)
+- Aucun renommage de variables techniques (`TeamBlender_*`)
 - Aucun changement de logique JS/React
 - Aucune modification backend
 
 ## Etapes suivantes recommandees (sans action auto)
 1. Validation visuelle manuelle des pages critiques (`/`, `/login`, `/signup`, `/mentions-legales`, `/politique-confidentialite`).
-2. Decision explicite sur le domaine/email (`contact@teamspark.app`) avant modification.
+2. Decision explicite sur le domaine/email (`contact@TeamBlender.app`) avant modification.
 3. Commit avec message dedie rebrand texte + build OK.
 
 ## Step 4 - Publication du lot branding
@@ -72,8 +72,8 @@ Objectif:
 
 ### Step 5.1 - app/contact/page.js
 Action:
-- `mailto:contact@teamspark.app` -> `mailto:contact@teamblender.io`
-- Texte visible `contact@teamspark.app` -> `contact@teamblender.io`
+- `mailto:contact@TeamBlender.app` -> `mailto:contact@teamblender.io`
+- Texte visible `contact@TeamBlender.app` -> `contact@teamblender.io`
 
 Verification:
 - `get_errors` sur le fichier: OK
@@ -97,7 +97,7 @@ Verification:
 
 ## Step 6 - Verification de non-regression post micro-lot
 Action:
-- Scan occurrences restantes de `teamspark.app|@teamspark` dans `app` et `components`.
+- Scan occurrences restantes de `TeamBlender.app|@TeamBlender` dans `app` et `components`.
 - Build complet `npm run build`.
 
 Verification:
@@ -111,7 +111,7 @@ Action:
 - Controle automatise des pages: `/`, `/contact`, `/mentions-legales`, `/politique-confidentialite`.
 
 Verification:
-- `/`: titre `TeamBlender`, aucun residu Teamspark detecte
+- `/`: titre `TeamBlender`, aucun residu TeamBlender detecte
 - `/contact`: TeamBlender visible, email `contact@teamblender.io`, aucun email legacy
 - `/mentions-legales`: TeamBlender visible, email `contact@teamblender.io`, aucun email legacy
 - `/politique-confidentialite`: TeamBlender visible, email `contact@teamblender.io`, aucun email legacy
@@ -119,8 +119,8 @@ Verification:
 
 ## Step 8 - Harmonisation docs et smoke local (faible risque)
 Action:
-- README frontend: titre et phrase d'introduction `TEAMSPARK` -> `TeamBlender`.
-- Script `scripts/smoke-participant.mjs`: domaine email local de test `@teamspark.local` -> `@teamblender.local`.
+- README frontend: titre et phrase d'introduction `TeamBlender` -> `TeamBlender`.
+- Script `scripts/smoke-participant.mjs`: domaine email local de test `@TeamBlender.local` -> `@teamblender.local`.
 
 Verification:
 - Syntaxe script: `node --check scripts/smoke-participant.mjs` OK
@@ -137,7 +137,7 @@ Plan de compatibilite:
 
 ### Step 9.1 - package.json
 Action:
-- `name`: `teamspark-frontend-next` -> `teamblender-frontend-next`.
+- `name`: `TeamBlender-frontend-next` -> `teamblender-frontend-next`.
 
 Verification:
 - Check valeur: `node -e` sur `package.json` OK
@@ -158,7 +158,7 @@ Action:
 Verification:
 - Check valeur: `node -e` sur `.vercel/repo.json` OK
 - Build: `npm run build` OK
-- Scan final `teamspark-frontend-next` hors build/deps: aucune occurrence
+- Scan final `TeamBlender-frontend-next` hors build/deps: aucune occurrence
 
 Conclusion Step 9:
 - Migration technique des identifiants realisee sans impact mecanique detecte.

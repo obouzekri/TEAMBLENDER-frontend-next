@@ -290,9 +290,9 @@ export default function ParticipantPage() {
             ) : null}
           </div>
           <div className="participant-hero-trust" aria-label="Repères participant">
-            <span>Acces individuel</span>
-            <span>Session en temps reel</span>
-            <span>Experience guidee</span>
+            <span>Accès individuel</span>
+            <span>Session en temps réel</span>
+            <span>Expérience guidée</span>
           </div>
           {asyncStatusMessage ? (
             <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>

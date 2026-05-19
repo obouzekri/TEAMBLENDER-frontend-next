@@ -2,7 +2,7 @@
 
 **Rebrand Status: COMPLETE**  
 **Date:** 2026-05-15  
-**Scope:** TEAMSPARK → TeamBlender (global rebrand)
+**Scope:** TeamBlender → TeamBlender (global rebrand)
 
 ---
 
@@ -56,7 +56,7 @@ Root:     585d089
 
 ## ✅ BACKWARD COMPATIBILITY
 
-- [x] **Storage Keys:** `teamspark_*` preserved (localStorage backward compat)
+- [x] **Storage Keys:** `TeamBlender_*` preserved (localStorage backward compat)
 - [x] **API Routes:** `/login`, `/session`, etc. unchanged
 - [x] **Event Namespaces:** Socket.io events unchanged
 - [x] **CSS Classes:** No class name changes
@@ -173,7 +173,7 @@ https://teamblender-backend-qxe5-production.up.railway.app/api-docs
 ## ✅ POST-DEPLOYMENT VALIDATION
 
 - [ ] Frontend loads at new domain (teamblender.io or custom)
-- [ ] Login page shows "TeamBlender" (not "TEAMSPARK")
+- [ ] Login page shows "TeamBlender" (not "TeamBlender")
 - [ ] Contact form shows "contact@teamblender.io"
 - [ ] API Swagger shows "TeamBlender API"
 - [ ] Manager can create session

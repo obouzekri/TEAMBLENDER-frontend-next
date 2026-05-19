@@ -156,7 +156,7 @@ export default function SessionBuilder() {
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
   const asyncStatusMessage = isCreatingSession
-    ? 'Creation de la session en cours...'
+    ? 'Création de la session en cours...'
     : isSavingSessionInfo
       ? 'Sauvegarde des informations de session en cours...'
       : isLaunching
@@ -607,7 +607,7 @@ export default function SessionBuilder() {
     }
     const token = getAuthToken();
     setIsCreatingSession(true);
-    const loadingId = showLoadingToast('Creation de la session...');
+    const loadingId = showLoadingToast('Création de la session...');
     try {
       const payload = { name };
       payload.flow_mode = flowMode;
@@ -827,7 +827,7 @@ export default function SessionBuilder() {
               <div className={styles.creationGlobalActions}>
                 {availableParticipantsCount === 0 ? (
                   <p className={styles.creationActionHint}>
-                    Creation indisponible: ajoutez d&apos;abord des participants dans votre espace manager.
+                    Création indisponible: ajoutez d&apos;abord des participants dans votre espace manager.
                   </p>
                 ) : null}
                 <button
@@ -838,10 +838,10 @@ export default function SessionBuilder() {
                   title={
                     availableParticipantsCount === 0
                       ? 'Creez d\'abord des participants dans l\'espace manager.'
-                      : 'Creer la session'
+                      : 'Créer la session'
                   }
                 >
-                  {isCreatingSession ? 'Creation...' : 'Creer la session'}
+                  {isCreatingSession ? 'Création...' : 'Créer la session'}
                 </button>
               </div>
             </div>
