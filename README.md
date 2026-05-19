@@ -2,6 +2,12 @@
 
 Frontend cible du produit TeamBlender (migration depuis le legacy).
 
+## Etat actuel
+
+- `frontend-next/` porte les parcours utilisateur actifs: manager, admin, participant et les pages publiques principales.
+- Le legacy `archive/frontend/` reste fige et ne doit servir qu'en consultation explicite.
+- Les changements en cours doivent rester alignes avec la navigation produit actuelle et les checks de go-live du projet.
+
 ## Quick links
 
 - Setup local: section `Setup local`
