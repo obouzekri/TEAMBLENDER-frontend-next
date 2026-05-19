@@ -4054,8 +4054,8 @@ a {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  /* Hide sidebar on mobile */
-  aside {
+  /* Hide admin sidebar on mobile */
+  .admin-console-layout > aside {
     display: none !important;
   }
 
