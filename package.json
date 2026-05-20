@@ -11,7 +11,8 @@
     "test:smoke:participant": "node scripts/smoke-participant.mjs",
     "test:smoke:session-builder": "node scripts/smoke-session-builder-catalog.mjs",
     "test:smoke:login": "node scripts/smoke-login-redirect.mjs",
-    "test:smoke:preview": "npm run test:smoke:login && npm run test:smoke:session-builder"
+    "test:smoke:preview": "npm run test:smoke:login && npm run test:smoke:session-builder",
+    "test:unit:vom": "node scripts/test-vom-utils.mjs"
   },
   "dependencies": {
     "next": "16.2.6",

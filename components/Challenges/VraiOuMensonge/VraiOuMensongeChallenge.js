@@ -1,0 +1,262 @@
+'use client';
+
+import React, { useEffect, useMemo, useState } from 'react';
+import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import styles from './VraiOuMensonge.module.css';
+
+function phaseLabel(phase) {
+  const labels = {
+    waiting_start: 'Lobby',
+    selecting_statement: 'Selection phrase',
+    voting_open: 'Votes ouverts',
+    reveal_pending: 'En attente de revelation',
+    round_result: 'Resultat du tour',
+    next_turn: 'Tour suivant',
+    finished: 'Partie terminee',
+    paused_poseur_disconnect: 'Pause (poseur deconnecte)'
+  };
+  return labels[String(phase || '')] || 'Phase inconnue';
+}
+
+function formatSeconds(ms) {
+  const raw = Number(ms || 0);
+  const total = Number.isFinite(raw) ? Math.max(0, Math.ceil(raw / 1000)) : 0;
+  return total;
+}
+
+export default function VraiOuMensongeChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
+  const [selectedStatementId, setSelectedStatementId] = useState('');
+  const [revealTruth, setRevealTruth] = useState('vrai');
+  const [nowMs, setNowMs] = useState(Date.now());
+
+  const {
+    state,
+    error,
+    isFacilitator,
+    emitEvent,
+    participantId,
+  } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
+
+  const vom = state?.vom || {};
+  const phase = String(vom?.phase || 'waiting_start');
+  const currentTurn = vom?.current_turn || null;
+  const scores = vom?.scores || {};
+  const ranking = Array.isArray(vom?.ranking) ? vom.ranking : [];
+  const participantsOrder = Array.isArray(vom?.participants_order) ? vom.participants_order : [];
+  const catalog = Array.isArray(vom?.catalog) ? vom.catalog : [];
+  const roundHistory = Array.isArray(vom?.round_history) ? vom.round_history : [];
+
+  const me = String(participantId || context?.userId || '');
+  const poserId = String(currentTurn?.poser_id || '');
+  const isPoser = me && poserId && me === poserId;
+
+  const usedByPoser = useMemo(() => {
+    const byParticipant = vom?.used_statement_ids_by_participant || {};
+    const ids = Array.isArray(byParticipant[poserId]) ? byParticipant[poserId] : [];
+    return new Set(ids.map((value) => String(value)));
+  }, [vom, poserId]);
+
+  const myVote = String(currentTurn?.votes?.[me] || '');
+
+  const remainingMs = useMemo(() => {
+    const deadline = Number(vom?.phase_deadline_ms || 0);
+    if (!deadline) return 0;
+    return Math.max(0, deadline - nowMs);
+  }, [vom?.phase_deadline_ms, nowMs]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  function startChallenge() {
+    emitEvent('vom.start', {});
+  }
+
+  function confirmStatement() {
+    if (!selectedStatementId) return;
+    emitEvent('vom.select_statement', { statement_id: selectedStatementId });
+  }
+
+  function vote(v) {
+    emitEvent('vom.vote', { vote: v });
+  }
+
+  function reveal() {
+    emitEvent('vom.reveal', { truth: revealTruth });
+  }
+
+  return (
+    <div className={styles.shell}>
+      <header className={styles.header}>
+        <div>
+          <h1>Vrai ou Mensonge</h1>
+          <p>Experience individuelle, rapide, orientee engagement collectif.</p>
+        </div>
+        <div className={styles.meta}>
+          <span>{phaseLabel(phase)}</span>
+          <span>Tour {Number(vom?.turn_index || 0) + 1}/{Number(vom?.total_turns || 0)}</span>
+          <span>Temps restant: {formatSeconds(remainingMs)}s</span>
+        </div>
+      </header>
+
+      {error ? <p className={styles.error}>{error}</p> : null}
+
+      {phase === 'waiting_start' ? (
+        <section className={styles.card}>
+          <h2>Lobby</h2>
+          <p>Regle: 3 affirmations exactes par participant, ordre round-robin, vote individuel des non-poseurs.</p>
+          <ol className={styles.orderList}>
+            {participantsOrder.map((participant) => (
+              <li key={participant}>{participant}</li>
+            ))}
+          </ol>
+          {isFacilitator ? (
+            <button type="button" className={styles.primaryBtn} onClick={startChallenge}>
+              Demarrer le challenge
+            </button>
+          ) : (
+            <p className={styles.helper}>En attente du facilitateur.</p>
+          )}
+        </section>
+      ) : null}
+
+      {phase === 'selecting_statement' ? (
+        <section className={styles.card}>
+          <h2>Selection d affirmation</h2>
+          <p>Poseur actuel: <strong>{poserId || '-'}</strong></p>
+          {isPoser ? (
+            <>
+              <div className={styles.statementGrid}>
+                {catalog.map((statement) => {
+                  const disabled = usedByPoser.has(String(statement.id));
+                  const selected = selectedStatementId === String(statement.id);
+                  return (
+                    <button
+                      key={statement.id}
+                      type="button"
+                      className={`${styles.statementBtn}${selected ? ` ${styles.statementBtnSelected}` : ''}`}
+                      disabled={disabled}
+                      onClick={() => setSelectedStatementId(String(statement.id))}
+                    >
+                      <span className={styles.category}>{statement.category}</span>
+                      <span>{statement.text}</span>
+                      {disabled ? <small>Deja utilisee par vous</small> : null}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                disabled={!selectedStatementId}
+                onClick={confirmStatement}
+              >
+                Confirmer la phrase
+              </button>
+            </>
+          ) : (
+            <p className={styles.helper}>Le poseur choisit une phrase du catalogue fixe.</p>
+          )}
+        </section>
+      ) : null}
+
+      {phase === 'voting_open' ? (
+        <section className={styles.card}>
+          <h2>Votes ouverts</h2>
+          <p><strong>{poserId}</strong> affirme: {currentTurn?.statement_text || '-'}</p>
+          {!isPoser ? (
+            <div className={styles.voteActions}>
+              <button type="button" className={styles.voteTrue} onClick={() => vote('vrai')}>Vrai</button>
+              <button type="button" className={styles.voteFalse} onClick={() => vote('mensonge')}>Mensonge</button>
+              <p className={styles.helper}>Votre vote actuel: {myVote || 'absent'}</p>
+            </div>
+          ) : (
+            <p className={styles.helper}>Vous etes poseur, vous ne votez pas.</p>
+          )}
+        </section>
+      ) : null}
+
+      {phase === 'reveal_pending' ? (
+        <section className={styles.card}>
+          <h2>Revelation</h2>
+          <p>Phrase: {currentTurn?.statement_text || '-'}</p>
+          {isPoser ? (
+            <>
+              <div className={styles.voteActions}>
+                <button type="button" className={styles.voteTrue} onClick={() => setRevealTruth('vrai')}>Vrai</button>
+                <button type="button" className={styles.voteFalse} onClick={() => setRevealTruth('mensonge')}>Mensonge</button>
+              </div>
+              <p className={styles.helper}>Verite choisie: {revealTruth}</p>
+              <button type="button" className={styles.primaryBtn} onClick={reveal}>Reveler (irreversible)</button>
+            </>
+          ) : (
+            <p className={styles.helper}>En attente de la revelation du poseur.</p>
+          )}
+        </section>
+      ) : null}
+
+      {phase === 'round_result' ? (
+        <section className={styles.card}>
+          <h2>Resultat du tour</h2>
+          <p>Verite: <strong>{String(currentTurn?.revealed_truth || '-')}</strong></p>
+          <div className={styles.resultList}>
+            {(currentTurn?.result?.votes || []).map((item) => (
+              <div key={item.participant_id} className={styles.resultRow}>
+                <span>{item.participant_id}</span>
+                <span>{item.status}</span>
+                <span>+{item.points}</span>
+              </div>
+            ))}
+          </div>
+          <h3>Scores cumules</h3>
+          <div className={styles.resultList}>
+            {participantsOrder.map((participant) => (
+              <div key={participant} className={styles.resultRow}>
+                <span>{participant}</span>
+                <span>{Number(scores[participant] || 0)} pts</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {phase === 'next_turn' ? (
+        <section className={styles.card}>
+          <h2>Transition</h2>
+          <p>Preparation du tour suivant...</p>
+        </section>
+      ) : null}
+
+      {phase === 'paused_poseur_disconnect' ? (
+        <section className={styles.card}>
+          <h2>Pause temporaire</h2>
+          <p>Le poseur est deconnecte. La partie reprend automatiquement a sa reconnexion.</p>
+        </section>
+      ) : null}
+
+      {phase === 'finished' ? (
+        <section className={styles.card}>
+          <h2>Classement final</h2>
+          <div className={styles.resultList}>
+            {ranking.map((entry) => (
+              <div key={entry.participant_id} className={styles.resultRow}>
+                <span>#{entry.rank} {entry.participant_id}</span>
+                <span>{entry.score} pts {entry.tie ? '(ex-aequo)' : ''}</span>
+              </div>
+            ))}
+          </div>
+          <p className={styles.helper}>Action de sortie: retour a l espace participant.</p>
+          <a className={styles.primaryBtn} href={`/participant?sessionId=${encodeURIComponent(String(context?.sessionId || runtimePayload?.session_id || ''))}`}>
+            Sortir du challenge
+          </a>
+        </section>
+      ) : null}
+
+      <section className={styles.card}>
+        <h3>Historique</h3>
+        <p>{roundHistory.length} tours resolus</p>
+      </section>
+    </div>
+  );
+}
