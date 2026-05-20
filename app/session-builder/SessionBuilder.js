@@ -248,7 +248,11 @@ export default function SessionBuilder() {
         );
       }
 
-      throw new Error(payload.error || `Erreur API (${response.status})`);
+      const requestError = new Error(payload.error || `Erreur API (${response.status})`);
+      requestError.status = response.status;
+      requestError.code = payload.code;
+      requestError.details = payload.details;
+      throw requestError;
     }
 
     return payload;
@@ -623,6 +627,9 @@ export default function SessionBuilder() {
     try {
       const payload = { name };
       payload.flow_mode = flowMode;
+      if (draftParticipantIds.length > 0) {
+        payload.participant_ids = draftParticipantIds;
+      }
       if (sessionDate) {
         payload.session_date = sessionDate.toISOString();
       }
@@ -633,14 +640,6 @@ export default function SessionBuilder() {
       });
       const newId = String(created.id || created.session?.id || '');
       if (!newId) throw new Error('Identifiant de session manquant dans la reponse.');
-
-      if (draftParticipantIds.length > 0) {
-        await apiRequest(`/sessions/${newId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ participant_ids: draftParticipantIds }),
-        });
-      }
 
       sessionStorage.setItem(SESSION_ID_STORAGE_KEY, newId);
       setSessionId(newId);
