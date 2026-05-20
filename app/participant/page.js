@@ -52,7 +52,10 @@ export default function ParticipantPage() {
 
   const participantLabel = useMemo(() => {
     if (!user) return 'Participant';
-    return user.first_name || user.firstname || user.email || 'Participant';
+    const firstName = String(user.first_name || user.firstname || '').trim();
+    const lastName = String(user.last_name || user.lastname || '').trim();
+    const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+    return fullName || firstName || user.email || 'Participant';
   }, [user]);
 
   const connectionState = useMemo(() => {
