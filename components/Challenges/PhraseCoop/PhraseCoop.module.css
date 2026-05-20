@@ -241,7 +241,8 @@
 
 .header h1 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.22rem;
+  letter-spacing: 0.01em;
 }
 
 .header p {
@@ -268,34 +269,36 @@
 
 .shell {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.85fr);
 }
 
 .boardPanel {
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid #dbe5f5;
   background: #f8fbff;
-  padding: 12px;
+  padding: 14px;
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .board {
   display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
 }
 
 .slot {
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid #dbe5f5;
-  background: #ffffff;
+  background: linear-gradient(175deg, #ffffff 0%, #f8fbff 100%);
   color: #0f172a;
   text-align: left;
-  padding: 9px;
+  padding: 8px 9px;
   display: grid;
-  gap: 5px;
+  gap: 4px;
+  min-height: 86px;
+  align-content: start;
   cursor: pointer;
   transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
 }
@@ -311,35 +314,40 @@
 }
 
 .slotMine {
-  border-color: #7dd3fc;
-  background: #f0f9ff;
+  border-color: #38bdf8;
+  background: linear-gradient(170deg, #e0f2fe 0%, #f0f9ff 100%);
+  box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.28);
 }
 
 .slotLocked {
-  opacity: 0.7;
-  background: #f8fafc;
+  opacity: 0.68;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .slotOk {
-  border-color: #86efac;
-  background: #f0fdf4;
+  border-color: #4ade80;
+  background: linear-gradient(180deg, #f0fdf4 0%, #ecfccb 100%);
 }
 
 .slotDropTarget {
   border-color: #0284c7;
-  box-shadow: inset 0 0 0 2px rgba(2, 132, 199, 0.22);
+  box-shadow: inset 0 0 0 2px rgba(2, 132, 199, 0.22), 0 0 0 3px rgba(56, 189, 248, 0.18);
 }
 
 .slotIndex {
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   color: #64748b;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .slotWord {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  min-height: 20px;
+  min-height: 28px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .slotExpected,
@@ -370,17 +378,17 @@
 
 .sidePanel {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   align-content: start;
 }
 
 .sideCard {
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid #dbe5f5;
   background: #ffffff;
-  padding: 12px;
+  padding: 13px;
   display: grid;
-  gap: 8px;
+  gap: 9px;
 }
 
 .sideCard h2 {
@@ -405,9 +413,9 @@
   border: 1px solid #cbd5e1;
   background: #f8fafc;
   color: #0f172a;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 700;
-  padding: 6px 10px;
+  padding: 5px 9px;
   cursor: pointer;
   transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
 }
@@ -576,7 +584,7 @@
 /* Unified dark theme overrides */
 .header {
   border: 1px solid rgba(56, 189, 248, 0.25);
-  background: rgba(13, 21, 40, 0.85);
+  background: linear-gradient(160deg, rgba(13, 21, 40, 0.9) 0%, rgba(11, 28, 54, 0.8) 100%);
 }
 
 .header h1 {
@@ -625,8 +633,26 @@
 .chatInput,
 .chatText {
   border-color: rgba(148, 163, 184, 0.2);
-  background: rgba(15, 23, 42, 0.58);
+  background: rgba(15, 23, 42, 0.62);
   color: #e5edf7;
+}
+
+.slot {
+  background: linear-gradient(180deg, rgba(22, 31, 56, 0.78) 0%, rgba(17, 26, 46, 0.86) 100%);
+}
+
+.slotMine {
+  background: linear-gradient(180deg, rgba(14, 49, 73, 0.88) 0%, rgba(15, 35, 58, 0.92) 100%);
+  border-color: rgba(56, 189, 248, 0.72);
+}
+
+.slotOk {
+  background: linear-gradient(180deg, rgba(21, 76, 54, 0.82) 0%, rgba(19, 56, 40, 0.9) 100%);
+  border-color: rgba(74, 222, 128, 0.75);
+}
+
+.slotLocked {
+  background: linear-gradient(180deg, rgba(24, 33, 52, 0.7) 0%, rgba(18, 27, 43, 0.82) 100%);
 }
 
 .slotIndex,
@@ -742,14 +768,12 @@
   .btnPrimary,
   .btnSecondary,
   .chatSubmitBtn,
-  .timerBtnStart,
-  .timerBtnPauseResume,
-  .timerBtnStop {
+  .timerIconBtn {
     min-height: 44px;
   }
 
   .board {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
   }
 
   .chatInput {
@@ -769,9 +793,7 @@
 }
 
 @media (hover: none) and (pointer: coarse) {
-  .timerBtnStart:hover:not(:disabled),
-  .timerBtnPauseResume:hover:not(:disabled),
-  .timerBtnStop:hover:not(:disabled),
+  .timerIconBtn:hover:not(:disabled),
   .chatSubmitBtn:hover:not(:disabled),
   .btnPrimary:hover:not(:disabled),
   .btnSecondary:hover:not(:disabled) {
