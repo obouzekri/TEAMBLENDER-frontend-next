@@ -705,6 +705,36 @@ export default function AdminClient() {
     }
   }
 
+  async function handleAdminUserVerificationOverride(targetUser) {
+    if (!token || !targetUser?.id) return;
+
+    const key = `verify-admin:user:${targetUser.id}`;
+    setBusySaveKey(key);
+    setError('');
+
+    try {
+      const response = await fetch(getApiUrl(`/users/${targetUser.id}/email-verification`), {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || payload.message || `Validation manuelle impossible (${response.status})`);
+      }
+
+      await loadAll();
+      showNotice(payload.message || 'Compte validé manuellement.');
+    } catch (err) {
+      setError(err.message || 'Erreur pendant la validation manuelle du compte.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
   function beginEditUser(targetUser) {
     setShowNewUserForm(false);
     setEditingUser({
@@ -995,6 +1025,68 @@ export default function AdminClient() {
       showNotice(`Mot de passe participant réinitialisé.${tempPassword}`);
     } catch (err) {
       setError(err.message || 'Erreur lors du reset mot de passe participant.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  async function handleResendParticipantVerificationLink(participant) {
+    if (!participant?.email) return;
+
+    const key = `verify:participant:${participant.id}`;
+    setBusySaveKey(key);
+    setError('');
+
+    try {
+      const response = await fetch(getApiUrl('/auth/resend-verification'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: String(participant.email).trim().toLowerCase(),
+          userType: 'participant',
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || payload.message || `Renvoi impossible (${response.status})`);
+      }
+
+      showNotice(payload.message || 'Lien de verification participant renvoye.');
+    } catch (err) {
+      setError(err.message || 'Erreur lors du renvoi du lien de verification participant.');
+    } finally {
+      setBusySaveKey('');
+    }
+  }
+
+  async function handleAdminParticipantVerificationOverride(participant) {
+    if (!token || !participant?.id) return;
+
+    const key = `verify-admin:participant:${participant.id}`;
+    setBusySaveKey(key);
+    setError('');
+
+    try {
+      const response = await fetch(getApiUrl(`/participants/${participant.id}/email-verification`), {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || payload.message || `Validation manuelle impossible (${response.status})`);
+      }
+
+      await loadAll();
+      showNotice(payload.message || 'Participant validé manuellement.');
+    } catch (err) {
+      setError(err.message || 'Erreur pendant la validation manuelle du participant.');
     } finally {
       setBusySaveKey('');
     }
@@ -2229,6 +2321,18 @@ export default function AdminClient() {
                             <button
                               type="button"
                               className="icon-action-btn"
+                              onClick={() => handleAdminUserVerificationOverride(u)}
+                              disabled={busySaveKey === `verify-admin:user:${u.id}`}
+                              title="Validation manuelle admin"
+                              aria-label="Validation manuelle admin"
+                            >
+                              {busySaveKey === `verify-admin:user:${u.id}` ? '…' : '✓'}
+                            </button>
+                          ) : null}
+                          {!isPlatformAdminEmail(u.email) ? (
+                            <button
+                              type="button"
+                              className="icon-action-btn"
                               onClick={() => handleResendVerificationLink(u)}
                               disabled={busySaveKey === `verify:user:${u.id}`}
                               title="Renvoyer lien verification"
@@ -2382,6 +2486,26 @@ export default function AdminClient() {
                           <p className="session-meta">{p.email} · {p.disabled ? 'Inactif' : 'Actif'} · {p.creator?.email || `Createur #${p.created_by || '?'}`}</p>
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => handleAdminParticipantVerificationOverride(p)}
+                            disabled={busySaveKey === `verify-admin:participant:${p.id}`}
+                            title="Validation manuelle admin"
+                            aria-label="Validation manuelle participant"
+                          >
+                            {busySaveKey === `verify-admin:participant:${p.id}` ? '…' : '✓'}
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => handleResendParticipantVerificationLink(p)}
+                            disabled={busySaveKey === `verify:participant:${p.id}`}
+                            title="Renvoyer lien verification"
+                            aria-label="Renvoyer lien verification participant"
+                          >
+                            {busySaveKey === `verify:participant:${p.id}` ? '…' : '✉'}
+                          </button>
                           <button
                             type="button"
                             className="icon-action-btn"
