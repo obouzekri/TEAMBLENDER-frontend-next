@@ -66,6 +66,42 @@ function persistDraftToStorage(sessionId, selectedChallenges) {
   return nowIso;
 }
 
+function findLatestDraftInStorage() {
+  if (typeof window === 'undefined') return null;
+
+  let latest = null;
+  for (let index = 0; index < localStorage.length; index++) {
+    const key = localStorage.key(index);
+    if (!key || !key.startsWith(DRAFT_STORAGE_PREFIX)) continue;
+
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
+
+    try {
+      const parsed = JSON.parse(raw);
+      const sessionId = String(parsed?.sessionId || '').trim();
+      const updatedAtRaw = String(parsed?.updatedAt || '').trim();
+      const selected = Array.isArray(parsed?.selectedChallenges) ? parsed.selectedChallenges : [];
+      if (!sessionId || !updatedAtRaw || selected.length === 0) continue;
+
+      const updatedAtMs = Date.parse(updatedAtRaw);
+      if (!Number.isFinite(updatedAtMs)) continue;
+
+      if (!latest || updatedAtMs > latest.updatedAtMs) {
+        latest = {
+          sessionId,
+          updatedAtMs,
+          updatedAtIso: new Date(updatedAtMs).toISOString()
+        };
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return latest;
+}
+
 function useManagerGuard() {
   const [state, setState] = React.useState({ loading: true, allowed: false, user: null });
 
@@ -133,7 +169,7 @@ export default function SessionBuilder() {
   const [sessionId, setSessionId] = useState(() => {
     if (typeof window === 'undefined') return '';
     const params = new URLSearchParams(window.location.search);
-    return params.get('sessionId') || params.get('id') || sessionStorage.getItem(SESSION_ID_STORAGE_KEY) || '';
+    return params.get('sessionId') || params.get('id') || '';
   });
   const [sessionName, setSessionName] = useState('');
   const [flowMode, setFlowMode] = useState('manual');
@@ -150,6 +186,7 @@ export default function SessionBuilder() {
   const [lastBackendSaveAt, setLastBackendSaveAt] = useState('');
   const [draftParticipantIds, setDraftParticipantIds] = useState([]);
   const [availableParticipantsCount, setAvailableParticipantsCount] = useState(0);
+  const [latestDraftMeta, setLatestDraftMeta] = useState(null);
   const [loadedFromLocalDraft, setLoadedFromLocalDraft] = useState(false);
   const [selectedChallengesSnapshot, setSelectedChallengesSnapshot] = useState('[]');
   const hasHydratedSessionSelectionRef = useRef(false);
@@ -184,28 +221,28 @@ export default function SessionBuilder() {
       sessionStorage.setItem(SESSION_ID_STORAGE_KEY, routeSessionId);
       if (routeSessionId !== sessionId) {
         setSessionId(routeSessionId);
+        setSessionChallengesLoaded(false);
+        hasHydratedSessionSelectionRef.current = false;
       }
       return;
     }
 
-    const cachedSessionId = sessionStorage.getItem(SESSION_ID_STORAGE_KEY) || '';
-    const hasCachedDraft = Boolean(cachedSessionId && readDraftFromStorage(cachedSessionId));
-    if (cachedSessionId && hasCachedDraft) {
-      if (cachedSessionId !== sessionId) {
-        setSessionId(cachedSessionId);
-      }
-      return;
-    }
-
-    if (!routeSessionId && (!cachedSessionId || !hasCachedDraft)) {
+    if (!routeSessionId && !sessionId) {
       sessionStorage.removeItem(SESSION_ID_STORAGE_KEY);
       sessionStorage.removeItem(SELECTED_CHALLENGES_STORAGE_KEY);
       localStorage.removeItem(SELECTED_CHALLENGES_STORAGE_KEY);
       clearAll();
       setSessionChallengesLoaded(false);
       hasHydratedSessionSelectionRef.current = false;
+      setLatestDraftMeta(findLatestDraftInStorage());
     }
   }, [clearAll, sessionId]);
+
+  useEffect(() => {
+    if (!hasRouteSessionId && !sessionId) {
+      setLatestDraftMeta(findLatestDraftInStorage());
+    }
+  }, [hasRouteSessionId, sessionId]);
 
   const getAuthToken = useCallback(
     () => localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '',
@@ -703,6 +740,12 @@ export default function SessionBuilder() {
     window.location.replace('/login');
   }
 
+  function resumeLatestDraft() {
+    if (!latestDraftMeta?.sessionId) return;
+    sessionStorage.setItem(SESSION_ID_STORAGE_KEY, latestDraftMeta.sessionId);
+    window.location.replace(`/session-builder?sessionId=${encodeURIComponent(latestDraftMeta.sessionId)}`);
+  }
+
   if (guard.loading) {
     return (
       <main className="shell auth-page">
@@ -840,6 +883,17 @@ export default function SessionBuilder() {
                   <p className={styles.creationActionHint}>
                     Cr�ation indisponible: ajoutez d&apos;abord des participants dans votre espace manager.
                   </p>
+                ) : null}
+                {latestDraftMeta?.sessionId ? (
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={resumeLatestDraft}
+                    disabled={isCreatingSession}
+                    title="Reprendre la derniere session brouillon"
+                  >
+                    Reprendre le dernier brouillon ({new Date(latestDraftMeta.updatedAtIso).toLocaleDateString('fr-FR')})
+                  </button>
                 ) : null}
                 <button
                   type="submit"
