@@ -50,6 +50,57 @@ export default function ParticipantPage() {
     setReady(true);
   }, []);
 
+  useEffect(() => {
+    if (!ready || !user) return;
+
+    const hasName = Boolean(
+      String(user.name || '').trim()
+      || String(user.first_name || user.firstname || '').trim()
+    );
+    if (hasName) return;
+
+    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+    if (!token) return;
+
+    let cancelled = false;
+
+    async function hydrateParticipantIdentity() {
+      try {
+        const res = await fetch(getApiUrl('/participants/me'), {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        });
+        if (!res.ok) return;
+
+        const payload = await res.json();
+        if (!payload || cancelled) return;
+
+        const firstName = String(payload.first_name || payload.firstname || '').trim();
+        const lastName = String(payload.last_name || payload.lastname || '').trim();
+        const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+
+        const mergedUser = {
+          ...user,
+          first_name: firstName || user.first_name || user.firstname || '',
+          firstname: firstName || user.firstname || user.first_name || '',
+          last_name: lastName || user.last_name || user.lastname || '',
+          lastname: lastName || user.lastname || user.last_name || '',
+          name: fullName || String(user.name || '').trim(),
+        };
+
+        setUser(mergedUser);
+        sessionStorage.setItem('currentUser', JSON.stringify(mergedUser));
+      } catch {
+        // Keep existing label fallback if the enrichment endpoint is unavailable.
+      }
+    }
+
+    hydrateParticipantIdentity();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, user]);
+
   const participantLabel = useMemo(() => {
     if (!user) return 'Participant';
     const name = String(user.name || '').trim();
