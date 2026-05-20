@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import AuthCard from '@/components/AuthCard';
-import { getRedirectPath, loginWithFallback, resolveConnectedUserId } from '@/lib/auth';
+import { getRedirectPath, loginWithFallback, resendVerification, resolveConnectedUserId } from '@/lib/auth';
 
 function errorMessage(resStatus, data) {
   if (data?.code === 'ACCOUNT_PENDING') return 'Votre compte est en attente de validation par un administrateur.';
@@ -21,10 +21,15 @@ export default function LoginForm({ requestedSessionId = '' }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [lastAuthScope, setLastAuthScope] = useState('user');
+  const [resendStatus, setResendStatus] = useState('idle');
+  const [resendMessage, setResendMessage] = useState('');
 
   async function onSubmit(event) {
     event.preventDefault();
     setMessage('');
+    setResendStatus('idle');
+    setResendMessage('');
 
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) {
@@ -34,7 +39,8 @@ export default function LoginForm({ requestedSessionId = '' }) {
 
     setLoading(true);
     try {
-      const { response, data } = await loginWithFallback(normalizedEmail, password, { allowParticipantFallback: true });
+      const { response, data, authScope } = await loginWithFallback(normalizedEmail, password, { allowParticipantFallback: true });
+      setLastAuthScope(authScope || 'user');
       if (response.ok) {
         const token = String(data?.token || '').trim();
         const user = data?.user || null;
@@ -65,6 +71,36 @@ export default function LoginForm({ requestedSessionId = '' }) {
       setMessage('Impossible de contacter le serveur. Vérifiez votre connexion.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function onResendVerification() {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      setResendStatus('error');
+      setResendMessage('Saisissez votre email pour renvoyer le lien.');
+      return;
+    }
+
+    setResendStatus('sending');
+    setResendMessage('Envoi en cours...');
+    try {
+      const { res, data } = await resendVerification({
+        email: normalizedEmail,
+        userType: lastAuthScope === 'participant' ? 'participant' : 'user',
+      });
+
+      if (res.ok && data?.success) {
+        setResendStatus('done');
+        setResendMessage(data?.message || 'Un nouveau lien de verification a ete envoye.');
+        return;
+      }
+
+      setResendStatus('error');
+      setResendMessage(data?.message || data?.error || 'Impossible de renvoyer le lien pour le moment.');
+    } catch {
+      setResendStatus('error');
+      setResendMessage('Impossible de contacter le serveur. Verifiez votre connexion et reessayez.');
     }
   }
 
@@ -102,6 +138,22 @@ export default function LoginForm({ requestedSessionId = '' }) {
           </button>
 
           {message ? <p className="form-error">{message}</p> : null}
+
+          {message && message.includes('Veuillez confirmer votre adresse email') ? (
+            <>
+              <button
+                type="button"
+                className="btn-secondary wide"
+                onClick={onResendVerification}
+                disabled={resendStatus === 'sending'}
+              >
+                {resendStatus === 'sending' ? 'Envoi...' : 'Renvoyer le lien de verification'}
+              </button>
+              {resendStatus !== 'idle' ? (
+                <p className={resendStatus === 'error' ? 'form-error' : 'form-help'}>{resendMessage}</p>
+              ) : null}
+            </>
+          ) : null}
 
           <p style={{ textAlign: 'center', marginTop: '0.5rem' }}>
             <Link href="/forgot-password" className="form-help">Mot de passe oublié ?</Link>
