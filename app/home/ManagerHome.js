@@ -665,16 +665,41 @@ export default function ManagerHome() {
                 </p>
               </div>
 
-              <form className="participant-form participant-form--embedded" onSubmit={handleSubmitMember}>
+              <form
+                className="participant-form participant-form--embedded"
+                onSubmit={handleSubmitMember}
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
+              >
+                {/* Decoy fields: capture aggressive browser/password-manager autofill. */}
+                <input
+                  type="text"
+                  name="participant_decoy_username"
+                  autoComplete="username"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
+                />
+                <input
+                  type="password"
+                  name="participant_decoy_password"
+                  autoComplete="current-password"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
+                />
                 <div className="participant-form-grid">
                   <label>
                     Prénom *
                     <input
                       type="text"
+                      name="participant_first_name"
                       value={memberForm.first_name}
                       onChange={(e) => setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))}
                       placeholder="Ex: Sophie"
                       className={formAttempted && !memberFormChecks.firstNameOk ? 'input-invalid' : ''}
+                      autoComplete="off"
                       required
                     />
                     {formAttempted && !memberFormChecks.firstNameOk ? (
@@ -685,19 +710,25 @@ export default function ManagerHome() {
                     Nom
                     <input
                       type="text"
+                      name="participant_last_name"
                       value={memberForm.last_name}
                       onChange={(e) => setMemberForm((prev) => ({ ...prev, last_name: e.target.value }))}
                       placeholder="Ex: Martin"
+                      autoComplete="off"
                     />
                   </label>
                   <label className="participant-field-full">
                     Email *
                     <input
                       type="email"
+                      name="participant_contact_email"
                       value={memberForm.email}
                       onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
                       placeholder="sophie@entreprise.com"
                       className={formAttempted && !memberFormChecks.emailOk ? 'input-invalid' : ''}
+                      autoComplete="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
                       required
                     />
                     {formAttempted && !memberFormChecks.emailOk ? (
@@ -708,11 +739,13 @@ export default function ManagerHome() {
                     Mot de passe {editingMemberId ? '(optionnel)' : '*'}
                     <input
                       type="password"
+                      name="participant_access_password"
                       value={memberForm.password}
                       onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
                       placeholder={editingMemberId ? 'Laisser vide pour conserver le mot de passe actuel' : 'Minimum 8 caractères'}
                       minLength={8}
                       className={formAttempted && !memberFormChecks.passwordOk ? 'input-invalid' : ''}
+                      autoComplete="new-password"
                       required={!editingMemberId}
                     />
                     {!editingMemberId ? (
@@ -728,18 +761,22 @@ export default function ManagerHome() {
                     Fonction
                     <input
                       type="text"
+                      name="participant_job_title"
                       value={memberForm.job_title}
                       onChange={(e) => setMemberForm((prev) => ({ ...prev, job_title: e.target.value }))}
                       placeholder="Ex: Product Manager"
+                      autoComplete="off"
                     />
                   </label>
                   <label>
                     Département
                     <input
                       type="text"
+                      name="participant_department"
                       value={memberForm.department}
                       onChange={(e) => setMemberForm((prev) => ({ ...prev, department: e.target.value }))}
                       placeholder="Ex: RH"
+                      autoComplete="off"
                     />
                   </label>
                 </div>
