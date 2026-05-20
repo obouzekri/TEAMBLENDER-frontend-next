@@ -15,6 +15,44 @@ function formatWord(word) {
   return normalized.replace(/_\d+_\d+$/, '');
 }
 
+function buildFallbackAvailableWords(slots, participantSlot, fakeWordsBySlot) {
+  const slotNumber = Number(participantSlot || 0);
+  if (!slotNumber || !Array.isArray(slots)) {
+    return [];
+  }
+
+  const assignedWords = slots
+    .filter((slot) => Number(slot?.assigned_slot) === slotNumber)
+    .map((slot) => String(slot?.expected_word || '').trim())
+    .filter(Boolean);
+
+  const fakeWords = Array.isArray(fakeWordsBySlot?.[String(slotNumber)])
+    ? fakeWordsBySlot[String(slotNumber)].map((word) => String(word || '').trim()).filter(Boolean)
+    : [];
+
+  const allWords = [...assignedWords, ...fakeWords];
+  if (!allWords.length) {
+    return [];
+  }
+
+  // Keep duplicates valid by decrementing placed occurrences only once per matching word.
+  const placedCounts = new Map();
+  slots
+    .filter((slot) => Number(slot?.assigned_slot) === slotNumber)
+    .forEach((slot) => {
+      const placedWord = String(slot?.current_word || '').trim();
+      if (!placedWord) return;
+      placedCounts.set(placedWord, Number(placedCounts.get(placedWord) || 0) + 1);
+    });
+
+  return allWords.filter((word) => {
+    const count = Number(placedCounts.get(word) || 0);
+    if (count <= 0) return true;
+    placedCounts.set(word, count - 1);
+    return false;
+  });
+}
+
 export default function PhraseChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedWord, setSelectedWord] = useState('');
   const [chatInput, setChatInput] = useState('');
@@ -30,7 +68,33 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
 
   const slots = Array.isArray(state?.phrase?.slots) ? state.phrase.slots : [];
   const participantSlot = Number(state?.participantSlot || 0) || null;
-  const availableWords = Array.isArray(state?.phrase?.available_words) ? state.phrase.available_words : [];
+  const availableWords = useMemo(() => {
+    const wordsFromState = Array.isArray(state?.phrase?.available_words)
+      ? state.phrase.available_words.map((word) => String(word || '').trim()).filter(Boolean)
+      : [];
+
+    if (wordsFromState.length > 0) {
+      return wordsFromState;
+    }
+
+    const wordsFromSlotMap = Array.isArray(state?.phrase?.available_words_by_slot?.[String(participantSlot || '')])
+      ? state.phrase.available_words_by_slot[String(participantSlot || '')]
+        .map((word) => String(word || '').trim())
+        .filter(Boolean)
+      : [];
+
+    if (wordsFromSlotMap.length > 0) {
+      return wordsFromSlotMap;
+    }
+
+    return buildFallbackAvailableWords(slots, participantSlot, state?.phrase?.fake_words_by_slot || {});
+  }, [
+    slots,
+    participantSlot,
+    state?.phrase?.available_words,
+    state?.phrase?.available_words_by_slot,
+    state?.phrase?.fake_words_by_slot,
+  ]);
   const timer = state?.timer || null;
   const timerStatus = String(timer?.status || 'idle').trim();
   const canPlay = timer?.enabled === false || timerStatus === 'running';
