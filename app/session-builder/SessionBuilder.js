@@ -66,42 +66,6 @@ function persistDraftToStorage(sessionId, selectedChallenges) {
   return nowIso;
 }
 
-function findLatestDraftInStorage() {
-  if (typeof window === 'undefined') return null;
-
-  let latest = null;
-  for (let index = 0; index < localStorage.length; index++) {
-    const key = localStorage.key(index);
-    if (!key || !key.startsWith(DRAFT_STORAGE_PREFIX)) continue;
-
-    const raw = localStorage.getItem(key);
-    if (!raw) continue;
-
-    try {
-      const parsed = JSON.parse(raw);
-      const sessionId = String(parsed?.sessionId || '').trim();
-      const updatedAtRaw = String(parsed?.updatedAt || '').trim();
-      const selected = Array.isArray(parsed?.selectedChallenges) ? parsed.selectedChallenges : [];
-      if (!sessionId || !updatedAtRaw || selected.length === 0) continue;
-
-      const updatedAtMs = Date.parse(updatedAtRaw);
-      if (!Number.isFinite(updatedAtMs)) continue;
-
-      if (!latest || updatedAtMs > latest.updatedAtMs) {
-        latest = {
-          sessionId,
-          updatedAtMs,
-          updatedAtIso: new Date(updatedAtMs).toISOString()
-        };
-      }
-    } catch {
-      continue;
-    }
-  }
-
-  return latest;
-}
-
 function useManagerGuard() {
   const [state, setState] = React.useState({ loading: true, allowed: false, user: null });
 
@@ -186,7 +150,6 @@ export default function SessionBuilder() {
   const [lastBackendSaveAt, setLastBackendSaveAt] = useState('');
   const [draftParticipantIds, setDraftParticipantIds] = useState([]);
   const [availableParticipantsCount, setAvailableParticipantsCount] = useState(0);
-  const [latestDraftMeta, setLatestDraftMeta] = useState(null);
   const [loadedFromLocalDraft, setLoadedFromLocalDraft] = useState(false);
   const [selectedChallengesSnapshot, setSelectedChallengesSnapshot] = useState('[]');
   const hasHydratedSessionSelectionRef = useRef(false);
@@ -234,15 +197,8 @@ export default function SessionBuilder() {
       clearAll();
       setSessionChallengesLoaded(false);
       hasHydratedSessionSelectionRef.current = false;
-      setLatestDraftMeta(findLatestDraftInStorage());
     }
   }, [clearAll, sessionId]);
-
-  useEffect(() => {
-    if (!hasRouteSessionId && !sessionId) {
-      setLatestDraftMeta(findLatestDraftInStorage());
-    }
-  }, [hasRouteSessionId, sessionId]);
 
   const getAuthToken = useCallback(
     () => localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '',
@@ -740,12 +696,6 @@ export default function SessionBuilder() {
     window.location.replace('/login');
   }
 
-  function resumeLatestDraft() {
-    if (!latestDraftMeta?.sessionId) return;
-    sessionStorage.setItem(SESSION_ID_STORAGE_KEY, latestDraftMeta.sessionId);
-    window.location.replace(`/session-builder?sessionId=${encodeURIComponent(latestDraftMeta.sessionId)}`);
-  }
-
   if (guard.loading) {
     return (
       <main className="shell auth-page">
@@ -883,17 +833,6 @@ export default function SessionBuilder() {
                   <p className={styles.creationActionHint}>
                     Cr�ation indisponible: ajoutez d&apos;abord des participants dans votre espace manager.
                   </p>
-                ) : null}
-                {latestDraftMeta?.sessionId ? (
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={resumeLatestDraft}
-                    disabled={isCreatingSession}
-                    title="Reprendre la derniere session brouillon"
-                  >
-                    Reprendre le dernier brouillon ({new Date(latestDraftMeta.updatedAtIso).toLocaleDateString('fr-FR')})
-                  </button>
                 ) : null}
                 <button
                   type="submit"
