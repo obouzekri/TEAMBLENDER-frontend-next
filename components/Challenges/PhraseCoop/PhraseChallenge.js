@@ -255,42 +255,30 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
                   <div className={styles.timerState}>
                     {timerStatus === 'running' ? 'En cours' : timerStatus === 'paused' ? 'Pause' : 'Attente'}
                   </div>
+                  {isFacilitator ? (
+                    <button
+                      className={styles.timerIconBtn}
+                      type="button"
+                      onClick={() => {
+                        if (timerStatus === 'running') emitEvent('timer.pause');
+                        else if (timerStatus === 'paused') emitEvent('timer.resume');
+                        else emitEvent('timer.start');
+                      }}
+                      title={timerStatus === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
+                      aria-label={timerStatus === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
+                    >
+                      {timerStatus === 'running' ? '⏸' : '▶'}
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>
 
-            {isFacilitator ? (
-              <div className={styles.timerActionsGroup}>
-                <button
-                  className={styles.timerBtnStart}
-                  type="button"
-                  onClick={() => emitEvent('timer.start')}
-                  disabled={timerStatus === 'running'}
-                >
-                  ▶️ Démarrer
-                </button>
-                <button
-                  className={styles.timerBtnPauseResume}
-                  type="button"
-                  onClick={() => timerStatus === 'paused' ? emitEvent('timer.resume') : emitEvent('timer.pause')}
-                  disabled={timerStatus !== 'running' && timerStatus !== 'paused'}
-                >
-                  {timerStatus === 'paused' ? '⏯️ Reprendre' : '⏸️ Pause'}
-                </button>
-                <button
-                  className={styles.timerBtnStop}
-                  type="button"
-                  onClick={() => emitEvent('timer.stop')}
-                  disabled={timerStatus === 'idle'}
-                >
-                  ⏹️ Arrêter
-                </button>
-              </div>
-            ) : (
+            {!isFacilitator ? (
               <p style={{ margin: '0', fontSize: '0.8rem', color: '#0c4a6e', textAlign: 'center' }}>
                 ⏳ En attente du facilitateur
               </p>
-            )}
+            ) : null}
           </section>
 
           <section className={styles.sideCard}>
