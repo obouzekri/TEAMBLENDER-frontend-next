@@ -157,8 +157,8 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
     <div className={styles.phraseContainer}>
       <section className={styles.header}>
         <div>
-          <h1>Phrase Mystere</h1>
-          <p>Reconstituez la phrase en equipe, slot par slot.</p>
+          <h1>Phrase Mystère</h1>
+          <p>Reconstituez la phrase en équipe, slot par slot.</p>
         </div>
         <div className={styles.badges}>
           <span className={styles.badge}>Progression: {completion}%</span>
@@ -174,7 +174,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
       <div className={styles.shell}>
         <section className={styles.boardPanel}>
           {slots.length === 0 ? (
-            <p className={styles.empty}>En attente de l'etat initial...</p>
+            <p className={styles.empty}>En attente de l'état initial...</p>
           ) : (
             <div className={styles.board}>
               {slots.map((slot) => {
@@ -216,7 +216,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
                     {isFacilitator ? (
                       <span className={styles.slotExpected}>Cible: {expectedWord || '-'}</span>
                     ) : (
-                      <span className={styles.slotMeta}>Assignee: {slot.assigned_slot}</span>
+                      <span className={styles.slotMeta}>Assignée: {slot.assigned_slot}</span>
                     )}
                   </button>
                 );
@@ -226,7 +226,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
 
           {summary ? (
             <div className={styles.summary}>
-              <h3>Debrief equipe</h3>
+              <h3>Débrief équipe</h3>
               <p>Completion: {Number(summary.completion_percent || completion)}%</p>
               <p>Temps total: {Number(summary.total_time_seconds || 0)}s</p>
               <p>Actions: {Number(summary.action_count || 0)}</p>
@@ -292,7 +292,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
               <p className={styles.meta}>Slots total: {slots.length}</p>
             )}
             <p className={styles.meta}>Temps restant: {Number(timer?.remaining_seconds || 0)}s</p>
-            <p className={styles.meta}>{canPlay ? 'Interaction active.' : 'En attente du demarrage du timer.'}</p>
+            <p className={styles.meta}>{canPlay ? 'Interaction active.' : 'En attente du démarrage du timer.'}</p>
             {error ? <p className={styles.error}>{error}</p> : null}
           </section>
 
@@ -331,7 +331,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
                   onClick={() => setSelectedWord('')}
                   disabled={!selectedWord}
                 >
-                  Deselectionner le mot
+                  Désélectionner le mot
                 </button>
               </>
             ) : (
@@ -344,7 +344,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
           <section className={styles.sideCard}>
             {chatEnabled ? (
               <>
-                <h2>Chat equipe</h2>
+                <h2>Chat équipe</h2>
                 <div className={styles.chatLog}>
                   {chatMessages.length === 0 ? (
                     <p className={styles.empty}>Aucun message pour le moment.</p>
@@ -375,7 +375,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
             ) : null}
             <p className={styles.helper}>
               {!isFacilitator
-                ? 'Selectionnez ou glissez un mot vers une de vos cases pour le placer.'
+                ? 'Sélectionnez ou glissez un mot vers une de vos cases pour le placer.'
                 : 'Suivez la progression et pilotez le timer et les indices.'}
             </p>
           </section>
@@ -385,7 +385,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
       {!isFacilitator && selectedWord ? (
         <section className={styles.selectionBanner}>
           <p>
-            Mot selectionne: <strong>{formatWord(selectedWord)}</strong>. Glissez-le ou cliquez sur une de vos cases pour le placer.
+            Mot sélectionné: <strong>{formatWord(selectedWord)}</strong>. Glissez-le ou cliquez sur une de vos cases pour le placer.
           </p>
         </section>
       ) : null}
