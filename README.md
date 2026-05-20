@@ -45,6 +45,7 @@ npm run dev
 
 Variables importantes:
 - `NEXT_PUBLIC_API_BASE`
+- `BACKEND_ORIGIN` (obligatoire hors dev, cible rewrite Next.js vers backend actif)
 - `NEXT_PUBLIC_LEGACY_BASE`
 - `LEGACY_BASE_CANDIDATES` (optionnel)
 - `NEXT_PUBLIC_ENABLE_CHALLENGES_MOCK_DATA` (optionnel, `true` pour activer le fallback mock du catalogue challenges en dev)
