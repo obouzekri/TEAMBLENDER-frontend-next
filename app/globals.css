@@ -1794,6 +1794,58 @@ a {
   transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
 }
 
+.password-input-wrap {
+  position: relative;
+}
+
+.password-input-wrap input {
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.3rem;
+  height: 2.3rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #5f6f84;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.password-toggle svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: currentColor;
+}
+
+.password-toggle:hover {
+  color: var(--accent-strong);
+  background: rgba(15, 118, 110, 0.1);
+}
+
+.password-toggle[aria-pressed="true"] {
+  color: var(--accent-strong);
+  background: rgba(15, 118, 110, 0.12);
+}
+
+.password-input-wrap:focus-within .password-toggle {
+  color: var(--accent-strong);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--field-line-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--focus-ring-teal);
+}
+
 .auth-form input:focus,
 .auth-form select:focus,
 .auth-form textarea:focus {
