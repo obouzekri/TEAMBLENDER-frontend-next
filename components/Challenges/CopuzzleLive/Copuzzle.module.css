@@ -5,7 +5,7 @@
 .copuzzleContainer {
   display: grid;
   gap: 14px;
-  min-height: 100%;
+  min-height: 100dvh;
   width: min(100%, 1320px);
   margin: 0 auto;
   padding: 14px;

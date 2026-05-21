@@ -16,6 +16,8 @@
   --radius-card: 16px;
   --radius-item: 12px;
   min-height: 100dvh;
+  width: min(100%, 1320px);
+  margin: 0 auto;
   padding: 24px;
   color: var(--text-main);
   background:
