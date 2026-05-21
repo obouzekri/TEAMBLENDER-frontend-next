@@ -15,7 +15,7 @@ export default function Footer() {
           <nav className="footer-col" aria-label="Produit">
             <p>Produit</p>
             <Link href="/">Accueil</Link>
-            <Link href="/signup">Créer une session</Link>
+            <Link href="/signup">Créer un compte</Link>
             <Link href="/pricing">Tarification</Link>
           </nav>
 
