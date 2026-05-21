@@ -10,6 +10,69 @@ const COPUZZLE_DEFAULT_IMAGES = Object.freeze([
   { value: '/copuzzle/default-sunrise.svg', label: 'Par defaut - Sunrise team' },
 ]);
 
+const PHRASE_DEFAULT_LIBRARY = Object.freeze([
+  {
+    id: 'tpl_cohesion',
+    label: 'Seul on va plus vite ensemble on va plus loin (facile, 4 joueurs)',
+    phrase: 'Seul on va plus vite ensemble on va plus loin',
+    players: 4,
+    fauxMots: 2,
+    indices: 2,
+    timerTotal: 420,
+    difficulte: 'facile',
+  },
+  {
+    id: 'tpl_communication',
+    label: 'La parole est d argent mais le silence est d or (moyen, 5 joueurs)',
+    phrase: 'La parole est d argent mais le silence est d or',
+    players: 5,
+    fauxMots: 3,
+    indices: 2,
+    timerTotal: 480,
+    difficulte: 'moyen',
+  },
+  {
+    id: 'tpl_innovation',
+    label: 'Impossible n est pas francais (difficile, 6 joueurs)',
+    phrase: 'Impossible n est pas francais',
+    players: 6,
+    fauxMots: 4,
+    indices: 1,
+    timerTotal: 540,
+    difficulte: 'difficile',
+  },
+  {
+    id: 'tpl_union_force',
+    label: 'L union fait la force (facile, 4 joueurs)',
+    phrase: 'L union fait la force',
+    players: 4,
+    fauxMots: 2,
+    indices: 2,
+    timerTotal: 360,
+    difficulte: 'facile',
+  },
+  {
+    id: 'tpl_perseverance',
+    label: 'Qui ne tente rien n a rien (moyen, 5 joueurs)',
+    phrase: 'Qui ne tente rien n a rien',
+    players: 5,
+    fauxMots: 3,
+    indices: 2,
+    timerTotal: 420,
+    difficulte: 'moyen',
+  },
+  {
+    id: 'tpl_ambition',
+    label: 'A coeur vaillant rien d impossible (difficile, 6 joueurs)',
+    phrase: 'A coeur vaillant rien d impossible',
+    players: 6,
+    fauxMots: 4,
+    indices: 1,
+    timerTotal: 480,
+    difficulte: 'difficile',
+  },
+]);
+
 function clampInt(value, fallback, min, max) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isInteger(parsed)) return fallback;
@@ -50,6 +113,60 @@ function withCopuzzleDefaults(config = {}) {
     chat: {
       ...(config?.chat && typeof config.chat === 'object' ? config.chat : {}),
       enabled: config?.chat?.enabled !== false,
+    },
+  };
+}
+
+function getPhraseTemplate(templateId) {
+  if (!templateId) return PHRASE_DEFAULT_LIBRARY[0];
+  return PHRASE_DEFAULT_LIBRARY.find((item) => item.id === templateId) || PHRASE_DEFAULT_LIBRARY[0];
+}
+
+function sanitizePhraseText(value, fallback) {
+  const normalized = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return normalized || fallback;
+}
+
+function withPhraseDefaults(config = {}) {
+  const mode = String(config?.mode || 'template').toLowerCase() === 'custom' ? 'custom' : 'template';
+  const template = getPhraseTemplate(config?.templateId);
+
+  const phrase = mode === 'custom'
+    ? sanitizePhraseText(config?.textePhrase, template.phrase)
+    : sanitizePhraseText(template.phrase, PHRASE_DEFAULT_LIBRARY[0].phrase);
+
+  const nombreJoueurs = clampInt(config?.nombreJoueurs, template.players, 2, 16);
+  const nombreFauxMots = clampInt(config?.nombreFauxMots, template.fauxMots, 0, 12);
+  const nombreIndices = clampInt(config?.nombreIndices, template.indices, 0, 12);
+  const timerTotal = clampInt(config?.timerTotal, template.timerTotal, 60, 3600);
+  const modeCommunication = String(config?.modeCommunication || 'libre').toLowerCase() === 'restreint' ? 'restreint' : 'libre';
+
+  return {
+    ...(config || {}),
+    type: 'phrase_collaborative',
+    mode,
+    templateId: mode === 'template' ? template.id : (config?.templateId || null),
+    textePhrase: phrase,
+    nombreJoueurs,
+    modeDistribution: String(config?.modeDistribution || 'modulo').toLowerCase() === 'custom' ? 'custom' : 'modulo',
+    distributionCustom: config?.distributionCustom && typeof config.distributionCustom === 'object' ? config.distributionCustom : {},
+    nombreFauxMots,
+    nombreIndices,
+    timerTotal,
+    activerFeedbackTempsReel: config?.activerFeedbackTempsReel !== false,
+    modeCommunication,
+    modeVisionLimitee: config?.modeVisionLimitee === true,
+    rolesSpeciaux: config?.rolesSpeciaux === true,
+    difficulte: ['facile', 'moyen', 'difficile'].includes(config?.difficulte) ? config.difficulte : template.difficulte,
+    timer: {
+      enabled: config?.timer?.enabled !== false,
+      duration_seconds: timerTotal,
+      warning_threshold_seconds: clampInt(config?.timer?.warning_threshold_seconds, 60, 10, 300),
+    },
+    chat: {
+      enabled: modeCommunication !== 'restreint' && config?.chat?.enabled !== false,
     },
   };
 }
@@ -150,6 +267,10 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
   const handleSave = () => {
     if (kind === 'copuzzle') {
       onSave(withCopuzzleDefaults(config));
+      return;
+    }
+    if (kind === 'phrase') {
+      onSave(withPhraseDefaults(config));
       return;
     }
     onSave(config);
@@ -430,16 +551,26 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
               {/* Templates disponibles */}
               {stringValue('mode', 'template') === 'template' && (
                 <div className={styles.configField}>
-                  <label htmlFor="phraseTemplate" className={styles.label}>Sélectionner un template</label>
+                  <label htmlFor="phraseTemplate" className={styles.label}>Selectionner une phrase connue</label>
                   <select
                     id="phraseTemplate"
-                    value={stringValue('templateId', 'tpl_cohesion')}
-                    onChange={(e) => updateValue('templateId', e.target.value)}
+                    value={stringValue('templateId', PHRASE_DEFAULT_LIBRARY[0].id)}
+                    onChange={(e) => {
+                      const nextTemplateId = String(e.target.value || PHRASE_DEFAULT_LIBRARY[0].id);
+                      const template = getPhraseTemplate(nextTemplateId);
+                      updateValue('templateId', nextTemplateId);
+                      updateValue('textePhrase', template.phrase);
+                      updateValue('nombreJoueurs', template.players);
+                      updateValue('nombreFauxMots', template.fauxMots);
+                      updateValue('nombreIndices', template.indices);
+                      updateValue('timerTotal', template.timerTotal);
+                      updateValue('difficulte', template.difficulte);
+                    }}
                     className={styles.input}
                   >
-                    <option value="tpl_cohesion">Cohésion d'équipe (facile, 4 joueurs)</option>
-                    <option value="tpl_communication">Communication efficace (moyen, 5 joueurs)</option>
-                    <option value="tpl_innovation">Innovation (difficile, 6 joueurs)</option>
+                    {PHRASE_DEFAULT_LIBRARY.map((template) => (
+                      <option key={template.id} value={template.id}>{template.label}</option>
+                    ))}
                   </select>
                 </div>
               )}
