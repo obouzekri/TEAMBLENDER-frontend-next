@@ -32,6 +32,8 @@ const DEFAULT_NEW_CHALLENGE = {
   type: 'individuel',
   status: 'actif',
   source: 'local',
+  category: '',
+  objectives: '',
   duration: '',
   engine_key: '',
   description: '',
@@ -1354,6 +1356,8 @@ export default function AdminClient() {
           type: newChallenge.type,
           status: newChallenge.status,
           source: newChallenge.source,
+          category: newChallenge.category || null,
+          objectives: newChallenge.objectives || null,
           duration: newChallenge.duration || null,
           engine_key: newChallenge.engine_key || null,
           description: newChallenge.description || null,
@@ -1386,6 +1390,8 @@ export default function AdminClient() {
       name: challengeItem.name || '',
       type: challengeItem.type || 'individuel',
       status: challengeItem.status || 'actif',
+      category: challengeItem.category || '',
+      objectives: challengeItem.objectives || '',
       duration: challengeItem.duration || '',
       engine_key: challengeItem.engine_key || '',
       description: challengeItem.description || '',
@@ -1485,6 +1491,8 @@ export default function AdminClient() {
           name: editingChallenge.name,
           type: editingChallenge.type,
           status: editingChallenge.status,
+          category: editingChallenge.category || null,
+          objectives: editingChallenge.objectives || null,
           duration: editingChallenge.duration || null,
           engine_key: editingChallenge.engine_key || null,
           description: editingChallenge.description || null,
@@ -2790,6 +2798,23 @@ export default function AdminClient() {
                           <option value="external">Externe</option>
                         </select>
                       </label>
+                      <label>Categorie
+                        <select value={newChallenge.category} onChange={(e) => setNewChallenge((p) => ({ ...p, category: e.target.value }))}>
+                          <option value="">--- Selectioner ---</option>
+                          <option value="escape-game">Escape Game</option>
+                          <option value="logique-reflexion">Logique & Réflexion</option>
+                        </select>
+                      </label>
+                      <label>Objectif
+                        <select value={newChallenge.objectives} onChange={(e) => setNewChallenge((p) => ({ ...p, objectives: e.target.value }))}>
+                          <option value="">--- Selectioner ---</option>
+                          <option value="cohesion">Cohésion</option>
+                          <option value="communication">Communication</option>
+                          <option value="collaboration">Collaboration</option>
+                          <option value="leadership">Leadership</option>
+                          <option value="resolution-problemes">Résolution de problèmes</option>
+                        </select>
+                      </label>
                       <label>Duree<input value={newChallenge.duration} onChange={(e) => setNewChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
                       <label>Engine key<input value={newChallenge.engine_key} onChange={(e) => setNewChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
                       <label>Description<textarea rows={4} value={newChallenge.description} onChange={(e) => setNewChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
@@ -2827,6 +2852,23 @@ export default function AdminClient() {
                             <option value="actif">Actif</option>
                             <option value="brouillon">Brouillon</option>
                             <option value="archive">Archive</option>
+                          </select>
+                        </label>
+                        <label>Categorie
+                          <select value={editingChallenge.category} onChange={(e) => setEditingChallenge((p) => ({ ...p, category: e.target.value }))}>
+                            <option value="">--- Selectioner ---</option>
+                            <option value="escape-game">Escape Game</option>
+                            <option value="logique-reflexion">Logique & Réflexion</option>
+                          </select>
+                        </label>
+                        <label>Objectif
+                          <select value={editingChallenge.objectives} onChange={(e) => setEditingChallenge((p) => ({ ...p, objectives: e.target.value }))}>
+                            <option value="">--- Selectioner ---</option>
+                            <option value="cohesion">Cohésion</option>
+                            <option value="communication">Communication</option>
+                            <option value="collaboration">Collaboration</option>
+                            <option value="leadership">Leadership</option>
+                            <option value="resolution-problemes">Résolution de problèmes</option>
                           </select>
                         </label>
                         <label>Duree<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>

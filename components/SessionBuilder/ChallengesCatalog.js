@@ -1,7 +1,30 @@
 'use client';
 
+import { useMemo } from 'react';
 import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import styles from './ChallengesCatalog.module.css';
+
+// Mapping des valeurs techniques aux labels affichés
+const CATEGORY_LABELS = {
+  'escape-game': 'Escape Game',
+  'logique-reflexion': 'Logique & Réflexion',
+  'Collaboration': 'Collaboration',
+  'Gestion de projet': 'Gestion de projet',
+  'Engagement collectif': 'Engagement collectif',
+};
+
+const OBJECTIVE_LABELS = {
+  'cohesion': 'Cohésion',
+  'communication': 'Communication',
+  'collaboration': 'Collaboration',
+  'leadership': 'Leadership',
+  'resolution-problemes': 'Résolution de problèmes',
+  'coordination': 'Coordination',
+  'priorisation': 'Priorisation',
+  'dependances': 'Dépendances',
+  'engagement': 'Engagement',
+  'ecoute active': 'Écoute active',
+};
 
 export default function ChallengesCatalog({
   challenges,
@@ -13,20 +36,48 @@ export default function ChallengesCatalog({
   onFilterChange,
   onResetFilters,
 }) {
-  const categories = [
-    { value: '', label: 'Tous' },
-    { value: 'escape-game', label: 'Escape Game' },
-    { value: 'logique-reflexion', label: 'Logique & Réflexion' },
-  ];
+  // Extraire les catégories uniques depuis les challenges
+  const categories = useMemo(() => {
+    const unique = new Set();
+    challenges.forEach((c) => {
+      if (c.category) unique.add(c.category);
+    });
+    
+    const sorted = Array.from(unique).sort();
+    return [
+      { value: '', label: 'Tous' },
+      ...sorted.map((cat) => ({
+        value: cat,
+        label: CATEGORY_LABELS[cat] || cat,
+      })),
+    ];
+  }, [challenges]);
 
-  const objectives = [
-    { value: '', label: 'Tous' },
-    { value: 'cohesion', label: 'Cohésion' },
-    { value: 'communication', label: 'Communication' },
-    { value: 'collaboration', label: 'Collaboration' },
-    { value: 'leadership', label: 'Leadership' },
-    { value: 'resolution-problemes', label: 'Résolution de problèmes' },
-  ];
+  // Extraire les objectifs uniques depuis les challenges
+  // Gérer les deux formats: string (nouveau) et array (ancien)
+  const objectives = useMemo(() => {
+    const unique = new Set();
+    challenges.forEach((c) => {
+      if (Array.isArray(c.objectives)) {
+        // Format ancien: array
+        c.objectives.forEach((obj) => {
+          if (obj) unique.add(obj);
+        });
+      } else if (c.objectives) {
+        // Format nouveau: string
+        unique.add(c.objectives);
+      }
+    });
+    
+    const sorted = Array.from(unique).sort();
+    return [
+      { value: '', label: 'Tous' },
+      ...sorted.map((obj) => ({
+        value: obj,
+        label: OBJECTIVE_LABELS[obj] || obj,
+      })),
+    ];
+  }, [challenges]);
 
   const durations = [
     { value: '', label: 'Tous' },
