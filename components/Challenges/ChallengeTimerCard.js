@@ -88,13 +88,13 @@ export default function ChallengeTimerCard({
           <div className={styles.timerDisplay}>
             <div className={styles.timerTime}>{formatTimer(remainingSeconds)}</div>
             <div className={styles.timerState}>{statusLabel(normalizedStatus)}</div>
-          </div>
 
-          {ringAction ? (
-            <div className={styles.timerRingActions}>
-              {ringAction}
-            </div>
-          ) : null}
+            {ringAction ? (
+              <div className={styles.timerRingActions}>
+                {ringAction}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
 
