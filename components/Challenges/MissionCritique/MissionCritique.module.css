@@ -345,14 +345,26 @@
 }
 
 .taskChipTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-size: 0.9rem;
   font-weight: 600;
 }
 
-.taskChipMeta {
-  margin: 0;
-  color: #adc2d3;
-  font-size: 0.76rem;
+.taskCode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.4rem;
+  padding: 0 0.36rem;
+  border-radius: 999px;
+  border: 1px solid rgba(40, 179, 208, 0.58);
+  background: rgba(21, 62, 78, 0.66);
+  color: #d6f3fb;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
 }
 
 .critical {
@@ -381,35 +393,20 @@
 
 .phaseTimeline {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
-.phaseTimelineDragging .phaseCard {
+.phaseTimelineDragging .timelineLane {
   border-color: rgba(135, 205, 223, 0.48);
   box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.14);
 }
 
-.phaseCard {
-  border: 1px solid rgba(122, 154, 178, 0.36);
+.phaseLine {
+  border: 1px solid rgba(122, 154, 178, 0.28);
   border-radius: 12px;
-  background: rgba(8, 22, 34, 0.72);
-  padding: 11px;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 10px;
-  min-height: 420px;
-  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
-}
-
-.phaseCard:hover {
-  border-color: rgba(170, 214, 232, 0.58);
-}
-
-.phaseCardActive {
-  border-color: rgba(40, 179, 208, 0.84);
-  background: rgba(13, 35, 53, 0.86);
-  box-shadow: 0 0 0 3px rgba(40, 179, 208, 0.16);
+  background: rgba(8, 22, 34, 0.62);
+  padding: 9px 11px;
 }
 
 .phaseCadrage {
@@ -428,26 +425,21 @@
   --phase-accent: #a78bfa;
 }
 
-.phaseHeader {
-  display: grid;
-  gap: 8px;
-}
-
-.phaseTitleRow {
+.phaseLineHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.phaseTitleRow h3 {
+.phaseLineHeader h3 {
   margin: 0;
-  font-size: 0.94rem;
+  font-size: 0.92rem;
   color: var(--phase-accent, #7dd3fc);
   font-weight: 700;
 }
 
-.phaseTitleRow span {
+.phaseLineHeader span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -459,60 +451,66 @@
   color: #e7eff6;
   font-size: 0.76rem;
   font-weight: 700;
-}
-
-.phaseSeparator {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--phase-accent, #7dd3fc) 52%, transparent),
-    rgba(140, 170, 190, 0.18)
-  );
-}
-
-.phaseStack {
-  display: grid;
-  align-content: start;
-  gap: 7px;
-  min-height: 300px;
-}
-
-.phaseDropZone {
-  min-height: 18px;
-  border-radius: 9px;
-  border: 1px dashed rgba(128, 154, 173, 0.36);
+.timelineLane {
+  min-height: 52px;
+  border-radius: 10px;
+  border: 1px dashed rgba(128, 154, 173, 0.38);
   background: rgba(54, 73, 90, 0.2);
-  transition: background 160ms ease, border-color 160ms ease, min-height 160ms ease, box-shadow 160ms ease;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  padding: 8px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.timelineLaneHint {
+  color: #d0e8f1;
+  font-size: 0.74rem;
+  letter-spacing: 0.03em;
+  min-height: 34px;
+  border-radius: 8px;
+  border: 1px dashed rgba(146, 174, 196, 0.38);
   display: grid;
   place-items: center;
-  color: #d0e8f1;
-  font-size: 0.72rem;
-  letter-spacing: 0.03em;
 }
 
-.phaseDropZoneActive {
-  min-height: 34px;
+.timelineLaneActive {
   border-color: color-mix(in srgb, var(--phase-accent, #7dd3fc) 78%, #8bd4ff);
   background: color-mix(in srgb, var(--phase-accent, #7dd3fc) 20%, rgba(16, 38, 58, 0.8));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--phase-accent, #7dd3fc) 24%, transparent);
 }
 
-.timelineItem {
+.timelineCodeItem {
   border: 1px solid rgba(125, 164, 188, 0.36);
   border-radius: var(--radius-item);
-  padding: 11px;
+  padding: 8px 10px;
   background: rgba(9, 22, 34, 0.86);
   display: flex;
   justify-content: space-between;
-  align-items: start;
+  align-items: center;
   gap: 12px;
   transition: border-color 140ms ease, transform 140ms ease;
 }
 
-.timelineItem:hover {
+.timelineCodeItem:hover {
   border-color: rgba(40, 179, 208, 0.62);
   transform: translateY(-1px);
   box-shadow: 0 10px 18px rgba(2, 9, 16, 0.22);
+}
+
+.timelineCode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.2rem;
+  height: 1.5rem;
+  padding: 0 0.44rem;
+  border-radius: 999px;
+  border: 1px solid rgba(40, 179, 208, 0.6);
+  background: rgba(15, 62, 79, 0.64);
+  color: #d8f4fb;
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 .timelineItemDragging {
@@ -816,10 +814,6 @@
     grid-template-columns: 1fr;
   }
 
-  .phaseTimeline {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .taskCard,
   .timelineCard {
     min-height: auto;
@@ -844,10 +838,6 @@
     align-items: stretch;
   }
 
-  .phaseTimeline {
-    grid-template-columns: 1fr;
-  }
-
   .taskGrid {
     grid-template-columns: 1fr;
   }
@@ -857,12 +847,8 @@
   }
 
   .card,
-  .phaseCard {
+  .phaseLine {
     padding: 12px;
-  }
-
-  .phaseCard {
-    min-height: 320px;
   }
 
   .taskChip,
@@ -901,9 +887,6 @@
     padding: 5px 8px;
   }
 
-  .phaseCard {
-    min-height: 280px;
-  }
 }
 
 @media (hover: none) and (pointer: coarse) {
