@@ -84,8 +84,15 @@ function withCopuzzleDefaults(config = {}) {
   const cols = clampInt(config?.grid?.cols, 4, 2, 16);
   const duration = clampInt(config?.timer?.duration_seconds, 1200, 30, 7200);
   const warning = clampInt(config?.timer?.warning_threshold_seconds, 60, 10, 600);
-  const participants = clampInt(config?.participants?.expected_count, 4, 1, 20);
   const imageUrl = String(config?.image_url || config?.image?.src || '').trim() || '/copuzzle/default-blue.svg';
+  const rawParticipants = config?.participants && typeof config.participants === 'object'
+    ? config.participants
+    : {};
+  const {
+    expected_count: _ignoredExpectedCount,
+    expected_count_auto: _ignoredExpectedCountAuto,
+    ...participantsConfig
+  } = rawParticipants;
 
   return {
     ...(config || {}),
@@ -101,8 +108,7 @@ function withCopuzzleDefaults(config = {}) {
       cols,
     },
     participants: {
-      ...(config?.participants && typeof config.participants === 'object' ? config.participants : {}),
-      expected_count: participants,
+      ...participantsConfig,
     },
     timer: {
       ...(config?.timer && typeof config.timer === 'object' ? config.timer : {}),
@@ -130,6 +136,7 @@ function sanitizePhraseText(value, fallback) {
 }
 
 function withPhraseDefaults(config = {}) {
+  const { nombreJoueurs: _ignoredNombreJoueurs, ...configWithoutPlayerCount } = config || {};
   const mode = String(config?.mode || 'template').toLowerCase() === 'custom' ? 'custom' : 'template';
   const template = getPhraseTemplate(config?.templateId);
 
@@ -137,19 +144,17 @@ function withPhraseDefaults(config = {}) {
     ? sanitizePhraseText(config?.textePhrase, template.phrase)
     : sanitizePhraseText(template.phrase, PHRASE_DEFAULT_LIBRARY[0].phrase);
 
-  const nombreJoueurs = clampInt(config?.nombreJoueurs, template.players, 2, 16);
   const nombreFauxMots = clampInt(config?.nombreFauxMots, template.fauxMots, 0, 12);
   const nombreIndices = clampInt(config?.nombreIndices, template.indices, 0, 12);
   const timerTotal = clampInt(config?.timerTotal, template.timerTotal, 60, 3600);
   const modeCommunication = String(config?.modeCommunication || 'libre').toLowerCase() === 'restreint' ? 'restreint' : 'libre';
 
   return {
-    ...(config || {}),
+    ...configWithoutPlayerCount,
     type: 'phrase_collaborative',
     mode,
     templateId: mode === 'template' ? template.id : (config?.templateId || null),
     textePhrase: phrase,
-    nombreJoueurs,
     modeDistribution: String(config?.modeDistribution || 'modulo').toLowerCase() === 'custom' ? 'custom' : 'modulo',
     distributionCustom: config?.distributionCustom && typeof config.distributionCustom === 'object' ? config.distributionCustom : {},
     nombreFauxMots,
@@ -412,25 +417,6 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="expectedCount" className={styles.label}>Nombre de participants</label>
-                <input
-                  id="expectedCount"
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={numberValue('participants.expected_count', 4)}
-                  onChange={(e) => {
-                    updateValue('participants.expected_count', Number(e.target.value || 4));
-                    updateValue('participants.expected_count_auto', false);
-                  }}
-                  className={styles.input}
-                />
-                <span style={{ fontSize: '11px', color: '#6b7280', marginTop: '3px', display: 'block' }}>
-                  Détermine combien de pièces chaque participant reçoit (total ÷ participants)
-                </span>
-              </div>
-
-              <div className={styles.configField}>
                 <label htmlFor="durationSeconds" className={styles.label}>Timer (secondes)</label>
                 <input
                   id="durationSeconds"
@@ -560,7 +546,6 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                       const template = getPhraseTemplate(nextTemplateId);
                       updateValue('templateId', nextTemplateId);
                       updateValue('textePhrase', template.phrase);
-                      updateValue('nombreJoueurs', template.players);
                       updateValue('nombreFauxMots', template.fauxMots);
                       updateValue('nombreIndices', template.indices);
                       updateValue('timerTotal', template.timerTotal);
@@ -589,20 +574,6 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                   />
                 </div>
               )}
-
-              {/* Nombre de joueurs */}
-              <div className={styles.configField}>
-                <label htmlFor="phrasePlayers" className={styles.label}>Nombre de joueurs (2-16)</label>
-                <input
-                  id="phrasePlayers"
-                  type="number"
-                  min="2"
-                  max="16"
-                  value={numberValue('nombreJoueurs', 4)}
-                  onChange={(e) => updateValue('nombreJoueurs', Number(e.target.value || 4))}
-                  className={styles.input}
-                />
-              </div>
 
               {/* Options avancées */}
               <div className={styles.configField}>
