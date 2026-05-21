@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import ChallengeTimerCard from '../ChallengeTimerCard';
 import styles from './MissionCritique.module.css';
 
 const QUICK_CHAT_TEMPLATES = Object.freeze([
@@ -24,13 +25,6 @@ function inferPhaseKey(index, total) {
   if (ratio < 0.5) return 'preparation';
   if (ratio < 0.75) return 'execution';
   return 'cloture';
-}
-
-function formatTimer(seconds) {
-  const safe = Math.max(0, Number(seconds || 0));
-  const mm = String(Math.floor(safe / 60)).padStart(2, '0');
-  const ss = String(safe % 60).padStart(2, '0');
-  return `${mm}:${ss}`;
 }
 
 export default function MissionCritiqueChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
@@ -122,13 +116,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
   const timerDurationSeconds = Math.max(1, Number(state?.timer?.duration_seconds || 1));
   const timerProgress = Math.max(0, Math.min(100, Math.round((timerRemainingSeconds / timerDurationSeconds) * 100)));
-
-  const timerToneClass = useMemo(() => {
-    if (timerState !== 'running') return styles.timerToneIdle;
-    if (timerProgress <= 20) return styles.timerToneDanger;
-    if (timerProgress <= 55) return styles.timerToneWarn;
-    return styles.timerToneSafe;
-  }, [timerProgress, timerState]);
 
   useEffect(() => {
     setPhaseByTask((prev) => {
@@ -548,24 +535,22 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
         </main>
 
         <aside className={styles.sidebar}>
-          <section className={`${styles.card} ${styles.timerCard}`}>
-            <h2>Chrono</h2>
-            <div
-              className={`${styles.timerRing} ${timerToneClass}`}
-              style={{
-                background: `conic-gradient(currentColor ${Math.max(2, timerProgress)}%, rgba(148, 163, 184, 0.2) 0)`,
-              }}
-            >
-              <div className={styles.timerCenter}>
-                <p className={styles.timerTime}>{formatTimer(timerRemainingSeconds)}</p>
-                <p className={styles.timerState}>{timerState === 'running' ? 'En cours' : timerState === 'paused' ? 'Pause' : 'Attente'}</p>
+          <ChallengeTimerCard
+            className={`${styles.card} ${styles.timerCard}`}
+            title="Chrono"
+            remainingSeconds={timerRemainingSeconds}
+            durationSeconds={timerDurationSeconds}
+            status={timerState}
+            progressPercent={timerProgress}
+            isFacilitator={isFacilitator}
+            waitingText="En attente du facilitateur pour demarrer le chrono."
+            footer={(
+              <div className={styles.timerMetaBar}>
+                <span>Progression</span>
+                <strong>{timerProgress}%</strong>
               </div>
-            </div>
-            <div className={styles.timerMetaBar}>
-              <span>Progression</span>
-              <strong>{timerProgress}%</strong>
-            </div>
-            {isFacilitator ? (
+            )}
+            actions={isFacilitator ? (
               <div className={styles.timerActions}>
                 <button
                   type="button"
@@ -586,10 +571,8 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                   Stop
                 </button>
               </div>
-            ) : (
-              <p className={styles.meta}>En attente du facilitateur pour demarrer le chrono.</p>
-            )}
-          </section>
+            ) : null}
+          />
 
           <section className={`${styles.card} ${styles.chatCard}`}>
             <h2>Chat equipe</h2>

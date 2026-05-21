@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import ChallengeTimerCard from '../ChallengeTimerCard';
 import styles from './PhraseCoop.module.css';
 
 function computeCompletionPercent(slots) {
@@ -301,49 +302,30 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
         </section>
 
         <aside className={styles.sidePanel}>
-          <section className={`${styles.sideCard} ${styles.timerCard}`}>
-            <h3 className={styles.timerTitle}>Chronomètre</h3>
-
-            <div className={styles.timerRingContainer}>
-              <div
-                className={styles.timerRing}
-                style={{
-                  background: `conic-gradient(#0284c7 ${timerStatus === 'running' ? 360 : timerStatus === 'paused' ? 180 : 0}deg, #e2e8f0 ${timerStatus === 'running' ? 360 : timerStatus === 'paused' ? 180 : 0}deg)`
+          <ChallengeTimerCard
+            className={`${styles.sideCard} ${styles.timerCard}`}
+            title="Chronometre"
+            remainingSeconds={Number(timer?.remaining_seconds || 0)}
+            durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
+            status={timerStatus}
+            isFacilitator={isFacilitator}
+            waitingText="⏳ En attente du facilitateur"
+            ringAction={isFacilitator ? (
+              <button
+                className={styles.timerIconBtn}
+                type="button"
+                onClick={() => {
+                  if (timerStatus === 'running') emitEvent('timer.pause');
+                  else if (timerStatus === 'paused') emitEvent('timer.resume');
+                  else emitEvent('timer.start');
                 }}
+                title={timerStatus === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
+                aria-label={timerStatus === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
               >
-                <div className={styles.timerDisplay}>
-                  <div className={styles.timerTime}>
-                    {String(Math.floor(Number(timer?.remaining_seconds || 0) / 60)).padStart(2, '0')}:
-                    {String(Number(timer?.remaining_seconds || 0) % 60).padStart(2, '0')}
-                  </div>
-                  <div className={styles.timerState}>
-                    {timerStatus === 'running' ? 'En cours' : timerStatus === 'paused' ? 'Pause' : 'Attente'}
-                  </div>
-                  {isFacilitator ? (
-                    <button
-                      className={styles.timerIconBtn}
-                      type="button"
-                      onClick={() => {
-                        if (timerStatus === 'running') emitEvent('timer.pause');
-                        else if (timerStatus === 'paused') emitEvent('timer.resume');
-                        else emitEvent('timer.start');
-                      }}
-                      title={timerStatus === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
-                      aria-label={timerStatus === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
-                    >
-                      {timerStatus === 'running' ? '⏸' : '▶'}
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-
-            {!isFacilitator ? (
-              <p style={{ margin: '0', fontSize: '0.8rem', color: '#0c4a6e', textAlign: 'center' }}>
-                ⏳ En attente du facilitateur
-              </p>
+                {timerStatus === 'running' ? '⏸' : '▶'}
+              </button>
             ) : null}
-          </section>
+          />
 
           <section className={styles.sideCard}>
             <h2>{isFacilitator ? 'Vue globale' : 'Vos informations'}</h2>

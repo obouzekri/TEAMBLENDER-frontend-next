@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import ChallengeTimerCard from '../ChallengeTimerCard';
 import styles from './Labyrinthe.module.css';
 
 export default function LabyrintheLive({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
@@ -31,61 +32,43 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
           {error ? <p className={styles.error}>{error}</p> : null}
         </section>
 
-        <section className={`${styles.panel} ${styles.timerCard}`}>
-          <h3 className={styles.timerTitle}>Chronomètre</h3>
-          
-          <div className={styles.timerRingContainer}>
-            <div 
-              className={styles.timerRing}
-              style={{
-                background: `conic-gradient(#22c55e ${(Number(timer?.remaining_seconds || 0) / (Number(runtimePayload?.config?.timer?.duration_seconds || 300)) * 360)}deg, rgba(148, 163, 184, 0.25) ${(Number(timer?.remaining_seconds || 0) / (Number(runtimePayload?.config?.timer?.duration_seconds || 300)) * 360)}deg)`
-              }}
-            >
-              <div className={styles.timerDisplay}>
-                <div className={styles.timerTime}>
-                  {String(Math.floor(Number(timer?.remaining_seconds || 0) / 60)).padStart(2, '0')}:
-                  {String(Number(timer?.remaining_seconds || 0) % 60).padStart(2, '0')}
-                </div>
-                <div className={styles.timerState}>
-                  {timer?.status === 'running' ? 'En cours' : timer?.status === 'paused' ? 'Pause' : 'Attente'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {isFacilitator ? (
+        <ChallengeTimerCard
+          className={`${styles.panel} ${styles.timerCard}`}
+          title="Chronometre"
+          remainingSeconds={Number(timer?.remaining_seconds || 0)}
+          durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
+          status={String(timer?.status || 'idle')}
+          isFacilitator={isFacilitator}
+          waitingText="⏳ En attente du facilitateur"
+          actions={isFacilitator ? (
             <div className={styles.timerActionsGroup}>
-              <button 
-                className={styles.timerBtnStart} 
-                type="button" 
+              <button
+                className={styles.timerBtnStart}
+                type="button"
                 onClick={() => emitEvent('timer.start')}
                 disabled={timer?.status === 'running'}
               >
-                ▶️ Démarrer
+                ▶ Demarrer
               </button>
-              <button 
-                className={styles.timerBtnPauseResume} 
-                type="button" 
+              <button
+                className={styles.timerBtnPauseResume}
+                type="button"
                 onClick={() => timer?.status === 'paused' ? emitEvent('timer.resume') : emitEvent('timer.pause')}
                 disabled={timer?.status !== 'running' && timer?.status !== 'paused'}
               >
-                {timer?.status === 'paused' ? '⏯️ Reprendre' : '⏸️ Pause'}
+                {timer?.status === 'paused' ? '⏯ Reprendre' : '⏸ Pause'}
               </button>
-              <button 
-                className={styles.timerBtnStop} 
-                type="button" 
+              <button
+                className={styles.timerBtnStop}
+                type="button"
                 onClick={() => emitEvent('timer.stop')}
                 disabled={timer?.status === 'idle'}
               >
-                ⏹️ Arrêter
+                ⏹ Arreter
               </button>
             </div>
-          ) : (
-            <p style={{ margin: '0', fontSize: '0.8rem', color: '#86efac', textAlign: 'center' }}>
-              ⏳ En attente du facilitateur
-            </p>
-          )}
-        </section>
+          ) : null}
+        />
       </div>
 
       <div className={styles.layout}>

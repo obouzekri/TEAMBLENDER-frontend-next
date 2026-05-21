@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getApiUrl } from '@/lib/config';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import ChallengeTimerCard from '../ChallengeTimerCard';
 import styles from './EscapeRoom.module.css';
 
 const OUTCOME_UI = {
@@ -391,11 +392,6 @@ export default function EscapeRoomChallenge({
   const challengeStatus = String(state?.status || '').trim();
   const canStartTimer = isFacilitator && challengeStatus === 'waiting_for_start' && !busyAction;
   const isTimerRunning = challengeStatus === 'in_progress';
-  const timerLabel = useMemo(() => {
-    const minutes = Math.floor(Math.max(0, timerSeconds) / 60);
-    const seconds = Math.max(0, timerSeconds) % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  }, [timerSeconds]);
 
   const participantRows = useMemo(() => {
     return participants.map((participant) => {
@@ -614,62 +610,45 @@ export default function EscapeRoomChallenge({
         </article>
 
         <aside className={styles.card}>
-          <section className={styles.timerCard}>
-            <h3 className={styles.timerTitle}>Chronomètre</h3>
-
-            <div className={styles.timerRingContainer}>
-              <div
-                className={styles.timerRing}
-                style={{
-                  background: `conic-gradient(#0ea5e9 ${(100 - (timerSeconds / (Number(runtimePayload?.config?.timer?.duration_seconds || 300)) * 100))}deg, rgba(148, 163, 184, 0.25) ${(100 - (timerSeconds / (Number(runtimePayload?.config?.timer?.duration_seconds || 300)) * 100))}deg)`
-                }}
+          <ChallengeTimerCard
+            className={styles.timerCard}
+            title="Chronometre"
+            remainingSeconds={timerSeconds}
+            durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
+            status={isTimerRunning ? 'running' : 'idle'}
+            isFacilitator={isFacilitator}
+            waitingText="⏳ Gere par le facilitateur"
+            ringAction={isFacilitator ? (
+              <button
+                className={styles.timerIconBtn}
+                type="button"
+                onClick={() => handleTimerAction(isTimerRunning ? 'pause' : 'start')}
+                disabled={isTimerRunning ? false : !canStartTimer}
+                title={isTimerRunning ? 'Mettre en pause' : 'Demarrer'}
+                aria-label={isTimerRunning ? 'Mettre en pause' : 'Demarrer'}
               >
-                <div className={styles.timerDisplay}>
-                  <div className={styles.timerTime}>{timerLabel}</div>
-                  <div className={styles.timerState}>{isTimerRunning ? 'En cours' : 'Attente'}</div>
-                </div>
-                {isFacilitator ? (
-                  <div className={styles.timerRingActions}>
-                    <button
-                      className={styles.timerIconBtn}
-                      type="button"
-                      onClick={() => handleTimerAction(isTimerRunning ? 'pause' : 'start')}
-                      disabled={isTimerRunning ? false : !canStartTimer}
-                      title={isTimerRunning ? 'Mettre en pause' : 'Démarrer'}
-                      aria-label={isTimerRunning ? 'Mettre en pause' : 'Démarrer'}
-                    >
-                      {isTimerRunning ? '⏸' : '▶'}
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            {!isFacilitator ? (
-              <p style={{ margin: '0', fontSize: '0.8rem', color: '#7dd3fc', textAlign: 'center' }}>
-                ⏳ Géré par le facilitateur
-              </p>
+                {isTimerRunning ? '⏸' : '▶'}
+              </button>
             ) : null}
-
-            {isFacilitator && !isFinished && currentEnigme ? (
+            footer={isFacilitator && !isFinished && currentEnigme ? (
               <div className={styles.timerQuickActions}>
                 <button
                   className={styles.secondaryBtn}
                   disabled={!!busyAction}
                   onClick={() => facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })}
                 >
-                  Débloquer indice
+                  Debloquer indice
                 </button>
                 <button
                   className={styles.secondaryBtn}
                   disabled={!!busyAction}
                   onClick={() => facilitatorAction('skip', '/skip')}
                 >
-                  Passer l'énigme
+                  Passer l'enigme
                 </button>
               </div>
             ) : null}
-          </section>
+          />
 
           <div className={styles.teamProgressTrack}>
             <div className={styles.teamProgressFill} style={{ width: `${responseProgress}%` }} />

@@ -1,0 +1,149 @@
+.timerCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  border-radius: 16px;
+  border: 1px solid rgba(14, 165, 233, 0.32);
+  background: linear-gradient(168deg, rgba(2, 6, 23, 0.92), rgba(7, 23, 46, 0.9));
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.3), inset 0 0 0 1px rgba(14, 165, 233, 0.12);
+  color: #f8fafc;
+  padding: 1rem;
+}
+
+.timerTitle {
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.timerRingContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.timerRing {
+  width: min(190px, 72vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2), 0 10px 24px rgba(3, 7, 18, 0.42);
+}
+
+.timerRing::after {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at top, rgba(8, 47, 73, 0.72), rgba(2, 6, 23, 0.9));
+  box-shadow: inset 0 1px 0 rgba(226, 232, 240, 0.1);
+}
+
+.timerDisplay {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.timerTime {
+  font-size: clamp(1.35rem, 3.2vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: #f8fafc;
+  font-variant-numeric: tabular-nums;
+}
+
+.timerState {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #bae6fd;
+  font-weight: 600;
+}
+
+.timerRingActions {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+}
+
+.timerIconBtn {
+  border: none;
+  border-radius: 999px;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 132, 199, 0.24);
+  color: #f8fafc;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+}
+
+.timerIconBtn:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.04);
+  background: rgba(2, 132, 199, 0.38);
+}
+
+.timerIconBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.timerRingSafe {
+  color: #22c55e;
+}
+
+.timerRingWarn {
+  color: #f59e0b;
+}
+
+.timerRingDanger {
+  color: #ef4444;
+}
+
+.timerRingIdle {
+  color: #38bdf8;
+}
+
+.timerWaitingText {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #7dd3fc;
+  text-align: center;
+}
+
+.timerFooter,
+.timerActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+@media (max-width: 768px) {
+  .timerCard {
+    padding: 0.9rem;
+  }
+
+  .timerRing {
+    width: min(172px, 70vw);
+  }
+
+  .timerRing::after {
+    inset: 12px;
+  }
+}

@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import { getBackendOrigin } from '@/lib/config';
+import ChallengeTimerCard from '../ChallengeTimerCard';
 import styles from './Copuzzle.module.css';
 
 function clampInt(value, fallback, min, max) {
@@ -193,7 +194,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     emitEvent('puzzle.place', {
       pieceId,
       x,
-      Number(state?.timer?.duration_seconds || effectiveConfig?.timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)
+      y,
     });
     setSelectedPieceId((prev) => (String(prev) === String(pieceId) ? '' : prev));
   }
@@ -300,35 +301,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     }
     return cells;
   }, [rowCount, colCount]);
-
-  const timerProgress = useMemo(() => {
-    if (timerState !== 'running' && timerState !== 'paused') {
-      return 0;
-    }
-    if (!timerDurationSeconds) {
-      return timerState === 'running' ? 100 : 50;
-    }
-    const ratio = timerRemainingSeconds / timerDurationSeconds;
-    return Math.max(0, Math.min(100, Math.round(ratio * 100)));
-  }, [timerDurationSeconds, timerRemainingSeconds, timerState]);
-
-  const timerTone = useMemo(() => {
-    if (timerState !== 'running') return 'idle';
-    if (timerProgress <= 20) return 'danger';
-    if (timerProgress <= 55) return 'warn';
-    return 'safe';
-  }, [timerProgress, timerState]);
-
-  const timerStrokeColor =
-    timerTone === 'danger' ? '#ef4444' : timerTone === 'warn' ? '#f59e0b' : '#22c55e';
-
-  const timerRingClassName = `${styles.timerRing} ${timerTone === 'safe'
-    ? styles.timerRingSafe
-    : timerTone === 'warn'
-      ? styles.timerRingWarn
-      : timerTone === 'danger'
-        ? styles.timerRingDanger
-        : ''}`.trim();
 
   return (
     <div className={styles.copuzzleContainer}>
@@ -471,49 +443,30 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
         </section>
 
         <aside className={styles.sidePanel}>
-          <section className={`${styles.sideCard} ${styles.timerCard}`}>
-            <div className={styles.timerRingContainer}>
-              <div
-                className={timerRingClassName}
-                style={{
-                  background: `conic-gradient(${timerStrokeColor} ${Math.round((timerProgress / 100) * 360)}deg, rgba(148, 163, 184, 0.18) ${Math.round((timerProgress / 100) * 360)}deg)`
+          <ChallengeTimerCard
+            className={`${styles.sideCard} ${styles.timerCard}`}
+            title="Chronometre"
+            remainingSeconds={timerRemainingSeconds}
+            durationSeconds={timerDurationSeconds}
+            status={timerState}
+            isFacilitator={isFacilitator}
+            waitingText="⏳ En attente du facilitateur"
+            ringAction={isFacilitator ? (
+              <button
+                className={styles.timerIconBtn}
+                type="button"
+                onClick={() => {
+                  if (timerState === 'running') emitEvent('timer.pause');
+                  else if (timerState === 'paused') emitEvent('timer.resume');
+                  else emitEvent('timer.start');
                 }}
+                title={timerState === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
+                aria-label={timerState === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
               >
-                <div className={styles.timerDisplay}>
-                  <div className={styles.timerTime}>
-                    {String(Math.floor(timerRemainingSeconds / 60)).padStart(2, '0')}:
-                    {String(timerRemainingSeconds % 60).padStart(2, '0')}
-                  </div>
-                  <div className={styles.timerState}>
-                    {timerState === 'running' ? 'En cours' : timerState === 'paused' ? 'Pause' : 'Attente'}
-                  </div>
-                </div>
-                {isFacilitator ? (
-                  <div className={styles.timerRingActions}>
-                    <button
-                      className={styles.timerIconBtn}
-                      type="button"
-                      onClick={() => {
-                        if (timerState === 'running') emitEvent('timer.pause');
-                        else if (timerState === 'paused') emitEvent('timer.resume');
-                        else emitEvent('timer.start');
-                      }}
-                      title={timerState === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
-                      aria-label={timerState === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
-                    >
-                      {timerState === 'running' ? '⏸' : '▶'}
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            {!isFacilitator ? (
-              <p className={styles.timerWaitingText}>
-                ⏳ En attente du facilitateur
-              </p>
+                {timerState === 'running' ? '⏸' : '▶'}
+              </button>
             ) : null}
-          </section>
+          />
 
           <section className={styles.sideCard}>
             <h2>{isFacilitator ? 'Image de référence' : 'Pièces assignées'}</h2>

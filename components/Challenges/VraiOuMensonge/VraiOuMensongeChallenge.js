@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import ChallengeTimerCard from '../ChallengeTimerCard';
 import styles from './VraiOuMensonge.module.css';
 
 function phaseLabel(phase) {
@@ -283,6 +284,16 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         </div>
 
         <aside className={styles.sideColumn}>
+          <ChallengeTimerCard
+            className={styles.card}
+            title="Chronometre"
+            remainingSeconds={formatSeconds(remainingMs)}
+            durationSeconds={Math.max(1, formatSeconds(Number(vom?.phase_deadline_ms || 0) - Number(vom?.phase_started_at_ms || 0)))}
+            status={phase === 'voting_open' || phase === 'selecting_statement' || phase === 'reveal_pending' ? 'running' : 'idle'}
+            isFacilitator={isFacilitator}
+            waitingText="⏳ Chrono partagé pour l'equipe"
+          />
+
           <section className={`${styles.card} ${styles.stateCard}`}>
             <h3>Etat live</h3>
             <div className={styles.stateGrid}>
