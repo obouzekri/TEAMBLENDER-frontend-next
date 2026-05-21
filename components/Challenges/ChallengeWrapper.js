@@ -198,12 +198,12 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     };
   }, [sessionId, showErrorToast, showLoadingToast, removeToast, normalizedEngineKey]);
 
-  // Listen for challenge advancement from facilitator
+  // Keep runtime payload synchronized after socket reconnects.
+  // Challenge advancement is already handled by parent remount via key(sessionId+activeChallengeId+engineKey).
   useEffect(() => {
     if (!socket) return () => {};
 
-    const handleChallengeAdvanced = () => {
-      // Reload runtime payload when challenge is advanced
+    const handleRuntimeResync = () => {
       const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
       fetch(getApiUrl(`/sessions/${sessionId}/runtime-challenge`), {
         headers: {
@@ -255,10 +255,9 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
 
     const handleSocketConnect = () => {
       // Force backend-authoritative resync on every (re)connection.
-      handleChallengeAdvanced();
+      handleRuntimeResync();
     };
 
-    socket.on('session:challenge-advanced', handleChallengeAdvanced);
     socket.on('connect', handleSocketConnect);
 
     if (socket.connected) {
@@ -266,10 +265,9 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     }
 
     return () => {
-      socket.off('session:challenge-advanced', handleChallengeAdvanced);
       socket.off('connect', handleSocketConnect);
     };
-  }, [socket, sessionId, getApiUrl, showErrorToast]);
+  }, [socket, sessionId, showErrorToast]);
 
   // Load engine component once runtime is ready (and socket if required)
   useEffect(() => {
