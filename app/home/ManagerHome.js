@@ -38,6 +38,22 @@ function normalizeParticipant(participant) {
   };
 }
 
+function formatPaywallMessage(payload, fallbackMessage) {
+  const baseMessage = String(payload?.error || fallbackMessage || '').trim();
+  if (payload?.code !== 'PLAN_LIMIT_REACHED') {
+    return baseMessage;
+  }
+
+  const conversionHint = String(payload?.details?.conversion?.title || '').trim();
+  const ctaPath = String(payload?.details?.conversion?.cta_path || '').trim() || '/pricing';
+
+  if (!conversionHint) {
+    return `${baseMessage} Consultez ${ctaPath} pour activer Pro.`;
+  }
+
+  return `${baseMessage} ${conversionHint} (${ctaPath}).`;
+}
+
 function formatSessionDate(value) {
   if (!value) return '';
   const parsed = new Date(value);
@@ -394,7 +410,12 @@ export default function ManagerHome() {
       }
 
       if (!response.ok) {
-        throw new Error(payload.error || `${editingMemberId ? 'Mise à jour' : 'Création'} participant impossible (${response.status})`);
+        throw new Error(
+          formatPaywallMessage(
+            payload,
+            `${editingMemberId ? 'Mise à jour' : 'Création'} participant impossible (${response.status})`
+          )
+        );
       }
 
       showSuccessToast(editingMemberId ? 'Participant mis à jour avec succès.' : 'Participant ajouté avec succès.');

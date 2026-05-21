@@ -241,7 +241,13 @@ export default function SessionBuilder() {
         );
       }
 
-      const requestError = new Error(payload.error || `Erreur API (${response.status})`);
+      let errorMessage = payload.error || `Erreur API (${response.status})`;
+      if (payload.code === 'PLAN_LIMIT_REACHED') {
+        const ctaPath = String(payload?.details?.conversion?.cta_path || '').trim() || '/pricing';
+        errorMessage = `${errorMessage} Passez a Pro: ${ctaPath}`;
+      }
+
+      const requestError = new Error(errorMessage);
       requestError.status = response.status;
       requestError.code = payload.code;
       requestError.details = payload.details;

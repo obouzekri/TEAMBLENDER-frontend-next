@@ -12,6 +12,7 @@ import {
   resetMyPassword,
   listPricingPlans,
   updateMyPlan,
+  createProRequest,
   getStoredCurrentUser,
   setStoredCurrentUser,
 } from '@/lib/account';
@@ -87,6 +88,7 @@ export default function AccountPage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingPlan, setSavingPlan] = useState(false);
+  const [startingProRequest, setStartingProRequest] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
 
   useEffect(() => {
@@ -329,6 +331,34 @@ export default function AccountPage() {
     }
   }
 
+  async function handleStartProRequest() {
+    if (startingProRequest) return;
+
+    const targetPlan = recommendedPlan || activePlan;
+    if (!targetPlan?.id) {
+      showError('Aucun plan Pro eligible disponible pour la demande.');
+      return;
+    }
+
+    setStartingProRequest(true);
+    try {
+      const response = await createProRequest({
+        pricing_plan_id: targetPlan.id,
+        method: 'bank_transfer'
+      });
+
+      const reference = String(response?.reference || '').trim();
+      const supportEmail = String(response?.support?.email || 'contact@teamblender.io').trim();
+      showSuccess(
+        `Demande Pro envoyee${reference ? ` (ref: ${reference})` : ''}. Contactez ${supportEmail} pour finaliser le paiement (PayPal ou virement).`
+      );
+    } catch (err) {
+      showError(err.message || 'Envoi de la demande Pro impossible pour le moment.');
+    } finally {
+      setStartingProRequest(false);
+    }
+  }
+
   function logout() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
@@ -540,6 +570,9 @@ export default function AccountPage() {
             <div className="participant-form-actions">
               <button type="submit" className="btn-primary" disabled={savingPlan}>
                 {savingPlan ? 'Changement...' : 'Changer de plan'}
+              </button>
+              <button type="button" className="btn-secondary" onClick={handleStartProRequest} disabled={startingProRequest}>
+                {startingProRequest ? 'Envoi de la demande...' : 'Demander Pro (PayPal / virement)'}
               </button>
             </div>
           </form>

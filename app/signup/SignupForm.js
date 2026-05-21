@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import AuthCard from '@/components/AuthCard';
 import { registerUser } from '@/lib/auth';
-import { getApiUrl } from '@/lib/config';
 
 export default function SignupForm() {
   const [firstName, setFirstName] = useState('');
@@ -13,41 +12,8 @@ export default function SignupForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [plans, setPlans] = useState([]);
-  const [selectedPlanId, setSelectedPlanId] = useState('');
-  const [plansLoading, setPlansLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [done, setDone] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadPlans() {
-      setPlansLoading(true);
-      try {
-        const res = await fetch(getApiUrl('/pricing-plans'));
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!active || !Array.isArray(data)) return;
-        setPlans(data);
-
-        const highlighted = data.find((plan) => Boolean(plan?.highlighted));
-        const fallback = highlighted || data[0];
-        if (fallback?.id) {
-          setSelectedPlanId(String(fallback.id));
-        }
-      } catch {
-        // Keep signup usable even if pricing catalog is temporarily unavailable.
-      } finally {
-        if (active) setPlansLoading(false);
-      }
-    }
-
-    loadPlans();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   async function onSubmit(event) {
     event.preventDefault();
@@ -73,7 +39,6 @@ export default function SignupForm() {
         password,
         first_name: f,
         last_name: l,
-        pricing_plan_id: selectedPlanId ? Number(selectedPlanId) : undefined,
       });
 
       if (res.status === 201) {
@@ -159,28 +124,6 @@ export default function SignupForm() {
                 </button>
               </div>
             </label>
-
-            {plansLoading ? (
-              <p className="form-help">Chargement des formules...</p>
-            ) : plans.length > 0 ? (
-              <label>
-                Formule *
-                <select
-                  name="signup_pricing_plan"
-                  value={selectedPlanId}
-                  onChange={(e) => setSelectedPlanId(e.target.value)}
-                  required
-                >
-                  {plans.map((plan) => (
-                    <option key={plan.id} value={plan.id}>
-                      {plan.name} - {(Number(plan.price || 0)).toFixed(2)} {plan.currency || 'EUR'}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : (
-              <p className="form-help">Aucune formule active trouvée. Un plan par défaut sera appliqué.</p>
-            )}
 
             <button type="submit" className="btn-primary wide" disabled={loading}>
               {loading ? 'Création...' : 'Créer mon compte'}
