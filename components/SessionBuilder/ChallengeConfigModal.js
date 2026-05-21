@@ -4,6 +4,56 @@ import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect } from 'react';
 import { getApiUrl } from '@/lib/config';
 
+const COPUZZLE_DEFAULT_IMAGES = Object.freeze([
+  { value: '/copuzzle/default-blue.svg', label: 'Par defaut - Horizon bleu' },
+  { value: '/copuzzle/default-grid.svg', label: 'Par defaut - Grille collaboration' },
+  { value: '/copuzzle/default-sunrise.svg', label: 'Par defaut - Sunrise team' },
+]);
+
+function clampInt(value, fallback, min, max) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function withCopuzzleDefaults(config = {}) {
+  const rows = clampInt(config?.grid?.rows, 4, 2, 16);
+  const cols = clampInt(config?.grid?.cols, 4, 2, 16);
+  const duration = clampInt(config?.timer?.duration_seconds, 1200, 30, 7200);
+  const warning = clampInt(config?.timer?.warning_threshold_seconds, 60, 10, 600);
+  const participants = clampInt(config?.participants?.expected_count, 4, 1, 20);
+  const imageUrl = String(config?.image_url || config?.image?.src || '').trim() || '/copuzzle/default-blue.svg';
+
+  return {
+    ...(config || {}),
+    image_url: imageUrl,
+    image: {
+      ...(config?.image && typeof config.image === 'object' ? config.image : {}),
+      src: imageUrl,
+      fit: String(config?.image?.fit || 'contain').toLowerCase() === 'cover' ? 'cover' : 'contain',
+    },
+    grid: {
+      ...(config?.grid && typeof config.grid === 'object' ? config.grid : {}),
+      rows,
+      cols,
+    },
+    participants: {
+      ...(config?.participants && typeof config.participants === 'object' ? config.participants : {}),
+      expected_count: participants,
+    },
+    timer: {
+      ...(config?.timer && typeof config.timer === 'object' ? config.timer : {}),
+      enabled: config?.timer?.enabled !== false,
+      duration_seconds: duration,
+      warning_threshold_seconds: warning,
+    },
+    chat: {
+      ...(config?.chat && typeof config.chat === 'object' ? config.chat : {}),
+      enabled: config?.chat?.enabled !== false,
+    },
+  };
+}
+
 export default function ChallengeConfigModal({ challengeId, challenge, onSave, onClose }) {
   const [config, setConfig] = useState(challenge?.config || {});
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -94,10 +144,14 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
     const cols = numberValue('grid.cols', NaN);
     if (Number.isFinite(rows)) return rows;
     if (Number.isFinite(cols)) return cols;
-    return 5;
+    return 4;
   }
 
   const handleSave = () => {
+    if (kind === 'copuzzle') {
+      onSave(withCopuzzleDefaults(config));
+      return;
+    }
     onSave(config);
   };
 
@@ -123,6 +177,7 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
     const reader = new FileReader();
     reader.onload = (e) => {
       updateValue('image_url', e.target.result);
+      updateValue('image.src', e.target.result);
       setIsUploadingImage(false);
     };
     reader.onerror = () => {
@@ -154,13 +209,34 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
           {kind === 'copuzzle' && (
             <>
               <div className={styles.configField}>
+                <label htmlFor="copuzzleDefaultImage" className={styles.label}>Image par defaut</label>
+                <select
+                  id="copuzzleDefaultImage"
+                  className={styles.input}
+                  value={COPUZZLE_DEFAULT_IMAGES.some((opt) => opt.value === stringValue('image_url', '')) ? stringValue('image_url', '') : ''}
+                  onChange={(e) => {
+                    const value = String(e.target.value || '').trim();
+                    if (!value) return;
+                    updateValue('image_url', value);
+                    updateValue('image.src', value);
+                  }}
+                >
+                  <option value="">Selectionner une image par defaut</option>
+                  {COPUZZLE_DEFAULT_IMAGES.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+
                 <label htmlFor="imageUrl" className={styles.label}>Image du puzzle (URL)</label>
                 <input
                   id="imageUrl"
                   type="url"
-                  placeholder="https://example.com/image.jpg"
+                  placeholder="URL personnalisee (optionnel)"
                   value={stringValue('image_url', '')}
-                  onChange={(e) => updateValue('image_url', e.target.value)}
+                  onChange={(e) => {
+                    updateValue('image_url', e.target.value);
+                    updateValue('image.src', e.target.value);
+                  }}
                   className={styles.input}
                 />
 
@@ -168,7 +244,7 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                   Ou uploader une image (JPG/PNG)
                 </label>
                 <span className={styles.helpText}>
-                  (i) Recommandé: grille 5x5, 240 px par pièce, format JPEG, 1200x1200 px, idéalement &lt; 300 KB (max 500 KB).
+                  (i) Recommande: grille 4x4 ou 5x5, format JPEG/PNG, idealement image carree.
                 </span>
                 <input
                   id="copuzzleUpload"
@@ -205,7 +281,7 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                   max="16"
                   value={matrixSizeValue()}
                   onChange={(e) => {
-                    const size = Number(e.target.value || 5);
+                    const size = Number(e.target.value || 4);
                     updateValue('grid.rows', size);
                     updateValue('grid.cols', size);
                   }}
@@ -240,10 +316,11 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                   type="number"
                   min="30"
                   max="7200"
-                  value={numberValue('timer.duration_seconds', (challenge?.duration || 10) * 60)}
-                  onChange={(e) => updateValue('timer.duration_seconds', Number(e.target.value || 600))}
+                  value={numberValue('timer.duration_seconds', 1200)}
+                  onChange={(e) => updateValue('timer.duration_seconds', Number(e.target.value || 1200))}
                   className={styles.input}
                 />
+                <span className={styles.helpText}>Par defaut: 1200 secondes (20 min).</span>
               </div>
 
               <div className={styles.configField}>

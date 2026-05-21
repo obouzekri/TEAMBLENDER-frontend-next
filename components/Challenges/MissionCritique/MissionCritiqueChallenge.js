@@ -297,8 +297,10 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     emitEvent('mission.submit');
   }
 
+  const roleViewClass = isFacilitator ? styles.facilitatorView : styles.participantView;
+
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${roleViewClass}`}>
       <header className={styles.header}>
         <div>
           <h1>Mission Critique</h1>

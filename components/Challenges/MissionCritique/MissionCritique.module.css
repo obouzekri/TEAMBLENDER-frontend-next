@@ -24,6 +24,78 @@
     linear-gradient(145deg, var(--bg-1) 0%, var(--bg-2) 60%, #112938 100%);
 }
 
+.facilitatorView .timerToneSafe {
+  color: #e7eff6;
+  box-shadow: 0 0 0 4px rgba(231, 239, 246, 0.2);
+}
+
+.participantView {
+  padding: 16px;
+}
+
+.participantView .header {
+  margin-bottom: 14px;
+  gap: 12px;
+}
+
+.participantView .layout {
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 12px;
+}
+
+.participantView .mainPane,
+.participantView .sidebar {
+  gap: 12px;
+}
+
+.participantView .card {
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.participantView .workspaceGrid {
+  grid-template-columns: minmax(250px, 0.88fr) minmax(0, 1.12fr);
+  gap: 12px;
+}
+
+.participantView .taskCard,
+.participantView .timelineCard {
+  min-height: 560px;
+}
+
+.participantView .phaseTimeline {
+  gap: 8px;
+}
+
+.participantView .phaseCard {
+  min-height: 360px;
+  padding: 9px;
+  gap: 8px;
+}
+
+.participantView .phaseStack {
+  min-height: 250px;
+  gap: 6px;
+}
+
+.participantView .timelineItem {
+  padding: 9px;
+  gap: 8px;
+}
+
+.participantView .timerCard {
+  gap: 8px;
+}
+
+.participantView .timerRing {
+  width: min(104px, 100%);
+  padding: 0.4rem;
+}
+
+.participantView .timerTime {
+  font-size: 1.05rem;
+}
+
 .header {
   display: flex;
   justify-content: space-between;

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-label="Copuzzle default sunrise">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#12283f"/>
+      <stop offset="65%" stop-color="#1f4a68"/>
+      <stop offset="100%" stop-color="#2f6f88"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="100%" stop-color="#fb923c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#sky)"/>
+  <circle cx="600" cy="720" r="200" fill="url(#sun)" opacity="0.9"/>
+  <path d="M0 900 C220 760 420 980 600 860 C770 740 940 900 1200 780 L1200 1200 L0 1200 Z" fill="#0f2436" opacity="0.82"/>
+  <path d="M0 980 C250 860 450 1080 630 960 C820 840 980 1020 1200 900 L1200 1200 L0 1200 Z" fill="#113049" opacity="0.85"/>
+  <text x="600" y="470" font-family="Segoe UI, Arial, sans-serif" font-size="86" text-anchor="middle" fill="#f8fafc" font-weight="700">CoPuzzle Live</text>
+  <text x="600" y="540" font-family="Segoe UI, Arial, sans-serif" font-size="38" text-anchor="middle" fill="#cce7ef">Build clarity together</text>
+</svg>

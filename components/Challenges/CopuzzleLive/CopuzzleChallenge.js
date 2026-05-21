@@ -19,8 +19,11 @@ function normalizeRuntimeConfig(config = {}) {
       || (typeof config?.image === 'string' ? config.image : '')
       || config?.image_url
       || config?.imageUrl
-      || ''
-  ).trim();
+      || '/copuzzle/default-blue.svg'
+  ).trim() || '/copuzzle/default-blue.svg';
+
+  const timerDurationSeconds = clampInt(config?.timer?.duration_seconds, 1200, 30, 7200);
+  const timerWarningSeconds = clampInt(config?.timer?.warning_threshold_seconds, 60, 10, 600);
 
   return {
     title: String(config?.title || 'CoPuzzle Live'),
@@ -37,6 +40,8 @@ function normalizeRuntimeConfig(config = {}) {
     },
     timer: {
       enabled: config?.timer?.enabled !== false,
+      duration_seconds: timerDurationSeconds,
+      warning_threshold_seconds: timerWarningSeconds,
     },
   };
 }
@@ -107,6 +112,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     const raw = String(effectiveConfig?.image?.src || '').trim();
 
     if (!raw) return '';
+    if (raw.startsWith('/copuzzle/')) return raw;
     if (raw.startsWith('/')) return `${backendOrigin}${raw}`;
     if (raw.startsWith('http://')) return raw.replace(/^http:\/\//i, 'https://');
     return raw;
@@ -187,7 +193,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     emitEvent('puzzle.place', {
       pieceId,
       x,
-      y,
+      Number(state?.timer?.duration_seconds || effectiveConfig?.timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)
     });
     setSelectedPieceId((prev) => (String(prev) === String(pieceId) ? '' : prev));
   }

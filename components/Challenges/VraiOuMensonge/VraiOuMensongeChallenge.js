@@ -89,174 +89,240 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
-        <div>
+        <div className={styles.titleBlock}>
+          <p className={styles.kicker}>Challenge collaboratif</p>
           <h1>Vrai ou Mensonge</h1>
           <p>Experience individuelle, rapide, orientee engagement collectif.</p>
         </div>
         <div className={styles.meta}>
-          <span>{phaseLabel(phase)}</span>
-          <span>Tour {Number(vom?.turn_index || 0) + 1}/{Number(vom?.total_turns || 0)}</span>
-          <span>Temps restant: {formatSeconds(remainingMs)}s</span>
+          <span className={styles.badge}>{phaseLabel(phase)}</span>
+          <span className={styles.badge}>Tour {Number(vom?.turn_index || 0) + 1}/{Number(vom?.total_turns || 0)}</span>
+          <span className={styles.badge}>Temps restant: {formatSeconds(remainingMs)}s</span>
         </div>
       </header>
 
-      {error ? <p className={styles.error}>{error}</p> : null}
+      {error ? <p className={styles.errorBanner}>{error}</p> : null}
 
-      {phase === 'waiting_start' ? (
-        <section className={styles.card}>
-          <h2>Lobby</h2>
-          <p>Regle: 3 affirmations exactes par participant, ordre round-robin, vote individuel des non-poseurs.</p>
-          <ol className={styles.orderList}>
-            {participantsOrder.map((participant) => (
-              <li key={participant}>{participant}</li>
-            ))}
-          </ol>
-          {isFacilitator ? (
-            <button type="button" className={styles.primaryBtn} onClick={startChallenge}>
-              Demarrer le challenge
-            </button>
-          ) : (
-            <p className={styles.helper}>En attente du facilitateur.</p>
-          )}
-        </section>
-      ) : null}
+      <div className={styles.layout}>
+        <div className={styles.mainColumn}>
 
-      {phase === 'selecting_statement' ? (
-        <section className={styles.card}>
-          <h2>Selection d affirmation</h2>
-          <p>Poseur actuel: <strong>{poserId || '-'}</strong></p>
-          {isPoser ? (
-            <>
-              <div className={styles.statementGrid}>
-                {catalog.map((statement) => {
-                  const disabled = usedByPoser.has(String(statement.id));
-                  const selected = selectedStatementId === String(statement.id);
-                  return (
-                    <button
-                      key={statement.id}
-                      type="button"
-                      className={`${styles.statementBtn}${selected ? ` ${styles.statementBtnSelected}` : ''}`}
-                      disabled={disabled}
-                      onClick={() => setSelectedStatementId(String(statement.id))}
-                    >
-                      <span className={styles.category}>{statement.category}</span>
-                      <span>{statement.text}</span>
-                      {disabled ? <small>Deja utilisee par vous</small> : null}
-                    </button>
-                  );
-                })}
-              </div>
-              <button
-                type="button"
-                className={styles.primaryBtn}
-                disabled={!selectedStatementId}
-                onClick={confirmStatement}
-              >
-                Confirmer la phrase
+        {phase === 'waiting_start' ? (
+          <section className={styles.card}>
+            <h2>Lobby</h2>
+            <p>Regle: 3 affirmations exactes par participant, ordre round-robin, vote individuel des non-poseurs.</p>
+            <ol className={styles.orderList}>
+              {participantsOrder.map((participant) => (
+                <li key={participant}>{participant}</li>
+              ))}
+            </ol>
+            {isFacilitator ? (
+              <button type="button" className={styles.primaryBtn} onClick={startChallenge}>
+                Demarrer le challenge
               </button>
-            </>
-          ) : (
-            <p className={styles.helper}>Le poseur choisit une phrase du catalogue fixe.</p>
-          )}
-        </section>
-      ) : null}
+            ) : (
+              <p className={styles.helper}>En attente du facilitateur.</p>
+            )}
+          </section>
+        ) : null}
 
-      {phase === 'voting_open' ? (
-        <section className={styles.card}>
-          <h2>Votes ouverts</h2>
-          <p><strong>{poserId}</strong> affirme: {currentTurn?.statement_text || '-'}</p>
-          {!isPoser ? (
-            <div className={styles.voteActions}>
-              <button type="button" className={styles.voteTrue} onClick={() => vote('vrai')}>Vrai</button>
-              <button type="button" className={styles.voteFalse} onClick={() => vote('mensonge')}>Mensonge</button>
-              <p className={styles.helper}>Votre vote actuel: {myVote || 'absent'}</p>
-            </div>
-          ) : (
-            <p className={styles.helper}>Vous etes poseur, vous ne votez pas.</p>
-          )}
-        </section>
-      ) : null}
+        {phase === 'selecting_statement' ? (
+          <section className={styles.card}>
+            <h2>Selection d affirmation</h2>
+            <p>Poseur actuel: <strong>{poserId || '-'}</strong></p>
+            {isPoser ? (
+              <>
+                <div className={styles.statementGrid}>
+                  {catalog.map((statement) => {
+                    const disabled = usedByPoser.has(String(statement.id));
+                    const selected = selectedStatementId === String(statement.id);
+                    return (
+                      <button
+                        key={statement.id}
+                        type="button"
+                        className={`${styles.statementBtn}${selected ? ` ${styles.statementBtnSelected}` : ''}`}
+                        disabled={disabled}
+                        onClick={() => setSelectedStatementId(String(statement.id))}
+                      >
+                        <span className={styles.category}>{statement.category}</span>
+                        <span>{statement.text}</span>
+                        {disabled ? <small>Deja utilisee par vous</small> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  type="button"
+                  className={styles.primaryBtn}
+                  disabled={!selectedStatementId}
+                  onClick={confirmStatement}
+                >
+                  Confirmer la phrase
+                </button>
+              </>
+            ) : (
+              <p className={styles.helper}>Le poseur choisit une phrase du catalogue fixe.</p>
+            )}
+          </section>
+        ) : null}
 
-      {phase === 'reveal_pending' ? (
-        <section className={styles.card}>
-          <h2>Revelation</h2>
-          <p>Phrase: {currentTurn?.statement_text || '-'}</p>
-          {isPoser ? (
-            <>
+        {phase === 'voting_open' ? (
+          <section className={styles.card}>
+            <h2>Votes ouverts</h2>
+            <p><strong>{poserId}</strong> affirme: {currentTurn?.statement_text || '-'}</p>
+            {!isPoser ? (
               <div className={styles.voteActions}>
-                <button type="button" className={styles.voteTrue} onClick={() => setRevealTruth('vrai')}>Vrai</button>
-                <button type="button" className={styles.voteFalse} onClick={() => setRevealTruth('mensonge')}>Mensonge</button>
+                <button
+                  type="button"
+                  className={`${styles.voteTrue}${myVote === 'vrai' ? ` ${styles.voteActive}` : ''}`}
+                  onClick={() => vote('vrai')}
+                >
+                  Vrai
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.voteFalse}${myVote === 'mensonge' ? ` ${styles.voteActive}` : ''}`}
+                  onClick={() => vote('mensonge')}
+                >
+                  Mensonge
+                </button>
+                <p className={styles.helper}>Votre vote actuel: {myVote || 'absent'}</p>
               </div>
-              <p className={styles.helper}>Verite choisie: {revealTruth}</p>
-              <button type="button" className={styles.primaryBtn} onClick={reveal}>Reveler (irreversible)</button>
-            </>
-          ) : (
-            <p className={styles.helper}>En attente de la revelation du poseur.</p>
-          )}
-        </section>
-      ) : null}
+            ) : (
+              <p className={styles.helper}>Vous etes poseur, vous ne votez pas.</p>
+            )}
+          </section>
+        ) : null}
 
-      {phase === 'round_result' ? (
-        <section className={styles.card}>
-          <h2>Resultat du tour</h2>
-          <p>Verite: <strong>{String(currentTurn?.revealed_truth || '-')}</strong></p>
-          <div className={styles.resultList}>
-            {(currentTurn?.result?.votes || []).map((item) => (
-              <div key={item.participant_id} className={styles.resultRow}>
-                <span>{item.participant_id}</span>
-                <span>{item.status}</span>
-                <span>+{item.points}</span>
-              </div>
-            ))}
-          </div>
-          <h3>Scores cumules</h3>
-          <div className={styles.resultList}>
-            {participantsOrder.map((participant) => (
-              <div key={participant} className={styles.resultRow}>
-                <span>{participant}</span>
-                <span>{Number(scores[participant] || 0)} pts</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
+        {phase === 'reveal_pending' ? (
+          <section className={styles.card}>
+            <h2>Revelation</h2>
+            <p>Phrase: {currentTurn?.statement_text || '-'}</p>
+            {isPoser ? (
+              <>
+                <div className={styles.voteActions}>
+                  <button
+                    type="button"
+                    className={`${styles.voteTrue}${revealTruth === 'vrai' ? ` ${styles.voteActive}` : ''}`}
+                    onClick={() => setRevealTruth('vrai')}
+                  >
+                    Vrai
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.voteFalse}${revealTruth === 'mensonge' ? ` ${styles.voteActive}` : ''}`}
+                    onClick={() => setRevealTruth('mensonge')}
+                  >
+                    Mensonge
+                  </button>
+                </div>
+                <p className={styles.helper}>Verite choisie: {revealTruth}</p>
+                <button type="button" className={styles.primaryBtn} onClick={reveal}>Reveler (irreversible)</button>
+              </>
+            ) : (
+              <p className={styles.helper}>En attente de la revelation du poseur.</p>
+            )}
+          </section>
+        ) : null}
 
-      {phase === 'next_turn' ? (
-        <section className={styles.card}>
-          <h2>Transition</h2>
-          <p>Preparation du tour suivant...</p>
-        </section>
-      ) : null}
+        {phase === 'round_result' ? (
+          <section className={styles.card}>
+            <h2>Resultat du tour</h2>
+            <p>Verite: <strong>{String(currentTurn?.revealed_truth || '-')}</strong></p>
+            <div className={styles.resultList}>
+              {(currentTurn?.result?.votes || []).map((item) => (
+                <div key={item.participant_id} className={styles.resultRow}>
+                  <span>{item.participant_id}</span>
+                  <span>{item.status}</span>
+                  <span>+{item.points}</span>
+                </div>
+              ))}
+            </div>
+            <h3>Scores cumules</h3>
+            <div className={styles.resultList}>
+              {participantsOrder.map((participant) => (
+                <div key={participant} className={styles.resultRow}>
+                  <span>{participant}</span>
+                  <span>{Number(scores[participant] || 0)} pts</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
-      {phase === 'paused_poseur_disconnect' ? (
-        <section className={styles.card}>
-          <h2>Pause temporaire</h2>
-          <p>Le poseur est deconnecte. La partie reprend automatiquement a sa reconnexion.</p>
-        </section>
-      ) : null}
+        {phase === 'next_turn' ? (
+          <section className={styles.card}>
+            <h2>Transition</h2>
+            <p>Preparation du tour suivant...</p>
+          </section>
+        ) : null}
 
-      {phase === 'finished' ? (
-        <section className={styles.card}>
-          <h2>Classement final</h2>
-          <div className={styles.resultList}>
-            {ranking.map((entry) => (
-              <div key={entry.participant_id} className={styles.resultRow}>
-                <span>#{entry.rank} {entry.participant_id}</span>
-                <span>{entry.score} pts {entry.tie ? '(ex-aequo)' : ''}</span>
-              </div>
-            ))}
-          </div>
-          <p className={styles.helper}>Action de sortie: retour a l espace participant.</p>
-          <a className={styles.primaryBtn} href={`/participant?sessionId=${encodeURIComponent(String(context?.sessionId || runtimePayload?.session_id || ''))}`}>
-            Sortir du challenge
-          </a>
-        </section>
-      ) : null}
+        {phase === 'paused_poseur_disconnect' ? (
+          <section className={styles.card}>
+            <h2>Pause temporaire</h2>
+            <p>Le poseur est deconnecte. La partie reprend automatiquement a sa reconnexion.</p>
+          </section>
+        ) : null}
 
-      <section className={styles.card}>
-        <h3>Historique</h3>
-        <p>{roundHistory.length} tours resolus</p>
-      </section>
+        {phase === 'finished' ? (
+          <section className={styles.card}>
+            <h2>Classement final</h2>
+            <div className={styles.resultList}>
+              {ranking.map((entry) => (
+                <div key={entry.participant_id} className={styles.resultRow}>
+                  <span>#{entry.rank} {entry.participant_id}</span>
+                  <span>{entry.score} pts {entry.tie ? '(ex-aequo)' : ''}</span>
+                </div>
+              ))}
+            </div>
+            <p className={styles.helper}>Action de sortie: retour a l espace participant.</p>
+            <a className={styles.primaryBtn} href={`/participant?sessionId=${encodeURIComponent(String(context?.sessionId || runtimePayload?.session_id || ''))}`}>
+              Sortir du challenge
+            </a>
+          </section>
+        ) : null}
+        </div>
+
+        <aside className={styles.sideColumn}>
+          <section className={`${styles.card} ${styles.stateCard}`}>
+            <h3>Etat live</h3>
+            <div className={styles.stateGrid}>
+              <div className={styles.stateRow}><span>Phase</span><strong>{phaseLabel(phase)}</strong></div>
+              <div className={styles.stateRow}><span>Poseur</span><strong>{poserId || '-'}</strong></div>
+              <div className={styles.stateRow}><span>Tour</span><strong>{Number(vom?.turn_index || 0) + 1}/{Number(vom?.total_turns || 0)}</strong></div>
+              <div className={styles.stateRow}><span>Temps</span><strong>{formatSeconds(remainingMs)}s</strong></div>
+            </div>
+          </section>
+
+          <section className={styles.card}>
+            <h3>Scores rapides</h3>
+            <div className={styles.resultList}>
+              {participantsOrder.length === 0 ? <p className={styles.helper}>Aucun participant detecte.</p> : null}
+              {participantsOrder.map((participant) => (
+                <div key={participant} className={styles.resultRow}>
+                  <span>{participant}</span>
+                  <span>{Number(scores[participant] || 0)} pts</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.card}>
+            <h3>Historique</h3>
+            <p className={styles.helper}>{roundHistory.length} tours resolus</p>
+            {roundHistory.length > 0 ? (
+              <ul className={styles.historyList}>
+                {roundHistory.slice(-5).reverse().map((round, idx) => (
+                  <li key={`${String(round?.turn_index ?? idx)}-${String(round?.poser_id || idx)}`}>
+                    <span>T{Number(round?.turn_index || 0) + 1}</span>
+                    <span>{String(round?.poser_id || '-')}</span>
+                    <span>{String(round?.revealed_truth || '-')}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }

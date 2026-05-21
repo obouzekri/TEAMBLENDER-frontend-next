@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-label="Copuzzle default grid">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10253a"/>
+      <stop offset="100%" stop-color="#204466"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#g1)"/>
+  <g opacity="0.95">
+    <rect x="120" y="120" width="220" height="220" fill="#22d3ee" opacity="0.35"/>
+    <rect x="360" y="120" width="220" height="220" fill="#38bdf8" opacity="0.35"/>
+    <rect x="600" y="120" width="220" height="220" fill="#34d399" opacity="0.35"/>
+    <rect x="840" y="120" width="220" height="220" fill="#60a5fa" opacity="0.35"/>
+    <rect x="120" y="360" width="220" height="220" fill="#60a5fa" opacity="0.35"/>
+    <rect x="360" y="360" width="220" height="220" fill="#34d399" opacity="0.35"/>
+    <rect x="600" y="360" width="220" height="220" fill="#22d3ee" opacity="0.35"/>
+    <rect x="840" y="360" width="220" height="220" fill="#38bdf8" opacity="0.35"/>
+    <rect x="120" y="600" width="220" height="220" fill="#38bdf8" opacity="0.35"/>
+    <rect x="360" y="600" width="220" height="220" fill="#22d3ee" opacity="0.35"/>
+    <rect x="600" y="600" width="220" height="220" fill="#60a5fa" opacity="0.35"/>
+    <rect x="840" y="600" width="220" height="220" fill="#34d399" opacity="0.35"/>
+    <rect x="120" y="840" width="220" height="220" fill="#34d399" opacity="0.35"/>
+    <rect x="360" y="840" width="220" height="220" fill="#60a5fa" opacity="0.35"/>
+    <rect x="600" y="840" width="220" height="220" fill="#38bdf8" opacity="0.35"/>
+    <rect x="840" y="840" width="220" height="220" fill="#22d3ee" opacity="0.35"/>
+  </g>
+  <text x="600" y="615" font-family="Segoe UI, Arial, sans-serif" font-size="78" text-anchor="middle" fill="#ecfeff" font-weight="700">Team Grid</text>
+</svg>

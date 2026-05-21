@@ -93,6 +93,11 @@ const LANDING_ALLOWED_BLOCK_KEYS = [
 
 const LANDING_ALLOWED_BLOCK_KEY_SET = new Set(LANDING_ALLOWED_BLOCK_KEYS);
 const PLATFORM_ADMIN_EMAIL = 'admin@admin.com';
+const COPUZZLE_DEFAULT_IMAGES = [
+  { value: '/copuzzle/default-blue.svg', label: 'Par defaut - Horizon bleu' },
+  { value: '/copuzzle/default-grid.svg', label: 'Par defaut - Grille collaboration' },
+  { value: '/copuzzle/default-sunrise.svg', label: 'Par defaut - Sunrise team' },
+];
 
 const LANDING_ALLOWED_BLOCK_KEY_HINT = LANDING_ALLOWED_BLOCK_KEYS.join(', ');
 
@@ -181,6 +186,52 @@ function getEscapeRoomE5ImageSrc(engineConfig) {
   const enigmes = Array.isArray(engineConfig?.enigmes) ? engineConfig.enigmes : [];
   const e5 = enigmes.find((e) => String(e?.id || '').toLowerCase() === 'e5');
   return String(e5?.image?.src || '').trim();
+}
+
+function clampInt(value, fallback, min, max) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed)) return fallback;
+  return Math.max(min, Math.min(max, parsed));
+}
+
+function ensureCopuzzleConfig(engineConfig) {
+  const current = cloneJson(engineConfig, {}) || {};
+  const rows = clampInt(current?.grid?.rows, 4, 2, 16);
+  const cols = clampInt(current?.grid?.cols, 4, 2, 16);
+  const imageSrc = String(current?.image?.src || current?.image_url || '').trim() || '/copuzzle/default-blue.svg';
+
+  return {
+    ...current,
+    image_url: imageSrc,
+    image: {
+      ...(current?.image && typeof current.image === 'object' ? current.image : {}),
+      src: imageSrc,
+      fit: String(current?.image?.fit || 'contain').toLowerCase() === 'cover' ? 'cover' : 'contain',
+    },
+    grid: {
+      ...(current?.grid && typeof current.grid === 'object' ? current.grid : {}),
+      rows,
+      cols,
+    },
+    timer: {
+      ...(current?.timer && typeof current.timer === 'object' ? current.timer : {}),
+      enabled: current?.timer?.enabled !== false,
+      duration_seconds: clampInt(current?.timer?.duration_seconds, 1200, 30, 7200),
+      warning_threshold_seconds: clampInt(current?.timer?.warning_threshold_seconds, 60, 10, 600),
+    },
+    chat: {
+      ...(current?.chat && typeof current.chat === 'object' ? current.chat : {}),
+      enabled: current?.chat?.enabled !== false,
+    },
+    participants: {
+      ...(current?.participants && typeof current.participants === 'object' ? current.participants : {}),
+      expected_count: clampInt(current?.participants?.expected_count, 4, 1, 20),
+    },
+  };
+}
+
+function getCopuzzleImageSrc(engineConfig) {
+  return String(engineConfig?.image?.src || engineConfig?.image_url || '').trim() || '/copuzzle/default-blue.svg';
 }
 
 function planToDraft(plan) {
@@ -1385,6 +1436,11 @@ export default function AdminClient() {
   function beginEditChallenge(challengeItem) {
     setChallengeImageUploadError('');
     setShowNewChallengeForm(false);
+    const isCopuzzle = String(challengeItem?.engine_key || '').toLowerCase() === 'copuzzle_live_v1';
+    const normalizedEngineConfig = isCopuzzle
+      ? ensureCopuzzleConfig(challengeItem.engine_config)
+      : cloneJson(challengeItem.engine_config, {}) || {};
+
     setEditingChallenge({
       id: challengeItem.id,
       name: challengeItem.name || '',
@@ -1395,7 +1451,7 @@ export default function AdminClient() {
       duration: challengeItem.duration || '',
       engine_key: challengeItem.engine_key || '',
       description: challengeItem.description || '',
-      engine_config: cloneJson(challengeItem.engine_config, {}) || {},
+      engine_config: normalizedEngineConfig,
     });
   }
 
@@ -1450,6 +1506,73 @@ export default function AdminClient() {
         };
       });
       showNotice('Image uploadée et injectée dans enigme 5 (non enregistrée tant que vous ne cliquez pas sur Enregistrer).');
+    } catch (err) {
+      setChallengeImageUploadError(err.message || 'Upload image impossible.');
+    } finally {
+      setChallengeImageUploadBusy(false);
+      event.target.value = '';
+    }
+  }
+
+  async function handleUploadCopuzzleImage(event) {
+    if (!token || !editingChallenge) return;
+
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    setChallengeImageUploadError('');
+
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowed.includes(file.type)) {
+      setChallengeImageUploadError('Format non supporte. Utilisez JPG ou PNG.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setChallengeImageUploadError('Image trop volumineuse (max 8 Mo).');
+      event.target.value = '';
+      return;
+    }
+
+    setChallengeImageUploadBusy(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch(getApiUrl('/challenges/upload-image'), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || `Upload impossible (${response.status})`);
+      }
+
+      const uploadedUrl = String(payload.url || payload.path || '').trim();
+      if (!uploadedUrl) {
+        throw new Error('URL image manquante dans la reponse upload.');
+      }
+
+      setEditingChallenge((prev) => {
+        if (!prev) return prev;
+        const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+        return {
+          ...prev,
+          engine_config: {
+            ...currentConfig,
+            image_url: uploadedUrl,
+            image: {
+              ...(currentConfig.image || {}),
+              src: uploadedUrl,
+            },
+          },
+        };
+      });
+      showNotice('Image Copuzzle uploadée (pensez a enregistrer le challenge).');
     } catch (err) {
       setChallengeImageUploadError(err.message || 'Upload image impossible.');
     } finally {
@@ -2898,6 +3021,246 @@ export default function AdminClient() {
                             ) : (
                               <p className="session-meta" style={{ marginTop: '8px' }}>Aucune image configurée pour e5.</p>
                             )}
+                          </div>
+                        ) : null}
+                        {(editingChallenge.engine_key || '').toLowerCase() === 'copuzzle_live_v1' ? (
+                          <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
+                            <p style={{ margin: 0, fontWeight: 600 }}>Configuration Copuzzle (images + defaults)</p>
+
+                            <label>Image par defaut
+                              <select
+                                value={COPUZZLE_DEFAULT_IMAGES.some((opt) => opt.value === getCopuzzleImageSrc(editingChallenge.engine_config)) ? getCopuzzleImageSrc(editingChallenge.engine_config) : ''}
+                                onChange={(e) => {
+                                  const value = String(e.target.value || '').trim();
+                                  if (!value) return;
+                                  setEditingChallenge((prev) => {
+                                    if (!prev) return prev;
+                                    const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+                                    return {
+                                      ...prev,
+                                      engine_config: {
+                                        ...currentConfig,
+                                        image_url: value,
+                                        image: {
+                                          ...(currentConfig.image || {}),
+                                          src: value,
+                                        },
+                                      },
+                                    };
+                                  });
+                                }}
+                              >
+                                <option value="">Selectionner une image par defaut</option>
+                                {COPUZZLE_DEFAULT_IMAGES.map((option) => (
+                                  <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                              </select>
+                            </label>
+
+                            <label>URL image personnalisee
+                              <input
+                                value={getCopuzzleImageSrc(editingChallenge.engine_config)}
+                                onChange={(e) => {
+                                  const value = String(e.target.value || '').trim();
+                                  setEditingChallenge((prev) => {
+                                    if (!prev) return prev;
+                                    const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+                                    return {
+                                      ...prev,
+                                      engine_config: {
+                                        ...currentConfig,
+                                        image_url: value,
+                                        image: {
+                                          ...(currentConfig.image || {}),
+                                          src: value,
+                                        },
+                                      },
+                                    };
+                                  });
+                                }}
+                                placeholder="https://... ou /copuzzle/default-blue.svg"
+                              />
+                            </label>
+
+                            <label>Uploader une image Copuzzle (JPG/PNG)
+                              <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/jpg"
+                                onChange={handleUploadCopuzzleImage}
+                                disabled={challengeImageUploadBusy}
+                              />
+                            </label>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                              <label>Matrice (rows)
+                                <input
+                                  type="number"
+                                  min="2"
+                                  max="16"
+                                  value={ensureCopuzzleConfig(editingChallenge.engine_config).grid.rows}
+                                  onChange={(e) => {
+                                    const value = Number(e.target.value || 4);
+                                    setEditingChallenge((prev) => {
+                                      if (!prev) return prev;
+                                      const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+                                      return {
+                                        ...prev,
+                                        engine_config: {
+                                          ...currentConfig,
+                                          grid: {
+                                            ...(currentConfig.grid || {}),
+                                            rows: value,
+                                          },
+                                        },
+                                      };
+                                    });
+                                  }}
+                                />
+                              </label>
+                              <label>Matrice (cols)
+                                <input
+                                  type="number"
+                                  min="2"
+                                  max="16"
+                                  value={ensureCopuzzleConfig(editingChallenge.engine_config).grid.cols}
+                                  onChange={(e) => {
+                                    const value = Number(e.target.value || 4);
+                                    setEditingChallenge((prev) => {
+                                      if (!prev) return prev;
+                                      const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+                                      return {
+                                        ...prev,
+                                        engine_config: {
+                                          ...currentConfig,
+                                          grid: {
+                                            ...(currentConfig.grid || {}),
+                                            cols: value,
+                                          },
+                                        },
+                                      };
+                                    });
+                                  }}
+                                />
+                              </label>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                              <label>Timer (secondes)
+                                <input
+                                  type="number"
+                                  min="30"
+                                  max="7200"
+                                  value={ensureCopuzzleConfig(editingChallenge.engine_config).timer.duration_seconds}
+                                  onChange={(e) => {
+                                    const value = Number(e.target.value || 1200);
+                                    setEditingChallenge((prev) => {
+                                      if (!prev) return prev;
+                                      const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+                                      return {
+                                        ...prev,
+                                        engine_config: {
+                                          ...currentConfig,
+                                          timer: {
+                                            ...(currentConfig.timer || {}),
+                                            duration_seconds: value,
+                                          },
+                                        },
+                                      };
+                                    });
+                                  }}
+                                />
+                              </label>
+                              <label>Participants
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="20"
+                                  value={ensureCopuzzleConfig(editingChallenge.engine_config).participants.expected_count}
+                                  onChange={(e) => {
+                                    const value = Number(e.target.value || 4);
+                                    setEditingChallenge((prev) => {
+                                      if (!prev) return prev;
+                                      const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+                                      return {
+                                        ...prev,
+                                        engine_config: {
+                                          ...currentConfig,
+                                          participants: {
+                                            ...(currentConfig.participants || {}),
+                                            expected_count: value,
+                                          },
+                                        },
+                                      };
+                                    });
+                                  }}
+                                />
+                              </label>
+                            </div>
+
+                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                              <input
+                                type="checkbox"
+                                checked={ensureCopuzzleConfig(editingChallenge.engine_config).timer.enabled}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setEditingChallenge((prev) => {
+                                    if (!prev) return prev;
+                                    const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+                                    return {
+                                      ...prev,
+                                      engine_config: {
+                                        ...currentConfig,
+                                        timer: {
+                                          ...(currentConfig.timer || {}),
+                                          enabled: checked,
+                                        },
+                                      },
+                                    };
+                                  });
+                                }}
+                              />
+                              Timer actif
+                            </label>
+
+                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                              <input
+                                type="checkbox"
+                                checked={ensureCopuzzleConfig(editingChallenge.engine_config).chat.enabled}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setEditingChallenge((prev) => {
+                                    if (!prev) return prev;
+                                    const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+                                    return {
+                                      ...prev,
+                                      engine_config: {
+                                        ...currentConfig,
+                                        chat: {
+                                          ...(currentConfig.chat || {}),
+                                          enabled: checked,
+                                        },
+                                      },
+                                    };
+                                  });
+                                }}
+                              />
+                              Chat actif
+                            </label>
+
+                            {challengeImageUploadBusy ? (
+                              <p className="session-meta" style={{ marginTop: '8px' }}>Upload en cours...</p>
+                            ) : null}
+                            {challengeImageUploadError ? (
+                              <p className="session-meta" style={{ marginTop: '8px', color: '#dc2626' }}>{challengeImageUploadError}</p>
+                            ) : null}
+
+                            <img
+                              src={getCopuzzleImageSrc(editingChallenge.engine_config)}
+                              alt="Apercu Copuzzle"
+                              style={{ marginTop: '6px', maxWidth: '100%', maxHeight: '180px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              onLoad={(e) => { e.currentTarget.style.display = 'block'; }}
+                            />
                           </div>
                         ) : null}
                         <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
