@@ -150,9 +150,11 @@ export default function SessionBuilder() {
   const [lastBackendSaveAt, setLastBackendSaveAt] = useState('');
   const [draftParticipantIds, setDraftParticipantIds] = useState([]);
   const [availableParticipantsCount, setAvailableParticipantsCount] = useState(0);
+  const [participantsInventoryLoaded, setParticipantsInventoryLoaded] = useState(false);
   const [loadedFromLocalDraft, setLoadedFromLocalDraft] = useState(false);
   const [selectedChallengesSnapshot, setSelectedChallengesSnapshot] = useState('[]');
   const hasHydratedSessionSelectionRef = useRef(false);
+  const onboardingRedirectedRef = useRef(false);
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
   const asyncStatusMessage = isCreatingSession
@@ -421,6 +423,17 @@ export default function SessionBuilder() {
       setLastLocalDraftSaveAt(savedAt);
     }
   }, [selectedChallenges, sessionId]);
+
+  useEffect(() => {
+    if (!guard.allowed) return;
+    if (sessionId || hasRouteSessionId) return;
+    if (!participantsInventoryLoaded) return;
+    if (availableParticipantsCount > 0) return;
+    if (onboardingRedirectedRef.current) return;
+
+    onboardingRedirectedRef.current = true;
+    window.location.replace('/home?onboarding=participants&reason=no_participants');
+  }, [availableParticipantsCount, guard.allowed, hasRouteSessionId, participantsInventoryLoaded, sessionId]);
 
   const handleSaveDraft = useCallback(async () => {
     if (!sessionId || isSavingDraft) return;
@@ -824,7 +837,10 @@ export default function SessionBuilder() {
                       isLoading={isCreatingSession}
                       selectedIds={draftParticipantIds}
                       onSelectionChange={setDraftParticipantIds}
-                      onParticipantsLoaded={setAvailableParticipantsCount}
+                      onParticipantsLoaded={(count) => {
+                        setAvailableParticipantsCount(Number(count || 0));
+                        setParticipantsInventoryLoaded(true);
+                      }}
                       embedded
                       hideActions
                       title=""

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
@@ -124,6 +124,7 @@ export default function ManagerHome() {
   const [memberFormStatus, setMemberFormStatus] = useState('');
   const [showParticipantForm, setShowParticipantForm] = useState(false);
   const [authInvalid, setAuthInvalid] = useState(false);
+  const onboardingHandledRef = useRef(false);
   const [memberForm, setMemberForm] = useState({
     first_name: '',
     last_name: '',
@@ -277,6 +278,36 @@ export default function ManagerHome() {
   useEffect(() => {
     refreshMembers();
   }, [refreshMembers]);
+
+  useEffect(() => {
+    if (!guard.allowed) return;
+    if (loadingMembers) return;
+    if (onboardingHandledRef.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const onboarding = String(params.get('onboarding') || '').trim().toLowerCase();
+    if (onboarding !== 'participants') return;
+
+    onboardingHandledRef.current = true;
+
+    const section = document.getElementById('home-participants-block');
+    if (section && typeof section.scrollIntoView === 'function') {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    if (members.length === 0) {
+      setFormAttempted(false);
+      setEditingMemberId(null);
+      setShowParticipantForm(true);
+      setMemberFormStatus('Ajoutez votre premier participant pour creer ensuite vos sessions plus rapidement.');
+    }
+
+    params.delete('onboarding');
+    params.delete('reason');
+    const nextQuery = params.toString();
+    const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`;
+    window.history.replaceState({}, '', nextUrl);
+  }, [guard.allowed, loadingMembers, members.length]);
 
   function logout() {
     localStorage.removeItem('jwt');
