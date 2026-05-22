@@ -193,6 +193,24 @@
 	gap: 0.45rem;
 }
 
+.voteGrid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.45rem;
+	margin-bottom: 0.75rem;
+}
+
+.voteGrid span {
+	text-align: center;
+	padding: 0.35rem 0.4rem;
+	border-radius: 7px;
+	border: 1px solid rgba(125, 211, 252, 0.3);
+	background: rgba(14, 165, 233, 0.12);
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: #dbeafe;
+}
+
 .btnPrimary,
 .btnSecondary {
 	border: 0;
@@ -212,6 +230,12 @@
 	background: rgba(107, 114, 128, 0.18);
 	color: #cbd5e1;
 	border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.btnPrimary:disabled,
+.btnSecondary:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 .error {
