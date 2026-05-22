@@ -156,9 +156,14 @@ export default function SessionBuilder() {
   const hasHydratedSessionSelectionRef = useRef(false);
   const onboardingRedirectedRef = useRef(false);
 
+  const handleParticipantsLoaded = useCallback((count) => {
+    setAvailableParticipantsCount(Number(count || 0));
+    setParticipantsInventoryLoaded(true);
+  }, []);
+
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
   const asyncStatusMessage = isCreatingSession
-    ? 'Cr�ation de la session en cours...'
+    ? 'Création de la session en cours...'
     : isSavingSessionInfo
       ? 'Sauvegarde des informations de session en cours...'
       : isLaunching
@@ -635,7 +640,7 @@ export default function SessionBuilder() {
     }
     const token = getAuthToken();
     setIsCreatingSession(true);
-    const loadingId = showLoadingToast('Cr�ation de la session...');
+    const loadingId = showLoadingToast('Création de la session...');
     try {
       const payload = { name };
       payload.flow_mode = flowMode;
@@ -740,7 +745,7 @@ export default function SessionBuilder() {
               <h1 className={styles.creationTitle}>
                 <span className={styles.creationTitleMain}>Préparer la session:</span>
                 <span className={styles.creationTitleInlineDescription}>
-                  Organisez le cadre de la session et l&apos;assignation des participants dans une seule vue, claire et immediate.
+                  Organisez le cadre de la session et l&apos;assignation des participants dans une seule vue, claire et immédiate.
                 </span>
               </h1>
               <p className={styles.creationPrerequisite}>
@@ -808,7 +813,7 @@ export default function SessionBuilder() {
                           />
                           <span className={styles.flowModeContent}>
                             <strong>Automatique</strong>
-                            <small>Les challenges s&apos;enchaînent automatiquement une fois le precedent terminé.</small>
+                            <small>Les challenges s&apos;enchaînent automatiquement une fois le précédent terminé.</small>
                           </span>
                         </label>
                       </div>
@@ -829,7 +834,7 @@ export default function SessionBuilder() {
                         <h2>Assigner des participants</h2>
                       </div>
                       <span className={styles.creationParticipantsCount}>
-                        {draftParticipantIds.length} selectionne{draftParticipantIds.length > 1 ? 's' : ''}
+                        {draftParticipantIds.length} sélectionné{draftParticipantIds.length > 1 ? 's' : ''}
                       </span>
                     </div>
 
@@ -837,10 +842,7 @@ export default function SessionBuilder() {
                       isLoading={isCreatingSession}
                       selectedIds={draftParticipantIds}
                       onSelectionChange={setDraftParticipantIds}
-                      onParticipantsLoaded={(count) => {
-                        setAvailableParticipantsCount(Number(count || 0));
-                        setParticipantsInventoryLoaded(true);
-                      }}
+                      onParticipantsLoaded={handleParticipantsLoaded}
                       embedded
                       hideActions
                       title=""
@@ -853,7 +855,7 @@ export default function SessionBuilder() {
               <div className={styles.creationGlobalActions}>
                 {availableParticipantsCount === 0 ? (
                   <p className={styles.creationActionHint}>
-                    Cr�ation indisponible: ajoutez d&apos;abord des participants dans votre espace manager.
+                    Création indisponible: ajoutez d&apos;abord des participants dans votre espace manager.
                   </p>
                 ) : null}
                 <button
@@ -863,11 +865,11 @@ export default function SessionBuilder() {
                   disabled={isCreatingSession || availableParticipantsCount === 0}
                   title={
                     availableParticipantsCount === 0
-                      ? 'Creez d\'abord des participants dans l\'espace manager.'
-                      : 'Cr�er la session'
+                      ? 'Créez d\'abord des participants dans l\'espace manager.'
+                      : 'Créer la session'
                   }
                 >
-                  {isCreatingSession ? 'Cr�ation...' : 'Cr�er la session'}
+                  {isCreatingSession ? 'Création...' : 'Créer la session'}
                 </button>
               </div>
             </div>
