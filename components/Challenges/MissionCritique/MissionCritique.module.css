@@ -685,87 +685,7 @@
 .chatCard {
   min-height: 440px;
   display: grid;
-  grid-template-rows: auto auto 1fr auto auto;
   gap: 10px;
-}
-
-.quickChatRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.quickChip {
-  border: 1px solid rgba(142, 171, 192, 0.36);
-  background: rgba(16, 34, 49, 0.86);
-  color: #c9dceb;
-  border-radius: 999px;
-  padding: 5px 10px;
-  font-size: 0.74rem;
-  cursor: pointer;
-  transition: border-color 150ms ease, transform 140ms ease;
-}
-
-.quickChip:hover {
-  border-color: rgba(40, 179, 208, 0.72);
-  transform: translateY(-1px);
-}
-
-.chatLog {
-  border: 1px solid rgba(125, 211, 252, 0.24);
-  border-radius: 10px;
-  padding: 10px;
-  overflow: auto;
-  max-height: 340px;
-  background: rgba(6, 15, 24, 0.62);
-  display: grid;
-  gap: 8px;
-}
-
-.chatRow {
-  display: grid;
-  gap: 3px;
-}
-
-.chatRowMine .chatText {
-  color: #a9e6f5;
-}
-
-.chatAuthor {
-  color: #90a9bc;
-  font-size: 0.76rem;
-  font-weight: 700;
-}
-
-.chatText {
-  margin: 0;
-  color: #dde8f2;
-  font-size: 0.88rem;
-}
-
-.chatForm {
-  display: flex;
-  gap: 8px;
-}
-
-.chatInput {
-  flex: 1;
-  border: 1px solid rgba(125, 211, 252, 0.3);
-  border-radius: 10px;
-  padding: 9px 10px;
-  color: #e5edf7;
-  background: rgba(12, 25, 38, 0.85);
-}
-
-.chatInput::placeholder {
-  color: #6f879a;
-}
-
-.chatHint {
-  margin: 0;
-  text-align: right;
-  color: var(--text-soft);
-  font-size: 0.74rem;
 }
 
 .empty {
@@ -830,10 +750,6 @@
     grid-template-columns: 1fr;
   }
 
-  .chatForm {
-    flex-direction: column;
-  }
-
   .card,
   .phaseLine {
     padding: 12px;
@@ -841,13 +757,8 @@
 
   .taskChip,
   .primaryBtn,
-  .ghostBtn,
-  .quickChip {
+  .ghostBtn {
     min-height: 44px;
-  }
-
-  .chatLog {
-    max-height: 280px;
   }
 }
 
@@ -881,7 +792,6 @@
   .segmentBtn:hover,
   .taskChip:hover,
   .timelineItem:hover,
-  .quickChip:hover,
   .primaryBtn:hover,
   .ghostBtn:hover {
     transform: none;
@@ -910,9 +820,6 @@
     min-height: 240px;
   }
 
-  .chatLog {
-    max-height: 160px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

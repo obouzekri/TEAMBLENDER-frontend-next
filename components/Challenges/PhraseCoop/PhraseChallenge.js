@@ -1,7 +1,9 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import ChallengeTimerCard from '../ChallengeTimerCard';
+import ChallengeChatCard from '../ChallengeChatCard';
 import styles from './PhraseCoop.module.css';
 
 function computeCompletionPercent(slots) {
@@ -56,8 +58,6 @@ function buildFallbackAvailableWords(slots, participantSlot, fakeWordsBySlot) {
 
 export default function PhraseChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedWord, setSelectedWord] = useState('');
-  const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState([]);
   const [draggingWord, setDraggingWord] = useState('');
   const [dragOverSlotIndex, setDragOverSlotIndex] = useState(null);
   const {
@@ -125,32 +125,19 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
 
   const summary = state?.summary || null;
 
-  useEffect(() => {
-    if (!socket) return () => {};
-
-    const onEvent = (packet = {}) => {
-      if (String(packet?.type || '').trim() !== 'chat.message') return;
-      const payload = packet?.payload || {};
-      const text = String(payload?.text || '').trim();
-      if (!text) return;
-
-      const entry = {
-        id: String(payload?.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
-        author: String(payload?.author || 'system').trim() || 'system',
-        text,
-      };
-
-      setChatMessages((prev) => {
-        if (prev.some((msg) => msg.id === entry.id)) return prev;
-        return [...prev.slice(-79), entry];
-      });
-    };
-
-    socket.on('challenge:event', onEvent);
-    return () => {
-      socket.off('challenge:event', onEvent);
-    };
-  }, [socket]);
+  const {
+    chatInput,
+    setChatInput,
+    chatMessages,
+    submitChat,
+  } = useChallengeChat({
+    socket,
+    emitEvent,
+    author: displayName,
+    enabled: chatEnabled,
+    maxMessages: 80,
+    maxLength: 240,
+  });
 
   function placeOnSlot(slot, word = selectedWord) {
     const wordToPlace = String(word || '').trim();
@@ -201,17 +188,6 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
     placeOnSlot({ ...slot }, targetWord);
     setDraggingWord('');
     setDragOverSlotIndex(null);
-  }
-
-  function submitChat(event) {
-    event.preventDefault();
-    const text = String(chatInput || '').trim();
-    if (!text) return;
-    emitEvent('chat.message', {
-      text,
-      author: displayName,
-    });
-    setChatInput('');
   }
 
   function requestHint() {
@@ -389,35 +365,17 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
 
           <section className={styles.sideCard}>
             {chatEnabled ? (
-              <>
-                <h2>Chat équipe</h2>
-                <div className={styles.chatLog}>
-                  {chatMessages.length === 0 ? (
-                    <p className={styles.empty}>Aucun message pour le moment.</p>
-                  ) : chatMessages.map((message) => {
-                    const mine = String(message.author || '') === displayName;
-                    return (
-                      <div key={message.id} className={`${styles.chatRow}${mine ? ` ${styles.chatRowMine}` : ''}`}>
-                        <span className={styles.chatAuthor}>{message.author}</span>
-                        <p className={styles.chatText}>{message.text}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-                <form className={styles.chatForm} onSubmit={submitChat}>
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(event) => setChatInput(event.target.value)}
-                    placeholder="Ecrire un message"
-                    className={styles.chatInput}
-                    maxLength={240}
-                  />
-                  <button type="submit" className={styles.btnPrimary} disabled={!chatInput.trim()}>
-                    Envoyer
-                  </button>
-                </form>
-              </>
+              <ChallengeChatCard
+                title="Chat equipe"
+                messages={chatMessages}
+                currentAuthor={displayName}
+                inputValue={chatInput}
+                onInputChange={setChatInput}
+                onSubmit={submitChat}
+                emptyText="Aucun message pour le moment."
+                placeholder="Ecrire un message"
+                maxLength={240}
+              />
             ) : null}
             <p className={styles.helper}>
               {!isFacilitator

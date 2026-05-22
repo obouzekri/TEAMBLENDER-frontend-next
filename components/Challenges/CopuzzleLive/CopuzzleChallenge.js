@@ -2,8 +2,10 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { getBackendOrigin } from '@/lib/config';
 import ChallengeTimerCard from '../ChallengeTimerCard';
+import ChallengeChatCard from '../ChallengeChatCard';
 import styles from './Copuzzle.module.css';
 
 function clampInt(value, fallback, min, max) {
@@ -72,8 +74,6 @@ function computePieceStyle(piece, config, imageUrl) {
 
 export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedPieceId, setSelectedPieceId] = useState('');
-  const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState([]);
   const [dragOverCellKey, setDragOverCellKey] = useState('');
   const [draggingPieceId, setDraggingPieceId] = useState('');
 
@@ -108,6 +108,22 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     () => normalizeRuntimeConfig(state?.config || runtimePayload?.config || {}),
     [state, runtimePayload]
   );
+
+  const chatEnabled = effectiveConfig?.chat?.enabled === true;
+
+  const {
+    chatInput,
+    setChatInput,
+    chatMessages,
+    submitChat,
+  } = useChallengeChat({
+    socket,
+    emitEvent,
+    author: displayName,
+    enabled: chatEnabled,
+    maxMessages: 80,
+    maxLength: 240,
+  });
 
   const imageUrl = useMemo(() => {
     const raw = String(effectiveConfig?.image?.src || '').trim();
@@ -160,34 +176,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     () => trayPieces.find((piece) => String(piece.id) === String(selectedPieceId)) || null,
     [trayPieces, selectedPieceId]
   );
-
-  useEffect(() => {
-    if (!socket) return () => {};
-
-    const onEvent = (packet = {}) => {
-      if (String(packet?.type || '').trim() !== 'chat.message') return;
-      const payload = packet?.payload || {};
-      const text = String(payload?.text || '').trim();
-      if (!text) return;
-
-      const entry = {
-        id: String(payload?.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
-        author: String(payload?.author || 'system').trim() || 'system',
-        text,
-        ts: String(payload?.ts || ''),
-      };
-
-      setChatMessages((prev) => {
-        if (prev.some((msg) => msg.id === entry.id)) return prev;
-        return [...prev.slice(-79), entry];
-      });
-    };
-
-    socket.on('challenge:event', onEvent);
-    return () => {
-      socket.off('challenge:event', onEvent);
-    };
-  }, [socket]);
 
   function placeOnCell(x, y, pieceId = selectedPiece?.id) {
     if (!pieceId || !canPlay) return;
@@ -256,17 +244,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     placeOnCell(cell.x, cell.y, targetPieceId);
     setDraggingPieceId('');
     setDragOverCellKey('');
-  }
-
-  function submitChat(event) {
-    event.preventDefault();
-    const text = String(chatInput || '').trim();
-    if (!text) return;
-    emitEvent('chat.message', {
-      text,
-      author: displayName,
-    });
-    setChatInput('');
   }
 
   const rowCount = Number(effectiveConfig.grid.rows || 4);
@@ -537,36 +514,20 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             ) : null}
           </section>
 
-          {effectiveConfig.chat.enabled ? (
-            <section className={`${styles.chatCard} ${styles.sideChatCard}`}>
-              <h3>Chat équipe</h3>
-              <div className={styles.chatLog}>
-                {chatMessages.length === 0 ? (
-                  <p className={styles.empty}>Aucun message pour le moment.</p>
-                ) : chatMessages.map((message) => {
-                  const mine = String(message.author || '') === displayName;
-                  return (
-                    <div key={message.id} className={`${styles.chatRow}${mine ? ` ${styles.chatRowMine}` : ''}`}>
-                      <span className={styles.chatAuthor}>{message.author}</span>
-                      <p className={styles.chatText}>{message.text}</p>
-                    </div>
-                  );
-                })}
-              </div>
-              <form className={styles.chatForm} onSubmit={submitChat}>
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(event) => setChatInput(event.target.value)}
-                  placeholder="Écrire un message d'équipe"
-                  className={styles.chatInput}
-                  maxLength={240}
-                />
-                <button type="submit" className={styles.btnPrimary} disabled={!chatInput.trim()} aria-label="Envoyer">
-                  <span aria-hidden="true">➤</span>
-                </button>
-              </form>
-            </section>
+          {chatEnabled ? (
+            <ChallengeChatCard
+              className={`${styles.chatCard} ${styles.sideChatCard}`}
+              title="Chat equipe"
+              messages={chatMessages}
+              currentAuthor={displayName}
+              inputValue={chatInput}
+              onInputChange={setChatInput}
+              onSubmit={submitChat}
+              emptyText="Aucun message pour le moment."
+              placeholder="Ecrire un message d equipe"
+              maxLength={240}
+              submitLabel="➤"
+            />
           ) : null}
         </aside>
       </div>

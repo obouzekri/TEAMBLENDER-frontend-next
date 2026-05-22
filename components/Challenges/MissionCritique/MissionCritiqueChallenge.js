@@ -2,7 +2,9 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import ChallengeTimerCard from '../ChallengeTimerCard';
+import ChallengeChatCard from '../ChallengeChatCard';
 import styles from './MissionCritique.module.css';
 
 const QUICK_CHAT_TEMPLATES = Object.freeze([
@@ -28,8 +30,6 @@ function inferPhaseKey(index, total) {
 }
 
 export default function MissionCritiqueChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
-  const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState([]);
   const [dropTarget, setDropTarget] = useState({ phaseKey: '', index: -1 });
   const [dropPulseTarget, setDropPulseTarget] = useState({ phaseKey: '', index: -1 });
   const [dragTaskId, setDragTaskId] = useState('');
@@ -56,6 +56,21 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     const userId = String(context?.userId || context?.participantId || '').trim();
     return `participant-${userId || 'unknown'}`;
   }, [runtimePayload, context]);
+
+  const {
+    chatInput,
+    setChatInput,
+    chatMessages,
+    submitChat,
+    sendQuickChat,
+  } = useChallengeChat({
+    socket,
+    emitEvent,
+    author: displayName,
+    enabled: true,
+    maxMessages: 80,
+    maxLength: 240,
+  });
 
   const taskMap = useMemo(() => {
     const map = new Map();
@@ -176,22 +191,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
       const type = String(packet?.type || '').trim();
       const payload = packet?.payload || {};
 
-      if (type === 'chat.message') {
-        const text = String(payload?.text || '').trim();
-        if (!text) return;
-
-        const entry = {
-          id: String(payload?.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
-          author: String(payload?.author || 'system').trim() || 'system',
-          text,
-        };
-
-        setChatMessages((prev) => {
-          if (prev.some((msg) => msg.id === entry.id)) return prev;
-          return [...prev.slice(-79), entry];
-        });
-      }
-
       if (type === 'mission.completed' && payload?.result) {
         setSubmitResult(payload.result);
       }
@@ -202,27 +201,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
       socket.off('challenge:event', onEvent);
     };
   }, [socket]);
-
-  function submitChat(event) {
-    event.preventDefault();
-    const text = String(chatInput || '').trim();
-    if (!text) return;
-
-    emitEvent('chat.message', {
-      text,
-      author: displayName,
-    });
-    setChatInput('');
-  }
-
-  function sendQuickChat(text) {
-    const message = String(text || '').trim();
-    if (!message) return;
-    emitEvent('chat.message', {
-      text: message,
-      author: displayName,
-    });
-  }
 
   function onTaskDragStart(event, taskId, timelineIndex = -1, from = 'catalog', fromPhase = '', fromPhaseIndex = -1) {
     event.dataTransfer.effectAllowed = 'move';
@@ -547,43 +525,19 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             ) : null}
           />
 
-          <section className={`${styles.card} ${styles.chatCard}`}>
-            <h2>Chat equipe</h2>
-            <div className={styles.quickChatRow}>
-              {QUICK_CHAT_TEMPLATES.map((template) => (
-                <button key={template} type="button" className={styles.quickChip} onClick={() => sendQuickChat(template)}>
-                  {template}
-                </button>
-              ))}
-            </div>
-            <div className={styles.chatLog}>
-              {chatMessages.length === 0 ? (
-                <p className={styles.empty}>Aucun message pour le moment.</p>
-              ) : chatMessages.map((message) => {
-                const mine = String(message.author || '') === displayName;
-                return (
-                  <div key={message.id} className={`${styles.chatRow}${mine ? ` ${styles.chatRowMine}` : ''}`}>
-                    <span className={styles.chatAuthor}>{message.author}</span>
-                    <p className={styles.chatText}>{message.text}</p>
-                  </div>
-                );
-              })}
-            </div>
-            <form className={styles.chatForm} onSubmit={submitChat}>
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(event) => setChatInput(event.target.value)}
-                className={styles.chatInput}
-                placeholder="Ecrire un message"
-                maxLength={240}
-              />
-              <button type="submit" className={styles.primaryBtn} disabled={!chatInput.trim()}>
-                Envoyer
-              </button>
-            </form>
-            <p className={styles.chatHint}>{chatInput.length}/240 caracteres</p>
-          </section>
+          <ChallengeChatCard
+            className={`${styles.card} ${styles.chatCard}`}
+            title="Chat equipe"
+            messages={chatMessages}
+            currentAuthor={displayName}
+            inputValue={chatInput}
+            onInputChange={setChatInput}
+            onSubmit={submitChat}
+            quickMessages={QUICK_CHAT_TEMPLATES}
+            onQuickMessage={sendQuickChat}
+            placeholder="Ecrire un message"
+            maxLength={240}
+          />
         </aside>
       </div>
     </div>

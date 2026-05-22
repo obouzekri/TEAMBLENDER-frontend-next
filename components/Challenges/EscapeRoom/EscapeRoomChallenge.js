@@ -3,7 +3,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getApiUrl } from '@/lib/config';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import ChallengeTimerCard from '../ChallengeTimerCard';
+import ChallengeChatCard from '../ChallengeChatCard';
 import styles from './EscapeRoom.module.css';
 
 const OUTCOME_UI = {
@@ -134,8 +136,6 @@ export default function EscapeRoomChallenge({
   context,
   onChallengeCompleted,
 }) {
-  const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState([]);
   const [state, setState] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [answer, setAnswer] = useState('');
@@ -267,43 +267,19 @@ export default function EscapeRoomChallenge({
 
   const chatEnabled = runtimePayload?.config?.chat?.enabled !== false && Boolean(socket);
 
-  useEffect(() => {
-    if (!socket) return () => {};
-
-    const onEvent = (packet = {}) => {
-      if (String(packet?.type || '').trim() !== 'chat.message') return;
-      const payload = packet?.payload || {};
-      const text = String(payload?.text || '').trim();
-      if (!text) return;
-
-      const entry = {
-        id: String(payload?.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
-        author: String(payload?.author || 'system').trim() || 'system',
-        text,
-      };
-
-      setChatMessages((prev) => {
-        if (prev.some((msg) => msg.id === entry.id)) return prev;
-        return [...prev.slice(-79), entry];
-      });
-    };
-
-    socket.on('challenge:event', onEvent);
-    return () => {
-      socket.off('challenge:event', onEvent);
-    };
-  }, [socket]);
-
-  function submitChat(event) {
-    event.preventDefault();
-    const text = String(chatInput || '').trim();
-    if (!text) return;
-    emitEvent('chat.message', {
-      text,
-      author: displayName,
-    });
-    setChatInput('');
-  }
+  const {
+    chatInput,
+    setChatInput,
+    chatMessages,
+    submitChat,
+  } = useChallengeChat({
+    socket,
+    emitEvent,
+    author: displayName,
+    enabled: chatEnabled,
+    maxMessages: 80,
+    maxLength: 240,
+  });
 
   const currentEnigme = state?.current_enigme || null;
   const currentUiType = String(currentEnigme?.ui_type || '').toLowerCase();
@@ -668,36 +644,21 @@ export default function EscapeRoomChallenge({
           </section>
 
           {chatEnabled ? (
-            <section className={styles.chatPanel}>
-              <h4>Chat equipe</h4>
-              <div className={styles.chatLog}>
-                {chatMessages.length === 0 ? (
-                  <p className={styles.teamEmpty}>Aucun message pour le moment.</p>
-                ) : chatMessages.map((message) => {
-                  const mine = String(message.author || '') === displayName;
-                  return (
-                    <div key={message.id} className={`${styles.chatRow}${mine ? ` ${styles.chatRowMine}` : ''}`}>
-                      <span className={styles.chatAuthor}>{message.author}</span>
-                      <p className={styles.chatText}>{message.text}</p>
-                    </div>
-                  );
-                })}
-              </div>
-              <form className={styles.chatForm} onSubmit={submitChat}>
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(event) => setChatInput(event.target.value)}
-                  className={styles.chatInput}
-                  placeholder="Message equipe"
-                  maxLength={240}
-                />
-                <button type="submit" className={styles.primaryBtn} disabled={!chatInput.trim()}>
-                  Envoyer
-                </button>
-              </form>
+            <>
+              <ChallengeChatCard
+                className={styles.chatPanel}
+                title="Chat equipe"
+                messages={chatMessages}
+                currentAuthor={displayName}
+                inputValue={chatInput}
+                onInputChange={setChatInput}
+                onSubmit={submitChat}
+                emptyText="Aucun message pour le moment."
+                placeholder="Message equipe"
+                maxLength={240}
+              />
               {realtimeError ? <p className={styles.feedback}>{realtimeError}</p> : null}
-            </section>
+            </>
           ) : null}
 
           {feedback ? <p className={styles.feedback}>{feedback}</p> : null}

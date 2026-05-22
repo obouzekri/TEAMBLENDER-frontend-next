@@ -360,88 +360,6 @@
   border-color: rgba(125, 211, 252, 0.28);
 }
 
-.chatCard h3 {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #7dd3fc;
-}
-
-.chatLog {
-  border-radius: 10px;
-  border: 1px solid rgba(125, 211, 252, 0.2);
-  background: rgba(15, 23, 42, 0.52);
-  padding: 10px;
-  max-height: 180px;
-  overflow: auto;
-  display: grid;
-  gap: 7px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(125, 211, 252, 0.3) rgba(15, 23, 42, 0.52);
-}
-
-.chatLog::-webkit-scrollbar { width: 5px; }
-.chatLog::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.52); }
-.chatLog::-webkit-scrollbar-thumb { background: rgba(125, 211, 252, 0.28); border-radius: 3px; }
-
-.chatRow {
-  display: grid;
-  gap: 2px;
-}
-
-.chatRowMine {
-  justify-items: end;
-}
-
-.chatAuthor {
-  font-size: 0.65rem;
-  color: #9fb5ca;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.chatText {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #e2e8f0;
-  line-height: 1.4;
-  background: rgba(15, 23, 42, 0.72);
-  border: 1px solid rgba(125, 211, 252, 0.2);
-  border-radius: 10px;
-  padding: 5px 8px;
-  max-width: 100%;
-  word-break: break-word;
-}
-
-.chatRowMine .chatText {
-  background: rgba(14, 165, 233, 0.15);
-  border-color: rgba(2, 132, 199, 0.35);
-  color: #7dd3fc;
-  font-weight: 500;
-}
-
-.chatForm {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-}
-
-.chatInput {
-  border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: #0f172a;
-  color: #e2e8f0;
-  padding: 8px 10px;
-  font-size: 0.8rem;
-  font-family: inherit;
-}
-
-.chatInput:focus {
-  outline: 2px solid rgba(14, 165, 233, 0.35);
-  outline-offset: 1px;
-}
-
 /* DEBRIEF COLLECTIF */
 .summary {
   border-radius: 12px;
@@ -579,12 +497,6 @@
   min-height: 220px;
   max-height: 460px;
   overflow: hidden;
-}
-
-.sideChatCard .chatLog {
-  flex: 1 1 auto;
-  min-height: 130px;
-  max-height: 300px;
 }
 
 /* TRAY */
@@ -811,10 +723,6 @@
     max-height: none;
   }
 
-  .sideChatCard .chatLog {
-    max-height: 240px;
-  }
-
   .trayPiece {
     width: 44px;
     height: 44px;
@@ -825,9 +733,6 @@
     min-height: 44px;
   }
 
-  .chatInput {
-    font-size: 16px;
-  }
 }
 
 @media (max-width: 360px) {
@@ -878,11 +783,6 @@
   .chatCard,
   .timerCard {
     padding: 10px;
-  }
-
-  .sideChatCard .chatLog,
-  .chatLog {
-    max-height: 160px;
   }
 }
 
