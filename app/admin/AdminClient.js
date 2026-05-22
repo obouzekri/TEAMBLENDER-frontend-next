@@ -402,6 +402,40 @@ export default function AdminClient() {
     return sessionToken || localToken;
   }, []);
 
+  const getAuthTokenCandidates = useCallback(() => {
+    const sessionToken = String(sessionStorage.getItem('jwt') || '').trim();
+    const localToken = String(localStorage.getItem('jwt') || '').trim();
+    const candidates = [];
+
+    if (sessionToken) candidates.push(sessionToken);
+    if (localToken && localToken !== sessionToken) candidates.push(localToken);
+
+    return candidates;
+  }, []);
+
+  const readStoredCurrentUser = useCallback(() => {
+    const raw = sessionStorage.getItem('currentUser');
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const persistCurrentUser = useCallback((nextUser) => {
+    if (!nextUser) {
+      sessionStorage.removeItem('currentUser');
+      return;
+    }
+
+    try {
+      sessionStorage.setItem('currentUser', JSON.stringify(nextUser));
+    } catch {
+      // Ignore storage write errors and keep runtime state as source of truth.
+    }
+  }, []);
+
   const getFallbackAuthToken = useCallback((activeToken) => {
     const active = String(activeToken || '').trim();
     const sessionToken = String(sessionStorage.getItem('jwt') || '').trim();
@@ -420,30 +454,79 @@ export default function AdminClient() {
   }, []);
 
   useEffect(() => {
-    const jwt = getPreferredAuthToken();
-    const raw = sessionStorage.getItem('currentUser');
-    let currentUser = null;
+    let cancelled = false;
 
-    try {
-      currentUser = raw ? JSON.parse(raw) : null;
-    } catch {
-      currentUser = null;
-    }
+    const initAdminContext = async () => {
+      const fallbackToken = getPreferredAuthToken();
+      const tokenCandidates = getAuthTokenCandidates();
+      const storedCurrentUser = readStoredCurrentUser();
+      let lastNonAdminUser =
+        storedCurrentUser && String(storedCurrentUser.role || '').toLowerCase() !== 'admin'
+          ? storedCurrentUser
+          : null;
 
-    if (!jwt || !currentUser) {
-      window.location.replace('/login');
-      return;
-    }
+      const candidates = tokenCandidates.length > 0
+        ? tokenCandidates
+        : (fallbackToken ? [fallbackToken] : []);
 
-    if (currentUser.role !== 'admin') {
-      window.location.replace('/home');
-      return;
-    }
+      if (candidates.length === 0) {
+        forceReauth();
+        return;
+      }
 
-    setToken(jwt);
-    setUser(currentUser);
-    setLoading(false);
-  }, [getPreferredAuthToken]);
+      for (const candidateToken of candidates) {
+        try {
+          const mePayload = await fetchAdminJson('/users/me', candidateToken);
+          const me = mePayload?.user && typeof mePayload.user === 'object' ? mePayload.user : mePayload;
+          const role = String(me?.role || '').toLowerCase();
+
+          if (!me || typeof me !== 'object') {
+            continue;
+          }
+
+          if (role !== 'admin') {
+            lastNonAdminUser = me;
+            continue;
+          }
+
+          if (cancelled) return;
+          persistCurrentUser(me);
+          setToken(candidateToken);
+          setUser(me);
+          setLoading(false);
+          return;
+        } catch (err) {
+          const message = String(err?.message || '').toLowerCase();
+          const roleMismatch = message.includes('insufficient role');
+
+          if (isTokenAuthError(err) || roleMismatch) {
+            continue;
+          }
+
+          if (cancelled) return;
+          setError('Impossible de verifier la session admin. Veuillez reessayer.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (cancelled) return;
+
+      if (lastNonAdminUser) {
+        persistCurrentUser(lastNonAdminUser);
+        window.location.replace('/home');
+        return;
+      }
+
+      forceReauth();
+    };
+
+    initAdminContext();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [forceReauth, getAuthTokenCandidates, getPreferredAuthToken, persistCurrentUser, readStoredCurrentUser]);
 
   const loadAll = useCallback(async () => {
     if (!token) return;
@@ -504,7 +587,10 @@ export default function AdminClient() {
           return;
         }
 
-        const reasonMessage = result.reason?.message || 'Erreur inconnue';
+        const reasonRaw = String(result.reason?.message || 'Erreur inconnue');
+        const reasonMessage = reasonRaw.toLowerCase().includes('insufficient role')
+          ? 'Role insuffisant (admin requis)'
+          : reasonRaw;
 
         // Landing CMS is optional for the rest of admin loading.
         if (key === 'landingBlocks') {
@@ -524,7 +610,11 @@ export default function AdminClient() {
       });
 
       if (failures.length > 0) {
-        setError(`Certaines donnees admin n'ont pas pu etre chargees: ${failures.join(' | ')}`);
+        const hasRoleMismatch = failures.some((entry) => entry.includes('Role insuffisant (admin requis)'));
+        const hint = hasRoleMismatch
+          ? ' Verifiez que votre session active correspond bien a un compte admin.'
+          : '';
+        setError(`Certaines donnees admin n'ont pas pu etre chargees: ${failures.join(' | ')}${hint}`);
       }
     } catch (err) {
       setError(err.message || 'Erreur de chargement admin.');
