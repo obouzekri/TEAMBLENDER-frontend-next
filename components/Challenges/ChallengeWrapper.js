@@ -110,42 +110,6 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
 
           if (payloadEngineKey && payloadEngineKey !== normalizedEngineKey) {
             showErrorToast(`Engine actif en session (${payload.engine_key}) different de l'URL (${normalizedEngineKey}).`);
-
-            // When URL engine differs from active runtime engine, try to map the URL engine
-            // to its challenge id from session details to avoid cross-engine id mismatches.
-            try {
-              const sessionRes = await fetch(getApiUrl(`/sessions/${sessionId}`), {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-              });
-
-              if (sessionRes.ok) {
-                const sessionData = await sessionRes.json();
-                const sessionChallenges = Array.isArray(sessionData?.challenges) ? sessionData.challenges : [];
-                const matchingChallenge = sessionChallenges.find((item) => {
-                  const itemEngine = String(
-                    item?.engine_key || item?.engineKey || item?.challenge?.engine_key || item?.challenge?.engineKey || ''
-                  ).trim();
-                  return itemEngine === payloadEngineKey;
-                });
-
-                const mappedChallengeId = Number(
-                  matchingChallenge?.id ||
-                  matchingChallenge?.challenge_id ||
-                  matchingChallenge?.challengeId ||
-                  matchingChallenge?.challenge?.id ||
-                  0
-                );
-
-                if (Number.isInteger(mappedChallengeId) && mappedChallengeId > 0) {
-                  resolvedChallengeId = mappedChallengeId;
-                }
-              }
-            } catch {
-              // Keep runtime challenge id as fallback if session lookup fails.
-            }
           }
 
           const nextRuntimePayload = {
