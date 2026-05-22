@@ -273,6 +273,100 @@
 	color: #fca5a5;
 }
 
+.statusSuccess {
+	color: #86efac;
+	font-weight: 700;
+}
+
+.subTitle {
+	margin: 0.85rem 0 0.55rem;
+	font-size: 0.85rem;
+	color: #9cb2c7;
+}
+
+.grid {
+	display: grid;
+	gap: 4px;
+	margin-top: 0.55rem;
+}
+
+.cell {
+	position: relative;
+	aspect-ratio: 1 / 1;
+	border-style: solid;
+	border-color: rgba(148, 163, 184, 0.35);
+	border-width: 1px;
+	border-radius: 4px;
+	background: rgba(15, 23, 42, 0.55);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.62rem;
+	color: #cbd5e1;
+	overflow: hidden;
+}
+
+.cellRevealed {
+	background: rgba(14, 165, 233, 0.1);
+	border-color: rgba(125, 211, 252, 0.35);
+}
+
+.cellStart {
+	background: rgba(34, 197, 94, 0.18);
+	border-color: rgba(134, 239, 172, 0.6);
+}
+
+.cellExit {
+	background: rgba(245, 158, 11, 0.24);
+	border-color: rgba(252, 211, 77, 0.6);
+}
+
+.cellTrap {
+	background: rgba(239, 68, 68, 0.2);
+	border-color: rgba(248, 113, 113, 0.6);
+}
+
+.cellLabel {
+	font-weight: 700;
+	color: #e2e8f0;
+	font-size: 0.62rem;
+}
+
+.cellTrapMark {
+	position: absolute;
+	top: 2px;
+	left: 4px;
+	font-size: 0.58rem;
+	color: #fecaca;
+	font-weight: 700;
+}
+
+.cellCount {
+	position: absolute;
+	bottom: 2px;
+	right: 4px;
+	font-size: 0.55rem;
+	color: #bfdbfe;
+	font-weight: 700;
+}
+
+.participantList {
+	display: grid;
+	gap: 0.45rem;
+}
+
+.participantItem {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.4rem;
+	padding: 0.45rem 0.55rem;
+	border-radius: 8px;
+	border: 1px solid rgba(125, 211, 252, 0.26);
+	background: rgba(14, 165, 233, 0.08);
+	font-size: 0.76rem;
+	color: #cbd5e1;
+}
+
 .debug {
 	margin: 0.25rem 1rem 1rem;
 }
@@ -321,6 +415,10 @@
 
 	.debug pre {
 		max-height: 180px;
+	}
+
+	.participantItem {
+		grid-template-columns: 1fr 1fr;
 	}
 }
 
