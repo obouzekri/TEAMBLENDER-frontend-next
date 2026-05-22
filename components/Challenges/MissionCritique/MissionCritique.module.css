@@ -94,14 +94,14 @@
 
 .header h1 {
   margin: 0;
-  color: var(--text-main);
-  font-size: 2rem;
+  color: #e5edf7;
+  font-size: 1.22rem;
   letter-spacing: 0.01em;
 }
 
 .header p {
   margin: 8px 0 0;
-  color: #93c5d6;
+  color: #bfd3e8;
   max-width: 64ch;
 }
 
@@ -116,7 +116,7 @@
   border: 1px solid var(--line-soft);
   border-radius: 999px;
   padding: 7px 11px;
-  color: #cce7ef;
+  color: #bfd3e8;
   background: rgba(8, 21, 38, 0.7);
 }
 
@@ -144,7 +144,7 @@
 .card h2,
 .card h3 {
   margin: 0;
-  color: #b8dcea;
+  color: #e5edf7;
 }
 
 .sectionHead {
@@ -155,7 +155,7 @@
 
 .sectionHead p {
   margin: 0;
-  color: var(--text-soft);
+  color: #9cb2c7;
   font-size: 0.86rem;
 }
 
@@ -173,7 +173,7 @@
 
 .progressLabel {
   margin: 0;
-  color: var(--text-soft);
+  color: #9cb2c7;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;

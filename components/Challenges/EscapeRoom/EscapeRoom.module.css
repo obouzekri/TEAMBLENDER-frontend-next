@@ -343,7 +343,7 @@
 .textMysteryLine {
   margin: 0;
   color: #e2e8f0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+  font-family: inherit;
   font-size: 13px;
 }
 

@@ -3,6 +3,36 @@
   flex-direction: column;
   min-height: 0;
   height: auto;
+  --challenge-text-primary: #e5edf7;
+  --challenge-text-secondary: #bfd3e8;
+  --challenge-text-muted: #9cb2c7;
+  --challenge-text-accent: #7dd3fc;
+  font-family: var(--font-ui, "IBM Plex Sans", "Segoe UI", sans-serif);
+  color: var(--challenge-text-secondary);
+}
+
+.challengeContainer :global(h1),
+.challengeContainer :global(h2),
+.challengeContainer :global(h3),
+.challengeContainer :global(h4) {
+  color: var(--challenge-text-primary);
+  letter-spacing: 0.01em;
+  line-height: 1.24;
+}
+
+.challengeContainer :global(p),
+.challengeContainer :global(li),
+.challengeContainer :global(label) {
+  color: var(--challenge-text-secondary);
+  line-height: 1.45;
+}
+
+.challengeContainer :global(small) {
+  color: var(--challenge-text-muted);
+}
+
+.challengeContainer :global(strong) {
+  color: var(--challenge-text-primary);
 }
 
 .statusShell {

@@ -52,14 +52,14 @@
 
 .header h1 {
   margin: 0;
-  color: #f4fbff;
-  font-size: 1.78rem;
+  color: #e5edf7;
+  font-size: 1.22rem;
   letter-spacing: 0.01em;
 }
 
 .header p {
   margin: 0;
-  color: #93c5d6;
+  color: #bfd3e8;
 }
 
 .meta {
@@ -74,7 +74,7 @@
   padding: 6px 12px;
   border: 1px solid var(--line-soft);
   background: rgba(8, 21, 38, 0.7);
-  color: #cce7ef;
+  color: #bfd3e8;
   font-weight: 700;
   font-size: 0.77rem;
 }
@@ -105,12 +105,12 @@
 .card h2,
 .card h3 {
   margin: 0;
-  color: #b8dcea;
+  color: #e5edf7;
 }
 
 .card p,
 .card li {
-  color: #d5e3ee;
+  color: #bfd3e8;
 }
 
 .card strong {

@@ -297,14 +297,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(139, 92, 246, 0.12);
-  border: 1px dashed rgba(139, 92, 246, 0.35);
+  background: rgba(2, 132, 199, 0.12);
+  border: 1px dashed rgba(2, 132, 199, 0.35);
 }
 
 .hiddenCellLabel {
   font-size: 0.6rem;
   font-weight: 700;
-  color: #a78bfa;
+  color: #7dd3fc;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   text-align: center;
