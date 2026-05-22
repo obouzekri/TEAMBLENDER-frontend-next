@@ -26,11 +26,6 @@
     linear-gradient(145deg, var(--bg-1) 0%, var(--bg-2) 60%, #112938 100%);
 }
 
-.facilitatorView .timerToneSafe {
-  color: #e7eff6;
-  box-shadow: 0 0 0 4px rgba(231, 239, 246, 0.2);
-}
-
 .participantView {
   padding: 16px;
 }
@@ -86,16 +81,7 @@
 }
 
 .participantView .timerCard {
-  gap: 8px;
-}
-
-.participantView .timerRing {
-  width: min(104px, 100%);
-  padding: 0.4rem;
-}
-
-.participantView .timerTime {
-  font-size: 1.05rem;
+  gap: 0.85rem;
 }
 
 .header {
@@ -451,6 +437,8 @@
   color: #e7eff6;
   font-size: 0.76rem;
   font-weight: 700;
+}
+
 .timelineLane {
   min-height: 52px;
   border-radius: 10px;

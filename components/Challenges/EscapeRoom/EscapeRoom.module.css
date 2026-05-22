@@ -1,5 +1,18 @@
 .escapeRoomContainer {
   position: relative;
+  --bg-1: #071520;
+  --bg-2: #0d2331;
+  --surface-1: rgba(10, 24, 36, 0.9);
+  --surface-2: rgba(16, 33, 49, 0.9);
+  --line-soft: rgba(160, 187, 208, 0.22);
+  --line-strong: rgba(160, 187, 208, 0.46);
+  --text-main: #e7eff6;
+  --text-soft: #9cb2c7;
+  --accent: #28b3d0;
+  --accent-2: #1d8aa2;
+  --critical: #ef6b6b;
+  --success: #35b776;
+  --warn: #f2a640;
   min-height: 100dvh;
   width: min(100%, 1320px);
   margin: 0 auto;
@@ -8,10 +21,10 @@
   flex-direction: column;
   gap: 12px;
   background:
-    radial-gradient(circle at 15% 25%, rgba(14, 165, 233, 0.08), transparent 40%),
-    radial-gradient(circle at 80% 75%, rgba(251, 191, 36, 0.06), transparent 40%),
-    #0d1426;
-  color: #e5edf7;
+    radial-gradient(1200px 560px at 8% -10%, rgba(40, 179, 208, 0.16), transparent 60%),
+    radial-gradient(900px 440px at 90% 0%, rgba(55, 183, 118, 0.1), transparent 55%),
+    linear-gradient(145deg, var(--bg-1) 0%, var(--bg-2) 60%, #112938 100%);
+  color: var(--text-main);
 }
 
 /* TIMER CARD STYLES (Dark Theme) */
