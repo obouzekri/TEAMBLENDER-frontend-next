@@ -2,7 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useChallengeChat from '@/lib/challenges/useChallengeChat';
+import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import ChallengeTimerCard from '../ChallengeTimerCard';
+import ChallengeChatCard from '../ChallengeChatCard';
 import styles from './VraiOuMensonge.module.css';
 
 function phaseLabel(phase) {
@@ -50,6 +53,30 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const me = String(participantId || context?.userId || '');
   const poserId = String(currentTurn?.poser_id || '');
   const isPoser = me && poserId && me === poserId;
+  const chatEnabled = state?.config?.chat?.enabled !== false && Boolean(socket);
+
+  const displayName = useMemo(() => {
+    const fromPayload = String(runtimePayload?.context?.displayName || '').trim();
+    if (fromPayload) return fromPayload;
+    const fromContext = String(context?.displayName || '').trim();
+    if (fromContext) return fromContext;
+    return `participant-${me || 'unknown'}`;
+  }, [runtimePayload, context, me]);
+
+  const {
+    chatInput,
+    setChatInput,
+    chatMessages,
+    submitChat,
+    sendQuickChat,
+  } = useChallengeChat({
+    socket,
+    emitEvent,
+    author: displayName,
+    enabled: chatEnabled,
+    maxMessages: 80,
+    maxLength: 240,
+  });
 
   const usedByPoser = useMemo(() => {
     const byParticipant = vom?.used_statement_ids_by_participant || {};
@@ -332,6 +359,22 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               </ul>
             ) : null}
           </section>
+
+          {chatEnabled ? (
+            <ChallengeChatCard
+              className={styles.card}
+              title="Chat equipe"
+              messages={chatMessages}
+              currentAuthor={displayName}
+              inputValue={chatInput}
+              onInputChange={setChatInput}
+              onSubmit={submitChat}
+              quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
+              onQuickMessage={sendQuickChat}
+              placeholder="Ecrire un message"
+              maxLength={240}
+            />
+          ) : null}
         </aside>
       </div>
     </div>

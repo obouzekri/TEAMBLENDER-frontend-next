@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getApiUrl } from '@/lib/config';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
+import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import styles from './EscapeRoom.module.css';
@@ -272,6 +273,7 @@ export default function EscapeRoomChallenge({
     setChatInput,
     chatMessages,
     submitChat,
+    sendQuickChat,
   } = useChallengeChat({
     socket,
     emitEvent,
@@ -653,6 +655,8 @@ export default function EscapeRoomChallenge({
                 inputValue={chatInput}
                 onInputChange={setChatInput}
                 onSubmit={submitChat}
+                quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
+                onQuickMessage={sendQuickChat}
                 emptyText="Aucun message pour le moment."
                 placeholder="Message equipe"
                 maxLength={240}

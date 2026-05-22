@@ -1,7 +1,10 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useChallengeChat from '@/lib/challenges/useChallengeChat';
+import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import ChallengeTimerCard from '../ChallengeTimerCard';
+import ChallengeChatCard from '../ChallengeChatCard';
 import styles from './Labyrinthe.module.css';
 
 export default function LabyrintheLive({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
@@ -11,6 +14,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
     error,
     isFacilitator,
     emitEvent,
+    participantId,
   } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
 
   const laby = state?.labyrinthe || null;
@@ -48,6 +52,31 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   const canVote = !isFacilitator && String(laby?.phase || '').trim() === 'colAtt';
   const voteTotal = Number(voteCounts.N || 0) + Number(voteCounts.E || 0) + Number(voteCounts.S || 0) + Number(voteCounts.W || 0);
   const lastResolution = laby?.col?.last_resolution || null;
+  const chatEnabled = state?.config?.chat?.enabled !== false && Boolean(socket);
+
+  const displayName = useMemo(() => {
+    const fromPayload = String(runtimePayload?.context?.displayName || '').trim();
+    if (fromPayload) return fromPayload;
+    const fromContext = String(context?.displayName || '').trim();
+    if (fromContext) return fromContext;
+    const id = String(participantId || context?.userId || context?.participantId || '').trim();
+    return `participant-${id || 'unknown'}`;
+  }, [runtimePayload, context, participantId]);
+
+  const {
+    chatInput,
+    setChatInput,
+    chatMessages,
+    submitChat,
+    sendQuickChat,
+  } = useChallengeChat({
+    socket,
+    emitEvent,
+    author: displayName,
+    enabled: chatEnabled,
+    maxMessages: 80,
+    maxLength: 240,
+  });
 
   return (
     <div className={styles.labyrinthContainer}>
@@ -136,6 +165,22 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
             </div>
           )}
         </section>
+
+        {chatEnabled ? (
+          <ChallengeChatCard
+            className={styles.panel}
+            title="Chat equipe"
+            messages={chatMessages}
+            currentAuthor={displayName}
+            inputValue={chatInput}
+            onInputChange={setChatInput}
+            onSubmit={submitChat}
+            quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
+            onQuickMessage={sendQuickChat}
+            placeholder="Ecrire un message"
+            maxLength={240}
+          />
+        ) : null}
       </div>
 
       <details className={styles.debug}>

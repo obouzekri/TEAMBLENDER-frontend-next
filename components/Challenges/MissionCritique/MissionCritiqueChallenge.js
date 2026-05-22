@@ -3,15 +3,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
+import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import styles from './MissionCritique.module.css';
-
-const QUICK_CHAT_TEMPLATES = Object.freeze([
-  'Je prends la phase cadrage',
-  'Verifier les dependances critiques',
-  'On verrouille la timeline finale ?'
-]);
 
 const PHASES = Object.freeze([
   { key: 'cadrage', label: 'Cadrage', className: 'phaseCadrage' },
@@ -533,7 +528,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             inputValue={chatInput}
             onInputChange={setChatInput}
             onSubmit={submitChat}
-            quickMessages={QUICK_CHAT_TEMPLATES}
+            quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
             onQuickMessage={sendQuickChat}
             placeholder="Ecrire un message"
             maxLength={240}
