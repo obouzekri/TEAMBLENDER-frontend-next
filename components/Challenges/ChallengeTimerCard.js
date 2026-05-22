@@ -14,12 +14,20 @@ function normalizeStatus(status) {
   const normalized = String(status || 'idle').trim().toLowerCase();
   if (normalized === 'running') return 'running';
   if (normalized === 'paused') return 'paused';
+  if (normalized === 'completed') return 'completed';
+  if (normalized === 'stopped') return 'stopped';
+  if (normalized === 'timeout') return 'timeout';
+  if (normalized === 'disabled') return 'disabled';
   return 'idle';
 }
 
 function statusLabel(status) {
   if (status === 'running') return 'En cours';
   if (status === 'paused') return 'Pause';
+  if (status === 'completed') return 'Termine';
+  if (status === 'stopped') return 'Arrete';
+  if (status === 'timeout') return 'Temps ecoule';
+  if (status === 'disabled') return 'Desactive';
   return 'Attente';
 }
 
@@ -43,6 +51,9 @@ export default function ChallengeTimerCard({
   waitingText = '⏳ En attente du facilitateur',
 }) {
   const normalizedStatus = normalizeStatus(status);
+  const shouldShowWaitingText = !isFacilitator
+    && Boolean(waitingText)
+    && (normalizedStatus === 'idle' || normalizedStatus === 'disabled');
 
   const computedProgress = useMemo(() => {
     if (progressPercent != null) {
@@ -98,7 +109,7 @@ export default function ChallengeTimerCard({
         </div>
       </div>
 
-      {!isFacilitator && waitingText ? <p className={styles.timerWaitingText}>{waitingText}</p> : null}
+      {shouldShowWaitingText ? <p className={styles.timerWaitingText}>{waitingText}</p> : null}
       {footer ? <div className={styles.timerFooter}>{footer}</div> : null}
       {actions ? <div className={styles.timerActions}>{actions}</div> : null}
     </section>
