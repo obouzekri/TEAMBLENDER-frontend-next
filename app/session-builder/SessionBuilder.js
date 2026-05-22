@@ -249,6 +249,13 @@ export default function SessionBuilder() {
       }
 
       let errorMessage = payload.error || `Erreur API (${response.status})`;
+
+      if (response.status === 502) {
+        errorMessage = 'Le service de sessions est temporairement indisponible (502). Reessayez dans quelques secondes.';
+      } else if (response.status >= 500) {
+        errorMessage = 'Le serveur rencontre une erreur temporaire. Reessayez dans quelques secondes.';
+      }
+
       if (payload.code === 'PLAN_LIMIT_REACHED') {
         const ctaPath = String(payload?.details?.conversion?.cta_path || '').trim() || '/pricing';
         errorMessage = `${errorMessage} Passez a Pro: ${ctaPath}`;
