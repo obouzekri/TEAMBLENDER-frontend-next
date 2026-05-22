@@ -103,40 +103,28 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
         </section>
 
         <ChallengeTimerCard
-          className={`${styles.panel} ${styles.timerCard}`}
+          className={styles.panel}
           title="Chronometre"
           remainingSeconds={Number(timer?.remaining_seconds || 0)}
           durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
           status={String(timer?.status || 'idle')}
           isFacilitator={isFacilitator}
           waitingText="⏳ En attente du facilitateur"
-          actions={isFacilitator ? (
-            <div className={styles.timerActionsGroup}>
-              <button
-                className={styles.timerBtnStart}
-                type="button"
-                onClick={() => emitEvent('timer.start')}
-                disabled={timer?.status === 'running'}
-              >
-                ▶ Demarrer
-              </button>
-              <button
-                className={styles.timerBtnPauseResume}
-                type="button"
-                onClick={() => timer?.status === 'paused' ? emitEvent('timer.resume') : emitEvent('timer.pause')}
-                disabled={timer?.status !== 'running' && timer?.status !== 'paused'}
-              >
-                {timer?.status === 'paused' ? '⏯ Reprendre' : '⏸ Pause'}
-              </button>
-              <button
-                className={styles.timerBtnStop}
-                type="button"
-                onClick={() => emitEvent('timer.stop')}
-                disabled={timer?.status === 'idle'}
-              >
-                ⏹ Arreter
-              </button>
-            </div>
+          ringAction={isFacilitator ? (
+            <button
+              className={styles.timerIconBtn}
+              type="button"
+              onClick={() => {
+                const timerStatus = String(timer?.status || 'idle').trim();
+                if (timerStatus === 'running') emitEvent('timer.pause');
+                else if (timerStatus === 'paused') emitEvent('timer.resume');
+                else emitEvent('timer.start');
+              }}
+              title={String(timer?.status || '').trim() === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
+              aria-label={String(timer?.status || '').trim() === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
+            >
+              {String(timer?.status || '').trim() === 'running' ? '⏸' : '▶'}
+            </button>
           ) : null}
         />
       </div>

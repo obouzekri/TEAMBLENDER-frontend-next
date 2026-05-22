@@ -482,41 +482,28 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
         <aside className={styles.sidebar}>
           <ChallengeTimerCard
-            className={`${styles.card} ${styles.timerCard}`}
+            className={styles.card}
             title="Chrono"
             remainingSeconds={timerRemainingSeconds}
             durationSeconds={timerDurationSeconds}
             status={timerState}
             progressPercent={timerProgress}
             isFacilitator={isFacilitator}
-            waitingText="En attente du facilitateur pour demarrer le chrono."
-            footer={(
-              <div className={styles.timerMetaBar}>
-                <span>Progression</span>
-                <strong>{timerProgress}%</strong>
-              </div>
-            )}
-            actions={isFacilitator ? (
-              <div className={styles.timerActions}>
-                <button
-                  type="button"
-                  className={styles.primaryBtn}
-                  onClick={() => {
-                    if (timerState === 'running') emitEvent('timer.pause');
-                    else if (timerState === 'paused') emitEvent('timer.resume');
-                    else emitEvent('timer.start');
-                  }}
-                >
-                  {timerState === 'running' ? 'Pause' : timerState === 'paused' ? 'Reprendre' : 'Demarrer'}
-                </button>
-                <button
-                  type="button"
-                  className={styles.ghostBtn}
-                  onClick={() => emitEvent('timer.stop')}
-                >
-                  Stop
-                </button>
-              </div>
+            waitingText="⏳ En attente du facilitateur"
+            ringAction={isFacilitator ? (
+              <button
+                className={styles.timerIconBtn}
+                type="button"
+                onClick={() => {
+                  if (timerState === 'running') emitEvent('timer.pause');
+                  else if (timerState === 'paused') emitEvent('timer.resume');
+                  else emitEvent('timer.start');
+                }}
+                title={timerState === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
+                aria-label={timerState === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
+              >
+                {timerState === 'running' ? '⏸' : '▶'}
+              </button>
             ) : null}
           />
 
