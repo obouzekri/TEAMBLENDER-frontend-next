@@ -177,8 +177,10 @@
 
 .board {
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(86px, 106px));
+  justify-content: flex-start;
+  align-content: start;
 }
 
 .slot {
@@ -187,10 +189,10 @@
   background: linear-gradient(175deg, #ffffff 0%, #f8fbff 100%);
   color: #0f172a;
   text-align: left;
-  padding: 8px 9px;
+  padding: 7px 8px;
   display: grid;
   gap: 4px;
-  min-height: 86px;
+  min-height: 78px;
   align-content: start;
   cursor: pointer;
   transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
@@ -236,9 +238,9 @@
 }
 
 .slotWord {
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  min-height: 28px;
+  min-height: 24px;
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
@@ -570,7 +572,8 @@
   }
 
   .board {
-    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(78px, 94px));
+    gap: 7px;
   }
 
 }
