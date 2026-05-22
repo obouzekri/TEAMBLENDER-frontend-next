@@ -1,11 +1,14 @@
 import Link from 'next/link';
+import Logo from './Logo';
 
 export default function Footer() {
   return (
     <footer className="site-footer">
       <div className="shell footer-inner">
         <div className="footer-brand-block">
-          <div className="footer-logo" aria-hidden="true">TB</div>
+          <div className="footer-logo" aria-hidden="true">
+            <Logo size="compact" />
+          </div>
           <div>
             <p className="footer-brand">TeamBlender</p>
             <p className="footer-copy">Activez des sessions d équipe claires et mesurables.</p>

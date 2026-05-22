@@ -2060,17 +2060,16 @@ a {
 }
 
 .footer-logo {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.65rem;
+  width: 9.2rem;
+  height: 3rem;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: #3f2a68;
-  border: 1px solid rgba(124, 58, 237, 0.25);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(236, 230, 249, 0.95) 100%);
+  justify-content: flex-start;
+}
+
+.footer-logo svg {
+  width: 100%;
+  height: auto;
 }
 
 .footer-brand {
