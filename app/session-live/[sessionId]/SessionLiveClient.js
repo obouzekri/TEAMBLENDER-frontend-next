@@ -48,7 +48,6 @@ export default function SessionLiveClient() {
   const [error, setError] = useState('');
   const [actionPending, setActionPending] = useState(false);
   const [actionMsg, setActionMsg] = useState('');
-  const [advancePopupMessage, setAdvancePopupMessage] = useState('');
   const [advancePopupOpen, setAdvancePopupOpen] = useState(false);
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(0);
   const autoAdvanceTimerRef = useRef(null);
@@ -130,12 +129,7 @@ export default function SessionLiveClient() {
         throw new Error(payload?.error || body || `Erreur ${res.status}`);
       }
       const updated = await res.json();
-      if (updated?.active_challenge_id) {
-        setAdvancePopupMessage('Les participants vont basculer automatiquement vers le prochain challenge.');
-        setAdvancePopupOpen(true);
-      } else {
-        setActionMsg('Dernier challenge terminé.');
-      }
+      setActionMsg(updated?.active_challenge_id ? 'Challenge suivant activé.' : 'Dernier challenge terminé.');
       await loadSession();
       refetchSessionState();
     } catch (err) {
@@ -145,10 +139,10 @@ export default function SessionLiveClient() {
     }
   }, [canManageFlow, loadSession, refetchSessionState]);
 
-  const handleNextChallenge = useCallback(async () => {
+  const handleNextChallenge = useCallback(() => {
     clearAutoAdvanceTimer();
-    await advanceToNextChallenge();
-  }, [advanceToNextChallenge, clearAutoAdvanceTimer]);
+    setAdvancePopupOpen(true);
+  }, [clearAutoAdvanceTimer]);
 
   async function handleEndSession() {
     if (!window.confirm('Terminer la session ?')) return;
@@ -330,12 +324,22 @@ export default function SessionLiveClient() {
               onClick={(event) => event.stopPropagation()}
             >
               <h3 id="session-live-popup-title">Confirmation</h3>
-              <p>{advancePopupMessage}</p>
+              <p>Les participants vont basculer automatiquement vers le prochain challenge.</p>
               <div className="session-live-popup__actions">
                 <button
                   type="button"
-                  className="btn-primary btn--sm"
+                  className="btn-secondary btn--sm"
                   onClick={() => setAdvancePopupOpen(false)}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary btn--sm"
+                  onClick={async () => {
+                    setAdvancePopupOpen(false);
+                    await advanceToNextChallenge();
+                  }}
                 >
                   Confirmer
                 </button>

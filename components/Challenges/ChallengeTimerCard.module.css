@@ -57,7 +57,7 @@
 }
 
 .timerRing {
-  width: min(114px, 54vw);
+  width: min(120px, 100%);
   aspect-ratio: 1;
   border-radius: 50%;
   position: relative;
@@ -87,19 +87,19 @@
 }
 
 .timerTime {
-  font-size: clamp(0.78rem, 1.9vw, 1.02rem);
+  font-size: 1.2rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
   line-height: 1;
   color: #f8fafc;
   font-variant-numeric: tabular-nums;
 }
 
 .timerState {
-  font-size: 0.58rem;
-  letter-spacing: 0.12em;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #bae6fd;
+  color: #adc4d4;
   font-weight: 600;
 }
 
