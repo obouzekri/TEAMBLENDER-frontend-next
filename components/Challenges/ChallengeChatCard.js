@@ -25,7 +25,7 @@ export default function ChallengeChatCard({
   const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
 
   return (
-    <section className={`${styles.chatCard} ${className}`.trim()}>
+    <section className={`${styles.chatCard} ${collapsed ? styles.chatCardCollapsed : ''} ${className}`.trim()}>
       <div className={styles.chatHeader}>
         <h3 className={styles.chatTitle}>{title}</h3>
         {collapsible ? (
