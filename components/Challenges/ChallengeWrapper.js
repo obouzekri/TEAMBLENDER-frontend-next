@@ -63,6 +63,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
   useEffect(() => {
     if (!sessionId) {
       setError('Session ID manquant');
+      setLoading(false);
       return;
     }
 
@@ -236,31 +237,52 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
 
     let cancelled = false;
     const loadingId = showLoadingToast('Initialisation du challenge...');
+    const INIT_TIMEOUT_MS = 15000;
+    let timeoutId = null;
 
-    mountRuntimeChallenge(
+    const mountPromise = mountRuntimeChallenge(
       effectiveEngineKey,
       runtimePayload,
       socket,
       context,
       { onChallengeCompleted }
-    )
+    );
+
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = window.setTimeout(() => {
+        reject(new Error('Initialisation du challenge trop longue. Veuillez reessayer.'));
+      }, INIT_TIMEOUT_MS);
+    });
+
+    Promise.race([mountPromise, timeoutPromise])
       .then((engineDef) => {
         if (!cancelled) {
           setEngineComponent(engineDef);
-          removeToast(loadingId);
         }
       })
       .catch((err) => {
         if (!cancelled) {
-          removeToast(loadingId);
           const message = err.message || 'Erreur lors du chargement du moteur';
           setError(message);
           showErrorToast(message);
+        }
+      })
+      .finally(() => {
+        if (timeoutId) {
+          window.clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        if (!cancelled) {
+          removeToast(loadingId);
         }
       });
 
     return () => {
       cancelled = true;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+      removeToast(loadingId);
     };
   }, [
     runtimePayload,
