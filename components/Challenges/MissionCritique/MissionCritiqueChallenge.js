@@ -482,7 +482,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
         <aside className={styles.sidebar}>
           <ChallengeTimerCard
-            className={styles.card}
+            className={styles.timerCard}
             title="Chrono"
             remainingSeconds={timerRemainingSeconds}
             durationSeconds={timerDurationSeconds}
@@ -508,7 +508,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
           />
 
           <ChallengeChatCard
-            className={`${styles.card} ${styles.chatCard}`}
+            className={styles.chatCard}
             title="Chat"
             messages={chatMessages}
             currentAuthor={displayName}
