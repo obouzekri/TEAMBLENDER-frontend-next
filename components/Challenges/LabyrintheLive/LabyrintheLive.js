@@ -177,6 +177,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   const mazeRows = safeInt(laby?.cfg?.rows ?? laby?.cfg?.r, 8, 1, 24);
   const mazeCols = safeInt(laby?.cfg?.cols ?? laby?.cfg?.c, 8, 1, 24);
   const mazeCells = Array.isArray(laby?.maze?.cells) ? laby.maze.cells : [];
+  const participantEntries = useMemo(() => Object.entries(laby?.parts || {}), [laby?.parts]);
 
   useEffect(() => {
     if (!isFacilitator) return;
@@ -222,38 +223,49 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   return (
     <div className={styles.labyrinthContainer}>
       <section className={styles.hero}>
-        <h1>Labyrinthe Live</h1>
-        <p>Mode libre: une position par joueur, 3 vies chacun, objectif sortie</p>
+        {isFacilitator ? (
+          <p className={styles.heroSingleLine}>
+            <strong>Labyrinthe Live</strong>
+            <span> Coordination en temps reel: suivez chaque participant via la mini-carte et pilotez le chrono.</span>
+          </p>
+        ) : (
+          <>
+            <h1>Labyrinthe Live</h1>
+            <p>Mode libre: une position par joueur, 3 vies chacun, objectif sortie</p>
+          </>
+        )}
       </section>
 
-      <div className={styles.layout}>
-        <section className={styles.panel}>
-          <h2>État labyrinthe</h2>
-          <p>Phase: {laby?.phase || '-'}</p>
-          <p>Config: {laby?.cfg ? `${laby.cfg.rows || laby.cfg.r}x${laby.cfg.cols || laby.cfg.c}` : '-'}</p>
-          <p>Participants: {laby?.parts ? Object.keys(laby.parts).length : 0}</p>
-          <p>Connectés: {connectedCount}</p>
-          <p>Mes vies: {myParticipantState ? Number(myParticipantState.lives_remaining || 0) : '-'}</p>
-          <p>Votes (si phase colAtt): {voteTotal}</p>
-          <p>Fin du vote: {voteWindowRemainingSeconds > 0 ? `${voteWindowRemainingSeconds}s` : '—'}</p>
-          {lastResolution ? (
-            <p>
-              Dernière résolution: {String(lastResolution.dir || '-')} ({String(lastResolution.outcome || 'progress')})
-            </p>
-          ) : null}
-          {String(laby?.phase || '').trim() === 'done' ? (
-            <p className={styles.statusSuccess}>
-              {laby?.winner_participant_id
-                ? `Victoire: participant ${laby.winner_participant_id} a atteint la sortie.`
-                : 'Défaite: tous les joueurs ont perdu leurs tentatives.'}
-            </p>
-          ) : null}
-          {error ? <p className={styles.error}>{error}</p> : null}
-        </section>
+      <div className={`${styles.layout} ${isFacilitator ? styles.layoutSingle : ''}`}>
+        {!isFacilitator ? (
+          <section className={styles.panel}>
+            <h2>État labyrinthe</h2>
+            <p>Phase: {laby?.phase || '-'}</p>
+            <p>Config: {laby?.cfg ? `${laby.cfg.rows || laby.cfg.r}x${laby.cfg.cols || laby.cfg.c}` : '-'}</p>
+            <p>Participants: {laby?.parts ? Object.keys(laby.parts).length : 0}</p>
+            <p>Connectés: {connectedCount}</p>
+            <p>Mes vies: {myParticipantState ? Number(myParticipantState.lives_remaining || 0) : '-'}</p>
+            <p>Votes (si phase colAtt): {voteTotal}</p>
+            <p>Fin du vote: {voteWindowRemainingSeconds > 0 ? `${voteWindowRemainingSeconds}s` : '—'}</p>
+            {lastResolution ? (
+              <p>
+                Dernière résolution: {String(lastResolution.dir || '-')} ({String(lastResolution.outcome || 'progress')})
+              </p>
+            ) : null}
+            {String(laby?.phase || '').trim() === 'done' ? (
+              <p className={styles.statusSuccess}>
+                {laby?.winner_participant_id
+                  ? `Victoire: participant ${laby.winner_participant_id} a atteint la sortie.`
+                  : 'Défaite: tous les joueurs ont perdu leurs tentatives.'}
+              </p>
+            ) : null}
+            {error ? <p className={styles.error}>{error}</p> : null}
+          </section>
+        ) : null}
 
-        <aside className={styles.sideStack}>
+        <aside className={`${styles.sideStack} ${isFacilitator ? styles.sideStackEqual : ''}`}>
           <ChallengeTimerCard
-            className={`${styles.panel} ${styles.timerPanel}`}
+            className={`${styles.panel} ${isFacilitator ? styles.timerPanelEqual : styles.timerPanel}`}
             title="Chrono"
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
             durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
@@ -284,7 +296,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
 
           {chatEnabled ? (
             <ChallengeChatCard
-              className={styles.panel}
+              className={`${styles.panel} ${isFacilitator ? styles.chatPanelEqual : ''}`}
               title="Chat"
               messages={chatMessages}
               currentAuthor={displayName}
@@ -300,114 +312,158 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
         </aside>
       </div>
 
-      <div className={styles.layout}>
-        <section className={styles.panel}>
-          <h2>Déplacements</h2>
-          <p>Les joueurs peuvent jouer dans n'importe quel ordre.</p>
-          <div className={styles.actions}>
-            <button className={styles.btnPrimary} onClick={() => emitEvent('laby.solo.move', { dir: 'N' })} disabled={!canMoveSolo}>Haut</button>
-            <button className={styles.btnSecondary} onClick={() => emitEvent('laby.solo.move', { dir: 'E' })} disabled={!canMoveSolo}>Droite</button>
-            <button className={styles.btnSecondary} onClick={() => emitEvent('laby.solo.move', { dir: 'S' })} disabled={!canMoveSolo}>Bas</button>
-            <button className={styles.btnSecondary} onClick={() => emitEvent('laby.solo.move', { dir: 'W' })} disabled={!canMoveSolo}>Gauche</button>
-          </div>
+      {isFacilitator ? (
+        <section className={styles.layoutSingle}>
+          <div className={styles.panel}>
+            <h2>Vue miniature du labyrinthe par participant</h2>
+            {error ? <p className={styles.error}>{error}</p> : null}
+            {participantEntries.length === 0 ? (
+              <p>Aucun participant connecté pour le moment.</p>
+            ) : (
+              <div className={styles.miniatureGridList}>
+                {participantEntries.map(([id, participant]) => {
+                  const position = Array.isArray(participant?.solo?.pos)
+                    ? [Number(participant.solo.pos[0]), Number(participant.solo.pos[1])]
+                    : null;
 
-          <h3 className={styles.subTitle}>Votes collectifs (compat)</h3>
-          <div className={styles.voteGrid}>
-            <span>N: {voteCounts.N}</span>
-            <span>E: {voteCounts.E}</span>
-            <span>S: {voteCounts.S}</span>
-            <span>W: {voteCounts.W}</span>
-          </div>
-          {isFacilitator ? (
-            <div className={styles.actions}>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('laby.reset')}>Reset labyrinthe</button>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('laby.phase.next', { phase: 'solo' })}>Forcer phase solo</button>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('laby.col.resolve.now')}>Résoudre les votes</button>
-            </div>
-          ) : (
-            <div className={styles.actions}>
-              <button className={styles.btnPrimary} onClick={() => emitEvent('laby.col.vote', { dir: 'N' })} disabled={!canVote}>Vote N</button>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('laby.col.vote', { dir: 'E' })} disabled={!canVote}>Vote E</button>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('laby.col.vote', { dir: 'S' })} disabled={!canVote}>Vote S</button>
-              <button className={styles.btnSecondary} onClick={() => emitEvent('laby.col.vote', { dir: 'W' })} disabled={!canVote}>Vote W</button>
-            </div>
-          )}
-        </section>
+                  return (
+                    <article key={id} className={styles.miniatureCard}>
+                      <div className={styles.miniatureHead}>
+                        <strong>{participant?.name || `participant-${id}`}</strong>
+                        <span>Vies: {Number(participant?.lives_remaining || 0)} · Statut: {participant?.solo?.st || '-'}</span>
+                      </div>
+                      <div className={styles.miniatureMaze} style={{ gridTemplateColumns: `repeat(${mazeCols}, 10px)` }}>
+                        {Array.from({ length: mazeRows }).map((_, row) => (
+                          Array.from({ length: mazeCols }).map((__, col) => {
+                            const key = `${row},${col}`;
+                            const isRevealed = Boolean(revealedCells[key]);
+                            const isStart = posKey(laby?.maze?.start) === key;
+                            const isExit = posKey(laby?.maze?.end) === key;
+                            const hasTrap = Boolean(revealedTraps[key]);
+                            const isCurrentPos = position && position[0] === row && position[1] === col;
 
-        <section className={styles.panel}>
-          <h2>Grille découverte</h2>
-          <div className={styles.grid} style={{ gridTemplateColumns: `repeat(${mazeCols}, minmax(22px, 1fr))` }}>
-            {Array.from({ length: mazeRows }).map((_, row) => (
-              Array.from({ length: mazeCols }).map((__, col) => {
-                const key = `${row},${col}`;
-                const cell = Array.isArray(mazeCells[row]) ? mazeCells[row][col] : null;
-                const isRevealed = Boolean(revealedCells[key]);
-                const isStart = posKey(laby?.maze?.start) === key;
-                const isExit = posKey(laby?.maze?.end) === key;
-                const showExit = isExit && Boolean(laby?.reveal_exit_to_all);
-                const hasTrap = Boolean(revealedTraps[key]);
+                            const classNames = [styles.miniCell];
+                            if (isRevealed) classNames.push(styles.miniCellRevealed);
+                            if (isStart) classNames.push(styles.miniCellStart);
+                            if (isExit) classNames.push(styles.miniCellExit);
+                            if (hasTrap) classNames.push(styles.miniCellTrap);
+                            if (isCurrentPos) classNames.push(styles.miniCellCurrent);
 
-                const participantsHere = Object.entries(laby?.parts || {}).filter(([, participant]) => {
-                  const pos = participant?.solo?.pos;
-                  return posKey(pos) === key;
-                });
-
-                const cellClasses = [styles.cell];
-                if (isRevealed) cellClasses.push(styles.cellRevealed);
-                if (isStart) cellClasses.push(styles.cellStart);
-                if (showExit) cellClasses.push(styles.cellExit);
-                if (hasTrap) cellClasses.push(styles.cellTrap);
-
-                const wallTop = isRevealed && cell && !cell.n;
-                const wallRight = isRevealed && cell && !cell.e;
-                const wallBottom = isRevealed && cell && !cell.s;
-                const wallLeft = isRevealed && cell && !cell.w;
-
-                return (
-                  <div
-                    key={key}
-                    className={cellClasses.join(' ')}
-                    style={{
-                      borderTopWidth: wallTop ? 3 : 1,
-                      borderRightWidth: wallRight ? 3 : 1,
-                      borderBottomWidth: wallBottom ? 3 : 1,
-                      borderLeftWidth: wallLeft ? 3 : 1,
-                    }}
-                    title={isRevealed ? `Case ${row + 1},${col + 1}` : 'Inconnue'}
-                  >
-                    {isStart ? <span className={styles.cellLabel}>D</span> : null}
-                    {showExit ? <span className={styles.cellLabel}>S</span> : null}
-                    {hasTrap ? <span className={styles.cellTrapMark}>⚠</span> : null}
-                    {participantsHere.length > 0 ? <span className={styles.cellCount}>{participantsHere.length}</span> : null}
-                  </div>
-                );
-              })
-            ))}
+                            return <span key={`${id}-${key}`} className={classNames.join(' ')} title={`Case ${row + 1},${col + 1}`} />;
+                          })
+                        ))}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
+      ) : (
+        <>
+          <div className={styles.layout}>
+            <section className={styles.panel}>
+              <h2>Déplacements</h2>
+              <p>Les joueurs peuvent jouer dans n'importe quel ordre.</p>
+              <div className={styles.actions}>
+                <button className={styles.btnPrimary} onClick={() => emitEvent('laby.solo.move', { dir: 'N' })} disabled={!canMoveSolo}>Haut</button>
+                <button className={styles.btnSecondary} onClick={() => emitEvent('laby.solo.move', { dir: 'E' })} disabled={!canMoveSolo}>Droite</button>
+                <button className={styles.btnSecondary} onClick={() => emitEvent('laby.solo.move', { dir: 'S' })} disabled={!canMoveSolo}>Bas</button>
+                <button className={styles.btnSecondary} onClick={() => emitEvent('laby.solo.move', { dir: 'W' })} disabled={!canMoveSolo}>Gauche</button>
+              </div>
 
-      </div>
+              <h3 className={styles.subTitle}>Votes collectifs (compat)</h3>
+              <div className={styles.voteGrid}>
+                <span>N: {voteCounts.N}</span>
+                <span>E: {voteCounts.E}</span>
+                <span>S: {voteCounts.S}</span>
+                <span>W: {voteCounts.W}</span>
+              </div>
+              <div className={styles.actions}>
+                <button className={styles.btnPrimary} onClick={() => emitEvent('laby.col.vote', { dir: 'N' })} disabled={!canVote}>Vote N</button>
+                <button className={styles.btnSecondary} onClick={() => emitEvent('laby.col.vote', { dir: 'E' })} disabled={!canVote}>Vote E</button>
+                <button className={styles.btnSecondary} onClick={() => emitEvent('laby.col.vote', { dir: 'S' })} disabled={!canVote}>Vote S</button>
+                <button className={styles.btnSecondary} onClick={() => emitEvent('laby.col.vote', { dir: 'W' })} disabled={!canVote}>Vote W</button>
+              </div>
+            </section>
 
-      <section className={styles.layout}>
-        <div className={styles.panel}>
-          <h2>Participants</h2>
-          <div className={styles.participantList}>
-            {Object.entries(laby?.parts || {}).map(([id, participant]) => {
-              const position = Array.isArray(participant?.solo?.pos)
-                ? `(${Number(participant.solo.pos[0]) + 1}, ${Number(participant.solo.pos[1]) + 1})`
-                : '-';
-              return (
-                <div key={id} className={styles.participantItem}>
-                  <strong>{participant?.name || `participant-${id}`}</strong>
-                  <span>Vies: {Number(participant?.lives_remaining || 0)}</span>
-                  <span>Position: {position}</span>
-                  <span>Statut: {participant?.solo?.st || '-'}</span>
-                </div>
-              );
-            })}
+            <section className={styles.panel}>
+              <h2>Grille découverte</h2>
+              <div className={styles.grid} style={{ gridTemplateColumns: `repeat(${mazeCols}, minmax(22px, 1fr))` }}>
+                {Array.from({ length: mazeRows }).map((_, row) => (
+                  Array.from({ length: mazeCols }).map((__, col) => {
+                    const key = `${row},${col}`;
+                    const cell = Array.isArray(mazeCells[row]) ? mazeCells[row][col] : null;
+                    const isRevealed = Boolean(revealedCells[key]);
+                    const isStart = posKey(laby?.maze?.start) === key;
+                    const isExit = posKey(laby?.maze?.end) === key;
+                    const showExit = isExit && Boolean(laby?.reveal_exit_to_all);
+                    const hasTrap = Boolean(revealedTraps[key]);
+
+                    const participantsHere = Object.entries(laby?.parts || {}).filter(([, participant]) => {
+                      const pos = participant?.solo?.pos;
+                      return posKey(pos) === key;
+                    });
+
+                    const cellClasses = [styles.cell];
+                    if (isRevealed) cellClasses.push(styles.cellRevealed);
+                    if (isStart) cellClasses.push(styles.cellStart);
+                    if (showExit) cellClasses.push(styles.cellExit);
+                    if (hasTrap) cellClasses.push(styles.cellTrap);
+
+                    const wallTop = isRevealed && cell && !cell.n;
+                    const wallRight = isRevealed && cell && !cell.e;
+                    const wallBottom = isRevealed && cell && !cell.s;
+                    const wallLeft = isRevealed && cell && !cell.w;
+
+                    return (
+                      <div
+                        key={key}
+                        className={cellClasses.join(' ')}
+                        style={{
+                          borderTopWidth: wallTop ? 3 : 1,
+                          borderRightWidth: wallRight ? 3 : 1,
+                          borderBottomWidth: wallBottom ? 3 : 1,
+                          borderLeftWidth: wallLeft ? 3 : 1,
+                        }}
+                        title={isRevealed ? `Case ${row + 1},${col + 1}` : 'Inconnue'}
+                      >
+                        {isStart ? <span className={styles.cellLabel}>D</span> : null}
+                        {showExit ? <span className={styles.cellLabel}>S</span> : null}
+                        {hasTrap ? <span className={styles.cellTrapMark}>⚠</span> : null}
+                        {participantsHere.length > 0 ? <span className={styles.cellCount}>{participantsHere.length}</span> : null}
+                      </div>
+                    );
+                  })
+                ))}
+              </div>
+            </section>
+
           </div>
-        </div>
-      </section>
+
+          <section className={styles.layout}>
+            <div className={styles.panel}>
+              <h2>Participants</h2>
+              <div className={styles.participantList}>
+                {Object.entries(laby?.parts || {}).map(([id, participant]) => {
+                  const position = Array.isArray(participant?.solo?.pos)
+                    ? `(${Number(participant.solo.pos[0]) + 1}, ${Number(participant.solo.pos[1]) + 1})`
+                    : '-';
+                  return (
+                    <div key={id} className={styles.participantItem}>
+                      <strong>{participant?.name || `participant-${id}`}</strong>
+                      <span>Vies: {Number(participant?.lives_remaining || 0)}</span>
+                      <span>Position: {position}</span>
+                      <span>Statut: {participant?.solo?.st || '-'}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        </>
+      )}
 
       <details className={styles.debug}>
         <summary>Debug events</summary>

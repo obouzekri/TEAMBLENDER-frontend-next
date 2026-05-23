@@ -199,10 +199,33 @@
 	color: #7dd3fc;
 }
 
+.heroSingleLine {
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	color: #dbeafe;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.heroSingleLine strong {
+	color: #e5edf7;
+	font-size: 1.02rem;
+}
+
 .layout {
 	padding: 1rem;
 	display: grid;
 	grid-template-columns: 1.1fr 1fr;
+	gap: 0.75rem;
+}
+
+.layoutSingle {
+	padding: 1rem;
+	display: grid;
+	grid-template-columns: 1fr;
 	gap: 0.75rem;
 }
 
@@ -237,6 +260,86 @@
 	display: grid;
 	gap: 0.75rem;
 	align-content: start;
+}
+
+.sideStackEqual {
+	width: min(100%, 360px);
+}
+
+.timerPanelEqual,
+.chatPanelEqual {
+	width: 100%;
+	max-width: none;
+}
+
+.miniatureGridList {
+	display: grid;
+	gap: 0.75rem;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.miniatureCard {
+	border: 1px solid rgba(125, 211, 252, 0.22);
+	border-radius: 10px;
+	background: rgba(9, 22, 34, 0.72);
+	padding: 0.7rem;
+	display: grid;
+	gap: 0.55rem;
+}
+
+.miniatureHead {
+	display: grid;
+	gap: 0.2rem;
+	color: #dbeafe;
+	font-size: 0.76rem;
+}
+
+.miniatureHead strong {
+	font-size: 0.84rem;
+	color: #e5edf7;
+}
+
+.miniatureMaze {
+	display: grid;
+	gap: 2px;
+	justify-content: start;
+	background: rgba(2, 6, 23, 0.5);
+	border: 1px solid rgba(148, 163, 184, 0.2);
+	border-radius: 8px;
+	padding: 6px;
+}
+
+.miniCell {
+	width: 10px;
+	height: 10px;
+	border-radius: 2px;
+	border: 1px solid rgba(148, 163, 184, 0.25);
+	background: rgba(15, 23, 42, 0.68);
+}
+
+.miniCellRevealed {
+	background: rgba(14, 165, 233, 0.22);
+	border-color: rgba(125, 211, 252, 0.5);
+}
+
+.miniCellStart {
+	background: rgba(34, 197, 94, 0.35);
+	border-color: rgba(134, 239, 172, 0.72);
+}
+
+.miniCellExit {
+	background: rgba(245, 158, 11, 0.4);
+	border-color: rgba(252, 211, 77, 0.72);
+}
+
+.miniCellTrap {
+	background: rgba(239, 68, 68, 0.4);
+	border-color: rgba(248, 113, 113, 0.72);
+}
+
+.miniCellCurrent {
+	box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+	border-color: rgba(255, 255, 255, 0.9);
 }
 
 .voteGrid {
@@ -400,15 +503,28 @@
 		grid-template-columns: 1fr;
 	}
 
+	.layoutSingle {
+		padding: 0.75rem;
+	}
+
 	.timerPanel {
 		width: 100%;
 		max-width: none;
+	}
+
+	.sideStackEqual {
+		width: 100%;
 	}
 }
 
 @media (max-width: 640px) {
 	.hero {
 		padding: 1rem;
+	}
+
+	.heroSingleLine {
+		display: block;
+		white-space: normal;
 	}
 
 	.layout {
