@@ -339,12 +339,19 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     window.location.replace('/login');
   }
 
+  const navUserLabel = (() => {
+    const first = String(user?.first_name || user?.firstName || '').trim();
+    const last = String(user?.last_name || user?.lastName || '').trim();
+    const full = `${first} ${last}`.trim();
+    return full || first || String(user?.name || user?.email || 'User');
+  })();
+
   return (
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       {!noNav && (
         <AppNav
-          userLabel={user?.first_name || user?.email || 'User'}
+          userLabel={navUserLabel}
           onLogout={handleLogout}
           role={user?.role}
           connectionState={connectionState}

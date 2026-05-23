@@ -124,7 +124,12 @@ export default function SessionResultsClient() {
     return Array.from(map.values());
   }, [results]);
 
-  const userLabel = user ? (user.first_name || user.email || 'Manager') : 'Manager';
+  const userLabel = useMemo(() => {
+    const first = String(user?.first_name || user?.firstName || '').trim();
+    const last = String(user?.last_name || user?.lastName || '').trim();
+    const full = `${first} ${last}`.trim();
+    return full || first || String(user?.name || user?.email || 'Manager');
+  }, [user]);
   const isParticipant = user?.role === 'participant';
 
   if (loading) {
