@@ -43,8 +43,34 @@ async function loginManager() {
   };
 }
 
+async function resolveSessionId(token) {
+  const sessions = await requestJson(`${BACKEND_URL}/api/sessions`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!sessions.response.ok) {
+    return '';
+  }
+
+  const list = Array.isArray(sessions.payload)
+    ? sessions.payload
+    : Array.isArray(sessions.payload?.sessions)
+      ? sessions.payload.sessions
+      : Array.isArray(sessions.payload?.data)
+        ? sessions.payload.data
+        : [];
+
+  const first = list[0];
+  const id = String(first?.id || first?.session_id || first?.sessionId || '').trim();
+  return id;
+}
+
 async function run() {
   const { token, user } = await loginManager();
+  const sessionId = await resolveSessionId(token);
 
   let browser = null;
   try {
@@ -63,8 +89,14 @@ async function run() {
 
   try {
     await page.goto(`${FRONTEND_URL}/home`, { waitUntil: 'domcontentloaded' });
-    await page.goto(`${FRONTEND_URL}/session-builder`, { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector('text=Construire votre session', { timeout: 15000 });
+    const targetBuilderUrl = sessionId
+      ? `${FRONTEND_URL}/session-builder?sessionId=${encodeURIComponent(sessionId)}`
+      : `${FRONTEND_URL}/session-builder`;
+    await page.goto(targetBuilderUrl, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => {
+      const text = document.body?.innerText || '';
+      return text.includes('Construire votre session') || text.includes('Préparer la session');
+    }, { timeout: 15000 });
 
     await page.waitForFunction(() => {
       const bodyText = document.body?.innerText || '';

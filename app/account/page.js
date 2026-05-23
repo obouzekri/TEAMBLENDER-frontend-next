@@ -66,6 +66,7 @@ function formatDate(dateValue) {
 export default function AccountPage() {
   const { toasts, removeToast, success: showSuccess, error: showError } = useToast();
   const [guard, setGuard] = useState({ loading: true, allowed: false, user: null });
+  const [entrySource, setEntrySource] = useState('');
 
   const [me, setMe] = useState(null);
   const [plans, setPlans] = useState([]);
@@ -90,6 +91,13 @@ export default function AccountPage() {
   const [savingPlan, setSavingPlan] = useState(false);
   const [startingProRequest, setStartingProRequest] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const source = String(params.get('source') || '').trim().toLowerCase();
+    setEntrySource(source);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
@@ -189,6 +197,7 @@ export default function AccountPage() {
   }, [plans, currentPlanId]);
 
   const normalizedEmail = String(me?.email || guard.user?.email || '').trim().toLowerCase();
+  const isPaywallEntry = entrySource === 'paywall';
 
   const recommendedPlan = useMemo(() => {
     const bySlug = plans.find((plan) => String(plan.slug || '').toLowerCase() === 'pro');
@@ -383,6 +392,22 @@ export default function AccountPage() {
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
       <main className="shell app-home account-page">
+        {isPaywallEntry ? (
+          <section className="feature-card" aria-label="Limite de plan atteinte">
+            <p className="eyebrow">LIMITE DE PLAN ATTEINTE</p>
+            <h2>Votre formule actuelle a atteint sa limite de sessions.</h2>
+            <p>
+              Passez à Pro pour continuer à créer des sessions sans interruption. Vous pouvez envoyer une demande
+              Pro immédiate (PayPal ou virement) depuis cet espace.
+            </p>
+            <div className="participant-form-actions">
+              <button type="button" className="btn-primary" onClick={handleStartProRequest} disabled={startingProRequest}>
+                {startingProRequest ? 'Envoi de la demande...' : 'Demander Pro maintenant'}
+              </button>
+            </div>
+          </section>
+        ) : null}
+
         <section className="hero home-hero">
           <div className="home-hero-grid">
             <div className="home-hero-copy">

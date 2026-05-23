@@ -217,6 +217,27 @@ export default function SessionBuilder() {
     return Number.isInteger(parsed) ? parsed : null;
   }, []);
 
+  const normalizePaywallTarget = useCallback((targetPath) => {
+    const fallbackPath = '/account?source=paywall';
+    const raw = String(targetPath || '').trim();
+    if (!raw) return fallbackPath;
+
+    // Keep internal app navigation safe and predictable.
+    if (raw.startsWith('/')) return raw;
+    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+
+    return fallbackPath;
+  }, []);
+
+  const redirectToUpgrade = useCallback((error) => {
+    if (typeof window === 'undefined') return false;
+    if (!error || error.code !== 'PLAN_LIMIT_REACHED') return false;
+
+    const ctaPath = normalizePaywallTarget(error?.details?.conversion?.cta_path);
+    window.location.assign(ctaPath);
+    return true;
+  }, [normalizePaywallTarget]);
+
   const apiRequest = useCallback(async (path, options = {}) => {
     const response = await fetch(getApiUrl(path), options);
 
@@ -257,8 +278,7 @@ export default function SessionBuilder() {
       }
 
       if (payload.code === 'PLAN_LIMIT_REACHED') {
-        const ctaPath = String(payload?.details?.conversion?.cta_path || '').trim() || '/pricing';
-        errorMessage = `${errorMessage} Passez a Pro: ${ctaPath}`;
+        errorMessage = `${errorMessage} Passe à Pro.`;
       }
 
       const requestError = new Error(errorMessage);
@@ -414,6 +434,7 @@ export default function SessionBuilder() {
       }
     } catch (error) {
       removeToast(loadingId);
+      if (redirectToUpgrade(error)) return;
       showErrorToast(error.message || 'Impossible de lancer la session pour le moment.');
       setIsLaunching(false);
     }
@@ -421,6 +442,7 @@ export default function SessionBuilder() {
     isLaunching,
     persistSelectionToBackend,
     removeToast,
+    redirectToUpgrade,
     selectedChallenges,
     sessionId,
     showErrorToast,
@@ -463,6 +485,7 @@ export default function SessionBuilder() {
       removeToast(loadingId);
     } catch (error) {
       removeToast(loadingId);
+      if (redirectToUpgrade(error)) return;
       showErrorToast(error.message || 'Impossible de sauvegarder les challenges.');
     } finally {
       setIsSavingDraft(false);
@@ -471,6 +494,7 @@ export default function SessionBuilder() {
     isSavingDraft,
     persistSelectionToBackend,
     removeToast,
+    redirectToUpgrade,
     selectedChallenges.length,
     sessionId,
     showErrorToast,
@@ -673,6 +697,7 @@ export default function SessionBuilder() {
       // Participants are already assigned in the creation pane; continue directly to challenge selection.
     } catch (err) {
       removeToast(loadingId);
+      if (redirectToUpgrade(err)) return;
       showErrorToast(err.message || 'Impossible de creer la session.');
     } finally {
       setIsCreatingSession(false);
@@ -683,6 +708,7 @@ export default function SessionBuilder() {
     draftParticipantIds,
     getAuthToken,
     removeToast,
+    redirectToUpgrade,
     sessionDateTime,
     sessionName,
     showErrorToast,
@@ -713,11 +739,21 @@ export default function SessionBuilder() {
       await loadSessionDetails(sessionId, token);
       setIsEditingSessionInfo(false);
     } catch (err) {
+      if (redirectToUpgrade(err)) return;
       showErrorToast(err.message || 'Impossible de mettre à jour la session.');
     } finally {
       setIsSavingSessionInfo(false);
     }
-  }, [apiRequest, editDateTime, editName, getAuthToken, loadSessionDetails, sessionId, showErrorToast]);
+  }, [
+    apiRequest,
+    editDateTime,
+    editName,
+    getAuthToken,
+    loadSessionDetails,
+    redirectToUpgrade,
+    sessionId,
+    showErrorToast,
+  ]);
 
   function logout() {
     localStorage.removeItem('jwt');
