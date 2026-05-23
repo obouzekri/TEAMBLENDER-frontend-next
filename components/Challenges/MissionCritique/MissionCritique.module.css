@@ -607,29 +607,29 @@
 }
 
 .timerIconBtn {
-  width: 34px;
-  height: 34px;
+  width: 1.55rem;
+  height: 1.55rem;
   border: none;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  color: #ffffff;
-  font-size: 0.95rem;
+  background: rgba(2, 132, 199, 0.24);
+  color: #f8fafc;
+  font-size: 0.72rem;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
 }
 
-.timerIconBtn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.38);
+.timerIconBtn:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.04);
+  background: rgba(2, 132, 199, 0.38);
 }
 
-.timerIconBtn:active {
-  transform: translateY(0);
+.timerIconBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .timerIconBtn:focus-visible {

@@ -259,6 +259,26 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
           status={String(timer?.status || 'idle')}
           isFacilitator={isFacilitator}
           waitingText="⏳ En attente du facilitateur"
+          ringAction={isFacilitator ? (
+            <button
+              className={styles.timerIconBtn}
+              type="button"
+              onClick={() => {
+                const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
+                if (timerStatus === 'running') {
+                  emitEvent('timer.pause');
+                } else if (timerStatus === 'paused') {
+                  emitEvent('timer.resume');
+                } else {
+                  emitEvent('timer.start');
+                }
+              }}
+              title={String(timer?.status || '').trim().toLowerCase() === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
+              aria-label={String(timer?.status || '').trim().toLowerCase() === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
+            >
+              {String(timer?.status || '').trim().toLowerCase() === 'running' ? '⏸' : '▶'}
+            </button>
+          ) : null}
         />
       </div>
 
