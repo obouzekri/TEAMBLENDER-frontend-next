@@ -305,20 +305,16 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
             ) : null}
           />
 
-          <section className={styles.sideCard}>
-            <h2>{isFacilitator ? 'Vue globale' : 'Vos informations'}</h2>
-            {!isFacilitator ? (
-              <>
-                <p className={styles.meta}>Mon slot: {participantSlot || '-'}</p>
-                <p className={styles.meta}>Mes cases: {mySlots.map((slot) => Number(slot.index) + 1).join(', ') || '-'}</p>
-              </>
-            ) : (
-              <p className={styles.meta}>Slots total: {slots.length}</p>
-            )}
-            <p className={styles.meta}>Temps restant: {Number(timer?.remaining_seconds || 0)}s</p>
-            <p className={styles.meta}>{canPlay ? 'Interaction active.' : 'En attente du démarrage du timer.'}</p>
-            {error ? <p className={styles.error}>{error}</p> : null}
-          </section>
+          {!isFacilitator ? (
+            <section className={styles.sideCard}>
+              <h2>Vos informations</h2>
+              <p className={styles.meta}>Mon slot: {participantSlot || '-'}</p>
+              <p className={styles.meta}>Mes cases: {mySlots.map((slot) => Number(slot.index) + 1).join(', ') || '-'}</p>
+              <p className={styles.meta}>Temps restant: {Number(timer?.remaining_seconds || 0)}s</p>
+              <p className={styles.meta}>{canPlay ? 'Interaction active.' : 'En attente du démarrage du timer.'}</p>
+              {error ? <p className={styles.error}>{error}</p> : null}
+            </section>
+          ) : null}
 
           <section className={styles.sideCard}>
             <h2>{isFacilitator ? 'Actions facilitateur' : 'Mots disponibles'}</h2>
