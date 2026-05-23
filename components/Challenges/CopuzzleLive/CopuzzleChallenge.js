@@ -113,27 +113,15 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
     0,
     Number(state?.timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)
   );
+  const rawRulesConfig = state?.config || runtimePayload?.config || {};
 
   const effectiveConfig = useMemo(
-    () => normalizeRuntimeConfig(state?.config || runtimePayload?.config || {}),
-    [state, runtimePayload]
+    () => normalizeRuntimeConfig(rawRulesConfig),
+    [rawRulesConfig]
   );
 
   const chatEnabled = effectiveConfig?.chat?.enabled === true;
-  const rulesContent = useMemo(() => resolveChallengeRules(effectiveConfig, {
-    objective: 'Assemblez le puzzle en equipe dans le temps imparti en coordonnant vos pieces assignees.',
-    facilitator: [
-      'Lancez le chrono quand tout le monde est pret.',
-      'Suivez la progression collective et fluidifiez la coordination.',
-      'Utilisez le chat pour relancer et clarifier les priorites.'
-    ],
-    participant: [
-      'Placez vos pieces assignees sur la bonne case.',
-      'Annoncez vos intentions dans le chat pour eviter les conflits.',
-      'Corrigez rapidement les placements errones si necessaire.'
-    ],
-    footnote: 'Au lancement, ce brief disparait et la vue de jeu devient active.'
-  }), [effectiveConfig]);
+  const rulesContent = useMemo(() => resolveChallengeRules(rawRulesConfig), [rawRulesConfig]);
 
   const {
     chatInput,

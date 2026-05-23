@@ -143,20 +143,10 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
   const timerDurationSeconds = Math.max(1, Number(state?.timer?.duration_seconds || 1));
   const timerProgress = Math.max(0, Math.min(100, Math.round((timerRemainingSeconds / timerDurationSeconds) * 100)));
-  const rulesContent = useMemo(() => resolveChallengeRules(state?.config || runtimePayload?.config, {
-    objective: 'Construisez une timeline coherent pour maximiser le score equipe avant la fin du chrono.',
-    facilitator: [
-      'Lancez le chrono quand tous les participants sont prets.',
-      'Surveillez les blocages et relancez les arbitrages.',
-      'Appuyez la coordination via le chat et les retours rapides.'
-    ],
-    participant: [
-      'Placez les taches dans les bonnes phases.',
-      'Respectez les dependances critiques et l ordre logique.',
-      'Validez votre proposition quand la timeline est coherente.'
-    ],
-    footnote: 'Des le lancement, le brief se masque et la vue de mission devient active.'
-  }), [runtimePayload?.config, state?.config]);
+  const rulesContent = useMemo(
+    () => resolveChallengeRules(state?.config || runtimePayload?.config),
+    [runtimePayload?.config, state?.config]
+  );
 
   useEffect(() => {
     setPhaseByTask((prev) => {

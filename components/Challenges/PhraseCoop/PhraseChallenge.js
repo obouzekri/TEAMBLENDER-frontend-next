@@ -134,20 +134,10 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
   );
 
   const summary = state?.summary || null;
-  const rulesContent = useMemo(() => resolveChallengeRules(state?.config || runtimePayload?.config, {
-    objective: 'Reconstituez la phrase complete en equipe, case par case, avant la fin du chrono.',
-    facilitator: [
-      'Demarrez le chrono quand chaque participant connait son role.',
-      'Pilotez les indices et le rythme de coordination.',
-      'Suivez les blocages pour debloquer rapidement le groupe.'
-    ],
-    participant: [
-      'Placez uniquement les mots qui correspondent a vos cases.',
-      'Partagez vos hypotheses dans le chat equipe.',
-      'Corrigez les cases incorrectes des qu une incoherence apparait.'
-    ],
-    footnote: 'Une fois le chrono lance, le brief se masque et la vue de jeu devient active.'
-  }), [runtimePayload?.config, state?.config]);
+  const rulesContent = useMemo(
+    () => resolveChallengeRules(state?.config || runtimePayload?.config),
+    [runtimePayload?.config, state?.config]
+  );
 
   const {
     chatInput,

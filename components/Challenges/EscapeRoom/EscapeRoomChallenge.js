@@ -371,20 +371,10 @@ export default function EscapeRoomChallenge({
   const timerSeconds = Number(state?.timer?.duration_seconds || 0);
   const challengeStatus = String(state?.status || '').trim();
   const hasChallengeStarted = challengeStatus !== 'waiting_for_start';
-  const rulesContent = useMemo(() => resolveChallengeRules(state?.config || runtimePayload?.config, {
-    objective: 'Resolvez les enigmes en equipe avec validation collective avant la fin du temps.',
-    facilitator: [
-      'Lancez la session quand tout le groupe est pret.',
-      'Debloquez des indices ou passez une enigme si necessaire.',
-      'Suivez les reponses en attente pour maintenir le rythme.'
-    ],
-    participant: [
-      'Analysez l enigme en equipe puis soumettez une proposition commune.',
-      'Coordonnez les tentatives pour limiter les erreurs.',
-      'Utilisez le chat pour partager rapidement hypotheses et pistes.'
-    ],
-    footnote: 'Le brief disparait automatiquement apres lancement via le bouton Play du chrono.'
-  }), [runtimePayload?.config, state?.config]);
+  const rulesContent = useMemo(
+    () => resolveChallengeRules(state?.config || runtimePayload?.config),
+    [runtimePayload?.config, state?.config]
+  );
   const canStartTimer = isFacilitator && challengeStatus === 'waiting_for_start' && !busyAction;
   const isTimerRunning = challengeStatus === 'in_progress';
 

@@ -206,20 +206,10 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
 
   const [participantActionFeed, setParticipantActionFeed] = useState({});
   const previousParticipantSnapshotRef = useRef({});
-  const rulesContent = useMemo(() => resolveChallengeRules(state?.config || runtimePayload?.config, {
-    objective: 'Orientez l equipe vers la sortie en coordonnant decisions, deplacements et gestion du risque.',
-    facilitator: [
-      'Verifier la presence puis lancer le chrono au bon moment.',
-      'Suivre les actions individuelles et guider la coordination collective.',
-      'Piloter les relances via le chat pendant les phases critiques.'
-    ],
-    participant: [
-      'Partager les informations utiles sur la progression et les risques.',
-      'Se deplacer avec prudence pour conserver les vies disponibles.',
-      'Utiliser les votes et le chat selon la phase en cours.'
-    ],
-    footnote: 'Au lancement, le brief disparait et la vue de jeu devient active.'
-  }), [runtimePayload?.config, state?.config]);
+  const rulesContent = useMemo(
+    () => resolveChallengeRules(state?.config || runtimePayload?.config),
+    [runtimePayload?.config, state?.config]
+  );
 
   useEffect(() => {
     if (!isFacilitator) return;

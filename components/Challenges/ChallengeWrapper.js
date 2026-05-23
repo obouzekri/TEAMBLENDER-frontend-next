@@ -91,6 +91,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     setUser(currentUser);
 
     fetch(getApiUrl(`/sessions/${sessionId}/runtime-challenge`), {
+      cache: 'no-store',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -116,16 +117,13 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
             ...payload,
             challenge_id: resolvedChallengeId,
           };
-          setRuntimePayload((prev) => {
-            const prevEngineKey = String(prev?.engine_key || '').trim();
-            const nextEngineKey = String(nextRuntimePayload?.engine_key || '').trim();
-            const prevChallengeId = Number(prev?.challenge_id || 0);
-            const nextChallengeId = Number(nextRuntimePayload?.challenge_id || 0);
-            if (prevEngineKey === nextEngineKey && prevChallengeId === nextChallengeId) {
-              return prev;
-            }
-            return nextRuntimePayload;
+          console.info('[runtime-challenge] initial payload', {
+            sessionId,
+            challengeId: resolvedChallengeId,
+            engineKey: payloadEngineKey || normalizedEngineKey || '',
+            hasRules: Boolean(payload?.config?.rules)
           });
+          setRuntimePayload(nextRuntimePayload);
           const resolvedUserId = currentUser.id
             || currentUser.userId
             || currentUser.user_id
@@ -170,6 +168,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     const handleRuntimeResync = () => {
       const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
       fetch(getApiUrl(`/sessions/${sessionId}/runtime-challenge`), {
+        cache: 'no-store',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -189,16 +188,13 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
             ...payload,
             challenge_id: nextChallengeId,
           };
-          setRuntimePayload((prev) => {
-            const prevEngineKey = String(prev?.engine_key || '').trim();
-            const nextEngineKey = String(nextRuntimePayload?.engine_key || '').trim();
-            const prevChallengeId = Number(prev?.challenge_id || 0);
-            const nextId = Number(nextRuntimePayload?.challenge_id || 0);
-            if (prevEngineKey === nextEngineKey && prevChallengeId === nextId) {
-              return prev;
-            }
-            return nextRuntimePayload;
+          console.info('[runtime-challenge] resync payload', {
+            sessionId,
+            challengeId: nextChallengeId,
+            engineKey: payloadEngineKey || '',
+            hasRules: Boolean(payload?.config?.rules)
           });
+          setRuntimePayload(nextRuntimePayload);
           setContext((prev) => {
             const nextContext = {
               role: payload.context?.role || prev?.role || 'participant',
