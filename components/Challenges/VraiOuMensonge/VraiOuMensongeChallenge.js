@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
+import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -87,6 +88,20 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }, [vom, poserId]);
 
   const myVote = String(currentTurn?.votes?.[me] || '');
+  const rulesContent = useMemo(() => resolveChallengeRules(state?.config || runtimePayload?.config, {
+    objective: 'Chaque participant pose des affirmations et le groupe vote pour distinguer vrai et mensonge.',
+    facilitator: [
+      'Lancez la session quand tous les participants sont prets.',
+      'Cadencez les tours et assurez un cadre de jeu clair.',
+      'Suivez les scores et maintenez l engagement collectif.'
+    ],
+    participant: [
+      'En tant que poseur, choisissez puis confirmez une affirmation.',
+      'En tant que votant, choisissez vrai ou mensonge a chaque tour.',
+      'Restez reactif pendant les phases de vote et de revelation.'
+    ],
+    footnote: 'Le lancement se fait via le bouton Play du chrono cote facilitateur.'
+  }), [runtimePayload?.config, state?.config]);
 
   const remainingMs = useMemo(() => {
     const deadline = Number(vom?.phase_deadline_ms || 0);
@@ -140,18 +155,10 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             <ChallengeRulesPanel
               isStarted={false}
               challengeName="Vrai ou Mensonge"
-              objective="Chaque participant pose des affirmations et le groupe vote pour distinguer vrai et mensonge."
-              facilitatorRules={[
-                'Lancez la session quand tous les participants sont prets.',
-                'Cadencez les tours et assurez un cadre de jeu clair.',
-                'Suivez les scores et maintenez l engagement collectif.'
-              ]}
-              participantRules={[
-                'En tant que poseur, choisissez puis confirmez une affirmation.',
-                'En tant que votant, choisissez vrai ou mensonge a chaque tour.',
-                'Restez reactif pendant les phases de vote et de revelation.'
-              ]}
-              footnote="Le lancement se fait via le bouton Play du chrono cote facilitateur."
+              objective={rulesContent.objective}
+              facilitatorRules={rulesContent.facilitator}
+              participantRules={rulesContent.participant}
+              footnote={rulesContent.footnote}
             />
           </section>
         ) : null}
@@ -318,15 +325,10 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             isStarted={hasChallengeStarted}
             showPrestartCard={false}
             challengeName="Vrai ou Mensonge"
-            objective="Popup de rappel des regles disponible pendant toute la partie."
-            facilitatorRules={[
-              'Piloter les transitions entre phases.',
-              'Verifier le rythme des votes et des revelations.'
-            ]}
-            participantRules={[
-              'Respecter le role actif du tour en cours.',
-              'Voter rapidement et clairement a chaque manche.'
-            ]}
+            objective={rulesContent.objective}
+            facilitatorRules={rulesContent.facilitator}
+            participantRules={rulesContent.participant}
+            footnote={rulesContent.footnote}
           />
 
           <ChallengeTimerCard

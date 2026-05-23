@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
+import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -142,6 +143,20 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
   const timerDurationSeconds = Math.max(1, Number(state?.timer?.duration_seconds || 1));
   const timerProgress = Math.max(0, Math.min(100, Math.round((timerRemainingSeconds / timerDurationSeconds) * 100)));
+  const rulesContent = useMemo(() => resolveChallengeRules(state?.config || runtimePayload?.config, {
+    objective: 'Construisez une timeline coherent pour maximiser le score equipe avant la fin du chrono.',
+    facilitator: [
+      'Lancez le chrono quand tous les participants sont prets.',
+      'Surveillez les blocages et relancez les arbitrages.',
+      'Appuyez la coordination via le chat et les retours rapides.'
+    ],
+    participant: [
+      'Placez les taches dans les bonnes phases.',
+      'Respectez les dependances critiques et l ordre logique.',
+      'Validez votre proposition quand la timeline est coherente.'
+    ],
+    footnote: 'Des le lancement, le brief se masque et la vue de mission devient active.'
+  }), [runtimePayload?.config, state?.config]);
 
   useEffect(() => {
     setPhaseByTask((prev) => {
@@ -298,18 +313,10 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
               <ChallengeRulesPanel
                 isStarted={false}
                 challengeName="Mission Critique"
-                objective="Construisez une timeline coherent pour maximiser le score equipe avant la fin du chrono."
-                facilitatorRules={[
-                  'Lancez le chrono quand tous les participants sont prets.',
-                  'Surveillez les blocages et relancez les arbitrages.',
-                  'Appuyez la coordination via le chat et les retours rapides.'
-                ]}
-                participantRules={[
-                  'Placez les taches dans les bonnes phases.',
-                  'Respectez les dependances critiques et l ordre logique.',
-                  'Validez votre proposition quand la timeline est coherente.'
-                ]}
-                footnote="Des le lancement, le brief se masque et la vue de mission devient active."
+                objective={rulesContent.objective}
+                facilitatorRules={rulesContent.facilitator}
+                participantRules={rulesContent.participant}
+                footnote={rulesContent.footnote}
               />
             </section>
           ) : !isFacilitator ? (
@@ -514,15 +521,10 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             isStarted={hasChallengeStarted}
             showPrestartCard={false}
             challengeName="Mission Critique"
-            objective="Rappel des regles disponible a tout moment pendant la session."
-            facilitatorRules={[
-              'Piloter le rythme et la priorisation collective.',
-              'Recadrer les decisions non coherentes.'
-            ]}
-            participantRules={[
-              'Structurer la timeline selon les phases.',
-              'Collaborer activement sur les dependances.'
-            ]}
+            objective={rulesContent.objective}
+            facilitatorRules={rulesContent.facilitator}
+            participantRules={rulesContent.participant}
+            footnote={rulesContent.footnote}
           />
 
           <ChallengeTimerCard

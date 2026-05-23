@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
+import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -133,6 +134,20 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
   );
 
   const summary = state?.summary || null;
+  const rulesContent = useMemo(() => resolveChallengeRules(state?.config || runtimePayload?.config, {
+    objective: 'Reconstituez la phrase complete en equipe, case par case, avant la fin du chrono.',
+    facilitator: [
+      'Demarrez le chrono quand chaque participant connait son role.',
+      'Pilotez les indices et le rythme de coordination.',
+      'Suivez les blocages pour debloquer rapidement le groupe.'
+    ],
+    participant: [
+      'Placez uniquement les mots qui correspondent a vos cases.',
+      'Partagez vos hypotheses dans le chat equipe.',
+      'Corrigez les cases incorrectes des qu une incoherence apparait.'
+    ],
+    footnote: 'Une fois le chrono lance, le brief se masque et la vue de jeu devient active.'
+  }), [runtimePayload?.config, state?.config]);
 
   const {
     chatInput,
@@ -228,18 +243,10 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
             <ChallengeRulesPanel
               isStarted={false}
               challengeName="Phrase Mystere"
-              objective="Reconstituez la phrase complete en equipe, case par case, avant la fin du chrono."
-              facilitatorRules={[
-                'Demarrez le chrono quand chaque participant connait son role.',
-                'Pilotez les indices et le rythme de coordination.',
-                'Suivez les blocages pour debloquer rapidement le groupe.'
-              ]}
-              participantRules={[
-                'Placez uniquement les mots qui correspondent a vos cases.',
-                'Partagez vos hypotheses dans le chat equipe.',
-                'Corrigez les cases incorrectes des qu une incoherence apparait.'
-              ]}
-              footnote="Une fois le chrono lance, le brief se masque et la vue de jeu devient active."
+              objective={rulesContent.objective}
+              facilitatorRules={rulesContent.facilitator}
+              participantRules={rulesContent.participant}
+              footnote={rulesContent.footnote}
             />
           ) : (
             <>
@@ -313,15 +320,10 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
             isStarted={hasChallengeStarted}
             showPrestartCard={false}
             challengeName="Phrase Mystere"
-            objective="Consultez le rappel de regles sans interrompre la session."
-            facilitatorRules={[
-              'Cadencez les tentatives et pilotez les indices.',
-              'Assurez une communication claire entre les slots.'
-            ]}
-            participantRules={[
-              'Travaillez sur vos cases assignees.',
-              'Coordonnez vos choix de mots en temps reel.'
-            ]}
+            objective={rulesContent.objective}
+            facilitatorRules={rulesContent.facilitator}
+            participantRules={rulesContent.participant}
+            footnote={rulesContent.footnote}
           />
 
           <ChallengeTimerCard

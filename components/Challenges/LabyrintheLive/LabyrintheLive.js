@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
+import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -205,6 +206,20 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
 
   const [participantActionFeed, setParticipantActionFeed] = useState({});
   const previousParticipantSnapshotRef = useRef({});
+  const rulesContent = useMemo(() => resolveChallengeRules(state?.config || runtimePayload?.config, {
+    objective: 'Orientez l equipe vers la sortie en coordonnant decisions, deplacements et gestion du risque.',
+    facilitator: [
+      'Verifier la presence puis lancer le chrono au bon moment.',
+      'Suivre les actions individuelles et guider la coordination collective.',
+      'Piloter les relances via le chat pendant les phases critiques.'
+    ],
+    participant: [
+      'Partager les informations utiles sur la progression et les risques.',
+      'Se deplacer avec prudence pour conserver les vies disponibles.',
+      'Utiliser les votes et le chat selon la phase en cours.'
+    ],
+    footnote: 'Au lancement, le brief disparait et la vue de jeu devient active.'
+  }), [runtimePayload?.config, state?.config]);
 
   useEffect(() => {
     if (!isFacilitator) return;
@@ -358,18 +373,10 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
               <ChallengeRulesPanel
                 isStarted={false}
                 challengeName="Labyrinthe Live"
-                objective="Orientez l equipe vers la sortie en coordonnant decisions, deplacements et gestion du risque."
-                facilitatorRules={[
-                  'Verifier la presence puis lancer le chrono au bon moment.',
-                  'Suivre les actions individuelles et guider la coordination collective.',
-                  'Piloter les relances via le chat pendant les phases critiques.'
-                ]}
-                participantRules={[
-                  'Partager les informations utiles sur la progression et les risques.',
-                  'Se deplacer avec prudence pour conserver les vies disponibles.',
-                  'Utiliser les votes et le chat selon la phase en cours.'
-                ]}
-                footnote={`Presence en direct: ${connectedCount} / ${participantEntries.length} participants connectes.`}
+                objective={rulesContent.objective}
+                facilitatorRules={rulesContent.facilitator}
+                participantRules={rulesContent.participant}
+                footnote={rulesContent.footnote}
               />
               {error ? <p className={styles.error}>{error}</p> : null}
             </section>
@@ -450,15 +457,10 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
             isStarted={hasChallengeStarted}
             showPrestartCard={false}
             challengeName="Labyrinthe Live"
-            objective="Rappel des regles consultable a tout moment sans quitter la session."
-            facilitatorRules={[
-              'Piloter le chrono et les decisions de groupe.',
-              'Observer les actions individuelles pour guider la coordination.'
-            ]}
-            participantRules={[
-              'Se deplacer prudemment et partager les informations utiles.',
-              'Utiliser le chat et les votes selon la phase en cours.'
-            ]}
+            objective={rulesContent.objective}
+            facilitatorRules={rulesContent.facilitator}
+            participantRules={rulesContent.participant}
+            footnote={rulesContent.footnote}
           />
 
           <ChallengeTimerCard

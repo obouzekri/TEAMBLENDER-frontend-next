@@ -5,6 +5,7 @@ import { getApiUrl } from '@/lib/config';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
+import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -370,6 +371,20 @@ export default function EscapeRoomChallenge({
   const timerSeconds = Number(state?.timer?.duration_seconds || 0);
   const challengeStatus = String(state?.status || '').trim();
   const hasChallengeStarted = challengeStatus !== 'waiting_for_start';
+  const rulesContent = useMemo(() => resolveChallengeRules(state?.config || runtimePayload?.config, {
+    objective: 'Resolvez les enigmes en equipe avec validation collective avant la fin du temps.',
+    facilitator: [
+      'Lancez la session quand tout le groupe est pret.',
+      'Debloquez des indices ou passez une enigme si necessaire.',
+      'Suivez les reponses en attente pour maintenir le rythme.'
+    ],
+    participant: [
+      'Analysez l enigme en equipe puis soumettez une proposition commune.',
+      'Coordonnez les tentatives pour limiter les erreurs.',
+      'Utilisez le chat pour partager rapidement hypotheses et pistes.'
+    ],
+    footnote: 'Le brief disparait automatiquement apres lancement via le bouton Play du chrono.'
+  }), [runtimePayload?.config, state?.config]);
   const canStartTimer = isFacilitator && challengeStatus === 'waiting_for_start' && !busyAction;
   const isTimerRunning = challengeStatus === 'in_progress';
 
@@ -494,18 +509,10 @@ export default function EscapeRoomChallenge({
             <ChallengeRulesPanel
               isStarted={false}
               challengeName="Escape Room"
-              objective="Resolvez les enigmes en equipe avec validation collective avant la fin du temps."
-              facilitatorRules={[
-                'Lancez la session quand tout le groupe est pret.',
-                'Debloquez des indices ou passez une enigme si necessaire.',
-                'Suivez les reponses en attente pour maintenir le rythme.'
-              ]}
-              participantRules={[
-                'Analysez l enigme en equipe puis soumettez une proposition commune.',
-                'Coordonnez les tentatives pour limiter les erreurs.',
-                'Utilisez le chat pour partager rapidement hypotheses et pistes.'
-              ]}
-              footnote="Le brief disparait automatiquement apres lancement via le bouton Play du chrono."
+              objective={rulesContent.objective}
+              facilitatorRules={rulesContent.facilitator}
+              participantRules={rulesContent.participant}
+              footnote={rulesContent.footnote}
             />
           ) : isFinished ? (
             <>
@@ -610,15 +617,10 @@ export default function EscapeRoomChallenge({
             isStarted={hasChallengeStarted}
             showPrestartCard={false}
             challengeName="Escape Room"
-            objective="Rappel des regles consultable en popup pendant le jeu."
-            facilitatorRules={[
-              'Piloter le timing et les indices.',
-              'Cadencer les validations collectives.'
-            ]}
-            participantRules={[
-              'Soumettre des reponses coherentes en equipe.',
-              'S aligner rapidement en cas de divergence.'
-            ]}
+            objective={rulesContent.objective}
+            facilitatorRules={rulesContent.facilitator}
+            participantRules={rulesContent.participant}
+            footnote={rulesContent.footnote}
           />
 
           <ChallengeTimerCard

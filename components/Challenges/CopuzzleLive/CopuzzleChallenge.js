@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
+import { resolveChallengeRules } from '@/lib/challenges/rules';
 import { getBackendOrigin } from '@/lib/config';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
@@ -119,6 +120,20 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
   );
 
   const chatEnabled = effectiveConfig?.chat?.enabled === true;
+  const rulesContent = useMemo(() => resolveChallengeRules(effectiveConfig, {
+    objective: 'Assemblez le puzzle en equipe dans le temps imparti en coordonnant vos pieces assignees.',
+    facilitator: [
+      'Lancez le chrono quand tout le monde est pret.',
+      'Suivez la progression collective et fluidifiez la coordination.',
+      'Utilisez le chat pour relancer et clarifier les priorites.'
+    ],
+    participant: [
+      'Placez vos pieces assignees sur la bonne case.',
+      'Annoncez vos intentions dans le chat pour eviter les conflits.',
+      'Corrigez rapidement les placements errones si necessaire.'
+    ],
+    footnote: 'Au lancement, ce brief disparait et la vue de jeu devient active.'
+  }), [effectiveConfig]);
 
   const {
     chatInput,
@@ -313,18 +328,10 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             <ChallengeRulesPanel
               isStarted={false}
               challengeName="CoPuzzle Live"
-              objective="Assemblez le puzzle en equipe dans le temps imparti en coordonnant vos pieces assignes."
-              facilitatorRules={[
-                'Lancez le chrono quand tout le monde est pret.',
-                'Suivez la progression collective et fluidifiez la coordination.',
-                'Utilisez le chat pour relancer et clarifier les priorites.'
-              ]}
-              participantRules={[
-                'Placez vos pieces assignes sur la bonne case.',
-                'Annoncez vos intentions dans le chat pour eviter les conflits.',
-                'Corrigez rapidement les placements errones si necessaire.'
-              ]}
-              footnote="Au lancement, ce brief disparait et la vue de jeu devient active."
+              objective={rulesContent.objective}
+              facilitatorRules={rulesContent.facilitator}
+              participantRules={rulesContent.participant}
+              footnote={rulesContent.footnote}
             />
           ) : (
             <>
@@ -455,18 +462,10 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             isStarted={hasChallengeStarted}
             showPrestartCard={false}
             challengeName="CoPuzzle Live"
-            objective="Consultez les regles de coordination a tout moment pendant la partie."
-            facilitatorRules={[
-              'Lancez le chrono uniquement quand tous les participants sont prets.',
-              'Donnez des priorites claires sur les zones du puzzle.',
-              'Relancez les participants inactifs via le chat.'
-            ]}
-            participantRules={[
-              'Placez uniquement vos pieces assignees.',
-              'Signalez vos actions importantes dans le chat equipe.',
-              'Adaptez-vous rapidement aux ajustements collectifs.'
-            ]}
-            footnote="Le bouton affiche une popup de rappel sans interrompre la session."
+            objective={rulesContent.objective}
+            facilitatorRules={rulesContent.facilitator}
+            participantRules={rulesContent.participant}
+            footnote={rulesContent.footnote}
           />
 
           <ChallengeTimerCard
