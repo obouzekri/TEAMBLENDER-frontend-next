@@ -475,10 +475,9 @@ export default function EscapeRoomChallenge({
   return (
     <div className={styles.escapeRoomContainer}>
       <section className={styles.header}>
-        <div>
-          <p className={styles.kicker}>Salle secrete</p>
-          <h1>Escape Room</h1>
-          <p className={styles.subtitle}>Résolvez les énigmes en équipe, avec validation collective.</p>
+        <div className={styles.headerTitleLine}>
+          <span className={styles.headerTitle}>Escape Room</span>
+          <span className={styles.headerDescription}>: Resolvez les enigmes en equipe, avec validation collective</span>
         </div>
         <div className={styles.meta}>
           <span className={styles.badge}>Statut: {state.status}</span>

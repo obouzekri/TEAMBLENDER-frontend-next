@@ -48,6 +48,8 @@ export default function SessionLiveClient() {
   const [error, setError] = useState('');
   const [actionPending, setActionPending] = useState(false);
   const [actionMsg, setActionMsg] = useState('');
+  const [advancePopupMessage, setAdvancePopupMessage] = useState('');
+  const [advancePopupOpen, setAdvancePopupOpen] = useState(false);
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(0);
   const autoAdvanceTimerRef = useRef(null);
   const completedChallengeKeyRef = useRef('');
@@ -128,11 +130,12 @@ export default function SessionLiveClient() {
         throw new Error(payload?.error || body || `Erreur ${res.status}`);
       }
       const updated = await res.json();
-      setActionMsg(
-        updated?.active_challenge_id
-          ? 'Challenge suivant activé. Les participants basculent automatiquement vers le prochain challenge.'
-          : 'Dernier challenge terminé.'
-      );
+      if (updated?.active_challenge_id) {
+        setAdvancePopupMessage('Les participants vont basculer automatiquement vers le prochain challenge.');
+        setAdvancePopupOpen(true);
+      } else {
+        setActionMsg('Dernier challenge terminé.');
+      }
       await loadSession();
       refetchSessionState();
     } catch (err) {
@@ -316,6 +319,30 @@ export default function SessionLiveClient() {
             {actionMsg && <span className="session-live-header__msg">{actionMsg}</span>}
           </div>
         </section>
+
+        {advancePopupOpen ? (
+          <div className="session-live-popup-backdrop" role="presentation" onClick={() => setAdvancePopupOpen(false)}>
+            <section
+              className="session-live-popup"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="session-live-popup-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h3 id="session-live-popup-title">Confirmation</h3>
+              <p>{advancePopupMessage}</p>
+              <div className="session-live-popup__actions">
+                <button
+                  type="button"
+                  className="btn-primary btn--sm"
+                  onClick={() => setAdvancePopupOpen(false)}
+                >
+                  Confirmer
+                </button>
+              </div>
+            </section>
+          </div>
+        ) : null}
 
         {activeEngineKey ? (
           <section className="feature-card session-live-challenge-frame surface-flush">

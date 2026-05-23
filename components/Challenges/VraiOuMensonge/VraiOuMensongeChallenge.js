@@ -11,13 +11,13 @@ import styles from './VraiOuMensonge.module.css';
 function phaseLabel(phase) {
   const labels = {
     waiting_start: 'Lobby',
-    selecting_statement: 'Selection phrase',
+    selecting_statement: 'Sélection phrase',
     voting_open: 'Votes ouverts',
-    reveal_pending: 'En attente de revelation',
-    round_result: 'Resultat du tour',
+    reveal_pending: 'En attente de révélation',
+    round_result: 'Résultat du tour',
     next_turn: 'Tour suivant',
-    finished: 'Partie terminee',
-    paused_poseur_disconnect: 'Pause (poseur deconnecte)'
+    finished: 'Partie terminée',
+    paused_poseur_disconnect: 'Pause (poseur déconnecté)'
   };
   return labels[String(phase || '')] || 'Phase inconnue';
 }
@@ -53,7 +53,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const me = String(participantId || context?.userId || '');
   const poserId = String(currentTurn?.poser_id || '');
   const isPoser = me && poserId && me === poserId;
-  const chatEnabled = state?.config?.chat?.enabled !== false && Boolean(socket);
+  const chatEnabled = Boolean(socket);
 
   const displayName = useMemo(() => {
     const fromPayload = String(runtimePayload?.context?.displayName || '').trim();
@@ -117,10 +117,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
-        <div className={styles.titleBlock}>
-          <p className={styles.kicker}>Challenge collaboratif</p>
-          <h1>Vrai ou Mensonge</h1>
-          <p>Experience individuelle, rapide, orientee engagement collectif.</p>
+        <div className={styles.headerTitleLine}>
+          <span className={styles.headerTitle}>Vrai ou Mensonge</span>
+          <span className={styles.headerDescription}>: Expérience individuelle, rapide, orientée engagement collectif</span>
         </div>
         <div className={styles.meta}>
           <span className={styles.badge}>{phaseLabel(phase)}</span>
@@ -137,7 +136,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'waiting_start' ? (
           <section className={styles.card}>
             <h2>Lobby</h2>
-            <p>Regle: 3 affirmations exactes par participant, ordre round-robin, vote individuel des non-poseurs.</p>
+            <p>Règle: 3 affirmations exactes par participant, ordre round-robin, vote individuel des non-poseurs.</p>
             <ol className={styles.orderList}>
               {participantsOrder.map((participant) => (
                 <li key={participant}>{participant}</li>
@@ -145,7 +144,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             </ol>
             {isFacilitator ? (
               <button type="button" className={styles.primaryBtn} onClick={startChallenge}>
-                Demarrer le challenge
+                Démarrer le challenge
               </button>
             ) : (
               <p className={styles.helper}>En attente du facilitateur.</p>
@@ -155,7 +154,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
         {phase === 'selecting_statement' ? (
           <section className={styles.card}>
-            <h2>Selection d affirmation</h2>
+            <h2>Sélection d'affirmation</h2>
             <p>Poseur actuel: <strong>{poserId || '-'}</strong></p>
             {isPoser ? (
               <>
@@ -216,14 +215,14 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 <p className={styles.helper}>Votre vote actuel: {myVote || 'absent'}</p>
               </div>
             ) : (
-              <p className={styles.helper}>Vous etes poseur, vous ne votez pas.</p>
+              <p className={styles.helper}>Vous êtes poseur, vous ne votez pas.</p>
             )}
           </section>
         ) : null}
 
         {phase === 'reveal_pending' ? (
           <section className={styles.card}>
-            <h2>Revelation</h2>
+            <h2>Révélation</h2>
             <p>Phrase: {currentTurn?.statement_text || '-'}</p>
             {isPoser ? (
               <>
@@ -247,14 +246,14 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 <button type="button" className={styles.primaryBtn} onClick={reveal}>Reveler (irreversible)</button>
               </>
             ) : (
-              <p className={styles.helper}>En attente de la revelation du poseur.</p>
+              <p className={styles.helper}>En attente de la révélation du poseur.</p>
             )}
           </section>
         ) : null}
 
         {phase === 'round_result' ? (
           <section className={styles.card}>
-            <h2>Resultat du tour</h2>
+            <h2>Résultat du tour</h2>
             <p>Verite: <strong>{String(currentTurn?.revealed_truth || '-')}</strong></p>
             <div className={styles.resultList}>
               {(currentTurn?.result?.votes || []).map((item) => (
@@ -287,7 +286,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'paused_poseur_disconnect' ? (
           <section className={styles.card}>
             <h2>Pause temporaire</h2>
-            <p>Le poseur est deconnecte. La partie reprend automatiquement a sa reconnexion.</p>
+            <p>Le poseur est déconnecté. La partie reprend automatiquement à sa reconnexion.</p>
           </section>
         ) : null}
 
@@ -318,24 +317,34 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             durationSeconds={Math.max(1, formatSeconds(Number(vom?.phase_deadline_ms || 0) - Number(vom?.phase_started_at_ms || 0)))}
             status={phase === 'voting_open' || phase === 'selecting_statement' || phase === 'reveal_pending' ? 'running' : 'idle'}
             isFacilitator={isFacilitator}
-            waitingText="⏳ Chrono partagé pour l'equipe"
+            waitingText="⏳ Chrono partagé pour l'équipe"
+            ringAction={isFacilitator && phase === 'waiting_start' ? (
+              <button
+                className={styles.timerIconBtn}
+                type="button"
+                onClick={startChallenge}
+                title="Démarrer"
+                aria-label="Démarrer"
+              >
+                ▶
+              </button>
+            ) : null}
           />
 
-          {chatEnabled ? (
-            <ChallengeChatCard
-              className={styles.card}
-              title="Chat"
-              messages={chatMessages}
-              currentAuthor={displayName}
-              inputValue={chatInput}
-              onInputChange={setChatInput}
-              onSubmit={submitChat}
-              quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
-              onQuickMessage={sendQuickChat}
-              placeholder="Ecrire un message"
-              maxLength={240}
-            />
-          ) : null}
+          <ChallengeChatCard
+            className={styles.card}
+            title="Chat"
+            messages={chatMessages}
+            currentAuthor={displayName}
+            inputValue={chatInput}
+            onInputChange={setChatInput}
+            onSubmit={submitChat}
+            quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
+            onQuickMessage={sendQuickChat}
+            placeholder="Écrire un message"
+            maxLength={240}
+            disabled={!chatEnabled}
+          />
 
           <section className={`${styles.card} ${styles.stateCard}`}>
             <h3>Etat live</h3>
@@ -350,7 +359,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <section className={styles.card}>
             <h3>Scores rapides</h3>
             <div className={styles.resultList}>
-              {participantsOrder.length === 0 ? <p className={styles.helper}>Aucun participant detecte.</p> : null}
+              {participantsOrder.length === 0 ? <p className={styles.helper}>Aucun participant détecté.</p> : null}
               {participantsOrder.map((participant) => (
                 <div key={participant} className={styles.resultRow}>
                   <span>{participant}</span>

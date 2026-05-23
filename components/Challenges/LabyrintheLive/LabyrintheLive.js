@@ -236,7 +236,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
         )}
       </section>
 
-      <div className={`${styles.layout} ${isFacilitator ? styles.layoutSingle : ''}`}>
+      <div className={`${styles.layout} ${styles.layoutLeftSidebar}`}>
         {!isFacilitator ? (
           <section className={styles.panel}>
             <h2>État labyrinthe</h2>
@@ -310,11 +310,9 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
             />
           ) : null}
         </aside>
-      </div>
 
-      {isFacilitator ? (
-        <section className={styles.layoutSingle}>
-          <div className={styles.panel}>
+        {isFacilitator ? (
+          <section className={styles.panel}>
             <h2>Vue miniature du labyrinthe par participant</h2>
             {error ? <p className={styles.error}>{error}</p> : null}
             {participantEntries.length === 0 ? (
@@ -358,9 +356,11 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                 })}
               </div>
             )}
-          </div>
-        </section>
-      ) : (
+          </section>
+        ) : null}
+      </div>
+
+      {!isFacilitator ? (
         <>
           <div className={styles.layout}>
             <section className={styles.panel}>
@@ -463,7 +463,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
             </div>
           </section>
         </>
-      )}
+      ) : null}
 
       <details className={styles.debug}>
         <summary>Debug events</summary>

@@ -185,38 +185,51 @@
 
 .header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   background: rgba(13, 21, 40, 0.85);
   border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: 12px;
   padding: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
-.kicker {
-  margin: 0;
-  font-size: 12px;
+.headerTitleLine {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.headerTitle {
+  font-size: 1.04rem;
+  font-weight: 800;
+  color: #e5edf7;
+  letter-spacing: 0.01em;
+}
+
+.headerDescription {
+  font-size: 0.78rem;
   color: #7dd3fc;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.header h1 {
-  margin: 4px 0;
-  font-size: 28px;
-}
-
-.subtitle {
-  margin: 0;
-  color: #bfd3e8;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .meta {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   align-content: flex-start;
   gap: 8px;
+  white-space: nowrap;
 }
 
 .badge {
