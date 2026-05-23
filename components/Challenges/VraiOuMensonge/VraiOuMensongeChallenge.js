@@ -313,7 +313,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         <aside className={styles.sideColumn}>
           <ChallengeTimerCard
             className={styles.card}
-            title="Chronometre"
+            title="Chrono"
             remainingSeconds={formatSeconds(remainingMs)}
             durationSeconds={Math.max(1, formatSeconds(Number(vom?.phase_deadline_ms || 0) - Number(vom?.phase_started_at_ms || 0)))}
             status={phase === 'voting_open' || phase === 'selecting_statement' || phase === 'reveal_pending' ? 'running' : 'idle'}

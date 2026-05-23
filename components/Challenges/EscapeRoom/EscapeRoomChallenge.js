@@ -590,7 +590,7 @@ export default function EscapeRoomChallenge({
         <aside className={styles.card}>
           <ChallengeTimerCard
             className={styles.timerCard}
-            title="Chronometre"
+            title="Chrono"
             remainingSeconds={timerSeconds}
             durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
             status={isTimerRunning ? 'running' : 'idle'}

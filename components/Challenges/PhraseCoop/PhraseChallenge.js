@@ -282,7 +282,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
         <aside className={styles.sidePanel}>
           <ChallengeTimerCard
             className={`${styles.sideCard} ${styles.timerCard}`}
-            title="Chronometre"
+            title="Chrono"
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
             durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
             status={timerStatus}

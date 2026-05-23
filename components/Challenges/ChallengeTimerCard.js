@@ -39,7 +39,7 @@ function clampPercent(value) {
 
 export default function ChallengeTimerCard({
   className = '',
-  title = 'Chronometre',
+  title = 'Chrono',
   remainingSeconds = 0,
   durationSeconds = 0,
   status = 'idle',

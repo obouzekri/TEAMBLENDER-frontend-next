@@ -230,8 +230,8 @@
 }
 
 .timerIconBtn {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
   border: 1px solid rgba(125, 211, 252, 0.45);
   background: rgba(14, 165, 233, 0.14);
@@ -711,8 +711,8 @@
   }
 
   .timerIconBtn {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
   }
 
   .summaryGrid {

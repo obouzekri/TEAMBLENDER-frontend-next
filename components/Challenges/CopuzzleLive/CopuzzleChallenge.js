@@ -424,7 +424,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
         <aside className={styles.sidePanel}>
           <ChallengeTimerCard
             className={`${styles.sideCard} ${styles.timerCard}`}
-            title="Chronometre"
+            title="Chrono"
             remainingSeconds={timerRemainingSeconds}
             durationSeconds={timerDurationSeconds}
             status={timerState}
