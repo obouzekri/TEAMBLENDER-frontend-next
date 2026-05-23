@@ -509,7 +509,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
           <ChallengeChatCard
             className={`${styles.card} ${styles.chatCard}`}
-            title="Chat equipe"
+            title="Chat"
             messages={chatMessages}
             currentAuthor={displayName}
             inputValue={chatInput}

@@ -519,7 +519,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
           {chatEnabled ? (
             <ChallengeChatCard
               className={`${styles.chatCard} ${styles.sideChatCard}`}
-              title="Chat equipe"
+              title="Chat"
               messages={chatMessages}
               currentAuthor={displayName}
               inputValue={chatInput}

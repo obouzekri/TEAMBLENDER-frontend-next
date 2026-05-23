@@ -649,7 +649,7 @@ export default function EscapeRoomChallenge({
             <>
               <ChallengeChatCard
                 className={styles.chatPanel}
-                title="Chat equipe"
+                title="Chat"
                 messages={chatMessages}
                 currentAuthor={displayName}
                 inputValue={chatInput}

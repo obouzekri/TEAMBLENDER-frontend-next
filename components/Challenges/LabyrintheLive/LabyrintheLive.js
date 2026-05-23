@@ -371,7 +371,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
         {chatEnabled ? (
           <ChallengeChatCard
             className={styles.panel}
-            title="Chat equipe"
+            title="Chat"
             messages={chatMessages}
             currentAuthor={displayName}
             inputValue={chatInput}

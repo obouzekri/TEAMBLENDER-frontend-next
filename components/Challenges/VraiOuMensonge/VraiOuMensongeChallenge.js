@@ -363,7 +363,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           {chatEnabled ? (
             <ChallengeChatCard
               className={styles.card}
-              title="Chat equipe"
+              title="Chat"
               messages={chatMessages}
               currentAuthor={displayName}
               inputValue={chatInput}

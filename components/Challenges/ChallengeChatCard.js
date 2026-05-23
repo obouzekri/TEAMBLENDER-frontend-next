@@ -5,7 +5,7 @@ import styles from './ChallengeChatCard.module.css';
 
 export default function ChallengeChatCard({
   className = '',
-  title = 'Chat equipe',
+  title = 'Chat',
   messages = [],
   currentAuthor = '',
   inputValue = '',
@@ -16,7 +16,7 @@ export default function ChallengeChatCard({
   emptyText = 'Aucun message pour le moment.',
   placeholder = 'Ecrire un message',
   maxLength = 240,
-  submitLabel = 'Envoyer',
+  submitLabel = '➤',
   disabled = false,
   showCounter = true,
 }) {
@@ -64,7 +64,13 @@ export default function ChallengeChatCard({
           maxLength={maxLength}
           disabled={disabled}
         />
-        <button type="submit" className={styles.chatSubmit} disabled={disabled || !String(inputValue || '').trim()}>
+        <button
+          type="submit"
+          className={styles.chatSubmit}
+          disabled={disabled || !String(inputValue || '').trim()}
+          aria-label="Envoyer"
+          title="Envoyer"
+        >
           {submitLabel}
         </button>
       </form>

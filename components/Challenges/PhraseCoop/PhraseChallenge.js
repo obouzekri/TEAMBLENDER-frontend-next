@@ -368,7 +368,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
           <section className={styles.sideCard}>
             {chatEnabled ? (
               <ChallengeChatCard
-                title="Chat equipe"
+                title="Chat"
                 messages={chatMessages}
                 currentAuthor={displayName}
                 inputValue={chatInput}
