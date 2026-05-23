@@ -88,28 +88,52 @@
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 18px;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
 
-.header h1 {
-  margin: 0;
+.header::-webkit-scrollbar {
+  display: none;
+}
+
+.headerTitleLine {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.headerTitle {
   color: #e5edf7;
-  font-size: 1.22rem;
+  font-size: 1.04rem;
+  font-weight: 800;
   letter-spacing: 0.01em;
 }
 
-.header p {
-  margin: 8px 0 0;
-  color: #bfd3e8;
-  max-width: 64ch;
+.headerDescription {
+  font-size: 0.78rem;
+  color: #7dd3fc;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .badges {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-wrap: nowrap;
+  gap: 6px;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .badge {
@@ -770,7 +794,9 @@
   }
 
   .header {
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
   }
 
   .timelineHead {
@@ -799,8 +825,8 @@
     padding: 10px;
   }
 
-  .header h1 {
-    font-size: 1.6rem;
+  .headerTitle {
+    font-size: 0.96rem;
   }
 
   .timerMetaBar {

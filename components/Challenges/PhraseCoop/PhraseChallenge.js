@@ -199,9 +199,9 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
   return (
     <div className={styles.phraseContainer}>
       <section className={styles.header}>
-        <div>
-          <h1>Phrase Mystère</h1>
-          <p>Reconstituez la phrase en équipe, slot par slot.</p>
+        <div className={styles.headerTitleLine}>
+          <span className={styles.headerTitle}>Phrase Mystère</span>
+          <span className={styles.headerDescription}>: Reconstituez la phrase en équipe, slot par slot.</span>
         </div>
         <div className={styles.badges}>
           <span className={styles.badge}>Progression: {completion}%</span>

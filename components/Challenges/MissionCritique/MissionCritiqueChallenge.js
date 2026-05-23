@@ -270,9 +270,11 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   return (
     <div className={`${styles.container} ${roleViewClass}`}>
       <header className={styles.header}>
-        <div>
-          <h1>Mission Critique</h1>
-          <p>{String(state?.config?.scenario || runtimePayload?.config?.scenario || '')}</p>
+        <div className={styles.headerTitleLine}>
+          <span className={styles.headerTitle}>Mission Critique</span>
+          <span className={styles.headerDescription}>
+            : {String(state?.config?.scenario || runtimePayload?.config?.scenario || 'Organiser un seminaire d\'entreprise pour 80 personnes.')}
+          </span>
         </div>
         <div className={styles.badges}>
           <span className={styles.badge}>Engine: {engineKey}</span>
