@@ -130,7 +130,7 @@ export default function SessionLiveClient() {
       const updated = await res.json();
       setActionMsg(
         updated?.active_challenge_id
-          ? 'Challenge suivant activé.'
+          ? 'Challenge suivant activé. Les participants basculent automatiquement vers le prochain challenge.'
           : 'Dernier challenge terminé.'
       );
       await loadSession();

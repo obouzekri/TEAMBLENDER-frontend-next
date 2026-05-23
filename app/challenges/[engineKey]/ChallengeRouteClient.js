@@ -30,6 +30,7 @@ export default function ChallengeRouteClient() {
     : 'manual';
   const activeChallengeId = String(sessionState?.active_challenge?.id || sessionState?.current_challenge?.id || sessionState?.active_challenge_id || '').trim();
   const activeEngineKey = String(sessionState?.current_challenge?.engine_key || engineKey).trim();
+  const hasAuthoritativeState = Boolean(sessionState && typeof sessionState === 'object');
 
   const clearCountdown = useCallback(() => {
     if (countdownTimerRef.current) {
@@ -64,6 +65,27 @@ export default function ChallengeRouteClient() {
 
     setCompletionOverlay({ mode: 'manual', countdown: 0 });
   }, [activeChallengeId, clearCountdown, flowMode]);
+
+  useEffect(() => {
+    if (!sessionId || !hasAuthoritativeState) {
+      return;
+    }
+
+    if (!activeChallengeId) {
+      clearCountdown();
+      completedChallengeIdRef.current = '';
+      setCompletionOverlay(null);
+      router.replace(`/participant?sessionId=${encodeURIComponent(sessionId)}`);
+      return;
+    }
+
+    if (activeEngineKey && activeEngineKey !== engineKey) {
+      clearCountdown();
+      completedChallengeIdRef.current = '';
+      setCompletionOverlay(null);
+      router.replace(`/challenges/${encodeURIComponent(activeEngineKey)}?sessionId=${encodeURIComponent(sessionId)}`);
+    }
+  }, [activeChallengeId, activeEngineKey, clearCountdown, engineKey, hasAuthoritativeState, router, sessionId]);
 
   useEffect(() => {
     if (!completedChallengeIdRef.current || !sessionId) {
