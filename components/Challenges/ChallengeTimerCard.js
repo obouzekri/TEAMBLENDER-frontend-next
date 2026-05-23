@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import styles from './ChallengeTimerCard.module.css';
 
 function formatTimer(seconds) {
@@ -49,7 +49,10 @@ export default function ChallengeTimerCard({
   actions = null,
   footer = null,
   waitingText = '⏳ En attente du facilitateur',
+  collapsible = true,
+  defaultCollapsed = false,
 }) {
+  const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
   const normalizedStatus = normalizeStatus(status);
   const shouldShowWaitingText = !isFacilitator
     && Boolean(waitingText)
@@ -87,31 +90,49 @@ export default function ChallengeTimerCard({
 
   return (
     <section className={`${styles.timerCard} ${className}`.trim()}>
-      <h3 className={styles.timerTitle}>{title}</h3>
-
-      <div className={styles.timerRingContainer}>
-        <div
-          className={ringClassName}
-          style={{
-            background: `conic-gradient(${ringColor} ${Math.round((ringSweep / 100) * 360)}deg, rgba(148, 163, 184, 0.18) ${Math.round((ringSweep / 100) * 360)}deg)`
-          }}
-        >
-          <div className={styles.timerDisplay}>
-            <div className={styles.timerTime}>{formatTimer(remainingSeconds)}</div>
-            <div className={styles.timerState}>{statusLabel(normalizedStatus)}</div>
-
-            {ringAction ? (
-              <div className={styles.timerRingActions}>
-                {ringAction}
-              </div>
-            ) : null}
-          </div>
-        </div>
+      <div className={styles.timerHeader}>
+        <h3 className={styles.timerTitle}>{title}</h3>
+        {collapsible ? (
+          <button
+            type="button"
+            className={styles.timerToggleBtn}
+            onClick={() => setCollapsed((prev) => !prev)}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? 'Afficher le chrono' : 'Réduire le chrono'}
+            title={collapsed ? 'Afficher' : 'Réduire'}
+          >
+            {collapsed ? '▾' : '▴'}
+          </button>
+        ) : null}
       </div>
 
-      {shouldShowWaitingText ? <p className={styles.timerWaitingText}>{waitingText}</p> : null}
-      {footer ? <div className={styles.timerFooter}>{footer}</div> : null}
-      {actions ? <div className={styles.timerActions}>{actions}</div> : null}
+      {collapsed ? null : (
+        <>
+          <div className={styles.timerRingContainer}>
+            <div
+              className={ringClassName}
+              style={{
+                background: `conic-gradient(${ringColor} ${Math.round((ringSweep / 100) * 360)}deg, rgba(148, 163, 184, 0.18) ${Math.round((ringSweep / 100) * 360)}deg)`
+              }}
+            >
+              <div className={styles.timerDisplay}>
+                <div className={styles.timerTime}>{formatTimer(remainingSeconds)}</div>
+                <div className={styles.timerState}>{statusLabel(normalizedStatus)}</div>
+
+                {ringAction ? (
+                  <div className={styles.timerRingActions}>
+                    {ringAction}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {shouldShowWaitingText ? <p className={styles.timerWaitingText}>{waitingText}</p> : null}
+          {footer ? <div className={styles.timerFooter}>{footer}</div> : null}
+          {actions ? <div className={styles.timerActions}>{actions}</div> : null}
+        </>
+      )}
     </section>
   );
 }

@@ -447,6 +447,24 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             ) : null}
           />
 
+          {chatEnabled ? (
+            <ChallengeChatCard
+              className={`${styles.chatCard} ${styles.sideChatCard}`}
+              title="Chat"
+              messages={chatMessages}
+              currentAuthor={displayName}
+              inputValue={chatInput}
+              onInputChange={setChatInput}
+              onSubmit={submitChat}
+              quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
+              onQuickMessage={sendQuickChat}
+              emptyText="Aucun message pour le moment."
+              placeholder="Ecrire un message d equipe"
+              maxLength={240}
+              submitLabel="➤"
+            />
+          ) : null}
+
           <section className={styles.sideCard}>
             <h2>{isFacilitator ? 'Image de référence' : 'Pièces assignées'}</h2>
 
@@ -515,24 +533,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
               </>
             ) : null}
           </section>
-
-          {chatEnabled ? (
-            <ChallengeChatCard
-              className={`${styles.chatCard} ${styles.sideChatCard}`}
-              title="Chat"
-              messages={chatMessages}
-              currentAuthor={displayName}
-              inputValue={chatInput}
-              onInputChange={setChatInput}
-              onSubmit={submitChat}
-              quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
-              onQuickMessage={sendQuickChat}
-              emptyText="Aucun message pour le moment."
-              placeholder="Ecrire un message d equipe"
-              maxLength={240}
-              submitLabel="➤"
-            />
-          ) : null}
         </aside>
       </div>
 

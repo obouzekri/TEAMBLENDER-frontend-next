@@ -232,6 +232,12 @@
 	gap: 0.45rem;
 }
 
+.sideStack {
+	display: grid;
+	gap: 0.75rem;
+	align-content: start;
+}
+
 .voteGrid {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0, 1fr));

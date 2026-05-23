@@ -305,6 +305,24 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
             ) : null}
           />
 
+          <section className={styles.sideCard}>
+            {chatEnabled ? (
+              <ChallengeChatCard
+                title="Chat"
+                messages={chatMessages}
+                currentAuthor={displayName}
+                inputValue={chatInput}
+                onInputChange={setChatInput}
+                onSubmit={submitChat}
+                quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
+                onQuickMessage={sendQuickChat}
+                emptyText="Aucun message pour le moment."
+                placeholder="Ecrire un message"
+                maxLength={240}
+              />
+            ) : null}
+          </section>
+
           {!isFacilitator ? (
             <section className={styles.sideCard}>
               <h2>Vos informations</h2>
@@ -359,24 +377,6 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
                 <button className={styles.btnPrimary} onClick={requestHint}>💡 Indice</button>
               </div>
             )}
-          </section>
-
-          <section className={styles.sideCard}>
-            {chatEnabled ? (
-              <ChallengeChatCard
-                title="Chat"
-                messages={chatMessages}
-                currentAuthor={displayName}
-                inputValue={chatInput}
-                onInputChange={setChatInput}
-                onSubmit={submitChat}
-                quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
-                onQuickMessage={sendQuickChat}
-                emptyText="Aucun message pour le moment."
-                placeholder="Ecrire un message"
-                maxLength={240}
-              />
-            ) : null}
             <p className={styles.helper}>
               {!isFacilitator
                 ? 'Sélectionnez ou glissez un mot vers une de vos cases pour le placer.'

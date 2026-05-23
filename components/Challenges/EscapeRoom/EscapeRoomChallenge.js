@@ -628,23 +628,6 @@ export default function EscapeRoomChallenge({
             ) : null}
           />
 
-          <div className={styles.teamProgressTrack}>
-            <div className={styles.teamProgressFill} style={{ width: `${responseProgress}%` }} />
-          </div>
-
-          <section className={styles.teamList}>
-            {participantRows.length === 0 ? (
-              <p className={styles.teamEmpty}>Liste participants indisponible.</p>
-            ) : participantRows.map((row) => (
-              <div key={String(row.id || row.name)} className={styles.teamRow}>
-                <span>{row.name}</span>
-                <span className={row.responded ? styles.teamStatusOk : styles.teamStatusPending}>
-                  {row.responded ? 'repondu' : 'en attente'}
-                </span>
-              </div>
-            ))}
-          </section>
-
           {chatEnabled ? (
             <>
               <ChallengeChatCard
@@ -664,6 +647,23 @@ export default function EscapeRoomChallenge({
               {realtimeError ? <p className={styles.feedback}>{realtimeError}</p> : null}
             </>
           ) : null}
+
+          <div className={styles.teamProgressTrack}>
+            <div className={styles.teamProgressFill} style={{ width: `${responseProgress}%` }} />
+          </div>
+
+          <section className={styles.teamList}>
+            {participantRows.length === 0 ? (
+              <p className={styles.teamEmpty}>Liste participants indisponible.</p>
+            ) : participantRows.map((row) => (
+              <div key={String(row.id || row.name)} className={styles.teamRow}>
+                <span>{row.name}</span>
+                <span className={row.responded ? styles.teamStatusOk : styles.teamStatusPending}>
+                  {row.responded ? 'repondu' : 'en attente'}
+                </span>
+              </div>
+            ))}
+          </section>
 
           {feedback ? <p className={styles.feedback}>{feedback}</p> : null}
 

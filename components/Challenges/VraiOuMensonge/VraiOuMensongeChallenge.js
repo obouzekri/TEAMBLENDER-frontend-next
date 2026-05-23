@@ -321,6 +321,22 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             waitingText="⏳ Chrono partagé pour l'equipe"
           />
 
+          {chatEnabled ? (
+            <ChallengeChatCard
+              className={styles.card}
+              title="Chat"
+              messages={chatMessages}
+              currentAuthor={displayName}
+              inputValue={chatInput}
+              onInputChange={setChatInput}
+              onSubmit={submitChat}
+              quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
+              onQuickMessage={sendQuickChat}
+              placeholder="Ecrire un message"
+              maxLength={240}
+            />
+          ) : null}
+
           <section className={`${styles.card} ${styles.stateCard}`}>
             <h3>Etat live</h3>
             <div className={styles.stateGrid}>
@@ -359,22 +375,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               </ul>
             ) : null}
           </section>
-
-          {chatEnabled ? (
-            <ChallengeChatCard
-              className={styles.card}
-              title="Chat"
-              messages={chatMessages}
-              currentAuthor={displayName}
-              inputValue={chatInput}
-              onInputChange={setChatInput}
-              onSubmit={submitChat}
-              quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
-              onQuickMessage={sendQuickChat}
-              placeholder="Ecrire un message"
-              maxLength={240}
-            />
-          ) : null}
         </aside>
       </div>
     </div>
