@@ -252,7 +252,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
         </section>
 
         <ChallengeTimerCard
-          className={styles.panel}
+          className={`${styles.panel} ${styles.timerPanel}`}
           title="Chrono"
           remainingSeconds={Number(timer?.remaining_seconds || 0)}
           durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}

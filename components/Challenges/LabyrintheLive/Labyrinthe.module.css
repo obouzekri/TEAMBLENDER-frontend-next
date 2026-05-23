@@ -219,6 +219,14 @@
 	transform: translateY(-1px);
 }
 
+.timerPanel {
+	width: fit-content;
+	min-width: 180px;
+	max-width: 230px;
+	justify-self: start;
+	align-self: start;
+}
+
 .actions {
 	display: grid;
 	gap: 0.45rem;
@@ -383,6 +391,11 @@
 @media (max-width: 960px) {
 	.layout {
 		grid-template-columns: 1fr;
+	}
+
+	.timerPanel {
+		width: 100%;
+		max-width: none;
 	}
 }
 
