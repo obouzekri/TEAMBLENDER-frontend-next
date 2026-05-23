@@ -13,6 +13,7 @@
   --critical: #ef6b6b;
   --success: #35b776;
   --warn: #f2a640;
+  font-family: var(--font-ui, "IBM Plex Sans", "Segoe UI", sans-serif);
   min-height: 100dvh;
   width: min(100%, 1320px);
   margin: 0 auto;
