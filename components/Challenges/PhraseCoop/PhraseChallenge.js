@@ -5,6 +5,7 @@ import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
+import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import styles from './PhraseCoop.module.css';
 
 function computeCompletionPercent(slots) {
@@ -99,6 +100,13 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
   ]);
   const timer = state?.timer || null;
   const timerStatus = String(timer?.status || 'idle').trim();
+  const normalizedTimerStatus = timerStatus.toLowerCase();
+  const hasChallengeStarted = timer?.enabled === false
+    || normalizedTimerStatus === 'running'
+    || normalizedTimerStatus === 'paused'
+    || normalizedTimerStatus === 'completed'
+    || normalizedTimerStatus === 'stopped'
+    || normalizedTimerStatus === 'timeout';
   const canPlay = timer?.enabled === false || timerStatus === 'running';
   const completion = useMemo(() => computeCompletionPercent(slots), [slots]);
   const modeVisionLimitee = state?.config?.modeVisionLimitee === true;
@@ -216,70 +224,106 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
 
       <div className={styles.shell}>
         <section className={styles.boardPanel}>
-          {slots.length === 0 ? (
-            <p className={styles.empty}>En attente de l'état initial...</p>
+          {!hasChallengeStarted ? (
+            <ChallengeRulesPanel
+              isStarted={false}
+              challengeName="Phrase Mystere"
+              objective="Reconstituez la phrase complete en equipe, case par case, avant la fin du chrono."
+              facilitatorRules={[
+                'Demarrez le chrono quand chaque participant connait son role.',
+                'Pilotez les indices et le rythme de coordination.',
+                'Suivez les blocages pour debloquer rapidement le groupe.'
+              ]}
+              participantRules={[
+                'Placez uniquement les mots qui correspondent a vos cases.',
+                'Partagez vos hypotheses dans le chat equipe.',
+                'Corrigez les cases incorrectes des qu une incoherence apparait.'
+              ]}
+              footnote="Une fois le chrono lance, le brief se masque et la vue de jeu devient active."
+            />
           ) : (
-            <div className={styles.board}>
-              {slots.map((slot) => {
-                const isMine = !isFacilitator && participantSlot && Number(slot.assigned_slot) === participantSlot;
-                const isLocked = !isFacilitator && !isMine;
-                const isCorrect = slot?.is_correct === true;
-                const hiddenWord = modeVisionLimitee && isLocked && slot?.current_word ? '...' : '';
-                const displayedWord = hiddenWord || formatWord(slot?.current_word || '');
-                const expectedWord = isFacilitator ? formatWord(slot?.expected_word || '') : '';
-                const isDragOver = Number(dragOverSlotIndex) === Number(slot.index);
+            <>
+              {slots.length === 0 ? (
+                <p className={styles.empty}>En attente de l'état initial...</p>
+              ) : (
+                <div className={styles.board}>
+                  {slots.map((slot) => {
+                    const isMine = !isFacilitator && participantSlot && Number(slot.assigned_slot) === participantSlot;
+                    const isLocked = !isFacilitator && !isMine;
+                    const isCorrect = slot?.is_correct === true;
+                    const hiddenWord = modeVisionLimitee && isLocked && slot?.current_word ? '...' : '';
+                    const displayedWord = hiddenWord || formatWord(slot?.current_word || '');
+                    const expectedWord = isFacilitator ? formatWord(slot?.expected_word || '') : '';
+                    const isDragOver = Number(dragOverSlotIndex) === Number(slot.index);
 
-                return (
-                  <button
-                    key={String(slot.index)}
-                    type="button"
-                    className={`${styles.slot}${isMine ? ` ${styles.slotMine}` : ''}${isLocked ? ` ${styles.slotLocked}` : ''}${isCorrect ? ` ${styles.slotOk}` : ''}${isDragOver ? ` ${styles.slotDropTarget}` : ''}`}
-                    onClick={() => {
-                      if (isFacilitator) return;
-                      if (isMine && selectedWord) {
-                        placeOnSlot(slot);
-                        return;
-                      }
-                      if (isMine && slot?.current_word) {
-                        clearSlot(slot);
-                      }
-                    }}
-                    onDragOver={(event) => onSlotDragOver(event, slot, isMine)}
-                    onDragEnter={() => {
-                      if (isMine) {
-                        setDragOverSlotIndex(Number(slot.index));
-                      }
-                    }}
-                    onDragLeave={() => setDragOverSlotIndex((prev) => (Number(prev) === Number(slot.index) ? null : prev))}
-                    onDrop={(event) => onSlotDrop(event, slot, isMine)}
-                    disabled={Boolean(isFacilitator || isLocked || !canPlay)}
-                  >
-                    <span className={styles.slotIndex}>Case {Number(slot.index) + 1}</span>
-                    <span className={styles.slotWord}>{displayedWord || '\u00a0'}</span>
-                    {isFacilitator ? (
-                      <span className={styles.slotExpected}>Cible: {expectedWord || '-'}</span>
-                    ) : (
-                      <span className={styles.slotMeta}>Assignée: {slot.assigned_slot}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                    return (
+                      <button
+                        key={String(slot.index)}
+                        type="button"
+                        className={`${styles.slot}${isMine ? ` ${styles.slotMine}` : ''}${isLocked ? ` ${styles.slotLocked}` : ''}${isCorrect ? ` ${styles.slotOk}` : ''}${isDragOver ? ` ${styles.slotDropTarget}` : ''}`}
+                        onClick={() => {
+                          if (isFacilitator) return;
+                          if (isMine && selectedWord) {
+                            placeOnSlot(slot);
+                            return;
+                          }
+                          if (isMine && slot?.current_word) {
+                            clearSlot(slot);
+                          }
+                        }}
+                        onDragOver={(event) => onSlotDragOver(event, slot, isMine)}
+                        onDragEnter={() => {
+                          if (isMine) {
+                            setDragOverSlotIndex(Number(slot.index));
+                          }
+                        }}
+                        onDragLeave={() => setDragOverSlotIndex((prev) => (Number(prev) === Number(slot.index) ? null : prev))}
+                        onDrop={(event) => onSlotDrop(event, slot, isMine)}
+                        disabled={Boolean(isFacilitator || isLocked || !canPlay)}
+                      >
+                        <span className={styles.slotIndex}>Case {Number(slot.index) + 1}</span>
+                        <span className={styles.slotWord}>{displayedWord || '\u00a0'}</span>
+                        {isFacilitator ? (
+                          <span className={styles.slotExpected}>Cible: {expectedWord || '-'}</span>
+                        ) : (
+                          <span className={styles.slotMeta}>Assignée: {slot.assigned_slot}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {summary ? (
+                <div className={styles.summary}>
+                  <h3>Débrief équipe</h3>
+                  <p>Completion: {Number(summary.completion_percent || completion)}%</p>
+                  <p>Temps total: {Number(summary.total_time_seconds || 0)}s</p>
+                  <p>Actions: {Number(summary.action_count || 0)}</p>
+                  <p>Messages: {Number(summary.message_count || 0)}</p>
+                  <p>Score collectif: {Number(summary.collective_score || 0)}</p>
+                </div>
+              ) : null}
+            </>
           )}
-
-          {summary ? (
-            <div className={styles.summary}>
-              <h3>Débrief équipe</h3>
-              <p>Completion: {Number(summary.completion_percent || completion)}%</p>
-              <p>Temps total: {Number(summary.total_time_seconds || 0)}s</p>
-              <p>Actions: {Number(summary.action_count || 0)}</p>
-              <p>Messages: {Number(summary.message_count || 0)}</p>
-              <p>Score collectif: {Number(summary.collective_score || 0)}</p>
-            </div>
-          ) : null}
         </section>
 
         <aside className={styles.sidePanel}>
+          <ChallengeRulesPanel
+            isStarted={hasChallengeStarted}
+            showPrestartCard={false}
+            challengeName="Phrase Mystere"
+            objective="Consultez le rappel de regles sans interrompre la session."
+            facilitatorRules={[
+              'Cadencez les tentatives et pilotez les indices.',
+              'Assurez une communication claire entre les slots.'
+            ]}
+            participantRules={[
+              'Travaillez sur vos cases assignees.',
+              'Coordonnez vos choix de mots en temps reel.'
+            ]}
+          />
+
           <ChallengeTimerCard
             className={`${styles.sideCard} ${styles.timerCard}`}
             title="Chrono"

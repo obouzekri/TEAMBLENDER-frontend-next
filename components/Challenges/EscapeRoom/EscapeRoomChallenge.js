@@ -7,6 +7,7 @@ import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
+import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import styles from './EscapeRoom.module.css';
 
 const OUTCOME_UI = {
@@ -368,6 +369,7 @@ export default function EscapeRoomChallenge({
 
   const timerSeconds = Number(state?.timer?.duration_seconds || 0);
   const challengeStatus = String(state?.status || '').trim();
+  const hasChallengeStarted = challengeStatus !== 'waiting_for_start';
   const canStartTimer = isFacilitator && challengeStatus === 'waiting_for_start' && !busyAction;
   const isTimerRunning = challengeStatus === 'in_progress';
 
@@ -488,7 +490,24 @@ export default function EscapeRoomChallenge({
 
       <section className={styles.layout}>
         <article className={styles.card}>
-          {isFinished ? (
+          {!hasChallengeStarted ? (
+            <ChallengeRulesPanel
+              isStarted={false}
+              challengeName="Escape Room"
+              objective="Resolvez les enigmes en equipe avec validation collective avant la fin du temps."
+              facilitatorRules={[
+                'Lancez la session quand tout le groupe est pret.',
+                'Debloquez des indices ou passez une enigme si necessaire.',
+                'Suivez les reponses en attente pour maintenir le rythme.'
+              ]}
+              participantRules={[
+                'Analysez l enigme en equipe puis soumettez une proposition commune.',
+                'Coordonnez les tentatives pour limiter les erreurs.',
+                'Utilisez le chat pour partager rapidement hypotheses et pistes.'
+              ]}
+              footnote="Le brief disparait automatiquement apres lancement via le bouton Play du chrono."
+            />
+          ) : isFinished ? (
             <>
               <h2>Partie terminée</h2>
               <p className={styles.issueRow}>
@@ -587,6 +606,21 @@ export default function EscapeRoomChallenge({
         </article>
 
         <aside className={styles.card}>
+          <ChallengeRulesPanel
+            isStarted={hasChallengeStarted}
+            showPrestartCard={false}
+            challengeName="Escape Room"
+            objective="Rappel des regles consultable en popup pendant le jeu."
+            facilitatorRules={[
+              'Piloter le timing et les indices.',
+              'Cadencer les validations collectives.'
+            ]}
+            participantRules={[
+              'Soumettre des reponses coherentes en equipe.',
+              'S aligner rapidement en cas de divergence.'
+            ]}
+          />
+
           <ChallengeTimerCard
             className={styles.timerCard}
             title="Chrono"

@@ -6,6 +6,7 @@ import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
+import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import styles from './MissionCritique.module.css';
 
 const PHASES = Object.freeze([
@@ -129,6 +130,13 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const completionPercent = Math.max(0, Math.min(100, Math.round((timeline.length / Math.max(1, tasks.length)) * 100)));
 
   const timerState = String(state?.timer?.status || 'idle').trim();
+  const normalizedTimerState = timerState.toLowerCase();
+  const hasChallengeStarted = state?.timer?.enabled === false
+    || normalizedTimerState === 'running'
+    || normalizedTimerState === 'paused'
+    || normalizedTimerState === 'completed'
+    || normalizedTimerState === 'stopped'
+    || normalizedTimerState === 'timeout';
   const canEditTimeline = !isFacilitator && (state?.timer?.enabled === false || timerState === 'running');
 
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
@@ -285,7 +293,26 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
       <div className={styles.layout}>
         <main className={styles.mainPane}>
-          {!isFacilitator ? (
+          {!hasChallengeStarted ? (
+            <section className={styles.card}>
+              <ChallengeRulesPanel
+                isStarted={false}
+                challengeName="Mission Critique"
+                objective="Construisez une timeline coherent pour maximiser le score equipe avant la fin du chrono."
+                facilitatorRules={[
+                  'Lancez le chrono quand tous les participants sont prets.',
+                  'Surveillez les blocages et relancez les arbitrages.',
+                  'Appuyez la coordination via le chat et les retours rapides.'
+                ]}
+                participantRules={[
+                  'Placez les taches dans les bonnes phases.',
+                  'Respectez les dependances critiques et l ordre logique.',
+                  'Validez votre proposition quand la timeline est coherente.'
+                ]}
+                footnote="Des le lancement, le brief se masque et la vue de mission devient active."
+              />
+            </section>
+          ) : !isFacilitator ? (
             <>
               <section className={`${styles.card} ${styles.progressCard}`}>
                 <div className={styles.progressMeta}>
@@ -483,6 +510,21 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
         </main>
 
         <aside className={styles.sidebar}>
+          <ChallengeRulesPanel
+            isStarted={hasChallengeStarted}
+            showPrestartCard={false}
+            challengeName="Mission Critique"
+            objective="Rappel des regles disponible a tout moment pendant la session."
+            facilitatorRules={[
+              'Piloter le rythme et la priorisation collective.',
+              'Recadrer les decisions non coherentes.'
+            ]}
+            participantRules={[
+              'Structurer la timeline selon les phases.',
+              'Collaborer activement sur les dependances.'
+            ]}
+          />
+
           <ChallengeTimerCard
             className={styles.timerCard}
             title="Chrono"

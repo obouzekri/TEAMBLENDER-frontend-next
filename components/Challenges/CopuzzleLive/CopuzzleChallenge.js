@@ -7,6 +7,7 @@ import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets'
 import { getBackendOrigin } from '@/lib/config';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
+import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import styles from './Copuzzle.module.css';
 
 function clampInt(value, fallback, min, max) {
@@ -97,6 +98,13 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
   const pieces = Array.isArray(state?.puzzle?.pieces) ? state.puzzle.pieces : [];
   const participantSlot = Number(state?.participantSlot || 0) || null;
   const timerState = String(state?.timer?.status || 'idle').trim();
+  const normalizedTimerState = timerState.toLowerCase();
+  const hasChallengeStarted = state?.timer?.enabled === false
+    || normalizedTimerState === 'running'
+    || normalizedTimerState === 'paused'
+    || normalizedTimerState === 'completed'
+    || normalizedTimerState === 'stopped'
+    || normalizedTimerState === 'timeout';
   const canPlay = state?.timer?.enabled === false || timerState === 'running';
   const backendOrigin = useMemo(() => getBackendOrigin(), []);
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
@@ -301,127 +309,166 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
 
       <div className={styles.shell}>
         <section className={styles.boardPanel}>
-          <div
-            className={styles.board}
-            style={{
-              gridTemplateColumns: `repeat(${colCount}, 1fr)`,
-            }}
-          >
-            {boardCells.map((cell) => {
-              const occupant = boardOccupancy.get(cell.key) || null;
-              const isMyPiece = occupant && participantSlot && Number(occupant.assigned_slot) === participantSlot;
-              const isHiddenPiece = occupant && !isFacilitator && !isMyPiece;
-              const canDragBoardPiece = Boolean(occupant && canPlay && (isFacilitator || isMyPiece));
-              const canRemoveBoardPiece = Boolean(occupant && canPlay && isMyPiece);
-              const shouldDisableCell = !canPlay || Boolean(occupant && !canRemoveBoardPiece);
-              const cellClass = `${styles.cell}${occupant ? ` ${styles.cellFilled}` : ''}${dragOverCellKey === cell.key ? ` ${styles.cellDropTarget}` : ''}`;
+          {!hasChallengeStarted ? (
+            <ChallengeRulesPanel
+              isStarted={false}
+              challengeName="CoPuzzle Live"
+              objective="Assemblez le puzzle en equipe dans le temps imparti en coordonnant vos pieces assignes."
+              facilitatorRules={[
+                'Lancez le chrono quand tout le monde est pret.',
+                'Suivez la progression collective et fluidifiez la coordination.',
+                'Utilisez le chat pour relancer et clarifier les priorites.'
+              ]}
+              participantRules={[
+                'Placez vos pieces assignes sur la bonne case.',
+                'Annoncez vos intentions dans le chat pour eviter les conflits.',
+                'Corrigez rapidement les placements errones si necessaire.'
+              ]}
+              footnote="Au lancement, ce brief disparait et la vue de jeu devient active."
+            />
+          ) : (
+            <>
+              <div
+                className={styles.board}
+                style={{
+                  gridTemplateColumns: `repeat(${colCount}, 1fr)`,
+                }}
+              >
+                {boardCells.map((cell) => {
+                  const occupant = boardOccupancy.get(cell.key) || null;
+                  const isMyPiece = occupant && participantSlot && Number(occupant.assigned_slot) === participantSlot;
+                  const isHiddenPiece = occupant && !isFacilitator && !isMyPiece;
+                  const canDragBoardPiece = Boolean(occupant && canPlay && (isFacilitator || isMyPiece));
+                  const canRemoveBoardPiece = Boolean(occupant && canPlay && isMyPiece);
+                  const shouldDisableCell = !canPlay || Boolean(occupant && !canRemoveBoardPiece);
+                  const cellClass = `${styles.cell}${occupant ? ` ${styles.cellFilled}` : ''}${dragOverCellKey === cell.key ? ` ${styles.cellDropTarget}` : ''}`;
 
-              return (
-                <button
-                  key={cell.key}
-                  type="button"
-                  className={cellClass}
-                  onClick={() => {
-                    if (occupant && canRemoveBoardPiece) {
-                      removePiece(occupant.id);
-                      setSelectedPieceId(String(occupant.id));
-                      return;
-                    }
-                    if (!occupant) {
-                      placeOnCell(cell.x, cell.y);
-                    }
-                  }}
-                  onDragOver={(event) => onCellDragOver(event, cell.key, occupant)}
-                  onDragEnter={() => {
-                    if (!occupant) {
-                      setDragOverCellKey(cell.key);
-                    }
-                  }}
-                  onDragLeave={() => setDragOverCellKey((prev) => (prev === cell.key ? '' : prev))}
-                  onDrop={(event) => onCellDrop(event, cell, occupant)}
-                  disabled={shouldDisableCell}
-                >
-                  {occupant ? (
-                    isHiddenPiece ? (
-                      <div className={styles.cellContentHidden}>
-                        <span className={styles.hiddenCellLabel}>Pièce assignée</span>
-                      </div>
-                    ) : (
-                      <div
-                        className={styles.cellContent}
-                        draggable={canDragBoardPiece}
-                        onDragStart={(event) => onBoardDragStart(event, occupant)}
-                        onDragEnd={onDragEnd}
-                      >
-                        <div
-                          className={styles.piecePreview}
-                          style={computePieceStyle(occupant, effectiveConfig, imageUrl)}
-                        />
-                        <span className={styles.pieceLabel}>{occupant.id}</span>
-                        {isMyPiece && canPlay ? (
-                          <button
-                            type="button"
-                            className={styles.removeBtn}
-                            onClick={(event) => {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              removePiece(occupant.id);
-                            }}
+                  return (
+                    <button
+                      key={cell.key}
+                      type="button"
+                      className={cellClass}
+                      onClick={() => {
+                        if (occupant && canRemoveBoardPiece) {
+                          removePiece(occupant.id);
+                          setSelectedPieceId(String(occupant.id));
+                          return;
+                        }
+                        if (!occupant) {
+                          placeOnCell(cell.x, cell.y);
+                        }
+                      }}
+                      onDragOver={(event) => onCellDragOver(event, cell.key, occupant)}
+                      onDragEnter={() => {
+                        if (!occupant) {
+                          setDragOverCellKey(cell.key);
+                        }
+                      }}
+                      onDragLeave={() => setDragOverCellKey((prev) => (prev === cell.key ? '' : prev))}
+                      onDrop={(event) => onCellDrop(event, cell, occupant)}
+                      disabled={shouldDisableCell}
+                    >
+                      {occupant ? (
+                        isHiddenPiece ? (
+                          <div className={styles.cellContentHidden}>
+                            <span className={styles.hiddenCellLabel}>Pièce assignée</span>
+                          </div>
+                        ) : (
+                          <div
+                            className={styles.cellContent}
+                            draggable={canDragBoardPiece}
+                            onDragStart={(event) => onBoardDragStart(event, occupant)}
+                            onDragEnd={onDragEnd}
                           >
-                            Retirer
-                          </button>
-                        ) : null}
-                      </div>
-                    )
-                  ) : (
-                    <span className={styles.cellHint}>{cell.x + 1}x{cell.y + 1}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {state?.summary ? (
-            <div className={styles.summary}>
-              <h3 className={styles.summaryTitle}>🏆 Débrief collectif</h3>
-              <div className={styles.summaryGrid}>
-                <div className={styles.summaryCard}>
-                  <div className={styles.summaryValue} style={{ color: '#34d399' }}>
-                    {Number(state.summary?.completion_percent || completion)}%
-                  </div>
-                  <div className={styles.summaryLabel}>Complétion</div>
-                </div>
-                <div className={styles.summaryCard}>
-                  <div className={styles.summaryValue} style={{ color: '#60a5fa' }}>
-                    {Number(state.summary?.collective_score || 0)}
-                  </div>
-                  <div className={styles.summaryLabel}>Score collectif</div>
-                </div>
-                <div className={styles.summaryCard}>
-                  <div className={styles.summaryValue} style={{ color: '#fbbf24' }}>
-                    {Number(state.summary?.action_count || 0)}
-                  </div>
-                  <div className={styles.summaryLabel}>Actions</div>
-                </div>
-                <div className={styles.summaryCard}>
-                  <div className={styles.summaryValue} style={{ color: '#a78bfa' }}>
-                    {Number(state.summary?.message_count || 0)}
-                  </div>
-                  <div className={styles.summaryLabel}>Messages</div>
-                </div>
+                            <div
+                              className={styles.piecePreview}
+                              style={computePieceStyle(occupant, effectiveConfig, imageUrl)}
+                            />
+                            <span className={styles.pieceLabel}>{occupant.id}</span>
+                            {isMyPiece && canPlay ? (
+                              <button
+                                type="button"
+                                className={styles.removeBtn}
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  removePiece(occupant.id);
+                                }}
+                              >
+                                Retirer
+                              </button>
+                            ) : null}
+                          </div>
+                        )
+                      ) : (
+                        <span className={styles.cellHint}>{cell.x + 1}x{cell.y + 1}</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-              {state.summary?.total_time_seconds > 0 ? (
-                <div className={styles.summaryTime}>
-                  ⏱ Temps: {Math.floor(Number(state.summary.total_time_seconds) / 60)}m{' '}
-                  {Number(state.summary.total_time_seconds) % 60}s
+
+              {state?.summary ? (
+                <div className={styles.summary}>
+                  <h3 className={styles.summaryTitle}>🏆 Débrief collectif</h3>
+                  <div className={styles.summaryGrid}>
+                    <div className={styles.summaryCard}>
+                      <div className={styles.summaryValue} style={{ color: '#34d399' }}>
+                        {Number(state.summary?.completion_percent || completion)}%
+                      </div>
+                      <div className={styles.summaryLabel}>Complétion</div>
+                    </div>
+                    <div className={styles.summaryCard}>
+                      <div className={styles.summaryValue} style={{ color: '#60a5fa' }}>
+                        {Number(state.summary?.collective_score || 0)}
+                      </div>
+                      <div className={styles.summaryLabel}>Score collectif</div>
+                    </div>
+                    <div className={styles.summaryCard}>
+                      <div className={styles.summaryValue} style={{ color: '#fbbf24' }}>
+                        {Number(state.summary?.action_count || 0)}
+                      </div>
+                      <div className={styles.summaryLabel}>Actions</div>
+                    </div>
+                    <div className={styles.summaryCard}>
+                      <div className={styles.summaryValue} style={{ color: '#a78bfa' }}>
+                        {Number(state.summary?.message_count || 0)}
+                      </div>
+                      <div className={styles.summaryLabel}>Messages</div>
+                    </div>
+                  </div>
+                  {state.summary?.total_time_seconds > 0 ? (
+                    <div className={styles.summaryTime}>
+                      ⏱ Temps: {Math.floor(Number(state.summary.total_time_seconds) / 60)}m{' '}
+                      {Number(state.summary.total_time_seconds) % 60}s
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
-            </div>
-          ) : null}
+            </>
+          )}
 
         </section>
 
         <aside className={styles.sidePanel}>
+          <ChallengeRulesPanel
+            isStarted={hasChallengeStarted}
+            showPrestartCard={false}
+            challengeName="CoPuzzle Live"
+            objective="Consultez les regles de coordination a tout moment pendant la partie."
+            facilitatorRules={[
+              'Lancez le chrono uniquement quand tous les participants sont prets.',
+              'Donnez des priorites claires sur les zones du puzzle.',
+              'Relancez les participants inactifs via le chat.'
+            ]}
+            participantRules={[
+              'Placez uniquement vos pieces assignees.',
+              'Signalez vos actions importantes dans le chat equipe.',
+              'Adaptez-vous rapidement aux ajustements collectifs.'
+            ]}
+            footnote="Le bouton affiche une popup de rappel sans interrompre la session."
+          />
+
           <ChallengeTimerCard
             className={`${styles.sideCard} ${styles.timerCard}`}
             title="Chrono"

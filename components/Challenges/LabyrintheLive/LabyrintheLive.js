@@ -5,6 +5,7 @@ import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
+import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import styles from './Labyrinthe.module.css';
 
 function posKey(pos) {
@@ -119,10 +120,26 @@ function getLabyRuntimeConfig(runtimePayload, laby) {
   };
 }
 
+function getParticipantStatusMeta(participant) {
+  const connected = Boolean(participant?.connected);
+  const lives = Number(participant?.lives_remaining || 0);
+  const soloStatus = String(participant?.solo?.st || '').trim().toLowerCase();
+
+  if (!connected) {
+    return { label: 'Hors ligne', tone: 'offline' };
+  }
+  if (lives <= 0 || soloStatus === 'eliminated' || soloStatus === 'dead') {
+    return { label: 'Bloque', tone: 'blocked' };
+  }
+  if (soloStatus === 'moving' || soloStatus === 'play' || soloStatus === 'playing') {
+    return { label: 'En action', tone: 'active' };
+  }
+  return { label: 'Connecte', tone: 'connected' };
+}
+
 export default function LabyrintheLive({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const {
     state,
-    events,
     error,
     isFacilitator,
     emitEvent,
@@ -178,6 +195,104 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   const mazeCols = safeInt(laby?.cfg?.cols ?? laby?.cfg?.c, 8, 1, 24);
   const mazeCells = Array.isArray(laby?.maze?.cells) ? laby.maze.cells : [];
   const participantEntries = useMemo(() => Object.entries(laby?.parts || {}), [laby?.parts]);
+  const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
+  const hasChallengeStarted = timerStatus === 'running'
+    || timerStatus === 'paused'
+    || timerStatus === 'completed'
+    || timerStatus === 'stopped'
+    || timerStatus === 'timeout'
+    || (Boolean(laby?.phase) && String(laby.phase).trim() !== 'setup');
+
+  const [participantActionFeed, setParticipantActionFeed] = useState({});
+  const previousParticipantSnapshotRef = useRef({});
+
+  useEffect(() => {
+    if (!isFacilitator) return;
+
+    const nextSnapshot = {};
+
+    if (!hasChallengeStarted) {
+      previousParticipantSnapshotRef.current = {};
+      setParticipantActionFeed({});
+      return;
+    }
+
+    const nowLabel = new Date().toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    const updatesByParticipant = {};
+
+    participantEntries.forEach(([id, participant]) => {
+      const position = Array.isArray(participant?.solo?.pos)
+        ? [Number(participant.solo.pos[0]), Number(participant.solo.pos[1])]
+        : null;
+      const snapshot = {
+        connected: Boolean(participant?.connected),
+        lives: Number(participant?.lives_remaining || 0),
+        status: String(participant?.solo?.st || '').trim(),
+        vote: String(participant?.vote || '').trim().toUpperCase(),
+        position,
+      };
+
+      nextSnapshot[id] = snapshot;
+
+      const previous = previousParticipantSnapshotRef.current[id];
+      if (!previous) {
+        updatesByParticipant[id] = {
+          text: 'Session de jeu activee',
+          at: nowLabel,
+        };
+        return;
+      }
+
+      const updates = [];
+      if (previous.connected !== snapshot.connected) {
+        updates.push(snapshot.connected ? 'connexion' : 'deconnexion');
+      }
+      if (previous.lives !== snapshot.lives) {
+        const diff = snapshot.lives - previous.lives;
+        updates.push(diff < 0 ? `-${Math.abs(diff)} vie` : `+${diff} vie`);
+      }
+      if (previous.status !== snapshot.status && snapshot.status) {
+        updates.push(`statut: ${snapshot.status}`);
+      }
+      if (previous.vote !== snapshot.vote && snapshot.vote) {
+        updates.push(`vote: ${snapshot.vote}`);
+      }
+
+      const previousPos = Array.isArray(previous.position) ? previous.position : null;
+      const currentPos = Array.isArray(snapshot.position) ? snapshot.position : null;
+      const moved = previousPos
+        && currentPos
+        && (previousPos[0] !== currentPos[0] || previousPos[1] !== currentPos[1]);
+      if (moved) {
+        updates.push(`deplacement vers (${currentPos[0] + 1}, ${currentPos[1] + 1})`);
+      }
+
+      if (updates.length > 0) {
+        updatesByParticipant[id] = {
+          text: updates.join(' · '),
+          at: nowLabel,
+        };
+      }
+    });
+
+    previousParticipantSnapshotRef.current = nextSnapshot;
+
+    if (Object.keys(updatesByParticipant).length === 0) return;
+
+    setParticipantActionFeed((prev) => {
+      const next = { ...prev };
+      Object.entries(updatesByParticipant).forEach(([id, update]) => {
+        const existing = Array.isArray(prev[id]) ? prev[id] : [];
+        next[id] = [update, ...existing].slice(0, 6);
+      });
+      return next;
+    });
+  }, [hasChallengeStarted, isFacilitator, participantEntries]);
 
   useEffect(() => {
     if (!isFacilitator) return;
@@ -231,95 +346,129 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
         ) : (
           <>
             <h1>Labyrinthe Live</h1>
-            <p>Mode libre: une position par joueur, 3 vies chacun, objectif sortie</p>
+            <p>Coordination en temps reel: trouvez la sortie avec votre equipe et gerer les risques.</p>
           </>
         )}
       </section>
 
-      <div className={`${styles.layout} ${styles.layoutLeftSidebar}`}>
-        {!isFacilitator ? (
-          <section className={styles.panel}>
-            <h2>État labyrinthe</h2>
-            <p>Phase: {laby?.phase || '-'}</p>
-            <p>Config: {laby?.cfg ? `${laby.cfg.rows || laby.cfg.r}x${laby.cfg.cols || laby.cfg.c}` : '-'}</p>
-            <p>Participants: {laby?.parts ? Object.keys(laby.parts).length : 0}</p>
-            <p>Connectés: {connectedCount}</p>
-            <p>Mes vies: {myParticipantState ? Number(myParticipantState.lives_remaining || 0) : '-'}</p>
-            <p>Votes (si phase colAtt): {voteTotal}</p>
-            <p>Fin du vote: {voteWindowRemainingSeconds > 0 ? `${voteWindowRemainingSeconds}s` : '—'}</p>
-            {lastResolution ? (
-              <p>
-                Dernière résolution: {String(lastResolution.dir || '-')} ({String(lastResolution.outcome || 'progress')})
-              </p>
-            ) : null}
-            {String(laby?.phase || '').trim() === 'done' ? (
-              <p className={styles.statusSuccess}>
-                {laby?.winner_participant_id
-                  ? `Victoire: participant ${laby.winner_participant_id} a atteint la sortie.`
-                  : 'Défaite: tous les joueurs ont perdu leurs tentatives.'}
-              </p>
-            ) : null}
-            {error ? <p className={styles.error}>{error}</p> : null}
-          </section>
-        ) : null}
+      <div className={`${styles.layout} ${styles.layoutWithRightRail}`}>
+        <div className={styles.mainRail}>
+          {!hasChallengeStarted ? (
+            <section className={styles.panel}>
+              <ChallengeRulesPanel
+                isStarted={false}
+                challengeName="Labyrinthe Live"
+                objective="Orientez l equipe vers la sortie en coordonnant decisions, deplacements et gestion du risque."
+                facilitatorRules={[
+                  'Verifier la presence puis lancer le chrono au bon moment.',
+                  'Suivre les actions individuelles et guider la coordination collective.',
+                  'Piloter les relances via le chat pendant les phases critiques.'
+                ]}
+                participantRules={[
+                  'Partager les informations utiles sur la progression et les risques.',
+                  'Se deplacer avec prudence pour conserver les vies disponibles.',
+                  'Utiliser les votes et le chat selon la phase en cours.'
+                ]}
+                footnote={`Presence en direct: ${connectedCount} / ${participantEntries.length} participants connectes.`}
+              />
+              {error ? <p className={styles.error}>{error}</p> : null}
+            </section>
+          ) : isFacilitator ? (
+            <section className={styles.panel}>
+              <h2>Suivi facilitateur - actions par participant</h2>
+              <p>Ce tableau se met a jour automatiquement pour aider l'animation et les relances en session.</p>
+              {error ? <p className={styles.error}>{error}</p> : null}
+              {participantEntries.length === 0 ? (
+                <p>Aucun participant connecte pour le moment.</p>
+              ) : (
+                <div className={styles.actionFeedList}>
+                  {participantEntries.map(([id, participant]) => {
+                    const position = Array.isArray(participant?.solo?.pos)
+                      ? `(${Number(participant.solo.pos[0]) + 1}, ${Number(participant.solo.pos[1]) + 1})`
+                      : '-';
+                    const feedItems = Array.isArray(participantActionFeed[id]) ? participantActionFeed[id] : [];
+                    const statusMeta = getParticipantStatusMeta(participant);
 
-        {isFacilitator ? (
-          <section className={styles.panel}>
-            <h2>Vue miniature du labyrinthe par participant</h2>
-            {error ? <p className={styles.error}>{error}</p> : null}
-            {participantEntries.length === 0 ? (
-              <p>Aucun participant connecté pour le moment.</p>
-            ) : (
-              <div className={styles.miniatureGridList}>
-                {participantEntries.map(([id, participant]) => {
-                  const position = Array.isArray(participant?.solo?.pos)
-                    ? [Number(participant.solo.pos[0]), Number(participant.solo.pos[1])]
-                    : null;
+                    return (
+                      <article key={id} className={styles.actionFeedCard}>
+                        <div className={styles.actionFeedHead}>
+                          <strong>{participant?.name || `participant-${id}`}</strong>
+                          <span>Vies: {Number(participant?.lives_remaining || 0)} · Position: {position}</span>
+                          <span className={`${styles.statusBadge} ${styles[`statusBadge${statusMeta.tone.charAt(0).toUpperCase()}${statusMeta.tone.slice(1)}`]}`}>
+                            {statusMeta.label}
+                          </span>
+                          <span>Statut jeu: {participant?.solo?.st || '-'} · Connecte: {participant?.connected ? 'oui' : 'non'}</span>
+                        </div>
 
-                  return (
-                    <article key={id} className={styles.miniatureCard}>
-                      <div className={styles.miniatureHead}>
-                        <strong>{participant?.name || `participant-${id}`}</strong>
-                        <span>Vies: {Number(participant?.lives_remaining || 0)} · Statut: {participant?.solo?.st || '-'}</span>
-                      </div>
-                      <div className={styles.miniatureMaze} style={{ gridTemplateColumns: `repeat(${mazeCols}, 10px)` }}>
-                        {Array.from({ length: mazeRows }).map((_, row) => (
-                          Array.from({ length: mazeCols }).map((__, col) => {
-                            const key = `${row},${col}`;
-                            const isRevealed = Boolean(revealedCells[key]);
-                            const isStart = posKey(laby?.maze?.start) === key;
-                            const isExit = posKey(laby?.maze?.end) === key;
-                            const hasTrap = Boolean(revealedTraps[key]);
-                            const isCurrentPos = position && position[0] === row && position[1] === col;
+                        {feedItems.length === 0 ? (
+                          <p className={styles.actionFeedEmpty}>Aucune action recente detectee.</p>
+                        ) : (
+                          <ul className={styles.actionFeedEntries}>
+                            {feedItems.map((item, idx) => (
+                              <li key={`${id}-${idx}`}>
+                                <span>{item.at}</span>
+                                <span>{item.text}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          ) : (
+            <section className={styles.panel}>
+              <h2>Vue de jeu participant</h2>
+              <p>Le challenge est en cours. Votre zone de jeu est active.</p>
+              <p>Phase: {laby?.phase || '-'}</p>
+              <p>Config: {laby?.cfg ? `${laby.cfg.rows || laby.cfg.r}x${laby.cfg.cols || laby.cfg.c}` : '-'}</p>
+              <p>Connectes: {connectedCount}</p>
+              <p>Mes vies: {myParticipantState ? Number(myParticipantState.lives_remaining || 0) : '-'}</p>
+              <p>Votes (si phase colAtt): {voteTotal}</p>
+              <p>Fin du vote: {voteWindowRemainingSeconds > 0 ? `${voteWindowRemainingSeconds}s` : '—'}</p>
+              {lastResolution ? (
+                <p>
+                  Derniere resolution: {String(lastResolution.dir || '-')} ({String(lastResolution.outcome || 'progress')})
+                </p>
+              ) : null}
+              {String(laby?.phase || '').trim() === 'done' ? (
+                <p className={styles.statusSuccess}>
+                  {laby?.winner_participant_id
+                    ? `Victoire: participant ${laby.winner_participant_id} a atteint la sortie.`
+                    : 'Defaite: tous les joueurs ont perdu leurs tentatives.'}
+                </p>
+              ) : null}
+              {error ? <p className={styles.error}>{error}</p> : null}
+            </section>
+          )}
+        </div>
 
-                            const classNames = [styles.miniCell];
-                            if (isRevealed) classNames.push(styles.miniCellRevealed);
-                            if (isStart) classNames.push(styles.miniCellStart);
-                            if (isExit) classNames.push(styles.miniCellExit);
-                            if (hasTrap) classNames.push(styles.miniCellTrap);
-                            if (isCurrentPos) classNames.push(styles.miniCellCurrent);
+        <aside className={`${styles.sideStack} ${styles.rightRail} ${isFacilitator ? styles.sideStackEqual : ''}`}>
+          <ChallengeRulesPanel
+            isStarted={hasChallengeStarted}
+            showPrestartCard={false}
+            challengeName="Labyrinthe Live"
+            objective="Rappel des regles consultable a tout moment sans quitter la session."
+            facilitatorRules={[
+              'Piloter le chrono et les decisions de groupe.',
+              'Observer les actions individuelles pour guider la coordination.'
+            ]}
+            participantRules={[
+              'Se deplacer prudemment et partager les informations utiles.',
+              'Utiliser le chat et les votes selon la phase en cours.'
+            ]}
+          />
 
-                            return <span key={`${id}-${key}`} className={classNames.join(' ')} title={`Case ${row + 1},${col + 1}`} />;
-                          })
-                        ))}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        ) : null}
-
-        <aside className={`${styles.sideStack} ${isFacilitator ? styles.sideStackEqual : ''}`}>
           <ChallengeTimerCard
             className={`${styles.panel} ${isFacilitator ? styles.timerPanelEqual : styles.timerPanel}`}
-            title="Chrono"
+            title="Chrono session"
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
             durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
             status={String(timer?.status || 'idle')}
             isFacilitator={isFacilitator}
-            waitingText="⏳ En attente du facilitateur"
+            waitingText="⏳ En attente du lancement par le facilitateur"
             ringAction={isFacilitator ? (
               <button
                 className={styles.timerIconBtn}
@@ -345,7 +494,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
           {chatEnabled ? (
             <ChallengeChatCard
               className={`${styles.panel} ${isFacilitator ? styles.chatPanelEqual : ''}`}
-              title="Chat"
+              title="Canal equipe"
               messages={chatMessages}
               currentAuthor={displayName}
               inputValue={chatInput}
@@ -353,7 +502,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
               onSubmit={submitChat}
               quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
               onQuickMessage={sendQuickChat}
-              placeholder="Ecrire un message"
+              placeholder="Message a l'equipe"
               maxLength={240}
             />
           ) : null}
@@ -361,6 +510,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
       </div>
 
       {!isFacilitator ? (
+        hasChallengeStarted ? (
         <>
           <div className={styles.layout}>
             <section className={styles.panel}>
@@ -463,12 +613,15 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
             </div>
           </section>
         </>
+        ) : (
+          <section className={styles.layoutSingle}>
+            <div className={styles.panel}>
+              <h2>En attente du lancement</h2>
+              <p>La zone de jeu participant s'active automatiquement des que le facilitateur lance le challenge.</p>
+            </div>
+          </section>
+        )
       ) : null}
-
-      <details className={styles.debug}>
-        <summary>Debug events</summary>
-        <pre>{JSON.stringify(events.slice(0, 8), null, 2)}</pre>
-      </details>
     </div>
   );
 }

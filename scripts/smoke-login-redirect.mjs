@@ -42,7 +42,7 @@ async function run() {
     await page.goto(`${FRONTEND_URL}/login`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.getByLabel('Email');
-    const passwordInput = page.getByLabel('Mot de passe');
+    const passwordInput = page.locator('input#login-password');
     const submitButton = page.locator('form.auth-form button:has-text("Se connecter")');
 
     await emailInput.waitFor({ timeout: 15000 });

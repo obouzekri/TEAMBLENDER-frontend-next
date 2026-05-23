@@ -6,6 +6,7 @@ import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
+import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import styles from './VraiOuMensonge.module.css';
 
 function phaseLabel(phase) {
@@ -43,6 +44,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
   const vom = state?.vom || {};
   const phase = String(vom?.phase || 'waiting_start');
+  const hasChallengeStarted = phase !== 'waiting_start';
   const currentTurn = vom?.current_turn || null;
   const scores = vom?.scores || {};
   const ranking = Array.isArray(vom?.ranking) ? vom.ranking : [];
@@ -133,22 +135,24 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       <div className={styles.layout}>
         <div className={styles.mainColumn}>
 
-        {phase === 'waiting_start' ? (
+        {!hasChallengeStarted ? (
           <section className={styles.card}>
-            <h2>Lobby</h2>
-            <p>Règle: 3 affirmations exactes par participant, ordre round-robin, vote individuel des non-poseurs.</p>
-            <ol className={styles.orderList}>
-              {participantsOrder.map((participant) => (
-                <li key={participant}>{participant}</li>
-              ))}
-            </ol>
-            {isFacilitator ? (
-              <button type="button" className={styles.primaryBtn} onClick={startChallenge}>
-                Démarrer le challenge
-              </button>
-            ) : (
-              <p className={styles.helper}>En attente du facilitateur.</p>
-            )}
+            <ChallengeRulesPanel
+              isStarted={false}
+              challengeName="Vrai ou Mensonge"
+              objective="Chaque participant pose des affirmations et le groupe vote pour distinguer vrai et mensonge."
+              facilitatorRules={[
+                'Lancez la session quand tous les participants sont prets.',
+                'Cadencez les tours et assurez un cadre de jeu clair.',
+                'Suivez les scores et maintenez l engagement collectif.'
+              ]}
+              participantRules={[
+                'En tant que poseur, choisissez puis confirmez une affirmation.',
+                'En tant que votant, choisissez vrai ou mensonge a chaque tour.',
+                'Restez reactif pendant les phases de vote et de revelation.'
+              ]}
+              footnote="Le lancement se fait via le bouton Play du chrono cote facilitateur."
+            />
           </section>
         ) : null}
 
@@ -310,6 +314,21 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         </div>
 
         <aside className={styles.sideColumn}>
+          <ChallengeRulesPanel
+            isStarted={hasChallengeStarted}
+            showPrestartCard={false}
+            challengeName="Vrai ou Mensonge"
+            objective="Popup de rappel des regles disponible pendant toute la partie."
+            facilitatorRules={[
+              'Piloter les transitions entre phases.',
+              'Verifier le rythme des votes et des revelations.'
+            ]}
+            participantRules={[
+              'Respecter le role actif du tour en cours.',
+              'Voter rapidement et clairement a chaque manche.'
+            ]}
+          />
+
           <ChallengeTimerCard
             className={styles.card}
             title="Chrono"
