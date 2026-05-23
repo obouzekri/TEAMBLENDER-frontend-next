@@ -226,7 +226,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
         {isFacilitator ? (
           <p className={styles.heroSingleLine}>
             <strong>Labyrinthe Live</strong>
-            <span> Coordination en temps reel: suivez chaque participant via la mini-carte et pilotez le chrono.</span>
+            <span> Orientez l'equipe vers la sortie en evitant les pieges, avec des decisions rapides et coordonnees.</span>
           </p>
         ) : (
           <>
@@ -260,6 +260,54 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
               </p>
             ) : null}
             {error ? <p className={styles.error}>{error}</p> : null}
+          </section>
+        ) : null}
+
+        {isFacilitator ? (
+          <section className={styles.panel}>
+            <h2>Vue miniature du labyrinthe par participant</h2>
+            {error ? <p className={styles.error}>{error}</p> : null}
+            {participantEntries.length === 0 ? (
+              <p>Aucun participant connecté pour le moment.</p>
+            ) : (
+              <div className={styles.miniatureGridList}>
+                {participantEntries.map(([id, participant]) => {
+                  const position = Array.isArray(participant?.solo?.pos)
+                    ? [Number(participant.solo.pos[0]), Number(participant.solo.pos[1])]
+                    : null;
+
+                  return (
+                    <article key={id} className={styles.miniatureCard}>
+                      <div className={styles.miniatureHead}>
+                        <strong>{participant?.name || `participant-${id}`}</strong>
+                        <span>Vies: {Number(participant?.lives_remaining || 0)} · Statut: {participant?.solo?.st || '-'}</span>
+                      </div>
+                      <div className={styles.miniatureMaze} style={{ gridTemplateColumns: `repeat(${mazeCols}, 10px)` }}>
+                        {Array.from({ length: mazeRows }).map((_, row) => (
+                          Array.from({ length: mazeCols }).map((__, col) => {
+                            const key = `${row},${col}`;
+                            const isRevealed = Boolean(revealedCells[key]);
+                            const isStart = posKey(laby?.maze?.start) === key;
+                            const isExit = posKey(laby?.maze?.end) === key;
+                            const hasTrap = Boolean(revealedTraps[key]);
+                            const isCurrentPos = position && position[0] === row && position[1] === col;
+
+                            const classNames = [styles.miniCell];
+                            if (isRevealed) classNames.push(styles.miniCellRevealed);
+                            if (isStart) classNames.push(styles.miniCellStart);
+                            if (isExit) classNames.push(styles.miniCellExit);
+                            if (hasTrap) classNames.push(styles.miniCellTrap);
+                            if (isCurrentPos) classNames.push(styles.miniCellCurrent);
+
+                            return <span key={`${id}-${key}`} className={classNames.join(' ')} title={`Case ${row + 1},${col + 1}`} />;
+                          })
+                        ))}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </section>
         ) : null}
 
@@ -310,54 +358,6 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
             />
           ) : null}
         </aside>
-
-        {isFacilitator ? (
-          <section className={styles.panel}>
-            <h2>Vue miniature du labyrinthe par participant</h2>
-            {error ? <p className={styles.error}>{error}</p> : null}
-            {participantEntries.length === 0 ? (
-              <p>Aucun participant connecté pour le moment.</p>
-            ) : (
-              <div className={styles.miniatureGridList}>
-                {participantEntries.map(([id, participant]) => {
-                  const position = Array.isArray(participant?.solo?.pos)
-                    ? [Number(participant.solo.pos[0]), Number(participant.solo.pos[1])]
-                    : null;
-
-                  return (
-                    <article key={id} className={styles.miniatureCard}>
-                      <div className={styles.miniatureHead}>
-                        <strong>{participant?.name || `participant-${id}`}</strong>
-                        <span>Vies: {Number(participant?.lives_remaining || 0)} · Statut: {participant?.solo?.st || '-'}</span>
-                      </div>
-                      <div className={styles.miniatureMaze} style={{ gridTemplateColumns: `repeat(${mazeCols}, 10px)` }}>
-                        {Array.from({ length: mazeRows }).map((_, row) => (
-                          Array.from({ length: mazeCols }).map((__, col) => {
-                            const key = `${row},${col}`;
-                            const isRevealed = Boolean(revealedCells[key]);
-                            const isStart = posKey(laby?.maze?.start) === key;
-                            const isExit = posKey(laby?.maze?.end) === key;
-                            const hasTrap = Boolean(revealedTraps[key]);
-                            const isCurrentPos = position && position[0] === row && position[1] === col;
-
-                            const classNames = [styles.miniCell];
-                            if (isRevealed) classNames.push(styles.miniCellRevealed);
-                            if (isStart) classNames.push(styles.miniCellStart);
-                            if (isExit) classNames.push(styles.miniCellExit);
-                            if (hasTrap) classNames.push(styles.miniCellTrap);
-                            if (isCurrentPos) classNames.push(styles.miniCellCurrent);
-
-                            return <span key={`${id}-${key}`} className={classNames.join(' ')} title={`Case ${row + 1},${col + 1}`} />;
-                          })
-                        ))}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        ) : null}
       </div>
 
       {!isFacilitator ? (
