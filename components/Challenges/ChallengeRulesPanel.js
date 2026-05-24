@@ -5,6 +5,7 @@ import styles from './ChallengeRulesPanel.module.css';
 
 export default function ChallengeRulesPanel({
   isStarted,
+  isFacilitator = true,
   challengeName,
   objective,
   facilitatorRules = [],
@@ -42,14 +43,16 @@ export default function ChallengeRulesPanel({
         <p>{objective}</p>
       </header>
 
-      <section className={styles.rulesSection}>
-        <h3>Facilitateur</h3>
-        <ul>
-          {facilitatorRules.map((rule) => (
-            <li key={`facilitator-${rule}`}>{rule}</li>
-          ))}
-        </ul>
-      </section>
+      {isFacilitator ? (
+        <section className={styles.rulesSection}>
+          <h3>Facilitateur</h3>
+          <ul>
+            {facilitatorRules.map((rule) => (
+              <li key={`facilitator-${rule}`}>{rule}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section className={styles.rulesSection}>
         <h3>Participants</h3>

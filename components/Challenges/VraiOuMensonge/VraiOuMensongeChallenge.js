@@ -144,6 +144,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <section className={styles.card}>
             <ChallengeRulesPanel
               isStarted={false}
+              isFacilitator={isFacilitator}
               challengeName="Vrai ou Mensonge"
               objective={rulesContent.objective}
               facilitatorRules={rulesContent.facilitator}
@@ -313,6 +314,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         <aside className={styles.sideColumn}>
           <ChallengeRulesPanel
             isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
             showPrestartCard={false}
             challengeName="Vrai ou Mensonge"
             objective={rulesContent.objective}
@@ -322,7 +324,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           />
 
           <ChallengeTimerCard
-            className={styles.card}
             title="Chrono"
             remainingSeconds={formatSeconds(remainingMs)}
             durationSeconds={Math.max(1, formatSeconds(Number(vom?.phase_deadline_ms || 0) - Number(vom?.phase_started_at_ms || 0)))}
@@ -331,7 +332,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             waitingText="⏳ Chrono partagé pour l'équipe"
             ringAction={isFacilitator && phase === 'waiting_start' ? (
               <button
-                className={styles.timerIconBtn}
                 type="button"
                 onClick={startChallenge}
                 title="Démarrer"
@@ -343,7 +343,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           />
 
           <ChallengeChatCard
-            className={styles.card}
             title="Chat"
             messages={chatMessages}
             currentAuthor={displayName}

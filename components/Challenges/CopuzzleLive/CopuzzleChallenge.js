@@ -315,6 +315,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
           {!hasChallengeStarted ? (
             <ChallengeRulesPanel
               isStarted={false}
+              isFacilitator={isFacilitator}
               challengeName="CoPuzzle Live"
               objective={rulesContent.objective}
               facilitatorRules={rulesContent.facilitator}
@@ -448,6 +449,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
         <aside className={styles.sidePanel}>
           <ChallengeRulesPanel
             isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
             showPrestartCard={false}
             challengeName="CoPuzzle Live"
             objective={rulesContent.objective}
@@ -457,7 +459,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
           />
 
           <ChallengeTimerCard
-            className={`${styles.sideCard} ${styles.timerCard}`}
             title="Chrono"
             remainingSeconds={timerRemainingSeconds}
             durationSeconds={timerDurationSeconds}
@@ -466,7 +467,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             waitingText="⏳ En attente du facilitateur"
             ringAction={isFacilitator ? (
               <button
-                className={styles.timerIconBtn}
                 type="button"
                 onClick={() => {
                   if (timerState === 'running') emitEvent('timer.pause');
@@ -483,7 +483,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
 
           {chatEnabled ? (
             <ChallengeChatCard
-              className={`${styles.chatCard} ${styles.sideChatCard}`}
               title="Chat"
               messages={chatMessages}
               currentAuthor={displayName}

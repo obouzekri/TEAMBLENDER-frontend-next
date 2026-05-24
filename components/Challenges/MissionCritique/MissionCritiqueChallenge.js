@@ -302,6 +302,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             <section className={styles.card}>
               <ChallengeRulesPanel
                 isStarted={false}
+                isFacilitator={isFacilitator}
                 challengeName="Mission Critique"
                 objective={rulesContent.objective}
                 facilitatorRules={rulesContent.facilitator}
@@ -509,6 +510,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
         <aside className={styles.sidebar}>
           <ChallengeRulesPanel
             isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
             showPrestartCard={false}
             challengeName="Mission Critique"
             objective={rulesContent.objective}
@@ -518,7 +520,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
           />
 
           <ChallengeTimerCard
-            className={styles.timerCard}
             title="Chrono"
             remainingSeconds={timerRemainingSeconds}
             durationSeconds={timerDurationSeconds}
@@ -528,7 +529,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             waitingText="⏳ En attente du facilitateur"
             ringAction={isFacilitator ? (
               <button
-                className={styles.timerIconBtn}
                 type="button"
                 onClick={() => {
                   if (timerState === 'running') emitEvent('timer.pause');
@@ -544,7 +544,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
           />
 
           <ChallengeChatCard
-            className={styles.chatCard}
             title="Chat"
             messages={chatMessages}
             currentAuthor={displayName}

@@ -498,6 +498,7 @@ export default function EscapeRoomChallenge({
           {!hasChallengeStarted ? (
             <ChallengeRulesPanel
               isStarted={false}
+              isFacilitator={isFacilitator}
               challengeName="Escape Room"
               objective={rulesContent.objective}
               facilitatorRules={rulesContent.facilitator}
@@ -605,6 +606,7 @@ export default function EscapeRoomChallenge({
         <aside className={styles.card}>
           <ChallengeRulesPanel
             isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
             showPrestartCard={false}
             challengeName="Escape Room"
             objective={rulesContent.objective}
@@ -614,7 +616,6 @@ export default function EscapeRoomChallenge({
           />
 
           <ChallengeTimerCard
-            className={styles.timerCard}
             title="Chrono"
             remainingSeconds={timerSeconds}
             durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
@@ -623,7 +624,6 @@ export default function EscapeRoomChallenge({
             waitingText="⏳ Gere par le facilitateur"
             ringAction={isFacilitator ? (
               <button
-                className={styles.timerIconBtn}
                 type="button"
                 onClick={() => handleTimerAction(isTimerRunning ? 'pause' : 'start')}
                 disabled={isTimerRunning ? false : !canStartTimer}
@@ -656,7 +656,6 @@ export default function EscapeRoomChallenge({
           {chatEnabled ? (
             <>
               <ChallengeChatCard
-                className={styles.chatPanel}
                 title="Chat"
                 messages={chatMessages}
                 currentAuthor={displayName}

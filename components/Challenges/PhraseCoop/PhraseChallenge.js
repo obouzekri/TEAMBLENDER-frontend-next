@@ -232,6 +232,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
           {!hasChallengeStarted ? (
             <ChallengeRulesPanel
               isStarted={false}
+              isFacilitator={isFacilitator}
               challengeName="Phrase Mystere"
               objective={rulesContent.objective}
               facilitatorRules={rulesContent.facilitator}
@@ -308,6 +309,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
         <aside className={styles.sidePanel}>
           <ChallengeRulesPanel
             isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
             showPrestartCard={false}
             challengeName="Phrase Mystere"
             objective={rulesContent.objective}
@@ -317,7 +319,6 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
           />
 
           <ChallengeTimerCard
-            className={`${styles.sideCard} ${styles.timerCard}`}
             title="Chrono"
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
             durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
@@ -326,7 +327,6 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
             waitingText="⏳ En attente du facilitateur"
             ringAction={isFacilitator ? (
               <button
-                className={styles.timerIconBtn}
                 type="button"
                 onClick={() => {
                   if (timerStatus === 'running') emitEvent('timer.pause');

@@ -362,6 +362,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
             <section className={styles.panel}>
               <ChallengeRulesPanel
                 isStarted={false}
+                isFacilitator={isFacilitator}
                 challengeName="Labyrinthe Live"
                 objective={rulesContent.objective}
                 facilitatorRules={rulesContent.facilitator}
@@ -445,6 +446,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
         <aside className={`${styles.sideStack} ${styles.rightRail} ${isFacilitator ? styles.sideStackEqual : ''}`}>
           <ChallengeRulesPanel
             isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
             showPrestartCard={false}
             challengeName="Labyrinthe Live"
             objective={rulesContent.objective}
@@ -454,7 +456,6 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
           />
 
           <ChallengeTimerCard
-            className={`${styles.panel} ${isFacilitator ? styles.timerPanelEqual : styles.timerPanel}`}
             title="Chrono session"
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
             durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
@@ -463,7 +464,6 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
             waitingText="⏳ En attente du lancement par le facilitateur"
             ringAction={isFacilitator ? (
               <button
-                className={styles.timerIconBtn}
                 type="button"
                 onClick={() => {
                   const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
@@ -485,7 +485,6 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
 
           {chatEnabled ? (
             <ChallengeChatCard
-              className={`${styles.panel} ${isFacilitator ? styles.chatPanelEqual : ''}`}
               title="Canal equipe"
               messages={chatMessages}
               currentAuthor={displayName}

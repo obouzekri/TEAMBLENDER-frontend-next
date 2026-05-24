@@ -87,6 +87,11 @@ export default function ChallengeTimerCard({
 
   const ringColor = tone === 'danger' ? '#ef4444' : tone === 'warn' ? '#f59e0b' : tone === 'safe' ? '#22c55e' : '#38bdf8';
   const ringSweep = clampPercent(computedProgress);
+  const normalizedRingAction = React.isValidElement(ringAction)
+    ? React.cloneElement(ringAction, {
+      className: [styles.timerIconBtn, ringAction.props?.className || ''].filter(Boolean).join(' ')
+    })
+    : ringAction;
 
   return (
     <section className={`${styles.timerCard} ${className}`.trim()}>
@@ -121,7 +126,7 @@ export default function ChallengeTimerCard({
 
                 {ringAction ? (
                   <div className={styles.timerRingActions}>
-                    {ringAction}
+                    {normalizedRingAction}
                   </div>
                 ) : null}
               </div>
