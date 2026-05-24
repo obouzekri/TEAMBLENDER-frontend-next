@@ -23,7 +23,9 @@
 .chatTitle {
   margin: 0;
   font-size: 0.95rem;
-  color: #d9ecf8;
+  color: var(--challenge-text-accent, #7dd3fc);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .chatHeader {
