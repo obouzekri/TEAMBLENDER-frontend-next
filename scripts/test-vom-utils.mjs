@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { buildFinalRanking, expectedTotalTurns } from '../lib/challenges/vraiOuMensongeUtils.js';
 
 function run() {
-  assert.equal(expectedTotalTurns(2), 6);
-  assert.equal(expectedTotalTurns(12), 36);
+  assert.equal(expectedTotalTurns(2), 14);
+  assert.equal(expectedTotalTurns(12), 12);
+  assert.equal(expectedTotalTurns(3, 30), 30);
 
   const ranking = buildFinalRanking(
     { p1: 4, p2: 4, p3: 2, p4: 0 },

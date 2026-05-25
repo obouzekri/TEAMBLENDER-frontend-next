@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
@@ -12,10 +12,10 @@ import styles from './VraiOuMensonge.module.css';
 
 function phaseLabel(phase) {
   const labels = {
-    waiting_start: 'Lobby',
-    selecting_statement: 'Sélection phrase',
+    waiting_start: 'En attente',
+    selecting_statement: 'Choix de l affirmation',
     voting_open: 'Votes ouverts',
-    reveal_pending: 'En attente de révélation',
+    reveal_pending: 'Révélation',
     round_result: 'Résultat du tour',
     next_turn: 'Tour suivant',
     finished: 'Partie terminée',
@@ -30,10 +30,33 @@ function formatSeconds(ms) {
   return total;
 }
 
+function formatClock(totalSeconds) {
+  const safe = Math.max(0, Number(totalSeconds || 0));
+  const mm = String(Math.floor(safe / 60)).padStart(2, '0');
+  const ss = String(safe % 60).padStart(2, '0');
+  return `${mm}:${ss}`;
+}
+
+function normalizeName(value) {
+  const text = String(value || '').trim();
+  return text || '';
+}
+
+function buildBadge(score) {
+  const n = Number(score || 0);
+  if (n >= 12) return 'Maître du vrai';
+  if (n >= 8) return 'Détective d équipe';
+  if (n >= 4) return 'Observateur fiable';
+  return 'En progression';
+}
+
 export default function VraiOuMensongeChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedStatementId, setSelectedStatementId] = useState('');
   const [revealTruth, setRevealTruth] = useState('vrai');
   const [nowMs, setNowMs] = useState(Date.now());
+  const [clickedStatementId, setClickedStatementId] = useState('');
+  const [resultPulse, setResultPulse] = useState(false);
+  const audioRef = useRef(null);
 
   const {
     state,
@@ -50,8 +73,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const scores = vom?.scores || {};
   const ranking = Array.isArray(vom?.ranking) ? vom.ranking : [];
   const participantsOrder = Array.isArray(vom?.participants_order) ? vom.participants_order : [];
+  const participantsMeta = Array.isArray(vom?.participants_meta) ? vom.participants_meta : [];
   const catalog = Array.isArray(vom?.catalog) ? vom.catalog : [];
-  const roundHistory = Array.isArray(vom?.round_history) ? vom.round_history : [];
 
   const me = String(participantId || context?.userId || '');
   const poserId = String(currentTurn?.poser_id || '');
@@ -63,8 +86,40 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     if (fromPayload) return fromPayload;
     const fromContext = String(context?.displayName || '').trim();
     if (fromContext) return fromContext;
-    return `participant-${me || 'unknown'}`;
+    return 'Participant';
   }, [runtimePayload, context, me]);
+
+  const participantNameMap = useMemo(() => {
+    const map = new Map();
+    participantsMeta.forEach((item) => {
+      const id = String(item?.participant_id || '');
+      if (!id) return;
+      const slot = Number(item?.slot || 0);
+      const fallback = slot > 0 ? `Participant ${slot}` : 'Participant';
+      map.set(id, normalizeName(item?.display_name) || fallback);
+    });
+
+    participantsOrder.forEach((id, index) => {
+      if (!map.has(String(id))) {
+        map.set(String(id), `Participant ${index + 1}`);
+      }
+    });
+    return map;
+  }, [participantsMeta, participantsOrder]);
+
+  const orderedParticipantIds = useMemo(() => {
+    if (participantsMeta.length > 0) {
+      return [...participantsMeta]
+        .sort((a, b) => Number(a?.slot || 999) - Number(b?.slot || 999))
+        .map((item) => String(item?.participant_id || ''))
+        .filter(Boolean);
+    }
+    return participantsOrder;
+  }, [participantsMeta, participantsOrder]);
+
+  function participantName(id) {
+    return participantNameMap.get(String(id)) || 'Participant';
+  }
 
   const {
     chatInput,
@@ -95,14 +150,99 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
   const remainingMs = useMemo(() => {
     const deadline = Number(vom?.phase_deadline_ms || 0);
-    if (!deadline) return 0;
-    return Math.max(0, deadline - nowMs);
-  }, [vom?.phase_deadline_ms, nowMs]);
+    const startedAt = Number(vom?.phase_started_at_ms || 0);
+    const timing = vom?.timing || {};
+    const fallbackDuration = Number(
+      phase === 'selecting_statement'
+        ? timing.selecting_ms
+        : phase === 'voting_open'
+          ? timing.voting_ms
+          : phase === 'reveal_pending'
+            ? timing.reveal_ms
+            : phase === 'round_result'
+              ? timing.round_result_ms
+              : phase === 'next_turn'
+                ? timing.next_turn_ms
+                : 0
+    ) || 0;
+
+    if (deadline > 0) {
+      return Math.max(0, deadline - nowMs);
+    }
+    if (startedAt > 0 && fallbackDuration > 0) {
+      return Math.max(0, (startedAt + fallbackDuration) - nowMs);
+    }
+    return fallbackDuration;
+  }, [nowMs, phase, vom?.phase_deadline_ms, vom?.phase_started_at_ms, vom?.timing]);
+
+  const phaseDurationSeconds = useMemo(() => {
+    const startedAt = Number(vom?.phase_started_at_ms || 0);
+    const deadline = Number(vom?.phase_deadline_ms || 0);
+    if (startedAt > 0 && deadline > startedAt) {
+      return formatSeconds(deadline - startedAt);
+    }
+    const timing = vom?.timing || {};
+    if (phase === 'selecting_statement') return formatSeconds(timing.selecting_ms || 30_000);
+    if (phase === 'voting_open') return formatSeconds(timing.voting_ms || 30_000);
+    if (phase === 'reveal_pending') return formatSeconds(timing.reveal_ms || 15_000);
+    if (phase === 'round_result') return formatSeconds(timing.round_result_ms || 15_000);
+    if (phase === 'next_turn') return formatSeconds(timing.next_turn_ms || 1_000);
+    return 1;
+  }, [phase, vom?.phase_deadline_ms, vom?.phase_started_at_ms, vom?.timing]);
+
+  const myRoundVote = useMemo(() => {
+    const votes = Array.isArray(currentTurn?.result?.votes) ? currentTurn.result.votes : [];
+    return votes.find((item) => String(item?.participant_id || '') === me) || null;
+  }, [currentTurn?.result?.votes, me]);
+
+  const myScore = Number(scores[me] || 0);
+
+  const poseurRoundPoints = Number(currentTurn?.result?.poser_points || 0);
+
+  function playLightTone(kind) {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioRef.current) audioRef.current = new Ctx();
+      const ctx = audioRef.current;
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.type = 'sine';
+      oscillator.frequency.value = kind === 'success' ? 720 : kind === 'error' ? 240 : 460;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.05, ctx.currentTime + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.13);
+      oscillator.start();
+      oscillator.stop(ctx.currentTime + 0.14);
+    } catch {
+      // No-op: le son reste optionnel et ne doit jamais bloquer l interaction.
+    }
+  }
 
   useEffect(() => {
     const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (phase === 'round_result') {
+      setResultPulse(true);
+      const t = window.setTimeout(() => setResultPulse(false), 1200);
+      if (isPoser) {
+        playLightTone(poseurRoundPoints > 0 ? 'success' : 'default');
+      } else if (myRoundVote?.status === 'correct') {
+        playLightTone('success');
+      } else if (myRoundVote?.status === 'incorrect') {
+        playLightTone('error');
+      } else {
+        playLightTone('default');
+      }
+      return () => window.clearTimeout(t);
+    }
+    return undefined;
+  }, [phase, myRoundVote?.status, isPoser, poseurRoundPoints]);
 
   function startChallenge() {
     emitEvent('vom.start', {});
@@ -110,10 +250,12 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
   function confirmStatement() {
     if (!selectedStatementId) return;
+    playLightTone('default');
     emitEvent('vom.select_statement', { statement_id: selectedStatementId });
   }
 
   function vote(v) {
+    playLightTone('default');
     emitEvent('vom.vote', { vote: v });
   }
 
@@ -126,14 +268,20 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       <header className={styles.header}>
         <div className={styles.headerTitleLine}>
           <span className={styles.headerTitle}>Vrai ou Mensonge</span>
-          <span className={styles.headerDescription}>: Expérience individuelle, rapide, orientée engagement collectif</span>
+          <span className={styles.headerDescription}>Devinez le vrai du faux et découvrez votre équipe autrement</span>
         </div>
         <div className={styles.meta}>
           <span className={styles.badge}>{phaseLabel(phase)}</span>
           <span className={styles.badge}>Tour {Number(vom?.turn_index || 0) + 1}/{Number(vom?.total_turns || 0)}</span>
-          <span className={styles.badge}>Temps restant: {formatSeconds(remainingMs)}s</span>
         </div>
       </header>
+
+      <section className={`${styles.card} ${styles.liveStrip}`}>
+        <div className={styles.liveItem}><span>Live</span><strong>{phaseLabel(phase)}</strong></div>
+        <div className={styles.liveItem}><span>Poseur</span><strong>{participantName(poserId) || '-'}</strong></div>
+        <div className={styles.liveItem}><span>Chrono</span><strong>{formatClock(formatSeconds(remainingMs))}</strong></div>
+        <div className={styles.liveItem}><span>Cycles</span><strong>{Number(vom?.computed_cycles || vom?.rounds_per_participant || 0)}</strong></div>
+      </section>
 
       {error ? <p className={styles.errorBanner}>{error}</p> : null}
 
@@ -157,7 +305,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'selecting_statement' ? (
           <section className={styles.card}>
             <h2>Sélection d'affirmation</h2>
-            <p>Poseur actuel: <strong>{poserId || '-'}</strong></p>
+            <p>Poseur actuel: <strong>{participantName(poserId) || '-'}</strong></p>
+            <p className={styles.instruction}>👉 Choisissez une affirmation</p>
+            <div className={styles.participantsRow}>
+              {orderedParticipantIds.map((id) => (
+                <span key={id} className={`${styles.participantChip}${id === poserId ? ` ${styles.participantChipPoser}` : ''}`}>
+                  {participantName(id)}{id === poserId ? ' (poseur)' : ''}
+                </span>
+              ))}
+            </div>
             {isPoser ? (
               <>
                 <div className={styles.statementGrid}>
@@ -168,28 +324,36 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                       <button
                         key={statement.id}
                         type="button"
-                        className={`${styles.statementBtn}${selected ? ` ${styles.statementBtnSelected}` : ''}`}
+                        className={`${styles.statementBtn}${selected ? ` ${styles.statementBtnSelected}` : ''}${clickedStatementId === String(statement.id) ? ` ${styles.statementBtnClicked}` : ''}`}
                         disabled={disabled}
-                        onClick={() => setSelectedStatementId(String(statement.id))}
+                        onClick={() => {
+                          setSelectedStatementId(String(statement.id));
+                          setClickedStatementId(String(statement.id));
+                          playLightTone('default');
+                          window.setTimeout(() => setClickedStatementId(''), 180);
+                        }}
                       >
                         <span className={styles.category}>{statement.category}</span>
                         <span>{statement.text}</span>
-                        {disabled ? <small>Deja utilisee par vous</small> : null}
+                        {selected ? <span className={styles.selectedMark}>✅ Sélectionnée</span> : null}
+                        {disabled ? <small>Déjà utilisée par vous</small> : null}
                       </button>
                     );
                   })}
                 </div>
-                <button
-                  type="button"
-                  className={styles.primaryBtn}
-                  disabled={!selectedStatementId}
-                  onClick={confirmStatement}
-                >
-                  Confirmer la phrase
-                </button>
+                <div className={styles.stickyCtaWrap}>
+                  <button
+                    type="button"
+                    className={`${styles.primaryBtn} ${styles.stickyCtaBtn}`}
+                    disabled={!selectedStatementId}
+                    onClick={confirmStatement}
+                  >
+                    Confirmer ma sélection
+                  </button>
+                </div>
               </>
             ) : (
-              <p className={styles.helper}>Le poseur choisit une phrase du catalogue fixe.</p>
+              <p className={styles.helper}>Le poseur choisit une affirmation dans le catalogue.</p>
             )}
           </section>
         ) : null}
@@ -197,7 +361,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'voting_open' ? (
           <section className={styles.card}>
             <h2>Votes ouverts</h2>
-            <p><strong>{poserId}</strong> affirme: {currentTurn?.statement_text || '-'}</p>
+            <p><strong>{participantName(poserId)}</strong> affirme: {currentTurn?.statement_text || '-'}</p>
             {!isPoser ? (
               <div className={styles.voteActions}>
                 <button
@@ -244,8 +408,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                     Mensonge
                   </button>
                 </div>
-                <p className={styles.helper}>Verite choisie: {revealTruth}</p>
-                <button type="button" className={styles.primaryBtn} onClick={reveal}>Reveler (irreversible)</button>
+                <p className={styles.helper}>Vérité choisie: {revealTruth}</p>
+                <button type="button" className={styles.primaryBtn} onClick={reveal}>Révéler (irréversible)</button>
               </>
             ) : (
               <p className={styles.helper}>En attente de la révélation du poseur.</p>
@@ -256,21 +420,44 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'round_result' ? (
           <section className={styles.card}>
             <h2>Résultat du tour</h2>
-            <p>Verite: <strong>{String(currentTurn?.revealed_truth || '-')}</strong></p>
+            <div className={`${styles.wowResult}${resultPulse ? ` ${styles.wowResultPulse}` : ''}`}>
+              <span className={styles.wowIcon}>✅</span>
+              <div>
+                <strong className={styles.wowTitle}>Feedback instantané</strong>
+                {!isPoser ? (
+                  <p className={styles.wowText}>
+                    {myRoundVote?.status === 'correct' ? 'Bonne réponse: +1 point' : myRoundVote?.status === 'incorrect' ? 'Mauvaise réponse: 0 point' : 'Aucune réponse: 0 point'}
+                    {' '}| Bonne réponse: <strong>{String(currentTurn?.revealed_truth || '-')}</strong>
+                  </p>
+                ) : (
+                  <p className={styles.wowText}>
+                    Vous étiez poseur: <strong>+{poseurRoundPoints}</strong> point{poseurRoundPoints > 1 ? 's' : ''} (selon les bonnes réponses)
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.mainScoreCard}>
+              <span className={styles.mainScoreLabel}>Mon score</span>
+              <span className={styles.mainScoreValue}>{myScore}</span>
+              <span className={styles.mainScoreUnit}>points</span>
+            </div>
+
+            <p>Classement en transition (15 s) avant le prochain tour.</p>
             <div className={styles.resultList}>
               {(currentTurn?.result?.votes || []).map((item) => (
                 <div key={item.participant_id} className={styles.resultRow}>
-                  <span>{item.participant_id}</span>
+                  <span>{participantName(item.participant_id)}</span>
                   <span>{item.status}</span>
                   <span>+{item.points}</span>
                 </div>
               ))}
             </div>
-            <h3>Scores cumules</h3>
+            <h3>Classement</h3>
             <div className={styles.resultList}>
-              {participantsOrder.map((participant) => (
+              {orderedParticipantIds.map((participant) => (
                 <div key={participant} className={styles.resultRow}>
-                  <span>{participant}</span>
+                  <span>{participantName(participant)}</span>
                   <span>{Number(scores[participant] || 0)} pts</span>
                 </div>
               ))}
@@ -281,7 +468,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'next_turn' ? (
           <section className={styles.card}>
             <h2>Transition</h2>
-            <p>Preparation du tour suivant...</p>
+            <p>Préparation du tour suivant...</p>
           </section>
         ) : null}
 
@@ -295,15 +482,25 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'finished' ? (
           <section className={styles.card}>
             <h2>Classement final</h2>
+            <div className={`${styles.mainScoreCard} ${styles.finalWow}`}>
+              <span className={styles.wowIcon}>✅</span>
+              <span className={styles.mainScoreLabel}>Votre score final</span>
+              <span className={styles.mainScoreValue}>{myScore}</span>
+              <span className={styles.mainScoreUnit}>points</span>
+            </div>
             <div className={styles.resultList}>
               {ranking.map((entry) => (
                 <div key={entry.participant_id} className={styles.resultRow}>
-                  <span>#{entry.rank} {entry.participant_id}</span>
-                  <span>{entry.score} pts {entry.tie ? '(ex-aequo)' : ''}</span>
+                  <span>#{entry.rank} {participantName(entry.participant_id)}</span>
+                  <span>
+                    {entry.score} pts {entry.tie ? '(ex-aequo)' : ''}
+                    {' · '}
+                    <em>{buildBadge(entry.score)}</em>
+                  </span>
                 </div>
               ))}
             </div>
-            <p className={styles.helper}>Action de sortie: retour a l espace participant.</p>
+            <p className={styles.helper}>Action de sortie: retour à l espace participant.</p>
             <a className={styles.primaryBtn} href={`/participant?sessionId=${encodeURIComponent(String(context?.sessionId || runtimePayload?.session_id || ''))}`}>
               Sortir du challenge
             </a>
@@ -326,7 +523,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <ChallengeTimerCard
             title="Chrono"
             remainingSeconds={formatSeconds(remainingMs)}
-            durationSeconds={Math.max(1, formatSeconds(Number(vom?.phase_deadline_ms || 0) - Number(vom?.phase_started_at_ms || 0)))}
+            durationSeconds={Math.max(1, phaseDurationSeconds)}
             status={phase === 'voting_open' || phase === 'selecting_statement' || phase === 'reveal_pending' ? 'running' : 'idle'}
             isFacilitator={isFacilitator}
             waitingText="⏳ Chrono partagé pour l'équipe"
@@ -357,42 +554,20 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           />
 
           <section className={`${styles.card} ${styles.stateCard}`}>
-            <h3>Etat live</h3>
-            <div className={styles.stateGrid}>
-              <div className={styles.stateRow}><span>Phase</span><strong>{phaseLabel(phase)}</strong></div>
-              <div className={styles.stateRow}><span>Poseur</span><strong>{poserId || '-'}</strong></div>
-              <div className={styles.stateRow}><span>Tour</span><strong>{Number(vom?.turn_index || 0) + 1}/{Number(vom?.total_turns || 0)}</strong></div>
-              <div className={styles.stateRow}><span>Temps</span><strong>{formatSeconds(remainingMs)}s</strong></div>
-            </div>
-          </section>
-
-          <section className={styles.card}>
-            <h3>Scores rapides</h3>
+            <h3>Classement</h3>
             <div className={styles.resultList}>
-              {participantsOrder.length === 0 ? <p className={styles.helper}>Aucun participant détecté.</p> : null}
-              {participantsOrder.map((participant) => (
+              {orderedParticipantIds.length === 0 ? <p className={styles.helper}>Aucun participant détecté.</p> : null}
+              {orderedParticipantIds.map((participant) => (
                 <div key={participant} className={styles.resultRow}>
-                  <span>{participant}</span>
-                  <span>{Number(scores[participant] || 0)} pts</span>
+                  <span>{participantName(participant)}</span>
+                  <span>
+                    {Number(scores[participant] || 0)} pts
+                    {' · '}
+                    <em>{buildBadge(Number(scores[participant] || 0))}</em>
+                  </span>
                 </div>
               ))}
             </div>
-          </section>
-
-          <section className={styles.card}>
-            <h3>Historique</h3>
-            <p className={styles.helper}>{roundHistory.length} tours resolus</p>
-            {roundHistory.length > 0 ? (
-              <ul className={styles.historyList}>
-                {roundHistory.slice(-5).reverse().map((round, idx) => (
-                  <li key={`${String(round?.turn_index ?? idx)}-${String(round?.poser_id || idx)}`}>
-                    <span>T{Number(round?.turn_index || 0) + 1}</span>
-                    <span>{String(round?.poser_id || '-')}</span>
-                    <span>{String(round?.revealed_truth || '-')}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
           </section>
         </aside>
       </div>

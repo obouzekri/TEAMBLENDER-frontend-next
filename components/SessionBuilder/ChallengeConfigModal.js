@@ -176,6 +176,31 @@ function withPhraseDefaults(config = {}) {
   };
 }
 
+function withVOMDefaults(config = {}) {
+  const targetDurationMinutes = [15, 20, 25, 30].includes(Number(config?.target_duration_minutes))
+    ? Number(config.target_duration_minutes)
+    : 15;
+
+  return {
+    ...(config || {}),
+    target_duration_minutes: targetDurationMinutes,
+    timing: {
+      ...(config?.timing && typeof config.timing === 'object' ? config.timing : {}),
+      selecting_ms: clampInt(config?.timing?.selecting_ms, 30000, 10000, 120000),
+      voting_ms: clampInt(config?.timing?.voting_ms, 30000, 10000, 120000),
+      reveal_ms: clampInt(config?.timing?.reveal_ms, 15000, 5000, 60000),
+      round_result_ms: clampInt(config?.timing?.round_result_ms, 15000, 5000, 60000),
+      next_turn_ms: clampInt(config?.timing?.next_turn_ms, 1000, 0, 10000),
+    },
+    timer: {
+      ...(config?.timer && typeof config.timer === 'object' ? config.timer : {}),
+      enabled: false,
+      duration_seconds: 0,
+      warning_threshold_seconds: 0,
+    },
+  };
+}
+
 export default function ChallengeConfigModal({ challengeId, challenge, onSave, onClose }) {
   const [config, setConfig] = useState(challenge?.config || {});
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -201,6 +226,9 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
     }
     if ((current?.engine_key || '').toLowerCase() === 'phrase_collaborative_v1' || fingerprint.includes('phrase')) {
       return 'phrase';
+    }
+    if ((current?.engine_key || '').toLowerCase() === 'vrai_ou_mensonge_v1' || fingerprint.includes('vrai') || fingerprint.includes('mensonge')) {
+      return 'vrai_ou_mensonge';
     }
     if ((current?.engine_key || '').toLowerCase() === 'labyrinthe_live_v1') {
       return 'labyrinthe_live';
@@ -276,6 +304,10 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
     }
     if (kind === 'phrase') {
       onSave(withPhraseDefaults(config));
+      return;
+    }
+    if (kind === 'vrai_ou_mensonge') {
+      onSave(withVOMDefaults(config));
       return;
     }
     onSave(config);
@@ -625,6 +657,68 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                   />
                   <span>Chat activé</span>
                 </label>
+              </div>
+            </>
+          )}
+
+          {kind === 'vrai_ou_mensonge' && (
+            <>
+              <div className={styles.configField}>
+                <label htmlFor="vomTargetDuration" className={styles.label}>Durée cible (minutes)</label>
+                <select
+                  id="vomTargetDuration"
+                  className={styles.input}
+                  value={numberValue('target_duration_minutes', 15)}
+                  onChange={(e) => updateValue('target_duration_minutes', Number(e.target.value || 15))}
+                >
+                  <option value={15}>15 minutes</option>
+                  <option value={20}>20 minutes</option>
+                  <option value={25}>25 minutes</option>
+                  <option value={30}>30 minutes</option>
+                </select>
+                <span className={styles.helpText}>
+                  Nombre de cycles = durée choisie ÷ nombre de participants (cycles complets uniquement).
+                </span>
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="vomChoosingMs" className={styles.label}>Temps choix affirmation (ms)</label>
+                <input
+                  id="vomChoosingMs"
+                  type="number"
+                  min="10000"
+                  max="120000"
+                  value={numberValue('timing.selecting_ms', 30000)}
+                  onChange={(e) => updateValue('timing.selecting_ms', Number(e.target.value || 30000))}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="vomVotingMs" className={styles.label}>Temps réponse participants (ms)</label>
+                <input
+                  id="vomVotingMs"
+                  type="number"
+                  min="10000"
+                  max="120000"
+                  value={numberValue('timing.voting_ms', 30000)}
+                  onChange={(e) => updateValue('timing.voting_ms', Number(e.target.value || 30000))}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="vomRoundResultMs" className={styles.label}>Écran transition + classement (ms)</label>
+                <input
+                  id="vomRoundResultMs"
+                  type="number"
+                  min="5000"
+                  max="60000"
+                  value={numberValue('timing.round_result_ms', 15000)}
+                  onChange={(e) => updateValue('timing.round_result_ms', Number(e.target.value || 15000))}
+                  className={styles.input}
+                />
+                <span className={styles.helpText}>Recommandé: 15000 ms (15 secondes).</span>
               </div>
             </>
           )}
