@@ -504,6 +504,8 @@ export default function EscapeRoomChallenge({
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
+              onStart={isFacilitator ? () => handleTimerAction('start') : null}
+              startDisabled={isFacilitator ? !canStartTimer : false}
             />
           ) : isFinished ? (
             <>
@@ -621,18 +623,7 @@ export default function EscapeRoomChallenge({
             durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
             status={isTimerRunning ? 'running' : 'idle'}
             isFacilitator={isFacilitator}
-            waitingText="⏳ Gere par le facilitateur"
-            ringAction={isFacilitator ? (
-              <button
-                type="button"
-                onClick={() => handleTimerAction(isTimerRunning ? 'pause' : 'start')}
-                disabled={isTimerRunning ? false : !canStartTimer}
-                title={isTimerRunning ? 'Mettre en pause' : 'Demarrer'}
-                aria-label={isTimerRunning ? 'Mettre en pause' : 'Demarrer'}
-              >
-                {isTimerRunning ? '⏸' : '▶'}
-              </button>
-            ) : null}
+            waitingText=""
             footer={isFacilitator && !isFinished && currentEnigme ? (
               <div className={styles.timerQuickActions}>
                 <button

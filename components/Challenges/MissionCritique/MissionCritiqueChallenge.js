@@ -308,6 +308,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                 facilitatorRules={rulesContent.facilitator}
                 participantRules={rulesContent.participant}
                 footnote={rulesContent.footnote}
+                onStart={isFacilitator ? () => emitEvent('timer.start') : null}
               />
             </section>
           ) : !isFacilitator ? (
@@ -526,17 +527,16 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             status={timerState}
             progressPercent={timerProgress}
             isFacilitator={isFacilitator}
-            waitingText="⏳ En attente du facilitateur"
-            ringAction={isFacilitator ? (
+            waitingText=""
+            ringAction={isFacilitator && hasChallengeStarted ? (
               <button
                 type="button"
                 onClick={() => {
                   if (timerState === 'running') emitEvent('timer.pause');
                   else if (timerState === 'paused') emitEvent('timer.resume');
-                  else emitEvent('timer.start');
                 }}
-                title={timerState === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
-                aria-label={timerState === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
+                title={timerState === 'running' ? 'Mettre en pause' : 'Reprendre'}
+                aria-label={timerState === 'running' ? 'Mettre en pause' : 'Reprendre'}
               >
                 {timerState === 'running' ? '⏸' : '▶'}
               </button>

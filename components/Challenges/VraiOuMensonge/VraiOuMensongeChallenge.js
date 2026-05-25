@@ -321,6 +321,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
+              onStart={isFacilitator ? startChallenge : null}
             />
           </section>
         ) : null}
@@ -542,17 +543,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             durationSeconds={Math.max(1, phaseDurationSeconds)}
             status={phase === 'voting_open' || phase === 'selecting_statement' || phase === 'reveal_pending' || phase === 'round_result' ? 'running' : 'idle'}
             isFacilitator={isFacilitator}
-            waitingText="Chrono partagé pour l'équipe"
-            ringAction={isFacilitator && phase === 'waiting_start' ? (
-              <button
-                type="button"
-                onClick={startChallenge}
-                title="Démarrer"
-                aria-label="Démarrer"
-              >
-                Demarrer
-              </button>
-            ) : null}
+            waitingText=""
           />
 
           <ChallengeChatCard

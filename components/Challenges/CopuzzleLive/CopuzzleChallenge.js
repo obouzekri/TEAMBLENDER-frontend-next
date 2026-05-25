@@ -321,6 +321,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
+              onStart={isFacilitator ? () => emitEvent('timer.start') : null}
             />
           ) : (
             <>
@@ -464,17 +465,16 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
             durationSeconds={timerDurationSeconds}
             status={timerState}
             isFacilitator={isFacilitator}
-            waitingText="⏳ En attente du facilitateur"
-            ringAction={isFacilitator ? (
+            waitingText=""
+            ringAction={isFacilitator && hasChallengeStarted ? (
               <button
                 type="button"
                 onClick={() => {
                   if (timerState === 'running') emitEvent('timer.pause');
                   else if (timerState === 'paused') emitEvent('timer.resume');
-                  else emitEvent('timer.start');
                 }}
-                title={timerState === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
-                aria-label={timerState === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
+                title={timerState === 'running' ? 'Mettre en pause' : 'Reprendre'}
+                aria-label={timerState === 'running' ? 'Mettre en pause' : 'Reprendre'}
               >
                 {timerState === 'running' ? '⏸' : '▶'}
               </button>

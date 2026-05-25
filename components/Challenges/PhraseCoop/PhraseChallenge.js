@@ -238,6 +238,7 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
+              onStart={isFacilitator ? () => emitEvent('timer.start') : null}
             />
           ) : (
             <>
@@ -324,17 +325,16 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
             durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
             status={timerStatus}
             isFacilitator={isFacilitator}
-            waitingText="⏳ En attente du facilitateur"
-            ringAction={isFacilitator ? (
+            waitingText=""
+            ringAction={isFacilitator && hasChallengeStarted ? (
               <button
                 type="button"
                 onClick={() => {
                   if (timerStatus === 'running') emitEvent('timer.pause');
                   else if (timerStatus === 'paused') emitEvent('timer.resume');
-                  else emitEvent('timer.start');
                 }}
-                title={timerStatus === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
-                aria-label={timerStatus === 'running' ? 'Mettre en pause' : 'Démarrer / Reprendre'}
+                title={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
+                aria-label={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
               >
                 {timerStatus === 'running' ? '⏸' : '▶'}
               </button>

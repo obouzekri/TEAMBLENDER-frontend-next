@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useSessionState } from '@/lib/useSessionState';
+import { getApiUrl } from '@/lib/config';
 
 const ChallengeWrapper = dynamic(
   () => import('@/components/Challenges/ChallengeWrapper'),
@@ -22,6 +23,7 @@ export default function ChallengeRouteClient() {
   );
   const { sessionState } = useSessionState(sessionId || null);
   const [completionOverlay, setCompletionOverlay] = useState(null);
+  const [authoritativeEngineKey, setAuthoritativeEngineKey] = useState('');
   const countdownTimerRef = useRef(null);
   const completedChallengeIdRef = useRef('');
 
@@ -29,7 +31,12 @@ export default function ChallengeRouteClient() {
     ? 'auto'
     : 'manual';
   const activeChallengeId = String(sessionState?.active_challenge?.id || sessionState?.current_challenge?.id || sessionState?.active_challenge_id || '').trim();
-  const activeEngineKey = String(sessionState?.current_challenge?.engine_key || engineKey).trim();
+  const activeEngineKey = String(
+    authoritativeEngineKey
+    || sessionState?.current_challenge?.engine_key
+    || sessionState?.active_challenge?.engine_key
+    || engineKey
+  ).trim();
   const hasAuthoritativeState = Boolean(sessionState && typeof sessionState === 'object');
 
   const clearCountdown = useCallback(() => {
@@ -65,6 +72,55 @@ export default function ChallengeRouteClient() {
 
     setCompletionOverlay({ mode: 'manual', countdown: 0 });
   }, [activeChallengeId, clearCountdown, flowMode]);
+
+  useEffect(() => {
+    if (!sessionId || !activeChallengeId) {
+      setAuthoritativeEngineKey('');
+      return;
+    }
+
+    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+    if (!token) {
+      setAuthoritativeEngineKey('');
+      return;
+    }
+
+    let cancelled = false;
+
+    async function fetchAuthoritativeRuntime() {
+      try {
+        const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/runtime-challenge`), {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`Erreur ${res.status}`);
+        }
+
+        const payload = await res.json();
+        if (cancelled) {
+          return;
+        }
+
+        const nextEngineKey = String(payload?.engine_key || '').trim();
+        setAuthoritativeEngineKey(nextEngineKey);
+      } catch {
+        if (!cancelled) {
+          setAuthoritativeEngineKey('');
+        }
+      }
+    }
+
+    fetchAuthoritativeRuntime();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeChallengeId, sessionId]);
 
   useEffect(() => {
     if (!sessionId || !hasAuthoritativeState) {

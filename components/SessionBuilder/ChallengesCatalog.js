@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import ChallengeRulesPreviewModal from './ChallengeRulesPreviewModal';
 import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import styles from './ChallengesCatalog.module.css';
 
@@ -36,6 +37,8 @@ export default function ChallengesCatalog({
   onFilterChange,
   onResetFilters,
 }) {
+  const [previewChallenge, setPreviewChallenge] = useState(null);
+
   // Extraire les catégories uniques depuis les challenges
   const categories = useMemo(() => {
     const unique = new Set();
@@ -165,7 +168,19 @@ export default function ChallengesCatalog({
               <div key={challenge.id} className={`${styles.card} ${isSelected ? styles.selected : ''}`}>
                 <div className={styles.cardHeader}>
                   <h3 className={styles.cardTitle}>{challenge.name}</h3>
-                  <span className={styles.cardDuration}>{challenge.duration}m</span>
+                  <div className={styles.rulesMeta}>
+                    <button
+                      type="button"
+                      className={styles.rulesButton}
+                      onClick={() => setPreviewChallenge(challenge)}
+                      title="Voir les règles"
+                      aria-label={`Voir les règles de ${challenge.name}`}
+                    >
+                      <span aria-hidden="true">📜</span>
+                      <span>Voir les règles</span>
+                    </button>
+                    <span className={styles.cardDuration}>{challenge.duration} min</span>
+                  </div>
                 </div>
 
                 <p className={styles.cardDescription}>{challenge.description}</p>
@@ -201,6 +216,13 @@ export default function ChallengesCatalog({
           })}
         </div>
       )}
+
+      {previewChallenge ? (
+        <ChallengeRulesPreviewModal
+          challenge={previewChallenge}
+          onClose={() => setPreviewChallenge(null)}
+        />
+      ) : null}
     </section>
   );
 }

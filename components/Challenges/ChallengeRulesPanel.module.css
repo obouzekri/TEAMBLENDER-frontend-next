@@ -2,57 +2,86 @@
   background: rgba(20, 29, 52, 0.68);
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 12px;
-  padding: 12px;
+  padding: 16px;
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .rulesHeader {
   display: grid;
-  gap: 2px;
+  gap: 6px;
 }
 
 .rulesHeader h2 {
   margin: 0;
   color: #e5edf7;
-  font-size: 1rem;
+  font-size: 1.06rem;
 }
 
 .rulesHeader p {
   margin: 0;
   color: #bfd3e8;
-  font-size: 0.84rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .rulesSection {
   display: grid;
-  gap: 4px;
+  gap: 8px;
   border: 1px solid rgba(125, 211, 252, 0.2);
   background: rgba(9, 22, 34, 0.62);
   border-radius: 8px;
-  padding: 8px;
+  padding: 10px 12px;
 }
 
 .rulesSection h3 {
   margin: 0;
   color: #dbeafe;
-  font-size: 0.86rem;
+  font-size: 0.92rem;
 }
 
 .rulesSection ul {
   margin: 0;
-  padding-left: 16px;
+  padding-left: 20px;
   color: #c9ddf0;
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   display: grid;
-  gap: 2px;
-  line-height: 1.3;
+  gap: 6px;
+  line-height: 1.5;
 }
 
 .rulesFootnote {
   margin: 0;
   color: #9cb2c7;
   font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.rulesActions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.startButton {
+  border: 1px solid rgba(56, 189, 248, 0.42);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.24), rgba(14, 116, 144, 0.28));
+  color: #eff8ff;
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 14px 28px rgba(2, 132, 199, 0.18);
+}
+
+.startButton:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.startButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .rulesButton {
@@ -75,6 +104,7 @@
   position: fixed;
   inset: 0;
   background: rgba(2, 10, 18, 0.6);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;

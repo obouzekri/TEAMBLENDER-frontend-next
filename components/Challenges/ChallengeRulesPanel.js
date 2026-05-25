@@ -12,6 +12,9 @@ export default function ChallengeRulesPanel({
   participantRules = [],
   footnote = '',
   showPrestartCard = true,
+  startLabel = 'Démarrer le challenge',
+  onStart = null,
+  startDisabled = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -35,6 +38,8 @@ export default function ChallengeRulesPanel({
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [isOpen]);
+
+  const canStartFromRules = !isStarted && isFacilitator && typeof onStart === 'function';
 
   const cardContent = (
     <>
@@ -64,6 +69,19 @@ export default function ChallengeRulesPanel({
       </section>
 
       {footnote ? <p className={styles.rulesFootnote}>{footnote}</p> : null}
+
+      {canStartFromRules ? (
+        <div className={styles.rulesActions}>
+          <button
+            type="button"
+            className={styles.startButton}
+            onClick={onStart}
+            disabled={startDisabled}
+          >
+            {startLabel}
+          </button>
+        </div>
+      ) : null}
     </>
   );
 
@@ -82,14 +100,14 @@ export default function ChallengeRulesPanel({
         className={styles.rulesButton}
         onClick={() => setIsOpen(true)}
       >
-        Afficher les regles
+        Afficher les règles
       </button>
 
       {isOpen ? (
         <div className={styles.modalBackdrop} onClick={() => setIsOpen(false)} role="dialog" aria-modal="true">
           <section className={styles.modalCard} onClick={(event) => event.stopPropagation()}>
             <header className={styles.modalHead}>
-              <h2>Regles - {challengeName}</h2>
+              <h2>Règles - {challengeName}</h2>
               <button type="button" className={styles.closeBtn} onClick={() => setIsOpen(false)}>
                 Fermer
               </button>

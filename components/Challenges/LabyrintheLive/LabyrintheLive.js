@@ -218,6 +218,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                 facilitatorRules={rulesContent.facilitator}
                 participantRules={rulesContent.participant}
                 footnote={rulesContent.footnote}
+                onStart={isFacilitator ? () => emitEvent('timer.start') : null}
               />
               {error ? <p className={styles.error}>{error}</p> : null}
             </section>
@@ -342,8 +343,8 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
             durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
             status={String(timer?.status || 'idle')}
             isFacilitator={isFacilitator}
-            waitingText="⏳ En attente du lancement par le facilitateur"
-            ringAction={isFacilitator ? (
+            waitingText=""
+            ringAction={isFacilitator && hasChallengeStarted ? (
               <button
                 type="button"
                 onClick={() => {
@@ -352,12 +353,10 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                     emitEvent('timer.pause');
                   } else if (timerStatus === 'paused') {
                     emitEvent('timer.resume');
-                  } else {
-                    emitEvent('timer.start');
                   }
                 }}
-                title={String(timer?.status || '').trim().toLowerCase() === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
-                aria-label={String(timer?.status || '').trim().toLowerCase() === 'running' ? 'Mettre en pause' : 'Demarrer / Reprendre'}
+                title={String(timer?.status || '').trim().toLowerCase() === 'running' ? 'Mettre en pause' : 'Reprendre'}
+                aria-label={String(timer?.status || '').trim().toLowerCase() === 'running' ? 'Mettre en pause' : 'Reprendre'}
               >
                 {String(timer?.status || '').trim().toLowerCase() === 'running' ? '⏸' : '▶'}
               </button>
