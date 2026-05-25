@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import ChallengeRulesPreviewModal from './ChallengeRulesPreviewModal';
 import styles from './SelectedChallengesList.module.css';
 
 export default function SelectedChallengesList({
@@ -12,8 +10,6 @@ export default function SelectedChallengesList({
   onMoveDown,
   onClearAll,
 }) {
-  const [previewChallenge, setPreviewChallenge] = useState(null);
-
   if (challenges.length === 0) {
     return (
       <aside className={styles.sidebar}>
@@ -47,22 +43,7 @@ export default function SelectedChallengesList({
         {challenges.map((challenge, index) => (
           <li key={challenge.id} className={styles.item}>
             <div className={styles.itemInfo}>
-              <div className={styles.itemHead}>
-                <p className={styles.itemTitle}>{challenge.name}</p>
-                <div className={styles.itemRulesMeta}>
-                  <button
-                    type="button"
-                    className={styles.rulesButton}
-                    onClick={() => setPreviewChallenge(challenge)}
-                    title="Voir les règles"
-                    aria-label={`Voir les règles de ${challenge.name}`}
-                  >
-                    <span aria-hidden="true">📜</span>
-                    <span>Voir les règles</span>
-                  </button>
-                  <p className={styles.itemMeta}>{challenge.duration} min</p>
-                </div>
-              </div>
+              <p className={styles.itemTitle}>{challenge.name}</p>
             </div>
 
             <div className={styles.itemActions}>
@@ -115,13 +96,6 @@ export default function SelectedChallengesList({
           Effacer la sélection
         </button>
       </div>
-
-      {previewChallenge ? (
-        <ChallengeRulesPreviewModal
-          challenge={previewChallenge}
-          onClose={() => setPreviewChallenge(null)}
-        />
-      ) : null}
     </aside>
   );
 }

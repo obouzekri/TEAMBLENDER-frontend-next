@@ -37,6 +37,10 @@ const DEFAULT_NEW_CHALLENGE = {
   duration: '',
   engine_key: '',
   description: '',
+  rules_objective: '',
+  rules_facilitator: '',
+  rules_participant: '',
+  rules_footnote: '',
 };
 
 const DEFAULT_NEW_PRICING_PLAN = {
@@ -232,6 +236,43 @@ function ensureCopuzzleConfig(engineConfig) {
 
 function getCopuzzleImageSrc(engineConfig) {
   return String(engineConfig?.image?.src || engineConfig?.image_url || '').trim() || '/copuzzle/default-blue.svg';
+}
+
+function parseRulesTextarea(value) {
+  return String(value || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function buildChallengeRulesPayload(draft) {
+  const objective = String(draft?.rules_objective || '').trim();
+  const facilitator = parseRulesTextarea(draft?.rules_facilitator);
+  const participant = parseRulesTextarea(draft?.rules_participant);
+  const footnote = String(draft?.rules_footnote || '').trim();
+
+  const hasRules = Boolean(objective || footnote || facilitator.length > 0 || participant.length > 0);
+  if (!hasRules) return null;
+
+  return {
+    objective,
+    facilitator,
+    participant,
+    footnote,
+  };
+}
+
+function mergeChallengeRulesIntoEngineConfig(engineConfig, draft) {
+  const nextEngineConfig = cloneJson(engineConfig, {}) || {};
+  const rules = buildChallengeRulesPayload(draft);
+
+  if (rules) {
+    nextEngineConfig.rules = rules;
+  } else if (nextEngineConfig.rules && typeof nextEngineConfig.rules === 'object') {
+    delete nextEngineConfig.rules;
+  }
+
+  return nextEngineConfig;
 }
 
 function planToDraft(plan) {
@@ -1486,6 +1527,7 @@ export default function AdminClient() {
     setError('');
 
     try {
+      const engineConfig = mergeChallengeRulesIntoEngineConfig({}, newChallenge);
       const response = await fetch(getApiUrl('/challenges'), {
         method: 'POST',
         headers: {
@@ -1502,7 +1544,7 @@ export default function AdminClient() {
           duration: newChallenge.duration || null,
           engine_key: newChallenge.engine_key || null,
           description: newChallenge.description || null,
-          engine_config: {},
+          engine_config: engineConfig,
         }),
       });
 
@@ -1530,6 +1572,10 @@ export default function AdminClient() {
     const normalizedEngineConfig = isCopuzzle
       ? ensureCopuzzleConfig(challengeItem.engine_config)
       : cloneJson(challengeItem.engine_config, {}) || {};
+    const rulesSource =
+      normalizedEngineConfig && typeof normalizedEngineConfig.rules === 'object'
+        ? normalizedEngineConfig.rules
+        : {};
 
     setEditingChallenge({
       id: challengeItem.id,
@@ -1542,6 +1588,10 @@ export default function AdminClient() {
       engine_key: challengeItem.engine_key || '',
       description: challengeItem.description || '',
       engine_config: normalizedEngineConfig,
+      rules_objective: String(rulesSource.objective || ''),
+      rules_facilitator: Array.isArray(rulesSource.facilitator) ? rulesSource.facilitator.join('\n') : '',
+      rules_participant: Array.isArray(rulesSource.participant) ? rulesSource.participant.join('\n') : '',
+      rules_footnote: String(rulesSource.footnote || ''),
     });
   }
 
@@ -1694,6 +1744,7 @@ export default function AdminClient() {
     setBusySaveKey(key);
     setError('');
     try {
+      const engineConfig = mergeChallengeRulesIntoEngineConfig(editingChallenge.engine_config || {}, editingChallenge);
       const response = await fetch(getApiUrl(`/challenges/${editingChallenge.id}`), {
         method: 'PUT',
         headers: {
@@ -1709,7 +1760,7 @@ export default function AdminClient() {
           duration: editingChallenge.duration || null,
           engine_key: editingChallenge.engine_key || null,
           description: editingChallenge.description || null,
-          engine_config: editingChallenge.engine_config || {},
+          engine_config: engineConfig,
         }),
       });
 
@@ -3031,6 +3082,22 @@ export default function AdminClient() {
                       <label>Duree<input value={newChallenge.duration} onChange={(e) => setNewChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
                       <label>Engine key<input value={newChallenge.engine_key} onChange={(e) => setNewChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
                       <label>Description<textarea rows={4} value={newChallenge.description} onChange={(e) => setNewChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
+                      <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
+                        <p style={{ margin: 0, fontWeight: 600 }}>Règles du challenge</p>
+                        <p className="session-meta" style={{ margin: 0 }}>Ce contenu alimente le brief affiché aux facilitateurs et aux participants dans le challenge.</p>
+                        <label>Brief de mission
+                          <textarea rows={3} value={newChallenge.rules_objective} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder="Décrivez l'objectif principal du challenge" />
+                        </label>
+                        <label>Instructions facilitateur (1 ligne = 1 règle)
+                          <textarea rows={4} value={newChallenge.rules_facilitator} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder="Cadrez le challenge&#10;Lancez le timer" />
+                        </label>
+                        <label>Instructions participants (1 ligne = 1 règle)
+                          <textarea rows={4} value={newChallenge.rules_participant} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder="Ecoutez le brief&#10;Collaborez en équipe" />
+                        </label>
+                        <label>Note de clôture
+                          <textarea rows={2} value={newChallenge.rules_footnote} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder="Message de synthèse optionnel" />
+                        </label>
+                      </div>
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:challenge'}>
                         {busySaveKey === 'create:challenge' ? 'Création...' : 'Creer le challenge'}
                       </button>
@@ -3087,6 +3154,22 @@ export default function AdminClient() {
                         <label>Duree<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
                         <label>Engine key<input value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
                         <label>Description<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
+                        <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
+                          <p style={{ margin: 0, fontWeight: 600 }}>Règles du challenge</p>
+                          <p className="session-meta" style={{ margin: 0 }}>Ce contenu alimente le brief affiché aux facilitateurs et aux participants dans le challenge.</p>
+                          <label>Brief de mission
+                            <textarea rows={3} value={editingChallenge.rules_objective || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder="Décrivez l'objectif principal du challenge" />
+                          </label>
+                          <label>Instructions facilitateur (1 ligne = 1 règle)
+                            <textarea rows={4} value={editingChallenge.rules_facilitator || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder="Cadrez le challenge&#10;Lancez le timer" />
+                          </label>
+                          <label>Instructions participants (1 ligne = 1 règle)
+                            <textarea rows={4} value={editingChallenge.rules_participant || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder="Ecoutez le brief&#10;Collaborez en équipe" />
+                          </label>
+                          <label>Note de clôture
+                            <textarea rows={2} value={editingChallenge.rules_footnote || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder="Message de synthèse optionnel" />
+                          </label>
+                        </div>
                         {(editingChallenge.engine_key || '').toLowerCase() === 'escape_room_v1' ? (
                           <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '10px' }}>
                             <p style={{ margin: '0 0 8px', fontWeight: 600 }}>Image énigme 5 (Salle secrète)</p>
