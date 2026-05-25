@@ -31,20 +31,18 @@
   border: 1px solid var(--line-soft);
   background: linear-gradient(165deg, var(--surface-2), var(--surface-1));
   box-shadow: 0 16px 34px rgba(2, 9, 16, 0.28);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  gap: 8px;
   overflow-x: auto;
   overflow-y: hidden;
 }
 
-.headerTitleLine {
-  display: grid;
-  gap: 4px;
+.headerLine {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   min-width: 0;
-  flex: 1 1 auto;
-  overflow: hidden;
+  white-space: nowrap;
 }
 
 .headerTitle {
@@ -53,6 +51,11 @@
   font-weight: 800;
   color: #e5edf7;
   letter-spacing: 0.01em;
+}
+
+.headerSeparator {
+  color: #94a7bb;
+  font-weight: 700;
 }
 
 .headerDescription {
@@ -65,57 +68,20 @@
   opacity: 0.95;
 }
 
-.liveStrip {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  align-items: stretch;
-}
-
-.liveItem {
-  border: 1px solid rgba(125, 164, 188, 0.36);
-  border-radius: 12px;
-  background: rgba(8, 21, 33, 0.78);
-  padding: 10px 12px;
-  display: grid;
-  gap: 4px;
-  transition: transform 140ms ease, border-color 140ms ease;
-}
-
-.liveItem:hover {
-  transform: translateY(-1px);
-  border-color: rgba(125, 211, 252, 0.6);
-}
-
-.liveItem span {
-  color: var(--text-soft);
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 700;
-}
-
-.liveItem strong {
-  color: #ebf6ff;
-  font-size: 0.95rem;
-}
-
-.meta {
+.headerMetaLine {
   display: flex;
   flex-wrap: nowrap;
-  gap: 8px;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  color: #bfd3e8;
+  font-size: 0.87rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
-.badge {
-  border-radius: 999px;
-  padding: 6px 12px;
-  border: 1px solid var(--line-soft);
-  background: rgba(8, 21, 38, 0.7);
-  color: #bfd3e8;
-  font-weight: 700;
-  font-size: 0.77rem;
+.headerMetaDot {
+  color: #7f95aa;
+  font-weight: 800;
 }
 
 .layout {
@@ -434,18 +400,13 @@
   padding: 12px;
   background: linear-gradient(145deg, rgba(17, 64, 47, 0.72), rgba(11, 40, 31, 0.66));
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 1fr;
   gap: 10px;
   align-items: start;
 }
 
 .wowResultPulse {
   animation: wowPulse 1.1s ease;
-}
-
-.wowIcon {
-  font-size: 1.25rem;
-  line-height: 1;
 }
 
 .wowTitle {
@@ -552,20 +513,17 @@
     gap: 10px;
   }
 
+  .headerLine {
+    white-space: normal;
+    flex-wrap: wrap;
+  }
+
   .header h1 {
     font-size: 1.45rem;
   }
 
-  .meta {
-    justify-content: flex-start;
-  }
-
   .layout {
     grid-template-columns: 1fr;
-  }
-
-  .liveStrip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .stateCard {

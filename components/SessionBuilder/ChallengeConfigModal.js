@@ -177,20 +177,18 @@ function withPhraseDefaults(config = {}) {
 }
 
 function withVOMDefaults(config = {}) {
-  const targetDurationMinutes = [15, 20, 25, 30].includes(Number(config?.target_duration_minutes))
-    ? Number(config.target_duration_minutes)
-    : 15;
+  const roundsPerParticipant = clampInt(config?.rounds_per_participant, 3, 1, 12);
 
   return {
     ...(config || {}),
-    target_duration_minutes: targetDurationMinutes,
+    rounds_per_participant: roundsPerParticipant,
     timing: {
       ...(config?.timing && typeof config.timing === 'object' ? config.timing : {}),
       selecting_ms: clampInt(config?.timing?.selecting_ms, 30000, 10000, 120000),
       voting_ms: clampInt(config?.timing?.voting_ms, 30000, 10000, 120000),
-      reveal_ms: clampInt(config?.timing?.reveal_ms, 15000, 5000, 60000),
-      round_result_ms: clampInt(config?.timing?.round_result_ms, 15000, 5000, 60000),
-      next_turn_ms: clampInt(config?.timing?.next_turn_ms, 1000, 0, 10000),
+      reveal_ms: clampInt(config?.timing?.reveal_ms, 5000, 0, 60000),
+      round_result_ms: clampInt(config?.timing?.round_result_ms, 5000, 0, 60000),
+      next_turn_ms: clampInt(config?.timing?.next_turn_ms, 0, 0, 10000),
     },
     timer: {
       ...(config?.timer && typeof config.timer === 'object' ? config.timer : {}),
@@ -664,20 +662,18 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
           {kind === 'vrai_ou_mensonge' && (
             <>
               <div className={styles.configField}>
-                <label htmlFor="vomTargetDuration" className={styles.label}>Durée cible (minutes)</label>
-                <select
-                  id="vomTargetDuration"
+                <label htmlFor="vomRoundsPerParticipant" className={styles.label}>Cycles par participant</label>
+                <input
+                  id="vomRoundsPerParticipant"
+                  type="number"
+                  min="1"
+                  max="12"
+                  value={numberValue('rounds_per_participant', 3)}
+                  onChange={(e) => updateValue('rounds_per_participant', Number(e.target.value || 3))}
                   className={styles.input}
-                  value={numberValue('target_duration_minutes', 15)}
-                  onChange={(e) => updateValue('target_duration_minutes', Number(e.target.value || 15))}
-                >
-                  <option value={15}>15 minutes</option>
-                  <option value={20}>20 minutes</option>
-                  <option value={25}>25 minutes</option>
-                  <option value={30}>30 minutes</option>
-                </select>
+                />
                 <span className={styles.helpText}>
-                  Nombre de cycles = durée choisie ÷ nombre de participants (cycles complets uniquement).
+                  Par défaut: 3 cycles si aucune configuration n'est définie.
                 </span>
               </div>
 
@@ -712,13 +708,13 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
                 <input
                   id="vomRoundResultMs"
                   type="number"
-                  min="5000"
+                  min="0"
                   max="60000"
-                  value={numberValue('timing.round_result_ms', 15000)}
-                  onChange={(e) => updateValue('timing.round_result_ms', Number(e.target.value || 15000))}
+                  value={numberValue('timing.round_result_ms', 5000)}
+                  onChange={(e) => updateValue('timing.round_result_ms', Number(e.target.value || 5000))}
                   className={styles.input}
                 />
-                <span className={styles.helpText}>Recommandé: 15000 ms (15 secondes).</span>
+                <span className={styles.helpText}>Recommandé: 5000 à 10000 ms (5 à 10 secondes).</span>
               </div>
             </>
           )}

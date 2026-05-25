@@ -38,16 +38,40 @@ function formatClock(totalSeconds) {
 }
 
 function normalizeName(value) {
-  const text = String(value || '').trim();
-  return text || '';
+  return String(value || '').trim();
 }
 
-function buildBadge(score) {
-  const n = Number(score || 0);
-  if (n >= 12) return 'Maître du vrai';
-  if (n >= 8) return 'Détective d équipe';
-  if (n >= 4) return 'Observateur fiable';
-  return 'En progression';
+function toTitleWord(raw) {
+  const token = String(raw || '').trim().toLowerCase();
+  if (!token) return '';
+  return token.charAt(0).toUpperCase() + token.slice(1);
+}
+
+function humanizeIdentifier(value) {
+  const normalized = normalizeName(value);
+  if (!normalized) return '';
+
+  if (!normalized.includes('@')) {
+    return normalized;
+  }
+
+  const localPart = normalized.split('@')[0] || '';
+  const chunks = localPart
+    .replace(/[^a-zA-Z._-]/g, ' ')
+    .split(/[._\-\s]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (!chunks.length) return 'Participant';
+  if (chunks.length === 1) {
+    const single = chunks[0];
+    if (single.length > 1) {
+      return `${toTitleWord(single.slice(0, 1))} ${toTitleWord(single.slice(1))}`.trim();
+    }
+    return toTitleWord(single);
+  }
+
+  return `${toTitleWord(chunks[0])} ${toTitleWord(chunks[chunks.length - 1])}`.trim();
 }
 
 export default function VraiOuMensongeChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
@@ -96,7 +120,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       if (!id) return;
       const slot = Number(item?.slot || 0);
       const fallback = slot > 0 ? `Participant ${slot}` : 'Participant';
-      map.set(id, normalizeName(item?.display_name) || fallback);
+      map.set(id, humanizeIdentifier(item?.display_name) || fallback);
     });
 
     participantsOrder.forEach((id, index) => {
@@ -118,7 +142,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }, [participantsMeta, participantsOrder]);
 
   function participantName(id) {
-    return participantNameMap.get(String(id)) || 'Participant';
+    return humanizeIdentifier(participantNameMap.get(String(id))) || 'Participant';
   }
 
   const {
@@ -184,9 +208,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     const timing = vom?.timing || {};
     if (phase === 'selecting_statement') return formatSeconds(timing.selecting_ms || 30_000);
     if (phase === 'voting_open') return formatSeconds(timing.voting_ms || 30_000);
-    if (phase === 'reveal_pending') return formatSeconds(timing.reveal_ms || 15_000);
-    if (phase === 'round_result') return formatSeconds(timing.round_result_ms || 15_000);
-    if (phase === 'next_turn') return formatSeconds(timing.next_turn_ms || 1_000);
+    if (phase === 'reveal_pending') return formatSeconds(timing.reveal_ms || 5_000);
+    if (phase === 'round_result') return formatSeconds(timing.round_result_ms || 5_000);
+    if (phase === 'next_turn') return formatSeconds(timing.next_turn_ms || 0);
     return 1;
   }, [phase, vom?.phase_deadline_ms, vom?.phase_started_at_ms, vom?.timing]);
 
@@ -198,6 +222,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const myScore = Number(scores[me] || 0);
 
   const poseurRoundPoints = Number(currentTurn?.result?.poser_points || 0);
+  const totalCycles = Math.max(1, Number(vom?.computed_cycles || vom?.rounds_per_participant || 3));
+  const currentCycle = Math.max(1, Math.min(totalCycles, Number(currentTurn?.passage_number || 1)));
 
   function playLightTone(kind) {
     try {
@@ -266,22 +292,19 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
-        <div className={styles.headerTitleLine}>
+        <div className={styles.headerLine}>
           <span className={styles.headerTitle}>Vrai ou Mensonge</span>
+          <span className={styles.headerSeparator}>-</span>
           <span className={styles.headerDescription}>Devinez le vrai du faux et découvrez votre équipe autrement</span>
         </div>
-        <div className={styles.meta}>
-          <span className={styles.badge}>{phaseLabel(phase)}</span>
-          <span className={styles.badge}>Tour {Number(vom?.turn_index || 0) + 1}/{Number(vom?.total_turns || 0)}</span>
+        <div className={styles.headerMetaLine}>
+          <span>Live : {phaseLabel(phase)}</span>
+          <span className={styles.headerMetaDot}>·</span>
+          <span>Poseur : {participantName(poserId) || '-'}</span>
+          <span className={styles.headerMetaDot}>·</span>
+          <span>Cycle : {currentCycle}/{totalCycles}</span>
         </div>
       </header>
-
-      <section className={`${styles.card} ${styles.liveStrip}`}>
-        <div className={styles.liveItem}><span>Live</span><strong>{phaseLabel(phase)}</strong></div>
-        <div className={styles.liveItem}><span>Poseur</span><strong>{participantName(poserId) || '-'}</strong></div>
-        <div className={styles.liveItem}><span>Chrono</span><strong>{formatClock(formatSeconds(remainingMs))}</strong></div>
-        <div className={styles.liveItem}><span>Cycles</span><strong>{Number(vom?.computed_cycles || vom?.rounds_per_participant || 0)}</strong></div>
-      </section>
 
       {error ? <p className={styles.errorBanner}>{error}</p> : null}
 
@@ -306,7 +329,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <section className={styles.card}>
             <h2>Sélection d'affirmation</h2>
             <p>Poseur actuel: <strong>{participantName(poserId) || '-'}</strong></p>
-            <p className={styles.instruction}>👉 Choisissez une affirmation</p>
+            <p className={styles.instruction}>Choisissez une affirmation.</p>
             <div className={styles.participantsRow}>
               {orderedParticipantIds.map((id) => (
                 <span key={id} className={`${styles.participantChip}${id === poserId ? ` ${styles.participantChipPoser}` : ''}`}>
@@ -335,7 +358,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                       >
                         <span className={styles.category}>{statement.category}</span>
                         <span>{statement.text}</span>
-                        {selected ? <span className={styles.selectedMark}>✅ Sélectionnée</span> : null}
+                        {selected ? <span className={styles.selectedMark}>Selectionnee</span> : null}
                         {disabled ? <small>Déjà utilisée par vous</small> : null}
                       </button>
                     );
@@ -361,7 +384,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'voting_open' ? (
           <section className={styles.card}>
             <h2>Votes ouverts</h2>
-            <p><strong>{participantName(poserId)}</strong> affirme: {currentTurn?.statement_text || '-'}</p>
+            <p><strong>{participantName(poserId)}</strong> affirme : "{currentTurn?.statement_text || '-'}"</p>
             {!isPoser ? (
               <div className={styles.voteActions}>
                 <button
@@ -421,7 +444,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <section className={styles.card}>
             <h2>Résultat du tour</h2>
             <div className={`${styles.wowResult}${resultPulse ? ` ${styles.wowResultPulse}` : ''}`}>
-              <span className={styles.wowIcon}>✅</span>
               <div>
                 <strong className={styles.wowTitle}>Feedback instantané</strong>
                 {!isPoser ? (
@@ -443,7 +465,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               <span className={styles.mainScoreUnit}>points</span>
             </div>
 
-            <p>Classement en transition (15 s) avant le prochain tour.</p>
+            <p>Classement en transition ({formatClock(formatSeconds(remainingMs))}) avant le prochain tour.</p>
             <div className={styles.resultList}>
               {(currentTurn?.result?.votes || []).map((item) => (
                 <div key={item.participant_id} className={styles.resultRow}>
@@ -457,8 +479,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             <div className={styles.resultList}>
               {orderedParticipantIds.map((participant) => (
                 <div key={participant} className={styles.resultRow}>
-                  <span>{participantName(participant)}</span>
-                  <span>{Number(scores[participant] || 0)} pts</span>
+                  <span>{participantName(participant)} - {Number(scores[participant] || 0)} pts</span>
                 </div>
               ))}
             </div>
@@ -483,7 +504,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <section className={styles.card}>
             <h2>Classement final</h2>
             <div className={`${styles.mainScoreCard} ${styles.finalWow}`}>
-              <span className={styles.wowIcon}>✅</span>
               <span className={styles.mainScoreLabel}>Votre score final</span>
               <span className={styles.mainScoreValue}>{myScore}</span>
               <span className={styles.mainScoreUnit}>points</span>
@@ -492,11 +512,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               {ranking.map((entry) => (
                 <div key={entry.participant_id} className={styles.resultRow}>
                   <span>#{entry.rank} {participantName(entry.participant_id)}</span>
-                  <span>
-                    {entry.score} pts {entry.tie ? '(ex-aequo)' : ''}
-                    {' · '}
-                    <em>{buildBadge(entry.score)}</em>
-                  </span>
+                  <span>{entry.score} pts {entry.tie ? '(ex-aequo)' : ''}</span>
                 </div>
               ))}
             </div>
@@ -524,9 +540,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             title="Chrono"
             remainingSeconds={formatSeconds(remainingMs)}
             durationSeconds={Math.max(1, phaseDurationSeconds)}
-            status={phase === 'voting_open' || phase === 'selecting_statement' || phase === 'reveal_pending' ? 'running' : 'idle'}
+            status={phase === 'voting_open' || phase === 'selecting_statement' || phase === 'reveal_pending' || phase === 'round_result' ? 'running' : 'idle'}
             isFacilitator={isFacilitator}
-            waitingText="⏳ Chrono partagé pour l'équipe"
+            waitingText="Chrono partagé pour l'équipe"
             ringAction={isFacilitator && phase === 'waiting_start' ? (
               <button
                 type="button"
@@ -534,7 +550,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 title="Démarrer"
                 aria-label="Démarrer"
               >
-                ▶
+                Demarrer
               </button>
             ) : null}
           />
@@ -559,12 +575,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               {orderedParticipantIds.length === 0 ? <p className={styles.helper}>Aucun participant détecté.</p> : null}
               {orderedParticipantIds.map((participant) => (
                 <div key={participant} className={styles.resultRow}>
-                  <span>{participantName(participant)}</span>
-                  <span>
-                    {Number(scores[participant] || 0)} pts
-                    {' · '}
-                    <em>{buildBadge(Number(scores[participant] || 0))}</em>
-                  </span>
+                  <span>{participantName(participant)} - {Number(scores[participant] || 0)} pts</span>
                 </div>
               ))}
             </div>
