@@ -119,10 +119,10 @@ const LANDING_ALLOWED_BLOCK_KEYS = [
 
 const LANDING_ALLOWED_BLOCK_KEY_SET = new Set(LANDING_ALLOWED_BLOCK_KEYS);
 const PLATFORM_ADMIN_EMAIL = 'admin@admin.com';
-const COPUZZLE_DEFAULT_IMAGES = [
-  { value: '/copuzzle/default-blue.svg', label: 'Par defaut - Horizon bleu' },
-  { value: '/copuzzle/default-grid.svg', label: 'Par defaut - Grille collaboration' },
-  { value: '/copuzzle/default-sunrise.svg', label: 'Par defaut - Sunrise team' },
+const COPUZZLE_FALLBACK_DEFAULT_IMAGES = [
+  { id: 'default_1', title: 'Horizon bleu', src: '/copuzzle/default-blue.svg' },
+  { id: 'default_2', title: 'Grille collaboration', src: '/copuzzle/default-grid.svg' },
+  { id: 'default_3', title: 'Sunrise team', src: '/copuzzle/default-sunrise.svg' },
 ];
 
 const LANDING_ALLOWED_BLOCK_KEY_HINT = LANDING_ALLOWED_BLOCK_KEYS.join(', ');
@@ -255,10 +255,41 @@ function ensureCopuzzleConfig(engineConfig) {
   const current = cloneJson(engineConfig, {}) || {};
   const rows = clampInt(current?.grid?.rows, 4, 2, 16);
   const cols = clampInt(current?.grid?.cols, 4, 2, 16);
-  const imageSrc = String(current?.image?.src || current?.image_url || '').trim() || '/copuzzle/default-blue.svg';
+  const normalizedDefaultImages = (Array.isArray(current?.default_images) ? current.default_images : [])
+    .map((item, index) => {
+      const src = String(item?.src || item?.url || '').trim();
+      if (!src) return null;
+      return {
+        id: String(item?.id || `default_${index + 1}`),
+        title: String(item?.title || '').trim() || `Image ${index + 1}`,
+        src,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 3);
+
+  const defaultImages = normalizedDefaultImages.length > 0
+    ? normalizedDefaultImages
+    : COPUZZLE_FALLBACK_DEFAULT_IMAGES;
+
+  const selectedDefaultImageId = String(current?.default_image_id || defaultImages[0]?.id || '').trim();
+  const selectedDefaultImage = defaultImages.find((item) => item.id === selectedDefaultImageId) || defaultImages[0] || null;
+  const imageSrc = String(current?.image?.src || current?.image_url || selectedDefaultImage?.src || '').trim() || '/copuzzle/default-blue.svg';
+  const rawParticipants = current?.participants && typeof current.participants === 'object'
+    ? current.participants
+    : {};
+  const {
+    expected_count: _ignoredExpectedCount,
+    expected_count_auto: _ignoredExpectedCountAuto,
+    assigned_count: _ignoredAssignedCount,
+    ...participantsConfig
+  } = rawParticipants;
 
   return {
     ...current,
+    default_images: defaultImages,
+    default_image_id: selectedDefaultImage?.id || null,
+    image_source_mode: String(current?.image_source_mode || 'defaults').toLowerCase() === 'custom' ? 'custom' : 'defaults',
     image_url: imageSrc,
     image: {
       ...(current?.image && typeof current.image === 'object' ? current.image : {}),
@@ -281,14 +312,21 @@ function ensureCopuzzleConfig(engineConfig) {
       enabled: current?.chat?.enabled !== false,
     },
     participants: {
-      ...(current?.participants && typeof current.participants === 'object' ? current.participants : {}),
-      expected_count: clampInt(current?.participants?.expected_count, 4, 1, 20),
+      ...participantsConfig,
     },
   };
 }
 
+function getCopuzzleDefaultImages(engineConfig) {
+  const config = ensureCopuzzleConfig(engineConfig);
+  return Array.isArray(config.default_images) ? config.default_images : COPUZZLE_FALLBACK_DEFAULT_IMAGES;
+}
+
 function getCopuzzleImageSrc(engineConfig) {
-  return String(engineConfig?.image?.src || engineConfig?.image_url || '').trim() || '/copuzzle/default-blue.svg';
+  const config = ensureCopuzzleConfig(engineConfig);
+  const defaultImages = getCopuzzleDefaultImages(config);
+  const selectedDefault = defaultImages.find((item) => item.id === String(config.default_image_id || '').trim()) || defaultImages[0] || null;
+  return String(config?.image?.src || config?.image_url || selectedDefault?.src || '').trim() || '/copuzzle/default-blue.svg';
 }
 
 function parseRulesTextarea(value) {
@@ -1708,7 +1746,7 @@ export default function AdminClient() {
     }
   }
 
-  async function handleUploadCopuzzleImage(event) {
+  async function handleUploadCopuzzleDefaultImage(event, imageIndex) {
     if (!token || !editingChallenge) return;
 
     const file = event.target.files && event.target.files[0];
@@ -1754,19 +1792,35 @@ export default function AdminClient() {
       setEditingChallenge((prev) => {
         if (!prev) return prev;
         const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+        const defaultImages = getCopuzzleDefaultImages(currentConfig).map((item) => ({ ...item }));
+        const safeIndex = Math.max(0, Math.min(defaultImages.length - 1, Number(imageIndex) || 0));
+        const currentItem = defaultImages[safeIndex] || {
+          id: `default_${safeIndex + 1}`,
+          title: `Image ${safeIndex + 1}`,
+          src: '',
+        };
+
+        defaultImages[safeIndex] = {
+          ...currentItem,
+          src: uploadedUrl,
+        };
+
+        const selectedDefaultImageId = String(currentConfig.default_image_id || defaultImages[0]?.id || '').trim();
+        const selectedDefault = defaultImages.find((item) => item.id === selectedDefaultImageId) || defaultImages[0] || null;
         return {
           ...prev,
           engine_config: {
             ...currentConfig,
-            image_url: uploadedUrl,
+            default_images: defaultImages,
+            image_url: String(selectedDefault?.src || uploadedUrl),
             image: {
               ...(currentConfig.image || {}),
-              src: uploadedUrl,
+              src: String(selectedDefault?.src || uploadedUrl),
             },
           },
         };
       });
-      showNotice('Image Copuzzle uploadée (pensez a enregistrer le challenge).');
+      showNotice('Image par défaut Copuzzle uploadée (pensez à enregistrer le challenge).');
     } catch (err) {
       setChallengeImageUploadError(err.message || 'Upload image impossible.');
     } finally {
@@ -3315,71 +3369,130 @@ export default function AdminClient() {
                         ) : null}
                         {(editingChallenge.engine_key || '').toLowerCase() === 'copuzzle_live_v1' ? (
                           <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                            <p style={{ margin: 0, fontWeight: 600 }}>Configuration Copuzzle (images + defaults)</p>
+                            <p style={{ margin: 0, fontWeight: 600 }}>Configuration Copuzzle (3 images par défaut admin)</p>
+                            <p className="session-meta" style={{ margin: 0 }}>
+                              Définissez jusqu'à 3 images standards avec leur titre. Elles seront proposées au facilitateur dans le Session Builder.
+                            </p>
 
-                            <label>Image par defaut
-                              <select
-                                value={COPUZZLE_DEFAULT_IMAGES.some((opt) => opt.value === getCopuzzleImageSrc(editingChallenge.engine_config)) ? getCopuzzleImageSrc(editingChallenge.engine_config) : ''}
-                                onChange={(e) => {
-                                  const value = String(e.target.value || '').trim();
-                                  if (!value) return;
-                                  setEditingChallenge((prev) => {
-                                    if (!prev) return prev;
-                                    const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-                                    return {
-                                      ...prev,
-                                      engine_config: {
-                                        ...currentConfig,
-                                        image_url: value,
-                                        image: {
-                                          ...(currentConfig.image || {}),
-                                          src: value,
-                                        },
-                                      },
-                                    };
-                                  });
-                                }}
-                              >
-                                <option value="">Selectionner une image par defaut</option>
-                                {COPUZZLE_DEFAULT_IMAGES.map((option) => (
-                                  <option key={option.value} value={option.value}>{option.label}</option>
-                                ))}
-                              </select>
-                            </label>
+                            {getCopuzzleDefaultImages(editingChallenge.engine_config).map((imageItem, imageIndex) => {
+                              const slotIndex = imageIndex + 1;
+                              return (
+                                <div key={imageItem.id || `copuzzle-default-${slotIndex}`} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '10px', display: 'grid', gap: '8px' }}>
+                                  <p style={{ margin: 0, fontWeight: 600 }}>Image par défaut {slotIndex}</p>
 
-                            <label>URL image personnalisee
-                              <input
-                                value={getCopuzzleImageSrc(editingChallenge.engine_config)}
-                                onChange={(e) => {
-                                  const value = String(e.target.value || '').trim();
-                                  setEditingChallenge((prev) => {
-                                    if (!prev) return prev;
-                                    const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-                                    return {
-                                      ...prev,
-                                      engine_config: {
-                                        ...currentConfig,
-                                        image_url: value,
-                                        image: {
-                                          ...(currentConfig.image || {}),
-                                          src: value,
-                                        },
-                                      },
-                                    };
-                                  });
-                                }}
-                                placeholder="https://... ou /copuzzle/default-blue.svg"
-                              />
-                            </label>
+                                  <label>Titre
+                                    <input
+                                      value={String(imageItem.title || '')}
+                                      onChange={(e) => {
+                                        const nextTitle = String(e.target.value || '').trimStart();
+                                        setEditingChallenge((prev) => {
+                                          if (!prev) return prev;
+                                          const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+                                          const defaultImages = getCopuzzleDefaultImages(currentConfig).map((item) => ({ ...item }));
+                                          defaultImages[imageIndex] = {
+                                            ...(defaultImages[imageIndex] || {}),
+                                            id: defaultImages[imageIndex]?.id || `default_${slotIndex}`,
+                                            src: String(defaultImages[imageIndex]?.src || imageItem.src || '').trim(),
+                                            title: nextTitle || `Image ${slotIndex}`,
+                                          };
 
-                            <label>Uploader une image Copuzzle (JPG/PNG)
-                              <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/jpg"
-                                onChange={handleUploadCopuzzleImage}
-                                disabled={challengeImageUploadBusy}
-                              />
-                            </label>
+                                          return {
+                                            ...prev,
+                                            engine_config: {
+                                              ...currentConfig,
+                                              default_images: defaultImages,
+                                            },
+                                          };
+                                        });
+                                      }}
+                                      placeholder={`Image ${slotIndex}`}
+                                    />
+                                  </label>
+
+                                  <label>URL image
+                                    <input
+                                      value={String(imageItem.src || '')}
+                                      onChange={(e) => {
+                                        const nextSrc = String(e.target.value || '').trim();
+                                        setEditingChallenge((prev) => {
+                                          if (!prev) return prev;
+                                          const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+                                          const defaultImages = getCopuzzleDefaultImages(currentConfig).map((item) => ({ ...item }));
+                                          defaultImages[imageIndex] = {
+                                            ...(defaultImages[imageIndex] || {}),
+                                            id: defaultImages[imageIndex]?.id || `default_${slotIndex}`,
+                                            title: String(defaultImages[imageIndex]?.title || imageItem.title || `Image ${slotIndex}`),
+                                            src: nextSrc,
+                                          };
+                                          const selectedDefaultImageId = String(currentConfig.default_image_id || defaultImages[0]?.id || '').trim();
+                                          const selectedDefault = defaultImages.find((item) => item.id === selectedDefaultImageId) || defaultImages[0] || null;
+                                          return {
+                                            ...prev,
+                                            engine_config: {
+                                              ...currentConfig,
+                                              default_images: defaultImages,
+                                              image_url: String(selectedDefault?.src || nextSrc),
+                                              image: {
+                                                ...(currentConfig.image || {}),
+                                                src: String(selectedDefault?.src || nextSrc),
+                                              },
+                                            },
+                                          };
+                                        });
+                                      }}
+                                      placeholder="https://... ou /copuzzle/default-blue.svg"
+                                    />
+                                  </label>
+
+                                  <label>Uploader (JPG/PNG)
+                                    <input
+                                      type="file"
+                                      accept="image/png,image/jpeg,image/jpg"
+                                      onChange={(event) => handleUploadCopuzzleDefaultImage(event, imageIndex)}
+                                      disabled={challengeImageUploadBusy}
+                                    />
+                                  </label>
+
+                                  {String(imageItem.src || '').trim() ? (
+                                    <img
+                                      src={String(imageItem.src || '').trim()}
+                                      alt={`Aperçu image ${slotIndex}`}
+                                      style={{ maxWidth: '100%', maxHeight: '120px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                    />
+                                  ) : null}
+
+                                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                    <input
+                                      type="radio"
+                                      name="copuzzle-default-image"
+                                      checked={String(ensureCopuzzleConfig(editingChallenge.engine_config).default_image_id || '') === String(imageItem.id || '')}
+                                      onChange={() => {
+                                        setEditingChallenge((prev) => {
+                                          if (!prev) return prev;
+                                          const currentConfig = ensureCopuzzleConfig(prev.engine_config);
+                                          const defaultImages = getCopuzzleDefaultImages(currentConfig);
+                                          const selected = defaultImages.find((item) => item.id === imageItem.id) || defaultImages[0] || null;
+                                          return {
+                                            ...prev,
+                                            engine_config: {
+                                              ...currentConfig,
+                                              default_image_id: String(imageItem.id || selected?.id || ''),
+                                              image_url: String(selected?.src || currentConfig.image_url || ''),
+                                              image: {
+                                                ...(currentConfig.image || {}),
+                                                src: String(selected?.src || currentConfig.image?.src || currentConfig.image_url || ''),
+                                              },
+                                            },
+                                          };
+                                        });
+                                      }}
+                                    />
+                                    Image sélectionnée par défaut
+                                  </label>
+                                </div>
+                              );
+                            })}
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                               <label>Matrice (rows)
@@ -3460,14 +3573,14 @@ export default function AdminClient() {
                                   }}
                                 />
                               </label>
-                              <label>Participants
+                              <label>Seuil alerte (secondes)
                                 <input
                                   type="number"
-                                  min="1"
-                                  max="20"
-                                  value={ensureCopuzzleConfig(editingChallenge.engine_config).participants.expected_count}
+                                  min="10"
+                                  max="600"
+                                  value={ensureCopuzzleConfig(editingChallenge.engine_config).timer.warning_threshold_seconds}
                                   onChange={(e) => {
-                                    const value = Number(e.target.value || 4);
+                                    const value = Number(e.target.value || 60);
                                     setEditingChallenge((prev) => {
                                       if (!prev) return prev;
                                       const currentConfig = ensureCopuzzleConfig(prev.engine_config);
@@ -3475,9 +3588,9 @@ export default function AdminClient() {
                                         ...prev,
                                         engine_config: {
                                           ...currentConfig,
-                                          participants: {
-                                            ...(currentConfig.participants || {}),
-                                            expected_count: value,
+                                          timer: {
+                                            ...(currentConfig.timer || {}),
+                                            warning_threshold_seconds: value,
                                           },
                                         },
                                       };

@@ -1027,7 +1027,6 @@ export default function SessionBuilder() {
 
       {configuring && currentConfiguringChallenge && (
         <ChallengeConfigModal
-          challengeId={configuring}
           challenge={currentConfiguringChallenge}
           onSave={(config) => updateChallengeConfig(configuring, config)}
           onClose={() => setConfiguring(null)}

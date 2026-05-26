@@ -20,11 +20,28 @@ function clampInt(value, fallback, min, max) {
 function normalizeRuntimeConfig(config = {}) {
   const rows = clampInt(config?.grid?.rows, 4, 2, 16);
   const cols = clampInt(config?.grid?.cols, 4, 2, 16);
+  const defaultImages = Array.isArray(config?.default_images)
+    ? config.default_images
+        .map((item) => {
+          const src = String(item?.src || item?.url || '').trim();
+          if (!src) return null;
+          return {
+            id: String(item?.id || ''),
+            title: String(item?.title || '').trim() || 'Image',
+            src,
+          };
+        })
+        .filter(Boolean)
+        .slice(0, 3)
+    : [];
+  const selectedDefaultId = String(config?.default_image_id || '').trim();
+  const selectedDefaultImage = defaultImages.find((item) => item.id === selectedDefaultId) || defaultImages[0] || null;
   const imageSrc = String(
     config?.image?.src
       || (typeof config?.image === 'string' ? config.image : '')
       || config?.image_url
       || config?.imageUrl
+      || selectedDefaultImage?.src
       || '/copuzzle/default-blue.svg'
   ).trim() || '/copuzzle/default-blue.svg';
 
@@ -33,6 +50,7 @@ function normalizeRuntimeConfig(config = {}) {
 
   return {
     title: String(config?.title || 'CoPuzzle Live'),
+    default_images: defaultImages,
     grid: { rows, cols },
     image: {
       src: imageSrc,
@@ -75,7 +93,7 @@ function computePieceStyle(piece, config, imageUrl) {
   };
 }
 
-export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
+export default function CopuzzleChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedPieceId, setSelectedPieceId] = useState('');
   const [dragOverCellKey, setDragOverCellKey] = useState('');
   const [draggingPieceId, setDraggingPieceId] = useState('');
@@ -299,15 +317,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
           <span className={styles.headerTitle}>{effectiveConfig.title}</span>
           <span className={styles.headerDescription}>: Puzzle collaboratif en temps réel</span>
         </div>
-        <div className={styles.badges}>
-          <span className={styles.badge}>Progression: {completion}%</span>
-          <span className={styles.badge}>Chrono: {timerState}</span>
-          {!isFacilitator ? (
-            <span className={styles.badge}>Participant</span>
-          ) : (
-            <span className={styles.badge}>Facilitateur</span>
-          )}
-        </div>
       </section>
 
       <div className={styles.shell}>
@@ -322,6 +331,7 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
               onStart={isFacilitator ? () => emitEvent('timer.start') : null}
+              compactStartButton
             />
           ) : (
             <>
@@ -577,12 +587,6 @@ export default function CopuzzleChallenge({ engineKey, runtimePayload, socket, c
         </section>
       ) : null}
 
-      {Boolean(engineKey) ? (
-        <section className={styles.footerMeta}>
-          <span>Engine: {engineKey}</span>
-          <span>Session: {String(context?.sessionId || runtimePayload?.session_id || '-')}</span>
-        </section>
-      ) : null}
     </div>
   );
 }

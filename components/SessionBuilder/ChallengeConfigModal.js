@@ -2,12 +2,11 @@
 
 import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect } from 'react';
-import { getApiUrl } from '@/lib/config';
 
-const COPUZZLE_DEFAULT_IMAGES = Object.freeze([
-  { value: '/copuzzle/default-blue.svg', label: 'Par defaut - Horizon bleu' },
-  { value: '/copuzzle/default-grid.svg', label: 'Par defaut - Grille collaboration' },
-  { value: '/copuzzle/default-sunrise.svg', label: 'Par defaut - Sunrise team' },
+const COPUZZLE_FALLBACK_DEFAULT_IMAGES = Object.freeze([
+  { id: 'default_1', title: 'Horizon bleu', src: '/copuzzle/default-blue.svg' },
+  { id: 'default_2', title: 'Grille collaboration', src: '/copuzzle/default-grid.svg' },
+  { id: 'default_3', title: 'Sunrise team', src: '/copuzzle/default-sunrise.svg' },
 ]);
 
 const PHRASE_DEFAULT_LIBRARY = Object.freeze([
@@ -79,23 +78,73 @@ function clampInt(value, fallback, min, max) {
   return Math.min(max, Math.max(min, parsed));
 }
 
-function withCopuzzleDefaults(config = {}) {
+function normalizeCopuzzleDefaultImages(defaultImagesInput) {
+  const source = Array.isArray(defaultImagesInput) ? defaultImagesInput : [];
+  const normalized = source
+    .map((item, index) => {
+      const src = String(item?.src || item?.url || '').trim();
+      if (!src) return null;
+      const id = String(item?.id || `default_${index + 1}`);
+      const title = String(item?.title || '').trim() || `Image ${index + 1}`;
+      return { id, title, src };
+    })
+    .filter(Boolean)
+    .slice(0, 3);
+
+  return normalized.length > 0 ? normalized : COPUZZLE_FALLBACK_DEFAULT_IMAGES;
+}
+
+function resolveCopuzzleSourceMode(config, defaultImages) {
+  const explicitMode = String(config?.image_source_mode || '').trim().toLowerCase();
+  if (explicitMode === 'custom') return 'custom';
+  if (explicitMode === 'defaults') return 'defaults';
+
+  const configuredImage = String(config?.image_url || config?.image?.src || '').trim();
+  if (!configuredImage) return 'defaults';
+
+  const usesDefaultImage = defaultImages.some((item) => item.src === configuredImage);
+  return usesDefaultImage ? 'defaults' : 'custom';
+}
+
+function resolveCopuzzleDefaultImageId(config, defaultImages) {
+  const explicitId = String(config?.default_image_id || '').trim();
+  if (explicitId && defaultImages.some((item) => item.id === explicitId)) {
+    return explicitId;
+  }
+
+  const configuredImage = String(config?.image_url || config?.image?.src || '').trim();
+  const bySrc = defaultImages.find((item) => item.src === configuredImage);
+  if (bySrc) return bySrc.id;
+
+  return String(defaultImages[0]?.id || '');
+}
+
+function withCopuzzleDefaults(config = {}, defaultImages = COPUZZLE_FALLBACK_DEFAULT_IMAGES) {
   const rows = clampInt(config?.grid?.rows, 4, 2, 16);
   const cols = clampInt(config?.grid?.cols, 4, 2, 16);
   const duration = clampInt(config?.timer?.duration_seconds, 1200, 30, 7200);
   const warning = clampInt(config?.timer?.warning_threshold_seconds, 60, 10, 600);
-  const imageUrl = String(config?.image_url || config?.image?.src || '').trim() || '/copuzzle/default-blue.svg';
+  const sourceMode = resolveCopuzzleSourceMode(config, defaultImages);
+  const selectedDefaultImageId = resolveCopuzzleDefaultImageId(config, defaultImages);
+  const selectedDefaultImage = defaultImages.find((item) => item.id === selectedDefaultImageId) || defaultImages[0] || null;
+  const customImageUrl = String(config?.image_url || config?.image?.src || '').trim();
+  const imageUrl = sourceMode === 'custom'
+    ? (customImageUrl || String(selectedDefaultImage?.src || '').trim() || '/copuzzle/default-blue.svg')
+    : (String(selectedDefaultImage?.src || '').trim() || '/copuzzle/default-blue.svg');
   const rawParticipants = config?.participants && typeof config.participants === 'object'
     ? config.participants
     : {};
   const {
     expected_count: _ignoredExpectedCount,
     expected_count_auto: _ignoredExpectedCountAuto,
+    assigned_count: _ignoredAssignedCount,
     ...participantsConfig
   } = rawParticipants;
 
   return {
     ...(config || {}),
+    image_source_mode: sourceMode,
+    default_image_id: sourceMode === 'defaults' ? selectedDefaultImageId : null,
     image_url: imageUrl,
     image: {
       ...(config?.image && typeof config.image === 'object' ? config.image : {}),
@@ -199,10 +248,11 @@ function withVOMDefaults(config = {}) {
   };
 }
 
-export default function ChallengeConfigModal({ challengeId, challenge, onSave, onClose }) {
+export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   const [config, setConfig] = useState(challenge?.config || {});
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const copuzzleDefaultImages = normalizeCopuzzleDefaultImages(challenge?.engine_config?.default_images);
 
   useEffect(() => {
     setConfig(challenge?.config || {});
@@ -297,7 +347,7 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
 
   const handleSave = () => {
     if (kind === 'copuzzle') {
-      onSave(withCopuzzleDefaults(config));
+      onSave(withCopuzzleDefaults(config, copuzzleDefaultImages));
       return;
     }
     if (kind === 'phrase') {
@@ -332,6 +382,7 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
     setIsUploadingImage(true);
     const reader = new FileReader();
     reader.onload = (e) => {
+      updateValue('image_source_mode', 'custom');
       updateValue('image_url', e.target.result);
       updateValue('image.src', e.target.result);
       setIsUploadingImage(false);
@@ -365,68 +416,107 @@ export default function ChallengeConfigModal({ challengeId, challenge, onSave, o
           {kind === 'copuzzle' && (
             <>
               <div className={styles.configField}>
-                <label htmlFor="copuzzleDefaultImage" className={styles.label}>Image par defaut</label>
-                <select
-                  id="copuzzleDefaultImage"
-                  className={styles.input}
-                  value={COPUZZLE_DEFAULT_IMAGES.some((opt) => opt.value === stringValue('image_url', '')) ? stringValue('image_url', '') : ''}
-                  onChange={(e) => {
-                    const value = String(e.target.value || '').trim();
-                    if (!value) return;
-                    updateValue('image_url', value);
-                    updateValue('image.src', value);
-                  }}
-                >
-                  <option value="">Selectionner une image par defaut</option>
-                  {COPUZZLE_DEFAULT_IMAGES.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
+                <label className={styles.label}>Source des images</label>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      checked={resolveCopuzzleSourceMode(config, copuzzleDefaultImages) === 'defaults'}
+                      onChange={() => updateValue('image_source_mode', 'defaults')}
+                    />
+                    <span>Utiliser les images par défaut admin</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      checked={resolveCopuzzleSourceMode(config, copuzzleDefaultImages) === 'custom'}
+                      onChange={() => updateValue('image_source_mode', 'custom')}
+                    />
+                    <span>Uploader image personnalisée</span>
+                  </label>
+                </div>
+              </div>
 
-                <label htmlFor="imageUrl" className={styles.label}>Image du puzzle (URL)</label>
-                <input
-                  id="imageUrl"
-                  type="url"
-                  placeholder="URL personnalisee (optionnel)"
-                  value={stringValue('image_url', '')}
-                  onChange={(e) => {
-                    updateValue('image_url', e.target.value);
-                    updateValue('image.src', e.target.value);
-                  }}
-                  className={styles.input}
-                />
+              {resolveCopuzzleSourceMode(config, copuzzleDefaultImages) === 'defaults' ? (
+                <div className={styles.configField}>
+                  <label htmlFor="copuzzleDefaultImage" className={styles.label}>Image par défaut</label>
+                  <select
+                    id="copuzzleDefaultImage"
+                    className={styles.input}
+                    value={resolveCopuzzleDefaultImageId(config, copuzzleDefaultImages)}
+                    onChange={(e) => {
+                      const selectedId = String(e.target.value || '').trim();
+                      const selected = copuzzleDefaultImages.find((item) => item.id === selectedId) || null;
+                      if (!selected) return;
+                      updateValue('default_image_id', selected.id);
+                      updateValue('image_source_mode', 'defaults');
+                      updateValue('image_url', selected.src);
+                      updateValue('image.src', selected.src);
+                    }}
+                  >
+                    {copuzzleDefaultImages.map((option) => (
+                      <option key={option.id} value={option.id}>{option.title}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <>
+                  <div className={styles.configField}>
+                    <label htmlFor="imageUrl" className={styles.label}>Image du puzzle (URL)</label>
+                    <input
+                      id="imageUrl"
+                      type="url"
+                      placeholder="URL personnalisee (optionnel)"
+                      value={stringValue('image_url', '')}
+                      onChange={(e) => {
+                        updateValue('image_source_mode', 'custom');
+                        updateValue('image_url', e.target.value);
+                        updateValue('image.src', e.target.value);
+                      }}
+                      className={styles.input}
+                    />
+                  </div>
 
-                <label htmlFor="copuzzleUpload" className={styles.label} style={{ marginTop: '10px' }}>
-                  Ou uploader une image (JPG/PNG)
-                </label>
-                <span className={styles.helpText}>
-                  (i) Recommande: grille 4x4 ou 5x5, format JPEG/PNG, idealement image carree.
-                </span>
-                <input
-                  id="copuzzleUpload"
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg"
-                  onChange={handleUploadCopuzzleImage}
-                  className={styles.input}
-                  disabled={isUploadingImage}
-                />
-                {isUploadingImage ? (
-                  <p style={{ marginTop: '6px', color: '#6b7280', fontSize: '12px' }}>Upload en cours...</p>
-                ) : null}
-                {uploadError ? (
-                  <p style={{ marginTop: '6px', color: '#dc2626', fontSize: '12px' }}>{uploadError}</p>
-                ) : null}
+                  <div className={styles.configField}>
+                    <label htmlFor="copuzzleUpload" className={styles.label}>Uploader une image (JPG/PNG)</label>
+                    <span className={styles.helpText}>
+                      Recommandé: grille 4x4 ou 5x5, format JPEG/PNG, idéalement image carrée.
+                    </span>
+                    <input
+                      id="copuzzleUpload"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={handleUploadCopuzzleImage}
+                      className={styles.input}
+                      disabled={isUploadingImage}
+                    />
+                    {isUploadingImage ? (
+                      <p style={{ marginTop: '6px', color: '#6b7280', fontSize: '12px' }}>Upload en cours...</p>
+                    ) : null}
+                    {uploadError ? (
+                      <p style={{ marginTop: '6px', color: '#dc2626', fontSize: '12px' }}>{uploadError}</p>
+                    ) : null}
+                  </div>
+                </>
+              )}
 
-                {stringValue('image_url', '') && (
+              {(() => {
+                const sourceMode = resolveCopuzzleSourceMode(config, copuzzleDefaultImages);
+                const selectedDefault = copuzzleDefaultImages.find((item) => item.id === resolveCopuzzleDefaultImageId(config, copuzzleDefaultImages)) || copuzzleDefaultImages[0] || null;
+                const previewSrc = sourceMode === 'custom'
+                  ? stringValue('image_url', '')
+                  : String(selectedDefault?.src || '');
+                if (!previewSrc) return null;
+                return (
                   <img
-                    src={stringValue('image_url', '')}
+                    src={previewSrc}
                     alt="Apercu puzzle"
                     style={{ marginTop: '8px', maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     onLoad={(e) => { e.currentTarget.style.display = 'block'; }}
                   />
-                )}
-              </div>
+                );
+              })()}
 
               <div className={styles.configField}>
                 <label htmlFor="matrixSize" className={styles.label}>Taille de matrice</label>

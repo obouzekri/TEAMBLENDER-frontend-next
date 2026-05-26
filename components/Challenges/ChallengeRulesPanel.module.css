@@ -74,6 +74,12 @@
   box-shadow: 0 14px 28px rgba(2, 132, 199, 0.18);
 }
 
+.startButtonCompact {
+  border-radius: 10px;
+  padding: 0.56rem 0.82rem;
+  font-size: 0.82rem;
+}
+
 .startButton:hover:not(:disabled) {
   filter: brightness(1.06);
   transform: translateY(-1px);

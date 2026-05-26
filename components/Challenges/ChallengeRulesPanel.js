@@ -15,6 +15,7 @@ export default function ChallengeRulesPanel({
   startLabel = 'Démarrer le challenge',
   onStart = null,
   startDisabled = false,
+  compactStartButton = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -74,7 +75,7 @@ export default function ChallengeRulesPanel({
         <div className={styles.rulesActions}>
           <button
             type="button"
-            className={styles.startButton}
+            className={`${styles.startButton}${compactStartButton ? ` ${styles.startButtonCompact}` : ''}`}
             onClick={onStart}
             disabled={startDisabled}
           >
