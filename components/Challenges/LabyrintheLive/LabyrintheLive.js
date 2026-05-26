@@ -45,6 +45,30 @@ function normalizeVisited(rawVisited) {
   return set;
 }
 
+function toParticipantLabel(value, fallback = 'Participant') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (!raw.includes('@')) return raw;
+
+  const localPart = raw.split('@')[0] || '';
+  const chunks = localPart
+    .replace(/[^a-zA-Z._-]/g, ' ')
+    .split(/[._\-\s]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (!chunks.length) return fallback;
+  if (chunks.length === 1) {
+    const token = chunks[0];
+    return `${token.charAt(0).toUpperCase()}${token.slice(1).toLowerCase()}`;
+  }
+
+  const first = `${chunks[0].charAt(0).toUpperCase()}${chunks[0].slice(1).toLowerCase()}`;
+  const lastToken = chunks[chunks.length - 1];
+  const last = `${lastToken.charAt(0).toUpperCase()}${lastToken.slice(1).toLowerCase()}`;
+  return `${first} ${last}`;
+}
+
 export default function LabyrintheLive({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const {
     state,
@@ -72,6 +96,12 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   const mazeRows = safeInt(laby?.cfg?.rows ?? laby?.cfg?.r, 8, 6, 14);
   const mazeCols = safeInt(laby?.cfg?.cols ?? laby?.cfg?.c, 8, 6, 14);
   const participantEntries = useMemo(() => Object.entries(laby?.parts || {}), [laby?.parts]);
+  const participantNameById = useMemo(() => {
+    return participantEntries.reduce((acc, [id, participant]) => {
+      acc[String(id)] = toParticipantLabel(participant?.name, `Participant ${id}`);
+      return acc;
+    }, {});
+  }, [participantEntries]);
   const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
   const hasChallengeStarted = timerStatus === 'running'
     || timerStatus === 'paused'
@@ -242,7 +272,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                     return (
                       <article key={id} className={styles.miniGridCard}>
                         <div className={styles.panelHeader}>
-                          <strong>{participant?.name || `participant-${id}`}</strong>
+                          <strong>{participantNameById[String(id)] || `Participant ${id}`}</strong>
                           <span className={styles.muted}>Vies: {lifeIcons || '—'}</span>
                         </div>
 
@@ -316,8 +346,8 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
               {String(laby?.phase || '').trim() === 'done' ? (
                 <p className={styles.gameStatus}>
                   {laby?.winner_participant_id
-                    ? `Victoire: participant ${laby.winner_participant_id} a atteint la sortie.`
-                    : 'Defaite: tous les joueurs ont perdu leurs tentatives.'}
+                    ? `Victoire : ${participantNameById[String(laby.winner_participant_id)] || `Participant ${laby.winner_participant_id}`} a atteint la sortie.`
+                    : 'Défaite : tous les joueurs ont perdu leurs tentatives.'}
                 </p>
               ) : null}
               {error ? <p className={styles.error}>{error}</p> : null}

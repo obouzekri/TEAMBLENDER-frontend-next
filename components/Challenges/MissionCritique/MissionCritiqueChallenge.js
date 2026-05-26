@@ -26,6 +26,43 @@ function inferPhaseKey(index, total) {
   return 'cloture';
 }
 
+function normalizeName(value) {
+  return String(value || '').trim();
+}
+
+function toTitleWord(raw) {
+  const token = String(raw || '').trim().toLowerCase();
+  if (!token) return '';
+  return token.charAt(0).toUpperCase() + token.slice(1);
+}
+
+function humanizeIdentifier(value) {
+  const normalized = normalizeName(value);
+  if (!normalized) return '';
+
+  if (!normalized.includes('@')) {
+    return normalized;
+  }
+
+  const localPart = normalized.split('@')[0] || '';
+  const chunks = localPart
+    .replace(/[^a-zA-Z._-]/g, ' ')
+    .split(/[._\-\s]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (!chunks.length) return 'Participant';
+  if (chunks.length === 1) {
+    const single = chunks[0];
+    if (single.length > 1) {
+      return `${toTitleWord(single.slice(0, 1))} ${toTitleWord(single.slice(1))}`.trim();
+    }
+    return toTitleWord(single);
+  }
+
+  return `${toTitleWord(chunks[0])} ${toTitleWord(chunks[chunks.length - 1])}`.trim();
+}
+
 export default function MissionCritiqueChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const [dropTarget, setDropTarget] = useState({ phaseKey: '', index: -1 });
   const [dropPulseTarget, setDropPulseTarget] = useState({ phaseKey: '', index: -1 });
@@ -62,7 +99,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
   function resolveParticipantLabel(item) {
     const fromPayload = String(item?.display_name || item?.participant_name || item?.name || '').trim();
-    if (fromPayload) return fromPayload;
+    if (fromPayload) return humanizeIdentifier(fromPayload) || fromPayload;
     if (Number.isFinite(Number(item?.slot))) return `Participant ${item.slot}`;
     return 'Participant';
   }
@@ -85,14 +122,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const taskMap = useMemo(() => {
     const map = new Map();
     tasks.forEach((task) => map.set(String(task.id), task));
-    return map;
-  }, [tasks]);
-
-  const taskCodeById = useMemo(() => {
-    const map = new Map();
-    tasks.forEach((task, index) => {
-      map.set(String(task.id), `A${index + 1}`);
-    });
     return map;
   }, [tasks]);
 
@@ -350,7 +379,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                           >
                             <div className={styles.taskChipTop}>
                               <span className={styles.taskChipTitle}>
-                                <strong className={styles.taskCode}>{taskCodeById.get(String(task.id)) || 'A?'}</strong>
                                 <span>{task.label}</span>
                               </span>
                             </div>
@@ -409,7 +437,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                               <div className={styles.timelineLaneHint}>Déposer une action ici</div>
                             ) : (
                               items.map((item, indexInPhase) => {
-                                const taskCode = taskCodeById.get(String(item.taskId)) || `A${item.timelineIndex + 1}`;
+                                const task = taskMap.get(String(item.taskId));
                                 const canMoveUp = indexInPhase > 0;
                                 const canMoveDown = indexInPhase < items.length - 1;
                                 const upTarget = canMoveUp ? items[indexInPhase - 1].timelineIndex : item.timelineIndex;
@@ -422,7 +450,9 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                                     onDragStart={(event) => onTaskDragStart(event, item.taskId, item.timelineIndex, 'timeline', phase.key, indexInPhase)}
                                     onDragEnd={onTaskDragEnd}
                                   >
-                                    <span className={styles.timelineCode}>{taskCode}</span>
+                                    <div className={styles.timelineItemBody}>
+                                      <p className={styles.meta}>{task?.label || item.taskId}</p>
+                                    </div>
                                     <div className={styles.timelineItemControls}>
                                       <button
                                         type="button"

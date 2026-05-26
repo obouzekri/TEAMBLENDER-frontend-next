@@ -59,7 +59,7 @@ function buildFallbackAvailableWords(slots, participantSlot, fakeWordsBySlot) {
   });
 }
 
-export default function PhraseChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
+export default function PhraseChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedWord, setSelectedWord] = useState('');
   const [draggingWord, setDraggingWord] = useState('');
   const [dragOverSlotIndex, setDragOverSlotIndex] = useState(null);
@@ -215,15 +215,6 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
         <div className={styles.headerTitleLine}>
           <span className={styles.headerTitle}>Phrase Mystère</span>
           <span className={styles.headerDescription}>: Reconstituez la phrase en équipe, slot par slot.</span>
-        </div>
-        <div className={styles.badges}>
-          <span className={styles.badge}>Progression: {completion}%</span>
-          <span className={styles.badge}>Timer: {timerStatus}</span>
-          {!isFacilitator ? (
-            <span className={styles.badge}>Slot {participantSlot || '-'}</span>
-          ) : (
-            <span className={styles.badge}>Facilitateur</span>
-          )}
         </div>
       </section>
 
@@ -430,12 +421,6 @@ export default function PhraseChallenge({ engineKey, runtimePayload, socket, con
         </section>
       ) : null}
 
-      {Boolean(engineKey) ? (
-        <section className={styles.footerMeta}>
-          <span>Engine: {engineKey}</span>
-          <span>Session: {String(context?.sessionId || runtimePayload?.session_id || '-')}</span>
-        </section>
-      ) : null}
     </div>
   );
 }
