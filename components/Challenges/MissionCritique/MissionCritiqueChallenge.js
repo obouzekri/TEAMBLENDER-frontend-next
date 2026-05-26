@@ -81,6 +81,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const tasks = Array.isArray(mission.tasks) ? mission.tasks : [];
   const timeline = Array.isArray(mission.timeline) ? mission.timeline : [];
   const facilitatorBoard = Array.isArray(mission.facilitator_board) ? mission.facilitator_board : [];
+  const collectiveResult = mission.collective_result || null;
 
   const displayName = useMemo(() => {
     const fromPayload = String(runtimePayload?.context?.displayName || runtimePayload?.context?.name || '').trim();
@@ -512,6 +513,9 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
           ) : (
             <section className={styles.card}>
               <h2>Vue globale facilitateur</h2>
+              {collectiveResult ? (
+                <p className={styles.score}>Score collectif: {Number(collectiveResult.score || 0)}/100</p>
+              ) : null}
               {facilitatorBoard.length === 0 ? (
                 <p className={styles.empty}>Aucun participant actif pour le moment.</p>
               ) : (
@@ -522,7 +526,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                       <h3>{resolveParticipantLabel(item)}</h3>
                       <p className={styles.meta}>Timeline: {item.timeline_length} tâches</p>
                       <p className={styles.meta}>Soumis: {item.submitted ? 'Oui' : 'Non'}</p>
-                      <p className={styles.meta}>Score: {item.score ?? '-'}</p>
                       <p className={styles.meta}>Erreurs: {item.errors_count ?? 0}</p>
                     </article>
                   ))}
