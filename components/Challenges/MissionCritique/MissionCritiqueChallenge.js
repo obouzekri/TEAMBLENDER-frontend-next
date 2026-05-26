@@ -31,8 +31,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const [dropPulseTarget, setDropPulseTarget] = useState({ phaseKey: '', index: -1 });
   const [dragTaskId, setDragTaskId] = useState('');
   const [phaseByTask, setPhaseByTask] = useState({});
-  const [taskFilter, setTaskFilter] = useState('pending');
-  const [taskQuery, setTaskQuery] = useState('');
   const [submitResult, setSubmitResult] = useState(null);
 
   const {
@@ -48,11 +46,26 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const facilitatorBoard = Array.isArray(mission.facilitator_board) ? mission.facilitator_board : [];
 
   const displayName = useMemo(() => {
-    const fromPayload = String(runtimePayload?.context?.displayName || '').trim();
+    const fromPayload = String(runtimePayload?.context?.displayName || runtimePayload?.context?.name || '').trim();
     if (fromPayload) return fromPayload;
-    const userId = String(context?.userId || context?.participantId || '').trim();
-    return `participant-${userId || 'unknown'}`;
+
+    const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
+    const lastName = String(runtimePayload?.context?.lastName || runtimePayload?.context?.last_name || context?.lastName || context?.last_name || '').trim();
+    const fullName = `${firstName} ${lastName}`.trim();
+    if (fullName) return fullName;
+
+    const fallbackName = String(context?.displayName || context?.name || '').trim();
+    if (fallbackName) return fallbackName;
+
+    return 'Participant';
   }, [runtimePayload, context]);
+
+  function resolveParticipantLabel(item) {
+    const fromPayload = String(item?.display_name || item?.participant_name || item?.name || '').trim();
+    if (fromPayload) return fromPayload;
+    if (Number.isFinite(Number(item?.slot))) return `Participant ${item.slot}`;
+    return 'Participant';
+  }
 
   const {
     chatInput,
@@ -85,48 +98,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
   const timelineSet = useMemo(() => new Set(timeline.map((taskId) => String(taskId))), [timeline]);
 
-  const filteredTasks = useMemo(() => {
-    const q = taskQuery.trim().toLowerCase();
-    return tasks.filter((task) => {
-      const id = String(task.id || '').toLowerCase();
-      const label = String(task.label || '').toLowerCase();
-      const dependencies = Array.isArray(task.dependencies) ? task.dependencies : [];
-      const inTimeline = timelineSet.has(String(task.id));
-
-      if (taskFilter === 'critical' && !task.critical) return false;
-      if (taskFilter === 'pending' && inTimeline) return false;
-      if (taskFilter === 'blocked' && dependencies.length === 0) return false;
-      if (!q) return true;
-      return label.includes(q) || id.includes(q);
-    });
-  }, [tasks, taskFilter, taskQuery, timelineSet]);
-
-  const groupedTasks = useMemo(() => {
-    const buckets = {
-      critical: [],
-      blocked: [],
-      standard: []
-    };
-
-    filteredTasks.forEach((task) => {
-      const dependencies = Array.isArray(task.dependencies) ? task.dependencies : [];
-      if (task.critical) {
-        buckets.critical.push(task);
-        return;
-      }
-      if (dependencies.length > 0) {
-        buckets.blocked.push(task);
-        return;
-      }
-      buckets.standard.push(task);
-    });
-
-    return [
-      { key: 'critical', title: 'Taches critiques', hint: 'Impact fort sur le score', items: buckets.critical },
-      { key: 'blocked', title: 'Taches avec dependances', hint: 'A placer au bon moment', items: buckets.blocked },
-      { key: 'standard', title: 'Taches standards', hint: 'Execution et coordination', items: buckets.standard },
-    ].filter((group) => group.items.length > 0);
-  }, [filteredTasks]);
+  const backlogTasks = useMemo(() => tasks, [tasks]);
 
   const completionPercent = Math.max(0, Math.min(100, Math.round((timeline.length / Math.max(1, tasks.length)) * 100)));
 
@@ -147,6 +119,26 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     () => resolveChallengeRules(state?.config || runtimePayload?.config),
     [runtimePayload?.config, state?.config]
   );
+
+  const facilitatorRules = useMemo(() => {
+    const baseRules = Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : [];
+    return [
+      ...baseRules,
+      'Score collectif: moyenne des scores individuels de l’équipe (0 à 100).',
+      'Pénalités: dépendance non respectée (-8), tâche critique manquante (-10), doublon (-5), tâche inconnue (-3).',
+      'Répartissez les tâches par phase (cadrage, préparation, exécution, clôture) pour équilibrer la charge.',
+      'Affectez un responsable dépendances pour valider les prérequis avant chaque déplacement majeur.'
+    ];
+  }, [rulesContent?.facilitator]);
+
+  const participantRules = useMemo(() => {
+    const baseRules = Array.isArray(rulesContent?.participant) ? rulesContent.participant : [];
+    return [
+      ...baseRules,
+      'Le score final est collectif: votre ordre impacte la moyenne de toute l’équipe.',
+      'Priorisez d’abord les dépendances et les tâches critiques, puis complétez le reste du backlog.'
+    ];
+  }, [rulesContent?.participant]);
 
   useEffect(() => {
     setPhaseByTask((prev) => {
@@ -278,21 +270,26 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     emitEvent('mission.submit');
   }
 
+  function moveTaskWithinPhase(fromTimelineIndex, targetTimelineIndex) {
+    if (!canEditTimeline) return;
+    if (!Number.isInteger(fromTimelineIndex) || !Number.isInteger(targetTimelineIndex)) return;
+    if (fromTimelineIndex === targetTimelineIndex) return;
+    emitEvent('mission.task.move', {
+      fromIndex: fromTimelineIndex,
+      toIndex: targetTimelineIndex,
+    });
+  }
+
   const roleViewClass = isFacilitator ? styles.facilitatorView : styles.participantView;
 
   return (
     <div className={`${styles.container} ${roleViewClass}`}>
-      <header className={styles.header}>
+      <header className={`${styles.card} ${styles.headerBlock}`}>
         <div className={styles.headerTitleLine}>
           <span className={styles.headerTitle}>Mission Critique</span>
           <span className={styles.headerDescription}>
-            : {String(state?.config?.scenario || runtimePayload?.config?.scenario || 'Organiser un seminaire d\'entreprise pour 80 personnes.')}
+            {String(state?.config?.scenario || runtimePayload?.config?.scenario || 'Organiser un séminaire d’entreprise pour 80 personnes.')}
           </span>
-        </div>
-        <div className={styles.badges}>
-          <span className={styles.badge}>Engine: {engineKey}</span>
-          <span className={styles.badge}>Statut: {timerState}</span>
-          <span className={styles.badge}>Role: {isFacilitator ? 'Facilitateur' : 'Participant'}</span>
         </div>
       </header>
 
@@ -316,7 +313,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
               <section className={`${styles.card} ${styles.progressCard}`}>
                 <div className={styles.progressMeta}>
                   <p className={styles.progressLabel}>Progression de mission</p>
-                  <strong>{timeline.length}/{tasks.length} taches placees</strong>
+                  <strong>{timeline.length}/{tasks.length} tâches placées</strong>
                 </div>
                 <div className={styles.progressTrack}>
                   <span className={styles.progressFill} style={{ width: `${completionPercent}%` }} />
@@ -327,66 +324,39 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                 <section className={`${styles.card} ${styles.taskCard}`}>
                   <div className={styles.sectionHead}>
                     <h2>Backlog mission</h2>
-                    <p>Glisser-deposer ou clic pour ajouter</p>
+                    <p>Toutes les tâches sont disponibles. Glisser-déposer ou cliquer pour ajouter.</p>
                   </div>
 
-                  <div className={styles.taskToolbar}>
-                    <div className={styles.segmented}>
-                      <button type="button" className={`${styles.segmentBtn}${taskFilter === 'pending' ? ` ${styles.segmentBtnActive}` : ''}`} onClick={() => setTaskFilter('pending')}>A placer</button>
-                      <button type="button" className={`${styles.segmentBtn}${taskFilter === 'critical' ? ` ${styles.segmentBtnActive}` : ''}`} onClick={() => setTaskFilter('critical')}>Critiques</button>
-                      <button type="button" className={`${styles.segmentBtn}${taskFilter === 'blocked' ? ` ${styles.segmentBtnActive}` : ''}`} onClick={() => setTaskFilter('blocked')}>Dependances</button>
-                      <button type="button" className={`${styles.segmentBtn}${taskFilter === 'all' ? ` ${styles.segmentBtnActive}` : ''}`} onClick={() => setTaskFilter('all')}>Toutes</button>
-                    </div>
-                    <input
-                      type="search"
-                      className={styles.searchInput}
-                      placeholder="Rechercher une tache"
-                      value={taskQuery}
-                      onChange={(event) => setTaskQuery(event.target.value)}
-                    />
-                  </div>
-
-                  {groupedTasks.length === 0 ? (
-                    <p className={styles.empty}>Aucune tache ne correspond a ce filtre.</p>
+                  {backlogTasks.length === 0 ? (
+                    <p className={styles.empty}>Aucune tâche disponible.</p>
                   ) : (
-                    <div className={styles.taskGroupList}>
-                      {groupedTasks.map((group) => (
-                        <section key={group.key} className={styles.taskGroup}>
-                          <div className={styles.taskGroupHead}>
-                            <h3>{group.title}</h3>
-                            <span>{group.hint}</span>
-                          </div>
-                          <div className={styles.taskGrid}>
-                            {group.items.map((task) => {
-                              const inTimeline = timelineSet.has(String(task.id));
-                              return (
-                                <button
-                                  key={task.id}
-                                  type="button"
-                                  className={`${styles.taskChip}${inTimeline ? ` ${styles.taskChipUsed}` : ''}${dragTaskId === String(task.id) ? ` ${styles.taskChipDragging}` : ''}${task.critical ? ` ${styles.taskChipCritical}` : ''}`}
-                                  draggable={canEditTimeline}
-                                  onDragStart={(event) => onTaskDragStart(event, task.id, -1, 'catalog')}
-                                  onDragEnd={onTaskDragEnd}
-                                  onClick={() => {
-                                    if (!canEditTimeline) return;
-                                    emitEvent('mission.task.add', { taskId: task.id, index: timeline.length });
-                                  }}
-                                  disabled={!canEditTimeline}
-                                  title={String(task.label || '').trim()}
-                                >
-                                  <div className={styles.taskChipTop}>
-                                    <span className={styles.taskChipTitle}>
-                                      <strong className={styles.taskCode}>{taskCodeById.get(String(task.id)) || 'A?'}</strong>
-                                      <span>{task.label}</span>
-                                    </span>
-                                    {task.critical ? <strong className={styles.critical}>Critique</strong> : null}
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </section>
-                      ))}
+                    <div className={styles.taskGrid}>
+                      {backlogTasks.map((task) => {
+                        const inTimeline = timelineSet.has(String(task.id));
+                        return (
+                          <button
+                            key={task.id}
+                            type="button"
+                            className={`${styles.taskChip}${inTimeline ? ` ${styles.taskChipUsed}` : ''}${dragTaskId === String(task.id) ? ` ${styles.taskChipDragging}` : ''}`}
+                            draggable={canEditTimeline}
+                            onDragStart={(event) => onTaskDragStart(event, task.id, -1, 'catalog')}
+                            onDragEnd={onTaskDragEnd}
+                            onClick={() => {
+                              if (!canEditTimeline) return;
+                              emitEvent('mission.task.add', { taskId: task.id, index: timeline.length });
+                            }}
+                            disabled={!canEditTimeline}
+                            title={String(task.label || '').trim()}
+                          >
+                            <div className={styles.taskChipTop}>
+                              <span className={styles.taskChipTitle}>
+                                <strong className={styles.taskCode}>{taskCodeById.get(String(task.id)) || 'A?'}</strong>
+                                <span>{task.label}</span>
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </section>
@@ -395,7 +365,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                   <div className={styles.timelineHead}>
                     <div>
                       <h2>Timeline par phases</h2>
-                      <p>Glissez les taches dans chaque phase, puis ordonnez-les verticalement.</p>
+                      <p>Glissez les tâches dans chaque phase, puis ordonnez-les verticalement.</p>
                     </div>
                     <button
                       type="button"
@@ -436,10 +406,14 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                             onDrop={(event) => onTimelineDrop(event, phase.key, phaseDropIndex)}
                           >
                             {items.length === 0 ? (
-                              <div className={styles.timelineLaneHint}>Deposer une action ici</div>
+                              <div className={styles.timelineLaneHint}>Déposer une action ici</div>
                             ) : (
                               items.map((item, indexInPhase) => {
                                 const taskCode = taskCodeById.get(String(item.taskId)) || `A${item.timelineIndex + 1}`;
+                                const canMoveUp = indexInPhase > 0;
+                                const canMoveDown = indexInPhase < items.length - 1;
+                                const upTarget = canMoveUp ? items[indexInPhase - 1].timelineIndex : item.timelineIndex;
+                                const downTarget = canMoveDown ? items[indexInPhase + 1].timelineIndex : item.timelineIndex;
                                 return (
                                   <article
                                     key={`${phase.key}-${item.taskId}-${item.timelineIndex}`}
@@ -449,14 +423,36 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                                     onDragEnd={onTaskDragEnd}
                                   >
                                     <span className={styles.timelineCode}>{taskCode}</span>
-                                    <button
-                                      type="button"
-                                      className={styles.ghostBtn}
-                                      onClick={() => emitEvent('mission.task.remove', { index: item.timelineIndex })}
-                                      disabled={!canEditTimeline}
-                                    >
-                                      Retirer
-                                    </button>
+                                    <div className={styles.timelineItemControls}>
+                                      <button
+                                        type="button"
+                                        className={styles.ghostBtn}
+                                        onClick={() => moveTaskWithinPhase(item.timelineIndex, upTarget)}
+                                        disabled={!canEditTimeline || !canMoveUp}
+                                        title="Monter"
+                                        aria-label="Monter dans la phase"
+                                      >
+                                        ↑
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className={styles.ghostBtn}
+                                        onClick={() => moveTaskWithinPhase(item.timelineIndex, downTarget)}
+                                        disabled={!canEditTimeline || !canMoveDown}
+                                        title="Descendre"
+                                        aria-label="Descendre dans la phase"
+                                      >
+                                        ↓
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className={styles.ghostBtn}
+                                        onClick={() => emitEvent('mission.task.remove', { index: item.timelineIndex })}
+                                        disabled={!canEditTimeline}
+                                      >
+                                        Retirer
+                                      </button>
+                                    </div>
                                   </article>
                                 );
                               })
@@ -471,7 +467,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
               {(submitResult || mission.result) ? (
                 <section className={styles.card}>
-                  <h2>Resultat</h2>
+                  <h2>Résultat</h2>
                   <p className={styles.score}>Score: {Number((submitResult || mission.result)?.score || 0)}/100</p>
                   <p className={styles.meta}>Points forts: {((submitResult || mission.result)?.strengths || []).join(' | ') || 'Aucun'}</p>
                   <p className={styles.meta}>Points faibles: {((submitResult || mission.result)?.weaknesses || []).join(' | ') || 'Aucun'}</p>
@@ -492,12 +488,12 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                 <div className={styles.boardGrid}>
                   {facilitatorBoard.map((item) => (
                     <article key={item.participant_id} className={styles.facilitatorCard}>
-                      <p className={styles.order}>Participant {item.slot}</p>
-                      <h3>{item.participant_id}</h3>
-                      <p className={styles.meta}>Timeline: {item.timeline_length} taches</p>
+                      <p className={styles.order}>Participant</p>
+                      <h3>{resolveParticipantLabel(item)}</h3>
+                      <p className={styles.meta}>Timeline: {item.timeline_length} tâches</p>
                       <p className={styles.meta}>Soumis: {item.submitted ? 'Oui' : 'Non'}</p>
                       <p className={styles.meta}>Score: {item.score ?? '-'}</p>
-                      <p className={styles.meta}>Erreurs: {item.errors_count}</p>
+                      <p className={styles.meta}>Erreurs: {item.errors_count ?? 0}</p>
                     </article>
                   ))}
                 </div>
@@ -515,8 +511,8 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             showPrestartCard={false}
             challengeName="Mission Critique"
             objective={rulesContent.objective}
-            facilitatorRules={rulesContent.facilitator}
-            participantRules={rulesContent.participant}
+            facilitatorRules={facilitatorRules}
+            participantRules={participantRules}
             footnote={rulesContent.footnote}
           />
 
@@ -527,7 +523,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             status={timerState}
             progressPercent={timerProgress}
             isFacilitator={isFacilitator}
-            waitingText=""
             ringAction={isFacilitator && hasChallengeStarted ? (
               <button
                 type="button"
@@ -552,7 +547,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             onSubmit={submitChat}
             quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
             onQuickMessage={sendQuickChat}
-            placeholder="Ecrire un message"
+            placeholder="Écrire un message"
             maxLength={240}
           />
         </aside>
