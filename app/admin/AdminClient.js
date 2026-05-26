@@ -33,7 +33,7 @@ const DEFAULT_NEW_CHALLENGE = {
   status: 'actif',
   source: 'local',
   category: '',
-  objectives: '',
+  objectives: [],
   duration: '',
   engine_key: '',
   description: '',
@@ -42,6 +42,28 @@ const DEFAULT_NEW_CHALLENGE = {
   rules_participant: '',
   rules_footnote: '',
 };
+
+const CHALLENGE_CATEGORY_OPTIONS = [
+  { value: 'escape-game', label: 'Escape Game' },
+  { value: 'logique-reflexion', label: 'Logique & Réflexion' },
+  { value: 'icebreaker', label: 'Icebreaker' },
+  { value: 'creativite-innovation', label: 'Créativité & innovation' },
+  { value: 'memoire-attention', label: 'Mémoire & attention' },
+  { value: 'culture-decouverte', label: 'Culture & découverte' },
+];
+
+const CHALLENGE_OBJECTIVE_OPTIONS = [
+  { value: 'cohesion', label: 'Cohésion' },
+  { value: 'communication', label: 'Communication' },
+  { value: 'collaboration', label: 'Collaboration' },
+  { value: 'leadership', label: 'Leadership' },
+  { value: 'resolution-problemes', label: 'Résolution de problèmes' },
+  { value: 'intelligence-collective', label: 'Intelligence collective' },
+  { value: 'creativite', label: 'Créativité' },
+  { value: 'gestion-temps', label: 'Gestion du temps' },
+];
+
+const MAX_CHALLENGE_OBJECTIVES = 3;
 
 const DEFAULT_NEW_PRICING_PLAN = {
   name: '',
@@ -126,6 +148,37 @@ function isValidEmail(value) {
 
 function isPlatformAdminEmail(email) {
   return String(email || '').trim().toLowerCase() === PLATFORM_ADMIN_EMAIL;
+}
+
+function normalizeObjectivesInput(value) {
+  if (Array.isArray(value)) {
+    return Array.from(new Set(
+      value
+        .map((item) => String(item || '').trim())
+        .filter(Boolean)
+    )).slice(0, MAX_CHALLENGE_OBJECTIVES);
+  }
+
+  const raw = String(value || '').trim();
+  if (!raw) return [];
+
+  return Array.from(new Set(
+    raw
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  )).slice(0, MAX_CHALLENGE_OBJECTIVES);
+}
+
+function toggleObjectiveSelection(currentValue, objectiveValue) {
+  const list = normalizeObjectivesInput(currentValue);
+  if (list.includes(objectiveValue)) {
+    return list.filter((entry) => entry !== objectiveValue);
+  }
+  if (list.length >= MAX_CHALLENGE_OBJECTIVES) {
+    return list;
+  }
+  return [...list, objectiveValue];
 }
 
 function parseList(payload) {
@@ -1527,6 +1580,7 @@ export default function AdminClient() {
     setError('');
 
     try {
+      const normalizedObjectives = normalizeObjectivesInput(newChallenge.objectives);
       const engineConfig = mergeChallengeRulesIntoEngineConfig({}, newChallenge);
       const response = await fetch(getApiUrl('/challenges'), {
         method: 'POST',
@@ -1540,7 +1594,7 @@ export default function AdminClient() {
           status: newChallenge.status,
           source: newChallenge.source,
           category: newChallenge.category || null,
-          objectives: newChallenge.objectives || null,
+          objectives: normalizedObjectives.length ? normalizedObjectives.join(', ') : null,
           duration: newChallenge.duration || null,
           engine_key: newChallenge.engine_key || null,
           description: newChallenge.description || null,
@@ -1583,7 +1637,7 @@ export default function AdminClient() {
       type: challengeItem.type || 'individuel',
       status: challengeItem.status || 'actif',
       category: challengeItem.category || '',
-      objectives: challengeItem.objectives || '',
+      objectives: normalizeObjectivesInput(challengeItem.objectives),
       duration: challengeItem.duration || '',
       engine_key: challengeItem.engine_key || '',
       description: challengeItem.description || '',
@@ -1744,6 +1798,7 @@ export default function AdminClient() {
     setBusySaveKey(key);
     setError('');
     try {
+      const normalizedObjectives = normalizeObjectivesInput(editingChallenge.objectives);
       const engineConfig = mergeChallengeRulesIntoEngineConfig(editingChallenge.engine_config || {}, editingChallenge);
       const response = await fetch(getApiUrl(`/challenges/${editingChallenge.id}`), {
         method: 'PUT',
@@ -1756,7 +1811,7 @@ export default function AdminClient() {
           type: editingChallenge.type,
           status: editingChallenge.status,
           category: editingChallenge.category || null,
-          objectives: editingChallenge.objectives || null,
+          objectives: normalizedObjectives.length ? normalizedObjectives.join(', ') : null,
           duration: editingChallenge.duration || null,
           engine_key: editingChallenge.engine_key || null,
           description: editingChallenge.description || null,
@@ -3065,19 +3120,50 @@ export default function AdminClient() {
                       <label>Categorie
                         <select value={newChallenge.category} onChange={(e) => setNewChallenge((p) => ({ ...p, category: e.target.value }))}>
                           <option value="">--- Selectioner ---</option>
-                          <option value="escape-game">Escape Game</option>
-                          <option value="logique-reflexion">Logique & Réflexion</option>
+                          {CHALLENGE_CATEGORY_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                          ))}
                         </select>
                       </label>
-                      <label>Objectif
-                        <select value={newChallenge.objectives} onChange={(e) => setNewChallenge((p) => ({ ...p, objectives: e.target.value }))}>
-                          <option value="">--- Selectioner ---</option>
-                          <option value="cohesion">Cohésion</option>
-                          <option value="communication">Communication</option>
-                          <option value="collaboration">Collaboration</option>
-                          <option value="leadership">Leadership</option>
-                          <option value="resolution-problemes">Résolution de problèmes</option>
-                        </select>
+                      <label>Objectifs
+                        <div style={{ display: 'grid', gap: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
+                            <span>Choisissez jusqu'à {MAX_CHALLENGE_OBJECTIVES} objectifs.</span>
+                            <strong>{normalizeObjectivesInput(newChallenge.objectives).length}/{MAX_CHALLENGE_OBJECTIVES}</strong>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            {CHALLENGE_OBJECTIVE_OPTIONS.map((option) => {
+                              const selectedObjectives = normalizeObjectivesInput(newChallenge.objectives);
+                              const isSelected = selectedObjectives.includes(option.value);
+                              const limitReached = selectedObjectives.length >= MAX_CHALLENGE_OBJECTIVES;
+                              const disabled = !isSelected && limitReached;
+                              return (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => setNewChallenge((p) => ({ ...p, objectives: toggleObjectiveSelection(p.objectives, option.value) }))}
+                                  disabled={disabled}
+                                  style={{
+                                    border: isSelected ? '1px solid #0f766e' : '1px solid #cbd5e1',
+                                    background: isSelected ? 'rgba(15, 118, 110, 0.12)' : '#fff',
+                                    color: isSelected ? '#115e59' : '#334155',
+                                    borderRadius: '999px',
+                                    padding: '6px 12px',
+                                    fontSize: '13px',
+                                    fontWeight: 600,
+                                    cursor: disabled ? 'not-allowed' : 'pointer',
+                                    opacity: disabled ? 0.5 : 1,
+                                  }}
+                                >
+                                  {option.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {normalizeObjectivesInput(newChallenge.objectives).length >= MAX_CHALLENGE_OBJECTIVES ? (
+                            <p className="session-meta" style={{ margin: 0 }}>Limite atteinte: retirez un objectif pour en sélectionner un autre.</p>
+                          ) : null}
+                        </div>
                       </label>
                       <label>Duree<input value={newChallenge.duration} onChange={(e) => setNewChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
                       <label>Engine key<input value={newChallenge.engine_key} onChange={(e) => setNewChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
@@ -3137,19 +3223,50 @@ export default function AdminClient() {
                         <label>Categorie
                           <select value={editingChallenge.category} onChange={(e) => setEditingChallenge((p) => ({ ...p, category: e.target.value }))}>
                             <option value="">--- Selectioner ---</option>
-                            <option value="escape-game">Escape Game</option>
-                            <option value="logique-reflexion">Logique & Réflexion</option>
+                            {CHALLENGE_CATEGORY_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
                           </select>
                         </label>
-                        <label>Objectif
-                          <select value={editingChallenge.objectives} onChange={(e) => setEditingChallenge((p) => ({ ...p, objectives: e.target.value }))}>
-                            <option value="">--- Selectioner ---</option>
-                            <option value="cohesion">Cohésion</option>
-                            <option value="communication">Communication</option>
-                            <option value="collaboration">Collaboration</option>
-                            <option value="leadership">Leadership</option>
-                            <option value="resolution-problemes">Résolution de problèmes</option>
-                          </select>
+                        <label>Objectifs
+                          <div style={{ display: 'grid', gap: '8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
+                              <span>Choisissez jusqu'à {MAX_CHALLENGE_OBJECTIVES} objectifs.</span>
+                              <strong>{normalizeObjectivesInput(editingChallenge.objectives).length}/{MAX_CHALLENGE_OBJECTIVES}</strong>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                              {CHALLENGE_OBJECTIVE_OPTIONS.map((option) => {
+                                const selectedObjectives = normalizeObjectivesInput(editingChallenge.objectives);
+                                const isSelected = selectedObjectives.includes(option.value);
+                                const limitReached = selectedObjectives.length >= MAX_CHALLENGE_OBJECTIVES;
+                                const disabled = !isSelected && limitReached;
+                                return (
+                                  <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => setEditingChallenge((p) => ({ ...p, objectives: toggleObjectiveSelection(p.objectives, option.value) }))}
+                                    disabled={disabled}
+                                    style={{
+                                      border: isSelected ? '1px solid #0f766e' : '1px solid #cbd5e1',
+                                      background: isSelected ? 'rgba(15, 118, 110, 0.12)' : '#fff',
+                                      color: isSelected ? '#115e59' : '#334155',
+                                      borderRadius: '999px',
+                                      padding: '6px 12px',
+                                      fontSize: '13px',
+                                      fontWeight: 600,
+                                      cursor: disabled ? 'not-allowed' : 'pointer',
+                                      opacity: disabled ? 0.5 : 1,
+                                    }}
+                                  >
+                                    {option.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {normalizeObjectivesInput(editingChallenge.objectives).length >= MAX_CHALLENGE_OBJECTIVES ? (
+                              <p className="session-meta" style={{ margin: 0 }}>Limite atteinte: retirez un objectif pour en sélectionner un autre.</p>
+                            ) : null}
+                          </div>
                         </label>
                         <label>Duree<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
                         <label>Engine key<input value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>

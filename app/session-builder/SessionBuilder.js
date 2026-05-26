@@ -123,6 +123,8 @@ export default function SessionBuilder() {
     clearAll,
     updateFilters,
     resetFilters,
+    toggleCategoryFilter,
+    toggleObjectiveFilter,
     setConfiguring,
     getTotalDuration,
   } = useSessionBuilder();
@@ -1054,12 +1056,15 @@ export default function SessionBuilder() {
 
           <ChallengesCatalog
             challenges={filteredChallenges}
+            allChallenges={allChallenges}
             selectedIds={selectedChallenges.map((c) => c.id)}
             filters={filters}
             isLoading={isLoading}
             onSelect={selectChallenge}
             onConfigure={(id) => setConfiguring(id)}
             onFilterChange={updateFilters}
+            onToggleCategory={toggleCategoryFilter}
+            onToggleObjective={toggleObjectiveFilter}
             onResetFilters={resetFilters}
           />
         </div>
