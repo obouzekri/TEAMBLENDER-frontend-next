@@ -109,80 +109,94 @@ export default function ChallengesCatalog({
   const selectedCategories = Array.isArray(filters.categories) ? filters.categories : [];
   const selectedObjectives = Array.isArray(filters.objectives) ? filters.objectives : [];
   const objectiveLimitReached = selectedObjectives.length >= MAX_FILTER_OBJECTIVES;
+  const activeFiltersCount = selectedCategories.length + selectedObjectives.length + (filters.duration ? 1 : 0);
 
   return (
     <section className={styles.catalog}>
       <div className={styles.filterBar}>
-        <div className={styles.filterGroup}>
-          <label className={styles.filterField}>
-            <span className={styles.filterLabel}>Catégories</span>
-            <div className={styles.filterChips}>
-              {categories.filter((cat) => cat.value).map((cat) => {
-                const active = selectedCategories.includes(cat.value);
-                return (
-                  <button
-                    key={cat.value}
-                    type="button"
-                    className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
-                    onClick={() => onToggleCategory(cat.value)}
-                  >
-                    {cat.label}
-                  </button>
-                );
-              })}
-            </div>
-          </label>
-
-          <label className={styles.filterField}>
-            <span className={styles.filterLabel}>Objectifs ({selectedObjectives.length}/{MAX_FILTER_OBJECTIVES})</span>
-            <div className={styles.filterChips}>
-              {objectives.filter((obj) => obj.value).map((obj) => {
-                const active = selectedObjectives.includes(obj.value);
-                const disabled = !active && objectiveLimitReached;
-                return (
-                  <button
-                    key={obj.value}
-                    type="button"
-                    className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
-                    onClick={() => onToggleObjective(obj.value)}
-                    disabled={disabled}
-                  >
-                    {obj.label}
-                  </button>
-                );
-              })}
-            </div>
-            <span className={styles.filterHint}>
-              {objectiveLimitReached
-                ? 'Limite atteinte: retirez un objectif pour en ajouter un autre.'
-                : 'Sélection multiple possible (max 3).'}
-            </span>
-          </label>
-
-          <label className={styles.filterField}>
-            <span className={styles.filterLabel}>Durée</span>
-            <div className={styles.filterChips}>
-              {durations.filter((dur) => dur.value).map((dur) => {
-                const active = filters.duration === dur.value;
-                return (
-                  <button
-                    key={dur.value}
-                    type="button"
-                    className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
-                    onClick={() => onFilterChange({ duration: active ? '' : dur.value })}
-                  >
-                    {dur.label}
-                  </button>
-                );
-              })}
-            </div>
-          </label>
+        <div className={styles.filterBarHeader}>
+          <div>
+            <p className={styles.filterTitle}>Filtrer le catalogue</p>
+            <p className={styles.filterSubtitle}>Affinez rapidement les challenges par catégorie, objectif et durée.</p>
+          </div>
+          <div className={styles.filterStats}>
+            <span>{activeFiltersCount} filtre{activeFiltersCount > 1 ? 's' : ''} actif{activeFiltersCount > 1 ? 's' : ''}</span>
+            <span>{challenges.length} challenge{challenges.length > 1 ? 's' : ''} affiché{challenges.length > 1 ? 's' : ''}</span>
+          </div>
         </div>
 
-        <div className={styles.filterActions}>
-          <button className="btn-secondary btn-sm" onClick={onResetFilters}>
-            ↻ Réinitialiser
-          </button>
+        <div className={styles.filterBody}>
+          <div className={styles.filterGroup}>
+            <label className={styles.filterField}>
+              <span className={styles.filterLabel}>Catégories</span>
+              <div className={styles.filterChips}>
+                {categories.filter((cat) => cat.value).map((cat) => {
+                  const active = selectedCategories.includes(cat.value);
+                  return (
+                    <button
+                      key={cat.value}
+                      type="button"
+                      className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
+                      onClick={() => onToggleCategory(cat.value)}
+                    >
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </label>
+
+            <label className={styles.filterField}>
+              <span className={styles.filterLabel}>Objectifs ({selectedObjectives.length}/{MAX_FILTER_OBJECTIVES})</span>
+              <div className={styles.filterChips}>
+                {objectives.filter((obj) => obj.value).map((obj) => {
+                  const active = selectedObjectives.includes(obj.value);
+                  const disabled = !active && objectiveLimitReached;
+                  return (
+                    <button
+                      key={obj.value}
+                      type="button"
+                      className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
+                      onClick={() => onToggleObjective(obj.value)}
+                      disabled={disabled}
+                    >
+                      {obj.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <span className={styles.filterHint}>
+                {objectiveLimitReached
+                  ? 'Limite atteinte: retirez un objectif pour en ajouter un autre.'
+                  : 'Sélection multiple possible (max 3).'}
+              </span>
+            </label>
+
+            <label className={styles.filterField}>
+              <span className={styles.filterLabel}>Durée</span>
+              <div className={styles.filterChips}>
+                {durations.filter((dur) => dur.value).map((dur) => {
+                  const active = filters.duration === dur.value;
+                  return (
+                    <button
+                      key={dur.value}
+                      type="button"
+                      className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
+                      onClick={() => onFilterChange({ duration: active ? '' : dur.value })}
+                    >
+                      {dur.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </label>
+          </div>
+
+          <div className={styles.filterActions}>
+            <button className="btn-secondary btn-sm" onClick={onResetFilters}>
+              ↻ Réinitialiser
+            </button>
+          </div>
         </div>
       </div>
 
