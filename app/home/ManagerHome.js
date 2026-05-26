@@ -94,7 +94,7 @@ function useManagerGuard() {
     setState({ loading: false, allowed: true, user, token });
 
     // Refresh profile from backend to expose first_name/last_name in nav even if session storage is stale.
-    fetch(getApiUrl('/auth/me'), {
+    fetch(getApiUrl('/users/me'), {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
