@@ -107,6 +107,7 @@ export default function SessionBuilder() {
   const guard = useManagerGuard();
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast } = useToast();
   const {
+    allChallenges,
     selectedChallenges,
     filteredChallenges,
     filters,

@@ -16,7 +16,7 @@ function pickDisplayName(user) {
   const first = String(user.first_name || user.firstName || '').trim();
   const last = String(user.last_name || user.lastName || '').trim();
   const full = `${first} ${last}`.trim();
-  return full || String(user.name || user.email || 'Manager');
+  return full || String(user.name || 'Manager');
 }
 
 function getParticipantFirstName(participant) {
@@ -75,6 +75,8 @@ function useManagerGuard() {
   const [state, setState] = useState({ loading: true, allowed: false, user: null, token: '' });
 
   useEffect(() => {
+    let cancelled = false;
+
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const rawUser = sessionStorage.getItem('currentUser');
     const user = rawUser ? JSON.parse(rawUser) : null;
@@ -90,6 +92,34 @@ function useManagerGuard() {
     }
 
     setState({ loading: false, allowed: true, user, token });
+
+    // Refresh profile from backend to expose first_name/last_name in nav even if session storage is stale.
+    fetch(getApiUrl('/auth/me'), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return response.json().catch(() => null);
+      })
+      .then((me) => {
+        if (!me || cancelled) return;
+        const mergedUser = {
+          ...user,
+          ...me,
+          first_name: String(me.first_name || user.first_name || user.firstName || '').trim(),
+          last_name: String(me.last_name || user.last_name || user.lastName || '').trim(),
+        };
+        sessionStorage.setItem('currentUser', JSON.stringify(mergedUser));
+        setState((prev) => ({ ...prev, user: mergedUser }));
+      })
+      .catch(() => null);
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return state;
