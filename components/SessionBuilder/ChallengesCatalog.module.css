@@ -22,27 +22,64 @@
   gap: 1rem;
 }
 
+.filtersLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.filterControls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(170px, 1fr));
+  gap: 0.55rem;
+  flex: 1;
+  min-width: 0;
+}
+
 .filterDropdownWrap {
   position: relative;
-  min-width: min(640px, 100%);
-  max-width: min(760px, 100%);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .filterDropdownButton {
   width: 100%;
-  min-height: 2.5rem;
+  min-height: 2.35rem;
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.45);
   background: rgba(255, 255, 255, 0.92);
-  padding: 0.58rem 0.85rem;
+  padding: 0.52rem 0.72rem;
   font: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.84rem;
+  font-weight: 500;
   color: var(--ink);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 0.35rem;
   cursor: pointer;
+}
+
+.filterTriggerPrefix {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.filterTriggerValue {
+  min-width: 0;
+  font-weight: 700;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filterDropdownButton > span:last-child {
+  margin-left: auto;
+  color: var(--ink-soft);
 }
 
 .filterDropdownButton:hover {
@@ -61,98 +98,55 @@
   top: calc(100% + 0.5rem);
   z-index: 20;
   width: 100%;
-  max-height: min(72vh, 520px);
+  min-width: 240px;
+  max-height: min(70vh, 420px);
   overflow: auto;
   display: grid;
-  gap: 0.75rem;
-  padding: 0.85rem;
-  border-radius: 16px;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  border-radius: 14px;
   border: 1px solid rgba(148, 163, 184, 0.28);
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.99) 0%, rgba(244, 252, 249, 0.97) 100%);
   box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
 }
 
-.filterField {
-  display: grid;
-  gap: 0.55rem;
-  background: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 14px;
-  padding: 0.65rem 0.72rem;
-}
-
-.filterChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.filterChip {
-  border: 1px solid rgba(148, 163, 184, 0.8);
-  background: rgba(255, 255, 255, 0.94);
-  color: var(--ink-soft);
-  border-radius: 999px;
-  padding: 0.42rem 0.82rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  line-height: 1.2;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-.filterChip:hover {
-  border-color: var(--accent);
+.filterOption {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  background: rgba(255, 255, 255, 0.95);
   color: var(--ink);
-  box-shadow: 0 8px 14px rgba(15, 118, 110, 0.09);
-  transform: translateY(-1px) scale(1.01);
+  border-radius: 10px;
+  min-height: 2rem;
+  padding: 0.38rem 0.6rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  cursor: pointer;
 }
 
-.filterChip:disabled {
+.filterOption:hover {
+  border-color: var(--accent);
+}
+
+.filterOption:disabled {
   cursor: not-allowed;
   opacity: 0.45;
-  transform: none;
 }
 
-.filterChipActive {
+.filterOptionActive {
   border-color: rgba(13, 148, 136, 0.95);
   background: linear-gradient(135deg, rgba(20, 184, 166, 0.22) 0%, rgba(236, 253, 245, 0.96) 100%);
   color: #0f766e;
-  box-shadow: 0 8px 16px rgba(13, 148, 136, 0.14);
 }
 
-.filterHint {
-  font-size: 0.78rem;
+.filterHintInline {
+  margin: 0.25rem 0 0;
+  padding: 0 0.2rem;
+  font-size: 0.76rem;
   color: var(--ink-soft);
-  min-height: 1rem;
-}
-
-.filterLabel {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--ink);
-  height: 1rem;
-  display: flex;
-  align-items: center;
-}
-
-.filterSelect {
-  padding: 0.6rem 0.8rem;
-  border: 1.5px solid #d9e4f1;
-  border-radius: 14px;
-  font-family: inherit;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  color: var(--ink);
-  background: linear-gradient(145deg, rgba(248, 250, 252, 0.92) 0%, rgba(255, 255, 255, 0.96) 100%);
-  cursor: pointer;
-  min-height: 2.5rem;
-  height: auto;
-}
-
-.filterSelect:hover,
-.filterSelect:focus {
-  border-color: var(--accent);
-  outline: none;
 }
 
 .filterActions {
@@ -160,6 +154,23 @@
   gap: 0.55rem;
   align-items: center;
   margin-left: auto;
+}
+
+.resetIconButton {
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink-soft);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.resetIconButton:hover {
+  border-color: var(--accent);
+  color: var(--ink);
 }
 
 .skeletonGrid {
@@ -319,6 +330,10 @@
   .filterLine {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .filterControls {
+    grid-template-columns: 1fr;
   }
 
   .filterDropdownWrap {

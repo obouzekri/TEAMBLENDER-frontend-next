@@ -61,20 +61,20 @@ export default function ChallengesCatalog({
   onResetFilters,
 }) {
   const [previewChallenge, setPreviewChallenge] = useState(null);
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
   const filterMenuRef = useRef(null);
 
   useEffect(() => {
     function handleDocumentClick(event) {
       if (!filterMenuRef.current) return;
       if (!filterMenuRef.current.contains(event.target)) {
-        setIsFiltersOpen(false);
+        setOpenDropdown(null);
       }
     }
 
     function handleEscape(event) {
       if (event.key === 'Escape') {
-        setIsFiltersOpen(false);
+        setOpenDropdown(null);
       }
     }
 
@@ -133,96 +133,196 @@ export default function ChallengesCatalog({
   const selectedCategories = Array.isArray(filters.categories) ? filters.categories : [];
   const selectedObjectives = Array.isArray(filters.objectives) ? filters.objectives : [];
   const objectiveLimitReached = selectedObjectives.length >= MAX_FILTER_OBJECTIVES;
-  const activeFiltersCount = selectedCategories.length + selectedObjectives.length + (filters.duration ? 1 : 0);
+
+  const categoryLabelMap = useMemo(() => {
+    const map = new Map();
+    categories.forEach((item) => {
+      if (item.value) {
+        map.set(item.value, item.label);
+      }
+    });
+    return map;
+  }, [categories]);
+
+  const objectiveLabelMap = useMemo(() => {
+    const map = new Map();
+    objectives.forEach((item) => {
+      if (item.value) {
+        map.set(item.value, item.label);
+      }
+    });
+    return map;
+  }, [objectives]);
+
+  function toAbbreviation(label) {
+    return String(label || '')
+      .trim()
+      .replace(/\s+/g, '')
+      .slice(0, 4);
+  }
+
+  function formatMultiSelectValue(values, labelMap) {
+    if (!Array.isArray(values) || values.length === 0) {
+      return 'Tout';
+    }
+    if (values.length === 1) {
+      return labelMap.get(values[0]) || values[0];
+    }
+    if (values.length > 3) {
+      return `${values.length} sélectionnés`;
+    }
+    return values
+      .map((value) => toAbbreviation(labelMap.get(value) || value))
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  const categoryTriggerLabel = formatMultiSelectValue(selectedCategories, categoryLabelMap);
+  const objectiveTriggerLabel = formatMultiSelectValue(selectedObjectives, objectiveLabelMap);
+  const durationTriggerLabel = durations.find((dur) => dur.value === filters.duration)?.label || 'Tout';
 
   return (
     <section className={styles.catalog}>
       <div className={styles.filterBar}>
-        <div className={styles.filterLine}>
-          <div className={styles.filterDropdownWrap} ref={filterMenuRef}>
-            <button
-              type="button"
-              className={styles.filterDropdownButton}
-              onClick={() => setIsFiltersOpen((prev) => !prev)}
-              aria-expanded={isFiltersOpen}
-              aria-haspopup="dialog"
-            >
-              <span>Filtres ({activeFiltersCount})</span>
-              <span aria-hidden="true">▾</span>
-            </button>
+        <div className={styles.filterLine} ref={filterMenuRef}>
+          <span className={styles.filtersLabel}>Filtres</span>
 
-            {isFiltersOpen ? (
-              <div className={styles.filterDropdownPanel} role="dialog" aria-label="Filtres du catalogue">
-                <div className={styles.filterField}>
-                  <span className={styles.filterLabel}>Catégories</span>
-                  <div className={styles.filterChips}>
-                    {categories.filter((cat) => cat.value).map((cat) => {
-                      const active = selectedCategories.includes(cat.value);
-                      return (
-                        <button
-                          key={cat.value}
-                          type="button"
-                          className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
-                          onClick={() => onToggleCategory(cat.value)}
-                        >
-                          {cat.label}
-                        </button>
-                      );
-                    })}
-                  </div>
+          <div className={styles.filterControls}>
+            <div className={styles.filterDropdownWrap}>
+              <button
+                type="button"
+                className={styles.filterDropdownButton}
+                onClick={() => setOpenDropdown((prev) => (prev === 'category' ? null : 'category'))}
+                aria-expanded={openDropdown === 'category'}
+                aria-haspopup="menu"
+              >
+                <span className={styles.filterTriggerPrefix}>Catégorie:</span>
+                <span className={styles.filterTriggerValue}>{categoryTriggerLabel}</span>
+                <span aria-hidden="true">▾</span>
+              </button>
+
+              {openDropdown === 'category' ? (
+                <div className={styles.filterDropdownPanel} role="menu" aria-label="Filtrer par catégorie">
+                  <button
+                    type="button"
+                    className={`${styles.filterOption} ${selectedCategories.length === 0 ? styles.filterOptionActive : ''}`}
+                    onClick={() => onFilterChange({ categories: [] })}
+                  >
+                    <span>Tout</span>
+                    {selectedCategories.length === 0 ? <span aria-hidden="true">✓</span> : null}
+                  </button>
+                  {categories.filter((cat) => cat.value).map((cat) => {
+                    const active = selectedCategories.includes(cat.value);
+                    return (
+                      <button
+                        key={cat.value}
+                        type="button"
+                        className={`${styles.filterOption} ${active ? styles.filterOptionActive : ''}`}
+                        onClick={() => onToggleCategory(cat.value)}
+                      >
+                        <span>{cat.label}</span>
+                        {active ? <span aria-hidden="true">✓</span> : null}
+                      </button>
+                    );
+                  })}
                 </div>
+              ) : null}
+            </div>
 
-                <div className={styles.filterField}>
-                  <span className={styles.filterLabel}>Objectifs ({selectedObjectives.length}/{MAX_FILTER_OBJECTIVES})</span>
-                  <div className={styles.filterChips}>
-                    {objectives.filter((obj) => obj.value).map((obj) => {
-                      const active = selectedObjectives.includes(obj.value);
-                      const disabled = !active && objectiveLimitReached;
-                      return (
-                        <button
-                          key={obj.value}
-                          type="button"
-                          className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
-                          onClick={() => onToggleObjective(obj.value)}
-                          disabled={disabled}
-                        >
-                          {obj.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <span className={styles.filterHint}>
+            <div className={styles.filterDropdownWrap}>
+              <button
+                type="button"
+                className={styles.filterDropdownButton}
+                onClick={() => setOpenDropdown((prev) => (prev === 'objective' ? null : 'objective'))}
+                aria-expanded={openDropdown === 'objective'}
+                aria-haspopup="menu"
+              >
+                <span className={styles.filterTriggerPrefix}>Objectifs:</span>
+                <span className={styles.filterTriggerValue}>{objectiveTriggerLabel}</span>
+                <span aria-hidden="true">▾</span>
+              </button>
+
+              {openDropdown === 'objective' ? (
+                <div className={styles.filterDropdownPanel} role="menu" aria-label="Filtrer par objectifs">
+                  <button
+                    type="button"
+                    className={`${styles.filterOption} ${selectedObjectives.length === 0 ? styles.filterOptionActive : ''}`}
+                    onClick={() => onFilterChange({ objectives: [] })}
+                  >
+                    <span>Tout</span>
+                    {selectedObjectives.length === 0 ? <span aria-hidden="true">✓</span> : null}
+                  </button>
+                  {objectives.filter((obj) => obj.value).map((obj) => {
+                    const active = selectedObjectives.includes(obj.value);
+                    const disabled = !active && objectiveLimitReached;
+                    return (
+                      <button
+                        key={obj.value}
+                        type="button"
+                        className={`${styles.filterOption} ${active ? styles.filterOptionActive : ''}`}
+                        onClick={() => onToggleObjective(obj.value)}
+                        disabled={disabled}
+                      >
+                        <span>{obj.label}</span>
+                        {active ? <span aria-hidden="true">✓</span> : null}
+                      </button>
+                    );
+                  })}
+                  <p className={styles.filterHintInline}>
                     {objectiveLimitReached
-                      ? 'Limite atteinte: retirez un objectif pour en ajouter un autre.'
-                      : 'Sélection multiple possible (max 3).'}
-                  </span>
+                      ? 'Limite atteinte (3 objectifs max).'
+                      : `Sélection multiple (max ${MAX_FILTER_OBJECTIVES}).`}
+                  </p>
                 </div>
+              ) : null}
+            </div>
 
-                <div className={styles.filterField}>
-                  <span className={styles.filterLabel}>Durée</span>
-                  <div className={styles.filterChips}>
-                    {durations.filter((dur) => dur.value).map((dur) => {
-                      const active = filters.duration === dur.value;
-                      return (
-                        <button
-                          key={dur.value}
-                          type="button"
-                          className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
-                          onClick={() => onFilterChange({ duration: active ? '' : dur.value })}
-                        >
-                          {dur.label}
-                        </button>
-                      );
-                    })}
-                  </div>
+            <div className={styles.filterDropdownWrap}>
+              <button
+                type="button"
+                className={styles.filterDropdownButton}
+                onClick={() => setOpenDropdown((prev) => (prev === 'duration' ? null : 'duration'))}
+                aria-expanded={openDropdown === 'duration'}
+                aria-haspopup="menu"
+              >
+                <span className={styles.filterTriggerPrefix}>Durée:</span>
+                <span className={styles.filterTriggerValue}>{durationTriggerLabel}</span>
+                <span aria-hidden="true">▾</span>
+              </button>
+
+              {openDropdown === 'duration' ? (
+                <div className={styles.filterDropdownPanel} role="menu" aria-label="Filtrer par durée">
+                  {durations.map((dur) => {
+                    const active = String(filters.duration || '') === String(dur.value || '');
+                    return (
+                      <button
+                        key={dur.value || 'all'}
+                        type="button"
+                        className={`${styles.filterOption} ${active ? styles.filterOptionActive : ''}`}
+                        onClick={() => {
+                          onFilterChange({ duration: dur.value });
+                          setOpenDropdown(null);
+                        }}
+                      >
+                        <span>{dur.label}</span>
+                        {active ? <span aria-hidden="true">✓</span> : null}
+                      </button>
+                    );
+                  })}
                 </div>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </div>
 
           <div className={styles.filterActions}>
-            <button className="btn-secondary btn-sm" onClick={onResetFilters} type="button">
-              Réinitialiser
+            <button
+              className={styles.resetIconButton}
+              onClick={onResetFilters}
+              type="button"
+              title="Réinitialiser les filtres"
+              aria-label="Réinitialiser les filtres"
+            >
+              ↺
             </button>
           </div>
         </div>

@@ -7,7 +7,6 @@ export default function SessionBuilderHeader({
   participantCount,
   selectedCount,
   totalDuration,
-  hasUnsavedChanges,
   isSavingDraft,
   onEditSessionInfo,
   onSaveConfig,
@@ -31,11 +30,6 @@ export default function SessionBuilderHeader({
             <span>{selectedCount} activité{selectedCount !== 1 ? 's' : ''}</span>
             <span aria-hidden="true" className={styles.dot}>•</span>
             <span>{minutes} min</span>
-          </p>
-          <p className={styles.saveState} role="status" aria-live="polite">
-            {hasUnsavedChanges
-              ? '● Modifications non enregistrées'
-              : '✅ Configuration enregistrée'}
           </p>
         </div>
 

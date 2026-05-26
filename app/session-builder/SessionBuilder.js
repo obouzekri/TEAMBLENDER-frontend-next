@@ -105,7 +105,7 @@ function pickDisplayName(user) {
 
 export default function SessionBuilder() {
   const guard = useManagerGuard();
-  const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast } = useToast();
+  const { toasts, removeToast, success: showSuccessToast, error: showErrorToast, loading: showLoadingToast } = useToast();
   const {
     allChallenges,
     selectedChallenges,
@@ -182,7 +182,6 @@ export default function SessionBuilder() {
     () => JSON.stringify(selectedChallenges),
     [selectedChallenges]
   );
-  const hasUnsavedBackendChanges = sessionId && selectedChallengesJson !== selectedChallengesSnapshot;
 
   // On plain /session-builder, reset stale cached session id to start a new flow
   useEffect(() => {
@@ -486,6 +485,7 @@ export default function SessionBuilder() {
     try {
       await persistSelectionToBackend(false);
       removeToast(loadingId);
+      showSuccessToast('Configuration enregistrée');
     } catch (error) {
       removeToast(loadingId);
       if (redirectToUpgrade(error)) return;
@@ -500,6 +500,7 @@ export default function SessionBuilder() {
     redirectToUpgrade,
     selectedChallenges.length,
     sessionId,
+    showSuccessToast,
     showErrorToast,
     showLoadingToast,
   ]);
@@ -942,7 +943,6 @@ export default function SessionBuilder() {
           participantCount={sessionParticipantCount}
           selectedCount={selectedChallenges.length}
           totalDuration={getTotalDuration()}
-          hasUnsavedChanges={hasUnsavedBackendChanges}
           isSavingDraft={isSavingDraft}
           onEditSessionInfo={() => {
             setEditName(sessionName);
