@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ChallengeRulesPreviewModal from './ChallengeRulesPreviewModal';
 import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import styles from './ChallengesCatalog.module.css';
@@ -61,6 +61,30 @@ export default function ChallengesCatalog({
   onResetFilters,
 }) {
   const [previewChallenge, setPreviewChallenge] = useState(null);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const filterMenuRef = useRef(null);
+
+  useEffect(() => {
+    function handleDocumentClick(event) {
+      if (!filterMenuRef.current) return;
+      if (!filterMenuRef.current.contains(event.target)) {
+        setIsFiltersOpen(false);
+      }
+    }
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setIsFiltersOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleDocumentClick);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
 
   // Extraire les catégories uniques depuis les challenges
   const categories = useMemo(() => {
@@ -114,87 +138,91 @@ export default function ChallengesCatalog({
   return (
     <section className={styles.catalog}>
       <div className={styles.filterBar}>
-        <div className={styles.filterBarHeader}>
-          <div>
-            <p className={styles.filterTitle}>Filtrer le catalogue</p>
-            <p className={styles.filterSubtitle}>Affinez rapidement les challenges par catégorie, objectif et durée.</p>
-          </div>
-          <div className={styles.filterStats}>
-            <span>{activeFiltersCount} filtre{activeFiltersCount > 1 ? 's' : ''} actif{activeFiltersCount > 1 ? 's' : ''}</span>
-            <span>{challenges.length} challenge{challenges.length > 1 ? 's' : ''} affiché{challenges.length > 1 ? 's' : ''}</span>
-          </div>
-        </div>
+        <div className={styles.filterLine}>
+          <div className={styles.filterDropdownWrap} ref={filterMenuRef}>
+            <button
+              type="button"
+              className={styles.filterDropdownButton}
+              onClick={() => setIsFiltersOpen((prev) => !prev)}
+              aria-expanded={isFiltersOpen}
+              aria-haspopup="dialog"
+            >
+              <span>Filtres ({activeFiltersCount})</span>
+              <span aria-hidden="true">▾</span>
+            </button>
 
-        <div className={styles.filterBody}>
-          <div className={styles.filterGroup}>
-            <label className={styles.filterField}>
-              <span className={styles.filterLabel}>Catégories</span>
-              <div className={styles.filterChips}>
-                {categories.filter((cat) => cat.value).map((cat) => {
-                  const active = selectedCategories.includes(cat.value);
-                  return (
-                    <button
-                      key={cat.value}
-                      type="button"
-                      className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
-                      onClick={() => onToggleCategory(cat.value)}
-                    >
-                      {cat.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </label>
+            {isFiltersOpen ? (
+              <div className={styles.filterDropdownPanel} role="dialog" aria-label="Filtres du catalogue">
+                <div className={styles.filterField}>
+                  <span className={styles.filterLabel}>Catégories</span>
+                  <div className={styles.filterChips}>
+                    {categories.filter((cat) => cat.value).map((cat) => {
+                      const active = selectedCategories.includes(cat.value);
+                      return (
+                        <button
+                          key={cat.value}
+                          type="button"
+                          className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
+                          onClick={() => onToggleCategory(cat.value)}
+                        >
+                          {cat.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-            <label className={styles.filterField}>
-              <span className={styles.filterLabel}>Objectifs ({selectedObjectives.length}/{MAX_FILTER_OBJECTIVES})</span>
-              <div className={styles.filterChips}>
-                {objectives.filter((obj) => obj.value).map((obj) => {
-                  const active = selectedObjectives.includes(obj.value);
-                  const disabled = !active && objectiveLimitReached;
-                  return (
-                    <button
-                      key={obj.value}
-                      type="button"
-                      className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
-                      onClick={() => onToggleObjective(obj.value)}
-                      disabled={disabled}
-                    >
-                      {obj.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <span className={styles.filterHint}>
-                {objectiveLimitReached
-                  ? 'Limite atteinte: retirez un objectif pour en ajouter un autre.'
-                  : 'Sélection multiple possible (max 3).'}
-              </span>
-            </label>
+                <div className={styles.filterField}>
+                  <span className={styles.filterLabel}>Objectifs ({selectedObjectives.length}/{MAX_FILTER_OBJECTIVES})</span>
+                  <div className={styles.filterChips}>
+                    {objectives.filter((obj) => obj.value).map((obj) => {
+                      const active = selectedObjectives.includes(obj.value);
+                      const disabled = !active && objectiveLimitReached;
+                      return (
+                        <button
+                          key={obj.value}
+                          type="button"
+                          className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
+                          onClick={() => onToggleObjective(obj.value)}
+                          disabled={disabled}
+                        >
+                          {obj.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <span className={styles.filterHint}>
+                    {objectiveLimitReached
+                      ? 'Limite atteinte: retirez un objectif pour en ajouter un autre.'
+                      : 'Sélection multiple possible (max 3).'}
+                  </span>
+                </div>
 
-            <label className={styles.filterField}>
-              <span className={styles.filterLabel}>Durée</span>
-              <div className={styles.filterChips}>
-                {durations.filter((dur) => dur.value).map((dur) => {
-                  const active = filters.duration === dur.value;
-                  return (
-                    <button
-                      key={dur.value}
-                      type="button"
-                      className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
-                      onClick={() => onFilterChange({ duration: active ? '' : dur.value })}
-                    >
-                      {dur.label}
-                    </button>
-                  );
-                })}
+                <div className={styles.filterField}>
+                  <span className={styles.filterLabel}>Durée</span>
+                  <div className={styles.filterChips}>
+                    {durations.filter((dur) => dur.value).map((dur) => {
+                      const active = filters.duration === dur.value;
+                      return (
+                        <button
+                          key={dur.value}
+                          type="button"
+                          className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
+                          onClick={() => onFilterChange({ duration: active ? '' : dur.value })}
+                        >
+                          {dur.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            </label>
+            ) : null}
           </div>
 
           <div className={styles.filterActions}>
-            <button className="btn-secondary btn-sm" onClick={onResetFilters}>
-              ↻ Réinitialiser
+            <button className="btn-secondary btn-sm" onClick={onResetFilters} type="button">
+              Réinitialiser
             </button>
           </div>
         </div>
