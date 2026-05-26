@@ -937,10 +937,28 @@ export default function SessionBuilder() {
         {asyncStatusMessage ? (
           <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
         ) : null}
-        {/* Session info bar */}
-        <div className={styles.sessionInfoBar}>
-          {isEditingSessionInfo ? (
-            <>
+        <SessionBuilderHeader
+          sessionName={sessionName}
+          participantCount={sessionParticipantCount}
+          selectedCount={selectedChallenges.length}
+          totalDuration={getTotalDuration()}
+          hasUnsavedChanges={hasUnsavedBackendChanges}
+          isSavingDraft={isSavingDraft}
+          onEditSessionInfo={() => {
+            setEditName(sessionName);
+            setEditFlowMode(flowMode);
+            setEditDateTime(sessionDateTime);
+            setIsEditingSessionInfo(true);
+          }}
+          onSaveConfig={handleSaveDraft}
+          isLaunchDisabled={selectedChallenges.length === 0}
+          isLaunching={isLaunching}
+          onLaunch={handleLaunchSession}
+        />
+
+        {isEditingSessionInfo ? (
+          <section className={styles.sessionInfoEditPanel} aria-label="Modifier les informations de session">
+            <div className={styles.sessionInfoEditGrid}>
               <input
                 className={styles.sessionInfoInput}
                 value={editName}
@@ -962,9 +980,10 @@ export default function SessionBuilder() {
                 <option value="manual">Mode manuel</option>
                 <option value="auto">Mode automatique</option>
               </select>
+            </div>
+            <div className={styles.sessionInfoEditActions}>
               <button
                 className="btn-primary"
-                style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
                 onClick={handleSaveSessionInfo}
                 disabled={isSavingSessionInfo}
               >
@@ -972,78 +991,13 @@ export default function SessionBuilder() {
               </button>
               <button
                 className="btn-secondary"
-                style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
                 onClick={() => setIsEditingSessionInfo(false)}
               >
                 Annuler
               </button>
-            </>
-          ) : (
-            <>
-              <span className={styles.sessionInfoName}>{sessionName || 'Session sans nom'}</span>
-              {sessionDateTime && (
-                <span className={styles.sessionInfoDate}>
-                  {new Date(sessionDateTime).toLocaleDateString('fr-FR', {
-                    day: 'numeric', month: 'long', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit',
-                  })}
-                </span>
-              )}
-              {sessionParticipantCount > 0 && (
-                <span className={styles.sessionInfoBadge}>
-                  {sessionParticipantCount} participant{sessionParticipantCount > 1 ? 's' : ''}
-                </span>
-              )}
-              <span className={styles.sessionInfoBadge}>
-                Mode {flowMode === 'auto' ? 'automatique' : 'manuel'}
-              </span>
-              {lastLocalDraftSaveAt && (
-                <span className={styles.sessionInfoLocalSave}>
-                  Brouillon local: {new Date(lastLocalDraftSaveAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              )}
-              {lastBackendSaveAt && (
-                <span className={styles.sessionInfoBackendSave}>
-                  Serveur: {new Date(lastBackendSaveAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              )}
-              {loadedFromLocalDraft && (
-                <span className={styles.sessionInfoDraftRestored}>Brouillon restaure</span>
-              )}
-              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-                <button
-                  className={hasUnsavedBackendChanges ? 'btn-primary' : 'btn-secondary'}
-                  style={{ padding: '0.4rem 0.9rem', fontSize: '0.82rem' }}
-                  onClick={handleSaveDraft}
-                  disabled={isSavingDraft || selectedChallenges.length === 0}
-                  title={selectedChallenges.length === 0 ? 'Ajoutez au moins une activite.' : 'Enregistrer les challenges sur le serveur'}
-                >
-                  {isSavingDraft ? 'Sauvegarde...' : 'Enregistrer'}
-                </button>
-                <button
-                  className="btn-secondary"
-                  style={{ padding: '0.4rem 0.9rem', fontSize: '0.82rem' }}
-                  onClick={() => {
-                    setEditName(sessionName);
-                    setEditFlowMode(flowMode);
-                    setEditDateTime(sessionDateTime);
-                    setIsEditingSessionInfo(true);
-                  }}
-                >
-                  Modifier la session
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-
-        <SessionBuilderHeader
-          selectedCount={selectedChallenges.length}
-          totalDuration={getTotalDuration()}
-          isLaunchDisabled={selectedChallenges.length === 0}
-          isLaunching={isLaunching}
-          onLaunch={handleLaunchSession}
-        />
+            </div>
+          </section>
+        ) : null}
 
         <div className={styles.mainLayout}>
           <SelectedChallengesList

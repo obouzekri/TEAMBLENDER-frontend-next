@@ -90,6 +90,29 @@
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.08);
 }
 
+.sessionInfoEditPanel {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: -0.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 250, 248, 0.94) 100%);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+.sessionInfoEditGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.sessionInfoEditActions {
+  display: flex;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
 .mainLayout {
   display: grid;
   grid-template-columns: minmax(300px, 350px) minmax(0, 1fr);
@@ -543,6 +566,14 @@
   .mainLayout {
     grid-template-columns: 1fr;
     gap: 2rem;
+  }
+
+  .sessionInfoEditGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sessionInfoEditActions {
+    justify-content: flex-start;
   }
 
   .creationPageBackground {
