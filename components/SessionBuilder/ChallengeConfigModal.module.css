@@ -131,6 +131,41 @@
   line-height: 1.4;
 }
 
+.phrasePreviewTrigger {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  margin-top: 0.15rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px dashed var(--line);
+  border-radius: 0.35rem;
+  background: var(--bg-soft, #f9fafb);
+  color: var(--ink);
+  cursor: help;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.phrasePreviewTrigger:hover::after,
+.phrasePreviewTrigger:focus-visible::after {
+  content: attr(data-full-phrase);
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  z-index: 20;
+  min-width: min(620px, 88vw);
+  max-width: min(620px, 88vw);
+  white-space: normal;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--line);
+  background: #111827;
+  color: #f9fafb;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.35);
+  line-height: 1.45;
+}
+
 .checkboxRow {
   flex-direction: row;
   align-items: center;

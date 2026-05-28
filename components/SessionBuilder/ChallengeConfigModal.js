@@ -364,6 +364,12 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     onSave(config);
   };
 
+  const selectedPhraseTemplate = getPhraseTemplate(stringValue('templateId', PHRASE_DEFAULT_LIBRARY[0].id));
+  const selectedPhrasePreview = sanitizePhraseText(
+    stringValue('textePhrase', ''),
+    selectedPhraseTemplate.phrase
+  );
+
   const handleUploadCopuzzleImage = (event) => {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
@@ -680,6 +686,16 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       <option key={template.id} value={template.id}>{template.label}</option>
                     ))}
                   </select>
+                  <p className={styles.helpText}>
+                    Survolez l'aperçu pour voir la phrase complete:
+                  </p>
+                  <span
+                    className={styles.phrasePreviewTrigger}
+                    data-full-phrase={selectedPhrasePreview}
+                    title={selectedPhrasePreview}
+                  >
+                    {selectedPhrasePreview}
+                  </span>
                 </div>
               )}
 
