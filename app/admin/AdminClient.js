@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
-import { getApiUrl } from '@/lib/config';
+import { getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
 
 const USER_ROLES = new Set(['user', 'admin']);
 const SESSION_STATUSES = new Set(['preparee', 'en_cours', 'terminee']);
@@ -266,6 +266,7 @@ function cloneJson(value, fallback = null) {
 }
 
 function ensureEscapeRoomE5Image(engineConfig, imageUrl) {
+  const normalizedImageUrl = normalizeBackendAssetUrl(imageUrl);
   const nextConfig = cloneJson(engineConfig, {}) || {};
   const enigmes = Array.isArray(nextConfig.enigmes) ? nextConfig.enigmes : [];
   const e5Index = enigmes.findIndex((e) => String(e?.id || '').toLowerCase() === 'e5');
@@ -276,7 +277,7 @@ function ensureEscapeRoomE5Image(engineConfig, imageUrl) {
       ...e5,
       image: {
         ...(e5.image && typeof e5.image === 'object' ? e5.image : {}),
-        src: imageUrl,
+        src: normalizedImageUrl,
       },
     };
     nextConfig.enigmes = enigmes;
@@ -289,7 +290,7 @@ function ensureEscapeRoomE5Image(engineConfig, imageUrl) {
     {
       id: 'e5',
       label: 'Énigme visuelle',
-      image: { src: imageUrl, fit: 'cover' },
+      image: { src: normalizedImageUrl, fit: 'cover' },
     },
   ];
   return nextConfig;
@@ -298,7 +299,7 @@ function ensureEscapeRoomE5Image(engineConfig, imageUrl) {
 function getEscapeRoomE5ImageSrc(engineConfig) {
   const enigmes = Array.isArray(engineConfig?.enigmes) ? engineConfig.enigmes : [];
   const e5 = enigmes.find((e) => String(e?.id || '').toLowerCase() === 'e5');
-  return String(e5?.image?.src || '').trim();
+  return normalizeBackendAssetUrl(String(e5?.image?.src || '').trim());
 }
 
 function clampInt(value, fallback, min, max) {
@@ -313,7 +314,7 @@ function ensureCopuzzleConfig(engineConfig) {
   const cols = clampInt(current?.grid?.cols, 4, 2, 16);
   const normalizedDefaultImages = (Array.isArray(current?.default_images) ? current.default_images : [])
     .map((item, index) => {
-      const src = String(item?.src || item?.url || item?.value || '').trim();
+      const src = normalizeBackendAssetUrl(String(item?.src || item?.url || item?.value || '').trim());
       if (!src) return null;
       return {
         id: String(item?.id || `default_${index + 1}`),
@@ -330,7 +331,9 @@ function ensureCopuzzleConfig(engineConfig) {
 
   const selectedDefaultImageId = String(current?.default_image_id || defaultImages[0]?.id || '').trim();
   const selectedDefaultImage = defaultImages.find((item) => item.id === selectedDefaultImageId) || defaultImages[0] || null;
-  const imageSrc = String(current?.image?.src || current?.image_url || selectedDefaultImage?.src || '').trim() || '/copuzzle/default-blue.svg';
+  const imageSrc = normalizeBackendAssetUrl(
+    String(current?.image?.src || current?.image_url || selectedDefaultImage?.src || '').trim()
+  ) || '/copuzzle/default-blue.svg';
   const rawParticipants = current?.participants && typeof current.participants === 'object'
     ? current.participants
     : {};
@@ -382,7 +385,9 @@ function getCopuzzleImageSrc(engineConfig) {
   const config = ensureCopuzzleConfig(engineConfig);
   const defaultImages = getCopuzzleDefaultImages(config);
   const selectedDefault = defaultImages.find((item) => item.id === String(config.default_image_id || '').trim()) || defaultImages[0] || null;
-  return String(config?.image?.src || config?.image_url || selectedDefault?.src || '').trim() || '/copuzzle/default-blue.svg';
+  return normalizeBackendAssetUrl(
+    String(config?.image?.src || config?.image_url || selectedDefault?.src || '').trim()
+  ) || '/copuzzle/default-blue.svg';
 }
 
 function parseRulesTextarea(value) {
@@ -1781,7 +1786,7 @@ export default function AdminClient() {
         throw new Error(payload.error || `Upload impossible (${response.status})`);
       }
 
-      const uploadedUrl = String(payload.url || payload.path || '').trim();
+      const uploadedUrl = normalizeUploadResultUrl(payload);
       if (!uploadedUrl) {
         throw new Error('URL image manquante dans la reponse upload.');
       }
@@ -1840,7 +1845,7 @@ export default function AdminClient() {
         throw new Error(payload.error || `Upload impossible (${response.status})`);
       }
 
-      const uploadedUrl = String(payload.url || payload.path || '').trim();
+      const uploadedUrl = normalizeUploadResultUrl(payload);
       if (!uploadedUrl) {
         throw new Error('URL image manquante dans la reponse upload.');
       }

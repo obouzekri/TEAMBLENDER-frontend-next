@@ -2,7 +2,7 @@
 
 import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect } from 'react';
-import { getApiUrl } from '@/lib/config';
+import { getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
 
 const COPUZZLE_ADMIN_REFERENCE_IMAGES = Object.freeze([
   { id: 'default_1', title: 'Image administrateur 1', src: '/copuzzle/default-blue.svg' },
@@ -113,7 +113,7 @@ function normalizeCopuzzleDefaultImages(defaultImagesInput) {
   const source = Array.isArray(defaultImagesInput) ? defaultImagesInput : [];
   const normalized = source
     .map((item, index) => {
-      const src = String(item?.src || item?.url || item?.value || '').trim();
+      const src = normalizeBackendAssetUrl(String(item?.src || item?.url || item?.value || '').trim());
       if (!src) return null;
       const id = String(item?.id || `default_${index + 1}`);
       const title = String(item?.title || '').trim() || `Image ${index + 1}`;
@@ -130,7 +130,7 @@ function resolveCopuzzleSourceMode(config, defaultImages) {
   if (explicitMode === 'custom') return 'custom';
   if (explicitMode === 'defaults') return 'defaults';
 
-  const configuredImage = String(config?.image_url || config?.image?.src || '').trim();
+  const configuredImage = normalizeBackendAssetUrl(String(config?.image_url || config?.image?.src || '').trim());
   if (!configuredImage) return 'defaults';
 
   const usesDefaultImage = defaultImages.some((item) => item.src === configuredImage);
@@ -143,7 +143,7 @@ function resolveCopuzzleDefaultImageId(config, defaultImages) {
     return explicitId;
   }
 
-  const configuredImage = String(config?.image_url || config?.image?.src || '').trim();
+  const configuredImage = normalizeBackendAssetUrl(String(config?.image_url || config?.image?.src || '').trim());
   const bySrc = defaultImages.find((item) => item.src === configuredImage);
   if (bySrc) return bySrc.id;
 
@@ -158,7 +158,7 @@ function withCopuzzleDefaults(config = {}, defaultImages = COPUZZLE_ADMIN_REFERE
   const sourceMode = resolveCopuzzleSourceMode(config, defaultImages);
   const selectedDefaultImageId = resolveCopuzzleDefaultImageId(config, defaultImages);
   const selectedDefaultImage = defaultImages.find((item) => item.id === selectedDefaultImageId) || defaultImages[0] || null;
-  const customImageUrl = String(config?.image_url || config?.image?.src || '').trim();
+  const customImageUrl = normalizeBackendAssetUrl(String(config?.image_url || config?.image?.src || '').trim());
   const imageUrl = sourceMode === 'custom'
     ? (customImageUrl || String(selectedDefaultImage?.src || '').trim() || '/copuzzle/default-blue.svg')
     : (String(selectedDefaultImage?.src || '').trim() || '/copuzzle/default-blue.svg');
@@ -540,7 +540,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
           throw new Error(payload.error || `Upload impossible (${response.status})`);
         }
 
-        const uploadedUrl = String(payload.url || payload.path || '').trim();
+        const uploadedUrl = normalizeUploadResultUrl(payload);
         if (!uploadedUrl) {
           throw new Error('URL image manquante dans la reponse upload.');
         }

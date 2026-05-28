@@ -5,7 +5,7 @@ import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { resolveChallengeRules } from '@/lib/challenges/rules';
-import { getBackendOrigin } from '@/lib/config';
+import { normalizeBackendAssetUrl } from '@/lib/config';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -29,7 +29,7 @@ function normalizeRuntimeConfig(config = {}) {
   const defaultImagesFromConfig = Array.isArray(config?.default_images)
     ? config.default_images
         .map((item) => {
-          const src = String(item?.src || item?.url || item?.value || '').trim();
+          const src = normalizeBackendAssetUrl(String(item?.src || item?.url || item?.value || '').trim());
           if (!src) return null;
           return {
             id: String(item?.id || ''),
@@ -54,8 +54,9 @@ function normalizeRuntimeConfig(config = {}) {
       || config?.imageUrl
       || ''
   ).trim();
+  const normalizedCustomSrc = normalizeBackendAssetUrl(customSrc);
   const imageSrc = sourceMode === 'custom'
-    ? (customSrc || selectedDefaultSrc)
+    ? (normalizedCustomSrc || selectedDefaultSrc)
     : selectedDefaultSrc;
 
   const timerDurationSeconds = clampInt(config?.timer?.duration_seconds, 1200, 30, 7200);
@@ -142,7 +143,6 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
     || normalizedTimerState === 'stopped'
     || normalizedTimerState === 'timeout';
   const canPlay = state?.timer?.enabled === false || timerState === 'running';
-  const backendOrigin = useMemo(() => getBackendOrigin(), []);
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
   const timerDurationSeconds = Math.max(
     0,
@@ -174,14 +174,8 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
   });
 
   const imageUrl = useMemo(() => {
-    const raw = String(effectiveConfig?.image?.src || '').trim();
-
-    if (!raw) return '';
-    if (raw.startsWith('/copuzzle/')) return raw;
-    if (raw.startsWith('/')) return `${backendOrigin}${raw}`;
-    if (raw.startsWith('http://')) return raw.replace(/^http:\/\//i, 'https://');
-    return raw;
-  }, [backendOrigin, effectiveConfig]);
+    return normalizeBackendAssetUrl(String(effectiveConfig?.image?.src || '').trim());
+  }, [effectiveConfig]);
 
   const placedCount = useMemo(
     () => pieces.filter((piece) => piece?.placed === true).length,
