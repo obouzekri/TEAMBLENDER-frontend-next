@@ -75,6 +75,33 @@ const PHRASE_DEFAULT_LIBRARY = Object.freeze([
   },
 ]);
 
+const PIXEL_ARCHITECT_TEMPLATES = Object.freeze([
+  {
+    id: 'tour_signal',
+    name: 'Tour Signal',
+    difficulty: 'facile',
+    max_dims: { x: 6, y: 6, z: 4 },
+    target_cube_count: 24,
+    palette: ['#2F80ED', '#27AE60', '#F2994A']
+  },
+  {
+    id: 'pont_croise',
+    name: 'Pont Croise',
+    difficulty: 'moyen',
+    max_dims: { x: 8, y: 8, z: 4 },
+    target_cube_count: 32,
+    palette: ['#2D9CDB', '#EB5757', '#F2C94C']
+  },
+  {
+    id: 'agora_pixel',
+    name: 'Agora Pixel',
+    difficulty: 'difficile',
+    max_dims: { x: 10, y: 10, z: 5 },
+    target_cube_count: 45,
+    palette: ['#56CCF2', '#BB6BD9', '#6FCF97']
+  },
+]);
+
 function clampInt(value, fallback, min, max) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isInteger(parsed)) return fallback;
@@ -275,6 +302,65 @@ function withLabyrintheDefaults(config = {}) {
   };
 }
 
+function withPixelArchitectDefaults(config = {}) {
+  const mode = String(config?.mode || 'replication').toLowerCase() === 'creatif' ? 'creatif' : 'replication';
+  const collaborationMode = String(config?.collaborationMode || 'standard').toLowerCase() === 'avance' ? 'avance' : 'standard';
+  const templateId = String(config?.replication?.templateId || PIXEL_ARCHITECT_TEMPLATES[0].id).trim();
+  const selectedTemplate = PIXEL_ARCHITECT_TEMPLATES.find((item) => item.id === templateId) || PIXEL_ARCHITECT_TEMPLATES[0];
+
+  const maxColors = clampInt(config?.settings?.maxColors, 3, 1, 6);
+  const palette = Array.isArray(config?.palette)
+    ? config.palette.map((item) => String(item || '').trim()).filter(Boolean).slice(0, maxColors)
+    : selectedTemplate.palette.slice(0, maxColors);
+
+  return {
+    ...(config || {}),
+    mode,
+    collaborationMode,
+    difficulty: ['facile', 'moyen', 'difficile'].includes(String(config?.difficulty || '').toLowerCase())
+      ? String(config.difficulty).toLowerCase()
+      : 'moyen',
+    settings: {
+      ...(config?.settings && typeof config.settings === 'object' ? config.settings : {}),
+      timeLimitSeconds: clampInt(config?.settings?.timeLimitSeconds, 900, 120, 7200),
+      maxCubes: clampInt(config?.settings?.maxCubes, 50, 8, 400),
+      maxColors,
+      hintsEnabled: config?.settings?.hintsEnabled !== false,
+      chatEnabled: config?.settings?.chatEnabled !== false,
+      timerEnabled: config?.settings?.timerEnabled !== false,
+    },
+    replication: {
+      ...(config?.replication && typeof config.replication === 'object' ? config.replication : {}),
+      modelSource: String(config?.replication?.modelSource || 'template').toLowerCase() === 'upload' ? 'upload' : 'template',
+      templateId: selectedTemplate.id,
+    },
+    creative: {
+      ...(config?.creative && typeof config.creative === 'object' ? config.creative : {}),
+      theme: String(config?.creative?.theme || 'Construisez une structure qui symbolise la collaboration.').trim(),
+    },
+    advancedRoles: {
+      architectParticipantIds: Array.isArray(config?.advancedRoles?.architectParticipantIds)
+        ? config.advancedRoles.architectParticipantIds
+        : [],
+      builderParticipantIds: Array.isArray(config?.advancedRoles?.builderParticipantIds)
+        ? config.advancedRoles.builderParticipantIds
+        : [],
+    },
+    templates: PIXEL_ARCHITECT_TEMPLATES,
+    palette,
+    timer: {
+      ...(config?.timer && typeof config.timer === 'object' ? config.timer : {}),
+      enabled: config?.settings?.timerEnabled !== false,
+      duration_seconds: clampInt(config?.settings?.timeLimitSeconds, 900, 120, 7200),
+      warning_threshold_seconds: 60,
+    },
+    chat: {
+      ...(config?.chat && typeof config.chat === 'object' ? config.chat : {}),
+      enabled: config?.settings?.chatEnabled !== false,
+    },
+  };
+}
+
 export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   const [config, setConfig] = useState(challenge?.config || {});
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -310,6 +396,9 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     }
     if ((current?.engine_key || '').toLowerCase() === 'escape_room_v1' || fingerprint.includes('salle') || fingerprint.includes('escape')) {
       return 'escape_room';
+    }
+    if ((current?.engine_key || '').toLowerCase() === 'pixel_architect_v1' || fingerprint.includes('pixel architect') || fingerprint.includes('voxel')) {
+      return 'pixel_architect';
     }
     return 'generic';
   }
@@ -392,6 +481,10 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     }
     if (kind === 'labyrinthe_live') {
       onSave(withLabyrintheDefaults(config));
+      return;
+    }
+    if (kind === 'pixel_architect') {
+      onSave(withPixelArchitectDefaults(config));
       return;
     }
     onSave(config);
@@ -953,6 +1046,169 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   Aucune énigme trouvée dans la configuration du challenge.
                 </p>
               )}
+            </>
+          )}
+
+          {kind === 'pixel_architect' && (
+            <>
+              <div className={styles.configField}>
+                <label className={styles.label}>Mode de challenge</label>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      checked={stringValue('mode', 'replication') === 'replication'}
+                      onChange={() => updateValue('mode', 'replication')}
+                    />
+                    <span>Replication</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      checked={stringValue('mode', 'replication') === 'creatif'}
+                      onChange={() => updateValue('mode', 'creatif')}
+                    />
+                    <span>Creatif</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className={styles.configField}>
+                <label className={styles.label}>Mode de collaboration</label>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      checked={stringValue('collaborationMode', 'standard') === 'standard'}
+                      onChange={() => updateValue('collaborationMode', 'standard')}
+                    />
+                    <span>Standard</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      checked={stringValue('collaborationMode', 'standard') === 'avance'}
+                      onChange={() => updateValue('collaborationMode', 'avance')}
+                    />
+                    <span>Avance (roles)</span>
+                  </label>
+                </div>
+              </div>
+
+              {stringValue('mode', 'replication') === 'replication' ? (
+                <div className={styles.configField}>
+                  <label htmlFor="pixelTemplate" className={styles.label}>Template</label>
+                  <select
+                    id="pixelTemplate"
+                    className={styles.input}
+                    value={stringValue('replication.templateId', PIXEL_ARCHITECT_TEMPLATES[0].id)}
+                    onChange={(e) => {
+                      const nextTemplateId = String(e.target.value || PIXEL_ARCHITECT_TEMPLATES[0].id);
+                      const template = PIXEL_ARCHITECT_TEMPLATES.find((item) => item.id === nextTemplateId) || PIXEL_ARCHITECT_TEMPLATES[0];
+                      updateValue('replication.templateId', template.id);
+                      updateValue('difficulty', template.difficulty);
+                    }}
+                  >
+                    {PIXEL_ARCHITECT_TEMPLATES.map((template) => (
+                      <option key={template.id} value={template.id}>{template.name} ({template.difficulty})</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className={styles.configField}>
+                  <label htmlFor="pixelTheme" className={styles.label}>Theme creatif</label>
+                  <input
+                    id="pixelTheme"
+                    className={styles.input}
+                    type="text"
+                    value={stringValue('creative.theme', 'Construisez une structure qui symbolise la collaboration.')}
+                    onChange={(e) => updateValue('creative.theme', e.target.value)}
+                  />
+                </div>
+              )}
+
+              <div className={styles.configField}>
+                <label htmlFor="pixelDuration" className={styles.label}>Temps (secondes)</label>
+                <input
+                  id="pixelDuration"
+                  className={styles.input}
+                  type="number"
+                  min="120"
+                  max="7200"
+                  value={numberValue('settings.timeLimitSeconds', 900)}
+                  onChange={(e) => updateValue('settings.timeLimitSeconds', Number(e.target.value || 900))}
+                />
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="pixelMaxCubes" className={styles.label}>Nombre max de cubes</label>
+                <input
+                  id="pixelMaxCubes"
+                  className={styles.input}
+                  type="number"
+                  min="8"
+                  max="400"
+                  value={numberValue('settings.maxCubes', 50)}
+                  onChange={(e) => updateValue('settings.maxCubes', Number(e.target.value || 50))}
+                />
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="pixelMaxColors" className={styles.label}>Nombre de couleurs</label>
+                <input
+                  id="pixelMaxColors"
+                  className={styles.input}
+                  type="number"
+                  min="1"
+                  max="6"
+                  value={numberValue('settings.maxColors', 3)}
+                  onChange={(e) => updateValue('settings.maxColors', Number(e.target.value || 3))}
+                />
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="pixelDifficulty" className={styles.label}>Difficulte</label>
+                <select
+                  id="pixelDifficulty"
+                  className={styles.input}
+                  value={stringValue('difficulty', 'moyen')}
+                  onChange={(e) => updateValue('difficulty', e.target.value)}
+                >
+                  <option value="facile">facile</option>
+                  <option value="moyen">moyen</option>
+                  <option value="difficile">difficile</option>
+                </select>
+              </div>
+
+              <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="pixelHintsEnabled">
+                <span className={styles.label}>Activer les indices</span>
+                <input
+                  id="pixelHintsEnabled"
+                  type="checkbox"
+                  checked={boolValue('settings.hintsEnabled', true)}
+                  onChange={(e) => updateValue('settings.hintsEnabled', e.target.checked)}
+                />
+              </label>
+
+              <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="pixelChatEnabled">
+                <span className={styles.label}>Activer le chat</span>
+                <input
+                  id="pixelChatEnabled"
+                  type="checkbox"
+                  checked={boolValue('settings.chatEnabled', true)}
+                  onChange={(e) => updateValue('settings.chatEnabled', e.target.checked)}
+                />
+              </label>
+
+              <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="pixelTimerEnabled">
+                <span className={styles.label}>Activer le chrono</span>
+                <input
+                  id="pixelTimerEnabled"
+                  type="checkbox"
+                  checked={boolValue('settings.timerEnabled', true)}
+                  onChange={(e) => updateValue('settings.timerEnabled', e.target.checked)}
+                />
+              </label>
             </>
           )}
 
