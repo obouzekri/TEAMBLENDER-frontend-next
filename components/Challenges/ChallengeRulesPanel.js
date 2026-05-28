@@ -60,7 +60,7 @@ export default function ChallengeRulesPanel({
         </section>
       ) : null}
 
-      <section className={styles.rulesSection}>
+      <section className={`${styles.rulesSection} ${styles.rulesSectionParticipant}`}>
         <h3>Participants</h3>
         <ul>
           {participantRules.map((rule) => (

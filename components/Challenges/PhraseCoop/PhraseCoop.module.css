@@ -278,23 +278,49 @@
 }
 
 .summary {
-  border-radius: 12px;
-  border: 1px solid #bbf7d0;
-  background: #f0fdf4;
-  color: #14532d;
-  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  background:
+    linear-gradient(155deg, rgba(13, 25, 45, 0.92) 0%, rgba(16, 36, 63, 0.86) 100%),
+    radial-gradient(420px 180px at 12% -30%, rgba(56, 189, 248, 0.2), transparent 70%);
+  color: #e2ecf8;
+  padding: 12px 14px;
   display: grid;
-  gap: 4px;
-  font-size: 0.86rem;
+  gap: 6px;
+  font-size: 0.88rem;
 }
 
 .summary h3 {
-  margin: 0 0 4px;
-  font-size: 0.95rem;
+  margin: 0 0 2px;
+  font-size: 1rem;
+  color: #7dd3fc;
 }
 
 .summary p {
   margin: 0;
+  color: #d8e5f5;
+}
+
+.playerWorkbench {
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(17, 26, 46, 0.86);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.playerWorkbenchHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.playerWorkbenchHead h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #dbeafe;
 }
 
 .sidePanel {
@@ -391,6 +417,11 @@
   border: 1px solid #cbd5e1;
   background: #f8fafc;
   color: #0f172a;
+}
+
+.btnSecondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .helper {
@@ -521,6 +552,10 @@
   color: #7dd3fc;
 }
 
+.playerWorkbenchHead h3 {
+  color: #7dd3fc;
+}
+
 .timerDisplay,
 .timerState,
 .timerTime {
@@ -589,6 +624,11 @@
   .boardPanel,
   .timerCard {
     padding: 12px;
+  }
+
+  .playerWorkbenchHead {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .btnPrimary,

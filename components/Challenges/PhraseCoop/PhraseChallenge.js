@@ -134,6 +134,18 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
   );
 
   const summary = state?.summary || null;
+  const hintBudget = Number(state?.phrase?.hint_budget || 0);
+  const hintsUsed = Number(state?.phrase?.hints_used || 0);
+  const remainingHints = Math.max(0, hintBudget - hintsUsed);
+  const hintRequests = Array.isArray(state?.phrase?.hint_requests) ? state.phrase.hint_requests : [];
+  const participantId = String(
+    context?.userId
+    || context?.participantId
+    || runtimePayload?.context?.participantId
+    || ''
+  ).trim();
+  const hasPendingHintRequest = !isFacilitator
+    && hintRequests.some((request) => String(request?.participant_id || '').trim() === participantId);
   const rulesContent = useMemo(
     () => resolveChallengeRules(state?.config || runtimePayload?.config),
     [runtimePayload?.config, state?.config]
@@ -294,6 +306,49 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                   <p>Score collectif: {Number(summary.collective_score || 0)}</p>
                 </div>
               ) : null}
+
+              {!isFacilitator ? (
+                <section className={styles.playerWorkbench}>
+                  <div className={styles.playerWorkbenchHead}>
+                    <h3>Mots disponibles</h3>
+                    <button
+                      type="button"
+                      className={styles.btnSecondary}
+                      onClick={requestHint}
+                      disabled={!hasChallengeStarted || !canPlay || remainingHints <= 0 || hasPendingHintRequest}
+                    >
+                      {hasPendingHintRequest ? 'Demande envoyée' : 'Demander un indice'}
+                    </button>
+                  </div>
+                  <div className={styles.wordBank}>
+                    {groupedWords.length === 0 ? (
+                      <p className={styles.empty}>Aucun mot disponible.</p>
+                    ) : groupedWords.map((entry) => {
+                      const selected = selectedWord === entry.value;
+                      return (
+                        <button
+                          key={entry.id}
+                          type="button"
+                          className={`${styles.wordChip}${selected ? ` ${styles.wordChipSelected}` : ''}${draggingWord === entry.value ? ` ${styles.wordChipDragging}` : ''}`}
+                          onClick={() => {
+                            if (!canPlay) return;
+                            setSelectedWord((prev) => (prev === entry.value ? '' : entry.value));
+                          }}
+                          draggable={canPlay}
+                          onDragStart={(event) => onWordDragStart(event, entry.value)}
+                          onDragEnd={onWordDragEnd}
+                          disabled={!canPlay}
+                        >
+                          {formatWord(entry.value)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className={styles.helper}>
+                    Sélectionnez ou glissez un mot vers une de vos cases pour le placer.
+                  </p>
+                </section>
+              ) : null}
             </>
           )}
         </section>
@@ -350,64 +405,35 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
             ) : null}
           </section>
 
-          {!isFacilitator ? (
-            <section className={styles.sideCard}>
-              <h2>Vos informations</h2>
-              <p className={styles.meta}>Mon slot: {participantSlot || '-'}</p>
-              <p className={styles.meta}>Mes cases: {mySlots.map((slot) => Number(slot.index) + 1).join(', ') || '-'}</p>
-              <p className={styles.meta}>Temps restant: {Number(timer?.remaining_seconds || 0)}s</p>
-              <p className={styles.meta}>{canPlay ? 'Interaction active.' : 'En attente du démarrage du timer.'}</p>
-              {error ? <p className={styles.error}>{error}</p> : null}
-            </section>
-          ) : null}
-
           <section className={styles.sideCard}>
-            <h2>{isFacilitator ? 'Actions facilitateur' : 'Mots disponibles'}</h2>
+            <h2>{isFacilitator ? 'Actions facilitateur' : 'Statut challenge'}</h2>
 
-            {!isFacilitator ? (
-              <>
-                <div className={styles.wordBank}>
-                  {groupedWords.length === 0 ? (
-                    <p className={styles.empty}>Aucun mot disponible.</p>
-                  ) : groupedWords.map((entry) => {
-                    const selected = selectedWord === entry.value;
-                    return (
-                      <button
-                        key={entry.id}
-                        type="button"
-                        className={`${styles.wordChip}${selected ? ` ${styles.wordChipSelected}` : ''}${draggingWord === entry.value ? ` ${styles.wordChipDragging}` : ''}`}
-                        onClick={() => {
-                          if (!canPlay) return;
-                          setSelectedWord((prev) => (prev === entry.value ? '' : entry.value));
-                        }}
-                        draggable={canPlay}
-                        onDragStart={(event) => onWordDragStart(event, entry.value)}
-                        onDragEnd={onWordDragEnd}
-                        disabled={!canPlay}
-                      >
-                        {formatWord(entry.value)}
-                      </button>
-                    );
-                  })}
-                </div>
-                <button
-                  type="button"
-                  className={styles.btnSecondary}
-                  onClick={() => setSelectedWord('')}
-                  disabled={!selectedWord}
-                >
-                  Désélectionner le mot
-                </button>
-              </>
-            ) : (
+            {isFacilitator ? (
               <div className={styles.actions}>
-                <button className={styles.btnPrimary} onClick={requestHint}>💡 Indice</button>
+                <button
+                  className={styles.btnPrimary}
+                  onClick={requestHint}
+                  disabled={!hasChallengeStarted || remainingHints <= 0}
+                >
+                  Débloquer un indice ({remainingHints})
+                </button>
               </div>
+            ) : (
+              <>
+                <p className={styles.meta}>Mon slot: {participantSlot || '-'}</p>
+                <p className={styles.meta}>Mes cases: {mySlots.map((slot) => Number(slot.index) + 1).join(', ') || '-'}</p>
+                <p className={styles.meta}>Temps restant: {Number(timer?.remaining_seconds || 0)}s</p>
+                {error ? <p className={styles.error}>{error}</p> : null}
+              </>
             )}
             <p className={styles.helper}>
               {!isFacilitator
-                ? 'Sélectionnez ou glissez un mot vers une de vos cases pour le placer.'
-                : 'Suivez la progression et pilotez le timer et les indices.'}
+                ? hasPendingHintRequest
+                  ? 'Votre demande d’indice a été transmise au facilitateur.'
+                  : 'Vous pouvez demander un indice quand le challenge est en cours.'
+                : hintRequests.length > 0
+                  ? `${hintRequests.length} demande(s) d’indice en attente.`
+                  : 'Suivez la progression et débloquez un indice quand nécessaire.'}
             </p>
           </section>
         </aside>
