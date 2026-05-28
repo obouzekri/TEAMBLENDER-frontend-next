@@ -433,7 +433,7 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
               </div>
 
               {state?.summary ? (
-                <div className={styles.summary}>
+                <div className={styles.summary} style={{ order: -1 }}>
                   <h3 className={styles.summaryTitle}>🏆 Débrief collectif</h3>
                   <div className={styles.summaryGrid}>
                     <div className={styles.summaryCard}>

@@ -298,7 +298,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
               )}
 
               {summary ? (
-                <div className={styles.summary}>
+                <div className={styles.summary} style={{ order: -1 }}>
                   <h3>Débrief équipe</h3>
                   <p>Completion: {Number(summary.completion_percent || completion)}%</p>
                   <p>Temps total: {Number(summary.total_time_seconds || 0)}s</p>

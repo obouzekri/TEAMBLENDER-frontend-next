@@ -507,8 +507,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         ) : null}
 
         {phase === 'finished' ? (
-          <section className={styles.card}>
-            <h2>Classement final</h2>
+          <section className={styles.card} style={{ order: -1 }}>
+            <h2>Débrief final</h2>
             <div className={`${styles.mainScoreCard} ${styles.finalWow}`}>
               <span className={styles.mainScoreLabel}>Votre score final</span>
               <span className={styles.mainScoreValue}>{myScore}</span>
@@ -526,6 +526,27 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             <a className={styles.primaryBtn} href={`/participant?sessionId=${encodeURIComponent(String(context?.sessionId || runtimePayload?.session_id || ''))}`}>
               Sortir du challenge
             </a>
+          </section>
+        ) : null}
+
+        {phase === 'finished' && currentTurn?.result ? (
+          <section className={styles.card}>
+            <h2>Dernier état du jeu</h2>
+            <p className={styles.wowText}>
+              Affirmation: <strong>{currentTurn.result.statement_text || '-'}</strong>
+            </p>
+            <p className={styles.wowText}>
+              Vérité révélée: <strong>{String(currentTurn.result.truth || '-')}</strong>
+            </p>
+            <div className={styles.resultList}>
+              {(currentTurn.result.votes || []).map((item) => (
+                <div key={`finished-${item.participant_id}`} className={styles.resultRow}>
+                  <span>{participantName(item.participant_id)}</span>
+                  <span>{item.status}</span>
+                  <span>+{item.points}</span>
+                </div>
+              ))}
+            </div>
           </section>
         ) : null}
         </div>

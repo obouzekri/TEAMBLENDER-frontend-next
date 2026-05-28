@@ -501,7 +501,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
               </section>
 
               {(submitResult || mission.result) ? (
-                <section className={styles.card}>
+                <section className={styles.card} style={{ order: -1 }}>
                   <h2>Résultat</h2>
                   <p className={styles.score}>Score: {Number((submitResult || mission.result)?.score || 0)}/100</p>
                   <p className={styles.meta}>Points forts: {((submitResult || mission.result)?.strengths || []).join(' | ') || 'Aucun'}</p>
