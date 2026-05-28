@@ -2,6 +2,7 @@
 
 import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect } from 'react';
+import { getApiUrl } from '@/lib/config';
 
 const COPUZZLE_ADMIN_REFERENCE_IMAGES = Object.freeze([
   { id: 'default_1', title: 'Image administrateur 1', src: '/copuzzle/default-blue.svg' },
@@ -515,19 +516,46 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     }
 
     setIsUploadingImage(true);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      updateValue('image_source_mode', 'custom');
-      updateValue('image_url', e.target.result);
-      updateValue('image.src', e.target.result);
+    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+    if (!token) {
+      setUploadError('Session expirée. Veuillez vous reconnecter.');
       setIsUploadingImage(false);
-    };
-    reader.onerror = () => {
-      setUploadError('Impossible de lire le fichier image.');
-      setIsUploadingImage(false);
-    };
-    reader.readAsDataURL(file);
-    event.target.value = '';
+      event.target.value = '';
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    fetch(getApiUrl('/challenges/upload-image'), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.error || `Upload impossible (${response.status})`);
+        }
+
+        const uploadedUrl = String(payload.url || payload.path || '').trim();
+        if (!uploadedUrl) {
+          throw new Error('URL image manquante dans la reponse upload.');
+        }
+
+        updateValue('image_source_mode', 'custom');
+        updateValue('image_url', uploadedUrl);
+        updateValue('image.src', uploadedUrl);
+      })
+      .catch((error) => {
+        setUploadError(error.message || 'Upload image impossible.');
+      })
+      .finally(() => {
+        setIsUploadingImage(false);
+        event.target.value = '';
+      });
   };
 
   return (
