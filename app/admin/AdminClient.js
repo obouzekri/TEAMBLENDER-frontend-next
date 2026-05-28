@@ -125,6 +125,62 @@ const COPUZZLE_ADMIN_REFERENCE_IMAGES = [
   { id: 'default_3', title: 'Image administrateur 3', src: '/copuzzle/default-sunrise.svg' },
 ];
 
+const PIXEL_ARCHITECT_CATALOG_ENTRY = {
+  id: 'pixel_architect_001',
+  name: 'Pixel Architect',
+  type: 'equipe',
+  status: 'actif',
+  source: 'local',
+  category: 'creativite-innovation',
+  objectives: ['collaboration', 'communication', 'gestion-temps'],
+  duration: '15-25 min',
+  engine_key: 'pixel_architect_v1',
+  description: 'Construction 3D collaborative sous contraintes de temps, ressources et communication.',
+  rules_objective: 'Construire une structure 3D en cubes sous contraintes.',
+  rules_facilitator: ['Démarrez le chrono quand l’équipe est prête.', 'Surveillez les contraintes de cubes et de couleurs.'],
+  rules_participant: ['Communiquez clairement.', 'Respectez la limite de ressources.', 'Contribuez à la structure finale.'],
+  rules_footnote: '',
+  engine_config: {
+    mode: 'replication',
+    collaborationMode: 'standard',
+    settings: {
+      timeLimitSeconds: 900,
+      maxCubes: 50,
+      maxColors: 3,
+      hintsEnabled: true,
+      chatEnabled: true,
+      timerEnabled: true,
+    },
+    replication: {
+      modelSource: 'template',
+      templateId: 'tour_signal',
+    },
+    creative: {
+      theme: 'Construisez une structure qui symbolise la collaboration.',
+    },
+  },
+};
+
+function ensurePixelArchitectChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'pixel_architect_v1');
+
+  if (existingIndex >= 0) {
+    const current = list[existingIndex] || {};
+    list[existingIndex] = {
+      ...PIXEL_ARCHITECT_CATALOG_ENTRY,
+      ...current,
+      engine_config: {
+        ...PIXEL_ARCHITECT_CATALOG_ENTRY.engine_config,
+        ...(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {}),
+      },
+    };
+    return list;
+  }
+
+  return [...list, PIXEL_ARCHITECT_CATALOG_ENTRY];
+}
+
 const LANDING_ALLOWED_BLOCK_KEY_HINT = LANDING_ALLOWED_BLOCK_KEYS.join(', ');
 
 function getParticipantFirstName(participant) {
@@ -712,7 +768,7 @@ export default function AdminClient() {
           if (key === 'users') setUsers(value);
           if (key === 'pendingUsers') setPendingUsers(value);
           if (key === 'sessions') setSessions(value);
-          if (key === 'challenges') setChallenges(value);
+          if (key === 'challenges') setChallenges(ensurePixelArchitectChallenge(value));
           if (key === 'participants') setParticipants(value);
           if (key === 'pricingPlans') setPricingPlans(value);
           if (key === 'landingBlocks') setLandingBlocks(value);

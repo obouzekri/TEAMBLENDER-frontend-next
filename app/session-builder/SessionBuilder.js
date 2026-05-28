@@ -16,6 +16,57 @@ import { ENABLE_CHALLENGES_MOCK_DATA, getApiUrl } from '@/lib/config';
 import styles from './SessionBuilder.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
 
+const PIXEL_ARCHITECT_CATALOG_ENTRY = {
+  id: 'pixel_architect_001',
+  name: 'Pixel Architect',
+  category: 'creativite-innovation',
+  objective: 'collaboration',
+  duration: 15,
+  type: 'Création 3D collaborative',
+  tags: ['Voxel', 'Collaboration', 'Temps limité'],
+  description: 'Construire une structure 3D en cubes sous contraintes de temps, ressources et communication.',
+  engine_key: 'pixel_architect_v1',
+  config: {
+    mode: 'replication',
+    collaborationMode: 'standard',
+    settings: {
+      timeLimitSeconds: 900,
+      maxCubes: 50,
+      maxColors: 3,
+      hintsEnabled: true,
+      chatEnabled: true,
+      timerEnabled: true,
+    },
+    replication: {
+      modelSource: 'template',
+      templateId: 'tour_signal',
+    },
+    creative: {
+      theme: 'Construisez une structure qui symbolise la collaboration.',
+    },
+  },
+};
+
+function ensurePixelArchitectChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'pixel_architect_v1');
+
+  if (existingIndex >= 0) {
+    const current = list[existingIndex] || {};
+    list[existingIndex] = {
+      ...PIXEL_ARCHITECT_CATALOG_ENTRY,
+      ...current,
+      config: {
+        ...PIXEL_ARCHITECT_CATALOG_ENTRY.config,
+        ...(current.config && typeof current.config === 'object' ? current.config : {}),
+      },
+    };
+    return list;
+  }
+
+  return [...list, PIXEL_ARCHITECT_CATALOG_ENTRY];
+}
+
 const SESSION_ID_STORAGE_KEY = 'sessionId';
 const SELECTED_CHALLENGES_STORAGE_KEY = 'selectedChallenges';
 const DRAFT_STORAGE_PREFIX = 'sessionBuilderDraft:';
@@ -616,7 +667,7 @@ export default function SessionBuilder() {
       .then((data) => {
         if (!cancelled) {
           const challenges = Array.isArray(data) ? data : data.challenges || data.data || [];
-          setAllChallenges(challenges);
+          setAllChallenges(ensurePixelArchitectChallenge(challenges));
           removeToast(loadingId);
           setError(null);
         }
@@ -632,7 +683,7 @@ export default function SessionBuilder() {
 
           if (ENABLE_CHALLENGES_MOCK_DATA) {
             // Fallback mock is opt-in only to avoid masking backend issues unexpectedly.
-            setAllChallenges(mockChallenges);
+            setAllChallenges(ensurePixelArchitectChallenge(mockChallenges));
             setError(err.message || 'Catalogue indisponible, fallback local actif.');
             showErrorToast('Mode mock actif: catalogue de développement utilisé.');
             return;
