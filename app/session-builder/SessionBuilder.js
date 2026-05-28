@@ -362,6 +362,17 @@ export default function SessionBuilder() {
     [allChallenges, toIntegerId]
   );
 
+  const resolveChallengeApiIdentifier = useCallback(
+    (challenge) => {
+      const challengeId = resolveChallengeApiId(challenge);
+      if (challengeId !== null) return challengeId;
+
+      const challengeEngineKey = String(challenge?.engine_key || '').trim();
+      return challengeEngineKey || null;
+    },
+    [resolveChallengeApiId]
+  );
+
   const ensureChallengesLinkedToSession = useCallback(
     async (selectedChallengeIds, token, markInProgress = false) => {
       if (!sessionId || !token || !selectedChallengeIds.length) return;
@@ -392,7 +403,7 @@ export default function SessionBuilder() {
     if (!sessionId || !token) return;
 
     const selectedChallengeIds = selectedChallenges
-      .map((item) => resolveChallengeApiId(item))
+      .map((item) => resolveChallengeApiIdentifier(item))
       .filter((id) => id !== null);
 
     if (!selectedChallengeIds.length) {
@@ -401,8 +412,23 @@ export default function SessionBuilder() {
 
     await ensureChallengesLinkedToSession(selectedChallengeIds, token, markInProgress);
 
+    const refreshedSession = await apiRequest(`/sessions/${sessionId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const persistedChallenges = Array.isArray(refreshedSession?.challenges) ? refreshedSession.challenges : [];
+
     for (const challenge of selectedChallenges) {
-      const challengeId = resolveChallengeApiId(challenge);
+      let challengeId = resolveChallengeApiId(challenge);
+      if (!challengeId) {
+        const challengeEngineKey = String(challenge?.engine_key || '').trim();
+        if (challengeEngineKey) {
+          const persisted = persistedChallenges.find((item) => String(item?.engine_key || '').trim() === challengeEngineKey);
+          challengeId = persisted ? toIntegerId(persisted.id) : null;
+        }
+      }
       if (!challengeId) continue;
 
       const config = challenge.config && typeof challenge.config === 'object' ? challenge.config : {};
@@ -424,9 +450,11 @@ export default function SessionBuilder() {
     apiRequest,
     ensureChallengesLinkedToSession,
     getAuthToken,
+    resolveChallengeApiIdentifier,
     resolveChallengeApiId,
     selectedChallenges,
     sessionId,
+    toIntegerId,
   ]);
 
   const restoreSelectedChallenges = useCallback(
