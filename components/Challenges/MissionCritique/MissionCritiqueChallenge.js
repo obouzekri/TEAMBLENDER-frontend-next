@@ -144,7 +144,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
   const timerDurationSeconds = Math.max(1, Number(state?.timer?.duration_seconds || 1));
-  const timerProgress = Math.max(0, Math.min(100, Math.round((timerRemainingSeconds / timerDurationSeconds) * 100)));
   const rulesContent = useMemo(
     () => resolveChallengeRules(state?.config || runtimePayload?.config),
     [runtimePayload?.config, state?.config]
@@ -554,7 +553,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             remainingSeconds={timerRemainingSeconds}
             durationSeconds={timerDurationSeconds}
             status={timerState}
-            progressPercent={timerProgress}
             isFacilitator={isFacilitator}
             ringAction={isFacilitator && hasChallengeStarted ? (
               <button

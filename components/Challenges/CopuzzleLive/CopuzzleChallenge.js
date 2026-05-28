@@ -11,6 +11,12 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import styles from './Copuzzle.module.css';
 
+const COPUZZLE_FALLBACK_DEFAULT_IMAGES = Object.freeze([
+  { id: 'default_1', title: 'Horizon bleu', src: '/copuzzle/default-blue.svg' },
+  { id: 'default_2', title: 'Grille collaboration', src: '/copuzzle/default-grid.svg' },
+  { id: 'default_3', title: 'Sunrise team', src: '/copuzzle/default-sunrise.svg' },
+]);
+
 function clampInt(value, fallback, min, max) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isInteger(parsed)) return fallback;
@@ -20,7 +26,7 @@ function clampInt(value, fallback, min, max) {
 function normalizeRuntimeConfig(config = {}) {
   const rows = clampInt(config?.grid?.rows, 4, 2, 16);
   const cols = clampInt(config?.grid?.cols, 4, 2, 16);
-  const defaultImages = Array.isArray(config?.default_images)
+  const defaultImagesFromConfig = Array.isArray(config?.default_images)
     ? config.default_images
         .map((item) => {
           const src = String(item?.src || item?.url || '').trim();
@@ -34,16 +40,23 @@ function normalizeRuntimeConfig(config = {}) {
         .filter(Boolean)
         .slice(0, 3)
     : [];
+  const defaultImages = defaultImagesFromConfig.length > 0
+    ? defaultImagesFromConfig
+    : COPUZZLE_FALLBACK_DEFAULT_IMAGES;
+  const sourceMode = String(config?.image_source_mode || '').trim().toLowerCase() === 'custom' ? 'custom' : 'defaults';
   const selectedDefaultId = String(config?.default_image_id || '').trim();
   const selectedDefaultImage = defaultImages.find((item) => item.id === selectedDefaultId) || defaultImages[0] || null;
-  const imageSrc = String(
+  const selectedDefaultSrc = String(selectedDefaultImage?.src || '/copuzzle/default-blue.svg').trim();
+  const customSrc = String(
     config?.image?.src
       || (typeof config?.image === 'string' ? config.image : '')
       || config?.image_url
       || config?.imageUrl
-      || selectedDefaultImage?.src
-      || '/copuzzle/default-blue.svg'
-  ).trim() || '/copuzzle/default-blue.svg';
+      || ''
+  ).trim();
+  const imageSrc = sourceMode === 'custom'
+    ? (customSrc || selectedDefaultSrc)
+    : selectedDefaultSrc;
 
   const timerDurationSeconds = clampInt(config?.timer?.duration_seconds, 1200, 30, 7200);
   const timerWarningSeconds = clampInt(config?.timer?.warning_threshold_seconds, 60, 10, 600);
@@ -106,12 +119,16 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
   } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
 
   const displayName = useMemo(() => {
+    const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
+    const lastName = String(runtimePayload?.context?.lastName || runtimePayload?.context?.last_name || context?.lastName || context?.last_name || '').trim();
+    const fullName = `${firstName} ${lastName}`.trim();
+    if (fullName) return fullName;
     const fromPayload = String(runtimePayload?.context?.displayName || '').trim();
     if (fromPayload) return fromPayload;
     const fromContext = String(context?.displayName || '').trim();
     if (fromContext) return fromContext;
     const userId = String(context?.userId || context?.participantId || '').trim();
-    return `participant-${userId || 'unknown'}`;
+    return `Participant ${userId || 'unknown'}`;
   }, [runtimePayload, context]);
 
   const pieces = Array.isArray(state?.puzzle?.pieces) ? state.puzzle.pieces : [];

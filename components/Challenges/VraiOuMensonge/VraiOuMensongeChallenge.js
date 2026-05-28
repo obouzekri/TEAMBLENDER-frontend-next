@@ -106,10 +106,14 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const chatEnabled = Boolean(socket);
 
   const displayName = useMemo(() => {
+    const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
+    const lastName = String(runtimePayload?.context?.lastName || runtimePayload?.context?.last_name || context?.lastName || context?.last_name || '').trim();
+    const fullName = `${firstName} ${lastName}`.trim();
+    if (fullName) return fullName;
     const fromPayload = String(runtimePayload?.context?.displayName || '').trim();
-    if (fromPayload) return fromPayload;
+    if (fromPayload) return humanizeIdentifier(fromPayload) || fromPayload;
     const fromContext = String(context?.displayName || '').trim();
-    if (fromContext) return fromContext;
+    if (fromContext) return humanizeIdentifier(fromContext) || fromContext;
     return 'Participant';
   }, [runtimePayload, context, me]);
 
@@ -296,13 +300,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <span className={styles.headerTitle}>Vrai ou Mensonge</span>
           <span className={styles.headerSeparator}>-</span>
           <span className={styles.headerDescription}>Devinez le vrai du faux et découvrez votre équipe autrement</span>
-        </div>
-        <div className={styles.headerMetaLine}>
-          <span>Live : {phaseLabel(phase)}</span>
-          <span className={styles.headerMetaDot}>·</span>
-          <span>Poseur : {participantName(poserId) || '-'}</span>
-          <span className={styles.headerMetaDot}>·</span>
-          <span>Cycle : {currentCycle}/{totalCycles}</span>
+          <span className={styles.headerSeparator}>-</span>
+          <span className={styles.headerDescription}>Live : {phaseLabel(phase)}</span>
         </div>
       </header>
 

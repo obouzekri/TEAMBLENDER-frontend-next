@@ -242,6 +242,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
               onStart={isFacilitator ? () => emitEvent('timer.start') : null}
+              compactStartButton
             />
           ) : (
             <>
@@ -405,10 +406,9 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
             ) : null}
           </section>
 
-          <section className={styles.sideCard}>
-            <h2>{isFacilitator ? 'Actions facilitateur' : 'Statut challenge'}</h2>
-
-            {isFacilitator ? (
+          {isFacilitator ? (
+            <section className={styles.sideCard}>
+              <h2>Actions facilitateur</h2>
               <div className={styles.actions}>
                 <button
                   className={styles.btnPrimary}
@@ -418,24 +418,14 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                   Débloquer un indice ({remainingHints})
                 </button>
               </div>
-            ) : (
-              <>
-                <p className={styles.meta}>Mon slot: {participantSlot || '-'}</p>
-                <p className={styles.meta}>Mes cases: {mySlots.map((slot) => Number(slot.index) + 1).join(', ') || '-'}</p>
-                <p className={styles.meta}>Temps restant: {Number(timer?.remaining_seconds || 0)}s</p>
-                {error ? <p className={styles.error}>{error}</p> : null}
-              </>
-            )}
-            <p className={styles.helper}>
-              {!isFacilitator
-                ? hasPendingHintRequest
-                  ? 'Votre demande d’indice a été transmise au facilitateur.'
-                  : 'Vous pouvez demander un indice quand le challenge est en cours.'
-                : hintRequests.length > 0
+              <p className={styles.helper}>
+                {hintRequests.length > 0
                   ? `${hintRequests.length} demande(s) d’indice en attente.`
                   : 'Suivez la progression et débloquez un indice quand nécessaire.'}
-            </p>
-          </section>
+              </p>
+              {error ? <p className={styles.error}>{error}</p> : null}
+            </section>
+          ) : null}
         </aside>
       </div>
 

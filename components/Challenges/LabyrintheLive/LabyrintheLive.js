@@ -110,6 +110,20 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
     || timerStatus === 'timeout'
     || (Boolean(laby?.phase) && String(laby.phase).trim() !== 'setup');
 
+  const labyDebrief = useMemo(() => {
+    if (String(laby?.phase || '').trim() !== 'done') return null;
+    const winnerId = String(laby?.winner_participant_id || '').trim();
+    const totalPlayers = participantEntries.length;
+    const alivePlayers = participantEntries.filter(([, participant]) => Number(participant?.lives_remaining || 0) > 0).length;
+    return {
+      winnerId,
+      totalPlayers,
+      alivePlayers,
+      moves: Number(laby?.col?.att || 0),
+      completed: winnerId.length > 0,
+    };
+  }, [laby?.phase, laby?.winner_participant_id, laby?.col?.att, participantEntries]);
+
   const startCellKey = posKey(laby?.maze?.start);
   const endCellKey = posKey(laby?.maze?.end);
 
@@ -160,12 +174,16 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   }, [canMoveSolo, emitEvent]);
 
   const displayName = useMemo(() => {
+    const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
+    const lastName = String(runtimePayload?.context?.lastName || runtimePayload?.context?.last_name || context?.lastName || context?.last_name || '').trim();
+    const fullName = `${firstName} ${lastName}`.trim();
+    if (fullName) return fullName;
     const fromPayload = String(runtimePayload?.context?.displayName || '').trim();
-    if (fromPayload) return fromPayload;
+    if (fromPayload) return toParticipantLabel(fromPayload, fromPayload);
     const fromContext = String(context?.displayName || '').trim();
-    if (fromContext) return fromContext;
+    if (fromContext) return toParticipantLabel(fromContext, fromContext);
     const id = String(participantId || context?.userId || context?.participantId || '').trim();
-    return `participant-${id || 'unknown'}`;
+    return `Participant ${id || 'unknown'}`;
   }, [runtimePayload, context, participantId]);
 
   const {
@@ -225,15 +243,20 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
     if (dc === 1) emitEvent('laby.solo.move', { dir: 'E' });
   }
 
+  function handleCellHover(row, col) {
+    if (!canMoveSolo) return;
+    handleCellClick(row, col);
+  }
+
   const colsClass = styles[`cols${mazeCols}`] || styles.cols8;
 
   return (
     <div className={styles.labyrinthContainer}>
       <section className={styles.hero}>
-        <p className={styles.heroLine}>
-          <span className={styles.headerBadge}>Labyrinthe</span>
-          <span className={styles.headerInline}>Live : Orientez l'équipe vers la sortie en évitant les pièges, avec des décisions rapides et coordonnées.</span>
-        </p>
+        <div className={styles.headerTitleLine}>
+          <span className={styles.headerTitle}>Labyrinthe</span>
+          <span className={styles.headerDescription}>- Orientez l'équipe vers la sortie en évitant les pièges, avec des décisions rapides et coordonnées.</span>
+        </div>
       </section>
 
       <div className={styles.layout}>
@@ -258,6 +281,17 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                 <h2>Vue Facilitateur</h2>
                 <p className={styles.muted}>Mini-grilles de suivi par participant</p>
               </div>
+              {labyDebrief ? (
+                <div className={styles.debriefCard}>
+                  <h3>Debrief final</h3>
+                  <p>
+                    {labyDebrief.completed
+                      ? `Victoire de ${participantNameById[labyDebrief.winnerId] || `Participant ${labyDebrief.winnerId}`}.`
+                      : 'Echec collectif : aucun joueur n a atteint la sortie.'}
+                  </p>
+                  <p>Participants: {labyDebrief.totalPlayers} | Encore en vie: {labyDebrief.alivePlayers}</p>
+                </div>
+              ) : null}
               {error ? <p className={styles.error}>{error}</p> : null}
               {participantEntries.length === 0 ? (
                 <p className={styles.empty}>Aucun participant connecté pour le moment.</p>
@@ -331,9 +365,10 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                       <button
                         key={key}
                         type="button"
-                        className={classes.join(' ')}
+                        className={`${classes.join(' ')}${!canMoveSolo ? ` ${styles.cellDisabled}` : ''}`}
                         onClick={() => handleCellClick(row, col)}
-                        disabled={!canMoveSolo}
+                        onMouseEnter={() => handleCellHover(row, col)}
+                        aria-disabled={!canMoveSolo}
                         aria-label={`Case ${row + 1}-${col + 1}`}
                       >
                         {key === posKey(myParticipantState?.solo?.pos) ? <span className={styles.cellPlayerDot}>●</span> : null}
@@ -344,11 +379,24 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
               </div>
 
               {String(laby?.phase || '').trim() === 'done' ? (
-                <p className={styles.gameStatus}>
-                  {laby?.winner_participant_id
-                    ? `Victoire : ${participantNameById[String(laby.winner_participant_id)] || `Participant ${laby.winner_participant_id}`} a atteint la sortie.`
-                    : 'Défaite : tous les joueurs ont perdu leurs tentatives.'}
-                </p>
+                <>
+                  {labyDebrief ? (
+                    <div className={styles.debriefCard}>
+                      <h3>Debrief final</h3>
+                      <p>
+                        {labyDebrief.completed
+                          ? `Victoire de ${participantNameById[labyDebrief.winnerId] || `Participant ${labyDebrief.winnerId}`}.`
+                          : 'Echec collectif : aucun joueur n a atteint la sortie.'}
+                      </p>
+                      <p>Participants: {labyDebrief.totalPlayers} | Encore en vie: {labyDebrief.alivePlayers}</p>
+                    </div>
+                  ) : null}
+                  <p className={styles.gameStatus}>
+                    {laby?.winner_participant_id
+                      ? `Dernier etat: ${participantNameById[String(laby.winner_participant_id)] || `Participant ${laby.winner_participant_id}`} a atteint la sortie.`
+                      : 'Dernier etat: tous les joueurs ont perdu leurs tentatives.'}
+                  </p>
+                </>
               ) : null}
               {error ? <p className={styles.error}>{error}</p> : null}
             </section>

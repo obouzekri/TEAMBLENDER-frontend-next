@@ -131,6 +131,42 @@
   line-height: 1.4;
 }
 
+.defaultImageGrid {
+  margin-top: 0.6rem;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.defaultImageCard {
+  border: 1px solid var(--line);
+  border-radius: 0.45rem;
+  background: var(--bg-soft, #f9fafb);
+  padding: 0.4rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.defaultImageCardSelected {
+  border-color: var(--accent, #0284c7);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent, #0284c7) 30%, transparent);
+}
+
+.defaultImageThumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 0.35rem;
+  border: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.defaultImageLabel {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  line-height: 1.2;
+}
+
 .phrasePreviewTrigger {
   position: relative;
   display: inline-block;

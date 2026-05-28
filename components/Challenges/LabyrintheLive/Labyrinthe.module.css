@@ -12,43 +12,33 @@
 }
 
 .hero {
-  display: flex;
-  align-items: center;
+  display: grid;
+  align-items: start;
   padding: 16px;
   border-radius: 12px;
-  background: rgba(13, 21, 40, 0.85);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(13, 21, 40, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.18);
 }
 
-.heroLine {
-  margin: 0;
+.headerTitleLine {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.45rem;
   min-width: 0;
-  width: 100%;
-  white-space: nowrap;
+  flex-wrap: wrap;
 }
 
-.headerBadge {
-  border-radius: 999px;
-  border: 1px solid rgba(125, 211, 252, 0.35);
-  background: rgba(14, 165, 233, 0.12);
+.headerTitle {
   color: var(--challenge-text-primary);
-  padding: 5px 10px;
-  font-size: 0.78rem;
+  font-size: 1.04rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  flex: 0 0 auto;
+  letter-spacing: 0.01em;
 }
 
-.headerInline {
+.headerDescription {
   color: var(--challenge-text-secondary);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .layout {
@@ -152,9 +142,9 @@ button.cell {
   cursor: pointer;
 }
 
-button.cell:disabled {
-  cursor: not-allowed;
-  opacity: 0.78;
+.cellDisabled {
+  cursor: default;
+  opacity: 0.82;
 }
 
 .cellRevealed {
@@ -216,6 +206,20 @@ button.cell:disabled {
   font-weight: 700;
 }
 
+.debriefCard {
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  border-radius: 10px;
+  background: rgba(8, 22, 34, 0.72);
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.debriefCard h3,
+.debriefCard p {
+  margin: 0;
+}
+
 @media (max-width: 960px) {
   .layout {
     grid-template-columns: 1fr;
@@ -227,13 +231,7 @@ button.cell:disabled {
 }
 
 @media (max-width: 640px) {
-  .heroLine {
+  .headerTitleLine {
     white-space: normal;
-    flex-wrap: wrap;
-  }
-
-  .headerInline {
-    overflow: visible;
-    text-overflow: clip;
   }
 }

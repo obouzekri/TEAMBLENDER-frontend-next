@@ -467,25 +467,23 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       <option key={option.id} value={option.id}>{option.title}</option>
                     ))}
                   </select>
+                  <div className={styles.defaultImageGrid}>
+                    {copuzzleDefaultImages.map((option) => {
+                      const selected = resolveCopuzzleDefaultImageId(config, copuzzleDefaultImages) === option.id;
+                      return (
+                        <div
+                          key={`preview-${option.id}`}
+                          className={`${styles.defaultImageCard}${selected ? ` ${styles.defaultImageCardSelected}` : ''}`}
+                        >
+                          <img src={option.src} alt={option.title} className={styles.defaultImageThumb} />
+                          <span className={styles.defaultImageLabel}>{option.title}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               ) : (
                 <>
-                  <div className={styles.configField}>
-                    <label htmlFor="imageUrl" className={styles.label}>Image du puzzle (URL)</label>
-                    <input
-                      id="imageUrl"
-                      type="url"
-                      placeholder="URL personnalisee (optionnel)"
-                      value={stringValue('image_url', '')}
-                      onChange={(e) => {
-                        updateValue('image_source_mode', 'custom');
-                        updateValue('image_url', e.target.value);
-                        updateValue('image.src', e.target.value);
-                      }}
-                      className={styles.input}
-                    />
-                  </div>
-
                   <div className={styles.configField}>
                     <label htmlFor="copuzzleUpload" className={styles.label}>Uploader une image (JPG/PNG)</label>
                     <span className={styles.helpText}>
