@@ -70,6 +70,7 @@ function toParticipantLabel(value, fallback = 'Participant') {
 }
 
 export default function LabyrintheLive({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
+  const [optimisticPos, setOptimisticPos] = useState(null);
   const {
     state,
     error,
@@ -141,6 +142,11 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
     () => resolveChallengeRules(state?.config || runtimePayload?.config),
     [runtimePayload?.config, state?.config]
   );
+
+  useEffect(() => {
+    const serverPos = Array.isArray(myParticipantState?.solo?.pos) ? myParticipantState.solo.pos : null;
+    setOptimisticPos(serverPos && serverPos.length >= 2 ? [Number(serverPos[0]), Number(serverPos[1])] : null);
+  }, [myParticipantState?.solo?.pos]);
 
   useEffect(() => {
     if (!isFacilitator) return;
@@ -230,17 +236,23 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
 
   function handleCellClick(row, col) {
     if (!canMoveSolo) return;
-    const currentPos = Array.isArray(myParticipantState?.solo?.pos) ? myParticipantState.solo.pos : null;
+    const currentPos = Array.isArray(optimisticPos)
+      ? optimisticPos
+      : Array.isArray(myParticipantState?.solo?.pos)
+        ? myParticipantState.solo.pos
+        : null;
     if (!currentPos || currentPos.length < 2) return;
 
     const dr = Number(row) - Number(currentPos[0]);
     const dc = Number(col) - Number(currentPos[1]);
     if (Math.abs(dr) + Math.abs(dc) !== 1) return;
 
+    const nextPos = [Number(row), Number(col)];
     if (dr === -1) emitEvent('laby.solo.move', { dir: 'N' });
     if (dr === 1) emitEvent('laby.solo.move', { dir: 'S' });
     if (dc === -1) emitEvent('laby.solo.move', { dir: 'W' });
     if (dc === 1) emitEvent('laby.solo.move', { dir: 'E' });
+    setOptimisticPos(nextPos);
   }
 
   function handleCellHover(row, col) {
@@ -368,6 +380,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                         className={`${classes.join(' ')}${!canMoveSolo ? ` ${styles.cellDisabled}` : ''}`}
                         onClick={() => handleCellClick(row, col)}
                         onMouseEnter={() => handleCellHover(row, col)}
+                        onFocus={() => handleCellHover(row, col)}
                         aria-disabled={!canMoveSolo}
                         aria-label={`Case ${row + 1}-${col + 1}`}
                       >

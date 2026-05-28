@@ -251,6 +251,30 @@ function withVOMDefaults(config = {}) {
   };
 }
 
+function withLabyrintheDefaults(config = {}) {
+  const durationSeconds = clampInt(
+    config?.timer?.duration_seconds ?? config?.timer_seconds,
+    0,
+    0,
+    1800
+  );
+  const timerEnabled = durationSeconds > 0 && config?.timer?.enabled !== false;
+
+  return {
+    ...(config || {}),
+    rows: clampInt(config?.rows, 8, 6, 14),
+    cols: clampInt(config?.cols, 8, 6, 14),
+    complexity: Math.min(0.9, Math.max(0.3, Number(config?.complexity || 0.62))),
+    timer_seconds: durationSeconds,
+    timer: {
+      ...(config?.timer && typeof config.timer === 'object' ? config.timer : {}),
+      enabled: timerEnabled,
+      duration_seconds: durationSeconds,
+      warning_threshold_seconds: durationSeconds > 0 ? Math.min(60, durationSeconds) : 0,
+    },
+  };
+}
+
 export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   const [config, setConfig] = useState(challenge?.config || {});
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -359,6 +383,10 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     }
     if (kind === 'vrai_ou_mensonge') {
       onSave(withVOMDefaults(config));
+      return;
+    }
+    if (kind === 'labyrinthe_live') {
+      onSave(withLabyrintheDefaults(config));
       return;
     }
     onSave(config);
@@ -632,6 +660,26 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   onChange={(e) => updateValue('complexity', Number(e.target.value || 0.62))}
                   className={styles.input}
                 />
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="mazeDurationSeconds" className={styles.label}>Durée du challenge (secondes)</label>
+                <input
+                  id="mazeDurationSeconds"
+                  type="number"
+                  min="0"
+                  max="1800"
+                  value={numberValue('timer.duration_seconds', numberValue('timer_seconds', 0))}
+                  onChange={(e) => {
+                    const duration = Number(e.target.value || 0);
+                    updateValue('timer.duration_seconds', duration);
+                    updateValue('timer.enabled', duration > 0);
+                    updateValue('timer.warning_threshold_seconds', duration > 0 ? Math.min(60, duration) : 0);
+                    updateValue('timer_seconds', duration);
+                  }}
+                  className={styles.input}
+                />
+                <span className={styles.helpText}>0 désactive le chrono. Sinon la durée pilote le timer live du labyrinthe.</span>
               </div>
             </>
           )}
