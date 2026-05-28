@@ -344,6 +344,24 @@ export default function SessionBuilder() {
     return payload;
   }, []);
 
+  const resolveChallengeApiId = useCallback(
+    (challenge) => {
+      const directId = toIntegerId(challenge?.id);
+      if (directId !== null) {
+        return directId;
+      }
+
+      const challengeEngineKey = String(challenge?.engine_key || '').trim();
+      if (!challengeEngineKey) {
+        return null;
+      }
+
+      const catalogMatch = allChallenges.find((item) => String(item?.engine_key || '').trim() === challengeEngineKey);
+      return catalogMatch ? toIntegerId(catalogMatch.id) : null;
+    },
+    [allChallenges, toIntegerId]
+  );
+
   const ensureChallengesLinkedToSession = useCallback(
     async (selectedChallengeIds, token, markInProgress = false) => {
       if (!sessionId || !token || !selectedChallengeIds.length) return;
@@ -374,7 +392,7 @@ export default function SessionBuilder() {
     if (!sessionId || !token) return;
 
     const selectedChallengeIds = selectedChallenges
-      .map((item) => toIntegerId(item.id))
+      .map((item) => resolveChallengeApiId(item))
       .filter((id) => id !== null);
 
     if (!selectedChallengeIds.length) {
@@ -384,7 +402,7 @@ export default function SessionBuilder() {
     await ensureChallengesLinkedToSession(selectedChallengeIds, token, markInProgress);
 
     for (const challenge of selectedChallenges) {
-      const challengeId = toIntegerId(challenge.id);
+      const challengeId = resolveChallengeApiId(challenge);
       if (!challengeId) continue;
 
       const config = challenge.config && typeof challenge.config === 'object' ? challenge.config : {};
@@ -406,9 +424,9 @@ export default function SessionBuilder() {
     apiRequest,
     ensureChallengesLinkedToSession,
     getAuthToken,
+    resolveChallengeApiId,
     selectedChallenges,
     sessionId,
-    toIntegerId,
   ]);
 
   const restoreSelectedChallenges = useCallback(
@@ -417,15 +435,15 @@ export default function SessionBuilder() {
       clearAll();
 
       source.forEach((challenge) => {
-        const challengeId = challenge?.id ?? challenge?.challenge_id;
-        if (!challengeId) return;
-        selectChallenge(challengeId);
+        const resolvedChallengeId = resolveChallengeApiId(challenge);
+        if (resolvedChallengeId === null) return;
+        selectChallenge(resolvedChallengeId);
         if (challenge?.config && typeof challenge.config === 'object') {
-          updateChallengeConfig(challengeId, challenge.config);
+          updateChallengeConfig(resolvedChallengeId, challenge.config);
         }
       });
     },
-    [clearAll, selectChallenge, updateChallengeConfig]
+    [clearAll, resolveChallengeApiId, selectChallenge, updateChallengeConfig]
   );
 
   const loadSessionDetails = useCallback(async (targetSessionId, tokenOverride) => {
