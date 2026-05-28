@@ -3,17 +3,17 @@
 import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect } from 'react';
 
-const COPUZZLE_FALLBACK_DEFAULT_IMAGES = Object.freeze([
-  { id: 'default_1', title: 'Horizon bleu', src: '/copuzzle/default-blue.svg' },
-  { id: 'default_2', title: 'Grille collaboration', src: '/copuzzle/default-grid.svg' },
-  { id: 'default_3', title: 'Sunrise team', src: '/copuzzle/default-sunrise.svg' },
+const COPUZZLE_ADMIN_REFERENCE_IMAGES = Object.freeze([
+  { id: 'default_1', title: 'Image administrateur 1', src: '/copuzzle/default-blue.svg' },
+  { id: 'default_2', title: 'Image administrateur 2', src: '/copuzzle/default-grid.svg' },
+  { id: 'default_3', title: 'Image administrateur 3', src: '/copuzzle/default-sunrise.svg' },
 ]);
 
 const PHRASE_DEFAULT_LIBRARY = Object.freeze([
   {
     id: 'tpl_matchs_championnats',
     label: 'Le talent fait gagner des matchs... (moyen)',
-    phrase: 'Le talent fait gagner des matchs mais le travail d equipe gagne des championnats',
+    phrase: "Le talent fait gagner des matchs mais le travail d'équipe gagne des championnats",
     fauxMots: 3,
     indices: 2,
     timerTotal: 510,
@@ -21,8 +21,8 @@ const PHRASE_DEFAULT_LIBRARY = Object.freeze([
   },
   {
     id: 'tpl_reussite_ensemble',
-    label: 'Se reunir est un debut... (moyen)',
-    phrase: 'Se reunir est un debut rester ensemble est un progres travailler ensemble est la reussite',
+    label: 'Se réunir est un début... (moyen)',
+    phrase: "Se réunir est un début, rester ensemble est un progrès, travailler ensemble est la réussite",
     fauxMots: 3,
     indices: 2,
     timerTotal: 540,
@@ -39,8 +39,8 @@ const PHRASE_DEFAULT_LIBRARY = Object.freeze([
   },
   {
     id: 'tpl_testez_apprenez',
-    label: 'Testez vite, echouez vite... (difficile)',
-    phrase: 'Testez vite echouez vite apprenez plus vite',
+    label: 'Testez vite, échouez vite... (difficile)',
+    phrase: 'Testez vite, échouez vite, apprenez plus vite',
     fauxMots: 4,
     indices: 1,
     timerTotal: 420,
@@ -49,7 +49,7 @@ const PHRASE_DEFAULT_LIBRARY = Object.freeze([
   {
     id: 'tpl_plus_loin',
     label: 'Seul on va plus vite... (facile)',
-    phrase: 'Seul on va plus vite ensemble on va plus loin',
+    phrase: 'Seul on va plus vite, ensemble on va plus loin',
     fauxMots: 2,
     indices: 2,
     timerTotal: 420,
@@ -58,7 +58,7 @@ const PHRASE_DEFAULT_LIBRARY = Object.freeze([
   {
     id: 'tpl_aiguiser_hache',
     label: 'Donnez-moi six heures pour couper... (difficile)',
-    phrase: 'Donnez moi six heures pour couper un arbre j en passerai quatre a aiguiser la hache',
+    phrase: "Donnez-moi six heures pour couper un arbre, j'en passerai quatre à aiguiser la hache",
     fauxMots: 3,
     indices: 1,
     timerTotal: 570,
@@ -66,8 +66,8 @@ const PHRASE_DEFAULT_LIBRARY = Object.freeze([
   },
   {
     id: 'tpl_montagne_pierres',
-    label: 'Celui qui deplace une montagne... (moyen)',
-    phrase: 'Celui qui deplace une montagne commence par deplacer de petites pierres',
+    label: 'Celui qui déplace une montagne... (moyen)',
+    phrase: 'Celui qui déplace une montagne commence par déplacer de petites pierres',
     fauxMots: 2,
     indices: 2,
     timerTotal: 480,
@@ -85,7 +85,7 @@ function normalizeCopuzzleDefaultImages(defaultImagesInput) {
   const source = Array.isArray(defaultImagesInput) ? defaultImagesInput : [];
   const normalized = source
     .map((item, index) => {
-      const src = String(item?.src || item?.url || '').trim();
+      const src = String(item?.src || item?.url || item?.value || '').trim();
       if (!src) return null;
       const id = String(item?.id || `default_${index + 1}`);
       const title = String(item?.title || '').trim() || `Image ${index + 1}`;
@@ -94,7 +94,7 @@ function normalizeCopuzzleDefaultImages(defaultImagesInput) {
     .filter(Boolean)
     .slice(0, 3);
 
-  return normalized.length > 0 ? normalized : COPUZZLE_FALLBACK_DEFAULT_IMAGES;
+  return normalized.length > 0 ? normalized : COPUZZLE_ADMIN_REFERENCE_IMAGES;
 }
 
 function resolveCopuzzleSourceMode(config, defaultImages) {
@@ -122,7 +122,7 @@ function resolveCopuzzleDefaultImageId(config, defaultImages) {
   return String(defaultImages[0]?.id || '');
 }
 
-function withCopuzzleDefaults(config = {}, defaultImages = COPUZZLE_FALLBACK_DEFAULT_IMAGES) {
+function withCopuzzleDefaults(config = {}, defaultImages = COPUZZLE_ADMIN_REFERENCE_IMAGES) {
   const rows = clampInt(config?.grid?.rows, 4, 2, 16);
   const cols = clampInt(config?.grid?.cols, 4, 2, 16);
   const duration = clampInt(config?.timer?.duration_seconds, 1200, 30, 7200);
@@ -340,6 +340,11 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     }
     const n = Number(cursor);
     return Number.isFinite(n) ? n : fallback;
+  }
+
+  function secondsValue(path, fallbackMs) {
+    const valueMs = numberValue(path, fallbackMs);
+    return Math.max(0, Math.round(Number(valueMs || 0) / 1000));
   }
 
   function boolValue(path, fallback) {
@@ -833,43 +838,43 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="vomChoosingMs" className={styles.label}>Temps choix affirmation (ms)</label>
+                <label htmlFor="vomChoosingSeconds" className={styles.label}>Temps choix affirmation (s)</label>
                 <input
-                  id="vomChoosingMs"
+                  id="vomChoosingSeconds"
                   type="number"
-                  min="10000"
-                  max="120000"
-                  value={numberValue('timing.selecting_ms', 30000)}
-                  onChange={(e) => updateValue('timing.selecting_ms', Number(e.target.value || 30000))}
+                  min="10"
+                  max="120"
+                  value={secondsValue('timing.selecting_ms', 30000)}
+                  onChange={(e) => updateValue('timing.selecting_ms', Math.max(0, Number(e.target.value || 0)) * 1000)}
                   className={styles.input}
                 />
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="vomVotingMs" className={styles.label}>Temps réponse participants (ms)</label>
+                <label htmlFor="vomVotingSeconds" className={styles.label}>Temps réponse participants (s)</label>
                 <input
-                  id="vomVotingMs"
+                  id="vomVotingSeconds"
                   type="number"
-                  min="10000"
-                  max="120000"
-                  value={numberValue('timing.voting_ms', 30000)}
-                  onChange={(e) => updateValue('timing.voting_ms', Number(e.target.value || 30000))}
+                  min="10"
+                  max="120"
+                  value={secondsValue('timing.voting_ms', 30000)}
+                  onChange={(e) => updateValue('timing.voting_ms', Math.max(0, Number(e.target.value || 0)) * 1000)}
                   className={styles.input}
                 />
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="vomRoundResultMs" className={styles.label}>Écran transition + classement (ms)</label>
+                <label htmlFor="vomRoundResultSeconds" className={styles.label}>Écran de transition + classement (s)</label>
                 <input
-                  id="vomRoundResultMs"
+                  id="vomRoundResultSeconds"
                   type="number"
                   min="0"
-                  max="60000"
-                  value={numberValue('timing.round_result_ms', 5000)}
-                  onChange={(e) => updateValue('timing.round_result_ms', Number(e.target.value || 5000))}
+                  max="60"
+                  value={secondsValue('timing.round_result_ms', 5000)}
+                  onChange={(e) => updateValue('timing.round_result_ms', Math.max(0, Number(e.target.value || 0)) * 1000)}
                   className={styles.input}
                 />
-                <span className={styles.helpText}>Recommandé: 5000 à 10000 ms (5 à 10 secondes).</span>
+                <span className={styles.helpText}>Recommandé: 5 à 10 secondes.</span>
               </div>
             </>
           )}

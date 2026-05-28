@@ -300,8 +300,12 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <span className={styles.headerTitle}>Vrai ou Mensonge</span>
           <span className={styles.headerSeparator}>-</span>
           <span className={styles.headerDescription}>Devinez le vrai du faux et découvrez votre équipe autrement</span>
-          <span className={styles.headerSeparator}>-</span>
-          <span className={styles.headerDescription}>Live : {phaseLabel(phase)}</span>
+          {phase !== 'waiting_start' ? (
+            <>
+              <span className={styles.headerSeparator}>-</span>
+              <span className={styles.headerDescription}>Live : {phaseLabel(phase)}</span>
+            </>
+          ) : null}
         </div>
       </header>
 
@@ -385,7 +389,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <section className={styles.card}>
             <h2>Votes ouverts</h2>
             <p><strong>{participantName(poserId)}</strong> affirme : "{currentTurn?.statement_text || '-'}"</p>
-            {!isPoser ? (
+            {!isFacilitator && !isPoser ? (
               <div className={styles.voteActions}>
                 <button
                   type="button"
@@ -403,6 +407,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 </button>
                 <p className={styles.helper}>Votre vote actuel: {myVote || 'absent'}</p>
               </div>
+            ) : isFacilitator ? (
+              <p className={styles.helper}>Le facilitateur observe le tour sans voter.</p>
             ) : (
               <p className={styles.helper}>Vous êtes poseur, vous ne votez pas.</p>
             )}

@@ -119,10 +119,10 @@ const LANDING_ALLOWED_BLOCK_KEYS = [
 
 const LANDING_ALLOWED_BLOCK_KEY_SET = new Set(LANDING_ALLOWED_BLOCK_KEYS);
 const PLATFORM_ADMIN_EMAIL = 'admin@admin.com';
-const COPUZZLE_FALLBACK_DEFAULT_IMAGES = [
-  { id: 'default_1', title: 'Horizon bleu', src: '/copuzzle/default-blue.svg' },
-  { id: 'default_2', title: 'Grille collaboration', src: '/copuzzle/default-grid.svg' },
-  { id: 'default_3', title: 'Sunrise team', src: '/copuzzle/default-sunrise.svg' },
+const COPUZZLE_ADMIN_REFERENCE_IMAGES = [
+  { id: 'default_1', title: 'Image administrateur 1', src: '/copuzzle/default-blue.svg' },
+  { id: 'default_2', title: 'Image administrateur 2', src: '/copuzzle/default-grid.svg' },
+  { id: 'default_3', title: 'Image administrateur 3', src: '/copuzzle/default-sunrise.svg' },
 ];
 
 const LANDING_ALLOWED_BLOCK_KEY_HINT = LANDING_ALLOWED_BLOCK_KEYS.join(', ');
@@ -257,7 +257,7 @@ function ensureCopuzzleConfig(engineConfig) {
   const cols = clampInt(current?.grid?.cols, 4, 2, 16);
   const normalizedDefaultImages = (Array.isArray(current?.default_images) ? current.default_images : [])
     .map((item, index) => {
-      const src = String(item?.src || item?.url || '').trim();
+      const src = String(item?.src || item?.url || item?.value || '').trim();
       if (!src) return null;
       return {
         id: String(item?.id || `default_${index + 1}`),
@@ -270,7 +270,7 @@ function ensureCopuzzleConfig(engineConfig) {
 
   const defaultImages = normalizedDefaultImages.length > 0
     ? normalizedDefaultImages
-    : COPUZZLE_FALLBACK_DEFAULT_IMAGES;
+    : COPUZZLE_ADMIN_REFERENCE_IMAGES;
 
   const selectedDefaultImageId = String(current?.default_image_id || defaultImages[0]?.id || '').trim();
   const selectedDefaultImage = defaultImages.find((item) => item.id === selectedDefaultImageId) || defaultImages[0] || null;
@@ -319,7 +319,7 @@ function ensureCopuzzleConfig(engineConfig) {
 
 function getCopuzzleDefaultImages(engineConfig) {
   const config = ensureCopuzzleConfig(engineConfig);
-  return Array.isArray(config.default_images) ? config.default_images : COPUZZLE_FALLBACK_DEFAULT_IMAGES;
+  return Array.isArray(config.default_images) ? config.default_images : COPUZZLE_ADMIN_REFERENCE_IMAGES;
 }
 
 function getCopuzzleImageSrc(engineConfig) {
@@ -1820,7 +1820,7 @@ export default function AdminClient() {
           },
         };
       });
-      showNotice('Image par défaut Copuzzle uploadée (pensez à enregistrer le challenge).');
+      showNotice('Image de référence Copuzzle uploadée (pensez à enregistrer le challenge).');
     } catch (err) {
       setChallengeImageUploadError(err.message || 'Upload image impossible.');
     } finally {
@@ -3369,16 +3369,16 @@ export default function AdminClient() {
                         ) : null}
                         {(editingChallenge.engine_key || '').toLowerCase() === 'copuzzle_live_v1' ? (
                           <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                            <p style={{ margin: 0, fontWeight: 600 }}>Configuration Copuzzle (3 images par défaut admin)</p>
+                            <p style={{ margin: 0, fontWeight: 600 }}>Configuration Copuzzle (3 images de référence administrateur)</p>
                             <p className="session-meta" style={{ margin: 0 }}>
-                              Définissez jusqu'à 3 images standards avec leur titre. Elles seront proposées au facilitateur dans le Session Builder.
+                              Définissez jusqu'à 3 images de référence avec leur titre. Elles seront proposées au facilitateur dans le Session Builder.
                             </p>
 
                             {getCopuzzleDefaultImages(editingChallenge.engine_config).map((imageItem, imageIndex) => {
                               const slotIndex = imageIndex + 1;
                               return (
                                 <div key={imageItem.id || `copuzzle-default-${slotIndex}`} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '10px', display: 'grid', gap: '8px' }}>
-                                  <p style={{ margin: 0, fontWeight: 600 }}>Image par défaut {slotIndex}</p>
+                                  <p style={{ margin: 0, fontWeight: 600 }}>Image de référence {slotIndex}</p>
 
                                   <label>Titre
                                     <input

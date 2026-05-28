@@ -11,10 +11,10 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import styles from './Copuzzle.module.css';
 
-const COPUZZLE_FALLBACK_DEFAULT_IMAGES = Object.freeze([
-  { id: 'default_1', title: 'Horizon bleu', src: '/copuzzle/default-blue.svg' },
-  { id: 'default_2', title: 'Grille collaboration', src: '/copuzzle/default-grid.svg' },
-  { id: 'default_3', title: 'Sunrise team', src: '/copuzzle/default-sunrise.svg' },
+const COPUZZLE_ADMIN_REFERENCE_IMAGES = Object.freeze([
+  { id: 'default_1', title: 'Image administrateur 1', src: '/copuzzle/default-blue.svg' },
+  { id: 'default_2', title: 'Image administrateur 2', src: '/copuzzle/default-grid.svg' },
+  { id: 'default_3', title: 'Image administrateur 3', src: '/copuzzle/default-sunrise.svg' },
 ]);
 
 function clampInt(value, fallback, min, max) {
@@ -29,7 +29,7 @@ function normalizeRuntimeConfig(config = {}) {
   const defaultImagesFromConfig = Array.isArray(config?.default_images)
     ? config.default_images
         .map((item) => {
-          const src = String(item?.src || item?.url || '').trim();
+          const src = String(item?.src || item?.url || item?.value || '').trim();
           if (!src) return null;
           return {
             id: String(item?.id || ''),
@@ -42,7 +42,7 @@ function normalizeRuntimeConfig(config = {}) {
     : [];
   const defaultImages = defaultImagesFromConfig.length > 0
     ? defaultImagesFromConfig
-    : COPUZZLE_FALLBACK_DEFAULT_IMAGES;
+    : COPUZZLE_ADMIN_REFERENCE_IMAGES;
   const sourceMode = String(config?.image_source_mode || '').trim().toLowerCase() === 'custom' ? 'custom' : 'defaults';
   const selectedDefaultId = String(config?.default_image_id || '').trim();
   const selectedDefaultImage = defaultImages.find((item) => item.id === selectedDefaultId) || defaultImages[0] || null;

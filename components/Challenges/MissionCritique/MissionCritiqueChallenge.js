@@ -99,6 +99,11 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   }, [runtimePayload, context]);
 
   function resolveParticipantLabel(item) {
+    const firstName = String(item?.first_name || item?.firstName || '').trim();
+    const lastName = String(item?.last_name || item?.lastName || '').trim();
+    const fullName = `${firstName} ${lastName}`.trim();
+    if (fullName) return humanizeIdentifier(fullName) || fullName;
+
     const fromPayload = String(item?.display_name || item?.participant_name || item?.name || '').trim();
     if (fromPayload) return humanizeIdentifier(fromPayload) || fromPayload;
     if (Number.isFinite(Number(item?.slot))) return `Participant ${item.slot}`;
