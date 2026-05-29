@@ -135,6 +135,8 @@
 
 .cell {
   border: 1px solid rgba(148, 163, 184, 0.25);
+  border-style: solid;
+  border-color: rgba(12, 18, 28, 0.95);
   border-radius: 6px;
   background: rgba(15, 23, 42, 0.55);
   color: var(--challenge-text-secondary);
@@ -145,6 +147,7 @@
   min-width: 0;
   min-height: 0;
   padding: 0;
+  position: relative;
 }
 
 button.cell {
@@ -181,9 +184,31 @@ button.cell {
 }
 
 .cellPlayerDot {
+  position: relative;
+  z-index: 3;
   color: var(--challenge-text-primary);
-  font-size: 0.62rem;
+  font-size: 0.78rem;
   line-height: 1;
+}
+
+.cellStartBadge,
+.cellExitBadge {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  z-index: 2;
+}
+
+.cellStartBadge {
+  color: #22c55e;
+}
+
+.cellExitBadge {
+  color: #f59e0b;
 }
 
 .miniGridList {

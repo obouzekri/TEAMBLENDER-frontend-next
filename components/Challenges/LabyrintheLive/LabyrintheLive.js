@@ -45,6 +45,51 @@ function normalizeVisited(rawVisited) {
   return set;
 }
 
+function getMazeCell(maze, row, col) {
+  if (!maze || !Array.isArray(maze.cells)) return null;
+  if (!Array.isArray(maze.cells[row])) return null;
+  const cell = maze.cells[row][col];
+  return cell && typeof cell === 'object' ? cell : null;
+}
+
+function buildMazeCellStyle(maze, row, col) {
+  const cell = getMazeCell(maze, row, col);
+  if (!cell) {
+    return {
+      borderTopWidth: '6px',
+      borderRightWidth: '6px',
+      borderBottomWidth: '6px',
+      borderLeftWidth: '6px',
+    };
+  }
+
+  return {
+    borderTopWidth: cell.n ? '2px' : '6px',
+    borderRightWidth: cell.e ? '2px' : '6px',
+    borderBottomWidth: cell.s ? '2px' : '6px',
+    borderLeftWidth: cell.w ? '2px' : '6px',
+  };
+}
+
+function directionFromDelta(dr, dc) {
+  if (dr === -1 && dc === 0) return 'N';
+  if (dr === 1 && dc === 0) return 'S';
+  if (dr === 0 && dc === -1) return 'W';
+  if (dr === 0 && dc === 1) return 'E';
+  return '';
+}
+
+function canMoveFromCell(maze, fromPos, dir) {
+  const row = Number(Array.isArray(fromPos) ? fromPos[0] : Number.NaN);
+  const col = Number(Array.isArray(fromPos) ? fromPos[1] : Number.NaN);
+  if (!Number.isInteger(row) || !Number.isInteger(col)) return false;
+  const cell = getMazeCell(maze, row, col);
+  if (!cell) return false;
+  const key = String(dir || '').trim().toLowerCase();
+  if (!['n', 'e', 's', 'w'].includes(key)) return false;
+  return Boolean(cell[key]);
+}
+
 function toParticipantLabel(value, fallback = 'Participant') {
   const raw = String(value || '').trim();
   if (!raw) return fallback;
@@ -131,6 +176,8 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
 
   const startCellKey = posKey(laby?.maze?.start);
   const endCellKey = posKey(laby?.maze?.end);
+  const maze = laby?.maze || null;
+  const playerPosKey = posKey(myParticipantState?.solo?.pos);
 
   const myVisited = useMemo(() => {
     const visitedFromState = normalizeVisited(myParticipantState?.solo?.visited || myParticipantState?.solo?.visited_cells || myParticipantState?.visited_cells);
@@ -301,11 +348,15 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
     const dc = Number(col) - Number(currentPos[1]);
     if (Math.abs(dr) + Math.abs(dc) !== 1) return;
 
+    const dir = directionFromDelta(dr, dc);
+    if (!dir || !canMoveFromCell(maze, currentPos, dir)) {
+      setMoveFeedback('Mur detecte dans cette direction.');
+      setMoveFeedbackTone('warning');
+      return;
+    }
+
     const nextPos = [Number(row), Number(col)];
-    if (dr === -1) emitEvent('laby.solo.move', { dir: 'N' });
-    if (dr === 1) emitEvent('laby.solo.move', { dir: 'S' });
-    if (dc === -1) emitEvent('laby.solo.move', { dir: 'W' });
-    if (dc === 1) emitEvent('laby.solo.move', { dir: 'E' });
+    emitEvent('laby.solo.move', { dir });
     setOptimisticPos(nextPos);
   }
 
@@ -391,7 +442,14 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                               if (Boolean(revealedTraps[key])) classes.push(styles.cellTrap);
                               if (key === playerPosKey) classes.push(styles.cellPlayer);
                               return (
-                                <div key={`${id}-${key}`} className={classes.join(' ')} aria-label={`Case ${row + 1}-${col + 1}`}>
+                                <div
+                                  key={`${id}-${key}`}
+                                  className={classes.join(' ')}
+                                  style={buildMazeCellStyle(maze, row, col)}
+                                  aria-label={`Case ${row + 1}-${col + 1}`}
+                                >
+                                  {key === startCellKey ? <span className={styles.cellStartBadge}>D</span> : null}
+                                  {key === endCellKey ? <span className={styles.cellExitBadge}>S</span> : null}
                                   {key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
                                 </div>
                               );
@@ -431,18 +489,21 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                     if (isVisited) classes.push(styles.cellVisited);
                     if (key === startCellKey) classes.push(styles.cellStart);
                     if (key === endCellKey) classes.push(styles.cellExit);
-                    if (key === posKey(myParticipantState?.solo?.pos)) classes.push(styles.cellPlayer);
+                    if (key === playerPosKey) classes.push(styles.cellPlayer);
 
                     return (
                       <button
                         key={key}
                         type="button"
                         className={`${classes.join(' ')}${!canMoveSolo ? ` ${styles.cellDisabled}` : ''}`}
+                        style={buildMazeCellStyle(maze, row, col)}
                         onClick={() => handleCellClick(row, col)}
                         aria-disabled={!canMoveSolo}
                         aria-label={`Case ${row + 1}-${col + 1}`}
                       >
-                        {key === posKey(myParticipantState?.solo?.pos) ? <span className={styles.cellPlayerDot}>●</span> : null}
+                        {key === startCellKey ? <span className={styles.cellStartBadge}>D</span> : null}
+                        {key === endCellKey ? <span className={styles.cellExitBadge}>S</span> : null}
+                        {key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
                       </button>
                     );
                   })
