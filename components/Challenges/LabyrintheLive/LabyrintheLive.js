@@ -89,7 +89,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
 
   const labyPhase = String(laby?.phase || '').trim();
   const canMoveSolo = !isFacilitator
-    && labyPhase === 'solo'
+    && labyPhase !== 'done'
     && Boolean(laby?.maze)
     && Number(laby?.parts?.[String(participantId)]?.lives_remaining || 0) > 0;
 
@@ -463,7 +463,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                   <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveSolo} aria-label="Aller à droite">→</button>
                 </div>
                 <p className={`${styles.moveFeedback} ${moveFeedbackTone === 'success' ? styles.feedbackSuccess : ''}${moveFeedbackTone === 'danger' ? ` ${styles.feedbackDanger}` : ''}${moveFeedbackTone === 'warning' ? ` ${styles.feedbackWarning}` : ''}`}>
-                  {moveFeedback || (canMoveSolo ? 'Trouvez la sortie en evitant les pieges.' : (labyPhase === 'setup' ? 'En attente du lancement de la manche solo...' : 'Deplacement indisponible pour le moment.'))}
+                  {moveFeedback || (canMoveSolo ? 'Trouvez la sortie en evitant les pieges.' : (labyPhase === 'setup' ? 'En attente du lancement de la manche...' : 'Deplacement indisponible pour le moment.'))}
                 </p>
               </div>
 
