@@ -195,6 +195,20 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     return 1;
   }, [phase, vom?.phase_deadline_ms, vom?.phase_started_at_ms, vom?.timing]);
 
+  const remainingSecondsForCard = useMemo(() => {
+    const remaining = formatSeconds(remainingMs);
+    if (remaining > 0) {
+      return remaining;
+    }
+
+    const activePhase = ['selecting_statement', 'voting_open', 'reveal_pending', 'round_result'].includes(phase);
+    if (activePhase && phaseDurationSeconds > 0) {
+      return phaseDurationSeconds;
+    }
+
+    return remaining;
+  }, [phase, phaseDurationSeconds, remainingMs]);
+
   const myRoundVote = useMemo(() => {
     const votes = Array.isArray(currentTurn?.result?.votes) ? currentTurn.result.votes : [];
     return votes.find((item) => String(item?.participant_id || '') === me) || null;
@@ -542,7 +556,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
           <ChallengeTimerCard
             title="Chrono"
-            remainingSeconds={formatSeconds(remainingMs)}
+            remainingSeconds={remainingSecondsForCard}
             durationSeconds={Math.max(1, phaseDurationSeconds)}
             status={phase === 'voting_open' || phase === 'selecting_statement' || phase === 'reveal_pending' || phase === 'round_result' ? 'running' : 'idle'}
             isFacilitator={isFacilitator}

@@ -154,6 +154,41 @@ function pickDisplayName(user) {
   return full || String(user.name || user.email || 'Manager');
 }
 
+function mergeChallengeConfig(baseConfig, overrideConfig) {
+  const base = baseConfig && typeof baseConfig === 'object' ? baseConfig : {};
+  const override = overrideConfig && typeof overrideConfig === 'object' ? overrideConfig : {};
+
+  return {
+    ...base,
+    ...override,
+    image: { ...(base.image || {}), ...(override.image || {}) },
+    timer: { ...(base.timer || {}), ...(override.timer || {}) },
+    participants: { ...(base.participants || {}), ...(override.participants || {}) },
+    grid: { ...(base.grid || {}), ...(override.grid || {}) },
+    chat: { ...(base.chat || {}), ...(override.chat || {}) },
+    settings: { ...(base.settings || {}), ...(override.settings || {}) },
+    replication: { ...(base.replication || {}), ...(override.replication || {}) },
+    creative: { ...(base.creative || {}), ...(override.creative || {}) },
+    advancedRoles: { ...(base.advancedRoles || {}), ...(override.advancedRoles || {}) },
+  };
+}
+
+function extractChallengeConfig(challenge) {
+  const baseConfig = challenge?.engine_config && typeof challenge.engine_config === 'object'
+    ? challenge.engine_config
+    : {};
+
+  const directConfig = challenge?.config && typeof challenge.config === 'object'
+    ? challenge.config
+    : {};
+
+  const junctionConfig = challenge?.SessionChallenge?.config && typeof challenge.SessionChallenge.config === 'object'
+    ? challenge.SessionChallenge.config
+    : {};
+
+  return mergeChallengeConfig(baseConfig, mergeChallengeConfig(directConfig, junctionConfig));
+}
+
 export default function SessionBuilder() {
   const guard = useManagerGuard();
   const { toasts, removeToast, success: showSuccessToast, error: showErrorToast, loading: showLoadingToast } = useToast();
@@ -466,13 +501,94 @@ export default function SessionBuilder() {
         const resolvedChallengeId = resolveChallengeApiId(challenge);
         if (resolvedChallengeId === null) return;
         selectChallenge(resolvedChallengeId);
-        if (challenge?.config && typeof challenge.config === 'object') {
-          updateChallengeConfig(resolvedChallengeId, challenge.config);
+        const mergedConfig = extractChallengeConfig(challenge);
+        if (Object.keys(mergedConfig).length > 0) {
+          updateChallengeConfig(resolvedChallengeId, mergedConfig);
         }
       });
     },
     [clearAll, resolveChallengeApiId, selectChallenge, updateChallengeConfig]
   );
+
+  const handleChallengeConfigSave = useCallback(async (challengeId, config) => {
+    updateChallengeConfig(challengeId, config);
+
+    if (!sessionId) {
+      return;
+    }
+
+    const token = getAuthToken();
+    if (!token) {
+      return;
+    }
+
+    const mergedSelectedChallenges = selectedChallenges.map((item) => (
+      item.id === challengeId ? { ...item, config } : item
+    ));
+
+    const selectedChallengeIds = mergedSelectedChallenges
+      .map((item) => resolveChallengeApiIdentifier(item))
+      .filter((id) => id !== null);
+
+    if (!selectedChallengeIds.length) {
+      return;
+    }
+
+    try {
+      await ensureChallengesLinkedToSession(selectedChallengeIds, token, false);
+
+      let challengeApiId = resolveChallengeApiId(
+        mergedSelectedChallenges.find((item) => item.id === challengeId) || null
+      );
+
+      if (challengeApiId === null) {
+        const refreshedSession = await apiRequest(`/sessions/${sessionId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        const challengeEngineKey = String(
+          mergedSelectedChallenges.find((item) => item.id === challengeId)?.engine_key || ''
+        ).trim();
+        const persistedByEngine = Array.isArray(refreshedSession?.challenges)
+          ? refreshedSession.challenges.find((item) => String(item?.engine_key || '').trim() === challengeEngineKey)
+          : null;
+        challengeApiId = persistedByEngine ? toIntegerId(persistedByEngine.id) : null;
+      }
+
+      if (challengeApiId !== null) {
+        await apiRequest(`/sessions/${sessionId}/challenges/${challengeApiId}/config`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ config }),
+        });
+      }
+
+      setSelectedChallengesSnapshot(JSON.stringify(mergedSelectedChallenges));
+      setLastBackendSaveAt(new Date().toISOString());
+      showSuccessToast('Configuration challenge appliquée immédiatement.');
+    } catch (err) {
+      if (redirectToUpgrade(err)) return;
+      showErrorToast(err.message || 'Configuration enregistrée localement, mais synchronisation serveur impossible.');
+    }
+  }, [
+    apiRequest,
+    ensureChallengesLinkedToSession,
+    getAuthToken,
+    redirectToUpgrade,
+    resolveChallengeApiIdentifier,
+    resolveChallengeApiId,
+    selectedChallenges,
+    sessionId,
+    showErrorToast,
+    showSuccessToast,
+    toIntegerId,
+    updateChallengeConfig,
+  ]);
 
   const loadSessionDetails = useCallback(async (targetSessionId, tokenOverride) => {
     const targetId = String(targetSessionId || '').trim();
@@ -1125,7 +1241,7 @@ export default function SessionBuilder() {
       {configuring && currentConfiguringChallenge && (
         <ChallengeConfigModal
           challenge={currentConfiguringChallenge}
-          onSave={(config) => updateChallengeConfig(configuring, config)}
+          onSave={(config) => handleChallengeConfigSave(configuring, config)}
           onClose={() => setConfiguring(null)}
         />
       )}

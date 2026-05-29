@@ -238,6 +238,7 @@ export default function SessionLiveClient() {
   const activeChallenge = sessionState?.current_challenge
     || (activeChallengeId ? challenges.find((c) => c.id === activeChallengeId) || null : challenges[0] || null);
   const activeEngineKey = activeChallenge?.engine_key || '';
+  const liveConfigVersion = String(sessionState?.updatedAt || session?.updatedAt || '');
   const assignedParticipantCount = Array.isArray(session?.assigned_participants) ? session.assigned_participants.length : 0;
   const participantCount = Array.isArray(session?.participants) ? session.participants.length : 0;
   const memberCount = assignedParticipantCount || participantCount || (Array.isArray(session?.members) ? session.members.length : 0);
@@ -351,7 +352,7 @@ export default function SessionLiveClient() {
         {activeEngineKey ? (
           <section className="feature-card session-live-challenge-frame surface-flush">
             <ChallengeWrapper
-              key={`${sessionId}:${activeChallengeId || 'none'}:${activeEngineKey}`}
+              key={`${sessionId}:${activeChallengeId || 'none'}:${activeEngineKey}:${liveConfigVersion}`}
               sessionId={sessionId}
               engineKey={activeEngineKey}
               noNav

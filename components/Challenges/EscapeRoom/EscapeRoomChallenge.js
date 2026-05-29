@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getApiUrl } from '@/lib/config';
+import { getApiUrl, normalizeBackendAssetUrl } from '@/lib/config';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
@@ -369,6 +369,7 @@ export default function EscapeRoomChallenge({
   const hasCurrentParticipantResponded = currentParticipantId != null && respondedSet.has(currentParticipantId);
 
   const timerSeconds = Number(state?.timer?.duration_seconds || 0);
+  const enigmeImageSrc = normalizeBackendAssetUrl(String(currentEnigme?.image?.src || '').trim());
   const challengeStatus = String(state?.status || '').trim();
   const hasChallengeStarted = challengeStatus !== 'waiting_for_start';
   const rulesContent = useMemo(
@@ -520,8 +521,15 @@ export default function EscapeRoomChallenge({
           ) : (
             <>
               <h2>{currentEnigme?.label || 'Énigme en attente'}</h2>
-              {currentEnigme?.image?.src ? (
-                <img className={styles.image} src={currentEnigme.image.src} alt={currentEnigme.label || 'Enigme'} />
+              {enigmeImageSrc ? (
+                <img
+                  className={styles.image}
+                  src={enigmeImageSrc}
+                  alt={currentEnigme.label || 'Enigme'}
+                  onError={(event) => {
+                    event.currentTarget.style.display = 'none';
+                  }}
+                />
               ) : null}
               <p className={styles.description}>{currentEnigme?.description || 'Aucune description.'}</p>
 
@@ -682,12 +690,6 @@ export default function EscapeRoomChallenge({
 
           {feedback ? <p className={styles.feedback}>{feedback}</p> : null}
 
-          {isFacilitator ? (
-            <details className={styles.debugWrap}>
-              <summary>Runtime debug</summary>
-              <pre className={styles.debug}>{JSON.stringify(state, null, 2)}</pre>
-            </details>
-          ) : null}
         </aside>
       </section>
 
