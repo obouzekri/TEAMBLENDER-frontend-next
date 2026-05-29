@@ -16,7 +16,9 @@ function normalizeBackendOrigin(rawValue) {
 }
 
 const stableBackendOrigin = normalizeBackendOrigin(
-  process.env.BACKEND_ORIGIN || process.env.NEXT_BACKEND_ORIGIN
+  process.env.BACKEND_ORIGIN
+    || process.env.NEXT_BACKEND_ORIGIN
+    || process.env.NEXT_PUBLIC_BACKEND_ORIGIN
 );
 
 const isVercelProductionBuild =
@@ -24,7 +26,7 @@ const isVercelProductionBuild =
 
 if (!stableBackendOrigin && isVercelProductionBuild) {
   throw new Error(
-    'Missing BACKEND_ORIGIN (or NEXT_BACKEND_ORIGIN). Set it to your production backend origin, for example https://your-backend.up.railway.app'
+    'Missing BACKEND_ORIGIN (or NEXT_BACKEND_ORIGIN / NEXT_PUBLIC_BACKEND_ORIGIN). Set it to your production backend origin, for example https://your-backend.up.railway.app'
   );
 }
 
@@ -39,6 +41,10 @@ const nextConfig = {
       {
         source: '/api/:path*',
         destination: `${rewriteBackendOrigin}/api/:path*`,
+      },
+      {
+        source: '/uploads/:path*',
+        destination: `${rewriteBackendOrigin}/uploads/:path*`,
       },
       {
         source: '/socket.io/:path*',

@@ -4,6 +4,20 @@
   "installCommand": "npm install",
   "outputDirectory": ".next",
   "regions": ["cdg1"],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://teamblender-backend-qxe5-production.up.railway.app/api/$1"
+    },
+    {
+      "source": "/uploads/(.*)",
+      "destination": "https://teamblender-backend-qxe5-production.up.railway.app/uploads/$1"
+    },
+    {
+      "source": "/socket.io/(.*)",
+      "destination": "https://teamblender-backend-qxe5-production.up.railway.app/socket.io/$1"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
