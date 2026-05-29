@@ -57,7 +57,11 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     return a.role === b.role
       && String(a.userId || '') === String(b.userId || '')
       && Number(a.sessionId || 0) === Number(b.sessionId || 0)
-      && Number(a.challengeId || 0) === Number(b.challengeId || 0);
+      && Number(a.challengeId || 0) === Number(b.challengeId || 0)
+      && String(a.first_name || a.firstName || '').trim() === String(b.first_name || b.firstName || '').trim()
+      && String(a.last_name || a.lastName || '').trim() === String(b.last_name || b.lastName || '').trim()
+      && String(a.displayName || '').trim() === String(b.displayName || '').trim()
+      && String(a.email || '').trim() === String(b.email || '').trim();
   }
 
   // Load session runtime configuration
@@ -134,11 +138,36 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
             || payload.context?.participantId
             || null;
 
+          const firstName = String(
+            payload.context?.first_name
+            || payload.context?.firstName
+            || currentUser.first_name
+            || currentUser.firstName
+            || ''
+          ).trim();
+          const lastName = String(
+            payload.context?.last_name
+            || payload.context?.lastName
+            || currentUser.last_name
+            || currentUser.lastName
+            || ''
+          ).trim();
+          const fullName = `${firstName} ${lastName}`.trim();
+          const email = String(payload.context?.email || currentUser.email || '').trim();
+          const displayName = String(payload.context?.displayName || payload.context?.name || fullName || email || '').trim();
+
           const nextContext = {
             role: payload.context?.role || 'participant',
             userId: resolvedUserId,
             sessionId: Number(sessionId),
             challengeId: resolvedChallengeId,
+            first_name: firstName,
+            last_name: lastName,
+            firstName,
+            lastName,
+            email,
+            name: displayName,
+            displayName,
           };
           setContext((prev) => (shallowEqualContext(prev, nextContext) ? prev : nextContext));
           removeToast(loadingId);
@@ -198,11 +227,36 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
           });
           setRuntimePayload(nextRuntimePayload);
           setContext((prev) => {
+            const firstName = String(
+              payload.context?.first_name
+              || payload.context?.firstName
+              || prev?.first_name
+              || prev?.firstName
+              || ''
+            ).trim();
+            const lastName = String(
+              payload.context?.last_name
+              || payload.context?.lastName
+              || prev?.last_name
+              || prev?.lastName
+              || ''
+            ).trim();
+            const fullName = `${firstName} ${lastName}`.trim();
+            const email = String(payload.context?.email || prev?.email || '').trim();
+            const displayName = String(payload.context?.displayName || payload.context?.name || fullName || email || '').trim();
+
             const nextContext = {
               role: payload.context?.role || prev?.role || 'participant',
               userId: prev?.userId || payload.context?.participantId || null,
               sessionId: Number(sessionId),
               challengeId: nextChallengeId,
+              first_name: firstName,
+              last_name: lastName,
+              firstName,
+              lastName,
+              email,
+              name: displayName,
+              displayName,
             };
             return shallowEqualContext(prev, nextContext) ? prev : nextContext;
           });

@@ -114,6 +114,15 @@
   gap: 4px;
 }
 
+.gameGrid {
+  outline: none;
+}
+
+.gameGrid:focus {
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.55);
+  border-radius: 8px;
+}
+
 .cols6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .cols7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .cols8 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
@@ -198,6 +207,69 @@ button.cell {
 
 .miniGrid .cell {
   border-radius: 3px;
+}
+
+.controlDock {
+  margin-top: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 10px;
+  background: rgba(7, 20, 31, 0.76);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.controlHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.controlHead strong {
+  color: var(--challenge-text-primary);
+  font-size: 0.8rem;
+}
+
+.directionPad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  max-width: 220px;
+}
+
+.dirBtn {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.8);
+  color: #e2e8f0;
+  font-weight: 700;
+  min-height: 34px;
+  cursor: pointer;
+}
+
+.dirBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.moveFeedback {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.84rem;
+}
+
+.feedbackSuccess {
+  color: #86efac;
+}
+
+.feedbackDanger {
+  color: #fca5a5;
+}
+
+.feedbackWarning {
+  color: #fde68a;
 }
 
 .gameStatus {

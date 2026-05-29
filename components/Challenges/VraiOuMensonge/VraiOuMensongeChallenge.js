@@ -41,37 +41,8 @@ function normalizeName(value) {
   return String(value || '').trim();
 }
 
-function toTitleWord(raw) {
-  const token = String(raw || '').trim().toLowerCase();
-  if (!token) return '';
-  return token.charAt(0).toUpperCase() + token.slice(1);
-}
-
-function humanizeIdentifier(value) {
-  const normalized = normalizeName(value);
-  if (!normalized) return '';
-
-  if (!normalized.includes('@')) {
-    return normalized;
-  }
-
-  const localPart = normalized.split('@')[0] || '';
-  const chunks = localPart
-    .replace(/[^a-zA-Z._-]/g, ' ')
-    .split(/[._\-\s]+/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  if (!chunks.length) return 'Participant';
-  if (chunks.length === 1) {
-    const single = chunks[0];
-    if (single.length > 1) {
-      return `${toTitleWord(single.slice(0, 1))} ${toTitleWord(single.slice(1))}`.trim();
-    }
-    return toTitleWord(single);
-  }
-
-  return `${toTitleWord(chunks[0])} ${toTitleWord(chunks[chunks.length - 1])}`.trim();
+function isEmailLike(value) {
+  return normalizeName(value).includes('@');
 }
 
 export default function VraiOuMensongeChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
@@ -111,9 +82,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     const fullName = `${firstName} ${lastName}`.trim();
     if (fullName) return fullName;
     const fromPayload = String(runtimePayload?.context?.displayName || '').trim();
-    if (fromPayload) return humanizeIdentifier(fromPayload) || fromPayload;
+    if (fromPayload && !isEmailLike(fromPayload)) return fromPayload;
     const fromContext = String(context?.displayName || '').trim();
-    if (fromContext) return humanizeIdentifier(fromContext) || fromContext;
+    if (fromContext && !isEmailLike(fromContext)) return fromContext;
     return 'Participant';
   }, [runtimePayload, context, me]);
 
@@ -124,7 +95,12 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       if (!id) return;
       const slot = Number(item?.slot || 0);
       const fallback = slot > 0 ? `Participant ${slot}` : 'Participant';
-      map.set(id, humanizeIdentifier(item?.display_name) || fallback);
+      const firstName = String(item?.first_name || item?.firstName || '').trim();
+      const lastName = String(item?.last_name || item?.lastName || '').trim();
+      const fullName = `${firstName} ${lastName}`.trim();
+      const displayName = String(item?.display_name || '').trim();
+      const safeDisplayName = displayName && !isEmailLike(displayName) ? displayName : '';
+      map.set(id, fullName || safeDisplayName || fallback);
     });
 
     participantsOrder.forEach((id, index) => {
@@ -146,7 +122,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }, [participantsMeta, participantsOrder]);
 
   function participantName(id) {
-    return humanizeIdentifier(participantNameMap.get(String(id))) || 'Participant';
+    const value = String(participantNameMap.get(String(id)) || '').trim();
+    return value && !isEmailLike(value) ? value : 'Participant';
   }
 
   const {

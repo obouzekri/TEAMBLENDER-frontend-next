@@ -30,37 +30,8 @@ function normalizeName(value) {
   return String(value || '').trim();
 }
 
-function toTitleWord(raw) {
-  const token = String(raw || '').trim().toLowerCase();
-  if (!token) return '';
-  return token.charAt(0).toUpperCase() + token.slice(1);
-}
-
-function humanizeIdentifier(value) {
-  const normalized = normalizeName(value);
-  if (!normalized) return '';
-
-  if (!normalized.includes('@')) {
-    return normalized;
-  }
-
-  const localPart = normalized.split('@')[0] || '';
-  const chunks = localPart
-    .replace(/[^a-zA-Z._-]/g, ' ')
-    .split(/[._\-\s]+/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  if (!chunks.length) return 'Participant';
-  if (chunks.length === 1) {
-    const single = chunks[0];
-    if (single.length > 1) {
-      return `${toTitleWord(single.slice(0, 1))} ${toTitleWord(single.slice(1))}`.trim();
-    }
-    return toTitleWord(single);
-  }
-
-  return `${toTitleWord(chunks[0])} ${toTitleWord(chunks[chunks.length - 1])}`.trim();
+function isEmailLike(value) {
+  return normalizeName(value).includes('@');
 }
 
 export default function MissionCritiqueChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
@@ -84,16 +55,16 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const collectiveResult = mission.collective_result || null;
 
   const displayName = useMemo(() => {
-    const fromPayload = String(runtimePayload?.context?.displayName || runtimePayload?.context?.name || '').trim();
-    if (fromPayload) return fromPayload;
-
     const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
     const lastName = String(runtimePayload?.context?.lastName || runtimePayload?.context?.last_name || context?.lastName || context?.last_name || '').trim();
     const fullName = `${firstName} ${lastName}`.trim();
     if (fullName) return fullName;
 
+    const fromPayload = String(runtimePayload?.context?.displayName || runtimePayload?.context?.name || '').trim();
+    if (fromPayload && !isEmailLike(fromPayload)) return fromPayload;
+
     const fallbackName = String(context?.displayName || context?.name || '').trim();
-    if (fallbackName) return fallbackName;
+    if (fallbackName && !isEmailLike(fallbackName)) return fallbackName;
 
     return 'Participant';
   }, [runtimePayload, context]);
@@ -102,10 +73,10 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     const firstName = String(item?.first_name || item?.firstName || '').trim();
     const lastName = String(item?.last_name || item?.lastName || '').trim();
     const fullName = `${firstName} ${lastName}`.trim();
-    if (fullName) return humanizeIdentifier(fullName) || fullName;
+    if (fullName) return fullName;
 
     const fromPayload = String(item?.display_name || item?.participant_name || item?.name || '').trim();
-    if (fromPayload) return humanizeIdentifier(fromPayload) || fromPayload;
+    if (fromPayload && !isEmailLike(fromPayload)) return fromPayload;
     if (Number.isFinite(Number(item?.slot))) return `Participant ${item.slot}`;
     return 'Participant';
   }

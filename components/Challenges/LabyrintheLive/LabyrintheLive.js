@@ -71,6 +71,8 @@ function toParticipantLabel(value, fallback = 'Participant') {
 
 export default function LabyrintheLive({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
   const [optimisticPos, setOptimisticPos] = useState(null);
+  const [moveFeedback, setMoveFeedback] = useState('');
+  const [moveFeedbackTone, setMoveFeedbackTone] = useState('info');
   const {
     state,
     error,
@@ -83,9 +85,11 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   const timer = state?.timer || null;
   const didAutoSetupRef = useRef(false);
   const swipeStartRef = useRef(null);
+  const gridRef = useRef(null);
 
+  const labyPhase = String(laby?.phase || '').trim();
   const canMoveSolo = !isFacilitator
-    && String(laby?.phase || '').trim() !== 'done'
+    && labyPhase === 'solo'
     && Boolean(laby?.maze)
     && Number(laby?.parts?.[String(participantId)]?.lives_remaining || 0) > 0;
 
@@ -160,14 +164,30 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   useEffect(() => {
     if (!canMoveSolo) return () => {};
 
+    if (gridRef.current && typeof gridRef.current.focus === 'function') {
+      gridRef.current.focus();
+    }
+
     const onKeyDown = (event) => {
+      const target = event.target;
+      const tagName = String(target?.tagName || '').toLowerCase();
+      if (target?.isContentEditable || ['input', 'textarea', 'select', 'button'].includes(tagName)) {
+        return;
+      }
+
       const map = {
         ArrowUp: 'N',
         ArrowRight: 'E',
         ArrowDown: 'S',
         ArrowLeft: 'W',
+        z: 'N',
+        w: 'N',
+        d: 'E',
+        s: 'S',
+        q: 'W',
+        a: 'W',
       };
-      const dir = map[event.key];
+      const dir = map[String(event.key || '').toLowerCase()] || map[event.key];
       if (!dir) return;
       event.preventDefault();
       emitEvent('laby.solo.move', { dir });
@@ -178,6 +198,40 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [canMoveSolo, emitEvent]);
+
+  useEffect(() => {
+    if (!socket || !participantId) return () => {};
+
+    const onChallengeEvent = (packet = {}) => {
+      if (String(packet?.type || '').trim() !== 'laby.solo.resolved') return;
+      const payload = packet?.payload || {};
+      if (String(payload?.participant_id || '').trim() !== String(participantId || '').trim()) return;
+
+      const outcome = String(payload?.outcome || '').trim();
+      if (outcome === 'exit') {
+        setMoveFeedback('Bravo ! Vous avez atteint la sortie.');
+        setMoveFeedbackTone('success');
+        return;
+      }
+      if (outcome === 'trap') {
+        setMoveFeedback('Piège déclenché : retour au départ, une vie perdue.');
+        setMoveFeedbackTone('danger');
+        return;
+      }
+      if (outcome === 'wall') {
+        setMoveFeedback('Mur détecté dans cette direction.');
+        setMoveFeedbackTone('warning');
+        return;
+      }
+      setMoveFeedback('Déplacement validé. Continuez vers la sortie.');
+      setMoveFeedbackTone('info');
+    };
+
+    socket.on('challenge:event', onChallengeEvent);
+    return () => {
+      socket.off('challenge:event', onChallengeEvent);
+    };
+  }, [socket, participantId]);
 
   const displayName = useMemo(() => {
     const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
@@ -255,9 +309,12 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
     setOptimisticPos(nextPos);
   }
 
-  function handleCellHover(row, col) {
+  function moveByDirection(dir) {
     if (!canMoveSolo) return;
-    handleCellClick(row, col);
+    emitEvent('laby.solo.move', { dir });
+    if (gridRef.current && typeof gridRef.current.focus === 'function') {
+      gridRef.current.focus();
+    }
   }
 
   const colsClass = styles[`cols${mazeCols}`] || styles.cols8;
@@ -359,8 +416,11 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
 
               <div
                 className={`${styles.gameGrid} ${colsClass}`}
+                ref={gridRef}
+                tabIndex={canMoveSolo ? 0 : -1}
                 onTouchStart={handleSwipeStart}
                 onTouchEnd={handleSwipeEnd}
+                aria-label="Grille du labyrinthe"
               >
                 {Array.from({ length: mazeRows }).map((_, row) => (
                   Array.from({ length: mazeCols }).map((__, col) => {
@@ -379,8 +439,6 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                         type="button"
                         className={`${classes.join(' ')}${!canMoveSolo ? ` ${styles.cellDisabled}` : ''}`}
                         onClick={() => handleCellClick(row, col)}
-                        onMouseEnter={() => handleCellHover(row, col)}
-                        onFocus={() => handleCellHover(row, col)}
                         aria-disabled={!canMoveSolo}
                         aria-label={`Case ${row + 1}-${col + 1}`}
                       >
@@ -389,6 +447,24 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                     );
                   })
                 ))}
+              </div>
+
+              <div className={styles.controlDock}>
+                <div className={styles.controlHead}>
+                  <span className={styles.muted}>Commandes</span>
+                  <strong>Fleches, ZQSD/WASD, ou clic</strong>
+                </div>
+                <div className={styles.directionPad}>
+                  <span />
+                  <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('N')} disabled={!canMoveSolo} aria-label="Monter">↑</button>
+                  <span />
+                  <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('W')} disabled={!canMoveSolo} aria-label="Aller à gauche">←</button>
+                  <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('S')} disabled={!canMoveSolo} aria-label="Descendre">↓</button>
+                  <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveSolo} aria-label="Aller à droite">→</button>
+                </div>
+                <p className={`${styles.moveFeedback} ${moveFeedbackTone === 'success' ? styles.feedbackSuccess : ''}${moveFeedbackTone === 'danger' ? ` ${styles.feedbackDanger}` : ''}${moveFeedbackTone === 'warning' ? ` ${styles.feedbackWarning}` : ''}`}>
+                  {moveFeedback || (canMoveSolo ? 'Trouvez la sortie en evitant les pieges.' : (labyPhase === 'setup' ? 'En attente du lancement de la manche solo...' : 'Deplacement indisponible pour le moment.'))}
+                </p>
               </div>
 
               {String(laby?.phase || '').trim() === 'done' ? (
