@@ -43,18 +43,24 @@ function normalizeRuntimeConfig(config = {}) {
   const defaultImages = defaultImagesFromConfig.length > 0
     ? defaultImagesFromConfig
     : COPUZZLE_ADMIN_REFERENCE_IMAGES;
-  const sourceMode = String(config?.image_source_mode || '').trim().toLowerCase() === 'custom' ? 'custom' : 'defaults';
-  const selectedDefaultId = String(config?.default_image_id || '').trim();
+  const explicitMode = String(config?.image_source_mode || '').trim().toLowerCase();
+  const configuredImageSrc = normalizeBackendAssetUrl(String(
+    config?.image?.src
+    || (typeof config?.image === 'string' ? config.image : '')
+    || config?.image_url
+    || config?.imageUrl
+    || ''
+  ).trim());
+  const selectedDefaultIdBySrc = defaultImages.find((item) => item.src === configuredImageSrc)?.id || '';
+  const sourceMode = explicitMode === 'custom'
+    ? 'custom'
+    : explicitMode === 'defaults'
+      ? 'defaults'
+      : (configuredImageSrc && !selectedDefaultIdBySrc ? 'custom' : 'defaults');
+  const selectedDefaultId = String(config?.default_image_id || selectedDefaultIdBySrc || '').trim();
   const selectedDefaultImage = defaultImages.find((item) => item.id === selectedDefaultId) || defaultImages[0] || null;
   const selectedDefaultSrc = String(selectedDefaultImage?.src || '/copuzzle/default-blue.svg').trim();
-  const customSrc = String(
-    config?.image?.src
-      || (typeof config?.image === 'string' ? config.image : '')
-      || config?.image_url
-      || config?.imageUrl
-      || ''
-  ).trim();
-  const normalizedCustomSrc = normalizeBackendAssetUrl(customSrc);
+  const normalizedCustomSrc = configuredImageSrc;
   const imageSrc = sourceMode === 'custom'
     ? (normalizedCustomSrc || selectedDefaultSrc)
     : selectedDefaultSrc;
@@ -70,6 +76,8 @@ function normalizeRuntimeConfig(config = {}) {
       src: imageSrc,
       fit: String(config?.image?.fit || config?.image_fit || 'contain').toLowerCase() === 'cover' ? 'cover' : 'contain',
     },
+    image_source_mode: sourceMode,
+    default_image_id: sourceMode === 'defaults' ? String(selectedDefaultImage?.id || '') : null,
     participants: {
       show_reference_image: config?.participants?.show_reference_image === true,
     },
