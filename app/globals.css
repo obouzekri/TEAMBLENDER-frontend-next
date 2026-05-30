@@ -1396,6 +1396,8 @@ a {
 }
 
 .landing-hero-title {
+  font-size: clamp(2.35rem, 5.3vw, 4.2rem) !important;
+  line-height: 1.04 !important;
   color: #f8fafc !important;
   text-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
 }
@@ -1466,11 +1468,11 @@ a {
   box-shadow: 0 32px 74px rgba(2, 6, 23, 0.65), 0 0 48px rgba(56, 189, 248, 0.24);
   transform-style: preserve-3d;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  transform: perspective(1200px) rotateY(-8deg) rotateX(2deg);
+  transform: perspective(1200px) rotateY(-12deg) rotateX(3deg);
 }
 
 .landing-hero-product-wrap:hover {
-  transform: perspective(1200px) rotateY(-10deg) rotateX(2deg) scale(1.02);
+  transform: perspective(1200px) rotateY(-14deg) rotateX(3deg) scale(1.02);
   box-shadow: 0 36px 84px rgba(2, 6, 23, 0.72), 0 0 58px rgba(59, 130, 246, 0.34);
 }
 
@@ -1517,7 +1519,18 @@ a {
   border-radius: 16px;
   border: 1px solid rgba(96, 165, 250, 0.45);
   background: #020617;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.3), 0 0 55px rgba(59, 130, 246, 0.52);
+}
+
+.landing-hero-product-frame::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border-radius: 22px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.42) 0%, transparent 68%);
+  filter: blur(16px);
+  z-index: -1;
+  pointer-events: none;
 }
 
 .landing-hero-product-frame::after {
@@ -1584,6 +1597,10 @@ a {
   .landing-hero-product-wrap,
   .landing-hero-product-wrap:hover {
     transform: none;
+  }
+
+  .landing-hero-title {
+    font-size: clamp(2rem, 9vw, 2.7rem) !important;
   }
 
   .landing-hero-product-wrap {
