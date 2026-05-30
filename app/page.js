@@ -410,12 +410,12 @@ export default function HomePage() {
         ) : null}
 
         <section
-          className="landing-hero-full reveal-up relative overflow-hidden px-6 py-16 sm:px-8 lg:px-10 lg:py-20"
+          className="landing-hero-full reveal-up relative overflow-hidden px-6 py-10 sm:px-8 lg:px-10 lg:py-12"
           style={{ '--reveal-delay': '40ms' }}
           aria-label="Presentation TeamBlender"
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.14),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(14,165,233,0.12),_transparent_30%)]" />
-          <div className="relative grid gap-10 lg:grid-cols-[1.06fr_0.94fr] lg:items-center">
+          <div className="landing-hero-inner relative grid gap-10 lg:grid-cols-[1.06fr_0.94fr] lg:items-start">
             <div className="max-w-3xl">
               <div className="mb-5 flex flex-wrap gap-3">
                 <span className={chipClass}>
