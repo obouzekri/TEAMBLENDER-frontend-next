@@ -95,7 +95,7 @@ export default function PricingPage() {
     <>
       <TopNav />
       <main className="shell pricing-page">
-        <section className="pricing-hero reveal-up" aria-label="Tarification TeamBlender">
+        <section className="pricing-hero feature-card reveal-up" aria-label="Tarification TeamBlender">
           <p className="eyebrow">Tarification</p>
           <h1>Des formules simples pour faire grandir vos sessions d'équipe.</h1>
           <p>
@@ -106,7 +106,7 @@ export default function PricingPage() {
 
         {/* Billing Cycle & Currency Selector */}
         {!loading && sortedPlans.length > 0 ? (
-          <section className="pricing-controls reveal-up" aria-label="Options d'affichage">
+          <section className="pricing-controls feature-card reveal-up" aria-label="Options d'affichage">
             <div className="controls-group">
               <div className="control-section">
                 <label>Fréquence de facturation</label>
@@ -219,7 +219,7 @@ export default function PricingPage() {
         ) : null}
 
         {!loading && !error && sortedPlans.length > 0 ? (
-          <section className="pricing-footer-cta reveal-up">
+          <section className="pricing-footer-cta feature-card reveal-up">
             <p>Une question sur les formules ?</p>
             <Link href="/contact" className="btn-secondary">Contacter l'équipe</Link>
           </section>

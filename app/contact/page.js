@@ -41,7 +41,7 @@ export default function ContactPage() {
     <>
       <TopNav />
       <main className="shell contact-page">
-        <section className="contact-hero reveal-up" aria-label="Contactez TeamBlender">
+        <section className="contact-hero feature-card reveal-up" aria-label="Contactez TeamBlender">
           <p className="eyebrow">TeamBlender</p>
           <h1>Parlons de votre prochain team building</h1>
           <p>Cette étape sert à cadrer votre besoin et voir comment lancer un challenge utile pour votre équipe.</p>
@@ -115,7 +115,7 @@ export default function ContactPage() {
                 <textarea rows={6} required value={form.message} onChange={(e) => updateField('message', e.target.value)} placeholder="Contexte, objectif équipe et format envisagé." />
               </label>
 
-              <button type="submit" className="btn-primary wide">Ouvrir mon email →</button>
+              <button type="submit" className="btn-primary wide">Ouvrir mon email</button>
             </form>
           </article>
         </section>

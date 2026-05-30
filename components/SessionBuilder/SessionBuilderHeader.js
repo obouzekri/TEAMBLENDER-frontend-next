@@ -21,6 +21,7 @@ export default function SessionBuilderHeader({
     <section className={styles.summaryBar} aria-label="Résumé de la session">
       <header className={styles.summaryContent}>
         <div className={styles.summaryLeft}>
+          <p className={styles.summaryEyebrow}>Session builder</p>
           <h1 className={styles.summaryTitle}>Ajoutez et configurez les activités pour votre session</h1>
           <p className={styles.summaryMeta}>
             <span className={styles.summaryName}>{resolvedSessionName}</span>
@@ -39,7 +40,7 @@ export default function SessionBuilderHeader({
             className={`btn-secondary ${styles.actionBtn}`}
             onClick={onEditSessionInfo}
           >
-            ⚙ Modifier les informations de la session
+            Modifier les informations de la session
           </button>
           <button
             type="button"
@@ -48,7 +49,7 @@ export default function SessionBuilderHeader({
             disabled={isSavingDraft || selectedCount === 0}
             title={selectedCount === 0 ? 'Ajoutez au moins une activité.' : 'Enregistrer les paramètres de session'}
           >
-            {isSavingDraft ? '💾 Enregistrement...' : '💾 Enregistrer la configuration'}
+            {isSavingDraft ? 'Enregistrement...' : 'Enregistrer la configuration'}
           </button>
           <button
             type="button"
@@ -57,7 +58,7 @@ export default function SessionBuilderHeader({
             onClick={onLaunch}
             title={isLaunchDisabled ? 'Sélectionnez au moins une activité' : 'Lancer la session'}
           >
-            {isLaunching ? '▶ Lancement...' : '▶ Lancer'}
+            {isLaunching ? 'Lancement...' : 'Lancer'}
           </button>
         </div>
       </header>
