@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, BarChart3, CheckCircle2, LayoutDashboard, Sparkles, Users } from 'lucide-react';
+import { ArrowRight, BarChart3, LayoutDashboard, Sparkles, Users } from 'lucide-react';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
@@ -410,7 +410,7 @@ export default function HomePage() {
         ) : null}
 
         <section
-          className="reveal-up relative overflow-hidden rounded-[2rem] border border-white/60 bg-gradient-to-br from-white/90 via-slate-50/90 to-indigo-50/70 px-6 py-10 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur-md sm:px-8 lg:px-10"
+          className="landing-hero-full reveal-up relative overflow-hidden px-6 py-16 sm:px-8 lg:px-10 lg:py-20"
           style={{ '--reveal-delay': '40ms' }}
           aria-label="Presentation TeamBlender"
         >
@@ -422,9 +422,6 @@ export default function HomePage() {
                   <Sparkles className="h-4 w-4 text-indigo-500" />
                   {heroKicker.title || heroMain.label || 'SaaS team building'}
                 </span>
-                {heroTrustItems.slice(0, 2).map((item) => (
-                  <span key={item} className={chipClass}>{item}</span>
-                ))}
               </div>
 
               <h1 className="max-w-2xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
@@ -452,14 +449,11 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                {heroTrustItems.map((item, index) => (
-                  <span key={item} className={`${chipClass} ${index === 0 ? 'bg-slate-900 text-white hover:bg-slate-800' : ''}`}>
-                    <CheckCircle2 className={`h-4 w-4 ${index === 0 ? 'text-emerald-300' : 'text-emerald-500'}`} />
-                    {item}
-                  </span>
-                ))}
-              </div>
+              {heroTrustItems.length > 0 ? (
+                <p className="mt-8 text-sm font-medium leading-7 text-slate-600 sm:text-base">
+                  {heroTrustItems.slice(0, 3).join(' • ')}
+                </p>
+              ) : null}
             </div>
 
             <div className="relative">
@@ -476,47 +470,31 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-[1.08fr_0.92fr]">
+                <div className="grid gap-4">
                   <article className="overflow-hidden rounded-2xl border border-white/70 bg-white/80 shadow-sm">
-                    <img src={heroImageA.image_url} alt={heroImageA.description} loading="lazy" className="h-64 w-full object-cover sm:h-72" />
+                    <img src={heroImageA.image_url} alt={heroImageA.description} loading="lazy" className="h-64 w-full object-cover sm:h-80" />
                     <div className="space-y-2 p-4">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                      <div className="flex items-center gap-2 text-base font-semibold text-slate-900">
                         <LayoutDashboard className="h-4 w-4 text-indigo-500" />
                         Dashboard facilitateur
                       </div>
-                      <p className="text-sm leading-6 text-slate-600">{heroImageA.description}</p>
+                      <p className="text-base leading-7 text-slate-600">{heroImageA.description}</p>
                     </div>
                   </article>
 
-                  <div className="grid gap-4">
-                    <article className="overflow-hidden rounded-2xl border border-white/70 bg-white/80 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-                      <img src={heroImageB.image_url} alt={heroImageB.description} loading="lazy" className="h-36 w-full object-cover" />
-                      <div className="space-y-2 p-4">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                          <Users className="h-4 w-4 text-cyan-500" />
-                          Coordination d’équipe
-                        </div>
-                        <p className="text-sm leading-6 text-slate-600">{heroImageB.description}</p>
+                  <article className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-md">
+                    <h3 className="text-base font-semibold text-slate-900 sm:text-lg">Ce que vous pilotez en direct</h3>
+                    <div className="mt-4 grid gap-3 text-sm text-slate-700 sm:text-base">
+                      <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                        <Users className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
+                        <span>{heroImageB.description || 'Coordination des participants en temps reel.'}</span>
                       </div>
-                    </article>
-
-                    <div className="grid gap-3 rounded-2xl border border-slate-200/80 bg-white/75 p-4 shadow-sm backdrop-blur-md">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                        <BarChart3 className="h-4 w-4 text-violet-500" />
-                        Valeur produit
-                      </div>
-                      <div className="grid gap-2 text-sm text-slate-600">
-                        <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2">
-                          <span>Sessions claires</span>
-                          <strong className="text-slate-900">+ premium</strong>
-                        </div>
-                        <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2">
-                          <span>Micro-interactions</span>
-                          <strong className="text-slate-900">smooth</strong>
-                        </div>
+                      <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                        <BarChart3 className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+                        <span>Progression lisible pour le facilitateur et debrief actionnable immediat.</span>
                       </div>
                     </div>
-                  </div>
+                  </article>
                 </div>
               </div>
             </div>
@@ -573,7 +551,6 @@ export default function HomePage() {
                     <strong className="block text-sm font-semibold text-slate-950">{item.title}</strong>
                     <span className="text-sm text-slate-500">{item.subtitle}</span>
                   </div>
-                  <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">Témoignage</span>
                 </div>
               </article>
             ))}
