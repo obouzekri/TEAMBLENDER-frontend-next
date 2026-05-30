@@ -150,6 +150,15 @@
   position: relative;
 }
 
+.cell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02), transparent 55%);
+  pointer-events: none;
+}
+
 button.cell {
   cursor: pointer;
 }
@@ -179,8 +188,39 @@ button.cell {
   background: rgba(239, 68, 68, 0.2);
 }
 
+.cellTrapTriggered {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(245, 158, 11, 0.92));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 0 2px rgba(239, 68, 68, 0.28);
+  animation: trapPulse 0.7s ease-out both;
+}
+
+.cellTrapResolved {
+  background: rgba(15, 23, 42, 0.35);
+}
+
 .cellPlayer {
   border-color: rgba(125, 211, 252, 0.8);
+}
+
+.cellTrapFlash,
+.cellBlockedFlash {
+  animation: flashPop 0.7s ease-out both;
+}
+
+.cellTrapIcon,
+.cellBlockedIcon {
+  position: absolute;
+  z-index: 4;
+  font-size: 0.95rem;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.cellTrapIcon {
+  color: #fecaca;
+}
+
+.cellBlockedIcon {
+  color: #fda4af;
 }
 
 .cellPlayerDot {
@@ -315,6 +355,34 @@ button.cell {
 .debriefCard h3,
 .debriefCard p {
   margin: 0;
+}
+
+@keyframes trapPulse {
+  0% {
+    transform: scale(0.92);
+    filter: saturate(1.2);
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes flashPop {
+  0% {
+    transform: scale(0.96);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45);
+  }
+  45% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.12);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 @media (max-width: 960px) {

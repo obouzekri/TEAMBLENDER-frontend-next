@@ -7,17 +7,51 @@ import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 
 const DEFAULT_BLOCKS = {
-  impact_1: {
-    title: '-65%',
-    description: 'de preparation manager percue',
+  impact_1: {},
+  impact_2: {},
+  impact_3: {},
+  partners_header: {
+    label: 'Confiance',
+    title: 'Des equipes qui cherchent du concret, pas du bruit.',
+    description: 'Une base d adoption simple pour les managers, RH et facilitateurs.',
   },
-  impact_2: {
-    title: '3 etapes',
-    description: 'de l objectif au debrief concret',
+  partner_1: {
+    title: 'RH & Talent',
   },
-  impact_3: {
-    title: '100%',
-    description: 'navigable mobile et desktop sans installation',
+  partner_2: {
+    title: 'Managers',
+  },
+  partner_3: {
+    title: 'Facilitation',
+  },
+  partner_4: {
+    title: 'Onboarding',
+  },
+  partner_5: {
+    title: 'Formation',
+  },
+  partner_6: {
+    title: 'Coaching',
+  },
+  testimonials_header: {
+    label: 'Temoignages',
+    title: 'Le retour terrain reste le meilleur signal.',
+    description: 'Des retours courts, utiles et lisibles pour se projeter vite.',
+  },
+  testimonial_1: {
+    title: 'Directrice RH',
+    subtitle: 'Secteur services',
+    description: 'Nous avons enfin un format d atelier qui se lance vite, reste lisible pour les participants et donne un vrai debrief.',
+  },
+  testimonial_2: {
+    title: 'Responsable formation',
+    subtitle: 'Entreprise multi-sites',
+    description: 'La progression est claire, les equipes comprennent vite les regles, et le facilitateur garde la main sans lourdeur technique.',
+  },
+  testimonial_3: {
+    title: 'Manager d equipe',
+    subtitle: 'PME industrielle',
+    description: 'On voit tout de suite si la session fait parler les bons sujets. C est simple a preparer et beaucoup plus concret que nos anciens icebreakers.',
   },
   flow_header: {
     label: 'Processus',
@@ -57,6 +91,20 @@ const CMS_BASELINE_COMPLETE_KEYS = new Set([
   'challenge_1',
   'challenge_2',
   'challenge_3',
+  'impact_1',
+  'impact_2',
+  'impact_3',
+  'partners_header',
+  'partner_1',
+  'partner_2',
+  'partner_3',
+  'partner_4',
+  'partner_5',
+  'partner_6',
+  'testimonials_header',
+  'testimonial_1',
+  'testimonial_2',
+  'testimonial_3',
   'final_cta',
 ]);
 
@@ -73,6 +121,17 @@ const LANDING_CMS_REQUIRED_SCHEMA = {
   impact_1: ['title', 'description'],
   impact_2: ['title', 'description'],
   impact_3: ['title', 'description'],
+  partners_header: ['label', 'title', 'description'],
+  partner_1: ['title'],
+  partner_2: ['title'],
+  partner_3: ['title'],
+  partner_4: ['title'],
+  partner_5: ['title'],
+  partner_6: ['title'],
+  testimonials_header: ['label', 'title', 'description'],
+  testimonial_1: ['title', 'subtitle', 'description'],
+  testimonial_2: ['title', 'subtitle', 'description'],
+  testimonial_3: ['title', 'subtitle', 'description'],
   flow_header: ['label', 'title'],
   flow_step_1: ['badge_text', 'title', 'description'],
   flow_step_2: ['badge_text', 'title', 'description'],
@@ -215,6 +274,29 @@ export default function HomePage() {
     [dynamicBlocks]
   );
 
+  const partnersSection = useMemo(
+    () => buildSectionBlocks([
+      'partners_header',
+      'partner_1',
+      'partner_2',
+      'partner_3',
+      'partner_4',
+      'partner_5',
+      'partner_6',
+    ], dynamicBlocks),
+    [dynamicBlocks]
+  );
+
+  const testimonialsSection = useMemo(
+    () => buildSectionBlocks([
+      'testimonials_header',
+      'testimonial_1',
+      'testimonial_2',
+      'testimonial_3',
+    ], dynamicBlocks),
+    [dynamicBlocks]
+  );
+
   const heroMain = heroSection.blocks.hero_main || {};
   const heroKicker = heroSection.blocks.hero_kicker || {};
   const heroCtaPrimary = heroSection.blocks.hero_cta_primary || {};
@@ -224,6 +306,8 @@ export default function HomePage() {
   const flowHeader = flowSection.blocks.flow_header || {};
   const finalCta = finalCtaSection.blocks.final_cta || {};
   const finalCtaSecondary = finalCtaSection.blocks.final_cta_secondary || {};
+  const partnersHeader = partnersSection.blocks.partners_header || {};
+  const testimonialsHeader = testimonialsSection.blocks.testimonials_header || {};
 
   const heroTrustItems = useMemo(
     () => ['hero_trust_1', 'hero_trust_2', 'hero_trust_3']
@@ -239,7 +323,7 @@ export default function HomePage() {
         value: item.title || '',
         description: item.description || '',
       };
-    }),
+    }).filter((item) => item.value || item.description),
     [impactSection]
   );
 
@@ -253,6 +337,28 @@ export default function HomePage() {
       };
     }),
     [flowSection]
+  );
+
+  const partnerItems = useMemo(
+    () => ['partner_1', 'partner_2', 'partner_3', 'partner_4', 'partner_5', 'partner_6'].map((key) => {
+      const item = partnersSection.blocks[key] || {};
+      return {
+        title: item.title || '',
+      };
+    }).filter((item) => item.title),
+    [partnersSection]
+  );
+
+  const testimonialItems = useMemo(
+    () => ['testimonial_1', 'testimonial_2', 'testimonial_3'].map((key) => {
+      const item = testimonialsSection.blocks[key] || {};
+      return {
+        title: item.title || '',
+        subtitle: item.subtitle || '',
+        description: item.description || '',
+      };
+    }).filter((item) => item.title || item.description),
+    [testimonialsSection]
   );
 
   const cmsAudit = useMemo(() => buildLandingCmsAudit(dynamicBlocks), [dynamicBlocks]);
@@ -332,16 +438,54 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="landing-impact-band reveal-up" style={{ '--reveal-delay': '90ms' }} aria-label="Indicateurs cles">
-          {impactItems.map((item, index) => (
-            <article key={`impact-${index}`}>
-              <strong>{item.value}</strong>
-              <p>{item.description}</p>
-            </article>
-          ))}
+        {impactItems.length > 0 ? (
+          <section className="landing-impact-band reveal-up" style={{ '--reveal-delay': '90ms' }} aria-label="Indicateurs cles">
+            {impactItems.map((item, index) => (
+              <article key={`impact-${index}`}>
+                <strong>{item.value}</strong>
+                <p>{item.description}</p>
+              </article>
+            ))}
+          </section>
+        ) : null}
+
+        <section className="feature-card reveal-up landing-partners" style={{ '--reveal-delay': '120ms' }} aria-label="Clients et partenaires">
+          <div className="panel-head">
+            <div>
+              <p className="eyebrow">{partnersHeader.label}</p>
+              <h2>{partnersHeader.title}</h2>
+              <p>{partnersHeader.description}</p>
+            </div>
+          </div>
+          <div className="logo-grid landing-partner-grid" aria-label="Logos clients partenaires">
+            {partnerItems.map((item) => (
+              <span key={item.title} className="landing-partner-pill">{item.title}</span>
+            ))}
+          </div>
         </section>
 
-        <section className="feature-card reveal-up landing-flow" style={{ '--reveal-delay': '140ms' }} aria-label="Parcours en 3 etapes">
+        <section className="feature-card reveal-up landing-testimonials" style={{ '--reveal-delay': '155ms' }} aria-label="Temoignages clients">
+          <div className="panel-head">
+            <div>
+              <p className="eyebrow">{testimonialsHeader.label}</p>
+              <h2>{testimonialsHeader.title}</h2>
+              <p>{testimonialsHeader.description}</p>
+            </div>
+          </div>
+          <div className="cards-grid landing-testimonials-grid">
+            {testimonialItems.map((item) => (
+              <article key={`${item.title}-${item.subtitle}`} className="feature-card landing-testimonial-card">
+                <p className="landing-testimonial-quote">“{item.description}”</p>
+                <div className="landing-testimonial-meta">
+                  <strong>{item.title}</strong>
+                  <span>{item.subtitle}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="feature-card reveal-up landing-flow" style={{ '--reveal-delay': '190ms' }} aria-label="Parcours en 3 etapes">
           <div className="panel-head">
             <div>
               <p className="eyebrow">{flowHeader.label}</p>
@@ -359,7 +503,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="feature-card landing-cta-block reveal-up" style={{ '--reveal-delay': '190ms' }} aria-label="Dernier appel a l action">
+        <section className="feature-card landing-cta-block reveal-up" style={{ '--reveal-delay': '230ms' }} aria-label="Dernier appel a l action">
           <p className="eyebrow">{finalCta.subtitle || finalCta.label}</p>
           <h2>{finalCta.title}</h2>
           <p>{finalCta.description}</p>

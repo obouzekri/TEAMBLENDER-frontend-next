@@ -60,14 +60,32 @@ function buildMazeCellStyle(maze, row, col) {
       borderRightWidth: '6px',
       borderBottomWidth: '6px',
       borderLeftWidth: '6px',
+      borderTopColor: 'rgba(12, 18, 28, 0.98)',
+      borderRightColor: 'rgba(12, 18, 28, 0.98)',
+      borderBottomColor: 'rgba(12, 18, 28, 0.98)',
+      borderLeftColor: 'rgba(12, 18, 28, 0.98)',
+      backgroundColor: '#08111d',
+      backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0))',
+      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.03), inset 0 0 18px rgba(0,0,0,0.45)'
     };
   }
 
+  const openEdges = ['n', 'e', 's', 'w'].reduce((count, key) => count + (cell[key] ? 1 : 0), 0);
+  const density = 4 - openEdges;
+  const wallTone = density >= 3 ? '#1f2937' : density === 2 ? '#111827' : '#0f172a';
+
   return {
-    borderTopWidth: cell.n ? '2px' : '6px',
-    borderRightWidth: cell.e ? '2px' : '6px',
-    borderBottomWidth: cell.s ? '2px' : '6px',
-    borderLeftWidth: cell.w ? '2px' : '6px',
+    borderTopWidth: cell.n ? '2px' : '8px',
+    borderRightWidth: cell.e ? '2px' : '8px',
+    borderBottomWidth: cell.s ? '2px' : '8px',
+    borderLeftWidth: cell.w ? '2px' : '8px',
+    borderTopColor: 'rgba(12, 18, 28, 0.98)',
+    borderRightColor: 'rgba(12, 18, 28, 0.98)',
+    borderBottomColor: 'rgba(12, 18, 28, 0.98)',
+    borderLeftColor: 'rgba(12, 18, 28, 0.98)',
+    backgroundColor: wallTone,
+    backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0))',
+    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.03), inset 0 0 14px rgba(0,0,0,0.36)'
   };
 }
 
@@ -118,6 +136,8 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   const [optimisticPos, setOptimisticPos] = useState(null);
   const [moveFeedback, setMoveFeedback] = useState('');
   const [moveFeedbackTone, setMoveFeedbackTone] = useState('info');
+  const [flashCellKey, setFlashCellKey] = useState('');
+  const [flashCellTone, setFlashCellTone] = useState('');
   const {
     state,
     error,
@@ -254,6 +274,21 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
       const payload = packet?.payload || {};
       if (String(payload?.participant_id || '').trim() !== String(participantId || '').trim()) return;
 
+      const impactedPos = Array.isArray(payload?.triggered_position)
+        ? payload.triggered_position
+        : Array.isArray(payload?.position)
+          ? payload.position
+          : null;
+      const impactedCellKey = posKey(impactedPos);
+      if (impactedCellKey) {
+        setFlashCellKey(impactedCellKey);
+        setFlashCellTone(String(payload?.outcome || '').trim());
+        window.setTimeout(() => {
+          setFlashCellKey((prev) => (prev === impactedCellKey ? '' : prev));
+          setFlashCellTone((prev) => (prev === String(payload?.outcome || '').trim() ? '' : prev));
+        }, 700);
+      }
+
       const outcome = String(payload?.outcome || '').trim();
       if (outcome === 'exit') {
         setMoveFeedback('Bravo ! Vous avez atteint la sortie.');
@@ -261,7 +296,12 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
         return;
       }
       if (outcome === 'trap') {
-        setMoveFeedback('Piège déclenché : retour au départ, une vie perdue.');
+        setMoveFeedback('💥 Piège déclenché : -1 vie');
+        setMoveFeedbackTone('danger');
+        return;
+      }
+      if (outcome === 'blocked') {
+        setMoveFeedback('🚫 Bloqué : -1 vie');
         setMoveFeedbackTone('danger');
         return;
       }
@@ -368,6 +408,13 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
     }
   }
 
+  function getTrapClass(trapState) {
+    const status = typeof trapState === 'object' ? String(trapState?.state || '').trim() : (trapState ? 'triggered' : '');
+    if (status === 'triggered') return styles.cellTrapTriggered;
+    if (status === 'resolved') return styles.cellTrapResolved;
+    return '';
+  }
+
   const colsClass = styles[`cols${mazeCols}`] || styles.cols8;
 
   return (
@@ -439,8 +486,13 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                               if (playerVisited.has(key)) classes.push(styles.cellVisited);
                               if (key === startCellKey) classes.push(styles.cellStart);
                               if (key === endCellKey) classes.push(styles.cellExit);
-                              if (Boolean(revealedTraps[key])) classes.push(styles.cellTrap);
+                              if (Boolean(revealedTraps[key])) {
+                                const trapStatus = typeof revealedTraps[key] === 'object' ? String(revealedTraps[key]?.state || 'triggered') : 'triggered';
+                                if (trapStatus === 'triggered') classes.push(styles.cellTrapTriggered);
+                                if (trapStatus === 'resolved') classes.push(styles.cellTrapResolved);
+                              }
                               if (key === playerPosKey) classes.push(styles.cellPlayer);
+                              if (flashCellKey === key) classes.push(flashCellTone === 'blocked' ? styles.cellBlockedFlash : styles.cellTrapFlash);
                               return (
                                 <div
                                   key={`${id}-${key}`}
@@ -450,6 +502,8 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                                 >
                                   {key === startCellKey ? <span className={styles.cellStartBadge}>D</span> : null}
                                   {key === endCellKey ? <span className={styles.cellExitBadge}>S</span> : null}
+                                  {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
+                                  {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
                                   {key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
                                 </div>
                               );
@@ -489,7 +543,13 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                     if (isVisited) classes.push(styles.cellVisited);
                     if (key === startCellKey) classes.push(styles.cellStart);
                     if (key === endCellKey) classes.push(styles.cellExit);
+                    if (Boolean(revealedTraps[key])) {
+                      const trapStatus = typeof revealedTraps[key] === 'object' ? String(revealedTraps[key]?.state || 'triggered') : 'triggered';
+                      if (trapStatus === 'triggered') classes.push(styles.cellTrapTriggered);
+                      if (trapStatus === 'resolved') classes.push(styles.cellTrapResolved);
+                    }
                     if (key === playerPosKey) classes.push(styles.cellPlayer);
+                    if (flashCellKey === key) classes.push(flashCellTone === 'blocked' ? styles.cellBlockedFlash : styles.cellTrapFlash);
 
                     return (
                       <button
@@ -503,6 +563,8 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                       >
                         {key === startCellKey ? <span className={styles.cellStartBadge}>D</span> : null}
                         {key === endCellKey ? <span className={styles.cellExitBadge}>S</span> : null}
+                        {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
+                        {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
                         {key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
                       </button>
                     );
