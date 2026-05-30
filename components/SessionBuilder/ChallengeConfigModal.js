@@ -174,6 +174,7 @@ function withCopuzzleDefaults(config = {}, defaultImages = COPUZZLE_ADMIN_REFERE
 
   return {
     ...(config || {}),
+    default_images: defaultImages,
     image_source_mode: sourceMode,
     default_image_id: sourceMode === 'defaults' ? selectedDefaultImageId : null,
     image_url: imageUrl,
@@ -362,14 +363,38 @@ function withPixelArchitectDefaults(config = {}) {
   };
 }
 
+function mergeChallengeConfig(baseConfig, overrideConfig) {
+  const base = baseConfig && typeof baseConfig === 'object' ? baseConfig : {};
+  const override = overrideConfig && typeof overrideConfig === 'object' ? overrideConfig : {};
+
+  return {
+    ...base,
+    ...override,
+    image: { ...(base.image || {}), ...(override.image || {}) },
+    grid: { ...(base.grid || {}), ...(override.grid || {}) },
+    timer: { ...(base.timer || {}), ...(override.timer || {}) },
+    chat: { ...(base.chat || {}), ...(override.chat || {}) },
+    participants: { ...(base.participants || {}), ...(override.participants || {}) },
+    default_images: Array.isArray(override.default_images)
+      ? override.default_images
+      : Array.isArray(base.default_images)
+        ? base.default_images
+        : [],
+  };
+}
+
 export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
-  const [config, setConfig] = useState(challenge?.config || {});
+  const [config, setConfig] = useState(() => mergeChallengeConfig(challenge?.engine_config, challenge?.config));
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState('');
-  const copuzzleDefaultImages = normalizeCopuzzleDefaultImages(challenge?.engine_config?.default_images);
+  const copuzzleDefaultImages = normalizeCopuzzleDefaultImages(
+    challenge?.engine_config?.default_images
+      || challenge?.config?.default_images
+      || config?.default_images
+  );
 
   useEffect(() => {
-    setConfig(challenge?.config || {});
+    setConfig(mergeChallengeConfig(challenge?.engine_config, challenge?.config));
   }, [challenge]);
 
   function getChallengeKind(current) {
