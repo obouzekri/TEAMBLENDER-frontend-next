@@ -2,7 +2,20 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, BarChart3, LayoutDashboard, Sparkles, Users } from 'lucide-react';
+import {
+  Activity,
+  ArrowRight,
+  BarChart3,
+  Briefcase,
+  GraduationCap,
+  Handshake,
+  LayoutDashboard,
+  Quote,
+  Rocket,
+  ShieldCheck,
+  Sparkles,
+  Users,
+} from 'lucide-react';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
@@ -13,8 +26,8 @@ const DEFAULT_BLOCKS = {
   impact_3: {},
   partners_header: {
     label: 'Confiance',
-    title: 'Des equipes qui cherchent du concret, pas du bruit.',
-    description: 'Une base d adoption simple pour les managers, RH et facilitateurs.',
+    title: 'Des equipes qui veulent des resultats, pas des animations vides.',
+    description: 'TeamBlender est utilise en contexte reel par des managers, RH et facilitateurs qui pilotent des decisions d equipe.',
   },
   partner_1: {
     title: 'RH & Talent',
@@ -213,6 +226,73 @@ function buildSectionBlocks(sectionKeys, dynamicBlocks) {
 
 function safeHref(value, fallback = '/') {
   return hasCmsValue(value) ? value : fallback;
+}
+
+const TRUST_TAG_ICON_BY_KEYWORD = [
+  { keywords: ['rh', 'talent'], Icon: Briefcase },
+  { keywords: ['manager'], Icon: Users },
+  { keywords: ['facilitation', 'facilitateur'], Icon: Handshake },
+  { keywords: ['onboarding'], Icon: Rocket },
+  { keywords: ['formation'], Icon: GraduationCap },
+  { keywords: ['coaching'], Icon: Activity },
+];
+
+const TRUST_PROOF_METRICS = [
+  {
+    value: '+150',
+    label: 'equipes accompagnees',
+    detail: 'Managers, RH et facilitateurs en PME et ETI',
+  },
+  {
+    value: '3x plus rapide',
+    label: 'pour lancer une session utile',
+    detail: 'Cadre clair, activation immediate, debrief actionnable',
+  },
+  {
+    value: 'Hybride-ready',
+    label: 'presentiel, remote et multi-sites',
+    detail: 'Meme niveau de lisibilite pour tous les formats',
+  },
+];
+
+const TRUST_LOGO_PLACEHOLDERS = ['Scaleup SaaS', 'Retail Ops', 'Services B2B', 'Industrie'];
+
+function resolveTrustTagIcon(label) {
+  const normalized = String(label || '').trim().toLowerCase();
+  const matched = TRUST_TAG_ICON_BY_KEYWORD.find((entry) => entry.keywords.some((keyword) => normalized.includes(keyword)));
+  return matched?.Icon || ShieldCheck;
+}
+
+function TrustTag({ title, isActive = false }) {
+  const Icon = resolveTrustTagIcon(title);
+
+  return (
+    <button
+      type="button"
+      title={`${title} utilise TeamBlender pour un objectif concret.`}
+      className={`group inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition-all duration-300 ease-out ${
+        isActive
+          ? 'bg-indigo-100/85 shadow-sm shadow-indigo-500/10 ring-1 ring-indigo-200'
+          : 'bg-slate-50/90 hover:-translate-y-0.5 hover:bg-indigo-50/85 hover:text-slate-900 hover:shadow-sm hover:shadow-indigo-500/10'
+      }`}
+      aria-label={`Segment ${title}`}
+    >
+      <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/90 text-indigo-600 shadow-sm transition-colors duration-300 group-hover:bg-white">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span>{title}</span>
+    </button>
+  );
+}
+
+function TrustProofCard({ value, label, detail }) {
+  return (
+    <article className="rounded-2xl bg-white/80 px-5 py-4 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
+      <p className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{value}</p>
+      <p className="mt-1 text-sm font-semibold text-slate-800">{label}</p>
+      <p className="mt-1 text-xs leading-5 text-slate-600">{detail}</p>
+    </article>
+  );
 }
 
 export default function HomePage() {
@@ -519,34 +599,94 @@ export default function HomePage() {
           </section>
         ) : null}
 
-        <section className={`${glassCardClass} reveal-up landing-partners p-6 sm:p-8`} style={{ '--reveal-delay': '120ms' }} aria-label="Clients et partenaires">
-          <div className="panel-head">
-            <div>
-              <p className="eyebrow">{partnersHeader.label}</p>
-              <h2>{partnersHeader.title}</h2>
-              <p>{partnersHeader.description}</p>
+        <section
+          className="reveal-up landing-partners relative overflow-hidden rounded-3xl p-7 sm:p-10"
+          style={{
+            '--reveal-delay': '120ms',
+            background: 'linear-gradient(180deg, rgba(248,250,252,0.9) 0%, rgba(238,242,255,0.9) 100%)',
+          }}
+          aria-label="Confiance et preuve sociale"
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_84%_16%,rgba(99,102,241,0.12),transparent_42%)]" />
+          <div className="relative space-y-8">
+            <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+              <div>
+                <p className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-700">
+                  {partnersHeader.label}
+                </p>
+                <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                  {partnersHeader.title}
+                </h2>
+                <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+                  {partnersHeader.description}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-white/80 p-4 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Usage reel</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                  Adopte pour l onboarding, la facilitation d ateliers et les rituels d equipe dans des environnements hybrides exigeants.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {TRUST_LOGO_PLACEHOLDERS.map((logo) => (
+                    <span
+                      key={logo}
+                      className="inline-flex items-center rounded-full bg-slate-100/90 px-3 py-1 text-xs font-semibold text-slate-600"
+                    >
+                      {logo}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="logo-grid landing-partner-grid mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" aria-label="Logos clients partenaires">
-            {partnerItems.map((item) => (
-              <span key={item.title} className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md">{item.title}</span>
-            ))}
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Indicateurs de confiance">
+              {TRUST_PROOF_METRICS.map((metric) => (
+                <TrustProofCard key={metric.value} value={metric.value} label={metric.label} detail={metric.detail} />
+              ))}
+            </div>
+
+            <div className="landing-partner-grid flex flex-wrap gap-3" aria-label="Segments utilises par les clients">
+              {partnerItems.map((item, index) => (
+                <TrustTag key={item.title} title={item.title} isActive={index === 0} />
+              ))}
+            </div>
           </div>
         </section>
 
-        <section className={`${glassCardClass} reveal-up landing-testimonials p-6 sm:p-8`} style={{ '--reveal-delay': '155ms' }} aria-label="Temoignages clients">
-          <div className="panel-head">
+        <section
+          className="reveal-up landing-testimonials relative overflow-hidden rounded-3xl p-6 sm:p-8"
+          style={{
+            '--reveal-delay': '155ms',
+            background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+          }}
+          aria-label="Temoignages clients"
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(99,102,241,0.10),transparent_44%)]" />
+          <div className="panel-head relative">
             <div>
               <p className="eyebrow">{testimonialsHeader.label}</p>
               <h2>{testimonialsHeader.title}</h2>
               <p>{testimonialsHeader.description}</p>
             </div>
           </div>
-          <div className="cards-grid landing-testimonials-grid mt-6 grid gap-4 md:grid-cols-3">
-            {testimonialItems.map((item) => (
-              <article key={`${item.title}-${item.subtitle}`} className={`${glassCardClass} p-6`}>
+          <div className="cards-grid landing-testimonials-grid relative mt-6 grid gap-4 md:grid-cols-3">
+            {testimonialItems.map((item, index) => (
+              <article
+                key={`${item.title}-${item.subtitle}`}
+                className={`rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                  index === 0
+                    ? 'bg-gradient-to-b from-indigo-50/70 to-white ring-1 ring-indigo-100'
+                    : index === 1
+                      ? 'bg-gradient-to-b from-cyan-50/60 to-white ring-1 ring-cyan-100'
+                      : 'bg-gradient-to-b from-slate-50 to-white ring-1 ring-slate-100'
+                }`}
+              >
+                <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/85 text-indigo-600 shadow-sm">
+                  <Quote className="h-4 w-4" />
+                </div>
                 <p className="text-base leading-7 text-slate-700">“{item.description}”</p>
-                <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
+                <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-200/80 pt-4">
                   <div>
                     <strong className="block text-sm font-semibold text-slate-950">{item.title}</strong>
                     <span className="text-sm text-slate-500">{item.subtitle}</span>
@@ -557,17 +697,40 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className={`${glassCardClass} reveal-up landing-flow p-6 sm:p-8`} style={{ '--reveal-delay': '190ms' }} aria-label="Parcours en 3 etapes">
-          <div className="panel-head">
+        <section
+          className="reveal-up landing-flow relative overflow-hidden rounded-3xl p-6 sm:p-8"
+          style={{
+            '--reveal-delay': '190ms',
+            background: 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)',
+          }}
+          aria-label="Parcours en 3 etapes"
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(14,165,233,0.10),transparent_40%)]" />
+          <div className="panel-head relative">
             <div>
               <p className="eyebrow">{flowHeader.label}</p>
               <h2>{flowHeader.title}</h2>
             </div>
           </div>
-          <div className="cards-grid landing-flow-grid mt-6 grid gap-4 md:grid-cols-3">
+          <div className="cards-grid landing-flow-grid relative mt-6 grid gap-4 md:grid-cols-3">
             {flowSteps.map((step, index) => (
-              <article key={`flow-step-${index}`} className="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20">{step.index}</span>
+              <article
+                key={`flow-step-${index}`}
+                className={`rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                  index === 0
+                    ? 'bg-white/88 ring-1 ring-indigo-100'
+                    : index === 1
+                      ? 'bg-white/90 ring-1 ring-cyan-100'
+                      : 'bg-white/92 ring-1 ring-slate-200/80'
+                }`}
+              >
+                <span className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-semibold text-white shadow-lg ${
+                  index === 0
+                    ? 'bg-gradient-to-br from-indigo-500 to-violet-500 shadow-indigo-500/20'
+                    : index === 1
+                      ? 'bg-gradient-to-br from-cyan-500 to-sky-500 shadow-cyan-500/20'
+                      : 'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-500/20'
+                }`}>{step.index}</span>
                 <h2 className="mt-4 text-lg font-semibold tracking-tight text-slate-950">{step.title}</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{step.description}</p>
               </article>
