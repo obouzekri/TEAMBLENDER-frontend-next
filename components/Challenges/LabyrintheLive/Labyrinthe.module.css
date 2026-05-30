@@ -111,16 +111,23 @@
 .gameGrid,
 .miniGrid {
   display: grid;
-  gap: 4px;
 }
 
 .gameGrid {
+  gap: 0;
+  background: #020608;
+  border-radius: 4px;
+  overflow: hidden;
   outline: none;
+}
+
+.miniGrid {
+  gap: 2px;
 }
 
 .gameGrid:focus {
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.55);
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .cols6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
@@ -134,11 +141,10 @@
 .cols14 { grid-template-columns: repeat(14, minmax(0, 1fr)); }
 
 .cell {
-  border: 1px solid rgba(148, 163, 184, 0.25);
   border-style: solid;
   border-color: rgba(12, 18, 28, 0.95);
-  border-radius: 6px;
-  background: rgba(15, 23, 42, 0.55);
+  border-width: 1px;
+  border-radius: 0;
   color: var(--challenge-text-secondary);
   display: inline-flex;
   align-items: center;
@@ -148,6 +154,7 @@
   min-height: 0;
   padding: 0;
   position: relative;
+  transition: filter 0.1s ease;
 }
 
 .cell::after {
@@ -163,6 +170,10 @@ button.cell {
   cursor: pointer;
 }
 
+button.cell:not(:disabled):hover {
+  filter: brightness(1.45);
+}
+
 .cellDisabled {
   cursor: default;
   opacity: 0.82;
@@ -172,16 +183,31 @@ button.cell {
   background: rgba(14, 165, 233, 0.1);
 }
 
-.cellVisited {
-  background: rgba(125, 211, 252, 0.12);
+.cellVisited::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(125, 211, 252, 0.1);
+  pointer-events: none;
+  z-index: 1;
 }
 
-.cellStart {
-  background: rgba(34, 197, 94, 0.18);
+.cellStart::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(34, 197, 94, 0.42);
+  pointer-events: none;
+  z-index: 2;
 }
 
-.cellExit {
-  background: rgba(245, 158, 11, 0.22);
+.cellExit::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(245, 158, 11, 0.52);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .cellTrap {
@@ -199,7 +225,9 @@ button.cell {
 }
 
 .cellPlayer {
-  border-color: rgba(125, 211, 252, 0.8);
+  outline: 2px solid rgba(125, 211, 252, 0.92);
+  outline-offset: -2px;
+  z-index: 3;
 }
 
 .cellTrapFlash,
@@ -235,20 +263,21 @@ button.cell {
 .cellExitBadge {
   position: absolute;
   top: 2px;
-  left: 4px;
-  font-size: 0.52rem;
-  font-weight: 800;
-  letter-spacing: 0.03em;
+  left: 3px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
   line-height: 1;
-  z-index: 2;
+  z-index: 6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 .cellStartBadge {
-  color: #22c55e;
+  color: #4ade80;
 }
 
 .cellExitBadge {
-  color: #f59e0b;
+  color: #fbbf24;
 }
 
 .miniGridList {

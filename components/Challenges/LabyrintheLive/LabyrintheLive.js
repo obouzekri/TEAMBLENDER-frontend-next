@@ -52,40 +52,39 @@ function getMazeCell(maze, row, col) {
   return cell && typeof cell === 'object' ? cell : null;
 }
 
+const WALL_THICK = '9px';
+const OPEN_THICK = '1px';
+const WALL_COLOR = '#020608';
+const OPEN_COLOR = 'rgba(18, 55, 82, 0.22)';
+const FLOOR_BG = 'rgba(20, 56, 84, 0.92)';
+const WALL_CELL_BG = '#030810';
+
 function buildMazeCellStyle(maze, row, col) {
   const cell = getMazeCell(maze, row, col);
   if (!cell) {
     return {
-      borderTopWidth: '6px',
-      borderRightWidth: '6px',
-      borderBottomWidth: '6px',
-      borderLeftWidth: '6px',
-      borderTopColor: 'rgba(12, 18, 28, 0.98)',
-      borderRightColor: 'rgba(12, 18, 28, 0.98)',
-      borderBottomColor: 'rgba(12, 18, 28, 0.98)',
-      borderLeftColor: 'rgba(12, 18, 28, 0.98)',
-      backgroundColor: '#08111d',
-      backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0))',
-      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.03), inset 0 0 18px rgba(0,0,0,0.45)'
+      borderTopWidth: '0',
+      borderRightWidth: '0',
+      borderBottomWidth: '0',
+      borderLeftWidth: '0',
+      backgroundColor: WALL_CELL_BG,
+      backgroundImage: 'none',
+      boxShadow: 'none',
     };
   }
 
-  const openEdges = ['n', 'e', 's', 'w'].reduce((count, key) => count + (cell[key] ? 1 : 0), 0);
-  const density = 4 - openEdges;
-  const wallTone = density >= 3 ? '#1f2937' : density === 2 ? '#111827' : '#0f172a';
-
   return {
-    borderTopWidth: cell.n ? '2px' : '8px',
-    borderRightWidth: cell.e ? '2px' : '8px',
-    borderBottomWidth: cell.s ? '2px' : '8px',
-    borderLeftWidth: cell.w ? '2px' : '8px',
-    borderTopColor: 'rgba(12, 18, 28, 0.98)',
-    borderRightColor: 'rgba(12, 18, 28, 0.98)',
-    borderBottomColor: 'rgba(12, 18, 28, 0.98)',
-    borderLeftColor: 'rgba(12, 18, 28, 0.98)',
-    backgroundColor: wallTone,
-    backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0))',
-    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.03), inset 0 0 14px rgba(0,0,0,0.36)'
+    borderTopWidth: cell.n ? OPEN_THICK : WALL_THICK,
+    borderRightWidth: cell.e ? OPEN_THICK : WALL_THICK,
+    borderBottomWidth: cell.s ? OPEN_THICK : WALL_THICK,
+    borderLeftWidth: cell.w ? OPEN_THICK : WALL_THICK,
+    borderTopColor: cell.n ? OPEN_COLOR : WALL_COLOR,
+    borderRightColor: cell.e ? OPEN_COLOR : WALL_COLOR,
+    borderBottomColor: cell.s ? OPEN_COLOR : WALL_COLOR,
+    borderLeftColor: cell.w ? OPEN_COLOR : WALL_COLOR,
+    backgroundColor: FLOOR_BG,
+    backgroundImage: 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 55%)',
+    boxShadow: 'inset 0 0 6px rgba(0,0,0,0.28)',
   };
 }
 
@@ -238,7 +237,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
     const onKeyDown = (event) => {
       const target = event.target;
       const tagName = String(target?.tagName || '').toLowerCase();
-      if (target?.isContentEditable || ['input', 'textarea', 'select', 'button'].includes(tagName)) {
+      if (target?.isContentEditable || ['input', 'textarea', 'select'].includes(tagName)) {
         return;
       }
 
@@ -265,6 +264,14 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [canMoveSolo, emitEvent]);
+
+  useEffect(() => {
+    if (!canMoveSolo || !gridRef.current) return () => {};
+    const grid = gridRef.current;
+    const preventTouchScroll = (e) => { e.preventDefault(); };
+    grid.addEventListener('touchmove', preventTouchScroll, { passive: false });
+    return () => { grid.removeEventListener('touchmove', preventTouchScroll); };
+  }, [canMoveSolo]);
 
   useEffect(() => {
     if (!socket || !participantId) return () => {};
@@ -422,7 +429,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
       <section className={styles.hero}>
         <div className={styles.headerTitleLine}>
           <span className={styles.headerTitle}>Labyrinthe</span>
-          <span className={styles.headerDescription}>- Orientez l'équipe vers la sortie en évitant les pièges, avec des décisions rapides et coordonnées.</span>
+          <span className={styles.headerDescription}>— PROGRESSEZ ENSEMBLE ET ÉCHAPPEZ AU LABYRINTHE.</span>
         </div>
       </section>
 
