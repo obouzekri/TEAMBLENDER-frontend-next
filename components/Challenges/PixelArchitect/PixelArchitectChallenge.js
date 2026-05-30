@@ -51,6 +51,11 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     ? pixelState.palette
     : ['#2D9CDB', '#27AE60', '#F2C94C'];
   const effectiveColor = selectedColor && palette.includes(selectedColor) ? selectedColor : palette[0];
+  const configuredTemplates = Array.isArray(runtimePayload?.config?.templates) ? runtimePayload.config.templates : [];
+  const selectedTemplateId = String(pixelState?.replication?.templateId || runtimePayload?.config?.replication?.templateId || '').trim();
+  const selectedTemplate = pixelState?.selected_template
+    || configuredTemplates.find((item) => String(item?.id || '').trim() === selectedTemplateId)
+    || null;
 
   const cubesByKey = pixelState?.cubes && typeof pixelState.cubes === 'object' ? pixelState.cubes : {};
   const layers = Array.from({ length: gridZ }, (_, index) => index);
@@ -68,6 +73,35 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     () => resolveChallengeRules(state?.config || runtimePayload?.config),
     [runtimePayload?.config, state?.config]
   );
+
+  const challengeBrief = useMemo(() => {
+    const templateName = String(selectedTemplate?.name || '').trim();
+    const templateDims = selectedTemplate?.max_dims || {};
+    const targetCubes = Number(selectedTemplate?.target_cube_count || pixelState?.max_cubes || 0);
+    const mode = String(pixelState?.mode || runtimePayload?.config?.mode || 'replication').trim().toLowerCase();
+    if (mode === 'creatif') {
+      const theme = String(pixelState?.creative_theme || runtimePayload?.config?.creative?.theme || rulesContent.objective || '').trim();
+      return {
+        title: 'Exemple de livrable',
+        objective: theme ? `Construisez une structure lisible autour du thème: ${theme}.` : 'Construisez une structure lisible autour du thème de l’équipe.',
+        example: 'Exemple: commencez par une base large et stable, puis ajoutez un volume central et un point de repère visuel.',
+        constraints: `Gardez une silhouette simple, visible de loin, avec une palette cohérente sur ${Math.max(1, Number(pixelState?.max_colors || palette.length || 3))} couleur(s).`,
+      };
+    }
+
+    return {
+      title: 'Exemple de livrable',
+      objective: templateName
+        ? `Reproduisez le modèle ${templateName} en respectant les dimensions et les couleurs.`
+        : 'Reproduisez le modèle cible en respectant les dimensions et les couleurs.',
+      example: templateName
+        ? `Exemple: placez d’abord la base du modèle, puis montez la silhouette jusqu’à environ ${targetCubes || 'le volume attendu'} cubes.`
+        : 'Exemple: placez d’abord la base, puis montez la silhouette avant de corriger les détails.',
+      constraints: templateName && templateDims.x && templateDims.y && templateDims.z
+        ? `Modèle: ${templateName} • ${templateDims.x} x ${templateDims.y} x ${templateDims.z} • ${targetCubes || 'volume cible'} cubes.`
+        : `Respectez la grille, la hauteur et la palette autorisée pour garder une structure propre.`,
+    };
+  }, [palette.length, pixelState?.creative_theme, pixelState?.max_colors, pixelState?.max_cubes, pixelState?.mode, pixelState?.replication?.templateId, pixelState?.selected_template, runtimePayload?.config?.creative?.theme, runtimePayload?.config?.mode, runtimePayload?.config?.replication?.templateId, runtimePayload?.config?.templates, rulesContent.objective, selectedTemplate]);
 
   const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat } = useChallengeChat({
     socket,
@@ -108,14 +142,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <div>
+        <div className={styles.headerLine}>
           <h1>Pixel Architect</h1>
           <p>Construisez une structure voxel en equipe sous contraintes.</p>
-        </div>
-        <div className={styles.headerMeta}>
-          <span className={styles.badge}>Mode: {String(pixelState?.mode || 'replication')}</span>
-          <span className={styles.badge}>Collaboration: {String(pixelState?.collaboration_mode || 'standard')}</span>
-          <span className={styles.badge}>Role: {String(pixelState?.viewer_role || (isFacilitator ? 'facilitator' : 'participant'))}</span>
         </div>
       </header>
 
@@ -135,6 +164,27 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             />
           ) : (
             <>
+              <section className={styles.panel}>
+                <div className={styles.panelHead}>
+                  <h2>{challengeBrief.title}</h2>
+                  <p>{challengeBrief.objective}</p>
+                </div>
+                <div className={styles.briefGrid}>
+                  <div className={styles.briefItem}>
+                    <span className={styles.briefLabel}>Ce qu'il faut faire</span>
+                    <strong>{challengeBrief.objective}</strong>
+                  </div>
+                  <div className={styles.briefItem}>
+                    <span className={styles.briefLabel}>Exemple</span>
+                    <p>{challengeBrief.example}</p>
+                  </div>
+                  <div className={styles.briefItem}>
+                    <span className={styles.briefLabel}>Repères</span>
+                    <p>{challengeBrief.constraints}</p>
+                  </div>
+                </div>
+              </section>
+
               <section className={styles.panel}>
                 <div className={styles.panelHead}>
                   <h2>Construction</h2>
@@ -229,20 +279,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
         <aside className={styles.sidebar}>
           <ChallengeTimerCard
-            title="Chrono"
+            title="CHRONO"
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
-            durationSeconds={Number(timer?.duration_seconds || 0)}
+            durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
             status={String(timer?.status || 'idle')}
             progressPercent={progress}
             isFacilitator={isFacilitator}
-            actions={isFacilitator ? (
-              <>
-                <button type="button" className={styles.timerBtn} onClick={() => emitEvent('timer.start')}>Demarrer</button>
-                <button type="button" className={styles.timerBtn} onClick={() => emitEvent('timer.pause')}>Pause</button>
-                <button type="button" className={styles.timerBtn} onClick={() => emitEvent('timer.resume')}>Reprendre</button>
-                <button type="button" className={styles.timerBtn} onClick={() => emitEvent('timer.stop')}>Arreter</button>
-              </>
-            ) : null}
+            collapsible={false}
           />
 
           <section className={styles.panel}>
