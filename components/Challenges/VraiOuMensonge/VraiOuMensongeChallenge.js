@@ -197,15 +197,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
   const remainingSecondsForCard = useMemo(() => {
     const remaining = formatSeconds(remainingMs);
-    if (remaining > 0) {
-      return remaining;
-    }
-
-    const activePhase = ['selecting_statement', 'voting_open', 'reveal_pending', 'round_result'].includes(phase);
-    if (activePhase && phaseDurationSeconds > 0) {
-      return phaseDurationSeconds;
-    }
-
     return remaining;
   }, [phase, phaseDurationSeconds, remainingMs]);
 
@@ -290,7 +281,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         <div className={styles.headerLine}>
           <span className={styles.headerTitle}>Vrai ou Mensonge</span>
           <span className={styles.headerSeparator}>-</span>
-          <span className={styles.headerDescription}>Devinez le vrai du faux et découvrez votre équipe autrement</span>
+          <span className={styles.headerDescription}>DEVINEZ LE VRAI DU FAUX ET DÉCOUVREZ VOTRE ÉQUIPE AUTREMENT</span>
           {phase !== 'waiting_start' ? (
             <>
               <span className={styles.headerSeparator}>-</span>
