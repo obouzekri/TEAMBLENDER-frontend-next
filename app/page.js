@@ -9,7 +9,6 @@ import {
   Briefcase,
   GraduationCap,
   Handshake,
-  LayoutDashboard,
   Quote,
   Rocket,
   ShieldCheck,
@@ -536,45 +535,41 @@ export default function HomePage() {
               ) : null}
             </div>
 
-            <div className="relative">
-              <div className="absolute -inset-4 rounded-[2.2rem] bg-gradient-to-tr from-indigo-200/40 via-white/0 to-cyan-200/30 blur-2xl" />
-              <div className={`${glassCardClass} relative overflow-hidden p-4 sm:p-5`}>
-                <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3 shadow-sm backdrop-blur-sm">
+            <div className="landing-hero-product-shell relative lg:translate-x-8 xl:translate-x-14">
+              <div className="landing-hero-product-wrap">
+                <div className="landing-hero-product-head">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Product preview</p>
-                    <p className="mt-1 text-sm font-medium text-slate-900">TeamBlender live session</p>
+                    <p className="landing-hero-product-label">Product preview</p>
+                    <p className="landing-hero-product-title">Experience live collaborative</p>
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  <div className="landing-hero-product-live">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
                     En direct
                   </div>
                 </div>
 
-                <div className="grid gap-4">
-                  <article className="overflow-hidden rounded-2xl border border-white/70 bg-white/80 shadow-sm">
-                    <img src={heroImageA.image_url} alt={heroImageA.description} loading="lazy" className="h-64 w-full object-cover sm:h-80" />
-                    <div className="space-y-2 p-4">
-                      <div className="flex items-center gap-2 text-base font-semibold text-slate-900">
-                        <LayoutDashboard className="h-4 w-4 text-indigo-500" />
-                        Dashboard facilitateur
-                      </div>
-                      <p className="text-base leading-7 text-slate-600">{heroImageA.description}</p>
-                    </div>
-                  </article>
+                <figure className="landing-hero-product-frame">
+                  <img
+                    src={heroImageA.image_url || '/copuzzle/default-grid.svg'}
+                    alt={heroImageA.description || 'Interface TeamBlender en session live collaborative'}
+                    loading="lazy"
+                    className="landing-hero-product-image"
+                  />
+                </figure>
 
-                  <article className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-md">
-                    <h3 className="text-base font-semibold text-slate-900 sm:text-lg">Ce que vous pilotez en direct</h3>
-                    <div className="mt-4 grid gap-3 text-sm text-slate-700 sm:text-base">
-                      <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3">
-                        <Users className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
-                        <span>{heroImageB.description || 'Coordination des participants en temps reel.'}</span>
-                      </div>
-                      <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3">
-                        <BarChart3 className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
-                        <span>Progression lisible pour le facilitateur et debrief actionnable immediat.</span>
-                      </div>
-                    </div>
-                  </article>
+                <div className="landing-hero-product-signals" aria-label="Signaux en direct">
+                  <span>
+                    <Activity className="h-4 w-4" />
+                    Chrono en direct
+                  </span>
+                  <span>
+                    <Users className="h-4 w-4" />
+                    {heroImageB.description || 'Chat et coordination equipe'}
+                  </span>
+                  <span>
+                    <BarChart3 className="h-4 w-4" />
+                    Progression collaborative instantanee
+                  </span>
                 </div>
               </div>
             </div>
@@ -582,25 +577,27 @@ export default function HomePage() {
         </section>
 
         {impactItems.length > 0 ? (
-          <section className="landing-impact-band reveal-up grid gap-4 md:grid-cols-3" style={{ '--reveal-delay': '90ms' }} aria-label="Indicateurs cles">
-            {impactItems.map((item, index) => (
-              <article key={`impact-${index}`} className={`${glassCardClass} p-6`}>
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/20">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <div>
-                    <strong className="block text-2xl font-semibold tracking-tight text-slate-950">{item.value}</strong>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">{item.description}</p>
+          <section className="landing-impact-band landing-section-full reveal-up" style={{ '--reveal-delay': '90ms' }} aria-label="Indicateurs cles">
+            <div className="landing-section-inner grid gap-4 md:grid-cols-3">
+              {impactItems.map((item, index) => (
+                <article key={`impact-${index}`} className={`${glassCardClass} p-6`}>
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/20">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <div>
+                      <strong className="block text-2xl font-semibold tracking-tight text-slate-950">{item.value}</strong>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">{item.description}</p>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))}
+            </div>
           </section>
         ) : null}
 
         <section
-          className="reveal-up landing-partners relative overflow-hidden rounded-3xl p-7 sm:p-10"
+          className="reveal-up landing-partners landing-section-full relative overflow-hidden p-7 sm:p-10"
           style={{
             '--reveal-delay': '120ms',
             background: 'linear-gradient(180deg, rgba(248,250,252,0.9) 0%, rgba(238,242,255,0.9) 100%)',
@@ -608,7 +605,7 @@ export default function HomePage() {
           aria-label="Confiance et preuve sociale"
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_84%_16%,rgba(99,102,241,0.12),transparent_42%)]" />
-          <div className="relative space-y-8">
+          <div className="landing-section-inner relative space-y-8">
             <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
               <div>
                 <p className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-700">
@@ -655,7 +652,7 @@ export default function HomePage() {
         </section>
 
         <section
-          className="reveal-up landing-testimonials relative overflow-hidden rounded-3xl p-6 sm:p-8"
+          className="reveal-up landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{
             '--reveal-delay': '155ms',
             background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
@@ -663,42 +660,44 @@ export default function HomePage() {
           aria-label="Temoignages clients"
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(99,102,241,0.10),transparent_44%)]" />
-          <div className="panel-head relative">
-            <div>
-              <p className="eyebrow">{testimonialsHeader.label}</p>
-              <h2>{testimonialsHeader.title}</h2>
-              <p>{testimonialsHeader.description}</p>
+          <div className="landing-section-inner relative">
+            <div className="panel-head">
+              <div>
+                <p className="eyebrow">{testimonialsHeader.label}</p>
+                <h2>{testimonialsHeader.title}</h2>
+                <p>{testimonialsHeader.description}</p>
+              </div>
             </div>
-          </div>
-          <div className="cards-grid landing-testimonials-grid relative mt-6 grid gap-4 md:grid-cols-3">
-            {testimonialItems.map((item, index) => (
-              <article
-                key={`${item.title}-${item.subtitle}`}
-                className={`rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                  index === 0
-                    ? 'bg-gradient-to-b from-indigo-50/70 to-white ring-1 ring-indigo-100'
-                    : index === 1
-                      ? 'bg-gradient-to-b from-cyan-50/60 to-white ring-1 ring-cyan-100'
-                      : 'bg-gradient-to-b from-slate-50 to-white ring-1 ring-slate-100'
-                }`}
-              >
-                <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/85 text-indigo-600 shadow-sm">
-                  <Quote className="h-4 w-4" />
-                </div>
-                <p className="text-base leading-7 text-slate-700">“{item.description}”</p>
-                <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-200/80 pt-4">
-                  <div>
-                    <strong className="block text-sm font-semibold text-slate-950">{item.title}</strong>
-                    <span className="text-sm text-slate-500">{item.subtitle}</span>
+            <div className="cards-grid landing-testimonials-grid relative mt-6 grid gap-4 md:grid-cols-3">
+              {testimonialItems.map((item, index) => (
+                <article
+                  key={`${item.title}-${item.subtitle}`}
+                  className={`rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                    index === 0
+                      ? 'bg-gradient-to-b from-indigo-50/70 to-white ring-1 ring-indigo-100'
+                      : index === 1
+                        ? 'bg-gradient-to-b from-cyan-50/60 to-white ring-1 ring-cyan-100'
+                        : 'bg-gradient-to-b from-slate-50 to-white ring-1 ring-slate-100'
+                  }`}
+                >
+                  <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/85 text-indigo-600 shadow-sm">
+                    <Quote className="h-4 w-4" />
                   </div>
-                </div>
-              </article>
-            ))}
+                  <p className="text-base leading-7 text-slate-700">“{item.description}”</p>
+                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-200/80 pt-4">
+                    <div>
+                      <strong className="block text-sm font-semibold text-slate-950">{item.title}</strong>
+                      <span className="text-sm text-slate-500">{item.subtitle}</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
         <section
-          className="reveal-up landing-flow relative overflow-hidden rounded-3xl p-6 sm:p-8"
+          className="reveal-up landing-flow landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{
             '--reveal-delay': '190ms',
             background: 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)',
@@ -706,50 +705,54 @@ export default function HomePage() {
           aria-label="Parcours en 3 etapes"
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(14,165,233,0.10),transparent_40%)]" />
-          <div className="panel-head relative">
-            <div>
-              <p className="eyebrow">{flowHeader.label}</p>
-              <h2>{flowHeader.title}</h2>
+          <div className="landing-section-inner relative">
+            <div className="panel-head">
+              <div>
+                <p className="eyebrow">{flowHeader.label}</p>
+                <h2>{flowHeader.title}</h2>
+              </div>
             </div>
-          </div>
-          <div className="cards-grid landing-flow-grid relative mt-6 grid gap-4 md:grid-cols-3">
-            {flowSteps.map((step, index) => (
-              <article
-                key={`flow-step-${index}`}
-                className={`rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                  index === 0
-                    ? 'bg-white/88 ring-1 ring-indigo-100'
-                    : index === 1
-                      ? 'bg-white/90 ring-1 ring-cyan-100'
-                      : 'bg-white/92 ring-1 ring-slate-200/80'
-                }`}
-              >
-                <span className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-semibold text-white shadow-lg ${
-                  index === 0
-                    ? 'bg-gradient-to-br from-indigo-500 to-violet-500 shadow-indigo-500/20'
-                    : index === 1
-                      ? 'bg-gradient-to-br from-cyan-500 to-sky-500 shadow-cyan-500/20'
-                      : 'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-500/20'
-                }`}>{step.index}</span>
-                <h2 className="mt-4 text-lg font-semibold tracking-tight text-slate-950">{step.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{step.description}</p>
-              </article>
-            ))}
+            <div className="cards-grid landing-flow-grid relative mt-6 grid gap-4 md:grid-cols-3">
+              {flowSteps.map((step, index) => (
+                <article
+                  key={`flow-step-${index}`}
+                  className={`rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                    index === 0
+                      ? 'bg-white/88 ring-1 ring-indigo-100'
+                      : index === 1
+                        ? 'bg-white/90 ring-1 ring-cyan-100'
+                        : 'bg-white/92 ring-1 ring-slate-200/80'
+                  }`}
+                >
+                  <span className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-semibold text-white shadow-lg ${
+                    index === 0
+                      ? 'bg-gradient-to-br from-indigo-500 to-violet-500 shadow-indigo-500/20'
+                      : index === 1
+                        ? 'bg-gradient-to-br from-cyan-500 to-sky-500 shadow-cyan-500/20'
+                        : 'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-500/20'
+                  }`}>{step.index}</span>
+                  <h2 className="mt-4 text-lg font-semibold tracking-tight text-slate-950">{step.title}</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{step.description}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
-        <section className={`${glassCardClass} landing-cta-block reveal-up p-8 text-center`} style={{ '--reveal-delay': '230ms' }} aria-label="Dernier appel a l action">
-          <p className="eyebrow">{finalCta.subtitle || finalCta.label}</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title}</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">{finalCta.description}</p>
-          <div className="hero-actions home-hero-actions landing-cta-actions mt-7 flex flex-wrap justify-center gap-3">
-            <Link href={safeHref(finalCta.cta_href, '/signup')} className={`${pillClass} bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25`}>
-              <span>{finalCta.cta_label}</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link href={safeHref(finalCtaSecondary.cta_href, '/login')} className={`${pillClass} border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}>
-              {finalCtaSecondary.cta_label}
-            </Link>
+        <section className={`landing-cta-block landing-section-full reveal-up p-8 text-center`} style={{ '--reveal-delay': '230ms' }} aria-label="Dernier appel a l action">
+          <div className="landing-section-inner">
+            <p className="eyebrow">{finalCta.subtitle || finalCta.label}</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title}</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">{finalCta.description}</p>
+            <div className="hero-actions home-hero-actions landing-cta-actions mt-7 flex flex-wrap justify-center gap-3">
+              <Link href={safeHref(finalCta.cta_href, '/signup')} className={`${pillClass} bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25`}>
+                <span>{finalCta.cta_label}</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href={safeHref(finalCtaSecondary.cta_href, '/login')} className={`${pillClass} border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}>
+                {finalCtaSecondary.cta_label}
+              </Link>
+            </div>
           </div>
         </section>
       </main>
