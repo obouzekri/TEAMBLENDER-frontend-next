@@ -550,8 +550,8 @@ export default function HomePage() {
 
                 <figure className="landing-hero-product-frame">
                   <img
-                    src={heroImageA.image_url || '/copuzzle/default-grid.svg'}
-                    alt={heroImageA.description || 'Interface TeamBlender en session live collaborative'}
+                    src="/images/labyrinthe-hero.jpg"
+                    alt="Interface TeamBlender Labyrinthe en session live collaborative"
                     loading="lazy"
                     className="landing-hero-product-image"
                   />
