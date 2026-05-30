@@ -293,7 +293,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
         <div className={styles.headerTitleLine}>
           <span className={styles.headerTitle}>Mission Critique</span>
           <span className={styles.headerDescription}>
-            {String(state?.config?.scenario || runtimePayload?.config?.scenario || 'Organiser un séminaire d’entreprise pour 80 personnes.')}
+            {String(state?.config?.scenario || runtimePayload?.config?.scenario || 'Organiser un séminaire d’entreprise pour 80 personnes.').toUpperCase()}
           </span>
         </div>
       </header>

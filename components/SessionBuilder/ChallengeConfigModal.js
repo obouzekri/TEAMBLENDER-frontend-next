@@ -1246,7 +1246,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                 <p className={styles.noConfigText}>Aucune configuration requise pour cette activité.</p>
               )}
 
-              {Object.entries(config || {}).map(([key, value]) => (
+              {Object.entries(config || {}).filter(([key]) => key !== 'rules').map(([key, value]) => (
                 <div key={key} className={styles.configField}>
                   <label htmlFor={key} className={styles.label}>{key}</label>
                   <input

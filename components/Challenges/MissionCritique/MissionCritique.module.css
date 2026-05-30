@@ -348,6 +348,8 @@
 
 .timelineLane {
   min-height: 52px;
+  max-height: 320px;
+  overflow-y: auto;
   border-radius: 10px;
   border: 1px dashed rgba(128, 154, 173, 0.38);
   background: rgba(54, 73, 90, 0.2);
