@@ -493,43 +493,43 @@ export default function HomePage() {
           style={{ '--reveal-delay': '40ms' }}
           aria-label="Presentation TeamBlender"
         >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.14),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(14,165,233,0.12),_transparent_30%)]" />
+          <div className="landing-hero-aurora pointer-events-none absolute inset-0" />
           <div className="landing-hero-inner relative grid gap-6 lg:grid-cols-[1.16fr_0.84fr] lg:items-start">
-            <div className="max-w-3xl">
+            <div className="landing-hero-copy max-w-3xl">
               <div className="mb-5 flex flex-wrap gap-3">
-                <span className={chipClass}>
+                <span className={`${chipClass} landing-hero-kicker-chip`}>
                   <Sparkles className="h-4 w-4 text-indigo-500" />
                   {heroKicker.title || heroMain.label || 'SaaS team building'}
                 </span>
               </div>
 
-              <h1 className="max-w-2xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+              <h1 className="landing-hero-title max-w-2xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
                 <span className="block">{heroMain.title}</span>
-                {heroMain.subtitle ? <span className="mt-2 block bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-700 bg-clip-text text-transparent">{heroMain.subtitle}</span> : null}
+                {heroMain.subtitle ? <span className="landing-hero-subtitle mt-2 block bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-700 bg-clip-text text-transparent">{heroMain.subtitle}</span> : null}
               </h1>
 
-              <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+              <p className="landing-hero-description mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
                 {heroMain.description}
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href={safeHref(heroCtaPrimary.cta_href, '/signup')}
-                  className={`${pillClass} group bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25`}
+                  className={`${pillClass} landing-hero-primary-btn group bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25`}
                 >
                   <span>{heroCtaPrimary.cta_label}</span>
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </Link>
                 <Link
                   href={safeHref(heroCtaSecondary.cta_href, '/contact')}
-                  className={`${pillClass} border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}
+                  className={`${pillClass} landing-hero-secondary-btn border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}
                 >
                   {heroCtaSecondary.cta_label}
                 </Link>
               </div>
 
               {heroTrustItems.length > 0 ? (
-                <p className="mt-8 text-sm font-medium leading-7 text-slate-600 sm:text-base">
+                <p className="landing-hero-trust mt-8 text-sm font-medium leading-7 text-slate-600 sm:text-base">
                   {heroTrustItems.slice(0, 3).join(' • ')}
                 </p>
               ) : null}
