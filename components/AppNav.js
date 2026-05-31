@@ -24,6 +24,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
       : isCompact
         ? 'Session live'
         : 'Espace manager';
+  const navPanelClassName = `nav-panel${isManager ? ' nav-panel--manager' : ''}${isMenuOpen ? ' is-open' : ''}`;
   const userBoxClassName = `app-user-box${isManager ? ' app-user-box--inline' : ''}`;
   const resolvedUserLabel = userLabel || (isParticipant ? 'Participant' : 'Manager');
   const normalizedConnectionState = ['connected', 'reconnecting', 'offline'].includes(String(connectionState || '').trim())
@@ -96,7 +97,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
             <Link href={brandHref} className="brand">
               <Logo size={isCompact ? 'compact' : 'default'} />
             </Link>
-            <span className="nav-context">{contextLabel}</span>
+            {isManager ? null : <span className="nav-context">{contextLabel}</span>}
           </div>
 
           <button
@@ -113,7 +114,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
           </button>
         </div>
 
-        <div id="app-nav-panel" className={`nav-panel ${isMenuOpen ? 'is-open' : ''}`}>
+        <div id="app-nav-panel" className={navPanelClassName}>
           {isParticipant && !isCompact && (
             <div className="nav-main-block">
               <nav className="nav-links" aria-label="Navigation participant">
@@ -139,7 +140,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
                   aria-current={isManagerHome && activeHomeBlock === 'participants' ? 'page' : undefined}
                   onClick={(event) => scrollToHomeBlock(event, 'home-participants-block', 'participants')}
                 >
-                  Participants
+                  Participant
                 </Link>
                 <Link href="/account" className={`nav-link ${isActive('/account') ? 'is-active' : ''}`} aria-current={isActive('/account') ? 'page' : undefined}>Compte</Link>
               </nav>

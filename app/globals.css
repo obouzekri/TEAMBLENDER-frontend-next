@@ -449,27 +449,57 @@ a {
 
 .btn-mini--secondary {
   background: transparent;
-  color: #245146;
+  color: #2f62ff;
+  border: 1px solid rgba(53, 160, 255, 0.24);
+  box-shadow: 0 8px 18px rgba(30, 41, 78, 0.09);
 }
 
 .btn-mini.is-active,
 .btn-mini--secondary.is-active {
-  color: #0b4f49;
-  background: transparent;
-  box-shadow: none;
+  color: #1f46d2;
+  background: rgba(231, 238, 255, 0.8);
+  border-color: rgba(53, 160, 255, 0.38);
+  box-shadow: 0 10px 22px rgba(30, 41, 78, 0.12);
 }
 
 .btn-mini:hover {
   transform: translateY(-1px);
-  color: #0f766e;
+  color: #1f46d2;
+  border-color: rgba(53, 160, 255, 0.38);
+  background: rgba(231, 238, 255, 0.75);
 }
 
 .landing-v2,
 .contact-page,
 .pricing-page,
 .auth-page {
-  padding-top: 1.6rem;
+  padding-top: 0;
   padding-bottom: 3rem;
+}
+
+.top-nav + .landing-v2 {
+  margin-top: 0;
+}
+
+.nav-panel--manager {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+}
+
+.nav-panel--manager .nav-main-block {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.nav-panel--manager .nav-links {
+  flex-wrap: nowrap;
+}
+
+.nav-panel--manager .app-user-box {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .auth-shell {
@@ -1324,13 +1354,13 @@ a {
   text-align: center;
   justify-items: center;
   border-radius: 18px;
-  border: 1px solid rgba(124, 58, 237, 0.2);
-  box-shadow: 0 12px 24px rgba(20, 31, 25, 0.08);
-  background: linear-gradient(135deg, #fbfcf9 0%, #eef7f1 55%, #f5f8fb 100%);
+  border: 1px solid rgba(53, 160, 255, 0.26);
+  box-shadow: 0 12px 24px rgba(30, 41, 78, 0.09);
+  background: linear-gradient(135deg, #f7faff 0%, #edf3ff 58%, #f2f7ff 100%);
 }
 
 .landing-cta-block .eyebrow {
-  color: var(--accent-violet-strong);
+  color: #1f46d2;
 }
 
 .landing-cta-block p {
@@ -1417,14 +1447,14 @@ a {
 }
 
 .landing-hero-primary-btn {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 52%, #3b82f6 100%) !important;
-  box-shadow: 0 20px 50px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(191, 219, 254, 0.28);
+  background: linear-gradient(135deg, #2f62ff 0%, #1f46d2 58%, #35a0ff 100%) !important;
+  box-shadow: 0 20px 50px rgba(47, 98, 255, 0.38), 0 0 0 1px rgba(191, 219, 254, 0.28);
 }
 
 .landing-hero-secondary-btn {
-  border-color: rgba(148, 163, 184, 0.4) !important;
-  background: rgba(15, 23, 42, 0.64) !important;
-  color: #e2e8f0 !important;
+  border-color: rgba(53, 160, 255, 0.38) !important;
+  background: rgba(15, 23, 42, 0.52) !important;
+  color: #dbeafe !important;
 }
 
 .landing-hero-trust {
@@ -2738,8 +2768,8 @@ a {
 
 .site-footer {
   margin-top: 2.5rem;
-  border-top: 1px solid rgba(15, 118, 110, 0.12);
-  background: linear-gradient(180deg, #f5f8f7 0%, #f0f4f4 72%, #f3f3fa 100%);
+  border-top: 1px solid rgba(53, 160, 255, 0.2);
+  background: linear-gradient(180deg, #eef4ff 0%, #e8f0ff 70%, #eaf1ff 100%);
 }
 
 .footer-inner {
@@ -2772,7 +2802,7 @@ a {
   margin: 0;
   font-size: 1rem;
   font-weight: 800;
-  color: var(--accent-strong);
+  color: #1f46d2;
 }
 
 .footer-copy {
@@ -2796,7 +2826,7 @@ a {
 .footer-col p {
   margin: 0 0 0.3rem;
   font-weight: 700;
-  color: #1f4034;
+  color: #233a72;
 }
 
 .footer-col a {
@@ -2805,7 +2835,7 @@ a {
 }
 
 .footer-col a:hover {
-  color: var(--accent-strong);
+  color: #1f46d2;
 }
 
 .app-home {
@@ -2955,16 +2985,17 @@ a {
 }
 
 .home-hero-actions .btn-primary {
-  background: linear-gradient(135deg, var(--home-primary) 0%, var(--home-primary-strong) 100%);
+  background: linear-gradient(135deg, #2f62ff 0%, #1f46d2 100%);
 }
 
 .home-hero-actions .btn-primary:hover {
-  filter: brightness(0.97);
+  filter: brightness(1.04);
 }
 
 .home-hero-actions .btn-secondary {
-  border-color: var(--home-line);
-  background: #fcfefd;
+  border-color: rgba(53, 160, 255, 0.24);
+  background: linear-gradient(180deg, #ffffff 0%, #f3f7ff 100%);
+  color: #2f4fd8;
 }
 
 .stat-card {
@@ -3327,6 +3358,40 @@ a {
 
   .session-live-track .challenge-list-item {
     padding: 0.5rem 0.6rem;
+  }
+}
+
+@media (min-width: 901px) {
+  .nav-panel--manager {
+    grid-template-columns: none;
+  }
+
+  .nav-panel--manager .app-user-box {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .nav-panel--manager {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: visible;
+  }
+
+  .nav-panel--manager .nav-main-block,
+  .nav-panel--manager .app-user-box {
+    width: auto;
+  }
+
+  .nav-panel--manager .app-user-box {
+    border-radius: 999px;
+    padding: 0.28rem 0.42rem 0.28rem 0.62rem;
+  }
+
+  .nav-panel--manager .app-user-box .btn-secondary {
+    padding: 0.4rem 0.66rem;
+    font-size: 0.8rem;
   }
 }
 
