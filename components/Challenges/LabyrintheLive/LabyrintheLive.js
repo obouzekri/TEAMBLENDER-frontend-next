@@ -70,11 +70,11 @@ function getMazeCell(maze, row, col) {
   return cell && typeof cell === 'object' ? cell : null;
 }
 
-const WALL_THICK = '9px';
-const OPEN_THICK = '1px';
-const WALL_COLOR = '#020608';
-const OPEN_COLOR = 'rgba(18, 55, 82, 0.22)';
-const FLOOR_BG = 'rgba(20, 56, 84, 0.92)';
+const WALL_THICK = '1.4px';
+const OPEN_THICK = '0px';
+const WALL_COLOR = 'rgba(248, 250, 252, 0.95)';
+const OPEN_COLOR = 'transparent';
+const FLOOR_BG = 'transparent';
 const WALL_CELL_BG = '#030810';
 
 function buildMazeCellStyle(maze, row, col) {
@@ -180,6 +180,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   const myParticipantState = laby?.parts?.[String(participantId)] || null;
   const revealedCells = laby?.revealed_cells && typeof laby.revealed_cells === 'object' ? laby.revealed_cells : {};
   const revealedTraps = laby?.revealed_traps && typeof laby.revealed_traps === 'object' ? laby.revealed_traps : {};
+  const mazeTrapMap = laby?.maze?.traps && typeof laby.maze.traps === 'object' ? laby.maze.traps : {};
   const revealedWalls = laby?.revealed_walls && typeof laby.revealed_walls === 'object' ? laby.revealed_walls : {};
   const mazeRows = safeInt(laby?.cfg?.rows ?? laby?.cfg?.r, 8, 6, 14);
   const mazeCols = safeInt(laby?.cfg?.cols ?? laby?.cfg?.c, 8, 6, 14);
@@ -241,19 +242,6 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
     });
     return next;
   }, [maze?.safe_path]);
-
-  const otherVisitedKeys = useMemo(() => {
-    const next = new Set();
-    participantEntries.forEach(([id, participant]) => {
-      if (String(id) === String(participantId)) return;
-      const path = Array.isArray(participant?.solo?.path) ? participant.solo.path : [];
-      path.forEach((pos) => {
-        const key = posKey(pos);
-        if (key) next.add(key);
-      });
-    });
-    return next;
-  }, [participantEntries, participantId]);
 
   const myVisited = useMemo(() => {
     const visitedFromState = normalizeVisited(myParticipantState?.solo?.visited || myParticipantState?.solo?.visited_cells || myParticipantState?.visited_cells);
@@ -595,7 +583,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
           ) : (
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
-                <h2>Grille de jeu</h2>
+                <h2>Labyrinthe participant</h2>
                 <div className={styles.livesRow}>
                   <span className={styles.muted}>Vies</span>
                   <strong>{'❤️'.repeat(Math.min(8, Math.max(0, Number(myParticipantState?.lives_remaining || 0)))) || '—'}</strong>
@@ -603,17 +591,16 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
               </div>
 
               <div className={styles.coopStats}>
-                <span>Traces d equipe: {otherVisitedKeys.size}</span>
-                <span>Pieges actifs/deja vus: {Object.keys(revealedTraps).length}</span>
-                <span>Impasse testees: {Object.keys(revealedWalls).length}</span>
+                <span>Mode solo: progression privee</span>
+                <span>Pieges visibles: {Object.keys(mazeTrapMap).length}</span>
+                <span>Murs testes: {Object.keys(revealedWalls).length}</span>
               </div>
 
               <div className={styles.legendRow}>
-                <span className={`${styles.legendChip} ${styles.legendStart}`}>Depart</span>
-                <span className={`${styles.legendChip} ${styles.legendExit}`}>Sortie</span>
-                <span className={`${styles.legendChip} ${styles.legendSafe}`}>Chemin sur</span>
-                <span className={`${styles.legendChip} ${styles.legendTrail}`}>Trace equipe</span>
-                <span className={`${styles.legendChip} ${styles.legendTrap}`}>Danger</span>
+                <span className={`${styles.legendChip} ${styles.legendStart}`}>START</span>
+                <span className={`${styles.legendChip} ${styles.legendExit}`}>EXIT</span>
+                <span className={`${styles.legendChip} ${styles.legendTrap}`}>Piège</span>
+                <span className={`${styles.legendChip} ${styles.legendTrail}`}>Curseur joueur</span>
               </div>
 
               <div
@@ -629,21 +616,19 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                     const key = `${row},${col}`;
                     const classes = [styles.cell];
                     const isVisited = myVisited.has(key);
-                    const hasOtherTrail = otherVisitedKeys.has(key);
                     if (Boolean(revealedCells[key])) classes.push(styles.cellRevealed);
                     if (isVisited) classes.push(styles.cellVisited);
                     if (allStartKeys.has(key)) classes.push(styles.cellStart);
                     if (key !== startCellKey && allStartKeys.has(key)) classes.push(styles.cellStartAlt);
                     if (key === endCellKey) classes.push(styles.cellExit);
-                    if (safePathKeys.has(key)) classes.push(styles.cellSafeLane);
-                    if (hasOtherTrail && key !== playerPosKey) classes.push(styles.cellOtherTrail);
                     if (revealedWalls[key]) classes.push(styles.cellTestedZone);
+                    if (mazeTrapMap[key]) classes.push(styles.cellTrapKnown);
                     if (Boolean(revealedTraps[key])) {
                       const trapStatus = typeof revealedTraps[key] === 'object' ? String(revealedTraps[key]?.state || 'triggered') : 'triggered';
                       if (trapStatus === 'triggered') classes.push(styles.cellTrapTriggered);
                       if (trapStatus === 'resolved') classes.push(styles.cellTrapResolved);
                     }
-                    if (key === playerPosKey) classes.push(styles.cellPlayer);
+                    if (key === playerPosKey) classes.push(styles.cellPlayerCursorCell);
                     if (key === mySpawnKey) classes.push(styles.cellMySpawn);
                     if (flashCellKey === key) classes.push(flashCellTone === 'blocked' ? styles.cellBlockedFlash : styles.cellTrapFlash);
 
@@ -657,8 +642,9 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                         aria-disabled={!canMoveSolo}
                         aria-label={`Case ${row + 1}-${col + 1}`}
                       >
-                        {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>{key === mySpawnKey ? 'Moi' : 'D'}</span> : null}
-                        {key === endCellKey ? <span className={styles.cellExitBadge}>S</span> : null}
+                        {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>START</span> : null}
+                        {key === endCellKey ? <span className={styles.cellExitBadge}>EXIT</span> : null}
+                        {mazeTrapMap[key] ? <span className={styles.cellTrapKnownIcon}>◆</span> : null}
                         {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
                         {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
                         {key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
@@ -682,7 +668,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                   <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveSolo} aria-label="Aller à droite">→</button>
                 </div>
                 <p className={`${styles.moveFeedback} ${moveFeedbackTone === 'success' ? styles.feedbackSuccess : ''}${moveFeedbackTone === 'danger' ? ` ${styles.feedbackDanger}` : ''}${moveFeedbackTone === 'warning' ? ` ${styles.feedbackWarning}` : ''}`}>
-                  {moveFeedback || (canMoveSolo ? 'Suivez les traces de l equipe: un chemin sur existe toujours, mais les raccourcis sont plus dangereux.' : (labyPhase === 'setup' ? 'En attente du lancement de la manche...' : 'Deplacement indisponible pour le moment.'))}
+                  {moveFeedback || (canMoveSolo ? 'Parcourez le maze en solo: une seule sortie est valide.' : (labyPhase === 'setup' ? 'En attente du lancement de la manche...' : 'Deplacement indisponible pour le moment.'))}
                 </p>
               </div>
 
