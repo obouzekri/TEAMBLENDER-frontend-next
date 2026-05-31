@@ -24,6 +24,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
       : isCompact
         ? 'Session live'
         : 'Espace manager';
+  const userBoxClassName = `app-user-box${isManager ? ' app-user-box--inline' : ''}`;
   const resolvedUserLabel = userLabel || (isParticipant ? 'Participant' : 'Manager');
   const normalizedConnectionState = ['connected', 'reconnecting', 'offline'].includes(String(connectionState || '').trim())
     ? String(connectionState).trim()
@@ -124,32 +125,23 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
           {!isParticipant && !isCompact && !isAdmin && (
             <div className="nav-main-block">
               <nav className="nav-links" aria-label="Navigation manager">
-                {isManagerHome ? (
-                  <>
-                    <Link
-                      href="/home#sessions"
-                      className={`nav-link nav-link--section ${activeHomeBlock === 'sessions' ? 'is-active' : ''}`}
-                      aria-current={activeHomeBlock === 'sessions' ? 'page' : undefined}
-                      onClick={(event) => scrollToHomeBlock(event, 'home-sessions-block', 'sessions')}
-                    >
-                      Sessions
-                    </Link>
-                    <Link
-                      href="/home#participants"
-                      className={`nav-link nav-link--section ${activeHomeBlock === 'participants' ? 'is-active' : ''}`}
-                      aria-current={activeHomeBlock === 'participants' ? 'page' : undefined}
-                      onClick={(event) => scrollToHomeBlock(event, 'home-participants-block', 'participants')}
-                    >
-                      Participants
-                    </Link>
-                    <Link href="/account" className={`nav-link ${isActive('/account') ? 'is-active' : ''}`} aria-current={isActive('/account') ? 'page' : undefined}>Compte</Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/home" className={`nav-link ${isActive('/home') ? 'is-active' : ''}`} aria-current={isActive('/home') ? 'page' : undefined}>Tableau de bord</Link>
-                    <Link href="/account" className={`nav-link ${isActive('/account') ? 'is-active' : ''}`} aria-current={isActive('/account') ? 'page' : undefined}>Compte</Link>
-                  </>
-                )}
+                <Link
+                  href="/home#sessions"
+                  className={`nav-link nav-link--section ${(isManagerHome && activeHomeBlock === 'sessions') || (!isActive('/account') && !isManagerHome) ? 'is-active' : ''}`}
+                  aria-current={(isManagerHome && activeHomeBlock === 'sessions') || (!isActive('/account') && !isManagerHome) ? 'page' : undefined}
+                  onClick={(event) => scrollToHomeBlock(event, 'home-sessions-block', 'sessions')}
+                >
+                  Sessions
+                </Link>
+                <Link
+                  href="/home#participants"
+                  className={`nav-link nav-link--section ${isManagerHome && activeHomeBlock === 'participants' ? 'is-active' : ''}`}
+                  aria-current={isManagerHome && activeHomeBlock === 'participants' ? 'page' : undefined}
+                  onClick={(event) => scrollToHomeBlock(event, 'home-participants-block', 'participants')}
+                >
+                  Participants
+                </Link>
+                <Link href="/account" className={`nav-link ${isActive('/account') ? 'is-active' : ''}`} aria-current={isActive('/account') ? 'page' : undefined}>Compte</Link>
               </nav>
             </div>
           )}
@@ -162,7 +154,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
             </div>
           )}
 
-          <div className="app-user-box">
+          <div className={userBoxClassName}>
             <div className="app-user-meta">
               <span className="app-user-name">{resolvedUserLabel}</span>
               {normalizedConnectionState ? (

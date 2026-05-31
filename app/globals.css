@@ -3998,8 +3998,22 @@ a {
   font-weight: 700;
   font-size: 0.9rem;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.app-user-box--inline {
+  white-space: nowrap;
+}
+
+.app-user-box--inline .app-user-meta {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.app-user-box--inline .nav-connection-indicator {
+  margin-top: 0;
 }
 
 .app-user-box .btn-secondary {
@@ -4850,6 +4864,11 @@ a {
   .app-user-meta {
     flex: 0 1 auto;
     min-width: 0;
+  }
+
+  .app-user-box--inline .app-user-meta {
+    flex: 0 0 auto;
+    min-width: max-content;
   }
 
   .footer-inner {
