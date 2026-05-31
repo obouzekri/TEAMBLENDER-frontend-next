@@ -99,8 +99,8 @@
 
 .playerCursor {
   position: absolute;
-  width: 11px;
-  height: 11px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
   background: #38bdf8;
   border: 1px solid #dbeafe;
@@ -118,6 +118,7 @@
   display: flex;
   gap: 0.55rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .moveBtn {
@@ -143,19 +144,20 @@
   transform: translateY(1px) scale(0.98);
 }
 
-.legend {
+.legendInline {
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
+  margin-left: 0.35rem;
 }
 
 .legendItem {
-  font-size: 0.69rem;
+  font-size: 0.74rem;
   color: #cbd5e1;
   border: 1px solid rgba(148, 163, 184, 0.26);
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.5);
-  padding: 3px 8px;
+  padding: 5px 9px;
 }
 
 .feedback {
@@ -173,17 +175,16 @@
   color: #fca5a5;
 }
 
-.markerTop,
+.markerStart,
 .markerBottom {
   position: absolute;
-  transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  padding: 3px 6px;
+  padding: 4px 8px;
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.35);
   background: rgba(2, 6, 13, 0.9);
@@ -191,14 +192,21 @@
   white-space: nowrap;
 }
 
-.markerTop {
-  top: 4px;
+.markerStartTop {
+  transform: translate(-50%, -100%);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.markerStartRight {
+  transform: translateY(-50%);
   cursor: pointer;
   pointer-events: auto;
 }
 
 .markerBottom {
-  bottom: 4px;
+  transform: translate(-50%, 100%);
+  bottom: 28px;
   pointer-events: none;
 }
 
@@ -243,9 +251,14 @@
     min-height: 42px;
   }
 
-  .markerTop,
+  .markerStart,
   .markerBottom {
-    font-size: 8px;
-    padding: 2px 5px;
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+
+  .legendInline {
+    width: 100%;
+    margin-left: 0;
   }
 }

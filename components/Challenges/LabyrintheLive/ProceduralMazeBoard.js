@@ -9,10 +9,10 @@ const DIRS = Object.freeze([
   { key: 'W', dr: 0, dc: -1, opposite: 'E' },
 ]);
 
-const CELL = 14;
-const HALF = 7;
-const PAD_X = 14;
-const PAD_Y = 34;
+const CELL = 35;
+const HALF = 17.5;
+const PAD_X = 28;
+const PAD_Y = 50;
 
 function clampInt(value, fallback, min, max) {
   const parsed = Number.parseInt(value, 10);
@@ -169,28 +169,16 @@ function shortestPath(cells, start, end, blocked = new Set()) {
   return [];
 }
 
-function chooseColumns(cols, count, random, minGap = 3) {
-  const normalizedCount = Math.max(3, Math.min(Math.floor(cols / 2), count));
-  const picked = [];
-  let guard = 0;
+function chooseBoundaryStarts(rows, cols) {
+  const rightRowA = Math.max(1, Math.floor(rows * 0.28));
+  const rightRowB = Math.min(rows - 2, Math.floor(rows * 0.72));
+  const topCol = Math.max(1, Math.min(cols - 2, Math.floor(cols * 0.34)));
 
-  while (picked.length < normalizedCount && guard < 4000) {
-    guard += 1;
-    const candidate = Math.floor(random() * cols);
-    const farEnough = picked.every((value) => Math.abs(value - candidate) >= minGap);
-    if (!farEnough) continue;
-    picked.push(candidate);
-  }
-
-  if (picked.length < normalizedCount) {
-    for (let col = 0; col < cols && picked.length < normalizedCount; col += minGap) {
-      if (picked.every((value) => Math.abs(value - col) >= minGap)) {
-        picked.push(col);
-      }
-    }
-  }
-
-  return [...new Set(picked)].sort((a, b) => a - b);
+  return [
+    [0, topCol],
+    [rightRowA, cols - 1],
+    [rightRowB, cols - 1],
+  ];
 }
 
 function pickFarthestExit(entries, exits) {
@@ -257,17 +245,18 @@ function generateLayout(options) {
   const rows = clampInt(options.rows, 26, 16, 36);
   const cols = clampInt(options.cols, 26, 16, 36);
   const random = mulberry32(hashSeed(options.seed));
-  const entryCount = clampInt(options.entryCount, 5, 3, 7);
   const exitCount = clampInt(options.exitCount, 4, 3, 6);
 
   const cells = buildPerfectMaze(rows, cols, random);
-  const entries = chooseColumns(cols, entryCount, random, 3);
-  const exits = chooseColumns(cols, exitCount, random, 3);
-  const correctEntryCol = entries[Math.floor(random() * entries.length)];
-  const correctExitCol = pickFarthestExit(entries, exits);
+  const entries = chooseBoundaryStarts(rows, cols);
+  const topEntries = entries.filter((entry) => entry[0] === 0);
+  const exits = [Math.max(1, Math.floor(cols * 0.18)), Math.max(2, Math.floor(cols * 0.5)), Math.min(cols - 2, Math.floor(cols * 0.82))];
+  const correctEntry = entries[0];
+  const correctExitCol = pickFarthestExit(topEntries.map((entry) => entry[1]), exits);
 
-  entries.forEach((col) => {
-    cells[0][col].N = true;
+  entries.forEach(([row, col]) => {
+    if (row === 0) cells[row][col].N = true;
+    if (col === cols - 1) cells[row][col].E = true;
   });
 
   exits.forEach((col) => {
@@ -276,7 +265,7 @@ function generateLayout(options) {
 
   hardenWalls(cells, entries, correctExitCol, random);
 
-  const mainPath = shortestPath(cells, [0, correctEntryCol], [rows - 1, correctExitCol]);
+  const mainPath = shortestPath(cells, correctEntry, [rows - 1, correctExitCol]);
   const mainPathKeys = new Set(mainPath.map((pos) => keyOf(pos)));
 
   const traps = new Set();
@@ -328,7 +317,7 @@ function generateLayout(options) {
     cells,
     entries,
     exits,
-    correctEntryCol,
+    correctEntry,
     correctExitCol,
     mainPath,
     traps: [...traps],
@@ -361,8 +350,8 @@ function worldY(row) {
 
 export default function ProceduralMazeBoard({
   seed = 'teamblender-default',
-  rows = 26,
-  cols = 26,
+  rows = 20,
+  cols = 20,
   totalPlayers = 5,
   showTrailByDefault = true,
 }) {
@@ -374,7 +363,7 @@ export default function ProceduralMazeBoard({
   const [lives, setLives] = useState(3);
   const [shake, setShake] = useState(false);
   const [hoveredKey, setHoveredKey] = useState('');
-  const [selectedEntryCol, setSelectedEntryCol] = useState(null);
+  const [selectedStartKey, setSelectedStartKey] = useState('');
   const [position, setPosition] = useState(null);
   const [trail, setTrail] = useState([]);
   const [pulseCursor, setPulseCursor] = useState(false);
@@ -399,17 +388,22 @@ export default function ProceduralMazeBoard({
   const gridHeight = (layout.rows * CELL) + PAD_Y + 24;
   const cursorLeft = position ? worldX(position[1]) : 0;
   const cursorTop = position ? worldY(position[0]) : 0;
-  const correctStart = Number.isInteger(selectedEntryCol) && selectedEntryCol === layout.correctEntryCol;
+  const correctStart = Array.isArray(position)
+    && Array.isArray(layout.correctEntry)
+    && trail.length > 0
+    && position.length > 1
+    && trail[0]?.[0] === layout.correctEntry[0]
+    && trail[0]?.[1] === layout.correctEntry[1];
 
   useEffect(() => {
-    setSelectedEntryCol(null);
+    setSelectedStartKey('');
     setPosition(null);
     setTrail([]);
     setLives(3);
     setFeedback('Choisissez librement une entree en haut, puis tentez d atteindre la seule vraie sortie.');
     setFeedbackTone('neutral');
     setShowSolution(false);
-  }, [refresh, layout.correctEntryCol, layout.correctExitCol]);
+  }, [refresh, layout.correctEntry, layout.correctExitCol]);
 
   function markBad(message) {
     setFeedback(message);
@@ -425,20 +419,19 @@ export default function ProceduralMazeBoard({
     window.setTimeout(() => setPulseCursor(false), 240);
   }
 
-  function chooseEntry(col) {
-    const start = [0, col];
-    setSelectedEntryCol(col);
+  function chooseEntry(start) {
+    setSelectedStartKey(keyOf(start));
     setPosition(start);
     setTrail([start]);
     setLives(3);
-    setFeedback(col === layout.correctEntryCol
+    setFeedback(keyOf(start) === keyOf(layout.correctEntry)
       ? 'Bonne intuition. Cette entree peut mener a la vraie sortie.'
       : 'Entree selectionnee. Attention: certaines entrees menent a des branches tres piegees.');
-    setFeedbackTone(col === layout.correctEntryCol ? 'good' : 'neutral');
+    setFeedbackTone(keyOf(start) === keyOf(layout.correctEntry) ? 'good' : 'neutral');
   }
 
   function tryMove(dir) {
-    if (!position || !Number.isInteger(selectedEntryCol)) {
+    if (!position || !selectedStartKey) {
       markBad('Selectionnez d abord une entree.');
       return;
     }
@@ -464,7 +457,7 @@ export default function ProceduralMazeBoard({
 
     if (trapSet.has(nextKey)) {
       const nextLives = Math.max(0, lives - 1);
-      const restart = [0, selectedEntryCol];
+      const restart = parseKey(selectedStartKey) || layout.correctEntry;
       setLives(nextLives);
       setPosition(restart);
       setTrail([restart]);
@@ -530,7 +523,7 @@ export default function ProceduralMazeBoard({
 
       <div className={styles.metaRow}>
         <span className={styles.metaChip}>Vies: {lives}</span>
-        <span className={styles.metaChip}>Entree: {Number.isInteger(selectedEntryCol) ? selectedEntryCol + 1 : 'a choisir'}</span>
+        <span className={styles.metaChip}>Entree: {selectedStartKey || 'a choisir'}</span>
         <span className={styles.metaChip}>Murs actifs: {layout.rows * layout.cols * 4 - (layout.edgeCount * 2)}</span>
         <span className={styles.metaChip}>Zones piegees: {layout.traps.length}</span>
       </div>
@@ -541,17 +534,18 @@ export default function ProceduralMazeBoard({
         onKeyDown={onKeyDown}
         aria-label="Labyrinthe procedural difficile"
       >
-        {layout.entries.map((col) => {
-          const left = (worldX(col) / gridWidth) * 100;
-          const isGood = col === layout.correctEntryCol;
-          const isSelected = selectedEntryCol === col;
+        {layout.entries.map((start) => {
+          const top = `${worldY(start[0]) - (start[0] === 0 ? 22 : 0)}px`;
+          const left = `${worldX(start[1]) + (start[1] === layout.cols - 1 ? 22 : 0)}px`;
+          const isGood = keyOf(start) === keyOf(layout.correctEntry);
+          const isSelected = selectedStartKey === keyOf(start);
           return (
             <button
-              key={`entry-${col}`}
+              key={`entry-${keyOf(start)}`}
               type="button"
-              className={`${styles.markerTop} ${isGood ? styles.markerGood : styles.markerBad}${isSelected ? ` ${styles.markerSelected}` : ''}`}
-              style={{ left: `${left}%` }}
-              onClick={() => chooseEntry(col)}
+              className={`${styles.markerStart} ${start[0] === 0 ? styles.markerStartTop : styles.markerStartRight} ${isGood ? styles.markerGood : styles.markerBad}${isSelected ? ` ${styles.markerSelected}` : ''}`}
+              style={{ left, top }}
+              onClick={() => chooseEntry(start)}
             >
               START
             </button>
@@ -664,13 +658,12 @@ export default function ProceduralMazeBoard({
         <button type="button" className={styles.moveBtn} onClick={() => tryMove('W')} aria-label="Aller a gauche">←</button>
         <button type="button" className={styles.moveBtn} onClick={() => tryMove('S')} aria-label="Descendre">↓</button>
         <button type="button" className={styles.moveBtn} onClick={() => tryMove('E')} aria-label="Aller a droite">→</button>
-      </div>
-
-      <div className={styles.legend}>
-        <span className={styles.legendItem}>START: libre choix de depart</span>
-        <span className={styles.legendItem}>EXIT: une seule sortie valide</span>
-        <span className={styles.legendItem}>Losange rouge: explosion</span>
-        <span className={styles.legendItem}>Retour arriere bloque</span>
+        <div className={styles.legendInline}>
+          <span className={styles.legendItem}>START</span>
+          <span className={styles.legendItem}>EXIT</span>
+          <span className={styles.legendItem}>Piège</span>
+          <span className={styles.legendItem}>Curseur joueur</span>
+        </div>
       </div>
 
       <p className={`${styles.feedback}${feedbackTone === 'good' ? ` ${styles.feedbackGood}` : ''}${feedbackTone === 'bad' ? ` ${styles.feedbackBad}` : ''}`}>

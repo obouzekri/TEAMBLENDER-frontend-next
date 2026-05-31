@@ -182,8 +182,8 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   const revealedTraps = laby?.revealed_traps && typeof laby.revealed_traps === 'object' ? laby.revealed_traps : {};
   const mazeTrapMap = laby?.maze?.traps && typeof laby.maze.traps === 'object' ? laby.maze.traps : {};
   const revealedWalls = laby?.revealed_walls && typeof laby.revealed_walls === 'object' ? laby.revealed_walls : {};
-  const mazeRows = safeInt(laby?.cfg?.rows ?? laby?.cfg?.r, 8, 6, 14);
-  const mazeCols = safeInt(laby?.cfg?.cols ?? laby?.cfg?.c, 8, 6, 14);
+  const mazeRows = safeInt(laby?.cfg?.rows ?? laby?.cfg?.r, 20, 6, 20);
+  const mazeCols = safeInt(laby?.cfg?.cols ?? laby?.cfg?.c, 20, 6, 20);
   const participantEntries = useMemo(() => Object.entries(laby?.parts || {}), [laby?.parts]);
   const participantNameById = useMemo(() => {
     return participantEntries.reduce((acc, [id, participant]) => {
@@ -429,6 +429,17 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
 
   function handleCellClick(row, col) {
     if (!canMoveSolo) return;
+    const clickedKey = `${row},${col}`;
+    const hasStartedRun = Array.isArray(myParticipantState?.solo?.dec) && myParticipantState.solo.dec.length > 0;
+    const hasMovedAway = Array.isArray(myParticipantState?.solo?.path) && myParticipantState.solo.path.length > 1;
+    if (allStartKeys.has(clickedKey) && !hasStartedRun && !hasMovedAway) {
+      emitEvent('laby.solo.select_start', { pos: [row, col] });
+      setOptimisticPos([row, col]);
+      setMoveFeedback('Point de depart selectionne. Cliquez ensuite sur la case voisine voulue, ou utilisez les commandes.');
+      setMoveFeedbackTone('success');
+      return;
+    }
+
     const currentPos = Array.isArray(optimisticPos)
       ? optimisticPos
       : Array.isArray(myParticipantState?.solo?.pos)
@@ -467,7 +478,7 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
     return '';
   }
 
-  const colsClass = styles[`cols${mazeCols}`] || styles.cols8;
+  const colsClass = styles[`cols${mazeCols}`] || styles.cols20;
 
   return (
     <div className={styles.labyrinthContainer}>
@@ -495,8 +506,8 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
               <div className={styles.proceduralPreviewWrap}>
                 <ProceduralMazeBoard
                   seed={`${runtimePayload?.sessionId || context?.sessionId || 'teamblender-labyrinthe'}:${engineKey || 'labyrinthe_live_v1'}`}
-                  rows={26}
-                  cols={26}
+                  rows={20}
+                  cols={20}
                   participantIndex={Math.max(0, Number(myParticipantState?.slot || 1) - 1)}
                   totalPlayers={Math.max(3, participantEntries.length || 4)}
                 />
@@ -590,19 +601,6 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                 </div>
               </div>
 
-              <div className={styles.coopStats}>
-                <span>Mode solo: progression privee</span>
-                <span>Pieges visibles: {Object.keys(mazeTrapMap).length}</span>
-                <span>Murs testes: {Object.keys(revealedWalls).length}</span>
-              </div>
-
-              <div className={styles.legendRow}>
-                <span className={`${styles.legendChip} ${styles.legendStart}`}>START</span>
-                <span className={`${styles.legendChip} ${styles.legendExit}`}>EXIT</span>
-                <span className={`${styles.legendChip} ${styles.legendTrap}`}>Piège</span>
-                <span className={`${styles.legendChip} ${styles.legendTrail}`}>Curseur joueur</span>
-              </div>
-
               <div
                 className={`${styles.gameGrid} ${colsClass}`}
                 ref={gridRef}
@@ -655,9 +653,17 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
               </div>
 
               <div className={styles.controlDock}>
-                <div className={styles.controlHead}>
-                  <span className={styles.muted}>Commandes</span>
-                  <strong>Fleches, ZQSD/WASD, ou clic</strong>
+                <div className={styles.controlHeadLegendWrap}>
+                  <div className={styles.controlHead}>
+                    <span className={styles.muted}>Commandes</span>
+                    <strong>Fleches, ZQSD/WASD, ou clic</strong>
+                  </div>
+                  <div className={styles.legendRow}>
+                    <span className={`${styles.legendChip} ${styles.legendStart}`}>START</span>
+                    <span className={`${styles.legendChip} ${styles.legendExit}`}>EXIT</span>
+                    <span className={`${styles.legendChip} ${styles.legendTrap}`}>Piège</span>
+                    <span className={`${styles.legendChip} ${styles.legendTrail}`}>Curseur joueur</span>
+                  </div>
                 </div>
                 <div className={styles.directionPad}>
                   <span />
