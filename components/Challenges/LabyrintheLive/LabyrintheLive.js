@@ -7,6 +7,7 @@ import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
+import ProceduralMazeBoard from './ProceduralMazeBoard';
 import styles from './Labyrinthe.module.css';
 
 const LABYRINTHE_RULES_FALLBACK = Object.freeze({
@@ -503,6 +504,15 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                 footnote={rulesContent.footnote}
                 onStart={isFacilitator ? () => emitEvent('timer.start') : null}
               />
+              <div className={styles.proceduralPreviewWrap}>
+                <ProceduralMazeBoard
+                  seed={`${runtimePayload?.sessionId || context?.sessionId || 'teamblender-labyrinthe'}:${engineKey || 'labyrinthe_live_v1'}`}
+                  rows={20}
+                  cols={20}
+                  participantIndex={Math.max(0, Number(myParticipantState?.slot || 1) - 1)}
+                  totalPlayers={Math.max(3, participantEntries.length || 4)}
+                />
+              </div>
               {error ? <p className={styles.error}>{error}</p> : null}
             </section>
           ) : isFacilitator ? (
