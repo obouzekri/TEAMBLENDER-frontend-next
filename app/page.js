@@ -600,7 +600,7 @@ export default function HomePage() {
           className="reveal-up landing-partners landing-section-full relative overflow-hidden p-7 sm:p-10"
           style={{
             '--reveal-delay': '120ms',
-            background: 'linear-gradient(180deg, rgba(248,250,252,0.9) 0%, rgba(238,242,255,0.9) 100%)',
+            background: 'linear-gradient(180deg, rgba(246,249,255,0.94) 0%, rgba(237,244,255,0.94) 100%)',
           }}
           aria-label="Confiance et preuve sociale"
         >
@@ -655,7 +655,7 @@ export default function HomePage() {
           className="reveal-up landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{
             '--reveal-delay': '155ms',
-            background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+            background: 'linear-gradient(180deg, #ffffff 0%, #f3f7ff 100%)',
           }}
           aria-label="Temoignages clients"
         >
@@ -700,7 +700,7 @@ export default function HomePage() {
           className="reveal-up landing-flow landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{
             '--reveal-delay': '190ms',
-            background: 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)',
+            background: 'linear-gradient(180deg, #f4f8ff 0%, #ecf2ff 100%)',
           }}
           aria-label="Parcours en 3 etapes"
         >
