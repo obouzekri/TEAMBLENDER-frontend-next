@@ -507,8 +507,8 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
               <div className={styles.proceduralPreviewWrap}>
                 <ProceduralMazeBoard
                   seed={`${runtimePayload?.sessionId || context?.sessionId || 'teamblender-labyrinthe'}:${engineKey || 'labyrinthe_live_v1'}`}
-                  rows={20}
-                  cols={20}
+                  rows={26}
+                  cols={26}
                   participantIndex={Math.max(0, Number(myParticipantState?.slot || 1) - 1)}
                   totalPlayers={Math.max(3, participantEntries.length || 4)}
                 />

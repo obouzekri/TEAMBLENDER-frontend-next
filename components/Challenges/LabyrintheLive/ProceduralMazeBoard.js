@@ -9,6 +9,11 @@ const DIRS = Object.freeze([
   { key: 'W', dr: 0, dc: -1, opposite: 'E' },
 ]);
 
+const CELL = 14;
+const HALF = 7;
+const PAD_X = 14;
+const PAD_Y = 34;
+
 function clampInt(value, fallback, min, max) {
   const parsed = Number.parseInt(value, 10);
   const normalized = Number.isInteger(parsed) ? parsed : fallback;
@@ -46,27 +51,14 @@ function hashSeed(value) {
   return hash >>> 0;
 }
 
-function buildGrid(rows, cols) {
-  return Array.from({ length: rows }, () => (
-    Array.from({ length: cols }, () => ({ N: false, E: false, S: false, W: false }))
-  ));
-}
-
 function inBounds(rows, cols, row, col) {
   return row >= 0 && row < rows && col >= 0 && col < cols;
 }
 
-function openPassage(cells, a, b) {
-  const rows = cells.length;
-  const cols = cells[0]?.length || 0;
-  if (!inBounds(rows, cols, a[0], a[1]) || !inBounds(rows, cols, b[0], b[1])) return false;
-  const dr = b[0] - a[0];
-  const dc = b[1] - a[1];
-  const edge = DIRS.find((dir) => dir.dr === dr && dir.dc === dc);
-  if (!edge) return false;
-  cells[a[0]][a[1]][edge.key] = true;
-  cells[b[0]][b[1]][edge.opposite] = true;
-  return true;
+function buildGrid(rows, cols) {
+  return Array.from({ length: rows }, () => (
+    Array.from({ length: cols }, () => ({ N: false, E: false, S: false, W: false }))
+  ));
 }
 
 function neighborsFrom(cells, row, col) {
@@ -74,35 +66,49 @@ function neighborsFrom(cells, row, col) {
   const cols = cells[0]?.length || 0;
   const cell = cells[row]?.[col];
   if (!cell) return [];
+
   return DIRS
     .filter((dir) => cell[dir.key])
     .map((dir) => [row + dir.dr, col + dir.dc])
     .filter(([nr, nc]) => inBounds(rows, cols, nr, nc));
 }
 
-function chooseColumns(cols, count, rng) {
-  const normalizedCount = Math.max(2, Math.min(Math.floor(cols / 2), count));
-  const step = cols / (normalizedCount + 1);
-  const picked = [];
+function openPassage(cells, a, b) {
+  const rows = cells.length;
+  const cols = cells[0]?.length || 0;
+  if (!inBounds(rows, cols, a[0], a[1]) || !inBounds(rows, cols, b[0], b[1])) return false;
 
-  for (let i = 1; i <= normalizedCount; i += 1) {
-    const jitter = Math.round((rng() - 0.5) * Math.max(1, step * 0.4));
-    const col = Math.max(0, Math.min(cols - 1, Math.round(i * step) + jitter));
-    picked.push(col);
-  }
+  const dr = b[0] - a[0];
+  const dc = b[1] - a[1];
+  const edge = DIRS.find((dir) => dir.dr === dr && dir.dc === dc);
+  if (!edge) return false;
 
-  const unique = [...new Set(picked)].sort((a, b) => a - b);
-  while (unique.length < normalizedCount) {
-    unique.push(Math.floor(rng() * cols));
-  }
-  return [...new Set(unique)].sort((a, b) => a - b);
+  cells[a[0]][a[1]][edge.key] = true;
+  cells[b[0]][b[1]][edge.opposite] = true;
+  return true;
 }
 
-function buildPerfectMaze(rows, cols, rng) {
+function closePassage(cells, a, b) {
+  const rows = cells.length;
+  const cols = cells[0]?.length || 0;
+  if (!inBounds(rows, cols, a[0], a[1]) || !inBounds(rows, cols, b[0], b[1])) return false;
+
+  const dr = b[0] - a[0];
+  const dc = b[1] - a[1];
+  const edge = DIRS.find((dir) => dir.dr === dr && dir.dc === dc);
+  if (!edge) return false;
+
+  cells[a[0]][a[1]][edge.key] = false;
+  cells[b[0]][b[1]][edge.opposite] = false;
+  return true;
+}
+
+function buildPerfectMaze(rows, cols, random) {
   const cells = buildGrid(rows, cols);
   const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
-  const stack = [[0, Math.floor(rng() * cols)]];
-  visited[stack[0][0]][stack[0][1]] = true;
+  const start = [0, Math.floor(random() * cols)];
+  const stack = [start];
+  visited[start[0]][start[1]] = true;
 
   while (stack.length > 0) {
     const [row, col] = stack[stack.length - 1];
@@ -115,7 +121,7 @@ function buildPerfectMaze(rows, cols, rng) {
       continue;
     }
 
-    const next = candidates[Math.floor(rng() * candidates.length)];
+    const next = candidates[Math.floor(random() * candidates.length)];
     cells[row][col][next.key] = true;
     cells[next.nr][next.nc][next.opposite] = true;
     visited[next.nr][next.nc] = true;
@@ -125,10 +131,11 @@ function buildPerfectMaze(rows, cols, rng) {
   return cells;
 }
 
-function shortestPath(cells, start, end) {
+function shortestPath(cells, start, end, blocked = new Set()) {
   const startKey = keyOf(start);
   const endKey = keyOf(end);
-  if (!startKey || !endKey) return [];
+  if (!startKey || !endKey || blocked.has(startKey) || blocked.has(endKey)) return [];
+
   const queue = [start];
   const seen = new Set([startKey]);
   const parent = new Map();
@@ -136,6 +143,7 @@ function shortestPath(cells, start, end) {
   while (queue.length > 0) {
     const current = queue.shift();
     const currentKey = keyOf(current);
+
     if (currentKey === endKey) {
       const path = [];
       let cursor = currentKey;
@@ -151,7 +159,7 @@ function shortestPath(cells, start, end) {
 
     neighborsFrom(cells, current[0], current[1]).forEach((next) => {
       const nextKey = keyOf(next);
-      if (seen.has(nextKey)) return;
+      if (!nextKey || seen.has(nextKey) || blocked.has(nextKey)) return;
       seen.add(nextKey);
       parent.set(nextKey, currentKey);
       queue.push(next);
@@ -161,98 +169,157 @@ function shortestPath(cells, start, end) {
   return [];
 }
 
-function carveCorridor(cells, from, to) {
-  const current = [from[0], from[1]];
-  while (current[0] !== to[0]) {
-    const step = current[0] < to[0] ? 1 : -1;
-    const next = [current[0] + step, current[1]];
-    openPassage(cells, current, next);
-    current[0] = next[0];
+function chooseColumns(cols, count, random, minGap = 3) {
+  const normalizedCount = Math.max(3, Math.min(Math.floor(cols / 2), count));
+  const picked = [];
+  let guard = 0;
+
+  while (picked.length < normalizedCount && guard < 4000) {
+    guard += 1;
+    const candidate = Math.floor(random() * cols);
+    const farEnough = picked.every((value) => Math.abs(value - candidate) >= minGap);
+    if (!farEnough) continue;
+    picked.push(candidate);
   }
-  while (current[1] !== to[1]) {
-    const step = current[1] < to[1] ? 1 : -1;
-    const next = [current[0], current[1] + step];
-    openPassage(cells, current, next);
-    current[1] = next[1];
+
+  if (picked.length < normalizedCount) {
+    for (let col = 0; col < cols && picked.length < normalizedCount; col += minGap) {
+      if (picked.every((value) => Math.abs(value - col) >= minGap)) {
+        picked.push(col);
+      }
+    }
   }
+
+  return [...new Set(picked)].sort((a, b) => a - b);
 }
 
-function countBranching(cells, row, col) {
+function pickFarthestExit(entries, exits) {
+  if (exits.length === 0) return 0;
+  return exits
+    .map((candidate) => {
+      const minDistance = entries.reduce((min, entry) => Math.min(min, Math.abs(candidate - entry)), Number.POSITIVE_INFINITY);
+      return { candidate, minDistance };
+    })
+    .sort((a, b) => b.minDistance - a.minDistance)[0].candidate;
+}
+
+function countBranches(cells, row, col) {
   return neighborsFrom(cells, row, col).length;
 }
 
+function edgeCount(cells) {
+  let total = 0;
+  for (let row = 0; row < cells.length; row += 1) {
+    for (let col = 0; col < cells[0].length; col += 1) {
+      if (cells[row][col].E) total += 1;
+      if (cells[row][col].S) total += 1;
+    }
+  }
+  return total;
+}
+
+function canStillReachExit(cells, entries, exitCol) {
+  const end = [cells.length - 1, exitCol];
+  return entries.some((entry) => shortestPath(cells, [0, entry], end).length > 0);
+}
+
+function hardenWalls(cells, entries, exitCol, random) {
+  const rows = cells.length;
+  const cols = cells[0]?.length || 0;
+  const candidates = [];
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      if (col + 1 < cols && cells[row][col].E) candidates.push([[row, col], [row, col + 1]]);
+      if (row + 1 < rows && cells[row][col].S) candidates.push([[row, col], [row + 1, col]]);
+    }
+  }
+
+  const targetClosures = Math.max(0, Math.floor(candidates.length * 0.14));
+  let closed = 0;
+
+  while (candidates.length > 0 && closed < targetClosures) {
+    const index = Math.floor(random() * candidates.length);
+    const [a, b] = candidates[index];
+    candidates.splice(index, 1);
+
+    closePassage(cells, a, b);
+    if (!canStillReachExit(cells, entries, exitCol)) {
+      openPassage(cells, a, b);
+      continue;
+    }
+
+    closed += 1;
+  }
+}
+
 function generateLayout(options) {
-  const rows = clampInt(options.rows, 20, 10, 28);
-  const cols = clampInt(options.cols, 20, 10, 30);
+  const rows = clampInt(options.rows, 26, 16, 36);
+  const cols = clampInt(options.cols, 26, 16, 36);
   const random = mulberry32(hashSeed(options.seed));
-  const entryCount = clampInt(options.entryCount, 4, 3, 6);
+  const entryCount = clampInt(options.entryCount, 5, 3, 7);
   const exitCount = clampInt(options.exitCount, 4, 3, 6);
 
   const cells = buildPerfectMaze(rows, cols, random);
-
-  const entries = chooseColumns(cols, entryCount, random);
-  const exits = chooseColumns(cols, exitCount, random);
+  const entries = chooseColumns(cols, entryCount, random, 3);
+  const exits = chooseColumns(cols, exitCount, random, 3);
   const correctEntryCol = entries[Math.floor(random() * entries.length)];
-  const correctExitCol = exits[Math.floor(random() * exits.length)];
+  const correctExitCol = pickFarthestExit(entries, exits);
 
   entries.forEach((col) => {
     cells[0][col].N = true;
   });
+
   exits.forEach((col) => {
     cells[rows - 1][col].S = true;
   });
 
-  let mainPath = shortestPath(cells, [0, correctEntryCol], [rows - 1, correctExitCol]);
-  if (mainPath.length > 8) {
-    const first = mainPath[Math.floor(mainPath.length * 0.3)];
-    const second = mainPath[Math.floor(mainPath.length * 0.7)];
-    const linkA = [Math.max(0, first[0] - 1), Math.max(0, first[1] - 2)];
-    const linkB = [Math.min(rows - 1, second[0] + 1), Math.min(cols - 1, second[1] + 2)];
-    carveCorridor(cells, first, linkB);
-    carveCorridor(cells, second, linkA);
-  }
+  hardenWalls(cells, entries, correctExitCol, random);
 
-  mainPath = shortestPath(cells, [0, correctEntryCol], [rows - 1, correctExitCol]);
-  const mainPathKeySet = new Set(mainPath.map((cell) => keyOf(cell)));
+  const mainPath = shortestPath(cells, [0, correctEntryCol], [rows - 1, correctExitCol]);
+  const mainPathKeys = new Set(mainPath.map((pos) => keyOf(pos)));
 
-  const trapKeys = new Set();
-  const branchCandidateIndexes = [];
+  const traps = new Set();
+  const branchIndexes = [];
   for (let i = 2; i < mainPath.length - 2; i += 1) {
-    branchCandidateIndexes.push(i);
+    branchIndexes.push(i);
   }
 
-  const wrongBranchTarget = Math.min(6, Math.max(3, Math.floor(mainPath.length * 0.12)));
-  while (branchCandidateIndexes.length > 0 && trapKeys.size < wrongBranchTarget) {
-    const index = Math.floor(random() * branchCandidateIndexes.length);
-    const pathIndex = branchCandidateIndexes[index];
-    branchCandidateIndexes.splice(index, 1);
+  const trapTarget = Math.max(18, Math.floor((rows * cols) * 0.14));
+
+  while (branchIndexes.length > 0 && traps.size < trapTarget) {
+    const idx = Math.floor(random() * branchIndexes.length);
+    const pathIndex = branchIndexes[idx];
+    branchIndexes.splice(idx, 1);
 
     const pivot = mainPath[pathIndex];
-    const prev = keyOf(mainPath[pathIndex - 1]);
-    const next = keyOf(mainPath[pathIndex + 1]);
+    const prevKey = keyOf(mainPath[pathIndex - 1]);
+    const nextKey = keyOf(mainPath[pathIndex + 1]);
+
     const wrongNeighbors = neighborsFrom(cells, pivot[0], pivot[1])
       .map((pos) => ({ pos, key: keyOf(pos) }))
-      .filter((entry) => entry.key !== prev && entry.key !== next);
+      .filter((entry) => entry.key !== prevKey && entry.key !== nextKey)
+      .filter((entry) => !mainPathKeys.has(entry.key));
 
     wrongNeighbors.forEach((entry) => {
-      if (!mainPathKeySet.has(entry.key) && trapKeys.size < wrongBranchTarget + 2) {
-        trapKeys.add(entry.key);
-      }
+      if (traps.size < trapTarget) traps.add(entry.key);
     });
   }
 
-  for (let row = 0; row < rows; row += 1) {
+  for (let row = 1; row < rows - 1; row += 1) {
     for (let col = 0; col < cols; col += 1) {
-      const pos = [row, col];
-      const key = keyOf(pos);
-      if (mainPathKeySet.has(key)) continue;
-      if (entries.includes(col) && row < 2) continue;
-      if (exits.includes(col) && row > rows - 3) continue;
-      const branching = countBranching(cells, row, col);
-      if (branching === 1 && random() > 0.78) {
-        trapKeys.add(key);
+      const key = `${row},${col}`;
+      if (mainPathKeys.has(key)) continue;
+      if (traps.has(key)) continue;
+
+      const branchCount = countBranches(cells, row, col);
+      if ((branchCount <= 1 && random() > 0.52) || (branchCount === 2 && random() > 0.86)) {
+        traps.add(key);
       }
+
+      if (traps.size >= trapTarget) break;
     }
+    if (traps.size >= trapTarget) break;
   }
 
   return {
@@ -264,7 +331,8 @@ function generateLayout(options) {
     correctEntryCol,
     correctExitCol,
     mainPath,
-    traps: [...trapKeys],
+    traps: [...traps],
+    edgeCount: edgeCount(cells),
   };
 }
 
@@ -278,108 +346,144 @@ function movePos(pos, dir) {
 
 function canMove(cells, pos, dir) {
   const cell = cells[pos[0]]?.[pos[1]];
-  if (!cell) return false;
-  if (!cell[dir]) return false;
+  if (!cell || !cell[dir]) return false;
   const next = movePos(pos, dir);
-  return next[0] >= 0 && next[0] < cells.length && next[1] >= 0 && next[1] < cells[0].length;
+  return inBounds(cells.length, cells[0].length, next[0], next[1]);
+}
+
+function worldX(col) {
+  return PAD_X + col * CELL;
+}
+
+function worldY(row) {
+  return PAD_Y + row * CELL;
 }
 
 export default function ProceduralMazeBoard({
   seed = 'teamblender-default',
-  rows = 20,
-  cols = 20,
-  participantIndex = 0,
-  totalPlayers = 4,
+  rows = 26,
+  cols = 26,
+  totalPlayers = 5,
   showTrailByDefault = true,
 }) {
   const [refresh, setRefresh] = useState(0);
   const [showTrail, setShowTrail] = useState(showTrailByDefault);
   const [showSolution, setShowSolution] = useState(false);
-  const [feedback, setFeedback] = useState('Choisissez un chemin: 1 bonne direction, les autres peuvent pieger.');
+  const [feedback, setFeedback] = useState('Choisissez librement une entree en haut, puis tentez d atteindre la seule vraie sortie.');
   const [feedbackTone, setFeedbackTone] = useState('neutral');
   const [lives, setLives] = useState(3);
   const [shake, setShake] = useState(false);
   const [hoveredKey, setHoveredKey] = useState('');
+  const [selectedEntryCol, setSelectedEntryCol] = useState(null);
+  const [position, setPosition] = useState(null);
+  const [trail, setTrail] = useState([]);
+  const [pulseCursor, setPulseCursor] = useState(false);
 
   const layout = useMemo(() => {
     return generateLayout({
       rows,
       cols,
-      entryCount: Math.max(3, Math.min(6, clampInt(totalPlayers, 4, 3, 12))),
+      entryCount: Math.max(4, Math.min(7, clampInt(totalPlayers, 5, 3, 12))),
       exitCount: 4,
       seed: `${seed}:${refresh}`,
     });
   }, [rows, cols, totalPlayers, seed, refresh]);
 
-  const assignedEntryCol = layout.entries[Math.abs(Number(participantIndex) || 0) % layout.entries.length];
-  const startPos = useMemo(() => [0, assignedEntryCol], [assignedEntryCol]);
-  const correctStart = assignedEntryCol === layout.correctEntryCol;
+  const trapSet = useMemo(() => new Set(layout.traps), [layout.traps]);
+  const trailSet = useMemo(() => new Set(trail.map((cell) => keyOf(cell))), [trail]);
+  const solutionPoints = useMemo(() => (
+    layout.mainPath.map((cell) => `${worldX(cell[1])},${worldY(cell[0])}`).join(' ')
+  ), [layout.mainPath]);
 
-  const [position, setPosition] = useState(startPos);
-  const [trail, setTrail] = useState([startPos]);
+  const gridWidth = (layout.cols * CELL) + (PAD_X * 2);
+  const gridHeight = (layout.rows * CELL) + PAD_Y + 24;
+  const cursorLeft = position ? worldX(position[1]) : 0;
+  const cursorTop = position ? worldY(position[0]) : 0;
+  const correctStart = Number.isInteger(selectedEntryCol) && selectedEntryCol === layout.correctEntryCol;
 
   useEffect(() => {
-    setPosition(startPos);
-    setTrail([startPos]);
+    setSelectedEntryCol(null);
+    setPosition(null);
+    setTrail([]);
     setLives(3);
-    setFeedback(correctStart
-      ? 'Votre entree est potentiellement la bonne. Restez vigilant aux faux choix.'
-      : 'Faux depart possible: votre entree est differente de l entree optimale.');
-    setFeedbackTone(correctStart ? 'good' : 'bad');
-  }, [startPos, correctStart, refresh]);
-
-  const trapSet = useMemo(() => new Set(layout.traps), [layout.traps]);
-  const trailSet = useMemo(() => new Set(trail.map((pos) => keyOf(pos))), [trail]);
-  const solutionPoints = useMemo(() => layout.mainPath.map((pos) => `${10 + pos[1] * 18},${28 + pos[0] * 18}`).join(' '), [layout.mainPath]);
-
-  const gridWidth = layout.cols * 18 + 20;
-  const gridHeight = layout.rows * 18 + 56;
+    setFeedback('Choisissez librement une entree en haut, puis tentez d atteindre la seule vraie sortie.');
+    setFeedbackTone('neutral');
+    setShowSolution(false);
+  }, [refresh, layout.correctEntryCol, layout.correctExitCol]);
 
   function markBad(message) {
     setFeedback(message);
     setFeedbackTone('bad');
     setShake(true);
-    window.setTimeout(() => setShake(false), 250);
+    window.setTimeout(() => setShake(false), 240);
+  }
+
+  function markGood(message) {
+    setFeedback(message);
+    setFeedbackTone('good');
+    setPulseCursor(true);
+    window.setTimeout(() => setPulseCursor(false), 240);
+  }
+
+  function chooseEntry(col) {
+    const start = [0, col];
+    setSelectedEntryCol(col);
+    setPosition(start);
+    setTrail([start]);
+    setLives(3);
+    setFeedback(col === layout.correctEntryCol
+      ? 'Bonne intuition. Cette entree peut mener a la vraie sortie.'
+      : 'Entree selectionnee. Attention: certaines entrees menent a des branches tres piegees.');
+    setFeedbackTone(col === layout.correctEntryCol ? 'good' : 'neutral');
   }
 
   function tryMove(dir) {
+    if (!position || !Number.isInteger(selectedEntryCol)) {
+      markBad('Selectionnez d abord une entree.');
+      return;
+    }
     if (lives <= 0) {
-      markBad('Plus de vies: regenerez le labyrinthe pour rejouer.');
+      markBad('Plus de vies. Regenerer ou changer d entree.');
       return;
     }
     if (!canMove(layout.cells, position, dir)) {
-      markBad('Mur bloquant: mauvaise direction.');
+      markBad('Mur bloquant. Direction invalide.');
       return;
     }
 
     const next = movePos(position, dir);
     const nextKey = keyOf(next);
+
+    if (trailSet.has(nextKey)) {
+      markBad('Retour arriere bloque: ce couloir se referme derriere vous.');
+      return;
+    }
+
     setPosition(next);
     setTrail((prev) => [...prev, next]);
 
     if (trapSet.has(nextKey)) {
       const nextLives = Math.max(0, lives - 1);
+      const restart = [0, selectedEntryCol];
       setLives(nextLives);
-      setPosition(startPos);
-      setTrail((prev) => [...prev, startPos]);
+      setPosition(restart);
+      setTrail([restart]);
       markBad(nextLives > 0
-        ? 'Zone piegee detectee: explosion visuelle et retour au depart.'
-        : 'Explosion fatale: toutes les vies sont perdues.');
+        ? 'Explosion detectee: vie perdue et retour entree.'
+        : 'Explosion critique: toutes les vies sont perdues.');
       return;
     }
 
     if (next[0] === layout.rows - 1 && layout.exits.includes(next[1])) {
       if (next[1] === layout.correctExitCol && correctStart) {
-        setFeedback('Sortie valide: excellent parcours.');
-        setFeedbackTone('good');
+        markGood('Sortie valide atteinte. Parcours strategique reussi.');
       } else {
-        markBad('Sortie leurre: ce n est pas la bonne issue.');
+        markBad('Fausse sortie: ce chemin etait un leurre.');
       }
       return;
     }
 
-    setFeedback('Progression valide. Attention aux prochains embranchements.');
-    setFeedbackTone('neutral');
+    markGood('Mouvement valide. Restez vigilant aux faux embranchements.');
   }
 
   function onKeyDown(event) {
@@ -404,7 +508,7 @@ export default function ProceduralMazeBoard({
   return (
     <section className={styles.boardRoot}>
       <div className={styles.boardHead}>
-        <h3 className={styles.boardTitle}>Preview Procedural: multi-entrees, multi-sorties, faux choix</h3>
+        <h3 className={styles.boardTitle}>Maze Hard Mode: entrees libres, sortie unique, pieges denses</h3>
         <div className={styles.toolbar}>
           <button type="button" className={styles.toolBtn} onClick={() => setRefresh((v) => v + 1)}>Regenerer</button>
           <button
@@ -426,32 +530,36 @@ export default function ProceduralMazeBoard({
 
       <div className={styles.metaRow}>
         <span className={styles.metaChip}>Vies: {lives}</span>
-        <span className={styles.metaChip}>Entree assignee: {assignedEntryCol + 1}</span>
-        <span className={styles.metaChip}>Mode: progression solo independante</span>
+        <span className={styles.metaChip}>Entree: {Number.isInteger(selectedEntryCol) ? selectedEntryCol + 1 : 'a choisir'}</span>
+        <span className={styles.metaChip}>Murs actifs: {layout.rows * layout.cols * 4 - (layout.edgeCount * 2)}</span>
+        <span className={styles.metaChip}>Zones piegees: {layout.traps.length}</span>
       </div>
 
       <div
         className={`${styles.viewport}${shake ? ` ${styles.badPulse}` : ''}`}
         tabIndex={0}
         onKeyDown={onKeyDown}
-        aria-label="Labyrinthe procedural interactif"
+        aria-label="Labyrinthe procedural difficile"
       >
         {layout.entries.map((col) => {
-          const left = ((10 + col * 18) / gridWidth) * 100;
+          const left = (worldX(col) / gridWidth) * 100;
           const isGood = col === layout.correctEntryCol;
+          const isSelected = selectedEntryCol === col;
           return (
-            <span
+            <button
               key={`entry-${col}`}
-              className={`${styles.markerTop} ${isGood ? styles.markerGood : styles.markerBad}`}
+              type="button"
+              className={`${styles.markerTop} ${isGood ? styles.markerGood : styles.markerBad}${isSelected ? ` ${styles.markerSelected}` : ''}`}
               style={{ left: `${left}%` }}
+              onClick={() => chooseEntry(col)}
             >
-              IN
-            </span>
+              START
+            </button>
           );
         })}
 
         {layout.exits.map((col) => {
-          const left = ((10 + col * 18) / gridWidth) * 100;
+          const left = (worldX(col) / gridWidth) * 100;
           const isGood = col === layout.correctExitCol;
           return (
             <span
@@ -459,7 +567,7 @@ export default function ProceduralMazeBoard({
               className={`${styles.markerBottom} ${isGood ? styles.markerGood : styles.markerBad}`}
               style={{ left: `${left}%` }}
             >
-              OUT
+              EXIT
             </span>
           );
         })}
@@ -472,31 +580,31 @@ export default function ProceduralMazeBoard({
               points={solutionPoints}
               fill="none"
               stroke="rgba(34, 197, 94, 0.75)"
-              strokeWidth="4"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           ) : null}
 
-          {showTrail ? trail.map((pos, index) => (
+          {showTrail ? trail.map((cell, index) => (
             <circle
-              key={`trail-${index}-${keyOf(pos)}`}
-              cx={10 + pos[1] * 18}
-              cy={28 + pos[0] * 18}
-              r="3.2"
-              fill="rgba(56, 189, 248, 0.42)"
+              key={`trail-${index}-${keyOf(cell)}`}
+              cx={worldX(cell[1])}
+              cy={worldY(cell[0])}
+              r="2.8"
+              fill="rgba(56, 189, 248, 0.4)"
             />
           )) : null}
 
-          {layout.traps.map((key) => {
-            const pos = parseKey(key);
-            if (!pos) return null;
-            const cx = 10 + pos[1] * 18;
-            const cy = 28 + pos[0] * 18;
+          {layout.traps.map((rawKey) => {
+            const cell = parseKey(rawKey);
+            if (!cell) return null;
+            const cx = worldX(cell[1]);
+            const cy = worldY(cell[0]);
             return (
-              <g key={`trap-${key}`}>
-                <circle cx={cx} cy={cy} r="6" fill="rgba(239, 68, 68, 0.14)" />
-                <path d={`M ${cx} ${cy - 4} L ${cx + 4} ${cy} L ${cx} ${cy + 4} L ${cx - 4} ${cy} Z`} fill="rgba(248, 113, 113, 0.9)" />
+              <g key={`trap-${rawKey}`}>
+                <circle cx={cx} cy={cy} r="5.2" fill="rgba(239, 68, 68, 0.15)" />
+                <path d={`M ${cx} ${cy - 3.8} L ${cx + 3.8} ${cy} L ${cx} ${cy + 3.8} L ${cx - 3.8} ${cy} Z`} fill="rgba(248, 113, 113, 0.92)" />
               </g>
             );
           })}
@@ -504,26 +612,25 @@ export default function ProceduralMazeBoard({
           {Array.from({ length: layout.rows }).map((_, row) => (
             Array.from({ length: layout.cols }).map((__, col) => {
               const cell = layout.cells[row][col];
-              const x = 10 + col * 18;
-              const y = 28 + row * 18;
-              const key = `${row},${col}`;
-              const isHovered = hoveredKey === key;
-              const isPlayer = position[0] === row && position[1] === col;
-              const isTrail = trailSet.has(key);
-
+              const x = worldX(col);
+              const y = worldY(row);
+              const rawKey = `${row},${col}`;
+              const isHovered = hoveredKey === rawKey;
+              const isVisited = trailSet.has(rawKey);
               return (
-                <g key={key}>
-                  {isHovered ? <rect x={x - 7} y={y - 7} width="14" height="14" fill="rgba(56, 189, 248, 0.22)" rx="4" /> : null}
-                  {isTrail && !isPlayer ? <circle cx={x} cy={y} r="4" fill="rgba(56, 189, 248, 0.18)" /> : null}
+                <g key={rawKey}>
+                  {isHovered ? <rect x={x - HALF + 1} y={y - HALF + 1} width={CELL - 2} height={CELL - 2} fill="rgba(56, 189, 248, 0.2)" rx="3" /> : null}
+                  {isVisited ? <circle cx={x} cy={y} r="2.2" fill="rgba(56, 189, 248, 0.28)" /> : null}
                   <rect
-                    x={x - 8}
-                    y={y - 8}
-                    width="16"
-                    height="16"
+                    x={x - HALF}
+                    y={y - HALF}
+                    width={CELL}
+                    height={CELL}
                     fill="transparent"
-                    onMouseEnter={() => setHoveredKey(key)}
+                    onMouseEnter={() => setHoveredKey(rawKey)}
                     onMouseLeave={() => setHoveredKey('')}
                     onClick={() => {
+                      if (!position) return;
                       const dr = row - position[0];
                       const dc = col - position[1];
                       if (Math.abs(dr) + Math.abs(dc) !== 1) return;
@@ -533,31 +640,37 @@ export default function ProceduralMazeBoard({
                       if (dr === 0 && dc === -1) tryMove('W');
                     }}
                   />
-                  {!cell.N ? <line x1={x - 9} y1={y - 9} x2={x + 9} y2={y - 9} stroke="#f8fafc" strokeWidth="1.5" /> : null}
-                  {!cell.E ? <line x1={x + 9} y1={y - 9} x2={x + 9} y2={y + 9} stroke="#f8fafc" strokeWidth="1.5" /> : null}
-                  {!cell.S ? <line x1={x - 9} y1={y + 9} x2={x + 9} y2={y + 9} stroke="#f8fafc" strokeWidth="1.5" /> : null}
-                  {!cell.W ? <line x1={x - 9} y1={y - 9} x2={x - 9} y2={y + 9} stroke="#f8fafc" strokeWidth="1.5" /> : null}
+                  {!cell.N ? <line x1={x - HALF} y1={y - HALF} x2={x + HALF} y2={y - HALF} stroke="#f8fafc" strokeWidth="1.2" /> : null}
+                  {!cell.E ? <line x1={x + HALF} y1={y - HALF} x2={x + HALF} y2={y + HALF} stroke="#f8fafc" strokeWidth="1.2" /> : null}
+                  {!cell.S ? <line x1={x - HALF} y1={y + HALF} x2={x + HALF} y2={y + HALF} stroke="#f8fafc" strokeWidth="1.2" /> : null}
+                  {!cell.W ? <line x1={x - HALF} y1={y - HALF} x2={x - HALF} y2={y + HALF} stroke="#f8fafc" strokeWidth="1.2" /> : null}
                 </g>
               );
             })
           ))}
-
-          <circle
-            cx={10 + position[1] * 18}
-            cy={28 + position[0] * 18}
-            r="5.2"
-            fill="#38bdf8"
-            stroke="#dbeafe"
-            strokeWidth="1.2"
-          />
         </svg>
+
+        {position ? (
+          <div
+            className={`${styles.playerCursor}${pulseCursor ? ` ${styles.playerCursorPulse}` : ''}`}
+            style={{ left: `${cursorLeft}px`, top: `${cursorTop}px` }}
+            aria-hidden="true"
+          />
+        ) : null}
+      </div>
+
+      <div className={styles.controlsRow}>
+        <button type="button" className={styles.moveBtn} onClick={() => tryMove('N')} aria-label="Monter">↑</button>
+        <button type="button" className={styles.moveBtn} onClick={() => tryMove('W')} aria-label="Aller a gauche">←</button>
+        <button type="button" className={styles.moveBtn} onClick={() => tryMove('S')} aria-label="Descendre">↓</button>
+        <button type="button" className={styles.moveBtn} onClick={() => tryMove('E')} aria-label="Aller a droite">→</button>
       </div>
 
       <div className={styles.legend}>
-        <span className={styles.legendItem}>IN: entree (une seule correcte)</span>
-        <span className={styles.legendItem}>OUT: sortie (une seule correcte)</span>
-        <span className={styles.legendItem}>Losange rouge: zone piegee</span>
-        <span className={styles.legendItem}>Fleches clavier, ZQSD/WASD ou clic</span>
+        <span className={styles.legendItem}>START: libre choix de depart</span>
+        <span className={styles.legendItem}>EXIT: une seule sortie valide</span>
+        <span className={styles.legendItem}>Losange rouge: explosion</span>
+        <span className={styles.legendItem}>Retour arriere bloque</span>
       </div>
 
       <p className={`${styles.feedback}${feedbackTone === 'good' ? ` ${styles.feedbackGood}` : ''}${feedbackTone === 'bad' ? ` ${styles.feedbackBad}` : ''}`}>
