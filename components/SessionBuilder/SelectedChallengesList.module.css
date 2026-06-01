@@ -89,6 +89,7 @@
   border-radius: 18px;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-left: 4px solid rgba(99, 102, 241, 0.8);
+  animation: ui-fade-in-up var(--motion-medium) var(--ease-standard) both;
 }
 
 .itemInfo {

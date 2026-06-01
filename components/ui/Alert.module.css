@@ -1,0 +1,39 @@
+.alert {
+  display: grid;
+  gap: 0.22rem;
+  border-radius: var(--radius-md, 14px);
+  border: 1px solid transparent;
+  padding: 0.72rem 0.82rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.message {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+}
+
+.info {
+  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+  background: color-mix(in srgb, var(--accent-soft) 76%, #fff);
+}
+
+.success {
+  border-color: color-mix(in srgb, var(--success-line) 38%, transparent);
+  background: color-mix(in srgb, var(--success-bg) 82%, #fff);
+}
+
+.warning {
+  border-color: rgba(251, 191, 36, 0.5);
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.danger {
+  border-color: color-mix(in srgb, var(--error-line) 38%, transparent);
+  background: color-mix(in srgb, var(--error-bg) 82%, #fff);
+}

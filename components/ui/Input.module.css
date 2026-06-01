@@ -1,0 +1,40 @@
+.field {
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+}
+
+.label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.control {
+  width: 100%;
+  min-height: 2.7rem;
+  border-radius: var(--radius-md, 14px);
+  border: 1px solid color-mix(in srgb, var(--line) 88%, transparent);
+  background: color-mix(in srgb, var(--field-bg) 88%, #fff);
+  color: var(--ink);
+  font: inherit;
+  padding: 0.65rem 0.85rem;
+  transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
+}
+
+.control:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 58%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.help {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--error-ink);
+}

@@ -1,0 +1,28 @@
+.loading {
+  display: grid;
+  justify-items: center;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-6, 1.5rem);
+  color: var(--ink-soft);
+}
+
+.spinner {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  border-top-color: var(--accent-strong);
+  animation: ui-spin 800ms linear infinite;
+}
+
+.text {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

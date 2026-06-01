@@ -1,6 +1,7 @@
 'use client';
 
 import styles from './SelectedChallengesList.module.css';
+import { Button, EmptyState } from '@/components/ui';
 
 export default function SelectedChallengesList({
   challenges,
@@ -11,6 +12,13 @@ export default function SelectedChallengesList({
   onClearAll,
 }) {
   if (challenges.length === 0) {
+    function handleBrowseCatalog() {
+      const catalog = document.querySelector('[data-catalog]');
+      if (catalog) {
+        catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
     return (
       <aside className={styles.sidebar}>
         <div className={styles.header}>
@@ -20,11 +28,13 @@ export default function SelectedChallengesList({
         <p className={styles.hint}>
           Les activités seront jouées dans cet ordre. Utilisez Monter/Descendre pour le modifier.
         </p>
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>📋</div>
-          <p className={styles.emptyText}>Aucune activité sélectionnée</p>
-          <p className={styles.emptyHint}>Explorez la grille à droite pour ajouter des activités</p>
-        </div>
+        <EmptyState
+          icon="📋"
+          title="Aucune activité sélectionnée"
+          description="Explorez la grille à droite pour ajouter des activités."
+          actions={<Button variant="secondary" size="sm" onClick={handleBrowseCatalog}>Découvrir le catalogue</Button>}
+          className={styles.emptyState}
+        />
       </aside>
     );
   }
@@ -92,9 +102,9 @@ export default function SelectedChallengesList({
       </ul>
 
       <div className={styles.footer}>
-        <button className="btn-secondary btn-sm btn-block" onClick={onClearAll}>
+        <Button variant="secondary" size="sm" block onClick={onClearAll}>
           Effacer la sélection
-        </button>
+        </Button>
       </div>
     </aside>
   );

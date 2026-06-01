@@ -9,6 +9,7 @@ import SelectedChallengesList from '@/components/SessionBuilder/SelectedChalleng
 import ChallengeConfigModal from '@/components/SessionBuilder/ChallengeConfigModal';
 import ParticipantAssigner from '@/components/SessionBuilder/ParticipantAssigner';
 import SessionBuilderHeader from '@/components/SessionBuilder/SessionBuilderHeader';
+import { Alert, Button, Input, LoadingState } from '@/components/ui';
 import useToast from '@/lib/useToast';
 import useSessionBuilder from '@/lib/useSessionBuilder';
 import { fetchWithRetry } from '@/lib/api';
@@ -985,7 +986,7 @@ export default function SessionBuilder() {
       <main className="shell auth-page">
         <section className="feature-card">
           <h1>Vérification de la session...</h1>
-          <p>Chargement en cours.</p>
+          <LoadingState text="Chargement en cours." />
         </section>
       </main>
     );
@@ -1023,25 +1024,21 @@ export default function SessionBuilder() {
                     </div>
 
                     <div className={styles.creationGrid}>
-                      <label className={styles.creationField}>
-                        <span>Nom de la session</span>
-                        <input
-                          value={sessionName}
-                          onChange={(e) => setSessionName(e.target.value)}
-                          placeholder="Ex: Team Building Q2 2026"
-                          autoFocus
-                          required
-                        />
-                      </label>
-                      <label className={styles.creationField}>
-                        <span>Date et heure prévues</span>
-                        <input
-                          type="datetime-local"
-                          value={sessionDateTime}
-                          onChange={(e) => setSessionDateTime(e.target.value)}
-                          step="60"
-                        />
-                      </label>
+                      <Input
+                        label="Nom de la session"
+                        value={sessionName}
+                        onChange={(e) => setSessionName(e.target.value)}
+                        placeholder="Ex: Team Building Q2 2026"
+                        autoFocus
+                        required
+                      />
+                      <Input
+                        label="Date et heure prévues"
+                        type="datetime-local"
+                        value={sessionDateTime}
+                        onChange={(e) => setSessionDateTime(e.target.value)}
+                        step="60"
+                      />
                     </div>
 
                     <div className={styles.flowModeField}>
@@ -1114,14 +1111,14 @@ export default function SessionBuilder() {
 
               <div className={styles.creationGlobalActions}>
                 {availableParticipantsCount === 0 ? (
-                  <p className={styles.creationActionHint}>
-                    Création indisponible: ajoutez d&apos;abord des participants dans votre espace manager.
-                  </p>
+                  <Alert variant="warning" className={styles.creationActionHint} title="Création indisponible">
+                    Ajoutez d&apos;abord des participants dans votre espace manager.
+                  </Alert>
                 ) : null}
-                <button
+                <Button
                   type="submit"
                   form="create-session-form"
-                  className={`btn-primary ${styles.creationSubmit}`}
+                  className={styles.creationSubmit}
                   disabled={isCreatingSession || availableParticipantsCount === 0}
                   title={
                     availableParticipantsCount === 0
@@ -1130,7 +1127,7 @@ export default function SessionBuilder() {
                   }
                 >
                   {isCreatingSession ? 'Création...' : 'Créer la session'}
-                </button>
+                </Button>
               </div>
             </div>
           </section>
@@ -1195,19 +1192,15 @@ export default function SessionBuilder() {
               </select>
             </div>
             <div className={styles.sessionInfoEditActions}>
-              <button
-                className="btn-primary"
+              <Button
                 onClick={handleSaveSessionInfo}
                 disabled={isSavingSessionInfo}
               >
                 {isSavingSessionInfo ? 'Sauvegarde...' : 'Sauvegarder'}
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={() => setIsEditingSessionInfo(false)}
-              >
+              </Button>
+              <Button variant="secondary" onClick={() => setIsEditingSessionInfo(false)}>
                 Annuler
-              </button>
+              </Button>
             </div>
           </section>
         ) : null}

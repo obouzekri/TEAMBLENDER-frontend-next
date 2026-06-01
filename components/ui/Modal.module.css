@@ -1,0 +1,45 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4, 1rem);
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.dialog {
+  width: min(680px, 100%);
+  border-radius: var(--radius-xl, 28px);
+  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--card) 98%, #fff) 0%, color-mix(in srgb, var(--bg-soft) 28%, #fff) 100%);
+  box-shadow: var(--shadow-lg, 0 22px 44px rgba(15, 23, 42, 0.14));
+  padding: var(--space-5, 1.25rem);
+  animation: ui-fade-in-up var(--motion-medium) var(--ease-standard) both;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  margin-bottom: var(--space-3, 0.75rem);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.close {
+  border: 1px solid color-mix(in srgb, var(--line) 88%, transparent);
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--ink-soft);
+  border-radius: 999px;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+}

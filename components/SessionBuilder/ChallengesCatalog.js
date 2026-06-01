@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import ChallengeRulesPreviewModal from './ChallengeRulesPreviewModal';
 import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import styles from './ChallengesCatalog.module.css';
+import { Badge, Button, EmptyState } from '@/components/ui';
 
 const MAX_FILTER_OBJECTIVES = 3;
 
@@ -182,7 +183,7 @@ export default function ChallengesCatalog({
   const durationTriggerLabel = durations.find((dur) => dur.value === filters.duration)?.label || 'Tout';
 
   return (
-    <section className={styles.catalog}>
+    <section className={styles.catalog} data-catalog>
       <div className={styles.filterBar}>
         <div className={styles.filterLine} ref={filterMenuRef}>
           <span className={styles.filtersLabel}>Filtres</span>
@@ -335,13 +336,13 @@ export default function ChallengesCatalog({
           ))}
         </div>
       ) : challenges.length === 0 ? (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>🔍</div>
-          <p className={styles.emptyText}>Aucune activité ne correspond à vos critères</p>
-          <button className="btn-secondary btn-sm" onClick={onResetFilters}>
-            Réinitialiser les filtres
-          </button>
-        </div>
+        <EmptyState
+          icon="🔍"
+          title="Aucune activité ne correspond à vos critères"
+          description="Ajustez les filtres ou revenez à la vue complète du catalogue."
+          actions={<Button variant="secondary" size="sm" onClick={onResetFilters}>Réinitialiser les filtres</Button>}
+          className={styles.emptyState}
+        />
       ) : (
         <div className={styles.grid}>
           {challenges.map((challenge) => {
@@ -370,18 +371,18 @@ export default function ChallengesCatalog({
 
                 <div className={styles.cardMeta}>
                   {challenge.category ? (
-                    <span className={styles.badge}>{CATEGORY_LABELS[challenge.category] || challenge.category}</span>
+                    <Badge className={styles.badge}>{CATEGORY_LABELS[challenge.category] || challenge.category}</Badge>
                   ) : null}
                   {challengeObjectives.map((objective) => (
-                    <span key={`${challenge.id}-${objective}`} className={`${styles.badge} ${styles.objectiveBadge}`}>
+                    <Badge key={`${challenge.id}-${objective}`} variant="info" className={`${styles.badge} ${styles.objectiveBadge}`}>
                       {OBJECTIVE_LABELS[objective] || objective}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
 
                 <div className={styles.cardActions}>
-                  <button
-                    className={isSelected ? 'btn-secondary' : 'btn-primary'}
+                  <Button
+                    variant={isSelected ? 'secondary' : 'primary'}
                     onClick={() => {
                       if (!isSelected) {
                         onSelect(challenge.id);
@@ -390,14 +391,15 @@ export default function ChallengesCatalog({
                     disabled={isSelected}
                   >
                     {isSelected ? '✓ Ajoutée' : '+ Ajouter'}
-                  </button>
+                  </Button>
                   {isSelected && (
-                    <button
-                      className="btn-secondary btn-sm"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => onConfigure(challenge.id)}
                     >
                       ⚙ Configurer
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>

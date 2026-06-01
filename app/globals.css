@@ -1,13 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
-  --font-display: "Sora", "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-ui: var(--font-ui-loaded), "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-display: var(--font-display-loaded), "Sora", "IBM Plex Sans", "Segoe UI", sans-serif;
   --motion-fast: 160ms;
   --motion-medium: 240ms;
   --motion-slow: 420ms;
   --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-emphasis: cubic-bezier(0.2, 0.85, 0.3, 1);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --shadow-sm: 0 8px 20px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 14px 30px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 22px 44px rgba(15, 23, 42, 0.14);
   --bg: #f4f8ff;
   --bg-soft: #eaf1ff;
   --ink: #0f172a;
@@ -49,6 +64,30 @@
   --surface-shadow-hover: 0 16px 40px rgba(15, 23, 42, 0.12);
   --nav-control-height: 0.7cm;
   --nav-shell-min-height: calc(var(--nav-control-height) + 0.9rem);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1222;
+    --bg-soft: #111a2e;
+    --ink: #e8efff;
+    --ink-soft: #b2bfdc;
+    --line: #2b3859;
+    --card: #111a2e;
+    --surface-border: rgba(226, 232, 255, 0.1);
+    --surface-border-strong: rgba(122, 140, 255, 0.34);
+    --surface-glass: rgba(17, 26, 46, 0.76);
+    --surface-glass-strong: rgba(17, 26, 46, 0.92);
+    --field-bg: #10182c;
+    --field-line: #33405f;
+    --card-shadow: 0 14px 32px rgba(2, 6, 23, 0.38);
+    --card-shadow-hover: 0 20px 44px rgba(2, 6, 23, 0.5);
+    --shadow-sm: 0 10px 24px rgba(2, 6, 23, 0.36);
+    --shadow-md: 0 16px 34px rgba(2, 6, 23, 0.44);
+    --shadow-lg: 0 24px 48px rgba(2, 6, 23, 0.56);
+    color-scheme: dark;
+  }
 }
 
 * {
@@ -65,6 +104,45 @@ body {
     radial-gradient(circle at top left, rgba(53, 160, 255, 0.12), transparent 36%),
     radial-gradient(circle at right 8%, rgba(124, 58, 237, 0.09), transparent 30%),
     linear-gradient(160deg, #ffffff 0%, #f5f8ff 56%, #eef3ff 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(53, 160, 255, 0.2), transparent 34%),
+      radial-gradient(circle at right 8%, rgba(124, 58, 237, 0.2), transparent 30%),
+      linear-gradient(160deg, #0b1223 0%, #0f1830 56%, #131a33 100%);
+  }
+}
+
+@keyframes ui-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ui-pulse-soft {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.ui-animate-in {
+  animation: ui-fade-in-up var(--motion-medium) var(--ease-standard) both;
+}
+
+.ui-pulse {
+  animation: ui-pulse-soft 1.6s ease-in-out infinite;
 }
 
 a {
