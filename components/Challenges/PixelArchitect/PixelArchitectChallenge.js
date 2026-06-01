@@ -132,8 +132,11 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   const [activeLayer, setActiveLayer] = useState(0);
   const [selectedColor, setSelectedColor] = useState(FALLBACK_PALETTE[0]);
+  const [isLayerPlanCollapsed, setIsLayerPlanCollapsed] = useState(false);
+  const [expandedLayers, setExpandedLayers] = useState({});
+  const hasAutoSelectedStartLayerRef = useRef(false);
 
-  const { state, error, isFacilitator, emitEvent, events } = useRealtimeChallenge({
+  const { state, error, isFacilitator, emitEvent } = useRealtimeChallenge({
     runtimePayload,
     socket,
     context,
@@ -668,6 +671,23 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }, [displayName, safeLayer, zoneClaims]);
 
   useEffect(() => {
+    if (!hasChallengeStarted) {
+      hasAutoSelectedStartLayerRef.current = false;
+      return;
+    }
+    if (hasAutoSelectedStartLayerRef.current) return;
+    hasAutoSelectedStartLayerRef.current = true;
+    setActiveLayer(0);
+  }, [hasChallengeStarted]);
+
+  useEffect(() => {
+    setExpandedLayers((prev) => {
+      if (prev[String(safeLayer)]) return prev;
+      return { ...prev, [String(safeLayer)]: true };
+    });
+  }, [safeLayer]);
+
+  useEffect(() => {
     if (!modelPreviewRef.current || !canSeeTargetModel) return () => {};
 
     const container = modelPreviewRef.current;
@@ -814,6 +834,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     emitEvent('pixel.zone.claim', { layer: safeLayer, zone });
   }
 
+  function toggleLayerSummary(layer) {
+    setExpandedLayers((prev) => ({
+      ...prev,
+      [String(layer)]: !prev[String(layer)],
+    }));
+  }
+
   const summary = state?.summary || null;
   const summaryPixelMetrics = summary?.pixel_metrics || null;
   const templateName = String(selectedTemplate?.name || 'Modele').trim();
@@ -949,98 +976,28 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     };
   }, [isFacilitator, isTargetHiddenForRole, viewerRole]);
 
-  const recentCubeActivity = useMemo(() => {
-    return [...serverCubes]
-      .filter((cube) => cube.ts)
-      .sort((a, b) => Date.parse(b.ts || '') - Date.parse(a.ts || ''))
-      .slice(0, 5)
-      .map((cube) => ({
-        id: `cube-${cube.ts}-${cube.x}-${cube.y}-${cube.z}`,
-        label: `${cube.placedBy || 'Equipe'} a pose un cube`,
-        detail: `(${cube.x}, ${cube.y}, ${cube.z}) · ${cube.color}`,
-      }));
-  }, [serverCubes]);
-
-  const recentEventActivity = useMemo(() => {
-    return (Array.isArray(events) ? events : [])
-      .filter((item) => ['pixel.hint', 'system.message', 'chat.message', 'timer.warning', 'pixel.completed'].includes(String(item?.type || '').trim()))
-      .slice(0, 5)
-      .map((item, index) => {
-        const type = String(item?.type || '').trim();
-        if (type === 'pixel.hint') {
-          return {
-            id: `event-hint-${index}`,
-            label: 'Indice diffuse',
-            detail: String(item?.payload?.text || '').trim(),
-          };
-        }
-        if (type === 'system.message') {
-          return {
-            id: `event-system-${index}`,
-            label: 'Systeme',
-            detail: String(item?.payload?.text || '').trim(),
-          };
-        }
-        if (type === 'chat.message') {
-          return {
-            id: `event-chat-${index}`,
-            label: `${String(item?.payload?.author || 'Equipe').trim()} dit`,
-            detail: String(item?.payload?.text || '').trim(),
-          };
-        }
-        if (type === 'timer.warning') {
-          return {
-            id: `event-warning-${index}`,
-            label: 'Alerte chrono',
-            detail: `${Number(item?.payload?.remaining_seconds || 0)}s restantes`,
-          };
-        }
-        return {
-          id: `event-generic-${index}`,
-          label: 'Challenge termine',
-          detail: 'Tous les participants ont soumis ou le temps est ecoule.',
-        };
-      });
-  }, [events]);
-
-  const activityFeed = useMemo(() => {
-    const merged = [...recentCubeActivity, ...recentEventActivity];
-    return merged.slice(0, 8);
-  }, [recentCubeActivity, recentEventActivity]);
+  const openLayerCount = useMemo(
+    () => layerStats.reduce((count, item) => count + (expandedLayers[String(item.layer)] ? 1 : 0), 0),
+    [expandedLayers, layerStats]
+  );
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.headerLine}>
+      <header className={styles.challengeHeader}>
+        <div className={styles.challengeHeaderLine}>
           <h1>Pixel Architect</h1>
-          <p>Repliquez le modele collectivement, en temps reel, avec contraintes de grille et palette.</p>
-        </div>
-        <div className={styles.headerAside}>
-          <div className={styles.headerMeta}>
-            <span className={styles.badge}>Mode: {String(pixel?.mode || state?.config?.mode || 'replication')}</span>
-            <span className={styles.badge}>Role: {viewerRole}</span>
-            <span className={styles.badge}>Cubes poses: {cubeCount}</span>
-          </div>
-          <section className={styles.modelMiniCard}>
-            <p className={styles.modelMiniTitle}>Carte modele</p>
-            <p className={styles.modelMiniMeta}>{templateName} - {templateDifficulty}</p>
-            <div className={styles.modelMiniViewport}>
-              {canSeeTargetModel ? (
-                <>
-                  <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
-                  <span className={styles.modelMiniHint}>Glisser pour tourner</span>
-                </>
-              ) : (
-                <p className={styles.modelMiniHidden}>Modele masque pour ce role</p>
-              )}
-            </div>
-            <div className={styles.modelMiniStats}>
-              <span>{grid.x}x{grid.y}x{grid.z}</span>
-              <span>{targetCubeCount} cubes cibles</span>
-            </div>
-          </section>
+          <p>Repliquez le modele collectivement en temps reel avec contraintes de grille et palette.</p>
         </div>
       </header>
+
+      <section className={styles.teamStatusBar} aria-label="Etat d equipe">
+        <span className={styles.badge}>Template: {templateName}</span>
+        <span className={styles.badge}>Difficulte: {templateDifficulty}</span>
+        <span className={styles.badge}>Cubes cibles: {targetCubeCount}</span>
+        <span className={styles.badge}>Cubes poses: {cubeCount}</span>
+        <span className={styles.badge}>Progression: {progress}%</span>
+        <span className={styles.badge}>Indices: {Number(pixel?.hints_used || 0)}</span>
+      </section>
 
       <div className={styles.layout}>
         <main className={styles.mainPane}>
@@ -1059,42 +1016,29 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           ) : (
             <>
               <section className={styles.panel}>
-                <div className={styles.panelHead}>
-                  <h2>Plan d'execution</h2>
-                  <p>Le plateau est synchronise entre tous les joueurs. Chaque action est diffusee en direct.</p>
-                </div>
-                <div className={styles.statusRow}>
-                  <span className={styles.badge}>Phase: {phase || 'intro'}</span>
-                  <span className={styles.badge}>Exactitude: {accuracyPercent}%</span>
-                  <span className={styles.badge}>Restants: {remainingCubes}</span>
-                </div>
-                {isTargetHiddenForRole ? (
-                  <div className={styles.roleAlert} role="note" aria-label="Information de role">
-                    <strong>Mode avance:</strong> le modele est visible par l'architecte uniquement. Coordonnez-vous via le chat pour guider la construction.
+                <div className={styles.arenaHead}>
+                  <div className={styles.panelHead}>
+                    <h2>Arene de construction 3D</h2>
+                    <p>Cliquer la grille pour poser, cliquer un cube pour supprimer, glisser pour orbiter/zoomer.</p>
                   </div>
-                ) : null}
-                <ol className={styles.howToList}>
-                  <li>Choisir une couche puis poser/supprimer des cubes.</li>
-                  <li>Se coordonner via le chat pour eviter les doublons.</li>
-                  <li>Soumettre la version finale quand votre equipe est prete.</li>
-                </ol>
-                <div className={styles.helperRow}>
-                  <div className={styles.helperItem}>
-                    <span className={styles.helperDotTarget} /> Modele cible (fantome)
-                  </div>
-                  <div className={styles.helperItem}>
-                    <span className={styles.helperDotPlayer} /> Cubes equipe
-                  </div>
-                  <div className={styles.helperItem}>
-                    <span className={styles.helperDotError} /> Contraintes depassees
-                  </div>
-                </div>
-              </section>
-
-              <section className={styles.panel}>
-                <div className={styles.panelHead}>
-                  <h2>Zone de construction 3D</h2>
-                  <p>Cliquer la grille pour poser, cliquer un cube pour supprimer, glisser pour orbiter/zoomer.</p>
+                  <section className={styles.modelMiniCard}>
+                    <p className={styles.modelMiniTitle}>Carte modele</p>
+                    <p className={styles.modelMiniMeta}>{templateName} - {templateDifficulty}</p>
+                    <div className={styles.modelMiniViewport}>
+                      {canSeeTargetModel ? (
+                        <>
+                          <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
+                          <span className={styles.modelMiniHint}>Glisser pour tourner</span>
+                        </>
+                      ) : (
+                        <p className={styles.modelMiniHidden}>Modele masque pour ce role</p>
+                      )}
+                    </div>
+                    <div className={styles.modelMiniStats}>
+                      <span>{grid.x}x{grid.y}x{grid.z}</span>
+                      <span>{targetCubeCount} cubes cibles</span>
+                    </div>
+                  </section>
                 </div>
 
                 <div className={styles.layerTabs}>
@@ -1250,36 +1194,94 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           />
 
           <section className={styles.panel}>
-            <h3>Etat equipe</h3>
-            <p>Template: {templateName}</p>
-            <p>Difficulte: {templateDifficulty}</p>
-            <p>Cubes cibles: {targetCubeCount}</p>
-            <p>Cubes poses: {cubeCount}</p>
-            <p>Progression: {progress}%</p>
-            <p>Indices utilises: {Number(pixel?.hints_used || 0)}</p>
+            <h3>Regles et plan d'execution</h3>
+            <div className={styles.statusRow}>
+              <span className={styles.badge}>Phase: {phase || 'intro'}</span>
+              <span className={styles.badge}>Exactitude: {accuracyPercent}%</span>
+              <span className={styles.badge}>Restants: {remainingCubes}</span>
+            </div>
+            {isTargetHiddenForRole ? (
+              <div className={styles.roleAlert} role="note" aria-label="Information de role">
+                <strong>Mode avance:</strong> le modele est visible par l architecte uniquement. Coordonnez-vous via le chat pour guider la construction.
+              </div>
+            ) : null}
+            <ol className={styles.howToList}>
+              <li>Choisir une couche puis poser ou supprimer des cubes.</li>
+              <li>Parcourir les couches pour verifier les etages deja traites.</li>
+              <li>Se coordonner via le chat pour eviter les doublons.</li>
+              <li>Soumettre la version finale quand votre equipe est prete.</li>
+            </ol>
+            <div className={styles.helperRow}>
+              <div className={styles.helperItem}>
+                <span className={styles.helperDotTarget} /> Modele cible (fantome)
+              </div>
+              <div className={styles.helperItem}>
+                <span className={styles.helperDotPlayer} /> Cubes equipe
+              </div>
+              <div className={styles.helperItem}>
+                <span className={styles.helperDotError} /> Contraintes depassees
+              </div>
+            </div>
+            <div className={styles.rulesInlineWrap}>
+              <ChallengeRulesPanel
+                isStarted={hasChallengeStarted}
+                isFacilitator={isFacilitator}
+                showPrestartCard={false}
+                challengeName="Pixel Architect"
+                objective={rulesContent.objective}
+                facilitatorRules={rulesContent.facilitator}
+                participantRules={rulesContent.participant}
+                footnote={rulesContent.footnote}
+              />
+            </div>
           </section>
 
           <section className={styles.panel}>
-            <h3>Plan par couche</h3>
-            <div className={styles.layerSummaryList}>
-              {layerStats.map((item) => (
-                <button
-                  key={`layer-summary-${item.layer}`}
-                  type="button"
-                  className={`${styles.layerSummaryCard}${safeLayer === item.layer ? ` ${styles.layerSummaryCardActive}` : ''}`}
-                  onClick={() => setActiveLayer(item.layer)}
-                >
-                  <strong>Couche {item.layer + 1}</strong>
-                  <span>{item.claim ? `Reservee par ${String(item.claim.display_name || 'participant')}` : 'Non reservee'}</span>
-                  <span>Cible: {item.targetCount}</span>
-                  <span>Exacts: {item.matchedCount}</span>
-                  <span>En trop: {item.extraCount}</span>
-                  <div className={styles.layerSummaryTrack} aria-hidden="true">
-                    <span className={styles.layerSummaryFill} style={{ width: `${item.completion}%` }} />
-                  </div>
-                </button>
-              ))}
+            <div className={styles.layerPlanHeader}>
+              <h3>Plan par couche</h3>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() => setIsLayerPlanCollapsed((prev) => !prev)}
+              >
+                {isLayerPlanCollapsed ? 'Afficher le plan' : 'Reduire le plan'}
+              </button>
             </div>
+            {!isLayerPlanCollapsed ? (
+              <div className={`${styles.layerSummaryList}${openLayerCount > 2 ? ` ${styles.layerSummaryListScrollable}` : ''}`}>
+              {layerStats.map((item) => (
+                <article
+                  key={`layer-summary-${item.layer}`}
+                  className={`${styles.layerSummaryCard}${safeLayer === item.layer ? ` ${styles.layerSummaryCardActive}` : ''}`}
+                >
+                  <button
+                    type="button"
+                    className={styles.layerSummaryToggle}
+                    onClick={() => toggleLayerSummary(item.layer)}
+                    aria-expanded={Boolean(expandedLayers[String(item.layer)])}
+                  >
+                    <strong>Couche {item.layer + 1}</strong>
+                    <span>{expandedLayers[String(item.layer)] ? 'Reduire' : 'Afficher'}</span>
+                  </button>
+                  {expandedLayers[String(item.layer)] ? (
+                    <button
+                      type="button"
+                      className={styles.layerSummaryDetails}
+                      onClick={() => setActiveLayer(item.layer)}
+                    >
+                      <span>{item.claim ? `Reservee par ${String(item.claim.display_name || 'participant')}` : 'Non reservee'}</span>
+                      <span>Cible: {item.targetCount}</span>
+                      <span>Exacts: {item.matchedCount}</span>
+                      <span>En trop: {item.extraCount}</span>
+                      <div className={styles.layerSummaryTrack} aria-hidden="true">
+                        <span className={styles.layerSummaryFill} style={{ width: `${item.completion}%` }} />
+                      </div>
+                    </button>
+                  ) : null}
+                </article>
+              ))}
+              </div>
+            ) : null}
           </section>
 
           {contributorStats.length > 0 ? (
@@ -1300,20 +1302,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             <h3>{rolePanel.title}</h3>
             <p>{rolePanel.body}</p>
           </section>
-
-          {activityFeed.length > 0 ? (
-            <section className={styles.panel}>
-              <h3>Activite live</h3>
-              <ul className={styles.activityList}>
-                {activityFeed.map((item) => (
-                  <li key={item.id} className={styles.activityItem}>
-                    <strong>{item.label}</strong>
-                    <span>{item.detail}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
 
           {Array.isArray(pixel?.hints) && pixel.hints.length > 0 ? (
             <section className={styles.panel}>

@@ -20,40 +20,40 @@
     linear-gradient(145deg, var(--ch-bg-1) 0%, var(--ch-bg-2) 60%, #112938 100%);
 }
 
-.header {
+.challengeHeader {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: 12px;
-  align-items: flex-start;
   margin-bottom: 14px;
+  border: 1px solid var(--ch-line-soft);
+  border-radius: 14px;
+  padding: 12px;
+  background: linear-gradient(165deg, var(--ch-surface-2), var(--ch-surface-1));
 }
 
-.headerAside {
-  display: grid;
+.challengeHeaderLine {
+  display: flex;
+  align-items: baseline;
   gap: 10px;
-  justify-items: end;
+  flex-wrap: wrap;
 }
 
-.headerLine {
-  display: grid;
-  gap: 6px;
-}
-
-.header h1 {
+.challengeHeader h1 {
   margin: 0;
   font-size: 1.38rem;
 }
 
-.header p {
+.challengeHeader p {
   margin: 0;
   color: var(--ch-text-soft);
+  font-size: 0.92rem;
 }
 
-.headerMeta {
+.teamStatusBar {
   display: flex;
+  margin-bottom: 14px;
   gap: 8px;
   flex-wrap: wrap;
-  justify-content: flex-end;
 }
 
 .badge {
@@ -73,12 +73,20 @@
   gap: 14px;
 }
 
+.arenaHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
 .modelMiniCard {
-  width: 190px;
+  width: 220px;
   border: 1px solid var(--ch-line-soft);
   border-radius: 12px;
   padding: 10px;
   background: linear-gradient(155deg, rgba(10, 24, 36, 0.95), rgba(18, 38, 56, 0.95));
+  flex: 0 0 auto;
 }
 
 .modelMiniTitle {
@@ -534,6 +542,12 @@
   gap: 8px;
 }
 
+.layerSummaryListScrollable {
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
 .layerSummaryCard {
   width: 100%;
   text-align: left;
@@ -543,13 +557,42 @@
   border-radius: 10px;
   background: rgba(8, 19, 29, 0.55);
   color: #dceefc;
-  padding: 10px;
-  cursor: pointer;
+  padding: 0;
 }
 
 .layerSummaryCard span {
   font-size: 0.76rem;
   color: #aecdde;
+}
+
+.layerSummaryToggle,
+.layerSummaryDetails {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.layerSummaryToggle {
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.layerSummaryToggle span {
+  font-size: 0.74rem;
+  color: #9ac6de;
+}
+
+.layerSummaryDetails {
+  border-top: 1px solid rgba(136, 170, 194, 0.2);
+  padding: 9px 10px 10px;
+  display: grid;
+  gap: 4px;
 }
 
 .layerSummaryCardActive {
@@ -604,22 +647,32 @@
   font-size: 0.82rem;
 }
 
+.rulesInlineWrap {
+  margin-top: 10px;
+}
+
+.rulesInlineWrap button {
+  width: 100%;
+}
+
+.layerPlanHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.layerPlanHeader h3 {
+  margin: 0;
+}
+
 @media (max-width: 980px) {
   .layout {
     grid-template-columns: 1fr;
   }
 
-  .header {
+  .arenaHead {
     flex-direction: column;
-  }
-
-  .headerAside {
-    width: 100%;
-    justify-items: start;
-  }
-
-  .headerMeta {
-    justify-content: flex-start;
   }
 
   .summaryGrid {
@@ -642,6 +695,10 @@
 @media (max-width: 640px) {
   .container {
     padding: 10px;
+  }
+
+  .challengeHeaderLine {
+    align-items: flex-start;
   }
 
   .modelMiniCard {
