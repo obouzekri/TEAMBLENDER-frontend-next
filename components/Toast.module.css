@@ -69,10 +69,10 @@
 }
 
 .info {
-  background-color: rgba(233, 248, 245, 0.96);
-  color: #115e59;
-  border-color: rgba(15, 118, 110, 0.22);
-  border-left: 4px solid #0f766e;
+  background-color: rgba(237, 245, 255, 0.96);
+  color: #1f46d2;
+  border-color: rgba(53, 160, 255, 0.22);
+  border-left: 4px solid #2f62ff;
 }
 
 .loading {

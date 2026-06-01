@@ -32,7 +32,7 @@
   margin-bottom: 0.2rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #0f766e;
+  color: var(--accent-strong);
 }
 
 .containerEmbedded .subtitle {
@@ -72,7 +72,7 @@
 }
 
 .containerEmbedded .item:hover {
-  background: rgba(15, 118, 110, 0.05);
+  background: rgba(53, 160, 255, 0.08);
 }
 
 .containerEmbedded .summary {
@@ -81,8 +81,8 @@
   justify-content: space-between;
   padding: 0.9rem 1rem;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(240, 253, 250, 0.95) 0%, rgba(255, 255, 255, 0.92) 100%);
-  border: 1px solid rgba(167, 243, 208, 0.8);
+  background: linear-gradient(135deg, rgba(237, 245, 255, 0.95) 0%, rgba(255, 255, 255, 0.92) 100%);
+  border: 1px solid rgba(53, 160, 255, 0.34);
   margin-bottom: 0;
 }
 
@@ -139,7 +139,7 @@
 .input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  box-shadow: 0 0 0 3px rgba(53, 160, 255, 0.14);
 }
 
 .controls {
