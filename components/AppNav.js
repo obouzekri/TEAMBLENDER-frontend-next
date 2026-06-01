@@ -25,7 +25,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
         ? 'Session live'
         : 'Espace manager';
   const navPanelClassName = `nav-panel${isManager ? ' nav-panel--manager' : ''}${isMenuOpen ? ' is-open' : ''}`;
-  const userBoxClassName = `app-user-box${isManager ? ' app-user-box--inline' : ''}`;
+  const userBoxClassName = `app-user-box${(isManager || isCompact) ? ' app-user-box--inline' : ''}`;
   const resolvedUserLabel = userLabel || (isParticipant ? 'Participant' : 'Manager');
   const normalizedConnectionState = ['connected', 'reconnecting', 'offline'].includes(String(connectionState || '').trim())
     ? String(connectionState).trim()
