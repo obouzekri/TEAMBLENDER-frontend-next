@@ -863,7 +863,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               {/* Templates disponibles */}
               {stringValue('mode', 'template') === 'template' && (
                 <div className={styles.configField}>
-                  <label htmlFor="phraseTemplate" className={styles.label}>Selectionner une phrase connue</label>
+                  <label htmlFor="phraseTemplate" className={styles.label}>Sélectionner une phrase connue</label>
                   <select
                     id="phraseTemplate"
                     value={stringValue('templateId', PHRASE_DEFAULT_LIBRARY[0].id)}

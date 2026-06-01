@@ -17,7 +17,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
   const isParticipantArea = isParticipant && !isCompact;
   const brandHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
   const compactReturnHref = isParticipant ? '/participant' : '/home';
-  const compactReturnLabel = isParticipant ? 'Retour a mes sessions' : 'Retour au tableau de bord';
+  const compactReturnLabel = isParticipant ? 'Retour à mes sessions' : 'Retour au tableau de bord';
   const headerClassName = isCompact ? 'top-nav top-nav--live-inline' : 'top-nav';
   const isManagerHome = isManager && pathname === '/home';
   const isActive = (href) => pathname?.startsWith(href);
@@ -136,7 +136,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
                   aria-current={isManagerHome && activeHomeBlock === 'participants' ? 'page' : undefined}
                   onClick={(event) => scrollToHomeBlock(event, 'home-participants-block', 'participants')}
                 >
-                  Participant
+                  Participants
                 </Link>
                 <Link href="/account" className={`nav-link ${isActive('/account') ? 'is-active' : ''}`} aria-current={isActive('/account') ? 'page' : undefined}>Compte</Link>
               </nav>
@@ -155,7 +155,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
             <div className="app-user-meta">
               <span className="app-user-name">{resolvedUserLabel}</span>
             </div>
-            <button type="button" className="btn-secondary" onClick={onLogout}>Se deconnecter</button>
+            <button type="button" className="btn-secondary" onClick={onLogout}>Se déconnecter</button>
           </div>
         </div>
       </div>

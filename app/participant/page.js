@@ -120,7 +120,7 @@ export default function ParticipantPage() {
   const asyncStatusMessage = useMemo(() => {
     if (joiningSessionId) return 'Connexion a la session en cours...';
     if (joining) return 'Chargement du challenge actif...';
-    if (loadingSessions) return 'Chargement des sessions assignees...';
+    if (loadingSessions) return 'Chargement des sessions assignées...';
     return '';
   }, [joiningSessionId, joining, loadingSessions]);
 
@@ -325,7 +325,7 @@ export default function ParticipantPage() {
       <main className="shell app-home participant-home">
         <section className="hero participant-hero">
           <h1>Bienvenue {participantLabel}</h1>
-          <p>{assignedSessions.length > 0 && !sessionId ? 'Selectionnez une session pour commencer.' : 'Votre session est en cours. Le challenge actif s\'affichera ici automatiquement.'}</p>
+          <p>{assignedSessions.length > 0 && !sessionId ? 'Sélectionnez une session pour commencer.' : 'Votre session est en cours. Le challenge actif s\'affichera ici automatiquement.'}</p>
           <div className="hero-actions">
             {sessionId && challengeLink ? (
               <button type="button" className="btn-primary" disabled>
@@ -359,7 +359,7 @@ export default function ParticipantPage() {
             <section className="feature-card participant-panel participant-panel--wide">
               <div className="participant-panel__head">
                 <div>
-                  <p className="eyebrow">SESSIONS ASSIGNEES</p>
+                  <p className="eyebrow">SESSIONS ASSIGNÉES</p>
                   <h2>Chargement de vos sessions...</h2>
                 </div>
               </div>
@@ -372,7 +372,7 @@ export default function ParticipantPage() {
             <section className="feature-card participant-panel participant-panel--wide">
               <div className="participant-panel__head">
                 <div>
-                  <p className="eyebrow">SESSIONS ASSIGNEES</p>
+                  <p className="eyebrow">SESSIONS ASSIGNÉES</p>
                   <h2>Vos sessions assignées</h2>
                 </div>
               </div>
@@ -455,7 +455,7 @@ export default function ParticipantPage() {
             <section className="feature-card participant-panel">
               <div className="participant-panel__head">
                 <div>
-                  <p className="eyebrow">EQUIPE</p>
+                  <p className="eyebrow">ÉQUIPE</p>
                   <h2>Membres de l'équipe</h2>
                 </div>
               </div>

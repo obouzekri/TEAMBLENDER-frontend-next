@@ -14,7 +14,7 @@ export default function ParticipantAssigner({
   embedded = false,
   hideActions = false,
   title = 'Assigner les participants',
-  subtitle = 'Selectionnez les participants qui participeront a cette session',
+  subtitle = 'Sélectionnez les participants qui participeront à cette session',
 }) {
   const [participants, setParticipants] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -165,8 +165,8 @@ export default function ParticipantAssigner({
               <div className={styles.empty}>
                 <p>Aucun participant disponible</p>
                 <small>
-                  Creez d&apos;abord vos participants dans l&apos;espace manager. La creation d&apos;une session est disponible uniquement
-                  apres cette etape.
+                  Créez d&apos;abord vos participants dans l&apos;espace manager. La création d&apos;une session est disponible uniquement
+                  après cette étape.
                 </small>
               </div>
             ) : (
