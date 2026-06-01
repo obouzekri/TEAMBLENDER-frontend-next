@@ -142,7 +142,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }, [pixel?.palette, selectedTemplate?.palette]);
 
   const targetCells = useMemo(() => buildTemplateCells(selectedTemplate), [selectedTemplate]);
-  const targetCubeCount = clampInt(selectedTemplate?.target_cube_count, targetCells.length || 24, 1, 400);
+  const serverEvaluation = pixel?.evaluation || null;
+  const targetCubeCount = clampInt(serverEvaluation?.target_count, selectedTemplate?.target_cube_count || targetCells.length || 24, 1, 400);
   const targetSet = useMemo(
     () => new Set(targetCells.map((cell) => toCellKey(cell.x, cell.y, cell.z))),
     [targetCells]
@@ -151,7 +152,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const serverCubes = useMemo(() => normalizeServerCubes(pixel?.cubes), [pixel?.cubes]);
   const cubeCount = Number(pixel?.placed_count || serverCubes.length || 0);
   const remainingCubes = Math.max(0, Number(pixel?.remaining_cubes || 0));
-  const completionRatio = Math.max(0, Math.min(100, Math.round((cubeCount / Math.max(1, targetCubeCount)) * 100)));
+  const completionRatio = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(Number(serverEvaluation?.completion_percent || (cubeCount / Math.max(1, targetCubeCount)) * 100))
+    )
+  );
   const progress = completionRatio;
 
   const viewerRole = String(pixel?.viewer_role || (isFacilitator ? 'facilitator' : 'builder')).trim().toLowerCase();
@@ -569,19 +576,37 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }
 
   const summary = state?.summary || null;
+  const summaryPixelMetrics = summary?.pixel_metrics || null;
   const templateName = String(selectedTemplate?.name || 'Modele').trim();
   const templateDifficulty = String(selectedTemplate?.difficulty || state?.config?.difficulty || 'moyen').trim();
   const miniCells = useMemo(() => targetCells.slice(0, 42), [targetCells]);
 
   const playerExactHits = useMemo(() => {
+    if (Number.isFinite(Number(serverEvaluation?.matched_count))) {
+      return Number(serverEvaluation.matched_count || 0);
+    }
     if (!targetSet.size) return 0;
     return serverCubes.reduce((acc, cube) => {
       const key = toCellKey(cube.x, cube.y, cube.z);
       return acc + (targetSet.has(key) ? 1 : 0);
     }, 0);
-  }, [serverCubes, targetSet]);
+  }, [serverCubes, serverEvaluation?.matched_count, targetSet]);
 
-  const accuracyPercent = Math.max(0, Math.min(100, Math.round((playerExactHits / Math.max(1, targetSet.size)) * 100)));
+  const missingCount = Number.isFinite(Number(serverEvaluation?.missing_count))
+    ? Number(serverEvaluation.missing_count || 0)
+    : Math.max(0, targetCubeCount - playerExactHits);
+
+  const extraCount = Number.isFinite(Number(serverEvaluation?.extra_count))
+    ? Number(serverEvaluation.extra_count || 0)
+    : Math.max(0, cubeCount - playerExactHits);
+
+  const accuracyPercent = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(Number(serverEvaluation?.accuracy_percent || ((playerExactHits / Math.max(1, targetSet.size)) * 100)))
+    )
+  );
 
   return (
     <div className={styles.container}>
@@ -744,6 +769,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   <h3>Etat live du build</h3>
                   <p>Cubes cibles: <strong>{targetCubeCount}</strong></p>
                   <p>Cubes poses equipe: <strong>{cubeCount}</strong></p>
+                  <p>Cubes exacts: <strong>{playerExactHits}</strong></p>
+                  <p>Cubes manquants: <strong>{missingCount}</strong></p>
+                  <p>Cubes en trop: <strong>{extraCount}</strong></p>
                   <p>Precision instantanee: <strong>{accuracyPercent}%</strong></p>
                   <div className={styles.progressTrack} aria-hidden="true">
                     <span className={styles.progressFill} style={{ width: `${progress}%` }} />
@@ -759,6 +787,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     <p>Completion: <strong>{Number(summary.completion_percent || 0)}%</strong></p>
                     <p>Actions: <strong>{Number(summary.action_count || 0)}</strong></p>
                     <p>Messages: <strong>{Number(summary.message_count || 0)}</strong></p>
+                    {summaryPixelMetrics ? <p>Exacts: <strong>{Number(summaryPixelMetrics.matched_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p>Manquants: <strong>{Number(summaryPixelMetrics.missing_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p>En trop: <strong>{Number(summaryPixelMetrics.extra_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p>Couleurs utilisees: <strong>{Number(summaryPixelMetrics.used_colors || 0)}</strong></p> : null}
                   </div>
                 </section>
               ) : null}
