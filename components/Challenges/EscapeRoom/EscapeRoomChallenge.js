@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import { getApiUrl, normalizeBackendAssetUrl } from '@/lib/config';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
@@ -522,10 +523,14 @@ export default function EscapeRoomChallenge({
             <>
               <h2>{currentEnigme?.label || 'Énigme en attente'}</h2>
               {enigmeImageSrc ? (
-                <img
+                <Image
                   className={styles.image}
                   src={enigmeImageSrc}
                   alt={currentEnigme.label || 'Enigme'}
+                  unoptimized
+                  width={1200}
+                  height={800}
+                  loading="lazy"
                   onError={(event) => {
                     event.currentTarget.style.display = 'none';
                   }}

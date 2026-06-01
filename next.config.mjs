@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import bundleAnalyzer from '@next/bundle-analyzer';
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
@@ -33,9 +34,16 @@ if (!stableBackendOrigin && isVercelProductionBuild) {
 const developmentFallbackOrigin = 'http://localhost:3000';
 const rewriteBackendOrigin = stableBackendOrigin || developmentFallbackOrigin;
 
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 const nextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: projectRoot,
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
   async rewrites() {
     return [
       {
@@ -54,4 +62,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

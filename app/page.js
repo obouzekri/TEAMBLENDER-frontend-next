@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Activity,
   ArrowRight,
@@ -551,9 +552,11 @@ export default function HomePage() {
                 </div>
 
                 <figure className="landing-hero-product-frame">
-                  <img
+                  <Image
                     src="/images/labyrinthe-hero.jpg"
                     alt="Interface TeamBlender Labyrinthe en session live collaborative"
+                    width={1200}
+                    height={800}
                     loading="lazy"
                     className="landing-hero-product-image"
                   />

@@ -2,6 +2,7 @@
 
 import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
 
 const COPUZZLE_ADMIN_REFERENCE_IMAGES = Object.freeze([
@@ -690,9 +691,13 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                 if (!previewSrc) return null;
                 return (
                   <div className={styles.activePuzzlePreview}>
-                    <img
+                    <Image
                       src={previewSrc}
                       alt="Aperçu puzzle"
+                      unoptimized
+                      width={640}
+                      height={360}
+                      loading="lazy"
                       style={{ maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
                       onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       onLoad={(e) => { e.currentTarget.style.display = 'block'; }}

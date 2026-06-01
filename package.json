@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3100",
     "build": "next build",
+    "build:analyze": "cross-env ANALYZE=true next build --webpack",
     "start": "next start -p 3100",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -28,7 +29,9 @@
     "three": "^0.184.0"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.7",
     "@tailwindcss/postcss": "^4.3.0",
+    "cross-env": "^10.1.0",
     "eslint": "^10.4.1",
     "globals": "^17.6.0",
     "playwright": "^1.59.1",

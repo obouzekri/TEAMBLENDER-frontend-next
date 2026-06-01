@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
@@ -3418,9 +3419,13 @@ export default function AdminClient() {
                               <p className="session-meta" style={{ marginTop: '8px', color: '#dc2626' }}>{challengeImageUploadError}</p>
                             ) : null}
                             {getEscapeRoomE5ImageSrc(editingChallenge.engine_config) ? (
-                              <img
+                              <Image
                                 src={getEscapeRoomE5ImageSrc(editingChallenge.engine_config)}
                                 alt="Aperçu énigme 5"
+                                unoptimized
+                                width={640}
+                                height={360}
+                                loading="lazy"
                                 style={{ marginTop: '8px', maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
                               />
                             ) : (
@@ -3515,9 +3520,13 @@ export default function AdminClient() {
                                   </label>
 
                                   {String(imageItem.src || '').trim() ? (
-                                    <img
+                                    <Image
                                       src={String(imageItem.src || '').trim()}
                                       alt={`Aperçu image ${slotIndex}`}
+                                      unoptimized
+                                      width={640}
+                                      height={360}
+                                      loading="lazy"
                                       style={{ maxWidth: '100%', maxHeight: '120px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
                                       onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                     />
@@ -3718,9 +3727,13 @@ export default function AdminClient() {
                               <p className="session-meta" style={{ marginTop: '8px', color: '#dc2626' }}>{challengeImageUploadError}</p>
                             ) : null}
 
-                            <img
+                            <Image
                               src={getCopuzzleImageSrc(editingChallenge.engine_config)}
                               alt="Apercu Copuzzle"
+                              unoptimized
+                              width={840}
+                              height={840}
+                              loading="lazy"
                               style={{ marginTop: '6px', maxWidth: '100%', maxHeight: '180px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
                               onError={(e) => { e.currentTarget.style.display = 'none'; }}
                               onLoad={(e) => { e.currentTarget.style.display = 'block'; }}

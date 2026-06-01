@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
@@ -532,9 +533,13 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
 
             {imageUrl && (isFacilitator || effectiveConfig.participants.show_reference_image) ? (
               <div className={styles.referenceWrap}>
-                <img
+                <Image
                   src={imageUrl}
                   alt="Référence du puzzle"
+                  unoptimized
+                  width={840}
+                  height={840}
+                  loading="lazy"
                   className={styles.referenceImage}
                   onError={(event) => {
                     event.currentTarget.style.display = 'none';
