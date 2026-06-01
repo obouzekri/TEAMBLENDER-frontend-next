@@ -11,9 +11,12 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isParticipant = role === 'participant';
   const isAdmin = role === 'admin';
-  const isCompact = role === 'participant-live';
+  const isParticipantChallengeLive = isParticipant && pathname?.startsWith('/challenges/');
+  const isCompact = role === 'participant-live' || isParticipantChallengeLive;
   const isManager = !isParticipant && !isAdmin && !isCompact;
   const brandHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
+  const compactReturnHref = isParticipant ? '/participant' : '/home';
+  const compactReturnLabel = isParticipant ? 'Retour a mes sessions' : 'Retour au tableau de bord';
   const headerClassName = isCompact ? 'top-nav top-nav--live-inline' : 'top-nav';
   const isManagerHome = isManager && pathname === '/home';
   const isActive = (href) => pathname?.startsWith(href);
@@ -149,10 +152,10 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
             </div>
           )}
 
-          {!isParticipant && isCompact && (
+          {isCompact && (
             <div className="nav-main-block nav-main-block--compact">
               <nav className="nav-links" aria-label="Navigation session live">
-                <Link href="/home" className="nav-link">Retour au tableau de bord</Link>
+                <Link href={compactReturnHref} className="nav-link">{compactReturnLabel}</Link>
               </nav>
             </div>
           )}
