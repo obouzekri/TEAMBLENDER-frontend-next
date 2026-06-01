@@ -538,7 +538,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
       sceneApiRef.current = null;
     };
-  }, [emitEvent, grid.x, grid.y, grid.z, gridSize, safeLayer, selectedColor, serverCubes, targetCells]);
+  }, [emitEvent, grid.x, grid.y, grid.z, gridSize]);
 
   useEffect(() => {
     if (!sceneApiRef.current) return;
@@ -705,6 +705,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                       />
                     ))}
                   </div>
+                  <p className={styles.paletteValue}>Selection: {selectedColor}</p>
                 </div>
 
                 <div className={styles.viewportWrap}>
@@ -712,7 +713,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 </div>
 
                 {!isFacilitator ? (
-                  <div className={styles.actionsRow}>
+                  <div className={`${styles.actionsRow} ${styles.actionsRowSticky}`}>
                     <button type="button" className={styles.btnSecondary} onClick={handleResetBuild} disabled={!canBuild}>
                       Reinitialiser les cubes
                     </button>
@@ -733,6 +734,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   <p>Cubes cibles: <strong>{targetCubeCount}</strong></p>
                   <p>Cubes poses equipe: <strong>{cubeCount}</strong></p>
                   <p>Precision instantanee: <strong>{accuracyPercent}%</strong></p>
+                  <div className={styles.progressTrack} aria-hidden="true">
+                    <span className={styles.progressFill} style={{ width: `${progress}%` }} />
+                  </div>
                 </div>
               </section>
 

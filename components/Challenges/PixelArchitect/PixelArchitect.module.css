@@ -265,6 +265,13 @@
   color: #bdd3e6;
 }
 
+.paletteValue {
+  margin: 0;
+  font-size: 0.74rem;
+  color: #9ec3dd;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .paletteSwatches {
   display: flex;
   gap: 6px;
@@ -300,6 +307,17 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.actionsRowSticky {
+  position: sticky;
+  bottom: 8px;
+  z-index: 6;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(5, 16, 25, 0.78);
+  border: 1px solid rgba(127, 166, 192, 0.24);
+  backdrop-filter: blur(4px);
 }
 
 .btnPrimary {
@@ -339,6 +357,22 @@
 .attemptCard p,
 .finalCard p {
   margin: 4px 0;
+}
+
+.progressTrack {
+  margin-top: 10px;
+  height: 8px;
+  width: 100%;
+  border-radius: 999px;
+  background: rgba(32, 56, 75, 0.8);
+  overflow: hidden;
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #27ae60 0%, #28b3d0 100%);
 }
 
 .summaryGrid {
@@ -395,6 +429,10 @@
   .viewport3d {
     height: 420px;
   }
+
+  .actionsRowSticky {
+    bottom: 4px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -408,5 +446,22 @@
 
   .viewport3d {
     height: 340px;
+  }
+
+  .paletteRow {
+    gap: 6px;
+  }
+
+  .swatchBtn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .btnPrimary,
+  .btnSecondary,
+  .layerBtn,
+  .levelBtn {
+    min-height: 38px;
+    font-size: 0.82rem;
   }
 }
