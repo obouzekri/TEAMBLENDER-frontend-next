@@ -103,6 +103,25 @@ function resolveZoneKey(x, z, grid) {
   return `${vertical}${horizontal}`;
 }
 
+function getZoneBounds(zoneKey, grid, gridSize) {
+  const splitX = Math.max(1, Math.ceil(Number(grid?.x || 0) / 2));
+  const splitZ = Math.max(1, Math.ceil(Number(grid?.z || 0) / 2));
+  const xStart = zoneKey.endsWith('W') ? 0 : splitX;
+  const xEnd = zoneKey.endsWith('W') ? splitX : Number(grid?.x || 0);
+  const zStart = zoneKey.startsWith('N') ? 0 : splitZ;
+  const zEnd = zoneKey.startsWith('N') ? splitZ : Number(grid?.z || 0);
+  const width = Math.max(1, xEnd - xStart);
+  const depth = Math.max(1, zEnd - zStart);
+  const offset = (gridSize - 1) / 2;
+
+  return {
+    width,
+    depth,
+    centerX: xStart + width / 2 - 0.5 - offset,
+    centerZ: zStart + depth / 2 - 0.5 - offset,
+  };
+}
+
 export default function PixelArchitectChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const mountRef = useRef(null);
   const modelPreviewRef = useRef(null);
@@ -297,11 +316,14 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
     const targetGroup = new THREE.Group();
     const playerGroup = new THREE.Group();
+    const zoneOverlayGroup = new THREE.Group();
     scene.add(targetGroup);
     scene.add(playerGroup);
+    scene.add(zoneOverlayGroup);
 
     const targetMap = new Map();
     const playerMap = new Map();
+    const zoneOverlayMap = new Map();
 
     const targetMaterial = new THREE.MeshStandardMaterial({
       color: 0x60a5fa,
@@ -429,6 +451,57 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
     const setLayer = (layer) => {
       interactionPlane.position.y = Number(layer);
+      zoneOverlayGroup.position.y = Number(layer) + 0.03;
+    };
+
+    const syncZoneOverlay = (layer, claims, currentDisplayName) => {
+      ZONE_OPTIONS.forEach((zone) => {
+        const zoneId = zone.key;
+        const bounds = getZoneBounds(zoneId, grid, gridSize);
+        const claim = claims?.[`${layer}:${zoneId}`] || null;
+        const reservedBy = String(claim?.display_name || '').trim();
+        const isMine = reservedBy && reservedBy === String(currentDisplayName || '').trim();
+        const fillColor = isMine ? 0x28b3d0 : reservedBy ? 0xf2c94c : 0x7fa6c2;
+        const fillOpacity = isMine ? 0.24 : reservedBy ? 0.18 : 0.08;
+        const edgeOpacity = isMine ? 0.9 : reservedBy ? 0.72 : 0.28;
+
+        let overlay = zoneOverlayMap.get(zoneId);
+        if (!overlay) {
+          const plane = new THREE.Mesh(
+            new THREE.PlaneGeometry(bounds.width, bounds.depth),
+            new THREE.MeshBasicMaterial({
+              color: fillColor,
+              transparent: true,
+              opacity: fillOpacity,
+              side: THREE.DoubleSide,
+              depthWrite: false,
+            })
+          );
+          plane.rotation.x = -Math.PI / 2;
+          plane.position.set(bounds.centerX, 0, bounds.centerZ);
+
+          const outline = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.PlaneGeometry(bounds.width, bounds.depth)),
+            new THREE.LineBasicMaterial({
+              color: fillColor,
+              transparent: true,
+              opacity: edgeOpacity,
+            })
+          );
+          outline.rotation.x = -Math.PI / 2;
+          outline.position.set(bounds.centerX, 0.01, bounds.centerZ);
+
+          overlay = { plane, outline };
+          zoneOverlayMap.set(zoneId, overlay);
+          zoneOverlayGroup.add(plane);
+          zoneOverlayGroup.add(outline);
+        }
+
+        overlay.plane.material.color.setHex(fillColor);
+        overlay.plane.material.opacity = fillOpacity;
+        overlay.outline.material.color.setHex(fillColor);
+        overlay.outline.material.opacity = edgeOpacity;
+      });
     };
 
     const setPreviewColor = (color) => {
@@ -530,11 +603,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       setPreviewColor,
       syncServerCubes,
       syncTargetCells,
+      syncZoneOverlay,
     };
 
     sceneApiRef.current.syncTargetCells(targetCells);
     sceneApiRef.current.syncServerCubes(serverCubes);
     sceneApiRef.current.setPreviewColor(selectedColor);
+    sceneApiRef.current.syncZoneOverlay(safeLayer, zoneClaims, displayName);
 
     return () => {
       window.removeEventListener('resize', onResize);
@@ -547,6 +622,12 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       });
       targetMap.forEach((cube) => {
         if (cube.material) cube.material.dispose();
+      });
+      zoneOverlayMap.forEach((overlay) => {
+        if (overlay.plane?.geometry) overlay.plane.geometry.dispose();
+        if (overlay.plane?.material) overlay.plane.material.dispose();
+        if (overlay.outline?.geometry) overlay.outline.geometry.dispose();
+        if (overlay.outline?.material) overlay.outline.material.dispose();
       });
       targetGroup.children.forEach((cube) => {
         if (cube.material) cube.material.dispose();
@@ -564,7 +645,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
       sceneApiRef.current = null;
     };
-  }, [emitEvent, grid.x, grid.y, grid.z, gridSize]);
+  }, [displayName, emitEvent, grid.x, grid.y, grid.z, gridSize, safeLayer, zoneClaims]);
 
   useEffect(() => {
     if (!sceneApiRef.current) return;
@@ -580,6 +661,11 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     if (!sceneApiRef.current) return;
     sceneApiRef.current.setPreviewColor(selectedColor);
   }, [selectedColor]);
+
+  useEffect(() => {
+    if (!sceneApiRef.current?.syncZoneOverlay) return;
+    sceneApiRef.current.syncZoneOverlay(safeLayer, zoneClaims, displayName);
+  }, [displayName, safeLayer, zoneClaims]);
 
   useEffect(() => {
     if (!modelPreviewRef.current || !canSeeTargetModel) return () => {};
@@ -1095,6 +1181,11 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
                 <div className={styles.viewportWrap}>
                   <div ref={mountRef} className={styles.viewport3d} />
+                </div>
+                <div className={styles.zoneLegend} aria-label="Legende des zones reservees">
+                  <span className={styles.zoneLegendItem}><span className={`${styles.zoneLegendSwatch} ${styles.zoneLegendSwatchMine}`} /> Ma zone</span>
+                  <span className={styles.zoneLegendItem}><span className={`${styles.zoneLegendSwatch} ${styles.zoneLegendSwatchReserved}`} /> Zone reservee</span>
+                  <span className={styles.zoneLegendItem}><span className={`${styles.zoneLegendSwatch} ${styles.zoneLegendSwatchOpen}`} /> Zone libre</span>
                 </div>
 
                 {!isFacilitator ? (

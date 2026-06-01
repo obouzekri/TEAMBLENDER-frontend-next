@@ -394,6 +394,41 @@
   height: 520px;
 }
 
+.zoneLegend {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  color: #cfe4f3;
+  font-size: 0.78rem;
+}
+
+.zoneLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.zoneLegendSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(214, 234, 248, 0.4);
+}
+
+.zoneLegendSwatchMine {
+  background: rgba(40, 179, 208, 0.78);
+}
+
+.zoneLegendSwatchReserved {
+  background: rgba(242, 201, 76, 0.78);
+}
+
+.zoneLegendSwatchOpen {
+  background: rgba(127, 166, 194, 0.42);
+}
+
 .actionsRow {
   margin-top: 10px;
   display: flex;
