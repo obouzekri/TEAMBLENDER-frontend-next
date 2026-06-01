@@ -45,11 +45,11 @@ export default function TopNav() {
               <Link href="/pricing" className={`nav-link ${isActive('/pricing') ? 'is-active' : ''}`} aria-current={isActive('/pricing') ? 'page' : undefined}>Tarifs</Link>
               <Link href="/contact" className={`nav-link ${isActive('/contact') ? 'is-active' : ''}`} aria-current={isActive('/contact') ? 'page' : undefined}>Contact</Link>
             </nav>
+          </div>
 
-            <div className="nav-actions" aria-label="Acces compte">
-              <Link href="/login" className={`btn-mini btn-mini--secondary ${isActive('/login') ? 'is-active' : ''}`} aria-current={isActive('/login') ? 'page' : undefined}>Connexion</Link>
-              <Link href="/signup" className={`nav-cta-btn ${isActive('/signup') ? 'is-active' : ''}`} aria-current={isActive('/signup') ? 'page' : undefined}>Créer un compte</Link>
-            </div>
+          <div className="nav-actions" aria-label="Acces compte">
+            <Link href="/login" className={`btn-mini btn-mini--secondary ${isActive('/login') ? 'is-active' : ''}`} aria-current={isActive('/login') ? 'page' : undefined}>Connexion</Link>
+            <Link href="/signup" className={`nav-cta-btn ${isActive('/signup') ? 'is-active' : ''}`} aria-current={isActive('/signup') ? 'page' : undefined}>Créer un compte</Link>
           </div>
         </div>
       </div>

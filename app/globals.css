@@ -323,18 +323,18 @@ a {
   flex: 1 1 320px;
   min-width: 0;
   margin-left: 0;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 24px;
-  padding: 0.28rem 0.44rem;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .nav-panel.is-open {
-  border-color: rgba(99, 102, 241, 0.22);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .nav-main-block {
@@ -345,7 +345,7 @@ a {
   flex: 1 1 auto;
   min-width: 0;
   flex-wrap: nowrap;
-  overflow: hidden;
+  overflow: visible;
   min-height: var(--nav-control-height);
 }
 
@@ -452,6 +452,7 @@ a {
   gap: 0.55rem;
   flex-wrap: nowrap;
   flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .nav-link {
@@ -1233,9 +1234,9 @@ a {
   margin: 0.55rem 0 0;
   padding: 0.55rem 0.78rem;
   border-radius: 10px;
-  border: 1px solid rgba(15, 118, 110, 0.2);
-  background: rgba(15, 118, 110, 0.07);
-  color: #0f5f58;
+  border: 1px solid rgba(53, 160, 255, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(244, 248, 255, 0.92) 100%);
+  color: var(--ink-soft);
   font-size: 0.86rem;
   font-weight: 700;
 }
@@ -3322,15 +3323,15 @@ a {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(90deg, rgba(15, 118, 110, 0.08) 0%, rgba(15, 118, 110, 0.01) 35%, rgba(15, 118, 110, 0) 100%);
+  background: linear-gradient(90deg, rgba(53, 160, 255, 0.08) 0%, rgba(53, 160, 255, 0.02) 35%, rgba(53, 160, 255, 0) 100%);
 }
 
 /* Session live — compact facilitator header (2 lines max) */
 .session-live-header {
   background:
-    radial-gradient(circle at 8% 0%, rgba(15, 118, 110, 0.12) 0%, rgba(15, 118, 110, 0) 36%),
-    linear-gradient(145deg, #ffffff 0%, #f5faf7 100%);
-  border: 1px solid rgba(15, 118, 110, 0.18);
+    radial-gradient(circle at 8% 0%, rgba(53, 160, 255, 0.14) 0%, rgba(53, 160, 255, 0) 38%),
+    linear-gradient(145deg, #ffffff 0%, #f5f8ff 100%);
+  border: 1px solid rgba(53, 160, 255, 0.18);
   border-radius: 0.9rem;
   padding: 0.62rem 0.8rem;
   display: flex;
@@ -3341,7 +3342,7 @@ a {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
-  box-shadow: 0 10px 24px rgba(18, 50, 37, 0.08);
+  box-shadow: 0 10px 24px rgba(18, 37, 75, 0.08);
 }
 
 .session-live-header::-webkit-scrollbar {
@@ -3367,13 +3368,13 @@ a {
   font-weight: 700;
   letter-spacing: 0.02em;
   background: rgba(255, 255, 255, 0.84);
-  border: 1px solid rgba(15, 118, 110, 0.2);
+  border: 1px solid rgba(53, 160, 255, 0.22);
   border-radius: 999px;
   padding: 0.22rem 0.5rem;
 }
 
 .session-live-header__meta--count {
-  background: rgba(15, 118, 110, 0.12);
+  background: rgba(53, 160, 255, 0.14);
 }
 
 .session-live-header__name {
@@ -3414,7 +3415,7 @@ a {
 }
 
 .session-live-header__msg--auto {
-  color: #0b5e56;
+  color: var(--accent-strong);
   font-weight: 700;
 }
 
@@ -4221,8 +4222,8 @@ a {
   gap: 0.6rem;
   padding: 0.2rem 0.38rem 0.2rem 0.62rem;
   border-radius: 999px;
-  border: 1px solid rgba(15, 118, 110, 0.14);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.86) 0%, rgba(244, 250, 247, 0.72) 100%);
+  border: 1px solid rgba(53, 160, 255, 0.16);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(244, 248, 255, 0.78) 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 12px 24px rgba(24, 41, 30, 0.08);
 }
 
@@ -4233,8 +4234,8 @@ a {
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(15, 118, 110, 0.16) 0%, rgba(15, 118, 110, 0.28) 100%);
-  color: #0b4f49;
+  background: linear-gradient(135deg, rgba(53, 160, 255, 0.16) 0%, rgba(47, 98, 255, 0.28) 100%);
+  color: #1f46d2;
   font-weight: 800;
   font-size: 0.9rem;
 }
@@ -4247,7 +4248,7 @@ a {
 }
 
 .app-user-caption {
-  color: #5f7d70;
+  color: var(--ink-soft);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -4255,7 +4256,7 @@ a {
 }
 
 .app-user-name {
-  color: #2c4a3d;
+  color: var(--ink);
   font-weight: 700;
   font-size: 0.9rem;
   white-space: nowrap;
@@ -5083,10 +5084,10 @@ a {
     align-items: center;
     gap: 0.55rem;
     padding: 0.42rem 0.48rem;
-    border-radius: 24px;
-    border: 1px solid rgba(15, 118, 110, 0.14);
-    background: rgba(255, 255, 255, 0.82);
-    box-shadow: 0 10px 24px rgba(24, 41, 30, 0.08);
+    border-radius: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
     max-height: none;
     opacity: 1;
     overflow: visible;
