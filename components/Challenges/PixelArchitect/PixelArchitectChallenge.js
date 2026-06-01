@@ -22,6 +22,12 @@ const DEFAULT_TEMPLATE = Object.freeze({
 });
 
 const FALLBACK_PALETTE = Object.freeze(['#2D9CDB', '#27AE60', '#F2C94C']);
+const ZONE_OPTIONS = Object.freeze([
+  { key: 'NW', label: 'Nord-Ouest' },
+  { key: 'NE', label: 'Nord-Est' },
+  { key: 'SW', label: 'Sud-Ouest' },
+  { key: 'SE', label: 'Sud-Est' },
+]);
 
 function toCellKey(x, y, z) {
   return `${x}:${y}:${z}`;
@@ -89,6 +95,14 @@ function normalizeServerCubes(cubesMap) {
     .filter((cube) => Number.isInteger(cube.x) && Number.isInteger(cube.y) && Number.isInteger(cube.z));
 }
 
+function resolveZoneKey(x, z, grid) {
+  const splitX = Math.max(1, Math.ceil(Number(grid?.x || 0) / 2));
+  const splitZ = Math.max(1, Math.ceil(Number(grid?.z || 0) / 2));
+  const horizontal = x < splitX ? 'W' : 'E';
+  const vertical = z < splitZ ? 'N' : 'S';
+  return `${vertical}${horizontal}`;
+}
+
 export default function PixelArchitectChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const mountRef = useRef(null);
   const modelPreviewRef = useRef(null);
@@ -153,6 +167,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   const serverCubes = useMemo(() => normalizeServerCubes(pixel?.cubes), [pixel?.cubes]);
   const layerClaims = pixel?.layer_claims && typeof pixel.layer_claims === 'object' ? pixel.layer_claims : {};
+  const zoneClaims = pixel?.zone_claims && typeof pixel.zone_claims === 'object' ? pixel.zone_claims : {};
   const cubeCount = Number(pixel?.placed_count || serverCubes.length || 0);
   const remainingCubes = Math.max(0, Number(pixel?.remaining_cubes || 0));
   const completionRatio = Math.max(
@@ -692,6 +707,27 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     emitEvent('pixel.layer.claim', { layer });
   }
 
+  function handleToggleZoneClaim(zone) {
+    if (isFacilitator) return;
+
+    const currentClaim = zoneClaims[`${safeLayer}:${zone}`] || null;
+    const myClaim = Object.values(zoneClaims).find(
+      (claim) => String(claim?.display_name || '').trim() === String(displayName || '').trim()
+    ) || null;
+    const isMine = currentClaim && String(currentClaim.display_name || '').trim() === String(displayName || '').trim();
+
+    if (isMine) {
+      emitEvent('pixel.zone.release', { layer: safeLayer, zone });
+      return;
+    }
+
+    if (myClaim && Number.isInteger(Number(myClaim.layer)) && String(myClaim.zone || '').trim()) {
+      emitEvent('pixel.zone.release', { layer: Number(myClaim.layer), zone: String(myClaim.zone) });
+    }
+
+    emitEvent('pixel.zone.claim', { layer: safeLayer, zone });
+  }
+
   const summary = state?.summary || null;
   const summaryPixelMetrics = summary?.pixel_metrics || null;
   const templateName = String(selectedTemplate?.name || 'Modele').trim();
@@ -731,6 +767,12 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     ) || null;
   }, [displayName, layerClaims]);
 
+  const myZoneClaim = useMemo(() => {
+    return Object.values(zoneClaims).find(
+      (claim) => String(claim?.display_name || '').trim() === String(displayName || '').trim()
+    ) || null;
+  }, [displayName, zoneClaims]);
+
   const layerStats = useMemo(() => {
     return layers.map((layer) => {
       const claim = layerClaims[String(layer)] || null;
@@ -755,6 +797,27 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       };
     });
   }, [layerClaims, layers, serverCubes, targetCells, targetSet]);
+
+  const activeZoneStats = useMemo(() => {
+    return ZONE_OPTIONS.map((zone) => {
+      const claim = zoneClaims[`${safeLayer}:${zone.key}`] || null;
+      const zoneTargetCount = targetCells.filter((cell) => cell.y === safeLayer && resolveZoneKey(cell.x, cell.z, grid) === zone.key).length;
+      const zoneCubes = serverCubes.filter((cube) => cube.y === safeLayer && resolveZoneKey(cube.x, cube.z, grid) === zone.key);
+      const matchedCount = zoneCubes.reduce((count, cube) => {
+        const key = toCellKey(cube.x, cube.y, cube.z);
+        return count + (targetSet.has(key) ? 1 : 0);
+      }, 0);
+
+      return {
+        ...zone,
+        claim,
+        placedCount: zoneCubes.length,
+        matchedCount,
+        extraCount: Math.max(0, zoneCubes.length - matchedCount),
+        targetCount: zoneTargetCount,
+      };
+    });
+  }, [grid, safeLayer, serverCubes, targetCells, targetSet, zoneClaims]);
 
   const contributorStats = useMemo(() => {
     const grouped = serverCubes.reduce((acc, cube) => {
@@ -977,6 +1040,35 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     >
                       {myLayerClaim && Number(myLayerClaim.layer) === safeLayer ? 'Liberer cette couche' : 'Reserver cette couche'}
                     </button>
+                  </div>
+                ) : null}
+
+                {!isFacilitator ? (
+                  <div className={styles.zoneClaimPanel}>
+                    <div className={styles.zoneClaimHead}>
+                      <p className={styles.claimText}>
+                        {myZoneClaim
+                          ? `Zone reservee: couche ${Number(myZoneClaim.layer) + 1} · ${String(myZoneClaim.zone || '')}`
+                          : 'Aucune zone reservee'}
+                      </p>
+                    </div>
+                    <div className={styles.zoneClaimGrid}>
+                      {activeZoneStats.map((zone) => {
+                        const isMine = zone.claim && String(zone.claim.display_name || '').trim() === String(displayName || '').trim();
+                        return (
+                          <button
+                            key={`zone-claim-${zone.key}`}
+                            type="button"
+                            className={`${styles.zoneClaimCard}${isMine ? ` ${styles.zoneClaimCardActive}` : ''}`}
+                            onClick={() => handleToggleZoneClaim(zone.key)}
+                          >
+                            <strong>{zone.label}</strong>
+                            <span>{zone.claim ? `Reservee par ${String(zone.claim.display_name || 'participant')}` : 'Libre'}</span>
+                            <span>Cible {zone.targetCount} · Exacts {zone.matchedCount}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 ) : null}
 
