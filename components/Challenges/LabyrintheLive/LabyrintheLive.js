@@ -7,24 +7,23 @@ import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
-import ProceduralMazeBoard from './ProceduralMazeBoard';
 import styles from './Labyrinthe.module.css';
 
 const LABYRINTHE_RULES_FALLBACK = Object.freeze({
   objective: 'Atteindre la sortie: le score d equipe augmente avec chaque joueur qui s echappe.',
   facilitator: [
-    'Annoncez clairement que plusieurs points de depart sont possibles selon le participant.',
-    'Rappelez qu un chemin sur existe toujours, mais qu il est souvent plus long.',
-    'Encouragez le partage indirect: pieges declenches, zones explorees et impasses testees.',
+    'Annoncez clairement que chaque participant doit d abord choisir un point de depart avant son premier mouvement.',
+    'Rappelez qu un retour en arriere coute une vie et replace le joueur au depart.',
+    'Pilotez la lecture des signaux: pieges visibles uniquement apres declenchement et zones bloquees identifiees en direct.',
     'Objectif de score: viser une sortie collective, pas seulement un premier gagnant.'
   ],
   participant: [
-    'Vous jouez chacun dans la meme carte, sans voir directement les autres joueurs.',
-    'Suivez les traces subtiles: couloirs testes, zones securisees, pieges deja declenches.',
-    'Plusieurs departs existent: adaptez votre trajectoire selon les indices visibles.',
-    'Choisissez entre un chemin sur plus long et des raccourcis plus risques.'
+    'Placez votre curseur sur un point de depart avant de commencer votre parcours.',
+    'Le retour en arriere est interdit: toute tentative retire une vie et vous renvoie au depart.',
+    'Les explosions sont invisibles avant passage: fiez-vous aux traces revelees pendant la partie.',
+    'Chaque impasse ou piege retire une vie, puis vous repartez depuis un point de depart.'
   ],
-  footnote: '3 vies par joueur. Le meilleur resultat est obtenu quand le maximum de participants sortent.'
+  footnote: '3 vies par joueur. Les pieges n apparaissent qu au declenchement. Le meilleur resultat est obtenu quand le maximum de participants sortent.'
 });
 
 function safeInt(value, fallback, min, max) {
@@ -149,12 +148,14 @@ function toParticipantLabel(value, fallback = 'Participant') {
   return `${first} ${last}`;
 }
 
-export default function LabyrintheLive({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
+export default function LabyrintheLive({ runtimePayload, socket, context, onChallengeCompleted }) {
   const [optimisticPos, setOptimisticPos] = useState(null);
   const [moveFeedback, setMoveFeedback] = useState('');
   const [moveFeedbackTone, setMoveFeedbackTone] = useState('info');
   const [flashCellKey, setFlashCellKey] = useState('');
   const [flashCellTone, setFlashCellTone] = useState('');
+  const [microCue, setMicroCue] = useState(null);
+  const microCueTimerRef = useRef(null);
   const {
     state,
     error,
@@ -180,7 +181,6 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   const myParticipantState = laby?.parts?.[String(participantId)] || null;
   const revealedCells = laby?.revealed_cells && typeof laby.revealed_cells === 'object' ? laby.revealed_cells : {};
   const revealedTraps = laby?.revealed_traps && typeof laby.revealed_traps === 'object' ? laby.revealed_traps : {};
-  const mazeTrapMap = laby?.maze?.traps && typeof laby.maze.traps === 'object' ? laby.maze.traps : {};
   const revealedWalls = laby?.revealed_walls && typeof laby.revealed_walls === 'object' ? laby.revealed_walls : {};
   const mazeRows = safeInt(laby?.cfg?.rows ?? laby?.cfg?.r, 20, 6, 20);
   const mazeCols = safeInt(laby?.cfg?.cols ?? laby?.cfg?.c, 20, 6, 20);
@@ -321,6 +321,22 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
   useEffect(() => {
     if (!socket || !participantId) return () => {};
 
+    const clearMicroCueTimer = () => {
+      if (microCueTimerRef.current) {
+        window.clearTimeout(microCueTimerRef.current);
+        microCueTimerRef.current = null;
+      }
+    };
+
+    const showMicroCue = (cellKey, tone, text, lifeDelta = '') => {
+      if (!cellKey || !text) return;
+      clearMicroCueTimer();
+      setMicroCue({ cellKey, tone, text, lifeDelta });
+      microCueTimerRef.current = window.setTimeout(() => {
+        setMicroCue((current) => (current?.cellKey === cellKey ? null : current));
+      }, 1200);
+    };
+
     const onChallengeEvent = (packet = {}) => {
       if (String(packet?.type || '').trim() !== 'laby.solo.resolved') return;
       const payload = packet?.payload || {};
@@ -333,11 +349,14 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
           : null;
       const impactedCellKey = posKey(impactedPos);
       if (impactedCellKey) {
+        const visualTone = String(payload?.outcome || '').trim() === 'backtrack'
+          ? 'blocked'
+          : String(payload?.outcome || '').trim();
         setFlashCellKey(impactedCellKey);
-        setFlashCellTone(String(payload?.outcome || '').trim());
+        setFlashCellTone(visualTone);
         window.setTimeout(() => {
           setFlashCellKey((prev) => (prev === impactedCellKey ? '' : prev));
-          setFlashCellTone((prev) => (prev === String(payload?.outcome || '').trim() ? '' : prev));
+          setFlashCellTone((prev) => (prev === visualTone ? '' : prev));
         }, 700);
       }
 
@@ -345,32 +364,44 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
       if (outcome === 'exit') {
         setMoveFeedback('Bravo ! Vous avez atteint la sortie.');
         setMoveFeedbackTone('success');
+        showMicroCue(impactedCellKey || playerPosKey, 'success', '🏁 Sortie !');
         return;
       }
       if (outcome === 'trap') {
         setMoveFeedback('💥 Piège déclenché : -1 vie');
         setMoveFeedbackTone('danger');
+        showMicroCue(impactedCellKey, 'danger', '💥 Boom !', '−1 vie');
         return;
       }
       if (outcome === 'blocked') {
-        setMoveFeedback('🚫 Bloqué : -1 vie');
+        setMoveFeedback('🚧 Chemin bloqué : -1 vie');
         setMoveFeedbackTone('danger');
+        showMicroCue(impactedCellKey, 'danger', '🚧 Chemin bloqué', '−1 vie');
+        return;
+      }
+      if (outcome === 'backtrack') {
+        setMoveFeedback('↩️ Retour interdit : -1 vie');
+        setMoveFeedbackTone('danger');
+        showMicroCue(impactedCellKey, 'danger', '↩️ Retour interdit', '−1 vie');
         return;
       }
       if (outcome === 'wall') {
         setMoveFeedback('Mur détecté dans cette direction.');
         setMoveFeedbackTone('warning');
+        showMicroCue(impactedCellKey || playerPosKey, 'warning', '🚧 Impasse');
         return;
       }
       setMoveFeedback('Déplacement validé. Continuez vers la sortie.');
       setMoveFeedbackTone('info');
+      showMicroCue(impactedCellKey || playerPosKey, 'info', '✨ Bien joué');
     };
 
     socket.on('challenge:event', onChallengeEvent);
     return () => {
+      clearMicroCueTimer();
       socket.off('challenge:event', onChallengeEvent);
     };
-  }, [socket, participantId]);
+  }, [socket, participantId, playerPosKey]);
 
   const displayName = useMemo(() => {
     const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
@@ -471,13 +502,6 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
     }
   }
 
-  function getTrapClass(trapState) {
-    const status = typeof trapState === 'object' ? String(trapState?.state || '').trim() : (trapState ? 'triggered' : '');
-    if (status === 'triggered') return styles.cellTrapTriggered;
-    if (status === 'resolved') return styles.cellTrapResolved;
-    return '';
-  }
-
   const colsClass = styles[`cols${mazeCols}`] || styles.cols20;
 
   return (
@@ -503,15 +527,6 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                 footnote={rulesContent.footnote}
                 onStart={isFacilitator ? () => emitEvent('timer.start') : null}
               />
-              <div className={styles.proceduralPreviewWrap}>
-                <ProceduralMazeBoard
-                  seed={`${runtimePayload?.sessionId || context?.sessionId || 'teamblender-labyrinthe'}:${engineKey || 'labyrinthe_live_v1'}`}
-                  rows={20}
-                  cols={20}
-                  participantIndex={Math.max(0, Number(myParticipantState?.slot || 1) - 1)}
-                  totalPlayers={Math.max(3, participantEntries.length || 4)}
-                />
-              </div>
               {error ? <p className={styles.error}>{error}</p> : null}
             </section>
           ) : isFacilitator ? (
@@ -620,7 +635,6 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                     if (key !== startCellKey && allStartKeys.has(key)) classes.push(styles.cellStartAlt);
                     if (key === endCellKey) classes.push(styles.cellExit);
                     if (revealedWalls[key]) classes.push(styles.cellTestedZone);
-                    if (mazeTrapMap[key]) classes.push(styles.cellTrapKnown);
                     if (Boolean(revealedTraps[key])) {
                       const trapStatus = typeof revealedTraps[key] === 'object' ? String(revealedTraps[key]?.state || 'triggered') : 'triggered';
                       if (trapStatus === 'triggered') classes.push(styles.cellTrapTriggered);
@@ -642,9 +656,14 @@ export default function LabyrintheLive({ engineKey, runtimePayload, socket, cont
                       >
                         {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>START</span> : null}
                         {key === endCellKey ? <span className={styles.cellExitBadge}>EXIT</span> : null}
-                        {mazeTrapMap[key] ? <span className={styles.cellTrapKnownIcon}>◆</span> : null}
                         {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
                         {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
+                        {microCue?.cellKey === key ? (
+                          <span className={`${styles.cellMicroCue} ${styles[`cellMicroCue--${microCue.tone}`] || ''}`}>
+                            {microCue.text}
+                            {microCue.lifeDelta ? <em className={styles.cellMicroCueLife}>{microCue.lifeDelta}</em> : null}
+                          </span>
+                        ) : null}
                         {key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
                       </button>
                     );
