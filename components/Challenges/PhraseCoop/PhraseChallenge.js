@@ -137,15 +137,6 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
   const hintBudget = Number(state?.phrase?.hint_budget || 0);
   const hintsUsed = Number(state?.phrase?.hints_used || 0);
   const remainingHints = Math.max(0, hintBudget - hintsUsed);
-  const hintRequests = Array.isArray(state?.phrase?.hint_requests) ? state.phrase.hint_requests : [];
-  const participantId = String(
-    context?.userId
-    || context?.participantId
-    || runtimePayload?.context?.participantId
-    || ''
-  ).trim();
-  const hasPendingHintRequest = !isFacilitator
-    && hintRequests.some((request) => String(request?.participant_id || '').trim() === participantId);
   const rulesContent = useMemo(
     () => resolveChallengeRules(state?.config || runtimePayload?.config),
     [runtimePayload?.config, state?.config]
@@ -242,7 +233,6 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
               onStart={isFacilitator ? () => emitEvent('timer.start') : null}
-              compactStartButton
             />
           ) : (
             <>
@@ -316,9 +306,9 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                       type="button"
                       className={styles.btnSecondary}
                       onClick={requestHint}
-                      disabled={!hasChallengeStarted || !canPlay || remainingHints <= 0 || hasPendingHintRequest}
+                      disabled={remainingHints <= 0}
                     >
-                      {hasPendingHintRequest ? 'Demande envoyée' : 'Demander un indice'}
+                      {`Découvrir un mot (${remainingHints})`}
                     </button>
                   </div>
                   <div className={styles.wordBank}>
@@ -346,7 +336,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                     })}
                   </div>
                   <p className={styles.helper}>
-                    Sélectionnez ou glissez un mot vers une de vos cases pour le placer.
+                    Sélectionnez ou glissez un mot vers une de vos cases pour le placer. L'équipe dispose de 2 actions “Découvrir un mot” au total.
                   </p>
                 </section>
               ) : null}
@@ -409,19 +399,8 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
           {isFacilitator ? (
             <section className={styles.sideCard}>
               <h2>Actions facilitateur</h2>
-              <div className={styles.actions}>
-                <button
-                  className={styles.btnPrimary}
-                  onClick={requestHint}
-                  disabled={!hasChallengeStarted || remainingHints <= 0}
-                >
-                  Débloquer un indice ({remainingHints})
-                </button>
-              </div>
               <p className={styles.helper}>
-                {hintRequests.length > 0
-                  ? `${hintRequests.length} demande(s) d’indice en attente.`
-                  : 'Suivez la progression et débloquez un indice quand nécessaire.'}
+                Suivez la progression et la coordination de l'équipe via les placements et le chat.
               </p>
               {error ? <p className={styles.error}>{error}</p> : null}
             </section>

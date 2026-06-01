@@ -171,6 +171,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const didAutoSetupRef = useRef(false);
   const swipeStartRef = useRef(null);
   const gridRef = useRef(null);
+  const myParticipantState = laby?.parts?.[String(participantId)] || null;
+  const isRespawning = myParticipantState?.solo?.choosing_start === true;
 
   const labyPhase = String(laby?.phase || '').trim();
   const canMoveSolo = !isFacilitator
@@ -182,7 +184,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
   const chatEnabled = state?.config?.chat?.enabled !== false && Boolean(socket);
 
-  const myParticipantState = laby?.parts?.[String(participantId)] || null;
   const revealedCells = laby?.revealed_cells && typeof laby.revealed_cells === 'object' ? laby.revealed_cells : {};
   const revealedTraps = laby?.revealed_traps && typeof laby.revealed_traps === 'object' ? laby.revealed_traps : {};
   const revealedWalls = laby?.revealed_walls && typeof laby.revealed_walls === 'object' ? laby.revealed_walls : {};
@@ -222,7 +223,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const maze = laby?.maze || null;
   const playerPosKey = posKey(myParticipantState?.solo?.pos);
   const mySpawnKey = posKey(myParticipantState?.solo?.path?.[0]);
-  const isRespawning = myParticipantState?.solo?.choosing_start === true;
   const allStartKeys = useMemo(() => {
     const starts = Array.isArray(maze?.start_points) && maze.start_points.length > 0
       ? maze.start_points

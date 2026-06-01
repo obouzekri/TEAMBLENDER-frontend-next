@@ -227,7 +227,7 @@ function withPhraseDefaults(config = {}) {
     : sanitizePhraseText(template.phrase, PHRASE_DEFAULT_LIBRARY[0].phrase);
 
   const nombreFauxMots = clampInt(config?.nombreFauxMots, template.fauxMots, 0, 12);
-  const nombreIndices = clampInt(config?.nombreIndices, template.indices, 0, 12);
+  const nombreIndices = 2;
   const timerTotal = clampInt(config?.timerTotal, template.timerTotal, 60, 3600);
   const modeCommunication = String(config?.modeCommunication || 'libre').toLowerCase() === 'restreint' ? 'restreint' : 'libre';
 
@@ -880,7 +880,6 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       updateValue('templateId', nextTemplateId);
                       updateValue('textePhrase', template.phrase);
                       updateValue('nombreFauxMots', template.fauxMots);
-                      updateValue('nombreIndices', template.indices);
                       updateValue('timerTotal', template.timerTotal);
                       updateValue('difficulte', template.difficulte);
                     }}
@@ -933,16 +932,8 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="phraseIndices" className={styles.label}>Nombre d'indices</label>
-                <input
-                  id="phraseIndices"
-                  type="number"
-                  min="0"
-                  max="12"
-                  value={numberValue('nombreIndices', 2)}
-                  onChange={(e) => updateValue('nombreIndices', Number(e.target.value || 2))}
-                  className={styles.input}
-                />
+                <label className={styles.label}>Découvrir un mot (équipe)</label>
+                <span className={styles.helpText}>Fixé à 2 actions par manche. Les participants les déclenchent eux-mêmes.</span>
               </div>
 
               <div className={styles.configField}>
