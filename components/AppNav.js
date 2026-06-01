@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
 
-export default function AppNav({ userLabel, onLogout, role, connectionState = '' }) {
+export default function AppNav({ userLabel, onLogout, role }) {
   const pathname = usePathname();
   const [activeHomeBlock, setActiveHomeBlock] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -31,16 +31,6 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
   const navPanelClassName = `nav-panel${(isManager || isParticipantArea) ? ' nav-panel--manager' : ''}${isMenuOpen ? ' is-open' : ''}`;
   const userBoxClassName = `app-user-box${(isManager || isCompact) ? ' app-user-box--inline' : ''}`;
   const resolvedUserLabel = userLabel || (isParticipant ? 'Participant' : 'Manager');
-  const normalizedConnectionState = ['connected', 'reconnecting', 'offline'].includes(String(connectionState || '').trim())
-    ? String(connectionState).trim()
-    : '';
-  const connectionLabel = normalizedConnectionState === 'connected'
-    ? 'Connecte'
-    : normalizedConnectionState === 'reconnecting'
-      ? 'Reconnexion'
-      : normalizedConnectionState === 'offline'
-        ? 'Hors ligne'
-        : '';
 
   useEffect(() => {
     if (!isManagerHome) {
@@ -164,15 +154,6 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
           <div className={userBoxClassName}>
             <div className="app-user-meta">
               <span className="app-user-name">{resolvedUserLabel}</span>
-              {normalizedConnectionState ? (
-                <span
-                  className={`nav-connection-indicator is-${normalizedConnectionState}`}
-                  aria-live="polite"
-                  role="status"
-                >
-                  {connectionLabel}
-                </span>
-              ) : null}
             </div>
             <button type="button" className="btn-secondary" onClick={onLogout}>Se deconnecter</button>
           </div>
