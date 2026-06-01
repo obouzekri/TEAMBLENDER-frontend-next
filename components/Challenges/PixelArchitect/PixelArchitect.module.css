@@ -28,6 +28,12 @@
   margin-bottom: 14px;
 }
 
+.headerAside {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+}
+
 .headerLine {
   display: grid;
   gap: 6px;
@@ -47,6 +53,7 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .badge {
@@ -64,6 +71,64 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
   gap: 14px;
+}
+
+.modelMiniCard {
+  width: 190px;
+  border: 1px solid var(--ch-line-soft);
+  border-radius: 12px;
+  padding: 10px;
+  background: linear-gradient(155deg, rgba(10, 24, 36, 0.95), rgba(18, 38, 56, 0.95));
+}
+
+.modelMiniTitle {
+  margin: 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b4d7ef;
+}
+
+.modelMiniMeta {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: #e8f4ff;
+}
+
+.modelMiniViewport {
+  position: relative;
+  height: 86px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(131, 166, 190, 0.3);
+  background: radial-gradient(circle at 32% 22%, rgba(125, 211, 252, 0.18), rgba(4, 12, 19, 0.92));
+  overflow: hidden;
+}
+
+.miniVoxel {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(8, 15, 22, 0.35), 0 2px 4px rgba(0, 0, 0, 0.35);
+  opacity: 0.92;
+}
+
+.modelMiniHidden {
+  margin: 0;
+  padding: 26px 10px;
+  text-align: center;
+  color: #9cb2c7;
+  font-size: 0.78rem;
+}
+
+.modelMiniStats {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #cde4f5;
+  font-size: 0.74rem;
 }
 
 .mainPane,
@@ -101,6 +166,25 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.howToList {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+  color: #d8e9f7;
+  font-size: 0.82rem;
+}
+
+.howToList li {
+  line-height: 1.38;
 }
 
 .levelBtn,
@@ -164,6 +248,39 @@
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 10px;
+}
+
+.paletteRow {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.paletteLabel {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #bdd3e6;
+}
+
+.paletteSwatches {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.swatchBtn {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid rgba(205, 230, 247, 0.55);
+  cursor: pointer;
+}
+
+.swatchBtnActive {
+  box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.85);
 }
 
 .viewportWrap {
@@ -262,6 +379,15 @@
     flex-direction: column;
   }
 
+  .headerAside {
+    width: 100%;
+    justify-items: start;
+  }
+
+  .headerMeta {
+    justify-content: flex-start;
+  }
+
   .summaryGrid {
     grid-template-columns: 1fr;
   }
@@ -274,6 +400,10 @@
 @media (max-width: 640px) {
   .container {
     padding: 10px;
+  }
+
+  .modelMiniCard {
+    width: 100%;
   }
 
   .viewport3d {

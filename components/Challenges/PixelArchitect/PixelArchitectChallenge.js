@@ -12,72 +12,80 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import styles from './PixelArchitect.module.css';
 
-const MAX_ATTEMPTS = 3;
-const PLAYER_GREEN = '#22c55e';
-const EXTRA_RED = '#ef4444';
+const DEFAULT_TEMPLATE = Object.freeze({
+  id: 'tour_signal',
+  name: 'Tour Signal',
+  difficulty: 'facile',
+  max_dims: { x: 6, y: 6, z: 4 },
+  target_cube_count: 24,
+  palette: ['#2F80ED', '#27AE60', '#F2994A'],
+});
 
-const LEVELS = Object.freeze([
-  {
-    id: 'level_easy',
-    name: 'Level 1 - Easy',
-    label: 'Cross + top cube',
-    gridSize: 5,
-    targetCells: [
-      [2, 0, 2],
-      [1, 0, 2],
-      [3, 0, 2],
-      [2, 0, 1],
-      [2, 0, 3],
-      [2, 1, 2],
-    ],
-  },
-  {
-    id: 'level_medium',
-    name: 'Level 2 - Medium',
-    label: 'Staircase',
-    gridSize: 5,
-    targetCells: [
-      [0, 0, 2], [1, 0, 2], [2, 0, 2], [3, 0, 2], [4, 0, 2],
-      [1, 1, 2], [2, 1, 2], [3, 1, 2], [4, 1, 2],
-      [2, 2, 2], [3, 2, 2], [4, 2, 2],
-      [3, 3, 2], [4, 3, 2],
-      [4, 4, 2],
-    ],
-  },
-  {
-    id: 'level_hard',
-    name: 'Level 3 - Hard',
-    label: 'Small house',
-    gridSize: 6,
-    targetCells: [
-      [1, 0, 1], [2, 0, 1], [3, 0, 1], [4, 0, 1],
-      [1, 0, 2], [2, 0, 2], [3, 0, 2], [4, 0, 2],
-      [1, 0, 3], [2, 0, 3], [3, 0, 3], [4, 0, 3],
-      [1, 0, 4], [2, 0, 4], [3, 0, 4], [4, 0, 4],
-      [1, 1, 1], [4, 1, 1], [1, 1, 4], [4, 1, 4],
-      [1, 2, 1], [4, 2, 1], [1, 2, 4], [4, 2, 4],
-      [2, 2, 1], [3, 2, 1], [2, 2, 4], [3, 2, 4],
-      [2, 3, 2], [3, 3, 2], [2, 3, 3], [3, 3, 3],
-    ],
-  },
-]);
+const FALLBACK_PALETTE = Object.freeze(['#2D9CDB', '#27AE60', '#F2C94C']);
 
 function toCellKey(x, y, z) {
   return `${x}:${y}:${z}`;
 }
 
-function fromCellKey(key) {
-  const [x, y, z] = String(key).split(':').map((v) => Number.parseInt(v, 10));
-  return {
-    x: Number.isInteger(x) ? x : 0,
-    y: Number.isInteger(y) ? y : 0,
-    z: Number.isInteger(z) ? z : 0,
-  };
-}
-
 function getCellWorldPosition(x, y, z, gridSize) {
   const offset = (gridSize - 1) / 2;
   return new THREE.Vector3(x - offset, y + 0.5, z - offset);
+}
+
+function clampInt(value, fallback, min, max) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function normalizeGrid(pixel, selectedTemplate) {
+  const x = clampInt(pixel?.grid?.x, clampInt(selectedTemplate?.max_dims?.x, 8, 4, 20), 4, 20);
+  const y = clampInt(pixel?.grid?.y, clampInt(selectedTemplate?.max_dims?.y, 8, 4, 20), 4, 20);
+  const z = clampInt(pixel?.grid?.z, clampInt(selectedTemplate?.max_dims?.z, 5, 2, 10), 2, 10);
+  return { x, y, z };
+}
+
+function buildTemplateCells(template) {
+  const maxX = clampInt(template?.max_dims?.x, 8, 4, 20);
+  const maxY = clampInt(template?.max_dims?.y, 8, 4, 20);
+  const maxZ = clampInt(template?.max_dims?.z, 5, 2, 10);
+  const targetCount = clampInt(template?.target_cube_count, 24, 8, 300);
+
+  const cx = (maxX - 1) / 2;
+  const cz = (maxZ - 1) / 2;
+  const coords = [];
+
+  for (let y = 0; y < maxY; y += 1) {
+    for (let x = 0; x < maxX; x += 1) {
+      for (let z = 0; z < maxZ; z += 1) {
+        const radial = Math.hypot(x - cx, z - cz);
+        const tierBias = y * 0.42;
+        const score = radial + tierBias;
+        coords.push({ x, y, z, score });
+      }
+    }
+  }
+
+  coords.sort((a, b) => {
+    if (a.score !== b.score) return a.score - b.score;
+    if (a.y !== b.y) return a.y - b.y;
+    if (a.x !== b.x) return a.x - b.x;
+    return a.z - b.z;
+  });
+
+  return coords.slice(0, targetCount).map((item) => ({ x: item.x, y: item.y, z: item.z }));
+}
+
+function normalizeServerCubes(cubesMap) {
+  return Object.values(cubesMap || {})
+    .map((cube) => ({
+      x: Number(cube?.x),
+      y: Number(cube?.y),
+      z: Number(cube?.z),
+      color: String(cube?.color || '').trim() || '#22c55e',
+      placedBy: String(cube?.placed_by || '').trim(),
+    }))
+    .filter((cube) => Number.isInteger(cube.x) && Number.isInteger(cube.y) && Number.isInteger(cube.z));
 }
 
 export default function PixelArchitectChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
@@ -87,15 +95,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const canInteractRef = useRef(false);
   const activeLayerRef = useRef(0);
 
-  const [selectedLevelId, setSelectedLevelId] = useState(LEVELS[0].id);
   const [activeLayer, setActiveLayer] = useState(0);
-  const [playerCubeCount, setPlayerCubeCount] = useState(0);
-  const [attemptsRemaining, setAttemptsRemaining] = useState(MAX_ATTEMPTS);
-  const [attemptsUsed, setAttemptsUsed] = useState(0);
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [lastResult, setLastResult] = useState(null);
-  const [attemptHistory, setAttemptHistory] = useState([]);
+  const [selectedColor, setSelectedColor] = useState(FALLBACK_PALETTE[0]);
 
   const { state, error, isFacilitator, emitEvent } = useRealtimeChallenge({
     runtimePayload,
@@ -104,24 +105,57 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     onChallengeCompleted,
   });
 
+  const pixel = state?.pixel || null;
   const timer = state?.timer || null;
+  const timerEnabled = timer?.enabled !== false;
   const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
   const hasChallengeStarted = timer?.enabled === false || ['running', 'paused', 'completed', 'stopped', 'timeout'].includes(timerStatus);
-  const canBuild = !isFacilitator && !isGameOver && (timer?.enabled === false || timerStatus === 'running');
+  const phase = String(pixel?.phase || '').trim().toLowerCase();
+  const isLockedByPhase = ['debrief', 'fin'].includes(phase);
+  const canBuild = !isFacilitator && !isLockedByPhase && (!timerEnabled || timerStatus === 'running');
 
-  const selectedLevel = useMemo(
-    () => LEVELS.find((level) => level.id === selectedLevelId) || LEVELS[0],
-    [selectedLevelId]
-  );
-  const gridSize = Number(selectedLevel.gridSize || 5);
-  const layers = useMemo(() => Array.from({ length: gridSize }, (_, index) => index), [gridSize]);
+  const selectedTemplate = useMemo(() => {
+    if (pixel?.selected_template && typeof pixel.selected_template === 'object') {
+      return pixel.selected_template;
+    }
+    const templates = Array.isArray(state?.config?.templates) ? state.config.templates : [];
+    const configuredTemplateId = String(state?.config?.replication?.templateId || '').trim();
+    if (configuredTemplateId) {
+      const found = templates.find((item) => String(item?.id || '').trim() === configuredTemplateId);
+      if (found) return found;
+    }
+    return templates[0] || DEFAULT_TEMPLATE;
+  }, [pixel?.selected_template, state?.config]);
+
+  const grid = useMemo(() => normalizeGrid(pixel, selectedTemplate), [pixel, selectedTemplate]);
+  const gridSize = Math.max(grid.x, grid.z);
+  const layers = useMemo(() => Array.from({ length: grid.y }, (_, index) => index), [grid.y]);
+  const safeLayer = Math.max(0, Math.min(activeLayer, Math.max(0, grid.y - 1)));
+
+  const palette = useMemo(() => {
+    const fromPixel = Array.isArray(pixel?.palette) ? pixel.palette : [];
+    const fromTemplate = Array.isArray(selectedTemplate?.palette) ? selectedTemplate.palette : [];
+    const normalized = [...fromPixel, ...fromTemplate]
+      .map((item) => String(item || '').trim())
+      .filter(Boolean);
+    return normalized.length > 0 ? Array.from(new Set(normalized)).slice(0, 6) : [...FALLBACK_PALETTE];
+  }, [pixel?.palette, selectedTemplate?.palette]);
+
+  const targetCells = useMemo(() => buildTemplateCells(selectedTemplate), [selectedTemplate]);
+  const targetCubeCount = clampInt(selectedTemplate?.target_cube_count, targetCells.length || 24, 1, 400);
   const targetSet = useMemo(
-    () => new Set(selectedLevel.targetCells.map(([x, y, z]) => toCellKey(x, y, z))),
-    [selectedLevel]
+    () => new Set(targetCells.map((cell) => toCellKey(cell.x, cell.y, cell.z))),
+    [targetCells]
   );
-  const targetCubeCount = targetSet.size;
-  const safeLayer = Math.max(0, Math.min(activeLayer, Math.max(0, gridSize - 1)));
-  const progress = Math.max(0, Math.min(100, Math.round((playerCubeCount / Math.max(1, targetCubeCount)) * 100)));
+
+  const serverCubes = useMemo(() => normalizeServerCubes(pixel?.cubes), [pixel?.cubes]);
+  const cubeCount = Number(pixel?.placed_count || serverCubes.length || 0);
+  const remainingCubes = Math.max(0, Number(pixel?.remaining_cubes || 0));
+  const completionRatio = Math.max(0, Math.min(100, Math.round((cubeCount / Math.max(1, targetCubeCount)) * 100)));
+  const progress = completionRatio;
+
+  const viewerRole = String(pixel?.viewer_role || (isFacilitator ? 'facilitator' : 'builder')).trim().toLowerCase();
+  const canSeeTargetModel = isFacilitator || viewerRole === 'architect' || pixel?.selected_template;
 
   const displayName = useMemo(() => {
     const payloadName = String(runtimePayload?.context?.displayName || runtimePayload?.context?.name || '').trim();
@@ -152,6 +186,18 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }
 
   useEffect(() => {
+    if (!palette.includes(selectedColor)) {
+      setSelectedColor(palette[0] || FALLBACK_PALETTE[0]);
+    }
+  }, [palette, selectedColor]);
+
+  useEffect(() => {
+    if (activeLayer > Math.max(0, grid.y - 1)) {
+      setActiveLayer(Math.max(0, grid.y - 1));
+    }
+  }, [activeLayer, grid.y]);
+
+  useEffect(() => {
     canInteractRef.current = canBuild;
   }, [canBuild]);
 
@@ -173,7 +219,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     scene.background = new THREE.Color(0x06151f);
 
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 200);
-    camera.position.set(gridSize + 2, gridSize + 2, gridSize + 2);
+    camera.position.set(gridSize + 2, Math.max(8, grid.y + 2), gridSize + 2);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -206,13 +252,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     gridHelper.position.y = 0;
     scene.add(gridHelper);
 
-    const boundsGeometry = new THREE.BoxGeometry(gridSize, gridSize, gridSize);
+    const boundsGeometry = new THREE.BoxGeometry(grid.x, grid.y, grid.z);
     const boundsEdges = new THREE.EdgesGeometry(boundsGeometry);
     const bounds = new THREE.LineSegments(
       boundsEdges,
       new THREE.LineBasicMaterial({ color: 0x7fa6c2, transparent: true, opacity: 0.26 })
     );
-    bounds.position.set(0, gridSize / 2, 0);
+    bounds.position.set(0, grid.y / 2, 0);
     scene.add(bounds);
 
     const planeMaterial = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide });
@@ -228,6 +274,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     scene.add(targetGroup);
     scene.add(playerGroup);
 
+    const targetMap = new Map();
+    const playerMap = new Map();
+
     const targetMaterial = new THREE.MeshStandardMaterial({
       color: 0x60a5fa,
       transparent: true,
@@ -238,18 +287,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       roughness: 0.35,
     });
 
-    selectedLevel.targetCells.forEach(([x, y, z]) => {
-      const cube = new THREE.Mesh(cubeGeometry, targetMaterial.clone());
-      cube.position.copy(getCellWorldPosition(x, y, z, gridSize));
-      cube.userData.cellKey = toCellKey(x, y, z);
-      cube.userData.kind = 'target';
-      targetGroup.add(cube);
-    });
-
     const previewCube = new THREE.Mesh(
       cubeGeometry,
       new THREE.MeshStandardMaterial({
-        color: 0x7dd3fc,
+        color: new THREE.Color(selectedColor),
         transparent: true,
         opacity: 0.28,
         emissive: 0x38bdf8,
@@ -259,7 +300,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     previewCube.visible = false;
     scene.add(previewCube);
 
-    const playerMap = new Map();
     const hoverCellRef = { value: null };
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
@@ -285,78 +325,79 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       }
     };
 
-    const syncCount = () => {
-      setPlayerCubeCount(playerMap.size);
-    };
+    const syncTargetCells = (cells) => {
+      const nextMap = new Map();
+      (Array.isArray(cells) ? cells : []).forEach((item) => {
+        const key = toCellKey(item.x, item.y, item.z);
+        nextMap.set(key, item);
 
-    const addPlayerCube = (x, y, z) => {
-      const key = toCellKey(x, y, z);
-      if (playerMap.has(key)) return;
-      const cube = new THREE.Mesh(
-        cubeGeometry,
-        new THREE.MeshStandardMaterial({
-          color: PLAYER_GREEN,
-          emissive: '#14532d',
-          emissiveIntensity: 0.2,
-          roughness: 0.42,
-          metalness: 0.08,
-        })
-      );
-      cube.position.copy(getCellWorldPosition(x, y, z, gridSize));
-      cube.scale.set(0.1, 0.1, 0.1);
-      cube.userData.cellKey = key;
-      cube.userData.kind = 'player';
-      cube.userData.spawnAt = performance.now();
-      playerGroup.add(cube);
-      playerMap.set(key, cube);
-      syncCount();
-      playTone('place');
-      emitEvent('pixel.cube.place', { x, y, z, color: PLAYER_GREEN });
-    };
-
-    const removePlayerCube = (key) => {
-      const cube = playerMap.get(key);
-      if (!cube) return;
-      const { x, y, z } = fromCellKey(key);
-      playerGroup.remove(cube);
-      if (cube.material) cube.material.dispose();
-      playerMap.delete(key);
-      syncCount();
-      playTone('remove');
-      emitEvent('pixel.cube.remove', { x, y, z });
-    };
-
-    const resetBuild = () => {
-      playerMap.forEach((cube) => {
-        playerGroup.remove(cube);
-        if (cube.material) cube.material.dispose();
+        if (!targetMap.has(key)) {
+          const cube = new THREE.Mesh(cubeGeometry, targetMaterial.clone());
+          cube.position.copy(getCellWorldPosition(item.x, item.y, item.z, gridSize));
+          cube.userData.cellKey = key;
+          cube.userData.kind = 'target';
+          targetGroup.add(cube);
+          targetMap.set(key, cube);
+        }
       });
-      playerMap.clear();
-      syncCount();
-    };
 
-    const flashExtra = (extraKeys) => {
-      extraKeys.forEach((key) => {
-        const cube = playerMap.get(key);
-        if (!cube || !cube.material) return;
-        const original = cube.material.color.getHex();
-        cube.material.color.set(EXTRA_RED);
-        cube.material.emissive.set('#7f1d1d');
-        setTimeout(() => {
-          if (!cube.material) return;
-          cube.material.color.setHex(original);
-          cube.material.emissive.set('#14532d');
-        }, 650);
+      Array.from(targetMap.keys()).forEach((key) => {
+        if (nextMap.has(key)) return;
+        const cube = targetMap.get(key);
+        if (cube) {
+          targetGroup.remove(cube);
+          if (cube.material) cube.material.dispose();
+        }
+        targetMap.delete(key);
       });
     };
 
-    const markCorrect = (correctKeys) => {
-      correctKeys.forEach((key) => {
+    const syncServerCubes = (cubes) => {
+      const nextMap = new Map();
+      (Array.isArray(cubes) ? cubes : []).forEach((item) => {
+        const key = toCellKey(item.x, item.y, item.z);
+        nextMap.set(key, item);
+
+        if (!playerMap.has(key)) {
+          const cube = new THREE.Mesh(
+            cubeGeometry,
+            new THREE.MeshStandardMaterial({
+              color: new THREE.Color(item.color || '#22c55e'),
+              emissive: '#0f3e24',
+              emissiveIntensity: 0.18,
+              roughness: 0.42,
+              metalness: 0.08,
+            })
+          );
+          cube.position.copy(getCellWorldPosition(item.x, item.y, item.z, gridSize));
+          cube.scale.set(0.1, 0.1, 0.1);
+          cube.userData.cellKey = key;
+          cube.userData.kind = 'player';
+          cube.userData.spawnAt = performance.now();
+          cube.userData.x = item.x;
+          cube.userData.y = item.y;
+          cube.userData.z = item.z;
+          playerGroup.add(cube);
+          playerMap.set(key, cube);
+        }
+
+        const existing = playerMap.get(key);
+        if (existing && existing.material) {
+          existing.material.color.set(new THREE.Color(item.color || '#22c55e'));
+          existing.userData.x = item.x;
+          existing.userData.y = item.y;
+          existing.userData.z = item.z;
+        }
+      });
+
+      Array.from(playerMap.keys()).forEach((key) => {
+        if (nextMap.has(key)) return;
         const cube = playerMap.get(key);
-        if (!cube || !cube.material) return;
-        cube.material.color.set('#22c55e');
-        cube.material.emissive.set('#16a34a');
-        cube.material.emissiveIntensity = 0.32;
+        if (cube) {
+          playerGroup.remove(cube);
+          if (cube.material) cube.material.dispose();
+        }
+        playerMap.delete(key);
       });
     };
 
@@ -364,7 +405,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       interactionPlane.position.y = Number(layer);
     };
 
-    const getPlayerKeys = () => Array.from(playerMap.keys());
+    const setPreviewColor = (color) => {
+      if (!previewCube.material) return;
+      previewCube.material.color.set(new THREE.Color(color || '#7dd3fc'));
+    };
 
     const toLocalPointer = (event) => {
       const rect = renderer.domElement.getBoundingClientRect();
@@ -372,7 +416,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     };
 
-    const isInside = (x, y, z) => x >= 0 && x < gridSize && y >= 0 && y < gridSize && z >= 0 && z < gridSize;
+    const isInside = (x, y, z) => x >= 0 && x < grid.x && y >= 0 && y < grid.y && z >= 0 && z < grid.z;
 
     const resolveGridCell = (point) => {
       const offset = (gridSize - 1) / 2;
@@ -408,15 +452,21 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       if (!hit) return;
 
       if (hit.object?.userData?.kind === 'player') {
-        const key = String(hit.object.userData.cellKey || '');
-        if (key) removePlayerCube(key);
+        const x = Number(hit.object?.userData?.x);
+        const y = Number(hit.object?.userData?.y);
+        const z = Number(hit.object?.userData?.z);
+        if (Number.isInteger(x) && Number.isInteger(y) && Number.isInteger(z)) {
+          playTone('remove');
+          emitEvent('pixel.cube.remove', { x, y, z });
+        }
         return;
       }
 
       const cell = hoverCellRef.value;
       if (!cell) return;
       if (playerMap.has(cell.key)) return;
-      addPlayerCube(cell.x, cell.y, cell.z);
+      playTone('place');
+      emitEvent('pixel.cube.place', { x: cell.x, y: cell.y, z: cell.z, color: selectedColor });
     };
 
     renderer.domElement.addEventListener('pointermove', onPointerMove);
@@ -450,14 +500,15 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     animate();
 
     sceneApiRef.current = {
-      addPlayerCube,
-      removePlayerCube,
-      resetBuild,
-      getPlayerKeys,
-      flashExtra,
-      markCorrect,
       setLayer,
+      setPreviewColor,
+      syncServerCubes,
+      syncTargetCells,
     };
+
+    sceneApiRef.current.syncTargetCells(targetCells);
+    sceneApiRef.current.syncServerCubes(serverCubes);
+    sceneApiRef.current.setPreviewColor(selectedColor);
 
     return () => {
       window.removeEventListener('resize', onResize);
@@ -466,6 +517,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       window.cancelAnimationFrame(rafId);
 
       playerMap.forEach((cube) => {
+        if (cube.material) cube.material.dispose();
+      });
+      targetMap.forEach((cube) => {
         if (cube.material) cube.material.dispose();
       });
       targetGroup.children.forEach((cube) => {
@@ -484,93 +538,92 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
       sceneApiRef.current = null;
     };
-  }, [emitEvent, gridSize, safeLayer, selectedLevel]);
+  }, [emitEvent, grid.x, grid.y, grid.z, gridSize, safeLayer, selectedColor, serverCubes, targetCells]);
 
-  function resetGameState() {
-    sceneApiRef.current?.resetBuild?.();
-    setPlayerCubeCount(0);
-    setAttemptsRemaining(MAX_ATTEMPTS);
-    setAttemptsUsed(0);
-    setAttemptHistory([]);
-    setLastResult(null);
-    setIsGameOver(false);
-    setIsSuccess(false);
-  }
+  useEffect(() => {
+    if (!sceneApiRef.current) return;
+    sceneApiRef.current.syncTargetCells(targetCells);
+  }, [targetCells]);
+
+  useEffect(() => {
+    if (!sceneApiRef.current) return;
+    sceneApiRef.current.syncServerCubes(serverCubes);
+  }, [serverCubes]);
+
+  useEffect(() => {
+    if (!sceneApiRef.current) return;
+    sceneApiRef.current.setPreviewColor(selectedColor);
+  }, [selectedColor]);
 
   function handleResetBuild() {
-    if (isFacilitator) return;
-    sceneApiRef.current?.resetBuild?.();
-    setPlayerCubeCount(0);
-  }
-
-  function handleSelectLevel(levelId) {
-    setSelectedLevelId(levelId);
-    setActiveLayer(0);
-    resetGameState();
-  }
-
-  function handleSubmitAttempt() {
-    if (isFacilitator || isGameOver) return;
-
-    const playerKeys = sceneApiRef.current?.getPlayerKeys?.() || [];
-    const playerSet = new Set(playerKeys);
-
-    const correctKeys = playerKeys.filter((key) => targetSet.has(key));
-    const extraKeys = playerKeys.filter((key) => !targetSet.has(key));
-    const missingKeys = Array.from(targetSet).filter((key) => !playerSet.has(key));
-    const solved = extraKeys.length === 0 && missingKeys.length === 0 && targetSet.size > 0;
-
-    sceneApiRef.current?.markCorrect?.(correctKeys);
-    sceneApiRef.current?.flashExtra?.(extraKeys);
-
-    const nextAttemptsUsed = attemptsUsed + 1;
-    const nextAttemptsRemaining = Math.max(0, MAX_ATTEMPTS - nextAttemptsUsed);
-    const accuracy = Math.round((correctKeys.length / Math.max(1, targetSet.size)) * 100);
-
-    const result = {
-      attempt: nextAttemptsUsed,
-      correct: correctKeys.length,
-      extra: extraKeys.length,
-      missing: missingKeys.length,
-      accuracy,
-    };
-
-    setAttemptsUsed(nextAttemptsUsed);
-    setAttemptsRemaining(nextAttemptsRemaining);
-    setLastResult(result);
-    setAttemptHistory((prev) => [result, ...prev].slice(0, MAX_ATTEMPTS));
-
-    emitEvent('pixel.submit_attempt', {
-      attempt: nextAttemptsUsed,
-      correct: correctKeys.length,
-      extra: extraKeys.length,
-      missing: missingKeys.length,
-      accuracy,
-      level: selectedLevel.id,
+    if (!canBuild) return;
+    serverCubes.forEach((cube) => {
+      emitEvent('pixel.cube.remove', { x: cube.x, y: cube.y, z: cube.z });
     });
+  }
 
-    if (solved || nextAttemptsRemaining <= 0) {
-      setIsGameOver(true);
-      setIsSuccess(solved);
-      emitEvent('pixel.submit_final');
-    }
+  function handleSubmitFinal() {
+    if (isFacilitator) return;
+    emitEvent('pixel.submit_final');
   }
 
   const summary = state?.summary || null;
-  const latestAccuracy = Number(lastResult?.accuracy || 0);
-  const levelLabel = `${selectedLevel.name} (${selectedLevel.label})`;
+  const templateName = String(selectedTemplate?.name || 'Modele').trim();
+  const templateDifficulty = String(selectedTemplate?.difficulty || state?.config?.difficulty || 'moyen').trim();
+  const miniCells = useMemo(() => targetCells.slice(0, 42), [targetCells]);
+
+  const playerExactHits = useMemo(() => {
+    if (!targetSet.size) return 0;
+    return serverCubes.reduce((acc, cube) => {
+      const key = toCellKey(cube.x, cube.y, cube.z);
+      return acc + (targetSet.has(key) ? 1 : 0);
+    }, 0);
+  }, [serverCubes, targetSet]);
+
+  const accuracyPercent = Math.max(0, Math.min(100, Math.round((playerExactHits / Math.max(1, targetSet.size)) * 100)));
 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerLine}>
           <h1>Pixel Architect</h1>
-          <p>Rebuild the model using cubes</p>
+          <p>Repliquez le modele collectivement, en temps reel, avec contraintes de grille et palette.</p>
         </div>
-        <div className={styles.headerMeta}>
-          <span className={styles.badge}>Level: {levelLabel}</span>
-          <span className={styles.badge}>Attempts: {attemptsRemaining}</span>
-          <span className={styles.badge}>Cubes: {playerCubeCount}</span>
+        <div className={styles.headerAside}>
+          <div className={styles.headerMeta}>
+            <span className={styles.badge}>Mode: {String(pixel?.mode || state?.config?.mode || 'replication')}</span>
+            <span className={styles.badge}>Role: {viewerRole}</span>
+            <span className={styles.badge}>Cubes poses: {cubeCount}</span>
+          </div>
+          <section className={styles.modelMiniCard}>
+            <p className={styles.modelMiniTitle}>Carte modele</p>
+            <p className={styles.modelMiniMeta}>{templateName} - {templateDifficulty}</p>
+            <div className={styles.modelMiniViewport}>
+              {canSeeTargetModel ? (
+                miniCells.map((cell, index) => {
+                  const left = (cell.x - cell.z) * 8 + 72;
+                  const top = (cell.x + cell.z) * 4 - (cell.y * 7) + 34;
+                  return (
+                    <span
+                      key={`mini-${index}-${cell.x}-${cell.y}-${cell.z}`}
+                      className={styles.miniVoxel}
+                      style={{
+                        left: `${left}px`,
+                        top: `${top}px`,
+                        background: palette[cell.y % Math.max(1, palette.length)] || '#7dd3fc',
+                      }}
+                    />
+                  );
+                })
+              ) : (
+                <p className={styles.modelMiniHidden}>Modele masque pour ce role</p>
+              )}
+            </div>
+            <div className={styles.modelMiniStats}>
+              <span>{grid.x}x{grid.y}x{grid.z}</span>
+              <span>{targetCubeCount} cubes cibles</span>
+            </div>
+          </section>
         </div>
       </header>
 
@@ -592,39 +645,36 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             <>
               <section className={styles.panel}>
                 <div className={styles.panelHead}>
-                  <h2>Target Model</h2>
-                  <p>Ghost cubes are always visible in blue. Build your own structure in green.</p>
+                  <h2>Plan d'execution</h2>
+                  <p>Le plateau est synchronise entre tous les joueurs. Chaque action est diffusee en direct.</p>
                 </div>
-                <div className={styles.levelRow}>
-                  {LEVELS.map((level) => (
-                    <button
-                      key={level.id}
-                      type="button"
-                      className={`${styles.levelBtn}${selectedLevel.id === level.id ? ` ${styles.levelBtnActive}` : ''}`}
-                      onClick={() => handleSelectLevel(level.id)}
-                      disabled={isFacilitator}
-                    >
-                      {level.name}
-                    </button>
-                  ))}
+                <div className={styles.statusRow}>
+                  <span className={styles.badge}>Phase: {phase || 'intro'}</span>
+                  <span className={styles.badge}>Exactitude: {accuracyPercent}%</span>
+                  <span className={styles.badge}>Restants: {remainingCubes}</span>
                 </div>
+                <ol className={styles.howToList}>
+                  <li>Choisir une couche puis poser/supprimer des cubes.</li>
+                  <li>Se coordonner via le chat pour eviter les doublons.</li>
+                  <li>Soumettre la version finale quand votre equipe est prete.</li>
+                </ol>
                 <div className={styles.helperRow}>
                   <div className={styles.helperItem}>
-                    <span className={styles.helperDotTarget} /> Target (ghost)
+                    <span className={styles.helperDotTarget} /> Modele cible (fantome)
                   </div>
                   <div className={styles.helperItem}>
-                    <span className={styles.helperDotPlayer} /> Player cubes
+                    <span className={styles.helperDotPlayer} /> Cubes equipe
                   </div>
                   <div className={styles.helperItem}>
-                    <span className={styles.helperDotError} /> Extra cubes on submit
+                    <span className={styles.helperDotError} /> Contraintes depassees
                   </div>
                 </div>
               </section>
 
               <section className={styles.panel}>
                 <div className={styles.panelHead}>
-                  <h2>3D Build Area</h2>
-                  <p>Click grid to place, click existing cube to remove, drag to orbit and zoom.</p>
+                  <h2>Zone de construction 3D</h2>
+                  <p>Cliquer la grille pour poser, cliquer un cube pour supprimer, glisser pour orbiter/zoomer.</p>
                 </div>
 
                 <div className={styles.layerTabs}>
@@ -635,9 +685,26 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                       className={`${styles.layerBtn}${safeLayer === layer ? ` ${styles.layerBtnActive}` : ''}`}
                       onClick={() => setActiveLayer(layer)}
                     >
-                      Layer {layer + 1}
+                      Couche {layer + 1}
                     </button>
                   ))}
+                </div>
+
+                <div className={styles.paletteRow}>
+                  <p className={styles.paletteLabel}>Palette active</p>
+                  <div className={styles.paletteSwatches}>
+                    {palette.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        aria-label={`Couleur ${color}`}
+                        className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
+                        style={{ background: color }}
+                        onClick={() => setSelectedColor(color)}
+                        disabled={isFacilitator}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 <div className={styles.viewportWrap}>
@@ -647,10 +714,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 {!isFacilitator ? (
                   <div className={styles.actionsRow}>
                     <button type="button" className={styles.btnSecondary} onClick={handleResetBuild} disabled={!canBuild}>
-                      Reset build
+                      Reinitialiser les cubes
                     </button>
-                    <button type="button" className={styles.btnPrimary} onClick={handleSubmitAttempt} disabled={!canBuild}>
-                      Submit Attempt
+                    <button type="button" className={styles.btnPrimary} onClick={handleSubmitFinal} disabled={isLockedByPhase}>
+                      Soumettre version finale
                     </button>
                   </div>
                 ) : (
@@ -661,25 +728,12 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   </div>
                 )}
 
-                {lastResult ? (
-                  <div className={styles.attemptCard}>
-                    <h3>Attempt {lastResult.attempt} result</h3>
-                    <p>Correct cubes: <strong>{lastResult.correct}</strong></p>
-                    <p>Missing cubes: <strong>{lastResult.missing}</strong></p>
-                    <p>Extra cubes: <strong>{lastResult.extra}</strong></p>
-                  </div>
-                ) : null}
-
-                {isGameOver ? (
-                  <div className={styles.finalCard}>
-                    <h3>{isSuccess ? 'Success' : 'Failed'}</h3>
-                    <p>Accuracy: <strong>{latestAccuracy}%</strong></p>
-                    <p>Attempts: <strong>{attemptsUsed} / {MAX_ATTEMPTS}</strong></p>
-                    <button type="button" className={styles.btnSecondary} onClick={resetGameState}>
-                      Try again
-                    </button>
-                  </div>
-                ) : null}
+                <div className={styles.attemptCard}>
+                  <h3>Etat live du build</h3>
+                  <p>Cubes cibles: <strong>{targetCubeCount}</strong></p>
+                  <p>Cubes poses equipe: <strong>{cubeCount}</strong></p>
+                  <p>Precision instantanee: <strong>{accuracyPercent}%</strong></p>
+                </div>
               </section>
 
               {summary ? (
@@ -710,20 +764,21 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
           <section className={styles.panel}>
             <h3>Etat equipe</h3>
-            <p>Level: {selectedLevel.name}</p>
-            <p>Target cubes: {targetCubeCount}</p>
-            <p>Your cubes: {playerCubeCount}</p>
-            <p>Attempts remaining: {attemptsRemaining}</p>
-            <p>Progress vs target: {progress}%</p>
+            <p>Template: {templateName}</p>
+            <p>Difficulte: {templateDifficulty}</p>
+            <p>Cubes cibles: {targetCubeCount}</p>
+            <p>Cubes poses: {cubeCount}</p>
+            <p>Progression: {progress}%</p>
+            <p>Indices utilises: {Number(pixel?.hints_used || 0)}</p>
           </section>
 
-          {attemptHistory.length > 0 ? (
+          {Array.isArray(pixel?.hints) && pixel.hints.length > 0 ? (
             <section className={styles.panel}>
-              <h3>Attempt log</h3>
+              <h3>Historique indices</h3>
               <ul className={styles.attemptList}>
-                {attemptHistory.map((item) => (
-                  <li key={`attempt-${item.attempt}`}>
-                    #{item.attempt} - ok {item.correct}, missing {item.missing}, extra {item.extra}
+                {pixel.hints.slice(-6).reverse().map((item, index) => (
+                  <li key={`hint-${index}`}>
+                    {String(item?.text || '')}
                   </li>
                 ))}
               </ul>
