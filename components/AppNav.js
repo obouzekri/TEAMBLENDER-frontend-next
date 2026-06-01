@@ -14,6 +14,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
   const isParticipantChallengeLive = isParticipant && pathname?.startsWith('/challenges/');
   const isCompact = role === 'participant-live' || isParticipantChallengeLive;
   const isManager = !isParticipant && !isAdmin && !isCompact;
+  const isParticipantArea = isParticipant && !isCompact;
   const brandHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
   const compactReturnHref = isParticipant ? '/participant' : '/home';
   const compactReturnLabel = isParticipant ? 'Retour a mes sessions' : 'Retour au tableau de bord';
@@ -21,13 +22,13 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
   const isManagerHome = isManager && pathname === '/home';
   const isActive = (href) => pathname?.startsWith(href);
   const contextLabel = isParticipant
-    ? 'Espace participant'
+    ? ''
     : isAdmin
       ? 'Console admin'
       : isCompact
         ? 'Session live'
         : 'Espace manager';
-  const navPanelClassName = `nav-panel${isManager ? ' nav-panel--manager' : ''}${isMenuOpen ? ' is-open' : ''}`;
+  const navPanelClassName = `nav-panel${(isManager || isParticipantArea) ? ' nav-panel--manager' : ''}${isMenuOpen ? ' is-open' : ''}`;
   const userBoxClassName = `app-user-box${(isManager || isCompact) ? ' app-user-box--inline' : ''}`;
   const resolvedUserLabel = userLabel || (isParticipant ? 'Participant' : 'Manager');
   const normalizedConnectionState = ['connected', 'reconnecting', 'offline'].includes(String(connectionState || '').trim())
@@ -100,7 +101,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
             <Link href={brandHref} className="brand">
               <Logo size="default" />
             </Link>
-            {!isManager && !isCompact ? <span className="nav-context">{contextLabel}</span> : null}
+            {!isManager && !isCompact && contextLabel ? <span className="nav-context">{contextLabel}</span> : null}
           </div>
 
           {!isCompact ? (

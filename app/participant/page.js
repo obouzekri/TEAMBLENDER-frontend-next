@@ -324,7 +324,6 @@ export default function ParticipantPage() {
       <AppNav userLabel={participantLabel} onLogout={logout} role="participant" connectionState={connectionState} />
       <main className="shell app-home participant-home">
         <section className="hero participant-hero">
-          <p className="eyebrow">ESPACE PARTICIPANT</p>
           <h1>Bienvenue {participantLabel}</h1>
           <p>{assignedSessions.length > 0 && !sessionId ? 'Selectionnez une session pour commencer.' : 'Votre session est en cours. Le challenge actif s\'affichera ici automatiquement.'}</p>
           <div className="hero-actions">
