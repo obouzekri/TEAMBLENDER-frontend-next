@@ -428,6 +428,9 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     if ((current?.engine_key || '').toLowerCase() === 'pixel_architect_v1' || fingerprint.includes('pixel architect') || fingerprint.includes('voxel')) {
       return 'pixel_architect';
     }
+    if ((current?.engine_key || '').toLowerCase() === 'mission_critique_v1' || fingerprint.includes('mission critique')) {
+      return 'mission_critique';
+    }
     return 'generic';
   }
 
@@ -513,6 +516,10 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     }
     if (kind === 'pixel_architect') {
       onSave(withPixelArchitectDefaults(config));
+      return;
+    }
+    if (kind === 'mission_critique') {
+      onSave({});
       return;
     }
     onSave(config);
@@ -1287,6 +1294,10 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                 </div>
               ))}
             </>
+          )}
+
+          {kind === 'mission_critique' && (
+            <p className={styles.noConfigText}>Aucune configuration requise pour Mission Critique.</p>
           )}
         </div>
 
