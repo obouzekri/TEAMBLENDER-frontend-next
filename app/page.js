@@ -24,9 +24,9 @@ const DEFAULT_BLOCKS = {
   impact_2: {},
   impact_3: {},
   partners_header: {
-    label: 'Confiance',
-    title: 'Des equipes qui veulent des resultats, pas des animations vides.',
-    description: 'TeamBlender est utilise en contexte reel par des managers, RH et facilitateurs qui pilotent des decisions d equipe.',
+    label: '',
+    title: 'Des équipes qui veulent des résultats, pas des animations vides.',
+    description: 'TeamBlender est utilisé en contexte réel par des managers, RH et facilitateurs qui pilotent des décisions d’équipe.',
   },
   partner_1: {
     title: 'RH & Talent',
@@ -47,7 +47,7 @@ const DEFAULT_BLOCKS = {
     title: 'Coaching',
   },
   testimonials_header: {
-    label: 'Temoignages',
+    label: 'Témoignages',
     title: 'Le retour terrain reste le meilleur signal.',
     description: 'Des retours courts, utiles et lisibles pour se projeter vite.',
   },
@@ -68,12 +68,12 @@ const DEFAULT_BLOCKS = {
   },
   flow_header: {
     label: 'Processus',
-    title: 'Trois etapes. Un cadre clair.',
+    title: 'Trois étapes. Un cadre clair.',
   },
   flow_step_1: {
     badge_text: '01',
-    title: 'Cadrer l objectif',
-    description: 'Selectionnez l enjeu prioritaire de l equipe.',
+    title: 'Cadrer l’objectif',
+    description: 'Sélectionnez l’enjeu prioritaire de l’équipe.',
   },
   flow_step_2: {
     badge_text: '02',
@@ -82,8 +82,8 @@ const DEFAULT_BLOCKS = {
   },
   flow_step_3: {
     badge_text: '03',
-    title: 'Debrief actionnable',
-    description: 'Transformez les signaux en decisions equipe.',
+    title: 'Débrief actionnable',
+    description: 'Transformez les signaux en décisions d’équipe.',
   },
   final_cta_secondary: {
     cta_label: 'Se connecter',
@@ -239,7 +239,7 @@ const TRUST_TAG_ICON_BY_KEYWORD = [
 const TRUST_PROOF_METRICS = [
   {
     value: '+150',
-    label: 'equipes accompagnees',
+    label: 'équipes accompagnées',
     detail: 'Managers, RH et facilitateurs en PME et ETI',
   },
   {
@@ -250,7 +250,7 @@ const TRUST_PROOF_METRICS = [
   {
     value: 'Hybride-ready',
     label: 'presentiel, remote et multi-sites',
-    detail: 'Meme niveau de lisibilite pour tous les formats',
+    detail: 'Même niveau de lisibilité pour tous les formats',
   },
 ];
 
@@ -496,12 +496,14 @@ export default function HomePage() {
           <div className="landing-hero-aurora pointer-events-none absolute inset-0" />
           <div className="landing-hero-inner relative grid gap-6 lg:grid-cols-[1.16fr_0.84fr] lg:items-start">
             <div className="landing-hero-copy max-w-3xl">
-              <div className="mb-5 flex flex-wrap gap-3">
-                <span className={`${chipClass} landing-hero-kicker-chip`}>
-                  <Sparkles className="h-4 w-4 text-indigo-500" />
-                  {heroKicker.title || heroMain.label || 'SaaS team building'}
-                </span>
-              </div>
+              {(heroKicker.title || heroMain.label) ? (
+                <div className="mb-5 flex flex-wrap gap-3">
+                  <span className={`${chipClass} landing-hero-kicker-chip`}>
+                    <Sparkles className="h-4 w-4 text-indigo-500" />
+                    {heroKicker.title || heroMain.label}
+                  </span>
+                </div>
+              ) : null}
 
               <h1 className="landing-hero-title max-w-2xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
                 <span className="block">{heroMain.title}</span>
@@ -540,7 +542,7 @@ export default function HomePage() {
                 <div className="landing-hero-product-head">
                   <div>
                     <p className="landing-hero-product-label">Product preview</p>
-                    <p className="landing-hero-product-title">Experience live collaborative</p>
+                    <p className="landing-hero-product-title">Expérience live collaborative</p>
                   </div>
                   <div className="landing-hero-product-live">
                     <span className="h-2 w-2 rounded-full bg-emerald-400" />
@@ -564,11 +566,11 @@ export default function HomePage() {
                   </span>
                   <span>
                     <Users className="h-4 w-4" />
-                    {heroImageB.description || 'Chat et coordination equipe'}
+                    {heroImageB.description || 'Chat et coordination d’équipe'}
                   </span>
                   <span>
                     <BarChart3 className="h-4 w-4" />
-                    Progression collaborative instantanee
+                    Progression collaborative instantanée
                   </span>
                 </div>
               </div>
@@ -602,15 +604,17 @@ export default function HomePage() {
             '--reveal-delay': '120ms',
             background: 'linear-gradient(180deg, rgba(246,249,255,0.94) 0%, rgba(237,244,255,0.94) 100%)',
           }}
-          aria-label="Confiance et preuve sociale"
+          aria-label="Preuve sociale"
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_84%_16%,rgba(99,102,241,0.12),transparent_42%)]" />
           <div className="landing-section-inner relative space-y-8">
             <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
               <div>
-                <p className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-700">
-                  {partnersHeader.label}
-                </p>
+                {partnersHeader.label ? (
+                  <p className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-700">
+                    {partnersHeader.label}
+                  </p>
+                ) : null}
                 <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                   {partnersHeader.title}
                 </h2>
@@ -620,9 +624,9 @@ export default function HomePage() {
               </div>
 
               <div className="rounded-2xl bg-white/80 p-4 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Usage reel</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Usage réel</p>
                 <p className="mt-2 text-sm leading-6 text-slate-700">
-                  Adopte pour l onboarding, la facilitation d ateliers et les rituels d equipe dans des environnements hybrides exigeants.
+                  Adopté pour l’onboarding, la facilitation d’ateliers et les rituels d’équipe dans des environnements hybrides exigeants.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {TRUST_LOGO_PLACEHOLDERS.map((logo) => (
@@ -637,13 +641,13 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Indicateurs de confiance">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Indicateurs clés">
               {TRUST_PROOF_METRICS.map((metric) => (
                 <TrustProofCard key={metric.value} value={metric.value} label={metric.label} detail={metric.detail} />
               ))}
             </div>
 
-            <div className="landing-partner-grid flex flex-wrap gap-3" aria-label="Segments utilises par les clients">
+            <div className="landing-partner-grid flex flex-wrap gap-3" aria-label="Segments utilisés par les clients">
               {partnerItems.map((item, index) => (
                 <TrustTag key={item.title} title={item.title} isActive={index === 0} />
               ))}
@@ -657,7 +661,7 @@ export default function HomePage() {
             '--reveal-delay': '155ms',
             background: 'linear-gradient(180deg, #ffffff 0%, #f3f7ff 100%)',
           }}
-          aria-label="Temoignages clients"
+          aria-label="Témoignages clients"
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(99,102,241,0.10),transparent_44%)]" />
           <div className="landing-section-inner relative">
@@ -702,7 +706,7 @@ export default function HomePage() {
             '--reveal-delay': '190ms',
             background: 'linear-gradient(180deg, #f4f8ff 0%, #ecf2ff 100%)',
           }}
-          aria-label="Parcours en 3 etapes"
+          aria-label="Parcours en 3 étapes"
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(14,165,233,0.10),transparent_40%)]" />
           <div className="landing-section-inner relative">
@@ -739,7 +743,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className={`landing-cta-block landing-section-full reveal-up p-8 text-center`} style={{ '--reveal-delay': '230ms' }} aria-label="Dernier appel a l action">
+        <section className={`landing-cta-block landing-section-full reveal-up p-8 text-center`} style={{ '--reveal-delay': '230ms' }} aria-label="Dernier appel à l’action">
           <div className="landing-section-inner">
             <p className="eyebrow">{finalCta.subtitle || finalCta.label}</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title}</h2>
