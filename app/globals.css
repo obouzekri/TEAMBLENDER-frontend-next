@@ -42,6 +42,10 @@
   --field-bg: #f9fbf7;
   --field-line: #cfe0d3;
   --field-line-focus: rgba(15, 118, 110, 0.42);
+  --field-bg-focus: #ffffff;
+  --field-text: #0f172a;
+  --field-placeholder: #64748b;
+  --field-autofill-bg: #eef4ff;
   --error-bg: #fff1f1;
   --error-line: #ef4444;
   --error-ink: #991b1b;
@@ -81,7 +85,12 @@
     --surface-glass: rgba(17, 26, 46, 0.76);
     --surface-glass-strong: rgba(17, 26, 46, 0.92);
     --field-bg: #10182c;
-    --field-line: #33405f;
+    --field-line: #44567e;
+    --field-line-focus: rgba(125, 211, 252, 0.64);
+    --field-bg-focus: #162038;
+    --field-text: #f3f7ff;
+    --field-placeholder: #a9b6d3;
+    --field-autofill-bg: #18233d;
     --card-shadow: 0 14px 32px rgba(2, 6, 23, 0.38);
     --card-shadow-hover: 0 20px 44px rgba(2, 6, 23, 0.5);
     --shadow-sm: 0 10px 24px rgba(2, 6, 23, 0.36);
@@ -1092,6 +1101,59 @@ a {
 
 :where(input:not([type="hidden"]), select, textarea) {
   min-height: var(--touch-target-min);
+}
+
+:where(
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  select,
+  textarea
+) {
+  border-color: var(--field-line);
+  background: var(--field-bg);
+  color: var(--field-text);
+  caret-color: var(--field-text);
+  -webkit-text-fill-color: var(--field-text);
+}
+
+:where(
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  textarea
+)::placeholder {
+  color: var(--field-placeholder);
+  opacity: 1;
+}
+
+:where(
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  select,
+  textarea
+):focus {
+  border-color: var(--field-line-focus);
+  background: var(--field-bg-focus);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--field-line-focus) 28%, transparent);
+}
+
+:where(select, option) {
+  color: var(--field-text);
+  background: var(--field-bg);
+}
+
+:where(
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  textarea
+):-webkit-autofill,
+:where(
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  textarea
+):-webkit-autofill:hover,
+:where(
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  textarea
+):-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--field-text) !important;
+  box-shadow: 0 0 0 1000px var(--field-autofill-bg) inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+  border-color: var(--field-line-focus);
 }
 
 .btn-primary {
