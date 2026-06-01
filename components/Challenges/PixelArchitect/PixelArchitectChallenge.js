@@ -152,6 +152,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   );
 
   const serverCubes = useMemo(() => normalizeServerCubes(pixel?.cubes), [pixel?.cubes]);
+  const layerClaims = pixel?.layer_claims && typeof pixel.layer_claims === 'object' ? pixel.layer_claims : {};
   const cubeCount = Number(pixel?.placed_count || serverCubes.length || 0);
   const remainingCubes = Math.max(0, Number(pixel?.remaining_cubes || 0));
   const completionRatio = Math.max(
@@ -670,6 +671,27 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     emitEvent('pixel.submit_final');
   }
 
+  function handleToggleLayerClaim(layer) {
+    if (isFacilitator) return;
+
+    const currentClaim = layerClaims[String(layer)] || null;
+    const myClaim = Object.values(layerClaims).find(
+      (claim) => String(claim?.display_name || '').trim() === String(displayName || '').trim()
+    ) || null;
+    const isMine = currentClaim && String(currentClaim.display_name || '').trim() === String(displayName || '').trim();
+
+    if (isMine) {
+      emitEvent('pixel.layer.release', { layer });
+      return;
+    }
+
+    if (myClaim && Number.isInteger(Number(myClaim.layer)) && Number(myClaim.layer) !== layer) {
+      emitEvent('pixel.layer.release', { layer: Number(myClaim.layer) });
+    }
+
+    emitEvent('pixel.layer.claim', { layer });
+  }
+
   const summary = state?.summary || null;
   const summaryPixelMetrics = summary?.pixel_metrics || null;
   const templateName = String(selectedTemplate?.name || 'Modele').trim();
@@ -703,8 +725,15 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     )
   );
 
+  const myLayerClaim = useMemo(() => {
+    return Object.values(layerClaims).find(
+      (claim) => String(claim?.display_name || '').trim() === String(displayName || '').trim()
+    ) || null;
+  }, [displayName, layerClaims]);
+
   const layerStats = useMemo(() => {
     return layers.map((layer) => {
+      const claim = layerClaims[String(layer)] || null;
       const targetCount = targetCells.filter((cell) => cell.y === layer).length;
       const cubesOnLayer = serverCubes.filter((cube) => cube.y === layer);
       const matchedCount = cubesOnLayer.reduce((count, cube) => {
@@ -717,6 +746,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
       return {
         layer,
+        claim,
         targetCount,
         placedCount,
         matchedCount,
@@ -724,7 +754,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         completion,
       };
     });
-  }, [layers, serverCubes, targetCells, targetSet]);
+  }, [layerClaims, layers, serverCubes, targetCells, targetSet]);
 
   const contributorStats = useMemo(() => {
     const grouped = serverCubes.reduce((acc, cube) => {
@@ -933,6 +963,23 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   ))}
                 </div>
 
+                {!isFacilitator ? (
+                  <div className={styles.claimBar}>
+                    <p className={styles.claimText}>
+                      {myLayerClaim
+                        ? `Couche reservee: ${Number(myLayerClaim.layer) + 1}`
+                        : 'Aucune couche reservee'}
+                    </p>
+                    <button
+                      type="button"
+                      className={styles.btnSecondary}
+                      onClick={() => handleToggleLayerClaim(safeLayer)}
+                    >
+                      {myLayerClaim && Number(myLayerClaim.layer) === safeLayer ? 'Liberer cette couche' : 'Reserver cette couche'}
+                    </button>
+                  </div>
+                ) : null}
+
                 <div className={styles.paletteRow}>
                   <p className={styles.paletteLabel}>Palette active</p>
                   <div className={styles.paletteSwatches} role="radiogroup" aria-label="Palette de couleurs">
@@ -1040,6 +1087,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   onClick={() => setActiveLayer(item.layer)}
                 >
                   <strong>Couche {item.layer + 1}</strong>
+                  <span>{item.claim ? `Reservee par ${String(item.claim.display_name || 'participant')}` : 'Non reservee'}</span>
                   <span>Cible: {item.targetCount}</span>
                   <span>Exacts: {item.matchedCount}</span>
                   <span>En trop: {item.extraCount}</span>

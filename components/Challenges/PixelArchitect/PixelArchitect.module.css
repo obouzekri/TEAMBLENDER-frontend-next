@@ -274,6 +274,25 @@
   margin-bottom: 10px;
 }
 
+.claimBar {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  border-radius: 10px;
+  background: rgba(10, 24, 36, 0.55);
+}
+
+.claimText {
+  margin: 0;
+  color: #dff3ff;
+  font-size: 0.8rem;
+}
+
 .paletteRow {
   margin-bottom: 10px;
   display: flex;
