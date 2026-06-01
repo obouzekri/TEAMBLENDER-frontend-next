@@ -1,9 +1,9 @@
 .summaryBar {
   border-radius: 20px;
-  border: 1px solid rgba(15, 118, 110, 0.14);
+  border: 1px solid rgba(53, 160, 255, 0.18);
   background:
-    radial-gradient(circle at 100% 0%, rgba(15, 118, 110, 0.1) 0%, rgba(15, 118, 110, 0) 34%),
-    linear-gradient(150deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 248, 246, 0.96) 100%);
+    radial-gradient(circle at 100% 0%, rgba(53, 160, 255, 0.14) 0%, rgba(53, 160, 255, 0) 34%),
+    linear-gradient(150deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 248, 255, 0.96) 100%);
   box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
   padding: 1rem 1.15rem;
 }
@@ -23,7 +23,7 @@
 
 .summaryEyebrow {
   margin: 0;
-  color: #0f766e;
+  color: var(--accent-strong, #1f46d2);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 0.72rem;
@@ -79,7 +79,7 @@
 }
 
 .primaryAction {
-  box-shadow: 0 12px 24px rgba(15, 118, 110, 0.22);
+  box-shadow: 0 12px 24px rgba(53, 160, 255, 0.24);
 }
 
 @media (max-width: 1080px) {
