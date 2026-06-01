@@ -668,6 +668,43 @@ button.cell:focus-visible {
   }
 }
 
+@keyframes startGlowPulse {
+  0%,
+  100% {
+    background: rgba(34, 197, 94, 0.18);
+    box-shadow: none;
+  }
+  50% {
+    background: rgba(34, 197, 94, 0.42);
+    box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.7), 0 0 16px rgba(52, 211, 153, 0.35);
+  }
+}
+
+.cellStartGlow {
+  animation: startGlowPulse 0.9s ease-in-out infinite !important;
+}
+
+.cellSolution {
+  background: rgba(34, 197, 94, 0.22) !important;
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.38);
+}
+
+.cellThumb {
+  width: 8px !important;
+  height: 8px !important;
+  min-width: 8px !important;
+  min-height: 8px !important;
+  border-radius: 0 !important;
+}
+
+.solutionMiniGrid {
+  gap: 0 !important;
+  width: fit-content;
+  margin: 0 auto;
+  max-width: 100%;
+  overflow: hidden;
+}
+
 @media (max-width: 960px) {
   .layout {
     grid-template-columns: 1fr;

@@ -10,20 +10,22 @@ import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import styles from './Labyrinthe.module.css';
 
 const LABYRINTHE_RULES_FALLBACK = Object.freeze({
-  objective: 'Atteindre la sortie: le score d equipe augmente avec chaque joueur qui s echappe.',
+  objective: 'Atteindre la sortie en équipe : chaque joueur qui s\'échappe augmente le score collectif.',
   facilitator: [
-    'Annoncez clairement que chaque participant doit d abord choisir un point de depart avant son premier mouvement.',
-    'Rappelez qu un retour en arriere coute une vie et replace le joueur au depart.',
-    'Pilotez la lecture des signaux: pieges visibles uniquement apres declenchement et zones bloquees identifiees en direct.',
-    'Objectif de score: viser une sortie collective, pas seulement un premier gagnant.'
+    'Lancez le chrono une fois tous les participants connectés.',
+    'Chaque participant choisit librement son point de départ (case START) avant son premier mouvement.',
+    'Après chaque vie perdue, le joueur sélectionne un nouveau point de départ en cliquant sur une case START.',
+    'Un retour en arrière est interdit mais ne coûte pas de vie — le mouvement est simplement bloqué.',
+    'Pilotez les relances via le chat lors des phases critiques.',
   ],
   participant: [
-    'Placez votre curseur sur un point de depart avant de commencer votre parcours.',
-    'Le retour en arriere est interdit: toute tentative retire une vie et vous renvoie au depart.',
-    'Les explosions sont invisibles avant passage: fiez-vous aux traces revelees pendant la partie.',
-    'Chaque impasse ou piege retire une vie, puis vous repartez depuis un point de depart.'
+    'Sélectionnez un point de départ (case START) avant votre premier mouvement.',
+    'Après chaque vie perdue, choisissez un nouveau point de départ en cliquant sur une case START qui clignote.',
+    'Un retour en arrière est interdit : vous ne pouvez pas revenir sur une case déjà visitée (sans pénalité).',
+    'Les pièges sont invisibles avant passage — restez vigilant aux fausses pistes.',
+    'Partagez vos découvertes avec l\'équipe via le chat.',
   ],
-  footnote: '3 vies par joueur. Les pieges n apparaissent qu au declenchement. Le meilleur resultat est obtenu quand le maximum de participants sortent.'
+  footnote: 'Le retour en arrière est bloqué sans pénalité de vie. Après chaque vie perdue, choisissez un nouveau point de départ. Les pièges n\'apparaissent qu\'au déclenchement.'
 });
 
 function safeInt(value, fallback, min, max) {
@@ -176,6 +178,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     && Boolean(laby?.maze)
     && Number(laby?.parts?.[String(participantId)]?.lives_remaining || 0) > 0;
 
+  const canMoveDir = canMoveSolo && !isRespawning;
+
   const chatEnabled = state?.config?.chat?.enabled !== false && Boolean(socket);
 
   const myParticipantState = laby?.parts?.[String(participantId)] || null;
@@ -218,6 +222,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const maze = laby?.maze || null;
   const playerPosKey = posKey(myParticipantState?.solo?.pos);
   const mySpawnKey = posKey(myParticipantState?.solo?.path?.[0]);
+  const isRespawning = myParticipantState?.solo?.choosing_start === true;
   const allStartKeys = useMemo(() => {
     const starts = Array.isArray(maze?.start_points) && maze.start_points.length > 0
       ? maze.start_points
@@ -273,7 +278,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   }, [isFacilitator, laby]);
 
   useEffect(() => {
-    if (!canMoveSolo) return () => {};
+    if (!canMoveDir) return () => {};
 
     if (gridRef.current && typeof gridRef.current.focus === 'function') {
       gridRef.current.focus();
@@ -308,10 +313,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [canMoveSolo, emitEvent]);
+  }, [canMoveDir, emitEvent]);
 
   useEffect(() => {
-    if (!canMoveSolo || !gridRef.current) return () => {};
+    if (!canMoveDir || !gridRef.current) return () => {};
     const grid = gridRef.current;
     const preventTouchScroll = (e) => { e.preventDefault(); };
     grid.addEventListener('touchmove', preventTouchScroll, { passive: false });
@@ -380,9 +385,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         return;
       }
       if (outcome === 'backtrack') {
-        setMoveFeedback('↩️ Retour interdit : -1 vie');
-        setMoveFeedbackTone('danger');
-        showMicroCue(impactedCellKey, 'danger', '↩️ Retour interdit', '−1 vie');
+        setMoveFeedback('↩️ Retour interdit — ce couloir se referme derrière vous.');
+        setMoveFeedbackTone('warning');
+        showMicroCue(impactedCellKey || playerPosKey, 'warning', '↩️ Retour interdit');
         return;
       }
       if (outcome === 'wall') {
@@ -432,14 +437,14 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   });
 
   function handleSwipeStart(event) {
-    if (!canMoveSolo) return;
+    if (!canMoveDir) return;
     const touch = event.touches?.[0];
     if (!touch) return;
     swipeStartRef.current = { x: touch.clientX, y: touch.clientY };
   }
 
   function handleSwipeEnd(event) {
-    if (!canMoveSolo) return;
+    if (!canMoveDir) return;
     const start = swipeStartRef.current;
     swipeStartRef.current = null;
     if (!start) return;
@@ -461,12 +466,13 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   function handleCellClick(row, col) {
     if (!canMoveSolo) return;
     const clickedKey = `${row},${col}`;
-    const hasStartedRun = Array.isArray(myParticipantState?.solo?.dec) && myParticipantState.solo.dec.length > 0;
     const hasMovedAway = Array.isArray(myParticipantState?.solo?.path) && myParticipantState.solo.path.length > 1;
-    if (allStartKeys.has(clickedKey) && !hasStartedRun && !hasMovedAway) {
+    if (allStartKeys.has(clickedKey) && (!hasMovedAway || isRespawning)) {
       emitEvent('laby.solo.select_start', { pos: [row, col] });
       setOptimisticPos([row, col]);
-      setMoveFeedback('Point de depart selectionne. Cliquez ensuite sur la case voisine voulue, ou utilisez les commandes.');
+      setMoveFeedback(isRespawning
+        ? 'Nouveau point de départ sélectionné. Reprenez votre parcours depuis ici.'
+        : 'Point de départ sélectionné. Cliquez ensuite sur la case voisine voulue, ou utilisez les commandes.');
       setMoveFeedbackTone('success');
       return;
     }
@@ -495,7 +501,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   }
 
   function moveByDirection(dir) {
-    if (!canMoveSolo) return;
+    if (!canMoveDir) return;
     emitEvent('laby.solo.move', { dir });
     if (gridRef.current && typeof gridRef.current.focus === 'function') {
       gridRef.current.focus();
@@ -616,12 +622,34 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 </div>
               </div>
 
+              {labyPhase === 'done' ? (
+                <>
+                  {labyDebrief ? (
+                    <div className={styles.debriefCard}>
+                      <h3>Débrief final</h3>
+                      <p>
+                        {labyDebrief.completed
+                          ? `Victoire de ${participantNameById[labyDebrief.winnerId] || `Participant ${labyDebrief.winnerId}`} !`
+                          : 'Échec collectif : aucun joueur n\'a atteint la sortie.'}
+                      </p>
+                      <p>Participants : {labyDebrief.totalPlayers} | Encore en vie : {labyDebrief.alivePlayers}</p>
+                    </div>
+                  ) : null}
+                  <p className={styles.gameStatus}>
+                    {laby?.winner_participant_id
+                      ? `${participantNameById[String(laby.winner_participant_id)] || `Participant ${laby.winner_participant_id}`} a atteint la sortie.`
+                      : 'Tous les joueurs ont épuisé leurs tentatives.'}
+                  </p>
+                  <p className={styles.muted}>Routes possibles du labyrinthe :</p>
+                </>
+              ) : null}
+
               <div
                 className={`${styles.gameGrid} ${colsClass}`}
-                ref={gridRef}
+                ref={labyPhase !== 'done' ? gridRef : null}
                 tabIndex={canMoveSolo ? 0 : -1}
-                onTouchStart={handleSwipeStart}
-                onTouchEnd={handleSwipeEnd}
+                onTouchStart={labyPhase !== 'done' ? handleSwipeStart : undefined}
+                onTouchEnd={labyPhase !== 'done' ? handleSwipeEnd : undefined}
                 aria-label="Grille du labyrinthe"
               >
                 {Array.from({ length: mazeRows }).map((_, row) => (
@@ -642,6 +670,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     }
                     if (key === playerPosKey) classes.push(styles.cellPlayerCursorCell);
                     if (key === mySpawnKey) classes.push(styles.cellMySpawn);
+                    if (labyPhase === 'done' && safePathKeys.has(key)) classes.push(styles.cellSolution);
+                    if (isRespawning && allStartKeys.has(key)) classes.push(styles.cellStartGlow);
                     if (flashCellKey === key) classes.push(flashCellTone === 'blocked' ? styles.cellBlockedFlash : styles.cellTrapFlash);
 
                     return (
@@ -671,52 +701,34 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 ))}
               </div>
 
-              <div className={styles.controlDock}>
-                <div className={styles.controlHeadLegendWrap}>
-                  <div className={styles.controlHead}>
-                    <span className={styles.muted}>Commandes</span>
-                    <strong>Fleches, ZQSD/WASD, ou clic</strong>
-                  </div>
-                  <div className={styles.legendRow}>
-                    <span className={`${styles.legendChip} ${styles.legendStart}`}>START</span>
-                    <span className={`${styles.legendChip} ${styles.legendExit}`}>EXIT</span>
-                    <span className={`${styles.legendChip} ${styles.legendTrap}`}>Piège</span>
-                    <span className={`${styles.legendChip} ${styles.legendTrail}`}>Curseur joueur</span>
-                  </div>
-                </div>
-                <div className={styles.directionPad}>
-                  <span />
-                  <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('N')} disabled={!canMoveSolo} aria-label="Monter">↑</button>
-                  <span />
-                  <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('W')} disabled={!canMoveSolo} aria-label="Aller à gauche">←</button>
-                  <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('S')} disabled={!canMoveSolo} aria-label="Descendre">↓</button>
-                  <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveSolo} aria-label="Aller à droite">→</button>
-                </div>
-                <p className={`${styles.moveFeedback} ${moveFeedbackTone === 'success' ? styles.feedbackSuccess : ''}${moveFeedbackTone === 'danger' ? ` ${styles.feedbackDanger}` : ''}${moveFeedbackTone === 'warning' ? ` ${styles.feedbackWarning}` : ''}`}>
-                  {moveFeedback || (canMoveSolo ? 'Parcourez le maze en solo: une seule sortie est valide.' : (labyPhase === 'setup' ? 'En attente du lancement de la manche...' : 'Deplacement indisponible pour le moment.'))}
-                </p>
-              </div>
-
-              {String(laby?.phase || '').trim() === 'done' ? (
-                <>
-                  {labyDebrief ? (
-                    <div className={styles.debriefCard}>
-                      <h3>Debrief final</h3>
-                      <p>
-                        {labyDebrief.completed
-                          ? `Victoire de ${participantNameById[labyDebrief.winnerId] || `Participant ${labyDebrief.winnerId}`}.`
-                          : 'Echec collectif : aucun joueur n a atteint la sortie.'}
-                      </p>
-                      <p>Participants: {labyDebrief.totalPlayers} | Encore en vie: {labyDebrief.alivePlayers}</p>
+              {labyPhase !== 'done' ? (
+                <div className={styles.controlDock}>
+                  <div className={styles.controlHeadLegendWrap}>
+                    <div className={styles.controlHead}>
+                      <span className={styles.muted}>Commandes</span>
+                      <strong>Flèches, ZQSD/WASD, ou clic</strong>
                     </div>
-                  ) : null}
-                  <p className={styles.gameStatus}>
-                    {laby?.winner_participant_id
-                      ? `Dernier etat: ${participantNameById[String(laby.winner_participant_id)] || `Participant ${laby.winner_participant_id}`} a atteint la sortie.`
-                      : 'Dernier etat: tous les joueurs ont perdu leurs tentatives.'}
+                    <div className={styles.legendRow}>
+                      <span className={`${styles.legendChip} ${styles.legendStart}`}>START</span>
+                      <span className={`${styles.legendChip} ${styles.legendExit}`}>EXIT</span>
+                      <span className={`${styles.legendChip} ${styles.legendTrap}`}>Piège</span>
+                      <span className={`${styles.legendChip} ${styles.legendTrail}`}>Curseur joueur</span>
+                    </div>
+                  </div>
+                  <div className={styles.directionPad}>
+                    <span />
+                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('N')} disabled={!canMoveDir} aria-label="Monter">↑</button>
+                    <span />
+                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('W')} disabled={!canMoveDir} aria-label="Aller à gauche">←</button>
+                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('S')} disabled={!canMoveDir} aria-label="Descendre">↓</button>
+                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveDir} aria-label="Aller à droite">→</button>
+                  </div>
+                  <p className={`${styles.moveFeedback} ${moveFeedbackTone === 'success' ? styles.feedbackSuccess : ''}${moveFeedbackTone === 'danger' ? ` ${styles.feedbackDanger}` : ''}${moveFeedbackTone === 'warning' ? ` ${styles.feedbackWarning}` : ''}`}>
+                    {moveFeedback || (isRespawning ? 'Choisissez un point de départ pour reprendre.' : canMoveSolo ? 'Parcourez le maze en solo : une seule sortie est valide.' : (labyPhase === 'setup' ? 'En attente du lancement de la manche...' : 'Déplacement indisponible pour le moment.'))}
                   </p>
-                </>
+                </div>
               ) : null}
+
               {error ? <p className={styles.error}>{error}</p> : null}
             </section>
           )}
@@ -770,9 +782,37 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               onSubmit={submitChat}
               quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
               onQuickMessage={sendQuickChat}
-              placeholder="Message a l'equipe"
+              placeholder="Message a l'équipe"
               maxLength={240}
             />
+          ) : null}
+
+          {isFacilitator && maze ? (
+            <section className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <h4 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--challenge-text-primary)' }}>Carte solution</h4>
+                <span className={styles.muted}>chemin(s) possible(s)</span>
+              </div>
+              <div className={`${styles.miniGrid} ${colsClass} ${styles.solutionMiniGrid}`}>
+                {Array.from({ length: mazeRows }).map((_, row) => (
+                  Array.from({ length: mazeCols }).map((__, col) => {
+                    const key = `${row},${col}`;
+                    const cls = [styles.cell, styles.cellThumb];
+                    if (allStartKeys.has(key)) cls.push(styles.cellStart);
+                    if (key === endCellKey) cls.push(styles.cellExit);
+                    if (safePathKeys.has(key)) cls.push(styles.cellSolution);
+                    return (
+                      <div
+                        key={`sol-${key}`}
+                        className={cls.join(' ')}
+                        style={buildMazeCellStyle(maze, row, col)}
+                        aria-hidden="true"
+                      />
+                    );
+                  })
+                ))}
+              </div>
+            </section>
           ) : null}
         </aside>
       </div>
