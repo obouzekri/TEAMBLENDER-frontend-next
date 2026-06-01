@@ -274,6 +274,10 @@ export default function ParticipantPage() {
 
   async function joinSession(sessionIdentifier) {
     if (!sessionIdentifier) return;
+    const selectedSession = assignedSessions.find((session) => getSessionIdentifier(session) === String(sessionIdentifier));
+    if (String(selectedSession?.status || '').trim().toLowerCase() !== 'en_cours') {
+      return;
+    }
     setJoiningSessionId(sessionIdentifier);
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     try {
@@ -380,6 +384,7 @@ export default function ParticipantPage() {
                 {assignedSessions.map((session) => {
                   const sessionIdentifier = getSessionIdentifier(session);
                   if (!sessionIdentifier) return null;
+                  const isSessionLive = String(session.status || '').trim().toLowerCase() === 'en_cours';
                   const statusLabel = session.status === 'en_cours'
                     ? 'En cours'
                     : session.status === 'preparee'
@@ -409,10 +414,14 @@ export default function ParticipantPage() {
                         <button
                           type="button"
                           className="btn-primary participant-session-card__cta"
-                          disabled={joiningSessionId === sessionIdentifier}
+                          disabled={joiningSessionId === sessionIdentifier || !isSessionLive}
                           onClick={() => joinSession(sessionIdentifier)}
                         >
-                          {joiningSessionId === sessionIdentifier ? 'Connexion...' : 'Rejoindre'}
+                          {joiningSessionId === sessionIdentifier
+                            ? 'Connexion...'
+                            : isSessionLive
+                              ? 'Rejoindre'
+                              : 'En attente du lancement'}
                         </button>
                       </div>
                     </article>
