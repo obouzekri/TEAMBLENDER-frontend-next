@@ -118,6 +118,32 @@ function persistDraftToStorage(sessionId, selectedChallenges) {
   return nowIso;
 }
 
+function toEpochMs(value) {
+  const parsed = Date.parse(String(value || '').trim());
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function getSessionFreshnessMs(session) {
+  const base = toEpochMs(session?.updatedAt);
+  const challenges = Array.isArray(session?.challenges) ? session.challenges : [];
+
+  return challenges.reduce((max, challenge) => {
+    const challengeUpdated = toEpochMs(challenge?.updatedAt);
+    const junctionUpdated = toEpochMs(challenge?.SessionChallenge?.updatedAt);
+    return Math.max(max, challengeUpdated, junctionUpdated);
+  }, base);
+}
+
+function shouldApplyLocalDraftOverSession(savedDraft, session) {
+  const draftUpdatedMs = toEpochMs(savedDraft?.updatedAt);
+  if (draftUpdatedMs <= 0) {
+    return false;
+  }
+
+  const sessionFreshnessMs = getSessionFreshnessMs(session);
+  return draftUpdatedMs > sessionFreshnessMs;
+}
+
 function useManagerGuard() {
   const [state, setState] = React.useState({ loading: true, allowed: false, user: null });
 
@@ -763,7 +789,11 @@ export default function SessionBuilder() {
 
           setLoadedFromLocalDraft(false);
           const savedDraft = readDraftFromStorage(sessionId);
-          if (savedDraft && Array.isArray(savedDraft.selectedChallenges)) {
+          if (
+            savedDraft
+            && Array.isArray(savedDraft.selectedChallenges)
+            && shouldApplyLocalDraftOverSession(savedDraft, session)
+          ) {
             restoreSelectedChallenges(savedDraft.selectedChallenges);
             setLoadedFromLocalDraft(true);
             if (savedDraft.updatedAt) {

@@ -685,8 +685,8 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                 const sourceMode = resolveCopuzzleSourceMode(config, copuzzleDefaultImages);
                 const selectedDefault = copuzzleDefaultImages.find((item) => item.id === resolveCopuzzleDefaultImageId(config, copuzzleDefaultImages)) || copuzzleDefaultImages[0] || null;
                 const previewSrc = sourceMode === 'custom'
-                  ? stringValue('image_url', '')
-                  : String(selectedDefault?.src || '');
+                  ? normalizeBackendAssetUrl(stringValue('image_url', ''))
+                  : normalizeBackendAssetUrl(String(selectedDefault?.src || ''));
                 if (!previewSrc) return null;
                 return (
                   <div className={styles.activePuzzlePreview}>
