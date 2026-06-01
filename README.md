@@ -5,7 +5,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 ## Etat actuel
 
 - `frontend-next/` porte les parcours utilisateur actifs: manager, admin, participant et les pages publiques principales.
-- Le legacy `archive/frontend/` reste fige et ne doit servir qu'en consultation explicite.
+- Le frontend legacy vanilla a ete retire du repository pour reduire la dette technique.
 - Les changements en cours doivent rester alignes avec la navigation produit actuelle et les checks de go-live du projet.
 
 ## Quick links
@@ -46,11 +46,8 @@ npm run dev
 Variables importantes:
 - `NEXT_PUBLIC_API_BASE`
 - `BACKEND_ORIGIN` (obligatoire hors dev, cible rewrite Next.js vers backend actif)
-- `NEXT_PUBLIC_LEGACY_BASE`
-- `LEGACY_BASE_CANDIDATES` (optionnel)
 - `NEXT_PUBLIC_ENABLE_CHALLENGES_MOCK_DATA` (optionnel, `true` pour activer le fallback mock du catalogue challenges en dev)
 - `NEXT_PUBLIC_LANDING_CMS_STRICT` (optionnel, `true` pour activer l'audit runtime de couverture CMS sur la home)
-- `NEXT_PUBLIC_ENABLE_LEGACY_LINKS` (par defaut desactive, activer explicitement a `true` uniquement si acces archive requis)
 - `SMOKE_FRONTEND_URL`
 - `SMOKE_BACKEND_URL`
 

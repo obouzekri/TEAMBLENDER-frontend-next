@@ -63,6 +63,7 @@
   --surface-shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.07);
   --surface-shadow-hover: 0 16px 40px rgba(15, 23, 42, 0.12);
   --nav-control-height: 0.7cm;
+  --touch-target-min: 44px;
   --nav-shell-min-height: calc(var(--nav-control-height) + 0.9rem);
   color-scheme: light;
 }
@@ -98,12 +99,19 @@ html,
 body {
   margin: 0;
   padding: 0;
+  min-height: 100%;
   font-family: var(--font-ui);
   color: var(--ink);
   background:
     radial-gradient(circle at top left, rgba(53, 160, 255, 0.12), transparent 36%),
     radial-gradient(circle at right 8%, rgba(124, 58, 237, 0.09), transparent 30%),
     linear-gradient(160deg, #ffffff 0%, #f5f8ff 56%, #eef3ff 100%);
+}
+
+body {
+  min-height: 100svh;
+  min-height: 100dvh;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -165,14 +173,17 @@ a {
 }
 
 .shell {
-  width: min(1080px, calc(100% - 2rem));
+  width: min(1080px, calc(100% - 2rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
   margin: 0 auto;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 .top-nav {
   position: sticky;
   top: 0;
   z-index: 30;
+  padding-top: env(safe-area-inset-top, 0px);
   backdrop-filter: blur(16px);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(243, 248, 255, 0.86) 100%);
@@ -661,8 +672,10 @@ a {
 }
 
 .auth-shell {
-  width: min(1080px, calc(100% - 2rem));
+  width: min(1080px, calc(100% - 2rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
   margin: 0 auto;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
   padding: 2rem 0 3rem;
 }
 
@@ -1056,6 +1069,28 @@ a {
   border: 1px solid transparent;
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+:where(
+  button,
+  [role="button"],
+  .btn-primary,
+  .btn-secondary,
+  .btn-insight,
+  .btn--sm,
+  .btn-mini,
+  .toggle-btn,
+  .nav-link,
+  .nav-cta-btn,
+  a.btn-primary,
+  a.btn-secondary,
+  a.btn-insight
+) {
+  min-height: var(--touch-target-min);
+}
+
+:where(input:not([type="hidden"]), select, textarea) {
+  min-height: var(--touch-target-min);
 }
 
 .btn-primary {
@@ -3454,6 +3489,7 @@ a {
   font-weight: 700;
   border-radius: 999px;
   line-height: 1.2;
+  min-height: var(--touch-target-min);
 }
 
 @media (max-width: 900px) {
@@ -3481,6 +3517,29 @@ a {
 
   .session-live-track .challenge-list-item {
     padding: 0.5rem 0.6rem;
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 641px) {
+  .session-live-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .session-live-header__row1 {
+    width: 100%;
+  }
+
+  .session-live-header__name {
+    max-width: 100%;
+  }
+
+  .session-live-header__row2 {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+    row-gap: 0.45rem;
   }
 }
 
@@ -4091,6 +4150,19 @@ a {
 
   .team-toolbar span {
     white-space: normal;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  html,
+  body {
+    min-height: -webkit-fill-available;
+  }
+
+  .app-home,
+  .session-live-shell,
+  .participant-home {
+    min-height: calc(100dvh - 1px);
   }
 }
 

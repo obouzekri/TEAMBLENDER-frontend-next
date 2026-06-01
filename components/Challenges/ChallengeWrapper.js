@@ -123,12 +123,6 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
             ...payload,
             challenge_id: resolvedChallengeId,
           };
-          console.info('[runtime-challenge] initial payload', {
-            sessionId,
-            challengeId: resolvedChallengeId,
-            engineKey: payloadEngineKey || normalizedEngineKey || '',
-            hasRules: Boolean(payload?.config?.rules)
-          });
           setRuntimePayload(nextRuntimePayload);
           const resolvedUserId = currentUser.id
             || currentUser.userId
@@ -219,12 +213,6 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
             ...payload,
             challenge_id: nextChallengeId,
           };
-          console.info('[runtime-challenge] resync payload', {
-            sessionId,
-            challengeId: nextChallengeId,
-            engineKey: payloadEngineKey || '',
-            hasRules: Boolean(payload?.config?.rules)
-          });
           setRuntimePayload(nextRuntimePayload);
           setContext((prev) => {
             const firstName = String(

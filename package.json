@@ -6,6 +6,10 @@
     "dev": "next dev -p 3100",
     "build": "next build",
     "start": "next start -p 3100",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write --ignore-path ../.prettierignore",
+    "format:check": "prettier . --check --ignore-path ../.prettierignore",
     "test:smoke": "npm run test:smoke:manager && npm run test:smoke:participant",
     "test:smoke:manager": "node scripts/smoke.mjs",
     "test:smoke:participant": "node scripts/smoke-participant.mjs",
@@ -25,7 +29,10 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.0",
+    "eslint": "^10.4.1",
+    "globals": "^17.6.0",
     "playwright": "^1.59.1",
+    "prettier": "^3.8.3",
     "tailwindcss": "^4.3.0"
   }
 }
