@@ -156,6 +156,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   const viewerRole = String(pixel?.viewer_role || (isFacilitator ? 'facilitator' : 'builder')).trim().toLowerCase();
   const canSeeTargetModel = isFacilitator || viewerRole === 'architect' || pixel?.selected_template;
+  const isTargetHiddenForRole = !canSeeTargetModel;
 
   const displayName = useMemo(() => {
     const payloadName = String(runtimePayload?.context?.displayName || runtimePayload?.context?.name || '').trim();
@@ -653,6 +654,11 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   <span className={styles.badge}>Exactitude: {accuracyPercent}%</span>
                   <span className={styles.badge}>Restants: {remainingCubes}</span>
                 </div>
+                {isTargetHiddenForRole ? (
+                  <div className={styles.roleAlert} role="note" aria-label="Information de role">
+                    <strong>Mode avance:</strong> le modele est visible par l'architecte uniquement. Coordonnez-vous via le chat pour guider la construction.
+                  </div>
+                ) : null}
                 <ol className={styles.howToList}>
                   <li>Choisir une couche puis poser/supprimer des cubes.</li>
                   <li>Se coordonner via le chat pour eviter les doublons.</li>
@@ -682,6 +688,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     <button
                       key={`layer-${layer}`}
                       type="button"
+                      aria-pressed={safeLayer === layer}
+                      aria-label={`Afficher la couche ${layer + 1}`}
                       className={`${styles.layerBtn}${safeLayer === layer ? ` ${styles.layerBtnActive}` : ''}`}
                       onClick={() => setActiveLayer(layer)}
                     >
@@ -692,12 +700,15 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
                 <div className={styles.paletteRow}>
                   <p className={styles.paletteLabel}>Palette active</p>
-                  <div className={styles.paletteSwatches}>
+                  <div className={styles.paletteSwatches} role="radiogroup" aria-label="Palette de couleurs">
                     {palette.map((color) => (
                       <button
                         key={color}
                         type="button"
+                        role="radio"
+                        aria-checked={selectedColor === color}
                         aria-label={`Couleur ${color}`}
+                        title={color}
                         className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
                         style={{ background: color }}
                         onClick={() => setSelectedColor(color)}
@@ -713,7 +724,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 </div>
 
                 {!isFacilitator ? (
-                  <div className={`${styles.actionsRow} ${styles.actionsRowSticky}`}>
+                  <div className={`${styles.actionsRow} ${styles.actionsRowSticky}`} aria-label="Actions de construction">
                     <button type="button" className={styles.btnSecondary} onClick={handleResetBuild} disabled={!canBuild}>
                       Reinitialiser les cubes
                     </button>
@@ -729,7 +740,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   </div>
                 )}
 
-                <div className={styles.attemptCard}>
+                <div className={styles.attemptCard} role="status" aria-live="polite">
                   <h3>Etat live du build</h3>
                   <p>Cubes cibles: <strong>{targetCubeCount}</strong></p>
                   <p>Cubes poses equipe: <strong>{cubeCount}</strong></p>

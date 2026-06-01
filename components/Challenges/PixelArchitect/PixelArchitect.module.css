@@ -63,8 +63,8 @@
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 0.76rem;
-  color: #d8ecf8;
-  background: rgba(14, 30, 44, 0.8);
+  color: #eff8ff;
+  background: rgba(10, 24, 36, 0.92);
 }
 
 .layout {
@@ -187,6 +187,17 @@
   line-height: 1.38;
 }
 
+.roleAlert {
+  margin-top: 10px;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(11, 31, 43, 0.72);
+  color: #dff3ff;
+  font-size: 0.82rem;
+  line-height: 1.42;
+}
+
 .levelBtn,
 .layerBtn,
 .btnPrimary,
@@ -288,6 +299,15 @@
 
 .swatchBtnActive {
   box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.85);
+}
+
+.swatchBtn:focus-visible,
+.btnPrimary:focus-visible,
+.btnSecondary:focus-visible,
+.layerBtn:focus-visible,
+.levelBtn:focus-visible {
+  outline: 2px solid rgba(125, 211, 252, 0.95);
+  outline-offset: 2px;
 }
 
 .viewportWrap {
@@ -428,6 +448,10 @@
 
   .viewport3d {
     height: 420px;
+  }
+
+  .modelMiniStats {
+    flex-wrap: wrap;
   }
 
   .actionsRowSticky {
