@@ -583,12 +583,20 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
       });
   };
 
+  const modalTitleId = 'challenge-config-modal-title';
+
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div className={styles.overlay} role="presentation" onClick={onClose}>
+      <div
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={modalTitleId}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={styles.header}>
-          <h2>Configurer: {challenge?.name}</h2>
-          <button className={styles.closeBtn} onClick={onClose}>
+          <h2 id={modalTitleId}>Configurer: {challenge?.name}</h2>
+          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Fermer la configuration">
             ✕
           </button>
         </div>

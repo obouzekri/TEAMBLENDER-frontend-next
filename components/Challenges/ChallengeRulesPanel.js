@@ -105,11 +105,17 @@ export default function ChallengeRulesPanel({
       </button>
 
       {isOpen ? (
-        <div className={styles.modalBackdrop} onClick={() => setIsOpen(false)} role="dialog" aria-modal="true">
-          <section className={styles.modalCard} onClick={(event) => event.stopPropagation()}>
+        <div className={styles.modalBackdrop} onClick={() => setIsOpen(false)} role="presentation">
+          <section
+            className={styles.modalCard}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="challenge-rules-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
             <header className={styles.modalHead}>
-              <h2>Règles - {challengeName}</h2>
-              <button type="button" className={styles.closeBtn} onClick={() => setIsOpen(false)}>
+              <h2 id="challenge-rules-modal-title">Règles - {challengeName}</h2>
+              <button type="button" className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label="Fermer les règles">
                 Fermer
               </button>
             </header>

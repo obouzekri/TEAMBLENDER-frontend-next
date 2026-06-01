@@ -2533,7 +2533,7 @@ export default function AdminClient() {
               fontSize: '14px',
             }}>
               <span>{error}</span>
-              <button type="button" onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
+              <button type="button" aria-label="Fermer le message d'erreur" onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
             </div>
           ) : null}
 
@@ -2551,7 +2551,7 @@ export default function AdminClient() {
               fontSize: '14px',
             }}>
               <span>{notice}</span>
-              <button type="button" onClick={() => setNotice('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#15803d', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
+              <button type="button" aria-label="Fermer le message d'information" onClick={() => setNotice('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#15803d', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
             </div>
           ) : null}
 

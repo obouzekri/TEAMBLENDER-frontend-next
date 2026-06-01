@@ -195,7 +195,8 @@ export default function ChallengesCatalog({
                 className={styles.filterDropdownButton}
                 onClick={() => setOpenDropdown((prev) => (prev === 'category' ? null : 'category'))}
                 aria-expanded={openDropdown === 'category'}
-                aria-haspopup="menu"
+                aria-haspopup="listbox"
+                aria-label={`Filtre catégorie: ${categoryTriggerLabel}`}
               >
                 <span className={styles.filterTriggerPrefix}>Catégorie:</span>
                 <span className={styles.filterTriggerValue}>{categoryTriggerLabel}</span>
@@ -203,9 +204,11 @@ export default function ChallengesCatalog({
               </button>
 
               {openDropdown === 'category' ? (
-                <div className={styles.filterDropdownPanel} role="menu" aria-label="Filtrer par catégorie">
+                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filtrer par catégorie" aria-multiselectable="true">
                   <button
                     type="button"
+                    role="option"
+                    aria-selected={selectedCategories.length === 0}
                     className={`${styles.filterOption} ${selectedCategories.length === 0 ? styles.filterOptionActive : ''}`}
                     onClick={() => onFilterChange({ categories: [] })}
                   >
@@ -218,6 +221,8 @@ export default function ChallengesCatalog({
                       <button
                         key={cat.value}
                         type="button"
+                        role="option"
+                        aria-selected={active}
                         className={`${styles.filterOption} ${active ? styles.filterOptionActive : ''}`}
                         onClick={() => onToggleCategory(cat.value)}
                       >
@@ -236,7 +241,8 @@ export default function ChallengesCatalog({
                 className={styles.filterDropdownButton}
                 onClick={() => setOpenDropdown((prev) => (prev === 'objective' ? null : 'objective'))}
                 aria-expanded={openDropdown === 'objective'}
-                aria-haspopup="menu"
+                aria-haspopup="listbox"
+                aria-label={`Filtre objectifs: ${objectiveTriggerLabel}`}
               >
                 <span className={styles.filterTriggerPrefix}>Objectifs:</span>
                 <span className={styles.filterTriggerValue}>{objectiveTriggerLabel}</span>
@@ -244,9 +250,11 @@ export default function ChallengesCatalog({
               </button>
 
               {openDropdown === 'objective' ? (
-                <div className={styles.filterDropdownPanel} role="menu" aria-label="Filtrer par objectifs">
+                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filtrer par objectifs" aria-multiselectable="true">
                   <button
                     type="button"
+                    role="option"
+                    aria-selected={selectedObjectives.length === 0}
                     className={`${styles.filterOption} ${selectedObjectives.length === 0 ? styles.filterOptionActive : ''}`}
                     onClick={() => onFilterChange({ objectives: [] })}
                   >
@@ -260,6 +268,8 @@ export default function ChallengesCatalog({
                       <button
                         key={obj.value}
                         type="button"
+                        role="option"
+                        aria-selected={active}
                         className={`${styles.filterOption} ${active ? styles.filterOptionActive : ''}`}
                         onClick={() => onToggleObjective(obj.value)}
                         disabled={disabled}
@@ -284,7 +294,8 @@ export default function ChallengesCatalog({
                 className={styles.filterDropdownButton}
                 onClick={() => setOpenDropdown((prev) => (prev === 'duration' ? null : 'duration'))}
                 aria-expanded={openDropdown === 'duration'}
-                aria-haspopup="menu"
+                aria-haspopup="listbox"
+                aria-label={`Filtre durée: ${durationTriggerLabel}`}
               >
                 <span className={styles.filterTriggerPrefix}>Durée:</span>
                 <span className={styles.filterTriggerValue}>{durationTriggerLabel}</span>
@@ -292,13 +303,15 @@ export default function ChallengesCatalog({
               </button>
 
               {openDropdown === 'duration' ? (
-                <div className={styles.filterDropdownPanel} role="menu" aria-label="Filtrer par durée">
+                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filtrer par durée">
                   {durations.map((dur) => {
                     const active = String(filters.duration || '') === String(dur.value || '');
                     return (
                       <button
                         key={dur.value || 'all'}
                         type="button"
+                        role="option"
+                        aria-selected={active}
                         className={`${styles.filterOption} ${active ? styles.filterOptionActive : ''}`}
                         onClick={() => {
                           onFilterChange({ duration: dur.value });
