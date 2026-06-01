@@ -307,8 +307,8 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
       const vpH = window.innerHeight;
       // Board panel takes most of the viewport width for a larger workspace.
       const panelW = Math.floor(vpW * 0.74) - 64;
-      // Board panel height: viewport minus header (~140px), footer (~40px), board padding (~40px)
-      const panelH = vpH - 180;
+      // Reserve more vertical room for facilitator side controls to keep the full view compact.
+      const panelH = vpH - (isFacilitator ? 240 : 180);
       const byWidth = Math.floor(panelW / colCount);
       const byHeight = Math.floor(panelH / rowCount);
       const computed = Math.max(30, Math.min(118, Math.min(byWidth, byHeight)));
@@ -317,7 +317,7 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
     computeCellSize();
     window.addEventListener('resize', computeCellSize);
     return () => window.removeEventListener('resize', computeCellSize);
-  }, [rowCount, colCount]);
+  }, [rowCount, colCount, isFacilitator]);
 
   const boardCells = useMemo(() => {
     const cells = [];
@@ -330,7 +330,7 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
   }, [rowCount, colCount]);
 
   return (
-    <div className={styles.copuzzleContainer}>
+    <div className={`${styles.copuzzleContainer}${isFacilitator ? ` ${styles.facilitatorView}` : ''}`}>
       <section className={styles.header}>
         <div className={styles.headerTitleLine}>
           <span className={styles.headerTitle}>{effectiveConfig.title}</span>
@@ -552,8 +552,16 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
                     emitEvent('puzzle.reference_visibility.update', { visible: event.target.checked });
                   }}
                 />
-                <span>Afficher l'image aux participants</span>
+                <span>Afficher ou masquer l'image aux participants</span>
               </label>
+            ) : null}
+
+            {isFacilitator ? (
+              <p className={styles.metaLine}>
+                {effectiveConfig.participants.show_reference_image
+                  ? 'Image visible pour les participants.'
+                  : 'Image masquée pour les participants.'}
+              </p>
             ) : null}
 
             {!isFacilitator ? (

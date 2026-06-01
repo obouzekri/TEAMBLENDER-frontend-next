@@ -30,6 +30,35 @@
   color: var(--text-main);
 }
 
+.facilitatorView {
+  min-height: auto;
+  gap: 12px;
+  padding: 12px;
+}
+
+.facilitatorView .shell {
+  grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.95fr);
+}
+
+.facilitatorView .boardPanel {
+  padding: 12px;
+}
+
+.facilitatorView .sideCard,
+.facilitatorView .chatCard,
+.facilitatorView .timerCard {
+  padding: 12px;
+}
+
+.facilitatorView .referenceImage {
+  max-height: 152px;
+}
+
+.facilitatorView .sideChatCard {
+  min-height: 180px;
+  max-height: 340px;
+}
+
 /* HEADER */
 .header {
   display: flex;
@@ -487,6 +516,7 @@
   gap: 0.55rem;
   font-size: 0.8rem;
   color: #bfd3e8;
+  line-height: 1.25;
 }
 
 .referenceToggle input {

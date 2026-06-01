@@ -190,6 +190,7 @@ function withCopuzzleDefaults(config = {}, defaultImages = COPUZZLE_ADMIN_REFERE
     },
     participants: {
       ...participantsConfig,
+      show_reference_image: rawParticipants.show_reference_image === true,
     },
     timer: {
       ...(config?.timer && typeof config.timer === 'object' ? config.timer : {}),
@@ -654,20 +655,6 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       <option key={option.id} value={option.id}>{option.title}</option>
                     ))}
                   </select>
-                  <div className={styles.defaultImageGrid}>
-                    {copuzzleDefaultImages.map((option) => {
-                      const selected = resolveCopuzzleDefaultImageId(config, copuzzleDefaultImages) === option.id;
-                      return (
-                        <div
-                          key={`preview-${option.id}`}
-                          className={`${styles.defaultImageCard}${selected ? ` ${styles.defaultImageCardSelected}` : ''}`}
-                        >
-                          <img src={option.src} alt={option.title} className={styles.defaultImageThumb} />
-                          <span className={styles.defaultImageLabel}>{option.title}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
                 </div>
               ) : (
                 <>
@@ -702,15 +689,27 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   : String(selectedDefault?.src || '');
                 if (!previewSrc) return null;
                 return (
-                  <img
-                    src={previewSrc}
-                    alt="Apercu puzzle"
-                    style={{ marginTop: '8px', maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    onLoad={(e) => { e.currentTarget.style.display = 'block'; }}
-                  />
+                  <div className={styles.activePuzzlePreview}>
+                    <img
+                      src={previewSrc}
+                      alt="Aperçu puzzle"
+                      style={{ maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      onLoad={(e) => { e.currentTarget.style.display = 'block'; }}
+                    />
+                  </div>
                 );
               })()}
+
+              <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="copuzzleReferenceVisibility">
+                <span className={styles.label}>Afficher l'image de référence aux participants</span>
+                <input
+                  id="copuzzleReferenceVisibility"
+                  type="checkbox"
+                  checked={boolValue('participants.show_reference_image', false)}
+                  onChange={(e) => updateValue('participants.show_reference_image', e.target.checked)}
+                />
+              </label>
 
               <div className={styles.configField}>
                 <label htmlFor="matrixSize" className={styles.label}>Taille de matrice</label>
