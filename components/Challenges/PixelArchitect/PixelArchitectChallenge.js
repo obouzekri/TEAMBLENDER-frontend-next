@@ -703,6 +703,52 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     )
   );
 
+  const layerStats = useMemo(() => {
+    return layers.map((layer) => {
+      const targetCount = targetCells.filter((cell) => cell.y === layer).length;
+      const cubesOnLayer = serverCubes.filter((cube) => cube.y === layer);
+      const matchedCount = cubesOnLayer.reduce((count, cube) => {
+        const key = toCellKey(cube.x, cube.y, cube.z);
+        return count + (targetSet.has(key) ? 1 : 0);
+      }, 0);
+      const placedCount = cubesOnLayer.length;
+      const extraCount = Math.max(0, placedCount - matchedCount);
+      const completion = targetCount > 0 ? Math.round((matchedCount / targetCount) * 100) : 0;
+
+      return {
+        layer,
+        targetCount,
+        placedCount,
+        matchedCount,
+        extraCount,
+        completion,
+      };
+    });
+  }, [layers, serverCubes, targetCells, targetSet]);
+
+  const contributorStats = useMemo(() => {
+    const grouped = serverCubes.reduce((acc, cube) => {
+      const key = String(cube.placedBy || 'equipe').trim() || 'equipe';
+      if (!acc[key]) {
+        acc[key] = { id: key, cubeCount: 0, layers: new Set(), colors: new Set() };
+      }
+      acc[key].cubeCount += 1;
+      acc[key].layers.add(cube.y);
+      acc[key].colors.add(cube.color);
+      return acc;
+    }, {});
+
+    return Object.values(grouped)
+      .map((item) => ({
+        id: item.id,
+        cubeCount: item.cubeCount,
+        layerCount: item.layers.size,
+        colorCount: item.colors.size,
+      }))
+      .sort((a, b) => b.cubeCount - a.cubeCount)
+      .slice(0, 6);
+  }, [serverCubes]);
+
   const rolePanel = useMemo(() => {
     if (isFacilitator) {
       return {
@@ -982,6 +1028,42 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             <p>Progression: {progress}%</p>
             <p>Indices utilises: {Number(pixel?.hints_used || 0)}</p>
           </section>
+
+          <section className={styles.panel}>
+            <h3>Plan par couche</h3>
+            <div className={styles.layerSummaryList}>
+              {layerStats.map((item) => (
+                <button
+                  key={`layer-summary-${item.layer}`}
+                  type="button"
+                  className={`${styles.layerSummaryCard}${safeLayer === item.layer ? ` ${styles.layerSummaryCardActive}` : ''}`}
+                  onClick={() => setActiveLayer(item.layer)}
+                >
+                  <strong>Couche {item.layer + 1}</strong>
+                  <span>Cible: {item.targetCount}</span>
+                  <span>Exacts: {item.matchedCount}</span>
+                  <span>En trop: {item.extraCount}</span>
+                  <div className={styles.layerSummaryTrack} aria-hidden="true">
+                    <span className={styles.layerSummaryFill} style={{ width: `${item.completion}%` }} />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {contributorStats.length > 0 ? (
+            <section className={styles.panel}>
+              <h3>Repartition equipe</h3>
+              <ul className={styles.activityList}>
+                {contributorStats.map((item) => (
+                  <li key={`contrib-${item.id}`} className={styles.activityItem}>
+                    <strong>{item.id}</strong>
+                    <span>{item.cubeCount} cubes · {item.layerCount} couches · {item.colorCount} couleurs</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           <section className={styles.panel}>
             <h3>{rolePanel.title}</h3>
