@@ -128,6 +128,55 @@ a {
   font-size: 0.88rem;
 }
 
+.top-nav--live-inline .nav-inner {
+  min-height: 60px;
+  gap: 0.55rem;
+}
+
+.nav-inner--live-inline {
+  justify-content: flex-start;
+}
+
+.nav-panel--live-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: nowrap;
+  width: 100%;
+  margin-left: 0;
+}
+
+.nav-panel--live-inline .nav-main-block {
+  flex: 0 0 auto;
+  min-width: max-content;
+  overflow: visible;
+}
+
+.nav-panel--live-inline .nav-links {
+  overflow: visible;
+}
+
+.nav-panel--live-inline .app-user-box {
+  margin-left: auto;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.nav-panel--live-inline .app-user-meta {
+  min-width: max-content;
+}
+
+.nav-panel--live-inline .app-user-name {
+  font-size: 0.86rem;
+}
+
+.nav-panel--live-inline .btn-secondary {
+  border-radius: 999px;
+  padding: 0.42rem 0.76rem;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
 .nav-inner {
   min-height: 72px;
   display: flex;
@@ -5008,6 +5057,36 @@ a {
     justify-content: space-between;
     align-items: center;
     gap: 0.75rem;
+  }
+
+  .top-nav--live-inline .nav-inner {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .top-nav--live-inline .nav-inner::-webkit-scrollbar {
+    display: none;
+  }
+
+  .top-nav--live-inline .nav-panel--live-inline {
+    width: auto;
+    min-width: max-content;
+    flex: 0 0 auto;
+  }
+
+  .top-nav--live-inline .nav-panel--live-inline .app-user-box {
+    width: auto;
+    margin-left: 0.45rem;
+    padding: 0.32rem 0.46rem 0.32rem 0.62rem;
+  }
+
+  .top-nav--live-inline .nav-panel--live-inline .app-user-name {
+    font-size: 0.82rem;
+  }
+
+  .top-nav--live-inline .nav-panel--live-inline .btn-secondary {
+    padding: 0.38rem 0.64rem;
+    font-size: 0.78rem;
   }
 }
 

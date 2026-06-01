@@ -14,7 +14,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
   const isCompact = role === 'participant-live';
   const isManager = !isParticipant && !isAdmin && !isCompact;
   const brandHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
-  const headerClassName = isCompact ? 'top-nav top-nav--compact' : 'top-nav';
+  const headerClassName = isCompact ? 'top-nav top-nav--compact top-nav--live-inline' : 'top-nav';
   const isManagerHome = isManager && pathname === '/home';
   const isActive = (href) => pathname?.startsWith(href);
   const contextLabel = isParticipant
@@ -91,7 +91,8 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
 
   return (
     <header className={headerClassName}>
-      <div className="shell nav-inner">
+      <div className={`shell nav-inner${isCompact ? ' nav-inner--live-inline' : ''}`}>
+        {!isCompact ? (
         <div className="nav-top-row">
           <div className="nav-brand-block">
             <Link href={brandHref} className="brand">
@@ -113,8 +114,9 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
             <span className="nav-toggle__line" />
           </button>
         </div>
+        ) : null}
 
-        <div id="app-nav-panel" className={navPanelClassName}>
+        <div id="app-nav-panel" className={`${navPanelClassName}${isCompact ? ' nav-panel--live-inline' : ''}`}>
           {isParticipant && !isCompact && (
             <div className="nav-main-block">
               <nav className="nav-links" aria-label="Navigation participant">
@@ -150,7 +152,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
           {!isParticipant && isCompact && (
             <div className="nav-main-block nav-main-block--compact">
               <nav className="nav-links" aria-label="Navigation session live">
-                <Link href="/home" className="btn-mini">Retour tableau de bord</Link>
+                <Link href="/home" className="nav-link">Retour au tableau de bord</Link>
               </nav>
             </div>
           )}
