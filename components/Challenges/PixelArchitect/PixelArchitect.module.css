@@ -413,6 +413,34 @@
   gap: 4px;
 }
 
+.activityList {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.activityItem {
+  display: grid;
+  gap: 3px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(136, 170, 194, 0.18);
+  background: rgba(8, 19, 29, 0.55);
+}
+
+.activityItem strong {
+  font-size: 0.79rem;
+  color: #eaf7ff;
+}
+
+.activityItem span {
+  font-size: 0.78rem;
+  color: #aecdde;
+  line-height: 1.36;
+}
+
 .attemptList li {
   font-size: 0.8rem;
   color: #c9dff0;

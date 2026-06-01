@@ -84,6 +84,7 @@ function normalizeServerCubes(cubesMap) {
       z: Number(cube?.z),
       color: String(cube?.color || '').trim() || '#22c55e',
       placedBy: String(cube?.placed_by || '').trim(),
+      ts: String(cube?.ts || '').trim(),
     }))
     .filter((cube) => Number.isInteger(cube.x) && Number.isInteger(cube.y) && Number.isInteger(cube.z));
 }
@@ -98,7 +99,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const [activeLayer, setActiveLayer] = useState(0);
   const [selectedColor, setSelectedColor] = useState(FALLBACK_PALETTE[0]);
 
-  const { state, error, isFacilitator, emitEvent } = useRealtimeChallenge({
+  const { state, error, isFacilitator, emitEvent, events } = useRealtimeChallenge({
     runtimePayload,
     socket,
     context,
@@ -608,6 +609,86 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     )
   );
 
+  const rolePanel = useMemo(() => {
+    if (isFacilitator) {
+      return {
+        title: 'Role facilitateur',
+        body: 'Lancez le chrono, observez la coordination et diffusez un indice si l equipe bloque.',
+      };
+    }
+    if (viewerRole === 'architect') {
+      return {
+        title: 'Role architecte',
+        body: 'Vous voyez le modele. Guidez les builders avec des instructions courtes: couche, zone, couleur, priorite.',
+      };
+    }
+    return {
+      title: 'Role builder',
+      body: isTargetHiddenForRole
+        ? 'Le modele est masque. Suivez les indications de l architecte: couche active, coordonnees et couleur a poser.'
+        : 'Construisez en coordination avec l equipe et evitez les doublons sur une meme couche.',
+    };
+  }, [isFacilitator, isTargetHiddenForRole, viewerRole]);
+
+  const recentCubeActivity = useMemo(() => {
+    return [...serverCubes]
+      .filter((cube) => cube.ts)
+      .sort((a, b) => Date.parse(b.ts || '') - Date.parse(a.ts || ''))
+      .slice(0, 5)
+      .map((cube) => ({
+        id: `cube-${cube.ts}-${cube.x}-${cube.y}-${cube.z}`,
+        label: `${cube.placedBy || 'Equipe'} a pose un cube`,
+        detail: `(${cube.x}, ${cube.y}, ${cube.z}) · ${cube.color}`,
+      }));
+  }, [serverCubes]);
+
+  const recentEventActivity = useMemo(() => {
+    return (Array.isArray(events) ? events : [])
+      .filter((item) => ['pixel.hint', 'system.message', 'chat.message', 'timer.warning', 'pixel.completed'].includes(String(item?.type || '').trim()))
+      .slice(0, 5)
+      .map((item, index) => {
+        const type = String(item?.type || '').trim();
+        if (type === 'pixel.hint') {
+          return {
+            id: `event-hint-${index}`,
+            label: 'Indice diffuse',
+            detail: String(item?.payload?.text || '').trim(),
+          };
+        }
+        if (type === 'system.message') {
+          return {
+            id: `event-system-${index}`,
+            label: 'Systeme',
+            detail: String(item?.payload?.text || '').trim(),
+          };
+        }
+        if (type === 'chat.message') {
+          return {
+            id: `event-chat-${index}`,
+            label: `${String(item?.payload?.author || 'Equipe').trim()} dit`,
+            detail: String(item?.payload?.text || '').trim(),
+          };
+        }
+        if (type === 'timer.warning') {
+          return {
+            id: `event-warning-${index}`,
+            label: 'Alerte chrono',
+            detail: `${Number(item?.payload?.remaining_seconds || 0)}s restantes`,
+          };
+        }
+        return {
+          id: `event-generic-${index}`,
+          label: 'Challenge termine',
+          detail: 'Tous les participants ont soumis ou le temps est ecoule.',
+        };
+      });
+  }, [events]);
+
+  const activityFeed = useMemo(() => {
+    const merged = [...recentCubeActivity, ...recentEventActivity];
+    return merged.slice(0, 8);
+  }, [recentCubeActivity, recentEventActivity]);
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -818,6 +899,25 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             <p>Progression: {progress}%</p>
             <p>Indices utilises: {Number(pixel?.hints_used || 0)}</p>
           </section>
+
+          <section className={styles.panel}>
+            <h3>{rolePanel.title}</h3>
+            <p>{rolePanel.body}</p>
+          </section>
+
+          {activityFeed.length > 0 ? (
+            <section className={styles.panel}>
+              <h3>Activite live</h3>
+              <ul className={styles.activityList}>
+                {activityFeed.map((item) => (
+                  <li key={item.id} className={styles.activityItem}>
+                    <strong>{item.label}</strong>
+                    <span>{item.detail}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           {Array.isArray(pixel?.hints) && pixel.hints.length > 0 ? (
             <section className={styles.panel}>
