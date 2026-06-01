@@ -129,8 +129,17 @@ a {
 }
 
 .top-nav--live-inline .nav-inner {
-  min-height: 60px;
+  min-height: 72px;
   gap: 0.55rem;
+}
+
+.top-nav--live-inline .nav-top-row {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.top-nav--live-inline .nav-brand-block {
+  flex-wrap: nowrap;
 }
 
 .nav-inner--live-inline {
@@ -160,6 +169,7 @@ a {
   margin-left: auto;
   flex: 0 0 auto;
   white-space: nowrap;
+  padding: 0.25rem 0.34rem 0.25rem 0.56rem;
 }
 
 .nav-panel--live-inline .app-user-meta {
@@ -171,8 +181,7 @@ a {
 }
 
 .nav-panel--live-inline .btn-secondary {
-  border-radius: 999px;
-  padding: 0.42rem 0.76rem;
+  padding: 0.35rem 0.8rem;
   font-size: 0.82rem;
   white-space: nowrap;
 }

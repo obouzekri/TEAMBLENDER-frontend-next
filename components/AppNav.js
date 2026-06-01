@@ -14,7 +14,7 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
   const isCompact = role === 'participant-live';
   const isManager = !isParticipant && !isAdmin && !isCompact;
   const brandHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
-  const headerClassName = isCompact ? 'top-nav top-nav--compact top-nav--live-inline' : 'top-nav';
+  const headerClassName = isCompact ? 'top-nav top-nav--live-inline' : 'top-nav';
   const isManagerHome = isManager && pathname === '/home';
   const isActive = (href) => pathname?.startsWith(href);
   const contextLabel = isParticipant
@@ -92,29 +92,29 @@ export default function AppNav({ userLabel, onLogout, role, connectionState = ''
   return (
     <header className={headerClassName}>
       <div className={`shell nav-inner${isCompact ? ' nav-inner--live-inline' : ''}`}>
-        {!isCompact ? (
         <div className="nav-top-row">
           <div className="nav-brand-block">
             <Link href={brandHref} className="brand">
-              <Logo size={isCompact ? 'compact' : 'default'} />
+              <Logo size="default" />
             </Link>
-            {isManager ? null : <span className="nav-context">{contextLabel}</span>}
+            {!isManager && !isCompact ? <span className="nav-context">{contextLabel}</span> : null}
           </div>
 
-          <button
-            type="button"
-            className={`nav-toggle ${isMenuOpen ? 'is-open' : ''}`}
-            aria-expanded={isMenuOpen}
-            aria-controls="app-nav-panel"
-            aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-            onClick={() => setIsMenuOpen((current) => !current)}
-          >
-            <span className="nav-toggle__line" />
-            <span className="nav-toggle__line" />
-            <span className="nav-toggle__line" />
-          </button>
+          {!isCompact ? (
+            <button
+              type="button"
+              className={`nav-toggle ${isMenuOpen ? 'is-open' : ''}`}
+              aria-expanded={isMenuOpen}
+              aria-controls="app-nav-panel"
+              aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              onClick={() => setIsMenuOpen((current) => !current)}
+            >
+              <span className="nav-toggle__line" />
+              <span className="nav-toggle__line" />
+              <span className="nav-toggle__line" />
+            </button>
+          ) : null}
         </div>
-        ) : null}
 
         <div id="app-nav-panel" className={`${navPanelClassName}${isCompact ? ' nav-panel--live-inline' : ''}`}>
           {isParticipant && !isCompact && (
