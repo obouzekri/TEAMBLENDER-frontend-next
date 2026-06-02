@@ -543,6 +543,24 @@ function formatCurrency(value, currency = 'EUR') {
   }
 }
 
+function csvEscape(value) {
+  const raw = String(value ?? '');
+  return `"${raw.replace(/"/g, '""')}"`;
+}
+
+function downloadTextFile(content, filename, mimeType = 'text/plain;charset=utf-8;') {
+  if (typeof window === 'undefined') return;
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 export default function AdminClient() {
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
@@ -559,6 +577,7 @@ export default function AdminClient() {
   const [landingBlocks, setLandingBlocks] = useState([]);
   const [analyticsOverview, setAnalyticsOverview] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsDays, setAnalyticsDays] = useState(30);
 
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
@@ -748,10 +767,25 @@ export default function AdminClient() {
     };
   }, [forceReauth, getAuthTokenCandidates, getPreferredAuthToken, persistCurrentUser, readStoredCurrentUser]);
 
+  const loadAnalytics = useCallback(async (daysOverride = null) => {
+    if (!token) return;
+    setAnalyticsLoading(true);
+
+    try {
+      const days = Number(daysOverride || analyticsDays || 30);
+      const payload = await fetchAdminJson(`/admin-analytics/overview?days=${days}`, token);
+      setAnalyticsOverview(payload && typeof payload === 'object' ? payload : null);
+    } catch {
+      // Analytics is optional: keep dashboard functional even if provider is unavailable.
+      setAnalyticsOverview(null);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, [analyticsDays, token]);
+
   const loadAll = useCallback(async () => {
     if (!token) return;
     setError('');
-    setAnalyticsLoading(true);
 
     try {
       const requests = [
@@ -762,7 +796,6 @@ export default function AdminClient() {
         ['participants', '/participants?includeDisabled=true'],
         ['pricingPlans', '/pricing-plans/admin'],
         ['landingBlocks', '/landing-content/admin'],
-        ['analyticsOverview', '/admin-analytics/overview?days=30'],
       ];
 
       const results = await Promise.allSettled(
@@ -798,11 +831,6 @@ export default function AdminClient() {
         const [key] = requests[index];
 
         if (result.status === 'fulfilled') {
-          if (key === 'analyticsOverview') {
-            setAnalyticsOverview(result.value && typeof result.value === 'object' ? result.value : null);
-            return;
-          }
-
           const value = parseList(result.value);
           if (key === 'users') setUsers(value);
           if (key === 'pendingUsers') setPendingUsers(value);
@@ -820,12 +848,9 @@ export default function AdminClient() {
           : reasonRaw;
 
         // Landing CMS is optional for the rest of admin loading.
-        if (key === 'landingBlocks' || key === 'analyticsOverview') {
+        if (key === 'landingBlocks') {
           if (key === 'landingBlocks') {
             setLandingBlocks([]);
-          }
-          if (key === 'analyticsOverview') {
-            setAnalyticsOverview(null);
           }
           return;
         }
@@ -848,10 +873,9 @@ export default function AdminClient() {
           : '';
         setError(`Certaines donnees admin n'ont pas pu etre chargees: ${failures.join(' | ')}${hint}`);
       }
+
     } catch (err) {
       setError(err.message || 'Erreur de chargement admin.');
-    } finally {
-      setAnalyticsLoading(false);
     }
   }, [forceReauth, getFallbackAuthToken, token]);
 
@@ -859,6 +883,11 @@ export default function AdminClient() {
     if (!token) return;
     loadAll();
   }, [token, loadAll]);
+
+  useEffect(() => {
+    if (!token) return;
+    loadAnalytics();
+  }, [analyticsDays, loadAnalytics, token]);
 
   async function updateApproval(id, approval_status) {
     if (!token) return;
@@ -2349,6 +2378,33 @@ export default function AdminClient() {
     };
   }, [analyticsOverview]);
 
+  function exportAnalyticsCsv() {
+    const rows = [
+      ['metric', 'value', 'unit', 'window_days', 'generated_at'],
+      ['users_active_total', Number(analyticsSnapshot.users.totalActive || 0), 'count', analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+      ['users_new', Number(analyticsSnapshot.users.newUsers || 0), 'count', analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+      ['users_returning', Number(analyticsSnapshot.users.returningUsers || 0), 'count', analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+      ['engagement_page_views', Number(analyticsSnapshot.engagement.pageViews || 0), 'count', analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+      ['engagement_avg_session_duration', Number(analyticsSnapshot.engagement.avgSessionDurationSec || 0), 'seconds', analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+      ['conversion_signup_count', Number(analyticsSnapshot.conversion.signupCount || 0), 'count', analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+      ['conversion_purchase_count', Number(analyticsSnapshot.conversion.purchaseCount || 0), 'count', analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+      ['conversion_key_action_count', Number(analyticsSnapshot.conversion.keyActionCount || 0), 'count', analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+      ['performance_avg_page_load', Number(analyticsSnapshot.performance.avgPageLoadMs || 0), 'milliseconds', analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+      ['performance_frontend_error_count', Number(analyticsSnapshot.performance.frontendErrorCount || 0), 'count', analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+      ['business_revenue', Number(analyticsSnapshot.business.revenue || 0), String(analyticsSnapshot.business.currency || 'EUR').toUpperCase(), analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+      ['business_avg_basket', Number(analyticsSnapshot.business.avgBasket || 0), String(analyticsSnapshot.business.currency || 'EUR').toUpperCase(), analyticsSnapshot.lookbackDays, analyticsSnapshot.generatedAt],
+    ];
+
+    const csv = rows
+      .map((row) => row.map((cell) => csvEscape(cell)).join(';'))
+      .join('\n');
+
+    const now = new Date();
+    const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    const filename = `analytics-admin-${analyticsSnapshot.lookbackDays}j-${stamp}.csv`;
+    downloadTextFile(csv, filename, 'text/csv;charset=utf-8;');
+  }
+
   const filteredUsers = useMemo(() => {
     const query = userQuery.trim().toLowerCase();
     if (!query) return users;
@@ -2568,7 +2624,17 @@ export default function AdminClient() {
           </nav>
 
           <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border, #e5e7eb)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <button type="button" className="btn-secondary" onClick={loadAll} style={{ width: '100%', fontSize: '13px' }}>Rafraichir</button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                loadAll();
+                loadAnalytics();
+              }}
+              style={{ width: '100%', fontSize: '13px' }}
+            >
+              Rafraichir
+            </button>
             <button type="button" className="btn-secondary" onClick={logout} style={{ width: '100%', fontSize: '13px' }}>Deconnexion</button>
           </div>
         </aside>
@@ -2693,11 +2759,41 @@ export default function AdminClient() {
           {/* ── ANALYTICS ── */}
           {activeTab === 'analytics' ? (
             <div>
-              <div style={{ marginBottom: '20px' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Analytics PostHog</h1>
-                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                  Synthese des {analyticsSnapshot.lookbackDays} derniers jours pour le pilotage produit et business.
-                </p>
+              <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                <div>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Analytics PostHog</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
+                    Synthese des {analyticsSnapshot.lookbackDays} derniers jours pour le pilotage produit et business.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  {[7, 30, 90].map((days) => (
+                    <button
+                      key={`analytics-period-${days}`}
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => setAnalyticsDays(days)}
+                      disabled={analyticsLoading || analyticsDays === days}
+                      style={{
+                        fontSize: '12px',
+                        padding: '6px 10px',
+                        borderColor: analyticsDays === days ? 'var(--color-primary, #4f46e5)' : undefined,
+                        color: analyticsDays === days ? 'var(--color-primary, #4f46e5)' : undefined,
+                      }}
+                    >
+                      {days}j
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={exportAnalyticsCsv}
+                    disabled={analyticsLoading}
+                    style={{ fontSize: '12px', padding: '6px 10px' }}
+                  >
+                    Export CSV
+                  </button>
+                </div>
               </div>
 
               <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
