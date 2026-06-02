@@ -1246,7 +1246,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           ) : null}
 
           <ChallengeTimerCard
-            title="CHRONO"
+            title="Chrono"
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
             durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
             status={String(timer?.status || 'idle')}

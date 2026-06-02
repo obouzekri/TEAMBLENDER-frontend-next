@@ -519,6 +519,30 @@ function isTokenAuthError(error) {
   );
 }
 
+function formatDurationSeconds(value) {
+  const totalSeconds = Math.max(0, Math.round(Number(value) || 0));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes <= 0) return `${seconds}s`;
+  return `${minutes}m ${String(seconds).padStart(2, '0')}s`;
+}
+
+function formatCurrency(value, currency = 'EUR') {
+  const amount = Number(value || 0);
+  const safeCurrency = String(currency || 'EUR').trim().toUpperCase() || 'EUR';
+
+  try {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: safeCurrency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${amount.toFixed(2)} ${safeCurrency}`;
+  }
+}
+
 export default function AdminClient() {
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
@@ -533,6 +557,8 @@ export default function AdminClient() {
   const [participants, setParticipants] = useState([]);
   const [pricingPlans, setPricingPlans] = useState([]);
   const [landingBlocks, setLandingBlocks] = useState([]);
+  const [analyticsOverview, setAnalyticsOverview] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
@@ -725,6 +751,7 @@ export default function AdminClient() {
   const loadAll = useCallback(async () => {
     if (!token) return;
     setError('');
+    setAnalyticsLoading(true);
 
     try {
       const requests = [
@@ -735,6 +762,7 @@ export default function AdminClient() {
         ['participants', '/participants?includeDisabled=true'],
         ['pricingPlans', '/pricing-plans/admin'],
         ['landingBlocks', '/landing-content/admin'],
+        ['analyticsOverview', '/admin-analytics/overview?days=30'],
       ];
 
       const results = await Promise.allSettled(
@@ -770,6 +798,11 @@ export default function AdminClient() {
         const [key] = requests[index];
 
         if (result.status === 'fulfilled') {
+          if (key === 'analyticsOverview') {
+            setAnalyticsOverview(result.value && typeof result.value === 'object' ? result.value : null);
+            return;
+          }
+
           const value = parseList(result.value);
           if (key === 'users') setUsers(value);
           if (key === 'pendingUsers') setPendingUsers(value);
@@ -787,8 +820,13 @@ export default function AdminClient() {
           : reasonRaw;
 
         // Landing CMS is optional for the rest of admin loading.
-        if (key === 'landingBlocks') {
-          setLandingBlocks([]);
+        if (key === 'landingBlocks' || key === 'analyticsOverview') {
+          if (key === 'landingBlocks') {
+            setLandingBlocks([]);
+          }
+          if (key === 'analyticsOverview') {
+            setAnalyticsOverview(null);
+          }
           return;
         }
 
@@ -812,6 +850,8 @@ export default function AdminClient() {
       }
     } catch (err) {
       setError(err.message || 'Erreur de chargement admin.');
+    } finally {
+      setAnalyticsLoading(false);
     }
   }, [forceReauth, getFallbackAuthToken, token]);
 
@@ -2293,6 +2333,22 @@ export default function AdminClient() {
     [users, pendingUsers, participants, sessions, challenges, pricingPlans, landingBlocks]
   );
 
+  const analyticsSnapshot = useMemo(() => {
+    const source = analyticsOverview && typeof analyticsOverview === 'object' ? analyticsOverview : {};
+    return {
+      configured: Boolean(source.configured),
+      degraded: Boolean(source.degraded),
+      reason: String(source.reason || '').trim(),
+      lookbackDays: Number(source.lookbackDays || 30),
+      users: source.users || {},
+      engagement: source.engagement || {},
+      conversion: source.conversion || {},
+      performance: source.performance || {},
+      business: source.business || {},
+      generatedAt: String(source.generatedAt || ''),
+    };
+  }, [analyticsOverview]);
+
   const filteredUsers = useMemo(() => {
     const query = userQuery.trim().toLowerCase();
     if (!query) return users;
@@ -2434,6 +2490,7 @@ export default function AdminClient() {
 
   const TAB_ITEMS = [
     { id: 'dashboard', label: 'Tableau de bord', badge: null },
+    { id: 'analytics', label: 'Analytics', badge: null },
     { id: 'users', label: 'Utilisateurs', badge: stats.pending > 0 ? stats.pending : null },
     { id: 'participants', label: 'Participants', badge: null },
     { id: 'sessions', label: 'Sessions', badge: stats.activeSessions > 0 ? stats.activeSessions : null },
@@ -2630,6 +2687,78 @@ export default function AdminClient() {
                   </ul>
                 </div>
               ) : null}
+            </div>
+          ) : null}
+
+          {/* ── ANALYTICS ── */}
+          {activeTab === 'analytics' ? (
+            <div>
+              <div style={{ marginBottom: '20px' }}>
+                <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Analytics PostHog</h1>
+                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
+                  Synthese des {analyticsSnapshot.lookbackDays} derniers jours pour le pilotage produit et business.
+                </p>
+              </div>
+
+              <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text, #111)' }}>
+                  Etat integration: {' '}
+                  <strong style={{ color: analyticsSnapshot.configured ? '#15803d' : '#b45309' }}>
+                    {analyticsSnapshot.configured ? 'configuree' : 'non configuree'}
+                  </strong>
+                  {analyticsSnapshot.degraded ? ' (mode degrade)' : ''}
+                </p>
+                {analyticsSnapshot.reason ? (
+                  <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>{analyticsSnapshot.reason}</p>
+                ) : null}
+                {analyticsSnapshot.generatedAt ? (
+                  <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>
+                    Derniere generation: {new Date(analyticsSnapshot.generatedAt).toLocaleString('fr-FR')}
+                  </p>
+                ) : null}
+              </div>
+
+              {analyticsLoading ? (
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)' }}>Chargement des donnees analytics...</p>
+                </div>
+              ) : null}
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(168px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                {[
+                  { label: 'Utilisateurs actifs', value: Number(analyticsSnapshot.users.totalActive || 0) },
+                  { label: 'Nouveaux utilisateurs', value: Number(analyticsSnapshot.users.newUsers || 0) },
+                  { label: 'Utilisateurs recurrents', value: Number(analyticsSnapshot.users.returningUsers || 0) },
+                  { label: 'Pages vues', value: Number(analyticsSnapshot.engagement.pageViews || 0) },
+                  { label: 'Duree session moyenne', value: formatDurationSeconds(analyticsSnapshot.engagement.avgSessionDurationSec) },
+                  { label: 'Inscriptions', value: Number(analyticsSnapshot.conversion.signupCount || 0) },
+                  { label: 'Achats (checkout)', value: Number(analyticsSnapshot.conversion.purchaseCount || 0) },
+                  { label: 'Action cle (sessions creees)', value: Number(analyticsSnapshot.conversion.keyActionCount || 0) },
+                  { label: 'Temps de chargement moyen', value: `${Math.round(Number(analyticsSnapshot.performance.avgPageLoadMs || 0))} ms` },
+                  { label: 'Erreurs frontend', value: Number(analyticsSnapshot.performance.frontendErrorCount || 0) },
+                  {
+                    label: `Revenus (${String(analyticsSnapshot.business.currency || 'EUR').toUpperCase()})`,
+                    value: formatCurrency(analyticsSnapshot.business.revenue, analyticsSnapshot.business.currency),
+                  },
+                  {
+                    label: 'Panier moyen',
+                    value: formatCurrency(analyticsSnapshot.business.avgBasket, analyticsSnapshot.business.currency),
+                  },
+                ].map((item) => (
+                  <div key={item.label} style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 12px' }}>
+                    <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '20px', color: 'var(--color-text, #111)' }}>{item.value}</p>
+                    <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>{item.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '16px 18px' }}>
+                <p style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: 600 }}>Evenements suivis actuellement</p>
+                <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>
+                  Frontend: $pageview, $session_duration, web_performance, frontend_error. Backend: signup_completed, login_successful,
+                  participant_login_successful, session_created, checkout_started, pro_request_created.
+                </p>
+              </div>
             </div>
           ) : null}
 

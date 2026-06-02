@@ -562,17 +562,21 @@ button.cell:focus-visible {
 }
 
 .debriefCard {
-  border: 1px solid rgba(125, 211, 252, 0.3);
-  border-radius: 10px;
-  background: rgba(8, 22, 34, 0.72);
-  padding: 10px;
+  border: 1px solid rgba(125, 211, 252, 0.32);
+  border-radius: 12px;
+  background:
+    linear-gradient(155deg, rgba(8, 22, 34, 0.92), rgba(12, 30, 44, 0.82)),
+    radial-gradient(360px 160px at 12% -24%, rgba(56, 189, 248, 0.16), transparent 70%);
+  padding: 12px;
   display: grid;
-  gap: 6px;
+  gap: 8px;
+  box-shadow: 0 14px 30px rgba(2, 9, 16, 0.22);
 }
 
 .debriefCard h3,
 .debriefCard p {
   margin: 0;
+  line-height: 1.45;
 }
 
 .proceduralPreviewWrap {
@@ -703,6 +707,13 @@ button.cell:focus-visible {
   margin: 0 auto;
   max-width: 100%;
   overflow: auto;
+}
+
+.debriefMiniGrid {
+  margin-top: 6px;
+  border-radius: 10px;
+  padding: 4px;
+  background: rgba(2, 6, 13, 0.42);
 }
 
 @media (max-width: 960px) {

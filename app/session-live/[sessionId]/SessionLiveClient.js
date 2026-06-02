@@ -372,27 +372,6 @@ export default function SessionLiveClient() {
           </section>
         )}
 
-        {challenges.length > 1 && (
-          <section className="feature-card session-live-track">
-            <h2>Challenges de la session</h2>
-            <ul className="challenge-list">
-              {challenges.map((ch) => (
-                <li
-                  key={ch.id}
-                  className="challenge-list-item"
-                >
-                  <span
-                    className={`challenge-dot ${ch.id === activeChallengeId ? 'challenge-dot--active' : 'challenge-dot--inactive'}`}
-                  />
-                  <span>{ch.name || ch.engine_key}</span>
-                  {ch.id === activeChallengeId && (
-                    <span className="eyebrow challenge-label-active">actif</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
       </main>
       <Footer />
     </>

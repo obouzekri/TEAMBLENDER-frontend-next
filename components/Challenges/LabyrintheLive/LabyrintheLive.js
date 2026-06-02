@@ -23,9 +23,10 @@ const LABYRINTHE_RULES_FALLBACK = Object.freeze({
     'Après chaque vie perdue, choisissez un nouveau point de départ en cliquant sur une case START qui clignote.',
     'Un retour en arrière est interdit : vous ne pouvez pas revenir sur une case déjà visitée (sans pénalité).',
     'Les pièges sont invisibles avant passage — restez vigilant aux fausses pistes.',
+    'Le retour en arrière est bloqué sans pénalité de vie. Après chaque vie perdue, choisissez un nouveau point de départ. Les pièges n\'apparaissent qu\'au déclenchement.',
     'Partagez vos découvertes avec l\'équipe via le chat.',
   ],
-  footnote: 'Le retour en arrière est bloqué sans pénalité de vie. Après chaque vie perdue, choisissez un nouveau point de départ. Les pièges n\'apparaissent qu\'au déclenchement.'
+  footnote: ''
 });
 
 function safeInt(value, fallback, min, max) {
@@ -60,6 +61,45 @@ function normalizeVisited(rawVisited) {
       set.add(entry);
     }
   });
+
+  return set;
+}
+
+function normalizeTrapKeys(rawTraps) {
+  const set = new Set();
+  if (!rawTraps) return set;
+
+  const addEntry = (entry) => {
+    if (typeof entry === 'string' && /^\d+,\d+$/.test(entry)) {
+      set.add(entry);
+      return;
+    }
+
+    if (Array.isArray(entry) && entry.length >= 2) {
+      const key = posKey(entry);
+      if (key) set.add(key);
+      return;
+    }
+
+    if (entry && typeof entry === 'object') {
+      const key = posKey(entry.pos || entry.cell || entry.location || entry.coordinates || entry.position || entry);
+      if (key) set.add(key);
+    }
+  };
+
+  if (Array.isArray(rawTraps)) {
+    rawTraps.forEach(addEntry);
+    return set;
+  }
+
+  if (typeof rawTraps === 'object') {
+    Object.entries(rawTraps).forEach(([key, value]) => {
+      if (/^\d+,\d+$/.test(key)) {
+        set.add(key);
+      }
+      addEntry(value);
+    });
+  }
 
   return set;
 }
@@ -223,6 +263,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const maze = laby?.maze || null;
   const playerPosKey = posKey(myParticipantState?.solo?.pos);
   const mySpawnKey = posKey(myParticipantState?.solo?.path?.[0]);
+  const mazeTrapKeys = useMemo(() => normalizeTrapKeys(maze?.traps), [maze?.traps]);
+  const revealMazeTraps = isFacilitator || labyPhase === 'done';
   const allStartKeys = useMemo(() => {
     const starts = Array.isArray(maze?.start_points) && maze.start_points.length > 0
       ? maze.start_points
@@ -550,6 +592,33 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                       : 'Echec collectif : aucun joueur n a atteint la sortie.'}
                   </p>
                   <p>Participants: {labyDebrief.totalPlayers} | Encore en vie: {labyDebrief.alivePlayers}</p>
+                  {maze ? (
+                    <div className={`${styles.miniGrid} ${colsClass} ${styles.solutionMiniGrid} ${styles.debriefMiniGrid}`}>
+                      {Array.from({ length: mazeRows }).map((_, row) => (
+                        Array.from({ length: mazeCols }).map((__, col) => {
+                          const key = `${row},${col}`;
+                          const classes = [styles.cell, styles.cellThumb];
+                          if (allStartKeys.has(key)) classes.push(styles.cellStart);
+                          if (key === endCellKey) classes.push(styles.cellExit);
+                          if (safePathKeys.has(key)) classes.push(styles.cellSolution);
+                          if (revealMazeTraps && mazeTrapKeys.has(key)) classes.push(styles.cellTrapKnown);
+                          return (
+                            <div
+                              key={`debrief-${key}`}
+                              className={classes.join(' ')}
+                              style={buildMazeCellStyle(maze, row, col)}
+                              aria-hidden="true"
+                            >
+                              {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>START</span> : null}
+                              {key === endCellKey ? <span className={styles.cellExitBadge}>EXIT</span> : null}
+                              {safePathKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>●</span> : null}
+                              {revealMazeTraps && mazeTrapKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
+                            </div>
+                          );
+                        })
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
               {error ? <p className={styles.error}>{error}</p> : null}
@@ -581,6 +650,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                               if (key !== startCellKey && allStartKeys.has(key)) classes.push(styles.cellStartAlt);
                               if (key === endCellKey) classes.push(styles.cellExit);
                               if (safePathKeys.has(key)) classes.push(styles.cellSafeLane);
+                              if (revealMazeTraps && mazeTrapKeys.has(key)) classes.push(styles.cellTrapKnown);
                               if (revealedWalls[key]) classes.push(styles.cellTestedZone);
                               if (Boolean(revealedTraps[key])) {
                                 const trapStatus = typeof revealedTraps[key] === 'object' ? String(revealedTraps[key]?.state || 'triggered') : 'triggered';
@@ -588,6 +658,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                                 if (trapStatus === 'resolved') classes.push(styles.cellTrapResolved);
                               }
                               if (key === playerPosKey) classes.push(styles.cellPlayer);
+                              if (hasChallengeStarted && allStartKeys.has(key)) classes.push(styles.cellStartGlow);
                               if (flashCellKey === key) classes.push(flashCellTone === 'blocked' ? styles.cellBlockedFlash : styles.cellTrapFlash);
                               return (
                                 <div
@@ -598,6 +669,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                                 >
                                   {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>D</span> : null}
                                   {key === endCellKey ? <span className={styles.cellExitBadge}>S</span> : null}
+                                  {revealMazeTraps && mazeTrapKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                                   {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
                                   {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
                                   {key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
@@ -747,7 +819,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
           />
 
           <ChallengeTimerCard
-            title="CHRONO"
+            title="Chrono"
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
             durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
             status={String(timer?.status || 'idle')}
@@ -774,7 +846,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
           {chatEnabled ? (
             <ChallengeChatCard
-              title="CHAT"
+              title="Chat"
               messages={chatMessages}
               currentAuthor={displayName}
               inputValue={chatInput}
@@ -801,13 +873,19 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     if (allStartKeys.has(key)) cls.push(styles.cellStart);
                     if (key === endCellKey) cls.push(styles.cellExit);
                     if (safePathKeys.has(key)) cls.push(styles.cellSolution);
+                    if (revealMazeTraps && mazeTrapKeys.has(key)) cls.push(styles.cellTrapKnown);
                     return (
                       <div
                         key={`sol-${key}`}
                         className={cls.join(' ')}
                         style={buildMazeCellStyle(maze, row, col)}
                         aria-hidden="true"
-                      />
+                      >
+                        {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>START</span> : null}
+                        {key === endCellKey ? <span className={styles.cellExitBadge}>EXIT</span> : null}
+                        {safePathKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>●</span> : null}
+                        {revealMazeTraps && mazeTrapKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
+                      </div>
                     );
                   })
                 ))}
