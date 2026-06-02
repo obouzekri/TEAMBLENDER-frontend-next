@@ -37,7 +37,7 @@
 }
 
 .participantView .layout {
-  grid-template-columns: minmax(0, 1fr) 310px;
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 12px;
 }
 
@@ -52,8 +52,12 @@
 }
 
 .participantView .workspaceGrid {
-  grid-template-columns: minmax(300px, 1.06fr) minmax(0, 0.94fr);
+  grid-template-columns: minmax(280px, 0.96fr) minmax(0, 1.04fr);
   gap: 12px;
+}
+
+.participantView .mainPane > .progressCard {
+  margin-top: 6px;
 }
 
 .participantView .taskCard,
@@ -116,7 +120,7 @@
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 350px;
+  grid-template-columns: minmax(0, 1fr) 390px;
   gap: 18px;
 }
 
@@ -190,7 +194,7 @@
 
 .workspaceGrid {
   display: grid;
-  grid-template-columns: minmax(340px, 1.1fr) minmax(0, 0.9fr);
+  grid-template-columns: minmax(280px, 0.95fr) minmax(0, 1.05fr);
   gap: 16px;
 }
 
@@ -519,6 +523,30 @@
   border-radius: 12px;
   padding: 10px;
   background: rgba(8, 20, 34, 0.74);
+}
+
+.participantTimelineBlock {
+  margin-top: 8px;
+  border-top: 1px solid rgba(125, 211, 252, 0.2);
+  padding-top: 8px;
+}
+
+.miniTitle {
+  margin: 0 0 6px;
+  color: #d8e8f4;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.participantTimelineList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  color: #d7e4ef;
+  font-size: 0.8rem;
 }
 
 .empty {

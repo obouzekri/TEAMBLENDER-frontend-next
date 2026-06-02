@@ -11,6 +11,7 @@ export default function ChallengeRulesPanel({
   facilitatorRules = [],
   participantRules = [],
   footnote = '',
+  extraContent = null,
   showPrestartCard = true,
   startLabel = 'Démarrer le challenge',
   onStart = null,
@@ -70,6 +71,8 @@ export default function ChallengeRulesPanel({
       </section>
 
       {footnote ? <p className={styles.rulesFootnote}>{footnote}</p> : null}
+
+      {extraContent}
 
       {canStartFromRules ? (
         <div className={styles.rulesActions}>

@@ -80,6 +80,31 @@
   align-items: flex-start;
 }
 
+.arenaControlRow {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.layerControlCard {
+  min-width: 0;
+  flex: 1 1 auto;
+  border: 1px solid var(--ch-line-soft);
+  border-radius: 12px;
+  padding: 10px;
+  background: linear-gradient(155deg, rgba(10, 24, 36, 0.95), rgba(18, 38, 56, 0.95));
+}
+
+.layerControlTitle {
+  margin: 0 0 8px;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b4d7ef;
+}
+
 .modelMiniCard {
   width: 220px;
   border: 1px solid var(--ch-line-soft);
@@ -279,7 +304,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 .claimBar {
@@ -370,15 +395,48 @@
 }
 
 .swatchBtn {
+  position: relative;
   width: 22px;
   height: 22px;
   border-radius: 6px;
   border: 1px solid rgba(205, 230, 247, 0.55);
   cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
 }
 
 .swatchBtnActive {
-  box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.85);
+  border: 3px solid rgba(222, 245, 255, 0.96);
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.92), 0 0 18px rgba(40, 179, 208, 0.55);
+}
+
+.swatchBtn:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.06);
+  box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.5), 0 10px 16px rgba(2, 9, 16, 0.28);
+}
+
+.swatchBtn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) translateY(4px);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  border-radius: 8px;
+  padding: 5px 7px;
+  font-size: 0.72rem;
+  color: #eaf6ff;
+  background: rgba(7, 19, 29, 0.96);
+  border: 1px solid rgba(125, 211, 252, 0.26);
+  box-shadow: 0 8px 20px rgba(2, 9, 16, 0.26);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.swatchBtn:hover::after,
+.swatchBtn:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .swatchBtn:focus-visible,
@@ -492,6 +550,17 @@
 .attemptCard p,
 .finalCard p {
   margin: 4px 0;
+}
+
+.progressCompactGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 12px;
+}
+
+.progressCompactGrid p {
+  margin: 0;
+  font-size: 0.83rem;
 }
 
 .progressTrack {
@@ -666,6 +735,28 @@
   margin: 0;
 }
 
+.rulesMetaSection {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  background: rgba(9, 22, 34, 0.62);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.rulesMetaSection h3 {
+  margin: 0;
+  color: #dbeafe;
+  font-size: 0.92rem;
+}
+
+.rulesInlineText {
+  margin: 0;
+  color: #d8e9f7;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
 @media (max-width: 980px) {
   .layout {
     grid-template-columns: 1fr;
@@ -675,8 +766,16 @@
     flex-direction: column;
   }
 
+  .arenaControlRow {
+    flex-direction: column;
+  }
+
   .summaryGrid {
     grid-template-columns: 1fr;
+  }
+
+  .progressCompactGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .viewport3d {
@@ -703,6 +802,10 @@
 
   .modelMiniCard {
     width: 100%;
+  }
+
+  .progressCompactGrid {
+    grid-template-columns: 1fr;
   }
 
   .viewport3d {

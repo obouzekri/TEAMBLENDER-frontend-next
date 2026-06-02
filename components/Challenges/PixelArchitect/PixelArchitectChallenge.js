@@ -22,6 +22,13 @@ const DEFAULT_TEMPLATE = Object.freeze({
 });
 
 const FALLBACK_PALETTE = Object.freeze(['#2D9CDB', '#27AE60', '#F2C94C']);
+const COLOR_LABELS = Object.freeze({
+  '#2D9CDB': 'Bleu clair',
+  '#2F80ED': 'Bleu azur',
+  '#27AE60': 'Vert emeraude',
+  '#F2C94C': 'Jaune solaire',
+  '#F2994A': 'Orange corail',
+});
 const ZONE_OPTIONS = Object.freeze([
   { key: 'NW', label: 'Nord-Ouest' },
   { key: 'NE', label: 'Nord-Est' },
@@ -42,6 +49,11 @@ function clampInt(value, fallback, min, max) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isInteger(parsed)) return fallback;
   return Math.min(max, Math.max(min, parsed));
+}
+
+function describeColor(color) {
+  const hex = String(color || '').trim().toUpperCase();
+  return `${COLOR_LABELS[hex] || 'Couleur'} ${hex}`.trim();
 }
 
 function normalizeGrid(pixel, selectedTemplate) {
@@ -787,6 +799,15 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     });
   }
 
+  function handleResetLayer() {
+    if (!canBuild) return;
+    serverCubes
+      .filter((cube) => Number(cube.y) === safeLayer)
+      .forEach((cube) => {
+        emitEvent('pixel.cube.remove', { x: cube.x, y: cube.y, z: cube.z });
+      });
+  }
+
   function handleSubmitFinal() {
     if (isFacilitator) return;
     emitEvent('pixel.submit_final');
@@ -955,31 +976,48 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       .slice(0, 6);
   }, [serverCubes]);
 
-  const rolePanel = useMemo(() => {
-    if (isFacilitator) {
-      return {
-        title: 'Role facilitateur',
-        body: 'Lancez le chrono, observez la coordination et diffusez un indice si l equipe bloque.',
-      };
-    }
-    if (viewerRole === 'architect') {
-      return {
-        title: 'Role architecte',
-        body: 'Vous voyez le modele. Guidez les builders avec des instructions courtes: couche, zone, couleur, priorite.',
-      };
-    }
-    return {
-      title: 'Role builder',
-      body: isTargetHiddenForRole
-        ? 'Le modele est masque. Suivez les indications de l architecte: couche active, coordonnees et couleur a poser.'
-        : 'Construisez en coordination avec l equipe et evitez les doublons sur une meme couche.',
-    };
-  }, [isFacilitator, isTargetHiddenForRole, viewerRole]);
-
   const openLayerCount = useMemo(
     () => layerStats.reduce((count, item) => count + (expandedLayers[String(item.layer)] ? 1 : 0), 0),
     [expandedLayers, layerStats]
   );
+
+  const rulesExtraContent = useMemo(() => (
+    <>
+      <section className={styles.rulesMetaSection}>
+        <h3>Plan d'execution</h3>
+        <div className={styles.statusRow}>
+          <span className={styles.badge}>Phase: {phase || 'intro'}</span>
+          <span className={styles.badge}>Exactitude: {accuracyPercent}%</span>
+          <span className={styles.badge}>Restants: {remainingCubes}</span>
+        </div>
+        {isTargetHiddenForRole ? (
+          <div className={styles.roleAlert} role="note" aria-label="Information de role">
+            <strong>Mode avance:</strong> le modele est visible par l architecte uniquement. Coordonnez-vous via le chat pour guider la construction.
+          </div>
+        ) : null}
+        <p className={styles.rulesInlineText}>
+          Cliquer la grille pour poser, cliquer un cube pour supprimer, glisser pour orbiter ou zoomer.
+        </p>
+        <ol className={styles.howToList}>
+          <li>Choisir une couche puis poser ou supprimer des cubes.</li>
+          <li>Verifier la carte modele et avancer couche par couche.</li>
+          <li>Se coordonner via le chat pour eviter les doublons.</li>
+          <li>Soumettre la version finale quand votre equipe est prete.</li>
+        </ol>
+        <div className={styles.helperRow}>
+          <div className={styles.helperItem}>
+            <span className={styles.helperDotTarget} /> Modele cible (fantome)
+          </div>
+          <div className={styles.helperItem}>
+            <span className={styles.helperDotPlayer} /> Cubes equipe
+          </div>
+          <div className={styles.helperItem}>
+            <span className={styles.helperDotError} /> Contraintes depassees
+          </div>
+        </div>
+      </section>
+    </>
+  ), [accuracyPercent, isTargetHiddenForRole, phase, remainingCubes]);
 
   return (
     <div className={styles.container}>
@@ -1010,17 +1048,36 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
+              extraContent={rulesExtraContent}
               onStart={isFacilitator ? () => emitEvent('timer.start') : null}
               compactStartButton
             />
           ) : (
             <>
               <section className={styles.panel}>
-                <div className={styles.arenaHead}>
-                  <div className={styles.panelHead}>
-                    <h2>Arene de construction 3D</h2>
-                    <p>Cliquer la grille pour poser, cliquer un cube pour supprimer, glisser pour orbiter/zoomer.</p>
-                  </div>
+                <div className={styles.panelHead}>
+                  <h2>Arene de construction 3D</h2>
+                </div>
+
+                <div className={styles.arenaControlRow}>
+                  <section className={styles.layerControlCard}>
+                    <p className={styles.layerControlTitle}>Couches de construction</p>
+                    <div className={styles.layerTabs}>
+                      {layers.map((layer) => (
+                        <button
+                          key={`layer-${layer}`}
+                          type="button"
+                          aria-pressed={safeLayer === layer}
+                          aria-label={`Afficher la couche ${layer + 1}`}
+                          className={`${styles.layerBtn}${safeLayer === layer ? ` ${styles.layerBtnActive}` : ''}`}
+                          onClick={() => setActiveLayer(layer)}
+                        >
+                          Couche {layer + 1}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+
                   <section className={styles.modelMiniCard}>
                     <p className={styles.modelMiniTitle}>Carte modele</p>
                     <p className={styles.modelMiniMeta}>{templateName} - {templateDifficulty}</p>
@@ -1039,21 +1096,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                       <span>{targetCubeCount} cubes cibles</span>
                     </div>
                   </section>
-                </div>
-
-                <div className={styles.layerTabs}>
-                  {layers.map((layer) => (
-                    <button
-                      key={`layer-${layer}`}
-                      type="button"
-                      aria-pressed={safeLayer === layer}
-                      aria-label={`Afficher la couche ${layer + 1}`}
-                      className={`${styles.layerBtn}${safeLayer === layer ? ` ${styles.layerBtnActive}` : ''}`}
-                      onClick={() => setActiveLayer(layer)}
-                    >
-                      Couche {layer + 1}
-                    </button>
-                  ))}
                 </div>
 
                 {!isFacilitator ? (
@@ -1111,8 +1153,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                         type="button"
                         role="radio"
                         aria-checked={selectedColor === color}
-                        aria-label={`Couleur ${color}`}
-                        title={color}
+                        aria-label={describeColor(color)}
+                        title={describeColor(color)}
+                        data-tooltip={describeColor(color)}
                         className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
                         style={{ background: color }}
                         onClick={() => setSelectedColor(color)}
@@ -1134,6 +1177,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
                 {!isFacilitator ? (
                   <div className={`${styles.actionsRow} ${styles.actionsRowSticky}`} aria-label="Actions de construction">
+                    <button type="button" className={styles.btnSecondary} onClick={handleResetLayer} disabled={!canBuild}>
+                      Reinitialiser la couche
+                    </button>
                     <button type="button" className={styles.btnSecondary} onClick={handleResetBuild} disabled={!canBuild}>
                       Reinitialiser les cubes
                     </button>
@@ -1150,13 +1196,15 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 )}
 
                 <div className={styles.attemptCard} role="status" aria-live="polite">
-                  <h3>Etat live du build</h3>
-                  <p>Cubes cibles: <strong>{targetCubeCount}</strong></p>
-                  <p>Cubes poses equipe: <strong>{cubeCount}</strong></p>
-                  <p>Cubes exacts: <strong>{playerExactHits}</strong></p>
-                  <p>Cubes manquants: <strong>{missingCount}</strong></p>
-                  <p>Cubes en trop: <strong>{extraCount}</strong></p>
-                  <p>Precision instantanee: <strong>{accuracyPercent}%</strong></p>
+                  <h3>Progression du build</h3>
+                  <div className={styles.progressCompactGrid}>
+                    <p>Cibles: <strong>{targetCubeCount}</strong></p>
+                    <p>Poses: <strong>{cubeCount}</strong></p>
+                    <p>Exacts: <strong>{playerExactHits}</strong></p>
+                    <p>Manquants: <strong>{missingCount}</strong></p>
+                    <p>En trop: <strong>{extraCount}</strong></p>
+                    <p>Precision: <strong>{accuracyPercent}%</strong></p>
+                  </div>
                   <div className={styles.progressTrack} aria-hidden="true">
                     <span className={styles.progressFill} style={{ width: `${progress}%` }} />
                   </div>
@@ -1183,6 +1231,20 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         </main>
 
         <aside className={styles.sidebar}>
+          {hasChallengeStarted ? (
+            <ChallengeRulesPanel
+              isStarted={hasChallengeStarted}
+              isFacilitator={isFacilitator}
+              showPrestartCard={false}
+              challengeName="Pixel Architect"
+              objective={rulesContent.objective}
+              facilitatorRules={rulesContent.facilitator}
+              participantRules={rulesContent.participant}
+              footnote={rulesContent.footnote}
+              extraContent={rulesExtraContent}
+            />
+          ) : null}
+
           <ChallengeTimerCard
             title="CHRONO"
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
@@ -1192,49 +1254,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             isFacilitator={isFacilitator}
             collapsible={false}
           />
-
-          <section className={styles.panel}>
-            <h3>Regles et plan d'execution</h3>
-            <div className={styles.statusRow}>
-              <span className={styles.badge}>Phase: {phase || 'intro'}</span>
-              <span className={styles.badge}>Exactitude: {accuracyPercent}%</span>
-              <span className={styles.badge}>Restants: {remainingCubes}</span>
-            </div>
-            {isTargetHiddenForRole ? (
-              <div className={styles.roleAlert} role="note" aria-label="Information de role">
-                <strong>Mode avance:</strong> le modele est visible par l architecte uniquement. Coordonnez-vous via le chat pour guider la construction.
-              </div>
-            ) : null}
-            <ol className={styles.howToList}>
-              <li>Choisir une couche puis poser ou supprimer des cubes.</li>
-              <li>Parcourir les couches pour verifier les etages deja traites.</li>
-              <li>Se coordonner via le chat pour eviter les doublons.</li>
-              <li>Soumettre la version finale quand votre equipe est prete.</li>
-            </ol>
-            <div className={styles.helperRow}>
-              <div className={styles.helperItem}>
-                <span className={styles.helperDotTarget} /> Modele cible (fantome)
-              </div>
-              <div className={styles.helperItem}>
-                <span className={styles.helperDotPlayer} /> Cubes equipe
-              </div>
-              <div className={styles.helperItem}>
-                <span className={styles.helperDotError} /> Contraintes depassees
-              </div>
-            </div>
-            <div className={styles.rulesInlineWrap}>
-              <ChallengeRulesPanel
-                isStarted={hasChallengeStarted}
-                isFacilitator={isFacilitator}
-                showPrestartCard={false}
-                challengeName="Pixel Architect"
-                objective={rulesContent.objective}
-                facilitatorRules={rulesContent.facilitator}
-                participantRules={rulesContent.participant}
-                footnote={rulesContent.footnote}
-              />
-            </div>
-          </section>
 
           <section className={styles.panel}>
             <div className={styles.layerPlanHeader}>
@@ -1297,11 +1316,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               </ul>
             </section>
           ) : null}
-
-          <section className={styles.panel}>
-            <h3>{rolePanel.title}</h3>
-            <p>{rolePanel.body}</p>
-          </section>
 
           {Array.isArray(pixel?.hints) && pixel.hints.length > 0 ? (
             <section className={styles.panel}>

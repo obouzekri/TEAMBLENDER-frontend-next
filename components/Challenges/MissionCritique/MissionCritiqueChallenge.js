@@ -12,9 +12,9 @@ import styles from './MissionCritique.module.css';
 
 const PHASES = Object.freeze([
   { key: 'cadrage', label: 'Cadrage', className: 'phaseCadrage' },
-  { key: 'preparation', label: 'Preparation', className: 'phasePreparation' },
-  { key: 'execution', label: 'Execution', className: 'phaseExecution' },
-  { key: 'cloture', label: 'Cloture', className: 'phaseCloture' },
+  { key: 'preparation', label: 'Préparation', className: 'phasePreparation' },
+  { key: 'execution', label: 'Exécution', className: 'phaseExecution' },
+  { key: 'cloture', label: 'Clôture', className: 'phaseCloture' },
 ]);
 
 function inferPhaseKey(index, total) {
@@ -104,6 +104,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
   const timelineSet = useMemo(() => new Set(timeline.map((taskId) => String(taskId))), [timeline]);
 
+  // Keep the exact server order in backlog. No client-side sort.
   const backlogTasks = useMemo(() => tasks, [tasks]);
 
   const completionPercent = Math.max(0, Math.min(100, Math.round((timeline.length / Math.max(1, tasks.length)) * 100)));
@@ -300,6 +301,21 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
       <div className={styles.layout}>
         <main className={styles.mainPane}>
+          {isFacilitator && hasChallengeStarted ? (
+            <section className={styles.card}>
+              <ChallengeRulesPanel
+                isStarted={hasChallengeStarted}
+                isFacilitator={isFacilitator}
+                showPrestartCard={false}
+                challengeName="Mission Critique"
+                objective={rulesContent.objective}
+                facilitatorRules={facilitatorRules}
+                participantRules={participantRules}
+                footnote={rulesContent.footnote}
+              />
+            </section>
+          ) : null}
+
           {!hasChallengeStarted ? (
             <section className={styles.card}>
               <ChallengeRulesPanel
@@ -502,6 +518,23 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                       <p className={styles.meta}>Timeline: {item.timeline_length} tâches</p>
                       <p className={styles.meta}>Soumis: {item.submitted ? 'Oui' : 'Non'}</p>
                       <p className={styles.meta}>Erreurs: {item.errors_count ?? 0}</p>
+                      <div className={styles.participantTimelineBlock}>
+                        <p className={styles.miniTitle}>Actions en cours</p>
+                        {Array.isArray(item.timeline) && item.timeline.length > 0 ? (
+                          <ol className={styles.participantTimelineList}>
+                            {item.timeline.map((taskId, idx) => {
+                              const task = taskMap.get(String(taskId));
+                              return (
+                                <li key={`${item.participant_id}-${taskId}-${idx}`}>
+                                  {task?.label || String(taskId)}
+                                </li>
+                              );
+                            })}
+                          </ol>
+                        ) : (
+                          <p className={styles.meta}>Aucune action placée pour le moment.</p>
+                        )}
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -513,16 +546,18 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
         </main>
 
         <aside className={styles.sidebar}>
-          <ChallengeRulesPanel
-            isStarted={hasChallengeStarted}
-            isFacilitator={isFacilitator}
-            showPrestartCard={false}
-            challengeName="Mission Critique"
-            objective={rulesContent.objective}
-            facilitatorRules={facilitatorRules}
-            participantRules={participantRules}
-            footnote={rulesContent.footnote}
-          />
+          {!isFacilitator ? (
+            <ChallengeRulesPanel
+              isStarted={hasChallengeStarted}
+              isFacilitator={isFacilitator}
+              showPrestartCard={false}
+              challengeName="Mission Critique"
+              objective={rulesContent.objective}
+              facilitatorRules={facilitatorRules}
+              participantRules={participantRules}
+              footnote={rulesContent.footnote}
+            />
+          ) : null}
 
           <ChallengeTimerCard
             title="Chrono"
