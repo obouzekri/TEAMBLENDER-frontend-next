@@ -279,7 +279,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     <div className={styles.shell}>
       <header className={styles.header}>
         <div className={styles.headerLine}>
-          <span className={styles.headerTitle}>Vrai ou Mensonge</span>
+          <span className={styles.headerTitle}>Pari sur moi !</span>
           <span className={styles.headerSeparator}>-</span>
           <span className={styles.headerDescription}>DEVINEZ LE VRAI DU FAUX ET DÉCOUVREZ VOTRE ÉQUIPE AUTREMENT</span>
           {phase !== 'waiting_start' ? (
@@ -301,7 +301,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             <ChallengeRulesPanel
               isStarted={false}
               isFacilitator={isFacilitator}
-              challengeName="Vrai ou Mensonge"
+              challengeName="Pari sur moi !"
               objective={rulesContent.objective}
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
@@ -538,7 +538,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             isStarted={hasChallengeStarted}
             isFacilitator={isFacilitator}
             showPrestartCard={false}
-            challengeName="Vrai ou Mensonge"
+            challengeName="Pari sur moi !"
             objective={rulesContent.objective}
             facilitatorRules={rulesContent.facilitator}
             participantRules={rulesContent.participant}
