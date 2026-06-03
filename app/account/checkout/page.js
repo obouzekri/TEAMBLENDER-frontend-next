@@ -45,6 +45,7 @@ export default function CheckoutPage() {
   const [processing, setProcessing] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [wireNote, setWireNote] = useState('');
+  const [paypalRedirectUrl, setPaypalRedirectUrl] = useState(null);
 
   // Auth guard
   useEffect(() => {
@@ -102,7 +103,11 @@ export default function CheckoutPage() {
       const response = await startBillingCheckout({ pricing_plan_id: selectedPlan.id, method: 'paypal' });
       const checkoutUrl = String(response?.url || response?.payment?.checkout_url || '').trim();
       if (checkoutUrl) {
-        window.location.assign(checkoutUrl);
+        setPaypalRedirectUrl(checkoutUrl);
+        // Auto-redirect after 1.5s; fallback button visible immediately
+        setTimeout(() => {
+          window.location.assign(checkoutUrl);
+        }, 1500);
         return;
       }
       showError('Aucune URL PayPal reçue. Réessayez ou contactez le support.');
@@ -151,6 +156,49 @@ export default function CheckoutPage() {
       <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
       <main className="shell auth-page checkout-page">
 
+        {/* ─── PayPal redirect loading screen ─── */}
+        {paypalRedirectUrl ? (
+          <div className="paypal-redirect-wrap" role="status" aria-live="polite">
+            <div className="paypal-redirect-card">
+              <div className="paypal-redirect-card__icon" aria-hidden="true">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="40" height="40" rx="12" fill="#EEF4FF"/>
+                  <path d="M20 12a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm-1 4a1 1 0 1 1 2 0v4a1 1 0 0 1-.293.707l-2 2a1 1 0 0 1-1.414-1.414L19 19.586V16z" fill="#2F62FF"/>
+                  <path d="M28 20a1 1 0 0 0 0 2h.5a1 1 0 0 0 0-2H28z" fill="#2F62FF" opacity=".4"/>
+                </svg>
+              </div>
+              <div className="paypal-redirect-card__spinner" aria-hidden="true">
+                <span className="paypal-spinner" />
+              </div>
+              <h2 className="paypal-redirect-card__title">Redirection vers PayPal</h2>
+              <p className="paypal-redirect-card__desc">
+                Vous allez être redirigé vers PayPal pour finaliser votre paiement en toute sécurité.
+              </p>
+              {selectedPlan ? (
+                <div className="paypal-redirect-card__plan">
+                  <span className="paypal-redirect-card__plan-name">{selectedPlan.name}</span>
+                  <span className="paypal-redirect-card__plan-price">
+                    {formatPriceCents(selectedPlan.price_cents, selectedPlan.currency)}<span>/mois</span>
+                  </span>
+                </div>
+              ) : null}
+              <p className="paypal-redirect-card__status">Redirection en cours…</p>
+              <a
+                href={paypalRedirectUrl}
+                className="btn-primary paypal-redirect-card__btn"
+                rel="noopener noreferrer"
+              >
+                Continuer vers PayPal
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </a>
+              <p className="paypal-redirect-card__trust">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1l1.5 3 3.5.5-2.5 2.5.5 3.5L7 9l-3 1.5.5-3.5L2 4.5l3.5-.5L7 1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/></svg>
+                Paiement sécurisé via PayPal — carte et compte acceptés
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
         <section className="checkout-hero">
           <p className="eyebrow">PAIEMENT</p>
           <h1>Choisissez votre mode de paiement</h1>
@@ -293,6 +341,8 @@ export default function CheckoutPage() {
         <div className="checkout-back-link">
           <a href="/account">&larr; Retour au compte</a>
         </div>
+          </>
+        )}
 
       </main>
       <Footer />
