@@ -101,8 +101,9 @@ export default function CheckoutPage() {
     setProcessing(true);
     try {
       const response = await startBillingCheckout({ pricing_plan_id: selectedPlan.id, method: 'paypal' });
+      const mode = String(response?.mode || '').trim().toLowerCase();
       const checkoutUrl = String(response?.url || response?.payment?.checkout_url || '').trim();
-      if (checkoutUrl) {
+      if (mode === 'paypal_redirect' && checkoutUrl) {
         setPaypalRedirectUrl(checkoutUrl);
         // Auto-redirect after 1.5s; fallback button visible immediately
         setTimeout(() => {
@@ -110,7 +111,14 @@ export default function CheckoutPage() {
         }, 1500);
         return;
       }
-      showError('Aucune URL PayPal reçue. Réessayez ou contactez le support.');
+
+      // Avoid misleading UX: if backend falls back to manual mode, do not present a fake PayPal redirect.
+      if (mode && mode !== 'paypal_redirect') {
+        showError(response?.message || 'PayPal n\'est pas configure sur le serveur. Activez la configuration backend pour rediriger vers PayPal.');
+        return;
+      }
+
+      showError('Aucune URL PayPal valide reçue. Réessayez ou contactez le support.');
     } catch (err) {
       showError(err.message || 'Paiement PayPal impossible pour le moment.');
     } finally {

@@ -462,48 +462,19 @@ export default function AccountPage() {
               <h1>Mon compte</h1>
               <p>Gerez votre profil, votre securite et votre formule depuis un seul espace.</p>
               <div className="home-hero-trust">
-                <span>Profil</span>
-                <span>Securite</span>
-                <span>Tarification</span>
+                <a href="#account-profile">Profil</a>
+                <a href="#account-security">Securite</a>
+                <a href="#account-pricing">Tarification</a>
               </div>
             </div>
             <aside className="home-hero-summary" aria-label="Synthese compte">
               <p className="home-hero-summary__eyebrow">Votre compte</p>
               <strong className="home-hero-summary__title">{String(me?.email || guard.user?.email || '').trim() || '-'}</strong>
               <ul className="home-hero-summary__list">
-                <li>Formule: <strong>{currentPlanLabel}</strong></li>
+                <li>Plan actif : <strong>{currentPlanLabel}</strong></li>
                 <li>Role: {roleLabel}</li>
               </ul>
             </aside>
-          </div>
-        </section>
-
-        <section className="account-kpi-strip" aria-label="Indicateurs du compte">
-          <article className="account-kpi-card">
-            <p className="account-kpi-label">Plan actif</p>
-            <p className="account-kpi-value">{currentPlanLabel}</p>
-          </article>
-          <article className="account-kpi-card">
-            <p className="account-kpi-label">Formules disponibles</p>
-            <p className="account-kpi-value">{plans.length}</p>
-          </article>
-          <article className="account-kpi-card">
-            <p className="account-kpi-label">Historique de changements</p>
-            <p className="account-kpi-value">{historyCount}</p>
-          </article>
-        </section>
-
-        <section className="account-quick-actions-surface" aria-label="Actions rapides compte">
-          <p className="eyebrow">ACCES RAPIDE</p>
-          <div className="account-quick-actions">
-            <a href="#account-profile" className="btn-secondary">Modifier le profil</a>
-            <a href="#account-security" className="btn-secondary">Mettre a jour le mot de passe</a>
-            <a href="#account-pricing" className="btn-secondary">Voir les formules</a>
-            {recommendedPlan && String(recommendedPlan.id) !== String(currentPlanId || '') ? (
-              <button type="button" className="btn-primary" onClick={() => handleGoToCheckout('paypal', recommendedPlan.id)}>
-                Passer au plan recommande
-              </button>
-            ) : null}
           </div>
         </section>
 
