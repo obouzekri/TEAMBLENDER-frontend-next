@@ -2575,12 +2575,10 @@ export default function AdminClient() {
           overflowY: 'auto',
         }}>
           <div style={{
-            padding: '24px 20px 16px',
+            padding: '20px 20px 14px',
             borderBottom: '1px solid var(--color-border, #e5e7eb)',
           }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-muted, #6b7280)', textTransform: 'uppercase', margin: '0 0 4px' }}>TeamBlender</p>
-            <p style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text, #111)', margin: 0 }}>Console Admin</p>
-            <p style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', margin: '4px 0 0' }}>{pickUserLabel(user)}</p>
+            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-muted, #6b7280)', textTransform: 'uppercase', margin: 0 }}>TeamBlender</p>
           </div>
 
           <nav style={{ flex: 1, padding: '12px 0' }}>
@@ -2797,19 +2795,24 @@ export default function AdminClient() {
               </div>
 
               <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
-                <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text, #111)' }}>
-                  Etat integration: {' '}
-                  <strong style={{ color: analyticsSnapshot.configured ? '#15803d' : '#b45309' }}>
-                    {analyticsSnapshot.configured ? 'configuree' : 'non configuree'}
-                  </strong>
-                  {analyticsSnapshot.degraded ? ' (mode degrade)' : ''}
-                </p>
-                {analyticsSnapshot.reason ? (
-                  <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>{analyticsSnapshot.reason}</p>
-                ) : null}
+                {analyticsSnapshot.configured ? (
+                  <p style={{ margin: 0, fontSize: '13px', color: '#15803d', fontWeight: 600 }}>
+                    ✓ PostHog connecte
+                    {analyticsSnapshot.degraded ? <span style={{ color: '#b45309', fontWeight: 400 }}> (mode degrade)</span> : null}
+                  </p>
+                ) : (
+                  <>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#b45309', fontWeight: 600 }}>⚠ Analytics non configure</p>
+                    <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-muted, #6b7280)', lineHeight: 1.55 }}>
+                      Ajoutez <code style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PROJECT_ID</code> et{' '}
+                      <code style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PERSONAL_API_KEY</code>{' '}
+                      dans le fichier <code style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '1px 4px', borderRadius: '3px' }}>.env</code> du backend puis redemarrez le serveur.
+                    </p>
+                  </>
+                )}
                 {analyticsSnapshot.generatedAt ? (
-                  <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>
-                    Derniere generation: {new Date(analyticsSnapshot.generatedAt).toLocaleString('fr-FR')}
+                  <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--color-muted, #6b7280)' }}>
+                    Genere le {new Date(analyticsSnapshot.generatedAt).toLocaleString('fr-FR')}
                   </p>
                 ) : null}
               </div>
