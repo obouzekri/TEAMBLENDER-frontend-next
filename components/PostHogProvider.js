@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
 
 const POSTHOG_KEY = String(process.env.NEXT_PUBLIC_POSTHOG_KEY || '').trim();
@@ -33,7 +33,6 @@ function capturePerformanceEvent() {
 
 export default function PostHogProvider() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!POSTHOG_KEY || typeof window === 'undefined') return;
@@ -80,14 +79,16 @@ export default function PostHogProvider() {
   useEffect(() => {
     if (!POSTHOG_KEY || !window.__TEAMBLENDER_POSTHOG_INIT__) return;
 
-    const query = searchParams?.toString();
+    const query = typeof window !== 'undefined'
+      ? String(window.location.search || '').replace(/^\?/, '')
+      : '';
     const pathWithQuery = query ? `${pathname}?${query}` : pathname;
 
     posthog.capture('$pageview', {
       $current_url: window.location.href,
       path: pathWithQuery,
     });
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   return null;
 }
