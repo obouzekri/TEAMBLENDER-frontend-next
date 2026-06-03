@@ -507,52 +507,62 @@ export default function AccountPage() {
           </div>
         </section>
 
-        <div className="account-sections-row">
-          <section id="account-profile" className="account-section account-section-surface">
-            <header className="account-section-head">
+        <div className="account-card-container">
+          <section id="account-profile" className="account-saas-card">
+            <header className="account-saas-card__header">
               <p className="eyebrow">PROFIL</p>
-              <h2>Informations professionnelles</h2>
-              <p className="account-section-subtitle">Gardez vos informations a jour pour faciliter le support et le suivi des sessions.</p>
+              <h2 className="account-saas-card__title">Informations professionnelles</h2>
+              <p className="account-saas-card__subtitle">Gardez vos informations a jour pour faciliter le support et le suivi des sessions.</p>
             </header>
-            <form onSubmit={handleSaveProfile}>
-              <div className="account-fields-grid">
-                <div className="account-field-card">
-                  <label>
-                    Prenom
-                    <input type="text" value={profileForm.first_name} disabled readOnly />
-                  </label>
+            <form className="account-saas-card__body" onSubmit={handleSaveProfile}>
+              <div className="account-form-grid">
+                <div className="account-form-field">
+                  <label className="account-form-label" htmlFor="account-first-name">Prenom</label>
+                  <input
+                    id="account-first-name"
+                    className="account-form-input account-form-input--disabled"
+                    type="text"
+                    value={profileForm.first_name}
+                    disabled
+                    readOnly
+                  />
                 </div>
-                <div className="account-field-card">
-                  <label>
-                    Nom
-                    <input type="text" value={profileForm.last_name} disabled readOnly />
-                  </label>
+                <div className="account-form-field">
+                  <label className="account-form-label" htmlFor="account-last-name">Nom</label>
+                  <input
+                    id="account-last-name"
+                    className="account-form-input account-form-input--disabled"
+                    type="text"
+                    value={profileForm.last_name}
+                    disabled
+                    readOnly
+                  />
                 </div>
-                <div className="account-field-card account-field-card--full">
-                  <label>
-                    Fonction
-                    <input
-                      type="text"
-                      value={profileForm.job_title}
-                      onChange={(e) => setProfileForm((prev) => ({ ...prev, job_title: e.target.value }))}
-                      placeholder="Ex : HR Manager"
-                    />
-                  </label>
+                <div className="account-form-field account-form-field--full">
+                  <label className="account-form-label" htmlFor="account-job-title">Fonction</label>
+                  <input
+                    id="account-job-title"
+                    className="account-form-input"
+                    type="text"
+                    value={profileForm.job_title}
+                    onChange={(e) => setProfileForm((prev) => ({ ...prev, job_title: e.target.value }))}
+                    placeholder="Ex : HR Manager"
+                  />
                 </div>
-                <div className="account-field-card account-field-card--full">
-                  <label>
-                    Departement
-                    <input
-                      type="text"
-                      value={profileForm.department}
-                      onChange={(e) => setProfileForm((prev) => ({ ...prev, department: e.target.value }))}
-                      placeholder="Ex : Ressources Humaines"
-                    />
-                  </label>
+                <div className="account-form-field account-form-field--full">
+                  <label className="account-form-label" htmlFor="account-department">Departement</label>
+                  <input
+                    id="account-department"
+                    className="account-form-input"
+                    type="text"
+                    value={profileForm.department}
+                    onChange={(e) => setProfileForm((prev) => ({ ...prev, department: e.target.value }))}
+                    placeholder="Ex : Ressources Humaines"
+                  />
                 </div>
               </div>
-              <p className="participant-form-hint account-field-hint">Prenom et nom sont definis a la creation du compte.</p>
-              <div className="participant-form-actions" style={{ marginTop: '1rem' }}>
+              <p className="account-form-hint">Prenom et nom sont definis a la creation du compte et ne peuvent pas etre modifies ici.</p>
+              <div className="account-saas-card__actions">
                 <button type="submit" className="btn-primary" disabled={savingProfile}>
                   {savingProfile ? 'Enregistrement...' : 'Enregistrer le profil'}
                 </button>
@@ -560,55 +570,55 @@ export default function AccountPage() {
             </form>
           </section>
 
-          <section id="account-security" className="account-section account-section-surface">
-            <header className="account-section-head">
+          <section id="account-security" className="account-saas-card">
+            <header className="account-saas-card__header">
               <p className="eyebrow">SECURITE</p>
-              <h2>Mot de passe</h2>
-              <p className="account-section-subtitle">Renforcez la protection du compte avec un mot de passe fort et regulierement actualise.</p>
+              <h2 className="account-saas-card__title">Mot de passe</h2>
+              <p className="account-saas-card__subtitle">Renforcez la protection de votre compte avec un mot de passe fort et regulierement actualise.</p>
             </header>
-            <form onSubmit={handleUpdatePassword}>
-              <div className="account-fields-grid">
-                <div className="account-field-card account-field-card--full">
-                  <label>
-                    Mot de passe actuel
-                    <input
-                      type="password"
-                      value={passwordForm.current_password}
-                      onChange={(e) => setPasswordForm((prev) => ({ ...prev, current_password: e.target.value }))}
-                      placeholder="Votre mot de passe actuel"
-                    />
-                  </label>
+            <form className="account-saas-card__body" onSubmit={handleUpdatePassword}>
+              <div className="account-form-grid">
+                <div className="account-form-field account-form-field--full">
+                  <label className="account-form-label" htmlFor="account-current-password">Mot de passe actuel</label>
+                  <input
+                    id="account-current-password"
+                    className="account-form-input"
+                    type="password"
+                    value={passwordForm.current_password}
+                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, current_password: e.target.value }))}
+                    placeholder="Votre mot de passe actuel"
+                  />
                 </div>
-                <div className="account-field-card">
-                  <label>
-                    Nouveau mot de passe
-                    <input
-                      type="password"
-                      value={passwordForm.new_password}
-                      onChange={(e) => setPasswordForm((prev) => ({ ...prev, new_password: e.target.value }))}
-                      placeholder="Minimum 8 caracteres"
-                      minLength={8}
-                    />
-                  </label>
+                <div className="account-form-field">
+                  <label className="account-form-label" htmlFor="account-new-password">Nouveau mot de passe</label>
+                  <input
+                    id="account-new-password"
+                    className="account-form-input"
+                    type="password"
+                    value={passwordForm.new_password}
+                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, new_password: e.target.value }))}
+                    placeholder="Minimum 8 caracteres"
+                    minLength={8}
+                  />
                 </div>
-                <div className="account-field-card">
-                  <label>
-                    Confirmation
-                    <input
-                      type="password"
-                      value={passwordForm.confirm_password}
-                      onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirm_password: e.target.value }))}
-                      placeholder="Retapez le nouveau mot de passe"
-                    />
-                  </label>
+                <div className="account-form-field">
+                  <label className="account-form-label" htmlFor="account-confirm-password">Confirmation</label>
+                  <input
+                    id="account-confirm-password"
+                    className="account-form-input"
+                    type="password"
+                    value={passwordForm.confirm_password}
+                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirm_password: e.target.value }))}
+                    placeholder="Retapez le nouveau mot de passe"
+                  />
                 </div>
               </div>
-              <div className="participant-form-actions account-actions-stack" style={{ marginTop: '1rem' }}>
+              <div className="account-saas-card__actions account-saas-card__actions--split">
+                <button type="button" className="btn-secondary" onClick={handleResetPassword} disabled={resettingPassword}>
+                  {resettingPassword ? 'Generation...' : 'Mot de passe oublie ?'}
+                </button>
                 <button type="submit" className="btn-primary" disabled={savingPassword}>
                   {savingPassword ? 'Mise a jour...' : 'Modifier le mot de passe'}
-                </button>
-                <button type="button" className="btn-secondary" onClick={handleResetPassword} disabled={resettingPassword}>
-                  {resettingPassword ? 'Generation...' : 'Mot de passe oublie'}
                 </button>
               </div>
             </form>
