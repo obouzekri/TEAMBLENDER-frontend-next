@@ -47,6 +47,7 @@ Variables importantes:
 - `NEXT_PUBLIC_API_BASE`
 - `BACKEND_ORIGIN` (obligatoire hors dev, cible rewrite Next.js vers backend actif)
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optionnel, active Google Analytics 4 pageview)
+- `NEXT_PUBLIC_GTM_ID` (optionnel, injecte Google Tag Manager sur toutes les pages)
 - `NEXT_PUBLIC_ENABLE_CHALLENGES_MOCK_DATA` (optionnel, `true` pour activer le fallback mock du catalogue challenges en dev)
 - `NEXT_PUBLIC_LANDING_CMS_STRICT` (optionnel, `true` pour activer l'audit runtime de couverture CMS sur la home)
 - `SMOKE_FRONTEND_URL`
