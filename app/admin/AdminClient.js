@@ -578,6 +578,7 @@ export default function AdminClient() {
   const [analyticsOverview, setAnalyticsOverview] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsDays, setAnalyticsDays] = useState(30);
+  const [selectedVisitorCountry, setSelectedVisitorCountry] = useState('');
 
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
@@ -2379,6 +2380,47 @@ export default function AdminClient() {
     };
   }, [analyticsOverview]);
 
+  const visitorCountries = useMemo(
+    () => (Array.isArray(analyticsSnapshot.visitors.countries) ? analyticsSnapshot.visitors.countries : []),
+    [analyticsSnapshot.visitors.countries]
+  );
+
+  const visitorCities = useMemo(
+    () => (Array.isArray(analyticsSnapshot.visitors.cities) ? analyticsSnapshot.visitors.cities : []),
+    [analyticsSnapshot.visitors.cities]
+  );
+
+  const visitorCitiesByCountry = useMemo(
+    () => (Array.isArray(analyticsSnapshot.visitors.citiesByCountry) ? analyticsSnapshot.visitors.citiesByCountry : []),
+    [analyticsSnapshot.visitors.citiesByCountry]
+  );
+
+  const effectiveSelectedCountry = useMemo(() => {
+    const fallbackCountry = String(visitorCountries[0]?.label || '').trim();
+    if (!selectedVisitorCountry) return fallbackCountry;
+    const selectedExists = visitorCountries.some((item) => String(item?.label || '').trim() === selectedVisitorCountry);
+    return selectedExists ? selectedVisitorCountry : fallbackCountry;
+  }, [selectedVisitorCountry, visitorCountries]);
+
+  const citiesForSelectedCountry = useMemo(() => {
+    const selectedCountry = String(effectiveSelectedCountry || '').trim();
+    if (!selectedCountry) return [];
+
+    const grouped = new Map();
+    visitorCitiesByCountry.forEach((row) => {
+      if (String(row?.country || '').trim() !== selectedCountry) return;
+      const city = String(row?.city || '').trim() || 'Inconnue';
+      const value = Math.max(0, Number(row?.value || 0));
+      grouped.set(city, (grouped.get(city) || 0) + value);
+    });
+
+    return Array.from(grouped.entries())
+      .map(([label, value]) => ({ label, value }))
+      .filter((item) => item.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+  }, [effectiveSelectedCountry, visitorCitiesByCountry]);
+
   function exportAnalyticsCsv() {
     const rows = [
       ['metric', 'value', 'unit', 'window_days', 'generated_at'],
@@ -2811,6 +2853,11 @@ export default function AdminClient() {
                     </p>
                   </>
                 )}
+                {analyticsSnapshot.configured && analyticsSnapshot.degraded && analyticsSnapshot.reason ? (
+                  <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#92400e', lineHeight: 1.5 }}>
+                    Raison: {analyticsSnapshot.reason}
+                  </p>
+                ) : null}
                 {analyticsSnapshot.generatedAt ? (
                   <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--color-muted, #6b7280)' }}>
                     Genere le {new Date(analyticsSnapshot.generatedAt).toLocaleString('fr-FR')}
@@ -2855,8 +2902,17 @@ export default function AdminClient() {
               {analyticsSnapshot.configured ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                   {[
-                    { title: 'Top pays', list: Array.isArray(analyticsSnapshot.visitors.countries) ? analyticsSnapshot.visitors.countries : [] },
-                    { title: 'Top villes', list: Array.isArray(analyticsSnapshot.visitors.cities) ? analyticsSnapshot.visitors.cities : [] },
+                    {
+                      title: 'Top pays',
+                      list: visitorCountries,
+                      interactive: true,
+                    },
+                    {
+                      title: effectiveSelectedCountry
+                        ? `Villes - ${effectiveSelectedCountry}`
+                        : 'Top villes',
+                      list: citiesForSelectedCountry.length > 0 ? citiesForSelectedCountry : visitorCities,
+                    },
                     { title: 'Top navigateurs', list: Array.isArray(analyticsSnapshot.visitors.browsers) ? analyticsSnapshot.visitors.browsers : [] },
                     { title: 'Top systemes', list: Array.isArray(analyticsSnapshot.visitors.os) ? analyticsSnapshot.visitors.os : [] },
                   ].map((block) => (
@@ -2866,7 +2922,33 @@ export default function AdminClient() {
                         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           {block.list.slice(0, 6).map((item) => (
                             <li key={`${block.title}-${item.label}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '12px' }}>
-                              <span style={{ color: 'var(--color-text, #111)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
+                              {block.interactive ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedVisitorCountry(String(item.label || '').trim())}
+                                  style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    padding: 0,
+                                    margin: 0,
+                                    textAlign: 'left',
+                                    cursor: 'pointer',
+                                    minWidth: 0,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    color: String(item.label || '').trim() === effectiveSelectedCountry
+                                      ? 'var(--color-primary, #4f46e5)'
+                                      : 'var(--color-text, #111)',
+                                    fontWeight: String(item.label || '').trim() === effectiveSelectedCountry ? 700 : 400,
+                                  }}
+                                  title={`Afficher les villes pour ${item.label}`}
+                                >
+                                  {item.label}
+                                </button>
+                              ) : (
+                                <span style={{ color: 'var(--color-text, #111)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
+                              )}
                               <strong style={{ color: 'var(--color-primary, #4f46e5)', flexShrink: 0 }}>{item.value}</strong>
                             </li>
                           ))}
