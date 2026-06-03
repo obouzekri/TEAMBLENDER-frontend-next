@@ -4,7 +4,9 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
 
-const POSTHOG_KEY = String(process.env.NEXT_PUBLIC_POSTHOG_KEY || '').trim();
+const POSTHOG_PROJECT_TOKEN = String(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN || process.env.NEXT_PUBLIC_POSTHOG_KEY || ''
+).trim();
 const POSTHOG_HOST = String(process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com').trim();
 
 function capturePerformanceEvent() {
@@ -35,11 +37,12 @@ export default function PostHogProvider() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!POSTHOG_KEY || typeof window === 'undefined') return;
+    if (!POSTHOG_PROJECT_TOKEN || typeof window === 'undefined') return;
 
     if (!window.__TEAMBLENDER_POSTHOG_INIT__) {
-      posthog.init(POSTHOG_KEY, {
+      posthog.init(POSTHOG_PROJECT_TOKEN, {
         api_host: POSTHOG_HOST,
+        defaults: '2026-01-30',
         capture_pageview: false,
         capture_pageleave: true,
         persistence: 'localStorage+cookie',
@@ -77,7 +80,7 @@ export default function PostHogProvider() {
   }, []);
 
   useEffect(() => {
-    if (!POSTHOG_KEY || !window.__TEAMBLENDER_POSTHOG_INIT__) return;
+    if (!POSTHOG_PROJECT_TOKEN || !window.__TEAMBLENDER_POSTHOG_INIT__) return;
 
     const query = typeof window !== 'undefined'
       ? String(window.location.search || '').replace(/^\?/, '')
