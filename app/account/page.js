@@ -493,15 +493,18 @@ export default function AccountPage() {
           </article>
         </section>
 
-        <section className="account-quick-actions" aria-label="Actions rapides compte">
-          <a href="#account-profile" className="btn-secondary">Modifier le profil</a>
-          <a href="#account-security" className="btn-secondary">Mettre a jour le mot de passe</a>
-          <a href="#account-pricing" className="btn-secondary">Voir les formules</a>
-          {recommendedPlan && String(recommendedPlan.id) !== String(currentPlanId || '') ? (
-            <button type="button" className="btn-primary" onClick={() => handleGoToCheckout('paypal', recommendedPlan.id)}>
-              Passer au plan recommande
-            </button>
-          ) : null}
+        <section className="account-quick-actions-surface" aria-label="Actions rapides compte">
+          <p className="eyebrow">ACCES RAPIDE</p>
+          <div className="account-quick-actions">
+            <a href="#account-profile" className="btn-secondary">Modifier le profil</a>
+            <a href="#account-security" className="btn-secondary">Mettre a jour le mot de passe</a>
+            <a href="#account-pricing" className="btn-secondary">Voir les formules</a>
+            {recommendedPlan && String(recommendedPlan.id) !== String(currentPlanId || '') ? (
+              <button type="button" className="btn-primary" onClick={() => handleGoToCheckout('paypal', recommendedPlan.id)}>
+                Passer au plan recommande
+              </button>
+            ) : null}
+          </div>
         </section>
 
         <div className="account-sections-row">
@@ -613,105 +616,107 @@ export default function AccountPage() {
         </div>
 
         <section id="account-pricing" className="account-pricing-section">
-          <header className="account-pricing-head">
-            <div>
-              <p className="eyebrow">TARIFICATION</p>
-              <h2>Votre formule</h2>
-              <p>Choisissez la formule adaptee a vos besoins d'equipe.</p>
-            </div>
-            {activePlan ? (
-              <div className="account-active-plan-badge">
-                <span className="eyebrow">Formule active</span>
-                <strong>{activePlan.name}</strong>
+          <div className="account-pricing-surface">
+            <header className="account-pricing-head">
+              <div>
+                <p className="eyebrow">TARIFICATION</p>
+                <h2>Votre formule</h2>
+                <p>Choisissez la formule adaptee a vos besoins d'equipe.</p>
+              </div>
+              {activePlan ? (
+                <div className="account-active-plan-badge">
+                  <span className="eyebrow">Formule active</span>
+                  <strong>{activePlan.name}</strong>
+                </div>
+              ) : null}
+            </header>
+
+            {plans.length > 0 ? (
+              <div className="account-plan-cards-grid">
+                {plans.map((plan) => {
+                  const planId = String(plan.id);
+                  const isCurrent = planId === String(currentPlanId || '');
+                  const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
+                  const priceFmt = formatPriceCents(plan.price_cents, plan.currency);
+                  return (
+                    <article
+                      key={planId}
+                      className={[
+                        'pricing-card account-pricing-card',
+                        isCurrent ? 'account-pricing-card--current' : '',
+                        isRecommended ? 'pricing-card-featured' : '',
+                      ].filter(Boolean).join(' ')}
+                    >
+                      <div className="pricing-card-top">
+                        {isRecommended ? <span className="pricing-badge">Recommande</span> : null}
+                        {isCurrent ? <span className="account-current-badge">Votre formule</span> : null}
+                        <p className="eyebrow">{plan.name}</p>
+                      </div>
+                      <h3 className="pricing-price">
+                        {priceFmt}
+                        <span>/mois</span>
+                      </h3>
+                      {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
+                      {Array.isArray(plan.features) && plan.features.length > 0 ? (
+                        <ul className="pricing-feature-list">
+                          {plan.features.map((item, i) => (
+                            <li key={i}>{item}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                      <div className="pricing-meta-row">
+                        {plan.max_users ? <span>{plan.max_users} utilisateurs</span> : null}
+                        {plan.max_sessions_per_month ? <span>{plan.max_sessions_per_month} sessions/mois</span> : null}
+                      </div>
+                      {isCurrent ? (
+                        <div className="pricing-actions account-plan-card-actions">
+                          <span className="account-current-plan-tag">Formule active</span>
+                        </div>
+                      ) : (
+                        <div className="pricing-actions account-plan-card-actions">
+                          <button
+                            type="button"
+                            className="btn-primary"
+                            onClick={() => handleGoToCheckout('paypal', plan.id)}
+                          >
+                            Payer avec PayPal
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            onClick={() => handleGoToCheckout('bank_transfer', plan.id)}
+                          >
+                            Demander par virement
+                          </button>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="field-help">Aucune formule disponible pour le moment.</p>
+            )}
+
+            {planHistory.length > 0 ? (
+              <div className="account-plan-history">
+                <p className="eyebrow">HISTORIQUE</p>
+                <ul className="session-list">
+                  {planHistory.map((entry) => (
+                    <li key={String(entry.id)} className="session-item">
+                      <div>
+                        <p className="session-title">{entry.from} {" -> "} {entry.to}</p>
+                        <p className="session-meta">{formatDate(entry.at)}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ) : null}
-          </header>
-
-          {plans.length > 0 ? (
-            <div className="account-plan-cards-grid">
-              {plans.map((plan) => {
-                const planId = String(plan.id);
-                const isCurrent = planId === String(currentPlanId || '');
-                const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
-                const priceFmt = formatPriceCents(plan.price_cents, plan.currency);
-                return (
-                  <article
-                    key={planId}
-                    className={[
-                      'pricing-card account-pricing-card',
-                      isCurrent ? 'account-pricing-card--current' : '',
-                      isRecommended ? 'pricing-card-featured' : '',
-                    ].filter(Boolean).join(' ')}
-                  >
-                    <div className="pricing-card-top">
-                      {isRecommended ? <span className="pricing-badge">Recommande</span> : null}
-                      {isCurrent ? <span className="account-current-badge">Votre formule</span> : null}
-                      <p className="eyebrow">{plan.name}</p>
-                    </div>
-                    <h3 className="pricing-price">
-                      {priceFmt}
-                      <span>/mois</span>
-                    </h3>
-                    {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
-                    {Array.isArray(plan.features) && plan.features.length > 0 ? (
-                      <ul className="pricing-feature-list">
-                        {plan.features.map((item, i) => (
-                          <li key={i}>{item}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                    <div className="pricing-meta-row">
-                      {plan.max_users ? <span>{plan.max_users} utilisateurs</span> : null}
-                      {plan.max_sessions_per_month ? <span>{plan.max_sessions_per_month} sessions/mois</span> : null}
-                    </div>
-                    {isCurrent ? (
-                      <div className="pricing-actions account-plan-card-actions">
-                        <span className="account-current-plan-tag">Formule active</span>
-                      </div>
-                    ) : (
-                      <div className="pricing-actions account-plan-card-actions">
-                        <button
-                          type="button"
-                          className="btn-primary"
-                          onClick={() => handleGoToCheckout('paypal', plan.id)}
-                        >
-                          Payer avec PayPal
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-secondary"
-                          onClick={() => handleGoToCheckout('bank_transfer', plan.id)}
-                        >
-                          Demander par virement
-                        </button>
-                      </div>
-                    )}
-                  </article>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="field-help">Aucune formule disponible pour le moment.</p>
-          )}
-
-          {planHistory.length > 0 ? (
-            <div className="account-plan-history">
-              <p className="eyebrow">HISTORIQUE</p>
-              <ul className="session-list">
-                {planHistory.map((entry) => (
-                  <li key={String(entry.id)} className="session-item">
-                    <div>
-                      <p className="session-title">{entry.from} {" -> "} {entry.to}</p>
-                      <p className="session-meta">{formatDate(entry.at)}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {planHistory.length === 0 ? (
-            <p className="account-history-empty">Aucun changement de formule enregistre pour le moment.</p>
-          ) : null}
+            {planHistory.length === 0 ? (
+              <p className="account-history-empty">Aucun changement de formule enregistre pour le moment.</p>
+            ) : null}
+          </div>
         </section>
       </main>
       <Footer />

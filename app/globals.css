@@ -797,10 +797,15 @@ a {
   .pricing-card,
   .pricing-card-featured,
   .account-field-card,
+  .account-section-surface,
+  .account-kpi-card,
+  .account-quick-actions-surface,
+  .account-pricing-surface,
   .checkout-plan-tab,
   .checkout-plan-summary,
   .checkout-method-card,
   .account-plan-option,
+  .account-plan-history .session-item,
   .participant-form,
   .participant-inline-form,
   .session-card-actions,
@@ -827,8 +832,13 @@ a {
   }
 
   .account-field-card,
+  .account-section-surface,
+  .account-kpi-card,
+  .account-quick-actions-surface,
+  .account-pricing-surface,
   .checkout-plan-tab,
   .account-plan-option,
+  .account-plan-history .session-item,
   .session-card-actions {
     background: rgba(16, 24, 44, 0.92) !important;
   }
@@ -5097,6 +5107,18 @@ a {
   margin-bottom: 1.35rem;
 }
 
+.account-quick-actions-surface {
+  border: 1px solid var(--surface-border);
+  border-radius: 1rem;
+  padding: 0.95rem 1rem;
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.94) 0%, rgba(243, 248, 255, 0.9) 100%);
+  margin-bottom: 1.25rem;
+}
+
+.account-quick-actions-surface > .eyebrow {
+  margin-bottom: 0.65rem;
+}
+
 .account-quick-actions .btn-secondary,
 .account-quick-actions .btn-primary {
   min-height: 2.5rem;
@@ -5200,6 +5222,15 @@ a {
 .account-pricing-section {
   margin-bottom: 2.5rem;
 }
+
+.account-pricing-surface {
+  border: 1px solid var(--surface-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.95) 0%, rgba(244, 248, 255, 0.9) 100%);
+  box-shadow: var(--shadow-sm);
+}
+
 .account-pricing-head {
   display: flex;
   align-items: flex-end;
@@ -5274,6 +5305,18 @@ a {
   border-top: 1px solid var(--surface-border);
 }
 
+.account-plan-history .session-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.account-plan-history .session-item {
+  border: 1px solid var(--surface-border);
+  border-radius: 0.8rem;
+  padding: 0.65rem 0.8rem;
+  background: rgba(255, 255, 255, 0.78);
+}
+
 .account-history-empty {
   margin: 1rem 0 0;
   color: var(--ink-soft);
@@ -5288,6 +5331,12 @@ a {
   .account-quick-actions {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .account-quick-actions-surface,
+  .account-pricing-surface,
+  .account-section-surface {
+    padding: 0.9rem;
   }
 }
 
