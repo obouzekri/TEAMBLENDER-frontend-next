@@ -1,36 +1,25 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Script from 'next/script';
+import { getGaMeasurementId, isGaEnabled, trackGaPageView } from '@/lib/analytics';
 
-const GA_MEASUREMENT_ID = String(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '').trim();
-
-function trackPageView(pagePath) {
-  if (!GA_MEASUREMENT_ID || typeof window === 'undefined') return;
-
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = window.gtag || function gtag() {
-    window.dataLayer.push(arguments);
-  };
-
-  window.gtag('config', GA_MEASUREMENT_ID, {
-    page_path: pagePath,
-  });
-}
+const GA_MEASUREMENT_ID = getGaMeasurementId();
 
 export default function GoogleAnalyticsProvider() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!GA_MEASUREMENT_ID) return;
-    const query = searchParams?.toString() || '';
+    if (!isGaEnabled()) return;
+    const query = typeof window !== 'undefined'
+      ? String(window.location.search || '').replace(/^\?/, '')
+      : '';
     const pagePath = query ? `${pathname}?${query}` : pathname;
-    trackPageView(pagePath);
-  }, [pathname, searchParams]);
+    trackGaPageView(pagePath);
+  }, [pathname]);
 
-  if (!GA_MEASUREMENT_ID) {
+  if (!isGaEnabled()) {
     return null;
   }
 

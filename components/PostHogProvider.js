@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
+import { trackGaEvent } from '@/lib/analytics';
 
 const POSTHOG_PROJECT_TOKEN = String(
   process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN || process.env.NEXT_PUBLIC_POSTHOG_KEY || ''
@@ -20,6 +21,11 @@ function capturePerformanceEvent() {
     if (!Number.isFinite(pageLoadMs) || pageLoadMs <= 0) return;
 
     posthog.capture('web_performance', {
+      page_load_ms: Math.round(pageLoadMs),
+      route: window.location.pathname,
+    });
+
+    trackGaEvent('web_performance', {
       page_load_ms: Math.round(pageLoadMs),
       route: window.location.pathname,
     });
@@ -51,21 +57,33 @@ export default function PostHogProvider() {
     }
 
     const onWindowError = (event) => {
-      posthog.capture('frontend_error', {
+      const payload = {
         type: 'window_error',
         message: String(event?.message || 'Unknown error'),
         source: String(event?.filename || ''),
         line: Number(event?.lineno || 0),
         column: Number(event?.colno || 0),
+      };
+
+      posthog.capture('frontend_error', {
+        ...payload,
       });
+
+      trackGaEvent('frontend_error', payload);
     };
 
     const onUnhandledRejection = (event) => {
       const reason = event?.reason;
-      posthog.capture('frontend_error', {
+      const payload = {
         type: 'unhandled_rejection',
         message: String(reason?.message || reason || 'Unknown rejection'),
+      };
+
+      posthog.capture('frontend_error', {
+        ...payload,
       });
+
+      trackGaEvent('frontend_error', payload);
     };
 
     window.addEventListener('error', onWindowError);
