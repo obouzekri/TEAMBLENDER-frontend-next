@@ -1,6 +1,7 @@
 import './globals.css';
 import { IBM_Plex_Sans, Sora } from 'next/font/google';
 import PostHogProvider from '@/components/PostHogProvider';
+import GoogleAnalyticsProvider from '@/components/GoogleAnalyticsProvider';
 
 const fontUi = IBM_Plex_Sans({
   subsets: ['latin'],
@@ -34,6 +35,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="fr">
       <body className={`${fontUi.variable} ${fontDisplay.variable}`}>
+        <GoogleAnalyticsProvider />
         <PostHogProvider />
         {children}
       </body>
