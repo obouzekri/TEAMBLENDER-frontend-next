@@ -5,6 +5,7 @@ import Link from 'next/link';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
+import { startBillingCheckout } from '@/lib/account';
 
 const CURRENCY_SYMBOLS = {
   EUR: '€',
@@ -36,6 +37,7 @@ export default function PricingPage() {
   const [error, setError] = useState('');
   const [selectedBilling, setSelectedBilling] = useState('monthly');
   const [selectedCurrency, setSelectedCurrency] = useState('EUR');
+  const [checkoutPlanId, setCheckoutPlanId] = useState('');
 
   useEffect(() => {
     async function loadPlans() {
@@ -90,6 +92,45 @@ export default function PricingPage() {
       };
     });
   }, [sortedPlans, selectedBilling]);
+
+  async function handlePaypalCheckout(plan) {
+    const token = typeof window !== 'undefined'
+      ? (window.localStorage.getItem('jwt') || window.sessionStorage.getItem('jwt') || '')
+      : '';
+
+    if (!token) {
+      window.location.assign(`/login?next=${encodeURIComponent('/pricing')}`);
+      return;
+    }
+
+    setCheckoutPlanId(String(plan?.id || ''));
+    setError('');
+
+    try {
+      const response = await startBillingCheckout({
+        pricing_plan_id: plan.id,
+        method: 'paypal',
+        billing_cycle: selectedBilling,
+      });
+
+      const checkoutUrl = String(response?.url || response?.payment?.checkout_url || '').trim();
+      if (checkoutUrl) {
+        window.location.assign(checkoutUrl);
+        return;
+      }
+
+      if (response?.mode === 'manual_pro_request') {
+        window.location.assign(`/account?source=pricing&billing=manual&reference=${encodeURIComponent(String(response?.reference || ''))}`);
+        return;
+      }
+
+      throw new Error('Le paiement PayPal est temporairement indisponible.');
+    } catch (err) {
+      setError(err.message || 'Paiement PayPal impossible pour le moment.');
+    } finally {
+      setCheckoutPlanId('');
+    }
+  }
 
   return (
     <>
@@ -210,7 +251,14 @@ export default function PricingPage() {
                 </div>
 
                 <div className="hero-actions pricing-actions">
-                  <Link href="/signup" className="btn-primary">{plan.cta_label || 'Choisir cette formule'}</Link>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => handlePaypalCheckout(plan)}
+                    disabled={checkoutPlanId === String(plan.id)}
+                  >
+                    {checkoutPlanId === String(plan.id) ? 'Ouverture de PayPal...' : 'Payer avec PayPal'}
+                  </button>
                   <Link href="/contact" className="btn-secondary">Parler à l'équipe</Link>
                 </div>
               </article>
