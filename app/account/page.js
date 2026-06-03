@@ -18,7 +18,6 @@ import {
 } from '@/lib/account';
 
 const PLAN_HISTORY_STORAGE_KEY = 'accountPlanChangeHistory';
-const RECOMMENDED_PRO_DEFAULT_EMAIL = 'obouzekri@teamblender.com';
 
 function formatPriceCents(priceCents, currency) {
   const amount = Number(priceCents || 0) / 100;
@@ -130,7 +129,6 @@ export default function AccountPage() {
     setGuard({ loading: false, allowed: true, user: current });
   }, []);
 
-  // --- Handle return from PayPal approval ---
   useEffect(() => {
     if (!guard.allowed) return;
     if (typeof window === 'undefined') return;
@@ -147,7 +145,6 @@ export default function AccountPage() {
       return;
     }
 
-    // Clean URL params immediately to avoid re-triggering
     window.history.replaceState({}, '', window.location.pathname);
 
     (async () => {
@@ -156,9 +153,10 @@ export default function AccountPage() {
         const planName = result?.plan?.name;
         showSuccess(
           planName
-            ? `Paiement confirmé ! Votre plan ${planName} est maintenant actif.`
-            : 'Paiement PayPal confirmé ! Votre compte est activé.'
+            ? `Paiement confirme ! Votre plan ${planName} est maintenant actif.`
+            : 'Paiement PayPal confirme ! Votre compte est active.'
         );
+
         const [updatedMe, updatedPlans] = await Promise.all([getMe(), listPricingPlans()]);
         if (updatedMe) {
           setMe(updatedMe);
@@ -173,7 +171,7 @@ export default function AccountPage() {
         }
         if (Array.isArray(updatedPlans)) setPlans(normalizePlanList(updatedPlans));
       } catch (err) {
-        showError(err.message || 'Confirmation du paiement PayPal échouée. Veuillez contacter le support.');
+        showError(err.message || 'Confirmation du paiement PayPal echouee. Veuillez contacter le support.');
       }
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -190,7 +188,6 @@ export default function AccountPage() {
         if (cancelled) return;
 
         const [meResult, plansResult] = results;
-
         const mePayload = meResult.status === 'fulfilled' ? meResult.value : null;
         const plansPayload = plansResult.status === 'fulfilled' ? plansResult.value : [];
 
@@ -259,7 +256,6 @@ export default function AccountPage() {
     return plans.find((plan) => String(plan.id) === currentPlanId) || null;
   }, [plans, currentPlanId]);
 
-  const normalizedEmail = String(me?.email || guard.user?.email || '').trim().toLowerCase();
   const isPaywallEntry = entrySource === 'paywall';
 
   const recommendedPlan = useMemo(() => {
@@ -286,9 +282,9 @@ export default function AccountPage() {
         first_name: profileForm.first_name,
         last_name: profileForm.last_name,
       }));
-      showSuccess('Profil mis à jour.');
+      showSuccess('Profil mis a jour.');
     } catch (err) {
-      showError(err.message || 'Mise à jour du profil impossible.');
+      showError(err.message || 'Mise a jour du profil impossible.');
     } finally {
       setSavingProfile(false);
     }
@@ -307,7 +303,7 @@ export default function AccountPage() {
       return;
     }
     if (nextPassword.length < 8) {
-      showError('Le nouveau mot de passe doit contenir au moins 8 caractères.');
+      showError('Le nouveau mot de passe doit contenir au moins 8 caracteres.');
       return;
     }
     if (nextPassword !== confirmPassword) {
@@ -319,7 +315,7 @@ export default function AccountPage() {
     try {
       await updateMyPassword(currentPassword, nextPassword);
       setPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
-      showSuccess('Mot de passe modifié avec succès.');
+      showSuccess('Mot de passe modifie avec succes.');
     } catch (err) {
       showError(err.message || 'Modification du mot de passe impossible.');
     } finally {
@@ -330,7 +326,7 @@ export default function AccountPage() {
   async function handleResetPassword() {
     if (resettingPassword || !me?.id) return;
 
-    const confirmed = window.confirm('Générer un mot de passe temporaire maintenant ?');
+    const confirmed = window.confirm('Generer un mot de passe temporaire maintenant ?');
     if (!confirmed) return;
 
     setResettingPassword(true);
@@ -338,16 +334,16 @@ export default function AccountPage() {
       const result = await resetMyPassword(me.id);
       const temp = String(result?.tempPassword || '').trim();
       if (!temp) {
-        showSuccess('Mot de passe réinitialisé.');
+        showSuccess('Mot de passe reinitialise.');
         return;
       }
 
-      showSuccess(`Mot de passe temporaire généré: ${temp}`);
+      showSuccess(`Mot de passe temporaire genere: ${temp}`);
       if (typeof window !== 'undefined' && navigator?.clipboard?.writeText) {
         navigator.clipboard.writeText(temp).catch(() => undefined);
       }
     } catch (err) {
-      showError(err.message || 'Réinitialisation impossible.');
+      showError(err.message || 'Reinitialisation impossible.');
     } finally {
       setResettingPassword(false);
     }
@@ -359,7 +355,7 @@ export default function AccountPage() {
 
     const nextPlanId = selectedPlanId || null;
     if (String(nextPlanId || '') === String(currentPlanId || '')) {
-      showError('Ce plan est déjà actif sur votre compte.');
+      showError('Ce plan est deja actif sur votre compte.');
       return;
     }
 
@@ -391,10 +387,10 @@ export default function AccountPage() {
       setPlanHistory(nextHistory);
       saveHistory(nextHistory);
 
-      showSuccess('Plan tarifaire mis à jour.');
+      showSuccess('Plan tarifaire mis a jour.');
     } catch (err) {
       if (err.code === 'PRICING_SCHEMA_UNAVAILABLE') {
-        showError('La tarification est temporairement indisponible. La migration pricing_plan_id doit être appliquée côté backend.');
+        showError('La tarification est temporairement indisponible. La migration pricing_plan_id doit etre appliquee cote backend.');
       } else {
         showError(err.message || 'Changement de plan impossible.');
       }
@@ -439,280 +435,252 @@ export default function AccountPage() {
       <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
       <main className="shell app-home account-page">
         {isPaywallEntry ? (
-          <section className="feature-card" aria-label="Limite de plan atteinte">
-            <p className="eyebrow">LIMITE DE PLAN ATTEINTE</p>
-            <h2>Votre formule actuelle a atteint sa limite de sessions.</h2>
-            <p>
-              if (guard.loading || loading) {
+          <section className="account-upgrade-banner" aria-label="Limite de plan atteinte">
+            <div className="account-upgrade-banner__body">
+              <p className="eyebrow">LIMITE ATTEINTE</p>
+              <h2>Votre formule a atteint sa limite de sessions.</h2>
+              <p>Passez a Pro pour continuer sans interruption.</p>
+            </div>
+            <div className="account-upgrade-banner__actions">
+              <button type="button" className="btn-primary" onClick={() => handleGoToCheckout('paypal')}>
+                Payer avec PayPal
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => handleGoToCheckout('bank_transfer')}>
+                Demander par virement
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="hero home-hero">
+          <div className="home-hero-grid">
+            <div className="home-hero-copy">
+              <p className="eyebrow">ESPACE MANAGER</p>
+              <h1>Mon compte</h1>
+              <p>Gerez votre profil, votre securite et votre formule depuis un seul espace.</p>
+              <div className="home-hero-trust">
+                <span>Profil</span>
+                <span>Securite</span>
+                <span>Tarification</span>
+              </div>
+            </div>
+            <aside className="home-hero-summary" aria-label="Synthese compte">
+              <p className="home-hero-summary__eyebrow">Votre compte</p>
+              <strong className="home-hero-summary__title">{String(me?.email || guard.user?.email || '').trim() || '-'} </strong>
+              <ul className="home-hero-summary__list">
+                <li>Formule: <strong>{activePlan?.name || 'Aucun plan'}</strong></li>
+                <li>Role: {String(guard.user?.role || '').toLowerCase() === 'admin' ? 'Admin' : 'Manager'}</li>
+              </ul>
+            </aside>
+          </div>
+        </section>
+
+        <div className="account-sections-row">
+          <section className="account-section">
+            <header className="account-section-head">
+              <p className="eyebrow">PROFIL</p>
+              <h2>Informations professionnelles</h2>
+            </header>
+            <form onSubmit={handleSaveProfile}>
+              <div className="account-fields-grid">
+                <div className="account-field-card">
+                  <label>
+                    Prenom
+                    <input type="text" value={profileForm.first_name} disabled readOnly />
+                  </label>
+                </div>
+                <div className="account-field-card">
+                  <label>
+                    Nom
+                    <input type="text" value={profileForm.last_name} disabled readOnly />
+                  </label>
+                </div>
+                <div className="account-field-card account-field-card--full">
+                  <label>
+                    Fonction
+                    <input
+                      type="text"
+                      value={profileForm.job_title}
+                      onChange={(e) => setProfileForm((prev) => ({ ...prev, job_title: e.target.value }))}
+                      placeholder="Ex : HR Manager"
+                    />
+                  </label>
+                </div>
+                <div className="account-field-card account-field-card--full">
+                  <label>
+                    Departement
+                    <input
+                      type="text"
+                      value={profileForm.department}
+                      onChange={(e) => setProfileForm((prev) => ({ ...prev, department: e.target.value }))}
+                      placeholder="Ex : Ressources Humaines"
+                    />
+                  </label>
+                </div>
+              </div>
+              <p className="participant-form-hint account-field-hint">Prenom et nom sont definis a la creation du compte.</p>
+              <div className="participant-form-actions" style={{ marginTop: '1rem' }}>
+                <button type="submit" className="btn-primary" disabled={savingProfile}>
+                  {savingProfile ? 'Enregistrement...' : 'Enregistrer le profil'}
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section className="account-section">
+            <header className="account-section-head">
+              <p className="eyebrow">SECURITE</p>
+              <h2>Mot de passe</h2>
+            </header>
+            <form onSubmit={handleUpdatePassword}>
+              <div className="account-fields-grid">
+                <div className="account-field-card account-field-card--full">
+                  <label>
+                    Mot de passe actuel
+                    <input
+                      type="password"
+                      value={passwordForm.current_password}
+                      onChange={(e) => setPasswordForm((prev) => ({ ...prev, current_password: e.target.value }))}
+                      placeholder="Votre mot de passe actuel"
+                    />
+                  </label>
+                </div>
+                <div className="account-field-card">
+                  <label>
+                    Nouveau mot de passe
+                    <input
+                      type="password"
+                      value={passwordForm.new_password}
+                      onChange={(e) => setPasswordForm((prev) => ({ ...prev, new_password: e.target.value }))}
+                      placeholder="Minimum 8 caracteres"
+                      minLength={8}
+                    />
+                  </label>
+                </div>
+                <div className="account-field-card">
+                  <label>
+                    Confirmation
+                    <input
+                      type="password"
+                      value={passwordForm.confirm_password}
+                      onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirm_password: e.target.value }))}
+                      placeholder="Retapez le nouveau mot de passe"
+                    />
+                  </label>
+                </div>
+              </div>
+              <div className="participant-form-actions account-actions-stack" style={{ marginTop: '1rem' }}>
+                <button type="submit" className="btn-primary" disabled={savingPassword}>
+                  {savingPassword ? 'Mise a jour...' : 'Modifier le mot de passe'}
+                </button>
+                <button type="button" className="btn-secondary" onClick={handleResetPassword} disabled={resettingPassword}>
+                  {resettingPassword ? 'Generation...' : 'Mot de passe oublie'}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+
+        <section className="account-pricing-section">
+          <header className="account-pricing-head">
+            <div>
+              <p className="eyebrow">TARIFICATION</p>
+              <h2>Votre formule</h2>
+              <p>Choisissez la formule adaptee a vos besoins d'equipe.</p>
+            </div>
+            {activePlan ? (
+              <div className="account-active-plan-badge">
+                <span className="eyebrow">Formule active</span>
+                <strong>{activePlan.name}</strong>
+              </div>
+            ) : null}
+          </header>
+
+          {plans.length > 0 ? (
+            <div className="account-plan-cards-grid">
+              {plans.map((plan) => {
+                const planId = String(plan.id);
+                const isCurrent = planId === String(currentPlanId || '');
+                const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
+                const priceFmt = formatPriceCents(plan.price_cents, plan.currency);
                 return (
-                  <main className="shell auth-page">
-                    <section className="feature-card">
-                      <h1>Chargement du compte…</h1>
-                      <p>Merci de patienter.</p>
-                    </section>
-                  </main>
-                );
-              }
-
-              return (
-                <>
-                  <ToastContainer toasts={toasts} onRemove={removeToast} />
-                  <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
-                  <main className="shell app-home account-page">
-
-                    {/* Paywall banner */}
-                    {isPaywallEntry ? (
-                      <section className="account-upgrade-banner" aria-label="Limite de plan atteinte">
-                        <div className="account-upgrade-banner__body">
-                          <p className="eyebrow">LIMITE ATTEINTE</p>
-                          <h2>Votre formule a atteint sa limite de sessions.</h2>
-                          <p>Passez à Pro pour continuer sans interruption.</p>
-                        </div>
-                        <div className="account-upgrade-banner__actions">
-                          <button type="button" className="btn-primary" onClick={() => handleGoToCheckout('paypal')}>
-                            Payer avec PayPal
-                          </button>
-                          <button type="button" className="btn-secondary" onClick={() => handleGoToCheckout('bank_transfer')}>
-                            Demander par virement
-                          </button>
-                        </div>
-                      </section>
-                    ) : null}
-
-                    {/* Hero */}
-                    <section className="hero home-hero">
-                      <div className="home-hero-grid">
-                        <div className="home-hero-copy">
-                          <p className="eyebrow">ESPACE MANAGER</p>
-                          <h1>Mon compte</h1>
-                          <p>Gérez votre profil, votre sécurité et votre formule depuis un seul espace.</p>
-                          <div className="home-hero-trust">
-                            <span>Profil</span>
-                            <span>Sécurité</span>
-                            <span>Tarification</span>
-                          </div>
-                        </div>
-                        <aside className="home-hero-summary" aria-label="Synthèse compte">
-                          <p className="home-hero-summary__eyebrow">Votre compte</p>
-                          <strong className="home-hero-summary__title">{String(me?.email || guard.user?.email || '').trim() || '—'}</strong>
-                          <ul className="home-hero-summary__list">
-                            <li>Formule&nbsp;: <strong>{activePlan?.name || 'Aucun plan'}</strong></li>
-                            <li>Rôle&nbsp;: {String(guard.user?.role || '').toLowerCase() === 'admin' ? 'Admin' : 'Manager'}</li>
-                          </ul>
-                        </aside>
-                      </div>
-                    </section>
-
-                    {/* ── Profil + Sécurité ── */}
-                    <div className="account-sections-row">
-
-                      <section className="account-section">
-                        <header className="account-section-head">
-                          <p className="eyebrow">PROFIL</p>
-                          <h2>Informations professionnelles</h2>
-                        </header>
-                        <form onSubmit={handleSaveProfile}>
-                          <div className="account-fields-grid">
-                            <div className="account-field-card">
-                              <label>
-                                Prénom
-                                <input type="text" value={profileForm.first_name} disabled readOnly />
-                              </label>
-                            </div>
-                            <div className="account-field-card">
-                              <label>
-                                Nom
-                                <input type="text" value={profileForm.last_name} disabled readOnly />
-                              </label>
-                            </div>
-                            <div className="account-field-card account-field-card--full">
-                              <label>
-                                Fonction
-                                <input
-                                  type="text"
-                                  value={profileForm.job_title}
-                                  onChange={(e) => setProfileForm((prev) => ({ ...prev, job_title: e.target.value }))}
-                                  placeholder="Ex : HR Manager"
-                                />
-                              </label>
-                            </div>
-                            <div className="account-field-card account-field-card--full">
-                              <label>
-                                Département
-                                <input
-                                  type="text"
-                                  value={profileForm.department}
-                                  onChange={(e) => setProfileForm((prev) => ({ ...prev, department: e.target.value }))}
-                                  placeholder="Ex : Ressources Humaines"
-                                />
-                              </label>
-                            </div>
-                          </div>
-                          <p className="participant-form-hint account-field-hint">Prénom et nom sont définis à la création du compte.</p>
-                          <div className="participant-form-actions" style={{ marginTop: '1rem' }}>
-                            <button type="submit" className="btn-primary" disabled={savingProfile}>
-                              {savingProfile ? 'Enregistrement…' : 'Enregistrer le profil'}
-                            </button>
-                          </div>
-                        </form>
-                      </section>
-
-                      <section className="account-section">
-                        <header className="account-section-head">
-                          <p className="eyebrow">SÉCURITÉ</p>
-                          <h2>Mot de passe</h2>
-                        </header>
-                        <form onSubmit={handleUpdatePassword}>
-                          <div className="account-fields-grid">
-                            <div className="account-field-card account-field-card--full">
-                              <label>
-                                Mot de passe actuel
-                                <input
-                                  type="password"
-                                  value={passwordForm.current_password}
-                                  onChange={(e) => setPasswordForm((prev) => ({ ...prev, current_password: e.target.value }))}
-                                  placeholder="Votre mot de passe actuel"
-                                />
-                              </label>
-                            </div>
-                            <div className="account-field-card">
-                              <label>
-                                Nouveau mot de passe
-                                <input
-                                  type="password"
-                                  value={passwordForm.new_password}
-                                  onChange={(e) => setPasswordForm((prev) => ({ ...prev, new_password: e.target.value }))}
-                                  placeholder="Minimum 8 caractères"
-                                  minLength={8}
-                                />
-                              </label>
-                            </div>
-                            <div className="account-field-card">
-                              <label>
-                                Confirmation
-                                <input
-                                  type="password"
-                                  value={passwordForm.confirm_password}
-                                  onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirm_password: e.target.value }))}
-                                  placeholder="Retapez le nouveau mot de passe"
-                                />
-                              </label>
-                            </div>
-                          </div>
-                          <div className="participant-form-actions account-actions-stack" style={{ marginTop: '1rem' }}>
-                            <button type="submit" className="btn-primary" disabled={savingPassword}>
-                              {savingPassword ? 'Mise à jour…' : 'Modifier le mot de passe'}
-                            </button>
-                            <button type="button" className="btn-secondary" onClick={handleResetPassword} disabled={resettingPassword}>
-                              {resettingPassword ? 'Génération…' : 'Mot de passe oublié'}
-                            </button>
-                          </div>
-                        </form>
-                      </section>
-
+                  <article
+                    key={planId}
+                    className={[
+                      'pricing-card account-pricing-card',
+                      isCurrent ? 'account-pricing-card--current' : '',
+                      isRecommended ? 'pricing-card-featured' : '',
+                    ].filter(Boolean).join(' ')}
+                  >
+                    <div className="pricing-card-top">
+                      {isRecommended ? <span className="pricing-badge">Recommande</span> : null}
+                      {isCurrent ? <span className="account-current-badge">Votre formule</span> : null}
+                      <p className="eyebrow">{plan.name}</p>
                     </div>
+                    <h3 className="pricing-price">
+                      {priceFmt}
+                      <span>/mois</span>
+                    </h3>
+                    {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
+                    {Array.isArray(plan.features) && plan.features.length > 0 ? (
+                      <ul className="pricing-feature-list">
+                        {plan.features.map((item, i) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    <div className="pricing-meta-row">
+                      {plan.max_users ? <span>{plan.max_users} utilisateurs</span> : null}
+                      {plan.max_sessions_per_month ? <span>{plan.max_sessions_per_month} sessions/mois</span> : null}
+                    </div>
+                    {isCurrent ? (
+                      <div className="pricing-actions account-plan-card-actions">
+                        <span className="account-current-plan-tag">Formule active</span>
+                      </div>
+                    ) : (
+                      <div className="pricing-actions account-plan-card-actions">
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          onClick={() => handleGoToCheckout('paypal', plan.id)}
+                        >
+                          Payer avec PayPal
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => handleGoToCheckout('bank_transfer', plan.id)}
+                        >
+                          Demander par virement
+                        </button>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="field-help">Aucune formule disponible pour le moment.</p>
+          )}
 
-                    {/* ── Tarification ── */}
-                    <section className="account-pricing-section">
-                      <header className="account-pricing-head">
-                        <div>
-                          <p className="eyebrow">TARIFICATION</p>
-                          <h2>Votre formule</h2>
-                          <p>Choisissez la formule adaptée à vos besoins d&apos;équipe.</p>
-                        </div>
-                        {activePlan ? (
-                          <div className="account-active-plan-badge">
-                            <span className="eyebrow">Formule active</span>
-                            <strong>{activePlan.name}</strong>
-                          </div>
-                        ) : null}
-                      </header>
-
-                      {plans.length > 0 ? (
-                        <div className="account-plan-cards-grid">
-                          {plans.map((plan) => {
-                            const planId = String(plan.id);
-                            const isCurrent = planId === String(currentPlanId || '');
-                            const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
-                            const priceFmt = formatPriceCents(plan.price_cents, plan.currency);
-                            return (
-                              <article
-                                key={planId}
-                                className={[
-                                  'pricing-card account-pricing-card',
-                                  isCurrent ? 'account-pricing-card--current' : '',
-                                  isRecommended ? 'pricing-card-featured' : '',
-                                ].filter(Boolean).join(' ')}
-                              >
-                                <div className="pricing-card-top">
-                                  {isRecommended ? <span className="pricing-badge">Recommandé</span> : null}
-                                  {isCurrent ? <span className="account-current-badge">Votre formule</span> : null}
-                                  <p className="eyebrow">{plan.name}</p>
-                                </div>
-                                <h3 className="pricing-price">
-                                  {priceFmt}
-                                  <span>/mois</span>
-                                </h3>
-                                {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
-                                {Array.isArray(plan.features) && plan.features.length > 0 ? (
-                                  <ul className="pricing-feature-list">
-                                    {plan.features.map((item, i) => (
-                                      <li key={i}>{item}</li>
-                                    ))}
-                                  </ul>
-                                ) : null}
-                                <div className="pricing-meta-row">
-                                  {plan.max_users ? <span>{plan.max_users} utilisateurs</span> : null}
-                                  {plan.max_sessions_per_month ? <span>{plan.max_sessions_per_month} sessions/mois</span> : null}
-                                </div>
-                                {isCurrent ? (
-                                  <div className="pricing-actions account-plan-card-actions">
-                                    <span className="account-current-plan-tag">✓ Formule active</span>
-                                  </div>
-                                ) : (
-                                  <div className="pricing-actions account-plan-card-actions">
-                                    <button
-                                      type="button"
-                                      className="btn-primary"
-                                      onClick={() => handleGoToCheckout('paypal', plan.id)}
-                                    >
-                                      Payer avec PayPal
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="btn-secondary"
-                                      onClick={() => handleGoToCheckout('bank_transfer', plan.id)}
-                                    >
-                                      Demander par virement
-                                    </button>
-                                  </div>
-                                )}
-                              </article>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p className="field-help">Aucune formule disponible pour le moment.</p>
-                      )}
-
-                      {planHistory.length > 0 ? (
-                        <div className="account-plan-history">
-                          <p className="eyebrow">HISTORIQUE</p>
-                          <ul className="session-list">
-                            {planHistory.map((entry) => (
-                              <li key={String(entry.id)} className="session-item">
-                                <div>
-                                  <p className="session-title">{entry.from} → {entry.to}</p>
-                                  <p className="session-meta">{formatDate(entry.at)}</p>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
-                    </section>
-
-                  </main>
-                  <Footer />
-                </>
-              );
+          {planHistory.length > 0 ? (
+            <div className="account-plan-history">
+              <p className="eyebrow">HISTORIQUE</p>
+              <ul className="session-list">
+                {planHistory.map((entry) => (
+                  <li key={String(entry.id)} className="session-item">
+                    <div>
+                      <p className="session-title">{entry.from} {" -> "} {entry.to}</p>
+                      <p className="session-meta">{formatDate(entry.at)}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}

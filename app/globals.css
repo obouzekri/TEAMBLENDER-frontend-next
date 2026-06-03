@@ -790,6 +790,120 @@ a {
   color: #b91c1c;
 }
 
+@media (prefers-color-scheme: dark) {
+  .feature-card,
+  .auth-card,
+  .pricing-controls,
+  .pricing-card,
+  .pricing-card-featured,
+  .account-field-card,
+  .checkout-plan-tab,
+  .checkout-plan-summary,
+  .checkout-method-card,
+  .account-plan-option,
+  .participant-form,
+  .participant-inline-form,
+  .session-card-actions,
+  .contact-info-item,
+  .contact-trust-box {
+    border-color: var(--surface-border) !important;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .feature-card,
+  .auth-card,
+  .pricing-controls,
+  .pricing-card,
+  .pricing-card-featured,
+  .checkout-plan-summary,
+  .checkout-method-card,
+  .participant-form,
+  .participant-inline-form,
+  .contact-info-item,
+  .contact-trust-box {
+    background:
+      radial-gradient(circle at top right, rgba(53, 160, 255, 0.12), transparent 46%),
+      linear-gradient(160deg, rgba(17, 26, 46, 0.96) 0%, rgba(12, 18, 34, 0.98) 100%) !important;
+  }
+
+  .account-field-card,
+  .checkout-plan-tab,
+  .account-plan-option,
+  .session-card-actions {
+    background: rgba(16, 24, 44, 0.92) !important;
+  }
+
+  .pricing-description,
+  .pricing-meta-row span,
+  .account-plan-option__meta,
+  .form-help {
+    color: var(--ink-soft) !important;
+  }
+
+  .pricing-meta-row span {
+    border-color: rgba(122, 140, 255, 0.22) !important;
+    background: rgba(53, 160, 255, 0.12) !important;
+  }
+
+  .toggle-group,
+  .currency-select,
+  .password-toggle,
+  .icon-action-btn,
+  .account-select,
+  .participant-form input,
+  .team-toolbar input,
+  .auth-form input,
+  .auth-form select,
+  .auth-form textarea,
+  .contact-page input,
+  .contact-page select,
+  .contact-page textarea,
+  .pricing-page select {
+    border-color: var(--field-line) !important;
+    background: rgba(16, 24, 44, 0.94) !important;
+    color: var(--field-text) !important;
+    box-shadow: none;
+  }
+
+  .auth-form input:focus,
+  .auth-form select:focus,
+  .auth-form textarea:focus,
+  .contact-page input:focus,
+  .contact-page select:focus,
+  .contact-page textarea:focus,
+  .pricing-page select:focus,
+  .participant-form input:focus,
+  .team-toolbar input:focus,
+  .currency-select:focus,
+  .account-select:focus {
+    border-color: var(--field-line-focus) !important;
+    background: var(--field-bg-focus) !important;
+    box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.12) !important;
+  }
+
+  .password-toggle,
+  .icon-action-btn,
+  .account-select,
+  .checkout-plan-tab__price,
+  .checkout-plan-summary__price span,
+  .checkout-method-card__header p,
+  .checkout-secure-note,
+  .contact-page label,
+  .auth-form label {
+    color: var(--ink-soft) !important;
+  }
+
+  .toggle-btn:not(.active):hover,
+  .icon-action-btn:hover {
+    background: rgba(53, 160, 255, 0.14) !important;
+    color: var(--field-text) !important;
+  }
+
+  .form-error {
+    color: #fca5a5;
+  }
+}
+
 .contact-page,
 .pricing-page {
   display: grid;
