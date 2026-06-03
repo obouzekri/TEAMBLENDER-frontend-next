@@ -2851,13 +2851,15 @@ export default function AdminClient() {
                 ))}
               </div>
 
-              <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '16px 18px' }}>
-                <p style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: 600 }}>Evenements suivis actuellement</p>
-                <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>
-                  Frontend: $pageview, $session_duration, web_performance, frontend_error. Backend: signup_completed, login_successful,
-                  participant_login_successful, session_created, checkout_started, pro_request_created.
-                </p>
-              </div>
+              {analyticsSnapshot.configured ? (
+                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '16px 18px' }}>
+                  <p style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: 600 }}>Evenements suivis actuellement</p>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>
+                    Frontend: $pageview, $session_duration, web_performance, frontend_error. Backend: signup_completed, login_successful,
+                    participant_login_successful, session_created, checkout_started, pro_request_created.
+                  </p>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
