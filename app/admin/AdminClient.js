@@ -579,6 +579,7 @@ export default function AdminClient() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsDays, setAnalyticsDays] = useState(30);
   const [selectedVisitorCountry, setSelectedVisitorCountry] = useState('');
+  const [showAllCitiesForCountry, setShowAllCitiesForCountry] = useState(false);
 
   const [busyApprovalId, setBusyApprovalId] = useState(null);
   const [busyDeleteKey, setBusyDeleteKey] = useState('');
@@ -2421,6 +2422,21 @@ export default function AdminClient() {
       .slice(0, 10);
   }, [effectiveSelectedCountry, visitorCitiesByCountry]);
 
+  const displayedCitiesForAnalytics = useMemo(() => {
+    const source = citiesForSelectedCountry.length > 0 ? citiesForSelectedCountry : visitorCities;
+    if (showAllCitiesForCountry) return source;
+    return source.slice(0, 6);
+  }, [citiesForSelectedCountry, showAllCitiesForCountry, visitorCities]);
+
+  const canExpandCitiesForCountry = useMemo(
+    () => citiesForSelectedCountry.length > 6,
+    [citiesForSelectedCountry]
+  );
+
+  useEffect(() => {
+    setShowAllCitiesForCountry(false);
+  }, [effectiveSelectedCountry]);
+
   function exportAnalyticsCsv() {
     const rows = [
       ['metric', 'value', 'unit', 'window_days', 'generated_at'],
@@ -2911,7 +2927,8 @@ export default function AdminClient() {
                       title: effectiveSelectedCountry
                         ? `Villes - ${effectiveSelectedCountry}`
                         : 'Top villes',
-                      list: citiesForSelectedCountry.length > 0 ? citiesForSelectedCountry : visitorCities,
+                      list: displayedCitiesForAnalytics,
+                      expandable: canExpandCitiesForCountry,
                     },
                     { title: 'Top navigateurs', list: Array.isArray(analyticsSnapshot.visitors.browsers) ? analyticsSnapshot.visitors.browsers : [] },
                     { title: 'Top systemes', list: Array.isArray(analyticsSnapshot.visitors.os) ? analyticsSnapshot.visitors.os : [] },
@@ -2953,8 +2970,18 @@ export default function AdminClient() {
                             </li>
                           ))}
                         </ul>
+                      ) : null}
+                      {block.expandable ? (
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => setShowAllCitiesForCountry((current) => !current)}
+                          style={{ marginTop: '10px', fontSize: '12px', padding: '4px 8px' }}
+                        >
+                          {showAllCitiesForCountry ? 'Voir moins' : 'Voir toutes les villes'}
+                        </button>
                       ) : (
-                        <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>Aucune donnee disponible.</p>
+                        block.list.length === 0 ? <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>Aucune donnee disponible.</p> : null
                       )}
                     </div>
                   ))}
