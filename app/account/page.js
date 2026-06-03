@@ -257,6 +257,9 @@ export default function AccountPage() {
   }, [plans, currentPlanId]);
 
   const isPaywallEntry = entrySource === 'paywall';
+  const currentPlanLabel = activePlan?.name || 'Aucun plan';
+  const historyCount = planHistory.length;
+  const roleLabel = String(guard.user?.role || '').toLowerCase() === 'admin' ? 'Admin' : 'Manager';
 
   const recommendedPlan = useMemo(() => {
     const bySlug = plans.find((plan) => String(plan.slug || '').toLowerCase() === 'pro');
@@ -466,20 +469,47 @@ export default function AccountPage() {
             </div>
             <aside className="home-hero-summary" aria-label="Synthese compte">
               <p className="home-hero-summary__eyebrow">Votre compte</p>
-              <strong className="home-hero-summary__title">{String(me?.email || guard.user?.email || '').trim() || '-'} </strong>
+              <strong className="home-hero-summary__title">{String(me?.email || guard.user?.email || '').trim() || '-'}</strong>
               <ul className="home-hero-summary__list">
-                <li>Formule: <strong>{activePlan?.name || 'Aucun plan'}</strong></li>
-                <li>Role: {String(guard.user?.role || '').toLowerCase() === 'admin' ? 'Admin' : 'Manager'}</li>
+                <li>Formule: <strong>{currentPlanLabel}</strong></li>
+                <li>Role: {roleLabel}</li>
               </ul>
             </aside>
           </div>
         </section>
 
+        <section className="account-kpi-strip" aria-label="Indicateurs du compte">
+          <article className="account-kpi-card">
+            <p className="account-kpi-label">Plan actif</p>
+            <p className="account-kpi-value">{currentPlanLabel}</p>
+          </article>
+          <article className="account-kpi-card">
+            <p className="account-kpi-label">Formules disponibles</p>
+            <p className="account-kpi-value">{plans.length}</p>
+          </article>
+          <article className="account-kpi-card">
+            <p className="account-kpi-label">Historique de changements</p>
+            <p className="account-kpi-value">{historyCount}</p>
+          </article>
+        </section>
+
+        <section className="account-quick-actions" aria-label="Actions rapides compte">
+          <a href="#account-profile" className="btn-secondary">Modifier le profil</a>
+          <a href="#account-security" className="btn-secondary">Mettre a jour le mot de passe</a>
+          <a href="#account-pricing" className="btn-secondary">Voir les formules</a>
+          {recommendedPlan && String(recommendedPlan.id) !== String(currentPlanId || '') ? (
+            <button type="button" className="btn-primary" onClick={() => handleGoToCheckout('paypal', recommendedPlan.id)}>
+              Passer au plan recommande
+            </button>
+          ) : null}
+        </section>
+
         <div className="account-sections-row">
-          <section className="account-section">
+          <section id="account-profile" className="account-section account-section-surface">
             <header className="account-section-head">
               <p className="eyebrow">PROFIL</p>
               <h2>Informations professionnelles</h2>
+              <p className="account-section-subtitle">Gardez vos informations a jour pour faciliter le support et le suivi des sessions.</p>
             </header>
             <form onSubmit={handleSaveProfile}>
               <div className="account-fields-grid">
@@ -527,10 +557,11 @@ export default function AccountPage() {
             </form>
           </section>
 
-          <section className="account-section">
+          <section id="account-security" className="account-section account-section-surface">
             <header className="account-section-head">
               <p className="eyebrow">SECURITE</p>
               <h2>Mot de passe</h2>
+              <p className="account-section-subtitle">Renforcez la protection du compte avec un mot de passe fort et regulierement actualise.</p>
             </header>
             <form onSubmit={handleUpdatePassword}>
               <div className="account-fields-grid">
@@ -581,7 +612,7 @@ export default function AccountPage() {
           </section>
         </div>
 
-        <section className="account-pricing-section">
+        <section id="account-pricing" className="account-pricing-section">
           <header className="account-pricing-head">
             <div>
               <p className="eyebrow">TARIFICATION</p>
@@ -677,6 +708,9 @@ export default function AccountPage() {
                 ))}
               </ul>
             </div>
+          ) : null}
+          {planHistory.length === 0 ? (
+            <p className="account-history-empty">Aucun changement de formule enregistre pour le moment.</p>
           ) : null}
         </section>
       </main>
