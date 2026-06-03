@@ -2374,6 +2374,7 @@ export default function AdminClient() {
       conversion: source.conversion || {},
       performance: source.performance || {},
       business: source.business || {},
+      visitors: source.visitors || {},
       generatedAt: String(source.generatedAt || ''),
     };
   }, [analyticsOverview]);
@@ -2850,6 +2851,33 @@ export default function AdminClient() {
                   </div>
                 ))}
               </div>
+
+              {analyticsSnapshot.configured ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                  {[
+                    { title: 'Top pays', list: Array.isArray(analyticsSnapshot.visitors.countries) ? analyticsSnapshot.visitors.countries : [] },
+                    { title: 'Top villes', list: Array.isArray(analyticsSnapshot.visitors.cities) ? analyticsSnapshot.visitors.cities : [] },
+                    { title: 'Top navigateurs', list: Array.isArray(analyticsSnapshot.visitors.browsers) ? analyticsSnapshot.visitors.browsers : [] },
+                    { title: 'Top systemes', list: Array.isArray(analyticsSnapshot.visitors.os) ? analyticsSnapshot.visitors.os : [] },
+                  ].map((block) => (
+                    <div key={block.title} style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 14px' }}>
+                      <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700 }}>{block.title}</p>
+                      {block.list.length > 0 ? (
+                        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {block.list.slice(0, 6).map((item) => (
+                            <li key={`${block.title}-${item.label}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '12px' }}>
+                              <span style={{ color: 'var(--color-text, #111)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
+                              <strong style={{ color: 'var(--color-primary, #4f46e5)', flexShrink: 0 }}>{item.value}</strong>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>Aucune donnee disponible.</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
 
               {analyticsSnapshot.configured ? (
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '16px 18px' }}>
