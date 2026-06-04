@@ -31,6 +31,26 @@ export default function AppNav({ userLabel, onLogout, role }) {
   const navPanelClassName = `nav-panel${(isManager || isParticipantArea) ? ' nav-panel--manager' : ''}${isMenuOpen ? ' is-open' : ''}`;
   const userBoxClassName = `app-user-box${(isManager || isCompact) ? ' app-user-box--inline' : ''}`;
   const resolvedUserLabel = userLabel || (isParticipant ? 'Participant' : 'Manager');
+  const [userAvatarUrl, setUserAvatarUrl] = useState('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = sessionStorage.getItem('currentUser');
+      const parsed = raw ? JSON.parse(raw) : null;
+      const candidate = String(parsed?.picture_url || '').trim();
+      setUserAvatarUrl(candidate);
+    } catch {
+      setUserAvatarUrl('');
+    }
+  }, [pathname]);
+
+  const userInitials = resolvedUserLabel
+    .split(' ')
+    .map((part) => String(part || '').trim().slice(0, 1).toUpperCase())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('') || 'U';
 
   useEffect(() => {
     if (!isManagerHome) {
@@ -152,6 +172,11 @@ export default function AppNav({ userLabel, onLogout, role }) {
           )}
 
           <div className={userBoxClassName}>
+            {userAvatarUrl ? (
+              <img src={userAvatarUrl} alt={`Avatar de ${resolvedUserLabel}`} className="app-user-avatar app-user-avatar--photo" />
+            ) : (
+              <span className="app-user-avatar" aria-hidden="true">{userInitials}</span>
+            )}
             <div className="app-user-meta">
               <span className="app-user-name">{resolvedUserLabel}</span>
             </div>

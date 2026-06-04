@@ -8,11 +8,32 @@ import Logo from './Logo';
 export default function TopNav() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [sessionUser, setSessionUser] = useState(null);
   const isActive = (href) => (href === '/' ? pathname === '/' : pathname?.startsWith(href));
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = sessionStorage.getItem('currentUser');
+      setSessionUser(raw ? JSON.parse(raw) : null);
+    } catch {
+      setSessionUser(null);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     setIsMenuOpen(false);
   }, [pathname]);
+
+  const avatarLabel = String(sessionUser?.name || sessionUser?.first_name || sessionUser?.email || 'Utilisateur').trim();
+  const avatarInitials = avatarLabel
+    .split(' ')
+    .map((part) => String(part || '').trim().slice(0, 1).toUpperCase())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('') || 'U';
+  const avatarUrl = String(sessionUser?.picture_url || '').trim();
+  const accountHref = sessionUser?.role === 'participant' ? '/participant' : '/account';
 
   return (
     <header className="top-nav">
@@ -48,8 +69,21 @@ export default function TopNav() {
           </div>
 
           <div className="nav-actions" aria-label="Acces compte">
-            <Link href="/login" className={`btn-mini btn-mini--secondary ${isActive('/login') ? 'is-active' : ''}`} aria-current={isActive('/login') ? 'page' : undefined}>Connexion</Link>
-            <Link href="/signup" className={`nav-cta-btn ${isActive('/signup') ? 'is-active' : ''}`} aria-current={isActive('/signup') ? 'page' : undefined}>Créer un compte</Link>
+            {sessionUser ? (
+              <Link href={accountHref} className="btn-mini btn-mini--secondary">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={`Avatar de ${avatarLabel}`} className="app-user-avatar app-user-avatar--photo" />
+                ) : (
+                  <span className="app-user-avatar" aria-hidden="true">{avatarInitials}</span>
+                )}
+                Mon compte
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className={`btn-mini btn-mini--secondary ${isActive('/login') ? 'is-active' : ''}`} aria-current={isActive('/login') ? 'page' : undefined}>Connexion</Link>
+                <Link href="/signup" className={`nav-cta-btn ${isActive('/signup') ? 'is-active' : ''}`} aria-current={isActive('/signup') ? 'page' : undefined}>Créer un compte</Link>
+              </>
+            )}
           </div>
         </div>
       </div>

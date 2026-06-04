@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
+import { trackGaEvent } from '@/lib/analytics';
 import { getApiUrl } from '@/lib/config';
 
 const DEFAULT_BLOCKS = {
@@ -300,6 +301,15 @@ export default function HomePage() {
   const [landingLoaded, setLandingLoaded] = useState(false);
   const isLandingCmsStrict = process.env.NEXT_PUBLIC_LANDING_CMS_STRICT === 'true';
 
+  function handlePrimaryCtaClick() {
+    trackGaEvent('cta_click', {
+      cta_name: 'hero_primary',
+      cta_label: String(heroCtaPrimary.cta_label || 'Demarrer une session').trim(),
+      cta_destination: safeHref(heroCtaPrimary.cta_href, '/signup'),
+      page_location: typeof window !== 'undefined' ? window.location.href : undefined,
+    });
+  }
+
   useEffect(() => {
     let cancelled = false;
     async function loadLandingContent() {
@@ -518,6 +528,7 @@ export default function HomePage() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href={safeHref(heroCtaPrimary.cta_href, '/signup')}
+                  onClick={handlePrimaryCtaClick}
                   className={`${pillClass} landing-hero-primary-btn group bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25`}
                 >
                   <span>{heroCtaPrimary.cta_label}</span>

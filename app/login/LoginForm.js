@@ -1,9 +1,19 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import AuthCard from '@/components/AuthCard';
-import { getRedirectPath, loginWithFallback, resendVerification, resolveConnectedUserId } from '@/lib/auth';
+import posthog from 'posthog-js';
+import { trackGtmEvent } from '@/lib/analytics';
+import {
+  clearOAuthCallbackParamsFromUrl,
+  getOAuthStartUrl,
+  getRedirectPath,
+  loginWithFallback,
+  readOAuthCallbackFromLocation,
+  resendVerification,
+  resolveConnectedUserId
+} from '@/lib/auth';
 
 function errorMessage(resStatus, data) {
   if (data?.code === 'ACCOUNT_PENDING') return 'Votre compte est en attente de validation par un administrateur.';
@@ -16,6 +26,9 @@ function errorMessage(resStatus, data) {
 
 export default function LoginForm({ requestedSessionId = '' }) {
   const normalizedRequestedSessionId = useMemo(() => String(requestedSessionId || '').trim(), [requestedSessionId]);
+  const googleLoginEnabled = String(process.env.NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED || 'true').toLowerCase() === 'true';
+  const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'true').toLowerCase() === 'true';
+  const showSocialButtons = googleLoginEnabled || microsoftLoginEnabled;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,6 +38,57 @@ export default function LoginForm({ requestedSessionId = '' }) {
   const [lastAuthScope, setLastAuthScope] = useState('user');
   const [resendStatus, setResendStatus] = useState('idle');
   const [resendMessage, setResendMessage] = useState('');
+  const [oauthLoadingProvider, setOauthLoadingProvider] = useState('');
+
+  useEffect(() => {
+    const oauth = readOAuthCallbackFromLocation();
+    if (!oauth.hasOAuthPayload) return;
+
+    clearOAuthCallbackParamsFromUrl();
+
+    if (oauth.error) {
+      setMessage(oauth.errorDescription || 'Connexion sociale impossible. Veuillez réessayer.');
+      return;
+    }
+
+    if (!oauth.token || !oauth.user) {
+      setMessage('Réponse OAuth invalide. Veuillez réessayer.');
+      return;
+    }
+
+    localStorage.setItem('jwt', oauth.token);
+    sessionStorage.setItem('jwt', oauth.token);
+    sessionStorage.setItem('currentUser', JSON.stringify(oauth.user));
+
+    try {
+      posthog.capture('login_oauth', {
+        provider: oauth.provider || 'unknown',
+        source: 'frontend',
+      });
+    } catch {
+      // no-op
+    }
+
+    trackGtmEvent('login_oauth', {
+      provider: oauth.provider || 'unknown',
+    });
+
+    const connectedUserId = resolveConnectedUserId(oauth.user);
+    const redirect = getRedirectPath(oauth.user.role, normalizedRequestedSessionId, connectedUserId);
+    window.location.href = redirect;
+  }, [normalizedRequestedSessionId]);
+
+  function startOAuth(provider) {
+    const url = getOAuthStartUrl(provider, '/login');
+    if (!url) {
+      setMessage('Configuration OAuth indisponible.');
+      return;
+    }
+
+    setMessage('');
+    setOauthLoadingProvider(provider);
+    window.location.href = url;
+  }
 
   async function onSubmit(event) {
     event.preventDefault();
@@ -117,6 +181,49 @@ export default function LoginForm({ requestedSessionId = '' }) {
         title="Connexion à TeamBlender"
         footer={<span>Pas encore de compte ? <Link href="/signup">Créer un compte</Link></span>}
       >
+        {showSocialButtons ? (
+          <div className="social-auth-stack">
+            {googleLoginEnabled ? (
+              <button
+                type="button"
+                className="btn-secondary wide social-auth-btn"
+                onClick={() => startOAuth('google')}
+                disabled={loading || oauthLoadingProvider !== ''}
+              >
+                <span aria-hidden="true" className="social-auth-icon social-auth-icon--google">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.4 14.6 2.5 12 2.5 6.8 2.5 2.5 6.8 2.5 12S6.8 21.5 12 21.5c6.9 0 9.1-4.8 9.1-7.3 0-.5 0-.9-.1-1.3H12z" />
+                  </svg>
+                </span>
+                {oauthLoadingProvider === 'google' ? 'Redirection...' : 'Continuer avec Google'}
+              </button>
+            ) : null}
+
+            {microsoftLoginEnabled ? (
+              <button
+                type="button"
+                className="btn-secondary wide social-auth-btn"
+                onClick={() => startOAuth('microsoft')}
+                disabled={loading || oauthLoadingProvider !== ''}
+              >
+                <span aria-hidden="true" className="social-auth-icon social-auth-icon--microsoft">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <rect x="2" y="2" width="9" height="9" fill="#F25022" />
+                    <rect x="13" y="2" width="9" height="9" fill="#7FBA00" />
+                    <rect x="2" y="13" width="9" height="9" fill="#00A4EF" />
+                    <rect x="13" y="13" width="9" height="9" fill="#FFB900" />
+                  </svg>
+                </span>
+                {oauthLoadingProvider === 'microsoft' ? 'Redirection...' : 'Continuer avec Microsoft'}
+              </button>
+            ) : null}
+
+            <div className="social-auth-separator" role="separator" aria-label="ou">
+              <span>ou</span>
+            </div>
+          </div>
+        ) : null}
+
         <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
           <label>
             Email

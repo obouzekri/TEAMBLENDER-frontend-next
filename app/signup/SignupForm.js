@@ -1,11 +1,24 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import AuthCard from '@/components/AuthCard';
-import { registerUser } from '@/lib/auth';
+import posthog from 'posthog-js';
+import { trackGtmEvent } from '@/lib/analytics';
+import {
+  clearOAuthCallbackParamsFromUrl,
+  getOAuthStartUrl,
+  getRedirectPath,
+  readOAuthCallbackFromLocation,
+  registerUser,
+  resolveConnectedUserId,
+} from '@/lib/auth';
 
 export default function SignupForm() {
+  const googleLoginEnabled = String(process.env.NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED || 'true').toLowerCase() === 'true';
+  const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'true').toLowerCase() === 'true';
+  const showSocialButtons = googleLoginEnabled || microsoftLoginEnabled;
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -14,6 +27,54 @@ export default function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [done, setDone] = useState(false);
+  const [oauthLoadingProvider, setOauthLoadingProvider] = useState('');
+
+  useEffect(() => {
+    const oauth = readOAuthCallbackFromLocation();
+    if (!oauth.hasOAuthPayload) return;
+
+    clearOAuthCallbackParamsFromUrl();
+
+    if (oauth.error) {
+      setMessage(oauth.errorDescription || 'Connexion sociale impossible. Veuillez réessayer.');
+      return;
+    }
+
+    if (!oauth.token || !oauth.user) {
+      setMessage('Réponse OAuth invalide. Veuillez réessayer.');
+      return;
+    }
+
+    localStorage.setItem('jwt', oauth.token);
+    sessionStorage.setItem('jwt', oauth.token);
+    sessionStorage.setItem('currentUser', JSON.stringify(oauth.user));
+
+    try {
+      posthog.capture('signup_oauth', {
+        provider: oauth.provider || 'unknown',
+        source: 'frontend',
+      });
+    } catch {
+      // no-op
+    }
+    trackGtmEvent('signup_oauth', { provider: oauth.provider || 'unknown' });
+
+    const connectedUserId = resolveConnectedUserId(oauth.user);
+    const redirect = getRedirectPath(oauth.user.role, '', connectedUserId);
+    window.location.href = redirect;
+  }, []);
+
+  function startOAuth(provider) {
+    const url = getOAuthStartUrl(provider, '/signup');
+    if (!url) {
+      setMessage('Configuration OAuth indisponible.');
+      return;
+    }
+
+    setMessage('');
+    setOauthLoadingProvider(provider);
+    window.location.href = url;
+  }
 
   async function onSubmit(event) {
     event.preventDefault();
@@ -72,7 +133,51 @@ export default function SignupForm() {
             <Link href="/login" className="btn-secondary wide">Retour à la connexion</Link>
           </div>
         ) : (
-          <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
+          <>
+            {showSocialButtons ? (
+              <div className="social-auth-stack">
+                {googleLoginEnabled ? (
+                  <button
+                    type="button"
+                    className="btn-secondary wide social-auth-btn"
+                    onClick={() => startOAuth('google')}
+                    disabled={loading || oauthLoadingProvider !== ''}
+                  >
+                    <span aria-hidden="true" className="social-auth-icon social-auth-icon--google">
+                      <svg viewBox="0 0 24 24" focusable="false">
+                        <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.4 14.6 2.5 12 2.5 6.8 2.5 2.5 6.8 2.5 12S6.8 21.5 12 21.5c6.9 0 9.1-4.8 9.1-7.3 0-.5 0-.9-.1-1.3H12z" />
+                      </svg>
+                    </span>
+                    {oauthLoadingProvider === 'google' ? 'Redirection...' : 'Continuer avec Google'}
+                  </button>
+                ) : null}
+
+                {microsoftLoginEnabled ? (
+                  <button
+                    type="button"
+                    className="btn-secondary wide social-auth-btn"
+                    onClick={() => startOAuth('microsoft')}
+                    disabled={loading || oauthLoadingProvider !== ''}
+                  >
+                    <span aria-hidden="true" className="social-auth-icon social-auth-icon--microsoft">
+                      <svg viewBox="0 0 24 24" focusable="false">
+                        <rect x="2" y="2" width="9" height="9" fill="#F25022" />
+                        <rect x="13" y="2" width="9" height="9" fill="#7FBA00" />
+                        <rect x="2" y="13" width="9" height="9" fill="#00A4EF" />
+                        <rect x="13" y="13" width="9" height="9" fill="#FFB900" />
+                      </svg>
+                    </span>
+                    {oauthLoadingProvider === 'microsoft' ? 'Redirection...' : 'Continuer avec Microsoft'}
+                  </button>
+                ) : null}
+
+                <div className="social-auth-separator" role="separator" aria-label="ou">
+                  <span>ou</span>
+                </div>
+              </div>
+            ) : null}
+
+            <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
             <input type="text" name="fake_signup_username" autoComplete="username" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
             <input type="password" name="fake_signup_password" autoComplete="current-password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
             <label>
@@ -130,7 +235,8 @@ export default function SignupForm() {
             </button>
 
             {message ? <p className="form-error">{message}</p> : null}
-          </form>
+            </form>
+          </>
         )}
       </AuthCard>
     </main>

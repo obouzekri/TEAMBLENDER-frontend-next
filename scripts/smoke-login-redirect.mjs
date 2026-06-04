@@ -58,21 +58,21 @@ async function run() {
     assert(emailValue.trim().length > 0, 'Email input is empty before submit');
     assert(passwordValue.trim().length > 0, 'Password input is empty before submit');
 
+    const redirected = page.waitForURL(/\/(home|admin)(\?|$)/, { timeout: 30000 }).catch(() => null);
     await submitButton.click();
-
-    await page.waitForFunction(() => {
-      const url = new URL(window.location.href);
-      const hasFormError = Boolean(document.querySelector('.form-error'));
-      return url.pathname === '/home' || hasFormError;
-    }, { timeout: 30000 });
+    await redirected;
 
     const finalUrl = page.url();
     const formError = await page.locator('.form-error').first().textContent().catch(() => null);
-    if (!/\/home(\?|$)/.test(finalUrl)) {
-      throw new Error(`Login did not redirect to /home. url=${finalUrl} error=${formError || 'none'}`);
+    if (!/\/(home|admin)(\?|$)/.test(finalUrl)) {
+      throw new Error(`Login did not redirect to /home or /admin. url=${finalUrl} error=${formError || 'none'}`);
     }
 
-    await page.waitForSelector('text=ESPACE MANAGER', { timeout: 15000 });
+    if (/\/admin(\?|$)/.test(finalUrl)) {
+      await page.waitForSelector('text=Console admin', { timeout: 15000 });
+    } else {
+      await page.waitForSelector('text=ESPACE MANAGER', { timeout: 15000 });
+    }
 
     console.log('SMOKE_LOGIN_REDIRECT_OK');
     console.log(`url=${page.url()}`);

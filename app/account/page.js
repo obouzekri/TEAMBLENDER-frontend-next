@@ -165,6 +165,7 @@ export default function AccountPage() {
             ...(guard.user || {}),
             pricing_plan_id: updatedMe.pricing_plan_id || null,
             pricing_plan: updatedMe.pricing_plan || null,
+            picture_url: updatedMe.picture_url || null,
           };
           setStoredCurrentUser(mergedUser);
           setGuard((prev) => ({ ...prev, user: mergedUser }));
@@ -231,6 +232,7 @@ export default function AccountPage() {
               name: mePayload?.name,
               job_title: mePayload?.job_title,
               department: mePayload?.department,
+              picture_url: mePayload?.picture_url || null,
               pricing_plan_id: mePayload?.pricing_plan_id || null,
               pricing_plan: mePayload?.pricing_plan || null,
             };
@@ -468,6 +470,22 @@ export default function AccountPage() {
               </div>
             </div>
             <aside className="home-hero-summary" aria-label="Synthese compte">
+              {String(me?.picture_url || guard.user?.picture_url || '').trim() ? (
+                <img
+                  src={String(me?.picture_url || guard.user?.picture_url || '').trim()}
+                  alt={`Avatar de ${userLabel}`}
+                  className="account-avatar-photo"
+                />
+              ) : (
+                <span className="account-avatar-fallback" aria-hidden="true">
+                  {String(userLabel || 'M')
+                    .split(' ')
+                    .map((part) => String(part || '').trim().slice(0, 1).toUpperCase())
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .join('') || 'M'}
+                </span>
+              )}
               <p className="home-hero-summary__eyebrow">Votre compte</p>
               <strong className="home-hero-summary__title">{String(me?.email || guard.user?.email || '').trim() || '-'}</strong>
               <ul className="home-hero-summary__list">
