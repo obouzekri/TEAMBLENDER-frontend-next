@@ -10,6 +10,7 @@ import { getApiUrl } from '@/lib/config';
 import useToast from '@/lib/useToast';
 import { fetchSessionsWithRetry } from '@/lib/api';
 import { clearStoredAuth } from '@/lib/auth';
+import { trackGaEvent } from '@/lib/analytics';
 
 function pickDisplayName(user) {
   if (!user || typeof user !== 'object') return 'Manager';
@@ -211,7 +212,15 @@ export default function ManagerHome() {
             : '';
 
   function handleCreateSessionClick(event) {
-    if (canCreateSession) return;
+    if (canCreateSession) {
+      trackGaEvent('cta_click', {
+        cta_name: 'manager_create_session',
+        cta_label: 'Créer une session',
+        cta_destination: '/session-builder',
+        page_location: typeof window !== 'undefined' ? window.location.href : undefined,
+      });
+      return;
+    }
     event.preventDefault();
     showErrorToast(createSessionBlockedReason);
   }

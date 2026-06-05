@@ -14,6 +14,7 @@ import useToast from '@/lib/useToast';
 import useSessionBuilder from '@/lib/useSessionBuilder';
 import { fetchWithRetry } from '@/lib/api';
 import { ENABLE_CHALLENGES_MOCK_DATA, getApiUrl } from '@/lib/config';
+import { trackGaEvent } from '@/lib/analytics';
 import styles from './SessionBuilder.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
 
@@ -654,6 +655,14 @@ export default function SessionBuilder() {
     if (!selectedChallenges.length || isLaunching) {
       return;
     }
+
+    trackGaEvent('cta_click', {
+      cta_name: 'session_builder_launch_challenge',
+      cta_label: 'Lancer',
+      cta_destination: sessionId ? `/session-live/${sessionId}` : '/session-live/:sessionId',
+      selected_challenge_count: selectedChallenges.length,
+      page_location: typeof window !== 'undefined' ? window.location.href : undefined,
+    });
 
     setIsLaunching(true);
     const loadingId = showLoadingToast('Enregistrement de la session...');

@@ -310,6 +310,24 @@ export default function HomePage() {
     });
   }
 
+  function handleHeroSecondaryCtaClick() {
+    trackGaEvent('cta_click', {
+      cta_name: 'hero_secondary',
+      cta_label: String(heroCtaSecondary.cta_label || 'Se connecter').trim(),
+      cta_destination: safeHref(heroCtaSecondary.cta_href, '/contact'),
+      page_location: typeof window !== 'undefined' ? window.location.href : undefined,
+    });
+  }
+
+  function handleFinalSecondaryCtaClick() {
+    trackGaEvent('cta_click', {
+      cta_name: 'final_secondary',
+      cta_label: String(finalCtaSecondary.cta_label || 'Se connecter').trim(),
+      cta_destination: safeHref(finalCtaSecondary.cta_href, '/login'),
+      page_location: typeof window !== 'undefined' ? window.location.href : undefined,
+    });
+  }
+
   useEffect(() => {
     let cancelled = false;
     async function loadLandingContent() {
@@ -536,6 +554,7 @@ export default function HomePage() {
                 </Link>
                 <Link
                   href={safeHref(heroCtaSecondary.cta_href, '/contact')}
+                  onClick={handleHeroSecondaryCtaClick}
                   className={`${pillClass} landing-hero-secondary-btn border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}
                 >
                   {heroCtaSecondary.cta_label}
@@ -767,7 +786,11 @@ export default function HomePage() {
                 <span>{finalCta.cta_label}</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href={safeHref(finalCtaSecondary.cta_href, '/login')} className={`${pillClass} border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}>
+              <Link
+                href={safeHref(finalCtaSecondary.cta_href, '/login')}
+                onClick={handleFinalSecondaryCtaClick}
+                className={`${pillClass} border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}
+              >
                 {finalCtaSecondary.cta_label}
               </Link>
             </div>
