@@ -4,24 +4,12 @@
   "installCommand": "npm install",
   "outputDirectory": ".next",
   "regions": ["cdg1"],
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://teamblender-backend-qxe5-production.up.railway.app/api/$1"
-    },
-    {
-      "source": "/uploads/(.*)",
-      "destination": "https://teamblender-backend-qxe5-production.up.railway.app/uploads/$1"
-    },
-    {
-      "source": "/socket.io/(.*)",
-      "destination": "https://teamblender-backend-qxe5-production.up.railway.app/socket.io/$1"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; connect-src 'self' https://teamblender-backend-qxe5-production.up.railway.app https://*.railway.app https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googletagmanager.com https://*.google-analytics.com https://*.posthog.com; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.googletagmanager.com;" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }

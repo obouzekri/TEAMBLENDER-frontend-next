@@ -19,11 +19,15 @@ function normalizeBackendOrigin(rawValue) {
 const stableBackendOrigin = normalizeBackendOrigin(
   process.env.BACKEND_ORIGIN
     || process.env.NEXT_BACKEND_ORIGIN
-    || process.env.NEXT_PUBLIC_BACKEND_ORIGIN
+  || process.env.NEXT_PUBLIC_BACKEND_ORIGIN
+  || process.env.NEXT_PUBLIC_API_URL
+  || process.env.NEXT_PUBLIC_API_BASE
 );
 
 const isVercelProductionBuild =
   process.env.VERCEL === '1' && process.env.VERCEL_ENV === 'production';
+const isVercelPreviewBuild =
+  process.env.VERCEL === '1' && process.env.VERCEL_ENV === 'preview';
 
 if (!stableBackendOrigin && isVercelProductionBuild) {
   throw new Error(
@@ -32,7 +36,10 @@ if (!stableBackendOrigin && isVercelProductionBuild) {
 }
 
 const developmentFallbackOrigin = 'http://localhost:3000';
-const rewriteBackendOrigin = stableBackendOrigin || developmentFallbackOrigin;
+const previewDefaultOrigin =
+  normalizeBackendOrigin(process.env.PREVIEW_BACKEND_ORIGIN);
+const rewriteBackendOrigin = stableBackendOrigin
+  || (isVercelPreviewBuild ? (previewDefaultOrigin || developmentFallbackOrigin) : developmentFallbackOrigin);
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',

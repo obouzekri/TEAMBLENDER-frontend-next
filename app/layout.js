@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, Sora } from 'next/font/google';
 import Script from 'next/script';
 import PostHogProvider from '@/components/PostHogProvider';
 import GoogleAnalyticsProvider from '@/components/GoogleAnalyticsProvider';
+import { Analytics } from '@vercel/analytics/next';
 
 const GTM_CONTAINER_ID = String(process.env.NEXT_PUBLIC_GTM_ID || '').trim();
 const SHOULD_LOAD_GTM = Boolean(GTM_CONTAINER_ID);
@@ -74,8 +75,10 @@ export default function RootLayout({ children }) {
         <GoogleAnalyticsProvider />
         <PostHogProvider />
         {children}
+        <Analytics />
       </body>
     </html>
   );
 }
+
 

@@ -45,7 +45,9 @@ npm run dev
 
 Variables importantes:
 - `NEXT_PUBLIC_API_BASE`
+- `NEXT_PUBLIC_API_URL` (alias accepte, normalise vers la meme logique que `NEXT_PUBLIC_API_BASE`)
 - `BACKEND_ORIGIN` (obligatoire hors dev, cible rewrite Next.js vers backend actif)
+- `PREVIEW_BACKEND_ORIGIN` (optionnel, fallback Vercel preview vers Railway dev)
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optionnel, active Google Analytics 4 pageview)
 - `NEXT_PUBLIC_GTM_ID` (optionnel, injecte Google Tag Manager sur toutes les pages)
 - `NEXT_PUBLIC_ENABLE_CHALLENGES_MOCK_DATA` (optionnel, `true` pour activer le fallback mock du catalogue challenges en dev)
