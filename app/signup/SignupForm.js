@@ -16,7 +16,7 @@ import {
 
 export default function SignupForm() {
   const googleLoginEnabled = String(process.env.NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED || 'true').toLowerCase() === 'true';
-  const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'true').toLowerCase() === 'true';
+  const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'false').toLowerCase() === 'true';
   const showSocialButtons = googleLoginEnabled || microsoftLoginEnabled;
 
   const [firstName, setFirstName] = useState('');

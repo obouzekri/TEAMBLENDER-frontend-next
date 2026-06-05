@@ -27,7 +27,7 @@ function errorMessage(resStatus, data) {
 export default function LoginForm({ requestedSessionId = '' }) {
   const normalizedRequestedSessionId = useMemo(() => String(requestedSessionId || '').trim(), [requestedSessionId]);
   const googleLoginEnabled = String(process.env.NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED || 'true').toLowerCase() === 'true';
-  const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'true').toLowerCase() === 'true';
+  const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'false').toLowerCase() === 'true';
   const showSocialButtons = googleLoginEnabled || microsoftLoginEnabled;
 
   const [email, setEmail] = useState('');
