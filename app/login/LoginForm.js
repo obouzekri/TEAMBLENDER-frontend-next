@@ -104,7 +104,8 @@ export default function LoginForm({ requestedSessionId = '' }) {
 
     setLoading(true);
     try {
-      const { response, data, authScope } = await loginWithFallback(normalizedEmail, password, { allowParticipantFallback: true });
+      const allowParticipantFallback = Boolean(normalizedRequestedSessionId);
+      const { response, data, authScope } = await loginWithFallback(normalizedEmail, password, { allowParticipantFallback });
       setLastAuthScope(authScope || 'user');
       if (response.ok) {
         const token = String(data?.token || '').trim();
