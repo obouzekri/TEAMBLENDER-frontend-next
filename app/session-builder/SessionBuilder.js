@@ -1042,14 +1042,8 @@ export default function SessionBuilder() {
               <div className={styles.creationHeroTop}>
                 <p className="eyebrow">NOUVELLE SESSION</p>
               </div>
-              <h1 className={styles.creationTitle}>
-                <span className={styles.creationTitleMain}>Préparer la session:</span>
-                <span className={styles.creationTitleInlineDescription}>
-                  Organisez le cadre de la session et l&apos;assignation des participants dans une seule vue, claire et immédiate.
-                </span>
-              </h1>
               <p className={styles.creationPrerequisite}>
-                Prerequis: vous devez disposer d&apos;au moins un participant cree dans l&apos;espace manager avant de creer la
+                Prérequis : vous devez disposer d&apos;au moins un participant créé dans l&apos;espace manager avant de créer la
                 session.
               </p>
 
