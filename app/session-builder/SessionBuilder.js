@@ -49,6 +49,36 @@ const PIXEL_ARCHITECT_CATALOG_ENTRY = {
   },
 };
 
+const THE_QUIZ_CATALOG_ENTRY = {
+  id: 'the_quiz_001',
+  name: 'The Quiz',
+  category: 'culture-decouverte',
+  objective: 'collaboration',
+  objectives: 'collaboration, communication, intelligence-collective',
+  duration: 20,
+  type: 'Quiz multijoueur realtime',
+  tags: ['Quiz', 'Culture générale', 'Realtime', 'Leaderboard'],
+  description: 'Quiz de culture générale compétitif et synchronisé en temps réel pour toute la session.',
+  engine_key: 'the_quiz_v1',
+  config: {
+    preset: 'medium',
+    question_count: 9,
+    question_duration_seconds: 30,
+    chat: {
+      enabled: true,
+      quick_reactions_enabled: true,
+    },
+    leaderboard: {
+      enabled: true,
+    },
+    timer: {
+      enabled: true,
+      duration_seconds: 30,
+      warning_threshold_seconds: 10,
+    },
+  },
+};
+
 function ensurePixelArchitectChallenge(challenges) {
   const list = Array.isArray(challenges) ? [...challenges] : [];
   const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'pixel_architect_v1');
@@ -67,6 +97,30 @@ function ensurePixelArchitectChallenge(challenges) {
   }
 
   return [...list, PIXEL_ARCHITECT_CATALOG_ENTRY];
+}
+
+function ensureTheQuizChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'the_quiz_v1');
+
+  if (existingIndex >= 0) {
+    const current = list[existingIndex] || {};
+    list[existingIndex] = {
+      ...THE_QUIZ_CATALOG_ENTRY,
+      ...current,
+      config: {
+        ...THE_QUIZ_CATALOG_ENTRY.config,
+        ...(current.config && typeof current.config === 'object' ? current.config : {}),
+      },
+    };
+    return list;
+  }
+
+  return [...list, THE_QUIZ_CATALOG_ENTRY];
+}
+
+function ensureBuilderCatalogChallenges(challenges) {
+  return ensureTheQuizChallenge(ensurePixelArchitectChallenge(challenges));
 }
 
 const SESSION_ID_STORAGE_KEY = 'sessionId';
@@ -869,7 +923,7 @@ export default function SessionBuilder() {
       .then((data) => {
         if (!cancelled) {
           const challenges = Array.isArray(data) ? data : data.challenges || data.data || [];
-          setAllChallenges(ensurePixelArchitectChallenge(challenges));
+          setAllChallenges(ensureBuilderCatalogChallenges(challenges));
           removeToast(loadingId);
           setError(null);
         }
@@ -885,7 +939,7 @@ export default function SessionBuilder() {
 
           if (ENABLE_CHALLENGES_MOCK_DATA) {
             // Fallback mock is opt-in only to avoid masking backend issues unexpectedly.
-            setAllChallenges(ensurePixelArchitectChallenge(mockChallenges));
+            setAllChallenges(ensureBuilderCatalogChallenges(mockChallenges));
             setError(err.message || 'Catalogue indisponible, fallback local actif.');
             showErrorToast('Mode mock actif: catalogue de développement utilisé.');
             return;

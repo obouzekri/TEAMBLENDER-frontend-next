@@ -365,6 +365,43 @@ function withPixelArchitectDefaults(config = {}) {
   };
 }
 
+function withQuizDefaults(config = {}) {
+  const presets = {
+    short: { question_count: 6, estimated_duration_minutes: 15 },
+    medium: { question_count: 9, estimated_duration_minutes: 20 },
+    long: { question_count: 12, estimated_duration_minutes: 25 },
+  };
+  const presetKey = ['short', 'medium', 'long'].includes(String(config?.preset || '').toLowerCase())
+    ? String(config.preset).toLowerCase()
+    : 'medium';
+  const preset = presets[presetKey];
+  const questionCount = clampInt(config?.question_count, preset.question_count, 3, 24);
+  const questionDurationSeconds = clampInt(config?.question_duration_seconds, 30, 10, 120);
+
+  return {
+    ...(config || {}),
+    preset: presetKey,
+    question_count: questionCount,
+    question_duration_seconds: questionDurationSeconds,
+    estimated_duration_minutes: preset.estimated_duration_minutes,
+    timer: {
+      ...(config?.timer && typeof config.timer === 'object' ? config.timer : {}),
+      enabled: true,
+      duration_seconds: questionDurationSeconds,
+      warning_threshold_seconds: Math.min(10, questionDurationSeconds),
+    },
+    chat: {
+      ...(config?.chat && typeof config.chat === 'object' ? config.chat : {}),
+      enabled: config?.chat?.enabled !== false,
+      quick_reactions_enabled: config?.chat?.quick_reactions_enabled !== false,
+    },
+    leaderboard: {
+      ...(config?.leaderboard && typeof config.leaderboard === 'object' ? config.leaderboard : {}),
+      enabled: config?.leaderboard?.enabled !== false,
+    },
+  };
+}
+
 function mergeChallengeConfig(baseConfig, overrideConfig) {
   const base = baseConfig && typeof baseConfig === 'object' ? baseConfig : {};
   const override = overrideConfig && typeof overrideConfig === 'object' ? overrideConfig : {};
@@ -427,6 +464,9 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     }
     if ((current?.engine_key || '').toLowerCase() === 'pixel_architect_v1' || fingerprint.includes('pixel architect') || fingerprint.includes('voxel')) {
       return 'pixel_architect';
+    }
+    if ((current?.engine_key || '').toLowerCase() === 'the_quiz_v1' || fingerprint.includes('the quiz') || fingerprint.includes('quiz')) {
+      return 'the_quiz';
     }
     if ((current?.engine_key || '').toLowerCase() === 'mission_critique_v1' || fingerprint.includes('mission critique')) {
       return 'mission_critique';
@@ -516,6 +556,10 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     }
     if (kind === 'pixel_architect') {
       onSave(withPixelArchitectDefaults(config));
+      return;
+    }
+    if (kind === 'the_quiz') {
+      onSave(withQuizDefaults(config));
       return;
     }
     if (kind === 'mission_critique') {
@@ -851,6 +895,76 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                 />
                 <span className={styles.helpText}>0 désactive le chrono. Sinon la durée pilote le timer live du labyrinthe.</span>
               </div>
+            </>
+          )}
+
+          {kind === 'the_quiz' && (
+            <>
+              <div className={styles.configField}>
+                <label htmlFor="quizPreset" className={styles.label}>Preset</label>
+                <select
+                  id="quizPreset"
+                  className={styles.input}
+                  value={stringValue('preset', 'medium')}
+                  onChange={(e) => {
+                    const preset = String(e.target.value || 'medium');
+                    const nextQuestionCount = preset === 'short' ? 6 : preset === 'long' ? 12 : 9;
+                    updateValue('preset', preset);
+                    updateValue('question_count', nextQuestionCount);
+                  }}
+                >
+                  <option value="short">Short · 6 questions · ~15 min</option>
+                  <option value="medium">Medium · 9 questions · ~20 min</option>
+                  <option value="long">Long · 12 questions · ~25 min</option>
+                </select>
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="quizQuestionCount" className={styles.label}>Nombre de questions</label>
+                <input
+                  id="quizQuestionCount"
+                  type="number"
+                  min="3"
+                  max="24"
+                  value={numberValue('question_count', 9)}
+                  onChange={(e) => updateValue('question_count', Number(e.target.value || 9))}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.configField}>
+                <label htmlFor="quizQuestionDuration" className={styles.label}>Temps par question (secondes)</label>
+                <input
+                  id="quizQuestionDuration"
+                  type="number"
+                  min="10"
+                  max="120"
+                  value={numberValue('question_duration_seconds', 30)}
+                  onChange={(e) => updateValue('question_duration_seconds', Number(e.target.value || 30))}
+                  className={styles.input}
+                />
+                <span className={styles.helpText}>Maximum 2 minutes. Valeur par défaut: 30 secondes.</span>
+              </div>
+
+              <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="quizChatEnabled">
+                <span className={styles.label}>Activer le chat</span>
+                <input
+                  id="quizChatEnabled"
+                  type="checkbox"
+                  checked={boolValue('chat.enabled', true)}
+                  onChange={(e) => updateValue('chat.enabled', e.target.checked)}
+                />
+              </label>
+
+              <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="quizLeaderboardEnabled">
+                <span className={styles.label}>Activer le leaderboard live</span>
+                <input
+                  id="quizLeaderboardEnabled"
+                  type="checkbox"
+                  checked={boolValue('leaderboard.enabled', true)}
+                  onChange={(e) => updateValue('leaderboard.enabled', e.target.checked)}
+                />
+              </label>
             </>
           )}
 

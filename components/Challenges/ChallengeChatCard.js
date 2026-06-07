@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from './ChallengeChatCard.module.css';
 
 export default function ChallengeChatCard({
@@ -23,6 +23,14 @@ export default function ChallengeChatCard({
   defaultCollapsed = false,
 }) {
   const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
+  const logRef = useRef(null);
+
+  useEffect(() => {
+    if (collapsed) return;
+    const node = logRef.current;
+    if (!node) return;
+    node.scrollTop = node.scrollHeight;
+  }, [messages, collapsed]);
 
   return (
     <section className={`${styles.chatCard} ${collapsed ? styles.chatCardCollapsed : ''} ${className}`.trim()}>
@@ -60,7 +68,7 @@ export default function ChallengeChatCard({
             </div>
           ) : null}
 
-          <div className={styles.chatLog}>
+          <div className={styles.chatLog} ref={logRef} role="log" aria-live="polite" aria-relevant="additions text">
             {!Array.isArray(messages) || messages.length === 0 ? (
               <p className={styles.chatEmpty}>{emptyText}</p>
             ) : messages.map((message) => {

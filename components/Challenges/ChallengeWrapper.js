@@ -15,6 +15,7 @@ const REALTIME_ENGINES = new Set([
   'copuzzle_live_v1',
   'labyrinthe_live_v1',
   'mission_critique_v1',
+  'the_quiz_v1',
   'vrai_ou_mensonge_v1',
   'pixel_architect_v1'
 ]);

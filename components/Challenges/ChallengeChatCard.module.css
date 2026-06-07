@@ -91,6 +91,7 @@
   display: grid;
   gap: 0.55rem;
   background: rgba(4, 13, 22, 0.6);
+  scroll-behavior: smooth;
 }
 
 .chatRow {
@@ -134,6 +135,13 @@
   padding: 0.5rem 0.65rem;
   background: rgba(12, 25, 38, 0.94);
   color: #e2edf6;
+}
+
+.chatInput:focus-visible,
+.chatSubmit:focus-visible,
+.quickButton:focus-visible {
+  outline: 2px solid rgba(125, 211, 252, 0.72);
+  outline-offset: 2px;
 }
 
 .chatInput::placeholder {
