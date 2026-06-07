@@ -162,6 +162,40 @@ const PIXEL_ARCHITECT_CATALOG_ENTRY = {
   },
 };
 
+const THE_QUIZ_CATALOG_ENTRY = {
+  id: 'the_quiz_001',
+  name: 'The Quiz',
+  type: 'individuel',
+  status: 'actif',
+  source: 'local',
+  category: 'culture-decouverte',
+  objectives: ['culture-decouverte', 'communication', 'intelligence-collective'],
+  duration: '15-25 min',
+  engine_key: 'the_quiz_v1',
+  description: 'Quiz multijoueur en temps reel avec timer, reponses verrouillees et leaderboard dynamique.',
+  rules_objective: 'Repondre vite et correctement pour monter au classement live.',
+  rules_facilitator: ['Lancez la session quand les participants sont prets.', 'Cadrez le rythme entre les manches.'],
+  rules_participant: ['Validez une seule reponse par question.', 'Restez attentif au chrono et au leaderboard.'],
+  rules_footnote: '',
+  engine_config: {
+    preset: 'medium',
+    question_count: 9,
+    question_duration_seconds: 30,
+    chat: {
+      enabled: true,
+      quick_reactions_enabled: true,
+    },
+    leaderboard: {
+      enabled: true,
+    },
+    timer: {
+      enabled: true,
+      duration_seconds: 30,
+      warning_threshold_seconds: 10,
+    },
+  },
+};
+
 function ensurePixelArchitectChallenge(challenges) {
   const list = Array.isArray(challenges) ? [...challenges] : [];
   const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'pixel_architect_v1');
@@ -180,6 +214,30 @@ function ensurePixelArchitectChallenge(challenges) {
   }
 
   return [...list, PIXEL_ARCHITECT_CATALOG_ENTRY];
+}
+
+function ensureTheQuizChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'the_quiz_v1');
+
+  if (existingIndex >= 0) {
+    const current = list[existingIndex] || {};
+    list[existingIndex] = {
+      ...THE_QUIZ_CATALOG_ENTRY,
+      ...current,
+      engine_config: {
+        ...THE_QUIZ_CATALOG_ENTRY.engine_config,
+        ...(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {}),
+      },
+    };
+    return list;
+  }
+
+  return [...list, THE_QUIZ_CATALOG_ENTRY];
+}
+
+function ensureAdminCatalogChallenges(challenges) {
+  return ensureTheQuizChallenge(ensurePixelArchitectChallenge(challenges));
 }
 
 const LANDING_ALLOWED_BLOCK_KEY_HINT = LANDING_ALLOWED_BLOCK_KEYS.join(', ');
@@ -837,7 +895,7 @@ export default function AdminClient() {
           if (key === 'users') setUsers(value);
           if (key === 'pendingUsers') setPendingUsers(value);
           if (key === 'sessions') setSessions(value);
-          if (key === 'challenges') setChallenges(ensurePixelArchitectChallenge(value));
+          if (key === 'challenges') setChallenges(ensureAdminCatalogChallenges(value));
           if (key === 'participants') setParticipants(value);
           if (key === 'pricingPlans') setPricingPlans(value);
           if (key === 'landingBlocks') setLandingBlocks(value);
