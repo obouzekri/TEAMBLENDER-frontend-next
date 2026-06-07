@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
 import { trackGaEvent } from '@/lib/analytics';
+import { hasAnalyticsConsent } from '@/lib/consent';
 
 const POSTHOG_PROJECT_TOKEN = String(
   process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN || process.env.NEXT_PUBLIC_POSTHOG_KEY || ''
@@ -43,7 +44,7 @@ export default function PostHogProvider() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!POSTHOG_PROJECT_TOKEN || typeof window === 'undefined') return;
+    if (!POSTHOG_PROJECT_TOKEN || typeof window === 'undefined' || !hasAnalyticsConsent()) return;
 
     if (!window.__TEAMBLENDER_POSTHOG_INIT__) {
       posthog.init(POSTHOG_PROJECT_TOKEN, {
@@ -94,11 +95,15 @@ export default function PostHogProvider() {
     return () => {
       window.removeEventListener('error', onWindowError);
       window.removeEventListener('unhandledrejection', onUnhandledRejection);
+      if (window.__TEAMBLENDER_POSTHOG_INIT__) {
+        posthog.reset?.();
+        posthog.opt_out_capturing?.();
+      }
     };
   }, []);
 
   useEffect(() => {
-    if (!POSTHOG_PROJECT_TOKEN || !window.__TEAMBLENDER_POSTHOG_INIT__) return;
+    if (!POSTHOG_PROJECT_TOKEN || !window.__TEAMBLENDER_POSTHOG_INIT__ || !hasAnalyticsConsent()) return;
 
     const query = typeof window !== 'undefined'
       ? String(window.location.search || '').replace(/^\?/, '')
