@@ -592,6 +592,67 @@ export default function ManagerHome() {
           </div>
         </section>
 
+        <section className="feature-card" aria-labelledby="onboarding-guide-title">
+          <div className="panel-head" style={{ alignItems: 'flex-start', gap: '1rem' }}>
+            <div>
+              <p className="eyebrow">GUIDE DE DÉMARRAGE</p>
+              <h2 id="onboarding-guide-title">Créez votre première session en 3 étapes</h2>
+              <p>Le parcours reste simple: préparer la base participants, configurer la session, puis lancer le challenge.</p>
+            </div>
+            <Link className="btn-secondary" href="/session-builder">
+              Ouvrir le configurateur
+            </Link>
+          </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '1rem',
+              marginTop: '1rem'
+            }}
+          >
+            {[
+              {
+                step: '1',
+                title: 'Ajouter les participants',
+                text: 'Créez votre base de participants pour repartir sur des ateliers plus rapides et plus propres.',
+                href: '/home#home-participants-block'
+              },
+              {
+                step: '2',
+                title: 'Configurer la session',
+                text: 'Choisissez le challenge, la modalité et les paramètres utiles avant le lancement.',
+                href: '/session-builder'
+              },
+              {
+                step: '3',
+                title: 'Lancer le challenge',
+                text: 'Démarrez la session, gardez le rythme et terminez avec un débrief exploitable.',
+                href: '/session-builder'
+              }
+            ].map((item) => (
+              <article
+                key={item.step}
+                className="card"
+                style={{
+                  padding: '1.25rem',
+                  background: 'var(--surface-alt, #f8f9fb)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem'
+                }}
+              >
+                <span className="eyebrow">Étape {item.step}</span>
+                <h3 style={{ margin: 0 }}>{item.title}</h3>
+                <p style={{ margin: 0, color: 'var(--muted)' }}>{item.text}</p>
+                <Link className="btn-secondary" href={item.href} style={{ width: 'fit-content', marginTop: '0.25rem' }}>
+                  Aller à cette étape
+                </Link>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="cards-grid" aria-label="Statistiques sessions">
           <article className="feature-card stat-card stat-card-live">
             <p className="eyebrow">EN COURS</p>
