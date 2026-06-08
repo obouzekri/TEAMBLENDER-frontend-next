@@ -24,12 +24,12 @@ export default function AppNav({ userLabel, onLogout, role }) {
   const contextLabel = isParticipant
     ? ''
     : isAdmin
-      ? 'Console admin'
+      ? ''
       : isCompact
         ? 'Session live'
         : 'Espace manager';
   const navPanelClassName = `nav-panel${(isManager || isParticipantArea) ? ' nav-panel--manager' : ''}${isMenuOpen ? ' is-open' : ''}`;
-  const userBoxClassName = `app-user-box${(isManager || isCompact) ? ' app-user-box--inline' : ''}`;
+  const userBoxClassName = `app-user-box${(isManager || isCompact || isAdmin) ? ' app-user-box--inline' : ''}`;
   const resolvedUserLabel = userLabel || (isParticipant ? 'Participant' : 'Manager');
   const [userAvatarUrl, setUserAvatarUrl] = useState('');
 
@@ -171,7 +171,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
             </div>
           )}
 
-          <div className={userBoxClassName}>
+          <div className={userBoxClassName} style={isAdmin ? { marginLeft: 'auto' } : undefined}>
             {userAvatarUrl ? (
               <img src={userAvatarUrl} alt={`Avatar de ${resolvedUserLabel}`} className="app-user-avatar app-user-avatar--photo" />
             ) : (

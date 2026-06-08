@@ -2812,7 +2812,6 @@ export default function AdminClient() {
           {activeTab === 'dashboard' ? (
             <div>
               <div style={{ marginBottom: '28px' }}>
-                <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-muted, #6b7280)', textTransform: 'uppercase', margin: '0 0 4px' }}>CONSOLE ADMIN</p>
                 <h1 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 6px' }}>Tableau de bord</h1>
                 <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Vue d'ensemble de la plateforme en temps reel.</p>
               </div>
@@ -3046,15 +3045,7 @@ export default function AdminClient() {
                 </div>
               ) : null}
 
-              {analyticsSnapshot.configured ? (
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '16px 18px' }}>
-                  <p style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: 600 }}>Evenements suivis actuellement</p>
-                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>
-                    Frontend: $pageview, $session_duration, web_performance, frontend_error. Backend: signup_completed, login_successful,
-                    participant_login_successful, session_created, checkout_started, pro_request_created.
-                  </p>
-                </div>
-              ) : null}
+
             </div>
           ) : null}
 
@@ -3744,8 +3735,15 @@ export default function AdminClient() {
                 ) : null}
 
                 {editingChallenge ? (
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier un challenge</h2>
+                  <div
+                    style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 16px' }}
+                    onClick={(e) => { if (e.target === e.currentTarget) { setEditingChallenge(null); setChallengeImageUploadError(''); } }}
+                  >
+                    <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '12px', padding: '24px 28px', width: '100%', maxWidth: '640px', position: 'relative', marginBottom: '40px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                        <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>Modifier un challenge</h2>
+                        <button type="button" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--color-muted, #6b7280)', padding: '2px 8px', lineHeight: 1 }} aria-label="Fermer la fenêtre">✕</button>
+                      </div>
                     <form className="auth-form" onSubmit={submitEditChallenge}>
                         <label>Nom<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
                         <label>Type
@@ -4170,6 +4168,7 @@ export default function AdminClient() {
                           <button type="button" className="btn-secondary" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }}>Annuler</button>
                         </div>
                     </form>
+                    </div>
                   </div>
                 ) : null}
 
