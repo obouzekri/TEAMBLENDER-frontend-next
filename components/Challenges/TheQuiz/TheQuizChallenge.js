@@ -6,6 +6,7 @@ import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeChatCard from '../ChallengeChatCard';
+import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import {
   QuizFinalScreen,
@@ -242,7 +243,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   });
 
   const quickMessages = useMemo(
-    () => ['👏 Bien joué', '🔥 On continue', '✅ Validé', ...DEFAULT_CHALLENGE_QUICK_MESSAGES.slice(0, 3)],
+    () => [...DEFAULT_CHALLENGE_QUICK_MESSAGES],
     []
   );
 
@@ -304,6 +305,22 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     1
   );
   const participantsAnsweredCount = Number(quiz?.answer_count || 0);
+  const isStarted = activePhase !== 'lobby';
+  const timerStatus = activePhase === 'question_live'
+    ? 'running'
+    : String(quiz?.status || '').trim().toLowerCase() === 'paused'
+      ? 'paused'
+      : activePhase === 'final_score'
+        ? 'completed'
+        : 'idle';
+  const timerRemainingSeconds = activePhase === 'question_live'
+    ? remainingSeconds
+    : Number(quiz?.question_duration_seconds || 30);
+  const timerDurationSeconds = Number(quiz?.question_duration_seconds || 30);
+
+  function handleStartChallenge() {
+    handleHostAction('quiz.session.start');
+  }
 
   function handleHostAction(type) {
     if (!type) return;
@@ -378,21 +395,13 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
   return (
     <main className={styles.pageShell}>
-      <section className={styles.hero}>
-        <div>
-          <p className={styles.heroEyebrow}>The Quiz</p>
-          <h1 className={styles.heroTitle}>Quiz multijoueur realtime de culture générale</h1>
-          <p className={styles.heroText}>
-            Expérience premium en temps réel: lobby, question live avec timer circulaire, reveal animé, leaderboard dynamique et score final.
-          </p>
+      <header className={styles.challengeHeader}>
+        <div className={styles.challengeHeaderLine}>
+          <h1 className={styles.challengeTitle}>The Quiz</h1>
+          <span className={styles.challengeSeparator}>-</span>
+          <p className={styles.challengeDescription}>QUIZ MULTIJOUEUR REALTIME DE CULTURE GÉNÉRALE</p>
         </div>
-        <div className={styles.heroStats}>
-          <article className={styles.metricCard}><span>Questions</span><strong>{quiz.question_count}</strong></article>
-          <article className={styles.metricCard}><span>Temps/question</span><strong>{quiz.question_duration_seconds}s</strong></article>
-          <article className={styles.metricCard}><span>Chat</span><strong>{quiz.chat_enabled ? 'ON' : 'OFF'}</strong></article>
-          <article className={styles.metricCard}><span>Leaderboard</span><strong>{quiz.leaderboard_enabled ? 'ON' : 'OFF'}</strong></article>
-        </div>
-      </section>
+      </header>
 
       {error ? <div className={styles.errorBanner}>{error}</div> : null}
       {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>Reconnexion en cours, restauration de la question active...</div> : null}
@@ -418,6 +427,22 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
       <section className={styles.mainGrid}>
         <div className={styles.primaryColumn}>
+          {!isStarted ? (
+            <section className={styles.prestartRulesCard}>
+              <ChallengeRulesPanel
+                challengeName="The Quiz"
+                isStarted={false}
+                isFacilitator={isFacilitator}
+                objective={rules.objective}
+                facilitatorRules={rules.facilitator}
+                participantRules={rules.participant}
+                footnote={rules.footnote}
+                onStart={isFacilitator ? handleStartChallenge : null}
+                compactStartButton
+              />
+            </section>
+          ) : null}
+
           <div key={`${activePhase}-${phaseTransitionTick}`} className={styles.phaseTransitionCard}>
             {renderParticipantScreen()}
           </div>
@@ -428,7 +453,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
             </div>
           ) : null}
 
-          {isFacilitator ? (
+          {isFacilitator && isStarted ? (
             <section className={styles.hostPanel}>
               <div className={styles.hostTabs}>
                 {THE_QUIZ_HOST_TABS.map((tab) => (
@@ -451,14 +476,26 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         </div>
 
         <aside className={styles.sideColumn}>
-          <ChallengeRulesPanel
-            challengeName="The Quiz"
-            isStarted={activePhase !== 'lobby'}
+          {isStarted ? (
+            <ChallengeRulesPanel
+              challengeName="The Quiz"
+              isStarted={isStarted}
+              isFacilitator={isFacilitator}
+              showPrestartCard={false}
+              objective={rules.objective}
+              facilitatorRules={rules.facilitator}
+              participantRules={rules.participant}
+              footnote={rules.footnote}
+            />
+          ) : null}
+
+          <ChallengeTimerCard
+            title="Chrono"
+            remainingSeconds={timerRemainingSeconds}
+            durationSeconds={timerDurationSeconds}
+            status={timerStatus}
             isFacilitator={isFacilitator}
-            objective={rules.objective}
-            facilitatorRules={rules.facilitator}
-            participantRules={rules.participant}
-            footnote={rules.footnote}
+            waitingText=""
           />
 
           {chatEnabled ? (
