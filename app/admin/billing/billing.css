@@ -1,0 +1,129 @@
+.admin-billing-shell {
+  padding: 2rem;
+  display: grid;
+  gap: 1rem;
+  background: linear-gradient(140deg, #f5f8ff 0%, #edf6f3 45%, #fff9f1 100%);
+  min-height: 100vh;
+}
+
+.admin-billing-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.admin-billing-header h1 {
+  margin: 0.2rem 0;
+}
+
+.admin-billing-header-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.admin-billing-filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 0.6rem;
+}
+
+.admin-billing-filters input,
+.admin-billing-filters select,
+.admin-billing-actions select {
+  border: 1px solid #c8d1dd;
+  border-radius: 10px;
+  padding: 0.6rem 0.7rem;
+}
+
+.admin-billing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.admin-billing-card {
+  background: #fff;
+  border: 1px solid #dde5f0;
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.admin-billing-users {
+  max-height: 420px;
+  overflow: auto;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.user-row {
+  border: 1px solid #d5deea;
+  border-radius: 10px;
+  background: #f9fbff;
+  text-align: left;
+  padding: 0.65rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.user-row.active {
+  border-color: #2457d6;
+  background: #eef3ff;
+}
+
+.admin-billing-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+
+.admin-billing-invoices,
+.timeline-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.invoice-row,
+.timeline-row {
+  border: 1px solid #e3e7ee;
+  border-radius: 10px;
+  padding: 0.5rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.invoice-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.admin-billing-message {
+  padding: 0.65rem;
+  border-radius: 10px;
+  margin: 0;
+}
+
+.admin-billing-message.error {
+  background: #fff1f1;
+  color: #842029;
+  border: 1px solid #f5c2c7;
+}
+
+.admin-billing-message.success {
+  background: #f0fff5;
+  color: #115d35;
+  border: 1px solid #badbcc;
+}
+
+@media (max-width: 980px) {
+  .admin-billing-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-billing-filters {
+    grid-template-columns: 1fr;
+  }
+  .admin-billing-header {
+    flex-direction: column;
+  }
+}
