@@ -881,7 +881,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       <header className={styles.challengeHeader}>
         <div className={styles.challengeHeaderLine}>
           <h1>Pixel Architect</h1>
-          <p>REPLIQUEZ LE MODELE COLLECTIVEMENT EN TEMPS REEL AVEC CONTRAINTES DE GRILLE ET DE PALETTE.</p>
+          <p>REPLIQUEZ LE MODÈLE COLLECTIVEMENT EN TEMPS RÉEL AVEC CONTRAINTES DE GRILLE ET DE PALETTE.</p>
         </div>
       </header>
 
