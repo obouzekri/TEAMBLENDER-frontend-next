@@ -15,7 +15,7 @@
 
 .rulesHeader h2 {
   margin: 0;
-  color: #e5edf7;
+    color: rgba(125, 211, 252, 0.9);
   font-size: 1.06rem;
 }
 
@@ -37,7 +37,7 @@
 
 .rulesSection h3 {
   margin: 0;
-  color: #dbeafe;
+    color: rgba(125, 211, 252, 0.9);
   font-size: 0.92rem;
 }
 
