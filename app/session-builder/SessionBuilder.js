@@ -301,11 +301,8 @@ export default function SessionBuilder() {
   const [isLaunching, setIsLaunching] = useState(false);
   const [sessionChallengesLoaded, setSessionChallengesLoaded] = useState(false);
   const [hasRouteSessionId, setHasRouteSessionId] = useState(false);
-  const [sessionId, setSessionId] = useState(() => {
-    if (typeof window === 'undefined') return '';
-    const params = new URLSearchParams(window.location.search);
-    return params.get('sessionId') || params.get('id') || '';
-  });
+  // Initialize as '' (matches SSR) — useEffect reads from URL after mount to avoid hydration mismatch.
+  const [sessionId, setSessionId] = useState('');
   const [sessionName, setSessionName] = useState('');
   const [flowMode, setFlowMode] = useState('manual');
   const [sessionDateTime, setSessionDateTime] = useState('');

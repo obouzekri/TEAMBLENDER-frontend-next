@@ -13,7 +13,8 @@ import {
 import { loadGtmContainer, unloadGtmContainer, hasTrackingStackConfigured } from '@/lib/analytics';
 
 export default function TrackingConsentGate({ children }) {
-  const [consentState, setConsentState] = useState(() => getStoredConsentState());
+  // Initialize as null (matches SSR output) — useEffect syncs the real value after mount.
+  const [consentState, setConsentState] = useState(null);
 
   useEffect(() => {
     const syncConsentState = () => setConsentState(getStoredConsentState());
