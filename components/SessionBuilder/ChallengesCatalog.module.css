@@ -270,6 +270,18 @@
   flex: 1;
 }
 
+.playerHint {
+  margin: -0.15rem 0 0;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.26rem 0.62rem;
+  border: 1px solid rgba(53, 160, 255, 0.26);
+  background: linear-gradient(135deg, rgba(231, 238, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+  color: #264783;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
 .cardMeta {
   display: flex;
   flex-wrap: wrap;

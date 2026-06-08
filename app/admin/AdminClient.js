@@ -5,6 +5,7 @@ import Image from 'next/image';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
+import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 
 const USER_ROLES = new Set(['user', 'admin']);
 const SESSION_STATUSES = new Set(['preparee', 'en_cours', 'terminee']);
@@ -42,6 +43,9 @@ const DEFAULT_NEW_CHALLENGE = {
   rules_facilitator: '',
   rules_participant: '',
   rules_footnote: '',
+  player_min: '',
+  player_recommended: '',
+  player_max: '',
 };
 
 const CHALLENGE_CATEGORY_OPTIONS = [
@@ -142,6 +146,11 @@ const PIXEL_ARCHITECT_CATALOG_ENTRY = {
   rules_participant: ['Communiquez clairement.', 'Respectez la limite de ressources.', 'Contribuez à la structure finale.'],
   rules_footnote: '',
   engine_config: {
+    participants: {
+      min_count: 3,
+      recommended_count: 6,
+      max_count: 12,
+    },
     mode: 'replication',
     collaborationMode: 'standard',
     settings: {
@@ -178,6 +187,11 @@ const THE_QUIZ_CATALOG_ENTRY = {
   rules_participant: ['Validez une seule reponse par question.', 'Restez attentif au chrono et au leaderboard.'],
   rules_footnote: '',
   engine_config: {
+    participants: {
+      min_count: 4,
+      recommended_count: 8,
+      max_count: 30,
+    },
     preset: 'medium',
     question_count: 9,
     question_duration_seconds: 30,
@@ -238,6 +252,27 @@ function ensureTheQuizChallenge(challenges) {
 
 function ensureAdminCatalogChallenges(challenges) {
   return ensureTheQuizChallenge(ensurePixelArchitectChallenge(challenges));
+}
+
+function toPositiveIntOrNull(value) {
+  const parsed = Number.parseInt(String(value || '').trim(), 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function applyPlayerRangeToEngineConfig(engineConfig, rangeDraft) {
+  const minCount = toPositiveIntOrNull(rangeDraft?.player_min);
+  const recommendedCount = toPositiveIntOrNull(rangeDraft?.player_recommended);
+  const maxCount = toPositiveIntOrNull(rangeDraft?.player_max);
+
+  return {
+    ...(engineConfig && typeof engineConfig === 'object' ? engineConfig : {}),
+    participants: {
+      ...(engineConfig?.participants && typeof engineConfig.participants === 'object' ? engineConfig.participants : {}),
+      min_count: minCount,
+      recommended_count: recommendedCount,
+      max_count: maxCount,
+    },
+  };
 }
 
 const LANDING_ALLOWED_BLOCK_KEY_HINT = LANDING_ALLOWED_BLOCK_KEYS.join(', ');
@@ -1810,7 +1845,10 @@ export default function AdminClient() {
 
     try {
       const normalizedObjectives = normalizeObjectivesInput(newChallenge.objectives);
-      const engineConfig = mergeChallengeRulesIntoEngineConfig({}, newChallenge);
+      const engineConfig = applyPlayerRangeToEngineConfig(
+        mergeChallengeRulesIntoEngineConfig({}, newChallenge),
+        newChallenge
+      );
       const response = await fetch(getApiUrl('/challenges'), {
         method: 'POST',
         headers: {
@@ -1859,6 +1897,7 @@ export default function AdminClient() {
       normalizedEngineConfig && typeof normalizedEngineConfig.rules === 'object'
         ? normalizedEngineConfig.rules
         : {};
+    const playerRange = resolveChallengePlayerRange({ engine_config: normalizedEngineConfig });
 
     setEditingChallenge({
       id: challengeItem.id,
@@ -1875,6 +1914,9 @@ export default function AdminClient() {
       rules_facilitator: Array.isArray(rulesSource.facilitator) ? rulesSource.facilitator.join('\n') : '',
       rules_participant: Array.isArray(rulesSource.participant) ? rulesSource.participant.join('\n') : '',
       rules_footnote: String(rulesSource.footnote || ''),
+      player_min: playerRange.min || '',
+      player_recommended: playerRange.recommended || '',
+      player_max: playerRange.max || '',
     });
   }
 
@@ -2044,7 +2086,10 @@ export default function AdminClient() {
     setError('');
     try {
       const normalizedObjectives = normalizeObjectivesInput(editingChallenge.objectives);
-      const engineConfig = mergeChallengeRulesIntoEngineConfig(editingChallenge.engine_config || {}, editingChallenge);
+      const engineConfig = applyPlayerRangeToEngineConfig(
+        mergeChallengeRulesIntoEngineConfig(editingChallenge.engine_config || {}, editingChallenge),
+        editingChallenge
+      );
       const response = await fetch(getApiUrl(`/challenges/${editingChallenge.id}`), {
         method: 'PUT',
         headers: {
@@ -3715,6 +3760,20 @@ export default function AdminClient() {
                         <label>Note de clôture
                           <textarea rows={2} value={newChallenge.rules_footnote} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder="Message de synthèse optionnel" />
                         </label>
+                        <div style={{ borderTop: '1px dashed var(--color-border, #e5e7eb)', paddingTop: '10px', display: 'grid', gap: '10px' }}>
+                          <p style={{ margin: 0, fontWeight: 600 }}>Joueurs (Min / Recommandé / Max)</p>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                            <label>Min
+                              <input type="number" min="1" value={newChallenge.player_min} onChange={(e) => setNewChallenge((p) => ({ ...p, player_min: e.target.value }))} />
+                            </label>
+                            <label>Recommandé
+                              <input type="number" min="1" value={newChallenge.player_recommended} onChange={(e) => setNewChallenge((p) => ({ ...p, player_recommended: e.target.value }))} />
+                            </label>
+                            <label>Max
+                              <input type="number" min="1" value={newChallenge.player_max} onChange={(e) => setNewChallenge((p) => ({ ...p, player_max: e.target.value }))} />
+                            </label>
+                          </div>
+                        </div>
                       </div>
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:challenge'}>
                         {busySaveKey === 'create:challenge' ? 'Création...' : 'Creer le challenge'}
@@ -3825,6 +3884,35 @@ export default function AdminClient() {
                           <label>Note de clôture
                             <textarea rows={2} value={editingChallenge.rules_footnote || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder="Message de synthèse optionnel" />
                           </label>
+                          <div style={{ borderTop: '1px dashed var(--color-border, #e5e7eb)', paddingTop: '10px', display: 'grid', gap: '10px' }}>
+                            <p style={{ margin: 0, fontWeight: 600 }}>Joueurs (Min / Recommandé / Max)</p>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                              <label>Min
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={editingChallenge.player_min || ''}
+                                  onChange={(e) => setEditingChallenge((p) => ({ ...p, player_min: e.target.value }))}
+                                />
+                              </label>
+                              <label>Recommandé
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={editingChallenge.player_recommended || ''}
+                                  onChange={(e) => setEditingChallenge((p) => ({ ...p, player_recommended: e.target.value }))}
+                                />
+                              </label>
+                              <label>Max
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={editingChallenge.player_max || ''}
+                                  onChange={(e) => setEditingChallenge((p) => ({ ...p, player_max: e.target.value }))}
+                                />
+                              </label>
+                            </div>
+                          </div>
                         </div>
                         {(editingChallenge.engine_key || '').toLowerCase() === 'escape_room_v1' ? (
                           <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '10px' }}>
@@ -4193,6 +4281,15 @@ export default function AdminClient() {
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
                           <p className="session-meta">{c.type || 'individuel'} · {c.status || 'actif'} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
+                          {(() => {
+                            const playerRange = resolveChallengePlayerRange(c);
+                            if (!playerRange.hasRange) return null;
+                            return (
+                              <p className="session-meta" style={{ marginTop: '4px' }}>
+                                Ideal: ~{playerRange.recommended || '-'} joueurs · Min {playerRange.min || '-'} · Max {playerRange.max || '-'}
+                              </p>
+                            );
+                          })()}
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
                           <button

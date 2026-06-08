@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { resolveChallengeRules } from '@/lib/challenges/rules';
+import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import styles from './ChallengeRulesPreviewModal.module.css';
 
 function getFallbackRules(challenge) {
@@ -28,6 +29,7 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
 
   const rules = resolveChallengeRules(challenge?.config || challenge?.engine_config || {}, getFallbackRules(challenge));
   const duration = Number(challenge?.duration || challenge?.config?.duration_minutes || 0);
+  const playerRange = resolveChallengePlayerRange(challenge);
 
   const modalTitleId = 'challenge-rules-preview-title';
 
@@ -45,6 +47,11 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
             <p className={styles.kicker}>📜 Voir les règles</p>
             <h2 id={modalTitleId}>{challenge?.name || 'Activité'}</h2>
             <p className={styles.duration}>{duration > 0 ? `Durée moyenne: ${duration} min` : 'Durée moyenne à confirmer'}</p>
+            {playerRange.hasRange ? (
+              <p className={styles.playersLine}>
+                Min: {playerRange.min || '-'} · Recommande: {playerRange.recommended || '-'} · Max: {playerRange.max || '-'} joueurs
+              </p>
+            ) : null}
           </div>
           <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Fermer la fenêtre des règles">
             Fermer

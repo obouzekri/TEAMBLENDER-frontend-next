@@ -4,6 +4,7 @@ import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
+import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 
 const COPUZZLE_ADMIN_REFERENCE_IMAGES = Object.freeze([
   { id: 'default_1', title: 'Image administrateur 1', src: '/copuzzle/default-blue.svg' },
@@ -475,6 +476,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   }
 
   const kind = getChallengeKind(challenge);
+  const playerRange = resolveChallengePlayerRange(challenge);
 
   function updateValue(path, value) {
     setConfig((prev) => {
@@ -661,6 +663,11 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
           <p className={styles.infoText}>
             Les options de configuration dépendent du type d'activité.
           </p>
+          {playerRange.hasRange ? (
+            <p className={styles.playersInfo}>
+              Min: {playerRange.min || '-'} · Recommande: {playerRange.recommended || '-'} · Max: {playerRange.max || '-'} joueurs
+            </p>
+          ) : null}
 
           {kind === 'copuzzle' && (
             <>

@@ -5,6 +5,7 @@ import ChallengeRulesPreviewModal from './ChallengeRulesPreviewModal';
 import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import styles from './ChallengesCatalog.module.css';
 import { Badge, Button, EmptyState } from '@/components/ui';
+import { formatIdealPlayersLabel } from '@/lib/challenges/playerRange';
 
 const MAX_FILTER_OBJECTIVES = 3;
 
@@ -361,6 +362,7 @@ export default function ChallengesCatalog({
           {challenges.map((challenge) => {
             const isSelected = selectedIds.includes(challenge.id);
             const challengeObjectives = toObjectiveList(challenge.objectives || challenge.objective).slice(0, 3);
+            const idealPlayersLabel = formatIdealPlayersLabel(challenge);
             return (
               <div key={challenge.id} className={`${styles.card} ${isSelected ? styles.selected : ''}`}>
                 <div className={styles.cardHeader}>
@@ -381,6 +383,7 @@ export default function ChallengesCatalog({
                 </div>
 
                 <p className={styles.cardDescription}>{challenge.description}</p>
+                {idealPlayersLabel ? <p className={styles.playerHint}>{idealPlayersLabel}</p> : null}
 
                 <div className={styles.cardMeta}>
                   {challenge.category ? (

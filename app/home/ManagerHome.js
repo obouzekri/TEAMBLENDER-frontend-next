@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
+import Modal from '@/components/ui/Modal';
 import ToastContainer from '@/components/ToastContainer';
 import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import { getApiUrl } from '@/lib/config';
@@ -196,6 +197,7 @@ export default function ManagerHome() {
     && !creatingMember;
 
   const canCreateSession = !loadingMembers && members.length > 0;
+  const isParticipantModalOpen = showParticipantForm || Boolean(editingMemberId);
   const createSessionBlockedReason = loadingMembers
     ? 'Chargement des participants en cours...'
     : 'Création indisponible : ajoutez d\'abord des participants dans votre espace manager.';
@@ -319,6 +321,15 @@ export default function ManagerHome() {
   }, [refreshMembers]);
 
   useEffect(() => {
+    if (!isParticipantModalOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isParticipantModalOpen]);
+
+  useEffect(() => {
     if (!guard.allowed) return;
     if (loadingMembers) return;
     if (onboardingHandledRef.current) return;
@@ -422,6 +433,11 @@ export default function ManagerHome() {
     setShowParticipantForm(false);
     setEditingMemberId(null);
     setMemberForm({ first_name: '', last_name: '', email: '', password: '', job_title: '', department: '' });
+  }
+
+  function closeParticipantModal() {
+    if (creatingMember) return;
+    resetMemberForm();
   }
 
   async function handleSubmitMember(event) {
@@ -592,7 +608,7 @@ export default function ManagerHome() {
           </div>
         </section>
 
-        <section className="feature-card" aria-labelledby="onboarding-guide-title">
+        <section className="feature-card manager-onboarding-panel" aria-labelledby="onboarding-guide-title">
           <div className="panel-head" style={{ alignItems: 'flex-start', gap: '1rem' }}>
             <div>
               <p className="eyebrow">GUIDE DE DÉMARRAGE</p>
@@ -603,14 +619,7 @@ export default function ManagerHome() {
               Ouvrir le configurateur
             </Link>
           </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '1rem',
-              marginTop: '1rem'
-            }}
-          >
+          <div className="manager-onboarding-grid">
             {[
               {
                 step: '1',
@@ -631,21 +640,11 @@ export default function ManagerHome() {
                 href: '/session-builder'
               }
             ].map((item) => (
-              <article
-                key={item.step}
-                className="card"
-                style={{
-                  padding: '1.25rem',
-                  background: 'var(--surface-alt, #f8f9fb)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem'
-                }}
-              >
-                <span className="eyebrow">Étape {item.step}</span>
-                <h3 style={{ margin: 0 }}>{item.title}</h3>
-                <p style={{ margin: 0, color: 'var(--muted)' }}>{item.text}</p>
-                <Link className="btn-secondary" href={item.href} style={{ width: 'fit-content', marginTop: '0.25rem' }}>
+              <article key={item.step} className="card manager-onboarding-step">
+                <span className="manager-onboarding-step__badge">Étape {item.step}</span>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+                <Link className="btn-secondary manager-onboarding-step__cta" href={item.href}>
                   Aller à cette étape
                 </Link>
               </article>
@@ -798,159 +797,17 @@ export default function ManagerHome() {
               <button
                 type="button"
                 className="btn-secondary"
-                onClick={showParticipantForm || editingMemberId ? resetMemberForm : openNewMemberForm}
+                onClick={openNewMemberForm}
               >
-                {showParticipantForm || editingMemberId ? 'Fermer le formulaire' : 'Créer un participant'}
+                Créer un participant
               </button>
             </div>
           </div>
 
-          {showParticipantForm || editingMemberId ? (
-            <article className="participant-inline-form">
-              <div className="participant-inline-form-head">
-                <p className="eyebrow">{editingMemberId ? 'MODIFIER PARTICIPANT' : 'NOUVEAU PARTICIPANT'}</p>
-                <h3>{editingMemberId ? 'Mettre à jour le profil' : 'Créer un participant'}</h3>
-                <p>
-                  {editingMemberId
-                    ? 'Modifiez les informations du participant sélectionné.'
-                    : 'Ajoutez un participant pour l’assigner ensuite à vos sessions.'}
-                </p>
-              </div>
-
-              <form
-                className="participant-form participant-form--embedded"
-                onSubmit={handleSubmitMember}
-                autoComplete="off"
-                data-lpignore="true"
-                data-form-type="other"
-              >
-                {/* Decoy fields: capture aggressive browser/password-manager autofill. */}
-                <input
-                  type="text"
-                  name="participant_decoy_username"
-                  autoComplete="username"
-                  tabIndex={-1}
-                  aria-hidden="true"
-                  style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
-                />
-                <input
-                  type="password"
-                  name="participant_decoy_password"
-                  autoComplete="current-password"
-                  tabIndex={-1}
-                  aria-hidden="true"
-                  style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
-                />
-                <div className="participant-form-grid">
-                  <label>
-                    Prénom *
-                    <input
-                      type="text"
-                      name="participant_first_name"
-                      value={memberForm.first_name}
-                      onChange={(e) => setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))}
-                      placeholder="Ex: Sophie"
-                      className={formAttempted && !memberFormChecks.firstNameOk ? 'input-invalid' : ''}
-                      autoComplete="off"
-                      required
-                    />
-                    {formAttempted && !memberFormChecks.firstNameOk ? (
-                      <span className="field-error">Le prénom est requis.</span>
-                    ) : null}
-                  </label>
-                  <label>
-                    Nom
-                    <input
-                      type="text"
-                      name="participant_last_name"
-                      value={memberForm.last_name}
-                      onChange={(e) => setMemberForm((prev) => ({ ...prev, last_name: e.target.value }))}
-                      placeholder="Ex: Martin"
-                      autoComplete="off"
-                    />
-                  </label>
-                  <label className="participant-field-full">
-                    Email *
-                    <input
-                      type="email"
-                      name="participant_contact_email"
-                      value={memberForm.email}
-                      onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
-                      placeholder="sophie@entreprise.com"
-                      className={formAttempted && !memberFormChecks.emailOk ? 'input-invalid' : ''}
-                      autoComplete="off"
-                      autoCapitalize="none"
-                      spellCheck={false}
-                      required
-                    />
-                    {formAttempted && !memberFormChecks.emailOk ? (
-                      <span className="field-error">L'email est requis.</span>
-                    ) : null}
-                  </label>
-                  <label className="participant-field-full">
-                    Mot de passe {editingMemberId ? '(optionnel)' : '*'}
-                    <input
-                      type="password"
-                      name="participant_access_password"
-                      value={memberForm.password}
-                      onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
-                      placeholder={editingMemberId ? 'Laisser vide pour conserver le mot de passe actuel' : 'Minimum 8 caractères'}
-                      minLength={8}
-                      className={formAttempted && !memberFormChecks.passwordOk ? 'input-invalid' : ''}
-                      autoComplete="new-password"
-                      required={!editingMemberId}
-                    />
-                    {!editingMemberId ? (
-                      <span className="field-help">{memberFormChecks.passwordLength}/8 caractères minimum</span>
-                    ) : (
-                      <span className="field-help">Renseignez ce champ uniquement pour remplacer le mot de passe actuel.</span>
-                    )}
-                    {formAttempted && !memberFormChecks.passwordOk ? (
-                      <span className="field-error">Le mot de passe doit contenir au moins 8 caractères.</span>
-                    ) : null}
-                  </label>
-                  <label>
-                    Fonction
-                    <input
-                      type="text"
-                      name="participant_job_title"
-                      value={memberForm.job_title}
-                      onChange={(e) => setMemberForm((prev) => ({ ...prev, job_title: e.target.value }))}
-                      placeholder="Ex: Product Manager"
-                      autoComplete="off"
-                    />
-                  </label>
-                  <label>
-                    Département
-                    <input
-                      type="text"
-                      name="participant_department"
-                      value={memberForm.department}
-                      onChange={(e) => setMemberForm((prev) => ({ ...prev, department: e.target.value }))}
-                      placeholder="Ex: RH"
-                      autoComplete="off"
-                    />
-                  </label>
-                </div>
-                <p className="participant-form-hint">Les champs marqués * sont requis pour créer un profil exploitable en session.</p>
-                {memberFormStatus ? (
-                  <p className={`participant-form-status ${memberFormStatus.includes('succès') || memberFormStatus.includes('créé') ? 'participant-form-status--ok' : 'participant-form-status--warn'}`}>
-                    {memberFormStatus}
-                  </p>
-                ) : null}
-                <div className="participant-form-actions">
-                  <button type="button" className="btn-secondary" onClick={resetMemberForm} disabled={creatingMember}>
-                    Annuler
-                  </button>
-                  <button type="submit" className="btn-primary" disabled={!canSubmitMember}>
-                    {creatingMember
-                      ? (editingMemberId ? 'Mise à jour...' : 'Ajout en cours...')
-                      : (editingMemberId ? 'Enregistrer' : 'Ajouter un participant')}
-                  </button>
-                </div>
-              </form>
-            </article>
-          ) : null}
+          <div className="participants-panel-kpis" aria-label="Synthèse participants">
+            <span>{members.length} participant{members.length > 1 ? 's' : ''} au total</span>
+            <span>{members.filter((member) => String(member.email || '').trim()).length} avec email renseigné</span>
+          </div>
 
           {loadingMembers ? <p>Chargement des participants...</p> : null}
 
@@ -959,7 +816,7 @@ export default function ManagerHome() {
           ) : null}
 
           {!loadingMembers && members.length > 0 ? (
-            <ul className="session-list">
+            <ul className="session-list manager-member-list">
               {members.map((member) => {
                 const title = [getParticipantFirstName(member), getParticipantLastName(member)].filter(Boolean).join(' ').trim() || `Participant #${member.id}`;
                 const details = [member.job_title, member.department].filter(Boolean).join(' · ');
@@ -1001,6 +858,158 @@ export default function ManagerHome() {
           ) : null}
         </section>
       </main>
+      <Modal
+        open={isParticipantModalOpen}
+        title={editingMemberId ? 'Modifier un participant' : 'Créer un participant'}
+        onClose={closeParticipantModal}
+      >
+        <div className="participant-modal-body">
+          <article className="participant-inline-form participant-inline-form--modal">
+            <div className="participant-inline-form-head">
+              <p className="eyebrow">{editingMemberId ? 'MODIFIER PARTICIPANT' : 'NOUVEAU PARTICIPANT'}</p>
+              <h3>{editingMemberId ? 'Mettre à jour le profil' : 'Créer un participant'}</h3>
+              <p>
+                {editingMemberId
+                  ? 'Modifiez les informations du participant sélectionné.'
+                  : 'Ajoutez un participant pour l’assigner ensuite à vos sessions.'}
+              </p>
+            </div>
+
+            <form
+              className="participant-form participant-form--embedded"
+              onSubmit={handleSubmitMember}
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
+            >
+              {/* Decoy fields: capture aggressive browser/password-manager autofill. */}
+              <input
+                type="text"
+                name="participant_decoy_username"
+                autoComplete="username"
+                tabIndex={-1}
+                aria-hidden="true"
+                style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
+              />
+              <input
+                type="password"
+                name="participant_decoy_password"
+                autoComplete="current-password"
+                tabIndex={-1}
+                aria-hidden="true"
+                style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
+              />
+              <div className="participant-form-grid">
+                <label>
+                  Prénom *
+                  <input
+                    type="text"
+                    name="participant_first_name"
+                    value={memberForm.first_name}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))}
+                    placeholder="Ex: Sophie"
+                    className={formAttempted && !memberFormChecks.firstNameOk ? 'input-invalid' : ''}
+                    autoComplete="off"
+                    required
+                  />
+                  {formAttempted && !memberFormChecks.firstNameOk ? (
+                    <span className="field-error">Le prénom est requis.</span>
+                  ) : null}
+                </label>
+                <label>
+                  Nom
+                  <input
+                    type="text"
+                    name="participant_last_name"
+                    value={memberForm.last_name}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, last_name: e.target.value }))}
+                    placeholder="Ex: Martin"
+                    autoComplete="off"
+                  />
+                </label>
+                <label className="participant-field-full">
+                  Email *
+                  <input
+                    type="email"
+                    name="participant_contact_email"
+                    value={memberForm.email}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
+                    placeholder="sophie@entreprise.com"
+                    className={formAttempted && !memberFormChecks.emailOk ? 'input-invalid' : ''}
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    required
+                  />
+                  {formAttempted && !memberFormChecks.emailOk ? (
+                    <span className="field-error">L'email est requis.</span>
+                  ) : null}
+                </label>
+                <label className="participant-field-full">
+                  Mot de passe {editingMemberId ? '(optionnel)' : '*'}
+                  <input
+                    type="password"
+                    name="participant_access_password"
+                    value={memberForm.password}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
+                    placeholder={editingMemberId ? 'Laisser vide pour conserver le mot de passe actuel' : 'Minimum 8 caractères'}
+                    minLength={8}
+                    className={formAttempted && !memberFormChecks.passwordOk ? 'input-invalid' : ''}
+                    autoComplete="new-password"
+                    required={!editingMemberId}
+                  />
+                  {!editingMemberId ? (
+                    <span className="field-help">{memberFormChecks.passwordLength}/8 caractères minimum</span>
+                  ) : (
+                    <span className="field-help">Renseignez ce champ uniquement pour remplacer le mot de passe actuel.</span>
+                  )}
+                  {formAttempted && !memberFormChecks.passwordOk ? (
+                    <span className="field-error">Le mot de passe doit contenir au moins 8 caractères.</span>
+                  ) : null}
+                </label>
+                <label>
+                  Fonction
+                  <input
+                    type="text"
+                    name="participant_job_title"
+                    value={memberForm.job_title}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, job_title: e.target.value }))}
+                    placeholder="Ex: Product Manager"
+                    autoComplete="off"
+                  />
+                </label>
+                <label>
+                  Département
+                  <input
+                    type="text"
+                    name="participant_department"
+                    value={memberForm.department}
+                    onChange={(e) => setMemberForm((prev) => ({ ...prev, department: e.target.value }))}
+                    placeholder="Ex: RH"
+                    autoComplete="off"
+                  />
+                </label>
+              </div>
+              <p className="participant-form-hint">Les champs marqués * sont requis pour créer un profil exploitable en session.</p>
+              {memberFormStatus ? (
+                <p className={`participant-form-status ${memberFormStatus.includes('succès') || memberFormStatus.includes('créé') ? 'participant-form-status--ok' : 'participant-form-status--warn'}`}>
+                  {memberFormStatus}
+                </p>
+              ) : null}
+              <div className="participant-form-actions">
+                <button type="button" className="btn-secondary" onClick={closeParticipantModal} disabled={creatingMember}>
+                  Annuler
+                </button>
+                <button type="submit" className="btn-primary" disabled={!canSubmitMember}>
+                  {creatingMember
+                    ? (editingMemberId ? 'Mise à jour...' : 'Ajout en cours...')
+                    : (editingMemberId ? 'Enregistrer' : 'Ajouter un participant')}
+                </button>
+              </div>
+            </form>
+          </article>
+        </div>
+      </Modal>
       <Footer />
     </>
   );

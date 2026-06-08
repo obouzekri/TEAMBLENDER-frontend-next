@@ -53,6 +53,18 @@
   font-size: 0.9rem;
 }
 
+.playersLine {
+  margin: 0.4rem 0 0;
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  background: rgba(15, 23, 42, 0.52);
+  color: #dbeafe;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.28rem 0.62rem;
+}
+
 .closeButton {
   border: 1px solid rgba(148, 163, 184, 0.32);
   background: rgba(15, 23, 42, 0.68);

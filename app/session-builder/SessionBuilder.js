@@ -28,6 +28,13 @@ const PIXEL_ARCHITECT_CATALOG_ENTRY = {
   tags: ['Voxel', 'Collaboration', 'Temps limité'],
   description: 'Construire une structure 3D en cubes sous contraintes de temps, ressources et communication.',
   engine_key: 'pixel_architect_v1',
+  engine_config: {
+    participants: {
+      min_count: 3,
+      recommended_count: 6,
+      max_count: 12,
+    },
+  },
   config: {
     mode: 'replication',
     collaborationMode: 'standard',
@@ -60,6 +67,13 @@ const THE_QUIZ_CATALOG_ENTRY = {
   tags: ['Quiz', 'Culture générale', 'Realtime', 'Leaderboard'],
   description: 'Quiz de culture générale compétitif et synchronisé en temps réel pour toute la session.',
   engine_key: 'the_quiz_v1',
+  engine_config: {
+    participants: {
+      min_count: 4,
+      recommended_count: 8,
+      max_count: 30,
+    },
+  },
   config: {
     preset: 'medium',
     question_count: 9,

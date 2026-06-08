@@ -6698,6 +6698,81 @@ a {
   box-shadow: 0 14px 32px rgba(30, 41, 78, 0.1);
 }
 
+.manager-onboarding-panel {
+  border: 1px solid rgba(53, 160, 255, 0.24);
+  border-radius: 18px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.99) 0%, rgba(238, 245, 255, 0.94) 100%);
+  box-shadow: 0 14px 34px rgba(30, 41, 78, 0.11);
+}
+
+.manager-onboarding-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.manager-onboarding-step {
+  padding: 1.1rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(53, 160, 255, 0.22);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.98) 0%, rgba(234, 243, 255, 0.92) 100%);
+  box-shadow: 0 10px 22px rgba(30, 41, 78, 0.08);
+  display: grid;
+  gap: 0.68rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.manager-onboarding-step:hover {
+  transform: translateY(-2px);
+  border-color: rgba(122, 92, 255, 0.36);
+  box-shadow: 0 15px 28px rgba(30, 41, 78, 0.12);
+}
+
+.manager-onboarding-step h3 {
+  margin: 0;
+}
+
+.manager-onboarding-step p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.manager-onboarding-step__badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.3rem 0.62rem;
+  background: rgba(53, 160, 255, 0.16);
+  border: 1px solid rgba(53, 160, 255, 0.28);
+  color: #274983;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.manager-onboarding-step__cta {
+  width: fit-content;
+  margin-top: 0.2rem;
+}
+
+.participants-panel-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.participants-panel-kpis span {
+  border: 1px solid rgba(53, 160, 255, 0.22);
+  border-radius: 999px;
+  padding: 0.32rem 0.66rem;
+  background: rgba(236, 244, 255, 0.78);
+  color: #274983;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
 .panel-head {
   border-bottom: 1px solid rgba(53, 160, 255, 0.22);
 }
@@ -6734,6 +6809,30 @@ a {
   border-bottom: 1px solid rgba(53, 160, 255, 0.2);
 }
 
+.participant-modal-body {
+  max-height: min(78vh, 780px);
+  overflow-y: auto;
+  padding-right: 0.15rem;
+}
+
+.participant-modal-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.participant-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(122, 92, 255, 0.34);
+  border-radius: 999px;
+}
+
+.participant-inline-form--modal {
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0.2rem 0.15rem 0.15rem;
+  background: transparent;
+}
+
 .participant-form input,
 .team-toolbar input {
   border: 1.5px solid rgba(53, 160, 255, 0.3);
@@ -6757,6 +6856,11 @@ a {
   color: #2d45c9;
   background: rgba(231, 238, 255, 0.88);
   box-shadow: 0 8px 16px rgba(30, 41, 78, 0.14);
+}
+
+.manager-member-list .team-member-item {
+  border: 1px solid rgba(53, 160, 255, 0.2);
+  box-shadow: 0 8px 18px rgba(30, 41, 78, 0.07);
 }
 
 .auth-page,
