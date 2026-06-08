@@ -11,11 +11,11 @@
 
 .dialog {
   width: min(680px, 100%);
-  border-radius: var(--radius-xl, 28px);
-  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--card) 98%, #fff) 0%, color-mix(in srgb, var(--bg-soft) 28%, #fff) 100%);
-  box-shadow: var(--shadow-lg, 0 22px 44px rgba(15, 23, 42, 0.14));
-  padding: var(--space-5, 1.25rem);
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(28, 39, 68, 0.16);
+  padding: 1.02rem 1.02rem 0.86rem;
   animation: ui-fade-in-up var(--motion-medium) var(--ease-standard) both;
 }
 
@@ -24,22 +24,32 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--space-3, 0.75rem);
-  margin-bottom: var(--space-3, 0.75rem);
+  margin-bottom: 0.42rem;
 }
 
 .title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--ink);
 }
 
 .close {
-  border: 1px solid color-mix(in srgb, var(--line) 88%, transparent);
-  background: rgba(255, 255, 255, 0.84);
-  color: var(--ink-soft);
+  border: 1px solid color-mix(in srgb, var(--line) 56%, transparent);
+  background: rgba(245, 248, 255, 0.82);
+  color: color-mix(in srgb, var(--ink-soft) 88%, #687386);
   border-radius: 999px;
-  width: 2rem;
-  height: 2rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  line-height: 1;
+  font-size: 1.1rem;
   cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.close:hover {
+  border-color: color-mix(in srgb, var(--line) 74%, #8ea2c7);
+  background: rgba(236, 242, 252, 0.92);
+  color: color-mix(in srgb, var(--ink) 86%, #506287);
 }

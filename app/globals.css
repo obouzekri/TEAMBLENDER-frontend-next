@@ -6812,16 +6812,23 @@ a {
 .participant-modal-body {
   max-height: min(78vh, 780px);
   overflow-y: auto;
-  padding-right: 0.15rem;
+  padding: 0;
+  margin-right: -0.1rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 138, 168, 0.34) transparent;
 }
 
 .participant-modal-body::-webkit-scrollbar {
-  width: 10px;
+  width: 7px;
 }
 
 .participant-modal-body::-webkit-scrollbar-thumb {
-  background: rgba(122, 92, 255, 0.34);
+  background: rgba(120, 138, 168, 0.34);
   border-radius: 999px;
+}
+
+.participant-modal-body::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .participant-inline-form--modal {
@@ -6829,8 +6836,88 @@ a {
   border: 0;
   box-shadow: none;
   border-radius: 0;
-  padding: 0.2rem 0.15rem 0.15rem;
+  padding: 0.55rem 0.45rem 0.25rem;
   background: transparent;
+  gap: 1.28rem;
+}
+
+.participant-inline-form--modal .participant-inline-form-head {
+  padding: 0.2rem 0.28rem 1rem;
+  border-bottom: 1px solid rgba(126, 151, 194, 0.26);
+}
+
+.participant-inline-form--modal .participant-inline-form-head h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 640;
+  letter-spacing: -0.01em;
+  color: #1f2b45;
+}
+
+.participant-inline-form--modal .participant-inline-form-head p {
+  margin: 0.42rem 0 0;
+  color: #62708b;
+  font-size: 0.88rem;
+  line-height: 1.52;
+}
+
+.participant-inline-form--modal .participant-form {
+  gap: 1.08rem;
+}
+
+.participant-inline-form--modal .participant-form-grid {
+  gap: 1.02rem 0.86rem;
+}
+
+.participant-inline-form--modal .participant-form label {
+  gap: 0.42rem;
+  font-weight: 540;
+  font-size: 0.86rem;
+  color: #41506a;
+}
+
+.participant-inline-form--modal .participant-form input {
+  min-height: 40px;
+  border-width: 1px;
+  border-color: rgba(126, 151, 194, 0.42);
+  border-radius: 12px;
+  padding: 0.54rem 0.72rem;
+  background: #fff;
+}
+
+.participant-inline-form--modal .participant-form input::placeholder {
+  color: #9aa6ba;
+  font-weight: 400;
+}
+
+.participant-inline-form--modal .participant-form input:focus {
+  border-color: rgba(88, 125, 204, 0.72);
+  box-shadow: 0 0 0 3px rgba(117, 143, 195, 0.16);
+}
+
+.participant-inline-form--modal .field-help {
+  color: #7b879b;
+  font-size: 0.75rem;
+}
+
+.participant-inline-form--modal .field-error {
+  font-size: 0.75rem;
+  font-weight: 620;
+}
+
+.participant-inline-form--modal .participant-form-hint,
+.participant-inline-form--modal .participant-form-status {
+  margin-top: 0.2rem;
+}
+
+.participant-inline-form--modal .participant-form-actions {
+  position: sticky;
+  bottom: 0;
+  margin-top: 0.2rem;
+  padding: 0.85rem 0.1rem 0.12rem;
+  border-top: 1px solid rgba(126, 151, 194, 0.24);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.97) 24%, #ffffff 100%);
+  backdrop-filter: blur(1px);
 }
 
 .participant-form input,

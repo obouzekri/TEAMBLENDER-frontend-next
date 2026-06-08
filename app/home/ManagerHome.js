@@ -866,7 +866,6 @@ export default function ManagerHome() {
         <div className="participant-modal-body">
           <article className="participant-inline-form participant-inline-form--modal">
             <div className="participant-inline-form-head">
-              <p className="eyebrow">{editingMemberId ? 'MODIFIER PARTICIPANT' : 'NOUVEAU PARTICIPANT'}</p>
               <h3>{editingMemberId ? 'Mettre à jour le profil' : 'Créer un participant'}</h3>
               <p>
                 {editingMemberId
@@ -1003,7 +1002,7 @@ export default function ManagerHome() {
                 <button type="submit" className="btn-primary" disabled={!canSubmitMember}>
                   {creatingMember
                     ? (editingMemberId ? 'Mise à jour...' : 'Ajout en cours...')
-                    : (editingMemberId ? 'Enregistrer' : 'Ajouter un participant')}
+                    : (editingMemberId ? 'Enregistrer les changements' : 'Créer le participant')}
                 </button>
               </div>
             </form>
