@@ -10,20 +10,6 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import styles from './VraiOuMensonge.module.css';
 
-function phaseLabel(phase) {
-  const labels = {
-    waiting_start: 'En attente',
-    selecting_statement: 'Choix de l affirmation',
-    voting_open: 'Votes ouverts',
-    reveal_pending: 'Révélation',
-    round_result: 'Résultat du tour',
-    next_turn: 'Tour suivant',
-    finished: 'Partie terminée',
-    paused_poseur_disconnect: 'Pause (poseur déconnecté)'
-  };
-  return labels[String(phase || '')] || 'Phase inconnue';
-}
-
 function formatSeconds(ms) {
   const raw = Number(ms || 0);
   const total = Number.isFinite(raw) ? Math.max(0, Math.ceil(raw / 1000)) : 0;
@@ -45,8 +31,59 @@ function isEmailLike(value) {
   return normalizeName(value).includes('@');
 }
 
+function sanitizeChoiceText(value) {
+  return String(value || '')
+    .trim()
+    .replace(/[.?!]+$/g, '')
+    .trim();
+}
+
+function parseStatementChoices(rawText) {
+  const text = String(rawText || '').trim();
+  if (!text.includes('/')) return null;
+
+  const slashParts = text
+    .split('/')
+    .map((item) => String(item || '').trim())
+    .filter(Boolean);
+
+  if (slashParts.length < 2) return null;
+
+  const firstPart = slashParts[0];
+  let prompt = '';
+  let firstOption = '';
+  let hasColon = false;
+
+  if (firstPart.includes(':')) {
+    const [left, ...rest] = firstPart.split(':');
+    prompt = String(left || '').trim();
+    firstOption = String(rest.join(':') || '').trim();
+    hasColon = true;
+  } else {
+    const words = firstPart.split(/\s+/).filter(Boolean);
+    if (words.length < 2) return null;
+    prompt = words.slice(0, -1).join(' ').trim();
+    firstOption = words[words.length - 1] || '';
+  }
+
+  const optionList = [firstOption, ...slashParts.slice(1)]
+    .map((item) => sanitizeChoiceText(item))
+    .filter(Boolean)
+    .filter((item, index, array) => array.findIndex((candidate) => candidate.toLowerCase() === item.toLowerCase()) === index);
+
+  const cleanPrompt = sanitizeChoiceText(prompt);
+  if (!cleanPrompt || optionList.length < 2) return null;
+
+  return {
+    prompt: cleanPrompt,
+    options: optionList,
+    hasColon
+  };
+}
+
 export default function VraiOuMensongeChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedStatementId, setSelectedStatementId] = useState('');
+  const [selectedChoicesByStatementId, setSelectedChoicesByStatementId] = useState({});
   const [revealTruth, setRevealTruth] = useState('vrai');
   const [nowMs, setNowMs] = useState(Date.now());
   const [clickedStatementId, setClickedStatementId] = useState('');
@@ -148,6 +185,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }, [vom, poserId]);
 
   const myVote = String(currentTurn?.votes?.[me] || '');
+  const selectedStatement = useMemo(
+    () => catalog.find((item) => String(item?.id || '') === String(selectedStatementId || '')) || null,
+    [catalog, selectedStatementId]
+  );
+  const selectedStatementChoices = useMemo(
+    () => parseStatementChoices(selectedStatement?.text || ''),
+    [selectedStatement]
+  );
+  const selectedStatementOption = String(selectedChoicesByStatementId[selectedStatementId] || '');
   const rulesContent = useMemo(
     () => resolveChallengeRules(state?.config || runtimePayload?.config),
     [runtimePayload?.config, state?.config]
@@ -262,8 +308,12 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
   function confirmStatement() {
     if (!selectedStatementId) return;
+    if (selectedStatementChoices && !selectedStatementOption) return;
     playLightTone('default');
-    emitEvent('vom.select_statement', { statement_id: selectedStatementId });
+    emitEvent('vom.select_statement', {
+      statement_id: selectedStatementId,
+      selected_option: selectedStatementChoices ? selectedStatementOption : undefined
+    });
   }
 
   function vote(v) {
@@ -282,12 +332,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <span className={styles.headerTitle}>Pari sur moi !</span>
           <span className={styles.headerSeparator}>-</span>
           <span className={styles.headerDescription}>DEVINEZ LE VRAI DU FAUX ET DÉCOUVREZ VOTRE ÉQUIPE AUTREMENT</span>
-          {phase !== 'waiting_start' ? (
-            <>
-              <span className={styles.headerSeparator}>-</span>
-              <span className={styles.headerDescription}>Live : {phaseLabel(phase)}</span>
-            </>
-          ) : null}
         </div>
       </header>
 
@@ -329,6 +373,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   {catalog.map((statement) => {
                     const disabled = usedByPoser.has(String(statement.id));
                     const selected = selectedStatementId === String(statement.id);
+                    const parsedChoices = parseStatementChoices(statement.text);
+                    const pickedChoice = String(selectedChoicesByStatementId[String(statement.id)] || '');
                     return (
                       <button
                         key={statement.id}
@@ -343,18 +389,58 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                         }}
                       >
                         <span className={styles.category}>{statement.category}</span>
-                        <span>{statement.text}</span>
+                        {parsedChoices ? (
+                          <>
+                            <span className={styles.statementPrompt}>
+                              {parsedChoices.prompt}{parsedChoices.hasColon ? ':' : ''}
+                            </span>
+                            <span className={styles.statementOptionsPreview}>
+                              {parsedChoices.options.join(' / ')}
+                            </span>
+                            {selected && pickedChoice ? <small>Option choisie: {pickedChoice}</small> : null}
+                          </>
+                        ) : (
+                          <span>{statement.text}</span>
+                        )}
                         {selected ? <span className={styles.selectedMark}>Selectionnee</span> : null}
                         {disabled ? <small>Déjà utilisée par vous</small> : null}
                       </button>
                     );
                   })}
                 </div>
+                {selectedStatementChoices ? (
+                  <div className={styles.choicePanel}>
+                    <p className={styles.choicePanelTitle}>
+                      {selectedStatementChoices.prompt}{selectedStatementChoices.hasColon ? ':' : ''}
+                    </p>
+                    <div className={styles.choiceButtonsWrap}>
+                      {selectedStatementChoices.options.map((option) => {
+                        const active = selectedStatementOption.toLowerCase() === option.toLowerCase();
+                        return (
+                          <button
+                            key={option}
+                            type="button"
+                            className={`${styles.choiceOptionBtn}${active ? ` ${styles.choiceOptionBtnActive}` : ''}`}
+                            onClick={() => {
+                              setSelectedChoicesByStatementId((prev) => ({
+                                ...prev,
+                                [selectedStatementId]: option
+                              }));
+                              playLightTone('default');
+                            }}
+                          >
+                            {option}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
                 <div className={styles.stickyCtaWrap}>
                   <button
                     type="button"
                     className={`${styles.primaryBtn} ${styles.stickyCtaBtn}`}
-                    disabled={!selectedStatementId}
+                    disabled={!selectedStatementId || (selectedStatementChoices ? !selectedStatementOption : false)}
                     onClick={confirmStatement}
                   >
                     Confirmer ma sélection
@@ -501,31 +587,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 <div key={entry.participant_id} className={styles.resultRow}>
                   <span>#{entry.rank} {participantName(entry.participant_id)}</span>
                   <span>{entry.score} pts {entry.tie ? '(ex-aequo)' : ''}</span>
-                </div>
-              ))}
-            </div>
-            <p className={styles.helper}>Action de sortie: retour à l espace participant.</p>
-            <a className={styles.primaryBtn} href={`/participant?sessionId=${encodeURIComponent(String(context?.sessionId || runtimePayload?.session_id || ''))}`}>
-              Sortir du challenge
-            </a>
-          </section>
-        ) : null}
-
-        {phase === 'finished' && currentTurn?.result ? (
-          <section className={styles.card}>
-            <h2>Dernier état du jeu</h2>
-            <p className={styles.wowText}>
-              Affirmation: <strong>{currentTurn.result.statement_text || '-'}</strong>
-            </p>
-            <p className={styles.wowText}>
-              Vérité révélée: <strong>{String(currentTurn.result.truth || '-')}</strong>
-            </p>
-            <div className={styles.resultList}>
-              {(currentTurn.result.votes || []).map((item) => (
-                <div key={`finished-${item.participant_id}`} className={styles.resultRow}>
-                  <span>{participantName(item.participant_id)}</span>
-                  <span>{item.status}</span>
-                  <span>+{item.points}</span>
                 </div>
               ))}
             </div>
