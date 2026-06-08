@@ -7,7 +7,6 @@ import GoogleAnalyticsProvider from './GoogleAnalyticsProvider';
 import PostHogProvider from './PostHogProvider';
 import {
   getStoredConsentState,
-  hasAnalyticsConsent,
   subscribeConsentChanges,
 } from '@/lib/consent';
 import { loadGtmContainer, unloadGtmContainer, hasTrackingStackConfigured } from '@/lib/analytics';
@@ -26,7 +25,8 @@ export default function TrackingConsentGate({ children }) {
   }, []);
 
   useEffect(() => {
-    if (hasAnalyticsConsent()) {
+    const isGranted = consentState?.decision === 'granted';
+    if (isGranted) {
       loadGtmContainer();
       return;
     }
@@ -34,7 +34,7 @@ export default function TrackingConsentGate({ children }) {
     unloadGtmContainer();
   }, [consentState]);
 
-  const shouldRenderTracking = hasAnalyticsConsent();
+  const shouldRenderTracking = consentState?.decision === 'granted';
   const shouldRenderBanner = hasTrackingStackConfigured() && !shouldRenderTracking;
 
   return (
