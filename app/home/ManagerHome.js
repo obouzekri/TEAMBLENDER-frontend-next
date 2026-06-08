@@ -141,6 +141,7 @@ async function fetchSessions(token) {
 }
 
 export default function ManagerHome() {
+  const [showStartupGuide, setShowStartupGuide] = useState(false);
   const guard = useManagerGuard();
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
   const [sessions, setSessions] = useState([]);
@@ -358,6 +359,19 @@ export default function ManagerHome() {
     const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`;
     window.history.replaceState({}, '', nextUrl);
   }, [guard.allowed, loadingMembers, members.length]);
+
+  useEffect(() => {
+    if (!guard.allowed || !guard.user?.id) return;
+    const storageKey = `manager-home-startup-guide-seen:${guard.user.id}`;
+    const alreadySeen = String(localStorage.getItem(storageKey) || '').trim() === '1';
+    if (alreadySeen) {
+      setShowStartupGuide(false);
+      return;
+    }
+
+    localStorage.setItem(storageKey, '1');
+    setShowStartupGuide(true);
+  }, [guard.allowed, guard.user?.id]);
 
   function logout() {
     localStorage.removeItem('jwt');
@@ -608,49 +622,69 @@ export default function ManagerHome() {
           </div>
         </section>
 
-        <section className="feature-card manager-onboarding-panel" aria-labelledby="onboarding-guide-title">
-          <div className="panel-head" style={{ alignItems: 'flex-start', gap: '1rem' }}>
-            <div>
-              <p className="eyebrow">GUIDE DE DÉMARRAGE</p>
-              <h2 id="onboarding-guide-title">Créez votre première session en 3 étapes</h2>
-              <p>Le parcours reste simple: préparer la base participants, configurer la session, puis lancer le challenge.</p>
+        {showStartupGuide ? (
+          <section className="feature-card manager-onboarding-panel" aria-labelledby="onboarding-guide-title">
+            <div className="manager-onboarding-shell">
+              <div className="manager-onboarding-hero">
+                <div>
+                  <p className="eyebrow">GUIDE DE DÉMARRAGE</p>
+                  <h2 id="onboarding-guide-title">Créez votre première session en 3 étapes</h2>
+                  <p>Le parcours reste simple: préparer la base participants, configurer la session, puis lancer le challenge.</p>
+                </div>
+                <div className="manager-onboarding-actions">
+                  <Link className="btn-primary" href="/session-builder">
+                    Ouvrir le configurateur
+                  </Link>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setShowStartupGuide(false)}
+                  >
+                    Fermer
+                  </button>
+                </div>
+              </div>
+
+              <div className="manager-onboarding-grid">
+                {[
+                  {
+                    step: '1',
+                    title: 'Ajouter les participants',
+                    text: 'Créez votre base de participants pour repartir sur des ateliers plus rapides et plus propres.',
+                    href: '/home#home-participants-block',
+                    cta: 'Aller à cette étape'
+                  },
+                  {
+                    step: '2',
+                    title: 'Configurer la session',
+                    text: 'Choisissez le challenge, la modalité et les paramètres utiles avant le lancement.',
+                    href: '/session-builder',
+                    cta: 'Aller à cette étape'
+                  },
+                  {
+                    step: '3',
+                    title: 'Lancer le challenge',
+                    text: 'Démarrez la session, gardez le rythme et terminez avec un débrief exploitable.',
+                    href: '/session-builder',
+                    cta: 'Aller à cette étape'
+                  }
+                ].map((item) => (
+                  <article key={item.step} className="card manager-onboarding-step">
+                    <div className="manager-onboarding-step__head">
+                      <span className="manager-onboarding-step__badge">Étape {item.step}</span>
+                      <span className="manager-onboarding-step__index">0{item.step}</span>
+                    </div>
+                    <h3>{item.title}</h3>
+                    <p>{item.text}</p>
+                    <Link className="btn-secondary manager-onboarding-step__cta" href={item.href}>
+                      {item.cta}
+                    </Link>
+                  </article>
+                ))}
+              </div>
             </div>
-            <Link className="btn-secondary" href="/session-builder">
-              Ouvrir le configurateur
-            </Link>
-          </div>
-          <div className="manager-onboarding-grid">
-            {[
-              {
-                step: '1',
-                title: 'Ajouter les participants',
-                text: 'Créez votre base de participants pour repartir sur des ateliers plus rapides et plus propres.',
-                href: '/home#home-participants-block'
-              },
-              {
-                step: '2',
-                title: 'Configurer la session',
-                text: 'Choisissez le challenge, la modalité et les paramètres utiles avant le lancement.',
-                href: '/session-builder'
-              },
-              {
-                step: '3',
-                title: 'Lancer le challenge',
-                text: 'Démarrez la session, gardez le rythme et terminez avec un débrief exploitable.',
-                href: '/session-builder'
-              }
-            ].map((item) => (
-              <article key={item.step} className="card manager-onboarding-step">
-                <span className="manager-onboarding-step__badge">Étape {item.step}</span>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-                <Link className="btn-secondary manager-onboarding-step__cta" href={item.href}>
-                  Aller à cette étape
-                </Link>
-              </article>
-            ))}
-          </div>
-        </section>
+          </section>
+        ) : null}
 
         <section className="cards-grid" aria-label="Statistiques sessions">
           <article className="feature-card stat-card stat-card-live">

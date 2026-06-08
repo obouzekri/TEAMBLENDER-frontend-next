@@ -6699,21 +6699,46 @@ a {
 }
 
 .manager-onboarding-panel {
+  position: relative;
+  overflow: hidden;
   border: 1px solid rgba(53, 160, 255, 0.24);
-  border-radius: 18px;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.99) 0%, rgba(238, 245, 255, 0.94) 100%);
-  box-shadow: 0 14px 34px rgba(30, 41, 78, 0.11);
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(53, 160, 255, 0.16) 0%, rgba(53, 160, 255, 0) 52%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.995) 0%, rgba(238, 245, 255, 0.95) 100%);
+  box-shadow: 0 18px 42px rgba(30, 41, 78, 0.12);
+}
+
+.manager-onboarding-shell {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.manager-onboarding-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid rgba(53, 160, 255, 0.16);
+}
+
+.manager-onboarding-actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .manager-onboarding-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
-  margin-top: 1rem;
 }
 
 .manager-onboarding-step {
-  padding: 1.1rem 1rem;
+  position: relative;
+  padding: 1.15rem 1rem;
   border-radius: 16px;
   border: 1px solid rgba(53, 160, 255, 0.22);
   background: linear-gradient(155deg, rgba(255, 255, 255, 0.98) 0%, rgba(234, 243, 255, 0.92) 100%);
@@ -6731,6 +6756,13 @@ a {
 
 .manager-onboarding-step h3 {
   margin: 0;
+}
+
+.manager-onboarding-step__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .manager-onboarding-step p {
@@ -6752,9 +6784,27 @@ a {
   letter-spacing: 0.03em;
 }
 
+.manager-onboarding-step__index {
+  font-size: 1.35rem;
+  line-height: 1;
+  font-weight: 800;
+  color: rgba(39, 73, 131, 0.24);
+}
+
 .manager-onboarding-step__cta {
   width: fit-content;
   margin-top: 0.2rem;
+}
+
+@media (max-width: 760px) {
+  .manager-onboarding-hero {
+    flex-direction: column;
+  }
+
+  .manager-onboarding-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 .participants-panel-kpis {
