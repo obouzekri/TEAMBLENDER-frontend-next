@@ -190,6 +190,146 @@ function toParticipantLabel(value, fallback = 'Participant') {
   return `${first} ${last}`;
 }
 
+function formatDurationLabel(totalSeconds) {
+  const safeSeconds = Math.max(0, Number(totalSeconds || 0));
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function getAudioContext() {
+  if (typeof window === 'undefined') return null;
+  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextCtor) return null;
+  return AudioContextCtor;
+}
+
+function playToneSequence(audioState, notes) {
+  const AudioContextCtor = getAudioContext();
+  if (!AudioContextCtor || !Array.isArray(notes) || notes.length === 0) return;
+
+  if (!audioState.context) {
+    audioState.context = new AudioContextCtor();
+  }
+
+  const ctx = audioState.context;
+  if (!ctx) return;
+  if (ctx.state === 'suspended') {
+    ctx.resume().catch(() => {});
+  }
+
+  let startAt = ctx.currentTime + 0.02;
+  notes.forEach((note) => {
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.type = note.type || 'sine';
+    oscillator.frequency.value = Number(note.frequency || note.freq || 440);
+    if (Number.isFinite(Number(note.detune))) {
+      oscillator.detune.value = Number(note.detune);
+    }
+    gainNode.gain.setValueAtTime(0.0001, startAt);
+    gainNode.gain.exponentialRampToValueAtTime(Math.max(0.0001, Number(note.gain || 0.05)), startAt + 0.02);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, startAt + Math.max(0.06, Number(note.duration || 0.18)));
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    oscillator.start(startAt);
+    oscillator.stop(startAt + Math.max(0.08, Number(note.duration || 0.18)) + 0.03);
+    oscillator.onended = () => {
+      try { oscillator.disconnect(); } catch {}
+      try { gainNode.disconnect(); } catch {}
+    };
+    startAt += Math.max(0.12, Number(note.duration || 0.18) + Number(note.gap || 0.04));
+  });
+}
+
+function startAmbientTrack(audioState) {
+  const AudioContextCtor = getAudioContext();
+  if (!AudioContextCtor) return false;
+
+  if (!audioState.context) {
+    audioState.context = new AudioContextCtor();
+  }
+
+  const ctx = audioState.context;
+  if (!ctx) return false;
+  if (ctx.state === 'suspended') {
+    ctx.resume().catch(() => {});
+  }
+  if (audioState.ambient) return true;
+
+  const master = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  master.gain.value = 0.0001;
+  filter.type = 'lowpass';
+  filter.frequency.value = 420;
+  filter.Q.value = 0.7;
+
+  const oscillators = [
+    { frequency: 92, type: 'sine', detune: 0 },
+    { frequency: 184, type: 'triangle', detune: -4 },
+    { frequency: 276, type: 'sine', detune: 6 },
+  ].map((config) => {
+    const oscillator = ctx.createOscillator();
+    oscillator.type = config.type;
+    oscillator.frequency.value = config.frequency;
+    oscillator.detune.value = config.detune;
+    oscillator.connect(filter);
+    oscillator.start();
+    return oscillator;
+  });
+
+  filter.connect(master);
+  master.connect(ctx.destination);
+  master.gain.setTargetAtTime(0.018, ctx.currentTime + 0.05, 0.22);
+
+  audioState.ambient = { master, filter, oscillators };
+  return true;
+}
+
+function stopAmbientTrack(audioState) {
+  const ambient = audioState.ambient;
+  if (!ambient) return;
+
+  const ctx = audioState.context;
+  if (ctx && ambient.master) {
+    ambient.master.gain.cancelScheduledValues(ctx.currentTime);
+    ambient.master.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.12);
+  }
+
+  window.setTimeout(() => {
+    (ambient.oscillators || []).forEach((oscillator) => {
+      try { oscillator.stop(); } catch {}
+      try { oscillator.disconnect(); } catch {}
+    });
+    try { ambient.filter.disconnect(); } catch {}
+    try { ambient.master.disconnect(); } catch {}
+    if (audioState.ambient === ambient) {
+      audioState.ambient = null;
+    }
+  }, 180);
+}
+
+function playLabyrintheCue(audioState, cueType) {
+  const cueMap = {
+    trap: [
+      { frequency: 154, duration: 0.14, gain: 0.05, type: 'square' },
+      { frequency: 96, duration: 0.24, gain: 0.055, type: 'sawtooth', gap: 0.05 },
+    ],
+    success: [
+      { frequency: 392, duration: 0.12, gain: 0.04, type: 'triangle' },
+      { frequency: 523, duration: 0.14, gain: 0.05, type: 'triangle' },
+      { frequency: 659, duration: 0.18, gain: 0.05, type: 'sine' },
+    ],
+    failure: [
+      { frequency: 196, duration: 0.16, gain: 0.05, type: 'sine' },
+      { frequency: 147, duration: 0.2, gain: 0.055, type: 'square', gap: 0.05 },
+      { frequency: 98, duration: 0.22, gain: 0.06, type: 'sawtooth' },
+    ],
+  };
+
+  playToneSequence(audioState, cueMap[cueType] || []);
+}
+
 export default function LabyrintheLive({ runtimePayload, socket, context, onChallengeCompleted }) {
   const [optimisticPos, setOptimisticPos] = useState(null);
   const [moveFeedback, setMoveFeedback] = useState('');
@@ -197,7 +337,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const [flashCellKey, setFlashCellKey] = useState('');
   const [flashCellTone, setFlashCellTone] = useState('');
   const [microCue, setMicroCue] = useState(null);
+  const [announcement, setAnnouncement] = useState(null);
   const microCueTimerRef = useRef(null);
+  const audioStateRef = useRef({ context: null, ambient: null });
+  const finalEventSignatureRef = useRef('');
   const {
     state,
     error,
@@ -213,6 +356,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const gridRef = useRef(null);
   const myParticipantState = laby?.parts?.[String(participantId)] || null;
   const isRespawning = myParticipantState?.solo?.choosing_start === true;
+  const hasSelectedStart = Boolean(myParticipantState?.solo?.ss) || Boolean(myParticipantState?.solo?.rg);
 
   const labyPhase = String(laby?.phase || '').trim();
   const canMoveSolo = !isFacilitator
@@ -244,25 +388,46 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     || timerStatus === 'timeout'
     || (Boolean(laby?.phase) && String(laby.phase).trim() !== 'setup');
 
-  const labyDebrief = useMemo(() => {
+  const labyFinalSummary = useMemo(() => {
     if (String(laby?.phase || '').trim() !== 'done') return null;
-    const winnerId = String(laby?.winner_participant_id || '').trim();
+
     const totalPlayers = participantEntries.length;
-    const alivePlayers = participantEntries.filter(([, participant]) => Number(participant?.lives_remaining || 0) > 0).length;
+    const totalTeamLivesRemaining = participantEntries.reduce(
+      (sum, [, participant]) => sum + Math.max(0, Number(participant?.lives_remaining || 0)),
+      0
+    );
+    const totalCasesTraversed = participantEntries.reduce((sum, [, participant]) => {
+      const pathLength = Array.isArray(participant?.solo?.path) ? participant.solo.path.length : 0;
+      return sum + Math.max(0, pathLength - 1);
+    }, 0);
+    const finalTimeSeconds = Math.max(0, Number(timer?.duration_seconds || 0) - Number(timer?.remaining_seconds || 0));
+    const finalTimeLabel = formatDurationLabel(finalTimeSeconds);
+    const rawStatus = String(laby?.result?.status || '').trim().toLowerCase();
+    const isSuccess = rawStatus === 'success' || Boolean(String(laby?.winner_participant_id || '').trim());
+    const finalStatusLabel = isSuccess ? 'Réussi' : 'Échoué';
+    const finalReason = String(laby?.result?.reason || '').trim().toLowerCase();
+    const summaryMessage = isSuccess
+      ? 'Victoire collective : toute l\'équipe a atteint la sortie.'
+      : finalReason === 'timeout'
+        ? 'Challenge perdu : le temps est écoulé.'
+        : 'Challenge perdu : toutes les vies ont été consommées.';
+
     return {
-      winnerId,
       totalPlayers,
-      alivePlayers,
-      moves: Number(laby?.col?.att || 0),
-      completed: winnerId.length > 0,
+      totalTeamLivesRemaining,
+      totalCasesTraversed,
+      finalTimeLabel,
+      finalStatusLabel,
+      isSuccess,
+      summaryMessage,
     };
-  }, [laby?.phase, laby?.winner_participant_id, laby?.col?.att, participantEntries]);
+  }, [laby?.phase, laby?.result?.status, laby?.result?.reason, laby?.winner_participant_id, participantEntries, timer?.duration_seconds, timer?.remaining_seconds]);
 
   const startCellKey = posKey(laby?.maze?.start);
   const endCellKey = posKey(laby?.maze?.end);
   const maze = laby?.maze || null;
-  const playerPosKey = posKey(myParticipantState?.solo?.pos);
-  const mySpawnKey = posKey(myParticipantState?.solo?.path?.[0]);
+  const playerPosKey = hasSelectedStart ? posKey(myParticipantState?.solo?.pos) : '';
+  const mySpawnKey = hasSelectedStart ? posKey(myParticipantState?.solo?.path?.[0]) : '';
   const mazeTrapKeys = useMemo(() => normalizeTrapKeys(maze?.traps), [maze?.traps]);
   const revealMazeTraps = isFacilitator || labyPhase === 'done';
   const allStartKeys = useMemo(() => {
@@ -348,6 +513,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       const dir = map[String(event.key || '').toLowerCase()] || map[event.key];
       if (!dir) return;
       event.preventDefault();
+      startAmbientTrack(audioStateRef.current);
       emitEvent('laby.solo.move', { dir });
     };
 
@@ -409,15 +575,32 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
       const outcome = String(payload?.outcome || '').trim();
       if (outcome === 'exit') {
+        playLabyrintheCue(audioStateRef.current, 'success');
+        stopAmbientTrack(audioStateRef.current);
+        setAnnouncement({
+          tone: 'success',
+          title: 'Félicitations ! Toute l\'équipe a réussi le Labyrinthe des Signaux.',
+          body: 'Le chrono s\'est arrêté automatiquement et le débrief collectif est prêt.',
+        });
         setMoveFeedback('Bravo ! Vous avez atteint la sortie.');
         setMoveFeedbackTone('success');
         showMicroCue(impactedCellKey || playerPosKey, 'success', '🏁 Sortie !');
         return;
       }
       if (outcome === 'trap') {
+        playLabyrintheCue(audioStateRef.current, 'trap');
         setMoveFeedback('💥 Piège déclenché : -1 vie');
         setMoveFeedbackTone('danger');
         showMicroCue(impactedCellKey, 'danger', '💥 Boom !', '−1 vie');
+        if (payload?.all_lost) {
+          playLabyrintheCue(audioStateRef.current, 'failure');
+          stopAmbientTrack(audioStateRef.current);
+          setAnnouncement({
+            tone: 'failure',
+            title: 'Challenge perdu ! Toutes les vies ont été consommées ou le temps est écoulé.',
+            body: 'Le labyrinthe est terminé.',
+          });
+        }
         return;
       }
       if (outcome === 'blocked') {
@@ -449,6 +632,43 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       socket.off('challenge:event', onChallengeEvent);
     };
   }, [socket, participantId, playerPosKey]);
+
+  useEffect(() => {
+    if (!hasChallengeStarted || labyPhase === 'done') {
+      stopAmbientTrack(audioStateRef.current);
+      return () => stopAmbientTrack(audioStateRef.current);
+    }
+
+    startAmbientTrack(audioStateRef.current);
+    return () => stopAmbientTrack(audioStateRef.current);
+  }, [hasChallengeStarted, labyPhase]);
+
+  useEffect(() => {
+    if (!labyFinalSummary || !laby?.result) return;
+
+    const signature = `${labyFinalSummary.finalStatusLabel}:${laby?.result?.reason || ''}:${laby?.winner_participant_id || ''}`;
+    if (finalEventSignatureRef.current === signature) return;
+    finalEventSignatureRef.current = signature;
+
+    if (labyFinalSummary.isSuccess) {
+      playLabyrintheCue(audioStateRef.current, 'success');
+      stopAmbientTrack(audioStateRef.current);
+      setAnnouncement({
+        tone: 'success',
+        title: 'Félicitations ! Toute l\'équipe a réussi le Labyrinthe des Signaux.',
+        body: 'Le chrono s\'est arrêté automatiquement et le débrief collectif est prêt.',
+      });
+      return;
+    }
+
+    playLabyrintheCue(audioStateRef.current, 'failure');
+    stopAmbientTrack(audioStateRef.current);
+    setAnnouncement({
+      tone: 'failure',
+      title: 'Challenge perdu ! Toutes les vies ont été consommées ou le temps est écoulé.',
+      body: 'Le débrief collectif montre le statut final du challenge.',
+    });
+  }, [labyFinalSummary, laby?.result, laby?.winner_participant_id]);
 
   const displayName = useMemo(() => {
     const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
@@ -482,6 +702,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     if (!canMoveDir) return;
     const touch = event.touches?.[0];
     if (!touch) return;
+    startAmbientTrack(audioStateRef.current);
     swipeStartRef.current = { x: touch.clientX, y: touch.clientY };
   }
 
@@ -499,14 +720,17 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
 
     if (Math.abs(dx) > Math.abs(dy)) {
+      startAmbientTrack(audioStateRef.current);
       emitEvent('laby.solo.move', { dir: dx > 0 ? 'E' : 'W' });
       return;
     }
+    startAmbientTrack(audioStateRef.current);
     emitEvent('laby.solo.move', { dir: dy > 0 ? 'S' : 'N' });
   }
 
   function handleCellClick(row, col) {
     if (!canMoveSolo) return;
+    startAmbientTrack(audioStateRef.current);
     const clickedKey = `${row},${col}`;
     const hasMovedAway = Array.isArray(myParticipantState?.solo?.path) && myParticipantState.solo.path.length > 1;
     if (allStartKeys.has(clickedKey) && (!hasMovedAway || isRespawning)) {
@@ -544,6 +768,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
   function moveByDirection(dir) {
     if (!canMoveDir) return;
+    startAmbientTrack(audioStateRef.current);
     emitEvent('laby.solo.move', { dir });
     if (gridRef.current && typeof gridRef.current.focus === 'function') {
       gridRef.current.focus();
@@ -568,7 +793,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               <ChallengeRulesPanel
                 isStarted={false}
                 isFacilitator={isFacilitator}
-                challengeName="Labyrinthe Live"
+                challengeName="Labyrinthe des Signaux"
+                briefTitle="Brief de la mission"
                 objective={rulesContent.objective}
                 facilitatorRules={rulesContent.facilitator}
                 participantRules={rulesContent.participant}
@@ -583,15 +809,14 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 <h2>Vue Facilitateur</h2>
                 <p className={styles.muted}>Mini-grilles de suivi par participant</p>
               </div>
-              {labyDebrief ? (
+              {labyFinalSummary ? (
                 <div className={styles.debriefCard}>
                   <h3>Debrief final</h3>
-                  <p>
-                    {labyDebrief.completed
-                      ? `Victoire de ${participantNameById[labyDebrief.winnerId] || `Participant ${labyDebrief.winnerId}`}.`
-                      : 'Echec collectif : aucun joueur n a atteint la sortie.'}
-                  </p>
-                  <p>Participants: {labyDebrief.totalPlayers} | Encore en vie: {labyDebrief.alivePlayers}</p>
+                  <p>{labyFinalSummary.summaryMessage}</p>
+                  <p>Vies restantes équipe : {labyFinalSummary.totalTeamLivesRemaining}</p>
+                  <p>Cases parcourues : {labyFinalSummary.totalCasesTraversed}</p>
+                  <p>Temps final : {labyFinalSummary.finalTimeLabel}</p>
+                  <p>Statut global : {labyFinalSummary.finalStatusLabel}</p>
                   {maze ? (
                     <div className={`${styles.miniGrid} ${colsClass} ${styles.solutionMiniGrid} ${styles.debriefMiniGrid}`}>
                       {Array.from({ length: mazeRows }).map((_, row) => (
@@ -612,7 +837,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                               {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>START</span> : null}
                               {key === endCellKey ? <span className={styles.cellExitBadge}>EXIT</span> : null}
                               {safePathKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>●</span> : null}
-                              {revealMazeTraps && mazeTrapKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
+                              {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                             </div>
                           );
                         })
@@ -657,7 +882,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                                 if (trapStatus === 'triggered') classes.push(styles.cellTrapTriggered);
                                 if (trapStatus === 'resolved') classes.push(styles.cellTrapResolved);
                               }
-                              if (key === playerPosKey) classes.push(styles.cellPlayer);
+                              if (hasSelectedStart && key === playerPosKey) classes.push(styles.cellPlayer);
                               if (hasChallengeStarted && allStartKeys.has(key)) classes.push(styles.cellStartGlow);
                               if (flashCellKey === key) classes.push(flashCellTone === 'blocked' ? styles.cellBlockedFlash : styles.cellTrapFlash);
                               return (
@@ -669,10 +894,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                                 >
                                   {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>D</span> : null}
                                   {key === endCellKey ? <span className={styles.cellExitBadge}>S</span> : null}
-                                  {revealMazeTraps && mazeTrapKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
+                                  {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                                   {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
                                   {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
-                                  {key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
+                                  {hasSelectedStart && key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
                                 </div>
                               );
                             })
@@ -696,15 +921,14 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
               {labyPhase === 'done' ? (
                 <>
-                  {labyDebrief ? (
+                  {labyFinalSummary ? (
                     <div className={styles.debriefCard}>
                       <h3>Débrief final</h3>
-                      <p>
-                        {labyDebrief.completed
-                          ? `Victoire de ${participantNameById[labyDebrief.winnerId] || `Participant ${labyDebrief.winnerId}`} !`
-                          : 'Échec collectif : aucun joueur n\'a atteint la sortie.'}
-                      </p>
-                      <p>Participants : {labyDebrief.totalPlayers} | Encore en vie : {labyDebrief.alivePlayers}</p>
+                      <p>{labyFinalSummary.summaryMessage}</p>
+                      <p>Vies restantes équipe : {labyFinalSummary.totalTeamLivesRemaining}</p>
+                      <p>Cases parcourues : {labyFinalSummary.totalCasesTraversed}</p>
+                      <p>Temps final : {labyFinalSummary.finalTimeLabel}</p>
+                      <p>Statut global : {labyFinalSummary.finalStatusLabel}</p>
                     </div>
                   ) : null}
                   <p className={styles.gameStatus}>
@@ -740,8 +964,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                       if (trapStatus === 'triggered') classes.push(styles.cellTrapTriggered);
                       if (trapStatus === 'resolved') classes.push(styles.cellTrapResolved);
                     }
-                    if (key === playerPosKey) classes.push(styles.cellPlayerCursorCell);
-                    if (key === mySpawnKey) classes.push(styles.cellMySpawn);
+                    if (hasSelectedStart && key === playerPosKey) classes.push(styles.cellPlayerCursorCell);
+                    if (hasSelectedStart && key === mySpawnKey) classes.push(styles.cellMySpawn);
                     if (labyPhase === 'done' && safePathKeys.has(key)) classes.push(styles.cellSolution);
                     if (isRespawning && allStartKeys.has(key)) classes.push(styles.cellStartGlow);
                     if (flashCellKey === key) classes.push(flashCellTone === 'blocked' ? styles.cellBlockedFlash : styles.cellTrapFlash);
@@ -759,6 +983,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                         {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>START</span> : null}
                         {key === endCellKey ? <span className={styles.cellExitBadge}>EXIT</span> : null}
                         {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
+                        {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                         {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
                         {microCue?.cellKey === key ? (
                           <span className={`${styles.cellMicroCue} ${styles[`cellMicroCue--${microCue.tone}`] || ''}`}>
@@ -766,7 +991,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                             {microCue.lifeDelta ? <em className={styles.cellMicroCueLife}>{microCue.lifeDelta}</em> : null}
                           </span>
                         ) : null}
-                        {key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
+                        {hasSelectedStart && key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
                       </button>
                     );
                   })
@@ -811,7 +1036,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
             isStarted={hasChallengeStarted}
             isFacilitator={isFacilitator}
             showPrestartCard={false}
-            challengeName="Labyrinthe Live"
+            challengeName="Labyrinthe des Signaux"
+            briefTitle="Brief de la mission"
             objective={rulesContent.objective}
             facilitatorRules={rulesContent.facilitator}
             participantRules={rulesContent.participant}
@@ -821,7 +1047,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
           <ChallengeTimerCard
             title="Chrono"
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
-            durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
+            durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || runtimePayload?.config?.timer_seconds || 300)}
             status={String(timer?.status || 'idle')}
             isFacilitator={isFacilitator}
             waitingText=""
@@ -893,6 +1119,25 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
             </section>
           ) : null}
         </aside>
+
+        {announcement ? (
+          <div className={styles.announcementOverlay} role="presentation" onClick={() => setAnnouncement(null)}>
+            <section
+              className={`${styles.announcementCard} ${announcement.tone === 'success' ? styles.announcementCardSuccess : styles.announcementCardFailure}`.trim()}
+              role="dialog"
+              aria-modal="true"
+              aria-live="polite"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <p className={styles.announcementKicker}>{announcement.tone === 'success' ? 'Victoire collective' : 'Fin de challenge'}</p>
+              <h3>{announcement.title}</h3>
+              <p>{announcement.body}</p>
+              <div className={styles.announcementActions}>
+                <button type="button" className={styles.announcementCloseBtn} onClick={() => setAnnouncement(null)}>Fermer</button>
+              </div>
+            </section>
+          </div>
+        ) : null}
       </div>
     </div>
   );

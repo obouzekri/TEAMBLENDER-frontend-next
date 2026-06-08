@@ -7,6 +7,7 @@ export default function ChallengeRulesPanel({
   isStarted,
   isFacilitator = true,
   challengeName,
+  briefTitle = 'Brief de mission',
   objective,
   facilitatorRules = [],
   participantRules = [],
@@ -46,7 +47,7 @@ export default function ChallengeRulesPanel({
   const cardContent = (
     <>
       <header className={styles.rulesHeader}>
-        <h2>{challengeName} - Brief de mission</h2>
+        <h2>{challengeName} - {briefTitle}</h2>
         <p>{objective}</p>
       </header>
 
