@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
 
-export default function TopNav() {
+export default function TopNav({ compact = false }) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
@@ -36,7 +36,7 @@ export default function TopNav() {
   const accountHref = sessionUser?.role === 'participant' ? '/participant' : '/account';
 
   return (
-    <header className="top-nav">
+    <header className={`top-nav${compact ? ' top-nav--compact' : ''}`}>
       <div className="shell nav-inner">
         <div className="nav-top-row">
           <div className="nav-brand-block">

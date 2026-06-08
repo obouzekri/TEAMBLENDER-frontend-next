@@ -11,7 +11,7 @@ export default async function LoginPage({ searchParams }) {
 
   return (
     <>
-      <TopNav />
+      <TopNav compact />
       <LoginForm requestedSessionId={requestedSessionId} />
     </>
   );

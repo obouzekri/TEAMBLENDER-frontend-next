@@ -171,17 +171,18 @@ export default function LoginForm({ requestedSessionId = '' }) {
   }
 
   return (
-    <main className="shell auth-page">
-      <section className="contact-hero feature-card reveal-up" aria-label="Connexion TeamBlender">
+    <main className="shell auth-page auth-page--split">
+      <section className="contact-hero feature-card reveal-up auth-hero-pane" aria-label="Connexion TeamBlender">
         <p className="eyebrow">Accès sécurisé</p>
         <h1>Connectez-vous pour lancer vos sessions et suivre vos équipes.</h1>
         <p>Un espace simple, rapide et sécurisé pour les managers, RH et facilitateurs.</p>
       </section>
 
-      <AuthCard
-        title="Connexion à TeamBlender"
-        footer={<span>Pas encore de compte ? <Link href="/signup">Créer un compte</Link></span>}
-      >
+      <div className="auth-login-pane">
+        <AuthCard
+          title="Connexion à TeamBlender"
+          footer={<span>Pas encore de compte ? <Link href="/signup">Créer un compte</Link></span>}
+        >
         {showSocialButtons ? (
           <div className="social-auth-stack">
             {googleLoginEnabled ? (
@@ -295,7 +296,8 @@ export default function LoginForm({ requestedSessionId = '' }) {
             <Link href="/forgot-password" className="form-help">Mot de passe oublié ?</Link>
           </p>
         </form>
-      </AuthCard>
+        </AuthCard>
+      </div>
     </main>
   );
 }
