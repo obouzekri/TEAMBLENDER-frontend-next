@@ -10,6 +10,7 @@ import { normalizeBackendAssetUrl } from '@/lib/config';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
+import ChallengeHeader from '../ChallengeHeader';
 import styles from './Copuzzle.module.css';
 
 const COPUZZLE_ADMIN_REFERENCE_IMAGES = Object.freeze([
@@ -332,12 +333,10 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
 
   return (
     <div className={`${styles.copuzzleContainer}${isFacilitator ? ` ${styles.facilitatorView}` : ''}`}>
-      <section className={styles.header}>
-        <div className={styles.headerTitleLine}>
-          <span className={styles.headerTitle}>{effectiveConfig.title}</span>
-          <span className={styles.headerDescription}>: Puzzle collaboratif en temps réel</span>
-        </div>
-      </section>
+      <ChallengeHeader
+        title={effectiveConfig.title}
+        subtitle="Puzzle collaboratif en temps réel"
+      />
 
       <div className={styles.shell}>
         <section className={styles.boardPanel}>

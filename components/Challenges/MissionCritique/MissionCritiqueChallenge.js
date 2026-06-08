@@ -8,6 +8,7 @@ import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
+import ChallengeHeader from '../ChallengeHeader';
 import styles from './MissionCritique.module.css';
 
 const PHASES = Object.freeze([
@@ -290,14 +291,10 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
   return (
     <div className={`${styles.container} ${roleViewClass}`}>
-      <header className={`${styles.card} ${styles.headerBlock}`}>
-        <div className={styles.headerTitleLine}>
-          <span className={styles.headerTitle}>Mission Critique</span>
-          <span className={styles.headerDescription}>
-            {String(state?.config?.scenario || runtimePayload?.config?.scenario || 'Organiser un séminaire d’entreprise pour 80 personnes.').toUpperCase()}
-          </span>
-        </div>
-      </header>
+      <ChallengeHeader
+        title="Mission Critique"
+        subtitle={String(state?.config?.scenario || runtimePayload?.config?.scenario || 'Organiser un séminaire d’entreprise pour 80 personnes.')}
+      />
 
       <div className={styles.layout}>
         <main className={styles.mainPane}>

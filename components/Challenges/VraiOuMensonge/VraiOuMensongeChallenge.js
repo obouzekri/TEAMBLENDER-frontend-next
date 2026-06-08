@@ -8,6 +8,7 @@ import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
+import ChallengeHeader from '../ChallengeHeader';
 import styles from './VraiOuMensonge.module.css';
 
 function formatSeconds(ms) {
@@ -327,13 +328,10 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
   return (
     <div className={styles.shell}>
-      <header className={styles.header}>
-        <div className={styles.headerLine}>
-          <span className={styles.headerTitle}>Pari sur moi !</span>
-          <span className={styles.headerSeparator}>-</span>
-          <span className={styles.headerDescription}>DEVINEZ LE VRAI DU FAUX ET DÉCOUVREZ VOTRE ÉQUIPE AUTREMENT</span>
-        </div>
-      </header>
+      <ChallengeHeader
+        title="Pari sur moi !"
+        subtitle="Devinez le vrai du faux et découvrez votre équipe autrement"
+      />
 
       {error ? <p className={styles.errorBanner}>{error}</p> : null}
 

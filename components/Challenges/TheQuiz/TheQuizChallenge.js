@@ -8,6 +8,7 @@ import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
+import ChallengeHeader from '../ChallengeHeader';
 import {
   QuizFinalScreen,
   QuizHostControlScreen,
@@ -395,13 +396,10 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
   return (
     <main className={styles.pageShell}>
-      <header className={styles.challengeHeader}>
-        <div className={styles.challengeHeaderLine}>
-          <h1 className={styles.challengeTitle}>The Quiz</h1>
-          <span className={styles.challengeSeparator}>-</span>
-          <p className={styles.challengeDescription}>QUIZ MULTIJOUEUR REALTIME DE CULTURE GÉNÉRALE</p>
-        </div>
-      </header>
+      <ChallengeHeader
+        title="The Quiz"
+        subtitle="Quiz multijoueur realtime de culture générale"
+      />
 
       {error ? <div className={styles.errorBanner}>{error}</div> : null}
       {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>Reconnexion en cours, restauration de la question active...</div> : null}

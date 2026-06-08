@@ -10,6 +10,7 @@ import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
+import ChallengeHeader from '../ChallengeHeader';
 import styles from './EscapeRoom.module.css';
 
 const OUTCOME_UI = {
@@ -484,10 +485,10 @@ export default function EscapeRoomChallenge({
   return (
     <div className={styles.escapeRoomContainer}>
       <section className={styles.header}>
-        <div className={styles.headerTitleLine}>
-          <span className={styles.headerTitle}>Escape Room</span>
-          <span className={styles.headerDescription}>: Resolvez les enigmes en equipe, avec validation collective</span>
-        </div>
+        <ChallengeHeader
+          title="Escape Room"
+          subtitle="Résolvez les énigmes en équipe, avec validation collective"
+        />
         <div className={styles.meta}>
           <span className={styles.badge}>Statut: {state.status}</span>
           <span className={styles.badge}>Énigme {Number(state.current_enigme_index || 0) + 1} / {Number(state.total_enigmes || 0)}</span>

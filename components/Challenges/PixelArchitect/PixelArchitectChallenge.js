@@ -10,6 +10,7 @@ import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
+import ChallengeHeader from '../ChallengeHeader';
 import styles from './PixelArchitect.module.css';
 
 const DEFAULT_TEMPLATE = Object.freeze({
@@ -878,12 +879,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   return (
     <div className={styles.container}>
-      <header className={styles.challengeHeader}>
-        <div className={styles.challengeHeaderLine}>
-          <h1>Pixel Architect</h1>
-          <p>REPLIQUEZ LE MODÈLE COLLECTIVEMENT EN TEMPS RÉEL AVEC CONTRAINTES DE GRILLE ET DE PALETTE.</p>
-        </div>
-      </header>
+      <ChallengeHeader
+        title="Pixel Architect"
+        subtitle="Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette."
+      />
 
       <section className={styles.teamStatusBar} aria-label="Etat d equipe">
         <span className={styles.badge}>Template: {templateName}</span>

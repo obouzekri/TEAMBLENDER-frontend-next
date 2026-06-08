@@ -35,7 +35,7 @@ export default function ChallengeChatCard({
   return (
     <section className={`${styles.chatCard} ${collapsed ? styles.chatCardCollapsed : ''} ${className}`.trim()}>
       <div className={styles.chatHeader}>
-        <h3 className={styles.chatTitle}>{title}</h3>
+        <h3 className={`${styles.chatTitle} challenge-section-title`}>{title}</h3>
         {collapsible ? (
           <button
             type="button"

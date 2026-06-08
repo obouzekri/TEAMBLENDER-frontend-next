@@ -7,6 +7,7 @@ import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
+import ChallengeHeader from '../ChallengeHeader';
 import styles from './Labyrinthe.module.css';
 
 const LABYRINTHE_RULES_FALLBACK = Object.freeze({
@@ -779,12 +780,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
   return (
     <div className={styles.labyrinthContainer}>
-      <section className={styles.hero}>
-        <div className={styles.headerTitleLine}>
-          <span className={styles.headerTitle}>Labyrinthe des Signaux</span>
-          <span className={styles.headerDescription}>— OBSERVEZ LES TRACES, EVITEZ LES PIEGES, OUVREZ LA SORTIE.</span>
-        </div>
-      </section>
+      <ChallengeHeader
+        title="Labyrinthe des Signaux"
+        subtitle="Observez les traces, évitez les pièges, ouvrez la sortie."
+      />
 
       <div className={styles.layout}>
         <div className={styles.mainRail}>

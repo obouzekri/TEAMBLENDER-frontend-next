@@ -7,6 +7,7 @@ import { resolveChallengeRules } from '@/lib/challenges/rules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
+import ChallengeHeader from '../ChallengeHeader';
 import styles from './PhraseCoop.module.css';
 
 function computeCompletionPercent(slots) {
@@ -214,12 +215,10 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
 
   return (
     <div className={styles.phraseContainer}>
-      <section className={styles.header}>
-        <div className={styles.headerTitleLine}>
-          <span className={styles.headerTitle}>Phrase Mystère</span>
-          <span className={styles.headerDescription}>: Reconstituez la phrase en équipe, slot par slot.</span>
-        </div>
-      </section>
+      <ChallengeHeader
+        title="Phrase Mystère"
+        subtitle="Reconstituez la phrase en équipe, slot par slot"
+      />
 
       <div className={styles.shell}>
         <section className={styles.boardPanel}>

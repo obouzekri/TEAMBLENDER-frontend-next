@@ -96,7 +96,7 @@ export default function ChallengeTimerCard({
   return (
     <section className={`${styles.timerCard} ${className}`.trim()}>
       <div className={styles.timerHeader}>
-        <h3 className={styles.timerTitle}>{title}</h3>
+        <h3 className={`${styles.timerTitle} challenge-section-title`}>{title}</h3>
         {collapsible ? (
           <button
             type="button"

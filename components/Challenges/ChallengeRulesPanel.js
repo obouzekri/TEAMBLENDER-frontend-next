@@ -47,13 +47,13 @@ export default function ChallengeRulesPanel({
   const cardContent = (
     <>
       <header className={styles.rulesHeader}>
-        <h2>{challengeName} - {briefTitle}</h2>
-        <p>{objective}</p>
+        <h2 className="challenge-section-title">{challengeName} - {briefTitle}</h2>
+        <p className="challenge-text">{objective}</p>
       </header>
 
       {isFacilitator ? (
         <section className={styles.rulesSection}>
-          <h3>Facilitateur</h3>
+          <h3 className="challenge-section-title">Facilitateur</h3>
           <ul>
             {facilitatorRules.map((rule) => (
               <li key={`facilitator-${rule}`}>{rule}</li>
@@ -63,7 +63,7 @@ export default function ChallengeRulesPanel({
       ) : null}
 
       <section className={`${styles.rulesSection} ${styles.rulesSectionParticipant}`}>
-        <h3>Participants</h3>
+        <h3 className="challenge-section-title">Participants</h3>
         <ul>
           {participantRules.map((rule) => (
             <li key={`participant-${rule}`}>{rule}</li>
@@ -71,7 +71,7 @@ export default function ChallengeRulesPanel({
         </ul>
       </section>
 
-      {footnote ? <p className={styles.rulesFootnote}>{footnote}</p> : null}
+      {footnote ? <p className={`${styles.rulesFootnote} challenge-text`}>{footnote}</p> : null}
 
       {extraContent}
 
