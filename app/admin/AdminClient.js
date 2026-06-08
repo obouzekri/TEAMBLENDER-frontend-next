@@ -2786,6 +2786,14 @@ export default function AdminClient() {
           <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border, #e5e7eb)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <button
               type="button"
+              className="btn-primary"
+              onClick={() => { window.location.href = '/admin/billing'; }}
+              style={{ width: '100%', fontSize: '13px' }}
+            >
+              Billing paiements
+            </button>
+            <button
+              type="button"
               className="btn-secondary"
               onClick={() => {
                 loadAll();
@@ -2851,6 +2859,17 @@ export default function AdminClient() {
                 {tab.badge != null ? <span className="admin-mobile-tab-badge">{tab.badge}</span> : null}
               </button>
             ))}
+          </div>
+
+          <div style={{ marginBottom: '14px' }}>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => { window.location.href = '/admin/billing'; }}
+              style={{ width: '100%' }}
+            >
+              Ouvrir le backoffice paiements
+            </button>
           </div>
 
           {/* ── DASHBOARD ── */}
