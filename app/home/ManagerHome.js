@@ -140,8 +140,31 @@ async function fetchSessions(token) {
   }
 }
 
+const STARTUP_GUIDE_STEPS = Object.freeze([
+  {
+    step: '1',
+    icon: 'P',
+    title: 'Ajouter les participants',
+    text: 'Créez votre base de participants pour organiser vos ateliers plus rapidement et proprement.',
+    href: '/home#home-participants-block',
+    cta: 'Aller à cette étape',
+  },
+  {
+    step: '2',
+    icon: 'S',
+    title: 'Configurer la session',
+    text: 'Choisissez le challenge, la modalité et les paramètres utiles avant le lancement.',
+  },
+  {
+    step: '3',
+    icon: 'L',
+    title: 'Lancer le challenge',
+    text: 'Démarrez la session, gardez le rythme et terminez avec un débrief exploitable.',
+  }
+]);
+
 export default function ManagerHome() {
-  const [showStartupGuide, setShowStartupGuide] = useState(false);
+  const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
   const guard = useManagerGuard();
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
   const [sessions, setSessions] = useState([]);
@@ -365,13 +388,20 @@ export default function ManagerHome() {
     const storageKey = `manager-home-startup-guide-seen:${guard.user.id}`;
     const alreadySeen = String(localStorage.getItem(storageKey) || '').trim() === '1';
     if (alreadySeen) {
-      setShowStartupGuide(false);
       return;
     }
 
     localStorage.setItem(storageKey, '1');
-    setShowStartupGuide(true);
+    setIsStartupGuideOpen(true);
   }, [guard.allowed, guard.user?.id]);
+
+  function openStartupGuide() {
+    setIsStartupGuideOpen(true);
+  }
+
+  function closeStartupGuide() {
+    setIsStartupGuideOpen(false);
+  }
 
   function logout() {
     localStorage.removeItem('jwt');
@@ -596,6 +626,13 @@ export default function ManagerHome() {
                 >
                   Créer une session
                 </Link>
+                <button
+                  type="button"
+                  className="btn-secondary home-guide-trigger"
+                  onClick={openStartupGuide}
+                >
+                  Guide de démarrage
+                </button>
                 {guard.user?.role === 'admin' && (
                   <Link className="btn-secondary" href="/admin">Console admin</Link>
                 )}
@@ -621,71 +658,6 @@ export default function ManagerHome() {
             </aside>
           </div>
         </section>
-
-        {showStartupGuide ? (
-          <section className="feature-card manager-onboarding-panel" aria-labelledby="onboarding-guide-title">
-            <div className="manager-onboarding-shell">
-              <div className="manager-onboarding-hero">
-                <div>
-                  <p className="eyebrow">GUIDE DE DÉMARRAGE</p>
-                  <h2 id="onboarding-guide-title">Créez votre première session en 3 étapes</h2>
-                  <p>Le parcours reste simple: préparer la base participants, configurer la session, puis lancer le challenge.</p>
-                </div>
-                <div className="manager-onboarding-actions">
-                  <Link className="btn-primary" href="/session-builder">
-                    Ouvrir le configurateur
-                  </Link>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => setShowStartupGuide(false)}
-                  >
-                    Fermer
-                  </button>
-                </div>
-              </div>
-
-              <div className="manager-onboarding-grid">
-                {[
-                  {
-                    step: '1',
-                    title: 'Ajouter les participants',
-                    text: 'Créez votre base de participants pour repartir sur des ateliers plus rapides et plus propres.',
-                    href: '/home#home-participants-block',
-                    cta: 'Aller à cette étape'
-                  },
-                  {
-                    step: '2',
-                    title: 'Configurer la session',
-                    text: 'Choisissez le challenge, la modalité et les paramètres utiles avant le lancement.',
-                    href: '/session-builder',
-                    cta: 'Aller à cette étape'
-                  },
-                  {
-                    step: '3',
-                    title: 'Lancer le challenge',
-                    text: 'Démarrez la session, gardez le rythme et terminez avec un débrief exploitable.',
-                    href: '/session-builder',
-                    cta: 'Aller à cette étape'
-                  }
-                ].map((item) => (
-                  <article key={item.step} className="card manager-onboarding-step">
-                    <div className="manager-onboarding-step__head">
-                      <span className="manager-onboarding-step__badge">Étape {item.step}</span>
-                      <span className="manager-onboarding-step__index">0{item.step}</span>
-                    </div>
-                    <h3>{item.title}</h3>
-                    <p>{item.text}</p>
-                    <Link className="btn-secondary manager-onboarding-step__cta" href={item.href}>
-                      {item.cta}
-                    </Link>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </section>
-        ) : null}
-
         <section className="cards-grid" aria-label="Statistiques sessions">
           <article className="feature-card stat-card stat-card-live">
             <p className="eyebrow">EN COURS</p>
@@ -892,6 +864,61 @@ export default function ManagerHome() {
           ) : null}
         </section>
       </main>
+      <Modal
+        open={isStartupGuideOpen}
+        title="Guide de démarrage"
+        onClose={closeStartupGuide}
+        hideHeader
+        overlayClassName="manager-onboarding-modalOverlay"
+        dialogClassName="manager-onboarding-modalDialog"
+        bodyClassName="manager-onboarding-modalBody"
+      >
+        <section className="manager-onboarding-panel manager-onboarding-panel--modal" aria-labelledby="onboarding-guide-title">
+          <div className="manager-onboarding-shell">
+            <div className="manager-onboarding-hero manager-onboarding-hero--modal">
+              <div className="manager-onboarding-copy">
+                <p className="eyebrow manager-onboarding-eyebrow">GUIDE DE DÉMARRAGE</p>
+                <h2 id="onboarding-guide-title">Créez votre première session en 3 étapes simples.</h2>
+                <p>
+                  Le parcours reste rapide et intuitif :
+                  préparez les participants, configurez la session puis lancez votre challenge.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn-secondary manager-onboarding-close"
+                onClick={closeStartupGuide}
+              >
+                Fermer
+              </button>
+            </div>
+
+            <div className="manager-onboarding-grid manager-onboarding-grid--modal">
+              {STARTUP_GUIDE_STEPS.map((item, index) => (
+                <article
+                  key={item.step}
+                  className="card manager-onboarding-step manager-onboarding-step--premium"
+                  style={{ '--onboarding-delay': `${index * 90}ms` }}
+                >
+                  <div className="manager-onboarding-step__head">
+                    <span className="manager-onboarding-step__badge">Étape {item.step}</span>
+                    <span className="manager-onboarding-step__index">0{item.step}</span>
+                  </div>
+                  <span className="manager-onboarding-step__icon" aria-hidden="true">{item.icon}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                  {item.href ? (
+                    <Link className="btn-secondary manager-onboarding-step__cta" href={item.href} onClick={closeStartupGuide}>
+                      {item.cta}
+                    </Link>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      </Modal>
+
       <Modal
         open={isParticipantModalOpen}
         title={editingMemberId ? 'Modifier un participant' : 'Créer un participant'}
