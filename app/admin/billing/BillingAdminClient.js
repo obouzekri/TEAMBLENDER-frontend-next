@@ -32,6 +32,38 @@ function money(amountCents, currency) {
   }
 }
 
+function formatDate(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleString('fr-FR');
+}
+
+function normalizeStatus(value, fallback = 'unknown') {
+  return String(value || fallback).trim().toLowerCase();
+}
+
+function buildStatusLabel(value) {
+  const normalized = normalizeStatus(value);
+  const labels = {
+    active: 'Actif',
+    canceled: 'Annule',
+    past_due: 'Impayé',
+    incomplete: 'Incomplet',
+    trialing: 'Essai',
+    paused: 'Pause',
+    paid: 'Payé',
+    pending: 'En attente',
+    failed: 'Échoué',
+    refunded: 'Remboursé',
+    none: 'Aucun',
+    paypal: 'PayPal',
+    stripe: 'Stripe',
+    manual: 'Manuel',
+  };
+  return labels[normalized] || normalized;
+}
+
 export default function BillingAdminClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -68,9 +100,36 @@ export default function BillingAdminClient() {
     refresh();
   }, []);
 
+  useEffect(() => {
+    if (!selectedUserId && users.length > 0) {
+      const first = users[0];
+      const subscription = Array.isArray(first?.subscriptions) ? first.subscriptions[0] : null;
+      setSelectedUserId(String(first.id));
+      setSelectedPlanId(String(subscription?.pricing_plan_id || first?.pricing_plan_id || ''));
+    }
+  }, [users, selectedUserId]);
+
   const selectedUser = useMemo(
     () => users.find((entry) => String(entry.id) === String(selectedUserId)) || null,
     [users, selectedUserId]
+  );
+
+  const stats = useMemo(() => {
+    const subs = users.map((user) => (Array.isArray(user.subscriptions) ? user.subscriptions[0] : null)).filter(Boolean);
+    const invoices = users.flatMap((user) => (Array.isArray(user.invoices) ? user.invoices : []));
+    return {
+      managedAccounts: users.length,
+      activeSubscriptions: subs.filter((sub) => normalizeStatus(sub.status) === 'active').length,
+      riskSubscriptions: subs.filter((sub) => ['past_due', 'incomplete'].includes(normalizeStatus(sub.status))).length,
+      pendingInvoices: invoices.filter((invoice) => normalizeStatus(invoice.status) === 'pending').length,
+      failedInvoices: invoices.filter((invoice) => normalizeStatus(invoice.status) === 'failed').length,
+      timelineEvents: timeline.length,
+    };
+  }, [users, timeline]);
+
+  const selectedSubscription = useMemo(
+    () => (Array.isArray(selectedUser?.subscriptions) ? selectedUser.subscriptions[0] : null),
+    [selectedUser]
   );
 
   async function handleApplyPlan() {
@@ -168,6 +227,33 @@ export default function BillingAdminClient() {
         <button type="button" className="btn-secondary" onClick={refresh} disabled={loading}>Appliquer</button>
       </section>
 
+      <section className="admin-billing-kpis" aria-label="Indicateurs paiements">
+        <article className="kpi-card">
+          <p>Comptes suivis</p>
+          <strong>{stats.managedAccounts}</strong>
+        </article>
+        <article className="kpi-card">
+          <p>Abonnements actifs</p>
+          <strong>{stats.activeSubscriptions}</strong>
+        </article>
+        <article className="kpi-card is-warning">
+          <p>Abonnements a risque</p>
+          <strong>{stats.riskSubscriptions}</strong>
+        </article>
+        <article className="kpi-card">
+          <p>Factures en attente</p>
+          <strong>{stats.pendingInvoices}</strong>
+        </article>
+        <article className="kpi-card is-danger">
+          <p>Factures échouées</p>
+          <strong>{stats.failedInvoices}</strong>
+        </article>
+        <article className="kpi-card">
+          <p>Événements timeline</p>
+          <strong>{stats.timelineEvents}</strong>
+        </article>
+      </section>
+
       {error ? <p className="admin-billing-message error">{error}</p> : null}
       {notice ? <p className="admin-billing-message success">{notice}</p> : null}
 
@@ -188,12 +274,25 @@ export default function BillingAdminClient() {
                     setSelectedPlanId(String(subscription?.pricing_plan_id || user.pricing_plan_id || ''));
                   }}
                 >
-                  <strong>{userLabel(user)}</strong>
-                  <span>{subscription?.pricing_plan?.name || user?.pricing_plan?.name || 'Sans plan'}</span>
-                  <span>{subscription?.status || 'incomplete'} | {subscription?.payment_status || 'none'} | {subscription?.provider || 'none'}</span>
+                  <div className="user-row-top">
+                    <strong>{userLabel(user)}</strong>
+                    <span className={`status-chip status-${normalizeStatus(subscription?.status, 'incomplete')}`}>
+                      {buildStatusLabel(subscription?.status || 'incomplete')}
+                    </span>
+                  </div>
+                  <span className="user-row-plan">{subscription?.pricing_plan?.name || user?.pricing_plan?.name || 'Sans plan'}</span>
+                  <div className="user-row-meta">
+                    <span className={`status-chip status-${normalizeStatus(subscription?.payment_status, 'none')}`}>
+                      Paiement {buildStatusLabel(subscription?.payment_status || 'none')}
+                    </span>
+                    <span className={`status-chip status-${normalizeStatus(subscription?.provider, 'none')}`}>
+                      {buildStatusLabel(subscription?.provider || 'none')}
+                    </span>
+                  </div>
                 </button>
               );
             })}
+            {!loading && users.length === 0 ? <p className="empty-state">Aucun compte trouve avec ce filtre.</p> : null}
           </div>
         </article>
 
@@ -201,7 +300,11 @@ export default function BillingAdminClient() {
           <h2>Actions operateur</h2>
           {selectedUser ? (
             <>
-              <p><strong>Compte:</strong> {userLabel(selectedUser)}</p>
+              <div className="selected-user-summary">
+                <p><strong>Compte:</strong> {userLabel(selectedUser)}</p>
+                <p><strong>Plan actif:</strong> {selectedSubscription?.pricing_plan?.name || selectedUser?.pricing_plan?.name || 'Sans plan'}</p>
+                <p><strong>Renouvellement:</strong> {formatDate(selectedSubscription?.current_period_end)}</p>
+              </div>
               <div className="admin-billing-actions">
                 <select value={selectedPlanId} onChange={(e) => setSelectedPlanId(e.target.value)}>
                   <option value="">Selectionner un plan</option>
@@ -209,27 +312,30 @@ export default function BillingAdminClient() {
                     <option key={plan.id} value={plan.id}>{plan.name} - {money(plan.price_cents, plan.currency)}</option>
                   ))}
                 </select>
-                <button type="button" className="btn-primary" onClick={handleApplyPlan}>Upgrade/Downgrade</button>
-                <button type="button" className="btn-secondary" onClick={handleRecordManualPayment}>Valider paiement manuel</button>
+                <button type="button" className="btn-primary" onClick={handleApplyPlan} disabled={!selectedPlanId || loading}>Upgrade/Downgrade</button>
+                <button type="button" className="btn-secondary" onClick={handleRecordManualPayment} disabled={!selectedPlanId || loading}>Valider paiement manuel</button>
               </div>
               <h3>Factures</h3>
               <div className="admin-billing-invoices">
                 {(selectedUser.invoices || []).map((invoice) => (
                   <div key={invoice.id} className="invoice-row">
-                    <span>{invoice.invoice_number}</span>
-                    <span>{money(invoice.amount_cents, invoice.currency)}</span>
-                    <span>{invoice.status}</span>
+                    <div className="invoice-main">
+                      <span className="invoice-number">{invoice.invoice_number}</span>
+                      <span>{money(invoice.amount_cents, invoice.currency)}</span>
+                      <span className={`status-chip status-${normalizeStatus(invoice.status, 'pending')}`}>{buildStatusLabel(invoice.status)}</span>
+                      <span className="invoice-date">{formatDate(invoice.createdAt)}</span>
+                    </div>
                     <div className="invoice-actions">
-                      <button type="button" onClick={() => handleGeneratePdf(invoice.id)}>PDF</button>
-                      <button type="button" onClick={() => handleRefund(invoice.id)}>Refund</button>
+                      <button type="button" onClick={() => handleGeneratePdf(invoice.id)} disabled={loading}>PDF</button>
+                      <button type="button" onClick={() => handleRefund(invoice.id)} disabled={loading || normalizeStatus(invoice.status) === 'refunded'}>Refund</button>
                     </div>
                   </div>
                 ))}
-                {(selectedUser.invoices || []).length === 0 ? <p>Aucune facture.</p> : null}
+                {(selectedUser.invoices || []).length === 0 ? <p className="empty-state">Aucune facture.</p> : null}
               </div>
             </>
           ) : (
-            <p>Selectionnez un compte pour administrer son abonnement.</p>
+            <p className="empty-state">Selectionnez un compte pour administrer son abonnement.</p>
           )}
         </article>
       </section>
@@ -239,15 +345,19 @@ export default function BillingAdminClient() {
         <div className="timeline-list">
           {timeline.map((event) => (
             <div key={event.id} className="timeline-row">
-              <span>{new Date(event.createdAt).toLocaleString('fr-FR')}</span>
-              <span>{event.type}</span>
-              <span>{event.status}</span>
-              <span>{event.provider}</span>
+              <div className="timeline-row-top">
+                <span>{formatDate(event.createdAt)}</span>
+                <span className={`status-chip status-${normalizeStatus(event.status, 'pending')}`}>{buildStatusLabel(event.status)}</span>
+              </div>
+              <div className="timeline-row-main">
+                <strong>{event.type}</strong>
+                <span className={`status-chip status-${normalizeStatus(event.provider, 'none')}`}>{buildStatusLabel(event.provider)}</span>
+              </div>
               <span>{event.user?.email || '-'}</span>
               <span>{event.message || '-'}</span>
             </div>
           ))}
-          {timeline.length === 0 ? <p>Aucun evenement recent.</p> : null}
+          {timeline.length === 0 ? <p className="empty-state">Aucun evenement recent.</p> : null}
         </div>
       </section>
     </main>

@@ -1,8 +1,8 @@
 .admin-billing-shell {
   padding: 2rem;
   display: grid;
-  gap: 1rem;
-  background: linear-gradient(140deg, #f5f8ff 0%, #edf6f3 45%, #fff9f1 100%);
+  gap: 1.1rem;
+  background: radial-gradient(circle at 20% 0%, #e7f0ff 0%, transparent 28%), radial-gradient(circle at 100% 100%, #ffe9cf 0%, transparent 24%), linear-gradient(140deg, #f5f8ff 0%, #edf6f3 45%, #fff9f1 100%);
   min-height: 100vh;
 }
 
@@ -15,6 +15,7 @@
 
 .admin-billing-header h1 {
   margin: 0.2rem 0;
+  font-size: clamp(1.45rem, 1.8vw, 2rem);
 }
 
 .admin-billing-header-actions {
@@ -34,6 +35,43 @@
   border: 1px solid #c8d1dd;
   border-radius: 10px;
   padding: 0.6rem 0.7rem;
+  background: #fff;
+}
+
+.admin-billing-kpis {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(6, minmax(120px, 1fr));
+}
+
+.kpi-card {
+  background: #ffffffde;
+  border: 1px solid #d8e1ef;
+  border-radius: 12px;
+  padding: 0.8rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.kpi-card p {
+  margin: 0;
+  color: #566175;
+  font-size: 0.78rem;
+}
+
+.kpi-card strong {
+  font-size: 1.4rem;
+  color: #182230;
+}
+
+.kpi-card.is-warning {
+  background: #fff9eb;
+  border-color: #f3d6a2;
+}
+
+.kpi-card.is-danger {
+  background: #fff1f1;
+  border-color: #f0c7c7;
 }
 
 .admin-billing-grid {
@@ -47,6 +85,7 @@
   border: 1px solid #dde5f0;
   border-radius: 14px;
   padding: 1rem;
+  box-shadow: 0 8px 24px -20px rgba(18, 31, 53, 0.4);
 }
 
 .admin-billing-users {
@@ -66,9 +105,71 @@
   gap: 0.2rem;
 }
 
+.user-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-row-plan {
+  color: #223047;
+  font-weight: 600;
+}
+
+.user-row-meta {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
 .user-row.active {
   border-color: #2457d6;
   background: #eef3ff;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.73rem;
+  font-weight: 700;
+  border: 1px solid #d3d9e3;
+  background: #f5f7fb;
+  color: #223047;
+}
+
+.status-active,
+.status-paid {
+  background: #ecfdf3;
+  border-color: #b4e8c8;
+  color: #0f6a3b;
+}
+
+.status-past_due,
+.status-failed,
+.status-impayé,
+.status-échoué {
+  background: #fff1f1;
+  border-color: #f2c2c2;
+  color: #9a1f1f;
+}
+
+.status-pending,
+.status-incomplete,
+.status-none {
+  background: #fff9eb;
+  border-color: #f2ddb0;
+  color: #8b6419;
+}
+
+.status-refunded,
+.status-canceled,
+.status-manual {
+  background: #f3f5f8;
+  border-color: #d6dde8;
+  color: #44566e;
 }
 
 .admin-billing-actions {
@@ -76,6 +177,22 @@
   gap: 0.6rem;
   flex-wrap: wrap;
   margin-bottom: 0.8rem;
+}
+
+.selected-user-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 0.4rem;
+  background: #f7f9ff;
+  border: 1px solid #dde4f3;
+  border-radius: 12px;
+  padding: 0.7rem;
+  margin-bottom: 0.7rem;
+}
+
+.selected-user-summary p {
+  margin: 0;
+  font-size: 0.87rem;
 }
 
 .admin-billing-invoices,
@@ -93,9 +210,58 @@
   gap: 0.2rem;
 }
 
+.invoice-main {
+  display: grid;
+  grid-template-columns: 1.2fr 0.9fr auto 1fr;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.invoice-number {
+  font-weight: 700;
+}
+
+.invoice-date {
+  color: #5b6780;
+  font-size: 0.82rem;
+}
+
 .invoice-actions {
   display: flex;
   gap: 0.4rem;
+}
+
+.invoice-actions button {
+  border: 1px solid #cad4e2;
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+}
+
+.invoice-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.timeline-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeline-row-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.empty-state {
+  color: #596882;
+  margin: 0.2rem 0;
+  font-style: italic;
 }
 
 .admin-billing-message {
@@ -117,12 +283,26 @@
 }
 
 @media (max-width: 980px) {
+  .admin-billing-kpis {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
   .admin-billing-grid {
     grid-template-columns: 1fr;
   }
+
+  .selected-user-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-main {
+    grid-template-columns: 1fr;
+  }
+
   .admin-billing-filters {
     grid-template-columns: 1fr;
   }
+
   .admin-billing-header {
     flex-direction: column;
   }
