@@ -29,13 +29,6 @@ const COLOR_LABELS = Object.freeze({
   '#F2C94C': 'Jaune solaire',
   '#F2994A': 'Orange corail',
 });
-const ZONE_OPTIONS = Object.freeze([
-  { key: 'NW', label: 'Nord-Ouest' },
-  { key: 'NE', label: 'Nord-Est' },
-  { key: 'SW', label: 'Sud-Ouest' },
-  { key: 'SE', label: 'Sud-Est' },
-]);
-
 function toCellKey(x, y, z) {
   return `${x}:${y}:${z}`;
 }
@@ -107,33 +100,6 @@ function normalizeServerCubes(cubesMap) {
     .filter((cube) => Number.isInteger(cube.x) && Number.isInteger(cube.y) && Number.isInteger(cube.z));
 }
 
-function resolveZoneKey(x, z, grid) {
-  const splitX = Math.max(1, Math.ceil(Number(grid?.x || 0) / 2));
-  const splitZ = Math.max(1, Math.ceil(Number(grid?.z || 0) / 2));
-  const horizontal = x < splitX ? 'W' : 'E';
-  const vertical = z < splitZ ? 'N' : 'S';
-  return `${vertical}${horizontal}`;
-}
-
-function getZoneBounds(zoneKey, grid, gridSize) {
-  const splitX = Math.max(1, Math.ceil(Number(grid?.x || 0) / 2));
-  const splitZ = Math.max(1, Math.ceil(Number(grid?.z || 0) / 2));
-  const xStart = zoneKey.endsWith('W') ? 0 : splitX;
-  const xEnd = zoneKey.endsWith('W') ? splitX : Number(grid?.x || 0);
-  const zStart = zoneKey.startsWith('N') ? 0 : splitZ;
-  const zEnd = zoneKey.startsWith('N') ? splitZ : Number(grid?.z || 0);
-  const width = Math.max(1, xEnd - xStart);
-  const depth = Math.max(1, zEnd - zStart);
-  const offset = (gridSize - 1) / 2;
-
-  return {
-    width,
-    depth,
-    centerX: xStart + width / 2 - 0.5 - offset,
-    centerZ: zStart + depth / 2 - 0.5 - offset,
-  };
-}
-
 export default function PixelArchitectChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const mountRef = useRef(null);
   const modelPreviewRef = useRef(null);
@@ -141,6 +107,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const sceneApiRef = useRef(null);
   const canInteractRef = useRef(false);
   const activeLayerRef = useRef(0);
+  const selectedColorRef = useRef(FALLBACK_PALETTE[0]);
 
   const [activeLayer, setActiveLayer] = useState(0);
   const [selectedColor, setSelectedColor] = useState(FALLBACK_PALETTE[0]);
@@ -201,7 +168,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   const serverCubes = useMemo(() => normalizeServerCubes(pixel?.cubes), [pixel?.cubes]);
   const layerClaims = pixel?.layer_claims && typeof pixel.layer_claims === 'object' ? pixel.layer_claims : {};
-  const zoneClaims = pixel?.zone_claims && typeof pixel.zone_claims === 'object' ? pixel.zone_claims : {};
   const cubeCount = Number(pixel?.placed_count || serverCubes.length || 0);
   const remainingCubes = Math.max(0, Number(pixel?.remaining_cubes || 0));
   const completionRatio = Math.max(
@@ -214,7 +180,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const progress = completionRatio;
 
   const viewerRole = String(pixel?.viewer_role || (isFacilitator ? 'facilitator' : 'builder')).trim().toLowerCase();
-  const canSeeTargetModel = isFacilitator || viewerRole === 'architect' || pixel?.selected_template;
+  const isAdvancedReplication = String(pixel?.collaboration_mode || '').trim().toLowerCase() === 'avance'
+    && String(pixel?.mode || '').trim().toLowerCase() === 'replication';
+  const canSeeTargetModel = !isAdvancedReplication || isFacilitator || viewerRole === 'architect';
   const isTargetHiddenForRole = !canSeeTargetModel;
 
   const displayName = useMemo(() => {
@@ -250,6 +218,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       setSelectedColor(palette[0] || FALLBACK_PALETTE[0]);
     }
   }, [palette, selectedColor]);
+
+  useEffect(() => {
+    selectedColorRef.current = selectedColor;
+  }, [selectedColor]);
 
   useEffect(() => {
     if (activeLayer > Math.max(0, grid.y - 1)) {
@@ -331,14 +303,11 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
     const targetGroup = new THREE.Group();
     const playerGroup = new THREE.Group();
-    const zoneOverlayGroup = new THREE.Group();
     scene.add(targetGroup);
     scene.add(playerGroup);
-    scene.add(zoneOverlayGroup);
 
     const targetMap = new Map();
     const playerMap = new Map();
-    const zoneOverlayMap = new Map();
 
     const targetMaterial = new THREE.MeshStandardMaterial({
       color: 0x60a5fa,
@@ -466,57 +435,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
     const setLayer = (layer) => {
       interactionPlane.position.y = Number(layer);
-      zoneOverlayGroup.position.y = Number(layer) + 0.03;
-    };
-
-    const syncZoneOverlay = (layer, claims, currentDisplayName) => {
-      ZONE_OPTIONS.forEach((zone) => {
-        const zoneId = zone.key;
-        const bounds = getZoneBounds(zoneId, grid, gridSize);
-        const claim = claims?.[`${layer}:${zoneId}`] || null;
-        const reservedBy = String(claim?.display_name || '').trim();
-        const isMine = reservedBy && reservedBy === String(currentDisplayName || '').trim();
-        const fillColor = isMine ? 0x28b3d0 : reservedBy ? 0xf2c94c : 0x7fa6c2;
-        const fillOpacity = isMine ? 0.24 : reservedBy ? 0.18 : 0.08;
-        const edgeOpacity = isMine ? 0.9 : reservedBy ? 0.72 : 0.28;
-
-        let overlay = zoneOverlayMap.get(zoneId);
-        if (!overlay) {
-          const plane = new THREE.Mesh(
-            new THREE.PlaneGeometry(bounds.width, bounds.depth),
-            new THREE.MeshBasicMaterial({
-              color: fillColor,
-              transparent: true,
-              opacity: fillOpacity,
-              side: THREE.DoubleSide,
-              depthWrite: false,
-            })
-          );
-          plane.rotation.x = -Math.PI / 2;
-          plane.position.set(bounds.centerX, 0, bounds.centerZ);
-
-          const outline = new THREE.LineSegments(
-            new THREE.EdgesGeometry(new THREE.PlaneGeometry(bounds.width, bounds.depth)),
-            new THREE.LineBasicMaterial({
-              color: fillColor,
-              transparent: true,
-              opacity: edgeOpacity,
-            })
-          );
-          outline.rotation.x = -Math.PI / 2;
-          outline.position.set(bounds.centerX, 0.01, bounds.centerZ);
-
-          overlay = { plane, outline };
-          zoneOverlayMap.set(zoneId, overlay);
-          zoneOverlayGroup.add(plane);
-          zoneOverlayGroup.add(outline);
-        }
-
-        overlay.plane.material.color.setHex(fillColor);
-        overlay.plane.material.opacity = fillOpacity;
-        overlay.outline.material.color.setHex(fillColor);
-        overlay.outline.material.opacity = edgeOpacity;
-      });
     };
 
     const setPreviewColor = (color) => {
@@ -580,7 +498,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       if (!cell) return;
       if (playerMap.has(cell.key)) return;
       playTone('place');
-      emitEvent('pixel.cube.place', { x: cell.x, y: cell.y, z: cell.z, color: selectedColor });
+      emitEvent('pixel.cube.place', { x: cell.x, y: cell.y, z: cell.z, color: selectedColorRef.current });
     };
 
     renderer.domElement.addEventListener('pointermove', onPointerMove);
@@ -618,13 +536,11 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       setPreviewColor,
       syncServerCubes,
       syncTargetCells,
-      syncZoneOverlay,
     };
 
     sceneApiRef.current.syncTargetCells(targetCells);
     sceneApiRef.current.syncServerCubes(serverCubes);
     sceneApiRef.current.setPreviewColor(selectedColor);
-    sceneApiRef.current.syncZoneOverlay(safeLayer, zoneClaims, displayName);
 
     return () => {
       window.removeEventListener('resize', onResize);
@@ -637,12 +553,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       });
       targetMap.forEach((cube) => {
         if (cube.material) cube.material.dispose();
-      });
-      zoneOverlayMap.forEach((overlay) => {
-        if (overlay.plane?.geometry) overlay.plane.geometry.dispose();
-        if (overlay.plane?.material) overlay.plane.material.dispose();
-        if (overlay.outline?.geometry) overlay.outline.geometry.dispose();
-        if (overlay.outline?.material) overlay.outline.material.dispose();
       });
       targetGroup.children.forEach((cube) => {
         if (cube.material) cube.material.dispose();
@@ -660,7 +570,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
       sceneApiRef.current = null;
     };
-  }, [displayName, emitEvent, grid.x, grid.y, grid.z, gridSize, safeLayer, zoneClaims]);
+  }, [emitEvent, grid.x, grid.y, grid.z, gridSize]);
 
   useEffect(() => {
     if (!sceneApiRef.current) return;
@@ -676,11 +586,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     if (!sceneApiRef.current) return;
     sceneApiRef.current.setPreviewColor(selectedColor);
   }, [selectedColor]);
-
-  useEffect(() => {
-    if (!sceneApiRef.current?.syncZoneOverlay) return;
-    sceneApiRef.current.syncZoneOverlay(safeLayer, zoneClaims, displayName);
-  }, [displayName, safeLayer, zoneClaims]);
 
   useEffect(() => {
     if (!hasChallengeStarted) {
@@ -834,27 +739,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     emitEvent('pixel.layer.claim', { layer });
   }
 
-  function handleToggleZoneClaim(zone) {
-    if (isFacilitator) return;
-
-    const currentClaim = zoneClaims[`${safeLayer}:${zone}`] || null;
-    const myClaim = Object.values(zoneClaims).find(
-      (claim) => String(claim?.display_name || '').trim() === String(displayName || '').trim()
-    ) || null;
-    const isMine = currentClaim && String(currentClaim.display_name || '').trim() === String(displayName || '').trim();
-
-    if (isMine) {
-      emitEvent('pixel.zone.release', { layer: safeLayer, zone });
-      return;
-    }
-
-    if (myClaim && Number.isInteger(Number(myClaim.layer)) && String(myClaim.zone || '').trim()) {
-      emitEvent('pixel.zone.release', { layer: Number(myClaim.layer), zone: String(myClaim.zone) });
-    }
-
-    emitEvent('pixel.zone.claim', { layer: safeLayer, zone });
-  }
-
   function toggleLayerSummary(layer) {
     setExpandedLayers((prev) => ({
       ...prev,
@@ -901,12 +785,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     ) || null;
   }, [displayName, layerClaims]);
 
-  const myZoneClaim = useMemo(() => {
-    return Object.values(zoneClaims).find(
-      (claim) => String(claim?.display_name || '').trim() === String(displayName || '').trim()
-    ) || null;
-  }, [displayName, zoneClaims]);
-
   const layerStats = useMemo(() => {
     return layers.map((layer) => {
       const claim = layerClaims[String(layer)] || null;
@@ -931,27 +809,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       };
     });
   }, [layerClaims, layers, serverCubes, targetCells, targetSet]);
-
-  const activeZoneStats = useMemo(() => {
-    return ZONE_OPTIONS.map((zone) => {
-      const claim = zoneClaims[`${safeLayer}:${zone.key}`] || null;
-      const zoneTargetCount = targetCells.filter((cell) => cell.y === safeLayer && resolveZoneKey(cell.x, cell.z, grid) === zone.key).length;
-      const zoneCubes = serverCubes.filter((cube) => cube.y === safeLayer && resolveZoneKey(cube.x, cube.z, grid) === zone.key);
-      const matchedCount = zoneCubes.reduce((count, cube) => {
-        const key = toCellKey(cube.x, cube.y, cube.z);
-        return count + (targetSet.has(key) ? 1 : 0);
-      }, 0);
-
-      return {
-        ...zone,
-        claim,
-        placedCount: zoneCubes.length,
-        matchedCount,
-        extraCount: Math.max(0, zoneCubes.length - matchedCount),
-        targetCount: zoneTargetCount,
-      };
-    });
-  }, [grid, safeLayer, serverCubes, targetCells, targetSet, zoneClaims]);
 
   const contributorStats = useMemo(() => {
     const grouped = serverCubes.reduce((acc, cube) => {
@@ -1024,7 +881,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       <header className={styles.challengeHeader}>
         <div className={styles.challengeHeaderLine}>
           <h1>Pixel Architect</h1>
-          <p>Repliquez le modele collectivement en temps reel avec contraintes de grille et palette.</p>
+          <p>REPLIQUEZ LE MODELE COLLECTIVEMENT EN TEMPS REEL AVEC CONTRAINTES DE GRILLE ET DE PALETTE.</p>
         </div>
       </header>
 
@@ -1076,6 +933,22 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                         </button>
                       ))}
                     </div>
+                    {!isFacilitator ? (
+                      <div className={styles.claimBarInside}>
+                        <p className={styles.claimText}>
+                          {myLayerClaim
+                            ? `Couche reservee: ${Number(myLayerClaim.layer) + 1}`
+                            : 'Aucune couche reservee'}
+                        </p>
+                        <button
+                          type="button"
+                          className={styles.btnSecondary}
+                          onClick={() => handleToggleLayerClaim(safeLayer)}
+                        >
+                          {myLayerClaim && Number(myLayerClaim.layer) === safeLayer ? 'Liberer cette couche' : 'Reserver cette couche'}
+                        </button>
+                      </div>
+                    ) : null}
                   </section>
 
                   <section className={styles.modelMiniCard}>
@@ -1097,52 +970,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     </div>
                   </section>
                 </div>
-
-                {!isFacilitator ? (
-                  <div className={styles.claimBar}>
-                    <p className={styles.claimText}>
-                      {myLayerClaim
-                        ? `Couche reservee: ${Number(myLayerClaim.layer) + 1}`
-                        : 'Aucune couche reservee'}
-                    </p>
-                    <button
-                      type="button"
-                      className={styles.btnSecondary}
-                      onClick={() => handleToggleLayerClaim(safeLayer)}
-                    >
-                      {myLayerClaim && Number(myLayerClaim.layer) === safeLayer ? 'Liberer cette couche' : 'Reserver cette couche'}
-                    </button>
-                  </div>
-                ) : null}
-
-                {!isFacilitator ? (
-                  <div className={styles.zoneClaimPanel}>
-                    <div className={styles.zoneClaimHead}>
-                      <p className={styles.claimText}>
-                        {myZoneClaim
-                          ? `Zone reservee: couche ${Number(myZoneClaim.layer) + 1} · ${String(myZoneClaim.zone || '')}`
-                          : 'Aucune zone reservee'}
-                      </p>
-                    </div>
-                    <div className={styles.zoneClaimGrid}>
-                      {activeZoneStats.map((zone) => {
-                        const isMine = zone.claim && String(zone.claim.display_name || '').trim() === String(displayName || '').trim();
-                        return (
-                          <button
-                            key={`zone-claim-${zone.key}`}
-                            type="button"
-                            className={`${styles.zoneClaimCard}${isMine ? ` ${styles.zoneClaimCardActive}` : ''}`}
-                            onClick={() => handleToggleZoneClaim(zone.key)}
-                          >
-                            <strong>{zone.label}</strong>
-                            <span>{zone.claim ? `Reservee par ${String(zone.claim.display_name || 'participant')}` : 'Libre'}</span>
-                            <span>Cible {zone.targetCount} · Exacts {zone.matchedCount}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : null}
 
                 <div className={styles.paletteRow}>
                   <p className={styles.paletteLabel}>Palette active</p>
@@ -1168,11 +995,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
                 <div className={styles.viewportWrap}>
                   <div ref={mountRef} className={styles.viewport3d} />
-                </div>
-                <div className={styles.zoneLegend} aria-label="Legende des zones reservees">
-                  <span className={styles.zoneLegendItem}><span className={`${styles.zoneLegendSwatch} ${styles.zoneLegendSwatchMine}`} /> Ma zone</span>
-                  <span className={styles.zoneLegendItem}><span className={`${styles.zoneLegendSwatch} ${styles.zoneLegendSwatchReserved}`} /> Zone reservee</span>
-                  <span className={styles.zoneLegendItem}><span className={`${styles.zoneLegendSwatch} ${styles.zoneLegendSwatchOpen}`} /> Zone libre</span>
                 </div>
 
                 {!isFacilitator ? (
