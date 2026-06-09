@@ -70,17 +70,17 @@ function TimerRing({ remainingSeconds, totalSeconds }) {
   );
 }
 
-export function QuizLobbyScreen({ quiz, ready, onToggleReady }) {
+export function QuizLobbyScreen({ quiz, ready, onToggleReady, isFacilitator = false, onStart = null, isBusy = false }) {
   const participants = normalizeParticipants(quiz);
 
   return (
     <section className={styles.screenCard}>
       <div className={styles.screenHeader}>
         <div>
-          <p className={styles.kicker}>Lobby avant démarrage</p>
-          <h2 className={styles.screenTitle}>Tout le monde se prépare avant le lancement</h2>
+          <p className={styles.kicker}>Salle d attente</p>
+          <h2 className={styles.screenTitle}>Synchronisation des participants avant lancement</h2>
         </div>
-        <span className={styles.phaseBadge}>Pré-start</span>
+        <span className={styles.phaseBadge}>Lobby</span>
       </div>
 
       <div className={styles.metricsRow}>
@@ -88,12 +88,6 @@ export function QuizLobbyScreen({ quiz, ready, onToggleReady }) {
         <article className={styles.metricCard}><span>Temps / question</span><strong>{formatDuration(quiz.question_duration_seconds)}</strong></article>
         <article className={styles.metricCard}><span>Connectés</span><strong>{quiz.connected_count}</strong></article>
         <article className={styles.metricCard}><span>Prêts</span><strong>{quiz.ready_count}</strong></article>
-      </div>
-
-      <div className={styles.ruleList}>
-        <p>Tous les participants verront la même question au même moment.</p>
-        <p>Chaque réponse validée sera verrouillée et comptée individuellement.</p>
-        <p>Le classement évoluera à chaque question si le leaderboard live est activé.</p>
       </div>
 
       <div className={styles.lobbyRoster}>
@@ -112,14 +106,18 @@ export function QuizLobbyScreen({ quiz, ready, onToggleReady }) {
               </span>
             </div>
           </article>
-        )) : (
-          <p className={styles.helperText}>Les participants apparaîtront ici dès la connexion.</p>
-        )}
+        )) : <p className={styles.helperText}>En attente de connexions participants.</p>}
       </div>
 
-      <button type="button" className={styles.primaryButton} onClick={onToggleReady}>
-        {ready ? 'Annuler prêt' : 'Je suis prêt'}
-      </button>
+      {isFacilitator ? (
+        <button type="button" className={styles.primaryButton} onClick={onStart} disabled={isBusy}>
+          Demarrer le challenge
+        </button>
+      ) : (
+        <button type="button" className={styles.primaryButton} onClick={onToggleReady}>
+          {ready ? 'Annuler ma presence' : 'Confirmer ma presence'}
+        </button>
+      )}
     </section>
   );
 }

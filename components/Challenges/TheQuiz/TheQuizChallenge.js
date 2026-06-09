@@ -21,7 +21,6 @@ import {
 import {
   THE_QUIZ_HOST_TABS,
   THE_QUIZ_PLACEHOLDER_QUESTION,
-  THE_QUIZ_STAGE_OPTIONS,
   buildPlaceholderLeaderboard,
 } from './theQuiz.schema';
 import styles from './TheQuiz.module.css';
@@ -77,7 +76,6 @@ function buildRankMap(entries = []) {
 }
 
 export default function TheQuizChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
-  const [previewPhase, setPreviewPhase] = useState('lobby');
   const [forcedPhase, setForcedPhase] = useState('');
   const [hostTab, setHostTab] = useState('host_admin');
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
@@ -124,10 +122,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     }),
     [runtimePayload, state, isFacilitator, rawQuiz]
   );
-
-  useEffect(() => {
-    setPreviewPhase(String(quiz.phase || 'lobby'));
-  }, [quiz.phase]);
 
   useEffect(() => {
     if (!Array.isArray(events) || events.length === 0) return;
@@ -287,7 +281,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     return movement;
   }, [quiz.leaderboard]);
 
-  const activePhase = forcedPhase || (quiz.placeholder_mode ? previewPhase : quiz.phase);
+  const activePhase = forcedPhase || String(quiz.phase || 'lobby');
   const phaseQuizView = useMemo(() => {
     if (activePhase !== 'question_result' || !transientQuestionResult) return quiz;
     return {
@@ -391,7 +385,16 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     if (activePhase === 'final_score') {
       return <QuizFinalScreen quiz={phaseQuizView} />;
     }
-    return <QuizLobbyScreen quiz={phaseQuizView} ready={ready} onToggleReady={handleToggleReady} />;
+    return (
+      <QuizLobbyScreen
+        quiz={phaseQuizView}
+        ready={ready}
+        onToggleReady={handleToggleReady}
+        isFacilitator={isFacilitator}
+        onStart={isFacilitator ? handleStartChallenge : null}
+        isBusy={hostActionBusy}
+      />
+    );
   }
 
   return (
@@ -404,24 +407,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
       {error ? <div className={styles.errorBanner}>{error}</div> : null}
       {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>Reconnexion en cours, restauration de la question active...</div> : null}
       {reconnectState === 'reconnected' ? <div className={styles.reconnectBannerSuccess}>Connexion restaurée</div> : null}
-
-      {quiz.placeholder_mode ? (
-        <section className={styles.previewBar}>
-          <div className={styles.previewButtons}>
-            {THE_QUIZ_STAGE_OPTIONS.map((stage) => (
-              <button
-                key={stage.id}
-                type="button"
-                className={`${styles.previewButton} ${previewPhase === stage.id ? styles.previewButtonActive : ''}`}
-                onClick={() => setPreviewPhase(stage.id)}
-              >
-                {stage.label}
-              </button>
-            ))}
-          </div>
-          <p className={styles.previewNote}>Mode preview activé tant que la logique métier complète n est pas branchée.</p>
-        </section>
-      ) : null}
 
       <section className={styles.mainGrid}>
         <div className={styles.primaryColumn}>
@@ -509,7 +494,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
               quickMessages={quiz.quick_reactions_enabled ? quickMessages : []}
               onQuickMessage={sendQuickChat}
               placeholder="Envoyer un message ou une réaction rapide"
-              emptyText="Le chat est prêt. Lancez une réaction rapide pour chauffer la room."
+              emptyText="Aucun message pour le moment."
               />
             </div>
           ) : (
