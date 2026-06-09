@@ -1921,6 +1921,43 @@ export default function AdminClient() {
     });
   }
 
+  async function persistChallengeEngineConfig(challengeId, nextEngineConfig) {
+    const response = await fetch(getApiUrl(`/challenges/${challengeId}`), {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        engine_config: nextEngineConfig,
+      }),
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(payload.error || payload.details || `Sauvegarde challenge impossible (${response.status})`);
+    }
+
+    const persistedConfig = cloneJson(payload?.engine_config, null) || cloneJson(nextEngineConfig, {}) || {};
+
+    setChallenges((prev) => prev.map((item) => (
+      String(item?.id || '') === String(challengeId)
+        ? { ...item, engine_config: persistedConfig }
+        : item
+    )));
+
+    setEditingChallenge((prev) => {
+      if (!prev) return prev;
+      if (String(prev.id || '') !== String(challengeId)) return prev;
+      return {
+        ...prev,
+        engine_config: persistedConfig,
+      };
+    });
+
+    return persistedConfig;
+  }
+
   async function handleUploadEscapeRoomImage(event) {
     if (!token || !editingChallenge) return;
 
@@ -1964,14 +2001,9 @@ export default function AdminClient() {
         throw new Error('URL image manquante dans la reponse upload.');
       }
 
-      setEditingChallenge((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          engine_config: ensureEscapeRoomE5Image(prev.engine_config, uploadedUrl),
-        };
-      });
-      showNotice('Image uploadée et injectée dans enigme 5 (non enregistrée tant que vous ne cliquez pas sur Enregistrer).');
+      const nextEngineConfig = ensureEscapeRoomE5Image(editingChallenge.engine_config, uploadedUrl);
+      await persistChallengeEngineConfig(editingChallenge.id, nextEngineConfig);
+      showNotice('Image enigme 5 uploadee et sauvegardee automatiquement.');
     } catch (err) {
       setChallengeImageUploadError(err.message || 'Upload image impossible.');
     } finally {
@@ -2023,38 +2055,34 @@ export default function AdminClient() {
         throw new Error('URL image manquante dans la reponse upload.');
       }
 
-      setEditingChallenge((prev) => {
-        if (!prev) return prev;
-        const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-        const defaultImages = getCopuzzleDefaultImages(currentConfig).map((item) => ({ ...item }));
-        const safeIndex = Math.max(0, Math.min(defaultImages.length - 1, Number(imageIndex) || 0));
-        const currentItem = defaultImages[safeIndex] || {
-          id: `default_${safeIndex + 1}`,
-          title: `Image ${safeIndex + 1}`,
-          src: '',
-        };
+      const currentConfig = ensureCopuzzleConfig(editingChallenge.engine_config);
+      const defaultImages = getCopuzzleDefaultImages(currentConfig).map((item) => ({ ...item }));
+      const safeIndex = Math.max(0, Math.min(defaultImages.length - 1, Number(imageIndex) || 0));
+      const currentItem = defaultImages[safeIndex] || {
+        id: `default_${safeIndex + 1}`,
+        title: `Image ${safeIndex + 1}`,
+        src: '',
+      };
 
-        defaultImages[safeIndex] = {
-          ...currentItem,
-          src: uploadedUrl,
-        };
+      defaultImages[safeIndex] = {
+        ...currentItem,
+        src: uploadedUrl,
+      };
 
-        const selectedDefaultImageId = String(currentConfig.default_image_id || defaultImages[0]?.id || '').trim();
-        const selectedDefault = defaultImages.find((item) => item.id === selectedDefaultImageId) || defaultImages[0] || null;
-        return {
-          ...prev,
-          engine_config: {
-            ...currentConfig,
-            default_images: defaultImages,
-            image_url: String(selectedDefault?.src || uploadedUrl),
-            image: {
-              ...(currentConfig.image || {}),
-              src: String(selectedDefault?.src || uploadedUrl),
-            },
-          },
-        };
-      });
-      showNotice('Image de référence Copuzzle uploadée (pensez à enregistrer le challenge).');
+      const selectedDefaultImageId = String(currentConfig.default_image_id || defaultImages[0]?.id || '').trim();
+      const selectedDefault = defaultImages.find((item) => item.id === selectedDefaultImageId) || defaultImages[0] || null;
+      const nextEngineConfig = {
+        ...currentConfig,
+        default_images: defaultImages,
+        image_url: String(selectedDefault?.src || uploadedUrl),
+        image: {
+          ...(currentConfig.image || {}),
+          src: String(selectedDefault?.src || uploadedUrl),
+        },
+      };
+
+      await persistChallengeEngineConfig(editingChallenge.id, nextEngineConfig);
+      showNotice('Image de reference Copuzzle uploadee et sauvegardee automatiquement.');
     } catch (err) {
       setChallengeImageUploadError(err.message || 'Upload image impossible.');
     } finally {
@@ -4044,7 +4072,6 @@ export default function AdminClient() {
                                       height={360}
                                       loading="lazy"
                                       style={{ maxWidth: '100%', maxHeight: '120px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
-                                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                     />
                                   ) : null}
 

@@ -757,8 +757,6 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       height={360}
                       loading="lazy"
                       style={{ maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
-                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                      onLoad={(e) => { e.currentTarget.style.display = 'block'; }}
                     />
                   </div>
                 );
