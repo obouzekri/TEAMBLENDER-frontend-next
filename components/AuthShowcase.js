@@ -21,23 +21,27 @@ export default function AuthShowcase({
         <p>{description}</p>
       </div>
 
-      <div className="auth-showcase-grid" aria-label="Points forts produit">
-        {highlights.map((item) => (
-          <article key={item.title} className="auth-mini-card">
-            <strong>{item.title}</strong>
-            <span>{item.text}</span>
-          </article>
-        ))}
-      </div>
+      {highlights.length > 0 ? (
+        <div className="auth-showcase-grid" aria-label="Points forts produit">
+          {highlights.map((item) => (
+            <article key={item.title} className="auth-mini-card">
+              <strong>{item.title}</strong>
+              <span>{item.text}</span>
+            </article>
+          ))}
+        </div>
+      ) : null}
 
-      <div className="auth-showcase-stats" aria-label="Indicateurs produit">
-        {stats.map((item) => (
-          <article key={item.label} className="auth-stat-card">
-            <strong>{item.value}</strong>
-            <span>{item.label}</span>
-          </article>
-        ))}
-      </div>
+      {stats.length > 0 ? (
+        <div className="auth-showcase-stats" aria-label="Indicateurs produit">
+          {stats.map((item) => (
+            <article key={item.label} className="auth-stat-card">
+              <strong>{item.value}</strong>
+              <span>{item.label}</span>
+            </article>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

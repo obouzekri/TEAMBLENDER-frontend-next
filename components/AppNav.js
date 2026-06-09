@@ -246,6 +246,14 @@ export default function AppNav({ userLabel, onLogout, role }) {
               </div>
             )}
 
+            {isAdmin && !isCompact && (
+              <div className="nav-main-block">
+                <nav className="nav-links" aria-label="Navigation admin">
+                  <Link href="/admin" className={`nav-link ${pathname === '/admin' ? 'is-active' : ''}`} aria-current={pathname === '/admin' ? 'page' : undefined}>Retour admin</Link>
+                </nav>
+              </div>
+            )}
+
             {isCompact && (
               <div className="nav-main-block nav-main-block--compact">
                 <nav className="nav-links" aria-label="Navigation session live">

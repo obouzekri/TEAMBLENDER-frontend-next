@@ -220,10 +220,7 @@ export default function BillingAdminClient() {
             <h1>Abonnements, facturation et operations</h1>
             <p>Console centralisee pour upgrades, downgrades, paiements, remboursements et suivi provider.</p>
           </div>
-          <div className="admin-billing-header-actions">
-            <Link href="/admin" className="btn-ghost">Retour admin</Link>
-            <button type="button" className="btn-primary" onClick={refresh} disabled={loading}>Rafraichir</button>
-          </div>
+          <div className="admin-billing-header-actions" />
         </header>
 
         <section className="admin-billing-filters">

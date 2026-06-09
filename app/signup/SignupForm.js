@@ -136,16 +136,11 @@ export default function SignupForm() {
           { title: 'Corporate ready', text: 'Une experience sobre, claire et credible pour managers, RH et facilitateurs.' },
           { title: 'Realtime by design', text: 'Des interfaces pensees pour l animation de groupes et la collaboration en direct.' },
         ]}
-        stats={[
-          { value: 'Team', label: 'Onboarding collaboratif' },
-          { value: 'Flow', label: 'Experience guidee' },
-          { value: 'Premium', label: 'Design SaaS moderne' },
-        ]}
+        stats={[]}
       />
 
       <AuthCard
         title="Créer un compte TeamBlender"
-        description="Demarrez avec une interface epuree, un onboarding professionnel et des controles d acces modernes."
         brand={<Link href="/" className="auth-card-brand-link" aria-label="Retour a l accueil TeamBlender"><Logo size="compact" /></Link>}
         footer={<span>Déjà un compte ? <Link href="/login">Se connecter</Link></span>}
       >

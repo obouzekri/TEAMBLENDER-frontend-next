@@ -1091,12 +1091,13 @@ a {
 
 .auth-showcase-copy h1 {
   margin: 0;
-  max-width: 12ch;
+  max-width: none;
   font-family: var(--font-display);
   font-size: clamp(2rem, 4.4vw, 3.4rem);
   line-height: 0.98;
   letter-spacing: -0.055em;
   color: #0f172a;
+  white-space: nowrap;
 }
 
 .auth-showcase-copy p {
@@ -1328,21 +1329,21 @@ a {
 }
 
 .social-auth-pill {
-  position: absolute;
-  top: 0.45rem;
-  right: 0.5rem;
+  position: static;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 1.2rem;
-  padding: 0.08rem 0.38rem;
+  min-height: 1.25rem;
+  margin-left: 0.3rem;
+  padding: 0.1rem 0.44rem;
   border-radius: 999px;
   background: rgba(99, 102, 241, 0.1);
   color: #4c46cf;
-  font-size: 0.64rem;
+  font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  flex: 0 0 auto;
 }
 
 .social-auth-icon {
@@ -1430,7 +1431,8 @@ a {
   }
 
   .auth-showcase-copy h1 {
-    max-width: 14ch;
+    max-width: none;
+    white-space: normal;
   }
 }
 
@@ -7806,10 +7808,54 @@ a {
 
 .admin-edit-modal-body {
   padding: 0.45rem 0.15rem 0.2rem;
+  max-height: min(70vh, 620px);
+  overflow-y: auto;
 }
 
 .admin-edit-modal .auth-form {
   gap: 0.8rem;
+}
+
+.admin-edit-modal {
+  width: min(680px, 100%);
+  max-height: min(88vh, 760px);
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-console-layout .auth-form {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 251, 255, 0.95) 100%);
+  border: 1px solid rgba(207, 218, 236, 0.7);
+  border-radius: 14px;
+  padding: 0.9rem;
+}
+
+.admin-console-layout .auth-form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+.admin-console-layout .auth-form select,
+.admin-console-layout .auth-form textarea {
+  border-radius: 10px;
+  border: 1px solid rgba(187, 203, 227, 0.9);
+  background: #ffffff;
+  min-height: 2.45rem;
+  padding: 0.5rem 0.7rem;
+}
+
+.admin-console-layout .auth-form textarea {
+  min-height: 5.2rem;
+}
+
+.admin-console-layout .auth-form input[type="checkbox"],
+.admin-console-layout .auth-form input[type="radio"] {
+  width: 0.9rem;
+  height: 0.9rem;
+  accent-color: #4f46e5;
+  transform: scale(0.92);
+  margin: 0;
+}
+
+.admin-console-layout .auth-form input[type="checkbox"] + span,
+.admin-console-layout .auth-form input[type="radio"] + span {
+  font-size: 0.85rem;
 }
 
 .manager-onboarding-step h3 {
