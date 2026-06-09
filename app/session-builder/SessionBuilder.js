@@ -420,7 +420,9 @@ export default function SessionBuilder() {
   }, [normalizePaywallTarget]);
 
   const apiRequest = useCallback(async (path, options = {}) => {
-    const response = await fetch(getApiUrl(path), options);
+    const method = String(options.method || 'GET').toUpperCase();
+    const cacheBust = method === 'GET' ? `${String(path).includes('?') ? '&' : '?'}_t=${Date.now()}` : '';
+    const response = await fetch(getApiUrl(`${path}${cacheBust}`), options);
 
     if (response.status === 401) {
       logout();
@@ -828,7 +830,7 @@ export default function SessionBuilder() {
     let cancelled = false;
     const token = getAuthToken();
 
-    fetch(getApiUrl(`/sessions/${sessionId}`), {
+    fetch(getApiUrl(`/sessions/${sessionId}?_t=${Date.now()}`), {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -925,7 +927,7 @@ export default function SessionBuilder() {
 
     const token = getAuthToken();
 
-    fetchWithRetry(getApiUrl('/challenges'), {
+    fetchWithRetry(getApiUrl(`/challenges?_t=${Date.now()}`), {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',

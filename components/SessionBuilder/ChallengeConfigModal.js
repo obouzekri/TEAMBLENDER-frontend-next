@@ -1,10 +1,38 @@
 'use client';
 
 import styles from './ChallengeConfigModal.module.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-import { getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
+import { buildBackendAssetCandidates, getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
+
+function ResilientPreviewImage({ src, alt }) {
+  const candidates = useMemo(() => buildBackendAssetCandidates(src), [src]);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    setIndex(0);
+  }, [candidates]);
+
+  const activeSrc = candidates[index] || '';
+  if (!activeSrc) return null;
+
+  return (
+    <Image
+      key={activeSrc}
+      src={activeSrc}
+      alt={alt}
+      unoptimized
+      width={640}
+      height={360}
+      loading="lazy"
+      style={{ maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+      onError={() => {
+        setIndex((prev) => (prev + 1 < candidates.length ? prev + 1 : prev));
+      }}
+    />
+  );
+}
 
 const COPUZZLE_ADMIN_REFERENCE_IMAGES = Object.freeze([
   { id: 'default_1', title: 'Image administrateur 1', src: '/copuzzle/default-blue.svg' },
@@ -749,15 +777,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                 if (!previewSrc) return null;
                 return (
                   <div className={styles.activePuzzlePreview}>
-                    <Image
-                      src={previewSrc}
-                      alt="Aperçu puzzle"
-                      unoptimized
-                      width={640}
-                      height={360}
-                      loading="lazy"
-                      style={{ maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
-                    />
+                    <ResilientPreviewImage src={previewSrc} alt="Aperçu puzzle" />
                   </div>
                 );
               })()}
