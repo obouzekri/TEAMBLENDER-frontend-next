@@ -43,7 +43,7 @@ function SocialButton({ label, provider, icon, busy, onClick, unavailable = fals
     >
       <span className="social-auth-icon">{icon}</span>
       <span className="social-auth-label">{label}</span>
-      {unavailable ? <span className="social-auth-pill">Bientot</span> : null}
+      {unavailable ? <span className="social-auth-pill" aria-label="Bientôt disponible">Bientôt</span> : null}
     </button>
   );
 }

@@ -8388,3 +8388,631 @@ a {
 .form-error {
   color: #b91c1c;
 }
+
+/* ================================================================
+   PREMIUM UI REDESIGN — Login · Pricing · Account
+   Inspired by Linear, Notion, Vercel, Stripe
+   ================================================================ */
+
+/* ── LOGIN PAGE ── */
+
+/* Minimalist auth-card header */
+.auth-card-header {
+  gap: 0.3rem;
+  margin-bottom: 1.35rem;
+}
+.auth-card h1 {
+  font-size: clamp(1.35rem, 2vw, 1.65rem);
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+/* Social buttons — modern balanced layout */
+.social-auth-stack {
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+}
+.social-auth-row {
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+.social-auth-btn {
+  position: relative;
+  overflow: visible;
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(145, 162, 210, 0.28);
+  background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+  color: #1a2540;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 12px rgba(15, 23, 42, 0.04);
+  gap: 0.6rem;
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    background 180ms ease;
+}
+.social-auth-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: rgba(99, 130, 255, 0.38);
+  box-shadow:
+    0 2px 4px rgba(15, 23, 42, 0.06),
+    0 8px 22px rgba(80, 100, 255, 0.1);
+  background: linear-gradient(180deg, #ffffff 0%, #f5f8ff 100%);
+}
+.social-auth-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+/* Badge — absolute top-right, pill, violet, no text disruption */
+.social-auth-pill {
+  position: absolute;
+  top: -8px;
+  right: -7px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.14rem 0.48rem;
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.22);
+  color: #7c3aed;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+  pointer-events: none;
+  line-height: 1;
+}
+.social-auth-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+}
+.social-auth-label {
+  flex: 1;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Premium separator */
+.social-auth-separator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 0.15rem 0;
+}
+.social-auth-separator::before,
+.social-auth-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.4), transparent);
+}
+
+/* ── PRICING PAGE — Premium SaaS Redesign ── */
+.pricing-page {
+  background:
+    radial-gradient(ellipse 70% 50% at 10% -5%, rgba(123, 97, 255, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 90% 105%, rgba(91, 140, 255, 0.06) 0%, transparent 60%),
+    #F5F7FF;
+  padding: 3rem 0 4rem;
+  gap: 1.5rem;
+}
+
+.pricing-hero {
+  border: 1px solid rgba(123, 97, 255, 0.14);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(245,242,255,0.94) 100%);
+  box-shadow: 0 8px 32px rgba(123, 97, 255, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
+  padding: clamp(1.75rem, 3vw, 2.5rem);
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+.pricing-hero .eyebrow {
+  color: #7B61FF;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+.pricing-hero h1 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  letter-spacing: -0.04em;
+  color: #111827;
+  margin: 0.5rem 0 0;
+}
+.pricing-hero p {
+  color: #6B7280;
+  font-size: 1rem;
+  max-width: 56ch;
+  margin: 0.75rem auto 0;
+  line-height: 1.65;
+}
+
+/* Controls bar */
+.pricing-controls {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(123, 97, 255, 0.14);
+  border-radius: 18px;
+  padding: 1rem 1.4rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(8px);
+}
+.toggle-group {
+  border: 1px solid rgba(123, 97, 255, 0.22);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.toggle-btn {
+  padding: 0.5rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 180ms ease;
+}
+.toggle-btn.active {
+  background: linear-gradient(135deg, #7B61FF 0%, #5B8CFF 100%);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(123, 97, 255, 0.28);
+}
+.toggle-btn:not(.active):hover {
+  background: rgba(123, 97, 255, 0.07);
+  color: #7B61FF;
+}
+.currency-select {
+  border-radius: 10px;
+  border: 1px solid rgba(123, 97, 255, 0.22);
+  padding: 0.5rem 0.9rem;
+  font-size: 0.875rem;
+  background: rgba(255, 255, 255, 0.95);
+}
+.currency-select:focus {
+  border-color: #7B61FF;
+  box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.12);
+}
+
+/* Pricing grid — 4 columns, responsive */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.15rem;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .pricing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .pricing-grid { grid-template-columns: 1fr; }
+}
+
+/* Pricing card base */
+.pricing-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  border-radius: 22px;
+  padding: 1.6rem 1.4rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1), border-color 180ms ease;
+  backdrop-filter: blur(4px);
+}
+.pricing-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 36px rgba(123, 97, 255, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
+  border-color: rgba(123, 97, 255, 0.24);
+}
+
+/* Featured card — PRO / highlighted */
+.pricing-card-featured {
+  border-color: rgba(123, 97, 255, 0.4);
+  background: rgba(255, 255, 255, 0.99);
+  box-shadow:
+    0 0 0 1px rgba(123, 97, 255, 0.22),
+    0 8px 32px rgba(123, 97, 255, 0.16),
+    0 2px 8px rgba(15, 23, 42, 0.05);
+  transform: translateY(-4px);
+}
+.pricing-card-featured::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(123, 97, 255, 0.18) 0%, rgba(91, 140, 255, 0.14) 100%);
+  z-index: -1;
+  filter: blur(12px);
+  opacity: 0.7;
+}
+.pricing-card-featured:hover {
+  transform: translateY(-8px);
+  box-shadow:
+    0 0 0 1px rgba(123, 97, 255, 0.34),
+    0 16px 48px rgba(123, 97, 255, 0.22),
+    0 4px 12px rgba(15, 23, 42, 0.06);
+}
+.pricing-card-featured {
+  border-top: 3px solid transparent;
+  border-image: linear-gradient(90deg, #7B61FF, #5B8CFF) 1;
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+}
+
+/* Badge "Recommandé" */
+.pricing-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: self-start;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7B61FF 0%, #5B8CFF 100%);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 14px rgba(123, 97, 255, 0.32);
+}
+
+/* Plan title */
+.pricing-card .eyebrow {
+  color: #6B7280;
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  margin: 0.2rem 0 0;
+}
+.pricing-card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Price number */
+.pricing-card h2,
+.pricing-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.04em;
+  margin: 0;
+}
+.pricing-card h2 span,
+.pricing-price span {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #9CA3AF;
+  letter-spacing: 0;
+}
+
+/* Description */
+.pricing-description {
+  color: #6B7280;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Feature list — green checkmarks */
+.pricing-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pricing-feature-list li {
+  position: relative;
+  padding-left: 1.55rem;
+  color: #374151;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+.pricing-feature-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.3rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z'/%3E%3C/svg%3E");
+  mask-size: 70%;
+  -webkit-mask-size: 70%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+}
+
+/* Meta tags */
+.pricing-meta-row span {
+  background: rgba(123, 97, 255, 0.06);
+  border: 1px solid rgba(123, 97, 255, 0.16);
+  color: #7B61FF;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Pricing CTAs */
+.pricing-actions .btn-primary,
+.pricing-page .btn-primary {
+  background: linear-gradient(135deg, #7B61FF 0%, #5B8CFF 100%);
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(123, 97, 255, 0.3);
+  transition: transform 180ms ease, box-shadow 220ms ease, filter 180ms ease;
+}
+.pricing-actions .btn-primary:hover:not(:disabled),
+.pricing-page .btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(123, 97, 255, 0.38);
+  filter: saturate(1.06) brightness(1.03);
+}
+.pricing-actions .btn-secondary,
+.pricing-page .btn-secondary {
+  border-radius: 999px;
+  font-weight: 600;
+  transition: transform 180ms ease, box-shadow 220ms ease;
+}
+.pricing-actions .btn-secondary:hover:not(:disabled),
+.pricing-page .btn-secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+/* Footer CTA */
+.pricing-footer-cta {
+  border-radius: 18px;
+  border: 1px solid rgba(123, 97, 255, 0.14);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  padding: 1.4rem 2rem;
+}
+
+/* ── ACCOUNT PAGE — Premium SaaS Dashboard ── */
+
+.account-page {
+  background:
+    radial-gradient(ellipse 60% 50% at 5% 0%, rgba(123, 97, 255, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 95% 100%, rgba(91, 140, 255, 0.05) 0%, transparent 55%),
+    #F5F7FF;
+}
+
+/* Saas cards */
+.account-saas-card {
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 20px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06), 0 1px 4px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  transition: box-shadow 260ms ease;
+}
+.account-saas-card:hover {
+  box-shadow: 0 8px 28px rgba(123, 97, 255, 0.09), 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+.account-saas-card__header {
+  padding: 1.5rem 1.75rem 1.1rem;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+}
+.account-saas-card__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+  margin: 0.2rem 0 0;
+}
+.account-saas-card__subtitle {
+  font-size: 0.875rem;
+  color: #6B7280;
+  margin: 0.35rem 0 0;
+  line-height: 1.6;
+}
+.account-saas-card__body {
+  padding: 1.5rem 1.75rem;
+}
+
+/* Form fields — premium */
+.account-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.account-form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.account-form-input {
+  height: 44px;
+  padding: 0 0.9rem;
+  border-radius: 12px;
+  border: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  outline: none;
+}
+.account-form-input:focus {
+  border-color: #7B61FF;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.1);
+}
+.account-form-input--disabled,
+.account-form-input:disabled {
+  background: #F3F4F6;
+  color: #9CA3AF;
+  cursor: not-allowed;
+  border-color: #E5E7EB;
+  box-shadow: none;
+}
+
+/* Form grid */
+.account-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.account-form-field--full {
+  grid-column: 1 / -1;
+}
+.account-form-hint {
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  margin: -0.5rem 0 1rem;
+}
+@media (max-width: 600px) {
+  .account-form-grid { grid-template-columns: 1fr; }
+}
+
+/* Card actions */
+.account-saas-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+.account-saas-card__actions--split {
+  justify-content: space-between;
+}
+
+/* Account buttons — gradient pill */
+.account-page .btn-primary {
+  background: linear-gradient(135deg, #7B61FF 0%, #5B8CFF 100%);
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  min-height: 42px;
+  padding: 0 1.4rem;
+  box-shadow: 0 4px 16px rgba(123, 97, 255, 0.28);
+  transition: transform 180ms ease, box-shadow 220ms ease, filter 180ms ease;
+}
+.account-page .btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(123, 97, 255, 0.36);
+  filter: saturate(1.05) brightness(1.03);
+}
+.account-page .btn-secondary {
+  border-radius: 999px;
+  min-height: 42px;
+  padding: 0 1.4rem;
+  font-weight: 600;
+  transition: transform 180ms ease, box-shadow 220ms ease;
+}
+.account-page .btn-secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.09);
+}
+
+/* Account pricing section */
+.account-pricing-section {
+  margin-bottom: 2.5rem;
+}
+.account-pricing-surface {
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06), 0 1px 4px rgba(15, 23, 42, 0.04);
+}
+.account-pricing-head h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+.account-pricing-head p {
+  color: #6B7280;
+  font-size: 0.9rem;
+}
+.account-plan-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.1rem;
+}
+
+/* Plan history */
+.account-plan-history {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #F3F4F6;
+}
+.account-plan-history .session-item {
+  border: 1px solid #F3F4F6;
+  border-radius: 12px;
+  background: #FAFAFA;
+  padding: 0.7rem 0.9rem;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.account-plan-history .session-item:hover {
+  border-color: rgba(123, 97, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(123, 97, 255, 0.06);
+}
+
+/* Eyebrow in account sections */
+.account-page .eyebrow {
+  color: #7B61FF;
+  letter-spacing: 0.09em;
+  font-size: 0.72rem;
+}
+
+/* Card container spacing */
+.account-card-container {
+  display: grid;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Section surface overrides */
+.account-section-surface {
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 20px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+  padding: 1.5rem 1.75rem;
+}
+
+/* ── Responsive tweaks ── */
+@media (max-width: 720px) {
+  .pricing-card-featured {
+    transform: none;
+  }
+  .pricing-card-featured:hover {
+    transform: translateY(-4px);
+  }
+  .account-saas-card__header,
+  .account-saas-card__body {
+    padding: 1.1rem 1.2rem;
+  }
+  .account-pricing-surface {
+    padding: 1.1rem;
+  }
+}

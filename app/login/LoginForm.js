@@ -195,7 +195,6 @@ export default function LoginForm({ requestedSessionId = '' }) {
       <div className="auth-login-pane">
         <AuthCard
           title="Connexion à TeamBlender"
-          description="Accedez a votre espace pour lancer, suivre et faciliter vos experiences collaboratives." 
           brand={<Link href="/" className="auth-card-brand-link" aria-label="Retour a l accueil TeamBlender"><Logo size="compact" /></Link>}
           footer={<span>Pas encore de compte ? <Link href="/signup">Créer un compte</Link></span>}
         >
