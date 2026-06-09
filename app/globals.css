@@ -266,14 +266,14 @@ a {
 .top-nav {
   position: sticky;
   top: 0;
-  z-index: 30;
+  z-index: 120;
   padding-top: env(safe-area-inset-top, 0px);
   backdrop-filter: blur(16px);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(243, 248, 255, 0.86) 100%);
   border-bottom: 1px solid rgba(53, 160, 255, 0.14);
   box-shadow: 0 8px 24px rgba(18, 37, 75, 0.08);
-  overflow: clip;
+  overflow: visible;
 }
 
 .top-nav::before {
