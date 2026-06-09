@@ -37,10 +37,6 @@ function formatRelativeMs(value) {
   return `${Math.round((millis / 1000) * 10) / 10}s`;
 }
 
-function normalizeParticipants(quiz) {
-  return Array.isArray(quiz?.participants) ? quiz.participants : [];
-}
-
 function buildProgressValue(current, total) {
   const safeTotal = Math.max(1, Number(total || 1));
   const safeCurrent = Math.max(1, Number(current || 1));
@@ -67,58 +63,6 @@ function TimerRing({ remainingSeconds, totalSeconds }) {
         <span>{formatDuration(safeRemaining)}</span>
       </div>
     </div>
-  );
-}
-
-export function QuizLobbyScreen({ quiz, ready, onToggleReady, isFacilitator = false, onStart = null, isBusy = false }) {
-  const participants = normalizeParticipants(quiz);
-
-  return (
-    <section className={styles.screenCard}>
-      <div className={styles.screenHeader}>
-        <div>
-          <p className={styles.kicker}>Salle d attente</p>
-          <h2 className={styles.screenTitle}>Synchronisation des participants avant lancement</h2>
-        </div>
-        <span className={styles.phaseBadge}>Lobby</span>
-      </div>
-
-      <div className={styles.metricsRow}>
-        <article className={styles.metricCard}><span>Questions</span><strong>{quiz.question_count}</strong></article>
-        <article className={styles.metricCard}><span>Temps / question</span><strong>{formatDuration(quiz.question_duration_seconds)}</strong></article>
-        <article className={styles.metricCard}><span>Connectés</span><strong>{quiz.connected_count}</strong></article>
-        <article className={styles.metricCard}><span>Prêts</span><strong>{quiz.ready_count}</strong></article>
-      </div>
-
-      <div className={styles.lobbyRoster}>
-        {participants.length > 0 ? participants.map((participant) => (
-          <article
-            key={String(participant.participant_id || participant.display_name)}
-            className={styles.lobbyParticipantCard}
-          >
-            <strong>{String(participant.display_name || 'Participant')}</strong>
-            <div className={styles.lobbyParticipantMeta}>
-              <span className={participant.is_connected ? styles.statusGood : styles.statusMuted}>
-                {participant.is_connected ? 'Connecté' : 'Hors ligne'}
-              </span>
-              <span className={participant.is_ready ? styles.statusGood : styles.statusWarn}>
-                {participant.is_ready ? 'Prêt' : 'En attente'}
-              </span>
-            </div>
-          </article>
-        )) : <p className={styles.helperText}>En attente de connexions participants.</p>}
-      </div>
-
-      {isFacilitator ? (
-        <button type="button" className={styles.primaryButton} onClick={onStart} disabled={isBusy}>
-          Demarrer le challenge
-        </button>
-      ) : (
-        <button type="button" className={styles.primaryButton} onClick={onToggleReady}>
-          {ready ? 'Annuler ma presence' : 'Confirmer ma presence'}
-        </button>
-      )}
-    </section>
   );
 }
 
@@ -326,6 +270,9 @@ export function QuizFinalScreen({ quiz }) {
 }
 
 export function QuizHostControlScreen({ quiz, onAction, isBusy = false }) {
+  const connectedCount = Number(quiz?.connected_count || 0);
+  const canStartChallenge = connectedCount >= 2;
+
   return (
     <section className={styles.screenCard}>
       <div className={styles.screenHeader}>
@@ -343,8 +290,19 @@ export function QuizHostControlScreen({ quiz, onAction, isBusy = false }) {
         <article className={styles.metricCard}><span>Leaderboard</span><strong>{quiz.leaderboard_enabled ? 'ON' : 'OFF'}</strong></article>
       </div>
 
+      {!canStartChallenge ? (
+        <p className={styles.helperText}>Au moins 2 participants doivent être connectés pour démarrer le challenge.</p>
+      ) : null}
+
       <div className={styles.hostActions}>
-        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.start')} disabled={isBusy}>Lancer la manche</button>
+        <button
+          type="button"
+          className={styles.secondaryButton}
+          onClick={() => onAction('quiz.session.start')}
+          disabled={isBusy || !canStartChallenge}
+        >
+          Lancer la manche
+        </button>
         <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.pause')} disabled={isBusy}>Pause</button>
         <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.resume')} disabled={isBusy}>Reprendre</button>
         <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.question.skip')} disabled={isBusy}>Question suivante</button>

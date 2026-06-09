@@ -14,7 +14,6 @@ import {
   QuizHostControlScreen,
   QuizHostResponsesScreen,
   QuizLeaderboardScreen,
-  QuizLobbyScreen,
   QuizQuestionResultScreen,
   QuizQuestionScreen,
 } from './TheQuizScreens';
@@ -80,7 +79,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const [hostTab, setHostTab] = useState('host_admin');
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
   const [answerLocked, setAnswerLocked] = useState(false);
-  const [ready, setReady] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [hostActionBusy, setHostActionBusy] = useState(false);
   const [phaseTransitionTick, setPhaseTransitionTick] = useState(0);
@@ -137,7 +135,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
       }
       localTransitionTimerRef.current = window.setTimeout(() => {
         setForcedPhase('');
-      }, 2600);
+      }, 1400);
     }
 
     if (type === 'question_started' || type === 'session_finished') {
@@ -313,23 +311,11 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     : Number(quiz?.question_duration_seconds || 30);
   const timerDurationSeconds = Number(quiz?.question_duration_seconds || 30);
 
-  function handleStartChallenge() {
-    handleHostAction('quiz.session.start');
-  }
-
   function handleHostAction(type) {
     if (!type) return;
     setHostActionBusy(true);
     emitEvent(type, {});
     window.setTimeout(() => setHostActionBusy(false), 380);
-  }
-
-  function handleToggleReady() {
-    setReady((previous) => {
-      const next = !previous;
-      emitEvent('quiz.participant.ready', { is_ready: next });
-      return next;
-    });
   }
 
   function handleSubmitAnswer() {
@@ -385,15 +371,19 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     if (activePhase === 'final_score') {
       return <QuizFinalScreen quiz={phaseQuizView} />;
     }
+
     return (
-      <QuizLobbyScreen
-        quiz={phaseQuizView}
-        ready={ready}
-        onToggleReady={handleToggleReady}
-        isFacilitator={isFacilitator}
-        onStart={isFacilitator ? handleStartChallenge : null}
-        isBusy={hostActionBusy}
-      />
+      <section className={styles.screenCard}>
+        <div className={styles.screenHeader}>
+          <div>
+            <p className={styles.kicker}>The Quiz</p>
+            <h2 className={styles.screenTitle}>Préparation de la session en temps réel</h2>
+          </div>
+          <span className={styles.phaseBadge}>Prêt</span>
+        </div>
+
+        <p className={styles.helperText}>Le challenge démarre dès que l’animateur lance la session.</p>
+      </section>
     );
   }
 
@@ -410,22 +400,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
       <section className={styles.mainGrid}>
         <div className={styles.primaryColumn}>
-          {!isStarted ? (
-            <section className={styles.prestartRulesCard}>
-              <ChallengeRulesPanel
-                challengeName="The Quiz"
-                isStarted={false}
-                isFacilitator={isFacilitator}
-                objective={rules.objective}
-                facilitatorRules={rules.facilitator}
-                participantRules={rules.participant}
-                footnote={rules.footnote}
-                onStart={isFacilitator ? handleStartChallenge : null}
-                compactStartButton
-              />
-            </section>
-          ) : null}
-
           <div key={`${activePhase}-${phaseTransitionTick}`} className={styles.phaseTransitionCard}>
             {renderParticipantScreen()}
           </div>
