@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import AppNav from '@/components/AppNav';
 import {
   adminChangeUserPlan,
   adminCreateManualPayment,
@@ -65,6 +66,7 @@ function buildStatusLabel(value) {
 }
 
 export default function BillingAdminClient() {
+  const [sessionUser, setSessionUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -96,7 +98,20 @@ export default function BillingAdminClient() {
     }
   }
 
+  function logout() {
+    localStorage.removeItem('jwt');
+    sessionStorage.removeItem('jwt');
+    sessionStorage.removeItem('currentUser');
+    window.location.replace('/login');
+  }
+
   useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('currentUser');
+      setSessionUser(raw ? JSON.parse(raw) : null);
+    } catch {
+      setSessionUser(null);
+    }
     refresh();
   }, []);
 
@@ -196,20 +211,22 @@ export default function BillingAdminClient() {
   }
 
   return (
-    <main className="admin-billing-shell">
-      <header className="admin-billing-header">
-        <div>
-          <p className="eyebrow">Backoffice Paiements</p>
-          <h1>Abonnements, facturation et operations</h1>
-          <p>Console centralisee pour upgrades, downgrades, paiements, remboursements et suivi provider.</p>
-        </div>
-        <div className="admin-billing-header-actions">
-          <Link href="/admin" className="btn-ghost">Retour admin</Link>
-          <button type="button" className="btn-primary" onClick={refresh} disabled={loading}>Rafraichir</button>
-        </div>
-      </header>
+    <>
+      <AppNav userLabel={userLabel(sessionUser)} onLogout={logout} role="admin" />
+      <main className="admin-billing-shell">
+        <header className="admin-billing-header">
+          <div>
+            <p className="eyebrow">Backoffice Paiements</p>
+            <h1>Abonnements, facturation et operations</h1>
+            <p>Console centralisee pour upgrades, downgrades, paiements, remboursements et suivi provider.</p>
+          </div>
+          <div className="admin-billing-header-actions">
+            <Link href="/admin" className="btn-ghost">Retour admin</Link>
+            <button type="button" className="btn-primary" onClick={refresh} disabled={loading}>Rafraichir</button>
+          </div>
+        </header>
 
-      <section className="admin-billing-filters">
+        <section className="admin-billing-filters">
         <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher email, prenom, nom" />
         <select value={provider} onChange={(e) => setProvider(e.target.value)}>
           <option value="">Tous providers</option>
@@ -225,9 +242,9 @@ export default function BillingAdminClient() {
           <option value="canceled">canceled</option>
         </select>
         <button type="button" className="btn-secondary" onClick={refresh} disabled={loading}>Appliquer</button>
-      </section>
+        </section>
 
-      <section className="admin-billing-kpis" aria-label="Indicateurs paiements">
+        <section className="admin-billing-kpis" aria-label="Indicateurs paiements">
         <article className="kpi-card">
           <p>Comptes suivis</p>
           <strong>{stats.managedAccounts}</strong>
@@ -252,12 +269,12 @@ export default function BillingAdminClient() {
           <p>Événements timeline</p>
           <strong>{stats.timelineEvents}</strong>
         </article>
-      </section>
+        </section>
 
-      {error ? <p className="admin-billing-message error">{error}</p> : null}
-      {notice ? <p className="admin-billing-message success">{notice}</p> : null}
+        {error ? <p className="admin-billing-message error">{error}</p> : null}
+        {notice ? <p className="admin-billing-message success">{notice}</p> : null}
 
-      <section className="admin-billing-grid">
+        <section className="admin-billing-grid">
         <article className="admin-billing-card">
           <h2>Comptes & abonnements</h2>
           {loading ? <p>Chargement...</p> : null}
@@ -338,9 +355,9 @@ export default function BillingAdminClient() {
             <p className="empty-state">Selectionnez un compte pour administrer son abonnement.</p>
           )}
         </article>
-      </section>
+        </section>
 
-      <section className="admin-billing-card timeline">
+        <section className="admin-billing-card timeline">
         <h2>Timeline operationnelle recente</h2>
         <div className="timeline-list">
           {timeline.map((event) => (
@@ -359,7 +376,8 @@ export default function BillingAdminClient() {
           ))}
           {timeline.length === 0 ? <p className="empty-state">Aucun evenement recent.</p> : null}
         </div>
-      </section>
-    </main>
+        </section>
+      </main>
+    </>
   );
 }

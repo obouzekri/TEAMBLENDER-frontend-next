@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
+import Modal from '@/components/ui/Modal';
 import { getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 
@@ -2713,9 +2714,18 @@ export default function AdminClient() {
     { id: 'participants', label: 'Participants', badge: null },
     { id: 'sessions', label: 'Sessions', badge: stats.activeSessions > 0 ? stats.activeSessions : null },
     { id: 'challenges', label: 'Challenges', badge: null },
+    { id: 'billing', label: 'Paiements', badge: null, href: '/admin/billing' },
     { id: 'pricing', label: 'Tarification', badge: stats.pricingPlans > 0 ? stats.pricingPlans : null },
     { id: 'landing', label: 'Landing CMS', badge: stats.landingBlocks > 0 ? stats.landingBlocks : null },
   ];
+
+  function handleAdminTabClick(tab) {
+    if (tab?.href) {
+      window.location.href = tab.href;
+      return;
+    }
+    setActiveTab(tab.id);
+  }
 
   return (
     <>
@@ -2748,7 +2758,7 @@ export default function AdminClient() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleAdminTabClick(tab)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -2782,29 +2792,6 @@ export default function AdminClient() {
               </button>
             ))}
           </nav>
-
-          <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border, #e5e7eb)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={() => { window.location.href = '/admin/billing'; }}
-              style={{ width: '100%', fontSize: '13px' }}
-            >
-              Billing paiements
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => {
-                loadAll();
-                loadAnalytics();
-              }}
-              style={{ width: '100%', fontSize: '13px' }}
-            >
-              Rafraichir
-            </button>
-            <button type="button" className="btn-secondary" onClick={logout} style={{ width: '100%', fontSize: '13px' }}>Deconnexion</button>
-          </div>
         </aside>
 
         {/* Main content */}
@@ -2853,23 +2840,12 @@ export default function AdminClient() {
                 key={`mobile-${tab.id}`}
                 type="button"
                 className={`admin-mobile-tab-btn${activeTab === tab.id ? ' active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleAdminTabClick(tab)}
               >
                 {tab.label}
                 {tab.badge != null ? <span className="admin-mobile-tab-badge">{tab.badge}</span> : null}
               </button>
             ))}
-          </div>
-
-          <div style={{ marginBottom: '14px' }}>
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={() => { window.location.href = '/admin/billing'; }}
-              style={{ width: '100%' }}
-            >
-              Ouvrir le backoffice paiements
-            </button>
           </div>
 
           {/* ── DASHBOARD ── */}
@@ -3190,30 +3166,6 @@ export default function AdminClient() {
                   </div>
                 ) : null}
 
-                {editingUser ? (
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier utilisateur</h2>
-                    <form className="auth-form" onSubmit={submitEditUser}>
-                      <label>Prenom<input value={editingUser.first_name} onChange={(e) => setEditingUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
-                      <label>Nom<input value={editingUser.last_name} onChange={(e) => setEditingUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
-                      <label>Email<input type="email" value={editingUser.email} onChange={(e) => setEditingUser((p) => ({ ...p, email: e.target.value }))} required /></label>
-                      <label>Role
-                        <select value={editingUser.role} onChange={(e) => setEditingUser((p) => ({ ...p, role: e.target.value }))}>
-                          <option value="user">Utilisateur</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      </label>
-                      <label>Fonction<input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} /></label>
-                      <label>Departement<input value={editingUser.department} onChange={(e) => setEditingUser((p) => ({ ...p, department: e.target.value }))} /></label>
-                      <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingUser.password} onChange={(e) => setEditingUser((p) => ({ ...p, password: e.target.value }))} /></label>
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <button type="submit" className="btn-primary" disabled={busySaveKey === `save:user:${editingUser.id}`}>{busySaveKey === `save:user:${editingUser.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
-                        <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>Annuler</button>
-                      </div>
-                    </form>
-                  </div>
-                ) : null}
-
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
@@ -3362,30 +3314,6 @@ export default function AdminClient() {
                   </div>
                 ) : null}
 
-                {editingParticipant ? (
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier participant</h2>
-                    <form className="auth-form" onSubmit={submitEditParticipant}>
-                      <label>Prenom<input value={editingParticipant.first_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
-                      <label>Nom<input value={editingParticipant.last_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
-                      <label>Email<input type="email" value={editingParticipant.email} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
-                      <label>Statut
-                        <select value={editingParticipant.disabled ? 'disabled' : 'active'} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, disabled: e.target.value === 'disabled' }))}>
-                          <option value="active">Actif</option>
-                          <option value="disabled">Inactif</option>
-                        </select>
-                      </label>
-                      <label>Fonction<input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
-                      <label>Departement<input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
-                      <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} /></label>
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>{busySaveKey === `save:participant:${editingParticipant.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
-                        <button type="button" className="btn-secondary" onClick={() => setEditingParticipant(null)}>Annuler</button>
-                      </div>
-                    </form>
-                  </div>
-                ) : null}
-
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
@@ -3466,6 +3394,64 @@ export default function AdminClient() {
               </div>
             </div>
           ) : null}
+
+          <Modal
+            open={Boolean(editingUser)}
+            title="Modifier utilisateur"
+            onClose={() => setEditingUser(null)}
+            dialogClassName="admin-edit-modal"
+            bodyClassName="admin-edit-modal-body"
+          >
+            {editingUser ? (
+              <form className="auth-form" onSubmit={submitEditUser}>
+                <label>Prenom<input value={editingUser.first_name} onChange={(e) => setEditingUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
+                <label>Nom<input value={editingUser.last_name} onChange={(e) => setEditingUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
+                <label>Email<input type="email" value={editingUser.email} onChange={(e) => setEditingUser((p) => ({ ...p, email: e.target.value }))} required /></label>
+                <label>Role
+                  <select value={editingUser.role} onChange={(e) => setEditingUser((p) => ({ ...p, role: e.target.value }))}>
+                    <option value="user">Utilisateur</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </label>
+                <label>Fonction<input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} /></label>
+                <label>Departement<input value={editingUser.department} onChange={(e) => setEditingUser((p) => ({ ...p, department: e.target.value }))} /></label>
+                <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingUser.password} onChange={(e) => setEditingUser((p) => ({ ...p, password: e.target.value }))} /></label>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:user:${editingUser.id}`}>{busySaveKey === `save:user:${editingUser.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
+                  <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>Annuler</button>
+                </div>
+              </form>
+            ) : null}
+          </Modal>
+
+          <Modal
+            open={Boolean(editingParticipant)}
+            title="Modifier participant"
+            onClose={() => setEditingParticipant(null)}
+            dialogClassName="admin-edit-modal"
+            bodyClassName="admin-edit-modal-body"
+          >
+            {editingParticipant ? (
+              <form className="auth-form" onSubmit={submitEditParticipant}>
+                <label>Prenom<input value={editingParticipant.first_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
+                <label>Nom<input value={editingParticipant.last_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
+                <label>Email<input type="email" value={editingParticipant.email} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
+                <label>Statut
+                  <select value={editingParticipant.disabled ? 'disabled' : 'active'} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, disabled: e.target.value === 'disabled' }))}>
+                    <option value="active">Actif</option>
+                    <option value="disabled">Inactif</option>
+                  </select>
+                </label>
+                <label>Fonction<input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
+                <label>Departement<input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
+                <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} /></label>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>{busySaveKey === `save:participant:${editingParticipant.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
+                  <button type="button" className="btn-secondary" onClick={() => setEditingParticipant(null)}>Annuler</button>
+                </div>
+              </form>
+            ) : null}
+          </Modal>
 
           {/* ── SESSIONS ── */}
           {activeTab === 'sessions' ? (

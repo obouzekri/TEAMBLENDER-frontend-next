@@ -2,7 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
 import AuthCard from '@/components/AuthCard';
+import AuthField from '@/components/AuthField';
+import AuthShowcase from '@/components/AuthShowcase';
+import AuthSocialButtons from '@/components/AuthSocialButtons';
+import Logo from '@/components/Logo';
 import posthog from 'posthog-js';
 import { trackGtmEvent } from '@/lib/analytics';
 import {
@@ -26,9 +31,7 @@ function errorMessage(resStatus, data) {
 
 export default function LoginForm({ requestedSessionId = '' }) {
   const normalizedRequestedSessionId = useMemo(() => String(requestedSessionId || '').trim(), [requestedSessionId]);
-  const googleLoginEnabled = String(process.env.NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED || 'true').toLowerCase() === 'true';
   const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'false').toLowerCase() === 'true';
-  const showSocialButtons = googleLoginEnabled || microsoftLoginEnabled;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -81,7 +84,9 @@ export default function LoginForm({ requestedSessionId = '' }) {
   function startOAuth(provider) {
     const url = getOAuthStartUrl(provider, '/login');
     if (!url) {
-      setMessage('Configuration OAuth indisponible.');
+      setMessage(provider === 'microsoft'
+        ? 'La connexion Microsoft sera disponible prochainement.'
+        : 'Configuration OAuth indisponible.');
       return;
     }
 
@@ -172,74 +177,50 @@ export default function LoginForm({ requestedSessionId = '' }) {
 
   return (
     <main className="shell auth-page auth-page--split">
-      <section className="contact-hero feature-card reveal-up auth-hero-pane" aria-label="Connexion TeamBlender">
-        <p className="eyebrow">Accès sécurisé</p>
-        <h1>Connectez-vous pour lancer vos sessions et suivre vos équipes.</h1>
-        <p>Un espace simple, rapide et sécurisé pour les managers, RH et facilitateurs.</p>
-      </section>
+      <AuthShowcase
+        title="Lancez des challenges collaboratifs en temps reel."
+        description="Retrouvez vos sessions, animez vos equipes et gardez une vision claire du realtime depuis une interface sobre, fluide et professionnelle."
+        highlights={[
+          { title: 'Realtime orchestration', text: 'Lancez une session, suivez les connexions et pilotez vos challenges sans friction.' },
+          { title: 'Aligned facilitation', text: 'Managers, RH et facilitateurs accedent a la meme experience produit, claire et premium.' },
+          { title: 'Reliable access', text: 'Connexion rapide, etats lisibles et parcours pensés pour des equipes hybrides.' },
+        ]}
+        stats={[
+          { value: 'Live', label: 'Sessions synchronisees' },
+          { value: 'Secure', label: 'Acces professionnel' },
+          { value: 'Fast', label: 'Onboarding fluide' },
+        ]}
+      />
 
       <div className="auth-login-pane">
         <AuthCard
           title="Connexion à TeamBlender"
+          description="Accedez a votre espace pour lancer, suivre et faciliter vos experiences collaboratives." 
+          brand={<Link href="/" className="auth-card-brand-link" aria-label="Retour a l accueil TeamBlender"><Logo size="compact" /></Link>}
           footer={<span>Pas encore de compte ? <Link href="/signup">Créer un compte</Link></span>}
         >
-        {showSocialButtons ? (
-          <div className="social-auth-stack">
-            {googleLoginEnabled ? (
-              <button
-                type="button"
-                className="btn-secondary wide social-auth-btn"
-                onClick={() => startOAuth('google')}
-                disabled={loading || oauthLoadingProvider !== ''}
-              >
-                <span aria-hidden="true" className="social-auth-icon social-auth-icon--google">
-                  <svg viewBox="0 0 24 24" focusable="false">
-                    <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.4 14.6 2.5 12 2.5 6.8 2.5 2.5 6.8 2.5 12S6.8 21.5 12 21.5c6.9 0 9.1-4.8 9.1-7.3 0-.5 0-.9-.1-1.3H12z" />
-                  </svg>
-                </span>
-                {oauthLoadingProvider === 'google' ? 'Redirection...' : 'Continuer avec Google'}
-              </button>
-            ) : null}
-
-            {microsoftLoginEnabled ? (
-              <button
-                type="button"
-                className="btn-secondary wide social-auth-btn"
-                onClick={() => startOAuth('microsoft')}
-                disabled={loading || oauthLoadingProvider !== ''}
-              >
-                <span aria-hidden="true" className="social-auth-icon social-auth-icon--microsoft">
-                  <svg viewBox="0 0 24 24" focusable="false">
-                    <rect x="2" y="2" width="9" height="9" fill="#F25022" />
-                    <rect x="13" y="2" width="9" height="9" fill="#7FBA00" />
-                    <rect x="2" y="13" width="9" height="9" fill="#00A4EF" />
-                    <rect x="13" y="13" width="9" height="9" fill="#FFB900" />
-                  </svg>
-                </span>
-                {oauthLoadingProvider === 'microsoft' ? 'Redirection...' : 'Continuer avec Microsoft'}
-              </button>
-            ) : null}
-
-            <div className="social-auth-separator" role="separator" aria-label="ou">
-              <span>ou</span>
-            </div>
-          </div>
-        ) : null}
+        <AuthSocialButtons
+          loading={loading}
+          loadingProvider={oauthLoadingProvider}
+          microsoftEnabled={microsoftLoginEnabled}
+          onProviderClick={(provider) => startOAuth(provider)}
+        />
 
         <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
-          <label>
-            Email
+          <AuthField id="login-email" label="Email professionnel" icon={<Mail size={18} strokeWidth={1.9} />}>
             <input
+              id="login-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="votre@email.com"
+              placeholder="vous@entreprise.com"
+              autoComplete="email"
+              aria-label="Email professionnel"
             />
-          </label>
+          </AuthField>
 
-          <label>
-            Mot de passe
+          <AuthField id="login-password" label="Mot de passe" icon={<LockKeyhole size={18} strokeWidth={1.9} />} className="auth-field--password">
             <div className="password-input-wrap">
               <input
                 id="login-password"
@@ -248,6 +229,8 @@ export default function LoginForm({ requestedSessionId = '' }) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Votre mot de passe"
+                autoComplete="current-password"
+                aria-label="Mot de passe"
               />
               <button
                 type="button"
@@ -257,18 +240,10 @@ export default function LoginForm({ requestedSessionId = '' }) {
                 aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 aria-pressed={showPassword}
               >
-                {showPassword ? (
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M2.29 3.71a1 1 0 011.42-1.42l16.58 16.58a1 1 0 01-1.42 1.42l-2.43-2.43A11.51 11.51 0 0112 19c-5.67 0-9.31-5.23-9.46-5.45a1 1 0 010-1.1A18.87 18.87 0 016.4 8.18L2.29 3.71zM7.85 9.63A9.95 9.95 0 004.58 13c.61.97 3.48 4 7.42 4a9.42 9.42 0 003.13-.53l-1.78-1.78a3.5 3.5 0 01-4.5-4.5L7.85 9.63zm8.25 4.01l-1.47-1.47a3.5 3.5 0 00-2.34-2.34L10.82 8.36A2.5 2.5 0 0115.1 12.64zM12 5c5.67 0 9.31 5.23 9.46 5.45a1 1 0 010 1.1 18.5 18.5 0 01-2.53 2.93l-1.42-1.42A10.44 10.44 0 0019.42 11c-.61-.97-3.48-4-7.42-4a8.9 8.9 0 00-2.39.33L8 5.72A11.18 11.18 0 0112 5z" />
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M12 5c5.67 0 9.31 5.23 9.46 5.45a1 1 0 010 1.1C21.31 11.77 17.67 17 12 17s-9.31-5.23-9.46-5.45a1 1 0 010-1.1C2.69 10.23 6.33 5 12 5zm0 2C8.06 7 5.19 10.03 4.58 11 5.19 11.97 8.06 15 12 15s6.81-3.03 7.42-4C18.81 10.03 15.94 7 12 7zm0 1.5A2.5 2.5 0 1112 13.5 2.5 2.5 0 0112 8.5z" />
-                  </svg>
-                )}
+                {showPassword ? <EyeOff size={18} strokeWidth={1.9} aria-hidden="true" /> : <Eye size={18} strokeWidth={1.9} aria-hidden="true" />}
               </button>
             </div>
-          </label>
+          </AuthField>
 
           <button type="submit" className="btn-primary wide" disabled={loading}>
             {loading ? 'Connexion...' : 'Se connecter'}
