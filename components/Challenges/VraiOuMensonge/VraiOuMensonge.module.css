@@ -345,11 +345,21 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  padding: 9px 11px;
+  padding: 7px 10px;
   border-radius: 10px;
   border: 1px solid rgba(125, 164, 188, 0.36);
   background: rgba(9, 22, 34, 0.86);
   transition: border-color 140ms ease, transform 140ms ease, background-color 140ms ease;
+}
+
+.resultRow span {
+  font-size: 0.9rem;
+}
+
+.leaderboardLine {
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .resultRow:hover {
@@ -527,6 +537,65 @@
   border: 1px solid rgba(239, 107, 107, 0.5);
   background: rgba(76, 22, 28, 0.56);
   padding: 10px 12px;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(4, 12, 18, 0.68);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.modalCard {
+  width: min(100%, 540px);
+  border-radius: 14px;
+  border: 1px solid rgba(125, 164, 188, 0.42);
+  background: linear-gradient(165deg, rgba(16, 33, 49, 0.98), rgba(10, 24, 36, 0.98));
+  box-shadow: 0 20px 40px rgba(2, 9, 16, 0.5);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.modalCard h3 {
+  margin: 0;
+  color: #e5edf7;
+}
+
+.choiceRadioLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(145, 174, 196, 0.32);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(12, 28, 42, 0.9);
+  color: #dfeaf2;
+  font-weight: 700;
+}
+
+.choiceRadioLabel input {
+  accent-color: #28b3d0;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modalCancelBtn {
+  border-radius: 11px;
+  padding: 10px 14px;
+  border: 1px solid rgba(145, 174, 196, 0.4);
+  background: rgba(10, 24, 36, 0.92);
+  color: #d7e8f5;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .timerIconBtn {

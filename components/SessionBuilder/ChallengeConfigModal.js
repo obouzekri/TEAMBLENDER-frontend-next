@@ -295,12 +295,10 @@ function withVOMDefaults(config = {}) {
     ...(config || {}),
     rounds_per_participant: roundsPerParticipant,
     timing: {
-      ...(config?.timing && typeof config.timing === 'object' ? config.timing : {}),
-      selecting_ms: clampInt(config?.timing?.selecting_ms, 30000, 10000, 120000),
-      voting_ms: clampInt(config?.timing?.voting_ms, 30000, 10000, 120000),
-      reveal_ms: clampInt(config?.timing?.reveal_ms, 5000, 0, 60000),
-      round_result_ms: clampInt(config?.timing?.round_result_ms, 5000, 0, 60000),
-      next_turn_ms: clampInt(config?.timing?.next_turn_ms, 0, 0, 10000),
+      selecting_ms: 40000,
+      voting_ms: 40000,
+      round_result_ms: 5000,
+      next_turn_ms: 0,
     },
     timer: {
       ...(config?.timer && typeof config.timer === 'object' ? config.timer : {}),
@@ -1133,43 +1131,12 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="vomChoosingSeconds" className={styles.label}>Temps choix affirmation (s)</label>
-                <input
-                  id="vomChoosingSeconds"
-                  type="number"
-                  min="10"
-                  max="120"
-                  value={secondsValue('timing.selecting_ms', 30000)}
-                  onChange={(e) => updateValue('timing.selecting_ms', Math.max(0, Number(e.target.value || 0)) * 1000)}
-                  className={styles.input}
-                />
-              </div>
-
-              <div className={styles.configField}>
-                <label htmlFor="vomVotingSeconds" className={styles.label}>Temps réponse participants (s)</label>
-                <input
-                  id="vomVotingSeconds"
-                  type="number"
-                  min="10"
-                  max="120"
-                  value={secondsValue('timing.voting_ms', 30000)}
-                  onChange={(e) => updateValue('timing.voting_ms', Math.max(0, Number(e.target.value || 0)) * 1000)}
-                  className={styles.input}
-                />
-              </div>
-
-              <div className={styles.configField}>
-                <label htmlFor="vomRoundResultSeconds" className={styles.label}>Écran de transition + classement (s)</label>
-                <input
-                  id="vomRoundResultSeconds"
-                  type="number"
-                  min="0"
-                  max="60"
-                  value={secondsValue('timing.round_result_ms', 5000)}
-                  onChange={(e) => updateValue('timing.round_result_ms', Math.max(0, Number(e.target.value || 0)) * 1000)}
-                  className={styles.input}
-                />
-                <span className={styles.helpText}>Recommandé: 5 à 10 secondes.</span>
+                <label className={styles.label}>Règles de durée</label>
+                <span className={styles.helpText}>Chaque tour dure 40 secondes.</span>
+                <span className={styles.helpText}>1. Le poseur sélectionne ou saisit sa réponse.</span>
+                <span className={styles.helpText}>2. Les participants répondent avant la fin du chrono.</span>
+                <span className={styles.helpText}>3. Les réponses sont comparées automatiquement.</span>
+                <span className={styles.helpText}>4. Les scores sont mis à jour instantanément.</span>
               </div>
             </>
           )}
