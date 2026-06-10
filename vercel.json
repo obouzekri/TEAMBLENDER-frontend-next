@@ -8,7 +8,7 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; connect-src 'self' https://teamblender-backend-qxe5-production.up.railway.app https://*.railway.app https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googletagmanager.com https://*.google-analytics.com https://*.posthog.com; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.googletagmanager.com;" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; connect-src 'self' https://teamblender-backend-qxe5-production.up.railway.app wss://teamblender-backend-qxe5-production.up.railway.app https://*.railway.app https://*.posthog.com https://*.google-analytics.com https://*.googletagmanager.com; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googletagmanager.com https://*.google-analytics.com https://*.posthog.com; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.googletagmanager.com;" },
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },

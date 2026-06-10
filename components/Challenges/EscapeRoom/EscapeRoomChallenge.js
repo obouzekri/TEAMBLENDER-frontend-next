@@ -150,6 +150,7 @@ export default function EscapeRoomChallenge({
   const completionGuardRef = useRef('');
   const stateRequestIdRef = useRef(0);
   const appliedStateRequestIdRef = useRef(0);
+  const inFlightStateRef = useRef(null);
   const verdictTimeoutRef = useRef(null);
 
   const sessionId = String(context?.sessionId || runtimePayload?.session_id || '').trim();
@@ -202,15 +203,29 @@ export default function EscapeRoomChallenge({
 
   const loadState = useCallback(async () => {
     if (!endpointBase || !token) return;
+
+    if (inFlightStateRef.current) {
+      return inFlightStateRef.current;
+    }
+
     const requestId = stateRequestIdRef.current + 1;
     stateRequestIdRef.current = requestId;
-    const payload = await apiCall('/state', { method: 'GET' });
-    if (requestId < appliedStateRequestIdRef.current) {
-      return payload;
-    }
-    appliedStateRequestIdRef.current = requestId;
-    setState(payload);
-    return payload;
+
+    const requestPromise = apiCall('/state', { method: 'GET' })
+      .then((payload) => {
+        if (requestId < appliedStateRequestIdRef.current) {
+          return payload;
+        }
+        appliedStateRequestIdRef.current = requestId;
+        setState(payload);
+        return payload;
+      })
+      .finally(() => {
+        inFlightStateRef.current = null;
+      });
+
+    inFlightStateRef.current = requestPromise;
+    return requestPromise;
   }, [apiCall, endpointBase, token]);
 
   const loadParticipants = useCallback(async () => {
