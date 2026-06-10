@@ -108,8 +108,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   // Keep the exact server order in backlog. No client-side sort.
   const backlogTasks = useMemo(() => tasks, [tasks]);
 
-  const completionPercent = Math.max(0, Math.min(100, Math.round((timeline.length / Math.max(1, tasks.length)) * 100)));
-
   const timerState = String(state?.timer?.status || 'idle').trim();
   const normalizedTimerState = timerState.toLowerCase();
   const hasChallengeStarted = state?.timer?.enabled === false
@@ -133,6 +131,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
       ...baseRules,
       'Score collectif: moyenne des scores individuels de l’équipe (0 à 100).',
       'Pénalités: dépendance non respectée (-8), tâche critique manquante (-10), doublon (-5), tâche inconnue (-3).',
+      'L’équipe doit converger puis soumettre une seule timeline cohérente au niveau collectif.',
       'Répartissez les tâches par phase (cadrage, préparation, exécution, clôture) pour équilibrer la charge.',
       'Affectez un responsable dépendances pour valider les prérequis avant chaque déplacement majeur.'
     ];
@@ -143,6 +142,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     return [
       ...baseRules,
       'Le score final est collectif: votre ordre impacte la moyenne de toute l’équipe.',
+      'Synchronisez-vous pour soumettre une timeline unique et cohérente pour toute l’équipe.',
       'Priorisez d’abord les dépendances et les tâches critiques, puis complétez le reste du backlog.'
     ];
   }, [rulesContent?.participant]);
@@ -298,21 +298,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
       <div className={styles.layout}>
         <main className={styles.mainPane}>
-          {isFacilitator && hasChallengeStarted ? (
-            <section className={styles.card}>
-              <ChallengeRulesPanel
-                isStarted={hasChallengeStarted}
-                isFacilitator={isFacilitator}
-                showPrestartCard={false}
-                challengeName="Mission Critique"
-                objective={rulesContent.objective}
-                facilitatorRules={facilitatorRules}
-                participantRules={participantRules}
-                footnote={rulesContent.footnote}
-              />
-            </section>
-          ) : null}
-
           {!hasChallengeStarted ? (
             <section className={styles.card}>
               <ChallengeRulesPanel
@@ -328,16 +313,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             </section>
           ) : !isFacilitator ? (
             <>
-              <section className={`${styles.card} ${styles.progressCard}`}>
-                <div className={styles.progressMeta}>
-                  <p className={styles.progressLabel}>Progression de mission</p>
-                  <strong>{timeline.length}/{tasks.length} tâches placées</strong>
-                </div>
-                <div className={styles.progressTrack}>
-                  <span className={styles.progressFill} style={{ width: `${completionPercent}%` }} />
-                </div>
-              </section>
-
               <section className={styles.workspaceGrid}>
                 <section className={`${styles.card} ${styles.taskCard}`}>
                   <div className={styles.sectionHead}>
@@ -516,18 +491,45 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                       <p className={styles.meta}>Soumis: {item.submitted ? 'Oui' : 'Non'}</p>
                       <p className={styles.meta}>Erreurs: {item.errors_count ?? 0}</p>
                       <div className={styles.participantTimelineBlock}>
-                        <p className={styles.miniTitle}>Actions en cours</p>
+                        <p className={styles.miniTitle}>Timeline temps réel</p>
                         {Array.isArray(item.timeline) && item.timeline.length > 0 ? (
-                          <ol className={styles.participantTimelineList}>
-                            {item.timeline.map((taskId, idx) => {
-                              const task = taskMap.get(String(taskId));
+                          <div className={styles.phaseTimeline}>
+                            {PHASES.map((phase) => {
+                              const phaseItems = item.timeline
+                                .map((taskId, idx) => ({ taskId, idx }))
+                                .filter((entry) => inferPhaseKey(entry.idx, item.timeline.length) === phase.key);
+
                               return (
-                                <li key={`${item.participant_id}-${taskId}-${idx}`}>
-                                  {task?.label || String(taskId)}
-                                </li>
+                                <React.Fragment key={`${item.participant_id}-${phase.key}`}>
+                                  <section className={`${styles.phaseLine} ${styles[phase.className]}`}>
+                                    <div className={styles.phaseLineHeader}>
+                                      <h3>{phase.label}</h3>
+                                      <span>{phaseItems.length}</span>
+                                    </div>
+                                  </section>
+                                  <section className={styles.timelineLane}>
+                                    {phaseItems.length === 0 ? (
+                                      <div className={styles.timelineLaneHint}>Aucune action</div>
+                                    ) : (
+                                      phaseItems.map((entry) => {
+                                        const task = taskMap.get(String(entry.taskId));
+                                        return (
+                                          <article
+                                            key={`${item.participant_id}-${phase.key}-${entry.taskId}-${entry.idx}`}
+                                            className={styles.timelineCodeItem}
+                                          >
+                                            <div className={styles.timelineItemBody}>
+                                              <p className={styles.meta}>{task?.label || String(entry.taskId)}</p>
+                                            </div>
+                                          </article>
+                                        );
+                                      })
+                                    )}
+                                  </section>
+                                </React.Fragment>
                               );
                             })}
-                          </ol>
+                          </div>
                         ) : (
                           <p className={styles.meta}>Aucune action placée pour le moment.</p>
                         )}
@@ -543,18 +545,16 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
         </main>
 
         <aside className={styles.sidebar}>
-          {!isFacilitator ? (
-            <ChallengeRulesPanel
-              isStarted={hasChallengeStarted}
-              isFacilitator={isFacilitator}
-              showPrestartCard={false}
-              challengeName="Mission Critique"
-              objective={rulesContent.objective}
-              facilitatorRules={facilitatorRules}
-              participantRules={participantRules}
-              footnote={rulesContent.footnote}
-            />
-          ) : null}
+          <ChallengeRulesPanel
+            isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
+            showPrestartCard={false}
+            challengeName="Mission Critique"
+            objective={rulesContent.objective}
+            facilitatorRules={facilitatorRules}
+            participantRules={participantRules}
+            footnote={rulesContent.footnote}
+          />
 
           <ChallengeTimerCard
             title="Chrono"
