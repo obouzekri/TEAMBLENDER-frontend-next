@@ -922,12 +922,12 @@ export default function ManagerHome() {
       <Modal
         open={isParticipantModalOpen}
         title={editingMemberId ? 'Modifier un participant' : 'Créer un participant'}
+        titleClassName="participant-modal-title"
         onClose={closeParticipantModal}
       >
         <div className="participant-modal-body">
           <article className="participant-inline-form participant-inline-form--modal">
             <div className="participant-inline-form-head">
-              <h3>{editingMemberId ? 'Mettre à jour le profil' : 'Créer un participant'}</h3>
               <p>
                 {editingMemberId
                   ? 'Modifiez les informations du participant sélectionné.'

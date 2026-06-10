@@ -812,10 +812,12 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 <div className={styles.debriefCard}>
                   <h3>Debrief final</h3>
                   <p>{labyFinalSummary.summaryMessage}</p>
-                  <p>Vies restantes équipe : {labyFinalSummary.totalTeamLivesRemaining}</p>
-                  <p>Cases parcourues : {labyFinalSummary.totalCasesTraversed}</p>
-                  <p>Temps final : {labyFinalSummary.finalTimeLabel}</p>
-                  <p>Statut global : {labyFinalSummary.finalStatusLabel}</p>
+                  <div className={styles.debriefMetrics}>
+                    <article className={styles.debriefMetric}><span>Vies restantes</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
+                    <article className={styles.debriefMetric}><span>Cases parcourues</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
+                    <article className={styles.debriefMetric}><span>Temps final</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>
+                    <article className={styles.debriefMetric}><span>Statut</span><strong>{labyFinalSummary.finalStatusLabel}</strong></article>
+                  </div>
                   {maze ? (
                     <div className={`${styles.miniGrid} ${colsClass} ${styles.solutionMiniGrid} ${styles.debriefMiniGrid}`}>
                       {Array.from({ length: mazeRows }).map((_, row) => (
@@ -924,10 +926,12 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     <div className={styles.debriefCard}>
                       <h3>Débrief final</h3>
                       <p>{labyFinalSummary.summaryMessage}</p>
-                      <p>Vies restantes équipe : {labyFinalSummary.totalTeamLivesRemaining}</p>
-                      <p>Cases parcourues : {labyFinalSummary.totalCasesTraversed}</p>
-                      <p>Temps final : {labyFinalSummary.finalTimeLabel}</p>
-                      <p>Statut global : {labyFinalSummary.finalStatusLabel}</p>
+                      <div className={styles.debriefMetrics}>
+                        <article className={styles.debriefMetric}><span>Vies restantes</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
+                        <article className={styles.debriefMetric}><span>Cases parcourues</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
+                        <article className={styles.debriefMetric}><span>Temps final</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>
+                        <article className={styles.debriefMetric}><span>Statut</span><strong>{labyFinalSummary.finalStatusLabel}</strong></article>
+                      </div>
                     </div>
                   ) : null}
                   <p className={styles.gameStatus}>

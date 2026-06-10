@@ -208,14 +208,25 @@ export default function ChallengeRouteClient() {
           >
             Challenge terminé
           </p>
-          <p style={{ margin: 0, fontSize: '0.94rem', fontWeight: 700 }}>
-            {completionOverlay.mode === 'auto' ? 'Passage automatique en cours' : 'En attente du facilitateur'}
-          </p>
-          <p style={{ margin: 0, fontSize: '0.84rem', color: '#cbd5e1' }}>
-            {completionOverlay.mode === 'auto'
-              ? `Prochain challenge dans ${completionOverlay.countdown}s.`
-              : 'Le facilitateur déclenchera le prochain challenge après le débrief.'}
-          </p>
+          <div
+            style={{
+              display: 'grid',
+              gap: '8px',
+              border: '1px solid rgba(125, 211, 252, 0.28)',
+              borderRadius: '10px',
+              background: 'rgba(8, 18, 33, 0.75)',
+              padding: '10px',
+            }}
+          >
+            <p style={{ margin: 0, fontSize: '0.94rem', fontWeight: 700 }}>
+              {completionOverlay.mode === 'auto' ? 'Passage automatique en cours' : 'En attente du facilitateur'}
+            </p>
+            <p style={{ margin: 0, fontSize: '0.84rem', color: '#cbd5e1' }}>
+              {completionOverlay.mode === 'auto'
+                ? `Prochain challenge dans ${completionOverlay.countdown}s.`
+                : 'Le facilitateur déclenchera le prochain challenge après le débrief.'}
+            </p>
+          </div>
         </section>
       ) : null}
     </>

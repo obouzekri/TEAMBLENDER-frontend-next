@@ -527,18 +527,35 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'finished' ? (
           <section className={styles.card} style={{ order: -1 }}>
             <h2>Débrief final</h2>
+            <div className={styles.finalSummaryGrid}>
+              <article className={styles.finalSummaryItem}>
+                <strong>{ranking.length}</strong>
+                <span>participants classés</span>
+              </article>
+              <article className={styles.finalSummaryItem}>
+                <strong>{totalCycles}</strong>
+                <span>cycles joués</span>
+              </article>
+              <article className={styles.finalSummaryItem}>
+                <strong>{ranking[0]?.score ?? 0}</strong>
+                <span>meilleur score</span>
+              </article>
+            </div>
             <div className={`${styles.mainScoreCard} ${styles.finalWow}`}>
               <span className={styles.mainScoreLabel}>Votre score final</span>
               <span className={styles.mainScoreValue}>{myScore}</span>
               <span className={styles.mainScoreUnit}>points</span>
             </div>
-            <div className={styles.resultList}>
-              {ranking.map((entry) => (
-                <div key={entry.participant_id} className={styles.resultRow}>
-                  <span>#{entry.rank} {participantName(entry.participant_id)}</span>
-                  <span>{entry.score} pts {entry.tie ? '(ex-aequo)' : ''}</span>
-                </div>
-              ))}
+            <div className={styles.finalBlock}>
+              <h3>Classement final</h3>
+              <div className={styles.resultList}>
+                {ranking.map((entry) => (
+                  <div key={entry.participant_id} className={styles.resultRow}>
+                    <span>#{entry.rank} {participantName(entry.participant_id)}</span>
+                    <span>{entry.score} pts {entry.tie ? '(ex-aequo)' : ''}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         ) : null}

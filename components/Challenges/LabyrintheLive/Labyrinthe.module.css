@@ -592,6 +592,33 @@ button.cell:focus-visible {
   line-height: 1.45;
 }
 
+.debriefMetrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.debriefMetric {
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  border-radius: 10px;
+  background: rgba(4, 16, 26, 0.72);
+  padding: 8px;
+  display: grid;
+  gap: 3px;
+}
+
+.debriefMetric span {
+  font-size: 0.72rem;
+  color: #9cb2c7;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.debriefMetric strong {
+  font-size: 0.9rem;
+  color: #e7eff6;
+}
+
 .announcementOverlay {
   position: fixed;
   inset: 0;

@@ -515,6 +515,46 @@
   font-weight: 700;
 }
 
+.finalSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.finalSummaryItem {
+  border: 1px solid rgba(125, 164, 188, 0.36);
+  border-radius: 11px;
+  background: rgba(9, 22, 34, 0.86);
+  padding: 8px 10px;
+  display: grid;
+  gap: 2px;
+}
+
+.finalSummaryItem strong {
+  font-size: 1rem;
+  color: #e9f6fd;
+}
+
+.finalSummaryItem span {
+  font-size: 0.76rem;
+  color: #b8cde1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.finalBlock {
+  border: 1px solid rgba(125, 164, 188, 0.36);
+  border-radius: 12px;
+  background: rgba(9, 22, 34, 0.84);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.finalBlock h3 {
+  margin: 0;
+}
+
 .finalWow {
   position: relative;
   overflow: hidden;

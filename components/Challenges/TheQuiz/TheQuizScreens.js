@@ -246,6 +246,10 @@ export function QuizQuestionResultScreen({ quiz }) {
 }
 
 export function QuizFinalScreen({ quiz }) {
+  const standings = Array.isArray(quiz.final_standings) ? quiz.final_standings : [];
+  const winner = standings[0] || null;
+  const totalPlayers = standings.length;
+
   return (
     <section className={styles.screenCard}>
       <div className={styles.screenHeader}>
@@ -256,14 +260,23 @@ export function QuizFinalScreen({ quiz }) {
         <span className={styles.phaseBadge}>Final</span>
       </div>
 
-      <div className={styles.rankingList}>
-        {(quiz.final_standings || []).map((entry) => (
-          <article key={entry.participant_id} className={styles.rankingCard}>
-            <strong>#{entry.rank}</strong>
-            <span>{entry.display_name}</span>
-            <span>{entry.score} pts</span>
-          </article>
-        ))}
+      <div className={styles.finalSummaryGrid}>
+        <article className={styles.metricCard}><span>Participants</span><strong>{totalPlayers}</strong></article>
+        <article className={styles.metricCard}><span>Gagnant</span><strong>{winner?.display_name || '-'}</strong></article>
+        <article className={styles.metricCard}><span>Score gagnant</span><strong>{winner?.score ?? 0} pts</strong></article>
+      </div>
+
+      <div className={styles.finalDebriefBlock}>
+        <p className={styles.kicker}>Classement détaillé</p>
+        <div className={styles.rankingList}>
+          {standings.map((entry) => (
+            <article key={entry.participant_id} className={styles.rankingCard}>
+              <strong>#{entry.rank}</strong>
+              <span>{entry.display_name}</span>
+              <span>{entry.score} pts</span>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );

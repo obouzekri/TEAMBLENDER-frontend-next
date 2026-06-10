@@ -4270,6 +4270,23 @@ a {
   padding-top: 0.5cm;
 }
 
+.session-live-shell--fullscreen {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-inline: 8px;
+  gap: 8px;
+}
+
+.session-live-shell--fullscreen .session-live-challenge-frame {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+
 .session-live-surface {
   position: relative;
 }
@@ -8197,13 +8214,13 @@ a {
   border: 0;
   box-shadow: none;
   border-radius: 0;
-  padding: 0.55rem 0.45rem 0.25rem;
+  padding: 0.65rem 0.75rem 0.45rem;
   background: transparent;
   gap: 1.28rem;
 }
 
 .participant-inline-form--modal .participant-inline-form-head {
-  padding: 0.2rem 0.28rem 1rem;
+  padding: 0.2rem 0.2rem 1rem;
   border-bottom: 1px solid rgba(126, 151, 194, 0.26);
 }
 
@@ -8223,11 +8240,18 @@ a {
 }
 
 .participant-inline-form--modal .participant-form {
+  padding: 0 0.2rem;
   gap: 1.08rem;
 }
 
 .participant-inline-form--modal .participant-form-grid {
   gap: 1.02rem 0.86rem;
+}
+
+.participant-inline-form--modal .participant-form-hint,
+.participant-inline-form--modal .participant-form-status {
+  padding-left: 0.2rem;
+  padding-right: 0.2rem;
 }
 
 .participant-inline-form--modal .participant-form label {
@@ -8275,10 +8299,15 @@ a {
   position: sticky;
   bottom: 0;
   margin-top: 0.2rem;
-  padding: 0.85rem 0.1rem 0.12rem;
+  padding: 0.95rem 0.2rem 0.16rem;
   border-top: 1px solid rgba(126, 151, 194, 0.24);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.97) 24%, #ffffff 100%);
   backdrop-filter: blur(1px);
+}
+
+.participant-modal-title {
+  font-size: 1.08rem;
+  font-weight: 700;
 }
 
 .participant-form input,

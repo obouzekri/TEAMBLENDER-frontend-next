@@ -93,6 +93,21 @@
   gap: 10px;
 }
 
+.finalSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.finalDebriefBlock {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(9, 24, 42, 0.72);
+}
+
 .metricCard {
   display: grid;
   gap: 4px;

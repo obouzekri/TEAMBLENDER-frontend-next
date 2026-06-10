@@ -275,7 +275,7 @@ export default function SessionLiveClient() {
   return (
     <>
       <AppNav userLabel={userLabel} onLogout={logout} role="participant-live" connectionState={connectionState} />
-      <main className="shell app-home session-live-shell">
+      <main className="shell app-home session-live-shell session-live-shell--fullscreen">
         {asyncStatusMessage ? (
           <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
         ) : null}
@@ -350,7 +350,7 @@ export default function SessionLiveClient() {
         ) : null}
 
         {activeEngineKey ? (
-          <section className="feature-card session-live-challenge-frame surface-flush">
+          <section className="session-live-challenge-frame">
             <ChallengeWrapper
               key={`${sessionId}:${activeChallengeId || 'none'}:${activeEngineKey}:${liveConfigVersion}`}
               sessionId={sessionId}
