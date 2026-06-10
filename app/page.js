@@ -27,8 +27,8 @@ const DEFAULT_BLOCKS = {
   impact_3: {},
   partners_header: {
     label: '',
-    title: 'Des équipes qui veulent des résultats, pas des animations vides.',
-    description: 'TeamBlender est utilisé en contexte réel par des managers, RH et facilitateurs qui pilotent des décisions d’équipe.',
+    title: 'Des équipes qui veulent des ateliers de cohesion utiles, pas des formats superficiels.',
+    description: 'TeamBlender est utilisé en contexte réel par des managers, RH et facilitateurs qui cadrent des ateliers de cohesion orientés décisions.',
   },
   partner_1: {
     title: 'RH & Talent',
@@ -229,6 +229,23 @@ function safeHref(value, fallback = '/') {
   return hasCmsValue(value) ? value : fallback;
 }
 
+function normalizeCohesionCopy(value, fallback = '') {
+  const input = String(value || '').trim();
+  const source = input || fallback;
+  if (!source) return '';
+
+  const collapsed = source.replace(/\s+/g, ' ').trim();
+  const low = collapsed.toLowerCase();
+
+  if (low === 'créez des ateliers collaboratifs gamifiés en quelques minutes.') {
+    return 'Créez des ateliers de cohesion gamifies en quelques minutes.';
+  }
+
+  return collapsed
+    .replace(/team\s*building/gi, 'ateliers de cohesion')
+    .replace(/animation(s)?\s+d[’']equipe/gi, 'rituels de cohesion');
+}
+
 const TRUST_TAG_ICON_BY_KEYWORD = [
   { keywords: ['rh', 'talent'], Icon: Briefcase },
   { keywords: ['manager'], Icon: Users },
@@ -417,6 +434,11 @@ export default function HomePage() {
   const finalCtaSecondary = finalCtaSection.blocks.final_cta_secondary || {};
   const partnersHeader = partnersSection.blocks.partners_header || {};
   const testimonialsHeader = testimonialsSection.blocks.testimonials_header || {};
+  const heroTitle = normalizeCohesionCopy(heroMain.title, 'Créez des ateliers de cohesion gamifies en quelques minutes.');
+  const heroDescription = normalizeCohesionCopy(
+    heroMain.description,
+    'Le produit aide les equipes a transformer leurs interactions en decisions et alignement.'
+  );
 
   const heroTrustItems = useMemo(
     () => ['hero_trust_1', 'hero_trust_2', 'hero_trust_3']
@@ -535,12 +557,16 @@ export default function HomePage() {
               ) : null}
 
               <h1 className="landing-hero-title max-w-2xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-                <span className="block">{heroMain.title}</span>
+                <span className="block">{heroTitle}</span>
                 {heroMain.subtitle ? <span className="landing-hero-subtitle mt-2 block bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-700 bg-clip-text text-transparent">{heroMain.subtitle}</span> : null}
               </h1>
 
               <p className="landing-hero-description mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-                {heroMain.description}
+                {heroDescription}
+              </p>
+
+              <p className="landing-hero-keyline mt-4 max-w-2xl text-sm font-semibold tracking-wide text-cyan-200 sm:text-base">
+                Le produit aide les equipes a transformer leurs interactions en decisions et alignement.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -632,7 +658,7 @@ export default function HomePage() {
         ) : null}
 
         <section
-          className="reveal-up landing-partners landing-section-full relative overflow-hidden p-7 sm:p-10"
+          className="reveal-up landing-partners landing-section-full relative overflow-hidden p-8 sm:p-12"
           style={{
             '--reveal-delay': '120ms',
             background: 'linear-gradient(180deg, rgba(246,249,255,0.94) 0%, rgba(237,244,255,0.94) 100%)',
@@ -641,7 +667,7 @@ export default function HomePage() {
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_84%_16%,rgba(99,102,241,0.12),transparent_42%)]" />
           <div className="landing-section-inner relative space-y-8">
-            <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+            <div className="grid gap-7 lg:grid-cols-[1.22fr_0.78fr] lg:items-end">
               <div>
                 {partnersHeader.label ? (
                   <p className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-700">
@@ -656,10 +682,10 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="rounded-2xl bg-white/80 p-4 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Usage réel</p>
+              <div className="landing-partners-usage rounded-2xl bg-white/80 p-5 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Usage reel</p>
                 <p className="mt-2 text-sm leading-6 text-slate-700">
-                  Adopté pour l’onboarding, la facilitation d’ateliers et les rituels d’équipe dans des environnements hybrides exigeants.
+                  Adopte pour l'onboarding, l'alignement d'equipe et les ateliers de cohesion gamifies dans des environnements hybrides exigeants.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {TRUST_LOGO_PLACEHOLDERS.map((logo) => (
@@ -674,7 +700,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Indicateurs clés">
+            <div className="landing-metrics-grid grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Indicateurs cles">
               {TRUST_PROOF_METRICS.map((metric) => (
                 <TrustProofCard key={metric.value} value={metric.value} label={metric.label} detail={metric.detail} />
               ))}

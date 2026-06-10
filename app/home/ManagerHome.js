@@ -614,11 +614,11 @@ export default function ManagerHome() {
           <div className="home-hero-grid">
             <div className="home-hero-copy">
               <p className="eyebrow">ESPACE MANAGER</p>
-              <h1>Bonjour {userLabel}</h1>
-              <p>Planifiez, lancez et analysez vos sessions de team building dans un espace unique, clair et directement exploitable.</p>
+              <h1 className="home-hero-greeting">Bonjour {userLabel}</h1>
+              <p>Planifiez, lancez et analysez vos ateliers de cohesion gamifies dans un espace unique, clair et directement exploitable.</p>
               <div className="hero-actions home-hero-actions">
                 <Link
-                  className={`btn-primary ${canCreateSession ? '' : 'is-disabled'}`}
+                  className={`btn-primary home-create-cta ${canCreateSession ? '' : 'is-disabled'}`}
                   href="/session-builder"
                   onClick={handleCreateSessionClick}
                   aria-disabled={!canCreateSession}
