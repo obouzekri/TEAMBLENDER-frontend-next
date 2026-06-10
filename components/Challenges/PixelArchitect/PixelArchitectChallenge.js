@@ -180,11 +180,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   );
   const progress = completionRatio;
 
-  const viewerRole = String(pixel?.viewer_role || (isFacilitator ? 'facilitator' : 'builder')).trim().toLowerCase();
-  const isAdvancedReplication = String(pixel?.collaboration_mode || '').trim().toLowerCase() === 'avance'
-    && String(pixel?.mode || '').trim().toLowerCase() === 'replication';
-  const canSeeTargetModel = !isAdvancedReplication || isFacilitator || viewerRole === 'architect';
-  const isTargetHiddenForRole = !canSeeTargetModel;
+  const canSeeTargetModel = true;
 
   const displayName = useMemo(() => {
     const payloadName = String(runtimePayload?.context?.displayName || runtimePayload?.context?.name || '').trim();
@@ -495,7 +491,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         return;
       }
 
-      const cell = hoverCellRef.value;
+      const resolvedCellFromHit = hit.object === interactionPlane ? resolveGridCell(hit.point) : null;
+      const cell = resolvedCellFromHit || hoverCellRef.value;
       if (!cell) return;
       if (playerMap.has(cell.key)) return;
       playTone('place');
@@ -542,6 +539,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     sceneApiRef.current.syncTargetCells(targetCells);
     sceneApiRef.current.syncServerCubes(serverCubes);
     sceneApiRef.current.setPreviewColor(selectedColor);
+    sceneApiRef.current.setLayer(activeLayerRef.current);
+    window.requestAnimationFrame(() => {
+      onResize();
+    });
 
     return () => {
       window.removeEventListener('resize', onResize);
@@ -848,11 +849,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           <span className={styles.badge}>Exactitude: {accuracyPercent}%</span>
           <span className={styles.badge}>Restants: {remainingCubes}</span>
         </div>
-        {isTargetHiddenForRole ? (
-          <div className={styles.roleAlert} role="note" aria-label="Information de role">
-            <strong>Mode avance:</strong> le modele est visible par l architecte uniquement. Coordonnez-vous via le chat pour guider la construction.
-          </div>
-        ) : null}
         <p className={styles.rulesInlineText}>
           Cliquer la grille pour poser, cliquer un cube pour supprimer, glisser pour orbiter ou zoomer.
         </p>
@@ -875,7 +871,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         </div>
       </section>
     </>
-  ), [accuracyPercent, isTargetHiddenForRole, phase, remainingCubes]);
+  ), [accuracyPercent, phase, remainingCubes]);
 
   return (
     <div className={styles.container}>
@@ -883,15 +879,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         title="Pixel Architect"
         subtitle="Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette."
       />
-
-      <section className={styles.teamStatusBar} aria-label="Etat d equipe">
-        <span className={styles.badge}>Template: {templateName}</span>
-        <span className={styles.badge}>Difficulte: {templateDifficulty}</span>
-        <span className={styles.badge}>Cubes cibles: {targetCubeCount}</span>
-        <span className={styles.badge}>Cubes poses: {cubeCount}</span>
-        <span className={styles.badge}>Progression: {progress}%</span>
-        <span className={styles.badge}>Indices: {Number(pixel?.hints_used || 0)}</span>
-      </section>
 
       <div className={styles.layout}>
         <main className={styles.mainPane}>
@@ -916,40 +903,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 </div>
 
                 <div className={styles.arenaControlRow}>
-                  <section className={styles.layerControlCard}>
-                    <p className={styles.layerControlTitle}>Couches de construction</p>
-                    <div className={styles.layerTabs}>
-                      {layers.map((layer) => (
-                        <button
-                          key={`layer-${layer}`}
-                          type="button"
-                          aria-pressed={safeLayer === layer}
-                          aria-label={`Afficher la couche ${layer + 1}`}
-                          className={`${styles.layerBtn}${safeLayer === layer ? ` ${styles.layerBtnActive}` : ''}`}
-                          onClick={() => setActiveLayer(layer)}
-                        >
-                          Couche {layer + 1}
-                        </button>
-                      ))}
-                    </div>
-                    {!isFacilitator ? (
-                      <div className={styles.claimBarInside}>
-                        <p className={styles.claimText}>
-                          {myLayerClaim
-                            ? `Couche reservee: ${Number(myLayerClaim.layer) + 1}`
-                            : 'Aucune couche reservee'}
-                        </p>
-                        <button
-                          type="button"
-                          className={styles.btnSecondary}
-                          onClick={() => handleToggleLayerClaim(safeLayer)}
-                        >
-                          {myLayerClaim && Number(myLayerClaim.layer) === safeLayer ? 'Liberer cette couche' : 'Reserver cette couche'}
-                        </button>
-                      </div>
-                    ) : null}
-                  </section>
-
                   <section className={styles.modelMiniCard}>
                     <p className={styles.modelMiniTitle}>Carte modele</p>
                     <p className={styles.modelMiniMeta}>{templateName} - {templateDifficulty}</p>
@@ -966,6 +919,40 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     <div className={styles.modelMiniStats}>
                       <span>{grid.x}x{grid.y}x{grid.z}</span>
                       <span>{targetCubeCount} cubes cibles</span>
+                    </div>
+                  </section>
+
+                  <section className={styles.layerControlCard}>
+                    <p className={styles.layerControlTitle}>Couches de construction</p>
+                    {!isFacilitator ? (
+                      <div className={styles.claimBarInside}>
+                        <p className={styles.claimText}>
+                          {myLayerClaim
+                            ? `Couche reservee: ${Number(myLayerClaim.layer) + 1}`
+                            : 'Aucune couche reservee'}
+                        </p>
+                        <button
+                          type="button"
+                          className={styles.btnSecondary}
+                          onClick={() => handleToggleLayerClaim(safeLayer)}
+                        >
+                          {myLayerClaim && Number(myLayerClaim.layer) === safeLayer ? 'Liberer cette couche' : 'Reserver cette couche'}
+                        </button>
+                      </div>
+                    ) : null}
+                    <div className={styles.layerTabs}>
+                      {layers.map((layer) => (
+                        <button
+                          key={`layer-${layer}`}
+                          type="button"
+                          aria-pressed={safeLayer === layer}
+                          aria-label={`Afficher la couche ${layer + 1}`}
+                          className={`${styles.layerBtn}${safeLayer === layer ? ` ${styles.layerBtnActive}` : ''}`}
+                          onClick={() => setActiveLayer(layer)}
+                        >
+                          Couche {layer + 1}
+                        </button>
+                      ))}
                     </div>
                   </section>
                 </div>

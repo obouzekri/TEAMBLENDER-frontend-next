@@ -255,6 +255,12 @@
   padding: 16px;
 }
 
+.sidePanel {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
 .card h2,
 .card h3 {
   margin-top: 0;

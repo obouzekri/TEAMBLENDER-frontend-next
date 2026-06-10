@@ -489,11 +489,6 @@ export default function EscapeRoomChallenge({
           title="Escape Room"
           subtitle="Résolvez les énigmes en équipe, avec validation collective"
         />
-        <div className={styles.meta}>
-          <span className={styles.badge}>Statut: {state.status}</span>
-          <span className={styles.badge}>Énigme {Number(state.current_enigme_index || 0) + 1} / {Number(state.total_enigmes || 0)}</span>
-          <span className={styles.badge}>Timer: {remaining}s</span>
-        </div>
       </section>
 
       <section className={styles.layout}>
@@ -619,7 +614,7 @@ export default function EscapeRoomChallenge({
           )}
         </article>
 
-        <aside className={styles.card}>
+        <aside className={`${styles.card} ${styles.sidePanel}`}>
           <ChallengeRulesPanel
             isStarted={hasChallengeStarted}
             isFacilitator={isFacilitator}
