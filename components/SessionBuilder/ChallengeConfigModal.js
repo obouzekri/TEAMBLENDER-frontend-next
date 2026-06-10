@@ -310,6 +310,8 @@ function withVOMDefaults(config = {}) {
 }
 
 function withLabyrintheDefaults(config = {}) {
+  const normalizedRows = clampInt(config?.rows ?? config?.grid?.rows, 8, 6, 14);
+  const normalizedCols = clampInt(config?.cols ?? config?.grid?.cols, 8, 6, 14);
   const durationSeconds = clampInt(
     config?.timer?.duration_seconds ?? config?.timer_seconds,
     0,
@@ -320,8 +322,13 @@ function withLabyrintheDefaults(config = {}) {
 
   return {
     ...(config || {}),
-    rows: clampInt(config?.rows, 8, 6, 14),
-    cols: clampInt(config?.cols, 8, 6, 14),
+    rows: normalizedRows,
+    cols: normalizedCols,
+    grid: {
+      ...(config?.grid && typeof config.grid === 'object' ? config.grid : {}),
+      rows: normalizedRows,
+      cols: normalizedCols,
+    },
     complexity: Math.min(0.9, Math.max(0.3, Number(config?.complexity || 0.62))),
     timer_seconds: durationSeconds,
     timer: {
@@ -866,8 +873,12 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   type="number"
                   min="6"
                   max="14"
-                  value={numberValue('rows', 8)}
-                  onChange={(e) => updateValue('rows', Number(e.target.value || 8))}
+                  value={numberValue('rows', numberValue('grid.rows', 8))}
+                  onChange={(e) => {
+                    const rows = Number(e.target.value || 8);
+                    updateValue('rows', rows);
+                    updateValue('grid.rows', rows);
+                  }}
                   className={styles.input}
                 />
               </div>
@@ -879,8 +890,12 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   type="number"
                   min="6"
                   max="14"
-                  value={numberValue('cols', 8)}
-                  onChange={(e) => updateValue('cols', Number(e.target.value || 8))}
+                  value={numberValue('cols', numberValue('grid.cols', 8))}
+                  onChange={(e) => {
+                    const cols = Number(e.target.value || 8);
+                    updateValue('cols', cols);
+                    updateValue('grid.cols', cols);
+                  }}
                   className={styles.input}
                 />
               </div>

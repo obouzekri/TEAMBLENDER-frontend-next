@@ -17,6 +17,7 @@ const LABYRINTHE_RULES_FALLBACK = Object.freeze({
     'Chaque participant choisit librement son point de départ (case START) avant son premier mouvement.',
     'Après chaque vie perdue, le joueur sélectionne un nouveau point de départ en cliquant sur une case START.',
     'Un retour en arrière est interdit mais ne coûte pas de vie — le mouvement est simplement bloqué.',
+    'Score collectif: 100 points de base, +8 par case progressée, +2 par vie restante, -12 par vie perdue, plancher à 0.',
     'Pilotez les relances via le chat lors des phases critiques.',
   ],
   participant: [
@@ -24,7 +25,7 @@ const LABYRINTHE_RULES_FALLBACK = Object.freeze({
     'Après chaque vie perdue, choisissez un nouveau point de départ en cliquant sur une case START qui clignote.',
     'Un retour en arrière est interdit : vous ne pouvez pas revenir sur une case déjà visitée (sans pénalité).',
     'Les pièges sont invisibles avant passage — restez vigilant aux fausses pistes.',
-    'Le retour en arrière est bloqué sans pénalité de vie. Après chaque vie perdue, choisissez un nouveau point de départ. Les pièges n\'apparaissent qu\'au déclenchement.',
+    'Le score collectif dépend de la progression, des vies restantes et des vies perdues.',
     'Partagez vos découvertes avec l\'équipe via le chat.',
   ],
   footnote: ''
@@ -228,18 +229,21 @@ function playToneSequence(audioState, notes) {
     if (Number.isFinite(Number(note.detune))) {
       oscillator.detune.value = Number(note.detune);
     }
+    const attack = Math.max(0.005, Number(note.attack || 0.02));
+    const release = Math.max(0.02, Number(note.release || 0.08));
+    const duration = Math.max(0.08, Number(note.duration || 0.18));
     gainNode.gain.setValueAtTime(0.0001, startAt);
-    gainNode.gain.exponentialRampToValueAtTime(Math.max(0.0001, Number(note.gain || 0.05)), startAt + 0.02);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, startAt + Math.max(0.06, Number(note.duration || 0.18)));
+    gainNode.gain.exponentialRampToValueAtTime(Math.max(0.0001, Number(note.gain || 0.05)), startAt + attack);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, startAt + Math.max(attack + 0.02, duration + release));
     oscillator.connect(gainNode);
     gainNode.connect(ctx.destination);
     oscillator.start(startAt);
-    oscillator.stop(startAt + Math.max(0.08, Number(note.duration || 0.18)) + 0.03);
+    oscillator.stop(startAt + duration + release + 0.03);
     oscillator.onended = () => {
       try { oscillator.disconnect(); } catch {}
       try { gainNode.disconnect(); } catch {}
     };
-    startAt += Math.max(0.12, Number(note.duration || 0.18) + Number(note.gap || 0.04));
+    startAt += Math.max(0.12, duration + Number(note.gap || 0.04));
   });
 }
 
@@ -259,31 +263,47 @@ function startAmbientTrack(audioState) {
   if (audioState.ambient) return true;
 
   const master = ctx.createGain();
+  const padBus = ctx.createGain();
+  const pulseBus = ctx.createGain();
   const filter = ctx.createBiquadFilter();
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
   master.gain.value = 0.0001;
+  padBus.gain.value = 0.65;
+  pulseBus.gain.value = 0.35;
   filter.type = 'lowpass';
-  filter.frequency.value = 420;
-  filter.Q.value = 0.7;
+  filter.frequency.value = 520;
+  filter.Q.value = 0.9;
+
+  lfo.type = 'sine';
+  lfo.frequency.value = 0.08;
+  lfoGain.gain.value = 110;
+  lfo.connect(lfoGain);
+  lfoGain.connect(filter.frequency);
+  lfo.start();
 
   const oscillators = [
     { frequency: 92, type: 'sine', detune: 0 },
     { frequency: 184, type: 'triangle', detune: -4 },
     { frequency: 276, type: 'sine', detune: 6 },
+    { frequency: 138, type: 'triangle', detune: 3 },
   ].map((config) => {
     const oscillator = ctx.createOscillator();
     oscillator.type = config.type;
     oscillator.frequency.value = config.frequency;
     oscillator.detune.value = config.detune;
-    oscillator.connect(filter);
+    oscillator.connect(config.frequency < 170 ? pulseBus : padBus);
     oscillator.start();
     return oscillator;
   });
 
+  padBus.connect(filter);
+  pulseBus.connect(filter);
   filter.connect(master);
   master.connect(ctx.destination);
-  master.gain.setTargetAtTime(0.018, ctx.currentTime + 0.05, 0.22);
+  master.gain.setTargetAtTime(0.026, ctx.currentTime + 0.05, 0.22);
 
-  audioState.ambient = { master, filter, oscillators };
+  audioState.ambient = { master, filter, padBus, pulseBus, lfo, lfoGain, oscillators };
   return true;
 }
 
@@ -302,6 +322,11 @@ function stopAmbientTrack(audioState) {
       try { oscillator.stop(); } catch {}
       try { oscillator.disconnect(); } catch {}
     });
+    try { ambient.lfo?.stop(); } catch {}
+    try { ambient.lfo?.disconnect(); } catch {}
+    try { ambient.lfoGain?.disconnect(); } catch {}
+    try { ambient.padBus?.disconnect(); } catch {}
+    try { ambient.pulseBus?.disconnect(); } catch {}
     try { ambient.filter.disconnect(); } catch {}
     try { ambient.master.disconnect(); } catch {}
     if (audioState.ambient === ambient) {
@@ -313,18 +338,21 @@ function stopAmbientTrack(audioState) {
 function playLabyrintheCue(audioState, cueType) {
   const cueMap = {
     trap: [
-      { frequency: 154, duration: 0.14, gain: 0.05, type: 'square' },
-      { frequency: 96, duration: 0.24, gain: 0.055, type: 'sawtooth', gap: 0.05 },
+      { frequency: 176, duration: 0.08, gain: 0.065, type: 'square', attack: 0.006 },
+      { frequency: 132, duration: 0.1, gain: 0.075, type: 'sawtooth', attack: 0.006, gap: 0.02 },
+      { frequency: 84, duration: 0.2, gain: 0.08, type: 'triangle', release: 0.12 },
     ],
     success: [
-      { frequency: 392, duration: 0.12, gain: 0.04, type: 'triangle' },
-      { frequency: 523, duration: 0.14, gain: 0.05, type: 'triangle' },
-      { frequency: 659, duration: 0.18, gain: 0.05, type: 'sine' },
+      { frequency: 392, duration: 0.12, gain: 0.045, type: 'triangle' },
+      { frequency: 523, duration: 0.14, gain: 0.052, type: 'triangle' },
+      { frequency: 659, duration: 0.18, gain: 0.055, type: 'sine' },
+      { frequency: 784, duration: 0.2, gain: 0.05, type: 'sine', release: 0.12 },
     ],
     failure: [
-      { frequency: 196, duration: 0.16, gain: 0.05, type: 'sine' },
-      { frequency: 147, duration: 0.2, gain: 0.055, type: 'square', gap: 0.05 },
-      { frequency: 98, duration: 0.22, gain: 0.06, type: 'sawtooth' },
+      { frequency: 220, duration: 0.12, gain: 0.05, type: 'sine' },
+      { frequency: 164, duration: 0.16, gain: 0.058, type: 'square', gap: 0.05 },
+      { frequency: 116, duration: 0.2, gain: 0.064, type: 'sawtooth', gap: 0.03 },
+      { frequency: 82, duration: 0.24, gain: 0.068, type: 'triangle', release: 0.14 },
     ],
   };
 
@@ -593,6 +621,13 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         setMoveFeedback('💥 Piège déclenché : -1 vie');
         setMoveFeedbackTone('danger');
         showMicroCue(impactedCellKey, 'danger', '💥 Boom !', '−1 vie');
+        if (Number(payload?.remaining_lives || 0) <= 0) {
+          setAnnouncement({
+            tone: 'failure',
+            title: 'Vous avez perdu toutes vos vies.',
+            body: 'Vous pouvez rester en observation pendant que le reste de l\'équipe continue.',
+          });
+        }
         if (payload?.all_lost) {
           playLabyrintheCue(audioStateRef.current, 'failure');
           stopAmbientTrack(audioStateRef.current);
@@ -605,9 +640,17 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         return;
       }
       if (outcome === 'blocked') {
+        playLabyrintheCue(audioStateRef.current, 'trap');
         setMoveFeedback('🚧 Chemin bloqué : -1 vie');
         setMoveFeedbackTone('danger');
         showMicroCue(impactedCellKey, 'danger', '🚧 Chemin bloqué', '−1 vie');
+        if (Number(payload?.remaining_lives || 0) <= 0) {
+          setAnnouncement({
+            tone: 'failure',
+            title: 'Vous avez perdu toutes vos vies.',
+            body: 'Vous pouvez rester en observation pendant que le reste de l\'équipe continue.',
+          });
+        }
         return;
       }
       if (outcome === 'backtrack') {
@@ -757,7 +800,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
     const dir = directionFromDelta(dr, dc);
     if (!dir || !canMoveFromCell(maze, currentPos, dir)) {
-      setMoveFeedback('Mur detecte dans cette direction.');
+      setMoveFeedback('Mur détecté dans cette direction.');
       setMoveFeedbackTone('warning');
       return;
     }
@@ -810,7 +853,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               </div>
               {labyFinalSummary ? (
                 <div className={styles.debriefCard}>
-                  <h3>Debrief final</h3>
+                  <h3>Débrief final</h3>
                   <p>{labyFinalSummary.summaryMessage}</p>
                   <div className={styles.debriefMetrics}>
                     <article className={styles.debriefMetric}><span>Vies restantes</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
@@ -1024,7 +1067,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveDir} aria-label="Aller à droite">→</button>
                   </div>
                   <p className={`${styles.moveFeedback} ${moveFeedbackTone === 'success' ? styles.feedbackSuccess : ''}${moveFeedbackTone === 'danger' ? ` ${styles.feedbackDanger}` : ''}${moveFeedbackTone === 'warning' ? ` ${styles.feedbackWarning}` : ''}`}>
-                    {moveFeedback || (isRespawning ? 'Choisissez un point de départ pour reprendre.' : canMoveSolo ? 'Parcourez le maze en solo : une seule sortie est valide.' : (labyPhase === 'setup' ? 'En attente du lancement de la manche...' : 'Déplacement indisponible pour le moment.'))}
+                    {moveFeedback || (isRespawning ? 'Choisissez un point de départ pour reprendre.' : canMoveSolo ? 'Parcourez le labyrinthe en solo: une seule sortie est valide.' : (labyPhase === 'setup' ? 'En attente du lancement de la manche...' : 'Déplacement indisponible pour le moment.'))}
                   </p>
                 </div>
               ) : null}
@@ -1083,7 +1126,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               onSubmit={submitChat}
               quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
               onQuickMessage={sendQuickChat}
-              placeholder="Message a l'équipe"
+              placeholder="Message à l'équipe"
               maxLength={240}
             />
           ) : null}
