@@ -5,6 +5,7 @@ import TrackingConsentGate from '@/components/TrackingConsentGate';
 const fontUi = IBM_Plex_Sans({
   subsets: ['latin'],
   display: 'swap',
+  preload: false,
   variable: '--font-ui-loaded',
   weight: ['400', '500', '600', '700'],
 });
@@ -12,6 +13,7 @@ const fontUi = IBM_Plex_Sans({
 const fontDisplay = Sora({
   subsets: ['latin'],
   display: 'swap',
+  preload: false,
   variable: '--font-display-loaded',
   weight: ['500', '600', '700', '800'],
 });
