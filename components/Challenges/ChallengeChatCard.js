@@ -2,10 +2,11 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './ChallengeChatCard.module.css';
+import useI18n from '@/lib/i18n/useI18n';
 
 export default function ChallengeChatCard({
   className = '',
-  title = 'Chat',
+  title,
   messages = [],
   currentAuthor = '',
   inputValue = '',
@@ -13,8 +14,8 @@ export default function ChallengeChatCard({
   onSubmit,
   onQuickMessage,
   quickMessages = [],
-  emptyText = 'Aucun message pour le moment.',
-  placeholder = 'Ecrire un message',
+  emptyText,
+  placeholder,
   maxLength = 240,
   submitLabel = '➤',
   disabled = false,
@@ -22,8 +23,12 @@ export default function ChallengeChatCard({
   collapsible = true,
   defaultCollapsed = false,
 }) {
+  const { t } = useI18n();
   const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
   const logRef = useRef(null);
+  const resolvedTitle = title || t('chatCard.title');
+  const resolvedEmptyText = emptyText || t('chatCard.empty');
+  const resolvedPlaceholder = placeholder || t('chatCard.placeholder');
 
   useEffect(() => {
     if (collapsed) return;
@@ -35,15 +40,15 @@ export default function ChallengeChatCard({
   return (
     <section className={`${styles.chatCard} ${collapsed ? styles.chatCardCollapsed : ''} ${className}`.trim()}>
       <div className={styles.chatHeader}>
-        <h3 className={`${styles.chatTitle} challenge-section-title`}>{title}</h3>
+        <h3 className={`${styles.chatTitle} challenge-section-title`}>{resolvedTitle}</h3>
         {collapsible ? (
           <button
             type="button"
             className={styles.chatToggleBtn}
             onClick={() => setCollapsed((prev) => !prev)}
             aria-expanded={!collapsed}
-            aria-label={collapsed ? 'Afficher le chat' : 'Réduire le chat'}
-            title={collapsed ? 'Afficher' : 'Réduire'}
+            aria-label={collapsed ? t('chatCard.expandAria') : t('chatCard.collapseAria')}
+            title={collapsed ? t('chatCard.expandTitle') : t('chatCard.collapseTitle')}
           >
             {collapsed ? '▾' : '▴'}
           </button>
@@ -70,12 +75,12 @@ export default function ChallengeChatCard({
 
           <div className={styles.chatLog} ref={logRef} role="log" aria-live="polite" aria-relevant="additions text">
             {!Array.isArray(messages) || messages.length === 0 ? (
-              <p className={styles.chatEmpty}>{emptyText}</p>
+              <p className={styles.chatEmpty}>{resolvedEmptyText}</p>
             ) : messages.map((message) => {
               const mine = String(message?.author || '') === String(currentAuthor || '');
               return (
                 <div key={String(message?.id || `${message?.author || 'msg'}-${message?.text || ''}`)} className={`${styles.chatRow}${mine ? ` ${styles.chatRowMine}` : ''}`}>
-                  <span className={styles.chatAuthor}>{String(message?.author || 'system')}</span>
+                  <span className={styles.chatAuthor}>{String(message?.author || t('chatCard.systemAuthor'))}</span>
                   <p className={styles.chatText}>{String(message?.text || '')}</p>
                 </div>
               );
@@ -88,7 +93,7 @@ export default function ChallengeChatCard({
               value={inputValue}
               onChange={(event) => onInputChange && onInputChange(event.target.value)}
               className={styles.chatInput}
-              placeholder={placeholder}
+              placeholder={resolvedPlaceholder}
               maxLength={maxLength}
               disabled={disabled}
             />
@@ -96,14 +101,14 @@ export default function ChallengeChatCard({
               type="submit"
               className={styles.chatSubmit}
               disabled={disabled || !String(inputValue || '').trim()}
-              aria-label="Envoyer"
-              title="Envoyer"
+              aria-label={t('chatCard.sendAria')}
+              title={t('chatCard.sendAria')}
             >
               {submitLabel}
             </button>
           </form>
 
-          {showCounter ? <p className={styles.chatHint}>{String(inputValue || '').length}/{maxLength} caracteres</p> : null}
+          {showCounter ? <p className={styles.chatHint}>{t('chatCard.counter', { count: String(inputValue || '').length, max: maxLength })}</p> : null}
         </>
       )}
     </section>

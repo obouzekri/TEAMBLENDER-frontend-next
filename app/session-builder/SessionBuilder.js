@@ -17,6 +17,7 @@ import { ENABLE_CHALLENGES_MOCK_DATA, getApiUrl } from '@/lib/config';
 import { trackGaEvent } from '@/lib/analytics';
 import styles from './SessionBuilder.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
+import useI18n from '@/lib/i18n/useI18n';
 
 const PIXEL_ARCHITECT_CATALOG_ENTRY = {
   id: 'pixel_architect_001',
@@ -232,7 +233,7 @@ function useManagerGuard() {
     }
 
     if (user.role === 'participant') {
-      window.location.replace('/participant');
+      window.location.replace(withLocalePath('/participant'));
       return;
     }
 
@@ -286,6 +287,7 @@ function extractChallengeConfig(challenge) {
 }
 
 export default function SessionBuilder() {
+  const { t, withLocalePath } = useI18n();
   const guard = useManagerGuard();
   const { toasts, removeToast, success: showSuccessToast, error: showErrorToast, loading: showLoadingToast } = useToast();
   const {
@@ -345,13 +347,13 @@ export default function SessionBuilder() {
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
   const asyncStatusMessage = isCreatingSession
-    ? 'Création de la session en cours...'
+    ? t('sessionBuilder.creatingSession')
     : isSavingSessionInfo
-      ? 'Sauvegarde des informations de session en cours...'
+      ? t('sessionBuilder.saving')
       : isLaunching
-        ? 'Lancement de la session en cours...'
+        ? t('sessionBuilder.loading')
         : isLoading
-          ? 'Chargement du catalogue en cours...'
+          ? t('sessionBuilder.loading')
           : '';
   const currentConfiguringChallenge = useMemo(
     () => selectedChallenges.find((c) => c.id === configuring) || null,
@@ -426,7 +428,7 @@ export default function SessionBuilder() {
 
     if (response.status === 401) {
       logout();
-      const unauthorizedError = new Error('Session expirée. Veuillez vous reconnecter.');
+      const unauthorizedError = new Error('Session expiree. Veuillez vous reconnecter.');
       unauthorizedError.status = 401;
       throw unauthorizedError;
     }
@@ -448,7 +450,7 @@ export default function SessionBuilder() {
 
       if (response.status === 404 && isChallengeConfigPatch) {
         throw new Error(
-          'Endpoint introuvable (404) pendant la sauvegarde de la configuration challenge. Vérifiez NEXT_PUBLIC_API_BASE (utiliser /api ou https://.../api) et que la session existe toujours.'
+          'Endpoint introuvable (404) pendant la sauvegarde de la configuration challenge. Verifiez NEXT_PUBLIC_API_BASE (utiliser /api ou https://.../api) et que la session existe toujours.'
         );
       }
 
@@ -461,7 +463,7 @@ export default function SessionBuilder() {
       }
 
       if (payload.code === 'PLAN_LIMIT_REACHED') {
-        errorMessage = `${errorMessage} Passe à Pro.`;
+        errorMessage = `${errorMessage} Passe a Pro.`;
       }
 
       const requestError = new Error(errorMessage);
@@ -665,10 +667,10 @@ export default function SessionBuilder() {
 
       setSelectedChallengesSnapshot(JSON.stringify(mergedSelectedChallenges));
       setLastBackendSaveAt(new Date().toISOString());
-      showSuccessToast('Configuration challenge appliquée immédiatement.');
+      showSuccessToast('Configuration challenge appliquee immediatement.');
     } catch (err) {
       if (redirectToUpgrade(err)) return;
-      showErrorToast(err.message || 'Configuration enregistrée localement, mais synchronisation serveur impossible.');
+      showErrorToast(err.message || 'Configuration enregistree localement, mais synchronisation serveur impossible.');
     }
   }, [
     apiRequest,
@@ -796,16 +798,16 @@ export default function SessionBuilder() {
     }
 
     setIsSavingDraft(true);
-    const loadingId = showLoadingToast('Sauvegarde des challenges en cours...');
+    const loadingId = showLoadingToast(t('sessionBuilder.saving'));
 
     try {
       await persistSelectionToBackend(false);
       removeToast(loadingId);
-      showSuccessToast('Configuration enregistrée');
+      showSuccessToast(t('sessionBuilder.save'));
     } catch (error) {
       removeToast(loadingId);
       if (redirectToUpgrade(error)) return;
-      showErrorToast(error.message || 'Impossible de sauvegarder les challenges.');
+      showErrorToast(error.message || t('sessionBuilder.catalogUnavailableError'));
     } finally {
       setIsSavingDraft(false);
     }
@@ -894,10 +896,10 @@ export default function SessionBuilder() {
             setSessionId('');
             sessionStorage.removeItem('sessionId');
             if (typeof window !== 'undefined') {
-              window.history.replaceState({}, '', '/session-builder');
+              window.history.replaceState({}, '', withLocalePath('/session-builder'));
             }
           } else {
-            showErrorToast(err.message || 'Impossible de charger la session.');
+            showErrorToast(err.message || t('sessionBuilder.catalogUnavailableError'));
           }
           setSessionChallengesLoaded(true);
         }
@@ -923,7 +925,7 @@ export default function SessionBuilder() {
 
     let cancelled = false;
     setIsLoading(true);
-    const loadingId = showLoadingToast('Chargement du catalogue...');
+    const loadingId = showLoadingToast(t('sessionBuilder.loading'));
 
     const token = getAuthToken();
 
@@ -954,13 +956,13 @@ export default function SessionBuilder() {
             // Fallback mock is opt-in only to avoid masking backend issues unexpectedly.
             setAllChallenges(ensureBuilderCatalogChallenges(mockChallenges));
             setError(err.message || 'Catalogue indisponible, fallback local actif.');
-            showErrorToast('Mode mock actif: catalogue de développement utilisé.');
+            showErrorToast(t('sessionBuilder.mockModeToast'));
             return;
           }
 
           setAllChallenges([]);
-          setError(err.message || 'Catalogue indisponible. Vérifiez l API backend ou activez le mode mock.');
-          showErrorToast('Catalogue indisponible. Activez NEXT_PUBLIC_ENABLE_CHALLENGES_MOCK_DATA=true pour le mode mock.');
+          setError(err.message || t('sessionBuilder.catalogUnavailableError'));
+          showErrorToast(t('sessionBuilder.catalogUnavailableToast'));
         }
       })
       .finally(() => {
@@ -984,18 +986,18 @@ export default function SessionBuilder() {
   const handleCreateSession = useCallback(async (e) => {
     e.preventDefault();
     if (availableParticipantsCount === 0) {
-      showErrorToast('Ajoutez d\'abord des participants dans votre espace manager pour creer une session.');
+      showErrorToast(t('sessionBuilder.addParticipantsFirst'));
       return;
     }
     const name = sessionName.trim() || `Session du ${new Date().toLocaleDateString('fr-FR')}`;
     const sessionDate = sessionDateTime ? new Date(sessionDateTime) : null;
     if (sessionDateTime && Number.isNaN(sessionDate?.getTime())) {
-      showErrorToast('Veuillez choisir une date et heure valides.');
+      showErrorToast(t('sessionBuilder.invalidDateTime'));
       return;
     }
     const token = getAuthToken();
     setIsCreatingSession(true);
-    const loadingId = showLoadingToast('Création de la session...');
+    const loadingId = showLoadingToast(t('sessionBuilder.creatingSession'));
     try {
       const payload = { name };
       payload.flow_mode = flowMode;
@@ -1011,7 +1013,7 @@ export default function SessionBuilder() {
         body: JSON.stringify(payload),
       });
       const newId = String(created.id || created.session?.id || '');
-      if (!newId) throw new Error('Identifiant de session manquant dans la reponse.');
+      if (!newId) throw new Error(t('sessionBuilder.missingSessionId'));
 
       sessionStorage.setItem(SESSION_ID_STORAGE_KEY, newId);
       setSessionId(newId);
@@ -1022,7 +1024,7 @@ export default function SessionBuilder() {
     } catch (err) {
       removeToast(loadingId);
       if (redirectToUpgrade(err)) return;
-      showErrorToast(err.message || 'Impossible de creer la session.');
+      showErrorToast(err.message || t('sessionBuilder.createSessionError'));
     } finally {
       setIsCreatingSession(false);
     }
@@ -1064,7 +1066,7 @@ export default function SessionBuilder() {
       setIsEditingSessionInfo(false);
     } catch (err) {
       if (redirectToUpgrade(err)) return;
-      showErrorToast(err.message || 'Impossible de mettre à jour la session.');
+      showErrorToast(err.message || t('sessionBuilder.updateSessionError'));
     } finally {
       setIsSavingSessionInfo(false);
     }
@@ -1084,15 +1086,15 @@ export default function SessionBuilder() {
     sessionStorage.removeItem('jwt');
     sessionStorage.removeItem('currentUser');
     sessionStorage.removeItem(SELECTED_CHALLENGES_STORAGE_KEY);
-    window.location.replace('/login');
+    window.location.replace(withLocalePath('/login'));
   }
 
   if (guard.loading) {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>Vérification de la session...</h1>
-          <LoadingState text="Chargement en cours." />
+          <h1>{t('sessionBuilder.checkingSessionTitle')}</h1>
+          <LoadingState text={t('sessionBuilder.loading')} />
         </section>
       </main>
     );
@@ -1107,11 +1109,10 @@ export default function SessionBuilder() {
           <section className={styles.creationExperience}>
             <div className={styles.creationHero}>
               <div className={styles.creationHeroTop}>
-                <p className="eyebrow">NOUVELLE SESSION</p>
+                <p className="eyebrow">{t('sessionBuilder.newSessionEyebrow')}</p>
               </div>
               <p className={styles.creationPrerequisite}>
-                Prérequis : vous devez disposer d&apos;au moins un participant créé dans l&apos;espace manager avant de créer la
-                session.
+                {t('sessionBuilder.prerequisite')}
               </p>
 
               <div className={styles.creationContent}>
@@ -1119,21 +1120,21 @@ export default function SessionBuilder() {
                   <form id="create-session-form" onSubmit={handleCreateSession} className={styles.creationForm}>
                     <div className={styles.creationSectionHeader}>
                       <div>
-                        <h2>Cadre de session</h2>
+                        <h2>{t('sessionBuilder.frameTitle')}</h2>
                       </div>
                     </div>
 
                     <div className={styles.creationGrid}>
                       <Input
-                        label="Nom de la session"
+                        label={t('sessionBuilder.sessionName')}
                         value={sessionName}
                         onChange={(e) => setSessionName(e.target.value)}
-                        placeholder="Ex: Team Building Q2 2026"
+                        placeholder={t('sessionBuilder.sessionNamePlaceholder')}
                         autoFocus
                         required
                       />
                       <Input
-                        label="Date et heure prévues"
+                        label={t('sessionBuilder.sessionDateTime')}
                         type="datetime-local"
                         value={sessionDateTime}
                         onChange={(e) => setSessionDateTime(e.target.value)}
@@ -1143,8 +1144,8 @@ export default function SessionBuilder() {
 
                     <div className={styles.flowModeField}>
                       <div className={styles.creationFieldHeading}>
-                        <span>Mode de progression des challenges</span>
-                        <p>Choisissez le niveau d&apos;autonomie du déroulé.</p>
+                        <span>{t('sessionBuilder.progressionMode')}</span>
+                        <p>{t('sessionBuilder.progressionHint')}</p>
                       </div>
                       <div className={styles.flowModeGrid}>
                         <label className={`${styles.flowModeCard} ${flowMode === 'manual' ? styles.flowModeCardActive : ''}`}>
@@ -1156,8 +1157,8 @@ export default function SessionBuilder() {
                             onChange={() => setFlowMode('manual')}
                           />
                           <span className={styles.flowModeContent}>
-                            <strong>Manuel</strong>
-                            <small>Le facilitateur garde la main et pilote le rythme de la session.</small>
+                            <strong>{t('sessionBuilder.manual')}</strong>
+                            <small>{t('sessionBuilder.manualHint')}</small>
                           </span>
                         </label>
                         <label className={`${styles.flowModeCard} ${flowMode === 'auto' ? styles.flowModeCardActive : ''}`}>
@@ -1169,8 +1170,8 @@ export default function SessionBuilder() {
                             onChange={() => setFlowMode('auto')}
                           />
                           <span className={styles.flowModeContent}>
-                            <strong>Automatique</strong>
-                            <small>Les challenges s&apos;enchaînent automatiquement une fois le précédent terminé.</small>
+                            <strong>{t('sessionBuilder.automatic')}</strong>
+                            <small>{t('sessionBuilder.automaticHint')}</small>
                           </span>
                         </label>
                       </div>
@@ -1178,7 +1179,7 @@ export default function SessionBuilder() {
 
                     <div className={styles.creationFooter}>
                       <p className={styles.creationHint}>
-                        La date est facultative, mais utile pour planifier et retrouver rapidement vos sessions.
+                        {t('sessionBuilder.dateHint')}
                       </p>
                     </div>
                   </form>
@@ -1188,10 +1189,10 @@ export default function SessionBuilder() {
                   <div className={styles.creationParticipantsPane}>
                     <div className={styles.creationSectionHeader}>
                       <div>
-                        <h2>Assigner des participants</h2>
+                        <h2>{t('sessionBuilder.assignParticipants')}</h2>
                       </div>
                       <span className={styles.creationParticipantsCount}>
-                        {draftParticipantIds.length} sélectionné{draftParticipantIds.length > 1 ? 's' : ''}
+                        {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
                       </span>
                     </div>
 
@@ -1211,8 +1212,8 @@ export default function SessionBuilder() {
 
               <div className={styles.creationGlobalActions}>
                 {availableParticipantsCount === 0 ? (
-                  <Alert variant="warning" className={styles.creationActionHint} title="Création indisponible">
-                    Ajoutez d&apos;abord des participants dans votre espace manager.
+                  <Alert variant="warning" className={styles.creationActionHint} title={t('sessionBuilder.createUnavailable')}>
+                    {t('sessionBuilder.createUnavailableBody')}
                   </Alert>
                 ) : null}
                 <Button
@@ -1222,11 +1223,11 @@ export default function SessionBuilder() {
                   disabled={isCreatingSession || availableParticipantsCount === 0}
                   title={
                     availableParticipantsCount === 0
-                      ? 'Créez d\'abord des participants dans l\'espace manager.'
-                      : 'Créer la session'
+                      ? t('sessionBuilder.createUnavailableBody')
+                      : t('sessionBuilder.createSession')
                   }
                 >
-                  {isCreatingSession ? 'Création...' : 'Créer la session'}
+                  {isCreatingSession ? t('sessionBuilder.creating') : t('sessionBuilder.createSession')}
                 </Button>
               </div>
             </div>
@@ -1267,13 +1268,13 @@ export default function SessionBuilder() {
         />
 
         {isEditingSessionInfo ? (
-          <section className={styles.sessionInfoEditPanel} aria-label="Modifier les informations de session">
+          <section className={styles.sessionInfoEditPanel} aria-label={t('sessionBuilder.editSessionAria')}>
             <div className={styles.sessionInfoEditGrid}>
               <input
                 className={styles.sessionInfoInput}
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                placeholder="Nom de la session"
+                placeholder={t('sessionBuilder.sessionNamePlaceholderShort')}
               />
               <input
                 className={styles.sessionInfoInput}
@@ -1287,8 +1288,8 @@ export default function SessionBuilder() {
                 value={editFlowMode}
                 onChange={(e) => setEditFlowMode(e.target.value)}
               >
-                <option value="manual">Mode manuel</option>
-                <option value="auto">Mode automatique</option>
+                <option value="manual">{t('sessionBuilder.manualModeOption')}</option>
+                <option value="auto">{t('sessionBuilder.autoModeOption')}</option>
               </select>
             </div>
             <div className={styles.sessionInfoEditActions}>
@@ -1296,10 +1297,10 @@ export default function SessionBuilder() {
                 onClick={handleSaveSessionInfo}
                 disabled={isSavingSessionInfo}
               >
-                {isSavingSessionInfo ? 'Sauvegarde...' : 'Sauvegarder'}
+                {isSavingSessionInfo ? t('sessionBuilder.saving') : t('sessionBuilder.save')}
               </Button>
               <Button variant="secondary" onClick={() => setIsEditingSessionInfo(false)}>
-                Annuler
+                {t('sessionBuilder.cancel')}
               </Button>
             </div>
           </section>

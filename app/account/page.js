@@ -16,14 +16,15 @@ import {
   getStoredCurrentUser,
   setStoredCurrentUser,
 } from '@/lib/account';
+import useI18n from '@/lib/i18n/useI18n';
 
 const PLAN_HISTORY_STORAGE_KEY = 'accountPlanChangeHistory';
 
-function formatPriceCents(priceCents, currency) {
+function formatPriceCents(priceCents, currency, locale = 'fr') {
   const amount = Number(priceCents || 0) / 100;
   const currencyCode = String(currency || 'EUR').toUpperCase();
   try {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
       style: 'currency',
       currency: currencyCode,
       minimumFractionDigits: 0,
@@ -67,11 +68,11 @@ function saveHistory(entries) {
   localStorage.setItem(PLAN_HISTORY_STORAGE_KEY, JSON.stringify(entries.slice(0, 15)));
 }
 
-function formatDate(dateValue) {
+function formatDate(dateValue, locale = 'fr') {
   if (!dateValue) return '';
   const parsed = new Date(dateValue);
   if (Number.isNaN(parsed.getTime())) return '';
-  return new Intl.DateTimeFormat('fr-FR', {
+  return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(parsed);
@@ -79,6 +80,7 @@ function formatDate(dateValue) {
 
 export default function AccountPage() {
   const { toasts, removeToast, success: showSuccess, error: showError } = useToast();
+  const { t, locale, withLocalePath } = useI18n();
   const [guard, setGuard] = useState({ loading: true, allowed: false, user: null });
   const [entrySource, setEntrySource] = useState('');
 
@@ -117,12 +119,12 @@ export default function AccountPage() {
     const current = getStoredCurrentUser();
 
     if (!token || !current) {
-      window.location.replace('/login');
+      window.location.replace(withLocalePath('/login'));
       return;
     }
 
     if (current.role === 'participant') {
-      window.location.replace('/participant');
+      window.location.replace(withLocalePath('/participant'));
       return;
     }
 
@@ -141,7 +143,7 @@ export default function AccountPage() {
     const planId = String(params.get('plan_id') || '').trim() || null;
 
     if (!paypalToken) {
-      showError('Retour PayPal sans identifiant de commande. Veuillez contacter le support.');
+      showError(t('account.paypalReturnMissingOrder'));
       return;
     }
 
@@ -153,8 +155,8 @@ export default function AccountPage() {
         const planName = result?.plan?.name;
         showSuccess(
           planName
-            ? `Paiement confirme ! Votre plan ${planName} est maintenant actif.`
-            : 'Paiement PayPal confirme ! Votre compte est active.'
+            ? t('account.paypalConfirmedWithPlan', { plan: planName })
+            : t('account.paypalConfirmedGeneric')
         );
 
         const [updatedMe, updatedPlans] = await Promise.all([getMe(), listPricingPlans()]);
@@ -172,7 +174,7 @@ export default function AccountPage() {
         }
         if (Array.isArray(updatedPlans)) setPlans(normalizePlanList(updatedPlans));
       } catch (err) {
-        showError(err.message || 'Confirmation du paiement PayPal echouee. Veuillez contacter le support.');
+        showError(err.message || t('account.paypalConfirmError'));
       }
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -193,11 +195,11 @@ export default function AccountPage() {
         const plansPayload = plansResult.status === 'fulfilled' ? plansResult.value : [];
 
         if (meResult.status === 'rejected') {
-          showError(meResult.reason?.message || 'Impossible de charger les informations du compte.');
+          showError(meResult.reason?.message || t('account.loadAccountError'));
         }
 
         if (plansResult.status === 'rejected') {
-          showError(plansResult.reason?.message || 'Impossible de charger les plans tarifaires.');
+          showError(plansResult.reason?.message || t('account.loadPlansError'));
         }
 
         const normalizedPlans = normalizePlanList(plansPayload);
@@ -248,7 +250,7 @@ export default function AccountPage() {
     return () => {
       cancelled = true;
     };
-  }, [guard.allowed, showError]);
+  }, [guard.allowed, showError, t]);
 
   const userLabel = useMemo(() => normalizeDisplayName(guard.user), [guard.user]);
 
@@ -259,9 +261,9 @@ export default function AccountPage() {
   }, [plans, currentPlanId]);
 
   const isPaywallEntry = entrySource === 'paywall';
-  const currentPlanLabel = activePlan?.name || 'Aucun plan';
+  const currentPlanLabel = activePlan?.name || t('account.noPlan');
   const historyCount = planHistory.length;
-  const roleLabel = String(guard.user?.role || '').toLowerCase() === 'admin' ? 'Admin' : 'Manager';
+  const roleLabel = String(guard.user?.role || '').toLowerCase() === 'admin' ? t('account.roleAdmin') : t('account.roleManager');
 
   const recommendedPlan = useMemo(() => {
     const bySlug = plans.find((plan) => String(plan.slug || '').toLowerCase() === 'pro');
@@ -287,9 +289,9 @@ export default function AccountPage() {
         first_name: profileForm.first_name,
         last_name: profileForm.last_name,
       }));
-      showSuccess('Profil mis a jour.');
+      showSuccess(t('account.profileUpdated'));
     } catch (err) {
-      showError(err.message || 'Mise a jour du profil impossible.');
+      showError(err.message || t('account.profileUpdateError'));
     } finally {
       setSavingProfile(false);
     }
@@ -304,15 +306,15 @@ export default function AccountPage() {
     const confirmPassword = String(passwordForm.confirm_password || '').trim();
 
     if (!currentPassword || !nextPassword || !confirmPassword) {
-      showError('Tous les champs mot de passe sont requis.');
+      showError(t('account.passwordAllRequired'));
       return;
     }
     if (nextPassword.length < 8) {
-      showError('Le nouveau mot de passe doit contenir au moins 8 caracteres.');
+      showError(t('account.passwordMin'));
       return;
     }
     if (nextPassword !== confirmPassword) {
-      showError('La confirmation du mot de passe ne correspond pas.');
+      showError(t('account.passwordConfirmMismatch'));
       return;
     }
 
@@ -320,9 +322,9 @@ export default function AccountPage() {
     try {
       await updateMyPassword(currentPassword, nextPassword);
       setPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
-      showSuccess('Mot de passe modifie avec succes.');
+      showSuccess(t('account.passwordUpdated'));
     } catch (err) {
-      showError(err.message || 'Modification du mot de passe impossible.');
+      showError(err.message || t('account.passwordUpdateError'));
     } finally {
       setSavingPassword(false);
     }
@@ -331,7 +333,7 @@ export default function AccountPage() {
   async function handleResetPassword() {
     if (resettingPassword || !me?.id) return;
 
-    const confirmed = window.confirm('Generer un mot de passe temporaire maintenant ?');
+    const confirmed = window.confirm(t('account.passwordResetConfirm'));
     if (!confirmed) return;
 
     setResettingPassword(true);
@@ -339,16 +341,16 @@ export default function AccountPage() {
       const result = await resetMyPassword(me.id);
       const temp = String(result?.tempPassword || '').trim();
       if (!temp) {
-        showSuccess('Mot de passe reinitialise.');
+        showSuccess(t('account.passwordResetDone'));
         return;
       }
 
-      showSuccess(`Mot de passe temporaire genere: ${temp}`);
+      showSuccess(t('account.passwordResetTemp', { temp }));
       if (typeof window !== 'undefined' && navigator?.clipboard?.writeText) {
         navigator.clipboard.writeText(temp).catch(() => undefined);
       }
     } catch (err) {
-      showError(err.message || 'Reinitialisation impossible.');
+      showError(err.message || t('account.passwordResetError'));
     } finally {
       setResettingPassword(false);
     }
@@ -360,7 +362,7 @@ export default function AccountPage() {
 
     const nextPlanId = selectedPlanId || null;
     if (String(nextPlanId || '') === String(currentPlanId || '')) {
-      showError('Ce plan est deja actif sur votre compte.');
+      showError(t('account.currentPlanAlreadyActive'));
       return;
     }
 
@@ -392,12 +394,12 @@ export default function AccountPage() {
       setPlanHistory(nextHistory);
       saveHistory(nextHistory);
 
-      showSuccess('Plan tarifaire mis a jour.');
+      showSuccess(t('account.planUpdated'));
     } catch (err) {
       if (err.code === 'PRICING_SCHEMA_UNAVAILABLE') {
-        showError('La tarification est temporairement indisponible. La migration pricing_plan_id doit etre appliquee cote backend.');
+        showError(t('account.pricingUnavailable'));
       } else {
-        showError(err.message || 'Changement de plan impossible.');
+        showError(err.message || t('account.planChangeError'));
       }
     } finally {
       setSavingPlan(false);
@@ -407,11 +409,11 @@ export default function AccountPage() {
   function handleGoToCheckout(method, planId) {
     const targetPlanId = planId || recommendedPlan?.id || activePlan?.id;
     if (!targetPlanId) {
-      showError('Aucun plan disponible. Rechargez la page.');
+      showError(t('account.noPlanAvailable'));
       return;
     }
     window.location.assign(
-      `/account/checkout?plan_id=${encodeURIComponent(String(targetPlanId))}&method=${encodeURIComponent(String(method))}`
+      `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}&method=${encodeURIComponent(String(method))}`
     );
   }
 
@@ -420,15 +422,15 @@ export default function AccountPage() {
     sessionStorage.removeItem('jwt');
     sessionStorage.removeItem('currentUser');
     sessionStorage.removeItem('selectedChallenges');
-    window.location.replace('/login');
+    window.location.replace(withLocalePath('/login'));
   }
 
   if (guard.loading || loading) {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>Chargement du compte...</h1>
-          <p>Merci de patienter.</p>
+          <h1>{t('account.loadingTitle')}</h1>
+          <p>{t('account.loadingBody')}</p>
         </section>
       </main>
     );
@@ -440,18 +442,18 @@ export default function AccountPage() {
       <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
       <main className="shell app-home account-page">
         {isPaywallEntry ? (
-          <section className="account-upgrade-banner" aria-label="Limite de plan atteinte">
+          <section className="account-upgrade-banner" aria-label={t('account.paywallAria')}>
             <div className="account-upgrade-banner__body">
-              <p className="eyebrow">LIMITE ATTEINTE</p>
-              <h2>Votre formule a atteint sa limite de sessions.</h2>
-              <p>Passez a Pro pour continuer sans interruption.</p>
+              <p className="eyebrow">{t('account.paywallEyebrow')}</p>
+              <h2>{t('account.paywallTitle')}</h2>
+              <p>{t('account.paywallBody')}</p>
             </div>
             <div className="account-upgrade-banner__actions">
               <button type="button" className="btn-primary" onClick={() => handleGoToCheckout('paypal')}>
-                Payer avec PayPal
+                {t('account.checkoutPaypal')}
               </button>
               <button type="button" className="btn-secondary" onClick={() => handleGoToCheckout('bank_transfer')}>
-                Demander par virement
+                {t('account.checkoutWire')}
               </button>
             </div>
           </section>
@@ -460,20 +462,20 @@ export default function AccountPage() {
         <section className="hero home-hero">
           <div className="home-hero-grid">
             <div className="home-hero-copy">
-              <p className="eyebrow">ESPACE MANAGER</p>
-              <h1>Mon compte</h1>
-              <p>Gerez votre profil, votre securite et votre formule depuis un seul espace.</p>
+              <p className="eyebrow">{t('account.heroEyebrow')}</p>
+              <h1>{t('account.heroTitle')}</h1>
+              <p>{t('account.heroBody')}</p>
               <div className="home-hero-trust">
-                <a href="#account-profile">Profil</a>
-                <a href="#account-security">Securite</a>
-                <a href="#account-pricing">Tarification</a>
+                <a href="#account-profile">{t('account.heroProfile')}</a>
+                <a href="#account-security">{t('account.heroSecurity')}</a>
+                <a href="#account-pricing">{t('account.heroPricing')}</a>
               </div>
             </div>
-            <aside className="home-hero-summary" aria-label="Synthese compte">
+            <aside className="home-hero-summary" aria-label={t('account.summaryAria')}>
               {String(me?.picture_url || guard.user?.picture_url || '').trim() ? (
                 <img
                   src={String(me?.picture_url || guard.user?.picture_url || '').trim()}
-                  alt={`Avatar de ${userLabel}`}
+                  alt={t('account.avatarAlt', { name: userLabel })}
                   className="account-avatar-photo"
                 />
               ) : (
@@ -486,11 +488,11 @@ export default function AccountPage() {
                     .join('') || 'M'}
                 </span>
               )}
-              <p className="home-hero-summary__eyebrow">Votre compte</p>
+              <p className="home-hero-summary__eyebrow">{t('account.yourAccount')}</p>
               <strong className="home-hero-summary__title">{String(me?.email || guard.user?.email || '').trim() || '-'}</strong>
               <ul className="home-hero-summary__list">
-                <li>Plan actif : <strong>{currentPlanLabel}</strong></li>
-                <li>Role: {roleLabel}</li>
+                <li>{t('account.activePlan')} <strong>{currentPlanLabel}</strong></li>
+                <li>{t('account.role')} {roleLabel}</li>
               </ul>
             </aside>
           </div>
@@ -499,14 +501,14 @@ export default function AccountPage() {
         <div className="account-card-container">
           <section id="account-profile" className="account-saas-card">
             <header className="account-saas-card__header">
-              <p className="eyebrow">PROFIL</p>
-              <h2 className="account-saas-card__title">Informations professionnelles</h2>
-              <p className="account-saas-card__subtitle">Gardez vos informations a jour pour faciliter le support et le suivi des sessions.</p>
+              <p className="eyebrow">{t('account.profileEyebrow')}</p>
+              <h2 className="account-saas-card__title">{t('account.profileTitle')}</h2>
+              <p className="account-saas-card__subtitle">{t('account.profileSubtitle')}</p>
             </header>
             <form className="account-saas-card__body" onSubmit={handleSaveProfile}>
               <div className="account-form-grid">
                 <div className="account-form-field">
-                  <label className="account-form-label" htmlFor="account-first-name">Prenom</label>
+                  <label className="account-form-label" htmlFor="account-first-name">{t('account.firstName')}</label>
                   <input
                     id="account-first-name"
                     className="account-form-input account-form-input--disabled"
@@ -517,7 +519,7 @@ export default function AccountPage() {
                   />
                 </div>
                 <div className="account-form-field">
-                  <label className="account-form-label" htmlFor="account-last-name">Nom</label>
+                  <label className="account-form-label" htmlFor="account-last-name">{t('account.lastName')}</label>
                   <input
                     id="account-last-name"
                     className="account-form-input account-form-input--disabled"
@@ -528,32 +530,32 @@ export default function AccountPage() {
                   />
                 </div>
                 <div className="account-form-field account-form-field--full">
-                  <label className="account-form-label" htmlFor="account-job-title">Fonction</label>
+                  <label className="account-form-label" htmlFor="account-job-title">{t('account.jobTitle')}</label>
                   <input
                     id="account-job-title"
                     className="account-form-input"
                     type="text"
                     value={profileForm.job_title}
                     onChange={(e) => setProfileForm((prev) => ({ ...prev, job_title: e.target.value }))}
-                    placeholder="Ex : HR Manager"
+                    placeholder={t('account.jobTitlePlaceholder')}
                   />
                 </div>
                 <div className="account-form-field account-form-field--full">
-                  <label className="account-form-label" htmlFor="account-department">Departement</label>
+                  <label className="account-form-label" htmlFor="account-department">{t('account.department')}</label>
                   <input
                     id="account-department"
                     className="account-form-input"
                     type="text"
                     value={profileForm.department}
                     onChange={(e) => setProfileForm((prev) => ({ ...prev, department: e.target.value }))}
-                    placeholder="Ex : Ressources Humaines"
+                    placeholder={t('account.departmentPlaceholder')}
                   />
                 </div>
               </div>
-              <p className="account-form-hint">Prenom et nom sont definis a la creation du compte et ne peuvent pas etre modifies ici.</p>
+              <p className="account-form-hint">{t('account.immutableNameHint')}</p>
               <div className="account-saas-card__actions">
                 <button type="submit" className="btn-primary" disabled={savingProfile}>
-                  {savingProfile ? 'Enregistrement...' : 'Enregistrer le profil'}
+                  {savingProfile ? t('account.savingProfile') : t('account.saveProfile')}
                 </button>
               </div>
             </form>
@@ -561,53 +563,53 @@ export default function AccountPage() {
 
           <section id="account-security" className="account-saas-card">
             <header className="account-saas-card__header">
-              <p className="eyebrow">SECURITE</p>
-              <h2 className="account-saas-card__title">Mot de passe</h2>
-              <p className="account-saas-card__subtitle">Renforcez la protection de votre compte avec un mot de passe fort et regulierement actualise.</p>
+              <p className="eyebrow">{t('account.securityEyebrow')}</p>
+              <h2 className="account-saas-card__title">{t('account.securityTitle')}</h2>
+              <p className="account-saas-card__subtitle">{t('account.securitySubtitle')}</p>
             </header>
             <form className="account-saas-card__body" onSubmit={handleUpdatePassword}>
               <div className="account-form-grid">
                 <div className="account-form-field account-form-field--full">
-                  <label className="account-form-label" htmlFor="account-current-password">Mot de passe actuel</label>
+                  <label className="account-form-label" htmlFor="account-current-password">{t('account.currentPassword')}</label>
                   <input
                     id="account-current-password"
                     className="account-form-input"
                     type="password"
                     value={passwordForm.current_password}
                     onChange={(e) => setPasswordForm((prev) => ({ ...prev, current_password: e.target.value }))}
-                    placeholder="Votre mot de passe actuel"
+                    placeholder={t('account.currentPasswordPlaceholder')}
                   />
                 </div>
                 <div className="account-form-field">
-                  <label className="account-form-label" htmlFor="account-new-password">Nouveau mot de passe</label>
+                  <label className="account-form-label" htmlFor="account-new-password">{t('account.newPassword')}</label>
                   <input
                     id="account-new-password"
                     className="account-form-input"
                     type="password"
                     value={passwordForm.new_password}
                     onChange={(e) => setPasswordForm((prev) => ({ ...prev, new_password: e.target.value }))}
-                    placeholder="Minimum 8 caracteres"
+                    placeholder={t('account.newPasswordPlaceholder')}
                     minLength={8}
                   />
                 </div>
                 <div className="account-form-field">
-                  <label className="account-form-label" htmlFor="account-confirm-password">Confirmation</label>
+                  <label className="account-form-label" htmlFor="account-confirm-password">{t('account.confirmPassword')}</label>
                   <input
                     id="account-confirm-password"
                     className="account-form-input"
                     type="password"
                     value={passwordForm.confirm_password}
                     onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirm_password: e.target.value }))}
-                    placeholder="Retapez le nouveau mot de passe"
+                    placeholder={t('account.confirmPasswordPlaceholder')}
                   />
                 </div>
               </div>
               <div className="account-saas-card__actions account-saas-card__actions--split">
                 <button type="button" className="btn-secondary" onClick={handleResetPassword} disabled={resettingPassword}>
-                  {resettingPassword ? 'Generation...' : 'Mot de passe oublie ?'}
+                  {resettingPassword ? t('account.generating') : t('account.forgotPassword')}
                 </button>
                 <button type="submit" className="btn-primary" disabled={savingPassword}>
-                  {savingPassword ? 'Mise a jour...' : 'Modifier le mot de passe'}
+                  {savingPassword ? t('account.updating') : t('account.changePassword')}
                 </button>
               </div>
             </form>
@@ -618,13 +620,13 @@ export default function AccountPage() {
           <div className="account-pricing-surface">
             <header className="account-pricing-head">
               <div>
-                <p className="eyebrow">TARIFICATION</p>
-                <h2>Votre formule</h2>
-                <p>Choisissez la formule adaptee a vos besoins d'equipe.</p>
+                <p className="eyebrow">{t('account.pricingEyebrow')}</p>
+                <h2>{t('account.pricingTitle')}</h2>
+                <p>{t('account.pricingSubtitle')}</p>
               </div>
               {activePlan ? (
                 <div className="account-active-plan-badge">
-                  <span className="eyebrow">Formule active</span>
+                  <span className="eyebrow">{t('account.activeBadgeEyebrow')}</span>
                   <strong>{activePlan.name}</strong>
                 </div>
               ) : null}
@@ -636,7 +638,7 @@ export default function AccountPage() {
                   const planId = String(plan.id);
                   const isCurrent = planId === String(currentPlanId || '');
                   const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
-                  const priceFmt = formatPriceCents(plan.price_cents, plan.currency);
+                  const priceFmt = formatPriceCents(plan.price_cents, plan.currency, locale);
                   return (
                     <article
                       key={planId}
@@ -647,8 +649,8 @@ export default function AccountPage() {
                       ].filter(Boolean).join(' ')}
                     >
                       <div className="pricing-card-top">
-                        {isRecommended ? <span className="pricing-badge">Recommande</span> : null}
-                        {isCurrent ? <span className="account-current-badge">Votre formule</span> : null}
+                        {isRecommended ? <span className="pricing-badge">{t('account.recommended')}</span> : null}
+                        {isCurrent ? <span className="account-current-badge">{t('account.yourPlan')}</span> : null}
                         <p className="eyebrow">{plan.name}</p>
                       </div>
                       <h3 className="pricing-price">
@@ -664,12 +666,12 @@ export default function AccountPage() {
                         </ul>
                       ) : null}
                       <div className="pricing-meta-row">
-                        {plan.max_users ? <span>{plan.max_users} utilisateurs</span> : null}
-                        {plan.max_sessions_per_month ? <span>{plan.max_sessions_per_month} sessions/mois</span> : null}
+                        {plan.max_users ? <span>{t('account.usersCount', { count: plan.max_users })}</span> : null}
+                        {plan.max_sessions_per_month ? <span>{t('account.sessionsPerMonth', { count: plan.max_sessions_per_month })}</span> : null}
                       </div>
                       {isCurrent ? (
                         <div className="pricing-actions account-plan-card-actions">
-                          <span className="account-current-plan-tag">Formule active</span>
+                          <span className="account-current-plan-tag">{t('account.activePlanTag')}</span>
                         </div>
                       ) : (
                         <div className="pricing-actions account-plan-card-actions">
@@ -678,14 +680,14 @@ export default function AccountPage() {
                             className="btn-primary"
                             onClick={() => handleGoToCheckout('paypal', plan.id)}
                           >
-                            Payer avec PayPal
+                            {t('account.checkoutPaypal')}
                           </button>
                           <button
                             type="button"
                             className="btn-secondary"
                             onClick={() => handleGoToCheckout('bank_transfer', plan.id)}
                           >
-                            Demander par virement
+                            {t('account.checkoutWire')}
                           </button>
                         </div>
                       )}
@@ -694,18 +696,18 @@ export default function AccountPage() {
                 })}
               </div>
             ) : (
-              <p className="field-help">Aucune formule disponible pour le moment.</p>
+              <p className="field-help">{t('account.noPlans')}</p>
             )}
 
             {planHistory.length > 0 ? (
               <div className="account-plan-history">
-                <p className="eyebrow">HISTORIQUE</p>
+                <p className="eyebrow">{t('account.historyEyebrow')}</p>
                 <ul className="session-list">
                   {planHistory.map((entry) => (
                     <li key={String(entry.id)} className="session-item">
                       <div>
                         <p className="session-title">{entry.from} {" -> "} {entry.to}</p>
-                        <p className="session-meta">{formatDate(entry.at)}</p>
+                        <p className="session-meta">{formatDate(entry.at, locale)}</p>
                       </div>
                     </li>
                   ))}
@@ -713,7 +715,7 @@ export default function AccountPage() {
               </div>
             ) : null}
             {planHistory.length === 0 ? (
-              <p className="account-history-empty">Aucun changement de formule enregistre pour le moment.</p>
+              <p className="account-history-empty">{t('account.noHistory')}</p>
             ) : null}
           </div>
         </section>
