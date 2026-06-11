@@ -4,12 +4,17 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
+import LanguageSwitcher from './LanguageSwitcher';
+import useI18n from '@/lib/i18n/useI18n';
+import { stripLocaleFromPath } from '@/lib/i18n/routing';
 
 export default function TopNav({ compact = false }) {
   const pathname = usePathname();
+  const plainPathname = stripLocaleFromPath(pathname || '/');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
-  const isActive = (href) => (href === '/' ? pathname === '/' : pathname?.startsWith(href));
+  const { t, withLocalePath } = useI18n();
+  const isActive = (href) => (href === '/' ? plainPathname === '/' : plainPathname?.startsWith(href));
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -40,7 +45,7 @@ export default function TopNav({ compact = false }) {
       <div className="shell nav-inner">
         <div className="nav-top-row">
           <div className="nav-brand-block">
-            <Link href="/" className="brand">
+            <Link href={withLocalePath('/')} className="brand">
               <Logo />
             </Link>
           </div>
@@ -50,7 +55,7 @@ export default function TopNav({ compact = false }) {
             className={`nav-toggle ${isMenuOpen ? 'is-open' : ''}`}
             aria-expanded={isMenuOpen}
             aria-controls="top-nav-panel"
-            aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-label={isMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
             onClick={() => setIsMenuOpen((current) => !current)}
           >
             <span className="nav-toggle__line" />
@@ -61,27 +66,28 @@ export default function TopNav({ compact = false }) {
 
         <div id="top-nav-panel" className={`nav-panel ${isMenuOpen ? 'is-open' : ''}`}>
           <div className="nav-main-block">
-            <nav className="nav-links" aria-label="Navigation principale">
-              <Link href="/" className={`nav-link ${isActive('/') ? 'is-active' : ''}`} aria-current={isActive('/') ? 'page' : undefined}>Produit</Link>
-              <Link href="/pricing" className={`nav-link ${isActive('/pricing') ? 'is-active' : ''}`} aria-current={isActive('/pricing') ? 'page' : undefined}>Tarifs</Link>
-              <Link href="/contact" className={`nav-link ${isActive('/contact') ? 'is-active' : ''}`} aria-current={isActive('/contact') ? 'page' : undefined}>Contact</Link>
+            <nav className="nav-links" aria-label={t('nav.mainAria')}>
+              <Link href={withLocalePath('/')} className={`nav-link ${isActive('/') ? 'is-active' : ''}`} aria-current={isActive('/') ? 'page' : undefined}>{t('nav.product')}</Link>
+              <Link href={withLocalePath('/pricing')} className={`nav-link ${isActive('/pricing') ? 'is-active' : ''}`} aria-current={isActive('/pricing') ? 'page' : undefined}>{t('nav.pricing')}</Link>
+              <Link href={withLocalePath('/contact')} className={`nav-link ${isActive('/contact') ? 'is-active' : ''}`} aria-current={isActive('/contact') ? 'page' : undefined}>{t('nav.contact')}</Link>
             </nav>
           </div>
 
-          <div className="nav-actions" aria-label="Acces compte">
+          <div className="nav-actions" aria-label={t('nav.accountAria')}>
+            <LanguageSwitcher />
             {sessionUser ? (
-              <Link href={accountHref} className="btn-mini btn-mini--secondary">
+              <Link href={withLocalePath(accountHref)} className="btn-mini btn-mini--secondary">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt={`Avatar de ${avatarLabel}`} className="app-user-avatar app-user-avatar--photo" />
+                  <img src={avatarUrl} alt={t('nav.avatarAlt', { name: avatarLabel })} className="app-user-avatar app-user-avatar--photo" />
                 ) : (
                   <span className="app-user-avatar" aria-hidden="true">{avatarInitials}</span>
                 )}
-                Mon compte
+                {t('nav.myAccount')}
               </Link>
             ) : (
               <>
-                <Link href="/login" className={`btn-mini btn-mini--secondary ${isActive('/login') ? 'is-active' : ''}`} aria-current={isActive('/login') ? 'page' : undefined}>Connexion</Link>
-                <Link href="/signup" className={`nav-cta-btn ${isActive('/signup') ? 'is-active' : ''}`} aria-current={isActive('/signup') ? 'page' : undefined}>Créer un compte</Link>
+                <Link href={withLocalePath('/login')} className={`btn-mini btn-mini--secondary ${isActive('/login') ? 'is-active' : ''}`} aria-current={isActive('/login') ? 'page' : undefined}>{t('nav.login')}</Link>
+                <Link href={withLocalePath('/signup')} className={`nav-cta-btn ${isActive('/signup') ? 'is-active' : ''}`} aria-current={isActive('/signup') ? 'page' : undefined}>{t('nav.signup')}</Link>
               </>
             )}
           </div>

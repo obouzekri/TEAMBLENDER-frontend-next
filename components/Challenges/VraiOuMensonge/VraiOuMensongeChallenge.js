@@ -10,6 +10,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import styles from './VraiOuMensonge.module.css';
+import useI18n from '@/lib/i18n/useI18n';
 
 function formatSeconds(ms) {
   const raw = Number(ms || 0);
@@ -121,6 +122,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     emitEvent,
     participantId,
   } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
+  const { t } = useI18n();
 
   const vom = state?.vom || {};
   const phase = String(vom?.phase || 'waiting_start');
@@ -438,24 +440,24 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const myRoundBadges = [];
   if (phase === 'round_result') {
     if (myRoundVote?.status === 'correct') {
-      myRoundBadges.push('🟢 Bonne réponse');
+      myRoundBadges.push(t('vom.badges.good'));
     }
     if (myRoundVote?.status === 'incorrect') {
-      myRoundBadges.push('🔴 Mauvaise réponse');
+      myRoundBadges.push(t('vom.badges.bad'));
     }
   }
   if (myLiveEntry?.rank === 1) {
-    myRoundBadges.push('🏆 Top joueur');
+    myRoundBadges.push(t('vom.badges.top'));
   }
   if (myCorrectStreak >= 2) {
-    myRoundBadges.push(`🔥 Série de bonnes réponses x${myCorrectStreak}`);
+    myRoundBadges.push(t('vom.badges.streak', { count: myCorrectStreak }));
   }
 
   return (
     <div className={styles.shell}>
       <ChallengeHeader
-        title="Pari sur moi !"
-        subtitle="Devinez le vrai du faux et découvrez votre équipe autrement"
+        title={t('vom.title')}
+        subtitle={t('vom.subtitle')}
       />
 
       {error ? <p className={styles.errorBanner}>{error}</p> : null}
@@ -468,7 +470,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             <ChallengeRulesPanel
               isStarted={false}
               isFacilitator={isFacilitator}
-              challengeName="Pari sur moi !"
+              challengeName={t('vom.title')}
               objective={rulesContent.objective}
               facilitatorRules={facilitatorRules}
               participantRules={participantRules}
@@ -480,13 +482,13 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
         {phase === 'selecting_statement' ? (
           <section className={styles.card}>
-            <h2>Sélection d'affirmation</h2>
-            <p>Poseur actuel: <strong>{participantName(poserId) || '-'}</strong></p>
-            <p className={styles.instruction}>Cliquez sur une question pour ouvrir la réponse rapide.</p>
+            <h2>{t('vom.selectingTitle')}</h2>
+            <p>{t('vom.currentPoser', { name: participantName(poserId) || '-' })}</p>
+            <p className={styles.instruction}>{t('vom.selectingInstruction')}</p>
             <div className={styles.participantsRow}>
               {orderedParticipantIds.map((id) => (
                 <span key={id} className={`${styles.participantChip}${id === poserId ? ` ${styles.participantChipPoser}` : ''}`}>
-                  {participantName(id)}{id === poserId ? ' (poseur)' : ''}
+                  {participantName(id)}{id === poserId ? ` ${t('vom.poserLabel')}` : ''}
                 </span>
               ))}
             </div>
@@ -521,29 +523,29 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                             <span className={styles.statementOptionsPreview}>
                               {parsedChoices.options.join(' / ')}
                             </span>
-                            {selected && pickedChoice ? <small>Option choisie: {pickedChoice}</small> : null}
+                            {selected && pickedChoice ? <small>{t('vom.selectedOption', { option: pickedChoice })}</small> : null}
                           </>
                         ) : (
                           <span>{statement.text}</span>
                         )}
-                        {selected ? <span className={styles.selectedMark}>Selectionnee</span> : null}
-                        {disabled ? <small>Déjà utilisée par vous</small> : null}
+                        {selected ? <span className={styles.selectedMark}>{t('vom.selected')}</span> : null}
+                        {disabled ? <small>{t('vom.alreadyUsed')}</small> : null}
                       </button>
                     );
                   })}
                 </div>
               </>
             ) : (
-              <p className={styles.helper}>Le poseur choisit une affirmation dans le catalogue.</p>
+              <p className={styles.helper}>{t('vom.poserHelper')}</p>
             )}
           </section>
         ) : null}
 
         {phase === 'voting_open' ? (
           <section className={styles.card}>
-            <h2>Votes ouverts</h2>
+            <h2>{t('vom.votingTitle')}</h2>
             <div className={styles.votePhaseHeader}>
-              <p className={styles.votePhaseTitle}><strong>{participantName(poserId)}</strong> pose :</p>
+              <p className={styles.votePhaseTitle}>{t('vom.poserAsks', { name: participantName(poserId) })}</p>
               <p className={styles.votePhaseStatement}>"{currentTurn?.statement_prompt || currentTurn?.statement_text || '-'}"</p>
             </div>
             {!isFacilitator && !isPoser ? (
@@ -569,42 +571,42 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                       className={`${styles.voteTrue}${myVote === 'vrai' ? ` ${styles.voteActive}` : ''}`}
                       onClick={() => vote('vrai')}
                     >
-                      ✔️ Vrai
+                      {t('vom.voteTrue')}
                     </button>
                     <button
                       type="button"
                       className={`${styles.voteFalse}${myVote === 'mensonge' ? ` ${styles.voteActive}` : ''}`}
                       onClick={() => vote('mensonge')}
                     >
-                      ❌ Mensonge
+                      {t('vom.voteFalse')}
                     </button>
                   </>
                 )}
-                <p className={styles.voteStatus}>Votre vote actuel: <strong>{myVote === 'vrai' ? '✔️ Vrai' : myVote === 'mensonge' ? '❌ Mensonge' : myVote || 'absent'}</strong></p>
+                <p className={styles.voteStatus}>{t('vom.currentVote', { vote: myVote === 'vrai' ? t('vom.voteTrue') : myVote === 'mensonge' ? t('vom.voteFalse') : myVote || t('vom.absent') })}</p>
               </div>
             ) : isFacilitator ? (
-              <p className={styles.helper}>Le facilitateur observe le tour sans voter.</p>
+              <p className={styles.helper}>{t('vom.facilitatorObserve')}</p>
             ) : (
-              <p className={styles.helper}>Vous êtes poseur, vous ne votez pas.</p>
+              <p className={styles.helper}>{t('vom.poserNoVote')}</p>
             )}
           </section>
         ) : null}
 
         {phase === 'round_result' ? (
           <section className={styles.card}>
-            <h2>Résultat du tour</h2>
+            <h2>{t('vom.roundResultTitle')}</h2>
             <div className={`${styles.wowResult}${resultPulse ? ` ${styles.wowResultPulse}` : ''}`}>
               <div>
-                <strong className={styles.wowTitle}>Feedback instantané</strong>
+                <strong className={styles.wowTitle}>{t('vom.instantFeedback')}</strong>
                 {!isPoser ? (
                   <p className={styles.wowText}>
                     {myRoundVote?.status === 'correct'
-                      ? `✅ Bonne réponse ! Le poseur a répondu : ${String(currentTurn?.revealed_truth || '-')} +1 point`
-                      : `❌ Vous vous êtes trompé. Le poseur a répondu : ${String(currentTurn?.revealed_truth || '-')} 0 point gagné`}
+                      ? t('vom.correctFeedback', { truth: String(currentTurn?.revealed_truth || '-') })
+                      : t('vom.incorrectFeedback', { truth: String(currentTurn?.revealed_truth || '-') })}
                   </p>
                 ) : (
                   <p className={styles.wowText}>
-                    Vous étiez poseur: <strong>+{poseurRoundPoints}</strong> point{poseurRoundPoints > 1 ? 's' : ''} (joueurs trompés)
+                    {t('vom.poserFeedback', { points: poseurRoundPoints })}
                   </p>
                 )}
               </div>
@@ -619,12 +621,12 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             ) : null}
 
             <div className={styles.mainScoreCard}>
-              <span className={styles.mainScoreLabel}>Mon score</span>
+              <span className={styles.mainScoreLabel}>{t('vom.myScore')}</span>
               <span className={styles.mainScoreValue}>{myScore}</span>
-              <span className={styles.mainScoreUnit}>points</span>
+              <span className={styles.mainScoreUnit}>{t('vom.points')}</span>
             </div>
 
-            <p>Classement en transition ({formatClock(formatSeconds(remainingMs))}) avant le prochain tour.</p>
+            <p>{t('vom.transitionText', { clock: formatClock(formatSeconds(remainingMs)) })}</p>
             <div className={styles.resultList}>
               {(currentTurn?.result?.votes || []).map((item) => (
                 <div key={item.participant_id} className={styles.resultRow}>
@@ -634,7 +636,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 </div>
               ))}
             </div>
-            <h3>Classement</h3>
+            <h3>{t('vom.ranking')}</h3>
             <div className={styles.resultList}>
               {liveRanking.map((entry, index) => (
                 <div key={entry.participant_id} className={`${styles.resultRow} ${index < 3 ? styles.resultRowTop : ''}`}>
@@ -659,42 +661,42 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
         {phase === 'next_turn' ? (
           <section className={styles.card}>
-            <h2>Transition</h2>
-            <p>Préparation du tour suivant...</p>
+            <h2>{t('vom.transitionTitle')}</h2>
+            <p>{t('vom.transitionBody')}</p>
           </section>
         ) : null}
 
         {phase === 'paused_poseur_disconnect' ? (
           <section className={styles.card}>
-            <h2>Pause temporaire</h2>
-            <p>Le poseur est déconnecté. La partie reprend automatiquement à sa reconnexion.</p>
+            <h2>{t('vom.pausedTitle')}</h2>
+            <p>{t('vom.pausedBody')}</p>
           </section>
         ) : null}
 
         {phase === 'finished' ? (
           <section className={styles.card} style={{ order: -1 }}>
-            <h2>Débrief final</h2>
+            <h2>{t('vom.finalDebrief')}</h2>
             <div className={styles.finalSummaryGrid}>
               <article className={styles.finalSummaryItem}>
                 <strong>{ranking.length}</strong>
-                <span>participants classés</span>
+                <span>{t('vom.rankedParticipants')}</span>
               </article>
               <article className={styles.finalSummaryItem}>
                 <strong>{totalCycles}</strong>
-                <span>cycles joués</span>
+                <span>{t('vom.playedCycles')}</span>
               </article>
               <article className={styles.finalSummaryItem}>
                 <strong>{ranking[0]?.score ?? 0}</strong>
-                <span>meilleur score</span>
+                <span>{t('vom.bestScore')}</span>
               </article>
             </div>
             <div className={`${styles.mainScoreCard} ${styles.finalWow}`}>
-              <span className={styles.mainScoreLabel}>Votre score final</span>
+              <span className={styles.mainScoreLabel}>{t('vom.finalScore')}</span>
               <span className={styles.mainScoreValue}>{myScore}</span>
-              <span className={styles.mainScoreUnit}>points</span>
+              <span className={styles.mainScoreUnit}>{t('vom.points')}</span>
             </div>
             <div className={styles.finalBlock}>
-              <h3>Classement final</h3>
+              <h3>{t('vom.finalRanking')}</h3>
               <div className={styles.resultList}>
                   {ranking.map((entry, index) => (
                   <div key={entry.participant_id} className={styles.resultRow}>
@@ -746,7 +748,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <section className={`${styles.card} ${styles.stateCard}`}>
             <h3>Classement</h3>
             <div className={styles.resultList}>
-              {liveRanking.length === 0 ? <p className={styles.helper}>Aucun participant détecté.</p> : null}
+              {liveRanking.length === 0 ? <p className={styles.helper}>{t('vom.noParticipants')}</p> : null}
               {liveRanking.map((entry, index) => (
                 <div key={entry.participant_id} className={`${styles.resultRow} ${index < 3 ? styles.resultRowTop : ''}`}>
                   <div className={styles.leaderboardEntry}>
@@ -778,7 +780,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             aria-label="Sélection de réponse"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>Votre question</h3>
+            <h3>{t('vom.yourQuestion')}</h3>
             {selectedStatementChoices ? (
               <>
                 <p className={styles.choicePanelTitle}>
@@ -809,7 +811,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             ) : (
               <>
                 <p className={styles.choicePanelTitle}>{selectedStatement.text}</p>
-                <p className={styles.helper}>Choisissez explicitement la vérité de votre affirmation.</p>
+                <p className={styles.helper}>{t('vom.chooseTruth')}</p>
                 <div className={styles.choiceButtonsWrap}>
                   {poserSelectionOptions.map((option) => {
                     const active = selectedStatementOption.toLowerCase() === option.toLowerCase();
@@ -836,7 +838,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
             <div className={styles.modalActions}>
               <button type="button" className={styles.modalCancelBtn} onClick={() => setSelectionModalOpen(false)}>
-                Annuler
+                {t('vom.cancel')}
               </button>
               <button
                 type="button"
@@ -847,7 +849,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   setSelectionModalOpen(false);
                 }}
               >
-                Confirmer
+                {t('vom.confirm')}
               </button>
             </div>
           </section>

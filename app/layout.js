@@ -1,5 +1,6 @@
 import './globals.css';
 import { IBM_Plex_Sans, Sora } from 'next/font/google';
+import { cookies } from 'next/headers';
 import TrackingConsentGate from '@/components/TrackingConsentGate';
 
 const fontUi = IBM_Plex_Sans({
@@ -32,9 +33,12 @@ export const viewport = {
   viewportFit: 'cover'
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const cookieStore = await cookies();
+  const locale = String(cookieStore.get('tb_locale')?.value || 'fr').toLowerCase() === 'en' ? 'en' : 'fr';
+
   return (
-    <html lang="fr">
+    <html lang={locale}>
       <body className={`${fontUi.variable} ${fontDisplay.variable}`}>
         <TrackingConsentGate>{children}</TrackingConsentGate>
       </body>
