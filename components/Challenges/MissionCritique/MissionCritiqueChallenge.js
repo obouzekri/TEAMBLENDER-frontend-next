@@ -129,8 +129,9 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     const baseRules = Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : [];
     return [
       ...baseRules,
-      'Score collectif: moyenne des scores individuels de l’équipe (0 à 100).',
-      'Pénalités: dépendance non respectée (-8), tâche critique manquante (-10), doublon (-5), tâche inconnue (-3).',
+      'Calcul du score (transparent): score collectif = moyenne des scores individuels (0 a 100).',
+      'Penalites: dependance non respectee (-8), tache critique manquante (-10), doublon (-5), tache inconnue (-3).',
+      'Formule simplifiee: 100 - penalites + bonus de coherence (plafonne entre 0 et 100).',
       'L’équipe doit converger puis soumettre une seule timeline cohérente au niveau collectif.',
       'Répartissez les tâches par phase (cadrage, préparation, exécution, clôture) pour équilibrer la charge.',
       'Affectez un responsable dépendances pour valider les prérequis avant chaque déplacement majeur.'
@@ -141,7 +142,8 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     const baseRules = Array.isArray(rulesContent?.participant) ? rulesContent.participant : [];
     return [
       ...baseRules,
-      'Le score final est collectif: votre ordre impacte la moyenne de toute l’équipe.',
+      'Le score final est collectif: votre ordre impacte directement la moyenne de toute l’équipe.',
+      'Calcul du score: 100 points de base puis retraits en cas d incoherences (dependances, oublis critiques, doublons).',
       'Synchronisez-vous pour soumettre une timeline unique et cohérente pour toute l’équipe.',
       'Priorisez d’abord les dépendances et les tâches critiques, puis complétez le reste du backlog.'
     ];
@@ -305,8 +307,8 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                 isFacilitator={isFacilitator}
                 challengeName="Mission Critique"
                 objective={rulesContent.objective}
-                facilitatorRules={rulesContent.facilitator}
-                participantRules={rulesContent.participant}
+                facilitatorRules={facilitatorRules}
+                participantRules={participantRules}
                 footnote={rulesContent.footnote}
                 onStart={isFacilitator ? () => emitEvent('timer.start') : null}
               />
@@ -361,7 +363,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                     </div>
                     <button
                       type="button"
-                      className={styles.primaryBtn}
+                      className={`${styles.primaryBtn} ${styles.primaryBtnCompact}`}
                       onClick={submitTimeline}
                       disabled={!canEditTimeline || timeline.length === 0}
                     >

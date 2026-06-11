@@ -482,6 +482,13 @@
   border-color: rgba(72, 194, 219, 0.68);
 }
 
+.primaryBtnCompact {
+  padding: 6px 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  min-height: 34px;
+}
+
 .ghostBtn {
   background: rgba(15, 30, 43, 0.82);
   color: #d0dde8;

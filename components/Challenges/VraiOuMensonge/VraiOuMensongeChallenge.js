@@ -82,6 +82,22 @@ function parseStatementChoices(rawText) {
   };
 }
 
+const VOM_RULES_FACILITATOR_APPEND = Object.freeze([
+  'Chaque tour dure 40 secondes.',
+  'Deroulement: le poseur choisit ou saisit son affirmation, les participants votent avant la fin du chrono, puis les reponses sont comparees automatiquement.',
+  'Calcul du score: bonne reponse +1 point, mauvaise reponse 0 point.',
+  'Poseur: si les joueurs sont trompes +1 point, sinon 0 point.',
+  'Les scores sont mis a jour en temps reel a la fin de chaque tour.'
+]);
+
+const VOM_RULES_PARTICIPANT_APPEND = Object.freeze([
+  'Chaque tour dure 40 secondes.',
+  'Le poseur choisit ou saisit son affirmation, puis les participants votent avant la fin du chrono.',
+  'Calcul du score: bonne reponse +1 point, mauvaise reponse 0 point.',
+  'Poseur: si les joueurs sont trompes +1 point, sinon 0 point.',
+  'Les scores sont mis a jour en temps reel apres comparaison automatique des reponses.'
+]);
+
 export default function VraiOuMensongeChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedStatementId, setSelectedStatementId] = useState('');
   const [selectedChoicesByStatementId, setSelectedChoicesByStatementId] = useState({});
@@ -202,6 +218,25 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     [runtimePayload?.config, state?.config]
   );
 
+  const facilitatorRules = useMemo(() => {
+    const baseRules = Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : [];
+    const merged = [...baseRules, ...VOM_RULES_FACILITATOR_APPEND];
+    return merged.filter((item, index) => merged.findIndex((candidate) => String(candidate).toLowerCase() === String(item).toLowerCase()) === index);
+  }, [rulesContent?.facilitator]);
+
+  const participantRules = useMemo(() => {
+    const baseRules = Array.isArray(rulesContent?.participant) ? rulesContent.participant : [];
+    const merged = [...baseRules, ...VOM_RULES_PARTICIPANT_APPEND];
+    return merged.filter((item, index) => merged.findIndex((candidate) => String(candidate).toLowerCase() === String(item).toLowerCase()) === index);
+  }, [rulesContent?.participant]);
+
+  const poserSelectionOptions = useMemo(() => {
+    if (selectedStatementChoices?.options?.length > 1) {
+      return selectedStatementChoices.options;
+    }
+    return ['Vrai', 'Mensonge'];
+  }, [selectedStatementChoices]);
+
   const remainingMs = useMemo(() => {
     const deadline = Number(vom?.phase_deadline_ms || 0);
     const startedAt = Number(vom?.phase_started_at_ms || 0);
@@ -314,11 +349,11 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
   function confirmStatement() {
     if (!selectedStatementId) return;
-    if (selectedStatementChoices && !selectedStatementOption) return;
+    if (!selectedStatementOption) return;
     playLightTone('default');
     emitEvent('vom.select_statement', {
       statement_id: selectedStatementId,
-      selected_option: selectedStatementChoices ? selectedStatementOption : undefined
+      selected_option: selectedStatementOption
     });
   }
 
@@ -346,8 +381,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               isFacilitator={isFacilitator}
               challengeName="Pari sur moi !"
               objective={rulesContent.objective}
-              facilitatorRules={rulesContent.facilitator}
-              participantRules={rulesContent.participant}
+              facilitatorRules={facilitatorRules}
+              participantRules={participantRules}
               footnote={rulesContent.footnote}
               onStart={isFacilitator ? startChallenge : null}
             />
@@ -418,7 +453,10 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'voting_open' ? (
           <section className={styles.card}>
             <h2>Votes ouverts</h2>
-            <p><strong>{participantName(poserId)}</strong> pose : "{currentTurn?.statement_prompt || currentTurn?.statement_text || '-'}"</p>
+            <div className={styles.votePhaseHeader}>
+              <p className={styles.votePhaseTitle}><strong>{participantName(poserId)}</strong> pose :</p>
+              <p className={styles.votePhaseStatement}>"{currentTurn?.statement_prompt || currentTurn?.statement_text || '-'}"</p>
+            </div>
             {!isFacilitator && !isPoser ? (
               <div className={styles.voteActions}>
                 {isChoiceVoting ? (
@@ -453,7 +491,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                     </button>
                   </>
                 )}
-                <p className={styles.helper}>Votre vote actuel: {myVote || 'absent'}</p>
+                <p className={styles.voteStatus}>Votre vote actuel: <strong>{myVote || 'absent'}</strong></p>
               </div>
             ) : isFacilitator ? (
               <p className={styles.helper}>Le facilitateur observe le tour sans voter.</p>
@@ -568,8 +606,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             showPrestartCard={false}
             challengeName="Pari sur moi !"
             objective={rulesContent.objective}
-            facilitatorRules={rulesContent.facilitator}
-            participantRules={rulesContent.participant}
+            facilitatorRules={facilitatorRules}
+            participantRules={participantRules}
             footnote={rulesContent.footnote}
           />
 
@@ -626,7 +664,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   {selectedStatementChoices.prompt}{selectedStatementChoices.hasColon ? ':' : ''}
                 </p>
                 <div className={styles.choiceButtonsWrap}>
-                  {selectedStatementChoices.options.map((option) => {
+                  {poserSelectionOptions.map((option) => {
                     const active = selectedStatementOption.toLowerCase() === option.toLowerCase();
                     return (
                       <label key={option} className={styles.choiceRadioLabel}>
@@ -648,7 +686,31 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 </div>
               </>
             ) : (
-              <p className={styles.choicePanelTitle}>{selectedStatement.text}</p>
+              <>
+                <p className={styles.choicePanelTitle}>{selectedStatement.text}</p>
+                <p className={styles.helper}>Choisissez explicitement la vérité de votre affirmation.</p>
+                <div className={styles.choiceButtonsWrap}>
+                  {poserSelectionOptions.map((option) => {
+                    const active = selectedStatementOption.toLowerCase() === option.toLowerCase();
+                    return (
+                      <label key={option} className={styles.choiceRadioLabel}>
+                        <input
+                          type="radio"
+                          name="poser-choice"
+                          checked={active}
+                          onChange={() => {
+                            setSelectedChoicesByStatementId((prev) => ({
+                              ...prev,
+                              [selectedStatementId]: option
+                            }));
+                          }}
+                        />
+                        <span>{option}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </>
             )}
 
             <div className={styles.modalActions}>
@@ -658,7 +720,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               <button
                 type="button"
                 className={styles.primaryBtn}
-                disabled={selectedStatementChoices ? !selectedStatementOption : false}
+                disabled={!selectedStatementOption}
                 onClick={() => {
                   confirmStatement();
                   setSelectionModalOpen(false);
