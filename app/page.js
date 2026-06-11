@@ -7,13 +7,22 @@ import {
   Activity,
   ArrowRight,
   BarChart3,
+  Building2,
+  CheckCircle2,
   Briefcase,
+  ClipboardList,
+  Gauge,
   GraduationCap,
   Handshake,
+  Layers,
+  MessageCircle,
+  PlayCircle,
   Quote,
   Rocket,
+  Shield,
   ShieldCheck,
   Sparkles,
+  Target,
   Users,
 } from 'lucide-react';
 import TopNav from '@/components/TopNav';
@@ -27,8 +36,8 @@ const DEFAULT_BLOCKS = {
   impact_3: {},
   partners_header: {
     label: '',
-    title: 'Des équipes qui veulent des ateliers de cohesion utiles, pas des formats superficiels.',
-    description: 'TeamBlender est utilisé en contexte réel par des managers, RH et facilitateurs qui cadrent des ateliers de cohesion orientés décisions.',
+    title: 'Créer de la cohésion ne devrait pas être complexe, coûteux ou difficile à déployer.',
+    description: 'Pourtant, c’est souvent le cas avec les formats de cohésion traditionnels.',
   },
   partner_1: {
     title: 'RH & Talent',
@@ -54,38 +63,38 @@ const DEFAULT_BLOCKS = {
     description: 'Des retours courts, utiles et lisibles pour se projeter vite.',
   },
   testimonial_1: {
-    title: 'Directrice RH',
-    subtitle: 'Secteur services',
-    description: 'Nous avons enfin un format d atelier qui se lance vite, reste lisible pour les participants et donne un vrai debrief.',
+    title: 'Sarah Benali',
+    subtitle: 'Responsable RH, PME tech',
+    description: 'Format structuré, simple à déployer et vraiment utile pour nos équipes.',
   },
   testimonial_2: {
-    title: 'Responsable formation',
-    subtitle: 'Entreprise multi-sites',
-    description: 'La progression est claire, les equipes comprennent vite les regles, et le facilitateur garde la main sans lourdeur technique.',
+    title: 'Thomas Leroux',
+    subtitle: 'Head of People, scale-up SaaS',
+    description: 'Nous avons gagné du temps sur l’animation et surtout sur le débrief. Les résultats sont actionnables immédiatement.',
   },
   testimonial_3: {
-    title: 'Manager d equipe',
-    subtitle: 'PME industrielle',
-    description: 'On voit tout de suite si la session fait parler les bons sujets. C est simple a preparer et beaucoup plus concret que nos anciens icebreakers.',
+    title: 'Nadia Costa',
+    subtitle: 'Manager Opérations, groupe multi-sites',
+    description: 'Enfin un format qui fonctionne autant avec les équipes sur site qu’à distance, sans friction pour les participants.',
   },
   flow_header: {
     label: 'Processus',
-    title: 'Trois étapes. Un cadre clair.',
+    title: 'Trois étapes. Zéro complexité.',
   },
   flow_step_1: {
     badge_text: '01',
-    title: 'Cadrer l’objectif',
-    description: 'Sélectionnez l’enjeu prioritaire de l’équipe.',
+    title: 'Cadrez l’objectif',
+    description: 'Définissez l’intention de votre session.',
   },
   flow_step_2: {
     badge_text: '02',
     title: 'Animer en live',
-    description: 'Lancez un challenge et gardez le bon rythme.',
+    description: 'Lancez et pilotez votre session facilement.',
   },
   flow_step_3: {
     badge_text: '03',
-    title: 'Débrief actionnable',
-    description: 'Transformez les signaux en décisions d’équipe.',
+    title: 'Exploitez les résultats',
+    description: 'Débriefez et capitalisez sur les insights.',
   },
   final_cta_secondary: {
     cta_label: 'Se connecter',
@@ -257,23 +266,61 @@ const TRUST_TAG_ICON_BY_KEYWORD = [
 
 const TRUST_PROOF_METRICS = [
   {
-    value: '+150',
-    label: 'équipes accompagnées',
-    detail: 'Managers, RH et facilitateurs en PME et ETI',
+    value: '✅ +150 équipes accompagnées',
+    label: 'Grands groupes, startups, PME et équipes RH',
+    detail: 'Déploiements en contexte réel avec des équipes hybrides.',
   },
   {
-    value: '3x plus rapide',
-    label: 'pour lancer une session utile',
-    detail: 'Cadre clair, activation immediate, debrief actionnable',
+    value: '✅ 3× plus rapide',
+    label: 'Créez une session en quelques minutes',
+    detail: 'Préparation simple, animation guidée, restitution immédiate.',
   },
   {
-    value: 'Hybride-ready',
-    label: 'presentiel, remote et multi-sites',
-    detail: 'Même niveau de lisibilité pour tous les formats',
+    value: '✅ Hybride par nature',
+    label: 'Challenges pour équipes sur site, à distance ou multi-sites',
+    detail: 'Une expérience fluide quel que soit le format d’organisation.',
   },
 ];
 
-const TRUST_LOGO_PLACEHOLDERS = ['Scaleup SaaS', 'Retail Ops', 'Services B2B', 'Industrie'];
+const TRUST_LOGO_PLACEHOLDERS = ['NovaTech', 'Helios Groupe', 'Axis Retail', 'BluePeak Conseil', 'Mosaic Industries'];
+
+const PLATFORM_STATEMENT = {
+  title: 'TeamBlender est la plateforme B2B pour concevoir, piloter et industrialiser des expériences de team building hybrides.',
+  description:
+    'Pensée pour les managers et les équipes RH, elle permet de déployer des expériences simples à organiser, engageantes pour les équipes et mesurables dans leurs résultats.',
+};
+
+const PLATFORM_OFFER_ITEMS = [
+  { icon: Rocket, label: 'Créer une session en quelques clics' },
+  { icon: Users, label: 'Inviter et assigner vos équipes' },
+  { icon: Target, label: 'Lancer des défis collaboratifs engageants' },
+  { icon: PlayCircle, label: 'Animer en temps réel' },
+  { icon: Gauge, label: 'Suivre la progression en live' },
+  { icon: BarChart3, label: 'Exploiter les résultats post-session' },
+];
+
+const PLATFORM_VALUES_ITEMS = [
+  { icon: CheckCircle2, label: 'Déploiement rapide sans friction' },
+  { icon: Sparkles, label: 'Expérience fluide pour tous les participants' },
+  { icon: Layers, label: 'Formats standardisés et réutilisables' },
+  { icon: Shield, label: 'Gouvernance claire des sessions et résultats' },
+  { icon: Building2, label: 'Passage à l’échelle multi-équipes' },
+];
+
+const PLATFORM_BENEFITS_ITEMS = [
+  { icon: Handshake, label: 'Cohésion renforcée dans les équipes hybrides' },
+  { icon: MessageCircle, label: 'Meilleure communication et collaboration' },
+  { icon: ClipboardList, label: 'Gain de temps pour RH et managers' },
+  { icon: GraduationCap, label: 'Accélération de l’onboarding' },
+  { icon: Sparkles, label: 'Expérience employeur modernisée' },
+];
+
+const USE_CASES = [
+  'Programmes de cohésion managériale',
+  'Onboarding collaborateurs',
+  'Alignement multi-sites',
+  'Événements RH',
+];
 
 function resolveTrustTagIcon(label) {
   const normalized = String(label || '').trim().toLowerCase();
@@ -321,7 +368,7 @@ export default function HomePage() {
   function handlePrimaryCtaClick() {
     trackGaEvent('cta_click', {
       cta_name: 'hero_primary',
-      cta_label: String(heroCtaPrimary.cta_label || 'Demarrer une session').trim(),
+      cta_label: String(heroCtaPrimary.cta_label || 'Démarrer gratuitement').trim(),
       cta_destination: safeHref(heroCtaPrimary.cta_href, '/signup'),
       page_location: typeof window !== 'undefined' ? window.location.href : undefined,
     });
@@ -330,8 +377,8 @@ export default function HomePage() {
   function handleHeroSecondaryCtaClick() {
     trackGaEvent('cta_click', {
       cta_name: 'hero_secondary',
-      cta_label: String(heroCtaSecondary.cta_label || 'Se connecter').trim(),
-      cta_destination: safeHref(heroCtaSecondary.cta_href, '/contact'),
+      cta_label: String(heroCtaSecondary.cta_label || 'Voir les offres').trim(),
+      cta_destination: safeHref(heroCtaSecondary.cta_href, '/pricing'),
       page_location: typeof window !== 'undefined' ? window.location.href : undefined,
     });
   }
@@ -339,8 +386,8 @@ export default function HomePage() {
   function handleFinalSecondaryCtaClick() {
     trackGaEvent('cta_click', {
       cta_name: 'final_secondary',
-      cta_label: String(finalCtaSecondary.cta_label || 'Se connecter').trim(),
-      cta_destination: safeHref(finalCtaSecondary.cta_href, '/login'),
+      cta_label: String(finalCtaSecondary.cta_label || 'Demander une démo').trim(),
+      cta_destination: safeHref(finalCtaSecondary.cta_href, '/contact'),
       page_location: typeof window !== 'undefined' ? window.location.href : undefined,
     });
   }
@@ -439,6 +486,14 @@ export default function HomePage() {
     heroMain.description,
     'Le produit aide les equipes a transformer leurs interactions en decisions et alignement.'
   );
+  const heroPrimaryLabel = hasCmsValue(heroCtaPrimary.cta_label) ? heroCtaPrimary.cta_label : 'Démarrer gratuitement';
+  const heroPrimaryHref = safeHref(heroCtaPrimary.cta_href, '/signup');
+  const heroSecondaryLabel = hasCmsValue(heroCtaSecondary.cta_label) ? heroCtaSecondary.cta_label : 'Voir les offres';
+  const heroSecondaryHref = safeHref(heroCtaSecondary.cta_href, '/pricing');
+  const finalPrimaryLabel = hasCmsValue(finalCta.cta_label) ? finalCta.cta_label : 'Démarrer gratuitement';
+  const finalPrimaryHref = safeHref(finalCta.cta_href, '/signup');
+  const finalSecondaryLabel = hasCmsValue(finalCtaSecondary.cta_label) ? finalCtaSecondary.cta_label : 'Demander une démo';
+  const finalSecondaryHref = safeHref(finalCtaSecondary.cta_href, '/contact');
 
   const heroTrustItems = useMemo(
     () => ['hero_trust_1', 'hero_trust_2', 'hero_trust_3']
@@ -446,6 +501,10 @@ export default function HomePage() {
       .filter(Boolean),
     [heroSection]
   );
+
+  const structuredHeroTitle = heroTitle === 'Créez des ateliers de cohesion gamifies en quelques minutes.'
+    ? 'Créez des expériences collaboratives gamifiées à fort impact, en quelques minutes.'
+    : heroTitle;
 
   const impactItems = useMemo(
     () => ['impact_1', 'impact_2', 'impact_3'].map((key) => {
@@ -557,33 +616,35 @@ export default function HomePage() {
               ) : null}
 
               <h1 className="landing-hero-title max-w-2xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-                <span className="block">{heroTitle}</span>
+                <span className="block">{structuredHeroTitle}</span>
                 {heroMain.subtitle ? <span className="landing-hero-subtitle mt-2 block bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-700 bg-clip-text text-transparent">{heroMain.subtitle}</span> : null}
               </h1>
 
               <p className="landing-hero-description mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-                {heroDescription}
+                {heroDescription === 'Le produit aide les equipes a transformer leurs interactions en decisions et alignement.'
+                  ? 'TeamBlender renforce la cohésion des équipes hybrides à travers des challenges en temps réel engageants et mesurables.'
+                  : heroDescription}
               </p>
 
-              <p className="landing-hero-keyline mt-4 max-w-2xl text-sm font-semibold tracking-wide text-cyan-200 sm:text-base">
-                Le produit aide les equipes a transformer leurs interactions en decisions et alignement.
+              <p className="landing-hero-keyline mt-4 max-w-2xl text-sm font-semibold tracking-wide text-indigo-700 sm:text-base">
+                Préparez, animez et analysez vos sessions sans friction opérationnelle.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
-                  href={safeHref(heroCtaPrimary.cta_href, '/signup')}
+                  href={heroPrimaryHref}
                   onClick={handlePrimaryCtaClick}
                   className={`${pillClass} landing-hero-primary-btn group bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25`}
                 >
-                  <span>{heroCtaPrimary.cta_label}</span>
+                  <span>{heroPrimaryLabel}</span>
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </Link>
                 <Link
-                  href={safeHref(heroCtaSecondary.cta_href, '/contact')}
+                  href={heroSecondaryHref}
                   onClick={handleHeroSecondaryCtaClick}
                   className={`${pillClass} landing-hero-secondary-btn border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}
                 >
-                  {heroCtaSecondary.cta_label}
+                  {heroSecondaryLabel}
                 </Link>
               </div>
 
@@ -658,6 +719,18 @@ export default function HomePage() {
         ) : null}
 
         <section
+          className="reveal-up landing-section-full relative overflow-hidden p-8 sm:p-10"
+          style={{ '--reveal-delay': '100ms', background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)' }}
+          aria-label="Positionnement plateforme"
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(99,102,241,0.08),transparent_45%)]" />
+          <div className="landing-section-inner relative mx-auto max-w-4xl text-center">
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{PLATFORM_STATEMENT.title}</h2>
+            <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">{PLATFORM_STATEMENT.description}</p>
+          </div>
+        </section>
+
+        <section
           className="reveal-up landing-partners landing-section-full relative overflow-hidden p-8 sm:p-12"
           style={{
             '--reveal-delay': '120ms',
@@ -683,10 +756,14 @@ export default function HomePage() {
               </div>
 
               <div className="landing-partners-usage rounded-2xl bg-white/80 p-5 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Usage reel</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">
-                  Adopte pour l'onboarding, l'alignement d'equipe et les ateliers de cohesion gamifies dans des environnements hybrides exigeants.
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Cas d’usage</p>
+                <div className="mt-3 space-y-2">
+                  {USE_CASES.map((useCase) => (
+                    <p key={useCase} className="text-sm leading-6 text-slate-700">
+                      • {useCase}
+                    </p>
+                  ))}
+                </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {TRUST_LOGO_PLACEHOLDERS.map((logo) => (
                     <span
@@ -715,10 +792,94 @@ export default function HomePage() {
         </section>
 
         <section
+          className="reveal-up landing-section-full relative overflow-hidden p-6 sm:p-8"
+          style={{ '--reveal-delay': '140ms', background: 'linear-gradient(180deg, #f6f8fc 0%, #edf2fb 100%)' }}
+          aria-label="Ce que la plateforme offre"
+        >
+          <div className="landing-section-inner relative">
+            <div className="panel-head">
+              <div>
+                <p className="eyebrow">Plateforme</p>
+                <h2>Ce que la plateforme offre</h2>
+              </div>
+            </div>
+            <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {PLATFORM_OFFER_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <article key={item.label} className="rounded-2xl bg-white/90 p-5 shadow-sm ring-1 ring-slate-200/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <p className="mt-3 text-sm font-semibold leading-6 text-slate-800">{item.label}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section
+          className="reveal-up landing-section-full relative overflow-hidden p-6 sm:p-8"
+          style={{ '--reveal-delay': '150ms', background: 'linear-gradient(180deg, #ffffff 0%, #f7fbff 100%)' }}
+          aria-label="Valeurs TeamBlender"
+        >
+          <div className="landing-section-inner relative">
+            <div className="panel-head">
+              <div>
+                <p className="eyebrow">Valeurs</p>
+                <h2>Des fondations pensées pour le passage à l’échelle</h2>
+              </div>
+            </div>
+            <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {PLATFORM_VALUES_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <article key={item.label} className="rounded-2xl bg-white/90 p-5 shadow-sm ring-1 ring-slate-200/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <p className="mt-3 text-sm font-semibold leading-6 text-slate-800">{item.label}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section
+          className="reveal-up landing-section-full relative overflow-hidden p-6 sm:p-8"
+          style={{ '--reveal-delay': '160ms', background: 'linear-gradient(180deg, #f2f7ff 0%, #ecf3ff 100%)' }}
+          aria-label="Bénéfices TeamBlender"
+        >
+          <div className="landing-section-inner relative">
+            <div className="panel-head">
+              <div>
+                <p className="eyebrow">Bénéfices</p>
+                <h2>Des résultats visibles pour les équipes et les managers</h2>
+              </div>
+            </div>
+            <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {PLATFORM_BENEFITS_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <article key={item.label} className="rounded-2xl bg-white/90 p-5 shadow-sm ring-1 ring-slate-200/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-700">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <p className="mt-3 text-sm font-semibold leading-6 text-slate-800">{item.label}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section
           className="reveal-up landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{
             '--reveal-delay': '155ms',
-            background: 'linear-gradient(180deg, #ffffff 0%, #f3f7ff 100%)',
+            background: 'linear-gradient(180deg, #ffffff 0%, #f5f8ff 100%)',
           }}
           aria-label="Témoignages clients"
         >
@@ -804,20 +965,16 @@ export default function HomePage() {
 
         <section className={`landing-cta-block landing-section-full reveal-up p-8 text-center`} style={{ '--reveal-delay': '230ms' }} aria-label="Dernier appel à l’action">
           <div className="landing-section-inner">
-            <p className="eyebrow">{finalCta.subtitle || finalCta.label}</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title}</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">{finalCta.description}</p>
+            <p className="eyebrow">{finalCta.subtitle || finalCta.label || 'CTA Final'}</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title || 'Prêt à structurer vos temps d’équipe ?'}</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">{finalCta.description || 'Découvrez TeamBlender et lancez votre premier format pilote en quelques minutes.'}</p>
             <div className="hero-actions home-hero-actions landing-cta-actions mt-7 flex flex-wrap justify-center gap-3">
-              <Link href={safeHref(finalCta.cta_href, '/signup')} className={`${pillClass} bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25`}>
-                <span>{finalCta.cta_label}</span>
-                <ArrowRight className="h-4 w-4" />
+              <Link href={finalSecondaryHref} onClick={handleFinalSecondaryCtaClick} className={`${pillClass} border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}>
+                <span>{finalSecondaryLabel}</span>
               </Link>
-              <Link
-                href={safeHref(finalCtaSecondary.cta_href, '/login')}
-                onClick={handleFinalSecondaryCtaClick}
-                className={`${pillClass} border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}
-              >
-                {finalCtaSecondary.cta_label}
+              <Link href={finalPrimaryHref} className={`${pillClass} bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25`}>
+                <span>{finalPrimaryLabel}</span>
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
