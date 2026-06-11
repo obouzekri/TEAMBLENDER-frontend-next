@@ -60,13 +60,34 @@ export default function AppNav({ userLabel, onLogout, role }) {
   // Fermer le dropdown au clic extérieur
   useEffect(() => {
     if (!dropdownOpen) return;
-    function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+    function isInsideDropdown(event) {
+      if (!dropdownRef.current) return false;
+      const eventPath = typeof event.composedPath === 'function' ? event.composedPath() : null;
+      if (Array.isArray(eventPath) && eventPath.includes(dropdownRef.current)) return true;
+      return dropdownRef.current.contains(event.target);
+    }
+
+    function handlePointerOutside(event) {
+      if (!isInsideDropdown(event)) {
         setDropdownOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerOutside, true);
+    document.addEventListener('touchstart', handlePointerOutside, true);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerOutside, true);
+      document.removeEventListener('touchstart', handlePointerOutside, true);
+      document.removeEventListener('keydown', handleEscape);
+    };
   }, [dropdownOpen]);
 
   // Fermer le dropdown et le menu à la navigation

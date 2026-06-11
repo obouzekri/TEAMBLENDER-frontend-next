@@ -6,6 +6,9 @@
   display: grid;
   gap: 12px;
   box-shadow: 0 12px 28px rgba(2, 6, 23, 0.3), inset 0 0 0 1px rgba(14, 165, 233, 0.12);
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .rulesHeader {
@@ -24,6 +27,7 @@
   color: #bfd3e8;
   font-size: 0.9rem;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .rulesSection {
@@ -49,10 +53,12 @@
   display: grid;
   gap: 8px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .rulesSection ul li {
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .rulesSectionParticipant ul {
@@ -133,8 +139,10 @@
 
 .modalCard {
   width: min(720px, 100%);
+  max-width: 100%;
   max-height: min(84vh, 760px);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   background:
     linear-gradient(165deg, rgba(16, 33, 49, 0.995), rgba(10, 24, 36, 0.995)),
     radial-gradient(420px 180px at 8% -18%, rgba(56, 189, 248, 0.18), transparent 72%);
@@ -144,6 +152,7 @@
   padding: 16px;
   display: grid;
   gap: 12px;
+  overflow-wrap: anywhere;
 }
 
 .modalHead {
@@ -174,7 +183,22 @@
     padding: 12px;
   }
 
+  .rulesSection {
+    padding: 10px;
+  }
+
+  .rulesSection ul {
+    padding-left: 16px;
+  }
+
   .modalCard {
     padding: 12px;
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 24px);
+  }
+
+  .modalHead {
+    align-items: flex-start;
+    flex-wrap: wrap;
   }
 }
