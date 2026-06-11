@@ -1144,15 +1144,6 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   Par défaut: 3 cycles si aucune configuration n'est définie.
                 </span>
               </div>
-
-              <div className={styles.configField}>
-                <label className={styles.label}>Règles de durée</label>
-                <span className={styles.helpText}>Chaque tour dure 40 secondes.</span>
-                <span className={styles.helpText}>1. Le poseur sélectionne ou saisit sa réponse.</span>
-                <span className={styles.helpText}>2. Les participants répondent avant la fin du chrono.</span>
-                <span className={styles.helpText}>3. Les réponses sont comparées automatiquement.</span>
-                <span className={styles.helpText}>4. Les scores sont mis à jour instantanément.</span>
-              </div>
             </>
           )}
 

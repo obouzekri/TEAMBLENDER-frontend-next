@@ -28,6 +28,13 @@ function normalizeName(value) {
   return String(value || '').trim();
 }
 
+function getInitials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+}
+
 function isEmailLike(value) {
   return normalizeName(value).includes('@');
 }
@@ -202,6 +209,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }, [vom, poserId]);
 
   const myVote = String(currentTurn?.votes?.[me] || '');
+  const roundHistory = Array.isArray(vom?.round_history) ? vom.round_history : [];
   const selectedStatement = useMemo(
     () => catalog.find((item) => String(item?.id || '') === String(selectedStatementId || '')) || null,
     [catalog, selectedStatementId]
@@ -288,6 +296,71 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
   const myScore = Number(scores[me] || 0);
 
+  const liveRanking = useMemo(() => {
+    const baseIds = orderedParticipantIds.length > 0
+      ? orderedParticipantIds
+      : Object.keys(scores || {});
+    const rows = baseIds.map((participantId) => ({
+      participant_id: String(participantId),
+      score: Number(scores?.[participantId] || 0)
+    }));
+
+    rows.sort((a, b) => (b.score - a.score) || a.participant_id.localeCompare(b.participant_id));
+
+    let currentRank = 1;
+    return rows.map((entry, index) => {
+      if (index > 0 && entry.score < rows[index - 1].score) {
+        currentRank = index + 1;
+      }
+      return {
+        ...entry,
+        rank: currentRank,
+        tie: index > 0 && entry.score === rows[index - 1].score
+      };
+    });
+  }, [orderedParticipantIds, scores]);
+
+  const maxScore = useMemo(
+    () => Math.max(1, ...liveRanking.map((entry) => Number(entry.score || 0))),
+    [liveRanking]
+  );
+
+  const myLiveEntry = useMemo(
+    () => liveRanking.find((entry) => String(entry.participant_id) === me) || null,
+    [liveRanking, me]
+  );
+
+  const streakByParticipant = useMemo(() => {
+    const streakMap = {};
+    orderedParticipantIds.forEach((id) => {
+      streakMap[String(id)] = 0;
+    });
+
+    for (let index = roundHistory.length - 1; index >= 0; index -= 1) {
+      const round = roundHistory[index];
+      const votes = Array.isArray(round?.votes) ? round.votes : [];
+      votes.forEach((vote) => {
+        const participantKey = String(vote?.participant_id || '');
+        if (!participantKey) return;
+        if (vote?.status === 'correct' && Number(streakMap[participantKey]) >= 0) {
+          streakMap[participantKey] += 1;
+          return;
+        }
+        if (streakMap[participantKey] != null && Number(streakMap[participantKey]) >= 0) {
+          streakMap[participantKey] = -999;
+        }
+      });
+    }
+
+    Object.keys(streakMap).forEach((key) => {
+      streakMap[key] = Math.max(0, Number(streakMap[key] || 0));
+    });
+
+    return streakMap;
+  }, [orderedParticipantIds, roundHistory]);
+
+  const myCorrectStreak = Number(streakByParticipant[me] || 0);
+
   const poseurRoundPoints = Number(currentTurn?.result?.poser_points || 0);
   const totalCycles = Math.max(1, Number(vom?.computed_cycles || vom?.rounds_per_participant || 3));
   const currentCycle = Math.max(1, Math.min(totalCycles, Number(currentTurn?.passage_number || 1)));
@@ -360,6 +433,22 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   function vote(v) {
     playLightTone('default');
     emitEvent('vom.vote', { vote: v });
+  }
+
+  const myRoundBadges = [];
+  if (phase === 'round_result') {
+    if (myRoundVote?.status === 'correct') {
+      myRoundBadges.push('🟢 Bonne réponse');
+    }
+    if (myRoundVote?.status === 'incorrect') {
+      myRoundBadges.push('🔴 Mauvaise réponse');
+    }
+  }
+  if (myLiveEntry?.rank === 1) {
+    myRoundBadges.push('🏆 Top joueur');
+  }
+  if (myCorrectStreak >= 2) {
+    myRoundBadges.push(`🔥 Série de bonnes réponses x${myCorrectStreak}`);
   }
 
   return (
@@ -480,18 +569,18 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                       className={`${styles.voteTrue}${myVote === 'vrai' ? ` ${styles.voteActive}` : ''}`}
                       onClick={() => vote('vrai')}
                     >
-                      Vrai
+                      ✔️ Vrai
                     </button>
                     <button
                       type="button"
                       className={`${styles.voteFalse}${myVote === 'mensonge' ? ` ${styles.voteActive}` : ''}`}
                       onClick={() => vote('mensonge')}
                     >
-                      Mensonge
+                      ❌ Mensonge
                     </button>
                   </>
                 )}
-                <p className={styles.voteStatus}>Votre vote actuel: <strong>{myVote || 'absent'}</strong></p>
+                <p className={styles.voteStatus}>Votre vote actuel: <strong>{myVote === 'vrai' ? '✔️ Vrai' : myVote === 'mensonge' ? '❌ Mensonge' : myVote || 'absent'}</strong></p>
               </div>
             ) : isFacilitator ? (
               <p className={styles.helper}>Le facilitateur observe le tour sans voter.</p>
@@ -515,11 +604,19 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   </p>
                 ) : (
                   <p className={styles.wowText}>
-                    Vous étiez poseur: <strong>+{poseurRoundPoints}</strong> point{poseurRoundPoints > 1 ? 's' : ''} (selon les bonnes réponses)
+                    Vous étiez poseur: <strong>+{poseurRoundPoints}</strong> point{poseurRoundPoints > 1 ? 's' : ''} (joueurs trompés)
                   </p>
                 )}
               </div>
             </div>
+
+            {myRoundBadges.length > 0 ? (
+              <div className={styles.badgesRow}>
+                {myRoundBadges.map((badge) => (
+                  <span key={badge} className={styles.badgeChip}>{badge}</span>
+                ))}
+              </div>
+            ) : null}
 
             <div className={styles.mainScoreCard}>
               <span className={styles.mainScoreLabel}>Mon score</span>
@@ -539,9 +636,21 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             </div>
             <h3>Classement</h3>
             <div className={styles.resultList}>
-              {orderedParticipantIds.map((participant) => (
-                <div key={participant} className={styles.resultRow}>
-                  <span className={styles.leaderboardLine}>{participantName(participant)} - {Number(scores[participant] || 0)} pts</span>
+              {liveRanking.map((entry, index) => (
+                <div key={entry.participant_id} className={`${styles.resultRow} ${index < 3 ? styles.resultRowTop : ''}`}>
+                  <div className={styles.leaderboardEntry}>
+                    <span className={styles.leaderAvatar}>{getInitials(participantName(entry.participant_id))}</span>
+                    <span className={styles.leaderboardLine}>#{entry.rank} {participantName(entry.participant_id)}{entry.tie ? ' (ex-aequo)' : ''}</span>
+                  </div>
+                  <div className={styles.leaderboardScoreWrap}>
+                    <span className={styles.leaderboardScore}>{entry.score} pts</span>
+                    <span className={styles.leaderProgressTrack}>
+                      <span
+                        className={styles.leaderProgressFill}
+                        style={{ width: `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%` }}
+                      />
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -587,9 +696,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             <div className={styles.finalBlock}>
               <h3>Classement final</h3>
               <div className={styles.resultList}>
-                {ranking.map((entry) => (
+                  {ranking.map((entry, index) => (
                   <div key={entry.participant_id} className={styles.resultRow}>
-                    <span>#{entry.rank} {participantName(entry.participant_id)}</span>
+                      <span>#{entry.rank} {index < 3 ? '🏅 ' : ''}{participantName(entry.participant_id)}</span>
                     <span>{entry.score} pts {entry.tie ? '(ex-aequo)' : ''}</span>
                   </div>
                 ))}
@@ -637,10 +746,22 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <section className={`${styles.card} ${styles.stateCard}`}>
             <h3>Classement</h3>
             <div className={styles.resultList}>
-              {orderedParticipantIds.length === 0 ? <p className={styles.helper}>Aucun participant détecté.</p> : null}
-              {orderedParticipantIds.map((participant) => (
-                <div key={participant} className={styles.resultRow}>
-                  <span className={styles.leaderboardLine}>{participantName(participant)} - {Number(scores[participant] || 0)} pts</span>
+              {liveRanking.length === 0 ? <p className={styles.helper}>Aucun participant détecté.</p> : null}
+              {liveRanking.map((entry, index) => (
+                <div key={entry.participant_id} className={`${styles.resultRow} ${index < 3 ? styles.resultRowTop : ''}`}>
+                  <div className={styles.leaderboardEntry}>
+                    <span className={styles.leaderAvatar}>{getInitials(participantName(entry.participant_id))}</span>
+                    <span className={styles.leaderboardLine}>#{entry.rank} {participantName(entry.participant_id)}</span>
+                  </div>
+                  <div className={styles.leaderboardScoreWrap}>
+                    <span className={styles.leaderboardScore}>{entry.score} pts</span>
+                    <span className={styles.leaderProgressTrack}>
+                      <span
+                        className={styles.leaderProgressFill}
+                        style={{ width: `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%` }}
+                      />
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
