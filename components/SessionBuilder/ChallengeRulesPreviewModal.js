@@ -8,9 +8,9 @@ import styles from './ChallengeRulesPreviewModal.module.css';
 function getFallbackRules(challenge) {
   const description = String(challenge?.description || '').trim();
   return {
-    objective: description || 'Consultez les règles de cette activité avant de l’ajouter à votre session.',
-    facilitator: ['Cadrez le défi, posez le contexte et fluidifiez la coordination de l’équipe.'],
-    participant: ['Alignez-vous sur le brief, répartissez les rôles et avancez ensemble sur le challenge.'],
+    objective: description || 'Review the rules for this activity before adding it to your session.',
+    facilitator: ['Frame the challenge, set the context, and streamline team coordination.'],
+    participant: ['Align on the brief, distribute roles, and progress together on the challenge.'],
     footnote: '',
   };
 }
@@ -44,27 +44,27 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
       >
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>📜 Voir les règles</p>
-            <h2 id={modalTitleId}>{challenge?.name || 'Activité'}</h2>
-            <p className={styles.duration}>{duration > 0 ? `Durée moyenne: ${duration} min` : 'Durée moyenne à confirmer'}</p>
+            <p className={styles.kicker}>📜 View rules</p>
+            <h2 id={modalTitleId}>{challenge?.name || 'Activity'}</h2>
+            <p className={styles.duration}>{duration > 0 ? `Average duration: ${duration} min` : 'Average duration to be confirmed'}</p>
             {playerRange.hasRange ? (
               <p className={styles.playersLine}>
-                Min: {playerRange.min || '-'} · Recommande: {playerRange.recommended || '-'} · Max: {playerRange.max || '-'} joueurs
+                Min: {playerRange.min || '-'} · Recommended: {playerRange.recommended || '-'} · Max: {playerRange.max || '-'} players
               </p>
             ) : null}
           </div>
-          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Fermer la fenêtre des règles">
-            Fermer
+          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close rules window">
+            Close
           </button>
         </header>
 
         <section className={styles.block}>
-          <h3>Brief de mission</h3>
+          <h3>Mission brief</h3>
           <p>{rules.objective}</p>
         </section>
 
         <section className={styles.block}>
-          <h3>Facilitateur</h3>
+          <h3>Facilitator</h3>
           <ul>
             {rules.facilitator.map((rule) => (
               <li key={`facilitator-${rule}`}>{rule}</li>

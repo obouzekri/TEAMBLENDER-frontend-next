@@ -12,6 +12,7 @@ import useToast from '@/lib/useToast';
 import { fetchSessionsWithRetry } from '@/lib/api';
 import { clearStoredAuth } from '@/lib/auth';
 import { trackGaEvent } from '@/lib/analytics';
+import useI18n from '@/lib/i18n/useI18n';
 
 function pickDisplayName(user) {
   if (!user || typeof user !== 'object') return 'Manager';
@@ -164,6 +165,7 @@ const STARTUP_GUIDE_STEPS = Object.freeze([
 ]);
 
 export default function ManagerHome() {
+  const { withLocalePath } = useI18n();
   const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
   const guard = useManagerGuard();
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
@@ -256,7 +258,7 @@ export default function ManagerHome() {
     setAuthInvalid(true);
     showErrorToast(message);
     clearStoredAuth();
-    window.location.replace('/login?reason=session_expired');
+    window.location.replace(withLocalePath('/login?reason=session_expired'));
   }
 
   const refreshSessions = useCallback(async ({ withToast = false } = {}) => {
@@ -408,7 +410,7 @@ export default function ManagerHome() {
     sessionStorage.removeItem('jwt');
     sessionStorage.removeItem('currentUser');
     sessionStorage.removeItem('selectedChallenges');
-    window.location.replace('/login');
+    window.location.replace(withLocalePath('/login'));
   }
 
   async function handleDeleteSession(session) {
@@ -619,7 +621,7 @@ export default function ManagerHome() {
               <div className="hero-actions home-hero-actions">
                 <Link
                   className={`btn-primary home-create-cta ${canCreateSession ? '' : 'is-disabled'}`}
-                  href="/session-builder"
+                  href={withLocalePath('/session-builder')}
                   onClick={handleCreateSessionClick}
                   aria-disabled={!canCreateSession}
                   title={canCreateSession ? 'Create session' : createSessionBlockedReason}
@@ -634,7 +636,7 @@ export default function ManagerHome() {
                   Getting started guide
                 </button>
                 {guard.user?.role === 'admin' && (
-                  <Link className="btn-secondary" href="/admin">Console admin</Link>
+                  <Link className="btn-secondary" href={withLocalePath('/admin')}>Console admin</Link>
                 )}
               </div>
               {!canCreateSession ? (
@@ -686,7 +688,7 @@ export default function ManagerHome() {
             </div>
             <Link
               className={`btn-primary ${canCreateSession ? '' : 'is-disabled'}`}
-              href="/session-builder"
+              href={withLocalePath('/session-builder')}
               onClick={handleCreateSessionClick}
               aria-disabled={!canCreateSession}
               title={canCreateSession ? 'Create session' : createSessionBlockedReason}
@@ -720,11 +722,11 @@ export default function ManagerHome() {
                 const isActive = session.status === 'en_cours';
                 const isDone = session.status === 'terminee';
                 const openLink = isDone
-                  ? `/session-results/${sessionIdentifier}`
+                  ? withLocalePath(`/session-results/${sessionIdentifier}`)
                   : isActive
-                    ? `/session-live/${sessionIdentifier}`
-                    : `/session-builder?sessionId=${sessionIdentifier}`;
-                const editLink = `/session-builder?sessionId=${sessionIdentifier}`;
+                    ? withLocalePath(`/session-live/${sessionIdentifier}`)
+                    : withLocalePath(`/session-builder?sessionId=${sessionIdentifier}`);
+                const editLink = withLocalePath(`/session-builder?sessionId=${sessionIdentifier}`);
                 return (
                   <article key={sessionIdentifier} className={`feature-card session-card ${isDeleting ? 'session-card--deleting' : ''}`}>
                     <div className="session-card-body">
@@ -908,7 +910,7 @@ export default function ManagerHome() {
                   <h3>{item.title}</h3>
                   <p>{item.text}</p>
                   {item.href ? (
-                    <Link className="btn-secondary manager-onboarding-step__cta" href={item.href} onClick={closeStartupGuide}>
+                    <Link className="btn-secondary manager-onboarding-step__cta" href={withLocalePath(item.href)} onClick={closeStartupGuide}>
                       {item.cta}
                     </Link>
                   ) : null}

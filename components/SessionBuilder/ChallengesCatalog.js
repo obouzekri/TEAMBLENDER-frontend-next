@@ -9,33 +9,33 @@ import { formatIdealPlayersLabel } from '@/lib/challenges/playerRange';
 
 const MAX_FILTER_OBJECTIVES = 3;
 
-// Mapping des valeurs techniques aux labels affichés
+// Mapping technical values to display labels
 const CATEGORY_LABELS = {
   'escape-game': 'Escape Game',
-  'logique-reflexion': 'Logique & Réflexion',
+  'logique-reflexion': 'Logic & Reflection',
   'icebreaker': 'Icebreaker',
-  'creativite-innovation': 'Créativité & innovation',
-  'memoire-attention': 'Mémoire & attention',
-  'culture-decouverte': 'Culture & découverte',
+  'creativite-innovation': 'Creativity & Innovation',
+  'memoire-attention': 'Memory & Attention',
+  'culture-decouverte': 'Culture & Discovery',
   'Collaboration': 'Collaboration',
-  'Gestion de projet': 'Gestion de projet',
-  'Engagement collectif': 'Engagement collectif',
+  'Gestion de projet': 'Project Management',
+  'Engagement collectif': 'Collective Engagement',
 };
 
 const OBJECTIVE_LABELS = {
-  'cohesion': 'Cohésion',
+  'cohesion': 'Cohesion',
   'communication': 'Communication',
   'collaboration': 'Collaboration',
   'leadership': 'Leadership',
-  'resolution-problemes': 'Résolution de problèmes',
+  'resolution-problemes': 'Problem Solving',
   'coordination': 'Coordination',
-  'priorisation': 'Priorisation',
-  'dependances': 'Dépendances',
+  'priorisation': 'Prioritization',
+  'dependances': 'Dependencies',
   'engagement': 'Engagement',
-  'ecoute active': 'Écoute active',
-  'intelligence-collective': 'Intelligence collective',
-  'creativite': 'Créativité',
-  'gestion-temps': 'Gestion du temps',
+  'ecoute active': 'Active Listening',
+  'intelligence-collective': 'Collective Intelligence',
+  'creativite': 'Creativity',
+  'gestion-temps': 'Time Management',
 };
 
 function toObjectiveList(value) {
@@ -88,7 +88,7 @@ export default function ChallengesCatalog({
     };
   }, []);
 
-  // Extraire les catégories uniques depuis les challenges
+  // Extract unique categories from challenges
   const categories = useMemo(() => {
     const unique = new Set();
     const source = Array.isArray(allChallenges) && allChallenges.length > 0 ? allChallenges : challenges;
@@ -98,7 +98,7 @@ export default function ChallengesCatalog({
     
     const sorted = Array.from(unique).sort();
     return [
-      { value: '', label: 'Tous' },
+      { value: '', label: 'All' },
       ...sorted.map((cat) => ({
         value: cat,
         label: CATEGORY_LABELS[cat] || cat,
@@ -106,8 +106,8 @@ export default function ChallengesCatalog({
     ];
   }, [allChallenges, challenges]);
 
-  // Extraire les objectifs uniques depuis les challenges
-  // Gérer les deux formats: string (nouveau) et array (ancien)
+  // Extract unique objectives from challenges
+  // Handle both formats: string (new) and array (legacy)
   const objectives = useMemo(() => {
     const unique = new Set();
     const source = Array.isArray(allChallenges) && allChallenges.length > 0 ? allChallenges : challenges;
@@ -117,7 +117,7 @@ export default function ChallengesCatalog({
     
     const sorted = Array.from(unique).sort();
     return [
-      { value: '', label: 'Tous' },
+      { value: '', label: 'All' },
       ...sorted.map((obj) => ({
         value: obj,
         label: OBJECTIVE_LABELS[obj] || obj,
@@ -126,10 +126,10 @@ export default function ChallengesCatalog({
   }, [allChallenges, challenges]);
 
   const durations = [
-    { value: '', label: 'Tous' },
-    { value: 'short', label: 'Moins de 10 min' },
+    { value: '', label: 'All' },
+    { value: 'short', label: 'Less than 10 min' },
     { value: 'medium', label: '10-20 min' },
-    { value: 'long', label: 'Plus de 20 min' },
+    { value: 'long', label: 'More than 20 min' },
   ];
 
   const selectedCategories = Array.isArray(filters.categories) ? filters.categories : [];
@@ -165,13 +165,13 @@ export default function ChallengesCatalog({
 
   function formatMultiSelectValue(values, labelMap) {
     if (!Array.isArray(values) || values.length === 0) {
-      return 'Tout';
+      return 'All';
     }
     if (values.length === 1) {
       return labelMap.get(values[0]) || values[0];
     }
     if (values.length > 3) {
-      return `${values.length} sélectionnés`;
+      return `${values.length} selected`;
     }
     return values
       .map((value) => toAbbreviation(labelMap.get(value) || value))
@@ -181,13 +181,13 @@ export default function ChallengesCatalog({
 
   const categoryTriggerLabel = formatMultiSelectValue(selectedCategories, categoryLabelMap);
   const objectiveTriggerLabel = formatMultiSelectValue(selectedObjectives, objectiveLabelMap);
-  const durationTriggerLabel = durations.find((dur) => dur.value === filters.duration)?.label || 'Tout';
+  const durationTriggerLabel = durations.find((dur) => dur.value === filters.duration)?.label || 'All';
 
   return (
     <section className={styles.catalog} data-catalog>
       <div className={styles.filterBar}>
         <div className={styles.filterLine} ref={filterMenuRef}>
-          <span className={styles.filtersLabel}>Filtres</span>
+          <span className={styles.filtersLabel}>Filters</span>
 
           <div className={styles.filterControls}>
             <div className={styles.filterDropdownWrap}>
@@ -197,15 +197,15 @@ export default function ChallengesCatalog({
                 onClick={() => setOpenDropdown((prev) => (prev === 'category' ? null : 'category'))}
                 aria-expanded={openDropdown === 'category'}
                 aria-haspopup="listbox"
-                aria-label={`Filtre catégorie: ${categoryTriggerLabel}`}
+                aria-label={`Category filter: ${categoryTriggerLabel}`}
               >
-                <span className={styles.filterTriggerPrefix}>Catégorie:</span>
+                <span className={styles.filterTriggerPrefix}>Category:</span>
                 <span className={styles.filterTriggerValue}>{categoryTriggerLabel}</span>
                 <span aria-hidden="true">▾</span>
               </button>
 
               {openDropdown === 'category' ? (
-                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filtrer par catégorie" aria-multiselectable="true">
+                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filter by category" aria-multiselectable="true">
                   <button
                     type="button"
                     role="option"
@@ -213,7 +213,7 @@ export default function ChallengesCatalog({
                     className={`${styles.filterOption} ${selectedCategories.length === 0 ? styles.filterOptionActive : ''}`}
                     onClick={() => onFilterChange({ categories: [] })}
                   >
-                    <span>Tout</span>
+                    <span>All</span>
                     {selectedCategories.length === 0 ? <span aria-hidden="true">✓</span> : null}
                   </button>
                   {categories.filter((cat) => cat.value).map((cat) => {
@@ -243,15 +243,15 @@ export default function ChallengesCatalog({
                 onClick={() => setOpenDropdown((prev) => (prev === 'objective' ? null : 'objective'))}
                 aria-expanded={openDropdown === 'objective'}
                 aria-haspopup="listbox"
-                aria-label={`Filtre objectifs: ${objectiveTriggerLabel}`}
+                aria-label={`Objective filter: ${objectiveTriggerLabel}`}
               >
-                <span className={styles.filterTriggerPrefix}>Objectifs:</span>
+                <span className={styles.filterTriggerPrefix}>Objectives:</span>
                 <span className={styles.filterTriggerValue}>{objectiveTriggerLabel}</span>
                 <span aria-hidden="true">▾</span>
               </button>
 
               {openDropdown === 'objective' ? (
-                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filtrer par objectifs" aria-multiselectable="true">
+                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filter by objectives" aria-multiselectable="true">
                   <button
                     type="button"
                     role="option"
@@ -259,7 +259,7 @@ export default function ChallengesCatalog({
                     className={`${styles.filterOption} ${selectedObjectives.length === 0 ? styles.filterOptionActive : ''}`}
                     onClick={() => onFilterChange({ objectives: [] })}
                   >
-                    <span>Tout</span>
+                    <span>All</span>
                     {selectedObjectives.length === 0 ? <span aria-hidden="true">✓</span> : null}
                   </button>
                   {objectives.filter((obj) => obj.value).map((obj) => {
@@ -282,8 +282,8 @@ export default function ChallengesCatalog({
                   })}
                   <p className={styles.filterHintInline}>
                     {objectiveLimitReached
-                      ? 'Limite atteinte (3 objectifs max).'
-                      : `Sélection multiple (max ${MAX_FILTER_OBJECTIVES}).`}
+                      ? 'Limit reached (max 3 objectives).'
+                      : `Multi-select (max ${MAX_FILTER_OBJECTIVES}).`}
                   </p>
                 </div>
               ) : null}
@@ -296,15 +296,15 @@ export default function ChallengesCatalog({
                 onClick={() => setOpenDropdown((prev) => (prev === 'duration' ? null : 'duration'))}
                 aria-expanded={openDropdown === 'duration'}
                 aria-haspopup="listbox"
-                aria-label={`Filtre durée: ${durationTriggerLabel}`}
+                aria-label={`Duration filter: ${durationTriggerLabel}`}
               >
-                <span className={styles.filterTriggerPrefix}>Durée:</span>
+                <span className={styles.filterTriggerPrefix}>Duration:</span>
                 <span className={styles.filterTriggerValue}>{durationTriggerLabel}</span>
                 <span aria-hidden="true">▾</span>
               </button>
 
               {openDropdown === 'duration' ? (
-                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filtrer par durée">
+                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filter by duration">
                   {durations.map((dur) => {
                     const active = String(filters.duration || '') === String(dur.value || '');
                     return (
@@ -334,8 +334,8 @@ export default function ChallengesCatalog({
               className={styles.resetIconButton}
               onClick={onResetFilters}
               type="button"
-              title="Réinitialiser les filtres"
-              aria-label="Réinitialiser les filtres"
+              title="Reset filters"
+              aria-label="Reset filters"
             >
               ↺
             </button>
@@ -352,9 +352,9 @@ export default function ChallengesCatalog({
       ) : challenges.length === 0 ? (
         <EmptyState
           icon="🔍"
-          title="Aucune activité ne correspond à vos critères"
-          description="Ajustez les filtres ou revenez à la vue complète du catalogue."
-          actions={<Button variant="secondary" size="sm" onClick={onResetFilters}>Réinitialiser les filtres</Button>}
+          title="No activity matches your criteria"
+          description="Adjust filters or return to the full catalog view."
+          actions={<Button variant="secondary" size="sm" onClick={onResetFilters}>Reset filters</Button>}
           className={styles.emptyState}
         />
       ) : (
@@ -372,11 +372,11 @@ export default function ChallengesCatalog({
                       type="button"
                       className={styles.rulesButton}
                       onClick={() => setPreviewChallenge(challenge)}
-                      title="Voir les règles"
-                      aria-label={`Voir les règles de ${challenge.name}`}
+                      title="View rules"
+                      aria-label={`View rules for ${challenge.name}`}
                     >
                       <span aria-hidden="true">📜</span>
-                      <span>Voir les règles</span>
+                      <span>View rules</span>
                     </button>
                     <span className={styles.cardDuration}>{challenge.duration} min</span>
                   </div>
@@ -406,7 +406,7 @@ export default function ChallengesCatalog({
                     }}
                     disabled={isSelected}
                   >
-                    {isSelected ? '✓ Ajoutée' : '+ Ajouter'}
+                    {isSelected ? '✓ Added' : '+ Add'}
                   </Button>
                   {isSelected && (
                     <Button
@@ -414,7 +414,7 @@ export default function ChallengesCatalog({
                       size="sm"
                       onClick={() => onConfigure(challenge.id)}
                     >
-                      ⚙ Configurer
+                      ⚙ Configure
                     </Button>
                   )}
                 </div>

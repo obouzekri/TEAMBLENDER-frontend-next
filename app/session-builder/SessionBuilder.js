@@ -233,7 +233,7 @@ function useManagerGuard() {
     }
 
     if (user.role === 'participant') {
-      window.location.replace(withLocalePath('/participant'));
+      window.location.replace('/participant');
       return;
     }
 
@@ -750,7 +750,7 @@ export default function SessionBuilder() {
       if (targetId) {
         window.location.replace(`/session-live/${encodeURIComponent(targetId)}`);
       } else {
-        window.location.replace('/home');
+        window.location.replace(withLocalePath('/home'));
       }
     } catch (error) {
       removeToast(loadingId);
@@ -767,6 +767,7 @@ export default function SessionBuilder() {
     sessionId,
     showErrorToast,
     showLoadingToast,
+    withLocalePath,
   ]);
 
   useEffect(() => {
@@ -786,8 +787,8 @@ export default function SessionBuilder() {
     if (onboardingRedirectedRef.current) return;
 
     onboardingRedirectedRef.current = true;
-    window.location.replace('/home?onboarding=participants&reason=no_participants');
-  }, [availableParticipantsCount, guard.allowed, hasRouteSessionId, participantsInventoryLoaded, sessionId]);
+    window.location.replace(withLocalePath('/home?onboarding=participants&reason=no_participants'));
+  }, [availableParticipantsCount, guard.allowed, hasRouteSessionId, participantsInventoryLoaded, sessionId, withLocalePath]);
 
   const handleSaveDraft = useCallback(async () => {
     if (!sessionId || isSavingDraft) return;
