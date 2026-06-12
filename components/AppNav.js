@@ -92,7 +92,6 @@ export default function AppNav({ userLabel, onLogout, role }) {
   // Fermer le dropdown et le menu à la navigation
   useEffect(() => {
     setIsMenuOpen(false);
-    setDropdownOpen(false);
   }, [pathname]);
 
   useEffect(() => {
