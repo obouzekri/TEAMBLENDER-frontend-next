@@ -3,6 +3,16 @@ import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from './lib/i18n/routing';
 
 const PUBLIC_FILE = /\.(.*)$/;
 
+function resolvePreferredLocale(request) {
+  const fromCookie = String(request.cookies.get('tb_locale')?.value || '').trim().toLowerCase();
+  if (SUPPORTED_LOCALES.includes(fromCookie)) return fromCookie;
+
+  const acceptLanguage = String(request.headers.get('accept-language') || '').toLowerCase();
+  if (acceptLanguage.includes('en')) return 'en';
+
+  return DEFAULT_LOCALE;
+}
+
 export function middleware(request) {
   const { pathname } = request.nextUrl;
 
@@ -28,9 +38,12 @@ export function middleware(request) {
     return response;
   }
 
+  const preferredLocale = resolvePreferredLocale(request);
   const redirectUrl = request.nextUrl.clone();
-  redirectUrl.pathname = `/${DEFAULT_LOCALE}${pathname === '/' ? '' : pathname}`;
-  return NextResponse.redirect(redirectUrl);
+  redirectUrl.pathname = `/${preferredLocale}${pathname === '/' ? '' : pathname}`;
+  const response = NextResponse.redirect(redirectUrl);
+  response.cookies.set('tb_locale', preferredLocale, { path: '/', sameSite: 'lax' });
+  return response;
 }
 
 export const config = {

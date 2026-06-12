@@ -4,38 +4,43 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
+import LanguageSwitcher from './LanguageSwitcher';
+import useI18n from '@/lib/i18n/useI18n';
+import { stripLocaleFromPath } from '@/lib/i18n/routing';
 
 export default function AppNav({ userLabel, onLogout, role }) {
   const pathname = usePathname();
+  const plainPathname = stripLocaleFromPath(pathname || '/');
   const [activeHomeBlock, setActiveHomeBlock] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { t, withLocalePath } = useI18n();
 
   const isParticipant = role === 'participant';
   const isAdmin = role === 'admin';
-  const isParticipantChallengeLive = isParticipant && pathname?.startsWith('/challenges/');
+  const isParticipantChallengeLive = isParticipant && plainPathname?.startsWith('/challenges/');
   const isCompact = role === 'participant-live' || isParticipantChallengeLive;
   const isManager = !isParticipant && !isAdmin && !isCompact;
   const isParticipantArea = isParticipant && !isCompact;
   const brandHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
   const compactReturnHref = isParticipant ? '/participant' : '/home';
-  const compactReturnLabel = isParticipant ? 'Retour à mes sessions' : 'Retour au tableau de bord';
+  const compactReturnLabel = isParticipant ? t('appNav.backToSessions') : t('appNav.backToDashboard');
   const headerClassName = isCompact ? 'top-nav top-nav--live-inline' : 'top-nav';
-  const isManagerHome = isManager && pathname === '/home';
-  const isActive = (href) => pathname?.startsWith(href);
+  const isManagerHome = isManager && plainPathname === '/home';
+  const isActive = (href) => plainPathname?.startsWith(href);
   const contextLabel = isParticipant
-    ? ''
+    ? t('appNav.participantSpace')
     : isAdmin
-      ? ''
+      ? t('appNav.adminSpace')
       : isCompact
-        ? 'Session live'
-        : 'Espace manager';
+        ? t('appNav.liveSession')
+        : t('appNav.managerSpace');
   const navPanelClassName = `nav-panel${(isManager || isParticipantArea) ? ' nav-panel--manager' : ''}${isMenuOpen ? ' is-open' : ''}`;
-  const resolvedUserLabel = userLabel || (isParticipant ? 'Participant' : 'Manager');
+  const resolvedUserLabel = userLabel || (isParticipant ? t('appNav.participant') : t('appNav.manager'));
   const accountHref = isParticipant ? '/participant' : '/account';
-  const roleLabel = isParticipant ? 'Participant' : isAdmin ? 'Admin' : 'Manager';
+  const roleLabel = isParticipant ? t('appNav.participant') : isAdmin ? t('appNav.admin') : t('appNav.manager');
   const [userAvatarUrl, setUserAvatarUrl] = useState('');
 
   useEffect(() => {
@@ -132,7 +137,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
     if (!target) return;
     setActiveHomeBlock(blockKey);
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    window.history.replaceState(null, '', `/home#${blockKey}`);
+    window.history.replaceState(null, '', withLocalePath(`/home#${blockKey}`));
   }
 
   const userTrigger = (
@@ -145,11 +150,11 @@ export default function AppNav({ userLabel, onLogout, role }) {
         className={`nav-user-trigger${dropdownOpen ? ' is-open' : ''}`}
         aria-expanded={dropdownOpen}
         aria-haspopup="menu"
-        aria-label={`Menu de ${resolvedUserLabel}`}
+        aria-label={t('appNav.userMenuOf', { name: resolvedUserLabel })}
         onClick={() => setDropdownOpen((v) => !v)}
       >
         {userAvatarUrl ? (
-          <img src={userAvatarUrl} alt={`Avatar de ${resolvedUserLabel}`} className="nav-user-avatar app-user-avatar--photo" />
+          <img src={userAvatarUrl} alt={t('appNav.avatarOf', { name: resolvedUserLabel })} className="nav-user-avatar app-user-avatar--photo" />
         ) : (
           <span className="nav-user-avatar" aria-hidden="true">{userInitials}</span>
         )}
@@ -160,14 +165,14 @@ export default function AppNav({ userLabel, onLogout, role }) {
       </button>
 
       {dropdownOpen && (
-        <div className="nav-user-dropdown" role="menu" aria-label="Menu utilisateur">
+        <div className="nav-user-dropdown" role="menu" aria-label={t('appNav.userMenu')}>
           <div className="nav-user-dropdown__header">
             <span className="nav-user-dropdown__name">{resolvedUserLabel}</span>
             <span className="nav-user-dropdown__role">{roleLabel}</span>
           </div>
           <div className="nav-user-dropdown__divider" />
           <Link
-            href={accountHref}
+            href={withLocalePath(accountHref)}
             className="nav-user-dropdown__item"
             role="menuitem"
             onClick={() => setDropdownOpen(false)}
@@ -175,7 +180,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
               <path d="M7.5 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-4 5c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Mon compte
+            {t('nav.myAccount')}
           </Link>
           <button
             type="button"
@@ -187,7 +192,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
               <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.5" />
               <path d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.75 2.75l1.06 1.06M11.19 11.19l1.06 1.06M2.75 12.25l1.06-1.06M11.19 3.81l1.06-1.06" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
-            Paramètres
+            {t('appNav.settings')}
           </button>
           <div className="nav-user-dropdown__divider" />
           <button
@@ -199,7 +204,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
               <path d="M9.5 10.5 13 7.5 9.5 4.5M13 7.5H5.5M5.5 2.5h-3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Déconnexion
+            {t('appNav.logout')}
           </button>
         </div>
       )}
@@ -212,7 +217,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
         <div className={`shell nav-inner${isCompact ? ' nav-inner--live-inline' : ''}`}>
           <div className="nav-top-row">
             <div className="nav-brand-block">
-              <Link href={brandHref} className="brand">
+              <Link href={withLocalePath(brandHref)} className="brand">
                 <Logo size="default" />
               </Link>
               {!isManager && !isCompact && contextLabel ? <span className="nav-context">{contextLabel}</span> : null}
@@ -224,7 +229,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
                 className={`nav-toggle ${isMenuOpen ? 'is-open' : ''}`}
                 aria-expanded={isMenuOpen}
                 aria-controls="app-nav-panel"
-                aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+                aria-label={isMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
                 onClick={() => setIsMenuOpen((current) => !current)}
               >
                 <span className="nav-toggle__line" />
@@ -238,7 +243,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
             {isParticipant && !isCompact && (
               <div className="nav-main-block">
                 <nav className="nav-links" aria-label="Navigation participant">
-                  <Link href="/participant" className={`nav-link ${isActive('/participant') ? 'is-active' : ''}`} aria-current={isActive('/participant') ? 'page' : undefined}>Mes sessions</Link>
+                  <Link href={withLocalePath('/participant')} className={`nav-link ${isActive('/participant') ? 'is-active' : ''}`} aria-current={isActive('/participant') ? 'page' : undefined}>{t('appNav.mySessions')}</Link>
                 </nav>
               </div>
             )}
@@ -247,22 +252,22 @@ export default function AppNav({ userLabel, onLogout, role }) {
               <div className="nav-main-block">
                 <nav className="nav-links" aria-label="Navigation manager">
                   <Link
-                    href="/home#sessions"
+                    href={withLocalePath('/home#sessions')}
                     className={`nav-link nav-link--section ${(isManagerHome && activeHomeBlock === 'sessions') || (!isActive('/account') && !isManagerHome) ? 'is-active' : ''}`}
                     aria-current={(isManagerHome && activeHomeBlock === 'sessions') || (!isActive('/account') && !isManagerHome) ? 'page' : undefined}
                     onClick={(event) => scrollToHomeBlock(event, 'home-sessions-block', 'sessions')}
                   >
-                    Sessions
+                    {t('appNav.sessions')}
                   </Link>
                   <Link
-                    href="/home#participants"
+                    href={withLocalePath('/home#participants')}
                     className={`nav-link nav-link--section ${isManagerHome && activeHomeBlock === 'participants' ? 'is-active' : ''}`}
                     aria-current={isManagerHome && activeHomeBlock === 'participants' ? 'page' : undefined}
                     onClick={(event) => scrollToHomeBlock(event, 'home-participants-block', 'participants')}
                   >
-                    Participants
+                    {t('appNav.participants')}
                   </Link>
-                  <Link href="/account" className={`nav-link ${isActive('/account') ? 'is-active' : ''}`} aria-current={isActive('/account') ? 'page' : undefined}>Compte</Link>
+                  <Link href={withLocalePath('/account')} className={`nav-link ${isActive('/account') ? 'is-active' : ''}`} aria-current={isActive('/account') ? 'page' : undefined}>{t('appNav.account')}</Link>
                 </nav>
               </div>
             )}
@@ -270,7 +275,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
             {isAdmin && !isCompact && (
               <div className="nav-main-block">
                 <nav className="nav-links" aria-label="Navigation admin">
-                  <Link href="/admin" className={`nav-link ${pathname === '/admin' ? 'is-active' : ''}`} aria-current={pathname === '/admin' ? 'page' : undefined}>Retour admin</Link>
+                  <Link href={withLocalePath('/admin')} className={`nav-link ${isActive('/admin') ? 'is-active' : ''}`} aria-current={isActive('/admin') ? 'page' : undefined}>{t('appNav.backToAdmin')}</Link>
                 </nav>
               </div>
             )}
@@ -278,12 +283,15 @@ export default function AppNav({ userLabel, onLogout, role }) {
             {isCompact && (
               <div className="nav-main-block nav-main-block--compact">
                 <nav className="nav-links" aria-label="Navigation session live">
-                  <Link href={compactReturnHref} className="nav-link">{compactReturnLabel}</Link>
+                  <Link href={withLocalePath(compactReturnHref)} className="nav-link">{compactReturnLabel}</Link>
                 </nav>
               </div>
             )}
 
-            {userTrigger}
+            <div className="nav-actions" aria-label={t('nav.accountAria')}>
+              <LanguageSwitcher />
+              {userTrigger}
+            </div>
           </div>
         </div>
       </header>
@@ -294,16 +302,16 @@ export default function AppNav({ userLabel, onLogout, role }) {
           className="nav-settings-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="Paramètres"
+          aria-label={t('appNav.settings')}
           onClick={(e) => { if (e.target === e.currentTarget) setSettingsOpen(false); }}
         >
           <div className="nav-settings-modal">
             <div className="nav-settings-modal__head">
-              <h2 className="nav-settings-modal__title">Paramètres</h2>
+              <h2 className="nav-settings-modal__title">{t('appNav.settings')}</h2>
               <button
                 type="button"
                 className="nav-settings-modal__close"
-                aria-label="Fermer les paramètres"
+                aria-label={t('appNav.closeSettings')}
                 onClick={() => setSettingsOpen(false)}
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
