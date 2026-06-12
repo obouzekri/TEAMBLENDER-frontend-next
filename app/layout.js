@@ -2,6 +2,7 @@ import './globals.css';
 import { IBM_Plex_Sans, Sora } from 'next/font/google';
 import { cookies } from 'next/headers';
 import TrackingConsentGate from '@/components/TrackingConsentGate';
+import { I18nProvider } from '@/lib/i18n/I18nProvider';
 
 const fontUi = IBM_Plex_Sans({
   subsets: ['latin'],
@@ -40,7 +41,9 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={locale}>
       <body className={`${fontUi.variable} ${fontDisplay.variable}`}>
-        <TrackingConsentGate>{children}</TrackingConsentGate>
+        <I18nProvider>
+          <TrackingConsentGate>{children}</TrackingConsentGate>
+        </I18nProvider>
       </body>
     </html>
   );
