@@ -324,6 +324,44 @@
   background: linear-gradient(180deg, rgba(47, 98, 255, 0.94) 0%, rgba(122, 92, 255, 0.24) 100%);
 }
 
+.launchConfirmDialog {
+  max-width: min(460px, 92vw);
+  border-radius: 22px;
+}
+
+.launchConfirmBody {
+  padding: 1rem 1.2rem 1.25rem;
+}
+
+.launchConfirmText {
+  margin: 0;
+  color: var(--ink, #1e293b);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.launchConfirmActions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 680px) {
+  .launchConfirmBody {
+    padding: 0.95rem 0.95rem 1rem;
+  }
+
+  .launchConfirmActions {
+    justify-content: stretch;
+  }
+
+  .launchConfirmActions > * {
+    flex: 1 1 100%;
+  }
+}
+
 .creationChecklist {
   display: grid;
   gap: 0.75rem;

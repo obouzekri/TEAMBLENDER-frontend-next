@@ -56,6 +56,7 @@ export default function ChallengesCatalog({
   filters,
   isLoading,
   onSelect,
+  onDeselect,
   onConfigure,
   onFilterChange,
   onToggleCategory,
@@ -64,7 +65,9 @@ export default function ChallengesCatalog({
 }) {
   const [previewChallenge, setPreviewChallenge] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(12);
   const filterMenuRef = useRef(null);
+  const loadMoreRef = useRef(null);
 
   useEffect(() => {
     function handleDocumentClick(event) {
@@ -87,6 +90,27 @@ export default function ChallengesCatalog({
       document.removeEventListener('keydown', handleEscape);
     };
   }, []);
+
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [challenges]);
+
+  useEffect(() => {
+    if (isLoading) return undefined;
+    if (visibleCount >= challenges.length) return undefined;
+    if (!loadMoreRef.current) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        setVisibleCount((current) => Math.min(current + 8, challenges.length));
+      },
+      { rootMargin: '240px 0px' }
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [challenges.length, isLoading, visibleCount]);
 
   // Extract unique categories from challenges
   const categories = useMemo(() => {
@@ -182,13 +206,12 @@ export default function ChallengesCatalog({
   const categoryTriggerLabel = formatMultiSelectValue(selectedCategories, categoryLabelMap);
   const objectiveTriggerLabel = formatMultiSelectValue(selectedObjectives, objectiveLabelMap);
   const durationTriggerLabel = durations.find((dur) => dur.value === filters.duration)?.label || 'All';
+  const visibleChallenges = useMemo(() => challenges.slice(0, visibleCount), [challenges, visibleCount]);
 
   return (
     <section className={styles.catalog} data-catalog>
       <div className={styles.filterBar}>
         <div className={styles.filterLine} ref={filterMenuRef}>
-          <span className={styles.filtersLabel}>Filters</span>
-
           <div className={styles.filterControls}>
             <div className={styles.filterDropdownWrap}>
               <button
@@ -337,7 +360,7 @@ export default function ChallengesCatalog({
               title="Reset filters"
               aria-label="Reset filters"
             >
-              ↺
+              <span aria-hidden="true">⟳</span>
             </button>
           </div>
         </div>
@@ -359,7 +382,7 @@ export default function ChallengesCatalog({
         />
       ) : (
         <div className={styles.grid}>
-          {challenges.map((challenge) => {
+          {visibleChallenges.map((challenge) => {
             const isSelected = selectedIds.includes(challenge.id);
             const challengeObjectives = toObjectiveList(challenge.objectives || challenge.objective).slice(0, 3);
             const idealPlayersLabel = formatIdealPlayersLabel(challenge);
@@ -397,17 +420,20 @@ export default function ChallengesCatalog({
                 </div>
 
                 <div className={styles.cardActions}>
-                  <Button
-                    variant={isSelected ? 'secondary' : 'primary'}
+                  <button
+                    type="button"
+                    className={`${styles.toggleAction} ${isSelected ? styles.toggleActionSelected : ''}`}
                     onClick={() => {
-                      if (!isSelected) {
+                      if (isSelected) {
+                        onDeselect?.(challenge.id);
+                      } else {
                         onSelect(challenge.id);
                       }
                     }}
-                    disabled={isSelected}
                   >
-                    {isSelected ? '✓ Added' : '+ Add'}
-                  </Button>
+                    <span className={styles.toggleActionKnob} aria-hidden="true" />
+                    <span className={styles.toggleActionLabel}>{isSelected ? 'Retirer' : 'Ajouter'}</span>
+                  </button>
                   {isSelected && (
                     <Button
                       variant="secondary"
@@ -423,6 +449,13 @@ export default function ChallengesCatalog({
           })}
         </div>
       )}
+
+      {!isLoading && visibleCount < challenges.length ? (
+        <div className={styles.loadMoreSentinelWrap}>
+          <div ref={loadMoreRef} className={styles.loadMoreSentinel} aria-hidden="true" />
+          <p className={styles.loadingMoreText}>Loading more activities...</p>
+        </div>
+      ) : null}
 
       {previewChallenge ? (
         <ChallengeRulesPreviewModal

@@ -9445,7 +9445,100 @@ a {
   white-space: nowrap;
 }
 
+.home-create-participants-cta {
+  border-color: rgba(53, 160, 255, 0.26);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.97) 0%, rgba(238, 246, 255, 0.95) 100%);
+  color: #1f3f73;
+}
+
+.home-create-participants-cta:hover {
+  border-color: rgba(53, 160, 255, 0.46);
+  box-shadow: 0 12px 22px rgba(53, 160, 255, 0.16);
+}
+
+.home-hero-summary {
+  gap: 0.8rem;
+}
+
+.home-quickview-guide-cta {
+  width: 100%;
+  justify-content: center;
+  margin-top: 0.2rem;
+  border-color: rgba(53, 160, 255, 0.28);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94) 0%, rgba(235, 244, 255, 0.9) 100%);
+}
+
+.home-quickview-guide-cta:hover {
+  border-color: rgba(53, 160, 255, 0.5);
+}
+
+.nav-user-trigger-wrap {
+  position: relative;
+  overflow: visible;
+}
+
+.nav-panel,
+.nav-actions {
+  overflow: visible;
+}
+
+.nav-user-dropdown {
+  max-height: min(72vh, 420px);
+  overflow-y: auto;
+}
+
+.nav-user-dropdown__item--danger {
+  font-weight: 700;
+}
+
+.top-nav:not(.top-nav--live-inline) .nav-panel {
+  z-index: 220;
+}
+
+.nav-mobile-overlay {
+  z-index: 210;
+}
+
+.manager-onboarding-modalDialog {
+  width: min(900px, calc(100% - 24px));
+}
+
+.manager-onboarding-modalBody {
+  padding: 0.5rem 0.25rem 0.25rem;
+}
+
+.manager-onboarding-panel--modal {
+  border-radius: 20px;
+  padding: 1.1rem;
+}
+
+.manager-onboarding-close {
+  min-width: 2rem;
+  min-height: 2rem;
+  border-radius: 999px;
+}
+
 @media (max-width: 760px) {
+  .home-hero-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.52rem;
+  }
+
+  .home-hero-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .home-hero-summary {
+    padding: 1rem;
+  }
+
+  .home-quickview-guide-cta {
+    min-height: 2.5rem;
+  }
+
   .manager-onboarding-hero {
     flex-direction: column;
   }
@@ -9461,6 +9554,49 @@ a {
 
   .manager-onboarding-panel--modal {
     padding: 1rem;
+  }
+
+  .site-footer {
+    margin-top: 1.6rem;
+  }
+
+  .footer-inner {
+    gap: 1rem;
+    padding: 1.3rem 0 1.15rem;
+  }
+
+  .footer-brand-block {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .footer-copy {
+    font-size: 0.86rem;
+    line-height: 1.55;
+    max-width: none;
+  }
+
+  .footer-columns {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+
+  .footer-col {
+    gap: 0.2rem;
+    padding: 0.6rem 0.65rem;
+    border: 1px solid rgba(53, 160, 255, 0.16);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .footer-col p {
+    margin-bottom: 0.2rem;
+    font-size: 0.87rem;
+  }
+
+  .footer-col a {
+    font-size: 0.84rem;
+    line-height: 1.45;
   }
 }
 

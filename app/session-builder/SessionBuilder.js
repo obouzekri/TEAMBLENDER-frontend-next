@@ -9,6 +9,7 @@ import SelectedChallengesList from '@/components/SessionBuilder/SelectedChalleng
 import ChallengeConfigModal from '@/components/SessionBuilder/ChallengeConfigModal';
 import ParticipantAssigner from '@/components/SessionBuilder/ParticipantAssigner';
 import SessionBuilderHeader from '@/components/SessionBuilder/SessionBuilderHeader';
+import Modal from '@/components/ui/Modal';
 import { Alert, Button, Input, LoadingState } from '@/components/ui';
 import useToast from '@/lib/useToast';
 import useSessionBuilder from '@/lib/useSessionBuilder';
@@ -315,6 +316,7 @@ export default function SessionBuilder() {
   } = useSessionBuilder();
 
   const [isLaunching, setIsLaunching] = useState(false);
+  const [isLaunchConfirmOpen, setIsLaunchConfirmOpen] = useState(false);
   const [sessionChallengesLoaded, setSessionChallengesLoaded] = useState(false);
   const [hasRouteSessionId, setHasRouteSessionId] = useState(false);
   // Initialize as '' (matches SSR) — useEffect reads from URL after mount to avoid hydration mismatch.
@@ -769,6 +771,11 @@ export default function SessionBuilder() {
     showLoadingToast,
     withLocalePath,
   ]);
+
+  const handleRequestLaunch = useCallback(() => {
+    if (!selectedChallenges.length || isLaunching) return;
+    setIsLaunchConfirmOpen(true);
+  }, [isLaunching, selectedChallenges.length]);
 
   useEffect(() => {
     if (!sessionId || !hasHydratedSessionSelectionRef.current) return;
@@ -1265,7 +1272,7 @@ export default function SessionBuilder() {
           onSaveConfig={handleSaveDraft}
           isLaunchDisabled={selectedChallenges.length === 0}
           isLaunching={isLaunching}
-          onLaunch={handleLaunchSession}
+          onLaunch={handleRequestLaunch}
         />
 
         {isEditingSessionInfo ? (
@@ -1324,6 +1331,7 @@ export default function SessionBuilder() {
             filters={filters}
             isLoading={isLoading}
             onSelect={selectChallenge}
+            onDeselect={deselectChallenge}
             onConfigure={(id) => setConfiguring(id)}
             onFilterChange={updateFilters}
             onToggleCategory={toggleCategoryFilter}
@@ -1332,6 +1340,36 @@ export default function SessionBuilder() {
           />
         </div>
       </main>
+
+      <Modal
+        open={isLaunchConfirmOpen}
+        title="Confirm session launch"
+        onClose={() => setIsLaunchConfirmOpen(false)}
+        dialogClassName={styles.launchConfirmDialog}
+        bodyClassName={styles.launchConfirmBody}
+      >
+        <p className={styles.launchConfirmText}>
+          Une fois la session lancée, la configuration ne pourra plus être modifiée.
+        </p>
+        <div className={styles.launchConfirmActions}>
+          <Button
+            variant="secondary"
+            onClick={() => setIsLaunchConfirmOpen(false)}
+            disabled={isLaunching}
+          >
+            Annuler
+          </Button>
+          <Button
+            onClick={async () => {
+              setIsLaunchConfirmOpen(false);
+              await handleLaunchSession();
+            }}
+            disabled={isLaunching}
+          >
+            {isLaunching ? 'Launching...' : 'Confirmer'}
+          </Button>
+        </div>
+      </Modal>
 
       {configuring && currentConfiguringChallenge && (
         <ChallengeConfigModal

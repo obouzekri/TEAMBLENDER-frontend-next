@@ -630,10 +630,10 @@ export default function ManagerHome() {
                 </Link>
                 <button
                   type="button"
-                  className="btn-secondary home-guide-trigger"
-                  onClick={openStartupGuide}
+                  className="btn-secondary home-create-participants-cta"
+                  onClick={openNewMemberForm}
                 >
-                  Getting started guide
+                  Creer des participants
                 </button>
                 {guard.user?.role === 'admin' && (
                   <Link className="btn-secondary" href={withLocalePath('/admin')}>Admin console</Link>
@@ -657,6 +657,13 @@ export default function ManagerHome() {
                 <li>Track active and upcoming sessions in one place</li>
                 <li>Keep a ready-to-use participant base for future rituals</li>
               </ul>
+              <button
+                type="button"
+                className="btn-secondary home-quickview-guide-cta"
+                onClick={openStartupGuide}
+              >
+                Ouvrir le guide de demarrage
+              </button>
             </aside>
           </div>
         </section>
