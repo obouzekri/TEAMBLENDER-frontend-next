@@ -571,6 +571,48 @@ const USE_CASES = [
   'Événements RH',
 ];
 
+const HERO_TEAM_AVATARS = ['AL', 'MK', 'SR', 'NO', 'JD'];
+
+function getUseCaseStories(locale) {
+  if (locale === 'en') {
+    return [
+      {
+        title: 'Monday manager sync',
+        context: 'A newly hybrid leadership team is losing alignment and decision speed.',
+        outcome: 'In one guided 25-minute session, managers align priorities and leave with an actionable recap.',
+      },
+      {
+        title: 'First-week onboarding',
+        context: 'New hires join from multiple locations and struggle to build social trust early.',
+        outcome: 'Interactive team rituals create fast bonding and reveal participation patterns in real time.',
+      },
+      {
+        title: 'Cross-site execution workshop',
+        context: 'Teams across offices need to coordinate quickly around shared goals.',
+        outcome: 'A shared session format drives clearer communication and better execution consistency.',
+      },
+    ];
+  }
+
+  return [
+    {
+      title: 'Kick-off manager du lundi',
+      context: 'Une équipe leadership devenue hybride perd en alignement et en vitesse de décision.',
+      outcome: 'En 25 minutes guidées, les managers alignent les priorités et repartent avec un plan concret.',
+    },
+    {
+      title: 'Onboarding première semaine',
+      context: 'Des nouveaux collaborateurs répartis sur plusieurs sites peinent à créer du lien rapidement.',
+      outcome: 'Des rituels interactifs renforcent la confiance dès le départ et rendent la participation visible.',
+    },
+    {
+      title: 'Atelier d’exécution multi-sites',
+      context: 'Des équipes réparties doivent coordonner leurs objectifs et leurs actions dans des délais courts.',
+      outcome: 'Un format commun de session améliore la communication et la cohérence d’exécution.',
+    },
+  ];
+}
+
 function resolveTrustTagIcon(label) {
   const normalized = String(label || '').trim().toLowerCase();
   const matched = TRUST_TAG_ICON_BY_KEYWORD.find((entry) => entry.keywords.some((keyword) => normalized.includes(keyword)));
@@ -811,6 +853,7 @@ export default function HomePage() {
   const PLATFORM_VALUES_ITEMS = landingStatic.platformValuesItems;
   const PLATFORM_BENEFITS_ITEMS = landingStatic.platformBenefitsItems;
   const USE_CASES = landingStatic.useCases;
+  const USE_CASE_STORIES = useMemo(() => getUseCaseStories(locale), [locale]);
   const glassCardClass = 'rounded-3xl border border-white/60 bg-white/75 shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl';
   const pillClass = 'inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition-all duration-200 ease-in-out';
   const chipClass = 'inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-md transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md';
@@ -891,6 +934,15 @@ export default function HomePage() {
                 {landingStatic.fallback.keyline}
               </p>
 
+              <div className="landing-hero-human mt-5">
+                <div className="landing-hero-avatars" aria-label={locale === 'en' ? 'Team members' : 'Membres de l equipe'}>
+                  {HERO_TEAM_AVATARS.map((avatar) => (
+                    <span key={avatar} className="landing-hero-avatar">{avatar}</span>
+                  ))}
+                </div>
+                <p>{locale === 'en' ? 'Live session energy: managers, HR and teams in one shared space.' : 'Energie live: managers, RH et equipes reunis dans un meme espace.'}</p>
+              </div>
+
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href={heroPrimaryHref}
@@ -900,14 +952,16 @@ export default function HomePage() {
                   <span>{heroPrimaryLabel}</span>
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </Link>
-                <Link
-                  href={heroSecondaryHref}
-                  onClick={handleHeroSecondaryCtaClick}
-                  className={`${pillClass} landing-hero-secondary-btn border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}
-                >
-                  {heroSecondaryLabel}
-                </Link>
               </div>
+
+              <Link
+                href={heroSecondaryHref}
+                onClick={handleHeroSecondaryCtaClick}
+                className="landing-hero-secondary-link mt-4 inline-flex items-center gap-2 text-sm font-semibold"
+              >
+                <span>{heroSecondaryLabel}</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
 
               {heroTrustItems.length > 0 ? (
                 <p className="landing-hero-trust mt-8 text-sm font-medium leading-7 text-slate-600 sm:text-base">
@@ -917,6 +971,15 @@ export default function HomePage() {
             </div>
 
             <div className="landing-hero-product-shell relative lg:translate-x-8 xl:translate-x-14">
+              <div className="landing-hero-floating-note landing-hero-floating-note--top">
+                <Users className="h-4 w-4" />
+                {locale === 'en' ? '28 participants active' : '28 participants actifs'}
+              </div>
+              <div className="landing-hero-floating-note landing-hero-floating-note--bottom">
+                <Sparkles className="h-4 w-4" />
+                {locale === 'en' ? 'Cohesion score +18%' : 'Score cohesion +18%'}
+              </div>
+
               <div className="landing-hero-product-wrap">
                 <div className="landing-hero-product-head">
                   <div>
@@ -1168,9 +1231,45 @@ export default function HomePage() {
         </section>
 
         <section
+          className="reveal-up landing-usecase-stories landing-section-full relative overflow-hidden p-6 sm:p-10"
+          style={{
+            '--reveal-delay': '170ms',
+            background: 'linear-gradient(145deg, #f9fdff 0%, #edf6ff 52%, #e8f2ff 100%)',
+          }}
+          aria-label={locale === 'en' ? 'Use case stories' : 'Scenarios d usage'}
+        >
+          <div className="landing-section-inner relative">
+            <div className="panel-head landing-stories-head">
+              <div>
+                <p className="eyebrow landing-section-eyebrow">{locale === 'en' ? 'Use Cases' : 'Cas d usage'}</p>
+                <h2 className="landing-section-title">
+                  {locale === 'en' ? 'Real team scenarios, real momentum' : 'Des scenarios reels, une dynamique immediate'}
+                </h2>
+                <p className="landing-section-description">
+                  {locale === 'en'
+                    ? 'From onboarding to leadership alignment, TeamBlender turns meetings into high-energy collaboration moments.'
+                    : 'De l onboarding a l alignement manager, TeamBlender transforme les reunions en moments de collaboration a forte energie.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="landing-stories-grid mt-7">
+              {USE_CASE_STORIES.map((story, index) => (
+                <article key={story.title} className="landing-story-card">
+                  <span className="landing-story-step">{String(index + 1).padStart(2, '0')}</span>
+                  <h3>{story.title}</h3>
+                  <p className="landing-story-context">{story.context}</p>
+                  <p className="landing-story-outcome">{story.outcome}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section
           className="reveal-up landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-10"
           style={{
-            '--reveal-delay': '155ms',
+            '--reveal-delay': '180ms',
             background: 'linear-gradient(145deg, #0b1223 0%, #111b36 58%, #0e1629 100%)',
           }}
           aria-label={locale === 'en' ? 'Customer testimonials' : 'Témoignages clients'}
@@ -1215,7 +1314,7 @@ export default function HomePage() {
         <section
           className="reveal-up landing-flow landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{
-            '--reveal-delay': '190ms',
+            '--reveal-delay': '200ms',
             background: 'linear-gradient(180deg, #f4f8ff 0%, #ecf2ff 100%)',
           }}
           aria-label={locale === 'en' ? 'Three-step journey' : 'Parcours en 3 étapes'}
@@ -1228,11 +1327,12 @@ export default function HomePage() {
                 <h2>{flowHeader.title}</h2>
               </div>
             </div>
-            <div className="cards-grid landing-flow-grid relative mt-6 grid gap-4 md:grid-cols-3">
+            <div className="landing-flow-timeline mt-8" role="list" aria-label={locale === 'en' ? 'How TeamBlender works in three steps' : 'Comment TeamBlender fonctionne en trois etapes'}>
               {flowSteps.map((step, index) => (
                 <article
                   key={`flow-step-${index}`}
-                  className={`landing-flow-card rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                  role="listitem"
+                  className={`landing-flow-card landing-flow-node rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                     index === 0
                       ? 'landing-flow-card--primary bg-white/88 ring-1 ring-indigo-100'
                       : index === 1
@@ -1255,8 +1355,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className={`landing-cta-block landing-section-full reveal-up p-8 text-center`} style={{ '--reveal-delay': '230ms' }} aria-label={locale === 'en' ? 'Final call to action' : 'Dernier appel à l’action'}>
+        <section className={`landing-cta-block landing-section-full reveal-up p-8 text-center`} style={{ '--reveal-delay': '240ms' }} aria-label={locale === 'en' ? 'Final call to action' : 'Dernier appel à l’action'}>
           <div className="landing-section-inner">
+            <p className="landing-cta-emotion">{locale === 'en' ? 'Build stronger teams in minutes.' : 'Construisez des equipes plus fortes en quelques minutes.'}</p>
             <p className="eyebrow">{finalCta.subtitle || finalCta.label || landingStatic.fallback.finalCtaEyebrow}</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title || landingStatic.fallback.finalCtaTitle}</h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">{finalCta.description || landingStatic.fallback.finalCtaDescription}</p>
