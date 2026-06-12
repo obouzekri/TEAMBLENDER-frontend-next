@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
 import LanguageSwitcher from './LanguageSwitcher';
+import NavItem from './NavItem';
+import AvatarMenu from './AvatarMenu';
 import useI18n from '@/lib/i18n/useI18n';
 import { stripLocaleFromPath } from '@/lib/i18n/routing';
 
@@ -13,9 +15,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
   const plainPathname = stripLocaleFromPath(pathname || '/');
   const [activeHomeBlock, setActiveHomeBlock] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const { t, withLocalePath } = useI18n();
 
   const isParticipant = role === 'participant';
@@ -43,6 +43,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
   const roleLabel = isParticipant ? t('appNav.participant') : isAdmin ? t('appNav.admin') : t('appNav.manager');
   const [userAvatarUrl, setUserAvatarUrl] = useState('');
   const canUseMobileDrawer = !isCompact;
+  const menuSignal = `${pathname}:${isMenuOpen ? 'open' : 'closed'}`;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -62,39 +63,6 @@ export default function AppNav({ userLabel, onLogout, role }) {
     .filter(Boolean)
     .slice(0, 2)
     .join('') || 'U';
-
-  // Fermer le dropdown au clic extérieur
-  useEffect(() => {
-    if (!dropdownOpen) return;
-    function isInsideDropdown(event) {
-      if (!dropdownRef.current) return false;
-      const eventPath = typeof event.composedPath === 'function' ? event.composedPath() : null;
-      if (Array.isArray(eventPath) && eventPath.includes(dropdownRef.current)) return true;
-      return dropdownRef.current.contains(event.target);
-    }
-
-    function handlePointerOutside(event) {
-      if (!isInsideDropdown(event)) {
-        setDropdownOpen(false);
-      }
-    }
-
-    function handleEscape(event) {
-      if (event.key === 'Escape') {
-        setDropdownOpen(false);
-      }
-    }
-
-    document.addEventListener('pointerdown', handlePointerOutside, true);
-    document.addEventListener('touchstart', handlePointerOutside, true);
-    document.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerOutside, true);
-      document.removeEventListener('touchstart', handlePointerOutside, true);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [dropdownOpen]);
 
   useEffect(() => {
     if (!isMenuOpen || !canUseMobileDrawer) return undefined;
@@ -166,77 +134,6 @@ export default function AppNav({ userLabel, onLogout, role }) {
     window.history.replaceState(null, '', withLocalePath(`/home#${blockKey}`));
   }
 
-  const userTrigger = (
-    <div
-      className={`nav-user-trigger-wrap${isAdmin ? ' nav-user-trigger-wrap--push' : ''}`}
-      ref={dropdownRef}
-    >
-      <button
-        type="button"
-        className={`nav-user-trigger${dropdownOpen ? ' is-open' : ''}`}
-        aria-expanded={dropdownOpen}
-        aria-haspopup="menu"
-        aria-label={t('appNav.userMenuOf', { name: resolvedUserLabel })}
-        onClick={() => setDropdownOpen((v) => !v)}
-      >
-        {userAvatarUrl ? (
-          <img src={userAvatarUrl} alt={t('appNav.avatarOf', { name: resolvedUserLabel })} className="nav-user-avatar app-user-avatar--photo" />
-        ) : (
-          <span className="nav-user-avatar" aria-hidden="true">{userInitials}</span>
-        )}
-        <span className="nav-user-trigger__name">{resolvedUserLabel}</span>
-        <svg className="nav-user-trigger__chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-          <path d="M2.5 4.5l3.5 3 3.5-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-
-      {dropdownOpen && (
-        <div className="nav-user-dropdown" role="menu" aria-label={t('appNav.userMenu')}>
-          <div className="nav-user-dropdown__header">
-            <span className="nav-user-dropdown__name">{resolvedUserLabel}</span>
-            <span className="nav-user-dropdown__role">{roleLabel}</span>
-          </div>
-          <div className="nav-user-dropdown__divider" />
-          <Link
-            href={withLocalePath(accountHref)}
-            className="nav-user-dropdown__item"
-            role="menuitem"
-            onClick={() => setDropdownOpen(false)}
-          >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <path d="M7.5 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-4 5c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {t('nav.myAccount')}
-          </Link>
-          <button
-            type="button"
-            className="nav-user-dropdown__item"
-            role="menuitem"
-            onClick={() => { setDropdownOpen(false); setSettingsOpen(true); }}
-          >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.75 2.75l1.06 1.06M11.19 11.19l1.06 1.06M2.75 12.25l1.06-1.06M11.19 3.81l1.06-1.06" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            {t('appNav.settings')}
-          </button>
-          <div className="nav-user-dropdown__divider" />
-          <button
-            type="button"
-            className="nav-user-dropdown__item nav-user-dropdown__item--danger"
-            role="menuitem"
-            onClick={() => { setDropdownOpen(false); onLogout(); }}
-          >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <path d="M9.5 10.5 13 7.5 9.5 4.5M13 7.5H5.5M5.5 2.5h-3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {t('appNav.logout')}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <>
       <header className={headerClassName}>
@@ -269,14 +166,13 @@ export default function AppNav({ userLabel, onLogout, role }) {
             {isParticipant && !isCompact && (
               <div className="nav-main-block">
                 <nav className="nav-links" aria-label="Navigation participant">
-                  <Link
+                  <NavItem
                     href={withLocalePath('/participant')}
-                    className={`nav-link ${isActive('/participant') ? 'is-active' : ''}`}
-                    aria-current={isActive('/participant') ? 'page' : undefined}
                     onClick={() => setIsMenuOpen(false)}
+                    active={isActive('/participant')}
                   >
                     {t('appNav.mySessions')}
-                  </Link>
+                  </NavItem>
                 </nav>
               </div>
             )}
@@ -284,36 +180,35 @@ export default function AppNav({ userLabel, onLogout, role }) {
             {!isParticipant && !isCompact && !isAdmin && (
               <div className="nav-main-block">
                 <nav className="nav-links" aria-label="Navigation manager">
-                  <Link
+                  <NavItem
                     href={withLocalePath('/home#sessions')}
-                    className={`nav-link nav-link--section ${(isManagerHome && activeHomeBlock === 'sessions') || (!isActive('/account') && !isManagerHome) ? 'is-active' : ''}`}
-                    aria-current={(isManagerHome && activeHomeBlock === 'sessions') || (!isActive('/account') && !isManagerHome) ? 'page' : undefined}
+                    active={(isManagerHome && activeHomeBlock === 'sessions') || (!isActive('/account') && !isManagerHome)}
+                    className="nav-link--section"
                     onClick={(event) => {
                       setIsMenuOpen(false);
                       scrollToHomeBlock(event, 'home-sessions-block', 'sessions');
                     }}
                   >
                     {t('appNav.sessions')}
-                  </Link>
-                  <Link
+                  </NavItem>
+                  <NavItem
                     href={withLocalePath('/home#participants')}
-                    className={`nav-link nav-link--section ${isManagerHome && activeHomeBlock === 'participants' ? 'is-active' : ''}`}
-                    aria-current={isManagerHome && activeHomeBlock === 'participants' ? 'page' : undefined}
+                    active={isManagerHome && activeHomeBlock === 'participants'}
+                    className="nav-link--section"
                     onClick={(event) => {
                       setIsMenuOpen(false);
                       scrollToHomeBlock(event, 'home-participants-block', 'participants');
                     }}
                   >
                     {t('appNav.participants')}
-                  </Link>
-                  <Link
+                  </NavItem>
+                  <NavItem
                     href={withLocalePath('/account')}
-                    className={`nav-link ${isActive('/account') ? 'is-active' : ''}`}
-                    aria-current={isActive('/account') ? 'page' : undefined}
+                    active={isActive('/account')}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {t('appNav.account')}
-                  </Link>
+                  </NavItem>
                 </nav>
               </div>
             )}
@@ -321,14 +216,13 @@ export default function AppNav({ userLabel, onLogout, role }) {
             {isAdmin && !isCompact && (
               <div className="nav-main-block">
                 <nav className="nav-links" aria-label="Navigation admin">
-                  <Link
+                  <NavItem
                     href={withLocalePath('/admin')}
-                    className={`nav-link ${isActive('/admin') ? 'is-active' : ''}`}
-                    aria-current={isActive('/admin') ? 'page' : undefined}
+                    active={isActive('/admin')}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {t('appNav.backToAdmin')}
-                  </Link>
+                  </NavItem>
                 </nav>
               </div>
             )}
@@ -341,45 +235,35 @@ export default function AppNav({ userLabel, onLogout, role }) {
               </div>
             )}
 
-            {!isCompact ? (
-              <div className="nav-mobile-profile" aria-label={t('appNav.userMenuOf', { name: resolvedUserLabel })}>
-                <div className="nav-mobile-profile__identity">
-                  {userAvatarUrl ? (
-                    <img src={userAvatarUrl} alt={t('appNav.avatarOf', { name: resolvedUserLabel })} className="nav-user-avatar app-user-avatar--photo" />
-                  ) : (
-                    <span className="nav-user-avatar" aria-hidden="true">{userInitials}</span>
-                  )}
-                  <div className="nav-mobile-profile__meta">
-                    <span className="nav-mobile-profile__name">{resolvedUserLabel}</span>
-                    <span className="nav-mobile-profile__role">{roleLabel}</span>
-                  </div>
-                </div>
-                <div className="nav-mobile-profile__actions">
-                  <Link
-                    href={withLocalePath(accountHref)}
-                    className="btn-mini btn-mini--secondary"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {t('nav.myAccount')}
-                  </Link>
-                  <button
-                    type="button"
-                    className="btn-mini nav-mobile-profile__logout"
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      setDropdownOpen(false);
-                      onLogout();
-                    }}
-                  >
-                    {t('appNav.logout')}
-                  </button>
-                </div>
-              </div>
-            ) : null}
-
             <div className="nav-actions" aria-label={t('nav.accountAria')}>
               <LanguageSwitcher />
-              {userTrigger}
+              <AvatarMenu
+                userLabel={resolvedUserLabel}
+                roleLabel={roleLabel}
+                avatarUrl={userAvatarUrl}
+                avatarInitials={userInitials}
+                triggerLabel={t('appNav.userMenuOf', { name: resolvedUserLabel })}
+                menuLabel={t('appNav.userMenu')}
+                closeSignal={menuSignal}
+                items={[
+                  {
+                    key: 'account',
+                    label: t('nav.myAccount'),
+                    href: withLocalePath(accountHref),
+                  },
+                  {
+                    key: 'settings',
+                    label: t('appNav.settings'),
+                    onClick: () => setSettingsOpen(true),
+                  },
+                  {
+                    key: 'logout',
+                    label: t('appNav.logout'),
+                    danger: true,
+                    onClick: onLogout,
+                  },
+                ]}
+              />
             </div>
           </div>
         </div>

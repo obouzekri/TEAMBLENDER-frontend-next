@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
 import LanguageSwitcher from './LanguageSwitcher';
+import NavItem from './NavItem';
+import AvatarMenu from './AvatarMenu';
 import useI18n from '@/lib/i18n/useI18n';
 import { stripLocaleFromPath } from '@/lib/i18n/routing';
 
 export default function TopNav({ compact = false }) {
+  const router = useRouter();
   const pathname = usePathname();
   const plainPathname = stripLocaleFromPath(pathname || '/');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,6 +43,7 @@ export default function TopNav({ compact = false }) {
     .join('') || 'U';
   const avatarUrl = String(sessionUser?.picture_url || '').trim();
   const accountHref = sessionUser?.role === 'participant' ? '/participant' : '/account';
+  const roleLabel = sessionUser?.role === 'participant' ? t('nav.participant') : sessionUser?.role === 'admin' ? t('nav.admin') : t('nav.manager');
 
   useEffect(() => {
     if (!isMenuOpen) return undefined;
@@ -92,27 +97,46 @@ export default function TopNav({ compact = false }) {
         <div id="top-nav-panel" className={`nav-panel ${isMenuOpen ? 'is-open' : ''}`}>
           <div className="nav-main-block">
             <nav className="nav-links" aria-label={t('nav.mainAria')}>
-              <Link href={withLocalePath('/')} className={`nav-link ${isActive('/') ? 'is-active' : ''}`} aria-current={isActive('/') ? 'page' : undefined} onClick={() => setIsMenuOpen(false)}>{t('nav.product')}</Link>
-              <Link href={withLocalePath('/pricing')} className={`nav-link ${isActive('/pricing') ? 'is-active' : ''}`} aria-current={isActive('/pricing') ? 'page' : undefined} onClick={() => setIsMenuOpen(false)}>{t('nav.pricing')}</Link>
-              <Link href={withLocalePath('/contact')} className={`nav-link ${isActive('/contact') ? 'is-active' : ''}`} aria-current={isActive('/contact') ? 'page' : undefined} onClick={() => setIsMenuOpen(false)}>{t('nav.contact')}</Link>
+              <NavItem href={withLocalePath('/')} active={isActive('/')} onClick={() => setIsMenuOpen(false)}>{t('nav.product')}</NavItem>
+              <NavItem href={withLocalePath('/pricing')} active={isActive('/pricing')} onClick={() => setIsMenuOpen(false)}>{t('nav.pricing')}</NavItem>
+              <NavItem href={withLocalePath('/contact')} active={isActive('/contact')} onClick={() => setIsMenuOpen(false)}>{t('nav.contact')}</NavItem>
             </nav>
           </div>
 
           <div className="nav-actions" aria-label={t('nav.accountAria')}>
             <LanguageSwitcher />
             {sessionUser ? (
-              <Link href={withLocalePath(accountHref)} className="btn-mini btn-mini--secondary" onClick={() => setIsMenuOpen(false)}>
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt={t('nav.avatarAlt', { name: avatarLabel })} className="app-user-avatar app-user-avatar--photo" />
-                ) : (
-                  <span className="app-user-avatar" aria-hidden="true">{avatarInitials}</span>
-                )}
-                {t('nav.myAccount')}
-              </Link>
+              <AvatarMenu
+                userLabel={avatarLabel}
+                roleLabel={roleLabel}
+                avatarUrl={avatarUrl}
+                avatarInitials={avatarInitials}
+                triggerLabel={t('nav.userMenuOf', { name: avatarLabel })}
+                menuLabel={t('nav.userMenu')}
+                closeSignal={pathname}
+                items={[
+                  {
+                    key: 'account',
+                    label: t('nav.myAccount'),
+                    href: withLocalePath(accountHref),
+                  },
+                  {
+                    key: 'logout',
+                    label: t('appNav.logout'),
+                    danger: true,
+                    onClick: () => {
+                      localStorage.removeItem('jwt');
+                      sessionStorage.removeItem('jwt');
+                      sessionStorage.removeItem('currentUser');
+                      router.push(withLocalePath('/login'));
+                    },
+                  },
+                ]}
+              />
             ) : (
               <>
-                <Link href={withLocalePath('/login')} className={`btn-mini btn-mini--secondary ${isActive('/login') ? 'is-active' : ''}`} aria-current={isActive('/login') ? 'page' : undefined} onClick={() => setIsMenuOpen(false)}>{t('nav.login')}</Link>
-                <Link href={withLocalePath('/signup')} className={`nav-cta-btn ${isActive('/signup') ? 'is-active' : ''}`} aria-current={isActive('/signup') ? 'page' : undefined} onClick={() => setIsMenuOpen(false)}>{t('nav.signup')}</Link>
+                <NavItem href={withLocalePath('/login')} active={isActive('/login')} onClick={() => setIsMenuOpen(false)}>{t('nav.login')}</NavItem>
+                <NavItem href={withLocalePath('/signup')} active={isActive('/signup')} onClick={() => setIsMenuOpen(false)}>{t('nav.signup')}</NavItem>
               </>
             )}
           </div>
