@@ -42,6 +42,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
   const accountHref = isParticipant ? '/participant' : '/account';
   const roleLabel = isParticipant ? t('appNav.participant') : isAdmin ? t('appNav.admin') : t('appNav.manager');
   const [userAvatarUrl, setUserAvatarUrl] = useState('');
+  const canUseMobileDrawer = !isCompact;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -94,6 +95,31 @@ export default function AppNav({ userLabel, onLogout, role }) {
       document.removeEventListener('keydown', handleEscape);
     };
   }, [dropdownOpen]);
+
+  useEffect(() => {
+    if (!isMenuOpen || !canUseMobileDrawer) return undefined;
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    }
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isMenuOpen, canUseMobileDrawer]);
+
+  useEffect(() => {
+    if (!canUseMobileDrawer || typeof document === 'undefined') return undefined;
+    const body = document.body;
+    const previousOverflow = body.style.overflow;
+    if (isMenuOpen) {
+      body.style.overflow = 'hidden';
+    }
+    return () => {
+      body.style.overflow = previousOverflow;
+    };
+  }, [isMenuOpen, canUseMobileDrawer]);
 
   // Fermer le dropdown et le menu à la navigation
   useEffect(() => {
@@ -243,7 +269,14 @@ export default function AppNav({ userLabel, onLogout, role }) {
             {isParticipant && !isCompact && (
               <div className="nav-main-block">
                 <nav className="nav-links" aria-label="Navigation participant">
-                  <Link href={withLocalePath('/participant')} className={`nav-link ${isActive('/participant') ? 'is-active' : ''}`} aria-current={isActive('/participant') ? 'page' : undefined}>{t('appNav.mySessions')}</Link>
+                  <Link
+                    href={withLocalePath('/participant')}
+                    className={`nav-link ${isActive('/participant') ? 'is-active' : ''}`}
+                    aria-current={isActive('/participant') ? 'page' : undefined}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t('appNav.mySessions')}
+                  </Link>
                 </nav>
               </div>
             )}
@@ -255,7 +288,10 @@ export default function AppNav({ userLabel, onLogout, role }) {
                     href={withLocalePath('/home#sessions')}
                     className={`nav-link nav-link--section ${(isManagerHome && activeHomeBlock === 'sessions') || (!isActive('/account') && !isManagerHome) ? 'is-active' : ''}`}
                     aria-current={(isManagerHome && activeHomeBlock === 'sessions') || (!isActive('/account') && !isManagerHome) ? 'page' : undefined}
-                    onClick={(event) => scrollToHomeBlock(event, 'home-sessions-block', 'sessions')}
+                    onClick={(event) => {
+                      setIsMenuOpen(false);
+                      scrollToHomeBlock(event, 'home-sessions-block', 'sessions');
+                    }}
                   >
                     {t('appNav.sessions')}
                   </Link>
@@ -263,11 +299,21 @@ export default function AppNav({ userLabel, onLogout, role }) {
                     href={withLocalePath('/home#participants')}
                     className={`nav-link nav-link--section ${isManagerHome && activeHomeBlock === 'participants' ? 'is-active' : ''}`}
                     aria-current={isManagerHome && activeHomeBlock === 'participants' ? 'page' : undefined}
-                    onClick={(event) => scrollToHomeBlock(event, 'home-participants-block', 'participants')}
+                    onClick={(event) => {
+                      setIsMenuOpen(false);
+                      scrollToHomeBlock(event, 'home-participants-block', 'participants');
+                    }}
                   >
                     {t('appNav.participants')}
                   </Link>
-                  <Link href={withLocalePath('/account')} className={`nav-link ${isActive('/account') ? 'is-active' : ''}`} aria-current={isActive('/account') ? 'page' : undefined}>{t('appNav.account')}</Link>
+                  <Link
+                    href={withLocalePath('/account')}
+                    className={`nav-link ${isActive('/account') ? 'is-active' : ''}`}
+                    aria-current={isActive('/account') ? 'page' : undefined}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t('appNav.account')}
+                  </Link>
                 </nav>
               </div>
             )}
@@ -275,7 +321,14 @@ export default function AppNav({ userLabel, onLogout, role }) {
             {isAdmin && !isCompact && (
               <div className="nav-main-block">
                 <nav className="nav-links" aria-label="Navigation admin">
-                  <Link href={withLocalePath('/admin')} className={`nav-link ${isActive('/admin') ? 'is-active' : ''}`} aria-current={isActive('/admin') ? 'page' : undefined}>{t('appNav.backToAdmin')}</Link>
+                  <Link
+                    href={withLocalePath('/admin')}
+                    className={`nav-link ${isActive('/admin') ? 'is-active' : ''}`}
+                    aria-current={isActive('/admin') ? 'page' : undefined}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t('appNav.backToAdmin')}
+                  </Link>
                 </nav>
               </div>
             )}
@@ -288,6 +341,42 @@ export default function AppNav({ userLabel, onLogout, role }) {
               </div>
             )}
 
+            {!isCompact ? (
+              <div className="nav-mobile-profile" aria-label={t('appNav.userMenuOf', { name: resolvedUserLabel })}>
+                <div className="nav-mobile-profile__identity">
+                  {userAvatarUrl ? (
+                    <img src={userAvatarUrl} alt={t('appNav.avatarOf', { name: resolvedUserLabel })} className="nav-user-avatar app-user-avatar--photo" />
+                  ) : (
+                    <span className="nav-user-avatar" aria-hidden="true">{userInitials}</span>
+                  )}
+                  <div className="nav-mobile-profile__meta">
+                    <span className="nav-mobile-profile__name">{resolvedUserLabel}</span>
+                    <span className="nav-mobile-profile__role">{roleLabel}</span>
+                  </div>
+                </div>
+                <div className="nav-mobile-profile__actions">
+                  <Link
+                    href={withLocalePath(accountHref)}
+                    className="btn-mini btn-mini--secondary"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t('nav.myAccount')}
+                  </Link>
+                  <button
+                    type="button"
+                    className="btn-mini nav-mobile-profile__logout"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      setDropdownOpen(false);
+                      onLogout();
+                    }}
+                  >
+                    {t('appNav.logout')}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
             <div className="nav-actions" aria-label={t('nav.accountAria')}>
               <LanguageSwitcher />
               {userTrigger}
@@ -295,6 +384,15 @@ export default function AppNav({ userLabel, onLogout, role }) {
           </div>
         </div>
       </header>
+
+      {isMenuOpen && canUseMobileDrawer ? (
+        <button
+          type="button"
+          className="nav-mobile-overlay"
+          aria-label={t('nav.closeMenu')}
+          onClick={() => setIsMenuOpen(false)}
+        />
+      ) : null}
 
       {/* Modal Paramètres */}
       {settingsOpen && (

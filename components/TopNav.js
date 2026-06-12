@@ -40,6 +40,31 @@ export default function TopNav({ compact = false }) {
   const avatarUrl = String(sessionUser?.picture_url || '').trim();
   const accountHref = sessionUser?.role === 'participant' ? '/participant' : '/account';
 
+  useEffect(() => {
+    if (!isMenuOpen) return undefined;
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    }
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const body = document.body;
+    const previousOverflow = body.style.overflow;
+    if (isMenuOpen) {
+      body.style.overflow = 'hidden';
+    }
+    return () => {
+      body.style.overflow = previousOverflow;
+    };
+  }, [isMenuOpen]);
+
   return (
     <header className={`top-nav${compact ? ' top-nav--compact' : ''}`}>
       <div className="shell nav-inner">
@@ -67,16 +92,16 @@ export default function TopNav({ compact = false }) {
         <div id="top-nav-panel" className={`nav-panel ${isMenuOpen ? 'is-open' : ''}`}>
           <div className="nav-main-block">
             <nav className="nav-links" aria-label={t('nav.mainAria')}>
-              <Link href={withLocalePath('/')} className={`nav-link ${isActive('/') ? 'is-active' : ''}`} aria-current={isActive('/') ? 'page' : undefined}>{t('nav.product')}</Link>
-              <Link href={withLocalePath('/pricing')} className={`nav-link ${isActive('/pricing') ? 'is-active' : ''}`} aria-current={isActive('/pricing') ? 'page' : undefined}>{t('nav.pricing')}</Link>
-              <Link href={withLocalePath('/contact')} className={`nav-link ${isActive('/contact') ? 'is-active' : ''}`} aria-current={isActive('/contact') ? 'page' : undefined}>{t('nav.contact')}</Link>
+              <Link href={withLocalePath('/')} className={`nav-link ${isActive('/') ? 'is-active' : ''}`} aria-current={isActive('/') ? 'page' : undefined} onClick={() => setIsMenuOpen(false)}>{t('nav.product')}</Link>
+              <Link href={withLocalePath('/pricing')} className={`nav-link ${isActive('/pricing') ? 'is-active' : ''}`} aria-current={isActive('/pricing') ? 'page' : undefined} onClick={() => setIsMenuOpen(false)}>{t('nav.pricing')}</Link>
+              <Link href={withLocalePath('/contact')} className={`nav-link ${isActive('/contact') ? 'is-active' : ''}`} aria-current={isActive('/contact') ? 'page' : undefined} onClick={() => setIsMenuOpen(false)}>{t('nav.contact')}</Link>
             </nav>
           </div>
 
           <div className="nav-actions" aria-label={t('nav.accountAria')}>
             <LanguageSwitcher />
             {sessionUser ? (
-              <Link href={withLocalePath(accountHref)} className="btn-mini btn-mini--secondary">
+              <Link href={withLocalePath(accountHref)} className="btn-mini btn-mini--secondary" onClick={() => setIsMenuOpen(false)}>
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={t('nav.avatarAlt', { name: avatarLabel })} className="app-user-avatar app-user-avatar--photo" />
                 ) : (
@@ -86,13 +111,22 @@ export default function TopNav({ compact = false }) {
               </Link>
             ) : (
               <>
-                <Link href={withLocalePath('/login')} className={`btn-mini btn-mini--secondary ${isActive('/login') ? 'is-active' : ''}`} aria-current={isActive('/login') ? 'page' : undefined}>{t('nav.login')}</Link>
-                <Link href={withLocalePath('/signup')} className={`nav-cta-btn ${isActive('/signup') ? 'is-active' : ''}`} aria-current={isActive('/signup') ? 'page' : undefined}>{t('nav.signup')}</Link>
+                <Link href={withLocalePath('/login')} className={`btn-mini btn-mini--secondary ${isActive('/login') ? 'is-active' : ''}`} aria-current={isActive('/login') ? 'page' : undefined} onClick={() => setIsMenuOpen(false)}>{t('nav.login')}</Link>
+                <Link href={withLocalePath('/signup')} className={`nav-cta-btn ${isActive('/signup') ? 'is-active' : ''}`} aria-current={isActive('/signup') ? 'page' : undefined} onClick={() => setIsMenuOpen(false)}>{t('nav.signup')}</Link>
               </>
             )}
           </div>
         </div>
       </div>
+
+      {isMenuOpen ? (
+        <button
+          type="button"
+          className="nav-mobile-overlay"
+          aria-label={t('nav.closeMenu')}
+          onClick={() => setIsMenuOpen(false)}
+        />
+      ) : null}
     </header>
   );
 }
