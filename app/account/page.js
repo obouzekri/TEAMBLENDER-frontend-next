@@ -387,8 +387,8 @@ export default function AccountPage() {
       const historyEntry = {
         id: Date.now(),
         at: new Date().toISOString(),
-        from: previousPlan ? previousPlan.name : 'Aucun plan',
-        to: latestPlan ? latestPlan.name : 'Aucun plan',
+        from: previousPlan ? previousPlan.name : 'No plan',
+        to: latestPlan ? latestPlan.name : 'No plan',
       };
       const nextHistory = [historyEntry, ...planHistory].slice(0, 15);
       setPlanHistory(nextHistory);

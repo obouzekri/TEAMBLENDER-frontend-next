@@ -89,7 +89,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
     };
   }, [isMenuOpen, canUseMobileDrawer]);
 
-  // Fermer le dropdown et le menu à la navigation
+  // Close dropdown and mobile menu on navigation
   useEffect(() => {
     setIsMenuOpen(false);
   }, [pathname]);
@@ -277,7 +277,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
         />
       ) : null}
 
-      {/* Modal Paramètres */}
+      {/* Settings modal */}
       {settingsOpen && (
         <div
           className="nav-settings-overlay"
@@ -304,22 +304,22 @@ export default function AppNav({ userLabel, onLogout, role }) {
             <div className="nav-settings-modal__body">
               <p className="nav-settings-modal__section-label">Notifications</p>
               <label className="nav-settings-toggle">
-                <span>Recevoir les rappels de session</span>
+                <span>Receive session reminders</span>
                 <span className="nav-settings-toggle__switch">
                   <input type="checkbox" defaultChecked />
                   <span className="nav-settings-toggle__track" />
                 </span>
               </label>
               <label className="nav-settings-toggle">
-                <span>Recevoir les résumés d&apos;activité</span>
+                <span>Receive activity summaries</span>
                 <span className="nav-settings-toggle__switch">
                   <input type="checkbox" />
                   <span className="nav-settings-toggle__track" />
                 </span>
               </label>
-              <p className="nav-settings-modal__section-label nav-settings-modal__section-label--spaced">Affichage</p>
+              <p className="nav-settings-modal__section-label nav-settings-modal__section-label--spaced">Display</p>
               <label className="nav-settings-toggle">
-                <span>Mode compact (navbar)</span>
+                <span>Compact mode (navbar)</span>
                 <span className="nav-settings-toggle__switch">
                   <input type="checkbox" />
                   <span className="nav-settings-toggle__track" />
@@ -329,7 +329,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
 
             <div className="nav-settings-modal__foot">
               <button type="button" className="btn-primary" onClick={() => setSettingsOpen(false)}>
-                Enregistrer
+                Save
               </button>
             </div>
           </div>

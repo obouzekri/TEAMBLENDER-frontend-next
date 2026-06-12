@@ -134,7 +134,7 @@ export default function SignupForm() {
   return (
     <main className="shell auth-page auth-page--split">
       <AuthShowcase
-        title="Lancez des challenges collaboratifs en temps reel."
+        title={isEn ? 'Launch collaborative challenges in real time.' : 'Lancez des challenges collaboratifs en temps reel.'}
         description={isEn
           ? 'Create your TeamBlender workspace to facilitate collaborative experiences, track teams, and centralize operations.'
           : 'Creez votre espace TeamBlender pour animer des experiences collaboratives, suivre les equipes et centraliser votre facilitation.'}

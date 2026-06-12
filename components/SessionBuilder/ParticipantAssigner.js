@@ -13,8 +13,8 @@ export default function ParticipantAssigner({
   onParticipantsLoaded,
   embedded = false,
   hideActions = false,
-  title = 'Assigner les participants',
-  subtitle = 'Sélectionnez les participants qui participeront à cette session',
+  title = 'Assign participants',
+  subtitle = 'Select the participants who will join this session',
 }) {
   const [participants, setParticipants] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -25,7 +25,7 @@ export default function ParticipantAssigner({
     const first = String(member?.first_name || member?.firstname || '').trim();
     const last = String(member?.last_name || member?.lastname || '').trim();
     const full = `${first} ${last}`.trim();
-    return full || String(member?.name || member?.email || 'Sans nom');
+    return full || String(member?.name || member?.email || 'Unnamed');
   }
 
   function getEmbeddedName(member) {
@@ -66,7 +66,7 @@ export default function ParticipantAssigner({
           payload = {};
         }
 
-        if (!res.ok) throw new Error(payload.error || 'Impossible de charger les participants');
+        if (!res.ok) throw new Error(payload.error || 'Unable to load participants');
         return payload;
       })
       .then((data) => {
@@ -83,7 +83,7 @@ export default function ParticipantAssigner({
         }
       })
       .catch((err) => {
-        console.warn('Erreur chargement participants:', err.message);
+        console.warn('Participant loading error:', err.message);
         setParticipants([]);
         if (typeof onParticipantsLoaded === 'function') {
           onParticipantsLoaded(0);
@@ -147,14 +147,14 @@ export default function ParticipantAssigner({
 
         {loadingParticipants ? (
           <div className={styles.loading}>
-            <p>Chargement des participants...</p>
+            <p>Loading participants...</p>
           </div>
         ) : (
           <>
             <div className={styles.searchBox}>
               <input
                 type="text"
-                placeholder="Rechercher par nom ou email"
+                placeholder="Search by name or email"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={styles.input}
@@ -163,10 +163,10 @@ export default function ParticipantAssigner({
 
             {participants.length === 0 ? (
               <div className={styles.empty}>
-                <p>Aucun participant disponible</p>
+                <p>No participants available</p>
                 <small>
-                  Créez d&apos;abord vos participants dans l&apos;espace manager. La création d&apos;une session est disponible uniquement
-                  après cette étape.
+                  Create participants first in the manager area. Session creation is available only
+                  after this step.
                 </small>
               </div>
             ) : (
@@ -177,7 +177,7 @@ export default function ParticipantAssigner({
                     onClick={selectAll}
                     className={styles.btnLink}
                   >
-                    Tout sélectionner
+                    Select all
                   </button>
                   <span className={styles.divider}>•</span>
                   <button
@@ -185,7 +185,7 @@ export default function ParticipantAssigner({
                     onClick={deselectAll}
                     className={styles.btnLink}
                   >
-                    Tout désélectionner
+                    Deselect all
                   </button>
                 </div>
 
@@ -215,7 +215,7 @@ export default function ParticipantAssigner({
 
                 <div className={styles.summary}>
                   <span className={styles.count}>
-                    {selected.length} sélectionné{selected.length !== 1 ? 's' : ''}
+                    {selected.length} selected
                   </span>
                 </div>
               </>
@@ -229,7 +229,7 @@ export default function ParticipantAssigner({
                   className={styles.btnSecondary}
                   disabled={isLoading}
                 >
-                  Annuler
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -237,7 +237,7 @@ export default function ParticipantAssigner({
                   className={styles.btnPrimary}
                   disabled={isLoading || selected.length === 0}
                 >
-                  {isLoading ? 'Assignation...' : 'Assigner'}
+                  {isLoading ? 'Assigning...' : 'Assign'}
                 </button>
               </div>
             ) : null}

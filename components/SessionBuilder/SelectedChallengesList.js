@@ -22,17 +22,17 @@ export default function SelectedChallengesList({
     return (
       <aside className={styles.sidebar}>
         <div className={styles.header}>
-          <h2 className={styles.title}>✓ Activités sélectionnées</h2>
+          <h2 className={styles.title}>✓ Selected activities</h2>
           <span className={styles.count}>0</span>
         </div>
         <p className={styles.hint}>
-          Les activités seront jouées dans cet ordre. Utilisez Monter/Descendre pour le modifier.
+          Activities will run in this order. Use Move up/Move down to adjust it.
         </p>
         <EmptyState
           icon="📋"
-          title="Aucune activité sélectionnée"
-          description="Explorez la grille à droite pour ajouter des activités."
-          actions={<Button variant="secondary" size="sm" onClick={handleBrowseCatalog}>Découvrir le catalogue</Button>}
+          title="No activity selected"
+          description="Browse the catalog on the right to add activities."
+          actions={<Button variant="secondary" size="sm" onClick={handleBrowseCatalog}>Browse catalog</Button>}
           className={styles.emptyState}
         />
       </aside>
@@ -42,11 +42,11 @@ export default function SelectedChallengesList({
   return (
     <aside className={styles.sidebar}>
       <div className={styles.header}>
-        <h2 className={styles.title}>✓ Activités sélectionnées</h2>
+        <h2 className={styles.title}>✓ Selected activities</h2>
         <span className={styles.count}>{challenges.length}</span>
       </div>
       <p className={styles.hint}>
-        Les activités seront jouées dans cet ordre. Utilisez Monter/Descendre pour le modifier.
+        Activities will run in this order. Use Move up/Move down to adjust it.
       </p>
 
       <ul className={styles.list}>
@@ -61,8 +61,8 @@ export default function SelectedChallengesList({
                 <button
                   className={`${styles.actionBtn} ${styles.moveBtn}`}
                   onClick={() => onMoveUp(challenge.id)}
-                  title="Monter"
-                  aria-label="Monter cette activité"
+                  title="Move up"
+                  aria-label="Move this activity up"
                 >
                   ▲
                 </button>
@@ -72,8 +72,8 @@ export default function SelectedChallengesList({
                 <button
                   className={`${styles.actionBtn} ${styles.moveBtn}`}
                   onClick={() => onMoveDown(challenge.id)}
-                  title="Descendre"
-                  aria-label="Descendre cette activité"
+                  title="Move down"
+                  aria-label="Move this activity down"
                 >
                   ▼
                 </button>
@@ -82,8 +82,8 @@ export default function SelectedChallengesList({
               <button
                 className={`${styles.actionBtn} ${styles.configBtn}`}
                 onClick={() => onConfigure(challenge.id)}
-                title="Configurer"
-                aria-label="Configurer cette activité"
+                title="Configure"
+                aria-label="Configure this activity"
               >
                 ⚙
               </button>
@@ -91,8 +91,8 @@ export default function SelectedChallengesList({
               <button
                 className={`${styles.actionBtn} ${styles.removeBtn}`}
                 onClick={() => onRemove(challenge.id)}
-                title="Supprimer"
-                aria-label="Supprimer cette activité"
+                title="Remove"
+                aria-label="Remove this activity"
               >
                 ✕
               </button>
@@ -103,7 +103,7 @@ export default function SelectedChallengesList({
 
       <div className={styles.footer}>
         <Button variant="secondary" size="sm" block onClick={onClearAll}>
-          Effacer la sélection
+          Clear selection
         </Button>
       </div>
     </aside>

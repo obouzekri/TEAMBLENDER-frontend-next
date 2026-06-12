@@ -25,9 +25,9 @@ const PIXEL_ARCHITECT_CATALOG_ENTRY = {
   category: 'creativite-innovation',
   objective: 'collaboration',
   duration: 15,
-  type: 'Création 3D collaborative',
-  tags: ['Voxel', 'Collaboration', 'Temps limité'],
-  description: 'Construire une structure 3D en cubes sous contraintes de temps, ressources et communication.',
+  type: 'Collaborative 3D creation',
+  tags: ['Voxel', 'Collaboration', 'Timeboxed'],
+  description: 'Build a 3D cube structure under time, resource, and communication constraints.',
   engine_key: 'pixel_architect_v1',
   engine_config: {
     participants: {
@@ -52,7 +52,7 @@ const PIXEL_ARCHITECT_CATALOG_ENTRY = {
       templateId: 'tour_signal',
     },
     creative: {
-      theme: 'Construisez une structure qui symbolise la collaboration.',
+      theme: 'Build a structure that symbolizes collaboration.',
     },
   },
 };
@@ -65,8 +65,8 @@ const THE_QUIZ_CATALOG_ENTRY = {
   objectives: 'collaboration, communication, intelligence-collective',
   duration: 20,
   type: 'Quiz multijoueur realtime',
-  tags: ['Quiz', 'Culture générale', 'Realtime', 'Leaderboard'],
-  description: 'Quiz de culture générale compétitif et synchronisé en temps réel pour toute la session.',
+  tags: ['Quiz', 'General knowledge', 'Realtime', 'Leaderboard'],
+  description: 'Competitive general-knowledge quiz synchronized in real time for the whole session.',
   engine_key: 'the_quiz_v1',
   engine_config: {
     participants: {
@@ -428,7 +428,7 @@ export default function SessionBuilder() {
 
     if (response.status === 401) {
       logout();
-      const unauthorizedError = new Error('Session expiree. Veuillez vous reconnecter.');
+      const unauthorizedError = new Error('Session expired. Please sign in again.');
       unauthorizedError.status = 401;
       throw unauthorizedError;
     }
@@ -450,20 +450,20 @@ export default function SessionBuilder() {
 
       if (response.status === 404 && isChallengeConfigPatch) {
         throw new Error(
-          'Endpoint introuvable (404) pendant la sauvegarde de la configuration challenge. Verifiez NEXT_PUBLIC_API_BASE (utiliser /api ou https://.../api) et que la session existe toujours.'
+          'Endpoint not found (404) while saving challenge configuration. Verify NEXT_PUBLIC_API_BASE (use /api or https://.../api) and ensure the session still exists.'
         );
       }
 
-      let errorMessage = payload.error || `Erreur API (${response.status})`;
+      let errorMessage = payload.error || `API error (${response.status})`;
 
       if (response.status === 502) {
-        errorMessage = 'Le service de sessions est temporairement indisponible (502). Reessayez dans quelques secondes.';
+        errorMessage = 'Session service is temporarily unavailable (502). Try again in a few seconds.';
       } else if (response.status >= 500) {
-        errorMessage = 'Le serveur rencontre une erreur temporaire. Reessayez dans quelques secondes.';
+        errorMessage = 'The server encountered a temporary error. Try again in a few seconds.';
       }
 
       if (payload.code === 'PLAN_LIMIT_REACHED') {
-        errorMessage = `${errorMessage} Passe a Pro.`;
+        errorMessage = `${errorMessage} Upgrade to Pro.`;
       }
 
       const requestError = new Error(errorMessage);
@@ -539,7 +539,7 @@ export default function SessionBuilder() {
       .filter((id) => id !== null);
 
     if (!selectedChallengeIds.length) {
-      throw new Error('Aucun challenge API valide a enregistrer pour cette session.');
+      throw new Error('No valid API challenge to save for this session.');
     }
 
     await ensureChallengesLinkedToSession(selectedChallengeIds, token, markInProgress);
@@ -667,10 +667,10 @@ export default function SessionBuilder() {
 
       setSelectedChallengesSnapshot(JSON.stringify(mergedSelectedChallenges));
       setLastBackendSaveAt(new Date().toISOString());
-      showSuccessToast('Configuration challenge appliquee immediatement.');
+      showSuccessToast('Challenge configuration applied immediately.');
     } catch (err) {
       if (redirectToUpgrade(err)) return;
-      showErrorToast(err.message || 'Configuration enregistree localement, mais synchronisation serveur impossible.');
+      showErrorToast(err.message || 'Configuration saved locally, but server sync failed.');
     }
   }, [
     apiRequest,
@@ -734,7 +734,7 @@ export default function SessionBuilder() {
     });
 
     setIsLaunching(true);
-    const loadingId = showLoadingToast('Enregistrement de la session...');
+    const loadingId = showLoadingToast('Saving session...');
 
     try {
       sessionStorage.setItem('selectedChallenges', JSON.stringify(selectedChallenges));
@@ -755,7 +755,7 @@ export default function SessionBuilder() {
     } catch (error) {
       removeToast(loadingId);
       if (redirectToUpgrade(error)) return;
-      showErrorToast(error.message || 'Impossible de lancer la session pour le moment.');
+      showErrorToast(error.message || 'Unable to launch the session right now.');
       setIsLaunching(false);
     }
   }, [
@@ -793,7 +793,7 @@ export default function SessionBuilder() {
     if (!sessionId || isSavingDraft) return;
 
     if (selectedChallenges.length === 0) {
-      showErrorToast('Ajoutez au moins un challenge avant de sauvegarder.');
+      showErrorToast('Add at least one challenge before saving.');
       return;
     }
 
@@ -848,7 +848,7 @@ export default function SessionBuilder() {
         }
 
         if (!res.ok) {
-          const fetchError = new Error(payload.error || `Erreur API (${res.status})`);
+          const fetchError = new Error(payload.error || `API error (${res.status})`);
           fetchError.status = res.status;
           throw fetchError;
         }
@@ -955,7 +955,7 @@ export default function SessionBuilder() {
           if (ENABLE_CHALLENGES_MOCK_DATA) {
             // Fallback mock is opt-in only to avoid masking backend issues unexpectedly.
             setAllChallenges(ensureBuilderCatalogChallenges(mockChallenges));
-            setError(err.message || 'Catalogue indisponible, fallback local actif.');
+            setError(err.message || 'Catalog unavailable, local fallback active.');
             showErrorToast(t('sessionBuilder.mockModeToast'));
             return;
           }
@@ -989,7 +989,7 @@ export default function SessionBuilder() {
       showErrorToast(t('sessionBuilder.addParticipantsFirst'));
       return;
     }
-    const name = sessionName.trim() || `Session du ${new Date().toLocaleDateString('fr-FR')}`;
+    const name = sessionName.trim() || `Session ${new Date().toLocaleDateString('en-US')}`;
     const sessionDate = sessionDateTime ? new Date(sessionDateTime) : null;
     if (sessionDateTime && Number.isNaN(sessionDate?.getTime())) {
       showErrorToast(t('sessionBuilder.invalidDateTime'));

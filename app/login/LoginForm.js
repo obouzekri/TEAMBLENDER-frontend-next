@@ -184,7 +184,7 @@ export default function LoginForm({ requestedSessionId = '' }) {
   return (
     <main className="shell auth-page auth-page--split">
       <AuthShowcase
-        title="Lancez des challenges collaboratifs en temps reel."
+        title={isEn ? 'Launch collaborative challenges in real time.' : 'Lancez des challenges collaboratifs en temps reel.'}
         description={isEn
           ? 'Access your sessions, run your team activities, and keep clear real-time visibility from a clean professional interface.'
           : 'Retrouvez vos sessions, animez vos equipes et gardez une vision claire du realtime depuis une interface sobre, fluide et professionnelle.'}
