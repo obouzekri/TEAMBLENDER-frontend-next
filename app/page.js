@@ -1056,26 +1056,30 @@ export default function HomePage() {
         </section>
 
         <section
-          className="reveal-up landing-section-full relative overflow-hidden p-6 sm:p-8"
-          style={{ '--reveal-delay': '140ms', background: 'linear-gradient(180deg, #f6f8fc 0%, #edf2fb 100%)' }}
+          className="reveal-up landing-section-full landing-offer-section relative overflow-hidden p-6 sm:p-9"
+          style={{ '--reveal-delay': '140ms' }}
           aria-label={landingStatic.fallback.platformOfferTitle}
         >
           <div className="landing-section-inner relative">
-            <div className="panel-head">
+            <div className="panel-head landing-offer-head">
               <div>
-                <p className="eyebrow">{landingStatic.fallback.platformEyebrow}</p>
-                <h2>{landingStatic.fallback.platformOfferTitle}</h2>
+                <p className="eyebrow landing-section-eyebrow">{landingStatic.fallback.platformEyebrow}</p>
+                <h2 className="landing-section-title">{landingStatic.fallback.platformOfferTitle}</h2>
               </div>
             </div>
-            <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {PLATFORM_OFFER_ITEMS.map((item) => {
+            <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {PLATFORM_OFFER_ITEMS.map((item, index) => {
                 const Icon = item.icon;
                 return (
-                  <article key={item.label} className={`landing-utility-card rounded-2xl bg-white/90 p-5 shadow-sm ring-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${item.label === PLATFORM_OFFER_ITEMS[0]?.label ? 'ring-indigo-100' : item.label === PLATFORM_OFFER_ITEMS[1]?.label ? 'ring-cyan-100' : 'ring-slate-200/70'}`}>
-                    <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${item.label === PLATFORM_OFFER_ITEMS[1]?.label ? 'bg-cyan-50 text-cyan-700' : 'bg-indigo-50 text-indigo-600'}`}>
+                  <article
+                    key={item.label}
+                    className="landing-feature-card landing-utility-card rounded-2xl p-5"
+                    style={{ '--feature-index': index + 1 }}
+                  >
+                    <span className="landing-feature-icon inline-flex h-10 w-10 items-center justify-center rounded-xl">
                       <Icon className="h-5 w-5" />
                     </span>
-                    <p className="mt-3 text-sm font-semibold leading-6 text-slate-800">{item.label}</p>
+                    <p className="mt-4 text-base font-semibold leading-6 text-slate-800">{item.label}</p>
                   </article>
                 );
               })}
@@ -1084,98 +1088,122 @@ export default function HomePage() {
         </section>
 
         <section
-          className="reveal-up landing-section-full relative overflow-hidden p-6 sm:p-8"
-          style={{ '--reveal-delay': '150ms', background: 'linear-gradient(180deg, #ffffff 0%, #f7fbff 100%)' }}
+          className="reveal-up landing-section-full landing-values-section relative overflow-hidden p-6 sm:p-10"
+          style={{ '--reveal-delay': '150ms' }}
           aria-label={landingStatic.fallback.valuesTitle}
         >
           <div className="landing-section-inner relative">
-            <div className="panel-head">
+            <div className="panel-head landing-values-head">
               <div>
-                <p className="eyebrow">{landingStatic.fallback.valuesEyebrow}</p>
-                <h2>{landingStatic.fallback.valuesTitle}</h2>
+                <p className="eyebrow landing-section-eyebrow">{landingStatic.fallback.valuesEyebrow}</p>
+                <h2 className="landing-section-title">{landingStatic.fallback.valuesTitle}</h2>
               </div>
             </div>
-            <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {PLATFORM_VALUES_ITEMS.map((item) => {
+            <ol className="landing-values-timeline mt-7" aria-label={landingStatic.fallback.valuesTitle}>
+              {PLATFORM_VALUES_ITEMS.map((item, index) => {
                 const Icon = item.icon;
                 return (
-                  <article key={item.label} className={`landing-utility-card rounded-2xl bg-white/90 p-5 shadow-sm ring-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${item.label === PLATFORM_VALUES_ITEMS[0]?.label ? 'ring-cyan-100' : item.label === PLATFORM_VALUES_ITEMS[1]?.label ? 'ring-violet-100' : 'ring-slate-200/70'}`}>
-                    <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${item.label === PLATFORM_VALUES_ITEMS[1]?.label ? 'bg-violet-50 text-violet-700' : 'bg-cyan-50 text-cyan-700'}`}>
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <p className="mt-3 text-sm font-semibold leading-6 text-slate-800">{item.label}</p>
-                  </article>
+                  <li key={item.label} className="landing-values-step">
+                    <span className="landing-values-step-dot" aria-hidden="true" />
+                    <article className="landing-values-step-card">
+                      <div className="landing-values-step-head">
+                        <span className="landing-values-step-index">{String(index + 1).padStart(2, '0')}</span>
+                        <span className="landing-values-step-icon" aria-hidden="true">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                      </div>
+                      <p className="landing-values-step-label">{item.label}</p>
+                    </article>
+                  </li>
                 );
               })}
-            </div>
+            </ol>
           </div>
         </section>
 
         <section
-          className="reveal-up landing-section-full relative overflow-hidden p-6 sm:p-8"
-          style={{ '--reveal-delay': '160ms', background: 'linear-gradient(180deg, #f2f7ff 0%, #ecf3ff 100%)' }}
+          className="reveal-up landing-section-full landing-benefits-section relative overflow-hidden p-6 sm:p-10"
+          style={{ '--reveal-delay': '160ms' }}
           aria-label={landingStatic.fallback.benefitsTitle}
         >
           <div className="landing-section-inner relative">
-            <div className="panel-head">
+            <div className="panel-head landing-benefits-head">
               <div>
-                <p className="eyebrow">{landingStatic.fallback.benefitsEyebrow}</p>
-                <h2>{landingStatic.fallback.benefitsTitle}</h2>
+                <p className="eyebrow landing-section-eyebrow">{landingStatic.fallback.benefitsEyebrow}</p>
+                <h2 className="landing-section-title">{landingStatic.fallback.benefitsTitle}</h2>
               </div>
             </div>
-            <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {PLATFORM_BENEFITS_ITEMS.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <article key={item.label} className={`landing-utility-card rounded-2xl bg-white/90 p-5 shadow-sm ring-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${item.label === PLATFORM_BENEFITS_ITEMS[0]?.label ? 'ring-violet-100' : item.label === PLATFORM_BENEFITS_ITEMS[1]?.label ? 'ring-cyan-100' : 'ring-slate-200/70'}`}>
-                    <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${item.label === PLATFORM_BENEFITS_ITEMS[1]?.label ? 'bg-cyan-50 text-cyan-700' : 'bg-violet-50 text-violet-700'}`}>
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <p className="mt-3 text-sm font-semibold leading-6 text-slate-800">{item.label}</p>
-                  </article>
-                );
-              })}
+            <div className="landing-benefits-split mt-8">
+              <div className="landing-benefits-copy reveal-left" style={{ '--reveal-delay': '180ms' }}>
+                <ul className="landing-benefits-list">
+                  {PLATFORM_BENEFITS_ITEMS.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <li key={item.label} className="landing-benefits-item">
+                        <span className="landing-benefits-item-icon" aria-hidden="true">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <p>{item.label}</p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              <div className="landing-benefits-visual reveal-right" style={{ '--reveal-delay': '210ms' }}>
+                <figure className="landing-benefits-media-frame">
+                  <Image
+                    src="/images/labyrinthe-hero.jpg"
+                    alt={locale === 'en' ? 'Hybrid team workshop in progress on TeamBlender' : 'Atelier equipe hybride en cours sur TeamBlender'}
+                    width={1200}
+                    height={800}
+                    loading="lazy"
+                    className="landing-benefits-media-image"
+                  />
+                  <figcaption>{locale === 'en' ? 'Hybrid-ready, manager-friendly and measurable.' : 'Hybride, simple pour managers et mesurable.'}</figcaption>
+                </figure>
+              </div>
             </div>
           </div>
         </section>
 
         <section
-          className="reveal-up landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-8"
+          className="reveal-up landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-10"
           style={{
             '--reveal-delay': '155ms',
-            background: 'linear-gradient(180deg, #ffffff 0%, #f5f8ff 100%)',
+            background: 'linear-gradient(145deg, #0b1223 0%, #111b36 58%, #0e1629 100%)',
           }}
           aria-label={locale === 'en' ? 'Customer testimonials' : 'Témoignages clients'}
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(99,102,241,0.10),transparent_44%)]" />
           <div className="landing-section-inner relative">
-            <div className="panel-head">
+            <div className="panel-head landing-testimonials-head">
               <div>
-                <p className="eyebrow">{testimonialsHeader.label}</p>
-                <h2>{testimonialsHeader.title}</h2>
-                <p>{testimonialsHeader.description}</p>
+                <p className="eyebrow landing-section-eyebrow">{testimonialsHeader.label}</p>
+                <h2 className="landing-section-title">{testimonialsHeader.title}</h2>
+                <p className="landing-section-description">{testimonialsHeader.description}</p>
               </div>
             </div>
-            <div className="cards-grid landing-testimonials-grid relative mt-6 grid gap-4 md:grid-cols-3">
+            <div className="landing-testimonials-carousel mt-7" role="region" aria-label={locale === 'en' ? 'Testimonials carousel' : 'Carrousel de temoignages'}>
               {testimonialItems.map((item, index) => (
                 <article
                   key={`${item.title}-${item.subtitle}`}
-                  className={`landing-testimonial-card rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                  className={`landing-testimonial-card landing-testimonial-slide rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                     index === 0
-                      ? 'landing-testimonial-card--featured bg-gradient-to-b from-indigo-50/70 to-white ring-1 ring-indigo-100'
+                      ? 'landing-testimonial-card--featured ring-1 ring-indigo-200/45'
                       : index === 1
-                        ? 'landing-testimonial-card--accent bg-gradient-to-b from-cyan-50/60 to-white ring-1 ring-cyan-100'
-                        : 'bg-gradient-to-b from-slate-50 to-white ring-1 ring-slate-100'
+                        ? 'landing-testimonial-card--accent ring-1 ring-cyan-200/40'
+                        : 'ring-1 ring-slate-200/35'
                   }`}
                 >
-                  <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/85 text-indigo-600 shadow-sm">
+                  <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-indigo-600 shadow-sm">
                     <Quote className="h-4 w-4" />
                   </div>
-                  <p className="text-base leading-7 text-slate-700">“{item.description}”</p>
-                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-200/80 pt-4">
+                  <p className="text-base leading-7 text-slate-100">“{item.description}”</p>
+                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-100/15 pt-4">
                     <div>
-                      <strong className="block text-sm font-semibold text-slate-950">{item.title}</strong>
-                      <span className="text-sm text-slate-500">{item.subtitle}</span>
+                      <strong className="block text-sm font-semibold text-white">{item.title}</strong>
+                      <span className="text-sm text-slate-300">{item.subtitle}</span>
                     </div>
                   </div>
                 </article>
