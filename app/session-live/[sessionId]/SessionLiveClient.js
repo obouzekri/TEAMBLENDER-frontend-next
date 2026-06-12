@@ -8,10 +8,11 @@ import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
+import useI18n from '@/lib/i18n/useI18n';
 
 const ChallengeWrapper = dynamic(
   () => import('@/components/Challenges/ChallengeWrapper'),
-  { ssr: false, loading: () => <p>Chargement du challenge...</p> }
+  { ssr: false, loading: () => <p>Loading challenge / Chargement du challenge...</p> }
 );
 
 function parseUser() {
@@ -38,6 +39,8 @@ function isParticipantRole(role) {
 }
 
 export default function SessionLiveClient() {
+  const { locale, withLocalePath } = useI18n();
+  const isEn = locale === 'en';
   const params = useParams();
   const router = useRouter();
   const sessionId = String(params?.sessionId || '');
@@ -64,26 +67,26 @@ export default function SessionLiveClient() {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const currentUser = parseUser();
     if (!token || !currentUser || isParticipantRole(currentUser.role)) {
-      window.location.replace('/login');
+      window.location.replace(withLocalePath('/login'));
       return;
     }
     setUser(currentUser);
-  }, []);
+  }, [withLocalePath]);
 
   // Load session
   const loadSession = useCallback(async () => {
     if (!sessionId) return;
     try {
       const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), { headers: authHeaders() });
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      if (!res.ok) throw new Error(`${isEn ? 'Error' : 'Erreur'} ${res.status}`);
       const data = await res.json();
       setSession(data);
       setLoading(false);
     } catch (err) {
-      setError(err.message || 'Impossible de charger la session.');
+      setError(err.message || (isEn ? 'Unable to load session.' : 'Impossible de charger la session.'));
       setLoading(false);
     }
-  }, [sessionId]);
+  }, [isEn, sessionId]);
 
   useEffect(() => {
     if (user) loadSession();
@@ -93,7 +96,7 @@ export default function SessionLiveClient() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
     sessionStorage.removeItem('currentUser');
-    window.location.replace('/login');
+    window.location.replace(withLocalePath('/login'));
   }
 
   const canManageFlow = user ? !isParticipantRole(user.role) : false;
@@ -126,18 +129,20 @@ export default function SessionLiveClient() {
         } catch {
           payload = null;
         }
-        throw new Error(payload?.error || body || `Erreur ${res.status}`);
+        throw new Error(payload?.error || body || `${isEn ? 'Error' : 'Erreur'} ${res.status}`);
       }
       const updated = await res.json();
-      setActionMsg(updated?.active_challenge_id ? 'Challenge suivant activé.' : 'Dernier challenge terminé.');
+      setActionMsg(updated?.active_challenge_id
+        ? (isEn ? 'Next challenge activated.' : 'Challenge suivant activé.')
+        : (isEn ? 'Last challenge completed.' : 'Dernier challenge terminé.'));
       await loadSession();
       refetchSessionState();
     } catch (err) {
-      setActionMsg(err.message || 'Erreur lors du passage au challenge suivant.');
+      setActionMsg(err.message || (isEn ? 'Error while moving to next challenge.' : 'Erreur lors du passage au challenge suivant.'));
     } finally {
       setActionPending(false);
     }
-  }, [canManageFlow, loadSession, refetchSessionState]);
+  }, [canManageFlow, isEn, loadSession, refetchSessionState]);
 
   const handleNextChallenge = useCallback(() => {
     clearAutoAdvanceTimer();
@@ -145,7 +150,7 @@ export default function SessionLiveClient() {
   }, [clearAutoAdvanceTimer]);
 
   async function handleEndSession() {
-    if (!window.confirm('Terminer la session ?')) return;
+    if (!window.confirm(isEn ? 'End this session?' : 'Terminer la session ?')) return;
     setActionPending(true);
     setActionMsg('');
     try {
@@ -159,11 +164,11 @@ export default function SessionLiveClient() {
       );
       if (!res.ok) {
         const body = await res.text();
-        throw new Error(body || `Erreur ${res.status}`);
+        throw new Error(body || `${isEn ? 'Error' : 'Erreur'} ${res.status}`);
       }
-      router.push(`/session-results/${encodeURIComponent(sessionId)}`);
+      router.push(withLocalePath(`/session-results/${encodeURIComponent(sessionId)}`));
     } catch (err) {
-      setActionMsg(err.message || 'Erreur lors de la fin de session.');
+      setActionMsg(err.message || (isEn ? 'Error while ending session.' : 'Erreur lors de la fin de session.'));
       setActionPending(false);
     }
   }
@@ -212,15 +217,17 @@ export default function SessionLiveClient() {
     completedChallengeKeyRef.current = completionKey;
 
     if (flowMode === 'auto' && canManageFlow) {
-      setActionMsg('Challenge terminé. Passage automatique en cours...');
+      setActionMsg(isEn ? 'Challenge completed. Auto-progress in progress...' : 'Challenge terminé. Passage automatique en cours...');
       scheduleAutoAdvance();
       return;
     }
 
     if (canManageFlow) {
-      setActionMsg('Challenge terminé. Passez au challenge suivant quand vous êtes prêt.');
+      setActionMsg(isEn
+        ? 'Challenge completed. Move to the next challenge when you are ready.'
+        : 'Challenge terminé. Passez au challenge suivant quand vous êtes prêt.');
     }
-  }, [activeChallengeId, canManageFlow, flowMode, scheduleAutoAdvance, sessionState?.current_challenge?.id]);
+  }, [activeChallengeId, canManageFlow, flowMode, isEn, scheduleAutoAdvance, sessionState?.current_challenge?.id]);
 
   useEffect(() => {
     completedChallengeKeyRef.current = '';
@@ -245,16 +252,16 @@ export default function SessionLiveClient() {
   const userLabel = pickDisplayName(user);
   const connectionState = connected ? 'connected' : (reconnecting ? 'reconnecting' : 'offline');
   const asyncStatusMessage = actionPending
-    ? 'Action en cours de traitement...'
+    ? (isEn ? 'Processing action...' : 'Action en cours de traitement...')
     : loading
-      ? 'Chargement de la session...'
+      ? (isEn ? 'Loading session...' : 'Chargement de la session...')
       : '';
 
   if (loading) {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>Chargement de la session...</h1>
+          <h1>{isEn ? 'Loading session...' : 'Chargement de la session...'}</h1>
         </section>
       </main>
     );
@@ -264,9 +271,9 @@ export default function SessionLiveClient() {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>Erreur</h1>
+          <h1>{isEn ? 'Error' : 'Erreur'}</h1>
           <p className="error">{error}</p>
-          <Link href="/home" className="btn-secondary">Retour a l&apos;accueil</Link>
+          <Link href={withLocalePath('/home')} className="btn-secondary">{isEn ? 'Back to home' : 'Retour a l\'accueil'}</Link>
         </section>
       </main>
     );
@@ -285,7 +292,9 @@ export default function SessionLiveClient() {
             {activeChallenge && (
               <span className="eyebrow session-live-header__meta">{activeChallenge.name || activeEngineKey}</span>
             )}
-            <span className="eyebrow session-live-header__meta session-live-header__meta--count">{memberCount} participant{memberCount !== 1 ? 's' : ''}</span>
+            <span className="eyebrow session-live-header__meta session-live-header__meta--count">
+              {memberCount} {isEn ? `participant${memberCount !== 1 ? 's' : ''}` : `participant${memberCount !== 1 ? 's' : ''}`}
+            </span>
           </div>
           <div className="session-live-header__row2">
             <button
@@ -294,7 +303,7 @@ export default function SessionLiveClient() {
               onClick={handleNextChallenge}
               disabled={actionPending || !canManageFlow}
             >
-              {actionPending ? 'En cours...' : 'Passer au challenge suivant'}
+              {actionPending ? (isEn ? 'In progress...' : 'En cours...') : (isEn ? 'Move to next challenge' : 'Passer au challenge suivant')}
             </button>
             <button
               type="button"
@@ -302,13 +311,13 @@ export default function SessionLiveClient() {
               onClick={handleEndSession}
               disabled={actionPending}
             >
-              Terminer
+              {isEn ? 'End session' : 'Terminer'}
             </button>
             {flowMode === 'auto' && (
               <span className="session-live-header__msg session-live-header__msg--auto">
                 {autoAdvanceCountdown > 0
-                  ? `Passage auto dans ${autoAdvanceCountdown}s`
-                  : 'Passage auto activé'}
+                  ? (isEn ? `Auto progression in ${autoAdvanceCountdown}s` : `Passage auto dans ${autoAdvanceCountdown}s`)
+                  : (isEn ? 'Auto progression enabled' : 'Passage auto activé')}
               </span>
             )}
             {actionMsg && <span className="session-live-header__msg">{actionMsg}</span>}
@@ -324,15 +333,15 @@ export default function SessionLiveClient() {
               aria-labelledby="session-live-popup-title"
               onClick={(event) => event.stopPropagation()}
             >
-              <h3 id="session-live-popup-title">Confirmation</h3>
-              <p>Les participants vont basculer automatiquement vers le prochain challenge.</p>
+              <h3 id="session-live-popup-title">{isEn ? 'Confirmation' : 'Confirmation'}</h3>
+              <p>{isEn ? 'Participants will automatically switch to the next challenge.' : 'Les participants vont basculer automatiquement vers le prochain challenge.'}</p>
               <div className="session-live-popup__actions">
                 <button
                   type="button"
                   className="btn-secondary btn--sm"
                   onClick={() => setAdvancePopupOpen(false)}
                 >
-                  Annuler
+                  {isEn ? 'Cancel' : 'Annuler'}
                 </button>
                 <button
                   type="button"
@@ -342,7 +351,7 @@ export default function SessionLiveClient() {
                     await advanceToNextChallenge();
                   }}
                 >
-                  Confirmer
+                  {isEn ? 'Confirm' : 'Confirmer'}
                 </button>
               </div>
             </section>
@@ -361,10 +370,10 @@ export default function SessionLiveClient() {
           </section>
         ) : (
           <section className="feature-card session-live-empty-state">
-            <h2>Aucun challenge actif</h2>
+            <h2>{isEn ? 'No active challenge' : 'Aucun challenge actif'}</h2>
             <p>
-              Activez un challenge depuis le{' '}
-              <Link href={`/session-builder?sessionId=${encodeURIComponent(sessionId)}`}>
+              {isEn ? 'Activate a challenge from the' : 'Activez un challenge depuis le'}{' '}
+              <Link href={withLocalePath(`/session-builder?sessionId=${encodeURIComponent(sessionId)}`)}>
                 session builder
               </Link>
               .

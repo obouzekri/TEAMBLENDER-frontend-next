@@ -6,6 +6,7 @@ import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
+import useI18n from '@/lib/i18n/useI18n';
 
 function parseUser() {
   const raw = sessionStorage.getItem('currentUser');
@@ -26,11 +27,11 @@ function formatDuration(ms) {
   return min > 0 ? `${min}m ${sec}s` : `${sec}s`;
 }
 
-function StatusBadge({ status }) {
+function StatusBadge({ status, isEn }) {
   const map = {
-    completed: { label: 'Terminé', className: 'session-results-status--completed' },
-    in_progress: { label: 'En cours', className: 'session-results-status--in-progress' },
-    abandoned: { label: 'Abandonné', className: 'session-results-status--abandoned' },
+    completed: { label: isEn ? 'Completed' : 'Terminé', className: 'session-results-status--completed' },
+    in_progress: { label: isEn ? 'In progress' : 'En cours', className: 'session-results-status--in-progress' },
+    abandoned: { label: isEn ? 'Abandoned' : 'Abandonné', className: 'session-results-status--abandoned' },
   };
   const { label, className } = map[status] || { label: status, className: 'session-results-status--default' };
   return (
@@ -41,6 +42,8 @@ function StatusBadge({ status }) {
 }
 
 export default function SessionResultsClient() {
+  const { locale, withLocalePath } = useI18n();
+  const isEn = locale === 'en';
   const params = useParams();
   const sessionId = String(params?.sessionId || '');
 
@@ -56,11 +59,11 @@ export default function SessionResultsClient() {
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const currentUser = parseUser();
     if (!token || !currentUser) {
-      window.location.replace('/login');
+      window.location.replace(withLocalePath('/login'));
       return;
     }
     setUser(currentUser);
-  }, []);
+  }, [withLocalePath]);
 
   const loadData = useCallback(async () => {
     if (!sessionId) return;
@@ -71,7 +74,7 @@ export default function SessionResultsClient() {
         fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/participation-rate`), { headers: authHeaders() }),
       ]);
 
-      if (!sessionRes.ok) throw new Error(`Session introuvable (${sessionRes.status})`);
+      if (!sessionRes.ok) throw new Error(isEn ? `Session not found (${sessionRes.status})` : `Session introuvable (${sessionRes.status})`);
 
       const sessionData = await sessionRes.json();
       setSession(sessionData);
@@ -86,11 +89,11 @@ export default function SessionResultsClient() {
         setParticipationRate(ratePayload?.data ?? null);
       }
     } catch (err) {
-      setError(err.message || 'Impossible de charger les résultats.');
+      setError(err.message || (isEn ? 'Unable to load results.' : 'Impossible de charger les résultats.'));
     } finally {
       setLoading(false);
     }
-  }, [sessionId]);
+  }, [isEn, sessionId]);
 
   useEffect(() => {
     if (user) loadData();
@@ -100,7 +103,7 @@ export default function SessionResultsClient() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
     sessionStorage.removeItem('currentUser');
-    window.location.replace('/login');
+    window.location.replace(withLocalePath('/login'));
   }
 
   // Aggregate stats from results
@@ -135,7 +138,7 @@ export default function SessionResultsClient() {
   if (loading) {
     return (
       <main className="shell auth-page">
-        <section className="feature-card"><h1>Chargement des résultats...</h1></section>
+        <section className="feature-card"><h1>{isEn ? 'Loading results...' : 'Chargement des résultats...'}</h1></section>
       </main>
     );
   }
@@ -144,9 +147,9 @@ export default function SessionResultsClient() {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>Erreur</h1>
+          <h1>{isEn ? 'Error' : 'Erreur'}</h1>
           <p>{error}</p>
-          <Link href="/home" className="btn-secondary">Retour</Link>
+          <Link href={withLocalePath('/home')} className="btn-secondary">{isEn ? 'Back' : 'Retour'}</Link>
         </section>
       </main>
     );
@@ -157,44 +160,54 @@ export default function SessionResultsClient() {
       <AppNav userLabel={userLabel} onLogout={logout} role={user?.role} />
       <main className="shell app-home">
         <section className="hero session-results-hero">
-          <p className="eyebrow">RESULTATS DE SESSION</p>
+          <p className="eyebrow">{isEn ? 'SESSION RESULTS' : 'RESULTATS DE SESSION'}</p>
           <h1 className="session-results-title">{session?.name || `Session ${sessionId}`}</h1>
           <div className="session-results-meta-row">
-            {session?.status && <span className="eyebrow">Statut : {{ en_cours: 'En cours', preparee: 'En préparation', terminee: 'Terminée' }[session.status] || session.status}</span>}
+            {session?.status && (
+              <span className="eyebrow">
+                {isEn ? 'Status:' : 'Statut :'} {{
+                  en_cours: isEn ? 'In progress' : 'En cours',
+                  preparee: isEn ? 'Prepared' : 'En préparation',
+                  terminee: isEn ? 'Completed' : 'Terminée'
+                }[session.status] || session.status}
+              </span>
+            )}
             {session?.session_date && (
-              <span className="eyebrow">Date : {new Date(session.session_date).toLocaleDateString('fr-FR')}</span>
+              <span className="eyebrow">
+                {isEn ? 'Date:' : 'Date :'} {new Date(session.session_date).toLocaleDateString(isEn ? 'en-US' : 'fr-FR')}
+              </span>
             )}
           </div>
           <div className="hero-actions session-results-actions">
             {!isParticipant && (
-              <Link href="/home" className="btn-primary">Retour a l&apos;accueil</Link>
+              <Link href={withLocalePath('/home')} className="btn-primary">{isEn ? 'Back to home' : 'Retour a l\'accueil'}</Link>
             )}
             {!isParticipant && (
               <Link
-                href={`/session-live/${encodeURIComponent(sessionId)}`}
+                href={withLocalePath(`/session-live/${encodeURIComponent(sessionId)}`)}
                 className="btn-secondary"
               >
-                Reprendre la session
+                {isEn ? 'Resume session' : 'Reprendre la session'}
               </Link>
             )}
             {isParticipant && (
-              <Link href={`/participant?sessionId=${encodeURIComponent(sessionId)}`} className="btn-primary">
-                Retour a la session
+              <Link href={withLocalePath(`/participant?sessionId=${encodeURIComponent(sessionId)}`)} className="btn-primary">
+                {isEn ? 'Back to session' : 'Retour a la session'}
               </Link>
             )}
           </div>
         </section>
 
         <section className="feature-card session-results-overview">
-          <h2>Vue d&apos;ensemble</h2>
+          <h2>{isEn ? 'Overview' : 'Vue d\'ensemble'}</h2>
           <div className="session-results-stats-grid">
             {[
-              { label: 'Participants actifs', value: stats.uniqueParticipants },
-              { label: 'Taux de participation', value: participationRate != null ? `${participationRate.rate}%` : '—' },
-              { label: 'Challenges joués', value: stats.uniqueChallenges },
-              { label: 'Tentatives', value: stats.total },
-              { label: 'Complétées', value: stats.completed },
-              { label: 'Score moyen', value: stats.avgScore != null ? `${stats.avgScore} pts` : '—' },
+              { label: isEn ? 'Active participants' : 'Participants actifs', value: stats.uniqueParticipants },
+              { label: isEn ? 'Participation rate' : 'Taux de participation', value: participationRate != null ? `${participationRate.rate}%` : '—' },
+              { label: isEn ? 'Played challenges' : 'Challenges joués', value: stats.uniqueChallenges },
+              { label: isEn ? 'Attempts' : 'Tentatives', value: stats.total },
+              { label: isEn ? 'Completed' : 'Complétées', value: stats.completed },
+              { label: isEn ? 'Average score' : 'Score moyen', value: stats.avgScore != null ? `${stats.avgScore} pts` : '—' },
             ].map(({ label, value }) => (
               <div key={label} className="session-results-stat-card">
                 <div className="session-results-stat-label">{label}</div>
@@ -207,14 +220,14 @@ export default function SessionResultsClient() {
         {byChallenge.length > 0 ? (
           byChallenge.map(({ challenge, rows }) => (
             <section key={challenge?.id || 'unknown'} className="feature-card session-results-challenge-card">
-              <h2>{challenge?.name || challenge?.engine_key || 'Challenge'}</h2>
+              <h2>{challenge?.name || challenge?.engine_key || (isEn ? 'Challenge' : 'Challenge')}</h2>
               {challenge?.engine_key && (
                 <p className="eyebrow session-results-engine-key">{challenge.engine_key}</p>
               )}
               <div className="session-results-rows">
                 {rows.map((r) => {
                   const name = [r.participant?.firstname, r.participant?.last_name]
-                    .filter(Boolean).join(' ') || r.participant?.email || `Participant ${r.participant_id}`;
+                    .filter(Boolean).join(' ') || r.participant?.email || `${isEn ? 'Participant' : 'Participant'} ${r.participant_id}`;
                   const duration = r.completed_at && r.created_at
                     ? formatDuration(new Date(r.completed_at) - new Date(r.created_at))
                     : '—';
@@ -223,14 +236,14 @@ export default function SessionResultsClient() {
                       <div className="session-results-row-main">
                         <div className="session-results-row-name">{name}</div>
                         <div className="session-results-row-duration">
-                          Durée : {duration}
+                          {isEn ? 'Duration:' : 'Durée :'} {duration}
                         </div>
                       </div>
                       <div className="session-results-row-metrics">
                         {r.score != null && (
-                          <span className="session-results-score">{r.score} pts</span>
+                          <span className="session-results-score">{r.score} {isEn ? 'pts' : 'pts'}</span>
                         )}
-                        <StatusBadge status={r.status} />
+                        <StatusBadge status={r.status} isEn={isEn} />
                       </div>
                     </div>
                   );
@@ -240,8 +253,8 @@ export default function SessionResultsClient() {
           ))
         ) : (
           <section className="feature-card">
-            <h2>Aucun résultat enregistré</h2>
-            <p>Les résultats apparaîtront ici une fois que les participants auront joué.</p>
+            <h2>{isEn ? 'No results recorded' : 'Aucun résultat enregistré'}</h2>
+            <p>{isEn ? 'Results will appear here once participants have played.' : 'Les résultats apparaîtront ici une fois que les participants auront joué.'}</p>
           </section>
         )}
       </main>
