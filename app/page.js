@@ -963,9 +963,12 @@ export default function HomePage() {
           <section className="landing-impact-band landing-section-full reveal-up" style={{ '--reveal-delay': '90ms' }} aria-label={locale === 'en' ? 'Key metrics' : 'Indicateurs cles'}>
             <div className="landing-section-inner grid gap-4 md:grid-cols-3">
               {impactItems.map((item, index) => (
-                <article key={`impact-${index}`} className={`${glassCardClass} p-6`}>
+                <article
+                  key={`impact-${index}`}
+                  className={`${glassCardClass} landing-impact-card p-6 ${index === 0 ? 'landing-impact-card--primary' : index === 1 ? 'landing-impact-card--secondary' : 'landing-impact-card--tertiary'}`}
+                >
                   <div className="flex items-center gap-3">
-                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/20">
+                    <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-lg ${index === 1 ? 'bg-gradient-to-br from-cyan-500 to-sky-500 shadow-cyan-500/20' : index === 2 ? 'bg-gradient-to-br from-slate-700 to-slate-500 shadow-slate-500/20' : 'bg-gradient-to-br from-indigo-500 to-violet-500 shadow-indigo-500/20'}`}>
                       {String(index + 1).padStart(2, '0')}
                     </span>
                     <div>
@@ -980,8 +983,8 @@ export default function HomePage() {
         ) : null}
 
         <section
-          className="reveal-up landing-section-full relative overflow-hidden p-8 sm:p-10"
-          style={{ '--reveal-delay': '100ms', background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)' }}
+          className="reveal-up landing-section-full landing-section-full--statement relative overflow-hidden p-8 sm:p-10"
+          style={{ '--reveal-delay': '100ms', background: 'linear-gradient(180deg, #ffffff 0%, #f7fbff 100%)' }}
           aria-label={locale === 'en' ? 'Platform positioning' : 'Positionnement plateforme'}
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(99,102,241,0.08),transparent_45%)]" />
@@ -992,7 +995,7 @@ export default function HomePage() {
         </section>
 
         <section
-          className="reveal-up landing-partners landing-section-full relative overflow-hidden p-8 sm:p-12"
+          className="reveal-up landing-partners landing-section-full landing-section-full--proof relative overflow-hidden p-8 sm:p-12"
           style={{
             '--reveal-delay': '120ms',
             background: 'linear-gradient(180deg, rgba(246,249,255,0.94) 0%, rgba(237,244,255,0.94) 100%)',
@@ -1029,7 +1032,7 @@ export default function HomePage() {
                   {TRUST_LOGO_PLACEHOLDERS.map((logo) => (
                     <span
                       key={logo}
-                      className="inline-flex items-center rounded-full bg-slate-100/90 px-3 py-1 text-xs font-semibold text-slate-600"
+                      className="landing-logo-chip inline-flex items-center rounded-full bg-slate-100/90 px-3 py-1 text-xs font-semibold text-slate-600"
                     >
                       {logo}
                     </span>
@@ -1068,8 +1071,8 @@ export default function HomePage() {
               {PLATFORM_OFFER_ITEMS.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <article key={item.label} className="rounded-2xl bg-white/90 p-5 shadow-sm ring-1 ring-slate-200/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <article key={item.label} className={`landing-utility-card rounded-2xl bg-white/90 p-5 shadow-sm ring-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${item.label === PLATFORM_OFFER_ITEMS[0]?.label ? 'ring-indigo-100' : item.label === PLATFORM_OFFER_ITEMS[1]?.label ? 'ring-cyan-100' : 'ring-slate-200/70'}`}>
+                    <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${item.label === PLATFORM_OFFER_ITEMS[1]?.label ? 'bg-cyan-50 text-cyan-700' : 'bg-indigo-50 text-indigo-600'}`}>
                       <Icon className="h-5 w-5" />
                     </span>
                     <p className="mt-3 text-sm font-semibold leading-6 text-slate-800">{item.label}</p>
@@ -1096,8 +1099,8 @@ export default function HomePage() {
               {PLATFORM_VALUES_ITEMS.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <article key={item.label} className="rounded-2xl bg-white/90 p-5 shadow-sm ring-1 ring-slate-200/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700">
+                  <article key={item.label} className={`landing-utility-card rounded-2xl bg-white/90 p-5 shadow-sm ring-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${item.label === PLATFORM_VALUES_ITEMS[0]?.label ? 'ring-cyan-100' : item.label === PLATFORM_VALUES_ITEMS[1]?.label ? 'ring-violet-100' : 'ring-slate-200/70'}`}>
+                    <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${item.label === PLATFORM_VALUES_ITEMS[1]?.label ? 'bg-violet-50 text-violet-700' : 'bg-cyan-50 text-cyan-700'}`}>
                       <Icon className="h-5 w-5" />
                     </span>
                     <p className="mt-3 text-sm font-semibold leading-6 text-slate-800">{item.label}</p>
@@ -1124,8 +1127,8 @@ export default function HomePage() {
               {PLATFORM_BENEFITS_ITEMS.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <article key={item.label} className="rounded-2xl bg-white/90 p-5 shadow-sm ring-1 ring-slate-200/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-700">
+                  <article key={item.label} className={`landing-utility-card rounded-2xl bg-white/90 p-5 shadow-sm ring-1 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${item.label === PLATFORM_BENEFITS_ITEMS[0]?.label ? 'ring-violet-100' : item.label === PLATFORM_BENEFITS_ITEMS[1]?.label ? 'ring-cyan-100' : 'ring-slate-200/70'}`}>
+                    <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${item.label === PLATFORM_BENEFITS_ITEMS[1]?.label ? 'bg-cyan-50 text-cyan-700' : 'bg-violet-50 text-violet-700'}`}>
                       <Icon className="h-5 w-5" />
                     </span>
                     <p className="mt-3 text-sm font-semibold leading-6 text-slate-800">{item.label}</p>
@@ -1157,11 +1160,11 @@ export default function HomePage() {
               {testimonialItems.map((item, index) => (
                 <article
                   key={`${item.title}-${item.subtitle}`}
-                  className={`rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                  className={`landing-testimonial-card rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                     index === 0
-                      ? 'bg-gradient-to-b from-indigo-50/70 to-white ring-1 ring-indigo-100'
+                      ? 'landing-testimonial-card--featured bg-gradient-to-b from-indigo-50/70 to-white ring-1 ring-indigo-100'
                       : index === 1
-                        ? 'bg-gradient-to-b from-cyan-50/60 to-white ring-1 ring-cyan-100'
+                        ? 'landing-testimonial-card--accent bg-gradient-to-b from-cyan-50/60 to-white ring-1 ring-cyan-100'
                         : 'bg-gradient-to-b from-slate-50 to-white ring-1 ring-slate-100'
                   }`}
                 >
@@ -1201,12 +1204,12 @@ export default function HomePage() {
               {flowSteps.map((step, index) => (
                 <article
                   key={`flow-step-${index}`}
-                  className={`rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+                  className={`landing-flow-card rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                     index === 0
-                      ? 'bg-white/88 ring-1 ring-indigo-100'
+                      ? 'landing-flow-card--primary bg-white/88 ring-1 ring-indigo-100'
                       : index === 1
-                        ? 'bg-white/90 ring-1 ring-cyan-100'
-                        : 'bg-white/92 ring-1 ring-slate-200/80'
+                        ? 'landing-flow-card--secondary bg-white/90 ring-1 ring-cyan-100'
+                        : 'landing-flow-card--tertiary bg-white/92 ring-1 ring-slate-200/80'
                   }`}
                 >
                   <span className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-semibold text-white shadow-lg ${
