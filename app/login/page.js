@@ -1,9 +1,14 @@
 import LoginForm from './LoginForm';
 import TopNav from '@/components/TopNav';
+import { cookies } from 'next/headers';
 
-export const metadata = {
-  title: 'Connexion | TeamBlender',
-};
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const isEn = String(cookieStore.get('tb_locale')?.value || 'fr').toLowerCase() === 'en';
+  return {
+    title: isEn ? 'Login | TeamBlender' : 'Connexion | TeamBlender',
+  };
+}
 
 export default async function LoginPage({ searchParams }) {
   const resolvedSearchParams = await searchParams;

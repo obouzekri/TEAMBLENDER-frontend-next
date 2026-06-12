@@ -1,9 +1,14 @@
 import TopNav from '@/components/TopNav';
 import VerifyEmailForm from './VerifyEmailForm';
+import { cookies } from 'next/headers';
 
-export const metadata = {
-  title: 'Vérifier votre email | TeamBlender',
-};
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const isEn = String(cookieStore.get('tb_locale')?.value || 'fr').toLowerCase() === 'en';
+  return {
+    title: isEn ? 'Verify your email | TeamBlender' : 'Vérifier votre email | TeamBlender',
+  };
+}
 
 export default async function VerifyEmailPage({ searchParams }) {
   const resolvedSearchParams = await searchParams;

@@ -19,17 +19,20 @@ import {
   resendVerification,
   resolveConnectedUserId
 } from '@/lib/auth';
+import useI18n from '@/lib/i18n/useI18n';
 
-function errorMessage(resStatus, data) {
-  if (data?.code === 'ACCOUNT_PENDING') return 'Votre compte est en attente de validation par un administrateur.';
-  if (data?.code === 'ACCOUNT_REJECTED') return 'Votre demande de compte a été refusée. Contactez un administrateur.';
-  if (data?.code === 'ACCOUNT_DISABLED') return 'Ce compte a été désactivé. Contactez un administrateur.';
-  if (data?.code === 'EMAIL_NOT_VERIFIED') return 'Veuillez confirmer votre adresse email avant de vous connecter. Vérifiez votre boîte mail (et les spams).';
-  if (resStatus === 401) return 'Email ou mot de passe invalide.';
-  return data?.error || 'Une erreur est survenue. Veuillez réessayer.';
+function errorMessage(resStatus, data, isEn) {
+  if (data?.code === 'ACCOUNT_PENDING') return isEn ? 'Your account is pending admin approval.' : 'Votre compte est en attente de validation par un administrateur.';
+  if (data?.code === 'ACCOUNT_REJECTED') return isEn ? 'Your account request was rejected. Contact an administrator.' : 'Votre demande de compte a été refusée. Contactez un administrateur.';
+  if (data?.code === 'ACCOUNT_DISABLED') return isEn ? 'This account has been disabled. Contact an administrator.' : 'Ce compte a été désactivé. Contactez un administrateur.';
+  if (data?.code === 'EMAIL_NOT_VERIFIED') return isEn ? 'Please verify your email before logging in. Check your inbox and spam folder.' : 'Veuillez confirmer votre adresse email avant de vous connecter. Vérifiez votre boîte mail (et les spams).';
+  if (resStatus === 401) return isEn ? 'Invalid email or password.' : 'Email ou mot de passe invalide.';
+  return data?.error || (isEn ? 'Something went wrong. Please try again.' : 'Une erreur est survenue. Veuillez réessayer.');
 }
 
 export default function LoginForm({ requestedSessionId = '' }) {
+  const { locale, withLocalePath } = useI18n();
+  const isEn = locale === 'en';
   const normalizedRequestedSessionId = useMemo(() => String(requestedSessionId || '').trim(), [requestedSessionId]);
   const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'false').toLowerCase() === 'true';
 
@@ -42,6 +45,7 @@ export default function LoginForm({ requestedSessionId = '' }) {
   const [resendStatus, setResendStatus] = useState('idle');
   const [resendMessage, setResendMessage] = useState('');
   const [oauthLoadingProvider, setOauthLoadingProvider] = useState('');
+  const [needsVerificationResend, setNeedsVerificationResend] = useState(false);
 
   useEffect(() => {
     const oauth = readOAuthCallbackFromLocation();
@@ -50,12 +54,12 @@ export default function LoginForm({ requestedSessionId = '' }) {
     clearOAuthCallbackParamsFromUrl();
 
     if (oauth.error) {
-      setMessage(oauth.errorDescription || 'Connexion sociale impossible. Veuillez réessayer.');
+      setMessage(oauth.errorDescription || (isEn ? 'Social login failed. Please try again.' : 'Connexion sociale impossible. Veuillez réessayer.'));
       return;
     }
 
     if (!oauth.token || !oauth.user) {
-      setMessage('Réponse OAuth invalide. Veuillez réessayer.');
+      setMessage(isEn ? 'Invalid OAuth response. Please try again.' : 'Réponse OAuth invalide. Veuillez réessayer.');
       return;
     }
 
@@ -77,16 +81,16 @@ export default function LoginForm({ requestedSessionId = '' }) {
     });
 
     const connectedUserId = resolveConnectedUserId(oauth.user);
-    const redirect = getRedirectPath(oauth.user.role, normalizedRequestedSessionId, connectedUserId);
+    const redirect = withLocalePath(getRedirectPath(oauth.user.role, normalizedRequestedSessionId, connectedUserId));
     window.location.href = redirect;
-  }, [normalizedRequestedSessionId]);
+  }, [isEn, normalizedRequestedSessionId, withLocalePath]);
 
   function startOAuth(provider) {
     const url = getOAuthStartUrl(provider, '/login');
     if (!url) {
       setMessage(provider === 'microsoft'
-        ? 'La connexion Microsoft sera disponible prochainement.'
-        : 'Configuration OAuth indisponible.');
+        ? (isEn ? 'Microsoft login will be available soon.' : 'La connexion Microsoft sera disponible prochainement.')
+        : (isEn ? 'OAuth configuration unavailable.' : 'Configuration OAuth indisponible.'));
       return;
     }
 
@@ -98,12 +102,13 @@ export default function LoginForm({ requestedSessionId = '' }) {
   async function onSubmit(event) {
     event.preventDefault();
     setMessage('');
+    setNeedsVerificationResend(false);
     setResendStatus('idle');
     setResendMessage('');
 
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) {
-      setMessage('Veuillez remplir tous les champs.');
+      setMessage(isEn ? 'Please fill in all fields.' : 'Veuillez remplir tous les champs.');
       return;
     }
 
@@ -117,7 +122,7 @@ export default function LoginForm({ requestedSessionId = '' }) {
         const user = data?.user || null;
 
         if (!token || !user) {
-          setMessage('Réponse de connexion invalide. Veuillez réessayer.');
+          setMessage(isEn ? 'Invalid login response. Please try again.' : 'Réponse de connexion invalide. Veuillez réessayer.');
           return;
         }
 
@@ -132,14 +137,15 @@ export default function LoginForm({ requestedSessionId = '' }) {
           sessionStorage.removeItem('targetSessionId');
         }
 
-        const redirect = getRedirectPath(user.role, normalizedRequestedSessionId, connectedUserId);
+        const redirect = withLocalePath(getRedirectPath(user.role, normalizedRequestedSessionId, connectedUserId));
         window.location.href = redirect;
         return;
       }
 
-      setMessage(errorMessage(response.status, data));
+      setNeedsVerificationResend(data?.code === 'EMAIL_NOT_VERIFIED');
+      setMessage(errorMessage(response.status, data, isEn));
     } catch {
-      setMessage('Impossible de contacter le serveur. Vérifiez votre connexion.');
+      setMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Vérifiez votre connexion.');
     } finally {
       setLoading(false);
     }
@@ -149,12 +155,12 @@ export default function LoginForm({ requestedSessionId = '' }) {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) {
       setResendStatus('error');
-      setResendMessage('Saisissez votre email pour renvoyer le lien.');
+      setResendMessage(isEn ? 'Enter your email to resend the link.' : 'Saisissez votre email pour renvoyer le lien.');
       return;
     }
 
     setResendStatus('sending');
-    setResendMessage('Envoi en cours...');
+    setResendMessage(isEn ? 'Sending...' : 'Envoi en cours...');
     try {
       const { res, data } = await resendVerification({
         email: normalizedEmail,
@@ -163,15 +169,15 @@ export default function LoginForm({ requestedSessionId = '' }) {
 
       if (res.ok && data?.success) {
         setResendStatus('done');
-        setResendMessage(data?.message || 'Un nouveau lien de verification a ete envoye.');
+        setResendMessage(data?.message || (isEn ? 'A new verification link has been sent.' : 'Un nouveau lien de verification a ete envoye.'));
         return;
       }
 
       setResendStatus('error');
-      setResendMessage(data?.message || data?.error || 'Impossible de renvoyer le lien pour le moment.');
+      setResendMessage(data?.message || data?.error || (isEn ? 'Unable to resend the link right now.' : 'Impossible de renvoyer le lien pour le moment.'));
     } catch {
       setResendStatus('error');
-      setResendMessage('Impossible de contacter le serveur. Verifiez votre connexion et reessayez.');
+      setResendMessage(isEn ? 'Unable to reach the server. Check your connection and try again.' : 'Impossible de contacter le serveur. Verifiez votre connexion et reessayez.');
     }
   }
 
@@ -179,24 +185,26 @@ export default function LoginForm({ requestedSessionId = '' }) {
     <main className="shell auth-page auth-page--split">
       <AuthShowcase
         title="Lancez des challenges collaboratifs en temps reel."
-        description="Retrouvez vos sessions, animez vos equipes et gardez une vision claire du realtime depuis une interface sobre, fluide et professionnelle."
+        description={isEn
+          ? 'Access your sessions, run your team activities, and keep clear real-time visibility from a clean professional interface.'
+          : 'Retrouvez vos sessions, animez vos equipes et gardez une vision claire du realtime depuis une interface sobre, fluide et professionnelle.'}
         highlights={[
-          { title: 'Realtime orchestration', text: 'Lancez une session, suivez les connexions et pilotez vos challenges sans friction.' },
-          { title: 'Aligned facilitation', text: 'Managers, RH et facilitateurs accedent a la meme experience produit, claire et premium.' },
-          { title: 'Reliable access', text: 'Connexion rapide, etats lisibles et parcours pensés pour des equipes hybrides.' },
+          { title: isEn ? 'Realtime orchestration' : 'Realtime orchestration', text: isEn ? 'Start a session, track connections, and run challenges without friction.' : 'Lancez une session, suivez les connexions et pilotez vos challenges sans friction.' },
+          { title: isEn ? 'Aligned facilitation' : 'Aligned facilitation', text: isEn ? 'Managers, HR, and facilitators share one clear premium product experience.' : 'Managers, RH et facilitateurs accedent a la meme experience produit, claire et premium.' },
+          { title: isEn ? 'Reliable access' : 'Reliable access', text: isEn ? 'Fast sign-in, clear states, and flows designed for hybrid teams.' : 'Connexion rapide, etats lisibles et parcours pensés pour des equipes hybrides.' },
         ]}
         stats={[
-          { value: 'Live', label: 'Sessions synchronisees' },
-          { value: 'Secure', label: 'Acces professionnel' },
-          { value: 'Fast', label: 'Onboarding fluide' },
+          { value: 'Live', label: isEn ? 'Synchronized sessions' : 'Sessions synchronisees' },
+          { value: 'Secure', label: isEn ? 'Professional access' : 'Acces professionnel' },
+          { value: 'Fast', label: isEn ? 'Smooth onboarding' : 'Onboarding fluide' },
         ]}
       />
 
       <div className="auth-login-pane">
         <AuthCard
-          title="Connexion à TeamBlender"
-          brand={<Link href="/" className="auth-card-brand-link" aria-label="Retour a l accueil TeamBlender"><Logo size="compact" /></Link>}
-          footer={<span>Pas encore de compte ? <Link href="/signup">Créer un compte</Link></span>}
+          title={isEn ? 'Log in to TeamBlender' : 'Connexion à TeamBlender'}
+          brand={<Link href={withLocalePath('/')} className="auth-card-brand-link" aria-label={isEn ? 'Back to TeamBlender home' : 'Retour a l accueil TeamBlender'}><Logo size="compact" /></Link>}
+          footer={<span>{isEn ? 'No account yet? ' : 'Pas encore de compte ? '}<Link href={withLocalePath('/signup')}>{isEn ? 'Create account' : 'Créer un compte'}</Link></span>}
         >
         <AuthSocialButtons
           loading={loading}
@@ -206,20 +214,20 @@ export default function LoginForm({ requestedSessionId = '' }) {
         />
 
         <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
-          <AuthField id="login-email" label="Email professionnel" icon={<Mail size={18} strokeWidth={1.9} />}>
+          <AuthField id="login-email" label={isEn ? 'Work email' : 'Email professionnel'} icon={<Mail size={18} strokeWidth={1.9} />}>
             <input
               id="login-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="vous@entreprise.com"
+              placeholder={isEn ? 'you@company.com' : 'vous@entreprise.com'}
               autoComplete="email"
-              aria-label="Email professionnel"
+              aria-label={isEn ? 'Work email' : 'Email professionnel'}
             />
           </AuthField>
 
-          <AuthField id="login-password" label="Mot de passe" icon={<LockKeyhole size={18} strokeWidth={1.9} />} className="auth-field--password">
+          <AuthField id="login-password" label={isEn ? 'Password' : 'Mot de passe'} icon={<LockKeyhole size={18} strokeWidth={1.9} />} className="auth-field--password">
             <div className="password-input-wrap">
               <input
                 id="login-password"
@@ -227,16 +235,16 @@ export default function LoginForm({ requestedSessionId = '' }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="Votre mot de passe"
+                placeholder={isEn ? 'Your password' : 'Votre mot de passe'}
                 autoComplete="current-password"
-                aria-label="Mot de passe"
+                aria-label={isEn ? 'Password' : 'Mot de passe'}
               />
               <button
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword((prev) => !prev)}
                 aria-controls="login-password"
-                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                aria-label={showPassword ? (isEn ? 'Hide password' : 'Masquer le mot de passe') : (isEn ? 'Show password' : 'Afficher le mot de passe')}
                 aria-pressed={showPassword}
               >
                 {showPassword ? <EyeOff size={18} strokeWidth={1.9} aria-hidden="true" /> : <Eye size={18} strokeWidth={1.9} aria-hidden="true" />}
@@ -245,12 +253,12 @@ export default function LoginForm({ requestedSessionId = '' }) {
           </AuthField>
 
           <button type="submit" className="btn-primary wide" disabled={loading}>
-            {loading ? 'Connexion...' : 'Se connecter'}
+            {loading ? (isEn ? 'Signing in...' : 'Connexion...') : (isEn ? 'Log in' : 'Se connecter')}
           </button>
 
           {message ? <p className="form-error">{message}</p> : null}
 
-          {message && message.includes('Veuillez confirmer votre adresse email') ? (
+          {needsVerificationResend ? (
             <>
               <button
                 type="button"
@@ -258,7 +266,7 @@ export default function LoginForm({ requestedSessionId = '' }) {
                 onClick={onResendVerification}
                 disabled={resendStatus === 'sending'}
               >
-                {resendStatus === 'sending' ? 'Envoi...' : 'Renvoyer le lien de verification'}
+                {resendStatus === 'sending' ? (isEn ? 'Sending...' : 'Envoi...') : (isEn ? 'Resend verification link' : 'Renvoyer le lien de verification')}
               </button>
               {resendStatus !== 'idle' ? (
                 <p className={resendStatus === 'error' ? 'form-error' : 'form-help'}>{resendMessage}</p>
@@ -267,7 +275,7 @@ export default function LoginForm({ requestedSessionId = '' }) {
           ) : null}
 
           <p style={{ textAlign: 'center', marginTop: '0.5rem' }}>
-            <Link href="/forgot-password" className="form-help">Mot de passe oublié ?</Link>
+            <Link href={withLocalePath('/forgot-password')} className="form-help">{isEn ? 'Forgot password?' : 'Mot de passe oublié ?'}</Link>
           </p>
         </form>
         </AuthCard>
