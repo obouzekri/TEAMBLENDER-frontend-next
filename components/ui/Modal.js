@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import styles from './Modal.module.css';
+import useI18n from '@/lib/i18n/useI18n';
 
 export default function Modal({
   open,
@@ -16,6 +17,9 @@ export default function Modal({
   closeClassName = '',
   bodyClassName = '',
 }) {
+  const { locale } = useI18n();
+  const closeLabel = locale === 'en' ? 'Close' : 'Fermer';
+
   useEffect(() => {
     if (!open) return undefined;
     function handleEscape(event) {
@@ -33,7 +37,7 @@ export default function Modal({
         {!hideHeader ? (
           <div className={[styles.header, headerClassName].filter(Boolean).join(' ')}>
             <h2 className={[styles.title, titleClassName].filter(Boolean).join(' ')}>{title}</h2>
-            <button type="button" className={[styles.close, closeClassName].filter(Boolean).join(' ')} aria-label="Fermer" onClick={onClose}>×</button>
+            <button type="button" className={[styles.close, closeClassName].filter(Boolean).join(' ')} aria-label={closeLabel} onClick={onClose}>×</button>
           </div>
         ) : null}
         <div className={bodyClassName || undefined}>

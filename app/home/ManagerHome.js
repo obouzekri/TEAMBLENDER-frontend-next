@@ -636,7 +636,7 @@ export default function ManagerHome() {
                   Getting started guide
                 </button>
                 {guard.user?.role === 'admin' && (
-                  <Link className="btn-secondary" href={withLocalePath('/admin')}>Console admin</Link>
+                  <Link className="btn-secondary" href={withLocalePath('/admin')}>Admin console</Link>
                 )}
               </div>
               {!canCreateSession ? (

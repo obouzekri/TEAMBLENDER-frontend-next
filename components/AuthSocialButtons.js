@@ -1,3 +1,5 @@
+import useI18n from '@/lib/i18n/useI18n';
+
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
@@ -17,7 +19,7 @@ function MicrosoftIcon() {
   );
 }
 
-function SocialButton({ label, provider, icon, busy, onClick, unavailable = false }) {
+function SocialButton({ label, provider, icon, busy, onClick, unavailable = false, unavailableLabel }) {
   function handleClick() {
     if (busy) return;
     onClick(provider, unavailable);
@@ -39,11 +41,11 @@ function SocialButton({ label, provider, icon, busy, onClick, unavailable = fals
       disabled={busy}
       aria-label={label}
       aria-disabled={unavailable ? 'true' : undefined}
-      title={unavailable ? 'Bientot disponible' : label}
+      title={unavailable ? unavailableLabel : label}
     >
       <span className="social-auth-icon">{icon}</span>
       <span className="social-auth-label">{label}</span>
-      {unavailable ? <span className="social-auth-pill" aria-label="Bientôt disponible">Bientôt</span> : null}
+      {unavailable ? <span className="social-auth-pill" aria-label={unavailableLabel}>{unavailableLabel}</span> : null}
     </button>
   );
 }
@@ -54,29 +56,42 @@ export default function AuthSocialButtons({
   onProviderClick,
   microsoftEnabled = false,
 }) {
+  const { locale } = useI18n();
+  const isEn = locale === 'en';
   const busy = loading || loadingProvider !== '';
+  const unavailableLabel = isEn ? 'Coming soon' : 'Bientot disponible';
+  const socialGroupLabel = isEn ? 'Social sign-ins' : 'Connexions sociales';
+  const continueWithEmail = isEn ? 'or continue with your email' : 'ou continuer avec votre email';
+  const googleLabel = loadingProvider === 'google'
+    ? (isEn ? 'Redirecting to Google...' : 'Redirection Google...')
+    : (isEn ? 'Continue with Google' : 'Continuer avec Google');
+  const microsoftLabel = loadingProvider === 'microsoft'
+    ? (isEn ? 'Redirecting to Microsoft...' : 'Redirection Microsoft...')
+    : (isEn ? 'Continue with Microsoft' : 'Continuer avec Microsoft');
 
   return (
     <div className="social-auth-stack">
-      <div className="social-auth-row" role="group" aria-label="Connexions sociales">
+      <div className="social-auth-row" role="group" aria-label={socialGroupLabel}>
         <SocialButton
-          label={loadingProvider === 'google' ? 'Redirection Google...' : 'Continuer avec Google'}
+          label={googleLabel}
           provider="google"
           icon={<GoogleIcon />}
           busy={busy}
           onClick={onProviderClick}
+          unavailableLabel={unavailableLabel}
         />
         <SocialButton
-          label={loadingProvider === 'microsoft' ? 'Redirection Microsoft...' : 'Continuer avec Microsoft'}
+          label={microsoftLabel}
           provider="microsoft"
           icon={<MicrosoftIcon />}
           busy={busy}
           onClick={onProviderClick}
           unavailable={!microsoftEnabled}
+          unavailableLabel={unavailableLabel}
         />
       </div>
-      <div className="social-auth-separator" role="separator" aria-label="ou continuer avec votre email">
-        <span>ou continuer avec votre email</span>
+      <div className="social-auth-separator" role="separator" aria-label={continueWithEmail}>
+        <span>{continueWithEmail}</span>
       </div>
     </div>
   );
