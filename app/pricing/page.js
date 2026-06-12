@@ -6,6 +6,7 @@ import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 import { startBillingCheckout } from '@/lib/account';
+import useI18n from '@/lib/i18n/useI18n';
 
 const CURRENCY_SYMBOLS = {
   EUR: '€',
@@ -16,11 +17,11 @@ const CURRENCY_SYMBOLS = {
 
 const SUPPORTED_CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF'];
 
-function formatPriceCents(priceCents, currency) {
+function formatPriceCents(priceCents, currency, locale = 'fr') {
   const amount = Number(priceCents || 0) / 100;
   const currencyCode = String(currency || 'EUR').toUpperCase();
   try {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
       style: 'currency',
       currency: currencyCode,
       minimumFractionDigits: 0,
@@ -32,6 +33,8 @@ function formatPriceCents(priceCents, currency) {
 }
 
 export default function PricingPage() {
+  const { locale, withLocalePath } = useI18n();
+  const isEn = locale === 'en';
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -46,19 +49,19 @@ export default function PricingPage() {
         const response = await fetch(getApiUrl('/pricing-plans'));
         const payload = await response.json().catch(() => []);
         if (!response.ok) {
-          throw new Error('Impossible de charger la tarification.');
+          throw new Error(isEn ? 'Unable to load pricing.' : 'Impossible de charger la tarification.');
         }
         const list = Array.isArray(payload) ? payload : [];
         setPlans(list);
       } catch (err) {
-        setError(err.message || 'Erreur de chargement de la tarification.');
+        setError(err.message || (isEn ? 'Pricing load error.' : 'Erreur de chargement de la tarification.'));
       } finally {
         setLoading(false);
       }
     }
 
     loadPlans();
-  }, []);
+  }, [isEn]);
 
   const sortedPlans = useMemo(() => {
     return [...plans].sort((a, b) => {
@@ -99,7 +102,7 @@ export default function PricingPage() {
       : '';
 
     if (!token) {
-      window.location.assign(`/login?next=${encodeURIComponent('/pricing')}`);
+      window.location.assign(withLocalePath(`/login?next=${encodeURIComponent('/pricing')}`));
       return;
     }
 
@@ -120,13 +123,13 @@ export default function PricingPage() {
       }
 
       if (response?.mode === 'manual_pro_request') {
-        window.location.assign(`/account?source=pricing&billing=manual&reference=${encodeURIComponent(String(response?.reference || ''))}`);
+        window.location.assign(withLocalePath(`/account?source=pricing&billing=manual&reference=${encodeURIComponent(String(response?.reference || ''))}`));
         return;
       }
 
-      throw new Error('Le paiement PayPal est temporairement indisponible.');
+      throw new Error(isEn ? 'PayPal checkout is temporarily unavailable.' : 'Le paiement PayPal est temporairement indisponible.');
     } catch (err) {
-      setError(err.message || 'Paiement PayPal impossible pour le moment.');
+      setError(err.message || (isEn ? 'PayPal payment is currently unavailable.' : 'Paiement PayPal impossible pour le moment.'));
     } finally {
       setCheckoutPlanId('');
     }
@@ -137,11 +140,12 @@ export default function PricingPage() {
       <TopNav />
       <main className="shell pricing-page">
         <section className="pricing-hero feature-card reveal-up" aria-label="Tarification TeamBlender">
-          <p className="eyebrow">Tarification</p>
-          <h1>Des formules simples pour faire grandir vos sessions d'équipe.</h1>
+          <p className="eyebrow">{isEn ? 'Pricing' : 'Tarification'}</p>
+          <h1>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
           <p>
-            Commencez avec une offre légère, puis montez en puissance avec plus de capacités,
-            d'accompagnement et de personnalisation.
+            {isEn
+              ? 'Start light, then scale with more capabilities, support, and customization.'
+              : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
           </p>
         </section>
 
@@ -150,25 +154,25 @@ export default function PricingPage() {
           <section className="pricing-controls feature-card reveal-up" aria-label="Options d'affichage">
             <div className="controls-group">
               <div className="control-section">
-                <label>Fréquence de facturation</label>
+                <label>{isEn ? 'Billing cycle' : 'Fréquence de facturation'}</label>
                 <div className="toggle-group">
                   <button
                     className={`toggle-btn ${selectedBilling === 'monthly' ? 'active' : ''}`}
                     onClick={() => setSelectedBilling('monthly')}
                   >
-                    Mensuel
+                    {isEn ? 'Monthly' : 'Mensuel'}
                   </button>
                   <button
                     className={`toggle-btn ${selectedBilling === 'annual' ? 'active' : ''}`}
                     onClick={() => setSelectedBilling('annual')}
                   >
-                    Annuel
+                    {isEn ? 'Yearly' : 'Annuel'}
                   </button>
                 </div>
               </div>
 
               <div className="control-section">
-                <label htmlFor="currency-select">Devise</label>
+                <label htmlFor="currency-select">{isEn ? 'Currency' : 'Devise'}</label>
                 <select
                   id="currency-select"
                   value={selectedCurrency}
@@ -188,7 +192,7 @@ export default function PricingPage() {
 
         {loading ? (
           <section className="feature-card" aria-label="Chargement des formules">
-            <p>Chargement des formules en cours...</p>
+            <p>{isEn ? 'Loading plans...' : 'Chargement des formules en cours...'}</p>
           </section>
         ) : null}
 
@@ -201,13 +205,15 @@ export default function PricingPage() {
         {!loading && !error && sortedPlans.length === 0 ? (
           <section className="pricing-empty reveal-up" aria-label="Aucune formule">
             <div className="pricing-empty-icon">💬</div>
-            <h2>Formules en cours de finalisation</h2>
+            <h2>{isEn ? 'Plans are being finalized' : 'Formules en cours de finalisation'}</h2>
             <p>
-              Notre équipe prépare les offres. Contactez-nous pour recevoir une proposition adaptée à votre contexte.
+              {isEn
+                ? 'Our team is preparing the offers. Contact us for a proposal adapted to your context.'
+                : 'Notre équipe prépare les offres. Contactez-nous pour recevoir une proposition adaptée à votre contexte.'}
             </p>
             <div className="hero-actions">
-              <Link href="/contact" className="btn-primary">Demander une proposition</Link>
-              <Link href="/signup" className="btn-secondary">Créer un compte</Link>
+              <Link href={withLocalePath('/contact')} className="btn-primary">{isEn ? 'Request a proposal' : 'Demander une proposition'}</Link>
+              <Link href={withLocalePath('/signup')} className="btn-secondary">{isEn ? 'Create account' : 'Créer un compte'}</Link>
             </div>
           </section>
         ) : null}
@@ -217,20 +223,20 @@ export default function PricingPage() {
             {displayedPlans.map((plan) => (
               <article key={String(plan.id)} className={`feature-card pricing-card${plan.highlighted ? ' pricing-card-featured' : ''}`}>
                 <div className="pricing-card-top">
-                  {plan.highlighted ? <span className="pricing-badge">Recommandé</span> : null}
+                  {plan.highlighted ? <span className="pricing-badge">{isEn ? 'Recommended' : 'Recommandé'}</span> : null}
                   {plan.discountPercentage > 0 && (selectedBilling === 'annual' || selectedBilling === 'yearly') ? (
-                    <span className="pricing-discount-badge">Économisez {plan.discountPercentage}%</span>
+                    <span className="pricing-discount-badge">{isEn ? `Save ${plan.discountPercentage}%` : `Économisez ${plan.discountPercentage}%`}</span>
                   ) : null}
                   <p className="eyebrow">{plan.name}</p>
                 </div>
 
                 <h2 className="pricing-price">
-                  {formatPriceCents(plan.displayPriceCents, selectedCurrency)}
-                  <span>{selectedBilling === 'annual' ? '/an' : '/mois'}</span>
+                  {formatPriceCents(plan.displayPriceCents, selectedCurrency, locale)}
+                  <span>{selectedBilling === 'annual' ? (isEn ? '/year' : '/an') : (isEn ? '/month' : '/mois')}</span>
                 </h2>
                 {plan.originalPriceCents ? (
                   <p className="pricing-original">
-                    <s>{formatPriceCents(plan.originalPriceCents, selectedCurrency)}</s>
+                    <s>{formatPriceCents(plan.originalPriceCents, selectedCurrency, locale)}</s>
                   </p>
                 ) : null}
                 {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
@@ -244,10 +250,10 @@ export default function PricingPage() {
                 ) : null}
 
                 <div className="pricing-meta-row">
-                  {plan.max_users ? <span>{plan.max_users} utilisateurs max</span> : null}
-                  {plan.max_sessions_per_month ? <span>{plan.max_sessions_per_month} sessions / mois</span> : null}
-                  {plan.trial_days ? <span>{plan.trial_days} jours d'essai</span> : null}
-                  {plan.support_level ? <span>Support {plan.support_level}</span> : null}
+                  {plan.max_users ? <span>{plan.max_users} {isEn ? 'max users' : 'utilisateurs max'}</span> : null}
+                  {plan.max_sessions_per_month ? <span>{plan.max_sessions_per_month} {isEn ? 'sessions / month' : 'sessions / mois'}</span> : null}
+                  {plan.trial_days ? <span>{plan.trial_days} {isEn ? 'trial days' : 'jours d\'essai'}</span> : null}
+                  {plan.support_level ? <span>{isEn ? 'Support' : 'Support'} {plan.support_level}</span> : null}
                 </div>
 
                 <div className="hero-actions pricing-actions">
@@ -257,9 +263,9 @@ export default function PricingPage() {
                     onClick={() => handlePaypalCheckout(plan)}
                     disabled={checkoutPlanId === String(plan.id)}
                   >
-                    {checkoutPlanId === String(plan.id) ? 'Ouverture de PayPal...' : 'Payer avec PayPal'}
+                    {checkoutPlanId === String(plan.id) ? (isEn ? 'Opening PayPal...' : 'Ouverture de PayPal...') : (isEn ? 'Pay with PayPal' : 'Payer avec PayPal')}
                   </button>
-                  <Link href="/contact" className="btn-secondary">Parler à l'équipe</Link>
+                  <Link href={withLocalePath('/contact')} className="btn-secondary">{isEn ? 'Talk to the team' : 'Parler à l\'équipe'}</Link>
                 </div>
               </article>
             ))}
@@ -268,8 +274,8 @@ export default function PricingPage() {
 
         {!loading && !error && sortedPlans.length > 0 ? (
           <section className="pricing-footer-cta feature-card reveal-up">
-            <p>Une question sur les formules ?</p>
-            <Link href="/contact" className="btn-secondary">Contacter l'équipe</Link>
+            <p>{isEn ? 'Any question about plans?' : 'Une question sur les formules ?'}</p>
+            <Link href={withLocalePath('/contact')} className="btn-secondary">{isEn ? 'Contact the team' : 'Contacter l\'équipe'}</Link>
           </section>
         ) : null}
       </main>

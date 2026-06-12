@@ -29,8 +29,10 @@ import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import { trackGaEvent } from '@/lib/analytics';
 import { getApiUrl } from '@/lib/config';
+import useI18n from '@/lib/i18n/useI18n';
 
-const DEFAULT_BLOCKS = {
+const DEFAULT_BLOCKS_BY_LOCALE = {
+  fr: {
   impact_1: {},
   impact_2: {},
   impact_3: {},
@@ -100,7 +102,252 @@ const DEFAULT_BLOCKS = {
     cta_label: 'Se connecter',
     cta_href: '/login',
   },
+  },
+  en: {
+    impact_1: {},
+    impact_2: {},
+    impact_3: {},
+    partners_header: {
+      label: '',
+      title: 'Building cohesion should not be complex, expensive, or hard to deploy.',
+      description: 'Yet this is often what traditional team formats create.',
+    },
+    partner_1: {
+      title: 'HR & Talent',
+    },
+    partner_2: {
+      title: 'Managers',
+    },
+    partner_3: {
+      title: 'Facilitation',
+    },
+    partner_4: {
+      title: 'Onboarding',
+    },
+    partner_5: {
+      title: 'Learning',
+    },
+    partner_6: {
+      title: 'Coaching',
+    },
+    testimonials_header: {
+      label: 'Testimonials',
+      title: 'Real-world feedback remains the strongest signal.',
+      description: 'Short, useful and concrete testimonials to project quickly.',
+    },
+    testimonial_1: {
+      title: 'Sarah Benali',
+      subtitle: 'HR Lead, Tech SMB',
+      description: 'A structured format, easy to deploy, and truly useful for our teams.',
+    },
+    testimonial_2: {
+      title: 'Thomas Leroux',
+      subtitle: 'Head of People, SaaS scale-up',
+      description: 'We saved time on facilitation and, most importantly, on debriefing. Results are immediately actionable.',
+    },
+    testimonial_3: {
+      title: 'Nadia Costa',
+      subtitle: 'Operations Manager, multi-site group',
+      description: 'Finally a format that works both on-site and remote, with no friction for participants.',
+    },
+    flow_header: {
+      label: 'Process',
+      title: 'Three steps. Zero complexity.',
+    },
+    flow_step_1: {
+      badge_text: '01',
+      title: 'Frame the objective',
+      description: 'Define the intent of your session.',
+    },
+    flow_step_2: {
+      badge_text: '02',
+      title: 'Run live',
+      description: 'Launch and facilitate your session with confidence.',
+    },
+    flow_step_3: {
+      badge_text: '03',
+      title: 'Use outcomes',
+      description: 'Debrief and activate insights quickly.',
+    },
+    final_cta_secondary: {
+      cta_label: 'Log in',
+      cta_href: '/login',
+    },
+  }
 };
+
+const LANDING_STATIC_BY_LOCALE = {
+  fr: {
+    trustProofMetrics: [
+      {
+        value: '✅ +150 équipes accompagnées',
+        label: 'Grands groupes, startups, PME et équipes RH',
+        detail: 'Déploiements en contexte réel avec des équipes hybrides.',
+      },
+      {
+        value: '✅ 3× plus rapide',
+        label: 'Créez une session en quelques minutes',
+        detail: 'Préparation simple, animation guidée, restitution immédiate.',
+      },
+      {
+        value: '✅ Hybride par nature',
+        label: 'Challenges pour équipes sur site, à distance ou multi-sites',
+        detail: 'Une expérience fluide quel que soit le format d’organisation.',
+      },
+    ],
+    platformStatement: {
+      title: 'TeamBlender est la plateforme B2B pour concevoir, piloter et industrialiser des expériences de team building hybrides.',
+      description:
+        'Pensée pour les managers et les équipes RH, elle permet de déployer des expériences simples à organiser, engageantes pour les équipes et mesurables dans leurs résultats.',
+    },
+    platformOfferItems: [
+      { icon: Rocket, label: 'Créer une session en quelques clics' },
+      { icon: Users, label: 'Inviter et assigner vos équipes' },
+      { icon: Target, label: 'Lancer des défis collaboratifs engageants' },
+      { icon: PlayCircle, label: 'Animer en temps réel' },
+      { icon: Gauge, label: 'Suivre la progression en live' },
+      { icon: BarChart3, label: 'Exploiter les résultats post-session' },
+    ],
+    platformValuesItems: [
+      { icon: CheckCircle2, label: 'Déploiement rapide sans friction' },
+      { icon: Sparkles, label: 'Expérience fluide pour tous les participants' },
+      { icon: Layers, label: 'Formats standardisés et réutilisables' },
+      { icon: Shield, label: 'Gouvernance claire des sessions et résultats' },
+      { icon: Building2, label: 'Passage à l’échelle multi-équipes' },
+    ],
+    platformBenefitsItems: [
+      { icon: Handshake, label: 'Cohésion renforcée dans les équipes hybrides' },
+      { icon: MessageCircle, label: 'Meilleure communication et collaboration' },
+      { icon: ClipboardList, label: 'Gain de temps pour RH et managers' },
+      { icon: GraduationCap, label: 'Accélération de l’onboarding' },
+      { icon: Sparkles, label: 'Expérience employeur modernisée' },
+    ],
+    useCases: [
+      'Programmes de cohésion managériale',
+      'Onboarding collaborateurs',
+      'Alignement multi-sites',
+      'Événements RH',
+    ],
+    fallback: {
+      heroTitle: 'Créez des ateliers de cohesion gamifies en quelques minutes.',
+      heroTitleStructured: 'Créez des expériences collaboratives gamifiées à fort impact, en quelques minutes.',
+      heroDescription: 'Le produit aide les equipes a transformer leurs interactions en decisions et alignement.',
+      heroDescriptionStructured: 'TeamBlender renforce la cohésion des équipes hybrides à travers des challenges en temps réel engageants et mesurables.',
+      heroPrimaryLabel: 'Démarrer gratuitement',
+      heroSecondaryLabel: 'Voir les offres',
+      finalPrimaryLabel: 'Démarrer gratuitement',
+      finalSecondaryLabel: 'Demander une démo',
+      keyline: 'Préparez, animez et analysez vos sessions sans friction opérationnelle.',
+      liveSignals: {
+        label: 'Signaux en direct',
+        timer: 'Chrono en direct',
+        chat: 'Chat et coordination d’équipe',
+        progress: 'Progression collaborative instantanée',
+      },
+      productPreview: 'Product preview',
+      liveExperience: 'Expérience live collaborative',
+      liveLabel: 'En direct',
+      platformEyebrow: 'Plateforme',
+      platformOfferTitle: 'Ce que la plateforme offre',
+      valuesEyebrow: 'Valeurs',
+      valuesTitle: 'Des fondations pensées pour le passage à l’échelle',
+      benefitsEyebrow: 'Bénéfices',
+      benefitsTitle: 'Des résultats visibles pour les équipes et les managers',
+      finalCtaEyebrow: 'CTA Final',
+      finalCtaTitle: 'Prêt à structurer vos temps d’équipe ?',
+      finalCtaDescription: 'Découvrez TeamBlender et lancez votre premier format pilote en quelques minutes.',
+    },
+  },
+  en: {
+    trustProofMetrics: [
+      {
+        value: '✅ 150+ teams supported',
+        label: 'Enterprise, scale-ups, SMBs and HR teams',
+        detail: 'Deployments in real-world hybrid team contexts.',
+      },
+      {
+        value: '✅ 3× faster setup',
+        label: 'Create a session in minutes',
+        detail: 'Simple setup, guided facilitation, instant recap.',
+      },
+      {
+        value: '✅ Hybrid by design',
+        label: 'Challenges for on-site, remote and multi-site teams',
+        detail: 'A smooth experience regardless of work format.',
+      },
+    ],
+    platformStatement: {
+      title: 'TeamBlender is the B2B platform to design, run and scale hybrid team-building experiences.',
+      description:
+        'Built for managers and HR teams, it delivers sessions that are easy to run, engaging for teams, and measurable in outcomes.',
+    },
+    platformOfferItems: [
+      { icon: Rocket, label: 'Create a session in a few clicks' },
+      { icon: Users, label: 'Invite and assign your teams' },
+      { icon: Target, label: 'Launch engaging collaborative challenges' },
+      { icon: PlayCircle, label: 'Facilitate in real time' },
+      { icon: Gauge, label: 'Track live progression' },
+      { icon: BarChart3, label: 'Use post-session insights' },
+    ],
+    platformValuesItems: [
+      { icon: CheckCircle2, label: 'Fast rollout with low friction' },
+      { icon: Sparkles, label: 'Smooth participant experience' },
+      { icon: Layers, label: 'Standardized and reusable formats' },
+      { icon: Shield, label: 'Clear governance of sessions and outcomes' },
+      { icon: Building2, label: 'Scales across multiple teams' },
+    ],
+    platformBenefitsItems: [
+      { icon: Handshake, label: 'Stronger cohesion in hybrid teams' },
+      { icon: MessageCircle, label: 'Better communication and collaboration' },
+      { icon: ClipboardList, label: 'Time saved for HR and managers' },
+      { icon: GraduationCap, label: 'Faster onboarding' },
+      { icon: Sparkles, label: 'Modernized employee experience' },
+    ],
+    useCases: [
+      'Manager cohesion programs',
+      'Employee onboarding',
+      'Multi-site alignment',
+      'HR events',
+    ],
+    fallback: {
+      heroTitle: 'Build high-impact collaborative sessions in minutes.',
+      heroTitleStructured: 'Build high-impact collaborative sessions in minutes.',
+      heroDescription: 'The platform helps teams turn interactions into decisions and alignment.',
+      heroDescriptionStructured: 'TeamBlender strengthens hybrid team cohesion through engaging, measurable real-time challenges.',
+      heroPrimaryLabel: 'Get started free',
+      heroSecondaryLabel: 'View plans',
+      finalPrimaryLabel: 'Get started free',
+      finalSecondaryLabel: 'Request a demo',
+      keyline: 'Prepare, facilitate and analyze sessions without operational friction.',
+      liveSignals: {
+        label: 'Live signals',
+        timer: 'Live timer',
+        chat: 'Team chat and coordination',
+        progress: 'Instant collaborative progression',
+      },
+      productPreview: 'Product preview',
+      liveExperience: 'Live collaborative experience',
+      liveLabel: 'Live',
+      platformEyebrow: 'Platform',
+      platformOfferTitle: 'What the platform offers',
+      valuesEyebrow: 'Values',
+      valuesTitle: 'Foundations designed for scale',
+      benefitsEyebrow: 'Benefits',
+      benefitsTitle: 'Visible outcomes for teams and managers',
+      finalCtaEyebrow: 'Final CTA',
+      finalCtaTitle: 'Ready to structure your team sessions?',
+      finalCtaDescription: 'Discover TeamBlender and launch your first pilot format in minutes.',
+    },
+  },
+};
+
+function getLocaleDefaultBlocks(locale) {
+  return DEFAULT_BLOCKS_BY_LOCALE[locale] || DEFAULT_BLOCKS_BY_LOCALE.fr;
+}
+
+function getLandingStatic(locale) {
+  return LANDING_STATIC_BY_LOCALE[locale] || LANDING_STATIC_BY_LOCALE.fr;
+}
 
 const CMS_BASELINE_COMPLETE_KEYS = new Set([
   'hero_main',
@@ -203,9 +450,9 @@ function mapByKey(items) {
   return out;
 }
 
-function mergeBlock(key, dynamicBlocks) {
+function mergeBlock(key, dynamicBlocks, defaultBlocks) {
   return {
-    ...(DEFAULT_BLOCKS[key] || {}),
+    ...(defaultBlocks[key] || {}),
     ...(dynamicBlocks[key] || {}),
   };
 }
@@ -217,7 +464,7 @@ function isCmsBlockComplete(key, dynamicBlocks) {
   return requiredFields.every((field) => hasCmsValue(block[field]));
 }
 
-function buildSectionBlocks(sectionKeys, dynamicBlocks) {
+function buildSectionBlocks(sectionKeys, dynamicBlocks, defaultBlocks) {
   const sectionFullyCovered = sectionKeys.every((key) => isCmsBlockComplete(key, dynamicBlocks));
   const blocks = {};
 
@@ -225,7 +472,7 @@ function buildSectionBlocks(sectionKeys, dynamicBlocks) {
     const keyCoveredInBaseline = CMS_BASELINE_COMPLETE_KEYS.has(key) && isCmsBlockComplete(key, dynamicBlocks);
     blocks[key] = (sectionFullyCovered || keyCoveredInBaseline)
       ? (dynamicBlocks[key] || {})
-      : mergeBlock(key, dynamicBlocks);
+      : mergeBlock(key, dynamicBlocks, defaultBlocks);
   });
 
   return {
@@ -238,12 +485,14 @@ function safeHref(value, fallback = '/') {
   return hasCmsValue(value) ? value : fallback;
 }
 
-function normalizeCohesionCopy(value, fallback = '') {
+function normalizeCohesionCopy(value, fallback = '', locale = 'fr') {
   const input = String(value || '').trim();
   const source = input || fallback;
   if (!source) return '';
 
   const collapsed = source.replace(/\s+/g, ' ').trim();
+  if (locale === 'en') return collapsed;
+
   const low = collapsed.toLowerCase();
 
   if (low === 'créez des ateliers collaboratifs gamifiés en quelques minutes.') {
@@ -361,6 +610,9 @@ function TrustProofCard({ value, label, detail }) {
 }
 
 export default function HomePage() {
+  const { locale, withLocalePath } = useI18n();
+  const defaultBlocks = useMemo(() => getLocaleDefaultBlocks(locale), [locale]);
+  const landingStatic = useMemo(() => getLandingStatic(locale), [locale]);
   const [dynamicBlocks, setDynamicBlocks] = useState({});
   const [landingLoaded, setLandingLoaded] = useState(false);
   const isLandingCmsStrict = process.env.NEXT_PUBLIC_LANDING_CMS_STRICT === 'true';
@@ -368,7 +620,7 @@ export default function HomePage() {
   function handlePrimaryCtaClick() {
     trackGaEvent('cta_click', {
       cta_name: 'hero_primary',
-      cta_label: String(heroCtaPrimary.cta_label || 'Démarrer gratuitement').trim(),
+      cta_label: String(heroCtaPrimary.cta_label || landingStatic.fallback.heroPrimaryLabel).trim(),
       cta_destination: safeHref(heroCtaPrimary.cta_href, '/signup'),
       page_location: typeof window !== 'undefined' ? window.location.href : undefined,
     });
@@ -377,7 +629,7 @@ export default function HomePage() {
   function handleHeroSecondaryCtaClick() {
     trackGaEvent('cta_click', {
       cta_name: 'hero_secondary',
-      cta_label: String(heroCtaSecondary.cta_label || 'Voir les offres').trim(),
+      cta_label: String(heroCtaSecondary.cta_label || landingStatic.fallback.heroSecondaryLabel).trim(),
       cta_destination: safeHref(heroCtaSecondary.cta_href, '/pricing'),
       page_location: typeof window !== 'undefined' ? window.location.href : undefined,
     });
@@ -386,7 +638,7 @@ export default function HomePage() {
   function handleFinalSecondaryCtaClick() {
     trackGaEvent('cta_click', {
       cta_name: 'final_secondary',
-      cta_label: String(finalCtaSecondary.cta_label || 'Demander une démo').trim(),
+      cta_label: String(finalCtaSecondary.cta_label || landingStatic.fallback.finalSecondaryLabel).trim(),
       cta_destination: safeHref(finalCtaSecondary.cta_href, '/contact'),
       page_location: typeof window !== 'undefined' ? window.location.href : undefined,
     });
@@ -396,7 +648,7 @@ export default function HomePage() {
     let cancelled = false;
     async function loadLandingContent() {
       try {
-        const res = await fetch(getApiUrl('/landing-content'));
+        const res = await fetch(getApiUrl(`/landing-content?locale=${encodeURIComponent(locale)}`));
         const payload = await res.json().catch(() => []);
         if (!res.ok) return;
         if (!cancelled) {
@@ -415,7 +667,7 @@ export default function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   const heroSection = useMemo(
     () => buildSectionBlocks([
@@ -428,23 +680,23 @@ export default function HomePage() {
       'hero_trust_3',
       'hero_image_a',
       'hero_image_b',
-    ], dynamicBlocks),
-    [dynamicBlocks]
+    ], dynamicBlocks, defaultBlocks),
+    [defaultBlocks, dynamicBlocks]
   );
 
   const impactSection = useMemo(
-    () => buildSectionBlocks(['impact_1', 'impact_2', 'impact_3'], dynamicBlocks),
-    [dynamicBlocks]
+    () => buildSectionBlocks(['impact_1', 'impact_2', 'impact_3'], dynamicBlocks, defaultBlocks),
+    [defaultBlocks, dynamicBlocks]
   );
 
   const flowSection = useMemo(
-    () => buildSectionBlocks(['flow_header', 'flow_step_1', 'flow_step_2', 'flow_step_3'], dynamicBlocks),
-    [dynamicBlocks]
+    () => buildSectionBlocks(['flow_header', 'flow_step_1', 'flow_step_2', 'flow_step_3'], dynamicBlocks, defaultBlocks),
+    [defaultBlocks, dynamicBlocks]
   );
 
   const finalCtaSection = useMemo(
-    () => buildSectionBlocks(['final_cta', 'final_cta_secondary'], dynamicBlocks),
-    [dynamicBlocks]
+    () => buildSectionBlocks(['final_cta', 'final_cta_secondary'], dynamicBlocks, defaultBlocks),
+    [defaultBlocks, dynamicBlocks]
   );
 
   const partnersSection = useMemo(
@@ -456,8 +708,8 @@ export default function HomePage() {
       'partner_4',
       'partner_5',
       'partner_6',
-    ], dynamicBlocks),
-    [dynamicBlocks]
+    ], dynamicBlocks, defaultBlocks),
+    [defaultBlocks, dynamicBlocks]
   );
 
   const testimonialsSection = useMemo(
@@ -466,8 +718,8 @@ export default function HomePage() {
       'testimonial_1',
       'testimonial_2',
       'testimonial_3',
-    ], dynamicBlocks),
-    [dynamicBlocks]
+    ], dynamicBlocks, defaultBlocks),
+    [defaultBlocks, dynamicBlocks]
   );
 
   const heroMain = heroSection.blocks.hero_main || {};
@@ -481,19 +733,20 @@ export default function HomePage() {
   const finalCtaSecondary = finalCtaSection.blocks.final_cta_secondary || {};
   const partnersHeader = partnersSection.blocks.partners_header || {};
   const testimonialsHeader = testimonialsSection.blocks.testimonials_header || {};
-  const heroTitle = normalizeCohesionCopy(heroMain.title, 'Créez des ateliers de cohesion gamifies en quelques minutes.');
+  const heroTitle = normalizeCohesionCopy(heroMain.title, landingStatic.fallback.heroTitle, locale);
   const heroDescription = normalizeCohesionCopy(
     heroMain.description,
-    'Le produit aide les equipes a transformer leurs interactions en decisions et alignement.'
+    landingStatic.fallback.heroDescription,
+    locale
   );
-  const heroPrimaryLabel = hasCmsValue(heroCtaPrimary.cta_label) ? heroCtaPrimary.cta_label : 'Démarrer gratuitement';
-  const heroPrimaryHref = safeHref(heroCtaPrimary.cta_href, '/signup');
-  const heroSecondaryLabel = hasCmsValue(heroCtaSecondary.cta_label) ? heroCtaSecondary.cta_label : 'Voir les offres';
-  const heroSecondaryHref = safeHref(heroCtaSecondary.cta_href, '/pricing');
-  const finalPrimaryLabel = hasCmsValue(finalCta.cta_label) ? finalCta.cta_label : 'Démarrer gratuitement';
-  const finalPrimaryHref = safeHref(finalCta.cta_href, '/signup');
-  const finalSecondaryLabel = hasCmsValue(finalCtaSecondary.cta_label) ? finalCtaSecondary.cta_label : 'Demander une démo';
-  const finalSecondaryHref = safeHref(finalCtaSecondary.cta_href, '/contact');
+  const heroPrimaryLabel = hasCmsValue(heroCtaPrimary.cta_label) ? heroCtaPrimary.cta_label : landingStatic.fallback.heroPrimaryLabel;
+  const heroPrimaryHref = withLocalePath(safeHref(heroCtaPrimary.cta_href, '/signup'));
+  const heroSecondaryLabel = hasCmsValue(heroCtaSecondary.cta_label) ? heroCtaSecondary.cta_label : landingStatic.fallback.heroSecondaryLabel;
+  const heroSecondaryHref = withLocalePath(safeHref(heroCtaSecondary.cta_href, '/pricing'));
+  const finalPrimaryLabel = hasCmsValue(finalCta.cta_label) ? finalCta.cta_label : landingStatic.fallback.finalPrimaryLabel;
+  const finalPrimaryHref = withLocalePath(safeHref(finalCta.cta_href, '/signup'));
+  const finalSecondaryLabel = hasCmsValue(finalCtaSecondary.cta_label) ? finalCtaSecondary.cta_label : landingStatic.fallback.finalSecondaryLabel;
+  const finalSecondaryHref = withLocalePath(safeHref(finalCtaSecondary.cta_href, '/contact'));
 
   const heroTrustItems = useMemo(
     () => ['hero_trust_1', 'hero_trust_2', 'hero_trust_3']
@@ -502,8 +755,8 @@ export default function HomePage() {
     [heroSection]
   );
 
-  const structuredHeroTitle = heroTitle === 'Créez des ateliers de cohesion gamifies en quelques minutes.'
-    ? 'Créez des expériences collaboratives gamifiées à fort impact, en quelques minutes.'
+  const structuredHeroTitle = heroTitle === landingStatic.fallback.heroTitle
+    ? landingStatic.fallback.heroTitleStructured
     : heroTitle;
 
   const impactItems = useMemo(
@@ -552,6 +805,12 @@ export default function HomePage() {
   );
 
   const cmsAudit = useMemo(() => buildLandingCmsAudit(dynamicBlocks), [dynamicBlocks]);
+  const TRUST_PROOF_METRICS = landingStatic.trustProofMetrics;
+  const PLATFORM_STATEMENT = landingStatic.platformStatement;
+  const PLATFORM_OFFER_ITEMS = landingStatic.platformOfferItems;
+  const PLATFORM_VALUES_ITEMS = landingStatic.platformValuesItems;
+  const PLATFORM_BENEFITS_ITEMS = landingStatic.platformBenefitsItems;
+  const USE_CASES = landingStatic.useCases;
   const glassCardClass = 'rounded-3xl border border-white/60 bg-white/75 shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl';
   const pillClass = 'inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition-all duration-200 ease-in-out';
   const chipClass = 'inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-md transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md';
@@ -581,18 +840,20 @@ export default function HomePage() {
         {isLandingCmsStrict && landingLoaded && (cmsAudit.missingKeys.length > 0 || cmsAudit.missingFields.length > 0) ? (
           <section className="feature-card" aria-label="Audit Landing CMS" style={{ borderColor: '#f59e0b', background: 'linear-gradient(180deg, #fff7ed 0%, #fff 100%)' }}>
             <p className="eyebrow" style={{ color: '#9a3412' }}>Audit CMS Strict</p>
-            <h2 style={{ marginTop: 0 }}>Couverture CMS incomplete</h2>
+            <h2 style={{ marginTop: 0 }}>{locale === 'en' ? 'Incomplete CMS coverage' : 'Couverture CMS incomplete'}</h2>
             <p style={{ marginBottom: '0.4rem' }}>
-              Completer les `block_key` manquants avant suppression des defaults locaux.
+              {locale === 'en'
+                ? 'Complete missing block keys before removing local defaults.'
+                : 'Completer les block_key manquants avant suppression des defaults locaux.'}
             </p>
             {cmsAudit.missingKeys.length > 0 ? (
               <p className="session-meta" style={{ margin: '0.2rem 0' }}>
-                Cles manquantes: {cmsAudit.missingKeys.join(', ')}
+                {locale === 'en' ? 'Missing keys:' : 'Cles manquantes:'} {cmsAudit.missingKeys.join(', ')}
               </p>
             ) : null}
             {cmsAudit.missingFields.length > 0 ? (
               <p className="session-meta" style={{ margin: '0.2rem 0' }}>
-                Champs incomplets: {cmsAudit.missingFields.map((entry) => `${entry.key} (${entry.fields.join(', ')})`).join(' | ')}
+                {locale === 'en' ? 'Incomplete fields:' : 'Champs incomplets:'} {cmsAudit.missingFields.map((entry) => `${entry.key} (${entry.fields.join(', ')})`).join(' | ')}
               </p>
             ) : null}
           </section>
@@ -601,7 +862,7 @@ export default function HomePage() {
         <section
           className="landing-hero-full reveal-up relative overflow-hidden px-6 py-7 sm:px-8 lg:px-10 lg:py-9"
           style={{ '--reveal-delay': '40ms' }}
-          aria-label="Presentation TeamBlender"
+          aria-label={locale === 'en' ? 'TeamBlender overview' : 'Presentation TeamBlender'}
         >
           <div className="landing-hero-aurora pointer-events-none absolute inset-0" />
           <div className="landing-hero-inner relative grid gap-6 lg:grid-cols-[1.16fr_0.84fr] lg:items-start">
@@ -621,13 +882,13 @@ export default function HomePage() {
               </h1>
 
               <p className="landing-hero-description mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-                {heroDescription === 'Le produit aide les equipes a transformer leurs interactions en decisions et alignement.'
-                  ? 'TeamBlender renforce la cohésion des équipes hybrides à travers des challenges en temps réel engageants et mesurables.'
+                {heroDescription === landingStatic.fallback.heroDescription
+                  ? landingStatic.fallback.heroDescriptionStructured
                   : heroDescription}
               </p>
 
               <p className="landing-hero-keyline mt-4 max-w-2xl text-sm font-semibold tracking-wide text-indigo-700 sm:text-base">
-                Préparez, animez et analysez vos sessions sans friction opérationnelle.
+                {landingStatic.fallback.keyline}
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -659,12 +920,12 @@ export default function HomePage() {
               <div className="landing-hero-product-wrap">
                 <div className="landing-hero-product-head">
                   <div>
-                    <p className="landing-hero-product-label">Product preview</p>
-                    <p className="landing-hero-product-title">Expérience live collaborative</p>
+                    <p className="landing-hero-product-label">{landingStatic.fallback.productPreview}</p>
+                    <p className="landing-hero-product-title">{landingStatic.fallback.liveExperience}</p>
                   </div>
                   <div className="landing-hero-product-live">
                     <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                    En direct
+                    {landingStatic.fallback.liveLabel}
                   </div>
                 </div>
 
@@ -679,18 +940,18 @@ export default function HomePage() {
                   />
                 </figure>
 
-                <div className="landing-hero-product-signals" aria-label="Signaux en direct">
+                <div className="landing-hero-product-signals" aria-label={landingStatic.fallback.liveSignals.label}>
                   <span>
                     <Activity className="h-4 w-4" />
-                    Chrono en direct
+                    {landingStatic.fallback.liveSignals.timer}
                   </span>
                   <span>
                     <Users className="h-4 w-4" />
-                    {heroImageB.description || 'Chat et coordination d’équipe'}
+                    {heroImageB.description || landingStatic.fallback.liveSignals.chat}
                   </span>
                   <span>
                     <BarChart3 className="h-4 w-4" />
-                    Progression collaborative instantanée
+                    {landingStatic.fallback.liveSignals.progress}
                   </span>
                 </div>
               </div>
@@ -699,7 +960,7 @@ export default function HomePage() {
         </section>
 
         {impactItems.length > 0 ? (
-          <section className="landing-impact-band landing-section-full reveal-up" style={{ '--reveal-delay': '90ms' }} aria-label="Indicateurs cles">
+          <section className="landing-impact-band landing-section-full reveal-up" style={{ '--reveal-delay': '90ms' }} aria-label={locale === 'en' ? 'Key metrics' : 'Indicateurs cles'}>
             <div className="landing-section-inner grid gap-4 md:grid-cols-3">
               {impactItems.map((item, index) => (
                 <article key={`impact-${index}`} className={`${glassCardClass} p-6`}>
@@ -721,7 +982,7 @@ export default function HomePage() {
         <section
           className="reveal-up landing-section-full relative overflow-hidden p-8 sm:p-10"
           style={{ '--reveal-delay': '100ms', background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)' }}
-          aria-label="Positionnement plateforme"
+          aria-label={locale === 'en' ? 'Platform positioning' : 'Positionnement plateforme'}
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(99,102,241,0.08),transparent_45%)]" />
           <div className="landing-section-inner relative mx-auto max-w-4xl text-center">
@@ -736,7 +997,7 @@ export default function HomePage() {
             '--reveal-delay': '120ms',
             background: 'linear-gradient(180deg, rgba(246,249,255,0.94) 0%, rgba(237,244,255,0.94) 100%)',
           }}
-          aria-label="Preuve sociale"
+          aria-label={locale === 'en' ? 'Social proof' : 'Preuve sociale'}
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_84%_16%,rgba(99,102,241,0.12),transparent_42%)]" />
           <div className="landing-section-inner relative space-y-8">
@@ -756,7 +1017,7 @@ export default function HomePage() {
               </div>
 
               <div className="landing-partners-usage rounded-2xl bg-white/80 p-5 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Cas d’usage</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{locale === 'en' ? 'Use cases' : 'Cas d’usage'}</p>
                 <div className="mt-3 space-y-2">
                   {USE_CASES.map((useCase) => (
                     <p key={useCase} className="text-sm leading-6 text-slate-700">
@@ -777,13 +1038,13 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="landing-metrics-grid grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Indicateurs cles">
+            <div className="landing-metrics-grid grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label={locale === 'en' ? 'Key metrics' : 'Indicateurs cles'}>
               {TRUST_PROOF_METRICS.map((metric) => (
                 <TrustProofCard key={metric.value} value={metric.value} label={metric.label} detail={metric.detail} />
               ))}
             </div>
 
-            <div className="landing-partner-grid flex flex-wrap gap-3" aria-label="Segments utilisés par les clients">
+            <div className="landing-partner-grid flex flex-wrap gap-3" aria-label={locale === 'en' ? 'Client segments' : 'Segments utilisés par les clients'}>
               {partnerItems.map((item, index) => (
                 <TrustTag key={item.title} title={item.title} isActive={index === 0} />
               ))}
@@ -794,13 +1055,13 @@ export default function HomePage() {
         <section
           className="reveal-up landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{ '--reveal-delay': '140ms', background: 'linear-gradient(180deg, #f6f8fc 0%, #edf2fb 100%)' }}
-          aria-label="Ce que la plateforme offre"
+          aria-label={landingStatic.fallback.platformOfferTitle}
         >
           <div className="landing-section-inner relative">
             <div className="panel-head">
               <div>
-                <p className="eyebrow">Plateforme</p>
-                <h2>Ce que la plateforme offre</h2>
+                <p className="eyebrow">{landingStatic.fallback.platformEyebrow}</p>
+                <h2>{landingStatic.fallback.platformOfferTitle}</h2>
               </div>
             </div>
             <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -822,13 +1083,13 @@ export default function HomePage() {
         <section
           className="reveal-up landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{ '--reveal-delay': '150ms', background: 'linear-gradient(180deg, #ffffff 0%, #f7fbff 100%)' }}
-          aria-label="Valeurs TeamBlender"
+          aria-label={landingStatic.fallback.valuesTitle}
         >
           <div className="landing-section-inner relative">
             <div className="panel-head">
               <div>
-                <p className="eyebrow">Valeurs</p>
-                <h2>Des fondations pensées pour le passage à l’échelle</h2>
+                <p className="eyebrow">{landingStatic.fallback.valuesEyebrow}</p>
+                <h2>{landingStatic.fallback.valuesTitle}</h2>
               </div>
             </div>
             <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -850,13 +1111,13 @@ export default function HomePage() {
         <section
           className="reveal-up landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{ '--reveal-delay': '160ms', background: 'linear-gradient(180deg, #f2f7ff 0%, #ecf3ff 100%)' }}
-          aria-label="Bénéfices TeamBlender"
+          aria-label={landingStatic.fallback.benefitsTitle}
         >
           <div className="landing-section-inner relative">
             <div className="panel-head">
               <div>
-                <p className="eyebrow">Bénéfices</p>
-                <h2>Des résultats visibles pour les équipes et les managers</h2>
+                <p className="eyebrow">{landingStatic.fallback.benefitsEyebrow}</p>
+                <h2>{landingStatic.fallback.benefitsTitle}</h2>
               </div>
             </div>
             <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -881,7 +1142,7 @@ export default function HomePage() {
             '--reveal-delay': '155ms',
             background: 'linear-gradient(180deg, #ffffff 0%, #f5f8ff 100%)',
           }}
-          aria-label="Témoignages clients"
+          aria-label={locale === 'en' ? 'Customer testimonials' : 'Témoignages clients'}
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(99,102,241,0.10),transparent_44%)]" />
           <div className="landing-section-inner relative">
@@ -926,7 +1187,7 @@ export default function HomePage() {
             '--reveal-delay': '190ms',
             background: 'linear-gradient(180deg, #f4f8ff 0%, #ecf2ff 100%)',
           }}
-          aria-label="Parcours en 3 étapes"
+          aria-label={locale === 'en' ? 'Three-step journey' : 'Parcours en 3 étapes'}
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(14,165,233,0.10),transparent_40%)]" />
           <div className="landing-section-inner relative">
@@ -963,11 +1224,11 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className={`landing-cta-block landing-section-full reveal-up p-8 text-center`} style={{ '--reveal-delay': '230ms' }} aria-label="Dernier appel à l’action">
+        <section className={`landing-cta-block landing-section-full reveal-up p-8 text-center`} style={{ '--reveal-delay': '230ms' }} aria-label={locale === 'en' ? 'Final call to action' : 'Dernier appel à l’action'}>
           <div className="landing-section-inner">
-            <p className="eyebrow">{finalCta.subtitle || finalCta.label || 'CTA Final'}</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title || 'Prêt à structurer vos temps d’équipe ?'}</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">{finalCta.description || 'Découvrez TeamBlender et lancez votre premier format pilote en quelques minutes.'}</p>
+            <p className="eyebrow">{finalCta.subtitle || finalCta.label || landingStatic.fallback.finalCtaEyebrow}</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title || landingStatic.fallback.finalCtaTitle}</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">{finalCta.description || landingStatic.fallback.finalCtaDescription}</p>
             <div className="hero-actions home-hero-actions landing-cta-actions mt-7 flex flex-wrap justify-center gap-3">
               <Link href={finalSecondaryHref} onClick={handleFinalSecondaryCtaClick} className={`${pillClass} border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}>
                 <span>{finalSecondaryLabel}</span>
