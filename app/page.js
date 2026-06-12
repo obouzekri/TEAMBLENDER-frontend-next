@@ -534,9 +534,9 @@ const TRUST_PROOF_METRICS = [
 const TRUST_LOGO_PLACEHOLDERS = ['NovaTech', 'Helios Groupe', 'Axis Retail', 'BluePeak Conseil', 'Mosaic Industries'];
 
 const PLATFORM_STATEMENT = {
-  title: 'TeamBlender est la plateforme B2B pour concevoir, piloter et industrialiser des expériences de team building hybrides.',
+  title: 'TeamBlender est la plateforme pour organiser des expériences de team building hybrides.',
   description:
-    'Pensée pour les managers et les équipes RH, elle permet de déployer des expériences simples à organiser, engageantes pour les équipes et mesurables dans leurs résultats.',
+    'Pensée pour les managers et les équipes RH, elle permet de déployer des expériences simples à organiser, engageantes pour les équipes et utiles au quotidien.',
 };
 
 const PLATFORM_OFFER_ITEMS = [
@@ -572,46 +572,6 @@ const USE_CASES = [
 ];
 
 const HERO_TEAM_AVATARS = ['AL', 'MK', 'SR', 'NO', 'JD'];
-
-function getUseCaseStories(locale) {
-  if (locale === 'en') {
-    return [
-      {
-        title: 'Monday manager sync',
-        context: 'A newly hybrid leadership team is losing alignment and decision speed.',
-        outcome: 'In one guided 25-minute session, managers align priorities and leave with an actionable recap.',
-      },
-      {
-        title: 'First-week onboarding',
-        context: 'New hires join from multiple locations and struggle to build social trust early.',
-        outcome: 'Interactive team rituals create fast bonding and reveal participation patterns in real time.',
-      },
-      {
-        title: 'Cross-site execution workshop',
-        context: 'Teams across offices need to coordinate quickly around shared goals.',
-        outcome: 'A shared session format drives clearer communication and better execution consistency.',
-      },
-    ];
-  }
-
-  return [
-    {
-      title: 'Kick-off manager du lundi',
-      context: 'Une équipe leadership devenue hybride perd en alignement et en vitesse de décision.',
-      outcome: 'En 25 minutes guidées, les managers alignent les priorités et repartent avec un plan concret.',
-    },
-    {
-      title: 'Onboarding première semaine',
-      context: 'Des nouveaux collaborateurs répartis sur plusieurs sites peinent à créer du lien rapidement.',
-      outcome: 'Des rituels interactifs renforcent la confiance dès le départ et rendent la participation visible.',
-    },
-    {
-      title: 'Atelier d’exécution multi-sites',
-      context: 'Des équipes réparties doivent coordonner leurs objectifs et leurs actions dans des délais courts.',
-      outcome: 'Un format commun de session améliore la communication et la cohérence d’exécution.',
-    },
-  ];
-}
 
 function resolveTrustTagIcon(label) {
   const normalized = String(label || '').trim().toLowerCase();
@@ -853,7 +813,6 @@ export default function HomePage() {
   const PLATFORM_VALUES_ITEMS = landingStatic.platformValuesItems;
   const PLATFORM_BENEFITS_ITEMS = landingStatic.platformBenefitsItems;
   const USE_CASES = landingStatic.useCases;
-  const USE_CASE_STORIES = useMemo(() => getUseCaseStories(locale), [locale]);
   const glassCardClass = 'rounded-3xl border border-white/60 bg-white/75 shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl';
   const pillClass = 'inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition-all duration-200 ease-in-out';
   const chipClass = 'inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-md transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md';
@@ -1060,14 +1019,14 @@ export default function HomePage() {
         <section
           className="reveal-up landing-partners landing-section-full landing-section-full--proof relative overflow-hidden p-8 sm:p-12"
           style={{
-            '--reveal-delay': '120ms',
+            '--reveal-delay': '110ms',
             background: 'linear-gradient(180deg, rgba(246,249,255,0.94) 0%, rgba(237,244,255,0.94) 100%)',
           }}
           aria-label={locale === 'en' ? 'Social proof' : 'Preuve sociale'}
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_84%_16%,rgba(99,102,241,0.12),transparent_42%)]" />
-          <div className="landing-section-inner relative space-y-8">
-            <div className="grid gap-7 lg:grid-cols-[1.22fr_0.78fr] lg:items-end">
+          <div className="landing-section-inner relative space-y-6">
+            <div className="grid gap-5 lg:grid-cols-[1.3fr_0.7fr] lg:items-center">
               <div>
                 {partnersHeader.label ? (
                   <p className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-700">
@@ -1082,25 +1041,21 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="landing-partners-usage rounded-2xl bg-white/80 p-5 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{locale === 'en' ? 'Use cases' : 'Cas d’usage'}</p>
-                <div className="mt-3 space-y-2">
-                  {USE_CASES.map((useCase) => (
-                    <p key={useCase} className="text-sm leading-6 text-slate-700">
-                      • {useCase}
-                    </p>
-                  ))}
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {TRUST_LOGO_PLACEHOLDERS.map((logo) => (
-                    <span
-                      key={logo}
-                      className="landing-logo-chip inline-flex items-center rounded-full bg-slate-100/90 px-3 py-1 text-xs font-semibold text-slate-600"
-                    >
-                      {logo}
+              <div className="landing-partners-usage rounded-2xl bg-white/82 p-5 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{locale === 'en' ? 'Teams using TeamBlender' : 'Equipes qui utilisent TeamBlender'}</p>
+                <p className="landing-platform-scent mt-3">
+                  {USE_CASES.map((useCase, index) => (
+                    <span key={useCase}>
+                      {useCase}
+                      {index < USE_CASES.length - 1 ? '' : ''}
                     </span>
                   ))}
-                </div>
+                </p>
+                <p className="mt-4 text-sm leading-6 text-slate-600">
+                  {locale === 'en'
+                    ? 'One modern platform, one clear rhythm, and one shared team experience.'
+                    : 'Une plateforme moderne, un rythme clair et une experience d equipe partagee.'}
+                </p>
               </div>
             </div>
 
@@ -1110,10 +1065,10 @@ export default function HomePage() {
               ))}
             </div>
 
-            <div className="landing-partner-grid flex flex-wrap gap-3" aria-label={locale === 'en' ? 'Client segments' : 'Segments utilisés par les clients'}>
-              {partnerItems.map((item, index) => (
-                <TrustTag key={item.title} title={item.title} isActive={index === 0} />
-              ))}
+            <div className="landing-partner-line" aria-label={locale === 'en' ? 'Client segments' : 'Segments utilisés par les clients'}>
+              <p className="landing-partner-line-text">
+                {partnerItems.map((item) => item.title).join(' . ')}
+              </p>
             </div>
           </div>
         </section>
@@ -1231,45 +1186,9 @@ export default function HomePage() {
         </section>
 
         <section
-          className="reveal-up landing-usecase-stories landing-section-full relative overflow-hidden p-6 sm:p-10"
-          style={{
-            '--reveal-delay': '170ms',
-            background: 'linear-gradient(145deg, #f9fdff 0%, #edf6ff 52%, #e8f2ff 100%)',
-          }}
-          aria-label={locale === 'en' ? 'Use case stories' : 'Scenarios d usage'}
-        >
-          <div className="landing-section-inner relative">
-            <div className="panel-head landing-stories-head">
-              <div>
-                <p className="eyebrow landing-section-eyebrow">{locale === 'en' ? 'Use Cases' : 'Cas d usage'}</p>
-                <h2 className="landing-section-title">
-                  {locale === 'en' ? 'Real team scenarios, real momentum' : 'Des scenarios reels, une dynamique immediate'}
-                </h2>
-                <p className="landing-section-description">
-                  {locale === 'en'
-                    ? 'From onboarding to leadership alignment, TeamBlender turns meetings into high-energy collaboration moments.'
-                    : 'De l onboarding a l alignement manager, TeamBlender transforme les reunions en moments de collaboration a forte energie.'}
-                </p>
-              </div>
-            </div>
-
-            <div className="landing-stories-grid mt-7">
-              {USE_CASE_STORIES.map((story, index) => (
-                <article key={story.title} className="landing-story-card">
-                  <span className="landing-story-step">{String(index + 1).padStart(2, '0')}</span>
-                  <h3>{story.title}</h3>
-                  <p className="landing-story-context">{story.context}</p>
-                  <p className="landing-story-outcome">{story.outcome}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section
           className="reveal-up landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-10"
           style={{
-            '--reveal-delay': '180ms',
+            '--reveal-delay': '170ms',
             background: 'linear-gradient(145deg, #0b1223 0%, #111b36 58%, #0e1629 100%)',
           }}
           aria-label={locale === 'en' ? 'Customer testimonials' : 'Témoignages clients'}
@@ -1314,7 +1233,7 @@ export default function HomePage() {
         <section
           className="reveal-up landing-flow landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{
-            '--reveal-delay': '200ms',
+            '--reveal-delay': '190ms',
             background: 'linear-gradient(180deg, #f4f8ff 0%, #ecf2ff 100%)',
           }}
           aria-label={locale === 'en' ? 'Three-step journey' : 'Parcours en 3 étapes'}
@@ -1346,7 +1265,7 @@ export default function HomePage() {
                       : index === 1
                         ? 'bg-gradient-to-br from-cyan-500 to-sky-500 shadow-cyan-500/20'
                         : 'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-500/20'
-                  }`}>{step.index}</span>
+                  }`}>{String(index + 1).padStart(2, '0')}</span>
                   <h2 className="mt-4 text-lg font-semibold tracking-tight text-slate-950">{step.title}</h2>
                   <p className="mt-2 text-sm leading-6 text-slate-600">{step.description}</p>
                 </article>
@@ -1357,8 +1276,7 @@ export default function HomePage() {
 
         <section className={`landing-cta-block landing-section-full reveal-up p-8 text-center`} style={{ '--reveal-delay': '240ms' }} aria-label={locale === 'en' ? 'Final call to action' : 'Dernier appel à l’action'}>
           <div className="landing-section-inner">
-            <p className="landing-cta-emotion">{locale === 'en' ? 'Build stronger teams in minutes.' : 'Construisez des equipes plus fortes en quelques minutes.'}</p>
-            <p className="eyebrow">{finalCta.subtitle || finalCta.label || landingStatic.fallback.finalCtaEyebrow}</p>
+            <p className="eyebrow landing-cta-eyebrow">{finalCta.subtitle || finalCta.label || landingStatic.fallback.finalCtaEyebrow}</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title || landingStatic.fallback.finalCtaTitle}</h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">{finalCta.description || landingStatic.fallback.finalCtaDescription}</p>
             <div className="hero-actions home-hero-actions landing-cta-actions mt-7 flex flex-wrap justify-center gap-3">
