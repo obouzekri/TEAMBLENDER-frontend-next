@@ -906,7 +906,7 @@ export default function HomePage() {
                 <Link
                   href={heroPrimaryHref}
                   onClick={handlePrimaryCtaClick}
-                  className={`${pillClass} landing-hero-primary-btn group bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25`}
+                  className={`${pillClass} landing-cta-primary landing-hero-primary-btn group text-white`}
                 >
                   <span>{heroPrimaryLabel}</span>
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -1006,7 +1006,7 @@ export default function HomePage() {
 
         <section
           className="reveal-up landing-section-full landing-section-full--statement relative overflow-hidden p-8 sm:p-10"
-          style={{ '--reveal-delay': '100ms', background: 'linear-gradient(180deg, #ffffff 0%, #f7fbff 100%)' }}
+          style={{ '--reveal-delay': '100ms', background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)' }}
           aria-label={locale === 'en' ? 'Platform positioning' : 'Positionnement plateforme'}
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(99,102,241,0.08),transparent_45%)]" />
@@ -1020,29 +1020,29 @@ export default function HomePage() {
           className="reveal-up landing-partners landing-section-full landing-section-full--proof relative overflow-hidden p-8 sm:p-12"
           style={{
             '--reveal-delay': '110ms',
-            background: 'linear-gradient(180deg, rgba(246,249,255,0.94) 0%, rgba(237,244,255,0.94) 100%)',
+            background: 'linear-gradient(180deg, #07111f 0%, #0b1730 100%)',
           }}
           aria-label={locale === 'en' ? 'Social proof' : 'Preuve sociale'}
         >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_84%_16%,rgba(99,102,241,0.12),transparent_42%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_84%_16%,rgba(96,165,250,0.18),transparent_42%)]" />
           <div className="landing-section-inner relative space-y-6">
             <div className="grid gap-5 lg:grid-cols-[1.3fr_0.7fr] lg:items-center">
               <div>
                 {partnersHeader.label ? (
-                  <p className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-700">
+                  <p className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-200 ring-1 ring-white/10">
                     {partnersHeader.label}
                   </p>
                 ) : null}
-                <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
                   {partnersHeader.title}
                 </h2>
-                <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+                <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
                   {partnersHeader.description}
                 </p>
               </div>
 
-              <div className="landing-partners-usage rounded-2xl bg-white/82 p-5 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{locale === 'en' ? 'Teams using TeamBlender' : 'Equipes qui utilisent TeamBlender'}</p>
+              <div className="landing-partners-usage rounded-2xl bg-white/6 p-5 shadow-sm ring-1 ring-white/12 backdrop-blur-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">{locale === 'en' ? 'Teams using TeamBlender' : 'Equipes qui utilisent TeamBlender'}</p>
                 <p className="landing-platform-scent mt-3">
                   {USE_CASES.map((useCase, index) => (
                     <span key={useCase}>
@@ -1051,7 +1051,7 @@ export default function HomePage() {
                     </span>
                   ))}
                 </p>
-                <p className="mt-4 text-sm leading-6 text-slate-600">
+                <p className="mt-4 text-sm leading-6 text-slate-300">
                   {locale === 'en'
                     ? 'One modern platform, one clear rhythm, and one shared team experience.'
                     : 'Une plateforme moderne, un rythme clair et une experience d equipe partagee.'}
@@ -1078,6 +1078,7 @@ export default function HomePage() {
           style={{ '--reveal-delay': '140ms' }}
           aria-label={landingStatic.fallback.platformOfferTitle}
         >
+          <div className="landing-section-rupture landing-section-rupture--accent" />
           <div className="landing-section-inner relative">
             <div className="panel-head landing-offer-head">
               <div>
@@ -1110,6 +1111,7 @@ export default function HomePage() {
           style={{ '--reveal-delay': '150ms' }}
           aria-label={landingStatic.fallback.valuesTitle}
         >
+          <div className="landing-section-rupture landing-section-rupture--light" />
           <div className="landing-section-inner relative">
             <div className="panel-head landing-values-head">
               <div>
@@ -1144,6 +1146,7 @@ export default function HomePage() {
           style={{ '--reveal-delay': '160ms' }}
           aria-label={landingStatic.fallback.benefitsTitle}
         >
+          <div className="landing-section-rupture landing-section-rupture--dark" />
           <div className="landing-section-inner relative">
             <div className="panel-head landing-benefits-head">
               <div>
@@ -1189,7 +1192,7 @@ export default function HomePage() {
           className="reveal-up landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-10"
           style={{
             '--reveal-delay': '170ms',
-            background: 'linear-gradient(145deg, #0b1223 0%, #111b36 58%, #0e1629 100%)',
+            background: 'linear-gradient(145deg, #f6fbff 0%, #eef6ff 100%)',
           }}
           aria-label={locale === 'en' ? 'Customer testimonials' : 'Témoignages clients'}
         >
@@ -1217,11 +1220,11 @@ export default function HomePage() {
                   <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-indigo-600 shadow-sm">
                     <Quote className="h-4 w-4" />
                   </div>
-                  <p className="text-base leading-7 text-slate-100">“{item.description}”</p>
-                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-100/15 pt-4">
+                  <p className="text-base leading-7 text-slate-700">“{item.description}”</p>
+                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-200/80 pt-4">
                     <div>
-                      <strong className="block text-sm font-semibold text-white">{item.title}</strong>
-                      <span className="text-sm text-slate-300">{item.subtitle}</span>
+                      <strong className="block text-sm font-semibold text-slate-950">{item.title}</strong>
+                      <span className="text-sm text-slate-500">{item.subtitle}</span>
                     </div>
                   </div>
                 </article>
@@ -1234,7 +1237,7 @@ export default function HomePage() {
           className="reveal-up landing-flow landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{
             '--reveal-delay': '190ms',
-            background: 'linear-gradient(180deg, #f4f8ff 0%, #ecf2ff 100%)',
+            background: 'linear-gradient(180deg, #0b1223 0%, #111b36 100%)',
           }}
           aria-label={locale === 'en' ? 'Three-step journey' : 'Parcours en 3 étapes'}
         >
@@ -1242,8 +1245,8 @@ export default function HomePage() {
           <div className="landing-section-inner relative">
             <div className="panel-head">
               <div>
-                <p className="eyebrow">{flowHeader.label}</p>
-                <h2>{flowHeader.title}</h2>
+                <p className="eyebrow landing-section-eyebrow">{flowHeader.label}</p>
+                <h2 className="landing-section-title text-white">{flowHeader.title}</h2>
               </div>
             </div>
             <div className="landing-flow-timeline mt-8" role="list" aria-label={locale === 'en' ? 'How TeamBlender works in three steps' : 'Comment TeamBlender fonctionne en trois etapes'}>
@@ -1253,10 +1256,10 @@ export default function HomePage() {
                   role="listitem"
                   className={`landing-flow-card landing-flow-node rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                     index === 0
-                      ? 'landing-flow-card--primary bg-white/88 ring-1 ring-indigo-100'
+                      ? 'landing-flow-card--primary bg-white/94 ring-1 ring-indigo-100'
                       : index === 1
-                        ? 'landing-flow-card--secondary bg-white/90 ring-1 ring-cyan-100'
-                        : 'landing-flow-card--tertiary bg-white/92 ring-1 ring-slate-200/80'
+                        ? 'landing-flow-card--secondary bg-white/92 ring-1 ring-cyan-100'
+                        : 'landing-flow-card--tertiary bg-white/90 ring-1 ring-slate-200/80'
                   }`}
                 >
                   <span className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-semibold text-white shadow-lg ${
@@ -1283,7 +1286,7 @@ export default function HomePage() {
               <Link href={finalSecondaryHref} onClick={handleFinalSecondaryCtaClick} className={`${pillClass} border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}>
                 <span>{finalSecondaryLabel}</span>
               </Link>
-              <Link href={finalPrimaryHref} className={`${pillClass} bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25`}>
+              <Link href={finalPrimaryHref} className={`${pillClass} landing-cta-primary text-white`}>
                 <span>{finalPrimaryLabel}</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>

@@ -2830,6 +2830,31 @@ a {
   gap: 1rem;
 }
 
+.landing-section-rupture {
+  position: absolute;
+  left: 50%;
+  top: -1px;
+  transform: translateX(-50%);
+  width: calc(100% - 1.5rem);
+  height: 18px;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0.9;
+  z-index: 0;
+}
+
+.landing-section-rupture--light {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(59, 130, 246, 0.24), rgba(255, 255, 255, 0));
+}
+
+.landing-section-rupture--dark {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(148, 163, 184, 0.26), rgba(255, 255, 255, 0));
+}
+
+.landing-section-rupture--accent {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(45, 212, 191, 0.32), rgba(255, 255, 255, 0));
+}
+
 .landing-section-full--statement .landing-section-inner {
   max-width: 58rem;
 }
@@ -2893,6 +2918,13 @@ a {
   transform: translateY(-2px);
   border-color: rgba(99, 102, 241, 0.36);
   box-shadow: 0 16px 30px rgba(30, 41, 78, 0.12);
+}
+
+.landing-partners-usage,
+.landing-partner-line,
+.landing-partner-line-text {
+  position: relative;
+  z-index: 1;
 }
 
 .landing-metrics-grid article {
@@ -3740,7 +3772,7 @@ a {
 }
 
 .landing-benefits-section {
-  background: linear-gradient(180deg, #eef4ff 0%, #e8f0ff 100%);
+  background: linear-gradient(180deg, #e0f2fe 0%, #dbeafe 100%);
   padding-top: clamp(3.8rem, 7vw, 5.7rem);
   padding-bottom: clamp(3.7rem, 7vw, 5.6rem);
 }
@@ -3795,6 +3827,21 @@ a {
   transform: translateY(-5px);
   border-color: rgba(53, 160, 255, 0.45);
   box-shadow: 0 20px 36px rgba(15, 23, 42, 0.12);
+}
+
+.landing-feature-card:nth-child(2n) {
+  min-height: 100%;
+  transform: translateY(8px);
+}
+
+.landing-feature-card:nth-child(3n) {
+  min-height: 100%;
+  transform: translateY(16px);
+}
+
+.landing-feature-card:nth-child(2n):hover,
+.landing-feature-card:nth-child(3n):hover {
+  transform: translateY(2px);
 }
 
 .landing-feature-icon {
@@ -3919,6 +3966,15 @@ a {
   transform: translateX(4px);
   border-color: rgba(96, 165, 250, 0.9);
   box-shadow: 0 10px 20px rgba(30, 64, 175, 0.13);
+}
+
+.landing-benefits-item:nth-child(2n) {
+  background: rgba(248, 250, 252, 0.88);
+}
+
+.landing-benefits-item:nth-child(3n) {
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
 }
 
 .landing-benefits-item-icon {
@@ -4088,16 +4144,24 @@ a {
 .landing-testimonial-slide {
   min-height: 100%;
   scroll-snap-align: start;
-  background: linear-gradient(155deg, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.56) 100%);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.92) 100%);
   backdrop-filter: blur(8px);
 }
 
 .landing-testimonial-card--featured {
-  background: linear-gradient(155deg, rgba(30, 64, 175, 0.42) 0%, rgba(15, 23, 42, 0.64) 100%);
+  background: linear-gradient(155deg, rgba(219, 234, 254, 0.96) 0%, rgba(239, 246, 255, 0.92) 100%);
 }
 
 .landing-testimonial-card--accent {
-  background: linear-gradient(155deg, rgba(14, 116, 144, 0.4) 0%, rgba(15, 23, 42, 0.62) 100%);
+  background: linear-gradient(155deg, rgba(224, 242, 254, 0.96) 0%, rgba(240, 249, 255, 0.92) 100%);
+}
+
+.landing-testimonials-carousel .landing-testimonial-card:nth-child(2n) {
+  transform: translateY(10px);
+}
+
+.landing-testimonials-carousel .landing-testimonial-card:nth-child(3n) {
+  transform: translateY(18px);
 }
 
 .landing-flow-timeline {
@@ -4120,6 +4184,28 @@ a {
 .landing-flow-node {
   position: relative;
   z-index: 1;
+}
+
+.landing-flow .landing-section-eyebrow,
+.landing-flow .landing-section-title {
+  color: #ffffff;
+}
+
+.landing-flow .landing-section-description {
+  color: #cbd5e1;
+}
+
+.landing-flow .landing-flow-card h2,
+.landing-flow .landing-flow-card p {
+  color: #0f172a;
+}
+
+.landing-flow .landing-flow-node:nth-child(2n) {
+  transform: translateY(10px);
+}
+
+.landing-flow .landing-flow-node:nth-child(3n) {
+  transform: translateY(18px);
 }
 
 .landing-flow-node:hover {
@@ -4145,24 +4231,41 @@ a {
   color: #1d4ed8;
 }
 
+.landing-cta-primary {
+  min-height: 3.5rem;
+  padding-left: 1.3rem;
+  padding-right: 1.3rem;
+  background: linear-gradient(135deg, #14b8a6 0%, #0f766e 55%, #0ea5e9 100%);
+  box-shadow: 0 20px 42px rgba(15, 118, 110, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.18) inset;
+}
+
+.landing-cta-primary:hover {
+  box-shadow: 0 24px 50px rgba(15, 118, 110, 0.34), 0 0 0 1px rgba(255, 255, 255, 0.22) inset;
+}
+
+.landing-hero-primary-btn {
+  width: min(100%, 17rem);
+  justify-content: center;
+}
+
 .landing-cta-block .pillClass,
 .landing-cta-block a {
   min-height: 3rem;
 }
 
-.landing-cta-block a:last-child {
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 55%, #7c3aed 100%);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  box-shadow: 0 18px 36px rgba(37, 99, 235, 0.24);
-}
-
-.landing-cta-block a:last-child:hover {
-  box-shadow: 0 22px 42px rgba(37, 99, 235, 0.3);
-}
-
 .landing-cta-block a:first-child {
   border-color: rgba(148, 163, 184, 0.34);
   background: rgba(255, 255, 255, 0.9);
+}
+
+.landing-cta-block .landing-section-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-cta-block h2 {
+  max-width: 16ch;
+  margin-inline: auto;
 }
 
 .landing-cta-block .landing-section-inner {
