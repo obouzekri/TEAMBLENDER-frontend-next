@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
@@ -53,15 +53,21 @@ export default function SessionResultsClient() {
   const [participationRate, setParticipationRate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const authInitRef = useRef(false);
 
   // Auth guard
   useEffect(() => {
+    if (authInitRef.current) {
+      return;
+    }
+
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const currentUser = parseUser();
     if (!token || !currentUser) {
       window.location.replace(withLocalePath('/login'));
       return;
     }
+    authInitRef.current = true;
     setUser(currentUser);
   }, [withLocalePath]);
 

@@ -14,10 +14,19 @@ export default function CookieConsentBanner({ consentState }) {
   }
 
   const isRejected = currentDecision === 'denied';
+  const shouldCollapse = isRejected;
 
   return (
-    <aside className={styles.banner} aria-label="Gestion des cookies et du consentement">
-      <div className={styles.panel} role="dialog" aria-modal="false" aria-labelledby="cookie-consent-title">
+    <aside
+      className={`${styles.banner} ${shouldCollapse ? styles.bannerCollapsed : ''}`}
+      aria-label="Gestion des cookies et du consentement"
+    >
+      <div
+        className={`${styles.panel} ${shouldCollapse ? styles.panelCollapsed : ''}`}
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="cookie-consent-title"
+      >
         <div className={styles.header}>
           <div>
             <p className={styles.eyebrow}>Consentement cookies</p>
@@ -49,13 +58,15 @@ export default function CookieConsentBanner({ consentState }) {
           >
             Autoriser les cookies de mesure
           </button>
-          <button
-            type="button"
-            className={`${styles.button} ${styles.buttonSecondary}`}
-            onClick={() => recordConsentDecision('denied', 'banner')}
-          >
-            {isRejected ? 'Conserver le refus' : 'Refuser les cookies de mesure'}
-          </button>
+          {!isRejected ? (
+            <button
+              type="button"
+              className={`${styles.button} ${styles.buttonSecondary}`}
+              onClick={() => recordConsentDecision('denied', 'banner')}
+            >
+              Refuser les cookies de mesure
+            </button>
+          ) : null}
         </div>
       </div>
     </aside>
