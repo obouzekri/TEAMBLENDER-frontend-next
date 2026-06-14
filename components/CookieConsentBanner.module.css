@@ -21,6 +21,38 @@
   padding: 18px 20px;
 }
 
+.bannerCollapsed {
+  left: auto;
+  right: 12px;
+  bottom: 12px;
+}
+
+.panelCollapsed {
+  width: auto;
+  max-width: min(92vw, 360px);
+  padding: 10px 12px;
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+}
+
+.panelCollapsed .text,
+.panelCollapsed .meta {
+  display: none;
+}
+
+.panelCollapsed .title {
+  font-size: 14px;
+}
+
+.panelCollapsed .actions {
+  margin-top: 8px;
+}
+
+.panelCollapsed .button {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
 .header {
   display: flex;
   align-items: flex-start;
