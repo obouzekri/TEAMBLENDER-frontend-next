@@ -55,6 +55,7 @@ export default function SessionLiveClient() {
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(0);
   const autoAdvanceTimerRef = useRef(null);
   const completedChallengeKeyRef = useRef('');
+  const authInitRef = useRef(false);
   const {
     sessionState,
     connected,
@@ -64,12 +65,17 @@ export default function SessionLiveClient() {
 
   // Auth guard
   useEffect(() => {
+    if (authInitRef.current) {
+      return;
+    }
+
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const currentUser = parseUser();
     if (!token || !currentUser || isParticipantRole(currentUser.role)) {
       window.location.replace(withLocalePath('/login'));
       return;
     }
+    authInitRef.current = true;
     setUser(currentUser);
   }, [withLocalePath]);
 

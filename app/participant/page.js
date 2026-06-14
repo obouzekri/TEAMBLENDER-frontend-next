@@ -33,6 +33,7 @@ export default function ParticipantPage() {
   const [sessionId, setSessionId] = useState('');
   const [joiningSessionId, setJoiningSessionId] = useState(null);
   const hasRedirected = useRef(false);
+  const authInitRef = useRef(false);
   const [ready, setReady] = useState(false);
   const router = useRouter();
   const { sessionState, connected, reconnecting, pollingActive } = useSessionState(sessionId || null);
@@ -41,6 +42,10 @@ export default function ParticipantPage() {
     : 'manual';
 
   useEffect(() => {
+    if (authInitRef.current) {
+      return;
+    }
+
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const currentUser = parseUser();
 
@@ -49,6 +54,7 @@ export default function ParticipantPage() {
       return;
     }
 
+    authInitRef.current = true;
     setUser(currentUser);
     setReady(true);
   }, [withLocalePath]);
