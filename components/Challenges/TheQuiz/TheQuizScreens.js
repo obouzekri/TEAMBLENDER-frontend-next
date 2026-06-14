@@ -9,7 +9,7 @@ function formatDuration(seconds) {
   return `${mm}:${ss}`;
 }
 
-function normalizeQuestion(quiz) {
+function normalizeQuestion(quiz, isEn = false) {
   const source = quiz?.current_question || {};
   const options = Array.isArray(source?.options)
     ? source.options
@@ -19,13 +19,13 @@ function normalizeQuestion(quiz) {
 
   return {
     id: source?.id || 'question',
-    title: String(source?.question || source?.text || 'Question en attente...'),
+    title: String(source?.question || source?.text || (isEn ? 'Question pending...' : 'Question en attente...')),
     options: options.map((value, index) => ({
       index,
       label: String(value || ''),
     })).slice(0, 4),
-    category: String(source?.category || 'Culture générale'),
-    difficulty: String(source?.difficulty || 'moyen'),
+    category: String(source?.category || (isEn ? 'General knowledge' : 'Culture générale')),
+    difficulty: String(source?.difficulty || (isEn ? 'medium' : 'moyen')),
     correctAnswer: Number.isInteger(Number(source?.correctAnswer)) ? Number(source.correctAnswer) : null,
   };
 }
@@ -43,7 +43,7 @@ function buildProgressValue(current, total) {
   return Math.max(0, Math.min(100, Math.round((safeCurrent / safeTotal) * 100)));
 }
 
-function TimerRing({ remainingSeconds, totalSeconds }) {
+function TimerRing({ remainingSeconds, totalSeconds, isEn = false }) {
   const safeTotal = Math.max(1, Number(totalSeconds || 1));
   const safeRemaining = Math.max(0, Number(remainingSeconds || 0));
   const ratio = Math.max(0, Math.min(1, safeRemaining / safeTotal));
@@ -56,7 +56,7 @@ function TimerRing({ remainingSeconds, totalSeconds }) {
       style={{ '--quiz-timer-deg': `${degrees}deg` }}
       role="timer"
       aria-live="polite"
-      aria-label={`Temps restant ${safeRemaining} secondes`}
+      aria-label={isEn ? `${safeRemaining} seconds remaining` : `Temps restant ${safeRemaining} secondes`}
     >
       <div className={styles.timerRingInner}>
         <strong>{safeRemaining}s</strong>
@@ -67,6 +67,7 @@ function TimerRing({ remainingSeconds, totalSeconds }) {
 }
 
 export function QuizQuestionScreen({
+  isEn = false,
   quiz,
   selectedAnswerIndex,
   onSelectAnswer,
@@ -77,12 +78,12 @@ export function QuizQuestionScreen({
   participantsTotal,
   onSubmitAnswer,
 }) {
-  const question = normalizeQuestion(quiz);
+  const question = normalizeQuestion(quiz, isEn);
   const currentQuestionNumber = Number(quiz?.question_index || 0) + 1;
   const progress = buildProgressValue(currentQuestionNumber, quiz?.question_count || 1);
   const keyboardHint = isAnswerLocked
-    ? 'Réponse verrouillée.'
-    : 'Raccourcis: flèches pour naviguer, Entrée ou Espace pour sélectionner.';
+    ? (isEn ? 'Answer locked.' : 'Réponse verrouillée.')
+    : (isEn ? 'Shortcuts: arrows to navigate, Enter or Space to select.' : 'Raccourcis: flèches pour naviguer, Entrée ou Espace pour sélectionner.');
 
   function onAnswerKeyDown(event, answerIndex) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -107,7 +108,7 @@ export function QuizQuestionScreen({
     <section className={styles.screenCard}>
       <div className={styles.screenHeader}>
         <div className={styles.questionHeadline}>
-          <p className={styles.kicker}>Question live</p>
+          <p className={styles.kicker}>{isEn ? 'Live question' : 'Question live'}</p>
           <h2 className={styles.screenTitle}>{question.title}</h2>
         </div>
         <span className={styles.phaseBadge}>{question.category}</span>
@@ -115,36 +116,36 @@ export function QuizQuestionScreen({
 
       <div className={styles.questionMetaRow}>
         <span>{currentQuestionNumber}/{quiz.question_count}</span>
-        <span>Difficulté: {question.difficulty}</span>
-        <span>{participantsAnsweredCount}/{participantsTotal} réponses reçues</span>
+        <span>{isEn ? 'Difficulty' : 'Difficulté'}: {question.difficulty}</span>
+        <span>{participantsAnsweredCount}/{participantsTotal} {isEn ? 'answers received' : 'réponses reçues'}</span>
       </div>
 
       <p className={styles.helperText}>{keyboardHint}</p>
 
       <div className={styles.questionProgressWrap}>
         <div className={styles.questionProgressBar} style={{ '--quiz-progress': `${progress}%` }} aria-hidden="true" />
-        <span className={styles.questionProgressLabel}>Progression {progress}%</span>
+        <span className={styles.questionProgressLabel}>{isEn ? 'Progress' : 'Progression'} {progress}%</span>
       </div>
 
       <div className={styles.questionTopRow}>
-        <TimerRing remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} />
+        <TimerRing isEn={isEn} remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} />
         <div className={styles.questionStatusCard} aria-live="polite">
-          <p>{isAnswerLocked ? 'Réponse validée, verrouillée' : 'Choisissez votre réponse avant la fin du timer'}</p>
+          <p>{isAnswerLocked ? (isEn ? 'Answer sent and locked' : 'Réponse validée, verrouillée') : (isEn ? 'Choose your answer before the timer ends' : 'Choisissez votre réponse avant la fin du timer')}</p>
           <button
             type="button"
             className={styles.primaryButton}
             onClick={onSubmitAnswer}
             disabled={isAnswerLocked || !Number.isInteger(Number(selectedAnswerIndex))}
           >
-            {isAnswerLocked ? 'Réponse envoyée' : 'Valider ma réponse'}
+            {isAnswerLocked ? (isEn ? 'Answer sent' : 'Réponse envoyée') : (isEn ? 'Submit my answer' : 'Valider ma réponse')}
           </button>
         </div>
       </div>
 
-      <div className={styles.answerGrid} role="radiogroup" aria-label="Réponses possibles">
+      <div className={styles.answerGrid} role="radiogroup" aria-label={isEn ? 'Possible answers' : 'Réponses possibles'}>
         {question.options.map((choice) => {
           const active = Number(selectedAnswerIndex) === Number(choice.index);
-          const ariaLabel = `Réponse ${String.fromCharCode(65 + choice.index)} ${choice.label}`;
+          const ariaLabel = `${isEn ? 'Answer' : 'Réponse'} ${String.fromCharCode(65 + choice.index)} ${choice.label}`;
           return (
             <button
               key={`${question.id}-${choice.index}`}
@@ -159,7 +160,7 @@ export function QuizQuestionScreen({
             >
               <span className={styles.answerKey}>{String.fromCharCode(65 + choice.index)}</span>
               <span>{choice.label}</span>
-              {active ? <span className={styles.answerSelectedBadge}>Sélectionnée</span> : null}
+              {active ? <span className={styles.answerSelectedBadge}>{isEn ? 'Selected' : 'Sélectionnée'}</span> : null}
             </button>
           );
         })}
@@ -168,7 +169,7 @@ export function QuizQuestionScreen({
   );
 }
 
-export function QuizLeaderboardScreen({ quiz, rankMovementByParticipantId = {} }) {
+export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByParticipantId = {} }) {
   const topRows = (quiz.leaderboard || []).slice(0, 10);
 
   return (
@@ -176,7 +177,7 @@ export function QuizLeaderboardScreen({ quiz, rankMovementByParticipantId = {} }
       <div className={styles.screenHeader}>
         <div>
           <p className={styles.kicker}>Leaderboard live</p>
-          <h2 className={styles.screenTitle}>Classement mis à jour en temps réel</h2>
+          <h2 className={styles.screenTitle}>{isEn ? 'Leaderboard updated in real time' : 'Classement mis à jour en temps réel'}</h2>
         </div>
         <span className={styles.phaseBadge}>Live</span>
       </div>
@@ -189,7 +190,7 @@ export function QuizLeaderboardScreen({ quiz, rankMovementByParticipantId = {} }
           >
             <strong>#{entry.rank}</strong>
             <span>{entry.display_name}</span>
-            <span>{entry.score} pts</span>
+            <span>{entry.score} {isEn ? 'pts' : 'pts'}</span>
             <span className={styles.rankDeltaBadge}>
               {rankMovementByParticipantId[String(entry.participant_id)] === 'up'
                 ? '▲'
@@ -204,32 +205,32 @@ export function QuizLeaderboardScreen({ quiz, rankMovementByParticipantId = {} }
   );
 }
 
-export function QuizQuestionResultScreen({ quiz }) {
+export function QuizQuestionResultScreen({ isEn = false, quiz }) {
   const result = quiz.latest_question_result || {};
-  const currentQuestion = normalizeQuestion(quiz);
+  const currentQuestion = normalizeQuestion(quiz, isEn);
   const answerIndex = Number.isInteger(Number(result.correct_choice_index))
     ? Number(result.correct_choice_index)
     : currentQuestion.correctAnswer;
   const answerLabel = Number.isInteger(answerIndex) && currentQuestion.options[answerIndex]
     ? currentQuestion.options[answerIndex].label
-    : 'Réponse non disponible';
+    : (isEn ? 'Answer unavailable' : 'Réponse non disponible');
 
   return (
     <section className={styles.screenCard}>
       <div className={styles.screenHeader}>
         <div>
-          <p className={styles.kicker}>Résultat question</p>
-          <h2 className={styles.screenTitle}>Reveal de la bonne réponse et micro-débrief</h2>
+          <p className={styles.kicker}>{isEn ? 'Question result' : 'Résultat question'}</p>
+          <h2 className={styles.screenTitle}>{isEn ? 'Reveal of the correct answer and short debrief' : 'Reveal de la bonne réponse et micro-débrief'}</h2>
         </div>
         <span className={styles.phaseBadge}>Reveal</span>
       </div>
 
       <div className={styles.highlightPanel}>
         <p className={styles.highlightValue}>
-          Bonne réponse: {Number.isInteger(answerIndex) ? `${String.fromCharCode(65 + answerIndex)}. ${answerLabel}` : 'à venir'}
+          {isEn ? 'Correct answer' : 'Bonne réponse'}: {Number.isInteger(answerIndex) ? `${String.fromCharCode(65 + answerIndex)}. ${answerLabel}` : (isEn ? 'coming soon' : 'à venir')}
         </p>
-        <p>Réponses validées: {Number(result.answer_count || quiz.answer_count || 0)}</p>
-        <p>{result.explanation || 'Zone réservée à l explication courte de la réponse.'}</p>
+        <p>{isEn ? 'Validated answers' : 'Réponses validées'}: {Number(result.answer_count || quiz.answer_count || 0)}</p>
+        <p>{result.explanation || (isEn ? 'Reserved area for a short explanation of the answer.' : 'Zone réservée à l explication courte de la réponse.')}</p>
       </div>
 
       <div className={styles.rankingList}>
@@ -237,7 +238,7 @@ export function QuizQuestionResultScreen({ quiz }) {
           <article key={entry.participant_id} className={styles.rankingCard}>
             <strong>#{entry.rank}</strong>
             <span>{entry.display_name}</span>
-            <span>{entry.score} pts</span>
+            <span>{entry.score} {isEn ? 'pts' : 'pts'}</span>
           </article>
         ))}
       </div>
@@ -245,7 +246,7 @@ export function QuizQuestionResultScreen({ quiz }) {
   );
 }
 
-export function QuizFinalScreen({ quiz }) {
+export function QuizFinalScreen({ isEn = false, quiz }) {
   const standings = Array.isArray(quiz.final_standings) ? quiz.final_standings : [];
   const winner = standings[0] || null;
   const totalPlayers = standings.length;
@@ -254,26 +255,26 @@ export function QuizFinalScreen({ quiz }) {
     <section className={styles.screenCard}>
       <div className={styles.screenHeader}>
         <div>
-          <p className={styles.kicker}>Score final</p>
-          <h2 className={styles.screenTitle}>Classement final de la session</h2>
+          <p className={styles.kicker}>{isEn ? 'Final score' : 'Score final'}</p>
+          <h2 className={styles.screenTitle}>{isEn ? 'Final session ranking' : 'Classement final de la session'}</h2>
         </div>
         <span className={styles.phaseBadge}>Final</span>
       </div>
 
       <div className={styles.finalSummaryGrid}>
-        <article className={styles.metricCard}><span>Participants</span><strong>{totalPlayers}</strong></article>
-        <article className={styles.metricCard}><span>Gagnant</span><strong>{winner?.display_name || '-'}</strong></article>
-        <article className={styles.metricCard}><span>Score gagnant</span><strong>{winner?.score ?? 0} pts</strong></article>
+        <article className={styles.metricCard}><span>{isEn ? 'Participants' : 'Participants'}</span><strong>{totalPlayers}</strong></article>
+        <article className={styles.metricCard}><span>{isEn ? 'Winner' : 'Gagnant'}</span><strong>{winner?.display_name || '-'}</strong></article>
+        <article className={styles.metricCard}><span>{isEn ? 'Winning score' : 'Score gagnant'}</span><strong>{winner?.score ?? 0} {isEn ? 'pts' : 'pts'}</strong></article>
       </div>
 
       <div className={styles.finalDebriefBlock}>
-        <p className={styles.kicker}>Classement détaillé</p>
+        <p className={styles.kicker}>{isEn ? 'Detailed ranking' : 'Classement détaillé'}</p>
         <div className={styles.rankingList}>
           {standings.map((entry) => (
             <article key={entry.participant_id} className={styles.rankingCard}>
               <strong>#{entry.rank}</strong>
               <span>{entry.display_name}</span>
-              <span>{entry.score} pts</span>
+              <span>{entry.score} {isEn ? 'pts' : 'pts'}</span>
             </article>
           ))}
         </div>
@@ -282,7 +283,7 @@ export function QuizFinalScreen({ quiz }) {
   );
 }
 
-export function QuizHostControlScreen({ quiz, onAction, isBusy = false }) {
+export function QuizHostControlScreen({ isEn = false, quiz, onAction, isBusy = false }) {
   const connectedCount = Number(quiz?.connected_count || 0);
   const canStartChallenge = connectedCount >= 2;
 
@@ -290,21 +291,21 @@ export function QuizHostControlScreen({ quiz, onAction, isBusy = false }) {
     <section className={styles.screenCard}>
       <div className={styles.screenHeader}>
         <div>
-          <p className={styles.kicker}>Écran animateur/admin</p>
-          <h2 className={styles.screenTitle}>Console de pilotage de manche</h2>
+          <p className={styles.kicker}>{isEn ? 'Host/admin view' : 'Écran animateur/admin'}</p>
+          <h2 className={styles.screenTitle}>{isEn ? 'Round control console' : 'Console de pilotage de manche'}</h2>
         </div>
         <span className={styles.phaseBadge}>Host</span>
       </div>
 
       <div className={styles.hostGrid}>
-        <article className={styles.metricCard}><span>Phase</span><strong>{quiz.phase}</strong></article>
-        <article className={styles.metricCard}><span>Question active</span><strong>{quiz.question_index + 1}</strong></article>
-        <article className={styles.metricCard}><span>Réponses reçues</span><strong>{quiz.answer_count || 0}</strong></article>
+        <article className={styles.metricCard}><span>{isEn ? 'Phase' : 'Phase'}</span><strong>{quiz.phase}</strong></article>
+        <article className={styles.metricCard}><span>{isEn ? 'Active question' : 'Question active'}</span><strong>{quiz.question_index + 1}</strong></article>
+        <article className={styles.metricCard}><span>{isEn ? 'Answers received' : 'Réponses reçues'}</span><strong>{quiz.answer_count || 0}</strong></article>
         <article className={styles.metricCard}><span>Leaderboard</span><strong>{quiz.leaderboard_enabled ? 'ON' : 'OFF'}</strong></article>
       </div>
 
       {!canStartChallenge ? (
-        <p className={styles.helperText}>Au moins 2 participants doivent être connectés pour démarrer le challenge.</p>
+        <p className={styles.helperText}>{isEn ? 'At least 2 participants must be connected to start the challenge.' : 'Au moins 2 participants doivent être connectés pour démarrer le challenge.'}</p>
       ) : null}
 
       <div className={styles.hostActions}>
@@ -314,18 +315,18 @@ export function QuizHostControlScreen({ quiz, onAction, isBusy = false }) {
           onClick={() => onAction('quiz.session.start')}
           disabled={isBusy || !canStartChallenge}
         >
-          Lancer la manche
+          {isEn ? 'Start round' : 'Lancer la manche'}
         </button>
-        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.pause')} disabled={isBusy}>Pause</button>
-        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.resume')} disabled={isBusy}>Reprendre</button>
-        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.question.skip')} disabled={isBusy}>Question suivante</button>
-        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.finish')} disabled={isBusy}>Terminer la session</button>
+        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.pause')} disabled={isBusy}>{isEn ? 'Pause' : 'Pause'}</button>
+        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.resume')} disabled={isBusy}>{isEn ? 'Resume' : 'Reprendre'}</button>
+        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.question.skip')} disabled={isBusy}>{isEn ? 'Next question' : 'Question suivante'}</button>
+        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.finish')} disabled={isBusy}>{isEn ? 'End session' : 'Terminer la session'}</button>
       </div>
     </section>
   );
 }
 
-export function QuizHostResponsesScreen({ quiz }) {
+export function QuizHostResponsesScreen({ isEn = false, quiz }) {
   const participants = quiz.participants || [];
   const liveAnswers = quiz.live_answers_by_participant && typeof quiz.live_answers_by_participant === 'object'
     ? quiz.live_answers_by_participant
@@ -335,8 +336,8 @@ export function QuizHostResponsesScreen({ quiz }) {
     <section className={styles.screenCard}>
       <div className={styles.screenHeader}>
         <div>
-          <p className={styles.kicker}>Réponses live participants</p>
-          <h2 className={styles.screenTitle}>Vue animateur sur les validations en cours</h2>
+          <p className={styles.kicker}>{isEn ? 'Participant live answers' : 'Réponses live participants'}</p>
+          <h2 className={styles.screenTitle}>{isEn ? 'Host view of incoming validations' : 'Vue animateur sur les validations en cours'}</h2>
         </div>
         <span className={styles.phaseBadge}>Live answers</span>
       </div>
@@ -347,10 +348,10 @@ export function QuizHostResponsesScreen({ quiz }) {
             <strong>{participant.display_name}</strong>
             <span>
               {liveAnswers[String(participant.participant_id)]
-                ? `Réponse #${Number(liveAnswers[String(participant.participant_id)]?.selected_option || 0) + 1}`
-                : `En attente #${(index % 4) + 1}`}
+                ? `${isEn ? 'Answer' : 'Réponse'} #${Number(liveAnswers[String(participant.participant_id)]?.selected_option || 0) + 1}`
+                : `${isEn ? 'Waiting' : 'En attente'} #${(index % 4) + 1}`}
             </span>
-            <span>{participant.is_connected ? 'Connecté' : 'Hors ligne'}</span>
+            <span>{participant.is_connected ? (isEn ? 'Connected' : 'Connecté') : (isEn ? 'Offline' : 'Hors ligne')}</span>
             <span>{liveAnswers[String(participant.participant_id)] ? formatRelativeMs(liveAnswers[String(participant.participant_id)]?.response_time_ms) : '-'}</span>
           </article>
         ))}

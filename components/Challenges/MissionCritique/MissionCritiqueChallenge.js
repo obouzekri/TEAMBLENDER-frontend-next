@@ -9,6 +9,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import useI18n from '@/lib/i18n/useI18n';
 import styles from './MissionCritique.module.css';
 
 const PHASES = Object.freeze([
@@ -36,6 +37,8 @@ function isEmailLike(value) {
 }
 
 export default function MissionCritiqueChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
+  const { locale } = useI18n();
+  const isEn = locale === 'en';
   const [dropTarget, setDropTarget] = useState({ phaseKey: '', index: -1 });
   const [dropPulseTarget, setDropPulseTarget] = useState({ phaseKey: '', index: -1 });
   const [dragTaskId, setDragTaskId] = useState('');
@@ -129,25 +132,45 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     const baseRules = Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : [];
     return [
       ...baseRules,
-      'Calcul du score (transparent): score collectif = moyenne des scores individuels (0 a 100).',
-      'Penalites: dependance non respectee (-8), tache critique manquante (-10), doublon (-5), tache inconnue (-3).',
-      'Formule simplifiee: 100 - penalites + bonus de coherence (plafonne entre 0 et 100).',
-      'L’équipe doit converger puis soumettre une seule timeline cohérente au niveau collectif.',
-      'Répartissez les tâches par phase (cadrage, préparation, exécution, clôture) pour équilibrer la charge.',
-      'Affectez un responsable dépendances pour valider les prérequis avant chaque déplacement majeur.'
+      isEn
+        ? 'Scoring (transparent): team score = average of individual scores (0 to 100).'
+        : 'Calcul du score (transparent): score collectif = moyenne des scores individuels (0 a 100).',
+      isEn
+        ? 'Penalties: unmet dependency (-8), missing critical task (-10), duplicate (-5), unknown task (-3).'
+        : 'Penalites: dependance non respectee (-8), tache critique manquante (-10), doublon (-5), tache inconnue (-3).',
+      isEn
+        ? 'Simplified formula: 100 - penalties + consistency bonus (clamped from 0 to 100).'
+        : 'Formule simplifiee: 100 - penalites + bonus de coherence (plafonne entre 0 et 100).',
+      isEn
+        ? 'The team must converge and submit one coherent collective timeline.'
+        : 'L’équipe doit converger puis soumettre une seule timeline cohérente au niveau collectif.',
+      isEn
+        ? 'Distribute tasks by phase (scoping, preparation, execution, closure) to balance workload.'
+        : 'Répartissez les tâches par phase (cadrage, préparation, exécution, clôture) pour équilibrer la charge.',
+      isEn
+        ? 'Assign a dependency owner to validate prerequisites before each major move.'
+        : 'Affectez un responsable dépendances pour valider les prérequis avant chaque déplacement majeur.'
     ];
-  }, [rulesContent?.facilitator]);
+  }, [rulesContent?.facilitator, isEn]);
 
   const participantRules = useMemo(() => {
     const baseRules = Array.isArray(rulesContent?.participant) ? rulesContent.participant : [];
     return [
       ...baseRules,
-      'Le score final est collectif: votre ordre impacte directement la moyenne de toute l’équipe.',
-      'Calcul du score: 100 points de base puis retraits en cas d incoherences (dependances, oublis critiques, doublons).',
-      'Synchronisez-vous pour soumettre une timeline unique et cohérente pour toute l’équipe.',
-      'Priorisez d’abord les dépendances et les tâches critiques, puis complétez le reste du backlog.'
+      isEn
+        ? 'Final score is collective: your ordering directly impacts the whole team average.'
+        : 'Le score final est collectif: votre ordre impacte directement la moyenne de toute l’équipe.',
+      isEn
+        ? 'Scoring: 100 base points, then deductions for inconsistencies (dependencies, missing critical tasks, duplicates).'
+        : 'Calcul du score: 100 points de base puis retraits en cas d incoherences (dependances, oublis critiques, doublons).',
+      isEn
+        ? 'Coordinate to submit one unique and coherent timeline for the entire team.'
+        : 'Synchronisez-vous pour soumettre une timeline unique et cohérente pour toute l’équipe.',
+      isEn
+        ? 'Prioritize dependencies and critical tasks first, then complete the remaining backlog.'
+        : 'Priorisez d’abord les dépendances et les tâches critiques, puis complétez le reste du backlog.'
     ];
-  }, [rulesContent?.participant]);
+  }, [rulesContent?.participant, isEn]);
 
   useEffect(() => {
     setPhaseByTask((prev) => {
@@ -318,12 +341,12 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
               <section className={styles.workspaceGrid}>
                 <section className={`${styles.card} ${styles.taskCard}`}>
                   <div className={styles.sectionHead}>
-                    <h2>Backlog mission</h2>
-                    <p>Toutes les tâches sont disponibles. Glisser-déposer ou cliquer pour ajouter.</p>
+                    <h2>{isEn ? 'Mission backlog' : 'Backlog mission'}</h2>
+                    <p>{isEn ? 'All tasks are available. Drag and drop or click to add.' : 'Toutes les tâches sont disponibles. Glisser-déposer ou cliquer pour ajouter.'}</p>
                   </div>
 
                   {backlogTasks.length === 0 ? (
-                    <p className={styles.empty}>Aucune tâche disponible.</p>
+                    <p className={styles.empty}>{isEn ? 'No tasks available.' : 'Aucune tâche disponible.'}</p>
                   ) : (
                     <div className={styles.taskGrid}>
                       {backlogTasks.map((task) => {
@@ -358,8 +381,8 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                 <section className={`${styles.card} ${styles.timelineCard}`}>
                   <div className={styles.timelineHead}>
                     <div>
-                      <h2>Timeline par phases</h2>
-                      <p>Glissez les tâches dans chaque phase, puis ordonnez-les verticalement.</p>
+                      <h2>{isEn ? 'Timeline by phase' : 'Timeline par phases'}</h2>
+                      <p>{isEn ? 'Drag tasks into each phase, then order them vertically.' : 'Glissez les tâches dans chaque phase, puis ordonnez-les verticalement.'}</p>
                     </div>
                     <button
                       type="button"
@@ -367,7 +390,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                       onClick={submitTimeline}
                       disabled={!canEditTimeline || timeline.length === 0}
                     >
-                      Valider ma solution
+                      {isEn ? 'Submit my solution' : 'Valider ma solution'}
                     </button>
                   </div>
 
@@ -379,7 +402,9 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                         <React.Fragment key={phase.key}>
                           <section className={`${styles.phaseLine} ${styles[phase.className]}`}>
                             <div className={styles.phaseLineHeader}>
-                              <h3>{phase.label}</h3>
+                              <h3>{isEn
+                                ? (phase.key === 'cadrage' ? 'Scoping' : phase.key === 'preparation' ? 'Preparation' : phase.key === 'execution' ? 'Execution' : 'Closure')
+                                : phase.label}</h3>
                               <span>{items.length}</span>
                             </div>
                           </section>
@@ -400,7 +425,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                             onDrop={(event) => onTimelineDrop(event, phase.key, phaseDropIndex)}
                           >
                             {items.length === 0 ? (
-                              <div className={styles.timelineLaneHint}>Déposer une action ici</div>
+                              <div className={styles.timelineLaneHint}>{isEn ? 'Drop an action here' : 'Déposer une action ici'}</div>
                             ) : (
                               items.map((item, indexInPhase) => {
                                 const task = taskMap.get(String(item.taskId));
@@ -425,8 +450,8 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                                         className={styles.ghostBtn}
                                         onClick={() => moveTaskWithinPhase(item.timelineIndex, upTarget)}
                                         disabled={!canEditTimeline || !canMoveUp}
-                                        title="Monter"
-                                        aria-label="Monter dans la phase"
+                                        title={isEn ? 'Move up' : 'Monter'}
+                                        aria-label={isEn ? 'Move up in phase' : 'Monter dans la phase'}
                                       >
                                         ↑
                                       </button>
@@ -435,8 +460,8 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                                         className={styles.ghostBtn}
                                         onClick={() => moveTaskWithinPhase(item.timelineIndex, downTarget)}
                                         disabled={!canEditTimeline || !canMoveDown}
-                                        title="Descendre"
-                                        aria-label="Descendre dans la phase"
+                                        title={isEn ? 'Move down' : 'Descendre'}
+                                        aria-label={isEn ? 'Move down in phase' : 'Descendre dans la phase'}
                                       >
                                         ↓
                                       </button>
@@ -446,7 +471,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                                         onClick={() => emitEvent('mission.task.remove', { index: item.timelineIndex })}
                                         disabled={!canEditTimeline}
                                       >
-                                        Retirer
+                                        {isEn ? 'Remove' : 'Retirer'}
                                       </button>
                                     </div>
                                   </article>
@@ -463,10 +488,10 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
               {(submitResult || mission.result) ? (
                 <section className={styles.card} style={{ order: -1 }}>
-                  <h2>Résultat</h2>
-                  <p className={styles.score}>Score: {Number((submitResult || mission.result)?.score || 0)}/100</p>
-                  <p className={styles.meta}>Points forts: {((submitResult || mission.result)?.strengths || []).join(' | ') || 'Aucun'}</p>
-                  <p className={styles.meta}>Points faibles: {((submitResult || mission.result)?.weaknesses || []).join(' | ') || 'Aucun'}</p>
+                  <h2>{isEn ? 'Result' : 'Résultat'}</h2>
+                  <p className={styles.score}>{isEn ? 'Score' : 'Score'}: {Number((submitResult || mission.result)?.score || 0)}/100</p>
+                  <p className={styles.meta}>{isEn ? 'Strengths' : 'Points forts'}: {((submitResult || mission.result)?.strengths || []).join(' | ') || (isEn ? 'None' : 'Aucun')}</p>
+                  <p className={styles.meta}>{isEn ? 'Weaknesses' : 'Points faibles'}: {((submitResult || mission.result)?.weaknesses || []).join(' | ') || (isEn ? 'None' : 'Aucun')}</p>
                   <ul className={styles.errorList}>
                     {((submitResult || mission.result)?.errors || []).map((errMsg, idx) => (
                       <li key={`${idx}-${errMsg}`}>{errMsg}</li>
@@ -477,23 +502,23 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             </>
           ) : (
             <section className={styles.card}>
-              <h2>Vue globale facilitateur</h2>
+              <h2>{isEn ? 'Facilitator global view' : 'Vue globale facilitateur'}</h2>
               {collectiveResult ? (
-                <p className={styles.score}>Score collectif: {Number(collectiveResult.score || 0)}/100</p>
+                <p className={styles.score}>{isEn ? 'Collective score' : 'Score collectif'}: {Number(collectiveResult.score || 0)}/100</p>
               ) : null}
               {facilitatorBoard.length === 0 ? (
-                <p className={styles.empty}>Aucun participant actif pour le moment.</p>
+                <p className={styles.empty}>{isEn ? 'No active participants yet.' : 'Aucun participant actif pour le moment.'}</p>
               ) : (
                 <div className={styles.boardGrid}>
                   {facilitatorBoard.map((item) => (
                     <article key={item.participant_id} className={styles.facilitatorCard}>
-                      <p className={styles.order}>Participant</p>
+                      <p className={styles.order}>{isEn ? 'Participant' : 'Participant'}</p>
                       <h3>{resolveParticipantLabel(item)}</h3>
-                      <p className={styles.meta}>Timeline: {item.timeline_length} tâches</p>
-                      <p className={styles.meta}>Soumis: {item.submitted ? 'Oui' : 'Non'}</p>
-                      <p className={styles.meta}>Erreurs: {item.errors_count ?? 0}</p>
+                      <p className={styles.meta}>{isEn ? 'Timeline' : 'Timeline'}: {item.timeline_length} {isEn ? 'tasks' : 'tâches'}</p>
+                      <p className={styles.meta}>{isEn ? 'Submitted' : 'Soumis'}: {item.submitted ? (isEn ? 'Yes' : 'Oui') : (isEn ? 'No' : 'Non')}</p>
+                      <p className={styles.meta}>{isEn ? 'Errors' : 'Erreurs'}: {item.errors_count ?? 0}</p>
                       <div className={styles.participantTimelineBlock}>
-                        <p className={styles.miniTitle}>Timeline temps réel</p>
+                        <p className={styles.miniTitle}>{isEn ? 'Real-time timeline' : 'Timeline temps réel'}</p>
                         {Array.isArray(item.timeline) && item.timeline.length > 0 ? (
                           <div className={styles.phaseTimeline}>
                             {PHASES.map((phase) => {
@@ -505,13 +530,15 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                                 <React.Fragment key={`${item.participant_id}-${phase.key}`}>
                                   <section className={`${styles.phaseLine} ${styles[phase.className]}`}>
                                     <div className={styles.phaseLineHeader}>
-                                      <h3>{phase.label}</h3>
+                                      <h3>{isEn
+                                        ? (phase.key === 'cadrage' ? 'Scoping' : phase.key === 'preparation' ? 'Preparation' : phase.key === 'execution' ? 'Execution' : 'Closure')
+                                        : phase.label}</h3>
                                       <span>{phaseItems.length}</span>
                                     </div>
                                   </section>
                                   <section className={styles.timelineLane}>
                                     {phaseItems.length === 0 ? (
-                                      <div className={styles.timelineLaneHint}>Aucune action</div>
+                                      <div className={styles.timelineLaneHint}>{isEn ? 'No action' : 'Aucune action'}</div>
                                     ) : (
                                       phaseItems.map((entry) => {
                                         const task = taskMap.get(String(entry.taskId));
@@ -533,7 +560,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                             })}
                           </div>
                         ) : (
-                          <p className={styles.meta}>Aucune action placée pour le moment.</p>
+                          <p className={styles.meta}>{isEn ? 'No action placed yet.' : 'Aucune action placée pour le moment.'}</p>
                         )}
                       </div>
                     </article>
@@ -559,7 +586,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
           />
 
           <ChallengeTimerCard
-            title="Chrono"
+            title={isEn ? 'Timer' : 'Chrono'}
             remainingSeconds={timerRemainingSeconds}
             durationSeconds={timerDurationSeconds}
             status={timerState}
@@ -571,8 +598,8 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                   if (timerState === 'running') emitEvent('timer.pause');
                   else if (timerState === 'paused') emitEvent('timer.resume');
                 }}
-                title={timerState === 'running' ? 'Mettre en pause' : 'Reprendre'}
-                aria-label={timerState === 'running' ? 'Mettre en pause' : 'Reprendre'}
+                title={timerState === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
+                aria-label={timerState === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
               >
                 {timerState === 'running' ? '⏸' : '▶'}
               </button>
@@ -580,7 +607,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
           />
 
           <ChallengeChatCard
-            title="Chat"
+            title={isEn ? 'Chat' : 'Chat'}
             messages={chatMessages}
             currentAuthor={displayName}
             inputValue={chatInput}
@@ -588,7 +615,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             onSubmit={submitChat}
             quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
             onQuickMessage={sendQuickChat}
-            placeholder="Écrire un message"
+            placeholder={isEn ? 'Write a message' : 'Écrire un message'}
             maxLength={240}
           />
         </aside>

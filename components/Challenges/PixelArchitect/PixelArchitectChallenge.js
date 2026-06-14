@@ -11,6 +11,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import useI18n from '@/lib/i18n/useI18n';
 import styles from './PixelArchitect.module.css';
 
 const DEFAULT_TEMPLATE = Object.freeze({
@@ -102,6 +103,8 @@ function normalizeServerCubes(cubesMap) {
 }
 
 export default function PixelArchitectChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
+  const { locale } = useI18n();
+  const isEn = locale === 'en';
   const mountRef = useRef(null);
   const modelPreviewRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -751,7 +754,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const summary = state?.summary || null;
   const summaryPixelMetrics = summary?.pixel_metrics || null;
   const templateName = String(selectedTemplate?.name || 'Modele').trim();
-  const templateDifficulty = String(selectedTemplate?.difficulty || state?.config?.difficulty || 'moyen').trim();
+  const templateDifficulty = String(selectedTemplate?.difficulty || state?.config?.difficulty || (isEn ? 'medium' : 'moyen')).trim();
   const miniCells = useMemo(() => targetCells.slice(0, 42), [targetCells]);
 
   const playerExactHits = useMemo(() => {
@@ -843,41 +846,41 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const rulesExtraContent = useMemo(() => (
     <>
       <section className={styles.rulesMetaSection}>
-        <h3>Plan d'execution</h3>
+        <h3>{isEn ? 'Execution plan' : 'Plan d\'execution'}</h3>
         <div className={styles.statusRow}>
-          <span className={styles.badge}>Phase: {phase || 'intro'}</span>
-          <span className={styles.badge}>Exactitude: {accuracyPercent}%</span>
-          <span className={styles.badge}>Restants: {remainingCubes}</span>
+          <span className={styles.badge}>{isEn ? 'Phase' : 'Phase'}: {phase || 'intro'}</span>
+          <span className={styles.badge}>{isEn ? 'Accuracy' : 'Exactitude'}: {accuracyPercent}%</span>
+          <span className={styles.badge}>{isEn ? 'Remaining' : 'Restants'}: {remainingCubes}</span>
         </div>
         <p className={styles.rulesInlineText}>
-          Cliquer la grille pour poser, cliquer un cube pour supprimer, glisser pour orbiter ou zoomer.
+          {isEn ? 'Click grid to place, click a cube to remove, drag to orbit or zoom.' : 'Cliquer la grille pour poser, cliquer un cube pour supprimer, glisser pour orbiter ou zoomer.'}
         </p>
         <ol className={styles.howToList}>
-          <li>Choisir une couche puis poser ou supprimer des cubes.</li>
-          <li>Verifier la carte modele et avancer couche par couche.</li>
-          <li>Se coordonner via le chat pour eviter les doublons.</li>
-          <li>Soumettre la version finale quand votre equipe est prete.</li>
+          <li>{isEn ? 'Choose a layer, then place or remove cubes.' : 'Choisir une couche puis poser ou supprimer des cubes.'}</li>
+          <li>{isEn ? 'Check the model map and progress layer by layer.' : 'Verifier la carte modele et avancer couche par couche.'}</li>
+          <li>{isEn ? 'Coordinate in chat to avoid duplicates.' : 'Se coordonner via le chat pour eviter les doublons.'}</li>
+          <li>{isEn ? 'Submit the final version when your team is ready.' : 'Soumettre la version finale quand votre equipe est prete.'}</li>
         </ol>
         <div className={styles.helperRow}>
           <div className={styles.helperItem}>
-            <span className={styles.helperDotTarget} /> Modele cible (fantome)
+            <span className={styles.helperDotTarget} /> {isEn ? 'Target model (ghost)' : 'Modele cible (fantome)'}
           </div>
           <div className={styles.helperItem}>
-            <span className={styles.helperDotPlayer} /> Cubes equipe
+            <span className={styles.helperDotPlayer} /> {isEn ? 'Team cubes' : 'Cubes equipe'}
           </div>
           <div className={styles.helperItem}>
-            <span className={styles.helperDotError} /> Contraintes depassees
+            <span className={styles.helperDotError} /> {isEn ? 'Exceeded constraints' : 'Contraintes depassees'}
           </div>
         </div>
       </section>
     </>
-  ), [accuracyPercent, phase, remainingCubes]);
+  ), [accuracyPercent, phase, remainingCubes, isEn]);
 
   return (
     <div className={styles.container}>
       <ChallengeHeader
         title="Pixel Architect"
-        subtitle="Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette."
+        subtitle={isEn ? 'Replicate the model together in real time with grid and palette constraints.' : 'Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette.'}
       />
 
       <div className={styles.layout}>
@@ -899,44 +902,45 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             <>
               <section className={styles.panel}>
                 <div className={styles.panelHead}>
-                  <h2>Arene de construction 3D</h2>
+                  <h2>{isEn ? '3D build arena' : 'Arene de construction 3D'}</h2>
                 </div>
 
                 <div className={styles.arenaControlRow}>
                   <section className={styles.modelMiniCard}>
                     <p className={styles.modelMiniTitle}>Carte modele</p>
+                    <p className={styles.modelMiniTitle}>{isEn ? 'Model map' : 'Carte modele'}</p>
                     <p className={styles.modelMiniMeta}>{templateName} - {templateDifficulty}</p>
                     <div className={styles.modelMiniViewport}>
                       {canSeeTargetModel ? (
                         <>
                           <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
-                          <span className={styles.modelMiniHint}>Glisser pour tourner</span>
+                          <span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span>
                         </>
                       ) : (
-                        <p className={styles.modelMiniHidden}>Modele masque pour ce role</p>
+                        <p className={styles.modelMiniHidden}>{isEn ? 'Model hidden for this role' : 'Modele masque pour ce role'}</p>
                       )}
                     </div>
                     <div className={styles.modelMiniStats}>
                       <span>{grid.x}x{grid.y}x{grid.z}</span>
-                      <span>{targetCubeCount} cubes cibles</span>
+                      <span>{targetCubeCount} {isEn ? 'target cubes' : 'cubes cibles'}</span>
                     </div>
                   </section>
 
                   <section className={styles.layerControlCard}>
-                    <p className={styles.layerControlTitle}>Couches de construction</p>
+                    <p className={styles.layerControlTitle}>{isEn ? 'Build layers' : 'Couches de construction'}</p>
                     {!isFacilitator ? (
                       <div className={styles.claimBarInside}>
                         <p className={styles.claimText}>
                           {myLayerClaim
-                            ? `Couche reservee: ${Number(myLayerClaim.layer) + 1}`
-                            : 'Aucune couche reservee'}
+                            ? `${isEn ? 'Reserved layer' : 'Couche reservee'}: ${Number(myLayerClaim.layer) + 1}`
+                            : (isEn ? 'No layer reserved' : 'Aucune couche reservee')}
                         </p>
                         <button
                           type="button"
                           className={styles.btnSecondary}
                           onClick={() => handleToggleLayerClaim(safeLayer)}
                         >
-                          {myLayerClaim && Number(myLayerClaim.layer) === safeLayer ? 'Liberer cette couche' : 'Reserver cette couche'}
+                          {myLayerClaim && Number(myLayerClaim.layer) === safeLayer ? (isEn ? 'Release this layer' : 'Liberer cette couche') : (isEn ? 'Reserve this layer' : 'Reserver cette couche')}
                         </button>
                       </div>
                     ) : null}
@@ -946,11 +950,11 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                           key={`layer-${layer}`}
                           type="button"
                           aria-pressed={safeLayer === layer}
-                          aria-label={`Afficher la couche ${layer + 1}`}
+                          aria-label={`${isEn ? 'Show layer' : 'Afficher la couche'} ${layer + 1}`}
                           className={`${styles.layerBtn}${safeLayer === layer ? ` ${styles.layerBtnActive}` : ''}`}
                           onClick={() => setActiveLayer(layer)}
                         >
-                          Couche {layer + 1}
+                          {isEn ? 'Layer' : 'Couche'} {layer + 1}
                         </button>
                       ))}
                     </div>
@@ -958,8 +962,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 </div>
 
                 <div className={styles.paletteRow}>
-                  <p className={styles.paletteLabel}>Palette active</p>
-                  <div className={styles.paletteSwatches} role="radiogroup" aria-label="Palette de couleurs">
+                  <p className={styles.paletteLabel}>{isEn ? 'Active palette' : 'Palette active'}</p>
+                  <div className={styles.paletteSwatches} role="radiogroup" aria-label={isEn ? 'Color palette' : 'Palette de couleurs'}>
                     {palette.map((color) => (
                       <button
                         key={color}
@@ -976,7 +980,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                       />
                     ))}
                   </div>
-                  <p className={styles.paletteValue}>Selection: {selectedColor}</p>
+                  <p className={styles.paletteValue}>{isEn ? 'Selection' : 'Selection'}: {selectedColor}</p>
                 </div>
 
                 <div className={styles.viewportWrap}>
@@ -986,32 +990,32 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 {!isFacilitator ? (
                   <div className={`${styles.actionsRow} ${styles.actionsRowSticky}`} aria-label="Actions de construction">
                     <button type="button" className={styles.btnSecondary} onClick={handleResetLayer} disabled={!canBuild}>
-                      Reinitialiser la couche
+                      {isEn ? 'Reset layer' : 'Reinitialiser la couche'}
                     </button>
                     <button type="button" className={styles.btnSecondary} onClick={handleResetBuild} disabled={!canBuild}>
-                      Reinitialiser les cubes
+                      {isEn ? 'Reset cubes' : 'Reinitialiser les cubes'}
                     </button>
                     <button type="button" className={styles.btnPrimary} onClick={handleSubmitFinal} disabled={isLockedByPhase}>
-                      Soumettre version finale
+                      {isEn ? 'Submit final version' : 'Soumettre version finale'}
                     </button>
                   </div>
                 ) : (
                   <div className={styles.actionsRow}>
                     <button type="button" className={styles.btnSecondary} onClick={onRequestHint}>
-                      Diffuser un indice
+                      {isEn ? 'Broadcast hint' : 'Diffuser un indice'}
                     </button>
                   </div>
                 )}
 
                 <div className={styles.attemptCard} role="status" aria-live="polite">
-                  <h3>Progression du build</h3>
+                  <h3>{isEn ? 'Build progress' : 'Progression du build'}</h3>
                   <div className={styles.progressCompactGrid}>
-                    <p>Cibles: <strong>{targetCubeCount}</strong></p>
-                    <p>Poses: <strong>{cubeCount}</strong></p>
-                    <p>Exacts: <strong>{playerExactHits}</strong></p>
-                    <p>Manquants: <strong>{missingCount}</strong></p>
-                    <p>En trop: <strong>{extraCount}</strong></p>
-                    <p>Precision: <strong>{accuracyPercent}%</strong></p>
+                    <p>{isEn ? 'Targets' : 'Cibles'}: <strong>{targetCubeCount}</strong></p>
+                    <p>{isEn ? 'Placed' : 'Poses'}: <strong>{cubeCount}</strong></p>
+                    <p>{isEn ? 'Exact' : 'Exacts'}: <strong>{playerExactHits}</strong></p>
+                    <p>{isEn ? 'Missing' : 'Manquants'}: <strong>{missingCount}</strong></p>
+                    <p>{isEn ? 'Extra' : 'En trop'}: <strong>{extraCount}</strong></p>
+                    <p>{isEn ? 'Accuracy' : 'Precision'}: <strong>{accuracyPercent}%</strong></p>
                   </div>
                   <div className={styles.progressTrack} aria-hidden="true">
                     <span className={styles.progressFill} style={{ width: `${progress}%` }} />
@@ -1021,16 +1025,16 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
               {summary ? (
                 <section className={styles.panel}>
-                  <h2>Debrief</h2>
+                  <h2>{isEn ? 'Debrief' : 'Debrief'}</h2>
                   <div className={styles.summaryGrid}>
-                    <p>Score global: <strong>{Number(summary.collective_score || 0)}</strong></p>
+                    <p>{isEn ? 'Global score' : 'Score global'}: <strong>{Number(summary.collective_score || 0)}</strong></p>
                     <p>Completion: <strong>{Number(summary.completion_percent || 0)}%</strong></p>
                     <p>Actions: <strong>{Number(summary.action_count || 0)}</strong></p>
-                    <p>Messages: <strong>{Number(summary.message_count || 0)}</strong></p>
-                    {summaryPixelMetrics ? <p>Exacts: <strong>{Number(summaryPixelMetrics.matched_count || 0)}</strong></p> : null}
-                    {summaryPixelMetrics ? <p>Manquants: <strong>{Number(summaryPixelMetrics.missing_count || 0)}</strong></p> : null}
-                    {summaryPixelMetrics ? <p>En trop: <strong>{Number(summaryPixelMetrics.extra_count || 0)}</strong></p> : null}
-                    {summaryPixelMetrics ? <p>Couleurs utilisees: <strong>{Number(summaryPixelMetrics.used_colors || 0)}</strong></p> : null}
+                    <p>{isEn ? 'Messages' : 'Messages'}: <strong>{Number(summary.message_count || 0)}</strong></p>
+                    {summaryPixelMetrics ? <p>{isEn ? 'Exact' : 'Exacts'}: <strong>{Number(summaryPixelMetrics.matched_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p>{isEn ? 'Missing' : 'Manquants'}: <strong>{Number(summaryPixelMetrics.missing_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p>{isEn ? 'Extra' : 'En trop'}: <strong>{Number(summaryPixelMetrics.extra_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p>{isEn ? 'Used colors' : 'Couleurs utilisees'}: <strong>{Number(summaryPixelMetrics.used_colors || 0)}</strong></p> : null}
                   </div>
                 </section>
               ) : null}
@@ -1054,7 +1058,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           ) : null}
 
           <ChallengeTimerCard
-            title="Chrono"
+            title={isEn ? 'Timer' : 'Chrono'}
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
             durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
             status={String(timer?.status || 'idle')}
@@ -1066,12 +1070,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           <section className={styles.panel}>
             <div className={styles.layerPlanHeader}>
               <h3>Plan par couche</h3>
+              <h3>{isEn ? 'Plan by layer' : 'Plan par couche'}</h3>
               <button
                 type="button"
                 className={styles.btnSecondary}
                 onClick={() => setIsLayerPlanCollapsed((prev) => !prev)}
               >
-                {isLayerPlanCollapsed ? 'Afficher le plan' : 'Reduire le plan'}
+                {isLayerPlanCollapsed ? (isEn ? 'Show plan' : 'Afficher le plan') : (isEn ? 'Collapse plan' : 'Reduire le plan')}
               </button>
             </div>
             {!isLayerPlanCollapsed ? (
@@ -1087,8 +1092,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     onClick={() => toggleLayerSummary(item.layer)}
                     aria-expanded={Boolean(expandedLayers[String(item.layer)])}
                   >
-                    <strong>Couche {item.layer + 1}</strong>
-                    <span>{expandedLayers[String(item.layer)] ? 'Reduire' : 'Afficher'}</span>
+                    <strong>{isEn ? 'Layer' : 'Couche'} {item.layer + 1}</strong>
+                    <span>{expandedLayers[String(item.layer)] ? (isEn ? 'Collapse' : 'Reduire') : (isEn ? 'Show' : 'Afficher')}</span>
                   </button>
                   {expandedLayers[String(item.layer)] ? (
                     <button
@@ -1096,10 +1101,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                       className={styles.layerSummaryDetails}
                       onClick={() => setActiveLayer(item.layer)}
                     >
-                      <span>{item.claim ? `Reservee par ${String(item.claim.display_name || 'participant')}` : 'Non reservee'}</span>
-                      <span>Cible: {item.targetCount}</span>
-                      <span>Exacts: {item.matchedCount}</span>
-                      <span>En trop: {item.extraCount}</span>
+                      <span>{item.claim ? `${isEn ? 'Reserved by' : 'Reservee par'} ${String(item.claim.display_name || (isEn ? 'participant' : 'participant'))}` : (isEn ? 'Not reserved' : 'Non reservee')}</span>
+                      <span>{isEn ? 'Target' : 'Cible'}: {item.targetCount}</span>
+                      <span>{isEn ? 'Exact' : 'Exacts'}: {item.matchedCount}</span>
+                      <span>{isEn ? 'Extra' : 'En trop'}: {item.extraCount}</span>
                       <div className={styles.layerSummaryTrack} aria-hidden="true">
                         <span className={styles.layerSummaryFill} style={{ width: `${item.completion}%` }} />
                       </div>
@@ -1114,11 +1119,12 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           {contributorStats.length > 0 ? (
             <section className={styles.panel}>
               <h3>Repartition equipe</h3>
+              <h3>{isEn ? 'Team distribution' : 'Repartition equipe'}</h3>
               <ul className={styles.activityList}>
                 {contributorStats.map((item) => (
                   <li key={`contrib-${item.id}`} className={styles.activityItem}>
                     <strong>{item.id}</strong>
-                    <span>{item.cubeCount} cubes · {item.layerCount} couches · {item.colorCount} couleurs</span>
+                    <span>{item.cubeCount} {isEn ? 'cubes' : 'cubes'} · {item.layerCount} {isEn ? 'layers' : 'couches'} · {item.colorCount} {isEn ? 'colors' : 'couleurs'}</span>
                   </li>
                 ))}
               </ul>
@@ -1127,7 +1133,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
           {Array.isArray(pixel?.hints) && pixel.hints.length > 0 ? (
             <section className={styles.panel}>
-              <h3>Historique indices</h3>
+              <h3>{isEn ? 'Hint history' : 'Historique indices'}</h3>
               <ul className={styles.attemptList}>
                 {pixel.hints.slice(-6).reverse().map((item, index) => (
                   <li key={`hint-${index}`}>
@@ -1149,7 +1155,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               onQuickMessage={sendQuickChat}
               quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
               disabled={!hasChallengeStarted}
-              placeholder="Coordonnez vos actions"
+              placeholder={isEn ? 'Coordinate your actions' : 'Coordonnez vos actions'}
             />
           ) : null}
 

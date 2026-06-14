@@ -23,6 +23,7 @@ import {
   buildPlaceholderLeaderboard,
 } from './theQuiz.schema';
 import styles from './TheQuiz.module.css';
+import useI18n from '@/lib/i18n/useI18n';
 
 function normalizeDisplayName(value, fallback) {
   const text = String(value || '').trim();
@@ -75,6 +76,8 @@ function buildRankMap(entries = []) {
 }
 
 export default function TheQuizChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
+  const { locale } = useI18n();
+  const isEn = locale === 'en';
   const [forcedPhase, setForcedPhase] = useState('');
   const [hostTab, setHostTab] = useState('host_admin');
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
@@ -218,7 +221,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const chatEnabled = Boolean(socket) && quiz.chat_enabled;
   const author = normalizeDisplayName(
     context?.displayName || runtimePayload?.context?.displayName,
-    isFacilitator ? 'Animateur' : 'Participant'
+    isFacilitator ? (isEn ? 'Host' : 'Animateur') : 'Participant'
   );
   const {
     chatInput,
@@ -350,6 +353,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     if (activePhase === 'question_live') {
       return (
         <QuizQuestionScreen
+          isEn={isEn}
           quiz={phaseQuizView}
           selectedAnswerIndex={selectedAnswerIndex}
           onSelectAnswer={setSelectedAnswerIndex}
@@ -363,13 +367,13 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
       );
     }
     if (activePhase === 'leaderboard_live') {
-      return <QuizLeaderboardScreen quiz={phaseQuizView} rankMovementByParticipantId={rankMovementByParticipantId} />;
+      return <QuizLeaderboardScreen isEn={isEn} quiz={phaseQuizView} rankMovementByParticipantId={rankMovementByParticipantId} />;
     }
     if (activePhase === 'question_result') {
-      return <QuizQuestionResultScreen quiz={phaseQuizView} />;
+      return <QuizQuestionResultScreen isEn={isEn} quiz={phaseQuizView} />;
     }
     if (activePhase === 'final_score') {
-      return <QuizFinalScreen quiz={phaseQuizView} />;
+      return <QuizFinalScreen isEn={isEn} quiz={phaseQuizView} />;
     }
 
     return (
@@ -377,12 +381,12 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         <div className={styles.screenHeader}>
           <div>
             <p className={styles.kicker}>The Quiz</p>
-            <h2 className={styles.screenTitle}>Préparation de la session en temps réel</h2>
+            <h2 className={styles.screenTitle}>{isEn ? 'Real-time session setup' : 'Préparation de la session en temps réel'}</h2>
           </div>
-          <span className={styles.phaseBadge}>Prêt</span>
+          <span className={styles.phaseBadge}>{isEn ? 'Ready' : 'Prêt'}</span>
         </div>
 
-        <p className={styles.helperText}>Le challenge démarre dès que l’animateur lance la session.</p>
+        <p className={styles.helperText}>{isEn ? 'The challenge starts as soon as the host launches the session.' : 'Le challenge démarre dès que l’animateur lance la session.'}</p>
       </section>
     );
   }
@@ -391,12 +395,12 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     <main className={styles.pageShell}>
       <ChallengeHeader
         title="The Quiz"
-        subtitle="Quiz multijoueur realtime de culture générale"
+        subtitle={isEn ? 'Real-time multiplayer general knowledge quiz' : 'Quiz multijoueur realtime de culture générale'}
       />
 
       {error ? <div className={styles.errorBanner}>{error}</div> : null}
-      {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>Reconnexion en cours, restauration de la question active...</div> : null}
-      {reconnectState === 'reconnected' ? <div className={styles.reconnectBannerSuccess}>Connexion restaurée</div> : null}
+      {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>{isEn ? 'Reconnecting, restoring active question...' : 'Reconnexion en cours, restauration de la question active...'}</div> : null}
+      {reconnectState === 'reconnected' ? <div className={styles.reconnectBannerSuccess}>{isEn ? 'Connection restored' : 'Connexion restaurée'}</div> : null}
 
       <section className={styles.mainGrid}>
         <div className={styles.primaryColumn}>
@@ -406,7 +410,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
           {transientQuestionResult && activePhase === 'question_result' ? (
             <div className={styles.autoTransitionHint} aria-live="polite">
-              Transition automatique vers la prochaine question...
+              {isEn ? 'Auto transition to the next question...' : 'Transition automatique vers la prochaine question...'}
             </div>
           ) : null}
 
@@ -420,14 +424,16 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                     className={`${styles.hostTabButton} ${hostTab === tab.id ? styles.hostTabButtonActive : ''}`}
                     onClick={() => setHostTab(tab.id)}
                   >
-                    {tab.label}
+                    {isEn
+                      ? (tab.id === 'host_admin' ? 'Host console' : 'Live answers')
+                      : tab.label}
                   </button>
                 ))}
               </div>
 
               {hostTab === 'host_live_answers'
-                ? <QuizHostResponsesScreen quiz={quiz} />
-                : <QuizHostControlScreen quiz={quiz} onAction={handleHostAction} isBusy={hostActionBusy} />}
+                ? <QuizHostResponsesScreen isEn={isEn} quiz={quiz} />
+                : <QuizHostControlScreen isEn={isEn} quiz={quiz} onAction={handleHostAction} isBusy={hostActionBusy} />}
             </section>
           ) : null}
         </div>
@@ -447,7 +453,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
           ) : null}
 
           <ChallengeTimerCard
-            title="Chrono"
+            title={isEn ? 'Timer' : 'Chrono'}
             remainingSeconds={timerRemainingSeconds}
             durationSeconds={timerDurationSeconds}
             status={timerStatus}
@@ -459,7 +465,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
             <div className={`${styles.chatWrap} ${unreadChatPulse ? styles.chatWrapPulse : ''}`}>
               {unreadChatCount > 0 ? <span className={styles.chatNotifBadge}>{unreadChatCount}</span> : null}
               <ChallengeChatCard
-              title="Chat live"
+              title={isEn ? 'Live chat' : 'Chat live'}
               messages={chatMessages}
               currentAuthor={author}
               inputValue={chatInput}
@@ -467,8 +473,8 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
               onSubmit={submitChat}
               quickMessages={quiz.quick_reactions_enabled ? quickMessages : []}
               onQuickMessage={sendQuickChat}
-              placeholder="Envoyer un message ou une réaction rapide"
-              emptyText="Aucun message pour le moment."
+              placeholder={isEn ? 'Send a message or quick reaction' : 'Envoyer un message ou une réaction rapide'}
+              emptyText={isEn ? 'No messages yet.' : 'Aucun message pour le moment.'}
               />
             </div>
           ) : (
@@ -476,10 +482,10 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
               <div className={styles.screenHeader}>
                 <div>
                   <p className={styles.kicker}>Chat</p>
-                  <h2 className={styles.screenTitle}>Chat désactivé pour cette session</h2>
+                  <h2 className={styles.screenTitle}>{isEn ? 'Chat disabled for this session' : 'Chat désactivé pour cette session'}</h2>
                 </div>
               </div>
-              <p className={styles.helperText}>Le challenge conserve néanmoins la structure temps réel pour le leaderboard et la progression de manche.</p>
+              <p className={styles.helperText}>{isEn ? 'The challenge still keeps real-time leaderboard and round progression.' : 'Le challenge conserve néanmoins la structure temps réel pour le leaderboard et la progression de manche.'}</p>
             </section>
           )}
         </aside>

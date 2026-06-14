@@ -8,6 +8,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import useI18n from '@/lib/i18n/useI18n';
 import styles from './Labyrinthe.module.css';
 
 const LABYRINTHE_RULES_FALLBACK = Object.freeze({
@@ -360,6 +361,8 @@ function playLabyrintheCue(audioState, cueType) {
 }
 
 export default function LabyrintheLive({ runtimePayload, socket, context, onChallengeCompleted }) {
+  const { locale } = useI18n();
+  const isEn = locale === 'en';
   const [optimisticPos, setOptimisticPos] = useState(null);
   const [moveFeedback, setMoveFeedback] = useState('');
   const [moveFeedbackTone, setMoveFeedbackTone] = useState('info');
@@ -433,13 +436,13 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     const finalTimeLabel = formatDurationLabel(finalTimeSeconds);
     const rawStatus = String(laby?.result?.status || '').trim().toLowerCase();
     const isSuccess = rawStatus === 'success' || Boolean(String(laby?.winner_participant_id || '').trim());
-    const finalStatusLabel = isSuccess ? 'Réussi' : 'Échoué';
+    const finalStatusLabel = isSuccess ? (isEn ? 'Success' : 'Réussi') : (isEn ? 'Failed' : 'Échoué');
     const finalReason = String(laby?.result?.reason || '').trim().toLowerCase();
     const summaryMessage = isSuccess
-      ? 'Victoire collective : toute l\'équipe a atteint la sortie.'
+      ? (isEn ? 'Collective victory: the whole team reached the exit.' : 'Victoire collective : toute l\'équipe a atteint la sortie.')
       : finalReason === 'timeout'
-        ? 'Challenge perdu : le temps est écoulé.'
-        : 'Challenge perdu : toutes les vies ont été consommées.';
+        ? (isEn ? 'Challenge failed: time is over.' : 'Challenge perdu : le temps est écoulé.')
+        : (isEn ? 'Challenge failed: all lives were used.' : 'Challenge perdu : toutes les vies ont été consommées.');
 
     return {
       totalPlayers,
@@ -450,7 +453,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       isSuccess,
       summaryMessage,
     };
-  }, [laby?.phase, laby?.result?.status, laby?.result?.reason, laby?.winner_participant_id, participantEntries, timer?.duration_seconds, timer?.remaining_seconds]);
+  }, [laby?.phase, laby?.result?.status, laby?.result?.reason, laby?.winner_participant_id, participantEntries, timer?.duration_seconds, timer?.remaining_seconds, isEn]);
 
   const startCellKey = posKey(laby?.maze?.start);
   const endCellKey = posKey(laby?.maze?.end);
@@ -781,8 +784,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       emitEvent('laby.solo.select_start', { pos: [row, col] });
       setOptimisticPos([row, col]);
       setMoveFeedback(isRespawning
-        ? 'Nouveau point de départ sélectionné. Reprenez votre parcours depuis ici.'
-        : 'Point de départ sélectionné. Cliquez ensuite sur la case voisine voulue, ou utilisez les commandes.');
+        ? (isEn ? 'New starting point selected. Resume your path from here.' : 'Nouveau point de départ sélectionné. Reprenez votre parcours depuis ici.')
+        : (isEn ? 'Starting point selected. Click an adjacent cell or use controls.' : 'Point de départ sélectionné. Cliquez ensuite sur la case voisine voulue, ou utilisez les commandes.'));
       setMoveFeedbackTone('success');
       return;
     }
@@ -800,7 +803,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
     const dir = directionFromDelta(dr, dc);
     if (!dir || !canMoveFromCell(maze, currentPos, dir)) {
-      setMoveFeedback('Mur détecté dans cette direction.');
+      setMoveFeedback(isEn ? 'Wall detected in this direction.' : 'Mur détecté dans cette direction.');
       setMoveFeedbackTone('warning');
       return;
     }
@@ -825,7 +828,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     <div className={styles.labyrinthContainer}>
       <ChallengeHeader
         title="Labyrinthe des Signaux"
-        subtitle="Observez les traces, évitez les pièges, ouvrez la sortie."
+        subtitle={isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, évitez les pièges, ouvrez la sortie.'}
       />
 
       <div className={styles.layout}>
@@ -836,7 +839,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 isStarted={false}
                 isFacilitator={isFacilitator}
                 challengeName="Labyrinthe des Signaux"
-                briefTitle="Brief de la mission"
+                briefTitle={isEn ? 'Mission brief' : 'Brief de la mission'}
                 objective={rulesContent.objective}
                 facilitatorRules={rulesContent.facilitator}
                 participantRules={rulesContent.participant}
@@ -849,17 +852,17 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
                 <h2>Vue Facilitateur</h2>
-                <p className={styles.muted}>Mini-grilles de suivi par participant</p>
+                <p className={styles.muted}>{isEn ? 'Mini tracking grids per participant' : 'Mini-grilles de suivi par participant'}</p>
               </div>
               {labyFinalSummary ? (
                 <div className={styles.debriefCard}>
-                  <h3>Débrief final</h3>
+                  <h3>{isEn ? 'Final debrief' : 'Débrief final'}</h3>
                   <p>{labyFinalSummary.summaryMessage}</p>
                   <div className={styles.debriefMetrics}>
-                    <article className={styles.debriefMetric}><span>Vies restantes</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
-                    <article className={styles.debriefMetric}><span>Cases parcourues</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
-                    <article className={styles.debriefMetric}><span>Temps final</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>
-                    <article className={styles.debriefMetric}><span>Statut</span><strong>{labyFinalSummary.finalStatusLabel}</strong></article>
+                    <article className={styles.debriefMetric}><span>{isEn ? 'Remaining lives' : 'Vies restantes'}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
+                    <article className={styles.debriefMetric}><span>{isEn ? 'Cells traversed' : 'Cases parcourues'}</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
+                    <article className={styles.debriefMetric}><span>{isEn ? 'Final time' : 'Temps final'}</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>
+                    <article className={styles.debriefMetric}><span>{isEn ? 'Status' : 'Statut'}</span><strong>{labyFinalSummary.finalStatusLabel}</strong></article>
                   </div>
                   {maze ? (
                     <div className={`${styles.miniGrid} ${colsClass} ${styles.solutionMiniGrid} ${styles.debriefMiniGrid}`}>
@@ -892,7 +895,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               ) : null}
               {error ? <p className={styles.error}>{error}</p> : null}
               {participantEntries.length === 0 ? (
-                <p className={styles.empty}>Aucun participant connecté pour le moment.</p>
+                <p className={styles.empty}>{isEn ? 'No connected participant yet.' : 'Aucun participant connecté pour le moment.'}</p>
               ) : (
                 <div className={styles.miniGridList}>
                   {participantEntries.map(([id, participant]) => {
@@ -905,7 +908,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                       <article key={id} className={styles.miniGridCard}>
                         <div className={styles.panelHeader}>
                           <strong>{participantNameById[String(id)] || `Participant ${id}`}</strong>
-                          <span className={styles.muted}>Vies: {lifeIcons || '—'}</span>
+                          <span className={styles.muted}>{isEn ? 'Lives' : 'Vies'}: {lifeIcons || '—'}</span>
                         </div>
 
                         <div className={`${styles.miniGrid} ${colsClass}`}>
@@ -958,7 +961,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               <div className={styles.panelHeader}>
                 <h2>Labyrinthe participant</h2>
                 <div className={styles.livesRow}>
-                  <span className={styles.muted}>Vies</span>
+                  <span className={styles.muted}>{isEn ? 'Lives' : 'Vies'}</span>
                   <strong>{'❤️'.repeat(Math.min(8, Math.max(0, Number(myParticipantState?.lives_remaining || 0)))) || '—'}</strong>
                 </div>
               </div>
@@ -967,22 +970,22 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 <>
                   {labyFinalSummary ? (
                     <div className={styles.debriefCard}>
-                      <h3>Débrief final</h3>
+                      <h3>{isEn ? 'Final debrief' : 'Débrief final'}</h3>
                       <p>{labyFinalSummary.summaryMessage}</p>
                       <div className={styles.debriefMetrics}>
-                        <article className={styles.debriefMetric}><span>Vies restantes</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
-                        <article className={styles.debriefMetric}><span>Cases parcourues</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
-                        <article className={styles.debriefMetric}><span>Temps final</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>
-                        <article className={styles.debriefMetric}><span>Statut</span><strong>{labyFinalSummary.finalStatusLabel}</strong></article>
+                        <article className={styles.debriefMetric}><span>{isEn ? 'Remaining lives' : 'Vies restantes'}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
+                        <article className={styles.debriefMetric}><span>{isEn ? 'Cells traversed' : 'Cases parcourues'}</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
+                        <article className={styles.debriefMetric}><span>{isEn ? 'Final time' : 'Temps final'}</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>
+                        <article className={styles.debriefMetric}><span>{isEn ? 'Status' : 'Statut'}</span><strong>{labyFinalSummary.finalStatusLabel}</strong></article>
                       </div>
                     </div>
                   ) : null}
                   <p className={styles.gameStatus}>
                     {laby?.winner_participant_id
-                      ? `${participantNameById[String(laby.winner_participant_id)] || `Participant ${laby.winner_participant_id}`} a atteint la sortie.`
-                      : 'Tous les joueurs ont épuisé leurs tentatives.'}
+                      ? `${participantNameById[String(laby.winner_participant_id)] || `Participant ${laby.winner_participant_id}`} ${isEn ? 'reached the exit.' : 'a atteint la sortie.'}`
+                      : (isEn ? 'All players have exhausted their attempts.' : 'Tous les joueurs ont épuisé leurs tentatives.')}
                   </p>
-                  <p className={styles.muted}>Routes possibles du labyrinthe :</p>
+                  <p className={styles.muted}>{isEn ? 'Possible maze routes:' : 'Routes possibles du labyrinthe :'}:</p>
                 </>
               ) : null}
 
@@ -993,6 +996,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 onTouchStart={labyPhase !== 'done' ? handleSwipeStart : undefined}
                 onTouchEnd={labyPhase !== 'done' ? handleSwipeEnd : undefined}
                 aria-label="Grille du labyrinthe"
+                aria-label={isEn ? 'Maze grid' : 'Grille du labyrinthe'}
               >
                 {Array.from({ length: mazeRows }).map((_, row) => (
                   Array.from({ length: mazeCols }).map((__, col) => {
@@ -1024,7 +1028,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                         style={buildMazeCellStyle(maze, row, col)}
                         onClick={() => handleCellClick(row, col)}
                         aria-disabled={!canMoveSolo}
-                        aria-label={`Case ${row + 1}-${col + 1}`}
+                        aria-label={`${isEn ? 'Cell' : 'Case'} ${row + 1}-${col + 1}`}
                       >
                         {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>START</span> : null}
                         {key === endCellKey ? <span className={styles.cellExitBadge}>EXIT</span> : null}
@@ -1049,25 +1053,25 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                   <div className={styles.controlHeadLegendWrap}>
                     <div className={styles.controlHead}>
                       <span className={styles.muted}>Commandes</span>
-                      <strong>Flèches, ZQSD/WASD, ou clic</strong>
+                      <strong>{isEn ? 'Arrows, ZQSD/WASD, or click' : 'Flèches, ZQSD/WASD, ou clic'}</strong>
                     </div>
                     <div className={styles.legendRow}>
                       <span className={`${styles.legendChip} ${styles.legendStart}`}>START</span>
                       <span className={`${styles.legendChip} ${styles.legendExit}`}>EXIT</span>
-                      <span className={`${styles.legendChip} ${styles.legendTrap}`}>Piège</span>
-                      <span className={`${styles.legendChip} ${styles.legendTrail}`}>Curseur joueur</span>
+                      <span className={`${styles.legendChip} ${styles.legendTrap}`}>{isEn ? 'Trap' : 'Piège'}</span>
+                      <span className={`${styles.legendChip} ${styles.legendTrail}`}>{isEn ? 'Player cursor' : 'Curseur joueur'}</span>
                     </div>
                   </div>
                   <div className={styles.directionPad}>
                     <span />
-                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('N')} disabled={!canMoveDir} aria-label="Monter">↑</button>
+                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('N')} disabled={!canMoveDir} aria-label={isEn ? 'Move up' : 'Monter'}>↑</button>
                     <span />
-                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('W')} disabled={!canMoveDir} aria-label="Aller à gauche">←</button>
-                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('S')} disabled={!canMoveDir} aria-label="Descendre">↓</button>
-                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveDir} aria-label="Aller à droite">→</button>
+                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('W')} disabled={!canMoveDir} aria-label={isEn ? 'Move left' : 'Aller à gauche'}>←</button>
+                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('S')} disabled={!canMoveDir} aria-label={isEn ? 'Move down' : 'Descendre'}>↓</button>
+                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveDir} aria-label={isEn ? 'Move right' : 'Aller à droite'}>→</button>
                   </div>
                   <p className={`${styles.moveFeedback} ${moveFeedbackTone === 'success' ? styles.feedbackSuccess : ''}${moveFeedbackTone === 'danger' ? ` ${styles.feedbackDanger}` : ''}${moveFeedbackTone === 'warning' ? ` ${styles.feedbackWarning}` : ''}`}>
-                    {moveFeedback || (isRespawning ? 'Choisissez un point de départ pour reprendre.' : canMoveSolo ? 'Parcourez le labyrinthe en solo: une seule sortie est valide.' : (labyPhase === 'setup' ? 'En attente du lancement de la manche...' : 'Déplacement indisponible pour le moment.'))}
+                    {moveFeedback || (isRespawning ? (isEn ? 'Choose a start point to continue.' : 'Choisissez un point de départ pour reprendre.') : canMoveSolo ? (isEn ? 'Explore the maze solo: only one exit is valid.' : 'Parcourez le labyrinthe en solo: une seule sortie est valide.') : (labyPhase === 'setup' ? (isEn ? 'Waiting for round launch...' : 'En attente du lancement de la manche...') : (isEn ? 'Movement unavailable for now.' : 'Déplacement indisponible pour le moment.')))}
                   </p>
                 </div>
               ) : null}
@@ -1083,7 +1087,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
             isFacilitator={isFacilitator}
             showPrestartCard={false}
             challengeName="Labyrinthe des Signaux"
-            briefTitle="Brief de la mission"
+            briefTitle={isEn ? 'Mission brief' : 'Brief de la mission'}
             objective={rulesContent.objective}
             facilitatorRules={rulesContent.facilitator}
             participantRules={rulesContent.participant}
@@ -1091,7 +1095,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
           />
 
           <ChallengeTimerCard
-            title="Chrono"
+            title={isEn ? 'Timer' : 'Chrono'}
             remainingSeconds={Number(timer?.remaining_seconds || 0)}
             durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || runtimePayload?.config?.timer_seconds || 300)}
             status={String(timer?.status || 'idle')}
@@ -1108,8 +1112,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     emitEvent('timer.resume');
                   }
                 }}
-                title={String(timer?.status || '').trim().toLowerCase() === 'running' ? 'Mettre en pause' : 'Reprendre'}
-                aria-label={String(timer?.status || '').trim().toLowerCase() === 'running' ? 'Mettre en pause' : 'Reprendre'}
+                title={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
+                aria-label={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
               >
                 {String(timer?.status || '').trim().toLowerCase() === 'running' ? '⏸' : '▶'}
               </button>
@@ -1118,7 +1122,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
           {chatEnabled ? (
             <ChallengeChatCard
-              title="Chat"
+              title={isEn ? 'Chat' : 'Chat'}
               messages={chatMessages}
               currentAuthor={displayName}
               inputValue={chatInput}
@@ -1126,7 +1130,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               onSubmit={submitChat}
               quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
               onQuickMessage={sendQuickChat}
-              placeholder="Message à l'équipe"
+              placeholder={isEn ? 'Message to the team' : 'Message à l\'équipe'}
               maxLength={240}
             />
           ) : null}
@@ -1135,7 +1139,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
                 <h4 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--challenge-text-primary)' }}>Carte solution</h4>
-                <span className={styles.muted}>chemin(s) possible(s)</span>
+                <span className={styles.muted}>{isEn ? 'possible path(s)' : 'chemin(s) possible(s)'}</span>
               </div>
               <div className={`${styles.miniGrid} ${colsClass} ${styles.solutionMiniGrid}`}>
                 {Array.from({ length: mazeRows }).map((_, row) => (
@@ -1175,11 +1179,11 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               aria-live="polite"
               onClick={(event) => event.stopPropagation()}
             >
-              <p className={styles.announcementKicker}>{announcement.tone === 'success' ? 'Victoire collective' : 'Fin de challenge'}</p>
+              <p className={styles.announcementKicker}>{announcement.tone === 'success' ? (isEn ? 'Collective victory' : 'Victoire collective') : (isEn ? 'End of challenge' : 'Fin de challenge')}</p>
               <h3>{announcement.title}</h3>
               <p>{announcement.body}</p>
               <div className={styles.announcementActions}>
-                <button type="button" className={styles.announcementCloseBtn} onClick={() => setAnnouncement(null)}>Fermer</button>
+                <button type="button" className={styles.announcementCloseBtn} onClick={() => setAnnouncement(null)}>{isEn ? 'Close' : 'Fermer'}</button>
               </div>
             </section>
           </div>

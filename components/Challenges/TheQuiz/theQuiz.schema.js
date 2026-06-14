@@ -10,27 +10,27 @@ export const THE_QUIZ_STAGE_OPTIONS = Object.freeze([
   { id: 'lobby', label: 'Lobby' },
   { id: 'question_live', label: 'Question live' },
   { id: 'leaderboard_live', label: 'Leaderboard live' },
-  { id: 'question_result', label: 'Résultat question' },
-  { id: 'final_score', label: 'Score final' },
+  { id: 'question_result', label: 'Question result' },
+  { id: 'final_score', label: 'Final score' },
 ]);
 
 export const THE_QUIZ_HOST_TABS = Object.freeze([
-  { id: 'host_admin', label: 'Console animateur' },
-  { id: 'host_live_answers', label: 'Réponses live' },
+  { id: 'host_admin', label: 'Host console' },
+  { id: 'host_live_answers', label: 'Live answers' },
 ]);
 
 export const THE_QUIZ_PLACEHOLDER_QUESTION = Object.freeze({
   id: 'quiz_placeholder_001',
-  category: 'Culture générale',
-  difficulty: 'moyen',
-  text: 'Quel monument parisien a été inauguré pour l Exposition universelle de 1889 ?',
+  category: 'General knowledge',
+  difficulty: 'medium',
+  text: 'Which Paris monument was inaugurated for the 1889 World Fair?',
   choices: [
-    { id: 'a', label: 'La tour Eiffel' },
-    { id: 'b', label: 'L Arc de triomphe' },
-    { id: 'c', label: 'Le Sacré-Cœur' },
-    { id: 'd', label: 'Le Louvre' },
+    { id: 'a', label: 'Eiffel Tower' },
+    { id: 'b', label: 'Arc de Triomphe' },
+    { id: 'c', label: 'Sacre-Coeur' },
+    { id: 'd', label: 'Louvre' },
   ],
-  explanation: 'La tour Eiffel a été construite pour l Exposition universelle de 1889.',
+  explanation: 'The Eiffel Tower was built for the 1889 World Fair.',
 });
 
 /**
