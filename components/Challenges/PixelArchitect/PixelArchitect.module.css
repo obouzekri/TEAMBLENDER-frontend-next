@@ -74,6 +74,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
   gap: 14px;
+  margin-top: 16px;
 }
 
 .arenaHead {
@@ -177,6 +178,16 @@
   padding: 2px 6px;
 }
 
+.modelSidebarViewport {
+  position: relative;
+  height: 220px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(131, 166, 190, 0.3);
+  background: radial-gradient(circle at 32% 22%, rgba(125, 211, 252, 0.18), rgba(4, 12, 19, 0.92));
+  overflow: hidden;
+}
+
 .modelMiniHidden {
   margin: 0;
   padding: 26px 10px;
@@ -278,6 +289,19 @@
 .layerBtnActive {
   border-color: rgba(40, 179, 208, 0.8);
   background: rgba(24, 64, 84, 0.9);
+}
+
+.layerBtnMine {
+  border-color: rgba(39, 174, 96, 0.8);
+  background: rgba(16, 56, 30, 0.9);
+  color: #a3f0c0;
+}
+
+.layerBtnReserved {
+  border-color: rgba(242, 201, 76, 0.5);
+  background: rgba(50, 40, 10, 0.7);
+  color: #f5dfa0;
+  opacity: 0.85;
 }
 
 .helperRow {

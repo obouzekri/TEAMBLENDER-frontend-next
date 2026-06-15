@@ -115,7 +115,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   const [activeLayer, setActiveLayer] = useState(0);
   const [selectedColor, setSelectedColor] = useState(FALLBACK_PALETTE[0]);
-  const [isLayerPlanCollapsed, setIsLayerPlanCollapsed] = useState(false);
   const [expandedLayers, setExpandedLayers] = useState({});
   const hasAutoSelectedStartLayerRef = useRef(false);
 
@@ -474,8 +473,22 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       previewCube.position.copy(getCellWorldPosition(gridCell.x, gridCell.y, gridCell.z, gridSize));
     };
 
+    let pointerDownPos = null;
+
     const onPointerDown = (event) => {
       if (!canInteractRef.current) return;
+      pointerDownPos = { clientX: event.clientX, clientY: event.clientY };
+    };
+
+    const onPointerUp = (event) => {
+      if (!canInteractRef.current || !pointerDownPos) {
+        pointerDownPos = null;
+        return;
+      }
+      const dx = event.clientX - pointerDownPos.clientX;
+      const dy = event.clientY - pointerDownPos.clientY;
+      pointerDownPos = null;
+      if (Math.hypot(dx, dy) > 6) return; // drag → orbit, not a click
 
       toLocalPointer(event);
       raycaster.setFromCamera(pointer, camera);
@@ -504,6 +517,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
     renderer.domElement.addEventListener('pointermove', onPointerMove);
     renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointerup', onPointerUp);
 
     const onResize = () => {
       const w = Math.max(320, container.clientWidth || 900);
@@ -551,6 +565,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       window.removeEventListener('resize', onResize);
       renderer.domElement.removeEventListener('pointermove', onPointerMove);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
+      renderer.domElement.removeEventListener('pointerup', onPointerUp);
       window.cancelAnimationFrame(rafId);
 
       playerMap.forEach((cube) => {
@@ -700,7 +715,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         container.removeChild(renderer.domElement);
       }
     };
-  }, [canSeeTargetModel, grid.y, gridSize, palette, targetCells]);
+  }, [canSeeTargetModel, grid.y, gridSize, hasChallengeStarted, palette, targetCells]);
 
   function handleResetBuild() {
     if (!canBuild) return;
@@ -736,6 +751,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       emitEvent('pixel.layer.release', { layer });
       return;
     }
+
+    // Layer already claimed by someone else — do not override
+    if (currentClaim && !isMine) return;
 
     if (myClaim && Number.isInteger(Number(myClaim.layer)) && Number(myClaim.layer) !== layer) {
       emitEvent('pixel.layer.release', { layer: Number(myClaim.layer) });
@@ -838,11 +856,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       .slice(0, 6);
   }, [serverCubes]);
 
-  const openLayerCount = useMemo(
-    () => layerStats.reduce((count, item) => count + (expandedLayers[String(item.layer)] ? 1 : 0), 0),
-    [expandedLayers, layerStats]
-  );
-
   const rulesExtraContent = useMemo(() => (
     <>
       <section className={styles.rulesMetaSection}>
@@ -906,26 +919,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 </div>
 
                 <div className={styles.arenaControlRow}>
-                  <section className={styles.modelMiniCard}>
-                    <p className={styles.modelMiniTitle}>Carte modele</p>
-                    <p className={styles.modelMiniTitle}>{isEn ? 'Model map' : 'Carte modele'}</p>
-                    <p className={styles.modelMiniMeta}>{templateName} - {templateDifficulty}</p>
-                    <div className={styles.modelMiniViewport}>
-                      {canSeeTargetModel ? (
-                        <>
-                          <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
-                          <span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span>
-                        </>
-                      ) : (
-                        <p className={styles.modelMiniHidden}>{isEn ? 'Model hidden for this role' : 'Modele masque pour ce role'}</p>
-                      )}
-                    </div>
-                    <div className={styles.modelMiniStats}>
-                      <span>{grid.x}x{grid.y}x{grid.z}</span>
-                      <span>{targetCubeCount} {isEn ? 'target cubes' : 'cubes cibles'}</span>
-                    </div>
-                  </section>
-
                   <section className={styles.layerControlCard}>
                     <p className={styles.layerControlTitle}>{isEn ? 'Build layers' : 'Couches de construction'}</p>
                     {!isFacilitator ? (
@@ -945,18 +938,25 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                       </div>
                     ) : null}
                     <div className={styles.layerTabs}>
-                      {layers.map((layer) => (
-                        <button
-                          key={`layer-${layer}`}
-                          type="button"
-                          aria-pressed={safeLayer === layer}
-                          aria-label={`${isEn ? 'Show layer' : 'Afficher la couche'} ${layer + 1}`}
-                          className={`${styles.layerBtn}${safeLayer === layer ? ` ${styles.layerBtnActive}` : ''}`}
-                          onClick={() => setActiveLayer(layer)}
-                        >
-                          {isEn ? 'Layer' : 'Couche'} {layer + 1}
-                        </button>
-                      ))}
+                      {layers.map((layer) => {
+                        const claim = layerClaims[String(layer)] || null;
+                        const isReservedByMe = myLayerClaim && Number(myLayerClaim.layer) === layer;
+                        const isReservedByOther = claim && !isReservedByMe;
+                        return (
+                          <button
+                            key={`layer-${layer}`}
+                            type="button"
+                            aria-pressed={safeLayer === layer}
+                            aria-label={`${isEn ? 'Show layer' : 'Afficher la couche'} ${layer + 1}`}
+                            title={claim ? `${isEn ? 'Reserved by' : 'Reservee par'} ${String(claim.display_name || '')}` : undefined}
+                            className={`${styles.layerBtn}${safeLayer === layer ? ` ${styles.layerBtnActive}` : ''}${isReservedByMe ? ` ${styles.layerBtnMine}` : ''}${isReservedByOther ? ` ${styles.layerBtnReserved}` : ''}`}
+                            onClick={() => setActiveLayer(layer)}
+                          >
+                            {isEn ? 'Layer' : 'Couche'} {layer + 1}
+                            {isReservedByMe ? ' ✓' : isReservedByOther ? ' 🔒' : ''}
+                          </button>
+                        );
+                      })}
                     </div>
                   </section>
                 </div>
@@ -1068,57 +1068,24 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           />
 
           <section className={styles.panel}>
-            <div className={styles.layerPlanHeader}>
-              <h3>Plan par couche</h3>
-              <h3>{isEn ? 'Plan by layer' : 'Plan par couche'}</h3>
-              <button
-                type="button"
-                className={styles.btnSecondary}
-                onClick={() => setIsLayerPlanCollapsed((prev) => !prev)}
-              >
-                {isLayerPlanCollapsed ? (isEn ? 'Show plan' : 'Afficher le plan') : (isEn ? 'Collapse plan' : 'Reduire le plan')}
-              </button>
+            <div className={styles.panelHead}>
+              <h2>{isEn ? 'Model map' : 'Carte modèle'}</h2>
+              <p>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z} · {targetCubeCount} {isEn ? 'cubes' : 'cubes cibles'}</p>
             </div>
-            {!isLayerPlanCollapsed ? (
-              <div className={`${styles.layerSummaryList}${openLayerCount > 2 ? ` ${styles.layerSummaryListScrollable}` : ''}`}>
-              {layerStats.map((item) => (
-                <article
-                  key={`layer-summary-${item.layer}`}
-                  className={`${styles.layerSummaryCard}${safeLayer === item.layer ? ` ${styles.layerSummaryCardActive}` : ''}`}
-                >
-                  <button
-                    type="button"
-                    className={styles.layerSummaryToggle}
-                    onClick={() => toggleLayerSummary(item.layer)}
-                    aria-expanded={Boolean(expandedLayers[String(item.layer)])}
-                  >
-                    <strong>{isEn ? 'Layer' : 'Couche'} {item.layer + 1}</strong>
-                    <span>{expandedLayers[String(item.layer)] ? (isEn ? 'Collapse' : 'Reduire') : (isEn ? 'Show' : 'Afficher')}</span>
-                  </button>
-                  {expandedLayers[String(item.layer)] ? (
-                    <button
-                      type="button"
-                      className={styles.layerSummaryDetails}
-                      onClick={() => setActiveLayer(item.layer)}
-                    >
-                      <span>{item.claim ? `${isEn ? 'Reserved by' : 'Reservee par'} ${String(item.claim.display_name || (isEn ? 'participant' : 'participant'))}` : (isEn ? 'Not reserved' : 'Non reservee')}</span>
-                      <span>{isEn ? 'Target' : 'Cible'}: {item.targetCount}</span>
-                      <span>{isEn ? 'Exact' : 'Exacts'}: {item.matchedCount}</span>
-                      <span>{isEn ? 'Extra' : 'En trop'}: {item.extraCount}</span>
-                      <div className={styles.layerSummaryTrack} aria-hidden="true">
-                        <span className={styles.layerSummaryFill} style={{ width: `${item.completion}%` }} />
-                      </div>
-                    </button>
-                  ) : null}
-                </article>
-              ))}
-              </div>
-            ) : null}
+            <div className={styles.modelSidebarViewport}>
+              {canSeeTargetModel ? (
+                <>
+                  <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
+                  <span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span>
+                </>
+              ) : (
+                <p className={styles.modelMiniHidden}>{isEn ? 'Model hidden for this role' : 'Modele masque pour ce role'}</p>
+              )}
+            </div>
           </section>
 
           {contributorStats.length > 0 ? (
             <section className={styles.panel}>
-              <h3>Repartition equipe</h3>
               <h3>{isEn ? 'Team distribution' : 'Repartition equipe'}</h3>
               <ul className={styles.activityList}>
                 {contributorStats.map((item) => (
