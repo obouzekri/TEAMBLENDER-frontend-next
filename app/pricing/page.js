@@ -6,6 +6,7 @@ import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 import { startBillingCheckout } from '@/lib/account';
+import { startPaddleCheckout } from '@/lib/paddle';
 import useI18n from '@/lib/i18n/useI18n';
 
 const CURRENCY_SYMBOLS = {
@@ -41,6 +42,7 @@ export default function PricingPage() {
   const [selectedBilling, setSelectedBilling] = useState('monthly');
   const [selectedCurrency, setSelectedCurrency] = useState('EUR');
   const [checkoutPlanId, setCheckoutPlanId] = useState('');
+  const [paddleCheckoutPlanId, setPaddleCheckoutPlanId] = useState('');
 
   useEffect(() => {
     async function loadPlans() {
@@ -132,6 +134,35 @@ export default function PricingPage() {
       setError(err.message || (isEn ? 'PayPal payment is currently unavailable.' : 'Paiement PayPal impossible pour le moment.'));
     } finally {
       setCheckoutPlanId('');
+    }
+  }
+
+  async function handlePaddleCheckout(plan) {
+    const token = typeof window !== 'undefined'
+      ? (window.localStorage.getItem('jwt') || window.sessionStorage.getItem('jwt') || '')
+      : '';
+
+    if (!token) {
+      window.location.assign(withLocalePath(`/login?next=${encodeURIComponent('/pricing')}`));
+      return;
+    }
+
+    setPaddleCheckoutPlanId(String(plan?.id || ''));
+    setError('');
+
+    try {
+      await startPaddleCheckout({
+        pricing_plan_id: plan.id,
+        billing_cycle: selectedBilling,
+        customer_email: '',
+        onComplete: () => {
+          window.location.assign(withLocalePath('/account?billing=paddle_success'));
+        },
+      });
+    } catch (err) {
+      setError(err.message || (isEn ? 'Paddle payment is currently unavailable.' : 'Paiement Paddle impossible pour le moment.'));
+    } finally {
+      setPaddleCheckoutPlanId('');
     }
   }
 
@@ -264,6 +295,16 @@ export default function PricingPage() {
                     disabled={checkoutPlanId === String(plan.id)}
                   >
                     {checkoutPlanId === String(plan.id) ? (isEn ? 'Opening PayPal...' : 'Ouverture de PayPal...') : (isEn ? 'Pay with PayPal' : 'Payer avec PayPal')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => handlePaddleCheckout(plan)}
+                    disabled={paddleCheckoutPlanId === String(plan.id)}
+                  >
+                    {paddleCheckoutPlanId === String(plan.id)
+                      ? (isEn ? 'Opening Paddle...' : 'Ouverture de Paddle...')
+                      : (isEn ? 'Pay with Paddle' : 'Payer avec Paddle')}
                   </button>
                   <Link href={withLocalePath('/contact')} className="btn-secondary">{isEn ? 'Talk to the team' : 'Parler à l\'équipe'}</Link>
                 </div>
