@@ -4668,6 +4668,28 @@ a {
   justify-content: center;
 }
 
+/* ── Paddle checkout button wrapper ───────────────────────────── */
+.paddle-checkout-btn-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+  width: 100%;
+}
+
+.paddle-checkout-secure-label {
+  display: block;
+  text-align: center;
+  font-size: 0.73rem;
+  color: var(--text-muted, #8fa3b1);
+  letter-spacing: 0.02em;
+}
+
+.paddle-checkout-error {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
 .pricing-empty {
   border: 1px solid var(--line);
   border-radius: 18px;

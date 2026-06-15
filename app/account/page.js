@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
+import PaddleCheckoutButton from '@/components/PaddleCheckoutButton';
 import useToast from '@/lib/useToast';
 import {
   getMe,
@@ -675,9 +676,19 @@ export default function AccountPage() {
                         </div>
                       ) : (
                         <div className="pricing-actions account-plan-card-actions">
+                          <PaddleCheckoutButton
+                            pricingPlanId={plan.id}
+                            billingCycle="monthly"
+                            customerEmail={String(me?.email || guard.user?.email || '')}
+                            className="btn-primary"
+                            onSuccess={() => {
+                              showSuccess(t('account.paddleSuccess') || 'Paiement reçu — votre plan sera mis à jour dans quelques instants.');
+                              window.history.replaceState({}, '', window.location.pathname);
+                            }}
+                          />
                           <button
                             type="button"
-                            className="btn-primary"
+                            className="btn-secondary"
                             onClick={() => handleGoToCheckout('paypal', plan.id)}
                           >
                             {t('account.checkoutPaypal')}
