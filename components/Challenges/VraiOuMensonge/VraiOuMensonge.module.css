@@ -124,6 +124,15 @@
   color: #e5edf7;
 }
 
+.sectionTitle {
+  margin: 0;
+  color: rgba(125, 211, 252, 0.94);
+  font-size: 1.04rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
 .card p,
 .card li {
   color: #bfd3e8;
@@ -232,6 +241,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.answerHighlight {
+  border: 1px solid rgba(125, 211, 252, 0.36);
+  border-radius: 12px;
+  padding: 8px;
+  background: linear-gradient(145deg, rgba(8, 33, 45, 0.84), rgba(8, 23, 37, 0.82));
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2) inset;
 }
 
 .choiceOptionBtn {
@@ -414,6 +431,15 @@
   background: linear-gradient(145deg, rgba(44, 34, 14, 0.58), rgba(13, 33, 49, 0.84));
 }
 
+.activeParticipantRow {
+  border-color: rgba(53, 183, 118, 0.74);
+  box-shadow: inset 0 0 0 1px rgba(53, 183, 118, 0.24), 0 0 0 1px rgba(53, 183, 118, 0.24);
+}
+
+.myParticipantRow {
+  border-color: rgba(40, 179, 208, 0.74);
+}
+
 .leaderboardEntry {
   display: inline-flex;
   align-items: center;
@@ -485,6 +511,40 @@
 .stateCard {
   position: sticky;
   top: 12px;
+}
+
+.rankingCard {
+  font-family: var(--font-ui, "IBM Plex Sans", "Segoe UI", sans-serif);
+  border: 1px solid rgba(14, 165, 233, 0.32);
+  border-radius: 16px;
+  padding: 1rem;
+  background: linear-gradient(168deg, rgba(2, 6, 23, 0.92), rgba(7, 23, 46, 0.9));
+  display: grid;
+  gap: 0.72rem;
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.3), inset 0 0 0 1px rgba(14, 165, 233, 0.12);
+}
+
+.rankingCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.rankingCardTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--challenge-text-accent, #7dd3fc);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rankingMeta {
+  font-size: 0.72rem;
+  color: #95b4c8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
 }
 
 .stateGrid {
@@ -570,6 +630,21 @@
   border-color: rgba(53, 183, 118, 0.7);
   background: rgba(18, 61, 44, 0.62);
   color: #cbf8df;
+}
+
+.participantChipMe {
+  box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.22);
+}
+
+.timeUpFeedback {
+  margin: 0;
+  border: 1px solid rgba(239, 107, 107, 0.52);
+  background: rgba(76, 22, 28, 0.52);
+  color: #ffd9d9;
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .wowResult {

@@ -138,6 +138,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const poserId = String(currentTurn?.poser_id || '');
   const isPoser = me && poserId && me === poserId;
   const chatEnabled = Boolean(socket);
+  const hasSelectionTimeout = String(currentTurn?.result?.reveal_reason || '') === 'selection_timeout';
 
   const displayName = useMemo(() => {
     const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
@@ -291,6 +292,19 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     return remaining;
   }, [phase, phaseDurationSeconds, remainingMs]);
 
+  const timerStatus = useMemo(() => {
+    if ((phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0) {
+      return 'timeout';
+    }
+    if (phase === 'round_result' && hasSelectionTimeout) {
+      return 'timeout';
+    }
+    if (phase === 'voting_open' || phase === 'selecting_statement' || phase === 'round_result') {
+      return 'running';
+    }
+    return 'idle';
+  }, [hasSelectionTimeout, phase, remainingSecondsForCard]);
+
   const myRoundVote = useMemo(() => {
     const votes = Array.isArray(currentTurn?.result?.votes) ? currentTurn.result.votes : [];
     return votes.find((item) => String(item?.participant_id || '') === me) || null;
@@ -316,8 +330,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       }
       return {
         ...entry,
-        rank: currentRank,
-        tie: index > 0 && entry.score === rows[index - 1].score
+        rank: currentRank
       };
     });
   }, [orderedParticipantIds, scores]);
@@ -482,12 +495,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
         {phase === 'selecting_statement' ? (
           <section className={styles.card}>
-            <h2>{t('vom.selectingTitle')}</h2>
+            <h2 className={styles.sectionTitle}>{t('vom.selectingTitle')}</h2>
             <p>{t('vom.currentPoser', { name: participantName(poserId) || '-' })}</p>
             <p className={styles.instruction}>{t('vom.selectingInstruction')}</p>
             <div className={styles.participantsRow}>
               {orderedParticipantIds.map((id) => (
-                <span key={id} className={`${styles.participantChip}${id === poserId ? ` ${styles.participantChipPoser}` : ''}`}>
+                <span
+                  key={id}
+                  className={`${styles.participantChip}${id === poserId ? ` ${styles.participantChipPoser}` : ''}${id === me ? ` ${styles.participantChipMe}` : ''}`}
+                >
                   {participantName(id)}{id === poserId ? ` ${t('vom.poserLabel')}` : ''}
                 </span>
               ))}
@@ -543,7 +559,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
         {phase === 'voting_open' ? (
           <section className={styles.card}>
-            <h2>{t('vom.votingTitle')}</h2>
+            <h2 className={styles.sectionTitle}>{t('vom.votingTitle')}</h2>
             <div className={styles.votePhaseHeader}>
               <p className={styles.votePhaseTitle}>{t('vom.poserAsks', { name: participantName(poserId) })}</p>
               <p className={styles.votePhaseStatement}>"{currentTurn?.statement_prompt || currentTurn?.statement_text || '-'}"</p>
@@ -589,16 +605,19 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             ) : (
               <p className={styles.helper}>{t('vom.poserNoVote')}</p>
             )}
+            {remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
           </section>
         ) : null}
 
         {phase === 'round_result' ? (
           <section className={styles.card}>
-            <h2>{t('vom.roundResultTitle')}</h2>
+            <h2 className={styles.sectionTitle}>{t('vom.roundResultTitle')}</h2>
             <div className={`${styles.wowResult}${resultPulse ? ` ${styles.wowResultPulse}` : ''}`}>
               <div>
                 <strong className={styles.wowTitle}>{t('vom.instantFeedback')}</strong>
-                {!isPoser ? (
+                {hasSelectionTimeout ? (
+                  <p className={styles.wowText}>Temps ecoule: le poseur n a pas pose la question a temps. 0 point et passage au participant suivant.</p>
+                ) : !isPoser ? (
                   <p className={styles.wowText}>
                     {myRoundVote?.status === 'correct'
                       ? t('vom.correctFeedback', { truth: String(currentTurn?.revealed_truth || '-') })
@@ -636,13 +655,13 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 </div>
               ))}
             </div>
-            <h3>{t('vom.ranking')}</h3>
+            <h3 className={styles.sectionTitle}>{t('vom.ranking')}</h3>
             <div className={styles.resultList}>
               {liveRanking.map((entry, index) => (
-                <div key={entry.participant_id} className={`${styles.resultRow} ${index < 3 ? styles.resultRowTop : ''}`}>
+                <div key={entry.participant_id} className={`${styles.resultRow} ${index < 3 ? styles.resultRowTop : ''}${String(entry.participant_id) === poserId ? ` ${styles.activeParticipantRow}` : ''}${String(entry.participant_id) === me ? ` ${styles.myParticipantRow}` : ''}`}>
                   <div className={styles.leaderboardEntry}>
                     <span className={styles.leaderAvatar}>{getInitials(participantName(entry.participant_id))}</span>
-                    <span className={styles.leaderboardLine}>#{entry.rank} {participantName(entry.participant_id)}{entry.tie ? ' (ex-aequo)' : ''}</span>
+                    <span className={styles.leaderboardLine}>#{entry.rank} {participantName(entry.participant_id)}</span>
                   </div>
                   <div className={styles.leaderboardScoreWrap}>
                     <span className={styles.leaderboardScore}>{entry.score} pts</span>
@@ -661,21 +680,21 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
         {phase === 'next_turn' ? (
           <section className={styles.card}>
-            <h2>{t('vom.transitionTitle')}</h2>
+            <h2 className={styles.sectionTitle}>{t('vom.transitionTitle')}</h2>
             <p>{t('vom.transitionBody')}</p>
           </section>
         ) : null}
 
         {phase === 'paused_poseur_disconnect' ? (
           <section className={styles.card}>
-            <h2>{t('vom.pausedTitle')}</h2>
+            <h2 className={styles.sectionTitle}>{t('vom.pausedTitle')}</h2>
             <p>{t('vom.pausedBody')}</p>
           </section>
         ) : null}
 
         {phase === 'finished' ? (
           <section className={styles.card} style={{ order: -1 }}>
-            <h2>{t('vom.finalDebrief')}</h2>
+            <h2 className={styles.sectionTitle}>{t('vom.finalDebrief')}</h2>
             <div className={styles.finalSummaryGrid}>
               <article className={styles.finalSummaryItem}>
                 <strong>{ranking.length}</strong>
@@ -696,12 +715,12 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               <span className={styles.mainScoreUnit}>{t('vom.points')}</span>
             </div>
             <div className={styles.finalBlock}>
-              <h3>{t('vom.finalRanking')}</h3>
+              <h3 className={styles.sectionTitle}>{t('vom.finalRanking')}</h3>
               <div className={styles.resultList}>
                   {ranking.map((entry, index) => (
                   <div key={entry.participant_id} className={styles.resultRow}>
                       <span>#{entry.rank} {index < 3 ? '🏅 ' : ''}{participantName(entry.participant_id)}</span>
-                    <span>{entry.score} pts {entry.tie ? '(ex-aequo)' : ''}</span>
+                    <span>{entry.score} pts</span>
                   </div>
                 ))}
               </div>
@@ -726,9 +745,10 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             title="Chrono"
             remainingSeconds={remainingSecondsForCard}
             durationSeconds={Math.max(1, phaseDurationSeconds)}
-            status={phase === 'voting_open' || phase === 'selecting_statement' || phase === 'round_result' ? 'running' : 'idle'}
+            status={timerStatus}
             isFacilitator={isFacilitator}
             waitingText=""
+            footer={(phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
           />
 
           <ChallengeChatCard
@@ -745,12 +765,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             disabled={!chatEnabled}
           />
 
-          <section className={`${styles.card} ${styles.stateCard}`}>
-            <h3>Classement</h3>
+          <section className={`${styles.rankingCard} ${styles.stateCard}`}>
+            <div className={styles.rankingCardHeader}>
+              <h3 className={`${styles.rankingCardTitle} challenge-section-title`}>Classement</h3>
+              <span className={styles.rankingMeta}>Mis a jour en direct</span>
+            </div>
             <div className={styles.resultList}>
               {liveRanking.length === 0 ? <p className={styles.helper}>{t('vom.noParticipants')}</p> : null}
               {liveRanking.map((entry, index) => (
-                <div key={entry.participant_id} className={`${styles.resultRow} ${index < 3 ? styles.resultRowTop : ''}`}>
+                <div key={entry.participant_id} className={`${styles.resultRow} ${index < 3 ? styles.resultRowTop : ''}${String(entry.participant_id) === poserId ? ` ${styles.activeParticipantRow}` : ''}${String(entry.participant_id) === me ? ` ${styles.myParticipantRow}` : ''}`}>
                   <div className={styles.leaderboardEntry}>
                     <span className={styles.leaderAvatar}>{getInitials(participantName(entry.participant_id))}</span>
                     <span className={styles.leaderboardLine}>#{entry.rank} {participantName(entry.participant_id)}</span>
@@ -786,7 +809,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 <p className={styles.choicePanelTitle}>
                   {selectedStatementChoices.prompt}{selectedStatementChoices.hasColon ? ':' : ''}
                 </p>
-                <div className={styles.choiceButtonsWrap}>
+                <div className={`${styles.choiceButtonsWrap} ${styles.answerHighlight}`}>
                   {poserSelectionOptions.map((option) => {
                     const active = selectedStatementOption.toLowerCase() === option.toLowerCase();
                     return (
@@ -812,7 +835,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               <>
                 <p className={styles.choicePanelTitle}>{selectedStatement.text}</p>
                 <p className={styles.helper}>{t('vom.chooseTruth')}</p>
-                <div className={styles.choiceButtonsWrap}>
+                <div className={`${styles.choiceButtonsWrap} ${styles.answerHighlight}`}>
                   {poserSelectionOptions.map((option) => {
                     const active = selectedStatementOption.toLowerCase() === option.toLowerCase();
                     return (
