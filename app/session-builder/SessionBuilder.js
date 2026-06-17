@@ -329,6 +329,7 @@ export default function SessionBuilder() {
   const [editName, setEditName] = useState('');
   const [editFlowMode, setEditFlowMode] = useState('manual');
   const [editDateTime, setEditDateTime] = useState('');
+  const [editParticipantIds, setEditParticipantIds] = useState([]);
   const [isSavingSessionInfo, setIsSavingSessionInfo] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -1061,6 +1062,14 @@ export default function SessionBuilder() {
         const d = new Date(editDateTime);
         if (!Number.isNaN(d.getTime())) payload.session_date = d.toISOString();
       }
+      const currentAssigned = [...draftParticipantIds].sort((a, b) => a - b);
+      const nextAssigned = [...editParticipantIds]
+        .map((value) => Number(value))
+        .filter((value) => Number.isInteger(value))
+        .sort((a, b) => a - b);
+      if (JSON.stringify(currentAssigned) !== JSON.stringify(nextAssigned)) {
+        payload.participant_ids = nextAssigned;
+      }
       if (!Object.keys(payload).length) {
         setIsEditingSessionInfo(false);
         return;
@@ -1082,6 +1091,8 @@ export default function SessionBuilder() {
     apiRequest,
     editDateTime,
     editName,
+    editParticipantIds,
+    draftParticipantIds,
     getAuthToken,
     loadSessionDetails,
     redirectToUpgrade,
@@ -1267,6 +1278,7 @@ export default function SessionBuilder() {
             setEditName(sessionName);
             setEditFlowMode(flowMode);
             setEditDateTime(sessionDateTime);
+            setEditParticipantIds(draftParticipantIds);
             setIsEditingSessionInfo(true);
           }}
           onSaveConfig={handleSaveDraft}
@@ -1274,45 +1286,6 @@ export default function SessionBuilder() {
           isLaunching={isLaunching}
           onLaunch={handleRequestLaunch}
         />
-
-        {isEditingSessionInfo ? (
-          <section className={styles.sessionInfoEditPanel} aria-label={t('sessionBuilder.editSessionAria')}>
-            <div className={styles.sessionInfoEditGrid}>
-              <input
-                className={styles.sessionInfoInput}
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                placeholder={t('sessionBuilder.sessionNamePlaceholderShort')}
-              />
-              <input
-                className={styles.sessionInfoInput}
-                type="datetime-local"
-                value={editDateTime}
-                onChange={(e) => setEditDateTime(e.target.value)}
-                step="60"
-              />
-              <select
-                className={styles.sessionInfoInput}
-                value={editFlowMode}
-                onChange={(e) => setEditFlowMode(e.target.value)}
-              >
-                <option value="manual">{t('sessionBuilder.manualModeOption')}</option>
-                <option value="auto">{t('sessionBuilder.autoModeOption')}</option>
-              </select>
-            </div>
-            <div className={styles.sessionInfoEditActions}>
-              <Button
-                onClick={handleSaveSessionInfo}
-                disabled={isSavingSessionInfo}
-              >
-                {isSavingSessionInfo ? t('sessionBuilder.saving') : t('sessionBuilder.save')}
-              </Button>
-              <Button variant="secondary" onClick={() => setIsEditingSessionInfo(false)}>
-                {t('sessionBuilder.cancel')}
-              </Button>
-            </div>
-          </section>
-        ) : null}
 
         <div className={styles.mainLayout}>
           <SelectedChallengesList
@@ -1340,6 +1313,73 @@ export default function SessionBuilder() {
           />
         </div>
       </main>
+
+      <Modal
+        open={isEditingSessionInfo}
+        title={t('sessionBuilder.editSessionAria')}
+        onClose={() => setIsEditingSessionInfo(false)}
+        dialogClassName={styles.sessionInfoEditDialog}
+        bodyClassName={styles.sessionInfoEditBody}
+      >
+        <section className={styles.sessionInfoEditContent} aria-label={t('sessionBuilder.editSessionAria')}>
+          <div className={styles.sessionInfoEditGrid}>
+            <input
+              className={styles.sessionInfoInput}
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder={t('sessionBuilder.sessionNamePlaceholderShort')}
+            />
+            <input
+              className={styles.sessionInfoInput}
+              type="datetime-local"
+              value={editDateTime}
+              onChange={(e) => setEditDateTime(e.target.value)}
+              step="60"
+            />
+            <select
+              className={styles.sessionInfoInput}
+              value={editFlowMode}
+              onChange={(e) => setEditFlowMode(e.target.value)}
+            >
+              <option value="manual">{t('sessionBuilder.manualModeOption')}</option>
+              <option value="auto">{t('sessionBuilder.autoModeOption')}</option>
+            </select>
+          </div>
+
+          <div className={styles.sessionInfoParticipantsBlock}>
+            <div className={styles.creationSectionHeader}>
+              <div>
+                <h2>{t('sessionBuilder.assignParticipants')}</h2>
+              </div>
+              <span className={styles.creationParticipantsCount}>
+                {t('sessionBuilder.selectedCount', { count: editParticipantIds.length })}
+              </span>
+            </div>
+
+            <ParticipantAssigner
+              isLoading={isSavingSessionInfo}
+              selectedIds={editParticipantIds}
+              onSelectionChange={setEditParticipantIds}
+              embedded
+              hideActions
+              title=""
+              subtitle=""
+            />
+          </div>
+
+          <div className={styles.sessionInfoEditActions}>
+            <Button
+              onClick={handleSaveSessionInfo}
+              disabled={isSavingSessionInfo}
+            >
+              {isSavingSessionInfo ? t('sessionBuilder.saving') : t('sessionBuilder.save')}
+            </Button>
+            <Button variant="secondary" onClick={() => setIsEditingSessionInfo(false)}>
+              {t('sessionBuilder.cancel')}
+            </Button>
+          </div>
+        </section>
+      </Modal>
 
       <Modal
         open={isLaunchConfirmOpen}

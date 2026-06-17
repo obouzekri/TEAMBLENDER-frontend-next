@@ -403,8 +403,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const revealedCells = laby?.revealed_cells && typeof laby.revealed_cells === 'object' ? laby.revealed_cells : {};
   const revealedTraps = laby?.revealed_traps && typeof laby.revealed_traps === 'object' ? laby.revealed_traps : {};
   const revealedWalls = laby?.revealed_walls && typeof laby.revealed_walls === 'object' ? laby.revealed_walls : {};
-  const mazeRows = safeInt(laby?.cfg?.rows ?? laby?.cfg?.r, 20, 6, 20);
-  const mazeCols = safeInt(laby?.cfg?.cols ?? laby?.cfg?.c, 20, 6, 20);
+  const mazeRows = safeInt(laby?.cfg?.rows ?? laby?.cfg?.r, 20, 10, 20);
+  const mazeCols = safeInt(laby?.cfg?.cols ?? laby?.cfg?.c, 20, 10, 20);
   const participantEntries = useMemo(() => Object.entries(laby?.parts || {}), [laby?.parts]);
   const participantNameById = useMemo(() => {
     return participantEntries.reduce((acc, [id, participant]) => {
@@ -1048,34 +1048,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 ))}
               </div>
 
-              {labyPhase !== 'done' ? (
-                <div className={styles.controlDock}>
-                  <div className={styles.controlHeadLegendWrap}>
-                    <div className={styles.controlHead}>
-                      <span className={styles.muted}>Commandes</span>
-                      <strong>{isEn ? 'Arrows, ZQSD/WASD, or click' : 'Flèches, ZQSD/WASD, ou clic'}</strong>
-                    </div>
-                    <div className={styles.legendRow}>
-                      <span className={`${styles.legendChip} ${styles.legendStart}`}>START</span>
-                      <span className={`${styles.legendChip} ${styles.legendExit}`}>EXIT</span>
-                      <span className={`${styles.legendChip} ${styles.legendTrap}`}>{isEn ? 'Trap' : 'Piège'}</span>
-                      <span className={`${styles.legendChip} ${styles.legendTrail}`}>{isEn ? 'Player cursor' : 'Curseur joueur'}</span>
-                    </div>
-                  </div>
-                  <div className={styles.directionPad}>
-                    <span />
-                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('N')} disabled={!canMoveDir} aria-label={isEn ? 'Move up' : 'Monter'}>↑</button>
-                    <span />
-                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('W')} disabled={!canMoveDir} aria-label={isEn ? 'Move left' : 'Aller à gauche'}>←</button>
-                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('S')} disabled={!canMoveDir} aria-label={isEn ? 'Move down' : 'Descendre'}>↓</button>
-                    <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveDir} aria-label={isEn ? 'Move right' : 'Aller à droite'}>→</button>
-                  </div>
-                  <p className={`${styles.moveFeedback} ${moveFeedbackTone === 'success' ? styles.feedbackSuccess : ''}${moveFeedbackTone === 'danger' ? ` ${styles.feedbackDanger}` : ''}${moveFeedbackTone === 'warning' ? ` ${styles.feedbackWarning}` : ''}`}>
-                    {moveFeedback || (isRespawning ? (isEn ? 'Choose a start point to continue.' : 'Choisissez un point de départ pour reprendre.') : canMoveSolo ? (isEn ? 'Explore the maze solo: only one exit is valid.' : 'Parcourez le labyrinthe en solo: une seule sortie est valide.') : (labyPhase === 'setup' ? (isEn ? 'Waiting for round launch...' : 'En attente du lancement de la manche...') : (isEn ? 'Movement unavailable for now.' : 'Déplacement indisponible pour le moment.')))}
-                  </p>
-                </div>
-              ) : null}
-
               {error ? <p className={styles.error}>{error}</p> : null}
             </section>
           )}
@@ -1133,6 +1105,34 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               placeholder={isEn ? 'Message to the team' : 'Message à l\'équipe'}
               maxLength={240}
             />
+          ) : null}
+
+          {!isFacilitator && labyPhase !== 'done' ? (
+            <div className={styles.controlDock}>
+              <div className={styles.controlHeadLegendWrap}>
+                <div className={styles.controlHead}>
+                  <span className={styles.muted}>Commandes</span>
+                  <strong>{isEn ? 'Arrows, ZQSD/WASD, or click' : 'Flèches, ZQSD/WASD, ou clic'}</strong>
+                </div>
+                <div className={styles.legendRow}>
+                  <span className={`${styles.legendChip} ${styles.legendStart}`}>START</span>
+                  <span className={`${styles.legendChip} ${styles.legendExit}`}>EXIT</span>
+                  <span className={`${styles.legendChip} ${styles.legendTrap}`}>{isEn ? 'Trap' : 'Piège'}</span>
+                  <span className={`${styles.legendChip} ${styles.legendTrail}`}>{isEn ? 'Player cursor' : 'Curseur joueur'}</span>
+                </div>
+              </div>
+              <div className={styles.directionPad}>
+                <span />
+                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('N')} disabled={!canMoveDir} aria-label={isEn ? 'Move up' : 'Monter'}>↑</button>
+                <span />
+                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('W')} disabled={!canMoveDir} aria-label={isEn ? 'Move left' : 'Aller à gauche'}>←</button>
+                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('S')} disabled={!canMoveDir} aria-label={isEn ? 'Move down' : 'Descendre'}>↓</button>
+                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveDir} aria-label={isEn ? 'Move right' : 'Aller à droite'}>→</button>
+              </div>
+              <p className={`${styles.moveFeedback} ${moveFeedbackTone === 'success' ? styles.feedbackSuccess : ''}${moveFeedbackTone === 'danger' ? ` ${styles.feedbackDanger}` : ''}${moveFeedbackTone === 'warning' ? ` ${styles.feedbackWarning}` : ''}`}>
+                {moveFeedback || (isRespawning ? (isEn ? 'Choose a start point to continue.' : 'Choisissez un point de départ pour reprendre.') : (labyPhase === 'setup' ? (isEn ? 'Waiting for round launch...' : 'En attente du lancement de la manche...') : (isEn ? 'Movement unavailable for now.' : 'Déplacement indisponible pour le moment.')))}
+              </p>
+            </div>
           ) : null}
 
           {isFacilitator && maze ? (

@@ -31,7 +31,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
   const isManagerHome = isManager && plainPathname === '/home';
   const isActive = (href) => plainPathname?.startsWith(href);
   const contextLabel = isParticipant
-    ? t('appNav.participantSpace')
+    ? ''
     : isAdmin
       ? t('appNav.adminSpace')
       : isCompact

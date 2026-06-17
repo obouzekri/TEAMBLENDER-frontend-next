@@ -147,6 +147,10 @@
 .card h2,
 .card h3 {
   margin: 0;
+}
+
+.sectionHead h2,
+.timelineHead h2 {
   color: #e5edf7;
 }
 

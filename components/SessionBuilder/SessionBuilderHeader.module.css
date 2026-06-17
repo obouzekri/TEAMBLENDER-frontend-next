@@ -1,7 +1,7 @@
 .summaryBar {
   position: sticky;
-  top: calc(var(--nav-shell-min-height, 68px) + 0.55rem);
-  z-index: 35;
+  top: calc(var(--nav-shell-min-height, 68px) + 0.4rem);
+  z-index: 60;
   border-radius: 20px;
   border: 1px solid rgba(53, 160, 255, 0.18);
   background:

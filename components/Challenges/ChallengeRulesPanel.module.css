@@ -14,6 +14,7 @@
 .rulesHeader {
   display: grid;
   gap: 7px;
+  padding-bottom: 6px;
 }
 
 .rulesHeader h2 {

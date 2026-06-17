@@ -113,15 +113,15 @@
 .timerIconBtn {
   border: none;
   border-radius: 999px;
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 1.1rem;
+  height: 1.1rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: rgba(2, 132, 199, 0.24);
   color: #f8fafc;
   cursor: pointer;
-  font-size: 0.72rem;
+  font-size: 0.58rem;
   transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
 }
 
