@@ -90,21 +90,43 @@ function parseStatementChoices(rawText) {
   };
 }
 
-const VOM_RULES_FACILITATOR_APPEND = Object.freeze([
-  'Chaque tour dure 40 secondes.',
-  'Deroulement: le poseur choisit ou saisit son affirmation, les participants votent avant la fin du chrono, puis les reponses sont comparees automatiquement.',
-  'Calcul du score: bonne reponse +1 point, mauvaise reponse 0 point.',
-  'Poseur: si les joueurs sont trompes +1 point, sinon 0 point.',
-  'Les scores sont mis a jour en temps reel a la fin de chaque tour.'
-]);
+function buildVomRulesAppend(isEn) {
+  if (isEn) {
+    return {
+      facilitator: Object.freeze([
+        'Each round lasts 40 seconds.',
+        'Flow: the poser chooses or enters a statement, participants vote before the timer ends, then answers are compared automatically.',
+        'Scoring: correct answer +1 point, wrong answer 0 point.',
+        'Poser: if players are fooled +1 point, otherwise 0 point.',
+        'Scores are updated in real time at the end of each round.'
+      ]),
+      participant: Object.freeze([
+        'Each round lasts 40 seconds.',
+        'The poser chooses or enters a statement, then participants vote before the timer ends.',
+        'Scoring: correct answer +1 point, wrong answer 0 point.',
+        'Poser: if players are fooled +1 point, otherwise 0 point.',
+        'Scores are updated in real time after automatic comparison of answers.'
+      ]),
+    };
+  }
 
-const VOM_RULES_PARTICIPANT_APPEND = Object.freeze([
-  'Chaque tour dure 40 secondes.',
-  'Le poseur choisit ou saisit son affirmation, puis les participants votent avant la fin du chrono.',
-  'Calcul du score: bonne reponse +1 point, mauvaise reponse 0 point.',
-  'Poseur: si les joueurs sont trompes +1 point, sinon 0 point.',
-  'Les scores sont mis a jour en temps reel apres comparaison automatique des reponses.'
-]);
+  return {
+    facilitator: Object.freeze([
+      'Chaque tour dure 40 secondes.',
+      'Déroulement : le poseur choisit ou saisit son affirmation, les participants votent avant la fin du chrono, puis les réponses sont comparées automatiquement.',
+      'Calcul du score : bonne réponse +1 point, mauvaise réponse 0 point.',
+      'Poseur : si les joueurs sont trompés +1 point, sinon 0 point.',
+      'Les scores sont mis à jour en temps réel à la fin de chaque tour.'
+    ]),
+    participant: Object.freeze([
+      'Chaque tour dure 40 secondes.',
+      'Le poseur choisit ou saisit son affirmation, puis les participants votent avant la fin du chrono.',
+      'Calcul du score : bonne réponse +1 point, mauvaise réponse 0 point.',
+      'Poseur : si les joueurs sont trompés +1 point, sinon 0 point.',
+      'Les scores sont mis à jour en temps réel après comparaison automatique des réponses.'
+    ]),
+  };
+}
 
 export default function VraiOuMensongeChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedStatementId, setSelectedStatementId] = useState('');
@@ -229,17 +251,19 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     [runtimePayload?.config, state?.config]
   );
 
+  const vomRulesAppend = useMemo(() => buildVomRulesAppend(locale === 'en'), [locale]);
+
   const facilitatorRules = useMemo(() => {
     const baseRules = Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : [];
-    const merged = [...baseRules, ...VOM_RULES_FACILITATOR_APPEND];
+    const merged = [...baseRules, ...vomRulesAppend.facilitator];
     return merged.filter((item, index) => merged.findIndex((candidate) => String(candidate).toLowerCase() === String(item).toLowerCase()) === index);
-  }, [rulesContent?.facilitator]);
+  }, [rulesContent?.facilitator, vomRulesAppend.facilitator]);
 
   const participantRules = useMemo(() => {
     const baseRules = Array.isArray(rulesContent?.participant) ? rulesContent.participant : [];
-    const merged = [...baseRules, ...VOM_RULES_PARTICIPANT_APPEND];
+    const merged = [...baseRules, ...vomRulesAppend.participant];
     return merged.filter((item, index) => merged.findIndex((candidate) => String(candidate).toLowerCase() === String(item).toLowerCase()) === index);
-  }, [rulesContent?.participant]);
+  }, [rulesContent?.participant, vomRulesAppend.participant]);
 
   const poserSelectionOptions = useMemo(() => {
     if (selectedStatementChoices?.options?.length > 1) {

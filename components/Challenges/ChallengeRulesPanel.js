@@ -1,25 +1,28 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import useI18n from '@/lib/i18n/useI18n';
 import styles from './ChallengeRulesPanel.module.css';
 
 export default function ChallengeRulesPanel({
   isStarted,
   isFacilitator = true,
   challengeName,
-  briefTitle = 'Brief de mission',
+  briefTitle,
   objective,
   facilitatorRules = [],
   participantRules = [],
   footnote = '',
   extraContent = null,
   showPrestartCard = true,
-  startLabel = 'Démarrer le challenge',
+  startLabel,
   onStart = null,
   startDisabled = false,
   compactStartButton = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const { locale } = useI18n();
+  const isEn = locale === 'en';
 
   useEffect(() => {
     if (!isStarted) {
@@ -43,17 +46,21 @@ export default function ChallengeRulesPanel({
   }, [isOpen]);
 
   const canStartFromRules = !isStarted && isFacilitator && typeof onStart === 'function';
+  const resolvedBriefTitle = briefTitle || (isEn ? 'Mission brief' : 'Brief de mission');
+  const resolvedStartLabel = startLabel || (isEn ? 'Start challenge' : 'Démarrer le challenge');
+  const facilitatorLabel = isEn ? 'Facilitator' : 'Facilitateur';
+  const participantLabel = isEn ? 'Participants' : 'Participants';
 
   const cardContent = (
     <>
       <header className={styles.rulesHeader}>
-        <h2 className="challenge-section-title">{challengeName} - {briefTitle}</h2>
+        <h2 className="challenge-section-title">{challengeName} - {resolvedBriefTitle}</h2>
         <p className="challenge-text">{objective}</p>
       </header>
 
       {isFacilitator ? (
         <section className={styles.rulesSection}>
-          <h3 className="challenge-section-title">Facilitateur</h3>
+          <h3 className="challenge-section-title">{facilitatorLabel}</h3>
           <ul>
             {facilitatorRules.map((rule) => (
               <li key={`facilitator-${rule}`}>{rule}</li>
@@ -63,7 +70,7 @@ export default function ChallengeRulesPanel({
       ) : null}
 
       <section className={`${styles.rulesSection} ${styles.rulesSectionParticipant}`}>
-        <h3 className="challenge-section-title">Participants</h3>
+        <h3 className="challenge-section-title">{participantLabel}</h3>
         <ul>
           {participantRules.map((rule) => (
             <li key={`participant-${rule}`}>{rule}</li>
@@ -83,7 +90,7 @@ export default function ChallengeRulesPanel({
             onClick={onStart}
             disabled={startDisabled}
           >
-            {startLabel}
+            {resolvedStartLabel}
           </button>
         </div>
       ) : null}
@@ -105,7 +112,7 @@ export default function ChallengeRulesPanel({
         className={styles.rulesButton}
         onClick={() => setIsOpen(true)}
       >
-        Afficher les règles
+        {isEn ? 'Show rules' : 'Afficher les règles'}
       </button>
 
       {isOpen ? (
@@ -118,9 +125,9 @@ export default function ChallengeRulesPanel({
             onClick={(event) => event.stopPropagation()}
           >
             <header className={styles.modalHead}>
-              <h2 id="challenge-rules-modal-title">Règles - {challengeName}</h2>
-              <button type="button" className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label="Fermer les règles">
-                Fermer
+              <h2 id="challenge-rules-modal-title">{isEn ? 'Rules' : 'Règles'} - {challengeName}</h2>
+              <button type="button" className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label={isEn ? 'Close rules' : 'Fermer les règles'}>
+                {isEn ? 'Close' : 'Fermer'}
               </button>
             </header>
             {cardContent}
