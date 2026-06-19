@@ -193,12 +193,6 @@
   box-shadow: 0 16px 36px rgba(2, 9, 16, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.025);
 }
 
-
-  padding: 16px;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
 .headerBadges {
   display: flex;
   flex-wrap: wrap;
