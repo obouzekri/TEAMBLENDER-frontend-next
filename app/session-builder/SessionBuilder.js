@@ -211,6 +211,13 @@ function shouldApplyLocalDraftOverSession(savedDraft, session) {
     return false;
   }
 
+  const sessionChallenges = Array.isArray(session?.challenges) ? session.challenges : [];
+  if (sessionChallenges.length > 0) {
+    // Server-side session data is the source of truth once challenges exist.
+    // This avoids stale local drafts from overriding persisted configs (e.g. CoPuzzle images).
+    return false;
+  }
+
   const sessionFreshnessMs = getSessionFreshnessMs(session);
   return draftUpdatedMs > sessionFreshnessMs;
 }
