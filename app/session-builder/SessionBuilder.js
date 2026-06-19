@@ -1390,10 +1390,12 @@ export default function SessionBuilder() {
 
       <Modal
         open={isLaunchConfirmOpen}
-        title="Confirm session launch"
+        title="Confirm Launch"
         onClose={() => setIsLaunchConfirmOpen(false)}
         dialogClassName={styles.launchConfirmDialog}
         bodyClassName={styles.launchConfirmBody}
+        titleClassName={styles.launchConfirmTitle}
+        closeClassName={styles.launchConfirmClose}
       >
         <p className={styles.launchConfirmText}>
           Une fois la session lancée, la configuration ne pourra plus être modifiée.

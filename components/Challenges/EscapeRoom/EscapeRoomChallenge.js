@@ -508,11 +508,8 @@ export default function EscapeRoomChallenge({
         <ChallengeHeader
           title="Escape Room"
           subtitle="Résolvez les énigmes en équipe, avec validation collective"
+          className={styles.headerNoFrame}
         />
-        <div className={styles.headerBadges}>
-          <span className={styles.heroBadge}>{hasChallengeStarted ? '🔴 Session live' : '⏳ Prêt à démarrer'}</span>
-          <span className={styles.heroBadgeMuted}>{currentEnigme?.label || 'Coordination collective'}</span>
-        </div>
       </div>
 
       <section className={styles.layout}>

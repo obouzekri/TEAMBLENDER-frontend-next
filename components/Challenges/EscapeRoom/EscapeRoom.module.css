@@ -201,16 +201,18 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
-  border-radius: 18px;
-  padding: 18px 22px;
-  background:
-    radial-gradient(900px 320px at 0% 50%, rgba(40, 179, 208, 0.12), transparent 55%),
-    linear-gradient(155deg, rgba(13, 21, 40, 0.95), rgba(10, 18, 32, 0.97));
-  border: 1px solid rgba(125, 211, 252, 0.16);
-  box-shadow: 0 16px 36px rgba(2, 9, 16, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+  padding: 0;
   width: 100%;
+}
+
+.headerNoFrame {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
 }
 
 .headerBadges {
@@ -583,7 +585,8 @@
 .input {
   border: 1px solid rgba(125, 211, 252, 0.28);
   background: rgba(8, 18, 30, 0.96);
-  color: #f0f8ff;
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
   border-radius: 12px;
   padding: 13px 16px;
   min-height: 50px;
@@ -602,10 +605,23 @@
 }
 
 .input::placeholder {
-  color: rgba(156, 178, 199, 0.72);
+  color: rgba(255, 255, 255, 0.82);
   opacity: 1;
   font-weight: 600;
   letter-spacing: 0.04em;
+}
+
+.input:disabled {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+.input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff;
+  caret-color: #ffffff;
 }
 
 .actions {

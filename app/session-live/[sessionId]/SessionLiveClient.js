@@ -342,8 +342,18 @@ export default function SessionLiveClient() {
               aria-labelledby="session-live-popup-title"
               onClick={(event) => event.stopPropagation()}
             >
-              <h3 id="session-live-popup-title">{isEn ? 'Confirmation' : 'Confirmation'}</h3>
-              <p>{isEn ? 'Participants will automatically switch to the next challenge.' : 'Les participants vont basculer automatiquement vers le prochain challenge.'}</p>
+              <div className="session-live-popup__header">
+                <h3 id="session-live-popup-title">{isEn ? 'Confirm next challenge' : 'Confirmer le prochain challenge'}</h3>
+                <button
+                  type="button"
+                  className="session-live-popup__close"
+                  aria-label={isEn ? 'Close confirmation modal' : 'Fermer la fenetre de confirmation'}
+                  onClick={() => setAdvancePopupOpen(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <p>{isEn ? 'Participants will automatically be moved to the next challenge.' : 'Les participants seront automatiquement deplaces vers le prochain challenge.'}</p>
               <div className="session-live-popup__actions">
                 <button
                   type="button"
