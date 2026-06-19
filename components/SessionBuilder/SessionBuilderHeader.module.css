@@ -1,8 +1,8 @@
 .summaryBar {
   position: -webkit-sticky;
   position: sticky;
-  top: calc(var(--nav-shell-min-height, 68px) + 0.55rem);
-  z-index: 115;
+  top: calc(var(--nav-shell-min-height, 68px) + 0.35rem);
+  z-index: 119;
   align-self: start;
   border-radius: 20px;
   border: 1px solid rgba(53, 160, 255, 0.18);
@@ -101,7 +101,7 @@
 
 @media (max-width: 680px) {
   .summaryBar {
-    top: calc(var(--nav-shell-min-height, 64px) + 0.45rem);
+    top: calc(var(--nav-shell-min-height, 64px) + 0.3rem);
     padding: 0.95rem;
   }
 
