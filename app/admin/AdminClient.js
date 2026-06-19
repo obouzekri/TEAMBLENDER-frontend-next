@@ -142,10 +142,22 @@ const PIXEL_ARCHITECT_CATALOG_ENTRY = {
   duration: '15-25 min',
   engine_key: 'pixel_architect_v1',
   description: 'Construction 3D collaborative sous contraintes de temps, ressources et communication.',
-  rules_objective: 'Construire une structure 3D en cubes sous contraintes.',
-  rules_facilitator: ['Démarrez le chrono quand l’équipe est prête.', 'Surveillez les contraintes de cubes et de couleurs.'],
-  rules_participant: ['Communiquez clairement.', 'Respectez la limite de ressources.', 'Contribuez à la structure finale.'],
-  rules_footnote: '',
+  rules_objective: {
+    fr: 'Construire une structure 3D en cubes sous contraintes.',
+    en: 'Build a constrained 3D structure with cubes.',
+  },
+  rules_facilitator: {
+    fr: ['Démarrez le chrono quand l’équipe est prête.', 'Surveillez les contraintes de cubes et de couleurs.'],
+    en: ['Start the timer once the team is ready.', 'Monitor cube and color constraints.'],
+  },
+  rules_participant: {
+    fr: ['Communiquez clairement.', 'Respectez la limite de ressources.', 'Contribuez à la structure finale.'],
+    en: ['Communicate clearly.', 'Respect resource limits.', 'Contribute to the final structure.'],
+  },
+  rules_footnote: {
+    fr: '',
+    en: '',
+  },
   engine_config: {
     participants: {
       min_count: 3,
@@ -183,10 +195,22 @@ const THE_QUIZ_CATALOG_ENTRY = {
   duration: '15-25 min',
   engine_key: 'the_quiz_v1',
   description: 'Quiz multijoueur en temps reel avec timer, reponses verrouillees et leaderboard dynamique.',
-  rules_objective: 'Repondre vite et correctement pour monter au classement live.',
-  rules_facilitator: ['Lancez la session quand les participants sont prets.', 'Cadrez le rythme entre les manches.'],
-  rules_participant: ['Validez une seule reponse par question.', 'Restez attentif au chrono et au leaderboard.'],
-  rules_footnote: '',
+  rules_objective: {
+    fr: 'Repondre vite et correctement pour monter au classement live.',
+    en: 'Answer quickly and accurately to climb the live leaderboard.',
+  },
+  rules_facilitator: {
+    fr: ['Lancez la session quand les participants sont prets.', 'Cadrez le rythme entre les manches.'],
+    en: ['Start the session when participants are ready.', 'Set the pace between rounds.'],
+  },
+  rules_participant: {
+    fr: ['Validez une seule reponse par question.', 'Restez attentif au chrono et au leaderboard.'],
+    en: ['Submit one answer per question.', 'Keep an eye on the timer and leaderboard.'],
+  },
+  rules_footnote: {
+    fr: '',
+    en: '',
+  },
   engine_config: {
     participants: {
       min_count: 4,

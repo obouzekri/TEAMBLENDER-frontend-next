@@ -8,6 +8,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import useI18n from '@/lib/i18n/useI18n';
 import styles from './PhraseCoop.module.css';
 
 function computeCompletionPercent(slots) {
@@ -61,6 +62,7 @@ function buildFallbackAvailableWords(slots, participantSlot, fakeWordsBySlot) {
 }
 
 export default function PhraseChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
+  const { locale } = useI18n();
   const [selectedWord, setSelectedWord] = useState('');
   const [draggingWord, setDraggingWord] = useState('');
   const [dragOverSlotIndex, setDragOverSlotIndex] = useState(null);
@@ -139,8 +141,8 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
   const hintsUsed = Number(state?.phrase?.hints_used || 0);
   const remainingHints = Math.max(0, hintBudget - hintsUsed);
   const rulesContent = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config),
-    [runtimePayload?.config, state?.config]
+    () => resolveChallengeRules(state?.config || runtimePayload?.config, undefined, locale),
+    [runtimePayload?.config, state?.config, locale]
   );
 
   const {

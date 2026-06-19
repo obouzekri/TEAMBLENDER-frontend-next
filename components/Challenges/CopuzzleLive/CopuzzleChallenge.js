@@ -11,6 +11,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import useI18n from '@/lib/i18n/useI18n';
 import styles from './Copuzzle.module.css';
 
 const COPUZZLE_ADMIN_REFERENCE_IMAGES = Object.freeze([
@@ -118,6 +119,7 @@ function computePieceStyle(piece, config, imageUrl) {
 }
 
 export default function CopuzzleChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
+  const { locale } = useI18n();
   const [selectedPieceId, setSelectedPieceId] = useState('');
   const [dragOverCellKey, setDragOverCellKey] = useState('');
   const [draggingPieceId, setDraggingPieceId] = useState('');
@@ -166,7 +168,7 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
   );
 
   const chatEnabled = effectiveConfig?.chat?.enabled === true;
-  const rulesContent = useMemo(() => resolveChallengeRules(rawRulesConfig), [rawRulesConfig]);
+  const rulesContent = useMemo(() => resolveChallengeRules(rawRulesConfig, undefined, locale), [rawRulesConfig, locale]);
 
   const {
     chatInput,

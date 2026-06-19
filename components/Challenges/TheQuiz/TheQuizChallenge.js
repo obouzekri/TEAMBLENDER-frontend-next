@@ -214,8 +214,8 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   }, [socket, socket?.connected]);
 
   const rules = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config),
-    [runtimePayload?.config, state?.config]
+    () => resolveChallengeRules(state?.config || runtimePayload?.config, undefined, locale),
+    [runtimePayload?.config, state?.config, locale]
   );
 
   const chatEnabled = Boolean(socket) && quiz.chat_enabled;

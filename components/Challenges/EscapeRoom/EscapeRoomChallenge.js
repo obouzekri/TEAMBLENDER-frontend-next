@@ -11,6 +11,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import useI18n from '@/lib/i18n/useI18n';
 import styles from './EscapeRoom.module.css';
 
 const OUTCOME_UI = {
@@ -141,6 +142,7 @@ export default function EscapeRoomChallenge({
   context,
   onChallengeCompleted,
 }) {
+  const { locale } = useI18n();
   const [state, setState] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [answer, setAnswer] = useState('');
@@ -393,8 +395,8 @@ export default function EscapeRoomChallenge({
   const challengeStatus = String(state?.status || '').trim();
   const hasChallengeStarted = challengeStatus !== 'waiting_for_start';
   const rulesContent = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config),
-    [runtimePayload?.config, state?.config]
+    () => resolveChallengeRules(state?.config || runtimePayload?.config, undefined, locale),
+    [runtimePayload?.config, state?.config, locale]
   );
   const canStartTimer = isFacilitator && challengeStatus === 'waiting_for_start' && !busyAction;
   const isTimerRunning = challengeStatus === 'in_progress';

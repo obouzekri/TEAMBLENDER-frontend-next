@@ -501,8 +501,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   }, [myParticipantState, revealedCells]);
 
   const rulesContent = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config, LABYRINTHE_RULES_FALLBACK),
-    [runtimePayload?.config, state?.config]
+    () => resolveChallengeRules(state?.config || runtimePayload?.config, LABYRINTHE_RULES_FALLBACK, locale),
+    [runtimePayload?.config, state?.config, locale]
   );
 
   useEffect(() => {

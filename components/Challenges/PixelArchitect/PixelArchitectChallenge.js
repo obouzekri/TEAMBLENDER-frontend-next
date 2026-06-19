@@ -193,8 +193,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }, [runtimePayload, context]);
 
   const rulesContent = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config),
-    [runtimePayload?.config, state?.config]
+    () => resolveChallengeRules(state?.config || runtimePayload?.config, undefined, locale),
+    [runtimePayload?.config, state?.config, locale]
   );
 
   const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat } = useChallengeChat({

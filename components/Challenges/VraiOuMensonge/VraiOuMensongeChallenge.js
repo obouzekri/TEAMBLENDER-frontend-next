@@ -290,8 +290,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const votingChoices = Array.isArray(currentTurn?.statement_options) ? currentTurn.statement_options : [];
   const isChoiceVoting = votingChoices.length > 1;
   const rulesContent = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config),
-    [runtimePayload?.config, state?.config]
+    () => resolveChallengeRules(state?.config || runtimePayload?.config, undefined, locale),
+    [runtimePayload?.config, state?.config, locale]
   );
 
   const vomRulesAppend = useMemo(() => buildVomRulesAppend(locale === 'en'), [locale]);
