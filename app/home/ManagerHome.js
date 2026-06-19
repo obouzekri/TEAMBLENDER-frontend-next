@@ -165,7 +165,8 @@ const STARTUP_GUIDE_STEPS = Object.freeze([
 ]);
 
 export default function ManagerHome() {
-  const { withLocalePath } = useI18n();
+  const { locale, withLocalePath } = useI18n();
+  const isEn = locale === 'en';
   const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
   const guard = useManagerGuard();
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
@@ -624,7 +625,7 @@ export default function ManagerHome() {
                   className="btn-secondary home-create-participants-cta"
                   onClick={openNewMemberForm}
                 >
-                  Creer des participants
+                  {isEn ? 'Create participants' : 'Creer des participants'}
                 </button>
                 {guard.user?.role === 'admin' && (
                   <Link className="btn-secondary" href={withLocalePath('/admin')}>Admin console</Link>
@@ -653,7 +654,7 @@ export default function ManagerHome() {
                 className="btn-secondary home-quickview-guide-cta"
                 onClick={openStartupGuide}
               >
-                Ouvrir le guide de demarrage
+                {isEn ? 'Open getting started guide' : 'Ouvrir le guide de demarrage'}
               </button>
             </aside>
           </div>
@@ -812,7 +813,6 @@ export default function ManagerHome() {
 
           <div className="participants-panel-kpis" aria-label="Participant summary">
             <span>{members.length} participant{members.length > 1 ? 's' : ''} total</span>
-            <span>{members.filter((member) => String(member.email || '').trim()).length} with email provided</span>
           </div>
 
           {loadingMembers ? <p>Loading participants...</p> : null}
