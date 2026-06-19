@@ -11,6 +11,7 @@ import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import styles from './VraiOuMensonge.module.css';
 import useI18n from '@/lib/i18n/useI18n';
+import useBodyScrollLock from '@/lib/useBodyScrollLock';
 
 function formatSeconds(ms) {
   const raw = Number(ms || 0);
@@ -34,6 +35,45 @@ function getInitials(name) {
   if (parts.length === 0) return '?';
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+}
+
+function getRankMedal(rank) {
+  if (rank === 1) return '🥇';
+  if (rank === 2) return '🥈';
+  if (rank === 3) return '🥉';
+  return null;
+}
+
+function buildRankMovementMap(currentRanking, previousScores) {
+  if (!previousScores || typeof previousScores !== 'object') return {};
+
+  const previousRows = currentRanking
+    .map((entry) => ({
+      participant_id: String(entry.participant_id),
+      score: Number(previousScores?.[entry.participant_id] || 0)
+    }))
+    .sort((a, b) => (b.score - a.score) || a.participant_id.localeCompare(b.participant_id));
+
+  let currentRank = 1;
+  const previousRankByParticipantId = previousRows.reduce((accumulator, entry, index) => {
+    if (index > 0 && entry.score < previousRows[index - 1].score) {
+      currentRank = index + 1;
+    }
+    accumulator[entry.participant_id] = currentRank;
+    return accumulator;
+  }, {});
+
+  return currentRanking.reduce((accumulator, entry) => {
+    const previousRank = Number(previousRankByParticipantId[String(entry.participant_id)] || entry.rank);
+    if (entry.rank < previousRank) {
+      accumulator[String(entry.participant_id)] = 'up';
+    } else if (entry.rank > previousRank) {
+      accumulator[String(entry.participant_id)] = 'down';
+    } else {
+      accumulator[String(entry.participant_id)] = 'same';
+    }
+    return accumulator;
+  }, {});
 }
 
 function isEmailLike(value) {
@@ -137,6 +177,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const [selectionModalOpen, setSelectionModalOpen] = useState(false);
   const audioRef = useRef(null);
 
+
   const {
     state,
     error,
@@ -144,7 +185,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     emitEvent,
     participantId,
   } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const vom = state?.vom || {};
   const phase = String(vom?.phase || 'waiting_start');
@@ -239,6 +280,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     () => catalog.find((item) => String(item?.id || '') === String(selectedStatementId || '')) || null,
     [catalog, selectedStatementId]
   );
+  useBodyScrollLock(selectionModalOpen && isPoser && Boolean(selectedStatement));
+
   const selectedStatementChoices = useMemo(
     () => parseStatementChoices(selectedStatement?.text || ''),
     [selectedStatement]
@@ -369,6 +412,17 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     [liveRanking, me]
   );
 
+  const previousScoreSnapshot = useMemo(() => {
+    if (roundHistory.length < 2) return null;
+    const previousRound = roundHistory[roundHistory.length - 2];
+    return previousRound?.score_snapshot || null;
+  }, [roundHistory]);
+
+  const rankMovementByParticipantId = useMemo(
+    () => buildRankMovementMap(liveRanking, previousScoreSnapshot),
+    [liveRanking, previousScoreSnapshot]
+  );
+
   const streakByParticipant = useMemo(() => {
     const streakMap = {};
     orderedParticipantIds.forEach((id) => {
@@ -403,6 +457,50 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const poseurRoundPoints = Number(currentTurn?.result?.poser_points || 0);
   const totalCycles = Math.max(1, Number(vom?.computed_cycles || vom?.rounds_per_participant || 3));
   const currentCycle = Math.max(1, Math.min(totalCycles, Number(currentTurn?.passage_number || 1)));
+  const myRoundPoints = Number(isPoser ? poseurRoundPoints : myRoundVote?.points || 0);
+  const myRoundMovement = String(rankMovementByParticipantId[me] || 'same');
+  const myRank = Number(myLiveEntry?.rank || 0);
+  const myRankMedal = getRankMedal(myRank);
+
+  function renderLeaderboardRow(entry, index, options = {}) {
+    const participantKey = String(entry.participant_id);
+    const movement = String(rankMovementByParticipantId[participantKey] || 'same');
+    const movementGlyph = movement === 'up' ? '↑' : movement === 'down' ? '↓' : '→';
+    const movementLabel = movement === 'up' ? 'En hausse' : movement === 'down' ? 'En baisse' : 'Stable';
+    const medal = getRankMedal(Number(entry.rank));
+    const progressWidth = `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%`;
+    const compact = options.compact === true;
+
+    return (
+      <article
+        key={`${options.keyPrefix || 'leader'}-${participantKey}`}
+        className={`${styles.leaderboardCard}${index < 3 ? ` ${styles.leaderboardCardTop}` : ''}${participantKey === poserId ? ` ${styles.activeParticipantRow}` : ''}${participantKey === me ? ` ${styles.myParticipantRow}` : ''}${movement === 'up' ? ` ${styles.rankUp}` : ''}${movement === 'down' ? ` ${styles.rankDown}` : ''}${compact ? ` ${styles.leaderboardCardCompact}` : ''}`}
+      >
+        <div className={styles.leaderboardIdentity}>
+          <div className={styles.leaderboardRankWrap}>
+            <span className={styles.rankPill}>{medal || `#${entry.rank}`}</span>
+            <span className={`${styles.rankDeltaBadge}${movement === 'up' ? ` ${styles.rankDeltaUp}` : movement === 'down' ? ` ${styles.rankDeltaDown}` : ''}`} aria-label={movementLabel}>{movementGlyph}</span>
+          </div>
+          <span className={styles.leaderAvatar}>{getInitials(participantName(participantKey))}</span>
+          <div className={styles.leaderboardCopy}>
+            <span className={styles.leaderboardLine}>{participantName(participantKey)}</span>
+            <span className={styles.leaderboardSubline}>
+              {participantKey === me ? 'Vous' : participantKey === poserId ? t('vom.poserLabel') : `Rang #${entry.rank}`}
+            </span>
+          </div>
+        </div>
+        <div className={styles.leaderboardScoreWrap}>
+          <div className={styles.leaderboardScoreTopline}>
+            <span className={styles.leaderboardScore}>{entry.score} pts</span>
+            {medal ? <span className={styles.leaderboardReward}>{medal}</span> : null}
+          </div>
+          <span className={styles.leaderProgressTrack}>
+            <span className={styles.leaderProgressFill} style={{ width: progressWidth }} />
+          </span>
+        </div>
+      </article>
+    );
+  }
 
   function playLightTone(kind) {
     try {
@@ -535,7 +633,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             {isPoser ? (
               <>
                 <div className={styles.statementGrid}>
-                  {catalog.map((statement) => {
+                  {catalog.map((statement, index) => {
                     const disabled = usedByPoser.has(String(statement.id));
                     const selected = selectedStatementId === String(statement.id);
                     const parsedChoices = parseStatementChoices(statement.text);
@@ -546,6 +644,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                         type="button"
                         className={`${styles.statementBtn}${selected ? ` ${styles.statementBtnSelected}` : ''}${clickedStatementId === String(statement.id) ? ` ${styles.statementBtnClicked}` : ''}`}
                         disabled={disabled}
+                        style={{ animationDelay: `${Math.min(index * 45, 240)}ms` }}
                         onClick={() => {
                           setSelectedStatementId(String(statement.id));
                           setSelectionModalOpen(true);
@@ -554,6 +653,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                           window.setTimeout(() => setClickedStatementId(''), 180);
                         }}
                       >
+                        <span className={styles.statementGlow} aria-hidden="true" />
                         <span className={styles.category}>{statement.category}</span>
                         {parsedChoices ? (
                           <>
@@ -636,9 +736,16 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'round_result' ? (
           <section className={styles.card}>
             <h2 className={styles.sectionTitle}>{t('vom.roundResultTitle')}</h2>
-            <div className={`${styles.wowResult}${resultPulse ? ` ${styles.wowResultPulse}` : ''}`}>
-              <div>
-                <strong className={styles.wowTitle}>{t('vom.instantFeedback')}</strong>
+            <div className={`${styles.resultHero}${resultPulse ? ` ${styles.resultHeroPulse}` : ''}`}>
+              <div className={styles.resultHeroFeedback}>
+                <div className={styles.resultEyebrowRow}>
+                  <span className={styles.resultEyebrow}>{t('vom.instantFeedback')}</span>
+                  <span className={`${styles.resultStatusBadge}${myRoundPoints > 0 ? ` ${styles.resultStatusSuccess}` : ''}`}>
+                    {hasSelectionTimeout ? '⏳' : isPoser ? (poseurRoundPoints > 0 ? '🎯' : '•') : myRoundVote?.status === 'correct' ? '✅' : myRoundVote?.status === 'incorrect' ? '❌' : '•'}
+                    {myRoundPoints > 0 ? ` +${myRoundPoints} pts` : ' 0 pt'}
+                  </span>
+                </div>
+                <strong className={styles.wowTitle}>{hasSelectionTimeout ? 'Tour interrompu' : isPoser ? 'Bluff révélé' : myRoundVote?.status === 'correct' ? 'Bien joué' : 'Réponse révélée'}</strong>
                 {hasSelectionTimeout ? (
                   <p className={styles.wowText}>Temps ecoule: le poseur n a pas pose la question a temps. 0 point et passage au participant suivant.</p>
                 ) : !isPoser ? (
@@ -653,6 +760,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   </p>
                 )}
               </div>
+              <div className={styles.mainScoreCard}>
+                <span className={styles.mainScoreLabel}>{t('vom.myScore')}</span>
+                <span className={`${styles.mainScoreValue}${resultPulse ? ` ${styles.mainScoreValuePulse}` : ''}`}>{myScore}</span>
+                <span className={styles.mainScoreUnit}>{t('vom.points')}</span>
+                <div className={styles.scoreDeltaRow}>
+                  <span className={`${styles.scoreDeltaChip}${myRoundPoints > 0 ? ` ${styles.scoreDeltaChipPositive}` : ''}`}>{myRoundPoints > 0 ? `+${myRoundPoints}` : '0'} pt</span>
+                  <span className={styles.scoreRankChip}>{myRankMedal || `#${myRank || '-'}`} {myRoundMovement === 'up' ? '↑' : myRoundMovement === 'down' ? '↓' : '→'}</span>
+                </div>
+              </div>
             </div>
 
             {myRoundBadges.length > 0 ? (
@@ -663,41 +779,26 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               </div>
             ) : null}
 
-            <div className={styles.mainScoreCard}>
-              <span className={styles.mainScoreLabel}>{t('vom.myScore')}</span>
-              <span className={styles.mainScoreValue}>{myScore}</span>
-              <span className={styles.mainScoreUnit}>{t('vom.points')}</span>
+            <div className={styles.resultMetaBar}>
+              <p className={styles.resultTransition}>{t('vom.transitionText', { clock: formatClock(formatSeconds(remainingMs)) })}</p>
+              <span className={styles.resultFactChip}>{liveRanking.length} joueurs classés</span>
+              <span className={styles.resultFactChip}>Top score {liveRanking[0]?.score ?? 0} pts</span>
             </div>
-
-            <p>{t('vom.transitionText', { clock: formatClock(formatSeconds(remainingMs)) })}</p>
-            <div className={styles.resultList}>
+            <div className={styles.resultListDense}>
               {(currentTurn?.result?.votes || []).map((item) => (
                 <div key={item.participant_id} className={styles.resultRow}>
-                  <span>{participantName(item.participant_id)}</span>
-                  <span>{item.status}</span>
+                  <span className={styles.resultParticipantWrap}>
+                    <span className={styles.inlineAvatar}>{getInitials(participantName(item.participant_id))}</span>
+                    <span>{participantName(item.participant_id)}</span>
+                  </span>
+                  <span className={styles.resultStatusText}>{item.status === 'correct' ? '✅ Correct' : item.status === 'incorrect' ? '❌ Incorrect' : item.status}</span>
                   <span>+{item.points}</span>
                 </div>
               ))}
             </div>
             <h3 className={styles.sectionTitle}>{t('vom.ranking')}</h3>
-            <div className={styles.resultList}>
-              {liveRanking.map((entry, index) => (
-                <div key={entry.participant_id} className={`${styles.resultRow} ${index < 3 ? styles.resultRowTop : ''}${String(entry.participant_id) === poserId ? ` ${styles.activeParticipantRow}` : ''}${String(entry.participant_id) === me ? ` ${styles.myParticipantRow}` : ''}`}>
-                  <div className={styles.leaderboardEntry}>
-                    <span className={styles.leaderAvatar}>{getInitials(participantName(entry.participant_id))}</span>
-                    <span className={styles.leaderboardLine}>#{entry.rank} {participantName(entry.participant_id)}</span>
-                  </div>
-                  <div className={styles.leaderboardScoreWrap}>
-                    <span className={styles.leaderboardScore}>{entry.score} pts</span>
-                    <span className={styles.leaderProgressTrack}>
-                      <span
-                        className={styles.leaderProgressFill}
-                        style={{ width: `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%` }}
-                      />
-                    </span>
-                  </div>
-                </div>
-              ))}
+            <div className={styles.leaderboardList}>
+              {liveRanking.map((entry, index) => renderLeaderboardRow(entry, index, { keyPrefix: 'result' }))}
             </div>
           </section>
         ) : null}
@@ -740,13 +841,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             </div>
             <div className={styles.finalBlock}>
               <h3 className={styles.sectionTitle}>{t('vom.finalRanking')}</h3>
-              <div className={styles.resultList}>
-                  {ranking.map((entry, index) => (
-                  <div key={entry.participant_id} className={styles.resultRow}>
-                      <span>#{entry.rank} {index < 3 ? '🏅 ' : ''}{participantName(entry.participant_id)}</span>
-                    <span>{entry.score} pts</span>
-                  </div>
-                ))}
+              <div className={styles.leaderboardList}>
+                {ranking.map((entry, index) => renderLeaderboardRow(entry, index, { compact: true, keyPrefix: 'final' }))}
               </div>
             </div>
           </section>
@@ -794,25 +890,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               <h3 className={`${styles.rankingCardTitle} challenge-section-title`}>Classement</h3>
               <span className={styles.rankingMeta}>Mis a jour en direct</span>
             </div>
-            <div className={styles.resultList}>
+            <div className={styles.leaderboardList}>
               {liveRanking.length === 0 ? <p className={styles.helper}>{t('vom.noParticipants')}</p> : null}
-              {liveRanking.map((entry, index) => (
-                <div key={entry.participant_id} className={`${styles.resultRow} ${index < 3 ? styles.resultRowTop : ''}${String(entry.participant_id) === poserId ? ` ${styles.activeParticipantRow}` : ''}${String(entry.participant_id) === me ? ` ${styles.myParticipantRow}` : ''}`}>
-                  <div className={styles.leaderboardEntry}>
-                    <span className={styles.leaderAvatar}>{getInitials(participantName(entry.participant_id))}</span>
-                    <span className={styles.leaderboardLine}>#{entry.rank} {participantName(entry.participant_id)}</span>
-                  </div>
-                  <div className={styles.leaderboardScoreWrap}>
-                    <span className={styles.leaderboardScore}>{entry.score} pts</span>
-                    <span className={styles.leaderProgressTrack}>
-                      <span
-                        className={styles.leaderProgressFill}
-                        style={{ width: `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%` }}
-                      />
-                    </span>
-                  </div>
-                </div>
-              ))}
+              {liveRanking.map((entry, index) => renderLeaderboardRow(entry, index, { compact: true, keyPrefix: 'aside' }))}
             </div>
           </section>
         </aside>
