@@ -507,6 +507,7 @@ export default function EscapeRoomChallenge({
       <ChallengeHeader
         title="Escape Room"
         subtitle="Résolvez les énigmes en équipe, avec validation collective"
+        className={styles.escapeHeader}
       />
 
       <section className={styles.layout}>
