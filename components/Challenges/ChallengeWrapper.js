@@ -116,10 +116,6 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
           }
           let resolvedChallengeId = Number(payload.challenge_id || payload.context?.challengeId || payload.context?.challenge_id || 0);
 
-          if (payloadEngineKey && payloadEngineKey !== normalizedEngineKey) {
-            showErrorToast(`Engine actif en session (${payload.engine_key}) different de l'URL (${normalizedEngineKey}).`);
-          }
-
           const nextRuntimePayload = {
             ...payload,
             challenge_id: resolvedChallengeId,
