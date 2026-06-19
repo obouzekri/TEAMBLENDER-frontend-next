@@ -504,13 +504,10 @@ export default function EscapeRoomChallenge({
 
   return (
     <div className={styles.escapeRoomContainer}>
-      <div className={styles.headerRow}>
-        <ChallengeHeader
-          title="Escape Room"
-          subtitle="Résolvez les énigmes en équipe, avec validation collective"
-          className={styles.headerNoFrame}
-        />
-      </div>
+      <ChallengeHeader
+        title="Escape Room"
+        subtitle="Résolvez les énigmes en équipe, avec validation collective"
+      />
 
       <section className={styles.layout}>
         <article className={`${styles.card} ${styles.mainCard}`}>
