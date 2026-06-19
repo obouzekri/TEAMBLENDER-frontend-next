@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
 import useI18n from '@/lib/i18n/useI18n';
+import useBodyScrollLock from '@/lib/useBodyScrollLock';
 
 const ChallengeWrapper = dynamic(
   () => import('@/components/Challenges/ChallengeWrapper'),
@@ -53,6 +54,8 @@ export default function SessionLiveClient() {
   const [actionMsg, setActionMsg] = useState('');
   const [advancePopupOpen, setAdvancePopupOpen] = useState(false);
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(0);
+  useBodyScrollLock(advancePopupOpen);
+
   const autoAdvanceTimerRef = useRef(null);
   const completedChallengeKeyRef = useRef('');
   const authInitRef = useRef(false);

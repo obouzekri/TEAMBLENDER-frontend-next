@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { buildBackendAssetCandidates, getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
+import useBodyScrollLock from '@/lib/useBodyScrollLock';
 
 function ResilientPreviewImage({ src, alt }) {
   const candidates = useMemo(() => buildBackendAssetCandidates(src), [src]);
@@ -459,6 +460,7 @@ function mergeChallengeConfig(baseConfig, overrideConfig) {
 
 export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   const { locale } = useI18n();
+  useBodyScrollLock(true);
   const isEn = locale === 'en';
   const [config, setConfig] = useState(() => mergeChallengeConfig(challenge?.engine_config, challenge?.config));
   const [isUploadingImage, setIsUploadingImage] = useState(false);

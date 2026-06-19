@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { resolveChallengeRules } from '@/lib/challenges/rules';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
+import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './ChallengeRulesPreviewModal.module.css';
 
 function getFallbackRules(challenge, locale) {
@@ -25,6 +26,8 @@ function getFallbackRules(challenge, locale) {
 
 export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
   const { locale } = useI18n();
+  useBodyScrollLock(true);
+
   useEffect(() => {
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import useI18n from '@/lib/i18n/useI18n';
+import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './ChallengeRulesPanel.module.css';
 
 export default function ChallengeRulesPanel({
@@ -23,6 +24,8 @@ export default function ChallengeRulesPanel({
   const [isOpen, setIsOpen] = useState(false);
   const { locale } = useI18n();
   const isEn = locale === 'en';
+
+  useBodyScrollLock(isOpen);
 
   useEffect(() => {
     if (!isStarted) {

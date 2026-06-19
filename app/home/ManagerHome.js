@@ -347,15 +347,6 @@ export default function ManagerHome() {
   }, [refreshMembers]);
 
   useEffect(() => {
-    if (!isParticipantModalOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isParticipantModalOpen]);
-
-  useEffect(() => {
     if (!guard.allowed) return;
     if (loadingMembers) return;
     if (onboardingHandledRef.current) return;

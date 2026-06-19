@@ -9,6 +9,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import useI18n from '@/lib/i18n/useI18n';
+import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './Labyrinthe.module.css';
 
 const LABYRINTHE_RULES_FALLBACK = Object.freeze({
@@ -370,6 +371,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const [flashCellTone, setFlashCellTone] = useState('');
   const [microCue, setMicroCue] = useState(null);
   const [announcement, setAnnouncement] = useState(null);
+  useBodyScrollLock(Boolean(announcement));
+
   const microCueTimerRef = useRef(null);
   const audioStateRef = useRef({ context: null, ambient: null });
   const finalEventSignatureRef = useRef('');

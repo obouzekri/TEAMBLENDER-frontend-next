@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import styles from './Modal.module.css';
 import useI18n from '@/lib/i18n/useI18n';
+import useBodyScrollLock from '@/lib/useBodyScrollLock';
 
 export default function Modal({
   open,
@@ -19,6 +20,8 @@ export default function Modal({
 }) {
   const { locale } = useI18n();
   const closeLabel = locale === 'en' ? 'Close' : 'Fermer';
+
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) return undefined;

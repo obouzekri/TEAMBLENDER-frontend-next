@@ -9,6 +9,7 @@ import NavItem from './NavItem';
 import AvatarMenu from './AvatarMenu';
 import useI18n from '@/lib/i18n/useI18n';
 import { stripLocaleFromPath } from '@/lib/i18n/routing';
+import useBodyScrollLock from '@/lib/useBodyScrollLock';
 
 export default function AppNav({ userLabel, onLogout, role }) {
   const pathname = usePathname();
@@ -45,6 +46,8 @@ export default function AppNav({ userLabel, onLogout, role }) {
   const canUseMobileDrawer = !isCompact;
   const menuSignal = `${pathname}:${isMenuOpen ? 'open' : 'closed'}`;
 
+  useBodyScrollLock((isMenuOpen && canUseMobileDrawer) || settingsOpen);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
@@ -74,18 +77,6 @@ export default function AppNav({ userLabel, onLogout, role }) {
     document.addEventListener('keydown', handleEscape);
     return () => {
       document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isMenuOpen, canUseMobileDrawer]);
-
-  useEffect(() => {
-    if (!canUseMobileDrawer || typeof document === 'undefined') return undefined;
-    const body = document.body;
-    const previousOverflow = body.style.overflow;
-    if (isMenuOpen) {
-      body.style.overflow = 'hidden';
-    }
-    return () => {
-      body.style.overflow = previousOverflow;
     };
   }, [isMenuOpen, canUseMobileDrawer]);
 
