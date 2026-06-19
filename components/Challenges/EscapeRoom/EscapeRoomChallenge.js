@@ -307,6 +307,9 @@ export default function EscapeRoomChallenge({
   const currentUiData = currentEnigme?.ui_data && typeof currentEnigme.ui_data === 'object'
     ? currentEnigme.ui_data
     : {};
+  const currentEnigmeLabel = String(currentEnigme?.label || '').toLowerCase();
+  const isGridEnigme = currentUiType === 'grid_3x3' && Array.isArray(currentUiData?.grid);
+  const isFirstGridEnigme = isGridEnigme && (String(currentEnigme?.id || '').toLowerCase() === 'e1' || currentEnigmeLabel.includes('code mural'));
   const anagramLetters = Array.isArray(currentUiData?.letters)
     ? currentUiData.letters.map((letter) => String(letter || '').trim()).filter(Boolean)
     : [];
@@ -499,15 +502,19 @@ export default function EscapeRoomChallenge({
 
   return (
     <div className={styles.escapeRoomContainer}>
-      <section className={styles.header}>
+      <div className={styles.headerRow}>
         <ChallengeHeader
           title="Escape Room"
           subtitle="Résolvez les énigmes en équipe, avec validation collective"
         />
-      </section>
+        <div className={styles.headerBadges}>
+          <span className={styles.heroBadge}>{hasChallengeStarted ? '🔴 Session live' : '⏳ Prêt à démarrer'}</span>
+          <span className={styles.heroBadgeMuted}>{currentEnigme?.label || 'Coordination collective'}</span>
+        </div>
+      </div>
 
       <section className={styles.layout}>
-        <article className={styles.card}>
+        <article className={`${styles.card} ${styles.mainCard}`}>
           {!hasChallengeStarted ? (
             <ChallengeRulesPanel
               isStarted={false}
@@ -532,7 +539,16 @@ export default function EscapeRoomChallenge({
             </>
           ) : (
             <>
-              <h2>{currentEnigme?.label || 'Énigme en attente'}</h2>
+              <div className={styles.enigmeHero}>
+                <div>
+                  <p className={styles.enigmeEyebrow}>Énigme active</p>
+                  <h2>{currentEnigme?.label || 'Énigme en attente'}</h2>
+                </div>
+                <div className={styles.enigmeMetaChips}>
+                  <span className={styles.enigmeMetaChip}>Validation collective</span>
+                  <span className={styles.enigmeMetaChip}>{totalResponded}/{Math.max(totalExpected, 0)} réponses</span>
+                </div>
+              </div>
               {enigmeImageSrc ? (
                 <Image
                   className={styles.image}
@@ -549,15 +565,29 @@ export default function EscapeRoomChallenge({
               ) : null}
               <p className={styles.description}>{currentEnigme?.description || 'Aucune description.'}</p>
 
-              {currentUiType === 'grid_3x3' && Array.isArray(currentUiData?.grid) ? (
-                <div className={styles.enigmeUiBlock}>
-                  <p className={styles.enigmeUiTitle}>Grille de l'énigme</p>
-                  <div className={styles.matrixGrid}>
-                    {currentUiData.grid.flat().map((cell, idx) => (
-                      <div key={`grid-cell-${idx}`} className={styles.matrixCell}>
-                        {cell == null ? '-' : String(cell)}
-                      </div>
-                    ))}
+              {isGridEnigme ? (
+                <div className={`${styles.enigmeUiBlock}${isFirstGridEnigme ? ` ${styles.enigmeUiBlockFeatured}` : ''}`}>
+                  <div className={styles.enigmeUiHeader}>
+                    <p className={styles.enigmeUiTitle}>Grille de l'énigme</p>
+                    {isFirstGridEnigme ? <span className={styles.enigmeUiTag}>Logique visuelle</span> : null}
+                  </div>
+                  {isFirstGridEnigme ? <p className={styles.enigmeUiInstruction}>Repérez la logique entre lignes et colonnes, puis complétez la case manquante.</p> : null}
+                  <div className={`${styles.matrixGrid}${isFirstGridEnigme ? ` ${styles.matrixGridFeatured}` : ''}`}>
+                    {currentUiData.grid.flat().map((cell, idx) => {
+                      const isMystery = String(cell) === '?';
+                      return (
+                        <div
+                          key={`grid-cell-${idx}`}
+                          className={`${styles.matrixCell}${isMystery ? ` ${styles.matrixCellMystery}` : ''}${isFirstGridEnigme ? ` ${styles.matrixCellFeatured}` : ''}`}
+                        >
+                          {isMystery ? (
+                            <span className={styles.mysteryMark} aria-label="Case à trouver">?</span>
+                          ) : (
+                            <span className={styles.cellValue}>{cell == null ? '-' : String(cell)}</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ) : null}
@@ -608,21 +638,41 @@ export default function EscapeRoomChallenge({
               ) : null}
 
               {!isFacilitator ? (
-                <div className={styles.answerRow}>
-                  <input
-                    value={answer}
-                    onChange={(event) => setAnswer(event.target.value.toUpperCase())}
-                    placeholder={String(currentUiData?.placeholder || 'VOTRE RÉPONSE').toUpperCase()}
-                    className={styles.input}
-                    disabled={busyAction === 'submit' || !currentEnigme || Boolean(verdict)}
-                  />
-                  <button
-                    onClick={submitAnswer}
-                    disabled={busyAction === 'submit' || !answer.trim() || !currentEnigme || Boolean(verdict)}
-                    className={styles.primaryBtn}
-                  >
-                    {busyAction === 'submit' ? 'Envoi...' : 'Soumettre'}
-                  </button>
+                <div className={styles.answerPanel}>
+                  <div className={styles.answerPanelHeader}>
+                    <p className={styles.answerPanelTitle}>🔑 Votre proposition</p>
+                    <span className={styles.answerPanelHint}>Visible uniquement par vous jusqu'à validation collective</span>
+                  </div>
+                  {hasCurrentParticipantResponded ? (
+                    <div className={styles.answeredBanner}>
+                      <span>✅ Réponse envoyée — en attente des autres membres</span>
+                      <div className={styles.answeredProgress}>
+                        <span className={styles.answeredProgressFill} style={{ width: `${responseProgress}%` }} />
+                      </div>
+                      <span className={styles.answeredProgressLabel}>{totalResponded}/{totalExpected} réponses reçues</span>
+                    </div>
+                  ) : (
+                    <div className={styles.answerRow}>
+                      <input
+                        value={answer}
+                        onChange={(event) => setAnswer(event.target.value.toUpperCase())}
+                        placeholder={String(currentUiData?.placeholder || 'VOTRE RÉPONSE').toUpperCase()}
+                        className={styles.input}
+                        disabled={busyAction === 'submit' || !currentEnigme || Boolean(verdict)}
+                        autoComplete="off"
+                        spellCheck={false}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && answer.trim()) submitAnswer(); }}
+                      />
+                      <button
+                        onClick={submitAnswer}
+                        disabled={busyAction === 'submit' || !answer.trim() || !currentEnigme || Boolean(verdict)}
+                        className={styles.primaryBtn}
+                        type="button"
+                      >
+                        {busyAction === 'submit' ? '⏳' : '✓ Soumettre'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : null}
             </>

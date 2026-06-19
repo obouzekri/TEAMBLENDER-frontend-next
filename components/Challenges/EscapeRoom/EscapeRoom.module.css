@@ -196,6 +196,59 @@
   overflow-y: hidden;
 }
 
+/* ── HEADER: full-width, harmonized with other challenges ── */
+.headerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 18px;
+  padding: 18px 22px;
+  background:
+    radial-gradient(900px 320px at 0% 50%, rgba(40, 179, 208, 0.12), transparent 55%),
+    linear-gradient(155deg, rgba(13, 21, 40, 0.95), rgba(10, 18, 32, 0.97));
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  box-shadow: 0 16px 36px rgba(2, 9, 16, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+  width: 100%;
+}
+
+.headerBadges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.heroBadge,
+.heroBadgeMuted,
+.enigmeMetaChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.heroBadge {
+  color: #ecfbff;
+  background: rgba(14, 165, 233, 0.2);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+}
+
+.heroBadgeMuted,
+.enigmeMetaChip {
+  color: #cfe3f5;
+  background: rgba(18, 32, 47, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
 .headerTitleLine {
   display: flex;
   align-items: baseline;
@@ -255,6 +308,15 @@
   padding: 16px;
 }
 
+.mainCard {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.08), transparent 24%),
+    linear-gradient(160deg, rgba(15, 26, 43, 0.96), rgba(13, 23, 38, 0.98));
+  border-color: rgba(125, 211, 252, 0.16);
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(2, 9, 16, 0.22);
+}
+
 .sidePanel {
   display: grid;
   gap: 12px;
@@ -280,25 +342,83 @@
   line-height: 1.6;
 }
 
+.enigmeHero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.enigmeEyebrow {
+  margin: 0 0 6px;
+  color: #7dd3fc;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.enigmeMetaChips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .enigmeUiBlock {
-  margin: 10px 0 14px;
-  border: 1px solid rgba(125, 211, 252, 0.25);
-  background: rgba(15, 23, 42, 0.52);
-  border-radius: 10px;
-  padding: 10px;
+  margin: 14px 0;
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.enigmeUiBlockFeatured {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.12), transparent 30%),
+    linear-gradient(165deg, rgba(16, 27, 44, 0.96), rgba(10, 20, 32, 0.98));
+  border-color: rgba(125, 211, 252, 0.22);
+  box-shadow: 0 18px 34px rgba(2, 9, 16, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  padding: 20px;
+}
+
+.enigmeUiHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.enigmeUiTag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #bfdbfe;
+  background: rgba(14, 165, 233, 0.14);
+  border: 1px solid rgba(125, 211, 252, 0.18);
 }
 
 .enigmeUiTitle {
   margin: 0 0 8px;
   color: #dbeafe;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 800;
+  font-size: 0.96rem;
 }
 
 .enigmeUiInstruction {
   margin: 0 0 8px;
   color: #bfdbfe;
-  font-size: 13px;
+  font-size: 0.86rem;
+  line-height: 1.55;
 }
 
 .anagramLettersWrap {
@@ -338,21 +458,72 @@
 
 .matrixGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(56px, 1fr));
-  gap: 8px;
-  max-width: 300px;
+  grid-template-columns: repeat(3, minmax(64px, 1fr));
+  gap: 10px;
+  max-width: 340px;
+}
+
+.matrixGridFeatured {
+  grid-template-columns: repeat(3, minmax(96px, 1fr));
+  gap: 14px;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 .matrixCell {
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  border-radius: 8px;
-  background: #0b1220;
-  min-height: 46px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(12, 20, 34, 0.98), rgba(8, 14, 25, 0.98));
+  min-height: 62px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  font-weight: 800;
   color: #e2e8f0;
+  font-size: 1.1rem;
+  box-shadow: 0 10px 24px rgba(2, 9, 16, 0.24), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  cursor: default;
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.matrixCell:hover {
+  transform: translateY(-3px) scale(1.03);
+  border-color: rgba(125, 211, 252, 0.34);
+  box-shadow: 0 18px 32px rgba(2, 9, 16, 0.3), 0 0 0 1px rgba(125, 211, 252, 0.1);
+}
+
+.matrixCellFeatured {
+  min-height: 90px;
+  font-size: 1.42rem;
+  border-radius: 20px;
+}
+
+.cellValue {
+  display: block;
+  line-height: 1;
+}
+
+.matrixCellMystery {
+  background:
+    radial-gradient(circle at 50% 40%, rgba(245, 195, 77, 0.22), transparent 56%),
+    linear-gradient(180deg, rgba(28, 36, 50, 0.98), rgba(10, 16, 28, 0.98));
+  border-color: rgba(245, 195, 77, 0.34);
+  box-shadow: 0 12px 28px rgba(2, 9, 16, 0.26), 0 0 16px rgba(245, 195, 77, 0.1);
+}
+
+.matrixCellMystery:hover {
+  border-color: rgba(245, 195, 77, 0.55);
+  box-shadow: 0 18px 36px rgba(2, 9, 16, 0.3), 0 0 24px rgba(245, 195, 77, 0.18);
+}
+
+.mysteryMark {
+  display: inline-block;
+  color: #fde68a;
+  font-size: 1.8em;
+  font-weight: 900;
+  text-shadow: 0 0 18px rgba(251, 191, 36, 0.48), 0 4px 12px rgba(0, 0, 0, 0.4);
+  animation: mysteryFloat 2.4s ease-in-out infinite;
+  user-select: none;
 }
 
 .textMysteryLines {
@@ -381,17 +552,60 @@
   gap: 8px;
 }
 
+.answerPanel {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(125, 211, 252, 0.14);
+  background: linear-gradient(160deg, rgba(11, 23, 38, 0.9), rgba(15, 27, 42, 0.94));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.answerPanelHeader {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.answerPanelTitle {
+  margin: 0;
+  color: #ecf7ff;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.answerPanelHint {
+  color: #9cb2c7;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 .input {
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  background: #0f172a;
-  color: #e2e8f0;
-  border-radius: 8px;
-  padding: 10px 12px;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  background: rgba(8, 18, 30, 0.96);
+  color: #f0f8ff;
+  border-radius: 12px;
+  padding: 13px 16px;
+  min-height: 50px;
+  font-size: 1.06rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 8px 20px rgba(2, 9, 16, 0.2);
+  width: 100%;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .input:focus {
-  outline: 2px solid rgba(56, 189, 248, 0.35);
-  outline-offset: 1px;
+  outline: none;
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.12), 0 0 0 3px rgba(56, 189, 248, 0.1), 0 8px 20px rgba(2, 9, 16, 0.2);
+}
+
+.input::placeholder {
+  color: rgba(156, 178, 199, 0.72);
+  opacity: 1;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .actions {
@@ -411,14 +625,21 @@
 }
 
 .primaryBtn {
-  background: #0284c7;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
   color: #fff;
+  box-shadow: 0 12px 24px rgba(2, 132, 199, 0.24);
 }
 
 .secondaryBtn {
   background: #1e293b;
   color: #e2e8f0;
   border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.primaryBtn:hover:not(:disabled),
+.secondaryBtn:hover:not(:disabled),
+.dangerBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .dangerBtn {
@@ -642,17 +863,81 @@
   color: #bae6fd;
 }
 
+@keyframes mysteryPulse {
+  0%, 100% {
+    box-shadow: 0 12px 28px rgba(2, 9, 16, 0.26), 0 0 16px rgba(245, 195, 77, 0.1);
+  }
+  50% {
+    box-shadow: 0 16px 34px rgba(2, 9, 16, 0.3), 0 0 28px rgba(245, 195, 77, 0.22);
+  }
+}
+
+@keyframes mysteryFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+  50%       { transform: translateY(-5px) scale(1.1); opacity: 0.88; }
+}
+
+/* ── Answered state banner ── */
+.answeredBanner {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(53, 183, 118, 0.32);
+  background: linear-gradient(160deg, rgba(13, 52, 38, 0.82), rgba(9, 22, 34, 0.9));
+  color: #a7f3d0;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.answeredProgress {
+  width: 100%;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.22);
+  overflow: hidden;
+}
+
+.answeredProgressFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #35b776, #7dd3fc);
+  transition: width 300ms ease;
+}
+
+.answeredProgressLabel {
+  font-size: 0.78rem;
+  color: #6ee7b7;
+  font-weight: 700;
+}
+
 @media (max-width: 980px) {
-  .header {
+  .header,
+  .headerRow {
     flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .headerBadges {
+    justify-content: flex-start;
   }
 
   .meta {
     justify-content: flex-start;
   }
 
+  .heroHeaderMeta,
+  .enigmeMetaChips {
+    justify-content: flex-start;
+  }
+
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  .enigmeHero {
+    flex-direction: column;
   }
 
   .answerRow {
@@ -692,6 +977,11 @@
 
   .image {
     max-height: 200px;
+  }
+
+  .matrixGridFeatured {
+    grid-template-columns: repeat(3, minmax(68px, 1fr));
+    max-width: 100%;
   }
 
   .input {
