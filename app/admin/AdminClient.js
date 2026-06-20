@@ -563,12 +563,10 @@ function ensureLabyrintheSignalsChallenge(challenges) {
 
   const current = list[existingIndex] || {};
   const presetFr = getLabyrintheRulesPreset('fr');
-  const presetEn = getLabyrintheRulesPreset('en');
-  const existingConfig = current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {};
+  const existingConfig = stripRulesFromEngineConfig(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {});
   const existingParticipants = existingConfig.participants && typeof existingConfig.participants === 'object'
     ? existingConfig.participants
     : {};
-  const existingRules = existingConfig.rules && typeof existingConfig.rules === 'object' ? existingConfig.rules : {};
 
   list[existingIndex] = {
     ...current,
@@ -580,26 +578,6 @@ function ensureLabyrintheSignalsChallenge(challenges) {
         min_count: existingParticipants.min_count || 2,
         recommended_count: existingParticipants.recommended_count || 4,
         max_count: existingParticipants.max_count || 6,
-      },
-      rules: {
-        ...existingRules,
-        preset_key: LABYRINTHE_RULES_PRESET_KEY,
-        objective: {
-          fr: presetFr.objective,
-          en: presetEn.objective,
-        },
-        facilitator: {
-          fr: presetFr.facilitator,
-          en: presetEn.facilitator,
-        },
-        participant: {
-          fr: presetFr.participant,
-          en: presetEn.participant,
-        },
-        footnote: {
-          fr: presetFr.footnote,
-          en: presetEn.footnote,
-        },
       },
     },
   };
@@ -617,12 +595,10 @@ function ensureVraiOuMensongeChallenge(challenges) {
 
   const current = list[existingIndex] || {};
   const presetFr = getVraiOuMensongeRulesPreset('fr');
-  const presetEn = getVraiOuMensongeRulesPreset('en');
-  const existingConfig = current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {};
+  const existingConfig = stripRulesFromEngineConfig(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {});
   const existingParticipants = existingConfig.participants && typeof existingConfig.participants === 'object'
     ? existingConfig.participants
     : {};
-  const existingRules = existingConfig.rules && typeof existingConfig.rules === 'object' ? existingConfig.rules : {};
 
   list[existingIndex] = {
     ...current,
@@ -634,26 +610,6 @@ function ensureVraiOuMensongeChallenge(challenges) {
         min_count: existingParticipants.min_count || 2,
         recommended_count: existingParticipants.recommended_count || 4,
         max_count: existingParticipants.max_count || 6,
-      },
-      rules: {
-        ...existingRules,
-        preset_key: VRAI_OU_MENSONGE_RULES_PRESET_KEY,
-        objective: {
-          fr: presetFr.objective,
-          en: presetEn.objective,
-        },
-        facilitator: {
-          fr: presetFr.facilitator,
-          en: presetEn.facilitator,
-        },
-        participant: {
-          fr: [...presetFr.participant, ...presetFr.scoring],
-          en: [...presetEn.participant, ...presetEn.scoring],
-        },
-        footnote: {
-          fr: presetFr.footnote,
-          en: presetEn.footnote,
-        },
       },
     },
   };
@@ -671,12 +627,10 @@ function ensureMissionCritiqueChallenge(challenges) {
 
   const current = list[existingIndex] || {};
   const presetFr = getMissionCritiqueRulesPreset('fr');
-  const presetEn = getMissionCritiqueRulesPreset('en');
-  const existingConfig = current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {};
+  const existingConfig = stripRulesFromEngineConfig(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {});
   const existingParticipants = existingConfig.participants && typeof existingConfig.participants === 'object'
     ? existingConfig.participants
     : {};
-  const existingRules = existingConfig.rules && typeof existingConfig.rules === 'object' ? existingConfig.rules : {};
 
   list[existingIndex] = {
     ...current,
@@ -688,26 +642,6 @@ function ensureMissionCritiqueChallenge(challenges) {
         min_count: existingParticipants.min_count || 2,
         recommended_count: existingParticipants.recommended_count || 4,
         max_count: existingParticipants.max_count || 6,
-      },
-      rules: {
-        ...existingRules,
-        preset_key: MISSION_CRITIQUE_RULES_PRESET_KEY,
-        objective: {
-          fr: presetFr.objective,
-          en: presetEn.objective,
-        },
-        facilitator: {
-          fr: presetFr.facilitator,
-          en: presetEn.facilitator,
-        },
-        participant: {
-          fr: [...presetFr.participant, ...presetFr.scoring],
-          en: [...presetEn.participant, ...presetEn.scoring],
-        },
-        footnote: {
-          fr: presetFr.footnote,
-          en: presetEn.footnote,
-        },
       },
     },
   };
@@ -725,12 +659,10 @@ function ensureEscapeRoomChallenge(challenges) {
 
   const current = list[existingIndex] || {};
   const presetFr = getEscapeRoomRulesPreset('fr');
-  const presetEn = getEscapeRoomRulesPreset('en');
-  const existingConfig = current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {};
+  const existingConfig = stripRulesFromEngineConfig(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {});
   const existingParticipants = existingConfig.participants && typeof existingConfig.participants === 'object'
     ? existingConfig.participants
     : {};
-  const existingRules = existingConfig.rules && typeof existingConfig.rules === 'object' ? existingConfig.rules : {};
 
   list[existingIndex] = {
     ...current,
@@ -742,26 +674,6 @@ function ensureEscapeRoomChallenge(challenges) {
         min_count: existingParticipants.min_count || 2,
         recommended_count: existingParticipants.recommended_count || 4,
         max_count: existingParticipants.max_count || 6,
-      },
-      rules: {
-        ...existingRules,
-        preset_key: ESCAPE_ROOM_RULES_PRESET_KEY,
-        objective: {
-          fr: presetFr.objective,
-          en: presetEn.objective,
-        },
-        facilitator: {
-          fr: presetFr.facilitator,
-          en: presetEn.facilitator,
-        },
-        participant: {
-          fr: [...presetFr.participant, ...presetFr.scoring],
-          en: [...presetEn.participant, ...presetEn.scoring],
-        },
-        footnote: {
-          fr: presetFr.footnote,
-          en: presetEn.footnote,
-        },
       },
     },
   };
@@ -1003,11 +915,12 @@ function getCopuzzleImageSrc(engineConfig) {
   ) || '/copuzzle/default-blue.svg';
 }
 
-function parseRulesTextarea(value) {
-  return String(value || '')
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
+function stripRulesFromEngineConfig(engineConfig) {
+  const nextEngineConfig = cloneJson(engineConfig, {}) || {};
+  if (nextEngineConfig.rules && typeof nextEngineConfig.rules === 'object') {
+    delete nextEngineConfig.rules;
+  }
+  return nextEngineConfig;
 }
 
 function resolveLocalizedRuleValue(value, locale) {
@@ -1016,56 +929,6 @@ function resolveLocalizedRuleValue(value, locale) {
     return value[locale] ?? value.fr ?? value.en ?? '';
   }
   return value;
-}
-
-function buildChallengeRulesPayload(draft) {
-  const objective = String(draft?.rules_objective || '').trim();
-  const facilitator = parseRulesTextarea(draft?.rules_facilitator);
-  const participant = parseRulesTextarea(draft?.rules_participant);
-  const footnote = String(draft?.rules_footnote || '').trim();
-
-  const hasRules = Boolean(objective || footnote || facilitator.length > 0 || participant.length > 0);
-  if (!hasRules) return null;
-
-  return {
-    objective,
-    facilitator,
-    participant,
-    footnote,
-  };
-}
-
-function mergeChallengeRulesIntoEngineConfig(engineConfig, draft) {
-  const nextEngineConfig = cloneJson(engineConfig, {}) || {};
-  const rules = buildChallengeRulesPayload(draft);
-  const localeKey = draft?.locale === 'en' ? 'en' : 'fr';
-  const previousRules = nextEngineConfig.rules && typeof nextEngineConfig.rules === 'object'
-    ? nextEngineConfig.rules
-    : {};
-
-  const toLocalizedRuleObject = (currentValue, nextValue) => {
-    const current = currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)
-      ? currentValue
-      : { fr: currentValue ?? '', en: currentValue ?? '' };
-    return {
-      fr: localeKey === 'fr' ? nextValue : (current.fr ?? ''),
-      en: localeKey === 'en' ? nextValue : (current.en ?? ''),
-    };
-  };
-
-  if (rules) {
-    nextEngineConfig.rules = {
-      ...previousRules,
-      objective: toLocalizedRuleObject(previousRules.objective, rules.objective),
-      facilitator: toLocalizedRuleObject(previousRules.facilitator, rules.facilitator),
-      participant: toLocalizedRuleObject(previousRules.participant, rules.participant),
-      footnote: toLocalizedRuleObject(previousRules.footnote, rules.footnote),
-    };
-  } else if (nextEngineConfig.rules && typeof nextEngineConfig.rules === 'object') {
-    delete nextEngineConfig.rules;
-  }
-
-  return nextEngineConfig;
 }
 
 function planToDraft(plan) {
@@ -2473,7 +2336,7 @@ export default function AdminClient() {
     try {
       const normalizedObjectives = normalizeObjectivesInput(newChallenge.objectives);
       const engineConfig = applyPlayerRangeToEngineConfig(
-        mergeChallengeRulesIntoEngineConfig({}, { ...newChallenge, locale: isEn ? 'en' : 'fr' }),
+        stripRulesFromEngineConfig({}),
         newChallenge
       );
       const response = await fetch(getApiUrl('/challenges'), {
@@ -2521,9 +2384,12 @@ export default function AdminClient() {
       ? ensureCopuzzleConfig(challengeItem.engine_config)
       : cloneJson(challengeItem.engine_config, {}) || {};
     const rulesSource =
-      normalizedEngineConfig && typeof normalizedEngineConfig.rules === 'object'
-        ? normalizedEngineConfig.rules
-        : {};
+    const rulesSource = {
+      objective: challengeItem?.rules_objective,
+      facilitator: challengeItem?.rules_facilitator,
+      participant: challengeItem?.rules_participant,
+      footnote: challengeItem?.rules_footnote,
+    };
     const playerRange = resolveChallengePlayerRange({ engine_config: normalizedEngineConfig });
 
     setEditingChallenge({
@@ -2746,7 +2612,7 @@ export default function AdminClient() {
     try {
       const normalizedObjectives = normalizeObjectivesInput(editingChallenge.objectives);
       const engineConfig = applyPlayerRangeToEngineConfig(
-        mergeChallengeRulesIntoEngineConfig(editingChallenge.engine_config || {}, { ...editingChallenge, locale: isEn ? 'en' : 'fr' }),
+        stripRulesFromEngineConfig(editingChallenge.engine_config || {}),
         editingChallenge
       );
       const response = await fetch(getApiUrl(`/challenges/${editingChallenge.id}`), {
