@@ -236,10 +236,10 @@ export default function BillingAdminClient() {
         </select>
         <select value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">{isEn ? 'All statuses' : 'Tous statuts'}</option>
-          <option value="active">active</option>
-          <option value="past_due">past_due</option>
-          <option value="incomplete">incomplete</option>
-          <option value="canceled">canceled</option>
+          <option value="active">{buildStatusLabel('active', isEn)}</option>
+          <option value="past_due">{buildStatusLabel('past_due', isEn)}</option>
+          <option value="incomplete">{buildStatusLabel('incomplete', isEn)}</option>
+          <option value="canceled">{buildStatusLabel('canceled', isEn)}</option>
         </select>
         <button type="button" className="btn-secondary" onClick={refresh} disabled={loading}>{isEn ? 'Apply' : 'Appliquer'}</button>
         </section>

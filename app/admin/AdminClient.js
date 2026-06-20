@@ -741,6 +741,30 @@ function getLocalizedLabel(label, isEn) {
   return isEn ? String(label.en || label.fr || '') : String(label.fr || label.en || '');
 }
 
+function getSessionStatusLabel(status, isEn) {
+  return getLocalizedLabel(SESSION_STATUS_OPTION_LABELS[String(status || 'preparee')], isEn)
+    || getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.preparee, isEn);
+}
+
+function getSessionModalityLabel(modality, isEn) {
+  return getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS[String(modality || '')], isEn);
+}
+
+function getChallengeTypeLabel(type, isEn) {
+  return getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS[String(type || 'individuel')], isEn)
+    || String(type || 'individuel');
+}
+
+function getChallengeStatusLabel(status, isEn) {
+  return getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS[String(status || 'actif')], isEn)
+    || String(status || 'actif');
+}
+
+function getPricingBillingCycleLabel(value, isEn) {
+  return getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS[String(value || 'monthly')], isEn)
+    || String(value || 'monthly');
+}
+
 export default function AdminClient() {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
@@ -954,7 +978,7 @@ export default function AdminClient() {
           }
 
           if (cancelled) return;
-          setError('Impossible de verifier la session admin. Veuillez reessayer.');
+          setError(isEn ? 'Unable to verify the admin session. Please try again.' : 'Impossible de verifier la session admin. Veuillez reessayer.');
           setLoading(false);
           return;
         }
@@ -1033,7 +1057,7 @@ export default function AdminClient() {
           return;
         }
 
-        setError('Session expirée ou invalide. Veuillez vous reconnecter.');
+        setError(isEn ? 'Session expired or invalid. Please sign in again.' : 'Session expiree ou invalide. Veuillez vous reconnecter.');
         forceReauth();
         return;
       }
@@ -1080,13 +1104,15 @@ export default function AdminClient() {
       if (failures.length > 0) {
         const hasRoleMismatch = failures.some((entry) => entry.includes('Role insuffisant (admin requis)'));
         const hint = hasRoleMismatch
-          ? ' Verifiez que votre session active correspond bien a un compte admin.'
+          ? (isEn ? ' Verify that your active session belongs to an admin account.' : ' Verifiez que votre session active correspond bien a un compte admin.')
           : '';
-        setError(`Certaines donnees admin n'ont pas pu etre chargees: ${failures.join(' | ')}${hint}`);
+        setError(isEn
+          ? `Some admin data could not be loaded: ${failures.join(' | ')}${hint}`
+          : `Certaines donnees admin n'ont pas pu etre chargees: ${failures.join(' | ')}${hint}`);
       }
 
     } catch (err) {
-      setError(err.message || 'Erreur de chargement admin.');
+      setError(err.message || (isEn ? 'Admin loading error.' : 'Erreur de chargement admin.'));
     }
   }, [forceReauth, getFallbackAuthToken, token]);
 
@@ -1120,9 +1146,11 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice(approval_status === 'approved' ? 'Compte validé avec succès.' : 'Compte refusé avec succès.');
+      showNotice(approval_status === 'approved'
+        ? (isEn ? 'Account approved successfully.' : 'Compte valide avec succes.')
+        : (isEn ? 'Account rejected successfully.' : 'Compte refuse avec succes.'));
     } catch (err) {
-      setError(err.message || 'Erreur pendant la mise à jour.');
+      setError(err.message || (isEn ? 'Error while updating.' : 'Erreur pendant la mise a jour.'));
     } finally {
       setBusyApprovalId(null);
     }
@@ -1133,17 +1161,17 @@ export default function AdminClient() {
     setNewUserMessage('');
 
     if (!newUser.first_name.trim() || !newUser.email.trim() || !newUser.password.trim()) {
-      setNewUserMessage('Prénom, email et mot de passe sont obligatoires.');
+      setNewUserMessage(isEn ? 'First name, email, and password are required.' : 'Prenom, email et mot de passe sont obligatoires.');
       return;
     }
 
     if (!isValidEmail(newUser.email)) {
-      setNewUserMessage('Email invalide.');
+      setNewUserMessage(isEn ? 'Invalid email.' : 'Email invalide.');
       return;
     }
 
     if (!USER_ROLES.has(newUser.role)) {
-      setNewUserMessage('Rôle invalide.');
+      setNewUserMessage(isEn ? 'Invalid role.' : 'Role invalide.');
       return;
     }
 
@@ -1160,28 +1188,30 @@ export default function AdminClient() {
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setNewUserMessage(payload.error || 'Création utilisateur impossible.');
+        setNewUserMessage(payload.error || (isEn ? 'Unable to create user.' : 'Creation utilisateur impossible.'));
         return;
       }
 
       setNewUser({ first_name: '', last_name: '', email: '', password: '', role: 'user' });
-      setNewUserMessage('Utilisateur créé avec succès.');
+      setNewUserMessage(isEn ? 'User created successfully.' : 'Utilisateur cree avec succes.');
       setShowNewUserForm(false);
       await loadAll();
-      showNotice('Utilisateur créé avec succès.');
+      showNotice(isEn ? 'User created successfully.' : 'Utilisateur cree avec succes.');
     } catch {
-      setNewUserMessage('Erreur réseau pendant la création.');
+      setNewUserMessage(isEn ? 'Network error while creating the user.' : 'Erreur reseau pendant la creation.');
     }
   }
 
   async function handleDeleteUser(targetUser) {
     if (!token || !targetUser?.id) return;
     if (String(targetUser.id) === String(user?.id)) {
-      setError('Vous ne pouvez pas supprimer votre propre compte admin.');
+      setError(isEn ? 'You cannot delete your own admin account.' : 'Vous ne pouvez pas supprimer votre propre compte admin.');
       return;
     }
 
-    const accepted = window.confirm(`Supprimer l'utilisateur ${targetUser.email || targetUser.id} ?`);
+    const accepted = window.confirm(isEn
+      ? `Delete user ${targetUser.email || targetUser.id}?`
+      : `Supprimer l'utilisateur ${targetUser.email || targetUser.id} ?`);
     if (!accepted) return;
 
     const key = `user:${targetUser.id}`;
@@ -1202,9 +1232,9 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice('Utilisateur supprimé avec succès.');
+      showNotice(isEn ? 'User deleted successfully.' : 'Utilisateur supprime avec succes.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la suppression utilisateur.');
+      setError(err.message || (isEn ? 'Error while deleting user.' : 'Erreur lors de la suppression utilisateur.'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -1213,15 +1243,15 @@ export default function AdminClient() {
   async function handleToggleUserStatus(targetUser) {
     if (!token || !targetUser?.id) return;
     if (String(targetUser.id) === String(user?.id)) {
-      setError('Vous ne pouvez pas désactiver votre propre compte admin.');
+      setError(isEn ? 'You cannot disable your own admin account.' : 'Vous ne pouvez pas desactiver votre propre compte admin.');
       return;
     }
 
     const currentlyDisabled = Boolean(targetUser.disabled);
     const accepted = window.confirm(
       currentlyDisabled
-        ? `Réactiver ${targetUser.email || 'cet utilisateur'} ?`
-        : `Désactiver ${targetUser.email || 'cet utilisateur'} ?`
+        ? (isEn ? `Re-enable ${targetUser.email || 'this user'}?` : `Reactiver ${targetUser.email || 'cet utilisateur'} ?`)
+        : (isEn ? `Disable ${targetUser.email || 'this user'}?` : `Desactiver ${targetUser.email || 'cet utilisateur'} ?`)
     );
     if (!accepted) return;
 
@@ -1244,9 +1274,11 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice(currentlyDisabled ? 'Utilisateur réactivé.' : 'Utilisateur désactivé.');
+      showNotice(currentlyDisabled
+        ? (isEn ? 'User re-enabled.' : 'Utilisateur reactive.')
+        : (isEn ? 'User disabled.' : 'Utilisateur desactive.'));
     } catch (err) {
-      setError(err.message || 'Erreur lors du changement de statut utilisateur.');
+      setError(err.message || (isEn ? 'Error while changing user status.' : 'Erreur lors du changement de statut utilisateur.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1256,7 +1288,9 @@ export default function AdminClient() {
     if (!token || !targetUser?.id) return;
 
     const custom = window.prompt(
-      `Nouveau mot de passe pour ${targetUser.email || `user #${targetUser.id}`} (laisser vide pour generation automatique):`,
+      isEn
+        ? `New password for ${targetUser.email || `user #${targetUser.id}`} (leave blank for automatic generation):`
+        : `Nouveau mot de passe pour ${targetUser.email || `user #${targetUser.id}`} (laisser vide pour generation automatique):`,
       ''
     );
     if (custom === null) return;
@@ -1281,10 +1315,12 @@ export default function AdminClient() {
         throw new Error(payload.error || `Reset mot de passe impossible (${response.status})`);
       }
 
-      const tempPassword = payload?.tempPassword ? ` Mot de passe: ${payload.tempPassword}` : '';
-      showNotice(`Mot de passe utilisateur réinitialisé.${tempPassword}`);
+      const tempPassword = payload?.tempPassword
+        ? (isEn ? ` Password: ${payload.tempPassword}` : ` Mot de passe: ${payload.tempPassword}`)
+        : '';
+      showNotice(isEn ? `User password reset.${tempPassword}` : `Mot de passe utilisateur reinitialise.${tempPassword}`);
     } catch (err) {
-      setError(err.message || 'Erreur lors du reset du mot de passe utilisateur.');
+      setError(err.message || (isEn ? 'Error while resetting the user password.' : 'Erreur lors du reset du mot de passe utilisateur.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1314,9 +1350,9 @@ export default function AdminClient() {
         throw new Error(payload.error || payload.message || `Renvoi impossible (${response.status})`);
       }
 
-      showNotice(payload.message || 'Lien de verification renvoye.');
+      showNotice(payload.message || (isEn ? 'Verification link resent.' : 'Lien de verification renvoye.'));
     } catch (err) {
-      setError(err.message || 'Erreur lors du renvoi du lien de verification.');
+      setError(err.message || (isEn ? 'Error while resending the verification link.' : 'Erreur lors du renvoi du lien de verification.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1344,9 +1380,9 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice(payload.message || 'Compte validé manuellement.');
+      showNotice(payload.message || (isEn ? 'Account manually approved.' : 'Compte valide manuellement.'));
     } catch (err) {
-      setError(err.message || 'Erreur pendant la validation manuelle du compte.');
+      setError(err.message || (isEn ? 'Error during manual account approval.' : 'Erreur pendant la validation manuelle du compte.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1371,12 +1407,12 @@ export default function AdminClient() {
     if (!token || !editingUser?.id) return;
 
     if (!editingUser.first_name.trim() || !isValidEmail(editingUser.email)) {
-      setError('Le prénom et un email valide sont requis.');
+      setError(isEn ? 'First name and a valid email are required.' : 'Le prenom et un email valide sont requis.');
       return;
     }
 
     if (!USER_ROLES.has(editingUser.role)) {
-      setError('Rôle utilisateur invalide.');
+      setError(isEn ? 'Invalid user role.' : 'Role utilisateur invalide.');
       return;
     }
 
@@ -1408,9 +1444,9 @@ export default function AdminClient() {
 
       setEditingUser(null);
       await loadAll();
-      showNotice('Utilisateur mis à jour avec succès.');
+      showNotice(isEn ? 'User updated successfully.' : 'Utilisateur mis a jour avec succes.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise à jour utilisateur.');
+      setError(err.message || (isEn ? 'Error while updating user.' : 'Erreur lors de la mise a jour utilisateur.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1423,12 +1459,12 @@ export default function AdminClient() {
     if (!token) return;
 
     if (!newParticipant.owner_id || !newParticipant.first_name.trim() || !newParticipant.email.trim() || !newParticipant.password.trim()) {
-      setNewParticipantMessage('Createur, prenom, email et mot de passe sont obligatoires.');
+      setNewParticipantMessage(isEn ? 'Owner, first name, email, and password are required.' : 'Createur, prenom, email et mot de passe sont obligatoires.');
       return;
     }
 
     if (!isValidEmail(newParticipant.email)) {
-      setNewParticipantMessage('Email invalide.');
+      setNewParticipantMessage(isEn ? 'Invalid email.' : 'Email invalide.');
       return;
     }
 
@@ -1467,12 +1503,14 @@ export default function AdminClient() {
         department: '',
       });
       setShowNewParticipantForm(false);
-      const tempPassword = payload?.tempPassword ? ` Mot de passe: ${payload.tempPassword}` : '';
-      setNewParticipantMessage(`Participant créé avec succès.${tempPassword}`);
+      const tempPassword = payload?.tempPassword
+        ? (isEn ? ` Password: ${payload.tempPassword}` : ` Mot de passe: ${payload.tempPassword}`)
+        : '';
+      setNewParticipantMessage(isEn ? `Participant created successfully.${tempPassword}` : `Participant cree avec succes.${tempPassword}`);
       await loadAll();
-      showNotice('Participant créé avec succès.');
+      showNotice(isEn ? 'Participant created successfully.' : 'Participant cree avec succes.');
     } catch (err) {
-      setNewParticipantMessage(err.message || 'Création participant impossible.');
+      setNewParticipantMessage(err.message || (isEn ? 'Unable to create participant.' : 'Creation participant impossible.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1497,7 +1535,7 @@ export default function AdminClient() {
     if (!token || !editingParticipant?.id) return;
 
     if (!editingParticipant.first_name.trim() || !isValidEmail(editingParticipant.email)) {
-      setError('Le prenom participant et un email valide sont requis.');
+      setError(isEn ? 'Participant first name and a valid email are required.' : 'Le prenom participant et un email valide sont requis.');
       return;
     }
 
@@ -1529,9 +1567,9 @@ export default function AdminClient() {
 
       setEditingParticipant(null);
       await loadAll();
-      showNotice('Participant mis à jour avec succès.');
+      showNotice(isEn ? 'Participant updated successfully.' : 'Participant mis a jour avec succes.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise à jour participant.');
+      setError(err.message || (isEn ? 'Error while updating participant.' : 'Erreur lors de la mise a jour participant.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1542,8 +1580,8 @@ export default function AdminClient() {
     const currentlyDisabled = Boolean(participant.disabled);
     const accepted = window.confirm(
       currentlyDisabled
-        ? `Réactiver ${getParticipantDisplayName(participant)} ?`
-        : `Désactiver ${getParticipantDisplayName(participant)} ?`
+        ? (isEn ? `Re-enable ${getParticipantDisplayName(participant)}?` : `Reactiver ${getParticipantDisplayName(participant)} ?`)
+        : (isEn ? `Disable ${getParticipantDisplayName(participant)}?` : `Desactiver ${getParticipantDisplayName(participant)} ?`)
     );
     if (!accepted) return;
 
@@ -1567,9 +1605,11 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice(currentlyDisabled ? 'Participant réactivé.' : 'Participant désactivé.');
+      showNotice(currentlyDisabled
+        ? (isEn ? 'Participant re-enabled.' : 'Participant reactive.')
+        : (isEn ? 'Participant disabled.' : 'Participant desactive.'));
     } catch (err) {
-      setError(err.message || 'Erreur lors du changement de statut participant.');
+      setError(err.message || (isEn ? 'Error while changing participant status.' : 'Erreur lors du changement de statut participant.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1577,7 +1617,9 @@ export default function AdminClient() {
 
   async function handleDeleteParticipant(participant) {
     if (!token || !participant?.id) return;
-    const accepted = window.confirm(`Supprimer ${getParticipantDisplayName(participant)} ?`);
+    const accepted = window.confirm(isEn
+      ? `Delete ${getParticipantDisplayName(participant)}?`
+      : `Supprimer ${getParticipantDisplayName(participant)} ?`);
     if (!accepted) return;
 
     const key = `participant:${participant.id}`;
@@ -1601,9 +1643,9 @@ export default function AdminClient() {
         setEditingParticipant(null);
       }
       await loadAll();
-      showNotice('Participant supprimé avec succès.');
+      showNotice(isEn ? 'Participant deleted successfully.' : 'Participant supprime avec succes.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la suppression participant.');
+      setError(err.message || (isEn ? 'Error while deleting participant.' : 'Erreur lors de la suppression participant.'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -1613,7 +1655,9 @@ export default function AdminClient() {
     if (!token || !participant?.id) return;
 
     const custom = window.prompt(
-      `Nouveau mot de passe pour ${getParticipantDisplayName(participant)} (laisser vide pour generation automatique):`,
+      isEn
+        ? `New password for ${getParticipantDisplayName(participant)} (leave blank for automatic generation):`
+        : `Nouveau mot de passe pour ${getParticipantDisplayName(participant)} (laisser vide pour generation automatique):`,
       ''
     );
     if (custom === null) return;
@@ -1638,10 +1682,12 @@ export default function AdminClient() {
         throw new Error(payload.error || `Reset mot de passe participant impossible (${response.status})`);
       }
 
-      const tempPassword = payload?.tempPassword ? ` Mot de passe: ${payload.tempPassword}` : '';
-      showNotice(`Mot de passe participant réinitialisé.${tempPassword}`);
+      const tempPassword = payload?.tempPassword
+        ? (isEn ? ` Password: ${payload.tempPassword}` : ` Mot de passe: ${payload.tempPassword}`)
+        : '';
+      showNotice(isEn ? `Participant password reset.${tempPassword}` : `Mot de passe participant reinitialise.${tempPassword}`);
     } catch (err) {
-      setError(err.message || 'Erreur lors du reset mot de passe participant.');
+      setError(err.message || (isEn ? 'Error while resetting the participant password.' : 'Erreur lors du reset mot de passe participant.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1671,9 +1717,9 @@ export default function AdminClient() {
         throw new Error(payload.error || payload.message || `Renvoi impossible (${response.status})`);
       }
 
-      showNotice(payload.message || 'Lien de verification participant renvoye.');
+      showNotice(payload.message || (isEn ? 'Participant verification link resent.' : 'Lien de verification participant renvoye.'));
     } catch (err) {
-      setError(err.message || 'Erreur lors du renvoi du lien de verification participant.');
+      setError(err.message || (isEn ? 'Error while resending the participant verification link.' : 'Erreur lors du renvoi du lien de verification participant.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1701,9 +1747,9 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice(payload.message || 'Participant validé manuellement.');
+      showNotice(payload.message || (isEn ? 'Participant manually approved.' : 'Participant valide manuellement.'));
     } catch (err) {
-      setError(err.message || 'Erreur pendant la validation manuelle du participant.');
+      setError(err.message || (isEn ? 'Error during manual participant approval.' : 'Erreur pendant la validation manuelle du participant.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1714,8 +1760,8 @@ export default function AdminClient() {
     const isLive = sessionItem.status === 'en_cours';
     const accepted = window.confirm(
       isLive
-        ? `La session ${sessionItem.name || sessionItem.id} est en cours. Confirmer la suppression ?`
-        : `Supprimer la session ${sessionItem.name || sessionItem.id} ?`
+        ? (isEn ? `Session ${sessionItem.name || sessionItem.id} is live. Confirm deletion?` : `La session ${sessionItem.name || sessionItem.id} est en cours. Confirmer la suppression ?`)
+        : (isEn ? `Delete session ${sessionItem.name || sessionItem.id}?` : `Supprimer la session ${sessionItem.name || sessionItem.id} ?`)
     );
     if (!accepted) return;
 
@@ -1737,9 +1783,9 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice('Session supprimée avec succès.');
+      showNotice(isEn ? 'Session deleted successfully.' : 'Session supprimee avec succes.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la suppression session.');
+      setError(err.message || (isEn ? 'Error while deleting session.' : 'Erreur lors de la suppression session.'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -1763,22 +1809,22 @@ export default function AdminClient() {
     if (!token || !editingSession?.id) return;
 
     if (!editingSession.name.trim()) {
-      setError('Le nom de session est requis.');
+      setError(isEn ? 'Session name is required.' : 'Le nom de session est requis.');
       return;
     }
 
     if (!SESSION_STATUSES.has(editingSession.status)) {
-      setError('Statut de session invalide.');
+      setError(isEn ? 'Invalid session status.' : 'Statut de session invalide.');
       return;
     }
 
     if (!SESSION_MODALITIES.has(editingSession.modality || '')) {
-      setError('Modalité invalide. Utilisez remote, hybrid ou in-person.');
+      setError(isEn ? 'Invalid modality. Use remote, hybrid, or in-person.' : 'Modalite invalide. Utilisez remote, hybrid ou in-person.');
       return;
     }
 
     if (editingSession.duration_minutes && Number(editingSession.duration_minutes) <= 0) {
-      setError('La durée doit être supérieure à 0.');
+      setError(isEn ? 'Duration must be greater than 0.' : 'La duree doit etre superieure a 0.');
       return;
     }
 
@@ -1809,9 +1855,9 @@ export default function AdminClient() {
 
       setEditingSession(null);
       await loadAll();
-      showNotice('Session mise à jour avec succès.');
+      showNotice(isEn ? 'Session updated successfully.' : 'Session mise a jour avec succes.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise à jour session.');
+      setError(err.message || (isEn ? 'Error while updating session.' : 'Erreur lors de la mise a jour session.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1824,22 +1870,22 @@ export default function AdminClient() {
     setNewSessionMessage('');
 
     if (!newSession.name.trim()) {
-      setNewSessionMessage('Le nom de session est requis.');
+      setNewSessionMessage(isEn ? 'Session name is required.' : 'Le nom de session est requis.');
       return;
     }
 
     if (!SESSION_STATUSES.has(newSession.status)) {
-      setNewSessionMessage('Statut de session invalide.');
+      setNewSessionMessage(isEn ? 'Invalid session status.' : 'Statut de session invalide.');
       return;
     }
 
     if (!SESSION_MODALITIES.has(newSession.modality || '')) {
-      setNewSessionMessage('Modalité invalide. Utilisez remote, hybrid ou in-person.');
+      setNewSessionMessage(isEn ? 'Invalid modality. Use remote, hybrid, or in-person.' : 'Modalite invalide. Utilisez remote, hybrid ou in-person.');
       return;
     }
 
     if (newSession.duration_minutes && Number(newSession.duration_minutes) <= 0) {
-      setNewSessionMessage('La durée doit être supérieure à 0.');
+      setNewSessionMessage(isEn ? 'Duration must be greater than 0.' : 'La duree doit etre superieure a 0.');
       return;
     }
 
@@ -1873,7 +1919,7 @@ export default function AdminClient() {
       setNewSession(DEFAULT_NEW_SESSION);
       setNewSessionMemberIds([]);
       setNewSessionMemberQuery('');
-      setNewSessionMessage('Session créée avec succès.');
+      setNewSessionMessage(isEn ? 'Session created successfully.' : 'Session creee avec succes.');
       setShowNewSessionForm(false);
       await loadAll();
       setActiveTab('sessions');
@@ -1889,9 +1935,9 @@ export default function AdminClient() {
           duration_minutes: createdSession.duration_minutes || '',
         });
       }
-      showNotice('Session creee avec succès depuis la console admin.');
+      showNotice(isEn ? 'Session created successfully from the admin console.' : 'Session creee avec succes depuis la console admin.');
     } catch (err) {
-      setNewSessionMessage(err.message || 'Création session impossible.');
+      setNewSessionMessage(err.message || (isEn ? 'Unable to create session.' : 'Creation session impossible.'));
     } finally {
       setBusySaveKey('');
     }
@@ -1900,7 +1946,7 @@ export default function AdminClient() {
   async function handleDeleteChallenge(challengeItem) {
     if (!token || !challengeItem?.id) return;
     const label = challengeItem.name || challengeItem.title || challengeItem.id;
-    const accepted = window.confirm(`Supprimer le challenge ${label} ?`);
+    const accepted = window.confirm(isEn ? `Delete challenge ${label}?` : `Supprimer le challenge ${label} ?`);
     if (!accepted) return;
 
     const key = `challenge:${challengeItem.id}`;
@@ -1921,9 +1967,9 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice('Challenge supprimé avec succès.');
+      showNotice(isEn ? 'Challenge deleted successfully.' : 'Challenge supprime avec succes.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la suppression challenge.');
+      setError(err.message || (isEn ? 'Error while deleting challenge.' : 'Erreur lors de la suppression challenge.'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -1936,22 +1982,22 @@ export default function AdminClient() {
     setNewChallengeMessage('');
 
     if (!newChallenge.name.trim()) {
-      setNewChallengeMessage('Le nom du challenge est requis.');
+      setNewChallengeMessage(isEn ? 'Challenge name is required.' : 'Le nom du challenge est requis.');
       return;
     }
 
     if (!CHALLENGE_TYPES.has(newChallenge.type)) {
-      setNewChallengeMessage('Type de challenge invalide.');
+      setNewChallengeMessage(isEn ? 'Invalid challenge type.' : 'Type de challenge invalide.');
       return;
     }
 
     if (!CHALLENGE_STATUSES.has(newChallenge.status)) {
-      setNewChallengeMessage('Statut de challenge invalide.');
+      setNewChallengeMessage(isEn ? 'Invalid challenge status.' : 'Statut de challenge invalide.');
       return;
     }
 
     if (!CHALLENGE_SOURCES.has(newChallenge.source)) {
-      setNewChallengeMessage('Source de challenge invalide.');
+      setNewChallengeMessage(isEn ? 'Invalid challenge source.' : 'Source de challenge invalide.');
       return;
     }
 
@@ -1991,12 +2037,12 @@ export default function AdminClient() {
       }
 
       setNewChallenge(DEFAULT_NEW_CHALLENGE);
-      setNewChallengeMessage('Challenge cree avec succès.');
+      setNewChallengeMessage(isEn ? 'Challenge created successfully.' : 'Challenge cree avec succes.');
       setShowNewChallengeForm(false);
       await loadAll();
-      showNotice('Challenge cree avec succès.');
+      showNotice(isEn ? 'Challenge created successfully.' : 'Challenge cree avec succes.');
     } catch (err) {
-      setNewChallengeMessage(err.message || 'Création challenge impossible.');
+      setNewChallengeMessage(err.message || (isEn ? 'Unable to create challenge.' : 'Creation challenge impossible.'));
     } finally {
       setBusySaveKey('');
     }
@@ -2083,12 +2129,12 @@ export default function AdminClient() {
 
     const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!allowed.includes(file.type)) {
-      setChallengeImageUploadError('Format non supporte. Utilisez JPG ou PNG.');
+      setChallengeImageUploadError(isEn ? 'Unsupported format. Use JPG or PNG.' : 'Format non supporte. Utilisez JPG ou PNG.');
       event.target.value = '';
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
-      setChallengeImageUploadError('Image trop volumineuse (max 8 Mo).');
+      setChallengeImageUploadError(isEn ? 'Image too large (max 8 MB).' : 'Image trop volumineuse (max 8 Mo).');
       event.target.value = '';
       return;
     }
@@ -2113,14 +2159,14 @@ export default function AdminClient() {
 
       const uploadedUrl = normalizeUploadResultUrl(payload);
       if (!uploadedUrl) {
-        throw new Error('URL image manquante dans la reponse upload.');
+        throw new Error(isEn ? 'Missing image URL in upload response.' : 'URL image manquante dans la reponse upload.');
       }
 
       const nextEngineConfig = ensureEscapeRoomE5Image(editingChallenge.engine_config, uploadedUrl);
       await persistChallengeEngineConfig(editingChallenge.id, nextEngineConfig);
-      showNotice('Image enigme 5 uploadee et sauvegardee automatiquement.');
+      showNotice(isEn ? 'Puzzle 5 image uploaded and saved automatically.' : 'Image enigme 5 uploadee et sauvegardee automatiquement.');
     } catch (err) {
-      setChallengeImageUploadError(err.message || 'Upload image impossible.');
+      setChallengeImageUploadError(err.message || (isEn ? 'Unable to upload image.' : 'Upload image impossible.'));
     } finally {
       setChallengeImageUploadBusy(false);
       event.target.value = '';
@@ -2137,12 +2183,12 @@ export default function AdminClient() {
 
     const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!allowed.includes(file.type)) {
-      setChallengeImageUploadError('Format non supporte. Utilisez JPG ou PNG.');
+      setChallengeImageUploadError(isEn ? 'Unsupported format. Use JPG or PNG.' : 'Format non supporte. Utilisez JPG ou PNG.');
       event.target.value = '';
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
-      setChallengeImageUploadError('Image trop volumineuse (max 8 Mo).');
+      setChallengeImageUploadError(isEn ? 'Image too large (max 8 MB).' : 'Image trop volumineuse (max 8 Mo).');
       event.target.value = '';
       return;
     }
@@ -2167,7 +2213,7 @@ export default function AdminClient() {
 
       const uploadedUrl = normalizeUploadResultUrl(payload);
       if (!uploadedUrl) {
-        throw new Error('URL image manquante dans la reponse upload.');
+        throw new Error(isEn ? 'Missing image URL in upload response.' : 'URL image manquante dans la reponse upload.');
       }
 
       const currentConfig = ensureCopuzzleConfig(editingChallenge.engine_config);
@@ -2197,9 +2243,9 @@ export default function AdminClient() {
       };
 
       await persistChallengeEngineConfig(editingChallenge.id, nextEngineConfig);
-      showNotice('Image de reference Copuzzle uploadee et sauvegardee automatiquement.');
+      showNotice(isEn ? 'Copuzzle reference image uploaded and saved automatically.' : 'Image de reference Copuzzle uploadee et sauvegardee automatiquement.');
     } catch (err) {
-      setChallengeImageUploadError(err.message || 'Upload image impossible.');
+      setChallengeImageUploadError(err.message || (isEn ? 'Unable to upload image.' : 'Upload image impossible.'));
     } finally {
       setChallengeImageUploadBusy(false);
       event.target.value = '';
@@ -2211,17 +2257,17 @@ export default function AdminClient() {
     if (!token || !editingChallenge?.id) return;
 
     if (!editingChallenge.name.trim()) {
-      setError('Le nom du challenge est requis.');
+      setError(isEn ? 'Challenge name is required.' : 'Le nom du challenge est requis.');
       return;
     }
 
     if (!CHALLENGE_TYPES.has(editingChallenge.type)) {
-      setError('Type de challenge invalide.');
+      setError(isEn ? 'Invalid challenge type.' : 'Type de challenge invalide.');
       return;
     }
 
     if (!CHALLENGE_STATUSES.has(editingChallenge.status)) {
-      setError('Statut de challenge invalide.');
+      setError(isEn ? 'Invalid challenge status.' : 'Statut de challenge invalide.');
       return;
     }
 
@@ -2260,9 +2306,9 @@ export default function AdminClient() {
 
       setEditingChallenge(null);
       await loadAll();
-      showNotice('Challenge mis à jour avec succès.');
+      showNotice(isEn ? 'Challenge updated successfully.' : 'Challenge mis a jour avec succes.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise à jour challenge.');
+      setError(err.message || (isEn ? 'Error while updating challenge.' : 'Erreur lors de la mise a jour challenge.'));
     } finally {
       setBusySaveKey('');
     }
@@ -2300,17 +2346,17 @@ export default function AdminClient() {
     const payload = buildPricingPayloadFromDraft(newPricingPlan);
 
     if (!payload.name) {
-      setNewPricingMessage('Le nom de la formule est requis.');
+      setNewPricingMessage(isEn ? 'Plan name is required.' : 'Le nom de la formule est requis.');
       return;
     }
 
     if (!Number.isFinite(payload.price) || payload.price < 0) {
-      setNewPricingMessage('Le prix est requis et doit etre positif.');
+      setNewPricingMessage(isEn ? 'Price is required and must be positive.' : 'Le prix est requis et doit etre positif.');
       return;
     }
 
     if (!PRICING_BILLING_CYCLES.has(payload.billing_cycle)) {
-      setNewPricingMessage('Cycle de facturation invalide.');
+      setNewPricingMessage(isEn ? 'Invalid billing cycle.' : 'Cycle de facturation invalide.');
       return;
     }
 
@@ -2333,12 +2379,12 @@ export default function AdminClient() {
       }
 
       setNewPricingPlan(DEFAULT_NEW_PRICING_PLAN);
-      setNewPricingMessage('Formule creee avec succès.');
+      setNewPricingMessage(isEn ? 'Plan created successfully.' : 'Formule creee avec succes.');
       setShowNewPricingPlanForm(false);
       await loadAll();
-      showNotice('Formule tarifaire creee.');
+      showNotice(isEn ? 'Pricing plan created.' : 'Formule tarifaire creee.');
     } catch (err) {
-      setNewPricingMessage(err.message || 'Création formule impossible.');
+      setNewPricingMessage(err.message || (isEn ? 'Unable to create plan.' : 'Creation formule impossible.'));
     } finally {
       setBusySaveKey('');
     }
@@ -2355,17 +2401,17 @@ export default function AdminClient() {
 
     const payload = buildPricingPayloadFromDraft(editingPricingPlan);
     if (!payload.name) {
-      setError('Le nom de la formule est requis.');
+      setError(isEn ? 'Plan name is required.' : 'Le nom de la formule est requis.');
       return;
     }
 
     if (!Number.isFinite(payload.price) || payload.price < 0) {
-      setError('Le prix doit etre valide et positif.');
+      setError(isEn ? 'Price must be valid and positive.' : 'Le prix doit etre valide et positif.');
       return;
     }
 
     if (!PRICING_BILLING_CYCLES.has(payload.billing_cycle)) {
-      setError('Cycle de facturation invalide.');
+      setError(isEn ? 'Invalid billing cycle.' : 'Cycle de facturation invalide.');
       return;
     }
 
@@ -2389,9 +2435,9 @@ export default function AdminClient() {
 
       setEditingPricingPlan(null);
       await loadAll();
-      showNotice('Formule tarifaire mise à jour.');
+      showNotice(isEn ? 'Pricing plan updated.' : 'Formule tarifaire mise a jour.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise à jour de la formule.');
+      setError(err.message || (isEn ? 'Error while updating the plan.' : 'Erreur lors de la mise a jour de la formule.'));
     } finally {
       setBusySaveKey('');
     }
@@ -2399,7 +2445,7 @@ export default function AdminClient() {
 
   async function handleDeletePricingPlan(plan) {
     if (!token || !plan?.id) return;
-    const accepted = window.confirm(`Supprimer la formule ${plan.name || plan.id} ?`);
+    const accepted = window.confirm(isEn ? `Delete plan ${plan.name || plan.id}?` : `Supprimer la formule ${plan.name || plan.id} ?`);
     if (!accepted) return;
 
     const key = `pricing-plan:${plan.id}`;
@@ -2423,9 +2469,9 @@ export default function AdminClient() {
         setEditingPricingPlan(null);
       }
       await loadAll();
-      showNotice('Formule tarifaire supprimée.');
+      showNotice(isEn ? 'Pricing plan deleted.' : 'Formule tarifaire supprimee.');
     } catch (err) {
-      setError(err.message || 'Erreur lors de la suppression de la formule.');
+      setError(err.message || (isEn ? 'Error while deleting the plan.' : 'Erreur lors de la suppression de la formule.'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -2452,12 +2498,12 @@ export default function AdminClient() {
 
     const blockKey = String(newLandingBlock.block_key || '').trim().toLowerCase();
     if (!blockKey) {
-      setNewLandingMessage('La cle du bloc est requise.');
+      setNewLandingMessage(isEn ? 'Block key is required.' : 'La cle du bloc est requise.');
       return;
     }
 
     if (!isAllowedLandingBlockKey(blockKey)) {
-      setNewLandingMessage(`Cle bloc non autorisee. Utilisez uniquement: ${LANDING_ALLOWED_BLOCK_KEY_HINT}`);
+      setNewLandingMessage(isEn ? `Unauthorized block key. Use only: ${LANDING_ALLOWED_BLOCK_KEY_HINT}` : `Cle bloc non autorisee. Utilisez uniquement: ${LANDING_ALLOWED_BLOCK_KEY_HINT}`);
       return;
     }
 
@@ -2483,12 +2529,12 @@ export default function AdminClient() {
       }
 
       setNewLandingBlock(DEFAULT_NEW_LANDING_BLOCK);
-      setNewLandingMessage('Bloc landing enregistré.');
+      setNewLandingMessage(isEn ? 'Landing block saved.' : 'Bloc landing enregistre.');
       setShowNewLandingBlockForm(false);
       await loadAll();
-      showNotice('Bloc landing créé/mis à jour.');
+      showNotice(isEn ? 'Landing block created/updated.' : 'Bloc landing cree/mis a jour.');
     } catch (err) {
-      setNewLandingMessage(err.message || 'Erreur création bloc landing.');
+      setNewLandingMessage(err.message || (isEn ? 'Error while creating landing block.' : 'Erreur creation bloc landing.'));
     } finally {
       setBusySaveKey('');
     }
@@ -2505,12 +2551,12 @@ export default function AdminClient() {
 
     const blockKey = String(editingLandingBlock.block_key || '').trim().toLowerCase();
     if (!blockKey) {
-      setError('La cle du bloc est requise.');
+      setError(isEn ? 'Block key is required.' : 'La cle du bloc est requise.');
       return;
     }
 
     if (!isAllowedLandingBlockKey(blockKey)) {
-      setError(`Cle bloc non autorisee. Utilisez uniquement: ${LANDING_ALLOWED_BLOCK_KEY_HINT}`);
+      setError(isEn ? `Unauthorized block key. Use only: ${LANDING_ALLOWED_BLOCK_KEY_HINT}` : `Cle bloc non autorisee. Utilisez uniquement: ${LANDING_ALLOWED_BLOCK_KEY_HINT}`);
       return;
     }
 
@@ -2536,9 +2582,9 @@ export default function AdminClient() {
 
       setEditingLandingBlock(null);
       await loadAll();
-      showNotice('Bloc landing mis à jour.');
+      showNotice(isEn ? 'Landing block updated.' : 'Bloc landing mis a jour.');
     } catch (err) {
-      setError(err.message || 'Erreur mise à jour bloc landing.');
+      setError(err.message || (isEn ? 'Error while updating landing block.' : 'Erreur mise a jour bloc landing.'));
     } finally {
       setBusySaveKey('');
     }
@@ -2546,7 +2592,7 @@ export default function AdminClient() {
 
   async function handleDeleteLandingBlock(block) {
     if (!token || !block?.block_key) return;
-    const accepted = window.confirm(`Supprimer le bloc ${block.block_key} ?`);
+    const accepted = window.confirm(isEn ? `Delete block ${block.block_key}?` : `Supprimer le bloc ${block.block_key} ?`);
     if (!accepted) return;
 
     const key = `landing:${block.block_key}`;
@@ -2571,9 +2617,9 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice('Bloc landing supprime.');
+      showNotice(isEn ? 'Landing block deleted.' : 'Bloc landing supprime.');
     } catch (err) {
-      setError(err.message || 'Erreur suppression bloc landing.');
+      setError(err.message || (isEn ? 'Error while deleting landing block.' : 'Erreur suppression bloc landing.'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -2955,7 +3001,7 @@ export default function AdminClient() {
               fontSize: '14px',
             }}>
               <span>{error}</span>
-              <button type="button" aria-label="Fermer le message d'erreur" onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
+              <button type="button" aria-label={isEn ? 'Close error message' : 'Fermer le message d\'erreur'} onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
             </div>
           ) : null}
 
@@ -2973,7 +3019,7 @@ export default function AdminClient() {
               fontSize: '14px',
             }}>
               <span>{notice}</span>
-              <button type="button" aria-label="Fermer le message d'information" onClick={() => setNotice('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#15803d', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
+              <button type="button" aria-label={isEn ? 'Close info message' : 'Fermer le message d\'information'} onClick={() => setNotice('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#15803d', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
             </div>
           ) : null}
 
@@ -3060,7 +3106,9 @@ export default function AdminClient() {
                 <div>
                   <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Analytics PostHog</h1>
                   <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                    Synthese des {analyticsSnapshot.lookbackDays} derniers jours pour le pilotage produit et business.
+                    {isEn
+                      ? `Summary of the last ${analyticsSnapshot.lookbackDays} days for product and business monitoring.`
+                      : `Synthese des ${analyticsSnapshot.lookbackDays} derniers jours pour le pilotage produit et business.`}
                   </p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -3078,7 +3126,7 @@ export default function AdminClient() {
                         color: analyticsDays === days ? 'var(--color-primary, #4f46e5)' : undefined,
                       }}
                     >
-                      {days}j
+                      {days}{isEn ? 'd' : 'j'}
                     </button>
                   ))}
                   <button
@@ -3088,7 +3136,7 @@ export default function AdminClient() {
                     disabled={analyticsLoading}
                     style={{ fontSize: '12px', padding: '6px 10px' }}
                   >
-                    Export CSV
+                    {isEn ? 'Export CSV' : 'Export CSV'}
                   </button>
                 </div>
               </div>
@@ -3096,55 +3144,55 @@ export default function AdminClient() {
               <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
                 {analyticsSnapshot.configured ? (
                   <p style={{ margin: 0, fontSize: '13px', color: '#15803d', fontWeight: 600 }}>
-                    ✓ PostHog connecte
-                    {analyticsSnapshot.degraded ? <span style={{ color: '#b45309', fontWeight: 400 }}> (mode degrade)</span> : null}
+                    {isEn ? '✓ PostHog connected' : '✓ PostHog connecte'}
+                    {analyticsSnapshot.degraded ? <span style={{ color: '#b45309', fontWeight: 400 }}>{isEn ? ' (degraded mode)' : ' (mode degrade)'}</span> : null}
                   </p>
                 ) : (
                   <>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#b45309', fontWeight: 600 }}>⚠ Analytics non configure</p>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#b45309', fontWeight: 600 }}>{isEn ? '⚠ Analytics not configured' : '⚠ Analytics non configure'}</p>
                     <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-muted, #6b7280)', lineHeight: 1.55 }}>
-                      Ajoutez <code style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PROJECT_ID</code> et{' '}
+                      {isEn ? 'Add ' : 'Ajoutez '}<code style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PROJECT_ID</code>{isEn ? ' and ' : ' et '}
                       <code style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PERSONAL_API_KEY</code>{' '}
-                      dans le fichier <code style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '1px 4px', borderRadius: '3px' }}>.env</code> du backend puis redemarrez le serveur.
+                      {isEn ? 'to the backend ' : 'dans le fichier '}<code style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '1px 4px', borderRadius: '3px' }}>.env</code>{isEn ? ' file, then restart the server.' : ' du backend puis redemarrez le serveur.'}
                     </p>
                   </>
                 )}
                 {analyticsSnapshot.configured && analyticsSnapshot.degraded && analyticsSnapshot.reason ? (
                   <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#92400e', lineHeight: 1.5 }}>
-                    Raison: {analyticsSnapshot.reason}
+                    {isEn ? 'Reason' : 'Raison'}: {analyticsSnapshot.reason}
                   </p>
                 ) : null}
                 {analyticsSnapshot.generatedAt ? (
                   <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--color-muted, #6b7280)' }}>
-                    Genere le {new Date(analyticsSnapshot.generatedAt).toLocaleString('fr-FR')}
+                    {isEn ? 'Generated at' : 'Genere le'} {new Date(analyticsSnapshot.generatedAt).toLocaleString(isEn ? 'en-US' : 'fr-FR')}
                   </p>
                 ) : null}
               </div>
 
               {analyticsLoading ? (
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)' }}>Chargement des donnees analytics...</p>
+                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)' }}>{isEn ? 'Loading analytics data...' : 'Chargement des donnees analytics...'}</p>
                 </div>
               ) : null}
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(168px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                 {[
-                  { label: 'Utilisateurs actifs', value: Number(analyticsSnapshot.users.totalActive || 0) },
-                  { label: 'Nouveaux utilisateurs', value: Number(analyticsSnapshot.users.newUsers || 0) },
-                  { label: 'Utilisateurs recurrents', value: Number(analyticsSnapshot.users.returningUsers || 0) },
-                  { label: 'Pages vues', value: Number(analyticsSnapshot.engagement.pageViews || 0) },
-                  { label: 'Duree session moyenne', value: formatDurationSeconds(analyticsSnapshot.engagement.avgSessionDurationSec) },
-                  { label: 'Inscriptions', value: Number(analyticsSnapshot.conversion.signupCount || 0) },
-                  { label: 'Achats (checkout)', value: Number(analyticsSnapshot.conversion.purchaseCount || 0) },
-                  { label: 'Action cle (sessions creees)', value: Number(analyticsSnapshot.conversion.keyActionCount || 0) },
-                  { label: 'Temps de chargement moyen', value: `${Math.round(Number(analyticsSnapshot.performance.avgPageLoadMs || 0))} ms` },
-                  { label: 'Erreurs frontend', value: Number(analyticsSnapshot.performance.frontendErrorCount || 0) },
+                  { label: isEn ? 'Active users' : 'Utilisateurs actifs', value: Number(analyticsSnapshot.users.totalActive || 0) },
+                  { label: isEn ? 'New users' : 'Nouveaux utilisateurs', value: Number(analyticsSnapshot.users.newUsers || 0) },
+                  { label: isEn ? 'Returning users' : 'Utilisateurs recurrents', value: Number(analyticsSnapshot.users.returningUsers || 0) },
+                  { label: isEn ? 'Page views' : 'Pages vues', value: Number(analyticsSnapshot.engagement.pageViews || 0) },
+                  { label: isEn ? 'Average session duration' : 'Duree session moyenne', value: formatDurationSeconds(analyticsSnapshot.engagement.avgSessionDurationSec) },
+                  { label: isEn ? 'Signups' : 'Inscriptions', value: Number(analyticsSnapshot.conversion.signupCount || 0) },
+                  { label: isEn ? 'Purchases (checkout)' : 'Achats (checkout)', value: Number(analyticsSnapshot.conversion.purchaseCount || 0) },
+                  { label: isEn ? 'Key action (sessions created)' : 'Action cle (sessions creees)', value: Number(analyticsSnapshot.conversion.keyActionCount || 0) },
+                  { label: isEn ? 'Average load time' : 'Temps de chargement moyen', value: `${Math.round(Number(analyticsSnapshot.performance.avgPageLoadMs || 0))} ms` },
+                  { label: isEn ? 'Frontend errors' : 'Erreurs frontend', value: Number(analyticsSnapshot.performance.frontendErrorCount || 0) },
                   {
-                    label: `Revenus (${String(analyticsSnapshot.business.currency || 'EUR').toUpperCase()})`,
+                    label: `${isEn ? 'Revenue' : 'Revenus'} (${String(analyticsSnapshot.business.currency || 'EUR').toUpperCase()})`,
                     value: formatCurrency(analyticsSnapshot.business.revenue, analyticsSnapshot.business.currency),
                   },
                   {
-                    label: 'Panier moyen',
+                    label: isEn ? 'Average basket' : 'Panier moyen',
                     value: formatCurrency(analyticsSnapshot.business.avgBasket, analyticsSnapshot.business.currency),
                   },
                 ].map((item) => (
@@ -3159,19 +3207,19 @@ export default function AdminClient() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                   {[
                     {
-                      title: 'Top pays',
+                      title: isEn ? 'Top countries' : 'Top pays',
                       list: visitorCountries,
                       interactive: true,
                     },
                     {
                       title: effectiveSelectedCountry
-                        ? `Villes - ${effectiveSelectedCountry}`
-                        : 'Top villes',
+                        ? `${isEn ? 'Cities' : 'Villes'} - ${effectiveSelectedCountry}`
+                        : (isEn ? 'Top cities' : 'Top villes'),
                       list: displayedCitiesForAnalytics,
                       expandable: canExpandCitiesForCountry,
                     },
-                    { title: 'Top navigateurs', list: Array.isArray(analyticsSnapshot.visitors.browsers) ? analyticsSnapshot.visitors.browsers : [] },
-                    { title: 'Top systemes', list: Array.isArray(analyticsSnapshot.visitors.os) ? analyticsSnapshot.visitors.os : [] },
+                    { title: isEn ? 'Top browsers' : 'Top navigateurs', list: Array.isArray(analyticsSnapshot.visitors.browsers) ? analyticsSnapshot.visitors.browsers : [] },
+                    { title: isEn ? 'Top systems' : 'Top systemes', list: Array.isArray(analyticsSnapshot.visitors.os) ? analyticsSnapshot.visitors.os : [] },
                   ].map((block) => (
                     <div key={block.title} style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 14px' }}>
                       <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700 }}>{block.title}</p>
@@ -3199,7 +3247,7 @@ export default function AdminClient() {
                                       : 'var(--color-text, #111)',
                                     fontWeight: String(item.label || '').trim() === effectiveSelectedCountry ? 700 : 400,
                                   }}
-                                  title={`Afficher les villes pour ${item.label}`}
+                                  title={isEn ? `Show cities for ${item.label}` : `Afficher les villes pour ${item.label}`}
                                 >
                                   {item.label}
                                 </button>
@@ -3218,10 +3266,10 @@ export default function AdminClient() {
                           onClick={() => setShowAllCitiesForCountry((current) => !current)}
                           style={{ marginTop: '10px', fontSize: '12px', padding: '4px 8px' }}
                         >
-                          {showAllCitiesForCountry ? 'Voir moins' : 'Voir toutes les villes'}
+                          {showAllCitiesForCountry ? (isEn ? 'Show less' : 'Voir moins') : (isEn ? 'Show all cities' : 'Voir toutes les villes')}
                         </button>
                       ) : (
-                        block.list.length === 0 ? <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>Aucune donnee disponible.</p> : null
+                        block.list.length === 0 ? <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>{isEn ? 'No data available.' : 'Aucune donnee disponible.'}</p> : null
                       )}
                     </div>
                   ))}
@@ -3341,8 +3389,8 @@ export default function AdminClient() {
                               className="icon-action-btn"
                               onClick={() => handleAdminUserVerificationOverride(u)}
                               disabled={busySaveKey === `verify-admin:user:${u.id}`}
-                              title="Validation manuelle admin"
-                              aria-label="Validation manuelle admin"
+                              title={isEn ? 'Manual admin verification' : 'Validation manuelle admin'}
+                              aria-label={isEn ? 'Manual admin verification' : 'Validation manuelle admin'}
                             >
                               {busySaveKey === `verify-admin:user:${u.id}` ? '…' : '✓'}
                             </button>
@@ -3353,8 +3401,8 @@ export default function AdminClient() {
                               className="icon-action-btn"
                               onClick={() => handleResendVerificationLink(u)}
                               disabled={busySaveKey === `verify:user:${u.id}`}
-                              title="Renvoyer lien verification"
-                              aria-label="Renvoyer lien verification"
+                              title={isEn ? 'Resend verification link' : 'Renvoyer lien verification'}
+                              aria-label={isEn ? 'Resend verification link' : 'Renvoyer lien verification'}
                             >
                               {busySaveKey === `verify:user:${u.id}` ? '…' : '✉'}
                             </button>
@@ -3363,8 +3411,8 @@ export default function AdminClient() {
                             type="button"
                             className="icon-action-btn"
                             onClick={() => beginEditUser(u)}
-                            title="Modifier"
-                            aria-label="Modifier utilisateur"
+                            title={isEn ? 'Edit' : 'Modifier'}
+                            aria-label={isEn ? 'Edit user' : 'Modifier utilisateur'}
                           >
                             ✎
                           </button>
@@ -3373,8 +3421,8 @@ export default function AdminClient() {
                             className="icon-action-btn"
                             onClick={() => handleToggleUserStatus(u)}
                             disabled={busySaveKey === `status:user:${u.id}` || String(u.id) === String(user?.id)}
-                            title={u.disabled ? 'Activer' : 'Désactiver'}
-                            aria-label={u.disabled ? 'Activer utilisateur' : 'Désactiver utilisateur'}
+                            title={u.disabled ? (isEn ? 'Enable' : 'Activer') : (isEn ? 'Disable' : 'Desactiver')}
+                            aria-label={u.disabled ? (isEn ? 'Enable user' : 'Activer utilisateur') : (isEn ? 'Disable user' : 'Desactiver utilisateur')}
                           >
                             {busySaveKey === `status:user:${u.id}` ? '…' : u.disabled ? '↺' : '⏸'}
                           </button>
@@ -3383,8 +3431,8 @@ export default function AdminClient() {
                             className="icon-action-btn icon-action-danger"
                             onClick={() => handleDeleteUser(u)}
                             disabled={busyDeleteKey === `user:${u.id}` || String(u.id) === String(user?.id)}
-                            title="Supprimer"
-                            aria-label="Supprimer utilisateur"
+                            title={isEn ? 'Delete' : 'Supprimer'}
+                            aria-label={isEn ? 'Delete user' : 'Supprimer utilisateur'}
                           >
                             {busyDeleteKey === `user:${u.id}` ? '…' : '🗑'}
                           </button>
@@ -3485,8 +3533,8 @@ export default function AdminClient() {
                             className="icon-action-btn"
                             onClick={() => handleAdminParticipantVerificationOverride(p)}
                             disabled={busySaveKey === `verify-admin:participant:${p.id}`}
-                            title="Validation manuelle admin"
-                            aria-label="Validation manuelle participant"
+                            title={isEn ? 'Manual admin verification' : 'Validation manuelle admin'}
+                            aria-label={isEn ? 'Manual participant verification' : 'Validation manuelle participant'}
                           >
                             {busySaveKey === `verify-admin:participant:${p.id}` ? '…' : '✓'}
                           </button>
@@ -3495,8 +3543,8 @@ export default function AdminClient() {
                             className="icon-action-btn"
                             onClick={() => handleResendParticipantVerificationLink(p)}
                             disabled={busySaveKey === `verify:participant:${p.id}`}
-                            title="Renvoyer lien verification"
-                            aria-label="Renvoyer lien verification participant"
+                            title={isEn ? 'Resend verification link' : 'Renvoyer lien verification'}
+                            aria-label={isEn ? 'Resend participant verification link' : 'Renvoyer lien verification participant'}
                           >
                             {busySaveKey === `verify:participant:${p.id}` ? '…' : '✉'}
                           </button>
@@ -3504,8 +3552,8 @@ export default function AdminClient() {
                             type="button"
                             className="icon-action-btn"
                             onClick={() => beginEditParticipant(p)}
-                            title="Modifier"
-                            aria-label="Modifier participant"
+                            title={isEn ? 'Edit' : 'Modifier'}
+                            aria-label={isEn ? 'Edit participant' : 'Modifier participant'}
                           >
                             ✎
                           </button>
@@ -3514,8 +3562,8 @@ export default function AdminClient() {
                             className="icon-action-btn"
                             onClick={() => handleToggleParticipantStatus(p)}
                             disabled={busySaveKey === `status:participant:${p.id}`}
-                            title={p.disabled ? 'Activer' : 'Désactiver'}
-                            aria-label={p.disabled ? 'Activer participant' : 'Désactiver participant'}
+                            title={p.disabled ? (isEn ? 'Enable' : 'Activer') : (isEn ? 'Disable' : 'Desactiver')}
+                            aria-label={p.disabled ? (isEn ? 'Enable participant' : 'Activer participant') : (isEn ? 'Disable participant' : 'Desactiver participant')}
                           >
                             {busySaveKey === `status:participant:${p.id}` ? '…' : p.disabled ? '↺' : '⏸'}
                           </button>
@@ -3524,8 +3572,8 @@ export default function AdminClient() {
                             className="icon-action-btn icon-action-danger"
                             onClick={() => handleDeleteParticipant(p)}
                             disabled={busyDeleteKey === `participant:${p.id}`}
-                            title="Supprimer"
-                            aria-label="Supprimer participant"
+                            title={isEn ? 'Delete' : 'Supprimer'}
+                            aria-label={isEn ? 'Delete participant' : 'Supprimer participant'}
                           >
                             {busyDeleteKey === `participant:${p.id}` ? '…' : '🗑'}
                           </button>
@@ -3663,7 +3711,7 @@ export default function AdminClient() {
                             onClick={() => setNewSessionMemberIds(filteredAssignableMembers.map((m) => String(m.id)))}
                             disabled={filteredAssignableMembers.length === 0}
                           >
-                            Tout selectionner
+                            {isEn ? 'Select all' : 'Tout selectionner'}
                           </button>
                           <button
                             type="button"
@@ -3671,12 +3719,12 @@ export default function AdminClient() {
                             onClick={() => setNewSessionMemberIds([])}
                             disabled={newSessionMemberIds.length === 0}
                           >
-                            Tout deselectionner
+                            {isEn ? 'Unselect all' : 'Tout deselectionner'}
                           </button>
                         </div>
                         <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '8px' }}>
                           {filteredAssignableMembers.length === 0 ? (
-                            <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>Aucun participant disponible.</p>
+                            <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>{isEn ? 'No participant available.' : 'Aucun participant disponible.'}</p>
                           ) : (
                             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '6px' }}>
                               {filteredAssignableMembers.map((member) => {
@@ -3701,12 +3749,14 @@ export default function AdminClient() {
                           )}
                         </div>
                         <p className="session-meta" style={{ marginTop: '8px' }}>
-                          {newSessionMemberIds.length} participant{newSessionMemberIds.length > 1 ? 's' : ''} assigne{newSessionMemberIds.length > 1 ? 's' : ''}
+                          {isEn
+                            ? `${newSessionMemberIds.length} participant${newSessionMemberIds.length > 1 ? 's' : ''} assigned`
+                            : `${newSessionMemberIds.length} participant${newSessionMemberIds.length > 1 ? 's' : ''} assigne${newSessionMemberIds.length > 1 ? 's' : ''}`}
                         </p>
                       </div>
 
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:session'}>
-                        {busySaveKey === 'create:session' ? 'Création...' : 'Creer la session'}
+                        {busySaveKey === 'create:session' ? (isEn ? 'Creating...' : 'Creation...') : (isEn ? 'Create session' : 'Creer la session')}
                       </button>
                       <button
                         type="button"
@@ -3716,7 +3766,7 @@ export default function AdminClient() {
                           setNewSessionMessage('');
                         }}
                       >
-                        Annuler
+                        {isEn ? 'Cancel' : 'Annuler'}
                       </button>
                     </form>
                     {newSessionMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newSessionMessage}</p> : null}
@@ -3725,30 +3775,30 @@ export default function AdminClient() {
 
                 {editingSession ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier une session</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Edit session' : 'Modifier une session'}</h2>
                     <form className="auth-form" onSubmit={submitEditSession}>
-                        <label>Nom<input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required /></label>
-                        <label>Statut
+                        <label>{isEn ? 'Name' : 'Nom'}<input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required /></label>
+                        <label>{isEn ? 'Status' : 'Statut'}
                           <select value={editingSession.status} onChange={(e) => setEditingSession((p) => ({ ...p, status: e.target.value }))}>
-                            <option value="preparee">En preparation</option>
-                            <option value="en_cours">En cours</option>
-                            <option value="terminee">Terminee</option>
+                            <option value="preparee">{getSessionStatusLabel('preparee', isEn)}</option>
+                            <option value="en_cours">{getSessionStatusLabel('en_cours', isEn)}</option>
+                            <option value="terminee">{getSessionStatusLabel('terminee', isEn)}</option>
                           </select>
                         </label>
-                        <label>Format<input value={editingSession.format} onChange={(e) => setEditingSession((p) => ({ ...p, format: e.target.value }))} /></label>
-                        <label>Modalite
+                        <label>{isEn ? 'Format' : 'Format'}<input value={editingSession.format} onChange={(e) => setEditingSession((p) => ({ ...p, format: e.target.value }))} /></label>
+                        <label>{isEn ? 'Modality' : 'Modalite'}
                           <select value={editingSession.modality} onChange={(e) => setEditingSession((p) => ({ ...p, modality: e.target.value }))}>
-                            <option value="">Non definie</option>
-                            <option value="remote">A distance</option>
-                            <option value="hybrid">Hybride</option>
-                            <option value="in-person">Presentiel</option>
+                            <option value="">{getSessionModalityLabel('', isEn)}</option>
+                            <option value="remote">{getSessionModalityLabel('remote', isEn)}</option>
+                            <option value="hybrid">{getSessionModalityLabel('hybrid', isEn)}</option>
+                            <option value="in-person">{getSessionModalityLabel('in-person', isEn)}</option>
                           </select>
                         </label>
-                        <label>Date<input type="date" value={editingSession.session_date} onChange={(e) => setEditingSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
-                        <label>Duree (minutes)<input type="number" min={1} value={editingSession.duration_minutes} onChange={(e) => setEditingSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
+                        <label>{isEn ? 'Date' : 'Date'}<input type="date" value={editingSession.session_date} onChange={(e) => setEditingSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
+                        <label>{isEn ? 'Duration (minutes)' : 'Duree (minutes)'}<input type="number" min={1} value={editingSession.duration_minutes} onChange={(e) => setEditingSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:session:${editingSession.id}`}>{busySaveKey === `save:session:${editingSession.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
-                          <button type="button" className="btn-secondary" onClick={() => setEditingSession(null)}>Annuler</button>
+                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:session:${editingSession.id}`}>{busySaveKey === `save:session:${editingSession.id}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}</button>
+                          <button type="button" className="btn-secondary" onClick={() => setEditingSession(null)}>{isEn ? 'Cancel' : 'Annuler'}</button>
                         </div>
                     </form>
                   </div>
@@ -3757,34 +3807,34 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      Liste {sessions.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredSessions.length}/{sessions.length})</span> : null}
+                      {isEn ? 'List' : 'Liste'} {sessions.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredSessions.length}/{sessions.length})</span> : null}
                     </h2>
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder="Rechercher..."
+                      placeholder={isEn ? 'Search...' : 'Rechercher...'}
                       value={sessionQuery}
                       onChange={(e) => setSessionQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
                     />
                   </div>
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredSessions.length === 0 ? <li className="list-empty">Aucune session ne correspond.</li> : null}
+                    {filteredSessions.length === 0 ? <li className="list-empty">{isEn ? 'No matching session.' : 'Aucune session ne correspond.'}</li> : null}
                     {filteredSessions.map((s) => (
                       <li key={String(s.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{s.name || `Session #${s.id}`}</p>
                           <p className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                             <span className={`status-pill status-${s.status || 'preparee'}`}>
-                              {SESSION_STATUS_LABELS[s.status] || SESSION_STATUS_LABELS.preparee}
+                              {getSessionStatusLabel(s.status, isEn)}
                             </span>
-                            {s.modality ? <span>Modalite: {s.modality}</span> : null}
+                            {s.modality ? <span>{isEn ? 'Modality' : 'Modalite'}: {getSessionModalityLabel(s.modality, isEn) || s.modality}</span> : null}
                           </p>
                         </div>
                         <div className="session-item-actions" style={{ flexShrink: 0 }}>
-                          <button type="button" className="btn-secondary" onClick={() => beginEditSession(s)}>Modifier</button>
+                          <button type="button" className="btn-secondary" onClick={() => beginEditSession(s)}>{isEn ? 'Edit' : 'Modifier'}</button>
                           <button type="button" className="btn-secondary" onClick={() => handleDeleteSession(s)} disabled={busyDeleteKey === `session:${s.id}`}>
-                            {busyDeleteKey === `session:${s.id}` ? '...' : 'Supprimer'}
+                            {busyDeleteKey === `session:${s.id}` ? '...' : (isEn ? 'Delete' : 'Supprimer')}
                           </button>
                         </div>
                       </li>
@@ -3801,7 +3851,7 @@ export default function AdminClient() {
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
                   <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Challenges</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion du catalogue de challenges disponibles.</p>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{isEn ? 'Manage the available challenge catalog.' : 'Gestion du catalogue de challenges disponibles.'}</p>
                 </div>
                 <button
                   type="button"
@@ -3813,14 +3863,14 @@ export default function AdminClient() {
                     setShowNewChallengeForm((current) => !current);
                   }}
                 >
-                  {showNewChallengeForm ? 'Fermer le formulaire' : 'Ajouter un challenge'}
+                  {showNewChallengeForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Add challenge' : 'Ajouter un challenge')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 {showNewChallengeForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Ajouter un challenge</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Add challenge' : 'Ajouter un challenge'}</h2>
                     <form className="auth-form" onSubmit={submitNewChallenge}>
                       <label>{isEn ? 'Name' : 'Nom'}<input value={newChallenge.name} onChange={(e) => setNewChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
                       <label>{isEn ? 'Type' : 'Type'}
@@ -3952,36 +4002,36 @@ export default function AdminClient() {
                         <button type="button" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--color-muted, #6b7280)', padding: '2px 8px', lineHeight: 1 }} aria-label={isEn ? 'Close window' : 'Fermer la fenetre'}>✕</button>
                       </div>
                     <form className="auth-form" onSubmit={submitEditChallenge}>
-                        <label>Nom<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
-                        <label>Type
+                        <label>{isEn ? 'Name' : 'Nom'}<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
+                        <label>{isEn ? 'Type' : 'Type'}
                           <select value={editingChallenge.type} onChange={(e) => setEditingChallenge((p) => ({ ...p, type: e.target.value }))}>
-                            <option value="individuel">Individuel</option>
-                            <option value="equipe">Equipe</option>
+                            <option value="individuel">{getChallengeTypeLabel('individuel', isEn)}</option>
+                            <option value="equipe">{getChallengeTypeLabel('equipe', isEn)}</option>
                           </select>
                         </label>
-                        <label>Statut
+                        <label>{isEn ? 'Status' : 'Statut'}
                           <select value={editingChallenge.status} onChange={(e) => setEditingChallenge((p) => ({ ...p, status: e.target.value }))}>
-                            <option value="actif">Actif</option>
-                            <option value="brouillon">Brouillon</option>
-                            <option value="archive">Archive</option>
+                            <option value="actif">{getChallengeStatusLabel('actif', isEn)}</option>
+                            <option value="brouillon">{getChallengeStatusLabel('brouillon', isEn)}</option>
+                            <option value="archive">{getChallengeStatusLabel('archive', isEn)}</option>
                           </select>
                         </label>
-                        <label>Categorie
+                        <label>{isEn ? 'Category' : 'Categorie'}
                           <select value={editingChallenge.category} onChange={(e) => setEditingChallenge((p) => ({ ...p, category: e.target.value }))}>
-                            <option value="">--- Selectioner ---</option>
-                            {CHALLENGE_CATEGORY_OPTIONS.map((option) => (
+                            <option value="">{isEn ? '--- Select ---' : '--- Selectioner ---'}</option>
+                            {challengeCategoryOptions.map((option) => (
                               <option key={option.value} value={option.value}>{option.label}</option>
                             ))}
                           </select>
                         </label>
-                        <label>Objectifs
+                        <label>{isEn ? 'Objectives' : 'Objectifs'}
                           <div style={{ display: 'grid', gap: '8px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
-                              <span>Choisissez jusqu'à {MAX_CHALLENGE_OBJECTIVES} objectifs.</span>
+                              <span>{isEn ? `Choose up to ${MAX_CHALLENGE_OBJECTIVES} objectives.` : `Choisissez jusqu'à ${MAX_CHALLENGE_OBJECTIVES} objectifs.`}</span>
                               <strong>{normalizeObjectivesInput(editingChallenge.objectives).length}/{MAX_CHALLENGE_OBJECTIVES}</strong>
                             </div>
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                              {CHALLENGE_OBJECTIVE_OPTIONS.map((option) => {
+                              {challengeObjectiveOptions.map((option) => {
                                 const selectedObjectives = normalizeObjectivesInput(editingChallenge.objectives);
                                 const isSelected = selectedObjectives.includes(option.value);
                                 const limitReached = selectedObjectives.length >= MAX_CHALLENGE_OBJECTIVES;
@@ -4010,30 +4060,30 @@ export default function AdminClient() {
                               })}
                             </div>
                             {normalizeObjectivesInput(editingChallenge.objectives).length >= MAX_CHALLENGE_OBJECTIVES ? (
-                              <p className="session-meta" style={{ margin: 0 }}>Limite atteinte: retirez un objectif pour en sélectionner un autre.</p>
+                              <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'Limit reached: remove one objective to select another.' : 'Limite atteinte: retirez un objectif pour en selectionner un autre.'}</p>
                             ) : null}
                           </div>
                         </label>
-                        <label>Duree<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
+                        <label>{isEn ? 'Duration' : 'Duree'}<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
                         <label>Engine key<input value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
-                        <label>Description<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
+                        <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
                         <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                          <p style={{ margin: 0, fontWeight: 600 }}>Règles du challenge</p>
-                          <p className="session-meta" style={{ margin: 0 }}>Ce contenu alimente le brief affiché aux facilitateurs et aux participants dans le challenge.</p>
-                          <label>Brief de mission
-                            <textarea rows={3} value={editingChallenge.rules_objective || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder="Décrivez l'objectif principal du challenge" />
+                          <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Challenge rules' : 'Regles du challenge'}</p>
+                          <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'This content feeds the brief shown to facilitators and participants inside the challenge.' : 'Ce contenu alimente le brief affiche aux facilitateurs et aux participants dans le challenge.'}</p>
+                          <label>{isEn ? 'Mission brief' : 'Brief de mission'}
+                            <textarea rows={3} value={editingChallenge.rules_objective || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={isEn ? 'Describe the main challenge objective' : 'Decrivez l\'objectif principal du challenge'} />
                           </label>
-                          <label>Instructions facilitateur (1 ligne = 1 règle)
-                            <textarea rows={4} value={editingChallenge.rules_facilitator || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder="Cadrez le challenge&#10;Lancez le timer" />
+                          <label>{isEn ? 'Facilitator instructions (1 line = 1 rule)' : 'Instructions facilitateur (1 ligne = 1 regle)'}
+                            <textarea rows={4} value={editingChallenge.rules_facilitator || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder={isEn ? 'Frame the challenge&#10;Start the timer' : 'Cadrez le challenge&#10;Lancez le timer'} />
                           </label>
-                          <label>Instructions participants (1 ligne = 1 règle)
-                            <textarea rows={4} value={editingChallenge.rules_participant || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder="Ecoutez le brief&#10;Collaborez en équipe" />
+                          <label>{isEn ? 'Participant instructions (1 line = 1 rule)' : 'Instructions participants (1 ligne = 1 regle)'}
+                            <textarea rows={4} value={editingChallenge.rules_participant || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={isEn ? 'Listen to the brief&#10;Collaborate as a team' : 'Ecoutez le brief&#10;Collaborez en equipe'} />
                           </label>
-                          <label>Note de clôture
-                            <textarea rows={2} value={editingChallenge.rules_footnote || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder="Message de synthèse optionnel" />
+                          <label>{isEn ? 'Closing note' : 'Note de cloture'}
+                            <textarea rows={2} value={editingChallenge.rules_footnote || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={isEn ? 'Optional summary message' : 'Message de synthese optionnel'} />
                           </label>
                           <div style={{ borderTop: '1px dashed var(--color-border, #e5e7eb)', paddingTop: '10px', display: 'grid', gap: '10px' }}>
-                            <p style={{ margin: 0, fontWeight: 600 }}>Joueurs (Min / Recommandé / Max)</p>
+                            <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Players (Min / Recommended / Max)' : 'Joueurs (Min / Recommande / Max)'}</p>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                               <label>Min
                                 <input
@@ -4043,7 +4093,7 @@ export default function AdminClient() {
                                   onChange={(e) => setEditingChallenge((p) => ({ ...p, player_min: e.target.value }))}
                                 />
                               </label>
-                              <label>Recommandé
+                              <label>{isEn ? 'Recommended' : 'Recommande'}
                                 <input
                                   type="number"
                                   min="1"
@@ -4064,7 +4114,7 @@ export default function AdminClient() {
                         </div>
                         {(editingChallenge.engine_key || '').toLowerCase() === 'escape_room_v1' ? (
                           <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '10px' }}>
-                            <p style={{ margin: '0 0 8px', fontWeight: 600 }}>Image énigme 5 (Salle secrète)</p>
+                            <p style={{ margin: '0 0 8px', fontWeight: 600 }}>{isEn ? 'Puzzle 5 image (secret room)' : 'Image enigme 5 (Salle secrete)'}</p>
                             <input
                               type="file"
                               accept="image/png,image/jpeg,image/jpg"
@@ -4072,7 +4122,7 @@ export default function AdminClient() {
                               disabled={challengeImageUploadBusy}
                             />
                             {challengeImageUploadBusy ? (
-                              <p className="session-meta" style={{ marginTop: '8px' }}>Upload en cours...</p>
+                              <p className="session-meta" style={{ marginTop: '8px' }}>{isEn ? 'Upload in progress...' : 'Upload en cours...'}</p>
                             ) : null}
                             {challengeImageUploadError ? (
                               <p className="session-meta" style={{ marginTop: '8px', color: '#dc2626' }}>{challengeImageUploadError}</p>
@@ -4080,7 +4130,7 @@ export default function AdminClient() {
                             {getEscapeRoomE5ImageSrc(editingChallenge.engine_config) ? (
                               <Image
                                 src={getEscapeRoomE5ImageSrc(editingChallenge.engine_config)}
-                                alt="Aperçu énigme 5"
+                                alt={isEn ? 'Puzzle 5 preview' : 'Apercu enigme 5'}
                                 unoptimized
                                 width={640}
                                 height={360}
@@ -4088,24 +4138,24 @@ export default function AdminClient() {
                                 style={{ marginTop: '8px', maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
                               />
                             ) : (
-                              <p className="session-meta" style={{ marginTop: '8px' }}>Aucune image configurée pour e5.</p>
+                              <p className="session-meta" style={{ marginTop: '8px' }}>{isEn ? 'No image configured for e5.' : 'Aucune image configuree pour e5.'}</p>
                             )}
                           </div>
                         ) : null}
                         {(editingChallenge.engine_key || '').toLowerCase() === 'copuzzle_live_v1' ? (
                           <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                            <p style={{ margin: 0, fontWeight: 600 }}>Configuration Copuzzle (3 images de référence administrateur)</p>
+                            <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Copuzzle configuration (3 admin reference images)' : 'Configuration Copuzzle (3 images de reference administrateur)'}</p>
                             <p className="session-meta" style={{ margin: 0 }}>
-                              Définissez jusqu'à 3 images de référence avec leur titre. Elles seront proposées au facilitateur dans le Session Builder.
+                              {isEn ? 'Define up to 3 reference images with their titles. They will be proposed to the facilitator in the Session Builder.' : 'Definissez jusqu\'a 3 images de reference avec leur titre. Elles seront proposees au facilitateur dans le Session Builder.'}
                             </p>
 
                             {getCopuzzleDefaultImages(editingChallenge.engine_config).map((imageItem, imageIndex) => {
                               const slotIndex = imageIndex + 1;
                               return (
                                 <div key={imageItem.id || `copuzzle-default-${slotIndex}`} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '10px', display: 'grid', gap: '8px' }}>
-                                  <p style={{ margin: 0, fontWeight: 600 }}>Image de référence {slotIndex}</p>
+                                  <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? `Reference image ${slotIndex}` : `Image de reference ${slotIndex}`}</p>
 
-                                  <label>Titre
+                                  <label>{isEn ? 'Title' : 'Titre'}
                                     <input
                                       value={String(imageItem.title || '')}
                                       onChange={(e) => {
@@ -4134,7 +4184,7 @@ export default function AdminClient() {
                                     />
                                   </label>
 
-                                  <label>URL image
+                                  <label>{isEn ? 'Image URL' : 'URL image'}
                                     <input
                                       value={String(imageItem.src || '')}
                                       onChange={(e) => {
@@ -4165,11 +4215,11 @@ export default function AdminClient() {
                                           };
                                         });
                                       }}
-                                      placeholder="https://... ou /copuzzle/default-blue.svg"
+                                      placeholder={isEn ? 'https://... or /copuzzle/default-blue.svg' : 'https://... ou /copuzzle/default-blue.svg'}
                                     />
                                   </label>
 
-                                  <label>Uploader (JPG/PNG)
+                                  <label>{isEn ? 'Upload (JPG/PNG)' : 'Uploader (JPG/PNG)'}
                                     <input
                                       type="file"
                                       accept="image/png,image/jpeg,image/jpg"
@@ -4181,7 +4231,7 @@ export default function AdminClient() {
                                   {String(imageItem.src || '').trim() ? (
                                     <Image
                                       src={String(imageItem.src || '').trim()}
-                                      alt={`Aperçu image ${slotIndex}`}
+                                      alt={isEn ? `Image preview ${slotIndex}` : `Apercu image ${slotIndex}`}
                                       unoptimized
                                       width={640}
                                       height={360}
@@ -4216,14 +4266,14 @@ export default function AdminClient() {
                                         });
                                       }}
                                     />
-                                    Image sélectionnée par défaut
+                                    {isEn ? 'Default selected image' : 'Image selectionnee par defaut'}
                                   </label>
                                 </div>
                               );
                             })}
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <label>Matrice (rows)
+                              <label>{isEn ? 'Grid (rows)' : 'Matrice (rows)'}
                                 <input
                                   type="number"
                                   min="2"
@@ -4248,7 +4298,7 @@ export default function AdminClient() {
                                   }}
                                 />
                               </label>
-                              <label>Matrice (cols)
+                              <label>{isEn ? 'Grid (cols)' : 'Matrice (cols)'}
                                 <input
                                   type="number"
                                   min="2"
@@ -4276,7 +4326,7 @@ export default function AdminClient() {
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <label>Timer (secondes)
+                              <label>{isEn ? 'Timer (seconds)' : 'Timer (secondes)'}
                                 <input
                                   type="number"
                                   min="30"
@@ -4301,7 +4351,7 @@ export default function AdminClient() {
                                   }}
                                 />
                               </label>
-                              <label>Seuil alerte (secondes)
+                              <label>{isEn ? 'Warning threshold (seconds)' : 'Seuil alerte (secondes)'}
                                 <input
                                   type="number"
                                   min="10"
@@ -4350,7 +4400,7 @@ export default function AdminClient() {
                                   });
                                 }}
                               />
-                              Timer actif
+                              {isEn ? 'Timer enabled' : 'Timer actif'}
                             </label>
 
                             <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
@@ -4375,11 +4425,11 @@ export default function AdminClient() {
                                   });
                                 }}
                               />
-                              Chat actif
+                              {isEn ? 'Chat enabled' : 'Chat actif'}
                             </label>
 
                             {challengeImageUploadBusy ? (
-                              <p className="session-meta" style={{ marginTop: '8px' }}>Upload en cours...</p>
+                              <p className="session-meta" style={{ marginTop: '8px' }}>{isEn ? 'Upload in progress...' : 'Upload en cours...'}</p>
                             ) : null}
                             {challengeImageUploadError ? (
                               <p className="session-meta" style={{ marginTop: '8px', color: '#dc2626' }}>{challengeImageUploadError}</p>
@@ -4387,7 +4437,7 @@ export default function AdminClient() {
 
                             <Image
                               src={getCopuzzleImageSrc(editingChallenge.engine_config)}
-                              alt="Apercu Copuzzle"
+                              alt={isEn ? 'Copuzzle preview' : 'Apercu Copuzzle'}
                               unoptimized
                               width={840}
                               height={840}
@@ -4399,8 +4449,8 @@ export default function AdminClient() {
                           </div>
                         ) : null}
                         <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>{busySaveKey === `save:challenge:${editingChallenge.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
-                          <button type="button" className="btn-secondary" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }}>Annuler</button>
+                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>{busySaveKey === `save:challenge:${editingChallenge.id}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}</button>
+                          <button type="button" className="btn-secondary" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }}>{isEn ? 'Cancel' : 'Annuler'}</button>
                         </div>
                     </form>
                     </div>
@@ -4410,12 +4460,12 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      Liste {challenges.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredChallenges.length}/{challenges.length})</span> : null}
+                      {isEn ? 'List' : 'Liste'} {challenges.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredChallenges.length}/{challenges.length})</span> : null}
                     </h2>
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder="Rechercher..."
+                      placeholder={isEn ? 'Search...' : 'Rechercher...'}
                       value={challengeQuery}
                       onChange={(e) => setChallengeQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
@@ -4427,7 +4477,7 @@ export default function AdminClient() {
                       <li key={String(c.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
-                          <p className="session-meta">{c.type || 'individuel'} · {c.status || 'actif'} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
+                          <p className="session-meta">{getChallengeTypeLabel(c.type, isEn)} · {getChallengeStatusLabel(c.status, isEn)} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
                           {(() => {
                             const playerRange = resolveChallengePlayerRange(c);
                             if (!playerRange.hasRange) return null;
@@ -4443,8 +4493,8 @@ export default function AdminClient() {
                             type="button"
                             className="icon-action-btn"
                             onClick={() => beginEditChallenge(c)}
-                            title="Modifier"
-                            aria-label="Modifier challenge"
+                            title={isEn ? 'Edit' : 'Modifier'}
+                            aria-label={isEn ? 'Edit challenge' : 'Modifier challenge'}
                           >
                             ✎
                           </button>
@@ -4453,8 +4503,8 @@ export default function AdminClient() {
                             className="icon-action-btn icon-action-danger"
                             onClick={() => handleDeleteChallenge(c)}
                             disabled={busyDeleteKey === `challenge:${c.id}`}
-                            title="Supprimer"
-                            aria-label="Supprimer challenge"
+                            title={isEn ? 'Delete' : 'Supprimer'}
+                            aria-label={isEn ? 'Delete challenge' : 'Supprimer challenge'}
                           >
                             {busyDeleteKey === `challenge:${c.id}` ? '…' : '🗑'}
                           </button>
@@ -4568,48 +4618,48 @@ export default function AdminClient() {
                         </button>
                       </div>
                     <form className="auth-form" onSubmit={submitEditPricingPlan}>
-                        <label>Nom de l offre<input value={editingPricingPlan.name} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
-                        <label>Description courte<textarea rows={3} value={editingPricingPlan.description} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
-                        <label>Fonctionnalites incluses (une ligne = un point)
+                        <label>{isEn ? 'Offer name' : 'Nom de l offre'}<input value={editingPricingPlan.name} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
+                        <label>{isEn ? 'Short description' : 'Description courte'}<textarea rows={3} value={editingPricingPlan.description} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                        <label>{isEn ? 'Included features (1 line = 1 bullet)' : 'Fonctionnalites incluses (une ligne = un point)'}
                           <textarea rows={5} value={editingPricingPlan.features} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, features: e.target.value }))} />
                         </label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>Prix<input type="number" min="0" step="0.01" value={editingPricingPlan.price} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
-                          <label>Devise<input value={editingPricingPlan.currency} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
+                          <label>{isEn ? 'Price' : 'Prix'}<input type="number" min="0" step="0.01" value={editingPricingPlan.price} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
+                          <label>{isEn ? 'Currency' : 'Devise'}<input value={editingPricingPlan.currency} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
                         </div>
-                        <label>Cycle de facturation
+                        <label>{isEn ? 'Billing cycle' : 'Cycle de facturation'}
                           <select value={editingPricingPlan.billing_cycle} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
-                            <option value="monthly">Mensuel</option>
-                            <option value="yearly">Annuel</option>
-                            <option value="one_time">Paiement unique</option>
-                            <option value="custom">Personnalise</option>
+                            <option value="monthly">{getPricingBillingCycleLabel('monthly', isEn)}</option>
+                            <option value="yearly">{getPricingBillingCycleLabel('yearly', isEn)}</option>
+                            <option value="one_time">{getPricingBillingCycleLabel('one_time', isEn)}</option>
+                            <option value="custom">{getPricingBillingCycleLabel('custom', isEn)}</option>
                           </select>
                         </label>
-                        <label>Label bouton CTA<input value={editingPricingPlan.cta_label} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                        <label>{isEn ? 'CTA button label' : 'Label bouton CTA'}<input value={editingPricingPlan.cta_label} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>Max utilisateurs<input type="number" min="0" value={editingPricingPlan.max_users} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
-                          <label>Max sessions/mois<input type="number" min="0" value={editingPricingPlan.max_sessions_per_month} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
+                          <label>{isEn ? 'Max users' : 'Max utilisateurs'}<input type="number" min="0" value={editingPricingPlan.max_users} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
+                          <label>{isEn ? 'Max sessions/month' : 'Max sessions/mois'}<input type="number" min="0" value={editingPricingPlan.max_sessions_per_month} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                          <label>Niveau support<input value={editingPricingPlan.support_level} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} /></label>
-                          <label>Jours essai<input type="number" min="0" value={editingPricingPlan.trial_days} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
-                          <label>Ordre affichage<input type="number" min="0" value={editingPricingPlan.display_order} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                          <label>{isEn ? 'Support level' : 'Niveau support'}<input value={editingPricingPlan.support_level} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} /></label>
+                          <label>{isEn ? 'Trial days' : 'Jours essai'}<input type="number" min="0" value={editingPricingPlan.trial_days} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
+                          <label>{isEn ? 'Display order' : 'Ordre affichage'}<input type="number" min="0" value={editingPricingPlan.display_order} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
                         </div>
                         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
                           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                             <input type="checkbox" checked={editingPricingPlan.is_active} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                            Offre active
+                            {isEn ? 'Active offer' : 'Offre active'}
                           </label>
                           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                             <input type="checkbox" checked={editingPricingPlan.highlighted} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, highlighted: e.target.checked }))} />
-                            Mise en avant
+                            {isEn ? 'Highlighted' : 'Mise en avant'}
                           </label>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                           <button type="submit" className="btn-primary" disabled={busySaveKey === `save:pricing-plan:${editingPricingPlan.id}`}>
-                            {busySaveKey === `save:pricing-plan:${editingPricingPlan.id}` ? 'Enregistrement...' : 'Enregistrer'}
+                            {busySaveKey === `save:pricing-plan:${editingPricingPlan.id}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}
                           </button>
-                          <button type="button" className="btn-secondary" onClick={() => setEditingPricingPlan(null)}>Annuler</button>
+                          <button type="button" className="btn-secondary" onClick={() => setEditingPricingPlan(null)}>{isEn ? 'Cancel' : 'Annuler'}</button>
                         </div>
                     </form>
                     </div>
@@ -4619,7 +4669,7 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      Liste {pricingPlans.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredPricingPlans.length}/{pricingPlans.length})</span> : null}
+                      {isEn ? 'List' : 'Liste'} {pricingPlans.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredPricingPlans.length}/{pricingPlans.length})</span> : null}
                     </h2>
                     <input
                       type="search"
@@ -4643,9 +4693,9 @@ export default function AdminClient() {
                           <p className="session-meta">
                             {typeof plan.price === 'number' ? `${plan.price.toFixed(2)} ${plan.currency || 'EUR'}` : (isEn ? 'Price not set' : 'Prix non defini')}
                             {' · '}
-                            {plan.billing_cycle || 'monthly'}
+                            {getPricingBillingCycleLabel(plan.billing_cycle, isEn)}
                             {' · '}
-                            {plan.is_active ? 'Active' : (isEn ? 'Inactive' : 'Inactive')}
+                            {plan.is_active ? (isEn ? 'Active' : 'Active') : (isEn ? 'Inactive' : 'Inactive')}
                           </p>
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
@@ -4653,8 +4703,8 @@ export default function AdminClient() {
                             type="button"
                             className="icon-action-btn"
                             onClick={() => beginEditPricingPlan(plan)}
-                            title="Modifier"
-                            aria-label="Modifier formule"
+                            title={isEn ? 'Edit' : 'Modifier'}
+                            aria-label={isEn ? 'Edit plan' : 'Modifier formule'}
                           >
                             ✎
                           </button>
@@ -4663,8 +4713,8 @@ export default function AdminClient() {
                             className="icon-action-btn icon-action-danger"
                             onClick={() => handleDeletePricingPlan(plan)}
                             disabled={busyDeleteKey === `pricing-plan:${plan.id}`}
-                            title="Supprimer"
-                            aria-label="Supprimer formule"
+                            title={isEn ? 'Delete' : 'Supprimer'}
+                            aria-label={isEn ? 'Delete plan' : 'Supprimer formule'}
                           >
                             {busyDeleteKey === `pricing-plan:${plan.id}` ? '…' : '🗑'}
                           </button>
@@ -4807,8 +4857,8 @@ export default function AdminClient() {
                             type="button"
                             className="icon-action-btn"
                             onClick={() => beginEditLandingBlock(block)}
-                            title="Modifier"
-                            aria-label="Modifier bloc landing"
+                            title={isEn ? 'Edit' : 'Modifier'}
+                            aria-label={isEn ? 'Edit landing block' : 'Modifier bloc landing'}
                           >
                             ✎
                           </button>
@@ -4817,8 +4867,8 @@ export default function AdminClient() {
                             className="icon-action-btn icon-action-danger"
                             onClick={() => handleDeleteLandingBlock(block)}
                             disabled={busyDeleteKey === `landing:${block.block_key}`}
-                            title="Supprimer"
-                            aria-label="Supprimer bloc landing"
+                            title={isEn ? 'Delete' : 'Supprimer'}
+                            aria-label={isEn ? 'Delete landing block' : 'Supprimer bloc landing'}
                           >
                             {busyDeleteKey === `landing:${block.block_key}` ? '…' : '🗑'}
                           </button>
