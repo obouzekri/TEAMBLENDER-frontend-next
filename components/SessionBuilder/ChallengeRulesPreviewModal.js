@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect } from 'react';
-import { resolveChallengeRules } from '@/lib/challenges/rules';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import { getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
 import { getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
 import { getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRules';
 import { getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueRules';
+import { getPixelArchitectRulesPreset } from '@/lib/challenges/pixelArchitectRules';
+import { getTheQuizRulesPreset } from '@/lib/challenges/theQuizRules';
+import { getPhraseMystereRulesPreset } from '@/lib/challenges/phraseMystereRules';
+import { getCopuzzleRulesPreset } from '@/lib/challenges/copuzzleRules';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './ChallengeRulesPreviewModal.module.css';
@@ -16,6 +19,10 @@ function getFallbackRules(challenge, locale) {
   const isVom = String(challenge?.engine_key || '').trim() === 'vrai_ou_mensonge_v1';
   const isMissionCritique = String(challenge?.engine_key || '').trim() === 'mission_critique_v1';
   const isEscapeRoom = String(challenge?.engine_key || '').trim() === 'escape_room_v1';
+  const isPixelArchitect = String(challenge?.engine_key || '').trim() === 'pixel_architect_v1';
+  const isTheQuiz = String(challenge?.engine_key || '').trim() === 'the_quiz_v1';
+  const isPhraseMystere = String(challenge?.engine_key || '').trim() === 'phrase_collaborative_v1';
+  const isCopuzzle = String(challenge?.engine_key || '').trim() === 'copuzzle_live_v1';
   if (isLabyrinthe) {
     const preset = getLabyrintheRulesPreset(locale);
     return {
@@ -56,6 +63,46 @@ function getFallbackRules(challenge, locale) {
     };
   }
 
+  if (isPixelArchitect) {
+    const preset = getPixelArchitectRulesPreset(locale);
+    return {
+      objective: preset.objective,
+      facilitator: preset.facilitator,
+      participant: [...preset.participant, ...preset.scoring],
+      footnote: preset.footnote,
+    };
+  }
+
+  if (isTheQuiz) {
+    const preset = getTheQuizRulesPreset(locale);
+    return {
+      objective: preset.objective,
+      facilitator: preset.facilitator,
+      participant: [...preset.participant, ...preset.scoring],
+      footnote: preset.footnote,
+    };
+  }
+
+  if (isPhraseMystere) {
+    const preset = getPhraseMystereRulesPreset(locale);
+    return {
+      objective: preset.objective,
+      facilitator: preset.facilitator,
+      participant: [...preset.participant, ...preset.hints, ...preset.scoring],
+      footnote: preset.footnote,
+    };
+  }
+
+  if (isCopuzzle) {
+    const preset = getCopuzzleRulesPreset(locale);
+    return {
+      objective: preset.objective,
+      facilitator: preset.facilitator,
+      participant: [...preset.participant, ...preset.scoring],
+      footnote: preset.footnote,
+    };
+  }
+
   const description = String(challenge?.description || '').trim();
   const isEn = locale === 'en';
   return {
@@ -87,7 +134,7 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
-  const rules = resolveChallengeRules(challenge?.config || challenge?.engine_config || {}, getFallbackRules(challenge, locale));
+  const rules = getFallbackRules(challenge, locale);
   const duration = Number(challenge?.duration || challenge?.config?.duration_minutes || 0);
   const playerRange = resolveChallengePlayerRange(challenge);
   const isLabyrinthe = String(challenge?.engine_key || '').trim() === 'labyrinthe_live_v1';
