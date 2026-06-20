@@ -7,6 +7,14 @@ import Footer from '@/components/Footer';
 import Modal from '@/components/ui/Modal';
 import { getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
+import { COPUZZLE_RULES_PRESET_KEY, getCopuzzleRulesPreset } from '@/lib/challenges/copuzzleRules';
+import { PHRASE_MYSTERE_RULES_PRESET_KEY, getPhraseMystereRulesPreset } from '@/lib/challenges/phraseMystereRules';
+import { THE_QUIZ_RULES_PRESET_KEY, getTheQuizRulesPreset } from '@/lib/challenges/theQuizRules';
+import { PIXEL_ARCHITECT_RULES_PRESET_KEY, getPixelArchitectRulesPreset } from '@/lib/challenges/pixelArchitectRules';
+import { ESCAPE_ROOM_RULES_PRESET_KEY, getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
+import { LABYRINTHE_RULES_PRESET_KEY, getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
+import { VRAI_OU_MENSONGE_RULES_PRESET_KEY, getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRules';
+import { MISSION_CRITIQUE_RULES_PRESET_KEY, getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueRules';
 import useI18n from '@/lib/i18n/useI18n';
 
 const USER_ROLES = new Set(['user', 'admin']);
@@ -200,16 +208,16 @@ const PIXEL_ARCHITECT_CATALOG_ENTRY = {
   engine_key: 'pixel_architect_v1',
   description: 'Construction 3D collaborative sous contraintes de temps, ressources et communication.',
   rules_objective: {
-    fr: 'Construire une structure 3D en cubes sous contraintes.',
-    en: 'Build a constrained 3D structure with cubes.',
+    fr: getPixelArchitectRulesPreset('fr').objective,
+    en: getPixelArchitectRulesPreset('en').objective,
   },
   rules_facilitator: {
-    fr: ['Démarrez le chrono quand l’équipe est prête.', 'Surveillez les contraintes de cubes et de couleurs.'],
-    en: ['Start the timer once the team is ready.', 'Monitor cube and color constraints.'],
+    fr: [...getPixelArchitectRulesPreset('fr').facilitator],
+    en: [...getPixelArchitectRulesPreset('en').facilitator],
   },
   rules_participant: {
-    fr: ['Communiquez clairement.', 'Respectez la limite de ressources.', 'Contribuez à la structure finale.'],
-    en: ['Communicate clearly.', 'Respect resource limits.', 'Contribute to the final structure.'],
+    fr: [...getPixelArchitectRulesPreset('fr').participant, ...getPixelArchitectRulesPreset('fr').scoring],
+    en: [...getPixelArchitectRulesPreset('en').participant, ...getPixelArchitectRulesPreset('en').scoring],
   },
   rules_footnote: {
     fr: '',
@@ -253,16 +261,16 @@ const THE_QUIZ_CATALOG_ENTRY = {
   engine_key: 'the_quiz_v1',
   description: 'Quiz multijoueur en temps reel avec timer, reponses verrouillees et leaderboard dynamique.',
   rules_objective: {
-    fr: 'Repondre vite et correctement pour monter au classement live.',
-    en: 'Answer quickly and accurately to climb the live leaderboard.',
+    fr: getTheQuizRulesPreset('fr').objective,
+    en: getTheQuizRulesPreset('en').objective,
   },
   rules_facilitator: {
-    fr: ['Lancez la session quand les participants sont prets.', 'Cadrez le rythme entre les manches.'],
-    en: ['Start the session when participants are ready.', 'Set the pace between rounds.'],
+    fr: [...getTheQuizRulesPreset('fr').facilitator],
+    en: [...getTheQuizRulesPreset('en').facilitator],
   },
   rules_participant: {
-    fr: ['Validez une seule reponse par question.', 'Restez attentif au chrono et au leaderboard.'],
-    en: ['Submit one answer per question.', 'Keep an eye on the timer and leaderboard.'],
+    fr: [...getTheQuizRulesPreset('fr').participant, ...getTheQuizRulesPreset('fr').scoring],
+    en: [...getTheQuizRulesPreset('en').participant, ...getTheQuizRulesPreset('en').scoring],
   },
   rules_footnote: {
     fr: '',
@@ -292,6 +300,103 @@ const THE_QUIZ_CATALOG_ENTRY = {
   },
 };
 
+const PHRASE_MYSTERE_CATALOG_ENTRY = {
+  id: 'phrase_collaborative_001',
+  name: 'Phrase Mystère',
+  type: 'equipe',
+  status: 'actif',
+  source: 'local',
+  category: 'logique-reflexion',
+  objectives: ['collaboration', 'communication', 'intelligence-collective'],
+  duration: '15-25 min',
+  engine_key: 'phrase_collaborative_v1',
+  description: getPhraseMystereRulesPreset('fr').objective,
+  rules_objective: {
+    fr: getPhraseMystereRulesPreset('fr').objective,
+    en: getPhraseMystereRulesPreset('en').objective,
+  },
+  rules_facilitator: {
+    fr: [...getPhraseMystereRulesPreset('fr').facilitator],
+    en: [...getPhraseMystereRulesPreset('en').facilitator],
+  },
+  rules_participant: {
+    fr: [...getPhraseMystereRulesPreset('fr').participant, ...getPhraseMystereRulesPreset('fr').hints, ...getPhraseMystereRulesPreset('fr').scoring],
+    en: [...getPhraseMystereRulesPreset('en').participant, ...getPhraseMystereRulesPreset('en').hints, ...getPhraseMystereRulesPreset('en').scoring],
+  },
+  rules_footnote: {
+    fr: '',
+    en: '',
+  },
+  engine_config: {
+    participants: {
+      min_count: 3,
+      recommended_count: 6,
+      max_count: 12,
+    },
+    modeVisionLimitee: true,
+    modeCommunication: 'libre',
+    chat: {
+      enabled: true,
+    },
+    timer: {
+      enabled: true,
+      duration_seconds: 900,
+    },
+  },
+};
+
+const COPUZZLE_CATALOG_ENTRY = {
+  id: 'copuzzle_001',
+  name: 'CoPuzzle Live',
+  type: 'equipe',
+  status: 'actif',
+  source: 'local',
+  category: 'escape-game',
+  objectives: ['collaboration', 'communication', 'intelligence-collective'],
+  duration: '15-25 min',
+  engine_key: 'copuzzle_live_v1',
+  description: getCopuzzleRulesPreset('fr').objective,
+  rules_objective: {
+    fr: getCopuzzleRulesPreset('fr').objective,
+    en: getCopuzzleRulesPreset('en').objective,
+  },
+  rules_facilitator: {
+    fr: [...getCopuzzleRulesPreset('fr').facilitator],
+    en: [...getCopuzzleRulesPreset('en').facilitator],
+  },
+  rules_participant: {
+    fr: [...getCopuzzleRulesPreset('fr').participant, ...getCopuzzleRulesPreset('fr').scoring],
+    en: [...getCopuzzleRulesPreset('en').participant, ...getCopuzzleRulesPreset('en').scoring],
+  },
+  rules_footnote: {
+    fr: '',
+    en: '',
+  },
+  engine_config: {
+    participants: {
+      min_count: 2,
+      recommended_count: 4,
+      max_count: 8,
+    },
+    image_source_mode: 'defaults',
+    grid: {
+      rows: 4,
+      cols: 4,
+    },
+    timer: {
+      enabled: true,
+      duration_seconds: 1200,
+      warning_threshold_seconds: 60,
+    },
+    chat: {
+      enabled: true,
+    },
+    participants: {
+      show_reference_image: true,
+    },
+  },
+};
+
 function ensurePixelArchitectChallenge(challenges) {
   const list = Array.isArray(challenges) ? [...challenges] : [];
   const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'pixel_architect_v1');
@@ -305,6 +410,25 @@ function ensurePixelArchitectChallenge(challenges) {
         ...PIXEL_ARCHITECT_CATALOG_ENTRY.engine_config,
         ...(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {}),
       },
+    };
+
+    const rulesPresetFr = getPixelArchitectRulesPreset('fr');
+    const rulesPresetEn = getPixelArchitectRulesPreset('en');
+    list[existingIndex].rules_objective = {
+      fr: rulesPresetFr.objective,
+      en: rulesPresetEn.objective,
+    };
+    list[existingIndex].rules_facilitator = {
+      fr: [...rulesPresetFr.facilitator],
+      en: [...rulesPresetEn.facilitator],
+    };
+    list[existingIndex].rules_participant = {
+      fr: [...rulesPresetFr.participant, ...rulesPresetFr.scoring],
+      en: [...rulesPresetEn.participant, ...rulesPresetEn.scoring],
+    };
+    list[existingIndex].rules_footnote = {
+      fr: rulesPresetFr.footnote,
+      en: rulesPresetEn.footnote,
     };
     return list;
   }
@@ -326,14 +450,327 @@ function ensureTheQuizChallenge(challenges) {
         ...(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {}),
       },
     };
+
+    const rulesPresetFr = getTheQuizRulesPreset('fr');
+    const rulesPresetEn = getTheQuizRulesPreset('en');
+    list[existingIndex].rules_objective = {
+      fr: rulesPresetFr.objective,
+      en: rulesPresetEn.objective,
+    };
+    list[existingIndex].rules_facilitator = {
+      fr: [...rulesPresetFr.facilitator],
+      en: [...rulesPresetEn.facilitator],
+    };
+    list[existingIndex].rules_participant = {
+      fr: [...rulesPresetFr.participant, ...rulesPresetFr.scoring],
+      en: [...rulesPresetEn.participant, ...rulesPresetEn.scoring],
+    };
+    list[existingIndex].rules_footnote = {
+      fr: rulesPresetFr.footnote,
+      en: rulesPresetEn.footnote,
+    };
     return list;
   }
 
   return [...list, THE_QUIZ_CATALOG_ENTRY];
 }
 
+function ensurePhraseMystereChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'phrase_collaborative_v1');
+
+  if (existingIndex >= 0) {
+    const current = list[existingIndex] || {};
+    list[existingIndex] = {
+      ...PHRASE_MYSTERE_CATALOG_ENTRY,
+      ...current,
+      engine_config: {
+        ...PHRASE_MYSTERE_CATALOG_ENTRY.engine_config,
+        ...(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {}),
+      },
+    };
+
+    const rulesPresetFr = getPhraseMystereRulesPreset('fr');
+    const rulesPresetEn = getPhraseMystereRulesPreset('en');
+    list[existingIndex].rules_objective = {
+      fr: rulesPresetFr.objective,
+      en: rulesPresetEn.objective,
+    };
+    list[existingIndex].rules_facilitator = {
+      fr: [...rulesPresetFr.facilitator],
+      en: [...rulesPresetEn.facilitator],
+    };
+    list[existingIndex].rules_participant = {
+      fr: [...rulesPresetFr.participant, ...rulesPresetFr.hints, ...rulesPresetFr.scoring],
+      en: [...rulesPresetEn.participant, ...rulesPresetEn.hints, ...rulesPresetEn.scoring],
+    };
+    list[existingIndex].rules_footnote = {
+      fr: rulesPresetFr.footnote,
+      en: rulesPresetEn.footnote,
+    };
+    return list;
+  }
+
+  return [...list, PHRASE_MYSTERE_CATALOG_ENTRY];
+}
+
+function ensureCopuzzleChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'copuzzle_live_v1');
+
+  if (existingIndex >= 0) {
+    const current = list[existingIndex] || {};
+    list[existingIndex] = {
+      ...COPUZZLE_CATALOG_ENTRY,
+      ...current,
+      engine_config: {
+        ...COPUZZLE_CATALOG_ENTRY.engine_config,
+        ...(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {}),
+      },
+    };
+
+    const rulesPresetFr = getCopuzzleRulesPreset('fr');
+    const rulesPresetEn = getCopuzzleRulesPreset('en');
+    list[existingIndex].rules_objective = {
+      fr: rulesPresetFr.objective,
+      en: rulesPresetEn.objective,
+    };
+    list[existingIndex].rules_facilitator = {
+      fr: [...rulesPresetFr.facilitator],
+      en: [...rulesPresetEn.facilitator],
+    };
+    list[existingIndex].rules_participant = {
+      fr: [...rulesPresetFr.participant, ...rulesPresetFr.scoring],
+      en: [...rulesPresetEn.participant, ...rulesPresetEn.scoring],
+    };
+    list[existingIndex].rules_footnote = {
+      fr: rulesPresetFr.footnote,
+      en: rulesPresetEn.footnote,
+    };
+    return list;
+  }
+
+  return [...list, COPUZZLE_CATALOG_ENTRY];
+}
+
+function ensureLabyrintheSignalsChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'labyrinthe_live_v1');
+
+  if (existingIndex < 0) {
+    return list;
+  }
+
+  const current = list[existingIndex] || {};
+  const presetFr = getLabyrintheRulesPreset('fr');
+  const presetEn = getLabyrintheRulesPreset('en');
+  const existingConfig = current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {};
+  const existingParticipants = existingConfig.participants && typeof existingConfig.participants === 'object'
+    ? existingConfig.participants
+    : {};
+  const existingRules = existingConfig.rules && typeof existingConfig.rules === 'object' ? existingConfig.rules : {};
+
+  list[existingIndex] = {
+    ...current,
+    name: String(current?.name || '').trim() || presetFr.challengeName,
+    engine_config: {
+      ...existingConfig,
+      participants: {
+        ...existingParticipants,
+        min_count: existingParticipants.min_count || 2,
+        recommended_count: existingParticipants.recommended_count || 4,
+        max_count: existingParticipants.max_count || 6,
+      },
+      rules: {
+        ...existingRules,
+        preset_key: LABYRINTHE_RULES_PRESET_KEY,
+        objective: {
+          fr: presetFr.objective,
+          en: presetEn.objective,
+        },
+        facilitator: {
+          fr: presetFr.facilitator,
+          en: presetEn.facilitator,
+        },
+        participant: {
+          fr: presetFr.participant,
+          en: presetEn.participant,
+        },
+        footnote: {
+          fr: presetFr.footnote,
+          en: presetEn.footnote,
+        },
+      },
+    },
+  };
+
+  return list;
+}
+
+function ensureVraiOuMensongeChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'vrai_ou_mensonge_v1');
+
+  if (existingIndex < 0) {
+    return list;
+  }
+
+  const current = list[existingIndex] || {};
+  const presetFr = getVraiOuMensongeRulesPreset('fr');
+  const presetEn = getVraiOuMensongeRulesPreset('en');
+  const existingConfig = current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {};
+  const existingParticipants = existingConfig.participants && typeof existingConfig.participants === 'object'
+    ? existingConfig.participants
+    : {};
+  const existingRules = existingConfig.rules && typeof existingConfig.rules === 'object' ? existingConfig.rules : {};
+
+  list[existingIndex] = {
+    ...current,
+    name: String(current?.name || '').trim() || presetFr.challengeName,
+    engine_config: {
+      ...existingConfig,
+      participants: {
+        ...existingParticipants,
+        min_count: existingParticipants.min_count || 2,
+        recommended_count: existingParticipants.recommended_count || 4,
+        max_count: existingParticipants.max_count || 6,
+      },
+      rules: {
+        ...existingRules,
+        preset_key: VRAI_OU_MENSONGE_RULES_PRESET_KEY,
+        objective: {
+          fr: presetFr.objective,
+          en: presetEn.objective,
+        },
+        facilitator: {
+          fr: presetFr.facilitator,
+          en: presetEn.facilitator,
+        },
+        participant: {
+          fr: [...presetFr.participant, ...presetFr.scoring],
+          en: [...presetEn.participant, ...presetEn.scoring],
+        },
+        footnote: {
+          fr: presetFr.footnote,
+          en: presetEn.footnote,
+        },
+      },
+    },
+  };
+
+  return list;
+}
+
+function ensureMissionCritiqueChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'mission_critique_v1');
+
+  if (existingIndex < 0) {
+    return list;
+  }
+
+  const current = list[existingIndex] || {};
+  const presetFr = getMissionCritiqueRulesPreset('fr');
+  const presetEn = getMissionCritiqueRulesPreset('en');
+  const existingConfig = current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {};
+  const existingParticipants = existingConfig.participants && typeof existingConfig.participants === 'object'
+    ? existingConfig.participants
+    : {};
+  const existingRules = existingConfig.rules && typeof existingConfig.rules === 'object' ? existingConfig.rules : {};
+
+  list[existingIndex] = {
+    ...current,
+    name: String(current?.name || '').trim() || presetFr.challengeName,
+    engine_config: {
+      ...existingConfig,
+      participants: {
+        ...existingParticipants,
+        min_count: existingParticipants.min_count || 2,
+        recommended_count: existingParticipants.recommended_count || 4,
+        max_count: existingParticipants.max_count || 6,
+      },
+      rules: {
+        ...existingRules,
+        preset_key: MISSION_CRITIQUE_RULES_PRESET_KEY,
+        objective: {
+          fr: presetFr.objective,
+          en: presetEn.objective,
+        },
+        facilitator: {
+          fr: presetFr.facilitator,
+          en: presetEn.facilitator,
+        },
+        participant: {
+          fr: [...presetFr.participant, ...presetFr.scoring],
+          en: [...presetEn.participant, ...presetEn.scoring],
+        },
+        footnote: {
+          fr: presetFr.footnote,
+          en: presetEn.footnote,
+        },
+      },
+    },
+  };
+
+  return list;
+}
+
+function ensureEscapeRoomChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'escape_room_v1');
+
+  if (existingIndex < 0) {
+    return list;
+  }
+
+  const current = list[existingIndex] || {};
+  const presetFr = getEscapeRoomRulesPreset('fr');
+  const presetEn = getEscapeRoomRulesPreset('en');
+  const existingConfig = current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {};
+  const existingParticipants = existingConfig.participants && typeof existingConfig.participants === 'object'
+    ? existingConfig.participants
+    : {};
+  const existingRules = existingConfig.rules && typeof existingConfig.rules === 'object' ? existingConfig.rules : {};
+
+  list[existingIndex] = {
+    ...current,
+    name: String(current?.name || '').trim() || presetFr.challengeName,
+    engine_config: {
+      ...existingConfig,
+      participants: {
+        ...existingParticipants,
+        min_count: existingParticipants.min_count || 2,
+        recommended_count: existingParticipants.recommended_count || 4,
+        max_count: existingParticipants.max_count || 6,
+      },
+      rules: {
+        ...existingRules,
+        preset_key: ESCAPE_ROOM_RULES_PRESET_KEY,
+        objective: {
+          fr: presetFr.objective,
+          en: presetEn.objective,
+        },
+        facilitator: {
+          fr: presetFr.facilitator,
+          en: presetEn.facilitator,
+        },
+        participant: {
+          fr: [...presetFr.participant, ...presetFr.scoring],
+          en: [...presetEn.participant, ...presetEn.scoring],
+        },
+        footnote: {
+          fr: presetFr.footnote,
+          en: presetEn.footnote,
+        },
+      },
+    },
+  };
+
+  return list;
+}
+
 function ensureAdminCatalogChallenges(challenges) {
-  return ensureTheQuizChallenge(ensurePixelArchitectChallenge(challenges));
+  return ensureEscapeRoomChallenge(ensureMissionCritiqueChallenge(ensureVraiOuMensongeChallenge(ensureLabyrintheSignalsChallenge(ensureTheQuizChallenge(ensurePhraseMystereChallenge(ensureCopuzzleChallenge(ensurePixelArchitectChallenge(challenges)))))))));
 }
 
 function toPositiveIntOrNull(value) {
@@ -573,6 +1010,14 @@ function parseRulesTextarea(value) {
     .filter(Boolean);
 }
 
+function resolveLocalizedRuleValue(value, locale) {
+  if (value == null) return value;
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    return value[locale] ?? value.fr ?? value.en ?? '';
+  }
+  return value;
+}
+
 function buildChallengeRulesPayload(draft) {
   const objective = String(draft?.rules_objective || '').trim();
   const facilitator = parseRulesTextarea(draft?.rules_facilitator);
@@ -593,9 +1038,29 @@ function buildChallengeRulesPayload(draft) {
 function mergeChallengeRulesIntoEngineConfig(engineConfig, draft) {
   const nextEngineConfig = cloneJson(engineConfig, {}) || {};
   const rules = buildChallengeRulesPayload(draft);
+  const localeKey = draft?.locale === 'en' ? 'en' : 'fr';
+  const previousRules = nextEngineConfig.rules && typeof nextEngineConfig.rules === 'object'
+    ? nextEngineConfig.rules
+    : {};
+
+  const toLocalizedRuleObject = (currentValue, nextValue) => {
+    const current = currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)
+      ? currentValue
+      : { fr: currentValue ?? '', en: currentValue ?? '' };
+    return {
+      fr: localeKey === 'fr' ? nextValue : (current.fr ?? ''),
+      en: localeKey === 'en' ? nextValue : (current.en ?? ''),
+    };
+  };
 
   if (rules) {
-    nextEngineConfig.rules = rules;
+    nextEngineConfig.rules = {
+      ...previousRules,
+      objective: toLocalizedRuleObject(previousRules.objective, rules.objective),
+      facilitator: toLocalizedRuleObject(previousRules.facilitator, rules.facilitator),
+      participant: toLocalizedRuleObject(previousRules.participant, rules.participant),
+      footnote: toLocalizedRuleObject(previousRules.footnote, rules.footnote),
+    };
   } else if (nextEngineConfig.rules && typeof nextEngineConfig.rules === 'object') {
     delete nextEngineConfig.rules;
   }
@@ -2008,7 +2473,7 @@ export default function AdminClient() {
     try {
       const normalizedObjectives = normalizeObjectivesInput(newChallenge.objectives);
       const engineConfig = applyPlayerRangeToEngineConfig(
-        mergeChallengeRulesIntoEngineConfig({}, newChallenge),
+        mergeChallengeRulesIntoEngineConfig({}, { ...newChallenge, locale: isEn ? 'en' : 'fr' }),
         newChallenge
       );
       const response = await fetch(getApiUrl('/challenges'), {
@@ -2072,10 +2537,14 @@ export default function AdminClient() {
       engine_key: challengeItem.engine_key || '',
       description: challengeItem.description || '',
       engine_config: normalizedEngineConfig,
-      rules_objective: String(rulesSource.objective || ''),
-      rules_facilitator: Array.isArray(rulesSource.facilitator) ? rulesSource.facilitator.join('\n') : '',
-      rules_participant: Array.isArray(rulesSource.participant) ? rulesSource.participant.join('\n') : '',
-      rules_footnote: String(rulesSource.footnote || ''),
+      rules_objective: String(resolveLocalizedRuleValue(rulesSource.objective, isEn ? 'en' : 'fr') || ''),
+      rules_facilitator: Array.isArray(resolveLocalizedRuleValue(rulesSource.facilitator, isEn ? 'en' : 'fr'))
+        ? resolveLocalizedRuleValue(rulesSource.facilitator, isEn ? 'en' : 'fr').join('\n')
+        : '',
+      rules_participant: Array.isArray(resolveLocalizedRuleValue(rulesSource.participant, isEn ? 'en' : 'fr'))
+        ? resolveLocalizedRuleValue(rulesSource.participant, isEn ? 'en' : 'fr').join('\n')
+        : '',
+      rules_footnote: String(resolveLocalizedRuleValue(rulesSource.footnote, isEn ? 'en' : 'fr') || ''),
       player_min: playerRange.min || '',
       player_recommended: playerRange.recommended || '',
       player_max: playerRange.max || '',
@@ -2277,7 +2746,7 @@ export default function AdminClient() {
     try {
       const normalizedObjectives = normalizeObjectivesInput(editingChallenge.objectives);
       const engineConfig = applyPlayerRangeToEngineConfig(
-        mergeChallengeRulesIntoEngineConfig(editingChallenge.engine_config || {}, editingChallenge),
+        mergeChallengeRulesIntoEngineConfig(editingChallenge.engine_config || {}, { ...editingChallenge, locale: isEn ? 'en' : 'fr' }),
         editingChallenge
       );
       const response = await fetch(getApiUrl(`/challenges/${editingChallenge.id}`), {

@@ -6,7 +6,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
-import { resolveChallengeRules } from '@/lib/challenges/rules';
+import { getPixelArchitectRulesPreset } from '@/lib/challenges/pixelArchitectRules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -105,6 +105,7 @@ function normalizeServerCubes(cubesMap) {
 export default function PixelArchitectChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
   const isEn = locale === 'en';
+  const rulesPreset = useMemo(() => getPixelArchitectRulesPreset(locale), [locale]);
   const mountRef = useRef(null);
   const modelPreviewRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -192,10 +193,19 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     return 'Participant';
   }, [runtimePayload, context]);
 
-  const rulesContent = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config, undefined, locale),
-    [runtimePayload?.config, state?.config, locale]
-  );
+  const rulesContent = useMemo(() => ({
+    objective: rulesPreset.objective,
+    facilitator: [...rulesPreset.facilitator],
+    participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+    footnote: rulesPreset.footnote,
+  }), [rulesPreset]);
+  const challengeName = String(rulesPreset?.challengeName || 'Pixel Architect').trim();
+  const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
+  const rulesParticipantsMeta = useMemo(() => ({
+    min: rulesPreset.participants.min,
+    recommended: rulesPreset.participants.recommended,
+    max: rulesPreset.participants.max,
+  }), [rulesPreset]);
 
   const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat } = useChallengeChat({
     socket,
@@ -892,8 +902,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   return (
     <div className={styles.container}>
       <ChallengeHeader
-        title="Pixel Architect"
-        subtitle={isEn ? 'Replicate the model together in real time with grid and palette constraints.' : 'Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette.'}
+        title={challengeName}
+        subtitle={challengeSubtitle || (isEn ? 'Replicate the model together in real time with grid and palette constraints.' : 'Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette.')}
       />
 
       <div className={styles.layout}>
@@ -902,8 +912,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             <ChallengeRulesPanel
               isStarted={false}
               isFacilitator={isFacilitator}
-              challengeName="Pixel Architect"
+              challengeName={challengeName}
               objective={rulesContent.objective}
+              participantsMeta={rulesParticipantsMeta}
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
@@ -1048,8 +1059,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               isStarted={hasChallengeStarted}
               isFacilitator={isFacilitator}
               showPrestartCard={false}
-              challengeName="Pixel Architect"
+              challengeName={challengeName}
               objective={rulesContent.objective}
+              participantsMeta={rulesParticipantsMeta}
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}

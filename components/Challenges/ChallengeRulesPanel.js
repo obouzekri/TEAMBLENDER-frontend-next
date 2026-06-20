@@ -11,6 +11,7 @@ export default function ChallengeRulesPanel({
   challengeName,
   briefTitle,
   objective,
+  participantsMeta = null,
   facilitatorRules = [],
   participantRules = [],
   footnote = '',
@@ -22,7 +23,7 @@ export default function ChallengeRulesPanel({
   compactStartButton = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const isEn = locale === 'en';
 
   useBodyScrollLock(isOpen);
@@ -49,21 +50,41 @@ export default function ChallengeRulesPanel({
   }, [isOpen]);
 
   const canStartFromRules = !isStarted && isFacilitator && typeof onStart === 'function';
-  const resolvedBriefTitle = briefTitle || (isEn ? 'Mission brief' : 'Brief de mission');
-  const resolvedStartLabel = startLabel || (isEn ? 'Start challenge' : 'Démarrer le challenge');
-  const facilitatorLabel = isEn ? 'Facilitator' : 'Facilitateur';
-  const participantLabel = isEn ? 'Participants' : 'Participants';
+  const resolvedBriefTitle = briefTitle || t('challengeRulesPanel.briefTitle');
+  const resolvedStartLabel = startLabel || t('challengeRulesPanel.startChallenge');
+  const facilitatorLabel = t('challengeRulesPanel.facilitator');
+  const participantLabel = t('challengeRulesPanel.participants');
+  const participantsRows = [
+    { key: 'min', label: t('challengeRulesPanel.min'), value: participantsMeta?.min || '' },
+    { key: 'recommended', label: t('challengeRulesPanel.recommended'), value: participantsMeta?.recommended || '' },
+    { key: 'max', label: t('challengeRulesPanel.max'), value: participantsMeta?.max || '' },
+  ].filter((entry) => String(entry.value || '').trim());
 
   const cardContent = (
     <>
       <header className={styles.rulesHeader}>
-        <h2 className="challenge-section-title">{challengeName} - {resolvedBriefTitle}</h2>
+        <p className={styles.rulesKicker}>📜 {t('challengeRulesPanel.kicker')}</p>
+        <h2 className="challenge-section-title">{challengeName}</h2>
+        <h3 className={styles.rulesBriefTitle}>{resolvedBriefTitle}</h3>
         <p className="challenge-text">{objective}</p>
       </header>
 
+      {participantsRows.length > 0 ? (
+        <section className={styles.rulesSection}>
+          <h3 className="challenge-section-title">👥 {participantLabel}</h3>
+          <ul className={styles.metaList}>
+            {participantsRows.map((item) => (
+              <li key={`meta-${item.key}`}>
+                <strong>{item.label} :</strong> {item.value}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {isFacilitator ? (
         <section className={styles.rulesSection}>
-          <h3 className="challenge-section-title">{facilitatorLabel}</h3>
+          <h3 className="challenge-section-title">🎯 {facilitatorLabel}</h3>
           <ul>
             {facilitatorRules.map((rule) => (
               <li key={`facilitator-${rule}`}>{rule}</li>
@@ -73,7 +94,7 @@ export default function ChallengeRulesPanel({
       ) : null}
 
       <section className={`${styles.rulesSection} ${styles.rulesSectionParticipant}`}>
-        <h3 className="challenge-section-title">{participantLabel}</h3>
+        <h3 className="challenge-section-title">🧭 {participantLabel}</h3>
         <ul>
           {participantRules.map((rule) => (
             <li key={`participant-${rule}`}>{rule}</li>
@@ -115,7 +136,7 @@ export default function ChallengeRulesPanel({
         className={styles.rulesButton}
         onClick={() => setIsOpen(true)}
       >
-        {isEn ? 'Show rules' : 'Afficher les règles'}
+        📜 {t('challengeRulesPanel.showRules')}
       </button>
 
       {isOpen ? (
@@ -128,9 +149,9 @@ export default function ChallengeRulesPanel({
             onClick={(event) => event.stopPropagation()}
           >
             <header className={styles.modalHead}>
-              <h2 id="challenge-rules-modal-title">{isEn ? 'Rules' : 'Règles'} - {challengeName}</h2>
-              <button type="button" className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label={isEn ? 'Close rules' : 'Fermer les règles'}>
-                {isEn ? 'Close' : 'Fermer'}
+              <h2 id="challenge-rules-modal-title">{t('challengeRulesPanel.modalTitle', { challengeName })}</h2>
+              <button type="button" className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label={t('challengeRulesPanel.closeRules')}>
+                {t('challengeRulesPanel.closeRules')}
               </button>
             </header>
             {cardContent}

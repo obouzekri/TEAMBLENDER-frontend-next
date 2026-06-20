@@ -6,7 +6,7 @@ import { getApiUrl, normalizeBackendAssetUrl } from '@/lib/config';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
-import { resolveChallengeRules } from '@/lib/challenges/rules';
+import { getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -143,6 +143,7 @@ export default function EscapeRoomChallenge({
   onChallengeCompleted,
 }) {
   const { locale } = useI18n();
+  const rulesPreset = useMemo(() => getEscapeRoomRulesPreset(locale), [locale]);
   const [state, setState] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [answer, setAnswer] = useState('');
@@ -394,10 +395,19 @@ export default function EscapeRoomChallenge({
   const enigmeImageSrc = normalizeBackendAssetUrl(String(currentEnigme?.image?.src || '').trim());
   const challengeStatus = String(state?.status || '').trim();
   const hasChallengeStarted = challengeStatus !== 'waiting_for_start';
-  const rulesContent = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config, undefined, locale),
-    [runtimePayload?.config, state?.config, locale]
-  );
+  const rulesContent = useMemo(() => ({
+    objective: rulesPreset.objective,
+    facilitator: [...rulesPreset.facilitator],
+    participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+    footnote: rulesPreset.footnote,
+  }), [rulesPreset]);
+  const challengeName = String(rulesPreset?.challengeName || 'Salle Secrète').trim();
+  const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
+  const rulesParticipantsMeta = useMemo(() => ({
+    min: rulesPreset.participants.min,
+    recommended: rulesPreset.participants.recommended,
+    max: rulesPreset.participants.max,
+  }), [rulesPreset]);
   const canStartTimer = isFacilitator && challengeStatus === 'waiting_for_start' && !busyAction;
   const isTimerRunning = challengeStatus === 'in_progress';
 
@@ -505,8 +515,8 @@ export default function EscapeRoomChallenge({
   return (
     <div className={styles.escapeRoomContainer}>
       <ChallengeHeader
-        title="Escape Room"
-        subtitle="Résolvez les énigmes en équipe, avec validation collective"
+        title={challengeName}
+        subtitle={challengeSubtitle || 'Résolvez les énigmes en équipe, avec validation collective'}
         className={styles.escapeHeader}
       />
 
@@ -516,8 +526,9 @@ export default function EscapeRoomChallenge({
             <ChallengeRulesPanel
               isStarted={false}
               isFacilitator={isFacilitator}
-              challengeName="Escape Room"
+              challengeName={challengeName}
               objective={rulesContent.objective}
+              participantsMeta={rulesParticipantsMeta}
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
@@ -681,8 +692,9 @@ export default function EscapeRoomChallenge({
             isStarted={hasChallengeStarted}
             isFacilitator={isFacilitator}
             showPrestartCard={false}
-            challengeName="Escape Room"
+            challengeName={challengeName}
             objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
             facilitatorRules={rulesContent.facilitator}
             participantRules={rulesContent.participant}
             footnote={rulesContent.footnote}

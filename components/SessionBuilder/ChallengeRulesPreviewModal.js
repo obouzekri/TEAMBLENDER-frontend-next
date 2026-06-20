@@ -3,11 +3,59 @@
 import { useEffect } from 'react';
 import { resolveChallengeRules } from '@/lib/challenges/rules';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
+import { getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
+import { getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
+import { getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRules';
+import { getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueRules';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './ChallengeRulesPreviewModal.module.css';
 
 function getFallbackRules(challenge, locale) {
+  const isLabyrinthe = String(challenge?.engine_key || '').trim() === 'labyrinthe_live_v1';
+  const isVom = String(challenge?.engine_key || '').trim() === 'vrai_ou_mensonge_v1';
+  const isMissionCritique = String(challenge?.engine_key || '').trim() === 'mission_critique_v1';
+  const isEscapeRoom = String(challenge?.engine_key || '').trim() === 'escape_room_v1';
+  if (isLabyrinthe) {
+    const preset = getLabyrintheRulesPreset(locale);
+    return {
+      objective: preset.objective,
+      facilitator: preset.facilitator,
+      participant: preset.participant,
+      footnote: preset.footnote,
+    };
+  }
+
+  if (isVom) {
+    const preset = getVraiOuMensongeRulesPreset(locale);
+    return {
+      objective: preset.objective,
+      facilitator: preset.facilitator,
+      participant: [...preset.participant, ...preset.scoring],
+      footnote: preset.footnote,
+    };
+  }
+
+  if (isMissionCritique) {
+    const preset = getMissionCritiqueRulesPreset(locale);
+    return {
+      objective: preset.objective,
+      facilitator: preset.facilitator,
+      participant: [...preset.participant, ...preset.scoring],
+      footnote: preset.footnote,
+    };
+  }
+
+  if (isEscapeRoom) {
+    const preset = getEscapeRoomRulesPreset(locale);
+    return {
+      objective: preset.objective,
+      facilitator: preset.facilitator,
+      participant: [...preset.participant, ...preset.scoring],
+      footnote: preset.footnote,
+    };
+  }
+
   const description = String(challenge?.description || '').trim();
   const isEn = locale === 'en';
   return {
@@ -25,7 +73,7 @@ function getFallbackRules(challenge, locale) {
 }
 
 export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   useBodyScrollLock(true);
 
   useEffect(() => {
@@ -42,6 +90,14 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
   const rules = resolveChallengeRules(challenge?.config || challenge?.engine_config || {}, getFallbackRules(challenge, locale));
   const duration = Number(challenge?.duration || challenge?.config?.duration_minutes || 0);
   const playerRange = resolveChallengePlayerRange(challenge);
+  const isLabyrinthe = String(challenge?.engine_key || '').trim() === 'labyrinthe_live_v1';
+  const isVom = String(challenge?.engine_key || '').trim() === 'vrai_ou_mensonge_v1';
+  const isMissionCritique = String(challenge?.engine_key || '').trim() === 'mission_critique_v1';
+  const isEscapeRoom = String(challenge?.engine_key || '').trim() === 'escape_room_v1';
+  const labyrintheParticipants = isLabyrinthe ? getLabyrintheRulesPreset(locale).participants : null;
+  const vomParticipants = isVom ? getVraiOuMensongeRulesPreset(locale).participants : null;
+  const missionCritiqueParticipants = isMissionCritique ? getMissionCritiqueRulesPreset(locale).participants : null;
+  const escapeRoomParticipants = isEscapeRoom ? getEscapeRoomRulesPreset(locale).participants : null;
 
   const modalTitleId = 'challenge-rules-preview-title';
   const isEn = locale === 'en';
@@ -57,29 +113,45 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
       >
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>{isEn ? '📜 View rules' : '📜 Voir les règles'}</p>
+            <p className={styles.kicker}>📜 {t('challengeRulesPanel.kicker')}</p>
             <h2 id={modalTitleId}>{challenge?.name || (isEn ? 'Activity' : 'Activité')}</h2>
-            <p className={styles.duration}>{duration > 0 ? `${isEn ? 'Average duration' : 'Durée moyenne'}: ${duration} min` : (isEn ? 'Average duration to be confirmed' : 'Durée moyenne à confirmer')}</p>
+            <p className={styles.duration}>{duration > 0 ? `${t('challengeRulesPanel.averageDuration')}: ${duration} min` : t('challengeRulesPanel.averageDurationUnknown')}</p>
             {playerRange.hasRange ? (
               <p className={styles.playersLine}>
-                {isEn
-                  ? `Min: ${playerRange.min || '-'} · Recommended: ${playerRange.recommended || '-'} · Max: ${playerRange.max || '-'} players`
-                  : `Min : ${playerRange.min || '-'} · Recommandé : ${playerRange.recommended || '-'} · Max : ${playerRange.max || '-'} joueurs`}
+                {isLabyrinthe
+                  ? (isEn
+                    ? `${t('challengeRulesPanel.min')}: ${labyrintheParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')}: ${labyrintheParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')}: ${labyrintheParticipants?.max || '-'}`
+                    : `${t('challengeRulesPanel.min')} : ${labyrintheParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')} : ${labyrintheParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')} : ${labyrintheParticipants?.max || '-'}`)
+                  : isVom
+                    ? (isEn
+                      ? `${t('challengeRulesPanel.min')}: ${vomParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')}: ${vomParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')}: ${vomParticipants?.max || '-'}`
+                      : `${t('challengeRulesPanel.min')} : ${vomParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')} : ${vomParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')} : ${vomParticipants?.max || '-'}`)
+                  : isMissionCritique
+                    ? (isEn
+                      ? `${t('challengeRulesPanel.min')}: ${missionCritiqueParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')}: ${missionCritiqueParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')}: ${missionCritiqueParticipants?.max || '-'}`
+                      : `${t('challengeRulesPanel.min')} : ${missionCritiqueParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')} : ${missionCritiqueParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')} : ${missionCritiqueParticipants?.max || '-'}`)
+                  : isEscapeRoom
+                    ? (isEn
+                      ? `${t('challengeRulesPanel.min')}: ${escapeRoomParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')}: ${escapeRoomParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')}: ${escapeRoomParticipants?.max || '-'}`
+                      : `${t('challengeRulesPanel.min')} : ${escapeRoomParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')} : ${escapeRoomParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')} : ${escapeRoomParticipants?.max || '-'}`)
+                  : (isEn
+                    ? `Min: ${playerRange.min || '-'} · Recommended: ${playerRange.recommended || '-'} · Max: ${playerRange.max || '-'} ${t('challengeRulesPanel.players')}`
+                    : `Min : ${playerRange.min || '-'} · Recommande : ${playerRange.recommended || '-'} · Max : ${playerRange.max || '-'} ${t('challengeRulesPanel.players')}`)}
               </p>
             ) : null}
           </div>
-          <button type="button" className={styles.closeButton} onClick={onClose} aria-label={isEn ? 'Close rules window' : 'Fermer la fenêtre des règles'}>
-            {isEn ? 'Close' : 'Fermer'}
+          <button type="button" className={styles.closeButton} onClick={onClose} aria-label={t('challengeRulesPanel.closeRulesWindow')}>
+            {t('challengeRulesPanel.closeRules')}
           </button>
         </header>
 
         <section className={styles.block}>
-          <h3>{isEn ? 'Mission brief' : 'Brief de mission'}</h3>
+          <h3>{t('challengeRulesPanel.briefTitle')}</h3>
           <p>{rules.objective}</p>
         </section>
 
         <section className={styles.block}>
-          <h3>{isEn ? 'Facilitator' : 'Facilitateur'}</h3>
+          <h3>{t('challengeRulesPanel.facilitator')}</h3>
           <ul>
             {rules.facilitator.map((rule) => (
               <li key={`facilitator-${rule}`}>{rule}</li>
@@ -88,7 +160,7 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
         </section>
 
         <section className={styles.block}>
-          <h3>{isEn ? 'Participants' : 'Participants'}</h3>
+          <h3>{t('challengeRulesPanel.participants')}</h3>
           <ul>
             {rules.participant.map((rule) => (
               <li key={`participant-${rule}`}>{rule}</li>

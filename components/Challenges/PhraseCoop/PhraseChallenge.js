@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
-import { resolveChallengeRules } from '@/lib/challenges/rules';
+import { getPhraseMystereRulesPreset } from '@/lib/challenges/phraseMystereRules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -63,6 +63,7 @@ function buildFallbackAvailableWords(slots, participantSlot, fakeWordsBySlot) {
 
 export default function PhraseChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
+  const rulesPreset = useMemo(() => getPhraseMystereRulesPreset(locale), [locale]);
   const [selectedWord, setSelectedWord] = useState('');
   const [draggingWord, setDraggingWord] = useState('');
   const [dragOverSlotIndex, setDragOverSlotIndex] = useState(null);
@@ -140,10 +141,19 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
   const hintBudget = Number(state?.phrase?.hint_budget || 0);
   const hintsUsed = Number(state?.phrase?.hints_used || 0);
   const remainingHints = Math.max(0, hintBudget - hintsUsed);
-  const rulesContent = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config, undefined, locale),
-    [runtimePayload?.config, state?.config, locale]
-  );
+  const rulesContent = useMemo(() => ({
+    objective: rulesPreset.objective,
+    facilitator: [...rulesPreset.facilitator],
+    participant: [...rulesPreset.participant, ...rulesPreset.hints, ...rulesPreset.scoring],
+    footnote: rulesPreset.footnote,
+  }), [rulesPreset]);
+  const challengeName = String(rulesPreset?.challengeName || 'Phrase Mystère').trim();
+  const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
+  const rulesParticipantsMeta = useMemo(() => ({
+    min: rulesPreset.participants.min,
+    recommended: rulesPreset.participants.recommended,
+    max: rulesPreset.participants.max,
+  }), [rulesPreset]);
 
   const {
     chatInput,
@@ -218,8 +228,8 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
   return (
     <div className={styles.phraseContainer}>
       <ChallengeHeader
-        title="Phrase Mystère"
-        subtitle="Reconstituez la phrase en équipe, slot par slot"
+        title={challengeName}
+        subtitle={challengeSubtitle || 'Reconstituez la phrase en équipe, slot par slot'}
       />
 
       <div className={styles.shell}>
@@ -228,8 +238,9 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
             <ChallengeRulesPanel
               isStarted={false}
               isFacilitator={isFacilitator}
-              challengeName="Phrase Mystere"
+              challengeName={challengeName}
               objective={rulesContent.objective}
+              participantsMeta={rulesParticipantsMeta}
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
@@ -350,8 +361,9 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
             isStarted={hasChallengeStarted}
             isFacilitator={isFacilitator}
             showPrestartCard={false}
-            challengeName="Phrase Mystere"
+            challengeName={challengeName}
             objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
             facilitatorRules={rulesContent.facilitator}
             participantRules={rulesContent.participant}
             footnote={rulesContent.footnote}

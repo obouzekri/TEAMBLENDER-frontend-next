@@ -5,7 +5,7 @@ import Image from 'next/image';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
-import { resolveChallengeRules } from '@/lib/challenges/rules';
+import { getCopuzzleRulesPreset } from '@/lib/challenges/copuzzleRules';
 import { normalizeBackendAssetUrl } from '@/lib/config';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
@@ -120,6 +120,7 @@ function computePieceStyle(piece, config, imageUrl) {
 
 export default function CopuzzleChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
+  const rulesPreset = useMemo(() => getCopuzzleRulesPreset(locale), [locale]);
   const [selectedPieceId, setSelectedPieceId] = useState('');
   const [dragOverCellKey, setDragOverCellKey] = useState('');
   const [draggingPieceId, setDraggingPieceId] = useState('');
@@ -168,7 +169,19 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
   );
 
   const chatEnabled = effectiveConfig?.chat?.enabled === true;
-  const rulesContent = useMemo(() => resolveChallengeRules(rawRulesConfig, undefined, locale), [rawRulesConfig, locale]);
+  const rulesContent = useMemo(() => ({
+    objective: rulesPreset.objective,
+    facilitator: [...rulesPreset.facilitator],
+    participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+    footnote: rulesPreset.footnote,
+  }), [rulesPreset]);
+  const challengeName = String(rulesPreset?.challengeName || 'CoPuzzle Live').trim();
+  const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
+  const rulesParticipantsMeta = useMemo(() => ({
+    min: rulesPreset.participants.min,
+    recommended: rulesPreset.participants.recommended,
+    max: rulesPreset.participants.max,
+  }), [rulesPreset]);
 
   const {
     chatInput,
@@ -337,7 +350,7 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
     <div className={`${styles.copuzzleContainer}${isFacilitator ? ` ${styles.facilitatorView}` : ''}`}>
       <ChallengeHeader
         title={effectiveConfig.title}
-        subtitle="Puzzle collaboratif en temps réel"
+        subtitle={challengeSubtitle || 'Puzzle collaboratif en temps réel'}
       />
 
       <div className={styles.shell}>
@@ -346,8 +359,9 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
             <ChallengeRulesPanel
               isStarted={false}
               isFacilitator={isFacilitator}
-              challengeName="CoPuzzle Live"
+              challengeName={challengeName}
               objective={rulesContent.objective}
+              participantsMeta={rulesParticipantsMeta}
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
@@ -483,8 +497,9 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
             isStarted={hasChallengeStarted}
             isFacilitator={isFacilitator}
             showPrestartCard={false}
-            challengeName="CoPuzzle Live"
+            challengeName={challengeName}
             objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
             facilitatorRules={rulesContent.facilitator}
             participantRules={rulesContent.participant}
             footnote={rulesContent.footnote}

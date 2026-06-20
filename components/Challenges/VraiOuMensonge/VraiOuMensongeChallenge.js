@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
-import { resolveChallengeRules } from '@/lib/challenges/rules';
+import { getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -130,44 +130,6 @@ function parseStatementChoices(rawText) {
   };
 }
 
-function buildVomRulesAppend(isEn) {
-  if (isEn) {
-    return {
-      facilitator: Object.freeze([
-        'Each round lasts 40 seconds.',
-        'Flow: the poser chooses or enters a statement, participants vote before the timer ends, then answers are compared automatically.',
-        'Scoring: correct answer +1 point, wrong answer 0 point.',
-        'Poser: if players are fooled +1 point, otherwise 0 point.',
-        'Scores are updated in real time at the end of each round.'
-      ]),
-      participant: Object.freeze([
-        'Each round lasts 40 seconds.',
-        'The poser chooses or enters a statement, then participants vote before the timer ends.',
-        'Scoring: correct answer +1 point, wrong answer 0 point.',
-        'Poser: if players are fooled +1 point, otherwise 0 point.',
-        'Scores are updated in real time after automatic comparison of answers.'
-      ]),
-    };
-  }
-
-  return {
-    facilitator: Object.freeze([
-      'Chaque tour dure 40 secondes.',
-      'Déroulement : le poseur choisit ou saisit son affirmation, les participants votent avant la fin du chrono, puis les réponses sont comparées automatiquement.',
-      'Calcul du score : bonne réponse +1 point, mauvaise réponse 0 point.',
-      'Poseur : si les joueurs sont trompés +1 point, sinon 0 point.',
-      'Les scores sont mis à jour en temps réel à la fin de chaque tour.'
-    ]),
-    participant: Object.freeze([
-      'Chaque tour dure 40 secondes.',
-      'Le poseur choisit ou saisit son affirmation, puis les participants votent avant la fin du chrono.',
-      'Calcul du score : bonne réponse +1 point, mauvaise réponse 0 point.',
-      'Poseur : si les joueurs sont trompés +1 point, sinon 0 point.',
-      'Les scores sont mis à jour en temps réel après comparaison automatique des réponses.'
-    ]),
-  };
-}
-
 export default function VraiOuMensongeChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const [selectedStatementId, setSelectedStatementId] = useState('');
   const [selectedChoicesByStatementId, setSelectedChoicesByStatementId] = useState({});
@@ -289,24 +251,28 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const selectedStatementOption = String(selectedChoicesByStatementId[selectedStatementId] || '');
   const votingChoices = Array.isArray(currentTurn?.statement_options) ? currentTurn.statement_options : [];
   const isChoiceVoting = votingChoices.length > 1;
-  const rulesContent = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config, undefined, locale),
-    [runtimePayload?.config, state?.config, locale]
+  const rulesPreset = useMemo(() => getVraiOuMensongeRulesPreset(locale), [locale]);
+  const rulesContent = useMemo(() => ({
+    objective: rulesPreset.objective,
+    facilitator: [...rulesPreset.facilitator],
+    participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+    footnote: rulesPreset.footnote,
+  }), [rulesPreset]);
+  const challengeName = String(rulesPreset?.challengeName || t('vom.title')).trim();
+  const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
+  const rulesParticipantsMeta = useMemo(() => ({
+    min: rulesPreset.participants.min,
+    recommended: rulesPreset.participants.recommended,
+    max: rulesPreset.participants.max,
+  }), [rulesPreset]);
+  const facilitatorRules = useMemo(
+    () => (Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : []),
+    [rulesContent?.facilitator]
   );
-
-  const vomRulesAppend = useMemo(() => buildVomRulesAppend(locale === 'en'), [locale]);
-
-  const facilitatorRules = useMemo(() => {
-    const baseRules = Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : [];
-    const merged = [...baseRules, ...vomRulesAppend.facilitator];
-    return merged.filter((item, index) => merged.findIndex((candidate) => String(candidate).toLowerCase() === String(item).toLowerCase()) === index);
-  }, [rulesContent?.facilitator, vomRulesAppend.facilitator]);
-
-  const participantRules = useMemo(() => {
-    const baseRules = Array.isArray(rulesContent?.participant) ? rulesContent.participant : [];
-    const merged = [...baseRules, ...vomRulesAppend.participant];
-    return merged.filter((item, index) => merged.findIndex((candidate) => String(candidate).toLowerCase() === String(item).toLowerCase()) === index);
-  }, [rulesContent?.participant, vomRulesAppend.participant]);
+  const participantRules = useMemo(
+    () => (Array.isArray(rulesContent?.participant) ? rulesContent.participant : []),
+    [rulesContent?.participant]
+  );
 
   const poserSelectionOptions = useMemo(() => {
     if (selectedStatementChoices?.options?.length > 1) {
@@ -591,8 +557,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   return (
     <div className={styles.shell}>
       <ChallengeHeader
-        title={t('vom.title')}
-        subtitle={t('vom.subtitle')}
+        title={challengeName || t('vom.title')}
+        subtitle={challengeSubtitle || t('vom.subtitle')}
       />
 
       {error ? <p className={styles.errorBanner}>{error}</p> : null}
@@ -605,8 +571,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             <ChallengeRulesPanel
               isStarted={false}
               isFacilitator={isFacilitator}
-              challengeName={t('vom.title')}
+              challengeName={challengeName || t('vom.title')}
               objective={rulesContent.objective}
+              participantsMeta={rulesParticipantsMeta}
               facilitatorRules={facilitatorRules}
               participantRules={participantRules}
               footnote={rulesContent.footnote}
@@ -854,8 +821,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             isStarted={hasChallengeStarted}
             isFacilitator={isFacilitator}
             showPrestartCard={false}
-            challengeName="Pari sur moi !"
+            challengeName={challengeName || t('vom.title')}
             objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
             facilitatorRules={facilitatorRules}
             participantRules={participantRules}
             footnote={rulesContent.footnote}

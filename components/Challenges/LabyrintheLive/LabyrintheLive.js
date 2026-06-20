@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
-import { resolveChallengeRules } from '@/lib/challenges/rules';
+import { getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -11,27 +11,6 @@ import ChallengeHeader from '../ChallengeHeader';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './Labyrinthe.module.css';
-
-const LABYRINTHE_RULES_FALLBACK = Object.freeze({
-  objective: 'Atteindre la sortie en équipe : chaque joueur qui s\'échappe augmente le score collectif.',
-  facilitator: [
-    'Lancez le chrono une fois tous les participants connectés.',
-    'Chaque participant choisit librement son point de départ (case START) avant son premier mouvement.',
-    'Après chaque vie perdue, le joueur sélectionne un nouveau point de départ en cliquant sur une case START.',
-    'Un retour en arrière est interdit mais ne coûte pas de vie — le mouvement est simplement bloqué.',
-    'Score collectif: 100 points de base, +8 par case progressée, +2 par vie restante, -12 par vie perdue, plancher à 0.',
-    'Pilotez les relances via le chat lors des phases critiques.',
-  ],
-  participant: [
-    'Sélectionnez un point de départ (case START) avant votre premier mouvement.',
-    'Après chaque vie perdue, choisissez un nouveau point de départ en cliquant sur une case START qui clignote.',
-    'Un retour en arrière est interdit : vous ne pouvez pas revenir sur une case déjà visitée (sans pénalité).',
-    'Les pièges sont invisibles avant passage — restez vigilant aux fausses pistes.',
-    'Le score collectif dépend de la progression, des vies restantes et des vies perdues.',
-    'Partagez vos découvertes avec l\'équipe via le chat.',
-  ],
-  footnote: ''
-});
 
 function safeInt(value, fallback, min, max) {
   const parsed = Number.parseInt(value, 10);
@@ -500,10 +479,20 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     return fallback;
   }, [myParticipantState, revealedCells]);
 
-  const rulesContent = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config, LABYRINTHE_RULES_FALLBACK, locale),
-    [runtimePayload?.config, state?.config, locale]
-  );
+  const rulesPreset = useMemo(() => getLabyrintheRulesPreset(locale), [locale]);
+  const challengeName = String(rulesPreset?.challengeName || 'Labyrinthe des Signaux').trim();
+  const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
+  const rulesContent = useMemo(() => ({
+    objective: rulesPreset.objective,
+    facilitator: [...rulesPreset.facilitator],
+    participant: [...rulesPreset.participant],
+    footnote: rulesPreset.footnote,
+  }), [rulesPreset]);
+  const rulesParticipantsMeta = useMemo(() => ({
+    min: rulesPreset.participants.min,
+    recommended: rulesPreset.participants.recommended,
+    max: rulesPreset.participants.max,
+  }), [rulesPreset]);
 
   useEffect(() => {
     const serverPos = Array.isArray(myParticipantState?.solo?.pos) ? myParticipantState.solo.pos : null;
@@ -830,8 +819,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   return (
     <div className={styles.labyrinthContainer}>
       <ChallengeHeader
-        title="Labyrinthe des Signaux"
-        subtitle={isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, évitez les pièges, ouvrez la sortie.'}
+        title={challengeName}
+        subtitle={challengeSubtitle || (isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, evitez les pieges, ouvrez la sortie.')}
       />
 
       <div className={styles.layout}>
@@ -841,9 +830,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               <ChallengeRulesPanel
                 isStarted={false}
                 isFacilitator={isFacilitator}
-                challengeName="Labyrinthe des Signaux"
-                briefTitle={isEn ? 'Mission brief' : 'Brief de la mission'}
+                challengeName={challengeName}
                 objective={rulesContent.objective}
+                participantsMeta={rulesParticipantsMeta}
                 facilitatorRules={rulesContent.facilitator}
                 participantRules={rulesContent.participant}
                 footnote={rulesContent.footnote}
@@ -1061,9 +1050,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
             isStarted={hasChallengeStarted}
             isFacilitator={isFacilitator}
             showPrestartCard={false}
-            challengeName="Labyrinthe des Signaux"
-            briefTitle={isEn ? 'Mission brief' : 'Brief de la mission'}
+            challengeName={challengeName}
             objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
             facilitatorRules={rulesContent.facilitator}
             participantRules={rulesContent.participant}
             footnote={rulesContent.footnote}

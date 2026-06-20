@@ -17,6 +17,22 @@
   padding-bottom: 6px;
 }
 
+.rulesKicker {
+  margin: 0;
+  color: #7dd3fc;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rulesBriefTitle {
+  margin: 0;
+  color: #dbeafe;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
 .rulesHeader h2 {
   margin: 0;
     color: rgba(125, 211, 252, 0.9);
@@ -48,11 +64,11 @@
 
 .rulesSection ul {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 18px;
   color: #c9ddf0;
   font-size: 0.86rem;
   display: grid;
-  gap: 8px;
+  gap: 7px;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
@@ -64,6 +80,14 @@
 
 .rulesSectionParticipant ul {
   font-size: 0.85rem;
+}
+
+.metaList {
+  list-style: disc;
+}
+
+.metaList li {
+  line-height: 1.45;
 }
 
 .rulesFootnote {
@@ -116,7 +140,7 @@
   color: #eff6ff;
   border-radius: 10px;
   padding: 10px 12px;
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 10px 22px rgba(2, 9, 16, 0.3);
@@ -190,6 +214,10 @@
 
   .rulesSection ul {
     padding-left: 16px;
+  }
+
+  .rulesKicker {
+    font-size: 0.74rem;
   }
 
   .modalCard {

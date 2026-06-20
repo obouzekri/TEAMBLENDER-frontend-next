@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
-import { resolveChallengeRules } from '@/lib/challenges/rules';
+import { getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueRules';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -123,10 +123,20 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
   const timerDurationSeconds = Math.max(1, Number(state?.timer?.duration_seconds || 1));
-  const rulesContent = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config, undefined, locale),
-    [runtimePayload?.config, state?.config, locale]
-  );
+  const rulesPreset = useMemo(() => getMissionCritiqueRulesPreset(locale), [locale]);
+  const rulesContent = useMemo(() => ({
+    objective: rulesPreset.objective,
+    facilitator: [...rulesPreset.facilitator],
+    participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+    footnote: rulesPreset.footnote,
+  }), [rulesPreset]);
+  const challengeName = String(rulesPreset?.challengeName || 'Mission Critique').trim();
+  const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
+  const rulesParticipantsMeta = useMemo(() => ({
+    min: rulesPreset.participants.min,
+    recommended: rulesPreset.participants.recommended,
+    max: rulesPreset.participants.max,
+  }), [rulesPreset]);
 
   const facilitatorRules = useMemo(() => {
     const baseRules = Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : [];
@@ -317,8 +327,8 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   return (
     <div className={`${styles.container} ${roleViewClass}`}>
       <ChallengeHeader
-        title="Mission Critique"
-        subtitle={String(state?.config?.scenario || runtimePayload?.config?.scenario || 'Organiser un séminaire d’entreprise pour 80 personnes.')}
+        title={challengeName}
+        subtitle={challengeSubtitle || String(state?.config?.scenario || runtimePayload?.config?.scenario || 'Organiser un séminaire d’entreprise pour 80 personnes.')}
       />
 
       <div className={styles.layout}>
@@ -328,8 +338,9 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
               <ChallengeRulesPanel
                 isStarted={false}
                 isFacilitator={isFacilitator}
-                challengeName="Mission Critique"
+                challengeName={challengeName}
                 objective={rulesContent.objective}
+                participantsMeta={rulesParticipantsMeta}
                 facilitatorRules={facilitatorRules}
                 participantRules={participantRules}
                 footnote={rulesContent.footnote}
@@ -578,8 +589,9 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             isStarted={hasChallengeStarted}
             isFacilitator={isFacilitator}
             showPrestartCard={false}
-            challengeName="Mission Critique"
+            challengeName={challengeName}
             objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
             facilitatorRules={facilitatorRules}
             participantRules={participantRules}
             footnote={rulesContent.footnote}

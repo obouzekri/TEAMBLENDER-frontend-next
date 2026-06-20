@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
-import { resolveChallengeRules } from '@/lib/challenges/rules';
+import { getTheQuizRulesPreset } from '@/lib/challenges/theQuizRules';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -78,6 +78,7 @@ function buildRankMap(entries = []) {
 export default function TheQuizChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
   const isEn = locale === 'en';
+  const rulesPreset = useMemo(() => getTheQuizRulesPreset(locale), [locale]);
   const [forcedPhase, setForcedPhase] = useState('');
   const [hostTab, setHostTab] = useState('host_admin');
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
@@ -213,10 +214,19 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     return undefined;
   }, [socket, socket?.connected]);
 
-  const rules = useMemo(
-    () => resolveChallengeRules(state?.config || runtimePayload?.config, undefined, locale),
-    [runtimePayload?.config, state?.config, locale]
-  );
+  const rules = useMemo(() => ({
+    objective: rulesPreset.objective,
+    facilitator: [...rulesPreset.facilitator],
+    participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+    footnote: rulesPreset.footnote,
+  }), [rulesPreset]);
+  const challengeName = String(rulesPreset?.challengeName || 'The Quiz').trim();
+  const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
+  const rulesParticipantsMeta = useMemo(() => ({
+    min: rulesPreset.participants.min,
+    recommended: rulesPreset.participants.recommended,
+    max: rulesPreset.participants.max,
+  }), [rulesPreset]);
 
   const chatEnabled = Boolean(socket) && quiz.chat_enabled;
   const author = normalizeDisplayName(
@@ -394,8 +404,8 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   return (
     <main className={styles.pageShell}>
       <ChallengeHeader
-        title="The Quiz"
-        subtitle={isEn ? 'Real-time multiplayer general knowledge quiz' : 'Quiz multijoueur realtime de culture générale'}
+        title={challengeName}
+        subtitle={challengeSubtitle || (isEn ? 'Real-time multiplayer general knowledge quiz' : 'Quiz multijoueur realtime de culture générale')}
       />
 
       {error ? <div className={styles.errorBanner}>{error}</div> : null}
@@ -441,11 +451,12 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         <aside className={styles.sideColumn}>
           {isStarted ? (
             <ChallengeRulesPanel
-              challengeName="The Quiz"
+              challengeName={challengeName}
               isStarted={isStarted}
               isFacilitator={isFacilitator}
               showPrestartCard={false}
               objective={rules.objective}
+              participantsMeta={rulesParticipantsMeta}
               facilitatorRules={rules.facilitator}
               participantRules={rules.participant}
               footnote={rules.footnote}
