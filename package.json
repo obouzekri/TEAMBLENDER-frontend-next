@@ -8,6 +8,8 @@
     "build:analyze": "cross-env ANALYZE=true next build --webpack",
     "start": "next start -p 3100",
     "lint": "eslint .",
+    "lint:i18n": "node scripts/check-i18n.mjs",
+    "check:i18n": "npm run lint:i18n",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write --ignore-path ../.prettierignore",
     "format:check": "prettier . --check --ignore-path ../.prettierignore",

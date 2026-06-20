@@ -2,6 +2,13 @@
 - [ ] Scope is clear and limited
 - [ ] Behavior changes are documented
 
+## i18n Gate (Mandatory For UI Changes)
+- [ ] No hardcoded user-facing copy introduced in components (use translation keys)
+- [ ] FR dictionary updated when new UI copy is added
+- [ ] EN dictionary kept in sync with FR keys
+- [ ] Runtime messages (alert/confirm/prompt/toast/errors) localized
+- [ ] Form labels/placeholders/buttons validated in FR and EN
+
 ## Local Tests Checklist (Mandatory)
 - [ ] Backend local checks executed (tests + critical env checks if impacted)
 - [ ] Frontend local checks executed (`npm run build` and relevant smoke/tests)
@@ -30,6 +37,7 @@
 
 ## Validation
 - [ ] `npm run check:typography` executed in frontend
+- [ ] `npm run check:i18n` executed in frontend
 - [ ] Manual smoke test on impacted pages
 
 ## Evidence
