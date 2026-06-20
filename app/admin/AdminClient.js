@@ -682,7 +682,21 @@ function ensureEscapeRoomChallenge(challenges) {
 }
 
 function ensureAdminCatalogChallenges(challenges) {
-  return ensureEscapeRoomChallenge(ensureMissionCritiqueChallenge(ensureVraiOuMensongeChallenge(ensureLabyrintheSignalsChallenge(ensureTheQuizChallenge(ensurePhraseMystereChallenge(ensureCopuzzleChallenge(ensurePixelArchitectChallenge(challenges)))))))));
+  return ensureEscapeRoomChallenge(
+    ensureMissionCritiqueChallenge(
+      ensureVraiOuMensongeChallenge(
+        ensureLabyrintheSignalsChallenge(
+          ensureTheQuizChallenge(
+            ensurePhraseMystereChallenge(
+              ensureCopuzzleChallenge(
+                ensurePixelArchitectChallenge(challenges)
+              )
+            )
+          )
+        )
+      )
+    )
+  );
 }
 
 function toPositiveIntOrNull(value) {
@@ -2383,7 +2397,6 @@ export default function AdminClient() {
     const normalizedEngineConfig = isCopuzzle
       ? ensureCopuzzleConfig(challengeItem.engine_config)
       : cloneJson(challengeItem.engine_config, {}) || {};
-    const rulesSource =
     const rulesSource = {
       objective: challengeItem?.rules_objective,
       facilitator: challengeItem?.rules_facilitator,
