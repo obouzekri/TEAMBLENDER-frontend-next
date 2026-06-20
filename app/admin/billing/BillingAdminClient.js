@@ -19,7 +19,7 @@ function userLabel(user) {
   const first = String(user?.first_name || '').trim();
   const last = String(user?.last_name || '').trim();
   const full = `${first} ${last}`.trim();
-  return full || user?.email || `Utilisateur #${user?.id || '?'}`;
+  return full || user?.email || `User #${user?.id || '?'}`;
 }
 
 function money(amountCents, currency, isEn) {
@@ -229,10 +229,10 @@ export default function BillingAdminClient() {
         <section className="admin-billing-filters">
         <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isEn ? 'Search email, first name, last name' : 'Rechercher email, prenom, nom'} />
         <select value={provider} onChange={(e) => setProvider(e.target.value)}>
-          <option value="">{isEn ? 'All providers' : 'Tous providers'}</option>
+          <option value="">{isEn ? 'All providers' : 'Tous les prestataires'}</option>
           <option value="paypal">PayPal</option>
           <option value="stripe">Stripe</option>
-          <option value="manual">Manual</option>
+          <option value="manual">{isEn ? 'Manual' : 'Manuel'}</option>
         </select>
         <select value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">{isEn ? 'All statuses' : 'Tous statuts'}</option>
@@ -344,7 +344,7 @@ export default function BillingAdminClient() {
                     </div>
                     <div className="invoice-actions">
                       <button type="button" onClick={() => handleGeneratePdf(invoice.id)} disabled={loading}>PDF</button>
-                      <button type="button" onClick={() => handleRefund(invoice.id)} disabled={loading || normalizeStatus(invoice.status) === 'refunded'}>{isEn ? 'Refund' : 'Refund'}</button>
+                      <button type="button" onClick={() => handleRefund(invoice.id)} disabled={loading || normalizeStatus(invoice.status) === 'refunded'}>{isEn ? 'Refund' : 'Rembourser'}</button>
                     </div>
                   </div>
                 ))}

@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import Modal from '@/components/ui/Modal';
 import { getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
+import useI18n from '@/lib/i18n/useI18n';
 
 const USER_ROLES = new Set(['user', 'admin']);
 const SESSION_STATUSES = new Set(['preparee', 'en_cours', 'terminee']);
@@ -130,6 +131,62 @@ const COPUZZLE_ADMIN_REFERENCE_IMAGES = [
   { id: 'default_2', title: 'Image administrateur 2', src: '/copuzzle/default-grid.svg' },
   { id: 'default_3', title: 'Image administrateur 3', src: '/copuzzle/default-sunrise.svg' },
 ];
+
+const CHALLENGE_CATEGORY_LABELS = {
+  'escape-game': { fr: 'Escape Game', en: 'Escape room' },
+  'logique-reflexion': { fr: 'Logique & Reflexion', en: 'Logic & critical thinking' },
+  icebreaker: { fr: 'Icebreaker', en: 'Icebreaker' },
+  'creativite-innovation': { fr: 'Creativite & innovation', en: 'Creativity & innovation' },
+  'memoire-attention': { fr: 'Memoire & attention', en: 'Memory & attention' },
+  'culture-decouverte': { fr: 'Culture & decouverte', en: 'Culture & discovery' },
+};
+
+const CHALLENGE_OBJECTIVE_LABELS = {
+  cohesion: { fr: 'Cohesion', en: 'Cohesion' },
+  communication: { fr: 'Communication', en: 'Communication' },
+  collaboration: { fr: 'Collaboration', en: 'Collaboration' },
+  leadership: { fr: 'Leadership', en: 'Leadership' },
+  'resolution-problemes': { fr: 'Resolution de problemes', en: 'Problem solving' },
+  'intelligence-collective': { fr: 'Intelligence collective', en: 'Collective intelligence' },
+  creativite: { fr: 'Creativite', en: 'Creativity' },
+  'gestion-temps': { fr: 'Gestion du temps', en: 'Time management' },
+};
+
+const SESSION_STATUS_OPTION_LABELS = {
+  preparee: { fr: 'En preparation', en: 'Preparing' },
+  en_cours: { fr: 'En cours', en: 'Live' },
+  terminee: { fr: 'Terminee', en: 'Completed' },
+};
+
+const SESSION_MODALITY_OPTION_LABELS = {
+  '': { fr: 'Non definie', en: 'Not set' },
+  remote: { fr: 'A distance', en: 'Remote' },
+  hybrid: { fr: 'Hybride', en: 'Hybrid' },
+  'in-person': { fr: 'Presentiel', en: 'In person' },
+};
+
+const CHALLENGE_TYPE_OPTION_LABELS = {
+  individuel: { fr: 'Individuel', en: 'Individual' },
+  equipe: { fr: 'Equipe', en: 'Team' },
+};
+
+const CHALLENGE_STATUS_OPTION_LABELS = {
+  actif: { fr: 'Actif', en: 'Active' },
+  brouillon: { fr: 'Brouillon', en: 'Draft' },
+  archive: { fr: 'Archive', en: 'Archived' },
+};
+
+const CHALLENGE_SOURCE_OPTION_LABELS = {
+  local: { fr: 'Local', en: 'Local' },
+  external: { fr: 'Externe', en: 'External' },
+};
+
+const PRICING_BILLING_CYCLE_LABELS = {
+  monthly: { fr: 'Mensuel', en: 'Monthly' },
+  yearly: { fr: 'Annuel', en: 'Yearly' },
+  one_time: { fr: 'Paiement unique', en: 'One-time payment' },
+  custom: { fr: 'Personnalise', en: 'Custom' },
+};
 
 const PIXEL_ARCHITECT_CATALOG_ENTRY = {
   id: 'pixel_architect_001',
@@ -679,7 +736,14 @@ function downloadTextFile(content, filename, mimeType = 'text/plain;charset=utf-
   URL.revokeObjectURL(url);
 }
 
+function getLocalizedLabel(label, isEn) {
+  if (!label || typeof label !== 'object') return String(label || '');
+  return isEn ? String(label.en || label.fr || '') : String(label.fr || label.en || '');
+}
+
 export default function AdminClient() {
+  const { locale, withLocalePath } = useI18n();
+  const isEn = locale === 'en';
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -754,6 +818,33 @@ export default function AdminClient() {
   const [newPricingMessage, setNewPricingMessage] = useState('');
   const [newLandingBlock, setNewLandingBlock] = useState(DEFAULT_NEW_LANDING_BLOCK);
   const [newLandingMessage, setNewLandingMessage] = useState('');
+
+  const challengeCategoryOptions = useMemo(
+    () => CHALLENGE_CATEGORY_OPTIONS.map((option) => ({
+      ...option,
+      label: getLocalizedLabel(CHALLENGE_CATEGORY_LABELS[option.value], isEn) || option.label,
+    })),
+    [isEn]
+  );
+
+  const challengeObjectiveOptions = useMemo(
+    () => CHALLENGE_OBJECTIVE_OPTIONS.map((option) => ({
+      ...option,
+      label: getLocalizedLabel(CHALLENGE_OBJECTIVE_LABELS[option.value], isEn) || option.label,
+    })),
+    [isEn]
+  );
+
+  useEffect(() => {
+    setNewPricingPlan((prev) => {
+      const nextCta = isEn ? 'Choose this plan' : 'Choisir cette formule';
+      const current = String(prev.cta_label || '').trim();
+      if (!current || current === 'Choisir cette formule' || current === 'Choose this plan') {
+        return { ...prev, cta_label: nextCta };
+      }
+      return prev;
+    });
+  }, [isEn]);
 
   const getPreferredAuthToken = useCallback(() => {
     const sessionToken = String(sessionStorage.getItem('jwt') || '').trim();
@@ -2492,7 +2583,7 @@ export default function AdminClient() {
     localStorage.removeItem('jwt');
     sessionStorage.removeItem('jwt');
     sessionStorage.removeItem('currentUser');
-    window.location.replace('/login');
+    window.location.replace(withLocalePath('/login'));
   }
 
   function showNotice(msg) {
@@ -2752,22 +2843,22 @@ export default function AdminClient() {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>Verification de la session admin...</h1>
-          <p>Chargement en cours.</p>
+          <h1>{isEn ? 'Checking admin session...' : 'Verification de la session admin...'}</h1>
+          <p>{isEn ? 'Loading...' : 'Chargement en cours.'}</p>
         </section>
       </main>
     );
   }
 
   const TAB_ITEMS = [
-    { id: 'dashboard', label: 'Tableau de bord', badge: null },
+    { id: 'dashboard', label: isEn ? 'Dashboard' : 'Tableau de bord', badge: null },
     { id: 'analytics', label: 'Analytics', badge: null },
-    { id: 'users', label: 'Utilisateurs', badge: stats.pending > 0 ? stats.pending : null },
-    { id: 'participants', label: 'Participants', badge: null },
-    { id: 'sessions', label: 'Sessions', badge: stats.activeSessions > 0 ? stats.activeSessions : null },
+    { id: 'users', label: isEn ? 'Users' : 'Utilisateurs', badge: stats.pending > 0 ? stats.pending : null },
+    { id: 'participants', label: isEn ? 'Participants' : 'Participants', badge: null },
+    { id: 'sessions', label: isEn ? 'Sessions' : 'Sessions', badge: stats.activeSessions > 0 ? stats.activeSessions : null },
     { id: 'challenges', label: 'Challenges', badge: null },
-    { id: 'billing', label: 'Paiements', badge: null, href: '/admin/billing' },
-    { id: 'pricing', label: 'Tarification', badge: stats.pricingPlans > 0 ? stats.pricingPlans : null },
+    { id: 'billing', label: isEn ? 'Billing' : 'Paiements', badge: null, href: withLocalePath('/admin/billing') },
+    { id: 'pricing', label: isEn ? 'Pricing' : 'Tarification', badge: stats.pricingPlans > 0 ? stats.pricingPlans : null },
     { id: 'landing', label: 'Landing CMS', badge: stats.landingBlocks > 0 ? stats.landingBlocks : null },
   ];
 
@@ -2886,7 +2977,7 @@ export default function AdminClient() {
             </div>
           ) : null}
 
-          <div className="admin-mobile-tabs" aria-label="Navigation admin mobile">
+          <div className="admin-mobile-tabs" aria-label={isEn ? 'Admin mobile navigation' : 'Navigation admin mobile'}>
             {TAB_ITEMS.map((tab) => (
               <button
                 key={`mobile-${tab.id}`}
@@ -2904,22 +2995,22 @@ export default function AdminClient() {
           {activeTab === 'dashboard' ? (
             <div>
               <div style={{ marginBottom: '28px' }}>
-                <h1 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 6px' }}>Tableau de bord</h1>
-                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Vue d'ensemble de la plateforme en temps reel.</p>
+                <h1 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 6px' }}>{isEn ? 'Dashboard' : 'Tableau de bord'}</h1>
+                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{isEn ? 'Platform overview in real time.' : 'Vue d\'ensemble de la plateforme en temps reel.'}</p>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: '12px', marginBottom: '24px' }}>
                 {[
-                  { value: stats.users, label: 'Utilisateurs' },
-                  { value: stats.activeUsers, label: 'Utilisateurs actifs' },
-                  { value: stats.disabledUsers, label: 'Utilisateurs inactifs' },
-                  { value: stats.pending, label: 'Demandes en attente', highlight: stats.pending > 0 },
+                  { value: stats.users, label: isEn ? 'Users' : 'Utilisateurs' },
+                  { value: stats.activeUsers, label: isEn ? 'Active users' : 'Utilisateurs actifs' },
+                  { value: stats.disabledUsers, label: isEn ? 'Inactive users' : 'Utilisateurs inactifs' },
+                  { value: stats.pending, label: isEn ? 'Pending requests' : 'Demandes en attente', highlight: stats.pending > 0 },
                   { value: stats.participants, label: 'Participants' },
-                  { value: stats.activeParticipants, label: 'Participants actifs' },
+                  { value: stats.activeParticipants, label: isEn ? 'Active participants' : 'Participants actifs' },
                   { value: stats.sessions, label: 'Sessions' },
-                  { value: stats.activeSessions, label: 'Sessions en cours', highlight: stats.activeSessions > 0 },
+                  { value: stats.activeSessions, label: isEn ? 'Live sessions' : 'Sessions en cours', highlight: stats.activeSessions > 0 },
                   { value: stats.challenges, label: 'Challenges' },
-                  { value: stats.pricingPlans, label: 'Formules tarifaires' },
-                  { value: stats.landingBlocks, label: 'Blocs landing CMS' },
+                  { value: stats.pricingPlans, label: isEn ? 'Pricing plans' : 'Formules tarifaires' },
+                  { value: stats.landingBlocks, label: isEn ? 'Landing CMS blocks' : 'Blocs landing CMS' },
                 ].map((item) => (
                     <div key={item.label} style={{
                     background: 'var(--color-surface, #fff)',
@@ -2942,7 +3033,7 @@ export default function AdminClient() {
                   borderRadius: '10px',
                   padding: '20px 24px',
                 }}>
-                  <h2 style={{ fontSize: '16px', fontWeight: 700, marginTop: 0, marginBottom: '16px' }}>Demandes en attente ({pendingUsers.length})</h2>
+                  <h2 style={{ fontSize: '16px', fontWeight: 700, marginTop: 0, marginBottom: '16px' }}>{isEn ? 'Pending requests' : 'Demandes en attente'} ({pendingUsers.length})</h2>
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {pendingUsers.map((u) => (
                       <li key={String(u.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '12px 0', borderBottom: '1px solid var(--color-border, #e5e7eb)' }}>
@@ -2951,8 +3042,8 @@ export default function AdminClient() {
                           <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>{u.email}</p>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                          <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '13px', padding: '6px 14px' }}>Valider</button>
-                          <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '13px', padding: '6px 14px' }}>Refuser</button>
+                          <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '13px', padding: '6px 14px' }}>{isEn ? 'Approve' : 'Valider'}</button>
+                          <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '13px', padding: '6px 14px' }}>{isEn ? 'Reject' : 'Refuser'}</button>
                         </div>
                       </li>
                     ))}
@@ -3146,8 +3237,8 @@ export default function AdminClient() {
             <div>
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Utilisateurs</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion des comptes utilisateurs et demandes d'acces.</p>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Users' : 'Utilisateurs'}</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{isEn ? 'Manage user accounts and approval requests.' : 'Gestion des comptes utilisateurs et demandes d\'acces.'}</p>
                 </div>
                 <button
                   type="button"
@@ -3158,14 +3249,14 @@ export default function AdminClient() {
                     setShowNewUserForm((current) => !current);
                   }}
                 >
-                  {showNewUserForm ? 'Fermer le formulaire' : 'Creer un utilisateur'}
+                  {showNewUserForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Create user' : 'Creer un utilisateur')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Demandes en attente {pendingUsers.length > 0 ? `(${pendingUsers.length})` : ''}</h2>
-                  {pendingUsers.length === 0 ? <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>Aucune demande.</p> : null}
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Pending requests' : 'Demandes en attente'} {pendingUsers.length > 0 ? `(${pendingUsers.length})` : ''}</h2>
+                  {pendingUsers.length === 0 ? <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>{isEn ? 'No pending request.' : 'Aucune demande.'}</p> : null}
                   {pendingUsers.length > 0 ? (
                     <ul className="session-list" style={{ margin: 0 }}>
                       {pendingUsers.map((u) => (
@@ -3175,8 +3266,8 @@ export default function AdminClient() {
                             <p className="session-meta">{u.email}</p>
                           </div>
                           <div className="session-item-actions" style={{ flexShrink: 0 }}>
-                            <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '12px', padding: '5px 10px' }}>Valider</button>
-                            <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '12px', padding: '5px 10px' }}>Refuser</button>
+                            <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '12px', padding: '5px 10px' }}>{isEn ? 'Approve' : 'Valider'}</button>
+                            <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '12px', padding: '5px 10px' }}>{isEn ? 'Reject' : 'Refuser'}</button>
                           </div>
                         </li>
                       ))}
@@ -3186,22 +3277,22 @@ export default function AdminClient() {
 
                 {showNewUserForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un compte</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Create an account' : 'Creer un compte'}</h2>
                     <form className="auth-form" onSubmit={submitNewUser} autoComplete="off">
                       <input type="text" name="fake_username" autoComplete="username" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
                       <input type="password" name="fake_password" autoComplete="current-password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
-                      <label>Prenom<input name="create_user_first_name" autoComplete="off" value={newUser.first_name} onChange={(e) => setNewUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
-                      <label>Nom<input name="create_user_last_name" autoComplete="off" value={newUser.last_name} onChange={(e) => setNewUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
+                      <label>{isEn ? 'First name' : 'Prenom'}<input name="create_user_first_name" autoComplete="off" value={newUser.first_name} onChange={(e) => setNewUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
+                      <label>{isEn ? 'Last name' : 'Nom'}<input name="create_user_last_name" autoComplete="off" value={newUser.last_name} onChange={(e) => setNewUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
                       <label>Email<input type="email" name="create_user_email" autoComplete="off" value={newUser.email} onChange={(e) => setNewUser((p) => ({ ...p, email: e.target.value }))} required /></label>
-                      <label>Mot de passe<input type="password" name="create_user_password" autoComplete="new-password" minLength={8} value={newUser.password} onChange={(e) => setNewUser((p) => ({ ...p, password: e.target.value }))} required /></label>
-                      <label>Role
+                      <label>{isEn ? 'Password' : 'Mot de passe'}<input type="password" name="create_user_password" autoComplete="new-password" minLength={8} value={newUser.password} onChange={(e) => setNewUser((p) => ({ ...p, password: e.target.value }))} required /></label>
+                      <label>{isEn ? 'Role' : 'Role'}
                         <select value={newUser.role} onChange={(e) => setNewUser((p) => ({ ...p, role: e.target.value }))}>
-                          <option value="user">Utilisateur</option>
+                          <option value="user">{isEn ? 'User' : 'Utilisateur'}</option>
                           <option value="admin">Admin</option>
                         </select>
                       </label>
                       <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <button type="submit" className="btn-primary">Creer le compte</button>
+                        <button type="submit" className="btn-primary">{isEn ? 'Create account' : 'Creer le compte'}</button>
                         <button
                           type="button"
                           className="btn-secondary"
@@ -3210,7 +3301,7 @@ export default function AdminClient() {
                             setNewUserMessage('');
                           }}
                         >
-                          Annuler
+                          {isEn ? 'Cancel' : 'Annuler'}
                         </button>
                       </div>
                     </form>
@@ -3221,26 +3312,26 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      Liste {users.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredUsers.length}/{users.length})</span> : null}
+                      {isEn ? 'List' : 'Liste'} {users.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredUsers.length}/{users.length})</span> : null}
                     </h2>
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder="Rechercher..."
+                      placeholder={isEn ? 'Search...' : 'Rechercher...'}
                       value={userQuery}
                       onChange={(e) => setUserQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
                     />
                   </div>
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredUsers.length === 0 ? <li className="list-empty">Aucun utilisateur ne correspond.</li> : null}
+                    {filteredUsers.length === 0 ? <li className="list-empty">{isEn ? 'No matching user.' : 'Aucun utilisateur ne correspond.'}</li> : null}
                     {filteredUsers.map((u) => (
                       <li key={String(u.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
                           <p className="session-meta">
-                            {u.email} · {u.role || 'user'} · {u.disabled ? 'Inactif' : 'Actif'}
-                            {isPlatformAdminEmail(u.email) ? ' · Verification non requise' : ''}
+                            {u.email} · {u.role || 'user'} · {u.disabled ? (isEn ? 'Inactive' : 'Inactif') : (isEn ? 'Active' : 'Actif')}
+                            {isPlatformAdminEmail(u.email) ? ` · ${isEn ? 'Verification not required' : 'Verification non requise'}` : ''}
                           </p>
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
@@ -3311,8 +3402,8 @@ export default function AdminClient() {
             <div>
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Participants</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Gestion des participants rattaches aux utilisateurs.</p>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Participants' : 'Participants'}</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{isEn ? 'Manage participant accounts linked to users.' : 'Gestion des participants rattaches aux utilisateurs.'}</p>
                 </div>
                 <button
                   type="button"
@@ -3323,33 +3414,33 @@ export default function AdminClient() {
                     setShowNewParticipantForm((current) => !current);
                   }}
                 >
-                  {showNewParticipantForm ? 'Fermer le formulaire' : 'Creer un participant'}
+                  {showNewParticipantForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Create participant' : 'Creer un participant')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 {showNewParticipantForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un participant</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Create participant' : 'Creer un participant'}</h2>
                     <form className="auth-form" onSubmit={submitNewParticipant} autoComplete="off">
                       <input type="text" name="fake_participant_username" autoComplete="username" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
                       <input type="password" name="fake_participant_password" autoComplete="current-password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
-                      <label>Createur
+                      <label>{isEn ? 'Owner' : 'Createur'}
                         <select value={newParticipant.owner_id} onChange={(e) => setNewParticipant((prev) => ({ ...prev, owner_id: e.target.value }))} required>
-                          <option value="">Selectionner un utilisateur</option>
+                          <option value="">{isEn ? 'Select a user' : 'Selectionner un utilisateur'}</option>
                           {users.filter((u) => String(u.role || '') === 'user').map((u) => (
                             <option key={String(u.id)} value={String(u.id)}>{u.first_name || ''} {u.last_name || ''} ({u.email})</option>
                           ))}
                         </select>
                       </label>
-                      <label>Prenom<input name="create_participant_first_name" autoComplete="off" value={newParticipant.first_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
-                      <label>Nom<input name="create_participant_last_name" autoComplete="off" value={newParticipant.last_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
+                      <label>{isEn ? 'First name' : 'Prenom'}<input name="create_participant_first_name" autoComplete="off" value={newParticipant.first_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
+                      <label>{isEn ? 'Last name' : 'Nom'}<input name="create_participant_last_name" autoComplete="off" value={newParticipant.last_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
                       <label>Email<input type="email" name="create_participant_email" autoComplete="off" value={newParticipant.email} onChange={(e) => setNewParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
-                      <label>Mot de passe<input type="password" name="create_participant_password" autoComplete="new-password" minLength={8} value={newParticipant.password} onChange={(e) => setNewParticipant((prev) => ({ ...prev, password: e.target.value }))} required /></label>
-                      <label>Fonction<input value={newParticipant.job_title} onChange={(e) => setNewParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
-                      <label>Departement<input value={newParticipant.department} onChange={(e) => setNewParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
+                      <label>{isEn ? 'Password' : 'Mot de passe'}<input type="password" name="create_participant_password" autoComplete="new-password" minLength={8} value={newParticipant.password} onChange={(e) => setNewParticipant((prev) => ({ ...prev, password: e.target.value }))} required /></label>
+                      <label>{isEn ? 'Job title' : 'Fonction'}<input value={newParticipant.job_title} onChange={(e) => setNewParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
+                      <label>{isEn ? 'Department' : 'Departement'}<input value={newParticipant.department} onChange={(e) => setNewParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
                       <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>{busySaveKey === 'create:participant' ? 'Création...' : 'Creer participant'}</button>
+                        <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>{busySaveKey === 'create:participant' ? (isEn ? 'Creating...' : 'Creation...') : (isEn ? 'Create participant' : 'Creer participant')}</button>
                         <button
                           type="button"
                           className="btn-secondary"
@@ -3358,7 +3449,7 @@ export default function AdminClient() {
                             setNewParticipantMessage('');
                           }}
                         >
-                          Annuler
+                          {isEn ? 'Cancel' : 'Annuler'}
                         </button>
                       </div>
                     </form>
@@ -3369,24 +3460,24 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      Liste {participants.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredParticipants.length}/{participants.length})</span> : null}
+                      {isEn ? 'List' : 'Liste'} {participants.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredParticipants.length}/{participants.length})</span> : null}
                     </h2>
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder="Rechercher..."
+                      placeholder={isEn ? 'Search...' : 'Rechercher...'}
                       value={participantQuery}
                       onChange={(e) => setParticipantQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
                     />
                   </div>
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredParticipants.length === 0 ? <li className="list-empty">Aucun participant ne correspond.</li> : null}
+                    {filteredParticipants.length === 0 ? <li className="list-empty">{isEn ? 'No matching participant.' : 'Aucun participant ne correspond.'}</li> : null}
                     {filteredParticipants.map((p) => (
                       <li key={String(p.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{getParticipantDisplayName(p)}</p>
-                          <p className="session-meta">{p.email} · {p.disabled ? 'Inactif' : 'Actif'} · {p.creator?.email || `Createur #${p.created_by || '?'}`}</p>
+                          <p className="session-meta">{p.email} · {p.disabled ? (isEn ? 'Inactive' : 'Inactif') : (isEn ? 'Active' : 'Actif')} · {p.creator?.email || `${isEn ? 'Owner' : 'Createur'} #${p.created_by || '?'}`}</p>
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
                           <button
@@ -3449,28 +3540,28 @@ export default function AdminClient() {
 
           <Modal
             open={Boolean(editingUser)}
-            title="Modifier utilisateur"
+            title={isEn ? 'Edit user' : 'Modifier utilisateur'}
             onClose={() => setEditingUser(null)}
             dialogClassName="admin-edit-modal"
             bodyClassName="admin-edit-modal-body"
           >
             {editingUser ? (
               <form className="auth-form" onSubmit={submitEditUser}>
-                <label>Prenom<input value={editingUser.first_name} onChange={(e) => setEditingUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
-                <label>Nom<input value={editingUser.last_name} onChange={(e) => setEditingUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
+                <label>{isEn ? 'First name' : 'Prenom'}<input value={editingUser.first_name} onChange={(e) => setEditingUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
+                <label>{isEn ? 'Last name' : 'Nom'}<input value={editingUser.last_name} onChange={(e) => setEditingUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
                 <label>Email<input type="email" value={editingUser.email} onChange={(e) => setEditingUser((p) => ({ ...p, email: e.target.value }))} required /></label>
-                <label>Role
+                <label>{isEn ? 'Role' : 'Role'}
                   <select value={editingUser.role} onChange={(e) => setEditingUser((p) => ({ ...p, role: e.target.value }))}>
-                    <option value="user">Utilisateur</option>
+                    <option value="user">{isEn ? 'User' : 'Utilisateur'}</option>
                     <option value="admin">Admin</option>
                   </select>
                 </label>
-                <label>Fonction<input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} /></label>
-                <label>Departement<input value={editingUser.department} onChange={(e) => setEditingUser((p) => ({ ...p, department: e.target.value }))} /></label>
-                <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingUser.password} onChange={(e) => setEditingUser((p) => ({ ...p, password: e.target.value }))} /></label>
+                <label>{isEn ? 'Job title' : 'Fonction'}<input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} /></label>
+                <label>{isEn ? 'Department' : 'Departement'}<input value={editingUser.department} onChange={(e) => setEditingUser((p) => ({ ...p, department: e.target.value }))} /></label>
+                <label>{isEn ? 'New password (optional)' : 'Nouveau mot de passe (optionnel)'}<input type="password" minLength={8} value={editingUser.password} onChange={(e) => setEditingUser((p) => ({ ...p, password: e.target.value }))} /></label>
                 <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:user:${editingUser.id}`}>{busySaveKey === `save:user:${editingUser.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
-                  <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>Annuler</button>
+                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:user:${editingUser.id}`}>{busySaveKey === `save:user:${editingUser.id}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}</button>
+                  <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>{isEn ? 'Cancel' : 'Annuler'}</button>
                 </div>
               </form>
             ) : null}
@@ -3478,28 +3569,28 @@ export default function AdminClient() {
 
           <Modal
             open={Boolean(editingParticipant)}
-            title="Modifier participant"
+            title={isEn ? 'Edit participant' : 'Modifier participant'}
             onClose={() => setEditingParticipant(null)}
             dialogClassName="admin-edit-modal"
             bodyClassName="admin-edit-modal-body"
           >
             {editingParticipant ? (
               <form className="auth-form" onSubmit={submitEditParticipant}>
-                <label>Prenom<input value={editingParticipant.first_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
-                <label>Nom<input value={editingParticipant.last_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
+                <label>{isEn ? 'First name' : 'Prenom'}<input value={editingParticipant.first_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
+                <label>{isEn ? 'Last name' : 'Nom'}<input value={editingParticipant.last_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
                 <label>Email<input type="email" value={editingParticipant.email} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
-                <label>Statut
+                <label>{isEn ? 'Status' : 'Statut'}
                   <select value={editingParticipant.disabled ? 'disabled' : 'active'} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, disabled: e.target.value === 'disabled' }))}>
-                    <option value="active">Actif</option>
-                    <option value="disabled">Inactif</option>
+                    <option value="active">{isEn ? 'Active' : 'Actif'}</option>
+                    <option value="disabled">{isEn ? 'Inactive' : 'Inactif'}</option>
                   </select>
                 </label>
-                <label>Fonction<input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
-                <label>Departement<input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
-                <label>Nouveau mot de passe (optionnel)<input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} /></label>
+                <label>{isEn ? 'Job title' : 'Fonction'}<input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
+                <label>{isEn ? 'Department' : 'Departement'}<input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
+                <label>{isEn ? 'New password (optional)' : 'Nouveau mot de passe (optionnel)'}<input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} /></label>
                 <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>{busySaveKey === `save:participant:${editingParticipant.id}` ? 'Enregistrement...' : 'Enregistrer'}</button>
-                  <button type="button" className="btn-secondary" onClick={() => setEditingParticipant(null)}>Annuler</button>
+                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>{busySaveKey === `save:participant:${editingParticipant.id}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}</button>
+                  <button type="button" className="btn-secondary" onClick={() => setEditingParticipant(null)}>{isEn ? 'Cancel' : 'Annuler'}</button>
                 </div>
               </form>
             ) : null}
@@ -3510,8 +3601,8 @@ export default function AdminClient() {
             <div>
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Sessions</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>Création, supervision et modification des sessions depuis la console admin.</p>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Sessions' : 'Sessions'}</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{isEn ? 'Create, supervise and update sessions from the admin console.' : 'Creation, supervision et modification des sessions depuis la console admin.'}</p>
                 </div>
                 <button
                   type="button"
@@ -3522,45 +3613,45 @@ export default function AdminClient() {
                     setShowNewSessionForm((current) => !current);
                   }}
                 >
-                  {showNewSessionForm ? 'Fermer le formulaire' : 'Creer une session'}
+                  {showNewSessionForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Create session' : 'Creer une session')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 {showNewSessionForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer une session</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Create session' : 'Creer une session'}</h2>
                     <form className="auth-form" onSubmit={submitNewSession}>
-                      <p style={{ margin: 0, fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>Etape 1</p>
-                      <label>Nom<input value={newSession.name} onChange={(e) => setNewSession((p) => ({ ...p, name: e.target.value }))} required /></label>
-                      <label>Statut
+                      <p style={{ margin: 0, fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>{isEn ? 'Step 1' : 'Etape 1'}</p>
+                      <label>{isEn ? 'Name' : 'Nom'}<input value={newSession.name} onChange={(e) => setNewSession((p) => ({ ...p, name: e.target.value }))} required /></label>
+                      <label>{isEn ? 'Status' : 'Statut'}
                         <select value={newSession.status} onChange={(e) => setNewSession((p) => ({ ...p, status: e.target.value }))}>
-                          <option value="preparee">En preparation</option>
-                          <option value="en_cours">En cours</option>
-                          <option value="terminee">Terminee</option>
+                          <option value="preparee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.preparee, isEn)}</option>
+                          <option value="en_cours">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.en_cours, isEn)}</option>
+                          <option value="terminee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.terminee, isEn)}</option>
                         </select>
                       </label>
-                      <label>Format<input value={newSession.format} onChange={(e) => setNewSession((p) => ({ ...p, format: e.target.value }))} placeholder="Ex: atelier" /></label>
-                      <label>Modalite
+                      <label>{isEn ? 'Format' : 'Format'}<input value={newSession.format} onChange={(e) => setNewSession((p) => ({ ...p, format: e.target.value }))} placeholder={isEn ? 'Example: workshop' : 'Ex: atelier'} /></label>
+                      <label>{isEn ? 'Modality' : 'Modalite'}
                         <select value={newSession.modality} onChange={(e) => setNewSession((p) => ({ ...p, modality: e.target.value }))}>
-                          <option value="">Non definie</option>
-                          <option value="remote">A distance</option>
-                          <option value="hybrid">Hybride</option>
-                          <option value="in-person">Presentiel</option>
+                          <option value="">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS[''], isEn)}</option>
+                          <option value="remote">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.remote, isEn)}</option>
+                          <option value="hybrid">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.hybrid, isEn)}</option>
+                          <option value="in-person">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS['in-person'], isEn)}</option>
                         </select>
                       </label>
-                      <label>Date<input type="date" value={newSession.session_date} onChange={(e) => setNewSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
-                      <label>Duree (minutes)<input type="number" min={1} value={newSession.duration_minutes} onChange={(e) => setNewSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
+                      <label>{isEn ? 'Date' : 'Date'}<input type="date" value={newSession.session_date} onChange={(e) => setNewSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
+                      <label>{isEn ? 'Duration (minutes)' : 'Duree (minutes)'}<input type="number" min={1} value={newSession.duration_minutes} onChange={(e) => setNewSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
 
                       <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '12px' }}>
-                        <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>Etape 2 (optionnelle)</p>
+                        <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>{isEn ? 'Step 2 (optional)' : 'Etape 2 (optionnelle)'}</p>
                         <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
-                          Assignez des participants maintenant pour qu'ils voient directement la session.
+                          {isEn ? 'Assign participants now so they can see the session immediately.' : 'Assignez des participants maintenant pour qu\'ils voient directement la session.'}
                         </p>
                         <input
                           type="search"
                           className="inline-input"
-                          placeholder="Rechercher un participant..."
+                          placeholder={isEn ? 'Search a participant...' : 'Rechercher un participant...'}
                           value={newSessionMemberQuery}
                           onChange={(e) => setNewSessionMemberQuery(e.target.value)}
                           style={{ marginBottom: '8px' }}
@@ -3731,42 +3822,42 @@ export default function AdminClient() {
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Ajouter un challenge</h2>
                     <form className="auth-form" onSubmit={submitNewChallenge}>
-                      <label>Nom<input value={newChallenge.name} onChange={(e) => setNewChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
-                      <label>Type
+                      <label>{isEn ? 'Name' : 'Nom'}<input value={newChallenge.name} onChange={(e) => setNewChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
+                      <label>{isEn ? 'Type' : 'Type'}
                         <select value={newChallenge.type} onChange={(e) => setNewChallenge((p) => ({ ...p, type: e.target.value }))}>
-                          <option value="individuel">Individuel</option>
-                          <option value="equipe">Equipe</option>
+                          <option value="individuel">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.individuel, isEn)}</option>
+                          <option value="equipe">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.equipe, isEn)}</option>
                         </select>
                       </label>
-                      <label>Statut
+                      <label>{isEn ? 'Status' : 'Statut'}
                         <select value={newChallenge.status} onChange={(e) => setNewChallenge((p) => ({ ...p, status: e.target.value }))}>
-                          <option value="actif">Actif</option>
-                          <option value="brouillon">Brouillon</option>
-                          <option value="archive">Archive</option>
+                          <option value="actif">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.actif, isEn)}</option>
+                          <option value="brouillon">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.brouillon, isEn)}</option>
+                          <option value="archive">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.archive, isEn)}</option>
                         </select>
                       </label>
-                      <label>Source
+                      <label>{isEn ? 'Source' : 'Source'}
                         <select value={newChallenge.source} onChange={(e) => setNewChallenge((p) => ({ ...p, source: e.target.value }))}>
-                          <option value="local">Local</option>
-                          <option value="external">Externe</option>
+                          <option value="local">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.local, isEn)}</option>
+                          <option value="external">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.external, isEn)}</option>
                         </select>
                       </label>
-                      <label>Categorie
+                      <label>{isEn ? 'Category' : 'Categorie'}
                         <select value={newChallenge.category} onChange={(e) => setNewChallenge((p) => ({ ...p, category: e.target.value }))}>
-                          <option value="">--- Selectioner ---</option>
-                          {CHALLENGE_CATEGORY_OPTIONS.map((option) => (
+                          <option value="">{isEn ? '--- Select ---' : '--- Selectioner ---'}</option>
+                          {challengeCategoryOptions.map((option) => (
                             <option key={option.value} value={option.value}>{option.label}</option>
                           ))}
                         </select>
                       </label>
-                      <label>Objectifs
+                      <label>{isEn ? 'Objectives' : 'Objectifs'}
                         <div style={{ display: 'grid', gap: '8px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
-                            <span>Choisissez jusqu'à {MAX_CHALLENGE_OBJECTIVES} objectifs.</span>
+                            <span>{isEn ? `Choose up to ${MAX_CHALLENGE_OBJECTIVES} objectives.` : `Choisissez jusqu'à ${MAX_CHALLENGE_OBJECTIVES} objectifs.`}</span>
                             <strong>{normalizeObjectivesInput(newChallenge.objectives).length}/{MAX_CHALLENGE_OBJECTIVES}</strong>
                           </div>
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            {CHALLENGE_OBJECTIVE_OPTIONS.map((option) => {
+                            {challengeObjectiveOptions.map((option) => {
                               const selectedObjectives = normalizeObjectivesInput(newChallenge.objectives);
                               const isSelected = selectedObjectives.includes(option.value);
                               const limitReached = selectedObjectives.length >= MAX_CHALLENGE_OBJECTIVES;
@@ -3795,35 +3886,35 @@ export default function AdminClient() {
                             })}
                           </div>
                           {normalizeObjectivesInput(newChallenge.objectives).length >= MAX_CHALLENGE_OBJECTIVES ? (
-                            <p className="session-meta" style={{ margin: 0 }}>Limite atteinte: retirez un objectif pour en sélectionner un autre.</p>
+                              <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'Limit reached: remove one objective to select another.' : 'Limite atteinte: retirez un objectif pour en selectionner un autre.'}</p>
                           ) : null}
                         </div>
                       </label>
-                      <label>Duree<input value={newChallenge.duration} onChange={(e) => setNewChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
+                      <label>{isEn ? 'Duration' : 'Duree'}<input value={newChallenge.duration} onChange={(e) => setNewChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
                       <label>Engine key<input value={newChallenge.engine_key} onChange={(e) => setNewChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
-                      <label>Description<textarea rows={4} value={newChallenge.description} onChange={(e) => setNewChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
+                      <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={newChallenge.description} onChange={(e) => setNewChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
                       <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                        <p style={{ margin: 0, fontWeight: 600 }}>Règles du challenge</p>
-                        <p className="session-meta" style={{ margin: 0 }}>Ce contenu alimente le brief affiché aux facilitateurs et aux participants dans le challenge.</p>
-                        <label>Brief de mission
-                          <textarea rows={3} value={newChallenge.rules_objective} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder="Décrivez l'objectif principal du challenge" />
+                        <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Challenge rules' : 'Regles du challenge'}</p>
+                        <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'This content feeds the brief shown to facilitators and participants inside the challenge.' : 'Ce contenu alimente le brief affiche aux facilitateurs et aux participants dans le challenge.'}</p>
+                        <label>{isEn ? 'Mission brief' : 'Brief de mission'}
+                          <textarea rows={3} value={newChallenge.rules_objective} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={isEn ? 'Describe the main challenge objective' : 'Decrivez l\'objectif principal du challenge'} />
                         </label>
-                        <label>Instructions facilitateur (1 ligne = 1 règle)
-                          <textarea rows={4} value={newChallenge.rules_facilitator} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder="Cadrez le challenge&#10;Lancez le timer" />
+                        <label>{isEn ? 'Facilitator instructions (1 line = 1 rule)' : 'Instructions facilitateur (1 ligne = 1 regle)'}
+                          <textarea rows={4} value={newChallenge.rules_facilitator} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder={isEn ? 'Frame the challenge&#10;Start the timer' : 'Cadrez le challenge&#10;Lancez le timer'} />
                         </label>
-                        <label>Instructions participants (1 ligne = 1 règle)
-                          <textarea rows={4} value={newChallenge.rules_participant} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder="Ecoutez le brief&#10;Collaborez en équipe" />
+                        <label>{isEn ? 'Participant instructions (1 line = 1 rule)' : 'Instructions participants (1 ligne = 1 regle)'}
+                          <textarea rows={4} value={newChallenge.rules_participant} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={isEn ? 'Listen to the brief&#10;Collaborate as a team' : 'Ecoutez le brief&#10;Collaborez en equipe'} />
                         </label>
-                        <label>Note de clôture
-                          <textarea rows={2} value={newChallenge.rules_footnote} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder="Message de synthèse optionnel" />
+                        <label>{isEn ? 'Closing note' : 'Note de cloture'}
+                          <textarea rows={2} value={newChallenge.rules_footnote} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={isEn ? 'Optional summary message' : 'Message de synthese optionnel'} />
                         </label>
                         <div style={{ borderTop: '1px dashed var(--color-border, #e5e7eb)', paddingTop: '10px', display: 'grid', gap: '10px' }}>
-                          <p style={{ margin: 0, fontWeight: 600 }}>Joueurs (Min / Recommandé / Max)</p>
+                          <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Players (Min / Recommended / Max)' : 'Joueurs (Min / Recommande / Max)'}</p>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                             <label>Min
                               <input type="number" min="1" value={newChallenge.player_min} onChange={(e) => setNewChallenge((p) => ({ ...p, player_min: e.target.value }))} />
                             </label>
-                            <label>Recommandé
+                            <label>{isEn ? 'Recommended' : 'Recommande'}
                               <input type="number" min="1" value={newChallenge.player_recommended} onChange={(e) => setNewChallenge((p) => ({ ...p, player_recommended: e.target.value }))} />
                             </label>
                             <label>Max
@@ -3833,7 +3924,7 @@ export default function AdminClient() {
                         </div>
                       </div>
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:challenge'}>
-                        {busySaveKey === 'create:challenge' ? 'Création...' : 'Creer le challenge'}
+                        {busySaveKey === 'create:challenge' ? (isEn ? 'Creating...' : 'Creation...') : (isEn ? 'Create challenge' : 'Creer le challenge')}
                       </button>
                       <button
                         type="button"
@@ -3843,7 +3934,7 @@ export default function AdminClient() {
                           setNewChallengeMessage('');
                         }}
                       >
-                        Annuler
+                        {isEn ? 'Cancel' : 'Annuler'}
                       </button>
                     </form>
                     {newChallengeMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newChallengeMessage}</p> : null}
@@ -3857,8 +3948,8 @@ export default function AdminClient() {
                   >
                     <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '12px', padding: '24px 28px', width: '100%', maxWidth: '640px', position: 'relative', marginBottom: '40px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>Modifier un challenge</h2>
-                        <button type="button" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--color-muted, #6b7280)', padding: '2px 8px', lineHeight: 1 }} aria-label="Fermer la fenêtre">✕</button>
+                        <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{isEn ? 'Edit challenge' : 'Modifier un challenge'}</h2>
+                        <button type="button" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--color-muted, #6b7280)', padding: '2px 8px', lineHeight: 1 }} aria-label={isEn ? 'Close window' : 'Fermer la fenetre'}>✕</button>
                       </div>
                     <form className="auth-form" onSubmit={submitEditChallenge}>
                         <label>Nom<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
@@ -4331,7 +4422,7 @@ export default function AdminClient() {
                     />
                   </div>
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredChallenges.length === 0 ? <li className="list-empty">Aucun challenge ne correspond.</li> : null}
+                    {filteredChallenges.length === 0 ? <li className="list-empty">{isEn ? 'No matching challenge.' : 'Aucun challenge ne correspond.'}</li> : null}
                     {filteredChallenges.map((c) => (
                       <li key={String(c.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
@@ -4342,7 +4433,7 @@ export default function AdminClient() {
                             if (!playerRange.hasRange) return null;
                             return (
                               <p className="session-meta" style={{ marginTop: '4px' }}>
-                                Ideal: ~{playerRange.recommended || '-'} joueurs · Min {playerRange.min || '-'} · Max {playerRange.max || '-'}
+                                {isEn ? 'Ideal' : 'Ideal'}: ~{playerRange.recommended || '-'} {isEn ? 'players' : 'joueurs'} · Min {playerRange.min || '-'} · Max {playerRange.max || '-'}
                               </p>
                             );
                           })()}
@@ -4381,9 +4472,9 @@ export default function AdminClient() {
             <div>
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Tarification</h1>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Pricing' : 'Tarification'}</h1>
                   <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                    Creez et administrez vos offres commerciales (nom, fonctionnalites, prix et options avancees).
+                    {isEn ? 'Create and manage your commercial offers (name, features, price and advanced options).' : 'Creez et administrez vos offres commerciales (nom, fonctionnalites, prix et options avancees).'}
                   </p>
                 </div>
                 <button
@@ -4395,54 +4486,54 @@ export default function AdminClient() {
                     setShowNewPricingPlanForm((current) => !current);
                   }}
                 >
-                  {showNewPricingPlanForm ? 'Fermer le formulaire' : 'Creer une formule'}
+                  {showNewPricingPlanForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Create pricing plan' : 'Creer une formule')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 {showNewPricingPlanForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer une formule</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Create pricing plan' : 'Creer une formule'}</h2>
                     <form className="auth-form" onSubmit={submitNewPricingPlan}>
-                      <label>Nom de l offre<input value={newPricingPlan.name} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
-                      <label>Description courte<textarea rows={3} value={newPricingPlan.description} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
-                      <label>Fonctionnalites incluses (une ligne = un point)
-                        <textarea rows={5} value={newPricingPlan.features} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, features: e.target.value }))} placeholder={'Ex: Dashboard manager\nSession live\nSupport email'} />
+                      <label>{isEn ? 'Offer name' : 'Nom de l offre'}<input value={newPricingPlan.name} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
+                      <label>{isEn ? 'Short description' : 'Description courte'}<textarea rows={3} value={newPricingPlan.description} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                      <label>{isEn ? 'Included features (1 line = 1 bullet)' : 'Fonctionnalites incluses (une ligne = un point)'}
+                        <textarea rows={5} value={newPricingPlan.features} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, features: e.target.value }))} placeholder={isEn ? 'Example: Manager dashboard\nLive session\nEmail support' : 'Ex: Dashboard manager\nSession live\nSupport email'} />
                       </label>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>Prix<input type="number" min="0" step="0.01" value={newPricingPlan.price} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
-                        <label>Devise<input value={newPricingPlan.currency} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
+                        <label>{isEn ? 'Price' : 'Prix'}<input type="number" min="0" step="0.01" value={newPricingPlan.price} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
+                        <label>{isEn ? 'Currency' : 'Devise'}<input value={newPricingPlan.currency} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
                       </div>
-                      <label>Cycle de facturation
+                      <label>{isEn ? 'Billing cycle' : 'Cycle de facturation'}
                         <select value={newPricingPlan.billing_cycle} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
-                          <option value="monthly">Mensuel</option>
-                          <option value="yearly">Annuel</option>
-                          <option value="one_time">Paiement unique</option>
-                          <option value="custom">Personnalise</option>
+                          <option value="monthly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.monthly, isEn)}</option>
+                          <option value="yearly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.yearly, isEn)}</option>
+                          <option value="one_time">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.one_time, isEn)}</option>
+                          <option value="custom">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.custom, isEn)}</option>
                         </select>
                       </label>
-                      <label>Label bouton CTA<input value={newPricingPlan.cta_label} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                      <label>{isEn ? 'CTA button label' : 'Label bouton CTA'}<input value={newPricingPlan.cta_label} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>Max utilisateurs<input type="number" min="0" value={newPricingPlan.max_users} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
-                        <label>Max sessions/mois<input type="number" min="0" value={newPricingPlan.max_sessions_per_month} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
+                        <label>{isEn ? 'Max users' : 'Max utilisateurs'}<input type="number" min="0" value={newPricingPlan.max_users} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
+                        <label>{isEn ? 'Max sessions/month' : 'Max sessions/mois'}<input type="number" min="0" value={newPricingPlan.max_sessions_per_month} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                        <label>Niveau support<input value={newPricingPlan.support_level} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} placeholder="Email, Prioritaire..." /></label>
-                        <label>Jours essai<input type="number" min="0" value={newPricingPlan.trial_days} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
-                        <label>Ordre affichage<input type="number" min="0" value={newPricingPlan.display_order} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                        <label>{isEn ? 'Support level' : 'Niveau support'}<input value={newPricingPlan.support_level} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} placeholder={isEn ? 'Email, Priority...' : 'Email, Prioritaire...'} /></label>
+                        <label>{isEn ? 'Trial days' : 'Jours essai'}<input type="number" min="0" value={newPricingPlan.trial_days} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
+                        <label>{isEn ? 'Display order' : 'Ordre affichage'}<input type="number" min="0" value={newPricingPlan.display_order} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
                       </div>
                       <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                           <input type="checkbox" checked={newPricingPlan.is_active} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                          Offre active
+                          {isEn ? 'Active offer' : 'Offre active'}
                         </label>
                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                           <input type="checkbox" checked={newPricingPlan.highlighted} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, highlighted: e.target.checked }))} />
-                          Mise en avant
+                          {isEn ? 'Highlighted' : 'Mise en avant'}
                         </label>
                       </div>
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:pricing-plan'}>
-                        {busySaveKey === 'create:pricing-plan' ? 'Création...' : 'Creer la formule'}
+                        {busySaveKey === 'create:pricing-plan' ? (isEn ? 'Creating...' : 'Creation...') : (isEn ? 'Create plan' : 'Creer la formule')}
                       </button>
                       <button
                         type="button"
@@ -4452,7 +4543,7 @@ export default function AdminClient() {
                           setNewPricingMessage('');
                         }}
                       >
-                        Annuler
+                        {isEn ? 'Cancel' : 'Annuler'}
                       </button>
                     </form>
                     {newPricingMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newPricingMessage}</p> : null}
@@ -4466,12 +4557,12 @@ export default function AdminClient() {
                   >
                     <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '12px', width: '100%', maxWidth: '760px', maxHeight: 'calc(100vh - 80px)', overflowY: 'auto', padding: '22px 24px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>Modifier une formule</h2>
+                        <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{isEn ? 'Edit pricing plan' : 'Modifier une formule'}</h2>
                         <button
                           type="button"
                           onClick={() => setEditingPricingPlan(null)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--color-muted, #6b7280)', padding: '2px 8px', lineHeight: 1 }}
-                          aria-label="Fermer la fenêtre"
+                          aria-label={isEn ? 'Close window' : 'Fermer la fenetre'}
                         >
                           ✕
                         </button>
@@ -4533,7 +4624,7 @@ export default function AdminClient() {
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder="Rechercher une formule..."
+                      placeholder={isEn ? 'Search a plan...' : 'Rechercher une formule...'}
                       value={pricingQuery}
                       onChange={(e) => setPricingQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
@@ -4541,20 +4632,20 @@ export default function AdminClient() {
                   </div>
 
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredPricingPlans.length === 0 ? <li className="list-empty">Aucune formule ne correspond.</li> : null}
+                    {filteredPricingPlans.length === 0 ? <li className="list-empty">{isEn ? 'No matching plan.' : 'Aucune formule ne correspond.'}</li> : null}
                     {filteredPricingPlans.map((plan) => (
                       <li key={String(plan.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">
                             {plan.name}
-                            {plan.highlighted ? ' · Populaire' : ''}
+                            {plan.highlighted ? ` · ${isEn ? 'Popular' : 'Populaire'}` : ''}
                           </p>
                           <p className="session-meta">
-                            {typeof plan.price === 'number' ? `${plan.price.toFixed(2)} ${plan.currency || 'EUR'}` : 'Prix non defini'}
+                            {typeof plan.price === 'number' ? `${plan.price.toFixed(2)} ${plan.currency || 'EUR'}` : (isEn ? 'Price not set' : 'Prix non defini')}
                             {' · '}
                             {plan.billing_cycle || 'monthly'}
                             {' · '}
-                            {plan.is_active ? 'Active' : 'Inactive'}
+                            {plan.is_active ? 'Active' : (isEn ? 'Inactive' : 'Inactive')}
                           </p>
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
@@ -4599,7 +4690,7 @@ export default function AdminClient() {
                 <div>
                   <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Landing CMS</h1>
                   <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                    Mode structure reduite: hero, 3 preuves, parcours en 3 etapes et CTA final unique.
+                    {isEn ? 'Reduced structure mode: hero, 3 proof points, 3-step flow and one final CTA.' : 'Mode structure reduite: hero, 3 preuves, parcours en 3 etapes et CTA final unique.'}
                   </p>
                 </div>
                 <button
@@ -4611,35 +4702,35 @@ export default function AdminClient() {
                     setShowNewLandingBlockForm((current) => !current);
                   }}
                 >
-                  {showNewLandingBlockForm ? 'Fermer le formulaire' : 'Creer un bloc'}
+                  {showNewLandingBlockForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Create block' : 'Creer un bloc')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 {showNewLandingBlockForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Creer un bloc</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Create block' : 'Creer un bloc'}</h2>
                     <form className="auth-form" onSubmit={submitNewLandingBlock}>
-                      <label>Cle bloc<input value={newLandingBlock.block_key} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} placeholder="hero_main" list="landing-allowed-keys" required /></label>
-                      <label>Label admin<input value={newLandingBlock.label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
-                      <label>Titre<input value={newLandingBlock.title} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
-                      <label>Sous-titre<input value={newLandingBlock.subtitle} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
-                      <label>Description<textarea rows={4} value={newLandingBlock.description} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                      <label>{isEn ? 'Block key' : 'Cle bloc'}<input value={newLandingBlock.block_key} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} placeholder="hero_main" list="landing-allowed-keys" required /></label>
+                      <label>{isEn ? 'Admin label' : 'Label admin'}<input value={newLandingBlock.label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
+                      <label>{isEn ? 'Title' : 'Titre'}<input value={newLandingBlock.title} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
+                      <label>{isEn ? 'Subtitle' : 'Sous-titre'}<input value={newLandingBlock.subtitle} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
+                      <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={newLandingBlock.description} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
                       <label>Image URL<input value={newLandingBlock.image_url} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, image_url: e.target.value }))} placeholder="https://..." /></label>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>CTA label<input value={newLandingBlock.cta_label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
-                        <label>CTA lien<input value={newLandingBlock.cta_href} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
+                        <label>{isEn ? 'CTA label' : 'CTA label'}<input value={newLandingBlock.cta_label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                        <label>{isEn ? 'CTA link' : 'CTA lien'}<input value={newLandingBlock.cta_href} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>Badge<input value={newLandingBlock.badge_text} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
-                        <label>Ordre<input type="number" min="0" value={newLandingBlock.display_order} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                        <label>{isEn ? 'Badge' : 'Badge'}<input value={newLandingBlock.badge_text} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
+                        <label>{isEn ? 'Order' : 'Ordre'}<input type="number" min="0" value={newLandingBlock.display_order} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
                       </div>
                       <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                         <input type="checkbox" checked={newLandingBlock.is_active} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                        Bloc actif
+                        {isEn ? 'Active block' : 'Bloc actif'}
                       </label>
                       <button type="submit" className="btn-primary" disabled={busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}`}>
-                        {busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}` ? 'Enregistrement...' : 'Creer le bloc'}
+                        {busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Create block' : 'Creer le bloc')}
                       </button>
                       <button
                         type="button"
@@ -4649,7 +4740,7 @@ export default function AdminClient() {
                           setNewLandingMessage('');
                         }}
                       >
-                        Annuler
+                        {isEn ? 'Cancel' : 'Annuler'}
                       </button>
                     </form>
                     {newLandingMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newLandingMessage}</p> : null}
@@ -4658,31 +4749,31 @@ export default function AdminClient() {
 
                 {editingLandingBlock ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>Modifier un bloc</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Edit block' : 'Modifier un bloc'}</h2>
                     <form className="auth-form" onSubmit={submitEditLandingBlock}>
-                      <label>Cle bloc<input value={editingLandingBlock.block_key} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} list="landing-allowed-keys" required /></label>
-                        <label>Label admin<input value={editingLandingBlock.label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
-                        <label>Titre<input value={editingLandingBlock.title} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
-                        <label>Sous-titre<input value={editingLandingBlock.subtitle} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
-                        <label>Description<textarea rows={4} value={editingLandingBlock.description} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                      <label>{isEn ? 'Block key' : 'Cle bloc'}<input value={editingLandingBlock.block_key} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} list="landing-allowed-keys" required /></label>
+                        <label>{isEn ? 'Admin label' : 'Label admin'}<input value={editingLandingBlock.label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
+                        <label>{isEn ? 'Title' : 'Titre'}<input value={editingLandingBlock.title} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
+                        <label>{isEn ? 'Subtitle' : 'Sous-titre'}<input value={editingLandingBlock.subtitle} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
+                        <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={editingLandingBlock.description} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
                         <label>Image URL<input value={editingLandingBlock.image_url} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, image_url: e.target.value }))} /></label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>CTA label<input value={editingLandingBlock.cta_label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
-                          <label>CTA lien<input value={editingLandingBlock.cta_href} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
+                          <label>{isEn ? 'CTA label' : 'CTA label'}<input value={editingLandingBlock.cta_label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                          <label>{isEn ? 'CTA link' : 'CTA lien'}<input value={editingLandingBlock.cta_href} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>Badge<input value={editingLandingBlock.badge_text} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
-                          <label>Ordre<input type="number" min="0" value={editingLandingBlock.display_order} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                          <label>{isEn ? 'Badge' : 'Badge'}<input value={editingLandingBlock.badge_text} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
+                          <label>{isEn ? 'Order' : 'Ordre'}<input type="number" min="0" value={editingLandingBlock.display_order} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
                         </div>
                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                           <input type="checkbox" checked={editingLandingBlock.is_active} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                          Bloc actif
+                          {isEn ? 'Active block' : 'Bloc actif'}
                         </label>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                           <button type="submit" className="btn-primary" disabled={busySaveKey === `save:landing:${String(editingLandingBlock.block_key || '').trim().toLowerCase()}`}>
-                            {busySaveKey === `save:landing:${String(editingLandingBlock.block_key || '').trim().toLowerCase()}` ? 'Enregistrement...' : 'Enregistrer'}
+                            {busySaveKey === `save:landing:${String(editingLandingBlock.block_key || '').trim().toLowerCase()}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}
                           </button>
-                          <button type="button" className="btn-secondary" onClick={() => setEditingLandingBlock(null)}>Annuler</button>
+                          <button type="button" className="btn-secondary" onClick={() => setEditingLandingBlock(null)}>{isEn ? 'Cancel' : 'Annuler'}</button>
                         </div>
                     </form>
                   </div>
@@ -4691,12 +4782,12 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      Blocs {landingBlocks.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredLandingBlocks.length}/{landingBlocks.length})</span> : null}
+                      {isEn ? 'Blocks' : 'Blocs'} {landingBlocks.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredLandingBlocks.length}/{landingBlocks.length})</span> : null}
                     </h2>
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder="Rechercher un bloc..."
+                      placeholder={isEn ? 'Search a block...' : 'Rechercher un bloc...'}
                       value={landingQuery}
                       onChange={(e) => setLandingQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
@@ -4704,12 +4795,12 @@ export default function AdminClient() {
                   </div>
 
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredLandingBlocks.length === 0 ? <li className="list-empty">Aucun bloc ne correspond.</li> : null}
+                    {filteredLandingBlocks.length === 0 ? <li className="list-empty">{isEn ? 'No matching block.' : 'Aucun bloc ne correspond.'}</li> : null}
                     {filteredLandingBlocks.map((block) => (
                       <li key={String(block.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{block.label || block.block_key}</p>
-                          <p className="session-meta">{block.block_key} · {block.is_active ? 'Actif' : 'Inactif'}</p>
+                          <p className="session-meta">{block.block_key} · {block.is_active ? (isEn ? 'Active' : 'Actif') : (isEn ? 'Inactive' : 'Inactif')}</p>
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
                           <button
