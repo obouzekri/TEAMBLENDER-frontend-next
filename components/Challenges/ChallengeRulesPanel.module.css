@@ -4,7 +4,7 @@
   border-radius: 14px;
   padding: 16px;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   box-shadow: 0 12px 28px rgba(2, 6, 23, 0.3), inset 0 0 0 1px rgba(14, 165, 233, 0.12);
   width: 100%;
   max-width: 100%;
@@ -13,8 +13,42 @@
 
 .rulesHeader {
   display: grid;
-  gap: 7px;
-  padding-bottom: 6px;
+  gap: 8px;
+  padding-bottom: 2px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tagsRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.playerTag {
+  border: 1px solid rgba(125, 211, 252, 0.32);
+  background: rgba(8, 21, 36, 0.72);
+  color: #dbeafe;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.playerTagRecommended {
+  border-color: rgba(250, 204, 21, 0.5);
+  background: rgba(120, 98, 20, 0.32);
+  color: #fef3c7;
 }
 
 .rulesKicker {
@@ -28,9 +62,12 @@
 
 .rulesBriefTitle {
   margin: 0;
-  color: #dbeafe;
-  font-size: 0.92rem;
-  font-weight: 700;
+  color: #f0f9ff;
+  font-size: 1.08rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  margin-top: 4px;
+  margin-bottom: 2px;
 }
 
 .rulesHeader h2 {
@@ -41,19 +78,19 @@
 
 .rulesHeader p {
   margin: 0;
-  color: #bfd3e8;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  color: #c7daee;
+  font-size: 0.88rem;
+  line-height: 1.45;
   overflow-wrap: anywhere;
 }
 
 .rulesSection {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   border: 1px solid rgba(125, 211, 252, 0.2);
   background: rgba(4, 13, 22, 0.6);
   border-radius: 10px;
-  padding: 12px;
+  padding: 10px;
 }
 
 .rulesSection h3 {
@@ -66,10 +103,10 @@
   margin: 0;
   padding-left: 18px;
   color: #c9ddf0;
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   display: grid;
-  gap: 7px;
-  line-height: 1.5;
+  gap: 6px;
+  line-height: 1.45;
   overflow-wrap: anywhere;
 }
 
@@ -218,6 +255,15 @@
 
   .rulesKicker {
     font-size: 0.74rem;
+  }
+
+  .titleRow {
+    align-items: flex-start;
+  }
+
+  .tagsRow {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .modalCard {

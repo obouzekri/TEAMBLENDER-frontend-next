@@ -54,33 +54,34 @@ export default function ChallengeRulesPanel({
   const resolvedStartLabel = startLabel || t('challengeRulesPanel.startChallenge');
   const facilitatorLabel = t('challengeRulesPanel.facilitator');
   const participantLabel = t('challengeRulesPanel.participants');
-  const participantsRows = [
-    { key: 'min', label: t('challengeRulesPanel.min'), value: participantsMeta?.min || '' },
-    { key: 'recommended', label: t('challengeRulesPanel.recommended'), value: participantsMeta?.recommended || '' },
-    { key: 'max', label: t('challengeRulesPanel.max'), value: participantsMeta?.max || '' },
+  const participantTags = [
+    { key: 'min', label: t('challengeRulesPanel.min'), value: participantsMeta?.min || '', highlighted: false },
+    { key: 'recommended', label: t('challengeRulesPanel.recommended'), value: participantsMeta?.recommended || '', highlighted: true },
+    { key: 'max', label: t('challengeRulesPanel.max'), value: participantsMeta?.max || '', highlighted: false },
   ].filter((entry) => String(entry.value || '').trim());
 
   const cardContent = (
     <>
       <header className={styles.rulesHeader}>
         <p className={styles.rulesKicker}>📜 {t('challengeRulesPanel.kicker')}</p>
-        <h2 className="challenge-section-title">{challengeName}</h2>
+        <div className={styles.titleRow}>
+          <h2 className="challenge-section-title">{challengeName}</h2>
+          {participantTags.length > 0 ? (
+            <div className={styles.tagsRow}>
+              {participantTags.map((item) => (
+                <span
+                  key={`tag-${item.key}`}
+                  className={`${styles.playerTag}${item.highlighted ? ` ${styles.playerTagRecommended}` : ''}`}
+                >
+                  {item.highlighted ? '⭐ ' : ''}{item.label} {item.value}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
         <h3 className={styles.rulesBriefTitle}>{resolvedBriefTitle}</h3>
         <p className="challenge-text">{objective}</p>
       </header>
-
-      {participantsRows.length > 0 ? (
-        <section className={styles.rulesSection}>
-          <h3 className="challenge-section-title">👥 {participantLabel}</h3>
-          <ul className={styles.metaList}>
-            {participantsRows.map((item) => (
-              <li key={`meta-${item.key}`}>
-                <strong>{item.label} :</strong> {item.value}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
 
       {isFacilitator ? (
         <section className={styles.rulesSection}>

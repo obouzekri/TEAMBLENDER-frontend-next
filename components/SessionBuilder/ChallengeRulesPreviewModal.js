@@ -145,6 +145,13 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
   const vomParticipants = isVom ? getVraiOuMensongeRulesPreset(locale).participants : null;
   const missionCritiqueParticipants = isMissionCritique ? getMissionCritiqueRulesPreset(locale).participants : null;
   const escapeRoomParticipants = isEscapeRoom ? getEscapeRoomRulesPreset(locale).participants : null;
+  const participantTags = playerRange.hasRange
+    ? [
+      { key: 'min', label: t('challengeRulesPanel.min'), value: isLabyrinthe ? labyrintheParticipants?.min : isVom ? vomParticipants?.min : isMissionCritique ? missionCritiqueParticipants?.min : isEscapeRoom ? escapeRoomParticipants?.min : playerRange.min, highlighted: false },
+      { key: 'recommended', label: t('challengeRulesPanel.recommended'), value: isLabyrinthe ? labyrintheParticipants?.recommended : isVom ? vomParticipants?.recommended : isMissionCritique ? missionCritiqueParticipants?.recommended : isEscapeRoom ? escapeRoomParticipants?.recommended : playerRange.recommended, highlighted: true },
+      { key: 'max', label: t('challengeRulesPanel.max'), value: isLabyrinthe ? labyrintheParticipants?.max : isVom ? vomParticipants?.max : isMissionCritique ? missionCritiqueParticipants?.max : isEscapeRoom ? escapeRoomParticipants?.max : playerRange.max, highlighted: false },
+    ].filter((entry) => String(entry.value || '').trim())
+    : [];
 
   const modalTitleId = 'challenge-rules-preview-title';
   const isEn = locale === 'en';
@@ -161,31 +168,22 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
         <header className={styles.header}>
           <div>
             <p className={styles.kicker}>📜 {t('challengeRulesPanel.kicker')}</p>
-            <h2 id={modalTitleId}>{challenge?.name || (isEn ? 'Activity' : 'Activité')}</h2>
+            <div className={styles.titleRow}>
+              <h2 id={modalTitleId}>{challenge?.name || (isEn ? 'Activity' : 'Activité')}</h2>
+              {participantTags.length > 0 ? (
+                <div className={styles.tagsRow}>
+                  {participantTags.map((item) => (
+                    <span
+                      key={`tag-${item.key}`}
+                      className={`${styles.playerTag}${item.highlighted ? ` ${styles.playerTagRecommended}` : ''}`}
+                    >
+                      {item.highlighted ? '⭐ ' : ''}{item.label} {item.value}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
             <p className={styles.duration}>{duration > 0 ? `${t('challengeRulesPanel.averageDuration')}: ${duration} min` : t('challengeRulesPanel.averageDurationUnknown')}</p>
-            {playerRange.hasRange ? (
-              <p className={styles.playersLine}>
-                {isLabyrinthe
-                  ? (isEn
-                    ? `${t('challengeRulesPanel.min')}: ${labyrintheParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')}: ${labyrintheParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')}: ${labyrintheParticipants?.max || '-'}`
-                    : `${t('challengeRulesPanel.min')} : ${labyrintheParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')} : ${labyrintheParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')} : ${labyrintheParticipants?.max || '-'}`)
-                  : isVom
-                    ? (isEn
-                      ? `${t('challengeRulesPanel.min')}: ${vomParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')}: ${vomParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')}: ${vomParticipants?.max || '-'}`
-                      : `${t('challengeRulesPanel.min')} : ${vomParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')} : ${vomParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')} : ${vomParticipants?.max || '-'}`)
-                  : isMissionCritique
-                    ? (isEn
-                      ? `${t('challengeRulesPanel.min')}: ${missionCritiqueParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')}: ${missionCritiqueParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')}: ${missionCritiqueParticipants?.max || '-'}`
-                      : `${t('challengeRulesPanel.min')} : ${missionCritiqueParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')} : ${missionCritiqueParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')} : ${missionCritiqueParticipants?.max || '-'}`)
-                  : isEscapeRoom
-                    ? (isEn
-                      ? `${t('challengeRulesPanel.min')}: ${escapeRoomParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')}: ${escapeRoomParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')}: ${escapeRoomParticipants?.max || '-'}`
-                      : `${t('challengeRulesPanel.min')} : ${escapeRoomParticipants?.min || '-'} · ${t('challengeRulesPanel.recommended')} : ${escapeRoomParticipants?.recommended || '-'} · ${t('challengeRulesPanel.max')} : ${escapeRoomParticipants?.max || '-'}`)
-                  : (isEn
-                    ? `Min: ${playerRange.min || '-'} · Recommended: ${playerRange.recommended || '-'} · Max: ${playerRange.max || '-'} ${t('challengeRulesPanel.players')}`
-                    : `Min : ${playerRange.min || '-'} · Recommande : ${playerRange.recommended || '-'} · Max : ${playerRange.max || '-'} ${t('challengeRulesPanel.players')}`)}
-              </p>
-            ) : null}
           </div>
           <button type="button" className={styles.closeButton} onClick={onClose} aria-label={t('challengeRulesPanel.closeRulesWindow')}>
             {t('challengeRulesPanel.closeRules')}
@@ -193,7 +191,7 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
         </header>
 
         <section className={styles.block}>
-          <h3>{t('challengeRulesPanel.briefTitle')}</h3>
+          <h3 className={styles.briefTitle}>{t('challengeRulesPanel.briefTitle')}</h3>
           <p>{rules.objective}</p>
         </section>
 
