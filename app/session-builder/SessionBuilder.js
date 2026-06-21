@@ -16,6 +16,14 @@ import useSessionBuilder from '@/lib/useSessionBuilder';
 import { fetchWithRetry } from '@/lib/api';
 import { ENABLE_CHALLENGES_MOCK_DATA, getApiUrl } from '@/lib/config';
 import { trackGaEvent } from '@/lib/analytics';
+import { getPixelArchitectRulesPreset } from '@/lib/challenges/pixelArchitectRules';
+import { getTheQuizRulesPreset } from '@/lib/challenges/theQuizRules';
+import { getPhraseMystereRulesPreset } from '@/lib/challenges/phraseMystereRules';
+import { getCopuzzleRulesPreset } from '@/lib/challenges/copuzzleRules';
+import { getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
+import { getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRules';
+import { getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueRules';
+import { getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
 import styles from './SessionBuilder.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
 import useI18n from '@/lib/i18n/useI18n';
@@ -135,8 +143,64 @@ function ensureTheQuizChallenge(challenges) {
   return [...list, THE_QUIZ_CATALOG_ENTRY];
 }
 
-function ensureBuilderCatalogChallenges(challenges) {
-  return ensureTheQuizChallenge(ensurePixelArchitectChallenge(challenges));
+function resolveLocalizedText(value, locale) {
+  if (value == null) return '';
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    const localized = value[locale] ?? value.en ?? value.fr ?? '';
+    return String(localized || '').trim();
+  }
+  return String(value || '').trim();
+}
+
+function getBuilderRulesPreset(engineKey, locale) {
+  switch (String(engineKey || '').trim()) {
+    case 'pixel_architect_v1':
+      return getPixelArchitectRulesPreset(locale);
+    case 'the_quiz_v1':
+      return getTheQuizRulesPreset(locale);
+    case 'phrase_collaborative_v1':
+      return getPhraseMystereRulesPreset(locale);
+    case 'copuzzle_live_v1':
+      return getCopuzzleRulesPreset(locale);
+    case 'labyrinthe_live_v1':
+      return getLabyrintheRulesPreset(locale);
+    case 'vrai_ou_mensonge_v1':
+      return getVraiOuMensongeRulesPreset(locale);
+    case 'mission_critique_v1':
+      return getMissionCritiqueRulesPreset(locale);
+    case 'escape_room_v1':
+      return getEscapeRoomRulesPreset(locale);
+    default:
+      return null;
+  }
+}
+
+function localizeBuilderChallenge(challenge, locale) {
+  const current = challenge && typeof challenge === 'object' ? challenge : {};
+  const preset = getBuilderRulesPreset(current.engine_key, locale);
+
+  if (preset) {
+    return {
+      ...current,
+      name: String(preset.challengeName || current.name || '').trim(),
+      description: String(preset.objective || current.description || '').trim(),
+    };
+  }
+
+  const localizedName = resolveLocalizedText(current.name, locale);
+  const localizedDescription = resolveLocalizedText(current.description, locale)
+    || resolveLocalizedText(current.rules_objective, locale);
+
+  return {
+    ...current,
+    name: localizedName || String(current.name || '').trim(),
+    description: localizedDescription || String(current.description || '').trim(),
+  };
+}
+
+function ensureBuilderCatalogChallenges(challenges, locale = 'fr') {
+  return ensureTheQuizChallenge(ensurePixelArchitectChallenge(challenges))
+    .map((challenge) => localizeBuilderChallenge(challenge, locale));
 }
 
 const SESSION_ID_STORAGE_KEY = 'sessionId';
@@ -295,7 +359,7 @@ function extractChallengeConfig(challenge) {
 }
 
 export default function SessionBuilder() {
-  const { t, withLocalePath } = useI18n();
+  const { locale, t, withLocalePath } = useI18n();
   const guard = useManagerGuard();
   const { toasts, removeToast, success: showSuccessToast, error: showErrorToast, loading: showLoadingToast } = useToast();
   const {
@@ -954,7 +1018,7 @@ export default function SessionBuilder() {
       .then((data) => {
         if (!cancelled) {
           const challenges = Array.isArray(data) ? data : data.challenges || data.data || [];
-          setAllChallenges(ensureBuilderCatalogChallenges(challenges));
+          setAllChallenges(ensureBuilderCatalogChallenges(challenges, locale));
           removeToast(loadingId);
           setError(null);
         }
@@ -970,7 +1034,7 @@ export default function SessionBuilder() {
 
           if (ENABLE_CHALLENGES_MOCK_DATA) {
             // Fallback mock is opt-in only to avoid masking backend issues unexpectedly.
-            setAllChallenges(ensureBuilderCatalogChallenges(mockChallenges));
+            setAllChallenges(ensureBuilderCatalogChallenges(mockChallenges, locale));
             setError(err.message || 'Catalog unavailable, local fallback active.');
             showErrorToast(t('sessionBuilder.mockModeToast'));
             return;
@@ -989,6 +1053,7 @@ export default function SessionBuilder() {
       cancelled = true;
     };
   }, [
+    locale,
     getAuthToken,
     guard.allowed,
     removeToast,
@@ -998,6 +1063,12 @@ export default function SessionBuilder() {
     showErrorToast,
     showLoadingToast,
   ]);
+
+  useEffect(() => {
+    if (!guard.allowed) return;
+    if (!Array.isArray(allChallenges) || allChallenges.length === 0) return;
+    setAllChallenges(ensureBuilderCatalogChallenges(allChallenges, locale));
+  }, [locale]);
 
   const handleCreateSession = useCallback(async (e) => {
     e.preventDefault();
