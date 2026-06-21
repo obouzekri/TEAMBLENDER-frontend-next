@@ -39,9 +39,7 @@ export function middleware(request) {
   }
 
   const preferredLocale = resolvePreferredLocale(request);
-  const redirectUrl = request.nextUrl.clone();
-  redirectUrl.pathname = `/${preferredLocale}${pathname === '/' ? '' : pathname}`;
-  const response = NextResponse.redirect(redirectUrl);
+  const response = NextResponse.next();
   response.cookies.set('tb_locale', preferredLocale, { path: '/', sameSite: 'lax' });
   return response;
 }
