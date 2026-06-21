@@ -1,9 +1,10 @@
 .summaryBar {
-  position: -webkit-sticky;
-  position: sticky;
+  position: fixed;
   top: calc(var(--nav-shell-min-height, 68px) + 0.35rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1080px, calc(100% - 2rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
   z-index: 119;
-  align-self: start;
   border-radius: 20px;
   border: 1px solid rgba(53, 160, 255, 0.18);
   background:
@@ -102,6 +103,7 @@
 @media (max-width: 680px) {
   .summaryBar {
     top: calc(var(--nav-shell-min-height, 64px) + 0.3rem);
+    width: min(1080px, calc(100% - 2rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
     padding: 0.95rem;
   }
 
