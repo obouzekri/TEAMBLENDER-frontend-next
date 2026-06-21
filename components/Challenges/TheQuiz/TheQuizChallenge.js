@@ -416,9 +416,25 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
       <section className={styles.mainGrid}>
         <div className={styles.primaryColumn}>
-          <div key={`${activePhase}-${phaseTransitionTick}`} className={styles.phaseTransitionCard}>
-            {renderParticipantScreen()}
-          </div>
+          {!isStarted ? (
+            <ChallengeRulesPanel
+              challengeName={challengeName}
+              isStarted={isStarted}
+              isFacilitator={isFacilitator}
+              showPrestartCard
+              objective={rules.objective}
+              participantsMeta={rulesParticipantsMeta}
+              facilitatorRules={rules.facilitator}
+              participantRules={rules.participant}
+              footnote={rules.footnote}
+              onStart={isFacilitator ? () => handleHostAction('quiz.session.start') : null}
+              startDisabled={!canStartQuiz || hostActionBusy}
+            />
+          ) : (
+            <div key={`${activePhase}-${phaseTransitionTick}`} className={styles.phaseTransitionCard}>
+              {renderParticipantScreen()}
+            </div>
+          )}
 
           {transientQuestionResult && activePhase === 'question_result' ? (
             <div className={styles.autoTransitionHint} aria-live="polite">
@@ -451,19 +467,19 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         </div>
 
         <aside className={styles.sideColumn}>
-          <ChallengeRulesPanel
-            challengeName={challengeName}
-            isStarted={isStarted}
-            isFacilitator={isFacilitator}
-            showPrestartCard={!isStarted}
-            objective={rules.objective}
-            participantsMeta={rulesParticipantsMeta}
-            facilitatorRules={rules.facilitator}
-            participantRules={rules.participant}
-            footnote={rules.footnote}
-            onStart={!isStarted && isFacilitator ? () => handleHostAction('quiz.session.start') : null}
-            startDisabled={!canStartQuiz || hostActionBusy}
-          />
+          {isStarted ? (
+            <ChallengeRulesPanel
+              challengeName={challengeName}
+              isStarted={isStarted}
+              isFacilitator={isFacilitator}
+              showPrestartCard={false}
+              objective={rules.objective}
+              participantsMeta={rulesParticipantsMeta}
+              facilitatorRules={rules.facilitator}
+              participantRules={rules.participant}
+              footnote={rules.footnote}
+            />
+          ) : null}
 
           {!isStarted && isFacilitator && !canStartQuiz ? (
             <p className={styles.helperText}>
