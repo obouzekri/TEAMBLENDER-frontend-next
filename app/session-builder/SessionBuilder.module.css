@@ -10,7 +10,7 @@
   display: grid;
   align-items: start;
   gap: 1.35rem;
-  padding-top: 8.75rem;
+  padding-top: 1.1rem;
   padding-inline: var(--builder-inline-pad);
   padding-bottom: 4rem;
   overflow: visible;

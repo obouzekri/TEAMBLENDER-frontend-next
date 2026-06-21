@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import styles from './SessionBuilderHeader.module.css';
 
 export default function SessionBuilderHeader({
@@ -15,25 +14,11 @@ export default function SessionBuilderHeader({
   isLaunching,
   onLaunch,
 }) {
-  const [isDocked, setIsDocked] = useState(false);
   const minutes = Number.isFinite(Number(totalDuration)) ? Math.round(Number(totalDuration)) : 0;
   const resolvedSessionName = String(sessionName || '').trim() || 'Untitled session';
 
-  useEffect(() => {
-    const updateDockedState = () => {
-      setIsDocked(window.scrollY > 24);
-    };
-
-    updateDockedState();
-    window.addEventListener('scroll', updateDockedState, { passive: true });
-
-    return () => {
-      window.removeEventListener('scroll', updateDockedState);
-    };
-  }, []);
-
   return (
-    <section className={`${styles.summaryBar}${isDocked ? ` ${styles.summaryBarDocked}` : ''}`} aria-label="Session summary">
+    <section className={styles.summaryBar} aria-label="Session summary">
       <header className={styles.summaryContent}>
         <div className={styles.summaryLeft}>
           <p className={styles.summaryEyebrow}>Session builder</p>
