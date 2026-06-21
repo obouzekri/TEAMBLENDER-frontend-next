@@ -312,6 +312,8 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   );
   const participantsAnsweredCount = Number(quiz?.answer_count || 0);
   const isStarted = activePhase !== 'lobby';
+  const connectedCount = Number(quiz?.connected_count || 0);
+  const canStartQuiz = connectedCount >= 2;
   const timerStatus = activePhase === 'question_live'
     ? 'running'
     : String(quiz?.status || '').trim().toLowerCase() === 'paused'
@@ -449,18 +451,26 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         </div>
 
         <aside className={styles.sideColumn}>
-          {isStarted ? (
-            <ChallengeRulesPanel
-              challengeName={challengeName}
-              isStarted={isStarted}
-              isFacilitator={isFacilitator}
-              showPrestartCard={false}
-              objective={rules.objective}
-              participantsMeta={rulesParticipantsMeta}
-              facilitatorRules={rules.facilitator}
-              participantRules={rules.participant}
-              footnote={rules.footnote}
-            />
+          <ChallengeRulesPanel
+            challengeName={challengeName}
+            isStarted={isStarted}
+            isFacilitator={isFacilitator}
+            showPrestartCard={!isStarted}
+            objective={rules.objective}
+            participantsMeta={rulesParticipantsMeta}
+            facilitatorRules={rules.facilitator}
+            participantRules={rules.participant}
+            footnote={rules.footnote}
+            onStart={!isStarted && isFacilitator ? () => handleHostAction('quiz.session.start') : null}
+            startDisabled={!canStartQuiz || hostActionBusy}
+          />
+
+          {!isStarted && isFacilitator && !canStartQuiz ? (
+            <p className={styles.helperText}>
+              {isEn
+                ? 'At least 2 participants must be connected to start the challenge.'
+                : 'Au moins 2 participants doivent etre connectes pour demarrer le challenge.'}
+            </p>
           ) : null}
 
           <ChallengeTimerCard
