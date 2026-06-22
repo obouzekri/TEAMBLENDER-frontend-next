@@ -962,17 +962,17 @@ export default function HomePage() {
                     {landingStatic.fallback.liveSignals.progress}
                   </span>
                 </div>
+              </div>
 
-                <div className="landing-hero-mobile-cta mt-5">
-                  <Link
-                    href={heroPrimaryHref}
-                    onClick={handlePrimaryCtaClick}
-                    className={`${pillClass} landing-cta-primary landing-hero-primary-btn group text-white`}
-                  >
-                    <span>{heroPrimaryLabel}</span>
-                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-                  </Link>
-                </div>
+              <div className="landing-hero-mobile-cta mt-5">
+                <Link
+                  href={heroPrimaryHref}
+                  onClick={handlePrimaryCtaClick}
+                  className={`${pillClass} landing-cta-primary landing-hero-primary-btn group text-white`}
+                >
+                  <span>{heroPrimaryLabel}</span>
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </Link>
               </div>
             </div>
           </div>

@@ -2849,6 +2849,12 @@ a {
   display: none;
 }
 
+.landing-hero-mobile-cta .landing-cta-primary,
+.landing-hero-mobile-cta .landing-hero-primary-btn,
+.landing-hero-mobile-cta .landing-cta-primary span {
+  color: #ffffff !important;
+}
+
 /* Teams using TeamBlender block - centered with larger bold title */
 .landing-partners-usage {
   margin-top: 1.5rem;
@@ -3324,8 +3330,8 @@ a {
   }
 
   .landing-section-full {
-    padding-top: 1.4rem !important;
-    padding-bottom: 1.4rem !important;
+    padding-top: 1.9rem !important;
+    padding-bottom: 1.9rem !important;
   }
 
   .landing-section-inner {
@@ -3336,8 +3342,8 @@ a {
   .landing-section-title,
   .landing-section-full--statement h2,
   .landing-partners h2 {
-    margin-top: 0.85rem !important;
-    margin-bottom: 0.85rem !important;
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
     line-height: 1.2;
     text-wrap: balance;
     overflow-wrap: anywhere;
@@ -3353,14 +3359,14 @@ a {
   }
 
   .landing-section-full--statement {
-    padding-top: 2.3rem !important;
-    padding-bottom: 2.3rem !important;
+    padding-top: 2.8rem !important;
+    padding-bottom: 2.8rem !important;
   }
 
   .landing-section-full--statement .landing-section-inner {
-    max-width: calc(100% - 0.2rem);
-    padding-left: 0.55rem;
-    padding-right: 0.55rem;
+    max-width: calc(100% - 0.4rem);
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
   }
 
   .landing-partners-usage {
@@ -3378,8 +3384,38 @@ a {
   .landing-flow-card,
   .landing-testimonial-card,
   .landing-cta-block {
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 860px) {
+  .top-nav:not(.top-nav--live-inline) {
+    position: sticky;
+    top: 0;
+    z-index: 240;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-inner {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-panel {
+    top: calc(100% + 2px);
+    border-radius: 14px;
+    border-top: 1px solid rgba(53, 160, 255, 0.2);
+    padding: 1rem;
+    max-height: calc(100dvh - 74px);
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-link {
+    min-height: 46px;
+  }
+
+  .top-nav + .landing-v2 {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
   }
 }
 
