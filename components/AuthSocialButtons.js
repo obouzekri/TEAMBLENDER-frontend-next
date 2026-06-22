@@ -61,7 +61,7 @@ export default function AuthSocialButtons({
   const busy = loading || loadingProvider !== '';
   const unavailableLabel = isEn ? 'Coming soon' : 'Bientot disponible';
   const socialGroupLabel = isEn ? 'Social sign-ins' : 'Connexions sociales';
-  const continueWithEmail = isEn ? 'or continue with your email' : 'ou continuer avec votre email';
+  const continueWithEmail = isEn ? 'Or continue with your email address' : 'Ou continuer avec votre adresse email';
   const googleLabel = loadingProvider === 'google'
     ? (isEn ? 'Redirecting to Google...' : 'Redirection Google...')
     : (isEn ? 'Continue with Google' : 'Continuer avec Google');

@@ -35,7 +35,7 @@ export default function Logo({ size = 'default' }) {
         fontFamily="Sora, Inter, Segoe UI, sans-serif"
         fontSize="28"
         fontWeight="600"
-        fill="#1E2A23"
+        className="logo-wordmark"
       >
         <tspan>TeamBlender</tspan>
       </text>

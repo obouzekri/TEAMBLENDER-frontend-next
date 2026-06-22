@@ -10573,3 +10573,321 @@ a {
     padding: 1.1rem;
   }
 }
+
+/* ================================================================
+   LOGO — Dark mode adaptive text color
+   ================================================================ */
+
+.logo-wordmark {
+  fill: #1E2A23;
+}
+
+@media (prefers-color-scheme: dark) {
+  .logo-wordmark {
+    fill: #e8efff;
+  }
+}
+
+/* ================================================================
+   AUTH PAGES — Premium SaaS Redesign 2026
+   Dark mode: glassmorphism, cyan glow, premium gradients
+   Light mode: improved spacing, typography, layout
+   ================================================================ */
+
+/* ── Field label improvements ── */
+.auth-field-label {
+  font-size: 0.83rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  color: #3d4f6a;
+}
+
+/* ── Separator — modern capitalized style ── */
+.social-auth-separator {
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #94a3b8;
+  gap: 0.9rem;
+}
+.social-auth-separator::before,
+.social-auth-separator::after {
+  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.45), transparent);
+}
+
+/* ── Password strength indicator ── */
+.password-strength-wrap {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.2rem 0;
+}
+
+.password-strength-bars {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.psb {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.2);
+  transition: background-color 300ms ease, transform 200ms ease;
+}
+
+.psb--weak    { background: #ef4444; }
+.psb--fair    { background: #f97316; }
+.psb--good    { background: #eab308; }
+.psb--strong  { background: #22c55e; }
+.psb--excellent { background: linear-gradient(90deg, #06b6d4, #6366f1); }
+
+.password-criteria {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.3rem 0.85rem;
+}
+
+.pc-met,
+.pc-unmet {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: color 250ms ease;
+}
+
+.pc-met   { color: #16a34a; }
+.pc-unmet { color: #94a3b8; }
+
+/* ================================================================
+   DARK MODE — AUTH PAGES PREMIUM
+   ================================================================ */
+@media (prefers-color-scheme: dark) {
+
+  /* Auth card — premium deep glass */
+  .auth-card,
+  .auth-showcase-card {
+    background:
+      radial-gradient(ellipse 70% 55% at 90% 0%, rgba(0, 180, 255, 0.09) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 10% 100%, rgba(99, 102, 241, 0.08) 0%, transparent 55%),
+      linear-gradient(160deg, rgba(14, 22, 45, 0.97) 0%, rgba(9, 14, 30, 0.99) 100%) !important;
+    border-color: rgba(0, 195, 255, 0.12) !important;
+    box-shadow:
+      0 24px 64px rgba(0, 0, 0, 0.6),
+      0 8px 24px rgba(0, 180, 255, 0.07),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      inset 0 0 0 1px rgba(0, 195, 255, 0.06) !important;
+  }
+
+  /* Auth card title */
+  .auth-card h1 {
+    color: #f0f6ff;
+  }
+
+  /* Auth card header */
+  .auth-card-header {
+    gap: 0.3rem;
+    margin-bottom: 1.35rem;
+  }
+
+  /* Input shell — dark glassmorphism */
+  .auth-input-shell {
+    background: rgba(12, 20, 42, 0.75) !important;
+    border-color: rgba(100, 140, 230, 0.18) !important;
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.25),
+      inset 0 0 0 1px rgba(0, 195, 255, 0.03) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition:
+      border-color 180ms ease,
+      box-shadow 250ms ease,
+      transform 160ms ease;
+  }
+
+  .auth-input-shell:hover {
+    border-color: rgba(0, 195, 255, 0.28) !important;
+  }
+
+  .auth-input-shell:focus-within {
+    border-color: rgba(0, 200, 255, 0.6) !important;
+    box-shadow:
+      0 0 0 4px rgba(0, 200, 255, 0.1),
+      0 8px 22px rgba(0, 200, 255, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+    transform: translateY(-1px);
+  }
+
+  /* Input icon — cyan tint */
+  .auth-input-icon {
+    color: rgba(0, 195, 255, 0.55) !important;
+  }
+
+  /* Input text */
+  .auth-form .auth-input-shell input,
+  .auth-form .auth-input-shell select,
+  .auth-form .auth-input-shell textarea {
+    color: #e8efff !important;
+    caret-color: #00c8ff;
+    -webkit-text-fill-color: #e8efff !important;
+  }
+
+  .auth-form .auth-input-shell input::placeholder,
+  .auth-form .auth-input-shell textarea::placeholder {
+    color: rgba(130, 160, 210, 0.5) !important;
+    -webkit-text-fill-color: rgba(130, 160, 210, 0.5) !important;
+  }
+
+  /* Autofill override */
+  .auth-form .auth-input-shell input:-webkit-autofill,
+  .auth-form .auth-input-shell input:-webkit-autofill:hover,
+  .auth-form .auth-input-shell input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 100px rgba(16, 28, 58, 0.98) inset !important;
+    -webkit-text-fill-color: #e8efff !important;
+    caret-color: #00c8ff;
+  }
+
+  /* Field labels */
+  .auth-field-label {
+    color: rgba(170, 195, 240, 0.8) !important;
+  }
+
+  /* Social buttons — dark glass */
+  .social-auth-btn {
+    background: linear-gradient(160deg, rgba(18, 28, 58, 0.92) 0%, rgba(13, 20, 42, 0.96) 100%) !important;
+    border-color: rgba(100, 140, 230, 0.18) !important;
+    color: #c8d8f5 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .social-auth-btn:hover:not(:disabled) {
+    background: linear-gradient(160deg, rgba(22, 36, 72, 0.96) 0%, rgba(17, 28, 56, 0.99) 100%) !important;
+    border-color: rgba(0, 195, 255, 0.32) !important;
+    box-shadow:
+      0 8px 22px rgba(0, 195, 255, 0.1),
+      0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    color: #e8f4ff !important;
+  }
+
+  /* Social pill — "bientôt disponible" badge */
+  .social-auth-pill {
+    background: rgba(124, 58, 237, 0.18) !important;
+    border-color: rgba(124, 58, 237, 0.32) !important;
+    color: #a78bfa !important;
+  }
+
+  /* Separator */
+  .social-auth-separator {
+    color: rgba(140, 165, 210, 0.55) !important;
+  }
+  .social-auth-separator::before,
+  .social-auth-separator::after {
+    background: linear-gradient(90deg, transparent, rgba(0, 195, 255, 0.18), transparent) !important;
+  }
+
+  /* Password toggle — cyan accent */
+  .password-toggle {
+    background: rgba(0, 200, 255, 0.07) !important;
+    color: rgba(0, 200, 255, 0.6) !important;
+    border-color: rgba(0, 200, 255, 0.12) !important;
+  }
+
+  .password-toggle:hover,
+  .password-toggle:focus-visible {
+    background: rgba(0, 200, 255, 0.14) !important;
+    color: rgba(0, 200, 255, 0.92) !important;
+    border-color: rgba(0, 200, 255, 0.22) !important;
+  }
+
+  /* Primary button — premium cyan → blue gradient */
+  .auth-page .btn-primary {
+    background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #6366f1 100%) !important;
+    border-color: rgba(6, 182, 212, 0.35) !important;
+    box-shadow:
+      0 14px 32px rgba(59, 130, 246, 0.35),
+      0 4px 12px rgba(6, 182, 212, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
+    color: #ffffff !important;
+  }
+
+  .auth-page .btn-primary::after {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 52%) !important;
+  }
+
+  .auth-page .btn-primary:hover:not(:disabled) {
+    box-shadow:
+      0 20px 42px rgba(59, 130, 246, 0.42),
+      0 6px 18px rgba(6, 182, 212, 0.25),
+      0 0 32px rgba(99, 102, 241, 0.18),
+      0 0 0 1px rgba(255, 255, 255, 0.14) inset !important;
+    filter: brightness(1.06) saturate(1.08);
+    transform: translateY(-2px);
+  }
+
+  /* Auth footer */
+  .auth-footer {
+    border-top-color: rgba(0, 200, 255, 0.08) !important;
+    color: rgba(155, 180, 230, 0.75) !important;
+  }
+
+  .auth-footer a {
+    color: #38bdf8;
+  }
+
+  .auth-footer a:hover {
+    color: #7dd3fc;
+  }
+
+  /* Showcase copy */
+  .auth-showcase-copy h1 {
+    color: #e8f0ff !important;
+  }
+
+  .auth-showcase-copy p {
+    color: #7a90b8 !important;
+  }
+
+  /* Showcase mini cards */
+  .auth-mini-card,
+  .auth-stat-card {
+    background: rgba(14, 22, 48, 0.65) !important;
+    border-color: rgba(0, 195, 255, 0.1) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+  }
+
+  .auth-mini-card strong,
+  .auth-stat-card strong {
+    color: #c5d5f0 !important;
+  }
+
+  .auth-mini-card span,
+  .auth-stat-card span {
+    color: #6878a0 !important;
+  }
+
+  /* Showcase badge */
+  .auth-showcase-badge {
+    background: rgba(0, 195, 255, 0.1) !important;
+    border-color: rgba(0, 195, 255, 0.2) !important;
+    color: #22d3ee !important;
+  }
+
+  /* Form error */
+  .form-error {
+    color: #fca5a5 !important;
+  }
+
+  /* Password strength — dark palette */
+  .pc-met   { color: #34d399; }
+  .pc-unmet { color: rgba(100, 130, 180, 0.65); }
+
+  .psb {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Eye, EyeOff, LockKeyhole, Mail, User } from 'lucide-react';
+import { CheckCircle, Circle, Eye, EyeOff, LockKeyhole, Mail, User } from 'lucide-react';
 import AuthCard from '@/components/AuthCard';
 import AuthField from '@/components/AuthField';
 import AuthShowcase from '@/components/AuthShowcase';
@@ -34,6 +34,23 @@ export default function SignupForm() {
   const [message, setMessage] = useState('');
   const [done, setDone] = useState(false);
   const [oauthLoadingProvider, setOauthLoadingProvider] = useState('');
+  const [touched, setTouched] = useState({});
+
+  const passwordChecks = useMemo(() => ({
+    length: password.length >= 8,
+    upper: /[A-Z]/.test(password),
+    lower: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  }), [password]);
+
+  const passwordScore = Object.values(passwordChecks).filter(Boolean).length;
+  const passwordLevel = password.length === 0 ? null
+    : passwordScore <= 1 ? 'weak'
+    : passwordScore <= 2 ? 'fair'
+    : passwordScore <= 3 ? 'good'
+    : passwordScore <= 4 ? 'strong'
+    : 'excellent';
 
   useEffect(() => {
     const oauth = readOAuthCallbackFromLocation();
@@ -170,16 +187,16 @@ export default function SignupForm() {
             <input type="password" name="fake_signup_password" autoComplete="current-password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
             <div className="auth-field-grid">
               <AuthField id="signup-first-name" label={isEn ? 'First name' : 'Prenom'} icon={<User size={18} strokeWidth={1.9} />}>
-                <input id="signup-first-name" type="text" name="signup_first_name" autoComplete="given-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required placeholder={isEn ? 'Your first name' : 'Votre prenom'} aria-label={isEn ? 'First name' : 'Prenom'} />
+                <input id="signup-first-name" type="text" name="signup_first_name" autoComplete="given-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} onBlur={() => setTouched(t => ({ ...t, firstName: true }))} required placeholder={isEn ? 'Your first name' : 'Votre prenom'} aria-label={isEn ? 'First name' : 'Prenom'} />
               </AuthField>
 
               <AuthField id="signup-last-name" label={isEn ? 'Last name' : 'Nom'} icon={<User size={18} strokeWidth={1.9} />}>
-                <input id="signup-last-name" type="text" name="signup_last_name" autoComplete="family-name" value={lastName} onChange={(e) => setLastName(e.target.value)} required placeholder={isEn ? 'Your last name' : 'Votre nom'} aria-label={isEn ? 'Last name' : 'Nom'} />
+                <input id="signup-last-name" type="text" name="signup_last_name" autoComplete="family-name" value={lastName} onChange={(e) => setLastName(e.target.value)} onBlur={() => setTouched(t => ({ ...t, lastName: true }))} required placeholder={isEn ? 'Your last name' : 'Votre nom'} aria-label={isEn ? 'Last name' : 'Nom'} />
               </AuthField>
             </div>
 
             <AuthField id="signup-email" label={isEn ? 'Work email' : 'Email professionnel'} icon={<Mail size={18} strokeWidth={1.9} />}>
-              <input id="signup-email" type="email" name="signup_email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder={isEn ? 'you@company.com' : 'vous@entreprise.com'} aria-label={isEn ? 'Work email' : 'Email professionnel'} />
+              <input id="signup-email" type="email" name="signup_email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => setTouched(t => ({ ...t, email: true }))} required placeholder={isEn ? 'you@company.com' : 'vous@entreprise.com'} aria-label={isEn ? 'Work email' : 'Email professionnel'} />
             </AuthField>
 
             <AuthField id="signup-password" label={isEn ? 'Password' : 'Mot de passe'} icon={<LockKeyhole size={18} strokeWidth={1.9} />} className="auth-field--password">
@@ -191,6 +208,7 @@ export default function SignupForm() {
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => setTouched(t => ({ ...t, password: true }))}
                   required
                   minLength={8}
                   placeholder={isEn ? 'Minimum 8 characters' : 'Minimum 8 caracteres'}
@@ -208,6 +226,31 @@ export default function SignupForm() {
                 </button>
               </div>
             </AuthField>
+
+            {password && (
+              <div className="password-strength-wrap">
+                <div className="password-strength-bars" aria-hidden="true">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <span key={i} className={`psb ${passwordScore >= i ? `psb--${passwordLevel}` : ''}`} />
+                  ))}
+                </div>
+                <ul className="password-criteria" aria-label={isEn ? 'Password requirements' : 'Critères du mot de passe'}>
+                  {[
+                    { key: 'length', label: isEn ? 'At least 8 characters' : 'Au moins 8 caractères' },
+                    { key: 'upper', label: isEn ? 'One uppercase letter' : 'Une majuscule' },
+                    { key: 'number', label: isEn ? 'One number' : 'Un chiffre' },
+                    { key: 'special', label: isEn ? 'One special character' : 'Un caractère spécial' },
+                  ].map(({ key, label }) => (
+                    <li key={key} className={passwordChecks[key] ? 'pc-met' : 'pc-unmet'}>
+                      {passwordChecks[key]
+                        ? <CheckCircle size={12} strokeWidth={2.5} aria-hidden="true" />
+                        : <Circle size={12} strokeWidth={2} aria-hidden="true" />}
+                      {label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <button type="submit" className="btn-primary wide" disabled={loading}>
               {loading ? (isEn ? 'Creating...' : 'Création...') : (isEn ? 'Create account' : 'Créer mon compte')}
