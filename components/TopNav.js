@@ -86,9 +86,6 @@ export default function TopNav({ compact = false }) {
             <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn">
               {t('nav.login')}
             </Link>
-            <Link href={mobileSignupHref} className="nav-cta-btn nav-mobile-signup-btn">
-              {t('nav.signup')}
-            </Link>
           </div>
 
           <button
@@ -148,6 +145,9 @@ export default function TopNav({ compact = false }) {
               <>
                 <NavItem href={withLocalePath('/login')} active={isActive('/login')} onClick={() => setIsMenuOpen(false)}>{t('nav.login')}</NavItem>
                 <NavItem href={withLocalePath('/signup')} active={isActive('/signup')} onClick={() => setIsMenuOpen(false)}>{t('nav.signup')}</NavItem>
+              </>
+            )}
+          </div>
               </>
             )}
           </div>

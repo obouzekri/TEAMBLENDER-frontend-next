@@ -3404,9 +3404,10 @@ a {
   }
 
   .landing-hero-copy {
-    padding-top: 1.25rem;
-    padding-left: 0;
-    padding-right: 0;
+    padding-top: 1.8rem;
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+    padding-bottom: 0.8rem;
   }
 
   .landing-hero-title {
@@ -3438,8 +3439,9 @@ a {
 
   .landing-hero-product-shell {
     transform: none;
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+    margin-top: 1.5rem;
   }
 
   .landing-hero-product-wrap,
@@ -3461,27 +3463,36 @@ a {
     font-size: 0.75rem;
   }
 
+  /* Hide Create Account button from mobile header, keep it in hamburger menu */
+  .nav-mobile-signup-btn {
+    display: none !important;
+  }
+
+  .nav-mobile-cta {
+    gap: 0.45rem !important;
+  }
+
   .landing-section-full {
-    padding-top: 2.15rem !important;
-    padding-bottom: 2.15rem !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    padding-top: 2.8rem !important;
+    padding-bottom: 2.8rem !important;
+    padding-left: 1.2rem !important;
+    padding-right: 1.2rem !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
 
   .landing-section-inner {
     width: 100%;
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
     margin-inline: auto;
   }
 
   .landing-section-title,
   .landing-section-full--statement h2,
   .landing-partners h2 {
-    margin-top: 1.15rem !important;
-    margin-bottom: 1.15rem !important;
+    margin-top: 1.6rem !important;
+    margin-bottom: 1.4rem !important;
     line-height: 1.2;
     text-wrap: balance;
     overflow-wrap: anywhere;
@@ -3494,17 +3505,18 @@ a {
     line-height: 1.65;
     text-wrap: pretty;
     overflow-wrap: anywhere;
+    margin-bottom: 1.5rem;
   }
 
   .landing-section-full--statement {
-    padding-top: 3rem !important;
-    padding-bottom: 3rem !important;
+    padding-top: 3.6rem !important;
+    padding-bottom: 3.6rem !important;
   }
 
   .landing-section-full--statement .landing-section-inner {
     max-width: 100%;
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
   }
 
   .landing-partners-usage {
@@ -3522,8 +3534,8 @@ a {
   .landing-flow-card,
   .landing-testimonial-card,
   .landing-cta-block {
-    margin-top: 0.9rem;
-    margin-bottom: 0.9rem;
+    margin-top: 1.2rem;
+    margin-bottom: 1.2rem;
   }
 }
 
