@@ -9384,6 +9384,8 @@ a {
     padding-inline: 0.62rem;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
   .btn-primary,
   .btn-secondary,
   .nav-link,
