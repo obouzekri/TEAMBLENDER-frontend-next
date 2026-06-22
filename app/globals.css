@@ -2659,7 +2659,7 @@ a {
 .landing-v2 {
   padding: 0.7rem 0 3.2rem;
   display: grid;
-  gap: 1.15rem;
+  gap: 0;
   font-family: "Inter", var(--font-ui);
 }
 
@@ -8348,7 +8348,7 @@ a {
   }
 
   .landing-v2 {
-    gap: 1.1rem;
+    gap: 0;
   }
 
   .landing-v2 > section {
