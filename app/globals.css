@@ -3160,7 +3160,7 @@ a {
   }
 
   .landing-hero-product-image {
-    height: 240px;
+    height: 260px;
     object-position: 80% 48%;
   }
 
@@ -3669,7 +3669,7 @@ a {
   margin: 0;
   color: var(--ink);
   font-size: 0.94rem;
-  line-height: 1.6;
+  line-height: 1.75;
 }
 
 .landing-testimonial-meta {
@@ -3793,6 +3793,10 @@ a {
   justify-content: center;
 }
 
+.landing-v2 > .landing-cta-block {
+  margin-top: 1rem;
+}
+
 .landing-offer-section {
   background: linear-gradient(180deg, #f4f8ff 0%, #edf3ff 100%);
   padding-top: clamp(3.6rem, 7.2vw, 5.4rem);
@@ -3812,7 +3816,7 @@ a {
 }
 
 .landing-section-eyebrow {
-  font-size: 0.75rem;
+  font-size: clamp(0.65rem, 1.2vw, 0.8rem);
   letter-spacing: 0.2em;
   font-weight: 800;
   text-transform: uppercase;
@@ -3824,15 +3828,17 @@ a {
   line-height: 1.08;
   letter-spacing: -0.022em;
   font-family: "Inter", sans-serif;
+  max-width: 42ch;
 }
 
 .landing-section-description {
   max-width: 64ch;
   margin-top: 0.75rem;
-  color: #526076;
+  color: #3f4a5c;
   font-size: 1rem;
   line-height: 1.7;
   font-family: "Inter", sans-serif;
+  font-weight: 500;
 }
 
 .landing-feature-card {
@@ -3844,8 +3850,9 @@ a {
     radial-gradient(circle at 90% 8%, rgba(14, 165, 233, 0.16), transparent 46%);
   backdrop-filter: blur(8px);
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, color 220ms ease;
   font-family: "Inter", sans-serif;
+  border-radius: 18px;
 }
 
 .landing-feature-card::before {
@@ -3917,7 +3924,7 @@ a {
   box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
   padding: 1.1rem 1.15rem;
   backdrop-filter: blur(5px);
-  transition: transform 220ms ease, box-shadow 220ms ease;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
 }
 
 .landing-values-section .landing-section-inner {
@@ -3969,7 +3976,7 @@ a {
 }
 
 .landing-benefits-copy {
-  border-radius: 22px;
+  border-radius: 18px;
   border: 1px solid rgba(147, 197, 253, 0.62);
   background: linear-gradient(155deg, rgba(255, 255, 255, 0.9) 0%, rgba(239, 246, 255, 0.84) 100%);
   box-shadow: 0 14px 30px rgba(30, 41, 59, 0.08);
@@ -3994,7 +4001,7 @@ a {
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  border-radius: 16px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(191, 219, 254, 0.8);
   padding: 0.72rem 0.85rem;
@@ -4087,7 +4094,7 @@ a {
 }
 
 .landing-story-card {
-  border-radius: 20px;
+  border-radius: 18px;
   border: 1px solid rgba(147, 197, 253, 0.7);
   background:
     radial-gradient(circle at 90% 8%, rgba(56, 189, 248, 0.18), transparent 42%),
@@ -4323,6 +4330,20 @@ a {
 .landing-v2 .btn-primary,
 .landing-v2 .btn-secondary {
   transition: transform var(--motion-fast) var(--ease-emphasis), box-shadow var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
+}
+
+.landing-v2 .btn-primary:focus-visible,
+.landing-v2 .btn-secondary:focus-visible,
+.landing-v2 a:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.landing-v2 input:focus-visible,
+.landing-v2 button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 @media (max-width: 1024px) {
