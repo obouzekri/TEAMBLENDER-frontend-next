@@ -100,6 +100,80 @@
   }
 }
 
+/* ================================================================
+   FINAL OVERRIDE — MOBILE NAV VISIBILITY
+   Ensures hamburger/row layout wins when earlier rules conflict.
+   ================================================================ */
+@media (max-width: 860px) {
+  .top-nav:not(.top-nav--live-inline) .nav-top-row {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    column-gap: 0.5rem !important;
+    width: 100% !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-toggle {
+    display: inline-flex !important;
+    justify-self: end !important;
+    flex: 0 0 auto !important;
+    z-index: 250 !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-cta {
+    display: inline-flex !important;
+    justify-self: center !important;
+    align-items: center !important;
+    gap: 0.45rem !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-panel {
+    position: absolute !important;
+    top: calc(100% + 8px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    display: grid !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(-8px) !important;
+    z-index: 180 !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-panel.is-open {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-main-block,
+  .top-nav:not(.top-nav--live-inline) .nav-links,
+  .top-nav:not(.top-nav--live-inline) .nav-actions {
+    width: 100% !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-links {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0.45rem !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.55rem !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-link {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: flex-start !important;
+  }
+
+  .nav-mobile-overlay {
+    z-index: 170 !important;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
