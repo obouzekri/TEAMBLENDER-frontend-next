@@ -3805,19 +3805,19 @@ a {
 
 .landing-offer-section {
   background: linear-gradient(180deg, #f4f8ff 0%, #edf3ff 100%);
-  padding-top: clamp(3.6rem, 7.2vw, 5.4rem);
+  padding-top: clamp(1.8rem, 3.6vw, 2.7rem);
   padding-bottom: clamp(3.3rem, 6.3vw, 5rem);
 }
 
 .landing-values-section {
   background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
-  padding-top: clamp(4.2rem, 8.4vw, 6.2rem);
+  padding-top: clamp(2.1rem, 4.2vw, 3.1rem);
   padding-bottom: clamp(4.2rem, 8.2vw, 6rem);
 }
 
 .landing-benefits-section {
   background: linear-gradient(180deg, #e0f2fe 0%, #dbeafe 100%);
-  padding-top: clamp(3.8rem, 7vw, 5.7rem);
+  padding-top: clamp(1.9rem, 3.5vw, 2.85rem);
   padding-bottom: clamp(3.7rem, 7vw, 5.6rem);
 }
 
@@ -4089,7 +4089,7 @@ a {
 }
 
 .landing-usecase-stories {
-  padding-top: clamp(4rem, 8vw, 5.9rem);
+  padding-top: clamp(2rem, 4vw, 3rem);
   padding-bottom: clamp(4rem, 8vw, 5.8rem);
 }
 
@@ -4154,7 +4154,7 @@ a {
 }
 
 .landing-testimonials {
-  padding-top: clamp(4.1rem, 8vw, 6.1rem);
+  padding-top: clamp(2rem, 4vw, 3rem);
   padding-bottom: clamp(4.1rem, 8vw, 6.1rem);
 }
 
