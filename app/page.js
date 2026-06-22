@@ -1011,8 +1011,10 @@ export default function HomePage() {
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(99,102,241,0.08),transparent_45%)]" />
           <div className="landing-section-inner relative mx-auto max-w-4xl text-center">
+            <span className="landing-statement-break" aria-hidden="true" />
             <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{PLATFORM_STATEMENT.title}</h2>
             <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">{PLATFORM_STATEMENT.description}</p>
+            <span className="landing-statement-break" aria-hidden="true" />
           </div>
         </section>
 

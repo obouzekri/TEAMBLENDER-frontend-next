@@ -2660,6 +2660,7 @@ a {
   padding: 0 0 3.2rem;
   display: grid;
   gap: 0;
+  overflow-x: clip;
   font-family: "Inter", var(--font-ui);
 }
 
@@ -2668,12 +2669,16 @@ a {
   border-radius: 0;
 }
 
+.landing-v2 > section + section {
+  margin-top: 0 !important;
+}
+
 .landing-hero-full {
   position: relative;
-  width: 100vw;
-  max-width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
   border: 0;
   border-radius: 0;
   background:
@@ -2803,10 +2808,10 @@ a {
 
 .landing-section-full {
   position: relative;
-  width: 100vw;
-  max-width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
   padding-top: 0;
   padding-bottom: 0;
 }
@@ -2824,6 +2829,11 @@ a {
 .landing-section-full--statement {
   padding-top: 0;
   padding-bottom: 0;
+}
+
+.landing-statement-break {
+  display: block;
+  height: 1lh;
 }
 
 .landing-section-full--proof {
