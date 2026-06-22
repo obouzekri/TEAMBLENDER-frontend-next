@@ -44,6 +44,8 @@ export default function TopNav({ compact = false }) {
   const avatarUrl = String(sessionUser?.picture_url || '').trim();
   const accountHref = sessionUser?.role === 'participant' ? '/participant' : '/account';
   const roleLabel = sessionUser?.role === 'participant' ? t('nav.participant') : sessionUser?.role === 'admin' ? t('nav.admin') : t('nav.manager');
+  const mobilePrimaryHref = sessionUser ? withLocalePath(accountHref) : withLocalePath('/signup');
+  const mobilePrimaryLabel = sessionUser ? t('nav.myAccount') : t('nav.signup');
 
   useEffect(() => {
     if (!isMenuOpen) return undefined;
@@ -77,6 +79,12 @@ export default function TopNav({ compact = false }) {
           <div className="nav-brand-block">
             <Link href={withLocalePath('/')} className="brand">
               <Logo />
+            </Link>
+          </div>
+
+          <div className="nav-mobile-cta" aria-label={t('nav.accountAria')}>
+            <Link href={mobilePrimaryHref} className="nav-cta-btn nav-mobile-cta-btn">
+              {mobilePrimaryLabel}
             </Link>
           </div>
 
