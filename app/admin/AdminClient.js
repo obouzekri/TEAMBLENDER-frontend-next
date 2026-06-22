@@ -741,6 +741,16 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 }
 
+function isStrongPassword(value) {
+  const raw = String(value || '');
+  if (raw.length < 8 || raw.length > 128) return false;
+  const hasLower = /[a-z]/.test(raw);
+  const hasUpper = /[A-Z]/.test(raw);
+  const hasDigit = /\d/.test(raw);
+  const hasSpecial = /[^A-Za-z0-9]/.test(raw);
+  return hasLower && hasUpper && hasDigit && hasSpecial;
+}
+
 function isPlatformAdminEmail(email) {
   return String(email || '').trim().toLowerCase() === PLATFORM_ADMIN_EMAIL;
 }
@@ -1881,6 +1891,27 @@ export default function AdminClient() {
       return;
     }
 
+    if (editingParticipant.password && !isStrongPassword(editingParticipant.password)) {
+      setError(
+        isEn
+          ? 'Invalid password. Use 8+ chars with upper/lower case, a number, and a symbol.'
+          : 'Mot de passe invalide. Utilisez 8+ caracteres avec majuscule/minuscule, un chiffre et un symbole.'
+      );
+      return;
+    }
+
+    const normalizedEmail = editingParticipant.email.trim().toLowerCase();
+
+    const duplicateEmail = participants.some((participant) => (
+      String(participant?.id) !== String(editingParticipant.id)
+      && String(participant?.email || '').trim().toLowerCase() === normalizedEmail
+    ));
+
+    if (duplicateEmail) {
+      setError(isEn ? 'This email is already used by another participant.' : 'Cet email est deja utilise par un autre participant.');
+      return;
+    }
+
     const key = `save:participant:${editingParticipant.id}`;
     setBusySaveKey(key);
     setError('');
@@ -1892,7 +1923,7 @@ export default function AdminClient() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: editingParticipant.email.trim().toLowerCase(),
+          email: normalizedEmail,
           first_name: editingParticipant.first_name.trim(),
           last_name: editingParticipant.last_name.trim() || null,
           disabled: Boolean(editingParticipant.disabled),
@@ -1906,6 +1937,24 @@ export default function AdminClient() {
       if (!response.ok) {
         throw new Error(payload.error || `Mise à jour participant impossible (${response.status})`);
       }
+
+      setParticipants((prev) => prev.map((participant) => (
+        String(participant?.id) === String(editingParticipant.id)
+          ? {
+            ...participant,
+            ...payload,
+            id: participant.id,
+            email: payload?.email || normalizedEmail,
+            first_name: payload?.first_name ?? editingParticipant.first_name.trim(),
+            firstname: payload?.firstname ?? payload?.first_name ?? editingParticipant.first_name.trim(),
+            last_name: payload?.last_name ?? (editingParticipant.last_name.trim() || ''),
+            lastname: payload?.lastname ?? payload?.last_name ?? (editingParticipant.last_name.trim() || ''),
+            disabled: payload?.disabled ?? Boolean(editingParticipant.disabled),
+            job_title: payload?.job_title ?? (editingParticipant.job_title.trim() || null),
+            department: payload?.department ?? (editingParticipant.department.trim() || null),
+          }
+          : participant
+      )));
 
       setEditingParticipant(null);
       await loadAll();
