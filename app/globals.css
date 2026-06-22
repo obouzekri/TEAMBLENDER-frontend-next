@@ -3272,6 +3272,28 @@ a {
   .landing-hero-product-signals span {
     font-size: 0.75rem;
   }
+
+  .landing-section-full--statement {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  .landing-section-full--statement .landing-section-inner {
+    max-width: calc(100% - 1rem);
+  }
+
+  .landing-section-full--statement h2,
+  .landing-section-full--statement .landing-section-description {
+    margin-top: 0.75rem;
+  }
+
+  .landing-partners-usage {
+    margin-top: 2rem;
+  }
+
+  .landing-partners-usage .landing-partners-title {
+    margin-bottom: 1.1rem;
+  }
 }
 
 .reveal-up {
