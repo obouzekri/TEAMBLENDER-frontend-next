@@ -2845,6 +2845,10 @@ a {
   margin-top: 1rem;
 }
 
+.landing-hero-mobile-cta {
+  display: none;
+}
+
 /* Teams using TeamBlender block - centered with larger bold title */
 .landing-partners-usage {
   margin-top: 1.5rem;
@@ -3247,17 +3251,62 @@ a {
     margin-left: 0;
   }
 
+  .landing-v2 {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .landing-hero-full {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .landing-hero-inner {
+    gap: 1.1rem;
+  }
+
+  .landing-hero-copy {
+    padding-top: 1.2rem;
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+
+  .landing-hero-title {
+    font-size: clamp(1.85rem, 8vw, 2.45rem) !important;
+    margin-top: 2.1rem !important;
+    line-height: 1.16;
+    text-wrap: balance;
+  }
+
+  .landing-hero-description,
+  .landing-hero-keyline {
+    line-height: 1.65;
+    text-wrap: pretty;
+  }
+
+  .landing-hero-actions {
+    display: none;
+  }
+
+  .landing-hero-mobile-cta {
+    display: flex;
+    justify-content: center;
+  }
+
+  .landing-hero-mobile-cta a {
+    width: 100%;
+    justify-content: center;
+  }
+
   .landing-hero-product-shell {
     transform: none;
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
   }
 
   .landing-hero-product-wrap,
   .landing-hero-product-wrap:hover {
     transform: none;
-  }
-
-  .landing-hero-title {
-    font-size: clamp(1.85rem, 8vw, 2.45rem) !important;
   }
 
   .landing-hero-product-wrap {
@@ -3274,26 +3323,63 @@ a {
     font-size: 0.75rem;
   }
 
+  .landing-section-full {
+    padding-top: 1.4rem !important;
+    padding-bottom: 1.4rem !important;
+  }
+
+  .landing-section-inner {
+    width: calc(100% - 1rem);
+    margin-inline: auto;
+  }
+
+  .landing-section-title,
+  .landing-section-full--statement h2,
+  .landing-partners h2 {
+    margin-top: 0.85rem !important;
+    margin-bottom: 0.85rem !important;
+    line-height: 1.2;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  .landing-section-description,
+  .landing-section-full--statement p,
+  .landing-partners p,
+  .landing-cta-block p {
+    line-height: 1.65;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+  }
+
   .landing-section-full--statement {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+    padding-top: 2.3rem !important;
+    padding-bottom: 2.3rem !important;
   }
 
   .landing-section-full--statement .landing-section-inner {
-    max-width: calc(100% - 1rem);
-  }
-
-  .landing-section-full--statement h2,
-  .landing-section-full--statement .landing-section-description {
-    margin-top: 0.75rem;
+    max-width: calc(100% - 0.2rem);
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
   }
 
   .landing-partners-usage {
     margin-top: 2rem;
+    width: 100%;
   }
 
   .landing-partners-usage .landing-partners-title {
     margin-bottom: 1.1rem;
+  }
+
+  .landing-impact-band .landing-impact-card,
+  .landing-feature-card,
+  .landing-values-step-card,
+  .landing-flow-card,
+  .landing-testimonial-card,
+  .landing-cta-block {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 }
 

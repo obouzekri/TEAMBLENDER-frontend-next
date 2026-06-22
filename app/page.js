@@ -897,7 +897,7 @@ export default function HomePage() {
 
               <span className="block h-6" aria-hidden="true" />
 
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="landing-hero-actions mt-6 flex flex-wrap gap-3">
                 <Link
                   href={heroPrimaryHref}
                   onClick={handlePrimaryCtaClick}
@@ -961,6 +961,17 @@ export default function HomePage() {
                     <BarChart3 className="h-4 w-4" />
                     {landingStatic.fallback.liveSignals.progress}
                   </span>
+                </div>
+
+                <div className="landing-hero-mobile-cta mt-5">
+                  <Link
+                    href={heroPrimaryHref}
+                    onClick={handlePrimaryCtaClick}
+                    className={`${pillClass} landing-cta-primary landing-hero-primary-btn group text-white`}
+                  >
+                    <span>{heroPrimaryLabel}</span>
+                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </Link>
                 </div>
               </div>
             </div>
