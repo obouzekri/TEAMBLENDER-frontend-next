@@ -902,15 +902,6 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <Link
-                href={heroSecondaryHref}
-                onClick={handleHeroSecondaryCtaClick}
-                className="landing-hero-secondary-link mt-4 inline-flex items-center gap-2 text-sm font-semibold"
-              >
-                <span>{heroSecondaryLabel}</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-
               {heroTrustItems.length > 0 ? (
                 <p className="landing-hero-trust mt-6 text-sm font-medium leading-7 text-slate-600 sm:text-base">
                   {heroTrustItems.slice(0, 3).join(' • ')}
@@ -1270,7 +1261,6 @@ export default function HomePage() {
 
         <section className={`landing-cta-block landing-section-full reveal-up p-8 text-center`} style={{ '--reveal-delay': '240ms' }} aria-label={locale === 'en' ? 'Final call to action' : 'Dernier appel à l’action'}>
           <div className="landing-section-inner">
-            <p className="eyebrow landing-cta-eyebrow">{finalCta.subtitle || finalCta.label || landingStatic.fallback.finalCtaEyebrow}</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title || landingStatic.fallback.finalCtaTitle}</h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">{finalCta.description || landingStatic.fallback.finalCtaDescription}</p>
             <div className="hero-actions home-hero-actions landing-cta-actions mt-7 flex flex-wrap justify-center gap-3">
