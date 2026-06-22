@@ -2723,10 +2723,13 @@ a {
   align-content: center;
 }
 
-.landing-hero-aurora {
-  background:
-    radial-gradient(circle at 84% 70%, rgba(59, 130, 246, 0.18), transparent 34%),
-    radial-gradient(circle at 15% 20%, rgba(96, 165, 250, 0.12), transparent 32%);
+.landing-hero-product-image {
+  height: 240px;
+  object-fit: cover;
+}
+
+.landing-partner-line {
+  display: none;
 }
 
 .landing-hero-copy {
@@ -2822,6 +2825,47 @@ a {
 
 .landing-hero-trust {
   color: #93c5fd !important;
+}
+
+/* Hero product image sizing */
+.landing-hero-product-image {
+  height: 220px;
+  object-fit: cover;
+}
+
+/* Teams using TeamBlender block - improved spacing and text color */
+.landing-partners-usage {
+  margin-top: 1.5rem;
+}
+
+.landing-partners-usage p,
+.landing-partners-usage .landing-platform-scent {
+  color: #ffffff;
+}
+
+.landing-partners-usage .landing-partner-line-text {
+  color: #ffffff;
+}
+
+/* Hide partner line */
+.landing-partner-line {
+  display: none;
+}
+
+/* Increase process block spacing */
+.landing-flow {
+  padding-top: clamp(2.5rem, 5vw, 3.8rem) !important;
+  padding-bottom: clamp(2.5rem, 5vw, 3.8rem) !important;
+}
+
+/* Update final CTA button color to match hero */
+.landing-cta-block .landing-cta-primary {
+  background: linear-gradient(135deg, #14b8a6 0%, #0f766e 55%, #0ea5e9 100%) !important;
+  box-shadow: 0 20px 42px rgba(15, 118, 110, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.18) inset !important;
+}
+
+.landing-cta-block .landing-cta-primary:hover {
+  box-shadow: 0 24px 50px rgba(15, 118, 110, 0.34), 0 0 0 1px rgba(255, 255, 255, 0.22) inset !important;
 }
 
 .landing-section-full {
