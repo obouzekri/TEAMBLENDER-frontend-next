@@ -2955,8 +2955,9 @@ a {
 }
 
 .landing-section-full--proof {
-  padding-top: 0;
-  padding-bottom: 0;
+  padding-top: 0.5rem;
+  padding-bottom: 2rem;
+  min-height: 0;
 }
 
 .landing-section-full--proof .landing-section-inner {
