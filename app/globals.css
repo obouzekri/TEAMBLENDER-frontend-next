@@ -3401,12 +3401,13 @@ a {
 
   .landing-hero-inner {
     gap: 1.1rem;
+    padding-inline: 0 !important;
   }
 
   .landing-hero-copy {
     padding-top: 1.8rem;
-    padding-left: 1.2rem;
-    padding-right: 1.2rem;
+    padding-left: 0;
+    padding-right: 0;
     padding-bottom: 0.8rem;
   }
 
@@ -8835,6 +8836,23 @@ a {
 
   .landing-partner-grid span:nth-child(n+5) {
     display: none;
+  }
+
+  .landing-testimonials-carousel {
+    display: flex;
+    gap: 0.8rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .landing-testimonials-carousel article {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+    min-width: calc(100% - 1.6rem);
+    max-height: 240px;
+    overflow-y: hidden;
   }
 
   .landing-testimonials-grid article:nth-child(3) {
