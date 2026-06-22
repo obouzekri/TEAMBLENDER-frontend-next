@@ -2657,10 +2657,15 @@ a {
 }
 
 .landing-v2 {
-  padding: 0.7rem 0 3.2rem;
+  padding: 0 0 3.2rem;
   display: grid;
   gap: 0;
   font-family: "Inter", var(--font-ui);
+}
+
+.landing-v2 > section {
+  margin: 0;
+  border-radius: 0;
 }
 
 .landing-hero-full {
@@ -2802,8 +2807,8 @@ a {
   max-width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  padding-top: clamp(1.8rem, 3.8vw, 3.2rem);
-  padding-bottom: clamp(1.8rem, 3.8vw, 3.2rem);
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .landing-section-inner {
@@ -2812,18 +2817,18 @@ a {
 }
 
 .landing-impact-band.landing-section-full {
-  padding: 0.4rem 0 0.15rem;
+  padding: 0;
   background: linear-gradient(180deg, #f6f9ff 0%, #eef4ff 100%);
 }
 
 .landing-section-full--statement {
-  padding-top: clamp(1.5rem, 3vw, 2.2rem);
-  padding-bottom: clamp(1.5rem, 3vw, 2.2rem);
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .landing-section-full--proof {
-  padding-top: clamp(1.5rem, 3vw, 2.35rem);
-  padding-bottom: clamp(1.5rem, 3vw, 2.35rem);
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .landing-section-full--proof .landing-section-inner {
@@ -8352,8 +8357,9 @@ a {
   }
 
   .landing-v2 > section {
-    padding: 1.15rem !important;
-    border-radius: 22px !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
   }
 
   .landing-v2 h1 {
