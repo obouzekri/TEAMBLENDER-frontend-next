@@ -842,6 +842,7 @@ a {
   margin-top: 1.4rem;
   display: grid;
   gap: 1rem;
+  font-family: "Inter", sans-serif;
 }
 
 .auth-form label {
@@ -878,7 +879,7 @@ a {
 .auth-form input::placeholder,
 .auth-form select::placeholder,
 .auth-form textarea::placeholder {
-  color: rgba(107, 114, 128, 0.6);
+  color: rgba(107, 114, 128, 0.8);
 }
 
 .auth-form textarea {
@@ -925,7 +926,7 @@ a {
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #94a3b8;
+  color: #64748b;
   width: 2rem;
   height: 2rem;
   display: inline-flex;
@@ -999,7 +1000,7 @@ a {
 .auth-card,
 .auth-showcase-card {
   min-height: 100%;
-  border-radius: 28px;
+  border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.5);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(246, 249, 255, 0.82)),
@@ -1042,12 +1043,15 @@ a {
   font-size: clamp(1.45rem, 2.2vw, 1.8rem);
   line-height: 1.08;
   letter-spacing: -0.035em;
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
 }
 
 .auth-card-description {
   margin: 0;
   font-size: clamp(0.95rem, 1.4vw, 1rem);
   line-height: 1.55;
+  font-family: "Inter", sans-serif;
   color: color-mix(in srgb, var(--ink-soft) 92%, #32415f);
 }
 
@@ -1185,7 +1189,8 @@ a {
 .auth-form {
   margin-top: 1rem;
   display: grid;
-  gap: 0.95rem;
+  gap: 1rem;
+  font-family: "Inter", sans-serif;
 }
 
 .auth-field {
@@ -1197,7 +1202,8 @@ a {
   font-size: 0.82rem;
   font-weight: 650;
   letter-spacing: 0.02em;
-  color: #44516a;
+  color: #3f4a5c;
+  font-family: "Inter", sans-serif;
 }
 
 .auth-field-grid {
@@ -1261,7 +1267,7 @@ a {
 
 .auth-form .auth-input-shell input::placeholder,
 .auth-form .auth-input-shell textarea::placeholder {
-  color: #8c99b0;
+  color: rgba(107, 114, 128, 0.8);
 }
 
 .auth-form .auth-input-shell input:focus,
@@ -4939,6 +4945,11 @@ a {
 .auth-footer a:hover {
   color: var(--accent-strong);
   text-decoration: underline;
+}
+
+.auth-footer a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .form-error {
