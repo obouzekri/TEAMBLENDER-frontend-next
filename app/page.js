@@ -876,10 +876,14 @@ export default function HomePage() {
                 </div>
               ) : null}
 
+              <span className="block h-2" aria-hidden="true" />
+
               <h1 className="landing-hero-title max-w-2xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
                 <span className="block">{structuredHeroTitle}</span>
                 {heroMain.subtitle ? <span className="landing-hero-subtitle mt-2 block bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-700 bg-clip-text text-transparent">{heroMain.subtitle}</span> : null}
               </h1>
+
+              <span className="block h-2" aria-hidden="true" />
 
               <p className="landing-hero-description mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
                 {heroDescription === landingStatic.fallback.heroDescription
@@ -890,6 +894,8 @@ export default function HomePage() {
               <p className="landing-hero-keyline mt-3 max-w-2xl text-sm font-semibold tracking-wide text-indigo-700 sm:text-base">
                 {landingStatic.fallback.keyline}
               </p>
+
+              <span className="block h-6" aria-hidden="true" />
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
@@ -1025,13 +1031,7 @@ export default function HomePage() {
 
               <div className="landing-partners-usage rounded-2xl bg-white/6 p-5 shadow-sm ring-1 ring-white/12 backdrop-blur-sm">
                 <p className="landing-partners-title">{locale === 'en' ? 'Teams using TeamBlender' : 'Equipes qui utilisent TeamBlender'}</p>
-                <div className="landing-platform-scent">
-                  {USE_CASES.map((useCase, index) => (
-                    <span key={useCase} style={{display: 'block', marginBottom: '0.75rem'}}>
-                      {useCase}
-                    </span>
-                  ))}
-                </div>
+                <p className="landing-platform-scent">{USE_CASES.join(' · ')}</p>
                 <p className="mt-4 text-sm leading-6 text-slate-300">
                   {locale === 'en'
                     ? 'One modern platform, one clear rhythm, and one shared team experience.'
@@ -1046,11 +1046,6 @@ export default function HomePage() {
               ))}
             </div>
 
-            <div className="landing-partner-line" aria-label={locale === 'en' ? 'Client segments' : 'Segments utilisés par les clients'}>
-              <p className="landing-partner-line-text">
-                {partnerItems.map((item) => item.title).join(' . ')}
-              </p>
-            </div>
           </div>
         </section>
 
@@ -1265,7 +1260,7 @@ export default function HomePage() {
               <Link href={finalSecondaryHref} onClick={handleFinalSecondaryCtaClick} className={`${pillClass} border border-slate-200 bg-white/80 text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md`}>
                 <span>{finalSecondaryLabel}</span>
               </Link>
-              <Link href={finalPrimaryHref} className={`${pillClass} landing-cta-primary text-white`}>
+              <Link href={finalPrimaryHref} className={`${pillClass} landing-cta-primary landing-hero-primary-btn text-white`}>
                 <span>{finalPrimaryLabel}</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
