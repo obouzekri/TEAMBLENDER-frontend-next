@@ -41,6 +41,20 @@ function normalizeParticipant(participant) {
   };
 }
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+}
+
+function isStrongPassword(value) {
+  const raw = String(value || '');
+  if (raw.length < 8 || raw.length > 128) return false;
+  const hasLower = /[a-z]/.test(raw);
+  const hasUpper = /[A-Z]/.test(raw);
+  const hasDigit = /\d/.test(raw);
+  const hasSpecial = /[^A-Za-z0-9]/.test(raw);
+  return hasLower && hasUpper && hasDigit && hasSpecial;
+}
+
 function formatPaywallMessage(payload, fallbackMessage) {
   const baseMessage = String(payload?.error || fallbackMessage || '').trim();
   if (payload?.code !== 'PLAN_LIMIT_REACHED') {
@@ -297,6 +311,7 @@ export default function ManagerHome() {
     setLoadingMembers(true);
     try {
       const response = await fetch(getApiUrl('/participants'), {
+        cache: 'no-store',
         headers: {
           Authorization: `Bearer ${guard.token}`,
           'Content-Type': 'application/json',
@@ -498,6 +513,26 @@ export default function ManagerHome() {
       return;
     }
 
+    if (!isValidEmail(email)) {
+      showErrorToast('A valid email address is required.');
+      return;
+    }
+
+    if (password && !isStrongPassword(password)) {
+      showErrorToast('Password must contain upper/lower case letters, a number, and a symbol (8+ characters).');
+      return;
+    }
+
+    const hasDuplicateEmail = members.some((member) => (
+      String(member?.id || '') !== String(editingMemberId || '')
+      && String(member?.email || '').trim().toLowerCase() === email
+    ));
+
+    if (hasDuplicateEmail) {
+      showErrorToast('This email is already used by another participant.');
+      return;
+    }
+
     setCreatingMember(true);
     try {
       const targetUrl = editingMemberId
@@ -540,6 +575,25 @@ export default function ManagerHome() {
             `${editingMemberId ? 'Participant update' : 'Participant creation'} failed (${response.status})`
           )
         );
+      }
+
+      if (editingMemberId) {
+        setMembers((prev) => prev.map((member) => (
+          String(member?.id) === String(editingMemberId)
+            ? normalizeParticipant({
+              ...member,
+              ...payload,
+              id: member.id,
+              email: payload?.email || email,
+              first_name: payload?.first_name ?? firstName,
+              firstname: payload?.firstname ?? payload?.first_name ?? firstName,
+              last_name: payload?.last_name ?? (lastName || ''),
+              lastname: payload?.lastname ?? payload?.last_name ?? (lastName || ''),
+              job_title: payload?.job_title ?? (jobTitle || null),
+              department: payload?.department ?? (department || null),
+            })
+            : member
+        )));
       }
 
       showSuccessToast(editingMemberId ? 'Participant updated successfully.' : 'Participant added successfully.');
