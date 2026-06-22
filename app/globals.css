@@ -557,10 +557,26 @@ a {
 .nav-mobile-cta {
   display: none;
   flex: 0 0 auto;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
 }
 
 .nav-mobile-cta-btn {
   white-space: nowrap;
+}
+
+.nav-mobile-login-btn {
+  min-height: 40px;
+  padding: 0.28rem 0.48rem;
+  font-size: 0.8rem;
+  border-radius: 999px;
+}
+
+.nav-mobile-signup-btn {
+  min-height: 40px;
+  padding: 0.46rem 0.78rem;
+  font-size: 0.79rem;
 }
 
 .lang-switch {
@@ -9102,7 +9118,7 @@ a {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    column-gap: 0.65rem;
+    column-gap: 0.5rem;
   }
 
   .top-nav:not(.top-nav--live-inline) .nav-brand-block {
@@ -9117,16 +9133,28 @@ a {
   }
 
   .top-nav:not(.top-nav--live-inline) .nav-mobile-cta {
-    display: flex;
+    display: inline-flex;
     justify-self: center;
     justify-content: center;
     min-width: 0;
   }
 
-  .top-nav:not(.top-nav--live-inline) .nav-mobile-cta-btn {
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-login-btn,
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-signup-btn {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-login-btn {
     min-height: 40px;
-    padding: 0.45rem 0.82rem;
-    font-size: 0.78rem;
+    padding: 0.28rem 0.48rem;
+    font-size: 0.76rem;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-signup-btn {
+    min-height: 40px;
+    padding: 0.46rem 0.74rem;
+    font-size: 0.77rem;
     box-shadow: 0 10px 22px rgba(47, 98, 255, 0.22);
   }
 
@@ -9207,6 +9235,7 @@ a {
     margin-left: auto;
     align-items: center;
     white-space: normal;
+    justify-content: flex-start;
   }
 
   .top-nav:not(.top-nav--live-inline) .nav-actions .lang-switch,
@@ -9214,6 +9243,10 @@ a {
   .top-nav:not(.top-nav--live-inline) .nav-actions .nav-cta-btn {
     width: auto;
     justify-content: center;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-actions .lang-switch {
+    display: flex;
   }
 
   .top-nav:not(.top-nav--live-inline) .lang-switch {
