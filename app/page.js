@@ -1024,15 +1024,14 @@ export default function HomePage() {
               </div>
 
               <div className="landing-partners-usage rounded-2xl bg-white/6 p-5 shadow-sm ring-1 ring-white/12 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">{locale === 'en' ? 'Teams using TeamBlender' : 'Equipes qui utilisent TeamBlender'}</p>
-                <p className="landing-platform-scent mt-3">
+                <p className="landing-partners-title">{locale === 'en' ? 'Teams using TeamBlender' : 'Equipes qui utilisent TeamBlender'}</p>
+                <div className="landing-platform-scent">
                   {USE_CASES.map((useCase, index) => (
-                    <span key={useCase}>
+                    <span key={useCase} style={{display: 'block', marginBottom: '0.75rem'}}>
                       {useCase}
-                      {index < USE_CASES.length - 1 ? '' : ''}
                     </span>
                   ))}
-                </p>
+                </div>
                 <p className="mt-4 text-sm leading-6 text-slate-300">
                   {locale === 'en'
                     ? 'One modern platform, one clear rhythm, and one shared team experience.'
@@ -1183,8 +1182,7 @@ export default function HomePage() {
             <div className="panel-head landing-testimonials-head">
               <div>
                 <p className="eyebrow landing-section-eyebrow">{testimonialsHeader.label}</p>
-                <h2 className="landing-section-title">{testimonialsHeader.title}</h2>
-                <p className="landing-section-description">{testimonialsHeader.description}</p>
+                <h2 className="landing-section-title text-slate-950">{testimonialsHeader.title}</h2>
               </div>
             </div>
             <div className="landing-testimonials-carousel mt-7" role="region" aria-label={locale === 'en' ? 'Testimonials carousel' : 'Carrousel de temoignages'}>
