@@ -3475,16 +3475,16 @@ a {
   .landing-section-full {
     padding-top: 2.8rem !important;
     padding-bottom: 2.8rem !important;
-    padding-left: 1.2rem !important;
-    padding-right: 1.2rem !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
 
   .landing-section-inner {
     width: 100%;
-    padding-left: 1.2rem;
-    padding-right: 1.2rem;
+    padding-left: 0;
+    padding-right: 0;
     margin-inline: auto;
   }
 
@@ -8818,7 +8818,7 @@ a {
   }
 
   .landing-v2 > section {
-    padding: 0 !important;
+    padding: 2.8rem 1.2rem !important;
     border-radius: 0 !important;
     margin: 0 !important;
   }

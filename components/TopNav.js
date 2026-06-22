@@ -148,9 +148,6 @@ export default function TopNav({ compact = false }) {
               </>
             )}
           </div>
-              </>
-            )}
-          </div>
         </div>
       </div>
 
