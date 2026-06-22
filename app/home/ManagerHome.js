@@ -507,19 +507,24 @@ export default function ManagerHome() {
     const department = String(memberForm.department || '').trim();
 
     if (!firstName || !email || (!editingMemberId && !password)) {
-      showErrorToast(editingMemberId
+      const message = editingMemberId
         ? 'First name and email are required.'
-        : 'First name, email, and password are required.');
+        : 'First name, email, and password are required.';
+      setMemberFormStatus(message);
+      showErrorToast(message);
       return;
     }
 
     if (!isValidEmail(email)) {
+      setMemberFormStatus('A valid email address is required.');
       showErrorToast('A valid email address is required.');
       return;
     }
 
     if (password && !isStrongPassword(password)) {
-      showErrorToast('Password must contain upper/lower case letters, a number, and a symbol (8+ characters).');
+      const message = 'Password must contain upper/lower case letters, a number, and a symbol (8+ characters).';
+      setMemberFormStatus(message);
+      showErrorToast(message);
       return;
     }
 
@@ -529,7 +534,9 @@ export default function ManagerHome() {
     ));
 
     if (hasDuplicateEmail) {
-      showErrorToast('This email is already used by another participant.');
+      const message = 'This email is already used by another participant.';
+      setMemberFormStatus(message);
+      showErrorToast(message);
       return;
     }
 
@@ -602,8 +609,9 @@ export default function ManagerHome() {
 
       await refreshMembers();
     } catch (err) {
-      setMemberFormStatus(err.message || `Unable to ${editingMemberId ? 'update' : 'create'} participant.`);
-      showErrorToast(err.message || `Unable to ${editingMemberId ? 'update' : 'create'} participant.`);
+      const message = err.message || `Unable to ${editingMemberId ? 'update' : 'create'} participant.`;
+      setMemberFormStatus(message);
+      showErrorToast(message);
     } finally {
       setCreatingMember(false);
     }
@@ -1106,7 +1114,7 @@ export default function ManagerHome() {
               </div>
               <p className="participant-form-hint">Fields marked with * are required to create a usable participant profile.</p>
               {memberFormStatus ? (
-                <p className={`participant-form-status ${memberFormStatus.includes('success') || memberFormStatus.includes('created') ? 'participant-form-status--ok' : 'participant-form-status--warn'}`}>
+                <p className="participant-form-status participant-form-status--warn" role="alert" aria-live="polite">
                   {memberFormStatus}
                 </p>
               ) : null}

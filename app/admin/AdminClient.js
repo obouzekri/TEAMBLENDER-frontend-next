@@ -1159,6 +1159,7 @@ export default function AdminClient() {
   const [showNewLandingBlockForm, setShowNewLandingBlockForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [editingParticipant, setEditingParticipant] = useState(null);
+  const [editingParticipantError, setEditingParticipantError] = useState('');
   const [editingSession, setEditingSession] = useState(null);
   const [editingChallenge, setEditingChallenge] = useState(null);
   const [editingPricingPlan, setEditingPricingPlan] = useState(null);
@@ -1870,6 +1871,7 @@ export default function AdminClient() {
 
   function beginEditParticipant(participant) {
     setShowNewParticipantForm(false);
+    setEditingParticipantError('');
     setEditingParticipant({
       id: participant.id,
       email: participant.email || '',
@@ -1885,18 +1887,21 @@ export default function AdminClient() {
   async function submitEditParticipant(event) {
     event.preventDefault();
     if (!token || !editingParticipant?.id) return;
+    setEditingParticipantError('');
 
     if (!editingParticipant.first_name.trim() || !isValidEmail(editingParticipant.email)) {
-      setError(isEn ? 'Participant first name and a valid email are required.' : 'Le prenom participant et un email valide sont requis.');
+      const message = isEn ? 'Participant first name and a valid email are required.' : 'Le prenom participant et un email valide sont requis.';
+      setEditingParticipantError(message);
+      setError(message);
       return;
     }
 
     if (editingParticipant.password && !isStrongPassword(editingParticipant.password)) {
-      setError(
-        isEn
-          ? 'Invalid password. Use 8+ chars with upper/lower case, a number, and a symbol.'
-          : 'Mot de passe invalide. Utilisez 8+ caracteres avec majuscule/minuscule, un chiffre et un symbole.'
-      );
+      const message = isEn
+        ? 'Invalid password. Use 8+ chars with upper/lower case, a number, and a symbol.'
+        : 'Mot de passe invalide. Utilisez 8+ caracteres avec majuscule/minuscule, un chiffre et un symbole.';
+      setEditingParticipantError(message);
+      setError(message);
       return;
     }
 
@@ -1908,7 +1913,9 @@ export default function AdminClient() {
     ));
 
     if (duplicateEmail) {
-      setError(isEn ? 'This email is already used by another participant.' : 'Cet email est deja utilise par un autre participant.');
+      const message = isEn ? 'This email is already used by another participant.' : 'Cet email est deja utilise par un autre participant.';
+      setEditingParticipantError(message);
+      setError(message);
       return;
     }
 
@@ -1960,7 +1967,9 @@ export default function AdminClient() {
       await loadAll();
       showNotice(isEn ? 'Participant updated successfully.' : 'Participant mis a jour avec succes.');
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while updating participant.' : 'Erreur lors de la mise a jour participant.'));
+      const message = err.message || (isEn ? 'Error while updating participant.' : 'Erreur lors de la mise a jour participant.');
+      setEditingParticipantError(message);
+      setError(message);
     } finally {
       setBusySaveKey('');
     }
@@ -4015,7 +4024,10 @@ export default function AdminClient() {
           <Modal
             open={Boolean(editingParticipant)}
             title={isEn ? 'Edit participant' : 'Modifier participant'}
-            onClose={() => setEditingParticipant(null)}
+            onClose={() => {
+              setEditingParticipant(null);
+              setEditingParticipantError('');
+            }}
             dialogClassName="admin-edit-modal"
             bodyClassName="admin-edit-modal-body"
           >
@@ -4033,9 +4045,15 @@ export default function AdminClient() {
                 <label>{isEn ? 'Job title' : 'Fonction'}<input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
                 <label>{isEn ? 'Department' : 'Departement'}<input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
                 <label>{isEn ? 'New password (optional)' : 'Nouveau mot de passe (optionnel)'}<input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} /></label>
+                {editingParticipantError ? (
+                  <p className="participant-form-status participant-form-status--warn" role="alert" aria-live="polite">{editingParticipantError}</p>
+                ) : null}
                 <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
                   <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>{busySaveKey === `save:participant:${editingParticipant.id}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}</button>
-                  <button type="button" className="btn-secondary" onClick={() => setEditingParticipant(null)}>{isEn ? 'Cancel' : 'Annuler'}</button>
+                  <button type="button" className="btn-secondary" onClick={() => {
+                    setEditingParticipant(null);
+                    setEditingParticipantError('');
+                  }}>{isEn ? 'Cancel' : 'Annuler'}</button>
                 </div>
               </form>
             ) : null}
