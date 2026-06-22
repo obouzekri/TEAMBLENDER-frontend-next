@@ -280,6 +280,10 @@ a {
   overflow: visible;
 }
 
+:root {
+  --header-height: calc(var(--nav-shell-min-height) + env(safe-area-inset-top, 0px));
+}
+
 .top-nav::before {
   content: "";
   position: absolute;
@@ -508,6 +512,7 @@ a {
   display: inline-flex;
   align-items: center;
   padding: 0;
+  margin-left: -30px;
   border: none;
   background: none;
   box-shadow: none;
@@ -2657,7 +2662,7 @@ a {
 }
 
 .landing-v2 {
-  padding: 0 0 3.2rem;
+  padding: 0 0 2.2rem;
   display: grid;
   gap: 0;
   overflow-x: clip;
@@ -2677,6 +2682,7 @@ a {
   position: relative;
   width: 100%;
   max-width: 100%;
+  min-height: calc(100vh - var(--header-height));
   margin-left: 0;
   margin-right: 0;
   border: 0;
@@ -2702,8 +2708,13 @@ a {
 }
 
 .landing-hero-full .landing-hero-inner {
-  width: min(84rem, calc(100% - 1.5rem));
+  width: 100%;
+  max-width: none;
+  min-height: calc(100vh - var(--header-height));
+  padding-inline: clamp(1rem, 3vw, 2.2rem);
+  padding-block: clamp(0.5rem, 1.6vw, 1rem);
   margin-inline: auto;
+  align-content: center;
 }
 
 .landing-hero-aurora {
@@ -2724,7 +2735,7 @@ a {
 }
 
 .landing-hero-title {
-  font-size: clamp(2.65rem, 6.2vw, 5.15rem) !important;
+  font-size: clamp(2.35rem, 4.8vw, 4.25rem) !important;
   line-height: 0.98 !important;
   letter-spacing: -0.03em;
   color: #f8fafc !important;
@@ -2736,8 +2747,8 @@ a {
 }
 
 .landing-hero-description {
-  font-size: clamp(1rem, 1.35vw, 1.28rem);
-  line-height: 1.74;
+  font-size: clamp(0.98rem, 1.15vw, 1.16rem);
+  line-height: 1.62;
   color: #cbd5e1 !important;
 }
 
@@ -2823,6 +2834,7 @@ a {
 
 .landing-impact-band.landing-section-full {
   padding: 0;
+  margin-top: -1px;
   background: linear-gradient(180deg, #f6f9ff 0%, #eef4ff 100%);
 }
 
@@ -3124,6 +3136,10 @@ a {
 }
 
 @media (max-width: 640px) {
+  .brand {
+    margin-left: 0;
+  }
+
   .landing-hero-product-shell {
     transform: none;
   }
@@ -3134,7 +3150,7 @@ a {
   }
 
   .landing-hero-title {
-    font-size: clamp(2rem, 9vw, 2.7rem) !important;
+    font-size: clamp(1.85rem, 8vw, 2.45rem) !important;
   }
 
   .landing-hero-product-wrap {

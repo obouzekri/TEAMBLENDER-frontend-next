@@ -571,8 +571,6 @@ const USE_CASES = [
   'Événements RH',
 ];
 
-const HERO_TEAM_AVATARS = ['AL', 'MK', 'SR', 'NO', 'JD'];
-
 function resolveTrustTagIcon(label) {
   const normalized = String(label || '').trim().toLowerCase();
   const matched = TRUST_TAG_ICON_BY_KEYWORD.find((entry) => entry.keywords.some((keyword) => normalized.includes(keyword)));
@@ -838,7 +836,7 @@ export default function HomePage() {
   return (
     <>
       <TopNav />
-      <main className="shell landing-v2">
+      <main className="landing-v2">
         {isLandingCmsStrict && landingLoaded && (cmsAudit.missingKeys.length > 0 || cmsAudit.missingFields.length > 0) ? (
           <section className="feature-card" aria-label="Audit Landing CMS" style={{ borderColor: '#f59e0b', background: 'linear-gradient(180deg, #fff7ed 0%, #fff 100%)' }}>
             <p className="eyebrow" style={{ color: '#9a3412' }}>Audit CMS Strict</p>
@@ -862,12 +860,12 @@ export default function HomePage() {
         ) : null}
 
         <section
-          className="landing-hero-full reveal-up relative overflow-hidden px-6 py-7 sm:px-8 lg:px-10 lg:py-9"
+          className="landing-hero-full reveal-up relative overflow-hidden px-0 py-4 sm:py-5 lg:py-6"
           style={{ '--reveal-delay': '40ms' }}
           aria-label={locale === 'en' ? 'TeamBlender overview' : 'Presentation TeamBlender'}
         >
           <div className="landing-hero-aurora pointer-events-none absolute inset-0" />
-          <div className="landing-hero-inner relative grid gap-6 lg:grid-cols-[1.16fr_0.84fr] lg:items-start">
+          <div className="landing-hero-inner relative grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
             <div className="landing-hero-copy max-w-3xl">
               {(heroKicker.title || heroMain.label) ? (
                 <div className="mb-5 flex flex-wrap gap-3">
@@ -883,26 +881,17 @@ export default function HomePage() {
                 {heroMain.subtitle ? <span className="landing-hero-subtitle mt-2 block bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-700 bg-clip-text text-transparent">{heroMain.subtitle}</span> : null}
               </h1>
 
-              <p className="landing-hero-description mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+              <p className="landing-hero-description mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
                 {heroDescription === landingStatic.fallback.heroDescription
                   ? landingStatic.fallback.heroDescriptionStructured
                   : heroDescription}
               </p>
 
-              <p className="landing-hero-keyline mt-4 max-w-2xl text-sm font-semibold tracking-wide text-indigo-700 sm:text-base">
+              <p className="landing-hero-keyline mt-3 max-w-2xl text-sm font-semibold tracking-wide text-indigo-700 sm:text-base">
                 {landingStatic.fallback.keyline}
               </p>
 
-              <div className="landing-hero-human mt-5">
-                <div className="landing-hero-avatars" aria-label={locale === 'en' ? 'Team members' : 'Membres de l equipe'}>
-                  {HERO_TEAM_AVATARS.map((avatar) => (
-                    <span key={avatar} className="landing-hero-avatar">{avatar}</span>
-                  ))}
-                </div>
-                <p>{locale === 'en' ? 'Live session energy: managers, HR and teams in one shared space.' : 'Energie live: managers, RH et equipes reunis dans un meme espace.'}</p>
-              </div>
-
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   href={heroPrimaryHref}
                   onClick={handlePrimaryCtaClick}
@@ -923,7 +912,7 @@ export default function HomePage() {
               </Link>
 
               {heroTrustItems.length > 0 ? (
-                <p className="landing-hero-trust mt-8 text-sm font-medium leading-7 text-slate-600 sm:text-base">
+                <p className="landing-hero-trust mt-6 text-sm font-medium leading-7 text-slate-600 sm:text-base">
                   {heroTrustItems.slice(0, 3).join(' • ')}
                 </p>
               ) : null}
