@@ -48,7 +48,8 @@ export default function PostHogProvider() {
 
     if (!window.__TEAMBLENDER_POSTHOG_INIT__) {
       posthog.init(POSTHOG_PROJECT_TOKEN, {
-        api_host: POSTHOG_HOST,
+        api_host: '/ingest',
+        ui_host: POSTHOG_HOST,
         defaults: '2026-01-30',
         capture_pageview: false,
         capture_pageleave: true,

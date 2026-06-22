@@ -65,6 +65,14 @@ const nextConfig = {
         source: '/socket.io/:path*',
         destination: `${rewriteBackendOrigin}/socket.io/:path*`,
       },
+      {
+        source: '/ingest/static/:path*',
+        destination: 'https://us-assets.i.posthog.com/static/:path*',
+      },
+      {
+        source: '/ingest/:path*',
+        destination: 'https://us.i.posthog.com/:path*',
+      },
     ];
   },
 };
