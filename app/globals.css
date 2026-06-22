@@ -9130,6 +9130,7 @@ a {
     display: inline-flex;
     flex: 0 0 auto;
     justify-self: end;
+    z-index: 250;
   }
 
   .top-nav:not(.top-nav--live-inline) .nav-mobile-cta {
@@ -9185,7 +9186,7 @@ a {
     opacity: 0;
     pointer-events: none;
     transition: transform 0.18s ease, opacity 0.18s ease;
-    z-index: 170;
+    z-index: 180;
   }
 
   .top-nav:not(.top-nav--live-inline) .nav-panel.is-open {
@@ -9277,12 +9278,35 @@ a {
     border: 0;
     margin: 0;
     padding: 0;
-    z-index: 160;
+    z-index: 170;
   }
 
   .top-nav--live-inline .nav-mobile-overlay,
   .top-nav--live-inline .nav-mobile-profile {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-nav:not(.top-nav--live-inline) .nav-inner {
+    gap: 0.35rem;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-top-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 0.45rem;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-cta {
+    gap: 0.32rem;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-login-btn {
+    padding-inline: 0.42rem;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-signup-btn {
+    padding-inline: 0.62rem;
   }
 }
   .btn-primary,
