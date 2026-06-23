@@ -54,11 +54,24 @@ export default function ChallengeRulesPanel({
   const resolvedStartLabel = startLabel || t('challengeRulesPanel.startChallenge');
   const facilitatorLabel = t('challengeRulesPanel.facilitator');
   const participantLabel = t('challengeRulesPanel.participants');
-  const participantTags = [
-    { key: 'min', label: t('challengeRulesPanel.min'), value: participantsMeta?.min || '', highlighted: false },
-    { key: 'recommended', label: t('challengeRulesPanel.recommended'), value: participantsMeta?.recommended || '', highlighted: true },
-    { key: 'max', label: t('challengeRulesPanel.max'), value: participantsMeta?.max || '', highlighted: false },
-  ].filter((entry) => String(entry.value || '').trim());
+  const minPlayers = String(participantsMeta?.min || '').trim();
+  const recommendedPlayers = String(participantsMeta?.recommended || '').trim();
+  const maxPlayers = String(participantsMeta?.max || '').trim();
+  const playersRuleText = [
+    minPlayers ? `${isEn ? 'minimum' : 'minimum'} ${minPlayers}` : '',
+    recommendedPlayers ? `${isEn ? 'recommended' : 'recommandé'} ${recommendedPlayers}` : '',
+    maxPlayers ? `${isEn ? 'maximum' : 'maximum'} ${maxPlayers}` : '',
+  ].filter(Boolean);
+  const facilitatorRulesWithPlayers = [
+    ...(playersRuleText.length > 0
+      ? [
+        isEn
+          ? `Recommended player format: ${playersRuleText.join(', ')}.`
+          : `Format de joueurs recommandé : ${playersRuleText.join(', ')}.`
+      ]
+      : []),
+    ...facilitatorRules,
+  ];
 
   const cardContent = (
     <>
@@ -72,20 +85,8 @@ export default function ChallengeRulesPanel({
       {isFacilitator ? (
         <section className={styles.rulesSection}>
           <h3 className="challenge-section-title">🎯 {facilitatorLabel}</h3>
-          {participantTags.length > 0 ? (
-            <div className={styles.tagsRow}>
-              {participantTags.map((item) => (
-                <span
-                  key={`tag-${item.key}`}
-                  className={`${styles.playerTag}${item.highlighted ? ` ${styles.playerTagRecommended}` : ''}`}
-                >
-                  {item.highlighted ? '⭐ ' : ''}{item.label} {item.value}
-                </span>
-              ))}
-            </div>
-          ) : null}
           <ul>
-            {facilitatorRules.map((rule) => (
+            {facilitatorRulesWithPlayers.map((rule) => (
               <li key={`facilitator-${rule}`}>{rule}</li>
             ))}
           </ul>

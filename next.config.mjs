@@ -47,6 +47,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 const nextConfig = {
   reactStrictMode: true,
+  allowedDevOrigins: ['127.0.0.1'],
   outputFileTracingRoot: projectRoot,
   experimental: {
     optimizePackageImports: ['lucide-react'],

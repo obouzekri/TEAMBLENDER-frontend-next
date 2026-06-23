@@ -135,6 +135,7 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
   }, [onClose]);
 
   const rules = getFallbackRules(challenge, locale);
+  const isEn = locale === 'en';
   const duration = Number(challenge?.duration || challenge?.config?.duration_minutes || 0);
   const playerRange = resolveChallengePlayerRange(challenge);
   const isLabyrinthe = String(challenge?.engine_key || '').trim() === 'labyrinthe_live_v1';
@@ -145,16 +146,26 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
   const vomParticipants = isVom ? getVraiOuMensongeRulesPreset(locale).participants : null;
   const missionCritiqueParticipants = isMissionCritique ? getMissionCritiqueRulesPreset(locale).participants : null;
   const escapeRoomParticipants = isEscapeRoom ? getEscapeRoomRulesPreset(locale).participants : null;
-  const participantTags = playerRange.hasRange
-    ? [
-      { key: 'min', label: t('challengeRulesPanel.min'), value: isLabyrinthe ? labyrintheParticipants?.min : isVom ? vomParticipants?.min : isMissionCritique ? missionCritiqueParticipants?.min : isEscapeRoom ? escapeRoomParticipants?.min : playerRange.min, highlighted: false },
-      { key: 'recommended', label: t('challengeRulesPanel.recommended'), value: isLabyrinthe ? labyrintheParticipants?.recommended : isVom ? vomParticipants?.recommended : isMissionCritique ? missionCritiqueParticipants?.recommended : isEscapeRoom ? escapeRoomParticipants?.recommended : playerRange.recommended, highlighted: true },
-      { key: 'max', label: t('challengeRulesPanel.max'), value: isLabyrinthe ? labyrintheParticipants?.max : isVom ? vomParticipants?.max : isMissionCritique ? missionCritiqueParticipants?.max : isEscapeRoom ? escapeRoomParticipants?.max : playerRange.max, highlighted: false },
-    ].filter((entry) => String(entry.value || '').trim())
-    : [];
+  const minPlayers = String(isLabyrinthe ? labyrintheParticipants?.min : isVom ? vomParticipants?.min : isMissionCritique ? missionCritiqueParticipants?.min : isEscapeRoom ? escapeRoomParticipants?.min : playerRange.min || '').trim();
+  const recommendedPlayers = String(isLabyrinthe ? labyrintheParticipants?.recommended : isVom ? vomParticipants?.recommended : isMissionCritique ? missionCritiqueParticipants?.recommended : isEscapeRoom ? escapeRoomParticipants?.recommended : playerRange.recommended || '').trim();
+  const maxPlayers = String(isLabyrinthe ? labyrintheParticipants?.max : isVom ? vomParticipants?.max : isMissionCritique ? missionCritiqueParticipants?.max : isEscapeRoom ? escapeRoomParticipants?.max : playerRange.max || '').trim();
+  const playersRuleText = [
+    minPlayers ? `${isEn ? 'minimum' : 'minimum'} ${minPlayers}` : '',
+    recommendedPlayers ? `${isEn ? 'recommended' : 'recommandé'} ${recommendedPlayers}` : '',
+    maxPlayers ? `${isEn ? 'maximum' : 'maximum'} ${maxPlayers}` : '',
+  ].filter(Boolean);
+  const facilitatorRulesWithPlayers = [
+    ...(playersRuleText.length > 0
+      ? [
+        isEn
+          ? `Recommended player format: ${playersRuleText.join(', ')}.`
+          : `Format de joueurs recommandé : ${playersRuleText.join(', ')}.`
+      ]
+      : []),
+    ...rules.facilitator,
+  ];
 
   const modalTitleId = 'challenge-rules-preview-title';
-  const isEn = locale === 'en';
 
   return (
     <div className={styles.backdrop} role="presentation" onClick={onClose}>
@@ -168,44 +179,26 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
         <header className={styles.header}>
           <div>
             <p className={styles.kicker}>📜 {t('challengeRulesPanel.kicker')}</p>
-            <div className={styles.titleRow}>
-              <h2 id={modalTitleId}>{challenge?.name || (isEn ? 'Activity' : 'Activité')}</h2>
-              {participantTags.length > 0 ? (
-                <div className={styles.tagsRow}>
-                  {participantTags.map((item) => (
-                    <span
-                      key={`tag-${item.key}`}
-                      className={`${styles.playerTag}${item.highlighted ? ` ${styles.playerTagRecommended}` : ''}`}
-                    >
-                      {item.highlighted ? '⭐ ' : ''}{item.label} {item.value}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <p className={styles.duration}>{duration > 0 ? `${t('challengeRulesPanel.averageDuration')}: ${duration} min` : t('challengeRulesPanel.averageDurationUnknown')}</p>
+            <h2 id={modalTitleId} className={styles.challengeTitle}>{challenge?.name || (isEn ? 'Activity' : 'Activité')}</h2>
+            <h3 className={styles.briefTitle}>{t('challengeRulesPanel.briefTitle')}</h3>
+            <p className={styles.objective}>{rules.objective}</p>
           </div>
           <button type="button" className={styles.closeButton} onClick={onClose} aria-label={t('challengeRulesPanel.closeRulesWindow')}>
             {t('challengeRulesPanel.closeRules')}
           </button>
         </header>
 
-        <section className={styles.block}>
-          <h3 className={styles.briefTitle}>{t('challengeRulesPanel.briefTitle')}</h3>
-          <p>{rules.objective}</p>
-        </section>
-
-        <section className={styles.block}>
-          <h3>{t('challengeRulesPanel.facilitator')}</h3>
+        <section className={styles.rulesSection}>
+          <h3 className={styles.sectionTitle}>🎯 {t('challengeRulesPanel.facilitator')}</h3>
           <ul>
-            {rules.facilitator.map((rule) => (
+            {facilitatorRulesWithPlayers.map((rule) => (
               <li key={`facilitator-${rule}`}>{rule}</li>
             ))}
           </ul>
         </section>
 
-        <section className={styles.block}>
-          <h3>{t('challengeRulesPanel.participants')}</h3>
+        <section className={`${styles.rulesSection} ${styles.rulesSectionParticipant}`}>
+          <h3 className={styles.sectionTitle}>🧭 {t('challengeRulesPanel.participants')}</h3>
           <ul>
             {rules.participant.map((rule) => (
               <li key={`participant-${rule}`}>{rule}</li>
@@ -213,7 +206,11 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
           </ul>
         </section>
 
-        {rules.footnote ? <p className={styles.footnote}>{rules.footnote}</p> : null}
+        {rules.footnote ? <p className={`${styles.footnote}`}>{rules.footnote}</p> : null}
+
+        <div className={styles.durationMeta}>
+          {duration > 0 ? `${t('challengeRulesPanel.averageDuration')}: ${duration} min` : t('challengeRulesPanel.averageDurationUnknown')}
+        </div>
       </section>
     </div>
   );

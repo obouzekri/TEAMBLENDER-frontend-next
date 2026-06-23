@@ -814,6 +814,31 @@ function cloneJson(value, fallback = null) {
   }
 }
 
+function renderUploadInputLabel({ isEn, busy }) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '40px',
+        padding: '0 14px',
+        borderRadius: '999px',
+        border: '1px solid #cbd5e1',
+        background: busy ? '#f8fafc' : 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
+        color: '#0f172a',
+        fontWeight: 600,
+        fontSize: '13px',
+        cursor: busy ? 'not-allowed' : 'pointer',
+      }}
+    >
+      {busy
+        ? (isEn ? 'Uploading...' : 'Upload en cours...')
+        : (isEn ? 'Choose image (JPG/PNG)' : 'Choisir une image (JPG/PNG)')}
+    </span>
+  );
+}
+
 function ensureEscapeRoomE5Image(engineConfig, imageUrl) {
   const normalizedImageUrl = normalizeBackendAssetUrl(imageUrl);
   const nextConfig = cloneJson(engineConfig, {}) || {};
@@ -4528,32 +4553,49 @@ export default function AdminClient() {
                           </div>
                         </div>
                         {(editingChallenge.engine_key || '').toLowerCase() === 'escape_room_v1' ? (
-                          <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '10px' }}>
-                            <p style={{ margin: '0 0 8px', fontWeight: 600 }}>{isEn ? 'Puzzle 5 image (secret room)' : 'Image enigme 5 (Salle secrete)'}</p>
-                            <input
-                              type="file"
-                              accept="image/png,image/jpeg,image/jpg"
-                              onChange={handleUploadEscapeRoomImage}
-                              disabled={challengeImageUploadBusy}
-                            />
-                            {challengeImageUploadBusy ? (
-                              <p className="session-meta" style={{ marginTop: '8px' }}>{isEn ? 'Upload in progress...' : 'Upload en cours...'}</p>
-                            ) : null}
+                          <div
+                            style={{
+                              border: '1px solid #cbd5e1',
+                              borderRadius: '14px',
+                              padding: '14px',
+                              display: 'grid',
+                              gap: '10px',
+                              background: 'linear-gradient(165deg, #ffffff 0%, #f8fafc 100%)',
+                              boxShadow: '0 10px 24px -20px rgba(15, 23, 42, 0.55)',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                              <p style={{ margin: 0, fontWeight: 700, color: '#0f172a' }}>{isEn ? 'Puzzle 5 image (secret room)' : 'Image enigme 5 (Salle secrete)'}</p>
+                              <span style={{ fontSize: '12px', color: '#334155', fontWeight: 600 }}>{isEn ? 'Persistent storage enabled' : 'Stockage persistant active'}</span>
+                            </div>
+                            <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'This image is used in the final puzzle and saved with challenge settings.' : 'Cette image est utilisee pour la derniere enigme et sauvegardee avec la configuration du challenge.'}</p>
+                            <label style={{ display: 'inline-flex', width: 'fit-content' }}>
+                              <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/jpg"
+                                onChange={handleUploadEscapeRoomImage}
+                                disabled={challengeImageUploadBusy}
+                                style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }}
+                              />
+                              {renderUploadInputLabel({ isEn, busy: challengeImageUploadBusy })}
+                            </label>
                             {challengeImageUploadError ? (
-                              <p className="session-meta" style={{ marginTop: '8px', color: '#dc2626' }}>{challengeImageUploadError}</p>
+                              <p className="session-meta" style={{ margin: 0, color: '#b91c1c', fontWeight: 600 }}>{challengeImageUploadError}</p>
                             ) : null}
                             {getEscapeRoomE5ImageSrc(editingChallenge.engine_config) ? (
-                              <Image
-                                src={getEscapeRoomE5ImageSrc(editingChallenge.engine_config)}
-                                alt={isEn ? 'Puzzle 5 preview' : 'Apercu enigme 5'}
-                                unoptimized
-                                width={640}
-                                height={360}
-                                loading="lazy"
-                                style={{ marginTop: '8px', maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
-                              />
+                              <div style={{ border: '1px solid #dbe4f0', borderRadius: '12px', padding: '8px', background: '#f8fafc' }}>
+                                <Image
+                                  src={getEscapeRoomE5ImageSrc(editingChallenge.engine_config)}
+                                  alt={isEn ? 'Puzzle 5 preview' : 'Apercu enigme 5'}
+                                  unoptimized
+                                  width={640}
+                                  height={360}
+                                  loading="lazy"
+                                  style={{ display: 'block', width: '100%', maxHeight: '190px', objectFit: 'contain', borderRadius: '8px' }}
+                                />
+                              </div>
                             ) : (
-                              <p className="session-meta" style={{ marginTop: '8px' }}>{isEn ? 'No image configured for e5.' : 'Aucune image configuree pour e5.'}</p>
+                              <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'No image configured for e5.' : 'Aucune image configuree pour e5.'}</p>
                             )}
                           </div>
                         ) : null}
@@ -4567,7 +4609,17 @@ export default function AdminClient() {
                             {getCopuzzleDefaultImages(editingChallenge.engine_config).map((imageItem, imageIndex) => {
                               const slotIndex = imageIndex + 1;
                               return (
-                                <div key={imageItem.id || `copuzzle-default-${slotIndex}`} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '10px', display: 'grid', gap: '8px' }}>
+                                <div
+                                  key={imageItem.id || `copuzzle-default-${slotIndex}`}
+                                  style={{
+                                    border: '1px solid #dbe4f0',
+                                    borderRadius: '12px',
+                                    padding: '12px',
+                                    display: 'grid',
+                                    gap: '9px',
+                                    background: 'linear-gradient(170deg, #ffffff 0%, #f8fafc 100%)',
+                                  }}
+                                >
                                   <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? `Reference image ${slotIndex}` : `Image de reference ${slotIndex}`}</p>
 
                                   <label>{isEn ? 'Title' : 'Titre'}
@@ -4634,25 +4686,29 @@ export default function AdminClient() {
                                     />
                                   </label>
 
-                                  <label>{isEn ? 'Upload (JPG/PNG)' : 'Uploader (JPG/PNG)'}
+                                  <label style={{ display: 'inline-flex', width: 'fit-content', gap: '8px' }}>
                                     <input
                                       type="file"
                                       accept="image/png,image/jpeg,image/jpg"
                                       onChange={(event) => handleUploadCopuzzleDefaultImage(event, imageIndex)}
                                       disabled={challengeImageUploadBusy}
+                                      style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }}
                                     />
+                                    {renderUploadInputLabel({ isEn, busy: challengeImageUploadBusy })}
                                   </label>
 
                                   {String(imageItem.src || '').trim() ? (
-                                    <Image
-                                      src={String(imageItem.src || '').trim()}
-                                      alt={isEn ? `Image preview ${slotIndex}` : `Apercu image ${slotIndex}`}
-                                      unoptimized
-                                      width={640}
-                                      height={360}
-                                      loading="lazy"
-                                      style={{ maxWidth: '100%', maxHeight: '120px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
-                                    />
+                                    <div style={{ border: '1px solid #dbe4f0', borderRadius: '10px', padding: '7px', background: '#f8fafc' }}>
+                                      <Image
+                                        src={String(imageItem.src || '').trim()}
+                                        alt={isEn ? `Image preview ${slotIndex}` : `Apercu image ${slotIndex}`}
+                                        unoptimized
+                                        width={640}
+                                        height={360}
+                                        loading="lazy"
+                                        style={{ display: 'block', width: '100%', maxHeight: '140px', objectFit: 'contain', borderRadius: '7px' }}
+                                      />
+                                    </div>
                                   ) : null}
 
                                   <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
