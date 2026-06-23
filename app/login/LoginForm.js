@@ -193,11 +193,6 @@ export default function LoginForm({ requestedSessionId = '' }) {
           { title: isEn ? 'Aligned facilitation' : 'Aligned facilitation', text: isEn ? 'Managers, HR, and facilitators share one clear premium product experience.' : 'Managers, RH et facilitateurs accedent a la meme experience produit, claire et premium.' },
           { title: isEn ? 'Reliable access' : 'Reliable access', text: isEn ? 'Fast sign-in, clear states, and flows designed for hybrid teams.' : 'Connexion rapide, etats lisibles et parcours pensés pour des equipes hybrides.' },
         ]}
-        stats={[
-          { value: 'Live', label: isEn ? 'Synchronized sessions' : 'Sessions synchronisees' },
-          { value: 'Secure', label: isEn ? 'Professional access' : 'Acces professionnel' },
-          { value: 'Fast', label: isEn ? 'Smooth onboarding' : 'Onboarding fluide' },
-        ]}
       />
 
       <div className="auth-login-pane">
