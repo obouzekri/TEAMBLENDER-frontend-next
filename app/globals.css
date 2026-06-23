@@ -290,7 +290,7 @@ a {
 
 .challenge-title {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: clamp(1.18rem, 2vw, 1.62rem);
   line-height: 1;
   font-weight: 800;
@@ -1227,7 +1227,7 @@ a {
 .auth-showcase-copy h1 {
   margin: 0;
   max-width: none;
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: clamp(2rem, 4.4vw, 3.4rem);
   line-height: 0.98;
   letter-spacing: -0.055em;
@@ -7703,7 +7703,7 @@ a {
 }
 
 .participant-hero h1 {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   letter-spacing: -0.03em;
 }
 
@@ -7775,7 +7775,7 @@ a {
 .participant-panel__head h2 {
   margin: 0.2rem 0 0;
   color: var(--participant-text-strong);
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   letter-spacing: -0.02em;
 }
 
@@ -7859,7 +7859,7 @@ a {
 
 .participant-session-card__name {
   font-weight: 700;
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 1rem;
   margin: 0;
   color: var(--participant-text-strong);
@@ -9973,7 +9973,7 @@ a {
 .manager-onboarding-copy h2 {
   margin: 0;
   color: #1f46d2;
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: clamp(1.35rem, 2.2vw, 2rem);
   line-height: 1.08;
 }
