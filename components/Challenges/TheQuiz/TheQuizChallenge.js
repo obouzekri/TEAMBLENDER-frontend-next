@@ -10,15 +10,12 @@ import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import {
   QuizFinalScreen,
+  QuizHostResponsesScreen,
   QuizLeaderboardScreen,
   QuizQuestionResultScreen,
   QuizQuestionScreen,
 } from './TheQuizScreens';
-import {
-  THE_QUIZ_HOST_TABS,
-  THE_QUIZ_PLACEHOLDER_QUESTION,
-  buildPlaceholderLeaderboard,
-} from './theQuiz.schema';
+import { THE_QUIZ_PLACEHOLDER_QUESTION, buildPlaceholderLeaderboard } from './theQuiz.schema';
 import styles from './TheQuiz.module.css';
 import useI18n from '@/lib/i18n/useI18n';
 
@@ -80,7 +77,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
   const [answerLocked, setAnswerLocked] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
-  const [hostActionBusy, setHostActionBusy] = useState(false);
   const [phaseTransitionTick, setPhaseTransitionTick] = useState(0);
   const [unreadChatPulse, setUnreadChatPulse] = useState(false);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
@@ -310,23 +306,9 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const isStarted = activePhase !== 'lobby';
   const connectedCount = Number(quiz?.connected_count || 0);
   const canStartQuiz = connectedCount >= 2;
-  const timerStatus = activePhase === 'question_live'
-    ? 'running'
-    : String(quiz?.status || '').trim().toLowerCase() === 'paused'
-      ? 'paused'
-      : activePhase === 'final_score'
-        ? 'completed'
-        : 'idle';
-  const timerRemainingSeconds = activePhase === 'question_live'
-    ? remainingSeconds
-    : Number(quiz?.question_duration_seconds || 30);
-  const timerDurationSeconds = Number(quiz?.question_duration_seconds || 30);
-
   function handleHostAction(type) {
     if (!type) return;
-    setHostActionBusy(true);
     emitEvent(type, {});
-    window.setTimeout(() => setHostActionBusy(false), 380);
   }
 
   function handleSubmitAnswer() {
@@ -425,7 +407,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 participantRules={rules.participant}
                 footnote={rules.footnote}
                 onStart={isFacilitator ? () => handleHostAction('quiz.session.start') : null}
-                startDisabled={!canStartQuiz || hostActionBusy}
+                startDisabled={!canStartQuiz}
               />
             ) : (
               <div key={`${activePhase}-${phaseTransitionTick}`} className={styles.phaseTransitionCard}>
@@ -441,24 +423,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
             {isFacilitator && isStarted ? (
               <section className={styles.hostPanel}>
-                <div className={styles.hostTabs}>
-                  {THE_QUIZ_HOST_TABS.map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      className={`${styles.hostTabButton} ${hostTab === tab.id ? styles.hostTabButtonActive : ''}`}
-                      onClick={() => setHostTab(tab.id)}
-                    >
-                      {isEn
-                        ? (tab.id === 'host_admin' ? 'Host console' : 'Live answers')
-                        : tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                {hostTab === 'host_live_answers'
-                  ? <QuizHostResponsesScreen isEn={isEn} quiz={quiz} />
-                  : <QuizHostControlScreen isEn={isEn} quiz={quiz} onAction={handleHostAction} isBusy={hostActionBusy} />}
+                <QuizHostResponsesScreen isEn={isEn} quiz={quiz} />
               </section>
             ) : null}
           </div>
@@ -485,15 +450,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                   : 'Au moins 2 participants doivent etre connectes pour demarrer le challenge.'}
               </p>
             ) : null}
-
-            <ChallengeTimerCard
-              title={isEn ? 'Timer' : 'Chrono'}
-              remainingSeconds={timerRemainingSeconds}
-              durationSeconds={timerDurationSeconds}
-              status={timerStatus}
-              isFacilitator={isFacilitator}
-              waitingText=""
-            />
 
             {chatEnabled ? (
               <div className={`${styles.chatWrap} ${unreadChatPulse ? styles.chatWrapPulse : ''}`}>
