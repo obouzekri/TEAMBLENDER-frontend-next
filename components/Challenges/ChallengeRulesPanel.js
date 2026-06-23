@@ -64,8 +64,14 @@ export default function ChallengeRulesPanel({
     <>
       <header className={styles.rulesHeader}>
         <p className={styles.rulesKicker}>📜 {t('challengeRulesPanel.kicker')}</p>
-        <div className={styles.titleRow}>
-          <h2 className="challenge-section-title">{challengeName}</h2>
+        <h2 className="challenge-section-title">{challengeName}</h2>
+        <h3 className={styles.rulesBriefTitle}>{resolvedBriefTitle}</h3>
+        <p className="challenge-text">{objective}</p>
+      </header>
+
+      {isFacilitator ? (
+        <section className={styles.rulesSection}>
+          <h3 className="challenge-section-title">🎯 {facilitatorLabel}</h3>
           {participantTags.length > 0 ? (
             <div className={styles.tagsRow}>
               {participantTags.map((item) => (
@@ -78,14 +84,6 @@ export default function ChallengeRulesPanel({
               ))}
             </div>
           ) : null}
-        </div>
-        <h3 className={styles.rulesBriefTitle}>{resolvedBriefTitle}</h3>
-        <p className="challenge-text">{objective}</p>
-      </header>
-
-      {isFacilitator ? (
-        <section className={styles.rulesSection}>
-          <h3 className="challenge-section-title">🎯 {facilitatorLabel}</h3>
           <ul>
             {facilitatorRules.map((rule) => (
               <li key={`facilitator-${rule}`}>{rule}</li>
