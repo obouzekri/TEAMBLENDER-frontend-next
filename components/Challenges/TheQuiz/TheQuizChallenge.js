@@ -78,14 +78,12 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
   const [answerLocked, setAnswerLocked] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
-  const [phaseTransitionTick, setPhaseTransitionTick] = useState(0);
   const [unreadChatPulse, setUnreadChatPulse] = useState(false);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [reconnectState, setReconnectState] = useState('connected');
   const [transientQuestionResult, setTransientQuestionResult] = useState(null);
   const previousRanksRef = useRef({});
   const lastQuestionIdRef = useRef('');
-  const lastPhaseRef = useRef('');
   const lastChatMessageIdRef = useRef('');
   const localTransitionTimerRef = useRef(null);
   const reconnectSeenDisconnectRef = useRef(false);
@@ -150,14 +148,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
       }
     };
   }, []);
-
-  useEffect(() => {
-    const phase = String(quiz.phase || 'lobby');
-    if (lastPhaseRef.current && lastPhaseRef.current !== phase) {
-      setPhaseTransitionTick((value) => value + 1);
-    }
-    lastPhaseRef.current = phase;
-  }, [quiz.phase]);
 
   useEffect(() => {
     const questionId = getQuestionId(quiz);
@@ -423,7 +413,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 startDisabled={!canStartQuiz}
               />
             ) : (
-              <div key={`${activePhase}-${phaseTransitionTick}`} className={styles.phaseTransitionCard}>
+              <div className={styles.phaseTransitionCard}>
                 {renderParticipantScreen()}
               </div>
             )}

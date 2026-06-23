@@ -30,12 +30,6 @@ function formatRelativeMs(value) {
   return `${Math.round((millis / 1000) * 10) / 10}s`;
 }
 
-function buildProgressValue(current, total) {
-  const safeTotal = Math.max(1, Number(total || 1));
-  const safeCurrent = Math.max(1, Number(current || 1));
-  return Math.max(0, Math.min(100, Math.round((safeCurrent / safeTotal) * 100)));
-}
-
 export function QuizQuestionScreen({
   isEn = false,
   quiz,
@@ -49,11 +43,6 @@ export function QuizQuestionScreen({
   onSubmitAnswer,
 }) {
   const question = normalizeQuestion(quiz, isEn);
-  const currentQuestionNumber = Number(quiz?.question_index || 0) + 1;
-  const progress = buildProgressValue(currentQuestionNumber, quiz?.question_count || 1);
-  const keyboardHint = isAnswerLocked
-    ? (isEn ? 'Answer locked.' : 'Réponse verrouillée.')
-    : (isEn ? 'Shortcuts: arrows to navigate, Enter or Space to select.' : 'Raccourcis: flèches pour naviguer, Entrée ou Espace pour sélectionner.');
 
   function onAnswerKeyDown(event, answerIndex) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -84,21 +73,8 @@ export function QuizQuestionScreen({
         <span className={styles.phaseBadge}>{question.category}</span>
       </div>
 
-      <div className={styles.questionMetaRow}>
-        <span>{currentQuestionNumber}/{quiz.question_count}</span>
-        <span>{isEn ? 'Difficulty' : 'Difficulté'}: {question.difficulty}</span>
-        <span>{participantsAnsweredCount}/{participantsTotal} {isEn ? 'answers received' : 'réponses reçues'}</span>
-      </div>
-
-      <p className={styles.helperText}>{keyboardHint}</p>
-
-      <div className={styles.questionProgressWrap}>
-        <div className={styles.questionProgressBar} style={{ '--quiz-progress': `${progress}%` }} aria-hidden="true" />
-        <span className={styles.questionProgressLabel}>{isEn ? 'Progress' : 'Progression'} {progress}%</span>
-      </div>
-
       <div className={styles.questionPromptPanel} aria-live="polite">
-        <p className={styles.questionPromptState}>{isAnswerLocked ? (isEn ? 'Answer sent and locked' : 'Réponse validée, verrouillée') : (isEn ? 'Choose your answer before the timer ends' : 'Choisissez votre réponse avant la fin du timer')}</p>
+        <p className={styles.questionPromptState}>{isAnswerLocked ? (isEn ? 'Answer sent and locked' : 'Réponse validée, verrouillée') : (isEn ? 'Choose your answer' : 'Choisissez votre réponse')}</p>
       </div>
 
       <div className={styles.answerGrid} role="radiogroup" aria-label={isEn ? 'Possible answers' : 'Réponses possibles'}>
