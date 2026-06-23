@@ -1,10 +1,10 @@
 import './globals.css';
-import { IBM_Plex_Sans, Sora } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { cookies } from 'next/headers';
 import TrackingConsentGate from '@/components/TrackingConsentGate';
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
 
-const fontUi = IBM_Plex_Sans({
+const fontUi = Inter({
   subsets: ['latin'],
   display: 'swap',
   preload: false,
@@ -12,7 +12,7 @@ const fontUi = IBM_Plex_Sans({
   weight: ['400', '500', '600', '700'],
 });
 
-const fontDisplay = Sora({
+const fontDisplay = Inter({
   subsets: ['latin'],
   display: 'swap',
   preload: false,
