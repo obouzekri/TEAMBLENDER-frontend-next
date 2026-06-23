@@ -2974,11 +2974,13 @@ a {
 
 .landing-partners-usage .landing-platform-scent {
   display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
   max-width: 100%;
   margin-top: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .landing-partners-usage p,
@@ -3523,6 +3525,7 @@ a {
   .landing-partners-usage {
     margin-top: 2.15rem;
     width: 100%;
+    padding-right: 0.8rem;
   }
 
   .landing-partners-usage .landing-partners-title {
@@ -8828,8 +8831,12 @@ a {
     width: 100% !important;
     max-width: 100% !important;
     padding-left: 0 !important;
-    padding-right: 0.95rem !important;
+    padding-right: 1.15rem !important;
     overflow: visible;
+  }
+
+  .landing-partners-usage {
+    padding-right: 1rem !important;
   }
 
   .landing-v2 h1 {
