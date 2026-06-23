@@ -6,13 +6,10 @@ import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getTheQuizRulesPreset } from '@/lib/challenges/theQuizRules';
 import ChallengeChatCard from '../ChallengeChatCard';
-import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import {
   QuizFinalScreen,
-  QuizHostControlScreen,
-  QuizHostResponsesScreen,
   QuizLeaderboardScreen,
   QuizQuestionResultScreen,
   QuizQuestionScreen,
@@ -80,7 +77,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const isEn = locale === 'en';
   const rulesPreset = useMemo(() => getTheQuizRulesPreset(locale), [locale]);
   const [forcedPhase, setForcedPhase] = useState('');
-  const [hostTab, setHostTab] = useState('host_admin');
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
   const [answerLocked, setAnswerLocked] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);

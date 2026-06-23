@@ -2,13 +2,6 @@
 
 import styles from './TheQuiz.module.css';
 
-function formatDuration(seconds) {
-  const safe = Math.max(0, Number(seconds || 0));
-  const mm = String(Math.floor(safe / 60)).padStart(2, '0');
-  const ss = String(safe % 60).padStart(2, '0');
-  return `${mm}:${ss}`;
-}
-
 function normalizeQuestion(quiz, isEn = false) {
   const source = quiz?.current_question || {};
   const options = Array.isArray(source?.options)
@@ -41,29 +34,6 @@ function buildProgressValue(current, total) {
   const safeTotal = Math.max(1, Number(total || 1));
   const safeCurrent = Math.max(1, Number(current || 1));
   return Math.max(0, Math.min(100, Math.round((safeCurrent / safeTotal) * 100)));
-}
-
-function TimerRing({ remainingSeconds, totalSeconds, isEn = false }) {
-  const safeTotal = Math.max(1, Number(totalSeconds || 1));
-  const safeRemaining = Math.max(0, Number(remainingSeconds || 0));
-  const ratio = Math.max(0, Math.min(1, safeRemaining / safeTotal));
-  const degrees = Math.round(360 * ratio);
-  const danger = safeRemaining <= Math.min(8, Math.floor(safeTotal / 3));
-
-  return (
-    <div
-      className={`${styles.timerRing} ${danger ? styles.timerRingDanger : ''}`}
-      style={{ '--quiz-timer-deg': `${degrees}deg` }}
-      role="timer"
-      aria-live="polite"
-      aria-label={isEn ? `${safeRemaining} seconds remaining` : `Temps restant ${safeRemaining} secondes`}
-    >
-      <div className={styles.timerRingInner}>
-        <strong>{safeRemaining}s</strong>
-        <span>{formatDuration(safeRemaining)}</span>
-      </div>
-    </div>
-  );
 }
 
 export function QuizQuestionScreen({
@@ -127,19 +97,8 @@ export function QuizQuestionScreen({
         <span className={styles.questionProgressLabel}>{isEn ? 'Progress' : 'Progression'} {progress}%</span>
       </div>
 
-      <div className={styles.questionTopRow}>
-        <TimerRing isEn={isEn} remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} />
-        <div className={styles.questionStatusCard} aria-live="polite">
-          <p>{isAnswerLocked ? (isEn ? 'Answer sent and locked' : 'Réponse validée, verrouillée') : (isEn ? 'Choose your answer before the timer ends' : 'Choisissez votre réponse avant la fin du timer')}</p>
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={onSubmitAnswer}
-            disabled={isAnswerLocked || !Number.isInteger(Number(selectedAnswerIndex))}
-          >
-            {isAnswerLocked ? (isEn ? 'Answer sent' : 'Réponse envoyée') : (isEn ? 'Submit my answer' : 'Valider ma réponse')}
-          </button>
-        </div>
+      <div className={styles.questionPromptPanel} aria-live="polite">
+        <p className={styles.questionPromptState}>{isAnswerLocked ? (isEn ? 'Answer sent and locked' : 'Réponse validée, verrouillée') : (isEn ? 'Choose your answer before the timer ends' : 'Choisissez votre réponse avant la fin du timer')}</p>
       </div>
 
       <div className={styles.answerGrid} role="radiogroup" aria-label={isEn ? 'Possible answers' : 'Réponses possibles'}>
@@ -165,12 +124,39 @@ export function QuizQuestionScreen({
           );
         })}
       </div>
+
+      <div className={styles.answerSubmitRow}>
+        <button
+          type="button"
+          className={styles.primaryButton}
+          onClick={onSubmitAnswer}
+          disabled={isAnswerLocked || !Number.isInteger(Number(selectedAnswerIndex))}
+        >
+          {isAnswerLocked ? (isEn ? 'Answer sent' : 'Réponse envoyée') : (isEn ? 'Submit my answer' : 'Valider ma réponse')}
+        </button>
+      </div>
     </section>
   );
 }
 
 export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByParticipantId = {} }) {
   const topRows = (quiz.leaderboard || []).slice(0, 10);
+
+  function getInitials(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+  }
+
+  function getRankMedal(rank) {
+    if (rank === 1) return '🥇';
+    if (rank === 2) return '🥈';
+    if (rank === 3) return '🥉';
+    return null;
+  }
+
+  const maxScore = Math.max(1, ...topRows.map((entry) => Number(entry.score || 0)));
 
   return (
     <section className={styles.screenCard}>
@@ -182,24 +168,44 @@ export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByPartic
         <span className={styles.phaseBadge}>Live</span>
       </div>
 
-      <div className={styles.rankingList}>
-        {topRows.map((entry) => (
-          <article
-            key={entry.participant_id}
-            className={`${styles.rankingCard} ${rankMovementByParticipantId[String(entry.participant_id)] === 'up' ? styles.rankUp : ''} ${rankMovementByParticipantId[String(entry.participant_id)] === 'down' ? styles.rankDown : ''}`}
-          >
-            <strong>#{entry.rank}</strong>
-            <span>{entry.display_name}</span>
-            <span>{entry.score} {isEn ? 'pts' : 'pts'}</span>
-            <span className={styles.rankDeltaBadge}>
-              {rankMovementByParticipantId[String(entry.participant_id)] === 'up'
-                ? '▲'
-                : rankMovementByParticipantId[String(entry.participant_id)] === 'down'
-                  ? '▼'
-                  : '•'}
-            </span>
-          </article>
-        ))}
+      <div className={styles.leaderboardList}>
+        {topRows.map((entry, index) => {
+          const participantKey = String(entry.participant_id);
+          const movement = String(rankMovementByParticipantId[participantKey] || 'same');
+          const progressWidth = `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%`;
+          const medal = getRankMedal(Number(entry.rank));
+          const movementGlyph = movement === 'up' ? '↑' : movement === 'down' ? '↓' : '→';
+          return (
+            <article
+              key={entry.participant_id}
+              className={`${styles.leaderboardCard}${index < 3 ? ` ${styles.leaderboardCardTop}` : ''}${movement === 'up' ? ` ${styles.rankUp}` : ''}${movement === 'down' ? ` ${styles.rankDown}` : ''}`}
+            >
+              <div className={styles.leaderboardIdentity}>
+                <div className={styles.leaderboardRankWrap}>
+                  <span className={styles.rankPill}>{medal || `#${entry.rank}`}</span>
+                  <span className={`${styles.rankDeltaBadge}${movement === 'up' ? ` ${styles.rankDeltaUp}` : movement === 'down' ? ` ${styles.rankDeltaDown}` : ''}`} aria-label={movement}>
+                    {movementGlyph}
+                  </span>
+                </div>
+                <span className={styles.leaderAvatar}>{getInitials(entry.display_name)}</span>
+                <div className={styles.leaderboardCopy}>
+                  <span className={styles.leaderboardLine}>{entry.display_name}</span>
+                  <span className={styles.leaderboardSubline}>{isEn ? 'Live rank' : `Rang #${entry.rank}`}</span>
+                </div>
+              </div>
+
+              <div className={styles.leaderboardScoreWrap}>
+                <div className={styles.leaderboardScoreTopline}>
+                  <span className={styles.leaderboardScore}>{entry.score} pts</span>
+                  {medal ? <span className={styles.leaderboardReward}>{medal}</span> : null}
+                </div>
+                <span className={styles.leaderProgressTrack}>
+                  <span className={styles.leaderProgressFill} style={{ width: progressWidth }} />
+                </span>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
@@ -283,48 +289,6 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
   );
 }
 
-export function QuizHostControlScreen({ isEn = false, quiz, onAction, isBusy = false }) {
-  const connectedCount = Number(quiz?.connected_count || 0);
-  const canStartChallenge = connectedCount >= 2;
-
-  return (
-    <section className={styles.screenCard}>
-      <div className={styles.screenHeader}>
-        <div>
-          <p className={styles.kicker}>{isEn ? 'Host/admin view' : 'Écran animateur/admin'}</p>
-          <h2 className={styles.screenTitle}>{isEn ? 'Round control console' : 'Console de pilotage de manche'}</h2>
-        </div>
-        <span className={styles.phaseBadge}>Host</span>
-      </div>
-
-      <div className={styles.hostGrid}>
-        <article className={styles.metricCard}><span>{isEn ? 'Phase' : 'Phase'}</span><strong>{quiz.phase}</strong></article>
-        <article className={styles.metricCard}><span>{isEn ? 'Active question' : 'Question active'}</span><strong>{quiz.question_index + 1}</strong></article>
-        <article className={styles.metricCard}><span>{isEn ? 'Answers received' : 'Réponses reçues'}</span><strong>{quiz.answer_count || 0}</strong></article>
-        <article className={styles.metricCard}><span>Leaderboard</span><strong>{quiz.leaderboard_enabled ? 'ON' : 'OFF'}</strong></article>
-      </div>
-
-      {!canStartChallenge ? (
-        <p className={styles.helperText}>{isEn ? 'At least 2 participants must be connected to start the challenge.' : 'Au moins 2 participants doivent être connectés pour démarrer le challenge.'}</p>
-      ) : null}
-
-      <div className={styles.hostActions}>
-        <button
-          type="button"
-          className={styles.secondaryButton}
-          onClick={() => onAction('quiz.session.start')}
-          disabled={isBusy || !canStartChallenge}
-        >
-          {isEn ? 'Start round' : 'Lancer la manche'}
-        </button>
-        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.pause')} disabled={isBusy}>{isEn ? 'Pause' : 'Pause'}</button>
-        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.resume')} disabled={isBusy}>{isEn ? 'Resume' : 'Reprendre'}</button>
-        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.question.skip')} disabled={isBusy}>{isEn ? 'Next question' : 'Question suivante'}</button>
-        <button type="button" className={styles.secondaryButton} onClick={() => onAction('quiz.session.finish')} disabled={isBusy}>{isEn ? 'End session' : 'Terminer la session'}</button>
-      </div>
-    </section>
-  );
-}
 
 export function QuizHostResponsesScreen({ isEn = false, quiz }) {
   const participants = quiz.participants || [];
