@@ -6,6 +6,7 @@ import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getTheQuizRulesPreset } from '@/lib/challenges/theQuizRules';
 import ChallengeChatCard from '../ChallengeChatCard';
+import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import {
@@ -306,6 +307,18 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const isStarted = activePhase !== 'lobby';
   const connectedCount = Number(quiz?.connected_count || 0);
   const canStartQuiz = connectedCount >= 2;
+  const timerStatus = activePhase === 'question_live'
+    ? 'running'
+    : String(quiz?.status || '').trim().toLowerCase() === 'paused'
+      ? 'paused'
+      : activePhase === 'final_score'
+        ? 'completed'
+        : 'idle';
+  const timerRemainingSeconds = activePhase === 'question_live'
+    ? remainingSeconds
+    : Number(quiz?.question_duration_seconds || 30);
+  const timerDurationSeconds = Number(quiz?.question_duration_seconds || 30);
+
   function handleHostAction(type) {
     if (!type) return;
     emitEvent(type, {});
@@ -450,6 +463,15 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                   : 'Au moins 2 participants doivent etre connectes pour demarrer le challenge.'}
               </p>
             ) : null}
+
+            <ChallengeTimerCard
+              title={isEn ? 'Timer' : 'Chrono'}
+              remainingSeconds={timerRemainingSeconds}
+              durationSeconds={timerDurationSeconds}
+              status={timerStatus}
+              isFacilitator={isFacilitator}
+              waitingText=""
+            />
 
             {chatEnabled ? (
               <div className={`${styles.chatWrap} ${unreadChatPulse ? styles.chatWrapPulse : ''}`}>
