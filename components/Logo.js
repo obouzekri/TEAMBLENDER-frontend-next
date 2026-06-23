@@ -56,7 +56,7 @@ export default function Logo({ size = 'default' }) {
       <text
         x="120"
         y="70"
-        fontFamily="Sora, Inter, Segoe UI, sans-serif"
+        fontFamily="Inter, Segoe UI, sans-serif"
         fontSize="28"
         fontWeight="600"
         className="logo-wordmark"

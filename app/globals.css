@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --font-ui: var(--font-ui-loaded), "IBM Plex Sans", "Segoe UI", sans-serif;
-  --font-display: var(--font-display-loaded), "Sora", "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-ui: var(--font-ui-loaded), "Inter", "Segoe UI", sans-serif;
+  --font-display: var(--font-display-loaded), "Inter", "Segoe UI", sans-serif;
   --motion-fast: 160ms;
   --motion-medium: 240ms;
   --motion-slow: 420ms;
