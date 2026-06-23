@@ -6001,6 +6001,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
+  font-family: var(--font-ui);
   margin-bottom: calc(0.7rem - 2mm);
   overflow-x: auto;
   overflow-y: hidden;
@@ -6029,6 +6030,7 @@ a {
   font-size: 0.76rem;
   line-height: 1.2;
   font-weight: 700;
+  font-family: var(--font-ui);
   letter-spacing: 0.02em;
   background: rgba(255, 255, 255, 0.84);
   border: 1px solid rgba(53, 160, 255, 0.22);
@@ -6046,6 +6048,7 @@ a {
   max-width: 40%;
   font-size: 0.94rem;
   font-weight: 800;
+  font-family: var(--font-ui);
   color: var(--ink, #1e293b);
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -6073,6 +6076,7 @@ a {
   flex: 0 0 auto;
   font-size: 0.76rem;
   color: var(--ink-soft, #64748b);
+  font-family: var(--font-ui);
   margin-left: 0.2rem;
   white-space: nowrap;
 }
@@ -6101,6 +6105,7 @@ a {
   padding: 1.1rem 1.15rem 1.15rem;
   display: grid;
   gap: 0.9rem;
+  font-family: var(--font-ui);
 }
 
 .session-live-popup__header {
@@ -6117,6 +6122,7 @@ a {
   color: #0f172a;
   font-weight: 700;
   letter-spacing: -0.01em;
+  font-family: var(--font-ui);
 }
 
 .session-live-popup p {
@@ -6124,6 +6130,7 @@ a {
   color: var(--ink, #1e293b);
   font-size: 0.96rem;
   line-height: 1.56;
+  font-family: var(--font-ui);
 }
 
 .session-live-popup__close {
