@@ -410,122 +410,124 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         subtitle={challengeSubtitle || (isEn ? 'Real-time multiplayer general knowledge quiz' : 'Quiz multijoueur realtime de culture générale')}
       />
 
-      {error ? <div className={styles.errorBanner}>{error}</div> : null}
-      {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>{isEn ? 'Reconnecting, restoring active question...' : 'Reconnexion en cours, restauration de la question active...'}</div> : null}
-      {reconnectState === 'reconnected' ? <div className={styles.reconnectBannerSuccess}>{isEn ? 'Connection restored' : 'Connexion restaurée'}</div> : null}
+      <section className={styles.challengeBoard}>
+        {error ? <div className={styles.errorBanner}>{error}</div> : null}
+        {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>{isEn ? 'Reconnecting, restoring active question...' : 'Reconnexion en cours, restauration de la question active...'}</div> : null}
+        {reconnectState === 'reconnected' ? <div className={styles.reconnectBannerSuccess}>{isEn ? 'Connection restored' : 'Connexion restaurée'}</div> : null}
 
-      <section className={styles.mainGrid}>
-        <div className={styles.primaryColumn}>
-          {!isStarted ? (
-            <ChallengeRulesPanel
-              challengeName={challengeName}
-              isStarted={isStarted}
-              isFacilitator={isFacilitator}
-              showPrestartCard
-              objective={rules.objective}
-              participantsMeta={rulesParticipantsMeta}
-              facilitatorRules={rules.facilitator}
-              participantRules={rules.participant}
-              footnote={rules.footnote}
-              onStart={isFacilitator ? () => handleHostAction('quiz.session.start') : null}
-              startDisabled={!canStartQuiz || hostActionBusy}
-            />
-          ) : (
-            <div key={`${activePhase}-${phaseTransitionTick}`} className={styles.phaseTransitionCard}>
-              {renderParticipantScreen()}
-            </div>
-          )}
-
-          {transientQuestionResult && activePhase === 'question_result' ? (
-            <div className={styles.autoTransitionHint} aria-live="polite">
-              {isEn ? 'Auto transition to the next question...' : 'Transition automatique vers la prochaine question...'}
-            </div>
-          ) : null}
-
-          {isFacilitator && isStarted ? (
-            <section className={styles.hostPanel}>
-              <div className={styles.hostTabs}>
-                {THE_QUIZ_HOST_TABS.map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    className={`${styles.hostTabButton} ${hostTab === tab.id ? styles.hostTabButtonActive : ''}`}
-                    onClick={() => setHostTab(tab.id)}
-                  >
-                    {isEn
-                      ? (tab.id === 'host_admin' ? 'Host console' : 'Live answers')
-                      : tab.label}
-                  </button>
-                ))}
-              </div>
-
-              {hostTab === 'host_live_answers'
-                ? <QuizHostResponsesScreen isEn={isEn} quiz={quiz} />
-                : <QuizHostControlScreen isEn={isEn} quiz={quiz} onAction={handleHostAction} isBusy={hostActionBusy} />}
-            </section>
-          ) : null}
-        </div>
-
-        <aside className={styles.sideColumn}>
-          {isStarted ? (
-            <ChallengeRulesPanel
-              challengeName={challengeName}
-              isStarted={isStarted}
-              isFacilitator={isFacilitator}
-              showPrestartCard={false}
-              objective={rules.objective}
-              participantsMeta={rulesParticipantsMeta}
-              facilitatorRules={rules.facilitator}
-              participantRules={rules.participant}
-              footnote={rules.footnote}
-            />
-          ) : null}
-
-          {!isStarted && isFacilitator && !canStartQuiz ? (
-            <p className={styles.helperText}>
-              {isEn
-                ? 'At least 2 participants must be connected to start the challenge.'
-                : 'Au moins 2 participants doivent etre connectes pour demarrer le challenge.'}
-            </p>
-          ) : null}
-
-          <ChallengeTimerCard
-            title={isEn ? 'Timer' : 'Chrono'}
-            remainingSeconds={timerRemainingSeconds}
-            durationSeconds={timerDurationSeconds}
-            status={timerStatus}
-            isFacilitator={isFacilitator}
-            waitingText=""
-          />
-
-          {chatEnabled ? (
-            <div className={`${styles.chatWrap} ${unreadChatPulse ? styles.chatWrapPulse : ''}`}>
-              {unreadChatCount > 0 ? <span className={styles.chatNotifBadge}>{unreadChatCount}</span> : null}
-              <ChallengeChatCard
-              title={isEn ? 'Live chat' : 'Chat live'}
-              messages={chatMessages}
-              currentAuthor={author}
-              inputValue={chatInput}
-              onInputChange={setChatInput}
-              onSubmit={submitChat}
-              quickMessages={quiz.quick_reactions_enabled ? quickMessages : []}
-              onQuickMessage={sendQuickChat}
-              placeholder={isEn ? 'Send a message or quick reaction' : 'Envoyer un message ou une réaction rapide'}
-              emptyText={isEn ? 'No messages yet.' : 'Aucun message pour le moment.'}
+        <section className={styles.mainGrid}>
+          <div className={styles.primaryColumn}>
+            {!isStarted ? (
+              <ChallengeRulesPanel
+                challengeName={challengeName}
+                isStarted={isStarted}
+                isFacilitator={isFacilitator}
+                showPrestartCard
+                objective={rules.objective}
+                participantsMeta={rulesParticipantsMeta}
+                facilitatorRules={rules.facilitator}
+                participantRules={rules.participant}
+                footnote={rules.footnote}
+                onStart={isFacilitator ? () => handleHostAction('quiz.session.start') : null}
+                startDisabled={!canStartQuiz || hostActionBusy}
               />
-            </div>
-          ) : (
-            <section className={styles.screenCard}>
-              <div className={styles.screenHeader}>
-                <div>
-                  <p className={styles.kicker}>Chat</p>
-                  <h2 className={styles.screenTitle}>{isEn ? 'Chat disabled for this session' : 'Chat désactivé pour cette session'}</h2>
-                </div>
+            ) : (
+              <div key={`${activePhase}-${phaseTransitionTick}`} className={styles.phaseTransitionCard}>
+                {renderParticipantScreen()}
               </div>
-              <p className={styles.helperText}>{isEn ? 'The challenge still keeps real-time leaderboard and round progression.' : 'Le challenge conserve néanmoins la structure temps réel pour le leaderboard et la progression de manche.'}</p>
-            </section>
-          )}
-        </aside>
+            )}
+
+            {transientQuestionResult && activePhase === 'question_result' ? (
+              <div className={styles.autoTransitionHint} aria-live="polite">
+                {isEn ? 'Auto transition to the next question...' : 'Transition automatique vers la prochaine question...'}
+              </div>
+            ) : null}
+
+            {isFacilitator && isStarted ? (
+              <section className={styles.hostPanel}>
+                <div className={styles.hostTabs}>
+                  {THE_QUIZ_HOST_TABS.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      className={`${styles.hostTabButton} ${hostTab === tab.id ? styles.hostTabButtonActive : ''}`}
+                      onClick={() => setHostTab(tab.id)}
+                    >
+                      {isEn
+                        ? (tab.id === 'host_admin' ? 'Host console' : 'Live answers')
+                        : tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {hostTab === 'host_live_answers'
+                  ? <QuizHostResponsesScreen isEn={isEn} quiz={quiz} />
+                  : <QuizHostControlScreen isEn={isEn} quiz={quiz} onAction={handleHostAction} isBusy={hostActionBusy} />}
+              </section>
+            ) : null}
+          </div>
+
+          <aside className={styles.sideColumn}>
+            {isStarted ? (
+              <ChallengeRulesPanel
+                challengeName={challengeName}
+                isStarted={isStarted}
+                isFacilitator={isFacilitator}
+                showPrestartCard={false}
+                objective={rules.objective}
+                participantsMeta={rulesParticipantsMeta}
+                facilitatorRules={rules.facilitator}
+                participantRules={rules.participant}
+                footnote={rules.footnote}
+              />
+            ) : null}
+
+            {!isStarted && isFacilitator && !canStartQuiz ? (
+              <p className={styles.helperText}>
+                {isEn
+                  ? 'At least 2 participants must be connected to start the challenge.'
+                  : 'Au moins 2 participants doivent etre connectes pour demarrer le challenge.'}
+              </p>
+            ) : null}
+
+            <ChallengeTimerCard
+              title={isEn ? 'Timer' : 'Chrono'}
+              remainingSeconds={timerRemainingSeconds}
+              durationSeconds={timerDurationSeconds}
+              status={timerStatus}
+              isFacilitator={isFacilitator}
+              waitingText=""
+            />
+
+            {chatEnabled ? (
+              <div className={`${styles.chatWrap} ${unreadChatPulse ? styles.chatWrapPulse : ''}`}>
+                {unreadChatCount > 0 ? <span className={styles.chatNotifBadge}>{unreadChatCount}</span> : null}
+                <ChallengeChatCard
+                title={isEn ? 'Live chat' : 'Chat live'}
+                messages={chatMessages}
+                currentAuthor={author}
+                inputValue={chatInput}
+                onInputChange={setChatInput}
+                onSubmit={submitChat}
+                quickMessages={quiz.quick_reactions_enabled ? quickMessages : []}
+                onQuickMessage={sendQuickChat}
+                placeholder={isEn ? 'Send a message or quick reaction' : 'Envoyer un message ou une réaction rapide'}
+                emptyText={isEn ? 'No messages yet.' : 'Aucun message pour le moment.'}
+                />
+              </div>
+            ) : (
+              <section className={styles.screenCard}>
+                <div className={styles.screenHeader}>
+                  <div>
+                    <p className={styles.kicker}>Chat</p>
+                    <h2 className={styles.screenTitle}>{isEn ? 'Chat disabled for this session' : 'Chat désactivé pour cette session'}</h2>
+                  </div>
+                </div>
+                <p className={styles.helperText}>{isEn ? 'The challenge still keeps real-time leaderboard and round progression.' : 'Le challenge conserve néanmoins la structure temps réel pour le leaderboard et la progression de manche.'}</p>
+              </section>
+            )}
+          </aside>
+        </section>
       </section>
     </main>
   );
