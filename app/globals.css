@@ -8819,9 +8819,17 @@ a {
   }
 
   .landing-v2 > section {
-    padding: 2.8rem 1.2rem !important;
+    padding: 2.8rem 1.45rem 2.8rem 0.35rem !important;
     border-radius: 0 !important;
     margin: 0 !important;
+  }
+
+  .landing-section-inner {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0.95rem !important;
+    overflow: visible;
   }
 
   .landing-v2 h1 {
@@ -8862,6 +8870,20 @@ a {
   .landing-flow-grid article p {
     font-size: 0.92rem;
     line-height: 1.55;
+  }
+
+  .landing-section-full--statement .landing-section-inner {
+    padding-left: 0 !important;
+    padding-right: 1.35rem !important;
+  }
+
+  .landing-section-full--statement .landing-section-title,
+  .landing-section-full--statement .landing-section-description {
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .contact-hero,
@@ -9496,6 +9518,11 @@ a {
   /* Adjust main content padding on mobile */
   main {
     padding: 16px 12px !important;
+  }
+
+  /* Landing keeps edge-to-edge structure on mobile */
+  main.landing-v2 {
+    padding: 0 0 2.2rem !important;
   }
 
   /* Make dashboard cards more compact on mobile */
