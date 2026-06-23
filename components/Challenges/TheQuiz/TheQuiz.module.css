@@ -238,17 +238,36 @@
 }
 
 .phaseTransitionCard {
-  animation: phaseFadeIn 380ms ease;
+  will-change: opacity, transform;
+}
+
+.phaseTransitionCardEnter {
+  animation: phaseFadeIn 260ms ease;
+}
+
+.phaseTransitionCardExit {
+  animation: phaseFadeOut 180ms ease forwards;
 }
 
 @keyframes phaseFadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(8px) scale(0.994);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes phaseFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0.16;
+    transform: translateY(-4px) scale(0.996);
   }
 }
 

@@ -75,6 +75,8 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const isEn = locale === 'en';
   const rulesPreset = useMemo(() => getTheQuizRulesPreset(locale), [locale]);
   const [forcedPhase, setForcedPhase] = useState('');
+  const [displayedPhase, setDisplayedPhase] = useState('lobby');
+  const [isPhaseFading, setIsPhaseFading] = useState(false);
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
   const [answerLocked, setAnswerLocked] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
@@ -86,6 +88,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const lastQuestionIdRef = useRef('');
   const lastChatMessageIdRef = useRef('');
   const localTransitionTimerRef = useRef(null);
+  const phaseFadeTimerRef = useRef(null);
   const reconnectSeenDisconnectRef = useRef(false);
 
   const {
@@ -145,6 +148,9 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     return () => {
       if (localTransitionTimerRef.current) {
         window.clearTimeout(localTransitionTimerRef.current);
+      }
+      if (phaseFadeTimerRef.current) {
+        window.clearTimeout(phaseFadeTimerRef.current);
       }
     };
   }, []);
@@ -276,8 +282,28 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   }, [quiz.leaderboard]);
 
   const activePhase = forcedPhase || String(quiz.phase || 'lobby');
+
+  useEffect(() => {
+    if (!displayedPhase) {
+      setDisplayedPhase(activePhase);
+      return;
+    }
+    if (displayedPhase === activePhase) return;
+
+    setIsPhaseFading(true);
+    if (phaseFadeTimerRef.current) {
+      window.clearTimeout(phaseFadeTimerRef.current);
+    }
+    phaseFadeTimerRef.current = window.setTimeout(() => {
+      setDisplayedPhase(activePhase);
+      setIsPhaseFading(false);
+      phaseFadeTimerRef.current = null;
+    }, 180);
+  }, [activePhase, displayedPhase]);
+
+  const renderedPhase = displayedPhase || activePhase;
   const phaseQuizView = useMemo(() => {
-    if (activePhase !== 'question_result' || !transientQuestionResult) return quiz;
+    if (renderedPhase !== 'question_result' || !transientQuestionResult) return quiz;
     return {
       ...quiz,
       latest_question_result: {
@@ -285,7 +311,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         ...(transientQuestionResult || {}),
       },
     };
-  }, [quiz, activePhase, transientQuestionResult]);
+  }, [quiz, renderedPhase, transientQuestionResult]);
 
   const participantsTotal = Math.max(
     Number(quiz?.slot_count || 0),
@@ -294,7 +320,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     1
   );
   const participantsAnsweredCount = Number(quiz?.answer_count || 0);
-  const isStarted = activePhase !== 'lobby';
+  const isStarted = renderedPhase !== 'lobby';
   const connectedCount = Number(quiz?.connected_count || 0);
   const canStartQuiz = connectedCount >= 2;
   const timerStatus = activePhase === 'question_live'
@@ -343,7 +369,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   }, [activePhase, isFacilitator, answerLocked, selectedAnswerIndex]);
 
   function renderParticipantScreen() {
-    if (activePhase === 'question_live') {
+    if (renderedPhase === 'question_live') {
       return (
         <QuizQuestionScreen
           isEn={isEn}
@@ -359,13 +385,13 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         />
       );
     }
-    if (activePhase === 'leaderboard_live') {
+    if (renderedPhase === 'leaderboard_live') {
       return <QuizLeaderboardScreen isEn={isEn} quiz={phaseQuizView} rankMovementByParticipantId={rankMovementByParticipantId} />;
     }
-    if (activePhase === 'question_result') {
+    if (renderedPhase === 'question_result') {
       return <QuizQuestionResultScreen isEn={isEn} quiz={phaseQuizView} />;
     }
-    if (activePhase === 'final_score') {
+    if (renderedPhase === 'final_score') {
       return <QuizFinalScreen isEn={isEn} quiz={phaseQuizView} />;
     }
 
@@ -413,7 +439,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 startDisabled={!canStartQuiz}
               />
             ) : (
-              <div className={styles.phaseTransitionCard}>
+              <div className={`${styles.phaseTransitionCard} ${isPhaseFading ? styles.phaseTransitionCardExit : styles.phaseTransitionCardEnter}`}>
                 {renderParticipantScreen()}
               </div>
             )}
