@@ -8822,7 +8822,7 @@ a {
   }
 
   .landing-v2 > section {
-    padding: 2.8rem 1.45rem 2.8rem 0.8rem !important;
+    padding: 2.8rem 1.45rem 2.8rem 0.95rem !important;
     border-radius: 0 !important;
     margin: 0 !important;
   }
@@ -8830,7 +8830,7 @@ a {
   .landing-section-inner {
     width: 100% !important;
     max-width: 100% !important;
-    padding-left: 0.35rem !important;
+    padding-left: 0.5rem !important;
     padding-right: 1.15rem !important;
     overflow: visible;
   }
@@ -8895,6 +8895,23 @@ a {
     white-space: normal !important;
     overflow: visible !important;
     word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .landing-section-full--statement .landing-section-title {
+    text-align: justify;
+    text-justify: inter-word;
+  }
+
+  .landing-section-full--proof .landing-section-inner {
+    text-align: left !important;
+  }
+
+  .landing-section-full--proof h2,
+  .landing-section-full--proof p {
+    text-align: left !important;
+    max-width: 100% !important;
+    text-wrap: pretty;
     overflow-wrap: anywhere;
   }
 
