@@ -8822,7 +8822,7 @@ a {
   }
 
   .landing-v2 > section {
-    padding: 2.8rem 1.45rem 2.8rem 0.35rem !important;
+    padding: 2.8rem 1.45rem 2.8rem 0.8rem !important;
     border-radius: 0 !important;
     margin: 0 !important;
   }
@@ -8830,7 +8830,7 @@ a {
   .landing-section-inner {
     width: 100% !important;
     max-width: 100% !important;
-    padding-left: 0 !important;
+    padding-left: 0.35rem !important;
     padding-right: 1.15rem !important;
     overflow: visible;
   }
@@ -8858,6 +8858,8 @@ a {
     gap: 0.8rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    width: 100%;
+    max-width: 100%;
     padding-bottom: 0.5rem;
     -webkit-overflow-scrolling: touch;
   }
@@ -8865,8 +8867,11 @@ a {
   .landing-testimonials-carousel article {
     scroll-snap-align: start;
     flex-shrink: 0;
-    min-width: calc(100% - 1.6rem);
-    max-height: 240px;
+    width: 78%;
+    min-width: 78%;
+    max-width: 78%;
+    min-height: 255px;
+    max-height: 280px;
     overflow-y: hidden;
   }
 
@@ -8880,7 +8885,7 @@ a {
   }
 
   .landing-section-full--statement .landing-section-inner {
-    padding-left: 0 !important;
+    padding-left: 0.45rem !important;
     padding-right: 1.35rem !important;
   }
 
