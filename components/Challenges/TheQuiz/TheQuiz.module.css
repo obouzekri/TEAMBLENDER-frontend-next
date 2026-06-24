@@ -123,6 +123,40 @@
   background: rgba(9, 24, 42, 0.72);
 }
 
+.debriefList {
+  display: grid;
+  gap: 10px;
+}
+
+.debriefCard {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(7, 17, 32, 0.72);
+}
+
+.debriefQuestion {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--quiz-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.debriefTitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #eef6fb;
+}
+
+.debriefAnswer,
+.debriefExplanation {
+  margin: 0;
+  color: #d9e6f3;
+}
+
 .metricCard {
   display: grid;
   gap: 4px;
@@ -224,6 +258,11 @@
 .primaryColumn,
 .sideColumn,
 .hostPanel {
+  display: grid;
+  gap: 10px;
+}
+
+.sideStack {
   display: grid;
   gap: 10px;
 }

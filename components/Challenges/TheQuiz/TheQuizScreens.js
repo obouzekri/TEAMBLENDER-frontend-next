@@ -43,6 +43,7 @@ export function QuizQuestionScreen({
   onSubmitAnswer,
 }) {
   const question = normalizeQuestion(quiz, isEn);
+  const optionCount = question.options.length;
 
   function onAnswerKeyDown(event, answerIndex) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -53,13 +54,15 @@ export function QuizQuestionScreen({
 
     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
       event.preventDefault();
-      onSelectAnswer((Number(selectedAnswerIndex || 0) + 1) % 4);
+      const currentIndex = Number.isInteger(Number(selectedAnswerIndex)) ? Number(selectedAnswerIndex) : answerIndex;
+      onSelectAnswer((currentIndex + 1) % Math.max(optionCount, 1));
       return;
     }
 
     if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
       event.preventDefault();
-      onSelectAnswer((Number(selectedAnswerIndex || 0) + 3) % 4);
+      const currentIndex = Number.isInteger(Number(selectedAnswerIndex)) ? Number(selectedAnswerIndex) : answerIndex;
+      onSelectAnswer((currentIndex + Math.max(optionCount, 1) - 1) % Math.max(optionCount, 1));
     }
   }
 
@@ -230,6 +233,7 @@ export function QuizQuestionResultScreen({ isEn = false, quiz }) {
 
 export function QuizFinalScreen({ isEn = false, quiz }) {
   const standings = Array.isArray(quiz.final_standings) ? quiz.final_standings : [];
+  const questionHistory = Array.isArray(quiz.question_history) ? quiz.question_history : [];
   const winner = standings[0] || null;
   const totalPlayers = standings.length;
 
@@ -259,6 +263,38 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
               <span>{entry.score} {isEn ? 'pts' : 'pts'}</span>
             </article>
           ))}
+        </div>
+      </div>
+
+      <div className={styles.finalDebriefBlock}>
+        <p className={styles.kicker}>{isEn ? 'Final debrief' : 'Débrief final'}</p>
+        <div className={styles.debriefList}>
+          {questionHistory.length > 0 ? questionHistory.map((entry) => {
+            const sourceQuestion = entry?.question || {};
+            const title = String(sourceQuestion?.question || sourceQuestion?.text || (isEn ? 'Question unavailable' : 'Question indisponible'));
+            const options = Array.isArray(sourceQuestion?.options)
+              ? sourceQuestion.options
+              : Array.isArray(sourceQuestion?.choices)
+                ? sourceQuestion.choices.map((choice) => String(choice?.label || ''))
+                : [];
+            const answerIndex = Number.isInteger(Number(entry?.correct_choice_index))
+              ? Number(entry.correct_choice_index)
+              : Number(sourceQuestion?.correctAnswer);
+            const answerLabel = Number.isInteger(answerIndex) && options[answerIndex]
+              ? `${String.fromCharCode(65 + answerIndex)}. ${String(options[answerIndex] || '')}`
+              : (isEn ? 'Answer unavailable' : 'Réponse indisponible');
+
+            return (
+              <article key={`${entry?.question_id || title}-${entry?.question_index || 0}`} className={styles.debriefCard}>
+                <p className={styles.debriefQuestion}>{`${isEn ? 'Question' : 'Question'} ${Number(entry?.question_index || 0) + 1}`}</p>
+                <h3 className={styles.debriefTitle}>{title}</h3>
+                <p className={styles.debriefAnswer}><strong>{isEn ? 'Correct answer:' : 'Bonne réponse :'}</strong> {answerLabel}</p>
+                {entry?.explanation ? <p className={styles.debriefExplanation}>{String(entry.explanation)}</p> : null}
+              </article>
+            );
+          }) : (
+            <p className={styles.helperText}>{isEn ? 'Question recap unavailable for this session.' : 'Le récapitulatif des questions n est pas disponible pour cette session.'}</p>
+          )}
         </div>
       </div>
     </section>

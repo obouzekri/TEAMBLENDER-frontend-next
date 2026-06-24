@@ -47,6 +47,7 @@ function buildFallbackQuiz(runtimePayload, state, isFacilitator) {
       correct_choice_index: 0,
       explanation: THE_QUIZ_PLACEHOLDER_QUESTION.explanation,
     },
+    question_history: Array.isArray(state?.quiz?.question_history) ? state.quiz.question_history : [],
     leaderboard: buildPlaceholderLeaderboard(participants),
     final_standings: buildPlaceholderLeaderboard(participants),
     answer_count: Math.max(0, Math.floor((participants.length || 4) / 2)),
@@ -115,6 +116,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         correct_choice_index: 0,
         explanation: THE_QUIZ_PLACEHOLDER_QUESTION.explanation,
       },
+      question_history: Array.isArray(rawQuiz?.question_history) ? rawQuiz.question_history : [],
     }),
     [runtimePayload, state, isFacilitator, rawQuiz]
   );
@@ -334,6 +336,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     ? remainingSeconds
     : Number(quiz?.question_duration_seconds || 30);
   const timerDurationSeconds = Number(quiz?.question_duration_seconds || 30);
+  const leaderboardVisible = Boolean(quiz?.leaderboard_enabled) && isStarted;
 
   function handleHostAction(type) {
     if (!type) return;
@@ -490,20 +493,26 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
             />
 
             {chatEnabled ? (
-              <div className={`${styles.chatWrap} ${unreadChatPulse ? styles.chatWrapPulse : ''}`}>
-                {unreadChatCount > 0 ? <span className={styles.chatNotifBadge}>{unreadChatCount}</span> : null}
-                <ChallengeChatCard
-                title={isEn ? 'Live chat' : 'Chat live'}
-                messages={chatMessages}
-                currentAuthor={author}
-                inputValue={chatInput}
-                onInputChange={setChatInput}
-                onSubmit={submitChat}
-                quickMessages={quiz.quick_reactions_enabled ? quickMessages : []}
-                onQuickMessage={sendQuickChat}
-                placeholder={isEn ? 'Send a message or quick reaction' : 'Envoyer un message ou une réaction rapide'}
-                emptyText={isEn ? 'No messages yet.' : 'Aucun message pour le moment.'}
-                />
+              <div className={styles.sideStack}>
+                <div className={`${styles.chatWrap} ${unreadChatPulse ? styles.chatWrapPulse : ''}`}>
+                  {unreadChatCount > 0 ? <span className={styles.chatNotifBadge}>{unreadChatCount}</span> : null}
+                  <ChallengeChatCard
+                  title={isEn ? 'Live chat' : 'Chat live'}
+                  messages={chatMessages}
+                  currentAuthor={author}
+                  inputValue={chatInput}
+                  onInputChange={setChatInput}
+                  onSubmit={submitChat}
+                  quickMessages={quiz.quick_reactions_enabled ? quickMessages : []}
+                  onQuickMessage={sendQuickChat}
+                  placeholder={isEn ? 'Send a message or quick reaction' : 'Envoyer un message ou une réaction rapide'}
+                  emptyText={isEn ? 'No messages yet.' : 'Aucun message pour le moment.'}
+                  />
+                </div>
+
+                {leaderboardVisible ? (
+                  <QuizLeaderboardScreen isEn={isEn} quiz={phaseQuizView} rankMovementByParticipantId={rankMovementByParticipantId} />
+                ) : null}
               </div>
             ) : (
               <section className={styles.screenCard}>

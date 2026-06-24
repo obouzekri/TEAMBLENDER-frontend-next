@@ -102,6 +102,23 @@ function normalizeServerCubes(cubesMap) {
     .filter((cube) => Number.isInteger(cube.x) && Number.isInteger(cube.y) && Number.isInteger(cube.z));
 }
 
+function buildLayerBoard(grid, layer, targetSet, cubesByKey) {
+  return Array.from({ length: grid.z }, (_, z) => (
+    Array.from({ length: grid.x }, (_, x) => {
+      const key = toCellKey(x, layer, z);
+      const cube = cubesByKey.get(key) || null;
+      return {
+        x,
+        z,
+        key,
+        cube,
+        isTarget: targetSet.has(key),
+        isPlaced: Boolean(cube),
+      };
+    })
+  ));
+}
+
 export default function PixelArchitectChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
   const isEn = locale === 'en';
@@ -171,6 +188,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   );
 
   const serverCubes = useMemo(() => normalizeServerCubes(pixel?.cubes), [pixel?.cubes]);
+  const cubesByKey = useMemo(() => {
+    const map = new Map();
+    serverCubes.forEach((cube) => {
+      map.set(toCellKey(cube.x, cube.y, cube.z), cube);
+    });
+    return map;
+  }, [serverCubes]);
   const layerClaims = pixel?.layer_claims && typeof pixel.layer_claims === 'object' ? pixel.layer_claims : {};
   const cubeCount = Number(pixel?.placed_count || serverCubes.length || 0);
   const remainingCubes = Math.max(0, Number(pixel?.remaining_cubes || 0));
@@ -344,6 +368,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     const hoverCellRef = { value: null };
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
+    const planeNormal = new THREE.Vector3(0, 1, 0);
+    const planePoint = new THREE.Vector3(0, safeLayer, 0);
+    const interactionMathPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(planeNormal, planePoint);
+    const planeHitPoint = new THREE.Vector3();
 
     const playTone = (kind) => {
       try {
@@ -398,14 +426,15 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       (Array.isArray(cubes) ? cubes : []).forEach((item) => {
         const key = toCellKey(item.x, item.y, item.z);
         nextMap.set(key, item);
+        const isTargetCell = targetSet.has(key);
 
         if (!playerMap.has(key)) {
           const cube = new THREE.Mesh(
             cubeGeometry,
             new THREE.MeshStandardMaterial({
               color: new THREE.Color(item.color || '#22c55e'),
-              emissive: '#0f3e24',
-              emissiveIntensity: 0.18,
+              emissive: isTargetCell ? '#0f3e24' : '#5f1720',
+              emissiveIntensity: isTargetCell ? 0.18 : 0.28,
               roughness: 0.42,
               metalness: 0.08,
             })
@@ -425,6 +454,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         const existing = playerMap.get(key);
         if (existing && existing.material) {
           existing.material.color.set(new THREE.Color(item.color || '#22c55e'));
+          existing.material.emissive.set(isTargetCell ? '#0f3e24' : '#5f1720');
+          existing.material.emissiveIntensity = isTargetCell ? 0.18 : 0.28;
           existing.userData.x = item.x;
           existing.userData.y = item.y;
           existing.userData.z = item.z;
@@ -443,7 +474,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     };
 
     const setLayer = (layer) => {
-      interactionPlane.position.y = Number(layer);
+      const safePlaneLayer = Number(layer);
+      interactionPlane.position.y = safePlaneLayer;
+      planePoint.set(0, safePlaneLayer, 0);
+      interactionMathPlane.setFromNormalAndCoplanarPoint(planeNormal, planePoint);
     };
 
     const setPreviewColor = (color) => {
@@ -471,8 +505,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     const onPointerMove = (event) => {
       toLocalPointer(event);
       raycaster.setFromCamera(pointer, camera);
-      const hit = raycaster.intersectObject(interactionPlane, false)[0] || null;
-      const gridCell = hit ? resolveGridCell(hit.point) : null;
+      const planeHit = raycaster.ray.intersectPlane(interactionMathPlane, planeHitPoint);
+      const gridCell = planeHit ? resolveGridCell(planeHitPoint) : null;
       hoverCellRef.value = gridCell;
 
       if (!gridCell || playerMap.has(gridCell.key) || !canInteractRef.current) {
@@ -502,14 +536,12 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
       toLocalPointer(event);
       raycaster.setFromCamera(pointer, camera);
-      const allPickables = [...playerGroup.children, interactionPlane];
-      const hit = raycaster.intersectObjects(allPickables, false)[0] || null;
-      if (!hit) return;
+      const cubeHit = raycaster.intersectObjects([...playerGroup.children], false)[0] || null;
 
-      if (hit.object?.userData?.kind === 'player') {
-        const x = Number(hit.object?.userData?.x);
-        const y = Number(hit.object?.userData?.y);
-        const z = Number(hit.object?.userData?.z);
+      if (cubeHit?.object?.userData?.kind === 'player') {
+        const x = Number(cubeHit.object?.userData?.x);
+        const y = Number(cubeHit.object?.userData?.y);
+        const z = Number(cubeHit.object?.userData?.z);
         if (Number.isInteger(x) && Number.isInteger(y) && Number.isInteger(z)) {
           playTone('remove');
           emitEvent('pixel.cube.remove', { x, y, z });
@@ -517,8 +549,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         return;
       }
 
-      const resolvedCellFromHit = hit.object === interactionPlane ? resolveGridCell(hit.point) : null;
-      const cell = resolvedCellFromHit || hoverCellRef.value;
+      const planeCell = raycaster.ray.intersectPlane(interactionMathPlane, planeHitPoint)
+        ? resolveGridCell(planeHitPoint)
+        : null;
+      const cell = planeCell || hoverCellRef.value;
       if (!cell) return;
       if (playerMap.has(cell.key)) return;
       playTone('place');
@@ -748,6 +782,17 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     emitEvent('pixel.submit_final');
   }
 
+  function handleBoardCellToggle(x, z) {
+    if (!canBuild) return;
+    const key = toCellKey(x, safeLayer, z);
+    const existingCube = cubesByKey.get(key);
+    if (existingCube) {
+      emitEvent('pixel.cube.remove', { x, y: safeLayer, z });
+      return;
+    }
+    emitEvent('pixel.cube.place', { x, y: safeLayer, z, color: selectedColorRef.current });
+  }
+
   function handleToggleLayerClaim(layer) {
     if (isFacilitator) return;
 
@@ -866,6 +911,18 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       .slice(0, 6);
   }, [serverCubes]);
 
+  const activeLayerBoard = useMemo(
+    () => buildLayerBoard(grid, safeLayer, targetSet, cubesByKey),
+    [cubesByKey, grid, safeLayer, targetSet]
+  );
+
+  const targetLayerBoards = useMemo(() => {
+    return layers.map((layer) => ({
+      layer,
+      rows: buildLayerBoard(grid, layer, targetSet, new Map()),
+    }));
+  }, [grid, layers, targetSet]);
+
   const rulesExtraContent = useMemo(() => (
     <>
       <section className={styles.rulesMetaSection}>
@@ -889,10 +946,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             <span className={styles.helperDotTarget} /> {isEn ? 'Target model (ghost)' : 'Modele cible (fantome)'}
           </div>
           <div className={styles.helperItem}>
-            <span className={styles.helperDotPlayer} /> {isEn ? 'Team cubes' : 'Cubes equipe'}
+            <span className={styles.helperDotPlayer} /> {isEn ? 'Correct cube on target' : 'Cube correct sur cible'}
           </div>
           <div className={styles.helperItem}>
-            <span className={styles.helperDotError} /> {isEn ? 'Exceeded constraints' : 'Contraintes depassees'}
+            <span className={styles.helperDotError} /> {isEn ? 'Wrong cube or extra placement' : 'Cube incorrect ou placement en trop'}
           </div>
         </div>
       </section>
@@ -998,6 +1055,42 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   <div ref={mountRef} className={styles.viewport3d} />
                 </div>
 
+                <section className={styles.layerBoardCard}>
+                  <div className={styles.panelHead}>
+                    <h3>{isEn ? 'Layer blueprint' : 'Plan de couche'}</h3>
+                    <p>
+                      {isEn
+                        ? `Layer ${safeLayer + 1}: click a cell to place or remove a cube.`
+                        : `Couche ${safeLayer + 1} : cliquez une case pour poser ou retirer un cube.`}
+                    </p>
+                  </div>
+                  <div
+                    className={styles.layerBoardGrid}
+                    style={{ gridTemplateColumns: `repeat(${grid.x}, minmax(0, 1fr))` }}
+                    role="grid"
+                    aria-label={isEn ? 'Editable layer grid' : 'Grille editable de couche'}
+                  >
+                    {activeLayerBoard.flatMap((row) => row).map((cell) => {
+                      const isPlacedCorrect = cell.isPlaced && cell.isTarget;
+                      const isPlacedWrong = cell.isPlaced && !cell.isTarget;
+                      const placedColor = String(cell.cube?.color || selectedColor || '#2D9CDB');
+                      return (
+                        <button
+                          key={`build-${cell.key}`}
+                          type="button"
+                          className={`${styles.layerBoardCell}${cell.isTarget ? ` ${styles.layerBoardCellTarget}` : ''}${cell.isPlaced ? ` ${styles.layerBoardCellPlaced}` : ''}${isPlacedCorrect ? ` ${styles.layerBoardCellCorrect}` : ''}${isPlacedWrong ? ` ${styles.layerBoardCellWrong}` : ''}`}
+                          style={cell.isPlaced ? { '--pixel-cell-color': placedColor } : undefined}
+                          onClick={() => handleBoardCellToggle(cell.x, cell.z)}
+                          disabled={!canBuild}
+                          aria-label={`${isEn ? 'Cell' : 'Case'} x${cell.x + 1} z${cell.z + 1}${cell.isTarget ? `, ${isEn ? 'target' : 'cible'}` : ''}${cell.isPlaced ? `, ${isEn ? 'occupied' : 'occupee'}` : ''}`}
+                        >
+                          <span className={styles.layerBoardCoords}>{cell.x + 1},{cell.z + 1}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+
                 {!isFacilitator ? (
                   <div className={`${styles.actionsRow} ${styles.actionsRowSticky}`} aria-label="Actions de construction">
                     <button type="button" className={styles.btnSecondary} onClick={handleResetLayer} disabled={!canBuild}>
@@ -1093,6 +1186,40 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               ) : (
                 <p className={styles.modelMiniHidden}>{isEn ? 'Model hidden for this role' : 'Modele masque pour ce role'}</p>
               )}
+            </div>
+
+            <div className={styles.modelLayerList}>
+              {targetLayerBoards.map(({ layer, rows }) => {
+                const stats = layerStats.find((item) => Number(item.layer) === Number(layer)) || null;
+                const expanded = Boolean(expandedLayers[String(layer)]);
+                return (
+                  <section key={`model-layer-${layer}`} className={styles.modelLayerCard}>
+                    <button
+                      type="button"
+                      className={styles.modelLayerToggle}
+                      onClick={() => toggleLayerSummary(layer)}
+                      aria-expanded={expanded}
+                    >
+                      <span>{isEn ? 'Layer' : 'Couche'} {layer + 1}</span>
+                      <span>{stats ? `${stats.matchedCount}/${stats.targetCount}` : '-'}</span>
+                    </button>
+                    {expanded ? (
+                      <div
+                        className={styles.modelLayerGrid}
+                        style={{ gridTemplateColumns: `repeat(${grid.x}, minmax(0, 1fr))` }}
+                      >
+                        {rows.flatMap((row) => row).map((cell) => (
+                          <div
+                            key={`model-${cell.key}`}
+                            className={`${styles.modelLayerCell}${cell.isTarget ? ` ${styles.modelLayerCellTarget}` : ''}`}
+                            aria-hidden="true"
+                          />
+                        ))}
+                      </div>
+                    ) : null}
+                  </section>
+                );
+              })}
             </div>
           </section>
 
