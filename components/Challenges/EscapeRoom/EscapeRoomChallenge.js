@@ -25,11 +25,11 @@ const OUTCOME_UI = {
   },
   divergent: {
     tone: 'Warning',
-    feedback: 'Reponses divergentes: alignez-vous puis renvoyez une reponse commune.',
+     feedback: 'Reponses divergentes: coordinez-vous via le chat. Le facilitateur passera a l enigme suivante.',
     title: 'Reponses divergentes',
     detail: 'Les reponses ne sont pas identiques dans l equipe.',
     durationMs: 1800,
-    blockProgression: false,
+     blockProgression: true,
   },
   wrong: {
     tone: 'Danger',
@@ -61,7 +61,7 @@ const OUTCOME_UI = {
     title: 'Limite de tentatives atteinte',
     detail: 'Demandez un indice ou passez a l enigme suivante.',
     durationMs: 2200,
-    blockProgression: false,
+    blockProgression: true,
   },
   already_finished: {
     tone: 'Info',
@@ -367,7 +367,11 @@ export default function EscapeRoomChallenge({
         await wait(validationFeedback.holdBeforeRefreshMs);
       }
 
-      setAnswer('');
+        const outcome = String(payload?.validation?.outcome || '').trim();
+        const shouldKeepAnswer = outcome === 'divergent' || outcome === 'max_attempts';
+        if (!shouldKeepAnswer) {
+          setAnswer('');
+        }
     });
   }, [answer, apiCall, currentEnigme, runAction]);
 
@@ -666,14 +670,14 @@ export default function EscapeRoomChallenge({
                         onChange={(event) => setAnswer(event.target.value.toUpperCase())}
                         placeholder={String(currentUiData?.placeholder || 'VOTRE RÉPONSE').toUpperCase()}
                         className={styles.input}
-                        disabled={busyAction === 'submit' || !currentEnigme || Boolean(verdict)}
+                        disabled={busyAction === 'submit' || !currentEnigme || Boolean(verdict) || verdict?.tone === 'Warning' || verdict?.tone === 'Danger'}
                         autoComplete="off"
                         spellCheck={false}
                         onKeyDown={(e) => { if (e.key === 'Enter' && answer.trim()) submitAnswer(); }}
                       />
                       <button
                         onClick={submitAnswer}
-                        disabled={busyAction === 'submit' || !answer.trim() || !currentEnigme || Boolean(verdict)}
+                        disabled={busyAction === 'submit' || !answer.trim() || !currentEnigme || Boolean(verdict) || verdict?.tone === 'Warning' || verdict?.tone === 'Danger'}
                         className={styles.primaryBtn}
                         type="button"
                       >
