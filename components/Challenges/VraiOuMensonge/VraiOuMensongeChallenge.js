@@ -237,6 +237,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }, [vom, poserId]);
 
   const myVote = String(currentTurn?.votes?.[me] || '');
+  const allVotes = currentTurn?.votes && typeof currentTurn.votes === 'object' ? currentTurn.votes : {};
   const roundHistory = Array.isArray(vom?.round_history) ? vom.round_history : [];
   const selectedStatement = useMemo(
     () => catalog.find((item) => String(item?.id || '') === String(selectedStatementId || '')) || null,
@@ -280,6 +281,49 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     }
     return ['Vrai', 'Mensonge'];
   }, [selectedStatementChoices]);
+
+  const eligibleVoterIds = useMemo(
+    () => orderedParticipantIds.filter((id) => String(id) !== poserId),
+    [orderedParticipantIds, poserId]
+  );
+
+  const facilitatorVoteRows = useMemo(
+    () => eligibleVoterIds.map((id) => {
+      const rawVote = String(allVotes?.[id] || '').trim();
+      const normalizedVote = rawVote.toLowerCase();
+      const hasAnswered = rawVote !== '';
+      let voteLabel = t('vom.votePending');
+
+      if (hasAnswered) {
+        if (normalizedVote === 'vrai') {
+          voteLabel = t('vom.voteTrue');
+        } else if (normalizedVote === 'mensonge') {
+          voteLabel = t('vom.voteFalse');
+        } else {
+          voteLabel = rawVote;
+        }
+      }
+
+      return {
+        participantId: String(id),
+        participantName: participantName(id),
+        hasAnswered,
+        voteLabel,
+      };
+    }),
+    [eligibleVoterIds, allVotes, t]
+  );
+
+  const answeredVotesCount = facilitatorVoteRows.filter((item) => item.hasAnswered).length;
+  const totalExpectedVotes = facilitatorVoteRows.length;
+  const poserAnswerLabel = useMemo(() => {
+    const rawAnswer = String(currentTurn?.correct_answer || currentTurn?.selected_option || '').trim();
+    const normalizedAnswer = rawAnswer.toLowerCase();
+    if (!rawAnswer) return '—';
+    if (normalizedAnswer === 'vrai') return t('vom.voteTrue');
+    if (normalizedAnswer === 'mensonge') return t('vom.voteFalse');
+    return rawAnswer;
+  }, [currentTurn?.correct_answer, currentTurn?.selected_option, t]);
 
   const remainingMs = useMemo(() => {
     const deadline = Number(vom?.phase_deadline_ms || 0);
@@ -584,19 +628,33 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
         {phase === 'selecting_statement' ? (
           <section className={styles.card}>
-            <h2 className={styles.sectionTitle}>{t('vom.selectingTitle')}</h2>
-            <p>{t('vom.currentPoser', { name: participantName(poserId) || '-' })}</p>
-            <p className={styles.instruction}>{t('vom.selectingInstruction')}</p>
-            <div className={styles.participantsRow}>
-              {orderedParticipantIds.map((id) => (
-                <span
-                  key={id}
-                  className={`${styles.participantChip}${id === poserId ? ` ${styles.participantChipPoser}` : ''}${id === me ? ` ${styles.participantChipMe}` : ''}`}
-                >
-                  {participantName(id)}{id === poserId ? ` ${t('vom.poserLabel')}` : ''}
-                </span>
-              ))}
-            </div>
+            {isFacilitator ? (
+              <div className={styles.roleSpotlightCard}>
+                <span className={styles.roleSpotlightEyebrow}>{t('vom.facilitatorRoundLabel')}</span>
+                <h2 className={styles.roleSpotlightTitle}>{t('vom.facilitatorSelectingFocus', { name: participantName(poserId) || '-' })}</h2>
+                <p className={styles.roleSpotlightBody}>{t('vom.facilitatorSelectingBody')}</p>
+                <div className={styles.roleSpotlightMetaRow}>
+                  <span className={styles.roleSpotlightChip}>{t('vom.currentCycleLabel', { current: currentCycle, total: totalCycles })}</span>
+                  <span className={styles.roleSpotlightChip}>{t('vom.currentPoser', { name: participantName(poserId) || '-' })}</span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h2 className={styles.sectionTitle}>{t('vom.selectingTitle')}</h2>
+                <p>{t('vom.currentPoser', { name: participantName(poserId) || '-' })}</p>
+                <p className={styles.instruction}>{t('vom.selectingInstruction')}</p>
+                <div className={styles.participantsRow}>
+                  {orderedParticipantIds.map((id) => (
+                    <span
+                      key={id}
+                      className={`${styles.participantChip}${id === poserId ? ` ${styles.participantChipPoser}` : ''}${id === me ? ` ${styles.participantChipMe}` : ''}`}
+                    >
+                      {participantName(id)}{id === poserId ? ` ${t('vom.poserLabel')}` : ''}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
             {isPoser ? (
               <>
                 <div className={styles.statementGrid}>
@@ -642,9 +700,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   })}
                 </div>
               </>
-            ) : (
+            ) : !isFacilitator ? (
               <p className={styles.helper}>{t('vom.poserHelper')}</p>
-            )}
+            ) : null}
           </section>
         ) : null}
 
@@ -690,11 +748,95 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   </>
                 )}
                 <p className={styles.voteStatus}>{t('vom.currentVote', { vote: myVote === 'vrai' ? t('vom.voteTrue') : myVote === 'mensonge' ? t('vom.voteFalse') : myVote || t('vom.absent') })}</p>
+                {myVote ? (
+                  <div className={styles.voteMonitorCard}>
+                    <div className={styles.voteMonitorHeader}>
+                      <div>
+                        <span className={styles.voteMonitorEyebrow}>{t('vom.voteWaitingTitle')}</span>
+                        <strong className={styles.voteMonitorHeadline}>{t('vom.voteParticipantWaitingHeadline')}</strong>
+                      </div>
+                      <span className={styles.voteMonitorCount}>{t('vom.voteProgress', { answered: answeredVotesCount, total: totalExpectedVotes })}</span>
+                    </div>
+                    <div className={styles.voteProgressTrack} aria-hidden="true">
+                      <span className={styles.voteProgressFill} style={{ width: `${totalExpectedVotes > 0 ? Math.round((answeredVotesCount / totalExpectedVotes) * 100) : 0}%` }} />
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : isFacilitator ? (
-              <p className={styles.helper}>{t('vom.facilitatorObserve')}</p>
+              <div className={styles.voteMonitorCard}>
+                <div className={styles.voteMonitorHeader}>
+                  <div>
+                    <span className={styles.voteMonitorEyebrow}>{t('vom.facilitatorObserve')}</span>
+                    <strong className={styles.voteMonitorHeadline}>{t('vom.facilitatorLiveVoteHeadline')}</strong>
+                  </div>
+                  <span className={styles.voteMonitorCount}>{t('vom.voteProgress', { answered: answeredVotesCount, total: totalExpectedVotes })}</span>
+                </div>
+                <div className={styles.voteMonitorSummaryGrid}>
+                  <article className={styles.voteSummaryTile}>
+                    <span>{t('vom.facilitatorQuestionLabel')}</span>
+                    <strong>{currentTurn?.statement_text || currentTurn?.statement_prompt || '-'}</strong>
+                  </article>
+                  <article className={styles.voteSummaryTile}>
+                    <span>{t('vom.facilitatorPoserAnswerLabel')}</span>
+                    <strong>{poserAnswerLabel}</strong>
+                  </article>
+                </div>
+                <div className={styles.voteProgressTrack} aria-hidden="true">
+                  <span className={styles.voteProgressFill} style={{ width: `${totalExpectedVotes > 0 ? Math.round((answeredVotesCount / totalExpectedVotes) * 100) : 0}%` }} />
+                </div>
+                <div className={styles.voteResponseGrid}>
+                  {facilitatorVoteRows.map((row) => (
+                    <article key={row.participantId} className={`${styles.voteResponseCard}${row.hasAnswered ? ` ${styles.voteResponseCardAnswered}` : ''}`}>
+                      <div className={styles.voteResponseIdentity}>
+                        <span className={styles.inlineAvatar}>{getInitials(row.participantName)}</span>
+                        <div className={styles.voteResponseCopy}>
+                          <strong>{row.participantName}</strong>
+                          <span>{row.hasAnswered ? t('vom.voteAnswered') : t('vom.votePending')}</span>
+                        </div>
+                      </div>
+                      <span className={`${styles.voteResponseValue}${row.hasAnswered ? ` ${styles.voteResponseValueAnswered}` : ''}`}>{row.voteLabel}</span>
+                    </article>
+                  ))}
+                </div>
+              </div>
             ) : (
-              <p className={styles.helper}>{t('vom.poserNoVote')}</p>
+              <div className={styles.voteMonitorCard}>
+                <div className={styles.voteMonitorHeader}>
+                  <div>
+                    <span className={styles.voteMonitorEyebrow}>{t('vom.voteWaitingTitle')}</span>
+                    <strong className={styles.voteMonitorHeadline}>{t('vom.poserWaitingHeadline')}</strong>
+                  </div>
+                  <span className={styles.voteMonitorCount}>{t('vom.voteProgress', { answered: answeredVotesCount, total: totalExpectedVotes })}</span>
+                </div>
+                <div className={styles.voteMonitorSummaryGrid}>
+                  <article className={styles.voteSummaryTile}>
+                    <span>{t('vom.facilitatorQuestionLabel')}</span>
+                    <strong>{currentTurn?.statement_text || currentTurn?.statement_prompt || '-'}</strong>
+                  </article>
+                  <article className={styles.voteSummaryTile}>
+                    <span>{t('vom.facilitatorPoserAnswerLabel')}</span>
+                    <strong>{poserAnswerLabel}</strong>
+                  </article>
+                </div>
+                <div className={styles.voteProgressTrack} aria-hidden="true">
+                  <span className={styles.voteProgressFill} style={{ width: `${totalExpectedVotes > 0 ? Math.round((answeredVotesCount / totalExpectedVotes) * 100) : 0}%` }} />
+                </div>
+                <div className={styles.voteResponseGrid}>
+                  {facilitatorVoteRows.map((row) => (
+                    <article key={row.participantId} className={`${styles.voteResponseCard}${row.hasAnswered ? ` ${styles.voteResponseCardAnswered}` : ''}`}>
+                      <div className={styles.voteResponseIdentity}>
+                        <span className={styles.inlineAvatar}>{getInitials(row.participantName)}</span>
+                        <div className={styles.voteResponseCopy}>
+                          <strong>{row.participantName}</strong>
+                          <span>{row.hasAnswered ? t('vom.voteAnswered') : t('vom.votePending')}</span>
+                        </div>
+                      </div>
+                      <span className={`${styles.voteResponseValue}${row.hasAnswered ? ` ${styles.voteResponseValueAnswered}` : ''}`}>{row.hasAnswered ? t('vom.voteReceived') : t('vom.voteWaitingShort')}</span>
+                    </article>
+                  ))}
+                </div>
+              </div>
             )}
             {remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
           </section>
