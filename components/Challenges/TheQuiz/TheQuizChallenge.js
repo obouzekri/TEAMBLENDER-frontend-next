@@ -447,6 +447,12 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
               </div>
             )}
 
+            {!isFacilitator && activePhase === 'question_live' && answerLocked ? (
+              <div className={styles.autoTransitionHint} aria-live="polite">
+                {isEn ? 'Answer submitted. Next question will appear automatically.' : 'Réponse soumise. La question suivante s\'affichera automatiquement.'}
+              </div>
+            ) : null}
+
             {transientQuestionResult && activePhase === 'question_result' ? (
               <div className={styles.autoTransitionHint} aria-live="polite">
                 {isEn ? 'Auto transition to the next question...' : 'Transition automatique vers la prochaine question...'}
@@ -513,6 +519,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 {leaderboardVisible ? (
                   <QuizLeaderboardScreen isEn={isEn} quiz={phaseQuizView} rankMovementByParticipantId={rankMovementByParticipantId} />
                 ) : null}
+
               </div>
             ) : (
               <section className={styles.screenCard}>

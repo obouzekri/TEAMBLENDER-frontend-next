@@ -44,6 +44,7 @@ export function QuizQuestionScreen({
 }) {
   const question = normalizeQuestion(quiz, isEn);
   const optionCount = question.options.length;
+  const hasSelectedAnswer = Number.isInteger(Number(selectedAnswerIndex));
 
   function onAnswerKeyDown(event, answerIndex) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -109,7 +110,7 @@ export function QuizQuestionScreen({
           type="button"
           className={styles.primaryButton}
           onClick={onSubmitAnswer}
-          disabled={isAnswerLocked || !Number.isInteger(Number(selectedAnswerIndex))}
+          disabled={isAnswerLocked || !hasSelectedAnswer}
         >
           {isAnswerLocked ? (isEn ? 'Answer sent' : 'Réponse envoyée') : (isEn ? 'Submit my answer' : 'Valider ma réponse')}
         </button>
@@ -193,9 +194,11 @@ export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByPartic
 export function QuizQuestionResultScreen({ isEn = false, quiz }) {
   const result = quiz.latest_question_result || {};
   const currentQuestion = normalizeQuestion(quiz, isEn);
-  const answerIndex = Number.isInteger(Number(result.correct_choice_index))
-    ? Number(result.correct_choice_index)
-    : currentQuestion.correctAnswer;
+  const serverAnswerIndex = Number(result.correct_choice_index);
+  const questionAnswerIndex = Number(currentQuestion.correctAnswer);
+  const answerIndex = Number.isInteger(serverAnswerIndex)
+    ? serverAnswerIndex
+    : (Number.isInteger(questionAnswerIndex) ? questionAnswerIndex : null);
   const answerLabel = Number.isInteger(answerIndex) && currentQuestion.options[answerIndex]
     ? currentQuestion.options[answerIndex].label
     : (isEn ? 'Answer unavailable' : 'Réponse non disponible');

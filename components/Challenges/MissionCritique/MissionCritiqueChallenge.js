@@ -144,13 +144,13 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
       ...baseRules,
       isEn
         ? 'Scoring (transparent): team score = average of individual scores (0 to 100).'
-        : 'Calcul du score (transparent): score collectif = moyenne des scores individuels (0 a 100).',
+        : 'Calcul du score (transparent): score collectif = moyenne des scores individuels (0 à 100).',
       isEn
         ? 'Penalties: unmet dependency (-8), missing critical task (-10), duplicate (-5), unknown task (-3).'
-        : 'Penalites: dependance non respectee (-8), tache critique manquante (-10), doublon (-5), tache inconnue (-3).',
+        : 'Pénalités: dépendance non respectée (-8), tâche critique manquante (-10), doublon (-5), tâche inconnue (-3).',
       isEn
         ? 'Simplified formula: 100 - penalties + consistency bonus (clamped from 0 to 100).'
-        : 'Formule simplifiee: 100 - penalites + bonus de coherence (plafonne entre 0 et 100).',
+        : 'Formule backend: 100 - pénalités (borné entre 0 et 100).',
       isEn
         ? 'The team must converge and submit one coherent collective timeline.'
         : 'L’équipe doit converger puis soumettre une seule timeline cohérente au niveau collectif.',
@@ -172,7 +172,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
         : 'Le score final est collectif: votre ordre impacte directement la moyenne de toute l’équipe.',
       isEn
         ? 'Scoring: 100 base points, then deductions for inconsistencies (dependencies, missing critical tasks, duplicates).'
-        : 'Calcul du score: 100 points de base puis retraits en cas d incoherences (dependances, oublis critiques, doublons).',
+        : 'Calcul du score: 100 points de base puis retraits en cas d’incohérences (dépendances, tâches critiques manquantes, doublons, tâches inconnues).',
       isEn
         ? 'Coordinate to submit one unique and coherent timeline for the entire team.'
         : 'Synchronisez-vous pour soumettre une timeline unique et cohérente pour toute l’équipe.',

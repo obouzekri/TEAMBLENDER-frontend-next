@@ -290,7 +290,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
 
     const timeoutPromise = new Promise((_, reject) => {
       timeoutId = window.setTimeout(() => {
-        reject(new Error('Initialisation du challenge trop longue. Veuillez reessayer.'));
+        reject(new Error('Initialisation du challenge trop longue. Veuillez réessayer.'));
       }, INIT_TIMEOUT_MS);
     });
 

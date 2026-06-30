@@ -108,6 +108,8 @@ export default function TopNav({ compact = false }) {
               <NavItem href={withLocalePath('/')} active={isActive('/')} onClick={() => setIsMenuOpen(false)}>{t('nav.product')}</NavItem>
               <NavItem href={withLocalePath('/pricing')} active={isActive('/pricing')} onClick={() => setIsMenuOpen(false)}>{t('nav.pricing')}</NavItem>
               <NavItem href={withLocalePath('/contact')} active={isActive('/contact')} onClick={() => setIsMenuOpen(false)}>{t('nav.contact')}</NavItem>
+              <NavItem href={withLocalePath('/cgu')} active={isActive('/cgu')} onClick={() => setIsMenuOpen(false)}>{t('nav.terms')}</NavItem>
+              <NavItem href={withLocalePath('/confidentialite')} active={isActive('/confidentialite') || isActive('/politique-confidentialite')} onClick={() => setIsMenuOpen(false)}>{t('nav.privacy')}</NavItem>
             </nav>
           </div>
 

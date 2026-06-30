@@ -4384,27 +4384,27 @@ export default function AdminClient() {
                       <label>Engine key<input value={newChallenge.engine_key} onChange={(e) => setNewChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
                       <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={newChallenge.description} onChange={(e) => setNewChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
                       <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                        <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Challenge rules' : 'Regles du challenge'}</p>
-                        <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'This content feeds the brief shown to facilitators and participants inside the challenge.' : 'Ce contenu alimente le brief affiche aux facilitateurs et aux participants dans le challenge.'}</p>
+                        <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Challenge rules' : 'Règles du challenge'}</p>
+                        <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'This content feeds the brief shown to facilitators and participants inside the challenge.' : 'Ce contenu alimente le brief affiché aux facilitateurs et aux participants dans le challenge.'}</p>
                         <label>{isEn ? 'Mission brief' : 'Brief de mission'}
-                          <textarea rows={3} value={newChallenge.rules_objective} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={isEn ? 'Describe the main challenge objective' : 'Decrivez l\'objectif principal du challenge'} />
+                          <textarea rows={3} value={newChallenge.rules_objective} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={isEn ? 'Describe the main challenge objective' : 'Décrivez l\'objectif principal du challenge'} />
                         </label>
-                        <label>{isEn ? 'Facilitator instructions (1 line = 1 rule)' : 'Instructions facilitateur (1 ligne = 1 regle)'}
+                        <label>{isEn ? 'Facilitator instructions (1 line = 1 rule)' : 'Instructions facilitateur (1 ligne = 1 règle)'}
                           <textarea rows={4} value={newChallenge.rules_facilitator} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder={isEn ? 'Frame the challenge&#10;Start the timer' : 'Cadrez le challenge&#10;Lancez le timer'} />
                         </label>
-                        <label>{isEn ? 'Participant instructions (1 line = 1 rule)' : 'Instructions participants (1 ligne = 1 regle)'}
-                          <textarea rows={4} value={newChallenge.rules_participant} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={isEn ? 'Listen to the brief&#10;Collaborate as a team' : 'Ecoutez le brief&#10;Collaborez en equipe'} />
+                        <label>{isEn ? 'Participant instructions (1 line = 1 rule)' : 'Instructions participants (1 ligne = 1 règle)'}
+                          <textarea rows={4} value={newChallenge.rules_participant} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={isEn ? 'Listen to the brief&#10;Collaborate as a team' : 'Écoutez le brief&#10;Collaborez en équipe'} />
                         </label>
-                        <label>{isEn ? 'Closing note' : 'Note de cloture'}
-                          <textarea rows={2} value={newChallenge.rules_footnote} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={isEn ? 'Optional summary message' : 'Message de synthese optionnel'} />
+                        <label>{isEn ? 'Closing note' : 'Note de clôture'}
+                          <textarea rows={2} value={newChallenge.rules_footnote} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={isEn ? 'Optional summary message' : 'Message de synthèse optionnel'} />
                         </label>
                         <div style={{ borderTop: '1px dashed var(--color-border, #e5e7eb)', paddingTop: '10px', display: 'grid', gap: '10px' }}>
-                          <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Players (Min / Recommended / Max)' : 'Joueurs (Min / Recommande / Max)'}</p>
+                          <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Players (Min / Recommended / Max)' : 'Joueurs (Min / Recommandé / Max)'}</p>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                             <label>Min
                               <input type="number" min="1" value={newChallenge.player_min} onChange={(e) => setNewChallenge((p) => ({ ...p, player_min: e.target.value }))} />
                             </label>
-                            <label>{isEn ? 'Recommended' : 'Recommande'}
+                            <label>{isEn ? 'Recommended' : 'Recommandé'}
                               <input type="number" min="1" value={newChallenge.player_recommended} onChange={(e) => setNewChallenge((p) => ({ ...p, player_recommended: e.target.value }))} />
                             </label>
                             <label>Max
@@ -4508,22 +4508,22 @@ export default function AdminClient() {
                         <label>Engine key<input value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
                         <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
                         <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                          <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Challenge rules' : 'Regles du challenge'}</p>
-                          <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'This content feeds the brief shown to facilitators and participants inside the challenge.' : 'Ce contenu alimente le brief affiche aux facilitateurs et aux participants dans le challenge.'}</p>
+                          <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Challenge rules' : 'Règles du challenge'}</p>
+                          <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'This content feeds the brief shown to facilitators and participants inside the challenge.' : 'Ce contenu alimente le brief affiché aux facilitateurs et aux participants dans le challenge.'}</p>
                           <label>{isEn ? 'Mission brief' : 'Brief de mission'}
-                            <textarea rows={3} value={editingChallenge.rules_objective || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={isEn ? 'Describe the main challenge objective' : 'Decrivez l\'objectif principal du challenge'} />
+                            <textarea rows={3} value={editingChallenge.rules_objective || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={isEn ? 'Describe the main challenge objective' : 'Décrivez l\'objectif principal du challenge'} />
                           </label>
-                          <label>{isEn ? 'Facilitator instructions (1 line = 1 rule)' : 'Instructions facilitateur (1 ligne = 1 regle)'}
+                          <label>{isEn ? 'Facilitator instructions (1 line = 1 rule)' : 'Instructions facilitateur (1 ligne = 1 règle)'}
                             <textarea rows={4} value={editingChallenge.rules_facilitator || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder={isEn ? 'Frame the challenge&#10;Start the timer' : 'Cadrez le challenge&#10;Lancez le timer'} />
                           </label>
-                          <label>{isEn ? 'Participant instructions (1 line = 1 rule)' : 'Instructions participants (1 ligne = 1 regle)'}
-                            <textarea rows={4} value={editingChallenge.rules_participant || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={isEn ? 'Listen to the brief&#10;Collaborate as a team' : 'Ecoutez le brief&#10;Collaborez en equipe'} />
+                          <label>{isEn ? 'Participant instructions (1 line = 1 rule)' : 'Instructions participants (1 ligne = 1 règle)'}
+                            <textarea rows={4} value={editingChallenge.rules_participant || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={isEn ? 'Listen to the brief&#10;Collaborate as a team' : 'Écoutez le brief&#10;Collaborez en équipe'} />
                           </label>
-                          <label>{isEn ? 'Closing note' : 'Note de cloture'}
-                            <textarea rows={2} value={editingChallenge.rules_footnote || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={isEn ? 'Optional summary message' : 'Message de synthese optionnel'} />
+                          <label>{isEn ? 'Closing note' : 'Note de clôture'}
+                            <textarea rows={2} value={editingChallenge.rules_footnote || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={isEn ? 'Optional summary message' : 'Message de synthèse optionnel'} />
                           </label>
                           <div style={{ borderTop: '1px dashed var(--color-border, #e5e7eb)', paddingTop: '10px', display: 'grid', gap: '10px' }}>
-                            <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Players (Min / Recommended / Max)' : 'Joueurs (Min / Recommande / Max)'}</p>
+                            <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Players (Min / Recommended / Max)' : 'Joueurs (Min / Recommandé / Max)'}</p>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                               <label>Min
                                 <input

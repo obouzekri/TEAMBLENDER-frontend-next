@@ -150,7 +150,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const hasChallengeStarted = timer?.enabled === false || ['running', 'paused', 'completed', 'stopped', 'timeout'].includes(timerStatus);
   const phase = String(pixel?.phase || '').trim().toLowerCase();
   const isLockedByPhase = ['debrief', 'fin'].includes(phase);
-  const canBuild = !isFacilitator && !isLockedByPhase && (!timerEnabled || timerStatus === 'running');
+  const canBuild = !isFacilitator && !isLockedByPhase && (!timerEnabled || timerStatus === 'running' || timerStatus === 'paused');
 
   const selectedTemplate = useMemo(() => {
     if (pixel?.selected_template && typeof pixel.selected_template === 'object') {
@@ -935,12 +935,12 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         <p className={styles.rulesInlineText}>
           {isEn ? 'Click grid to place, click a cube to remove, drag to orbit or zoom.' : 'Cliquer la grille pour poser, cliquer un cube pour supprimer, glisser pour orbiter ou zoomer.'}
         </p>
-        <ol className={styles.howToList}>
+        <ul className={styles.howToList}>
           <li>{isEn ? 'Choose a layer, then place or remove cubes.' : 'Choisir une couche puis poser ou supprimer des cubes.'}</li>
           <li>{isEn ? 'Check the model map and progress layer by layer.' : 'Verifier la carte modele et avancer couche par couche.'}</li>
           <li>{isEn ? 'Coordinate in chat to avoid duplicates.' : 'Se coordonner via le chat pour eviter les doublons.'}</li>
           <li>{isEn ? 'Submit the final version when your team is ready.' : 'Soumettre la version finale quand votre equipe est prete.'}</li>
-        </ol>
+        </ul>
         <div className={styles.helperRow}>
           <div className={styles.helperItem}>
             <span className={styles.helperDotTarget} /> {isEn ? 'Target model (ghost)' : 'Modele cible (fantome)'}

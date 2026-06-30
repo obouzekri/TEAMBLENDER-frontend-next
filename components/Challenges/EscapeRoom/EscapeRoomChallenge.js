@@ -150,6 +150,7 @@ export default function EscapeRoomChallenge({
   const [busyAction, setBusyAction] = useState('');
   const [feedback, setFeedback] = useState('');
   const [verdict, setVerdict] = useState(null);
+  const [imageBroken, setImageBroken] = useState(false);
   const completionGuardRef = useRef('');
   const stateRequestIdRef = useRef(0);
   const appliedStateRequestIdRef = useRef(0);
@@ -368,7 +369,7 @@ export default function EscapeRoomChallenge({
       }
 
         const outcome = String(payload?.validation?.outcome || '').trim();
-        const shouldKeepAnswer = outcome === 'divergent' || outcome === 'max_attempts';
+        const shouldKeepAnswer = outcome === 'divergent' || outcome === 'wrong' || outcome === 'max_attempts';
         if (!shouldKeepAnswer) {
           setAnswer('');
         }
@@ -448,6 +449,10 @@ export default function EscapeRoomChallenge({
     && totalExpected > 0
     && totalResponded < totalExpected
   );
+
+  useEffect(() => {
+    setImageBroken(false);
+  }, [currentEnigme?.id, enigmeImageSrc]);
 
   useEffect(() => {
     if (!shouldUseFastPolling) {
@@ -561,7 +566,7 @@ export default function EscapeRoomChallenge({
                   <span className={styles.enigmeMetaChip}>{totalResponded}/{Math.max(totalExpected, 0)} réponses</span>
                 </div>
               </div>
-              {enigmeImageSrc ? (
+              {enigmeImageSrc && !imageBroken ? (
                 <Image
                   className={styles.image}
                   src={enigmeImageSrc}
@@ -570,10 +575,13 @@ export default function EscapeRoomChallenge({
                   width={1200}
                   height={800}
                   loading="lazy"
-                  onError={(event) => {
-                    event.currentTarget.style.display = 'none';
+                  onError={() => {
+                    setImageBroken(true);
                   }}
                 />
+              ) : null}
+              {enigmeImageSrc && imageBroken ? (
+                <p className={styles.imageFallbackNote}>Image indisponible pour cette énigme.</p>
               ) : null}
               <p className={styles.description}>{currentEnigme?.description || 'Aucune description.'}</p>
 

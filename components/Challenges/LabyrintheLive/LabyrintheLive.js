@@ -820,7 +820,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     <div className={styles.labyrinthContainer}>
       <ChallengeHeader
         title={challengeName}
-        subtitle={challengeSubtitle || (isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, evitez les pieges, ouvrez la sortie.')}
+        subtitle={challengeSubtitle || (isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, évitez les pièges, ouvrez la sortie.')}
       />
 
       <div className={styles.layout}>

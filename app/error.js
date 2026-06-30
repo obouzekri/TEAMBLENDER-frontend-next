@@ -25,11 +25,11 @@ export default function GlobalError({ error, reset }) {
           <p>
             {isEn
               ? 'You can retry immediately. If the problem persists, return to manager home and restart your flow.'
-              : 'Vous pouvez reessayer immediatement. Si le probleme persiste, revenez a l accueil manager puis relancez votre parcours.'}
+              : 'Vous pouvez réessayer immédiatement. Si le problème persiste, revenez à l’accueil manager puis relancez votre parcours.'}
           </p>
           <div className="hero-actions">
             <button type="button" className="btn-primary" onClick={reset}>
-              {isEn ? 'Retry' : 'Reessayer'}
+              {isEn ? 'Retry' : 'Réessayer'}
             </button>
             <Link href={withLocalePath('/home')} className="btn-secondary">
               {isEn ? 'Manager space' : 'Espace manager'}

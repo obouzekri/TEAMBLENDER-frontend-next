@@ -322,6 +322,13 @@
   line-height: 1.6;
 }
 
+.imageFallbackNote {
+  margin: 0 0 10px;
+  color: #bfdbfe;
+  font-size: 0.84rem;
+  font-style: italic;
+}
+
 .enigmeHero {
   display: flex;
   justify-content: space-between;

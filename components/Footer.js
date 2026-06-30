@@ -36,8 +36,10 @@ export default function Footer() {
 
           <nav className="footer-col" aria-label={t('footer.legal')}>
             <p>{t('footer.legal')}</p>
+            <Link href={withLocalePath('/cgu')}>{t('footer.terms')}</Link>
             <Link href={withLocalePath('/mentions-legales')}>{t('footer.legalNotice')}</Link>
-            <Link href={withLocalePath('/politique-confidentialite')}>{t('footer.privacy')}</Link>
+            <Link href={withLocalePath('/confidentialite')}>{t('footer.privacy')}</Link>
+            <Link href={withLocalePath('/contact-rgpd')}>{t('footer.rgpdContact')}</Link>
           </nav>
 
           <nav className="footer-col" aria-label={t('footer.contact')}>

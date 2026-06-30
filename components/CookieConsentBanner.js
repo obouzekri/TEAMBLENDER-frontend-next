@@ -43,7 +43,7 @@ export default function CookieConsentBanner({ consentState }) {
             <div className={styles.meta}>
               <span className={styles.badge}>Politique {policyVersion}</span>
               <span className={styles.badge}>Journal local horodaté</span>
-              <Link href="/politique-confidentialite" className={styles.link}>
+              <Link href="/confidentialite" className={styles.link}>
                 Politique de confidentialité
               </Link>
             </div>

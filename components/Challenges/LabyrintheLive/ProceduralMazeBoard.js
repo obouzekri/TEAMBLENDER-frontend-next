@@ -501,7 +501,7 @@ export default function ProceduralMazeBoard({
   return (
     <section className={styles.boardRoot}>
       <div className={styles.boardHead}>
-        <h3 className={styles.boardTitle}>Maze Hard Mode: entrees libres, sortie unique, pieges denses</h3>
+        <h3 className={styles.boardTitle}>Maze Hard Mode: entrées libres, sortie unique, pièges denses</h3>
         <div className={styles.toolbar}>
           <button type="button" className={styles.toolBtn} onClick={() => setRefresh((v) => v + 1)}>Regenerer</button>
           <button
