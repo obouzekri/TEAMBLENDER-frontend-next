@@ -45,10 +45,38 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
+function normalizeCdnOrigin(rawValue) {
+  const trimmed = String(rawValue || '').trim();
+  if (!trimmed) return '';
+  return trimmed.replace(/\/+$/, '');
+}
+
+function parseRemoteImageHosts(rawValue) {
+  const normalized = String(rawValue || '').trim();
+  if (!normalized) return [];
+
+  return normalized
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((host) => ({
+      protocol: 'https',
+      hostname: host,
+      pathname: '/**',
+    }));
+}
+
+const cdnOrigin = normalizeCdnOrigin(process.env.NEXT_PUBLIC_CDN_ORIGIN);
+const remoteImageHosts = parseRemoteImageHosts(process.env.NEXT_PUBLIC_CDN_IMAGE_HOSTS);
+
 const nextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ['127.0.0.1'],
+  assetPrefix: cdnOrigin || undefined,
   outputFileTracingRoot: projectRoot,
+  images: {
+    remotePatterns: remoteImageHosts,
+  },
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
