@@ -9,7 +9,7 @@ import AuthShowcase from '@/components/AuthShowcase';
 import AuthSocialButtons from '@/components/AuthSocialButtons';
 import Logo from '@/components/Logo';
 import posthog from 'posthog-js';
-import { trackGtmEvent } from '@/lib/analytics';
+import { trackGtmEvent, trackProductUserEvent } from '@/lib/analytics';
 import {
   clearOAuthCallbackParamsFromUrl,
   getOAuthStartUrl,
@@ -82,6 +82,13 @@ export default function SignupForm() {
     }
     trackGtmEvent('signup_oauth', { provider: oauth.provider || 'unknown' });
 
+    trackProductUserEvent('oauth_signup_success', {
+      provider: oauth.provider || 'unknown',
+      authMethod: 'oauth',
+      userId: resolveConnectedUserId(oauth.user),
+      surface: 'signup',
+    });
+
     const connectedUserId = resolveConnectedUserId(oauth.user);
     const redirect = withLocalePath(getRedirectPath(oauth.user.role, '', connectedUserId));
     window.location.href = redirect;
@@ -128,6 +135,10 @@ export default function SignupForm() {
       });
 
       if (res.status === 201) {
+        trackProductUserEvent('signup_success', {
+          authMethod: 'password',
+          surface: 'signup',
+        });
         setDone(true);
         setMessage(isEn
           ? 'Your account has been created. A confirmation email was sent. Click the link in that email to activate your account.'

@@ -13,7 +13,7 @@ function resolvePreferredLocale(request) {
   return DEFAULT_LOCALE;
 }
 
-export function middleware(request) {
+export function proxy(request) {
   const { pathname } = request.nextUrl;
 
   if (

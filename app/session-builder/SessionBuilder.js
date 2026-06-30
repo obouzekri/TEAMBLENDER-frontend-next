@@ -15,7 +15,7 @@ import useToast from '@/lib/useToast';
 import useSessionBuilder from '@/lib/useSessionBuilder';
 import { fetchWithRetry } from '@/lib/api';
 import { ENABLE_CHALLENGES_MOCK_DATA, getApiUrl } from '@/lib/config';
-import { trackGaEvent } from '@/lib/analytics';
+import { trackGaEvent, trackProductSessionEvent } from '@/lib/analytics';
 import { getPixelArchitectRulesPreset } from '@/lib/challenges/pixelArchitectRules';
 import { getTheQuizRulesPreset } from '@/lib/challenges/theQuizRules';
 import { getPhraseMystereRulesPreset } from '@/lib/challenges/phraseMystereRules';
@@ -805,6 +805,12 @@ export default function SessionBuilder() {
       cta_destination: sessionId ? `/session-live/${sessionId}` : '/session-live/:sessionId',
       selected_challenge_count: selectedChallenges.length,
       page_location: typeof window !== 'undefined' ? window.location.href : undefined,
+    });
+
+    trackProductSessionEvent('launch_requested', {
+      sessionId,
+      challengeCount: selectedChallenges.length,
+      surface: 'session_builder',
     });
 
     setIsLaunching(true);

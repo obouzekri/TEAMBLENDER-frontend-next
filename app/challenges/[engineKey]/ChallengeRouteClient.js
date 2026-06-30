@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useSessionState } from '@/lib/useSessionState';
+import { trackProductChallengeEvent } from '@/lib/analytics';
 import { getApiUrl } from '@/lib/config';
 
 const ChallengeWrapper = dynamic(
@@ -72,6 +73,16 @@ export default function ChallengeRouteClient() {
 
     setCompletionOverlay({ mode: 'manual', countdown: 0 });
   }, [activeChallengeId, clearCountdown, flowMode]);
+
+  useEffect(() => {
+    if (!sessionId || !engineKey) return;
+    trackProductChallengeEvent('opened', {
+      sessionId,
+      challengeId: activeChallengeId || undefined,
+      challengeEngineKey: engineKey,
+      surface: 'challenge_route',
+    });
+  }, [activeChallengeId, engineKey, sessionId]);
 
   useEffect(() => {
     if (!sessionId || !activeChallengeId) {

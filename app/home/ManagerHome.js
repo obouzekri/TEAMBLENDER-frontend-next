@@ -11,7 +11,7 @@ import { getApiUrl } from '@/lib/config';
 import useToast from '@/lib/useToast';
 import { fetchSessionsWithRetry } from '@/lib/api';
 import { clearStoredAuth } from '@/lib/auth';
-import { trackGaEvent } from '@/lib/analytics';
+import { trackGaEvent, trackProductSessionEvent } from '@/lib/analytics';
 import useI18n from '@/lib/i18n/useI18n';
 
 function pickDisplayName(user) {
@@ -261,6 +261,9 @@ export default function ManagerHome() {
         cta_label: 'Create session',
         cta_destination: '/session-builder',
         page_location: typeof window !== 'undefined' ? window.location.href : undefined,
+      });
+      trackProductSessionEvent('create_requested', {
+        surface: 'manager_home',
       });
       return;
     }
