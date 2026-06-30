@@ -186,6 +186,8 @@ body {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   font-family: var(--font-ui);
   color: var(--ink);
   background:
@@ -198,6 +200,21 @@ body {
   min-height: 100svh;
   min-height: 100dvh;
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -263,6 +280,12 @@ a {
   margin: 0 auto;
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
+}
+
+@media (max-width: 640px) {
+  .shell {
+    width: min(1080px, calc(100% - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+  }
 }
 
 .challenge-header {

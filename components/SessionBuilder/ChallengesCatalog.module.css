@@ -436,6 +436,8 @@
   .filterDropdownPanel {
     position: static;
     margin-top: 0.5rem;
+    min-width: 0;
+    max-height: 300px;
   }
 
   .filterActions {
@@ -468,5 +470,85 @@
 
   .rulesMeta {
     justify-items: start;
+  }
+}
+
+@media (max-width: 640px) {
+  .filterBar {
+    border-radius: 18px;
+    padding: 0.75rem 0.78rem;
+    margin-bottom: 1.15rem;
+  }
+
+  .filtersLabel {
+    white-space: normal;
+    font-size: 0.74rem;
+    letter-spacing: 0.05em;
+  }
+
+  .filterControls {
+    gap: 0.55rem;
+  }
+
+  .filterDropdownButton {
+    min-height: 2.6rem;
+    padding: 0.55rem 0.68rem;
+    font-size: 0.82rem;
+  }
+
+  .filterHintInline {
+    font-size: 0.72rem;
+  }
+
+  .filterActions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 0.45rem;
+  }
+
+  .resetIconButton {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  .grid,
+  .skeletonGrid {
+    gap: 0.8rem;
+  }
+
+  .card {
+    border-radius: 18px;
+    padding: 0.9rem;
+    min-height: 0;
+    gap: 0.75rem;
+  }
+
+  .cardTitle {
+    font-size: 0.93rem;
+  }
+
+  .cardDescription {
+    font-size: 0.84rem;
+    line-height: 1.4;
+  }
+
+  .cardDuration,
+  .playerHint {
+    font-size: 0.74rem;
+  }
+
+  .badge {
+    font-size: 0.78rem;
+    padding: 0.26rem 0.5rem;
+  }
+
+  .cardActions {
+    gap: 0.5rem;
+  }
+
+  .toggleAction {
+    width: 100%;
+    justify-content: space-between;
+    min-height: 2.35rem;
   }
 }

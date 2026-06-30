@@ -16,6 +16,19 @@
   overflow: visible;
 }
 
+.sessionBuilder,
+.creationExperience,
+.creationPageBackground,
+.creationHero,
+.creationContent,
+.creationPrimary,
+.creationSecondary,
+.creationForm,
+.creationParticipantsPane,
+.creationOverviewCard {
+  min-width: 0;
+}
+
 .sessionBuilder > * {
   min-width: 0;
 }
@@ -591,6 +604,7 @@
   gap: 0.9rem;
   justify-content: flex-end;
   margin-top: 1rem;
+  flex-wrap: wrap;
 }
 
 .creationActionHint {
@@ -662,6 +676,7 @@
 
   .creationPageBackground {
     padding: 1rem clamp(0.8rem, 2vw, 1.2rem);
+    min-height: auto;
   }
 
   .creationGrid {
@@ -671,6 +686,15 @@
   .creationHero {
     padding: 1.25rem;
     border-radius: 18px;
+  }
+
+  .creationHeroTop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .creationStatCard {
+    padding: 0.85rem 0.9rem;
   }
 
   .creationLead {
@@ -697,5 +721,121 @@
 
   .creationSubmit {
     width: 100%;
+    min-width: 0;
+  }
+
+  .sessionInfoInput {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 680px) {
+  .sessionBuilder {
+    gap: 1rem;
+    padding-inline: 0.65rem;
+    padding-top: 0.8rem;
+    padding-bottom: 2.4rem;
+  }
+
+  .sessionInfoBar {
+    gap: 0.5rem;
+    padding: 0.78rem 0.8rem;
+    border-radius: 16px;
+  }
+
+  .sessionInfoName {
+    width: 100%;
+    font-size: 0.96rem;
+  }
+
+  .sessionInfoDate,
+  .sessionInfoBadge,
+  .sessionInfoLocalSave,
+  .sessionInfoBackendSave,
+  .sessionInfoDraftRestored {
+    font-size: 0.8rem;
+  }
+
+  .sessionInfoEditDialog {
+    width: min(96vw, 560px);
+    border-radius: 16px;
+  }
+
+  .sessionInfoEditBody {
+    padding: 0.8rem;
+  }
+
+  .sessionInfoEditActions {
+    gap: 0.45rem;
+  }
+
+  .sessionInfoEditActions > * {
+    width: 100%;
+  }
+
+  .creationHero {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .creationHero::after {
+    width: 140px;
+    height: 140px;
+    right: -46px;
+    top: -52px;
+  }
+
+  .creationLead {
+    margin-top: 0.6rem;
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .creationPrerequisite {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.84rem;
+  }
+
+  .creationForm,
+  .creationParticipantsPane,
+  .creationOverviewCard {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .creationForm::before,
+  .creationParticipantsPane::before {
+    width: 3px;
+    border-radius: 16px 0 0 16px;
+  }
+
+  .creationSectionHeader h2 {
+    font-size: 1.02rem;
+  }
+
+  .creationSectionHeader p {
+    font-size: 0.86rem;
+    line-height: 1.4;
+  }
+
+  .flowModeCard {
+    padding: 0.82rem;
+    gap: 0.65rem;
+    border-radius: 14px;
+  }
+
+  .flowModeContent strong {
+    font-size: 0.92rem;
+  }
+
+  .flowModeContent small {
+    font-size: 0.84rem;
+    line-height: 1.4;
+  }
+
+  .creationActionHint {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.65rem;
   }
 }
