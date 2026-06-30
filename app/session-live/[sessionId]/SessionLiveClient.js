@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
+import { clearSessionAuth, getAuthHeaders, getStoredAuthToken, getStoredCurrentUser } from '@/lib/auth';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
 import useI18n from '@/lib/i18n/useI18n';
@@ -16,23 +17,12 @@ const ChallengeWrapper = dynamic(
   { ssr: false, loading: () => <p>Loading challenge / Chargement du challenge...</p> }
 );
 
-function parseUser() {
-  const raw = sessionStorage.getItem('currentUser');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
 function pickDisplayName(user) {
   if (!user || typeof user !== 'object') return 'Manager';
   const first = String(user.first_name || user.firstName || '').trim();
   const last = String(user.last_name || user.lastName || '').trim();
   const full = `${first} ${last}`.trim();
   return full || String(user.name || user.email || 'Manager');
-}
-
-function authHeaders() {
-  const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 }
 
 function isParticipantRole(role) {
@@ -72,8 +62,8 @@ export default function SessionLiveClient() {
       return;
     }
 
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-    const currentUser = parseUser();
+    const token = getStoredAuthToken();
+    const currentUser = getStoredCurrentUser();
     if (!token || !currentUser || isParticipantRole(currentUser.role)) {
       window.location.replace(withLocalePath('/login'));
       return;
@@ -86,7 +76,7 @@ export default function SessionLiveClient() {
   const loadSession = useCallback(async () => {
     if (!sessionId) return;
     try {
-      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), { headers: authHeaders() });
+      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), { headers: getAuthHeaders() });
       if (!res.ok) throw new Error(`${isEn ? 'Error' : 'Erreur'} ${res.status}`);
       const data = await res.json();
       setSession(data);
@@ -102,9 +92,7 @@ export default function SessionLiveClient() {
   }, [user, loadSession]);
 
   function logout() {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
+    clearSessionAuth();
     window.location.replace(withLocalePath('/login'));
   }
 
@@ -128,7 +116,7 @@ export default function SessionLiveClient() {
     try {
       const res = await fetch(
         getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/flow/complete-active`),
-        { method: 'PATCH', headers: authHeaders() }
+        { method: 'PATCH', headers: getAuthHeaders() }
       );
       if (!res.ok) {
         const body = await res.text();
@@ -167,7 +155,7 @@ export default function SessionLiveClient() {
         getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`),
         {
           method: 'PUT',
-          headers: authHeaders(),
+          headers: getAuthHeaders(),
           body: JSON.stringify({ status: 'terminee' }),
         }
       );

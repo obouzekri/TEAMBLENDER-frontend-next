@@ -19,7 +19,12 @@
     "test:smoke:session-builder": "node scripts/smoke-session-builder-catalog.mjs",
     "test:smoke:login": "node scripts/smoke-login-redirect.mjs",
     "test:smoke:preview": "npm run test:smoke:login && npm run test:smoke:session-builder",
-    "test:unit:vom": "node scripts/test-vom-utils.mjs"
+    "test:unit:vom": "node scripts/test-vom-utils.mjs",
+    "test:unit:auth": "node scripts/test-auth.mjs",
+    "test:unit:builder": "node scripts/test-session-builder-utils.mjs",
+    "test:unit:runtime": "node scripts/test-runtime-dispatcher.mjs",
+    "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime",
+    "test:integration:manager-participant": "node scripts/test-integration-manager-participant.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

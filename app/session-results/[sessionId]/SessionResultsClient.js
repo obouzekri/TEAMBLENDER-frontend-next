@@ -5,19 +5,9 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
+import { clearSessionAuth, getAuthHeaders, getStoredAuthToken, getStoredCurrentUser } from '@/lib/auth';
 import { getApiUrl } from '@/lib/config';
 import useI18n from '@/lib/i18n/useI18n';
-
-function parseUser() {
-  const raw = sessionStorage.getItem('currentUser');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-function authHeaders() {
-  const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-}
 
 function formatDuration(ms) {
   if (!ms || ms <= 0) return '—';
@@ -61,8 +51,8 @@ export default function SessionResultsClient() {
       return;
     }
 
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-    const currentUser = parseUser();
+    const token = getStoredAuthToken();
+    const currentUser = getStoredCurrentUser();
     if (!token || !currentUser) {
       window.location.replace(withLocalePath('/login'));
       return;
@@ -75,9 +65,9 @@ export default function SessionResultsClient() {
     if (!sessionId) return;
     try {
       const [sessionRes, resultsRes, rateRes] = await Promise.all([
-        fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), { headers: authHeaders() }),
-        fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/results`), { headers: authHeaders() }),
-        fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/participation-rate`), { headers: authHeaders() }),
+        fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), { headers: getAuthHeaders() }),
+        fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/results`), { headers: getAuthHeaders() }),
+        fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/participation-rate`), { headers: getAuthHeaders() }),
       ]);
 
       if (!sessionRes.ok) throw new Error(isEn ? `Session not found (${sessionRes.status})` : `Session introuvable (${sessionRes.status})`);
@@ -106,9 +96,7 @@ export default function SessionResultsClient() {
   }, [user, loadData]);
 
   function logout() {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
+    clearSessionAuth();
     window.location.replace(withLocalePath('/login'));
   }
 

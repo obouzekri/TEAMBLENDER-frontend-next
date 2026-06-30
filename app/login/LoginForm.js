@@ -17,7 +17,9 @@ import {
   loginWithFallback,
   readOAuthCallbackFromLocation,
   resendVerification,
-  resolveConnectedUserId
+  resolveConnectedUserId,
+  setStoredAuthSession,
+  shouldStoreParticipantTargetSession
 } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
@@ -63,9 +65,11 @@ export default function LoginForm({ requestedSessionId = '' }) {
       return;
     }
 
-    localStorage.setItem('jwt', oauth.token);
-    sessionStorage.setItem('jwt', oauth.token);
-    sessionStorage.setItem('currentUser', JSON.stringify(oauth.user));
+    setStoredAuthSession({
+      token: oauth.token,
+      user: oauth.user,
+      targetSessionId: shouldStoreParticipantTargetSession(oauth.user?.role, normalizedRequestedSessionId),
+    });
 
     try {
       posthog.capture('login_oauth', {
@@ -134,16 +138,12 @@ export default function LoginForm({ requestedSessionId = '' }) {
           return;
         }
 
-        localStorage.setItem('jwt', token);
-        sessionStorage.setItem('jwt', token);
-        sessionStorage.setItem('currentUser', JSON.stringify(user));
-
         const connectedUserId = resolveConnectedUserId(user);
-        if (user.role === 'participant' && normalizedRequestedSessionId) {
-          sessionStorage.setItem('targetSessionId', normalizedRequestedSessionId);
-        } else {
-          sessionStorage.removeItem('targetSessionId');
-        }
+        setStoredAuthSession({
+          token,
+          user,
+          targetSessionId: shouldStoreParticipantTargetSession(user.role, normalizedRequestedSessionId),
+        });
 
         const redirect = withLocalePath(getRedirectPath(user.role, normalizedRequestedSessionId, connectedUserId));
         trackProductUserEvent('login_success', {

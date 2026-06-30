@@ -11,6 +11,7 @@ import ParticipantAssigner from '@/components/SessionBuilder/ParticipantAssigner
 import SessionBuilderHeader from '@/components/SessionBuilder/SessionBuilderHeader';
 import Modal from '@/components/ui/Modal';
 import { Alert, Button, Input, LoadingState } from '@/components/ui';
+import { clearSessionAuth, getStoredAuthToken, getStoredCurrentUser } from '@/lib/auth';
 import useToast from '@/lib/useToast';
 import useSessionBuilder from '@/lib/useSessionBuilder';
 import { fetchWithRetry } from '@/lib/api';
@@ -290,14 +291,8 @@ function useManagerGuard() {
   const [state, setState] = React.useState({ loading: true, allowed: false, user: null });
 
   useEffect(() => {
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-    const rawUser = sessionStorage.getItem('currentUser');
-    let user = null;
-    try {
-      user = rawUser ? JSON.parse(rawUser) : null;
-    } catch {
-      user = null;
-    }
+    const token = getStoredAuthToken();
+    const user = getStoredCurrentUser();
 
     if (!token || !user) {
       window.location.replace('/login');
@@ -465,7 +460,7 @@ export default function SessionBuilder() {
   }, [clearAll, sessionId]);
 
   const getAuthToken = useCallback(
-    () => localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '',
+    () => getStoredAuthToken(),
     []
   );
 
@@ -1185,9 +1180,7 @@ export default function SessionBuilder() {
   ]);
 
   function logout() {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
+    clearSessionAuth();
     sessionStorage.removeItem(SELECTED_CHALLENGES_STORAGE_KEY);
     window.location.replace(withLocalePath('/login'));
   }
