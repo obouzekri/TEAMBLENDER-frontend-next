@@ -35,7 +35,7 @@ function SocialButton({ label, provider, icon, busy, onClick, unavailable = fals
   return (
     <button
       type="button"
-      className={`social-auth-btn ${unavailable ? 'social-auth-btn--pending' : ''}`}
+      className={`social-auth-btn social-auth-btn--${provider} ${unavailable ? 'social-auth-btn--pending' : ''}`}
       onClick={handleClick}
       onKeyDown={onKeyDown}
       disabled={busy}
@@ -64,7 +64,7 @@ export default function AuthSocialButtons({
   const continueWithEmail = isEn ? 'Or continue with your email address' : 'Ou continuer avec votre adresse email';
   const googleLabel = loadingProvider === 'google'
     ? (isEn ? 'Redirecting to Google...' : 'Redirection Google...')
-    : (isEn ? 'Continue with Google' : 'Continuer avec Google');
+    : (isEn ? 'Continue with Gmail' : 'Continuer avec Gmail');
   const microsoftLabel = loadingProvider === 'microsoft'
     ? (isEn ? 'Redirecting to Microsoft...' : 'Redirection Microsoft...')
     : (isEn ? 'Continue with Microsoft' : 'Continuer avec Microsoft');
