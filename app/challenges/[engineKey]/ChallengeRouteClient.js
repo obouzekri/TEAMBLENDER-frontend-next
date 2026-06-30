@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { useSessionState } from '@/lib/useSessionState';
 import { trackProductChallengeEvent } from '@/lib/analytics';
 import { getApiUrl } from '@/lib/config';
+import { getStoredAuthToken } from '@/lib/auth-storage';
 
 const ChallengeWrapper = dynamic(
   () => import('@/components/Challenges/ChallengeWrapper'),
@@ -90,7 +91,7 @@ export default function ChallengeRouteClient() {
       return;
     }
 
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+    const token = getStoredAuthToken();
     if (!token) {
       setAuthoritativeEngineKey('');
       return;
