@@ -9,6 +9,16 @@ import { startBillingCheckout } from '@/lib/account';
 import PaddleCheckoutButton from '@/components/PaddleCheckoutButton';
 import useI18n from '@/lib/i18n/useI18n';
 
+function getStoredCurrentUser() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 const CURRENCY_SYMBOLS = {
   EUR: '€',
   USD: '$',
@@ -98,11 +108,9 @@ export default function PricingPage() {
   }, [sortedPlans, selectedBilling]);
 
   async function handlePaypalCheckout(plan) {
-    const token = typeof window !== 'undefined'
-      ? (window.localStorage.getItem('jwt') || window.sessionStorage.getItem('jwt') || '')
-      : '';
+    const currentUser = getStoredCurrentUser();
 
-    if (!token) {
+    if (!currentUser) {
       window.location.assign(withLocalePath(`/login?next=${encodeURIComponent('/pricing')}`));
       return;
     }

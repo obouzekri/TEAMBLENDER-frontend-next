@@ -7,6 +7,7 @@ import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
+import { clearStoredAuth, getAuthHeaders } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
 function parseUser() {
@@ -46,10 +47,9 @@ export default function ParticipantPage() {
       return;
     }
 
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const currentUser = parseUser();
 
-    if (!token || !currentUser) {
+    if (!currentUser) {
       window.location.replace(withLocalePath('/login'));
       return;
     }
@@ -68,15 +68,13 @@ export default function ParticipantPage() {
     );
     if (hasName) return;
 
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-    if (!token) return;
-
     let cancelled = false;
 
     async function hydrateParticipantIdentity() {
       try {
         const res = await fetch(getApiUrl('/participants/me'), {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
+          credentials: 'include',
         });
         if (!res.ok) return;
 
@@ -164,9 +162,6 @@ export default function ParticipantPage() {
   useEffect(() => {
     if (!ready || !sessionId) return;
 
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-    if (!token) return;
-
     const hasActiveChallenge = Boolean(sessionState?.active_challenge_id);
     if (!hasActiveChallenge) {
       setRuntime(null);
@@ -180,7 +175,8 @@ export default function ParticipantPage() {
     async function fetchRuntime() {
       try {
         const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/runtime-challenge`), {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
+          credentials: 'include',
         });
         if (!res.ok) {
           const text = await res.text();
@@ -214,14 +210,12 @@ export default function ParticipantPage() {
   useEffect(() => {
     if (!ready) return;
 
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-    if (!token) return;
-
     async function fetchAssignedSessions() {
       setLoadingSessions(true);
       try {
         const res = await fetch(getApiUrl('/participants/me/sessions'), {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
+          credentials: 'include',
         });
         if (res.ok) {
           const data = await res.json();
@@ -241,13 +235,11 @@ export default function ParticipantPage() {
   useEffect(() => {
     if (!ready || !sessionId) return;
 
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-    if (!token) return;
-
     async function fetchTeamMembers() {
       try {
         const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/participants`), {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
+          credentials: 'include',
         });
         if (res.ok) {
           const data = await res.json();
@@ -284,10 +276,10 @@ export default function ParticipantPage() {
       return;
     }
     setJoiningSessionId(sessionIdentifier);
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     try {
       const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionIdentifier)}/runtime-challenge`), {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
+        credentials: 'include',
       });
       if (res.ok) {
         const payload = await res.json();
@@ -308,9 +300,7 @@ export default function ParticipantPage() {
   }
 
   function logout() {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
+    clearStoredAuth();
     sessionStorage.removeItem('targetSessionId');
     window.location.replace(withLocalePath('/login'));
   }

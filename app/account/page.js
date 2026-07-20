@@ -17,6 +17,7 @@ import {
   getStoredCurrentUser,
   setStoredCurrentUser,
 } from '@/lib/account';
+import { clearStoredAuth } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
 const PLAN_HISTORY_STORAGE_KEY = 'accountPlanChangeHistory';
@@ -116,10 +117,9 @@ export default function AccountPage() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const current = getStoredCurrentUser();
 
-    if (!token || !current) {
+    if (!current) {
       window.location.replace(withLocalePath('/login'));
       return;
     }
@@ -178,7 +178,6 @@ export default function AccountPage() {
         showError(err.message || t('account.paypalConfirmError'));
       }
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guard.allowed]);
 
   useEffect(() => {
@@ -419,9 +418,7 @@ export default function AccountPage() {
   }
 
   function logout() {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
+    clearStoredAuth();
     sessionStorage.removeItem('selectedChallenges');
     window.location.replace(withLocalePath('/login'));
   }

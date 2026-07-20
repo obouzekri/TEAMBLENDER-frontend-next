@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import useSocket from '@/lib/socket';
 import { getApiUrl } from '@/lib/config';
+import { getAuthHeaders, clearStoredAuth } from '@/lib/auth';
 import AppNav from '@/components/AppNav';
 import ToastContainer from '@/components/ToastContainer';
 import useToast from '@/lib/useToast';
@@ -77,7 +78,6 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     setLoading(true);
     const loadingId = showLoadingToast('Chargement du challenge...');
 
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const rawUser = sessionStorage.getItem('currentUser');
     let currentUser = null;
     try {
@@ -99,10 +99,8 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
 
     fetch(getApiUrl(`/sessions/${sessionId}/runtime-challenge`), {
       cache: 'no-store',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
+      credentials: 'include',
     })
       .then((res) => {
         if (!res.ok) throw new Error(`Erreur ${res.status}: ${res.statusText}`);
@@ -188,13 +186,10 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     if (!socket) return () => {};
 
     const handleRuntimeResync = () => {
-      const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
       fetch(getApiUrl(`/sessions/${sessionId}/runtime-challenge`), {
         cache: 'no-store',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
+        credentials: 'include',
       })
         .then((res) => {
           if (!res.ok) throw new Error(`Erreur ${res.status}: ${res.statusText}`);
@@ -391,9 +386,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
   const { component: EngineComponent, props } = engineComponent;
 
   function handleLogout() {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
+    clearStoredAuth();
     window.location.replace('/login');
   }
 

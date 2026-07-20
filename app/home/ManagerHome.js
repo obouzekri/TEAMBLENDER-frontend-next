@@ -10,7 +10,7 @@ import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import { getApiUrl } from '@/lib/config';
 import useToast from '@/lib/useToast';
 import { fetchSessionsWithRetry } from '@/lib/api';
-import { clearStoredAuth } from '@/lib/auth';
+import { clearStoredAuth, getAuthHeaders } from '@/lib/auth';
 import { trackGaEvent, trackProductSessionEvent } from '@/lib/analytics';
 import useI18n from '@/lib/i18n/useI18n';
 
@@ -94,11 +94,10 @@ function useManagerGuard() {
   useEffect(() => {
     let cancelled = false;
 
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const rawUser = sessionStorage.getItem('currentUser');
     const user = rawUser ? JSON.parse(rawUser) : null;
 
-    if (!token || !user) {
+    if (!user) {
       window.location.replace('/login');
       return;
     }
@@ -108,14 +107,12 @@ function useManagerGuard() {
       return;
     }
 
-    setState({ loading: false, allowed: true, user, token });
+    setState({ loading: false, allowed: true, user, token: '' });
 
     // Refresh profile from backend to expose first_name/last_name in nav even if session storage is stale.
     fetch(getApiUrl('/users/me'), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
+      credentials: 'include',
     })
       .then(async (response) => {
         if (!response.ok) return null;

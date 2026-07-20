@@ -3,6 +3,7 @@
 import styles from './ParticipantAssigner.module.css';
 import { useState, useEffect } from 'react';
 import { getApiUrl } from '@/lib/config';
+import { getAuthHeaders } from '@/lib/auth';
 
 export default function ParticipantAssigner({
   isLoading,
@@ -41,21 +42,10 @@ export default function ParticipantAssigner({
   }, [selectedIds]);
 
   useEffect(() => {
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-    if (!token) {
-      setLoadingParticipants(false);
-      if (typeof onParticipantsLoaded === 'function') {
-        onParticipantsLoaded(0);
-      }
-      return;
-    }
-
     setLoadingParticipants(true);
     fetch(getApiUrl('/participants'), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
+      credentials: 'include',
     })
       .then(async (res) => {
         const text = await res.text();

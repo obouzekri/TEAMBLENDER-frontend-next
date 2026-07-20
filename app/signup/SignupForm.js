@@ -17,6 +17,7 @@ import {
   readOAuthCallbackFromLocation,
   registerUser,
   resolveConnectedUserId,
+  setStoredAuthSession,
 } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
@@ -68,9 +69,7 @@ export default function SignupForm() {
       return;
     }
 
-    localStorage.setItem('jwt', oauth.token);
-    sessionStorage.setItem('jwt', oauth.token);
-    sessionStorage.setItem('currentUser', JSON.stringify(oauth.user));
+    setStoredAuthSession({ token: oauth.token, user: oauth.user });
 
     try {
       posthog.capture('signup_oauth', {

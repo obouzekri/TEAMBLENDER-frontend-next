@@ -11,6 +11,7 @@ import {
   createProRequest,
   getStoredCurrentUser,
 } from '@/lib/account';
+import { clearStoredAuth } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
 function formatPriceCents(priceCents, currency, locale = 'fr') {
@@ -52,9 +53,8 @@ export default function CheckoutPage() {
   // Auth guard
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
     const current = getStoredCurrentUser?.() || null;
-    if (!token || !current) {
+    if (!current) {
       window.location.replace(withLocalePath('/login'));
       return;
     }
@@ -86,14 +86,12 @@ export default function CheckoutPage() {
       .catch(() => {
         showError(t('checkout.loadPlansError'));
       });
-  }, [guard.allowed, t]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [guard.allowed, t]);
 
   const userLabel = useMemo(() => normalizeDisplayName(guard.user), [guard.user]);
 
   function logout() {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
+    clearStoredAuth();
     window.location.replace('/login');
   }
 

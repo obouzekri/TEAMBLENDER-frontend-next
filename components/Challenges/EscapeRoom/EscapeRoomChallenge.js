@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { getApiUrl, normalizeBackendAssetUrl } from '@/lib/config';
+import { getAuthHeaders } from '@/lib/auth';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
@@ -166,11 +167,6 @@ export default function EscapeRoomChallenge({
     [role]
   );
 
-  const token = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    return localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-  }, []);
-
   const endpointBase = useMemo(() => {
     if (!sessionId || !challengeId) return '';
     return `/sessions/${sessionId}/escape-room/${challengeId}`;
@@ -182,10 +178,12 @@ export default function EscapeRoomChallenge({
         cache: 'no-store',
         ...init,
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-          ...(init.headers || {}),
+          ...getAuthHeaders({
+            'Content-Type': 'application/json',
+            ...(init.headers || {}),
+          }),
         },
+        credentials: 'include',
       });
 
       const body = await response.text();
@@ -202,11 +200,11 @@ export default function EscapeRoomChallenge({
 
       return payload;
     },
-    [endpointBase, token]
+    [endpointBase]
   );
 
   const loadState = useCallback(async () => {
-    if (!endpointBase || !token) return;
+    if (!endpointBase) return;
 
     if (inFlightStateRef.current) {
       return inFlightStateRef.current;

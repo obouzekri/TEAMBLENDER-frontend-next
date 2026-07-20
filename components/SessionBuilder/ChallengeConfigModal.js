@@ -4,6 +4,7 @@ import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { buildBackendAssetCandidates, getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
+import { withCsrfHeaders } from '@/lib/csrf';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
@@ -634,22 +635,13 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     }
 
     setIsUploadingImage(true);
-    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
-    if (!token) {
-      setUploadError('Session expired. Please sign in again.');
-      setIsUploadingImage(false);
-      event.target.value = '';
-      return;
-    }
-
     const formData = new FormData();
     formData.append('image', file);
 
     fetch(getApiUrl('/challenges/upload-image'), {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: withCsrfHeaders(),
+      credentials: 'include',
       body: formData,
     })
       .then(async (response) => {
