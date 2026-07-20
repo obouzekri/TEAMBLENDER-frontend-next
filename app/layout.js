@@ -21,8 +21,20 @@ const fontDisplay = Inter({
 });
 
 export const metadata = {
-  title: 'TeamBlender',
-  description: 'TeamBlender frontend migration lot 1',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  title: {
+    default: 'TeamBlender | Team building B2B pour managers et RH',
+    template: '%s | TeamBlender',
+  },
+  description:
+    'Plateforme B2B de team building pour managers et RH: creez, animez et mesurez des sessions collaboratives hybrides.',
+  openGraph: {
+    title: 'TeamBlender | Team building B2B pour managers et RH',
+    description:
+      'Plateforme B2B de team building pour managers et RH: creez, animez et mesurez des sessions collaboratives hybrides.',
+    type: 'website',
+    images: ['/teamblender-nav-logo.png'],
+  },
   icons: {
     icon: '/icon.svg'
   }

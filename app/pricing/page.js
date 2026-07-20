@@ -156,6 +156,11 @@ export default function PricingPage() {
               ? 'Start light, then scale with more capabilities, support, and customization.'
               : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
           </p>
+          <p>
+            {isEn
+              ? '14-day free trial, no credit card required.'
+              : 'Essai gratuit 14 jours, sans carte bancaire.'}
+          </p>
         </section>
 
         {/* Billing Cycle & Currency Selector */}
