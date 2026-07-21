@@ -6522,6 +6522,7 @@ a {
 
 .participants-panel-head > div {
   max-width: 68ch;
+  min-width: 0;
 }
 
 .participants-panel-actions {
@@ -7493,6 +7494,19 @@ a {
   box-shadow: 0 8px 18px rgba(18, 50, 37, 0.05);
 }
 
+.session-item > div,
+.session-card-body,
+.participant-session-card__body,
+.participants-panel-kpis {
+  min-width: 0;
+}
+
+.session-title,
+.session-meta,
+.participants-panel-kpis span {
+  overflow-wrap: anywhere;
+}
+
 .session-item-actions {
   display: flex;
   align-items: center;
@@ -7895,6 +7909,7 @@ a {
   color: var(--participant-text-strong);
   line-height: 1.35;
   letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
 }
 
 .participant-session-card__date {
@@ -7904,6 +7919,7 @@ a {
   display: flex;
   align-items: center;
   gap: 5px;
+  overflow-wrap: anywhere;
 }
 
 .participant-session-card__footer {
@@ -7922,6 +7938,7 @@ a {
   margin: 0 0 12px;
   font-size: 14px;
   color: var(--participant-text-soft);
+  overflow-wrap: anywhere;
 }
 
 .participant-meta-line strong {
@@ -7986,6 +8003,7 @@ a {
   color: var(--participant-text-soft);
   margin: 0;
   font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .participant-team-badge {
@@ -10271,6 +10289,21 @@ a {
 
   .site-footer {
     margin-top: 1.6rem;
+  }
+
+  .participant-panel {
+    border-radius: 18px;
+  }
+
+  .participant-panel::before {
+    width: 3px;
+    border-radius: 18px 0 0 18px;
+  }
+
+  .participant-session-card__body,
+  .participant-session-card__footer {
+    padding-left: 0.92rem;
+    padding-right: 0.92rem;
   }
 
   .footer-inner {
