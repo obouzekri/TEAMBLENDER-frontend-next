@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle, Circle, Eye, EyeOff, LockKeyhole, Mail, User } from 'lucide-react';
+import { CheckCircle, Circle, CheckCircle2, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, User } from 'lucide-react';
 import AuthCard from '@/components/AuthCard';
 import AuthField from '@/components/AuthField';
 import AuthShowcase from '@/components/AuthShowcase';
@@ -52,6 +52,13 @@ export default function SignupForm() {
     : passwordScore <= 3 ? 'good'
     : passwordScore <= 4 ? 'strong'
     : 'excellent';
+
+  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+  const emailLooksValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
+  const showEmailStatus = Boolean(touched.email) && normalizedEmail.length > 0;
+  const emailStatusLabel = emailLooksValid
+    ? (isEn ? 'Email format looks valid' : 'Le format de l’email est valide')
+    : (isEn ? 'Enter a valid email address' : 'Saisissez une adresse email valide');
 
   useEffect(() => {
     const oauth = readOAuthCallbackFromLocation();
@@ -113,7 +120,7 @@ export default function SignupForm() {
 
     const f = firstName.trim();
     const l = lastName.trim();
-    const e = email.trim().toLowerCase();
+    const e = normalizedEmail;
 
     if (!f || !l || !e || !password) {
       setMessage(isEn ? 'Please fill in all fields.' : 'Veuillez remplir tous les champs.');
@@ -189,6 +196,9 @@ export default function SignupForm() {
               loading={loading}
               loadingProvider={oauthLoadingProvider}
               microsoftEnabled={microsoftLoginEnabled}
+              stacked
+              googleLabelOverride={isEn ? 'Continue with Google' : 'Continuer avec Google'}
+              separatorLabelOverride={isEn ? 'Or continue with your email address' : 'Ou continuer avec votre adresse email'}
               onProviderClick={(provider) => startOAuth(provider)}
             />
 
@@ -205,8 +215,29 @@ export default function SignupForm() {
               </AuthField>
             </div>
 
-            <AuthField id="signup-email" label={isEn ? 'Work email' : 'Email professionnel'} icon={<Mail size={18} strokeWidth={1.9} />}>
-              <input id="signup-email" type="email" name="signup_email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => setTouched(t => ({ ...t, email: true }))} required placeholder={isEn ? 'you@company.com' : 'vous@entreprise.com'} aria-label={isEn ? 'Work email' : 'Email professionnel'} />
+            <AuthField
+              id="signup-email"
+              label={isEn ? 'Work email' : 'Email professionnel'}
+              icon={<Mail size={18} strokeWidth={1.9} />}
+              after={showEmailStatus ? (
+                <span className={`auth-input-status${emailLooksValid ? ' is-valid' : ''}`} aria-label={emailStatusLabel} title={emailStatusLabel}>
+                  <CheckCircle2 size={16} strokeWidth={2} />
+                </span>
+              ) : null}
+            >
+              <input
+                id="signup-email"
+                type="email"
+                name="signup_email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                onBlur={() => setTouched((current) => ({ ...current, email: true }))}
+                required
+                placeholder={isEn ? 'you@company.com' : 'vous@entreprise.com'}
+                aria-label={isEn ? 'Work email' : 'Email professionnel'}
+                aria-invalid={showEmailStatus ? String(!emailLooksValid) : undefined}
+              />
             </AuthField>
 
             <AuthField id="signup-password" label={isEn ? 'Password' : 'Mot de passe'} icon={<LockKeyhole size={18} strokeWidth={1.9} />} className="auth-field--password">
@@ -262,8 +293,15 @@ export default function SignupForm() {
               </div>
             )}
 
-            <button type="submit" className="btn-primary wide" disabled={loading}>
-              {loading ? (isEn ? 'Creating...' : 'Création...') : (isEn ? 'Create account' : 'Créer mon compte')}
+            <button type="submit" className="btn-primary wide login-submit-btn" disabled={loading} aria-busy={loading}>
+              {loading ? (
+                <>
+                  <LoaderCircle className="login-submit-spinner" size={18} strokeWidth={2.2} />
+                  <span>{isEn ? 'Creating...' : 'Création...'}</span>
+                </>
+              ) : (
+                isEn ? 'Create account' : 'Créer mon compte'
+              )}
             </button>
 
             {message ? <p className="form-error">{message}</p> : null}
