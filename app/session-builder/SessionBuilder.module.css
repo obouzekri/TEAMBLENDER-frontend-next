@@ -209,6 +209,79 @@
   flex-wrap: wrap;
 }
 
+.creationStepper {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(53, 160, 255, 0.16);
+  background: rgba(255, 255, 255, 0.72);
+  overflow: hidden;
+}
+
+.creationStepperItem {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  flex: 1 1 0;
+  color: #64748b;
+}
+
+.creationStepperItemActive {
+  color: var(--builder-accent-strong);
+}
+
+.creationStepperItemCurrent {
+  color: #0f172a;
+}
+
+.creationStepperNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.9);
+  color: #475569;
+  flex-shrink: 0;
+}
+
+.creationStepperItemActive .creationStepperNumber {
+  background: linear-gradient(135deg, rgba(53, 160, 255, 0.18) 0%, rgba(47, 98, 255, 0.26) 100%);
+  color: var(--builder-accent-strong);
+}
+
+.creationStepperItemCurrent .creationStepperNumber {
+  background: linear-gradient(135deg, var(--builder-accent) 0%, var(--builder-accent-strong) 100%);
+  color: #fff;
+  box-shadow: 0 10px 18px rgba(47, 98, 255, 0.2);
+}
+
+.creationStepperIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.creationStepperLabel {
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.creationStepperConnector {
+  position: absolute;
+  right: -0.4rem;
+  top: 50%;
+  width: 0.8rem;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(53, 160, 255, 0.28) 0%, rgba(53, 160, 255, 0.08) 100%);
+}
+
 .creationHeroBadge {
   display: inline-flex;
   align-items: center;
@@ -223,7 +296,7 @@
 }
 
 .creationPrerequisite {
-  margin: 0.75rem 0 0;
+  margin: 1rem 0 0;
   padding: 0.7rem 0.95rem;
   border-radius: 14px;
   border: 1px solid rgba(53, 160, 255, 0.2);
@@ -279,8 +352,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  align-items: stretch;
-  margin-top: 2rem;
+  align-items: start;
+  margin-top: 1.35rem;
 }
 
 .creationPrimary,
@@ -310,6 +383,10 @@
   border: 1px solid var(--builder-line);
   box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
   backdrop-filter: blur(16px);
+}
+
+.creationDateInput {
+  padding-right: 1rem;
 }
 
 .creationOverviewCard {
@@ -540,8 +617,9 @@
 }
 
 .flowModeCard {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
   gap: 0.85rem;
   padding: 1rem;
   border-radius: 20px;
@@ -559,6 +637,23 @@
 .flowModeCard input {
   margin-top: 0.2rem;
   accent-color: var(--accent, #2f62ff);
+}
+
+.flowModeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 14px;
+  background: rgba(53, 160, 255, 0.1);
+  color: var(--builder-accent-strong);
+  flex-shrink: 0;
+}
+
+.flowModeIconSvg {
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 .flowModeCardActive {
@@ -599,11 +694,20 @@
 }
 
 .creationGlobalActions {
+  position: sticky;
+  bottom: 0.75rem;
+  z-index: 5;
   display: flex;
   align-items: center;
   gap: 0.9rem;
   justify-content: flex-end;
   margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(53, 160, 255, 0.18);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(16px);
   flex-wrap: wrap;
 }
 
@@ -623,6 +727,13 @@
   min-height: 3.2rem;
   border-radius: 999px;
   box-shadow: 0 18px 40px rgba(99, 102, 241, 0.2);
+  background: linear-gradient(135deg, var(--builder-accent) 0%, var(--builder-accent-strong) 100%);
+}
+
+.creationSubmit:disabled {
+  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+  box-shadow: none;
+  opacity: 0.72;
 }
 
 .creationPrimary,

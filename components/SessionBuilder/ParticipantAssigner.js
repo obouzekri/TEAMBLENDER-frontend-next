@@ -36,6 +36,19 @@ export default function ParticipantAssigner({
     return combined || getMemberDisplayName(member);
   }
 
+  function getInitials(member) {
+    const first = String(member?.first_name || member?.firstname || '').trim();
+    const last = String(member?.last_name || member?.lastname || '').trim();
+    const source = `${first} ${last}`.trim() || String(member?.name || member?.email || 'U').trim();
+
+    return source
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join('') || 'U';
+  }
+
   useEffect(() => {
     if (!Array.isArray(selectedIds)) return;
     setSelected(selectedIds);
@@ -122,6 +135,8 @@ export default function ParticipantAssigner({
   };
 
   const showHeader = Boolean(String(title || '').trim() || String(subtitle || '').trim());
+  const canSelectAll = participants.length > 0 && selected.length < participants.length;
+  const canDeselectAll = selected.length > 0;
 
   return (
     <div className={embedded ? styles.containerEmbedded : styles.container}>
@@ -141,14 +156,37 @@ export default function ParticipantAssigner({
           </div>
         ) : (
           <>
-            <div className={styles.searchBox}>
-              <input
-                type="text"
-                placeholder="Search by name or email"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={styles.input}
-              />
+            <div className={styles.toolbar}>
+              <div className={styles.searchBox}>
+                <input
+                  type="text"
+                  placeholder="Search by name or email"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={styles.input}
+                />
+              </div>
+
+              {participants.length > 0 ? (
+                <div className={styles.controls}>
+                  <button
+                    type="button"
+                    onClick={selectAll}
+                    className={styles.btnLink}
+                    disabled={!canSelectAll}
+                  >
+                    Select all
+                  </button>
+                  <button
+                    type="button"
+                    onClick={deselectAll}
+                    className={styles.btnLink}
+                    disabled={!canDeselectAll}
+                  >
+                    Deselect all
+                  </button>
+                </div>
+              ) : null}
             </div>
 
             {participants.length === 0 ? (
@@ -161,24 +199,6 @@ export default function ParticipantAssigner({
               </div>
             ) : (
               <>
-                <div className={styles.controls}>
-                  <button
-                    type="button"
-                    onClick={selectAll}
-                    className={styles.btnLink}
-                  >
-                    Select all
-                  </button>
-                  <span className={styles.divider}>•</span>
-                  <button
-                    type="button"
-                    onClick={deselectAll}
-                    className={styles.btnLink}
-                  >
-                    Deselect all
-                  </button>
-                </div>
-
                 <div className={styles.list}>
                   {filteredParticipants.map((participant) => (
                     <label key={participant.id} className={styles.item}>
@@ -187,18 +207,21 @@ export default function ParticipantAssigner({
                         checked={selected.includes(participant.id)}
                         onChange={() => toggleParticipant(participant.id)}
                       />
+                      <span className={styles.avatar} aria-hidden="true">{getInitials(participant)}</span>
                       <div className={styles.info}>
                         {embedded ? (
-                          <span className={styles.identityInline}>{getEmbeddedName(participant)}</span>
+                          <>
+                            <span className={styles.identityInline}>{getEmbeddedName(participant)}</span>
+                            {participant.email ? <span className={styles.email}>{participant.email}</span> : null}
+                          </>
                         ) : (
                           <>
                             <strong>{getMemberDisplayName(participant)}</strong>
-                            {participant.email && (
-                              <span className={styles.email}>{participant.email}</span>
-                            )}
+                            {participant.email ? <span className={styles.email}>{participant.email}</span> : null}
                           </>
                         )}
                       </div>
+                      <span className={styles.badge}>{embedded ? 'Participant' : 'Selected'}</span>
                     </label>
                   ))}
                 </div>
