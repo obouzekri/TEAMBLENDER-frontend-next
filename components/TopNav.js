@@ -76,34 +76,50 @@ export default function TopNav({ compact = false }) {
   return (
     <header className={`top-nav${compact ? ' top-nav--compact' : ''}${isLandingHome ? ' top-nav--landing' : ''}`}>
       <div className="shell nav-inner">
-        <div className="nav-top-row">
-          <div className="nav-brand-block">
+        {compact ? (
+          <div className="nav-auth-row">
             <Link href={withLocalePath('/')} className="brand">
               <Logo />
             </Link>
+
+            <div className="nav-auth-actions" aria-label={t('nav.accountAria')}>
+              <LanguageSwitcher />
+              <Link href={mobileSignupHref} className="nav-cta-btn nav-auth-signup-btn">
+                {t('nav.signup')}
+              </Link>
+            </div>
           </div>
+        ) : (
+          <div className="nav-top-row">
+            <div className="nav-brand-block">
+              <Link href={withLocalePath('/')} className="brand">
+                <Logo />
+              </Link>
+            </div>
 
-          <div className={`nav-mobile-cta${isLandingHome ? ' nav-mobile-cta--landing' : ''}`} aria-label={t('nav.accountAria')}>
-            <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn">
-              {t('nav.login')}
-            </Link>
+            <div className={`nav-mobile-cta${isLandingHome ? ' nav-mobile-cta--landing' : ''}`} aria-label={t('nav.accountAria')}>
+              <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn">
+                {t('nav.login')}
+              </Link>
+            </div>
+
+            <button
+              type="button"
+              className={`nav-toggle ${isMenuOpen ? 'is-open' : ''}`}
+              aria-expanded={isMenuOpen}
+              aria-controls="top-nav-panel"
+              aria-label={isMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
+              onClick={() => setIsMenuOpen((current) => !current)}
+            >
+              <span className="nav-toggle__line" />
+              <span className="nav-toggle__line" />
+              <span className="nav-toggle__line" />
+            </button>
           </div>
+        )}
 
-          <button
-            type="button"
-            className={`nav-toggle ${isMenuOpen ? 'is-open' : ''}`}
-            aria-expanded={isMenuOpen}
-            aria-controls="top-nav-panel"
-            aria-label={isMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
-            onClick={() => setIsMenuOpen((current) => !current)}
-          >
-            <span className="nav-toggle__line" />
-            <span className="nav-toggle__line" />
-            <span className="nav-toggle__line" />
-          </button>
-        </div>
-
-        <div id="top-nav-panel" className={`nav-panel ${isMenuOpen ? 'is-open' : ''}`}>
+        {!compact ? (
+          <div id="top-nav-panel" className={`nav-panel ${isMenuOpen ? 'is-open' : ''}`}>
           <div className="nav-main-block">
             <nav className="nav-links" aria-label={t('nav.mainAria')}>
               <NavItem href={withLocalePath('/')} active={isActive('/')} onClick={() => setIsMenuOpen(false)}>{t('nav.product')}</NavItem>
@@ -193,10 +209,11 @@ export default function TopNav({ compact = false }) {
               </>
             )}
           </div>
-        </div>
+          </div>
+        ) : null}
       </div>
 
-      {isMenuOpen ? (
+      {!compact && isMenuOpen ? (
         <button
           type="button"
           className="nav-mobile-overlay"

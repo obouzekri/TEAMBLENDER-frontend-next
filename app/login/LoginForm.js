@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
+import { CheckCircle2, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail } from 'lucide-react';
 import AuthCard from '@/components/AuthCard';
 import AuthField from '@/components/AuthField';
 import AuthShowcase from '@/components/AuthShowcase';
@@ -48,6 +48,14 @@ export default function LoginForm({ requestedSessionId = '' }) {
   const [resendMessage, setResendMessage] = useState('');
   const [oauthLoadingProvider, setOauthLoadingProvider] = useState('');
   const [needsVerificationResend, setNeedsVerificationResend] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+
+  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+  const emailLooksValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
+  const showEmailStatus = emailTouched && normalizedEmail.length > 0;
+  const emailStatusLabel = emailLooksValid
+    ? (isEn ? 'Email format looks valid' : 'Le format de l’email est valide')
+    : (isEn ? 'Enter a valid email address' : 'Saisissez une adresse email valide');
 
   useEffect(() => {
     const oauth = readOAuthCallbackFromLocation();
@@ -118,7 +126,6 @@ export default function LoginForm({ requestedSessionId = '' }) {
     setResendStatus('idle');
     setResendMessage('');
 
-    const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) {
       setMessage(isEn ? 'Please fill in all fields.' : 'Veuillez remplir tous les champs.');
       return;
@@ -200,8 +207,8 @@ export default function LoginForm({ requestedSessionId = '' }) {
       <AuthShowcase
         title={isEn ? 'Launch collaborative challenges in real time.' : 'Lancez des challenges collaboratifs en temps reel.'}
         description={isEn
-          ? 'Access your sessions, run your team activities, and keep clear real-time visibility from a clean professional interface.'
-          : 'Retrouvez vos sessions, animez vos equipes et gardez une vision claire du realtime depuis une interface sobre, fluide et professionnelle.'}
+            ? 'Access your sessions, run your team activities, and keep clear real-time visibility from a focused professional interface.'
+            : 'Retrouvez vos sessions, animez vos equipes et gardez une vision claire du realtime depuis une interface professionnelle et concentree.'}
         highlights={[
           { title: isEn ? 'Realtime orchestration' : 'Realtime orchestration', text: isEn ? 'Start a session, track connections, and run challenges without friction.' : 'Lancez une session, suivez les connexions et pilotez vos challenges sans friction.' },
           { title: isEn ? 'Aligned facilitation' : 'Aligned facilitation', text: isEn ? 'Managers, HR, and facilitators share one clear premium product experience.' : 'Managers, RH et facilitateurs accedent a la meme experience produit, claire et premium.' },
@@ -219,20 +226,37 @@ export default function LoginForm({ requestedSessionId = '' }) {
           loading={loading}
           loadingProvider={oauthLoadingProvider}
           microsoftEnabled={microsoftLoginEnabled}
+          stacked
+          googleLabelOverride={isEn ? 'Continue with Google' : 'Continuer avec Google'}
+          separatorLabelOverride={isEn ? 'Or continue with your email address' : 'Ou continuer avec votre adresse email'}
           onProviderClick={(provider) => startOAuth(provider)}
         />
 
         <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
-          <AuthField id="login-email" label={isEn ? 'Work email' : 'Email professionnel'} icon={<Mail size={18} strokeWidth={1.9} />}>
+          <AuthField
+            id="login-email"
+            label={isEn ? 'Work email' : 'Email professionnel'}
+            icon={<Mail size={18} strokeWidth={1.9} />}
+            after={showEmailStatus ? (
+              <span className={`auth-input-status${emailLooksValid ? ' is-valid' : ''}`} aria-label={emailStatusLabel} title={emailStatusLabel}>
+                <CheckCircle2 size={16} strokeWidth={2} />
+              </span>
+            ) : null}
+          >
             <input
               id="login-email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setEmailTouched(true);
+              }}
+              onBlur={() => setEmailTouched(true)}
               required
               placeholder={isEn ? 'you@company.com' : 'vous@entreprise.com'}
               autoComplete="email"
               aria-label={isEn ? 'Work email' : 'Email professionnel'}
+              aria-invalid={showEmailStatus ? String(!emailLooksValid) : undefined}
             />
           </AuthField>
 
@@ -261,8 +285,15 @@ export default function LoginForm({ requestedSessionId = '' }) {
             </div>
           </AuthField>
 
-          <button type="submit" className="btn-primary wide" disabled={loading}>
-            {loading ? (isEn ? 'Signing in...' : 'Connexion...') : (isEn ? 'Log in' : 'Se connecter')}
+          <button type="submit" className="btn-primary wide login-submit-btn" disabled={loading} aria-busy={loading}>
+            {loading ? (
+              <>
+                <LoaderCircle className="login-submit-spinner" size={18} strokeWidth={2.2} />
+                <span>{isEn ? 'Signing in...' : 'Connexion...'}</span>
+              </>
+            ) : (
+              isEn ? 'Log in' : 'Se connecter'
+            )}
           </button>
 
           {message ? <p className="form-error">{message}</p> : null}

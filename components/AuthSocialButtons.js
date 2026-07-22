@@ -55,23 +55,26 @@ export default function AuthSocialButtons({
   loadingProvider = '',
   onProviderClick,
   microsoftEnabled = false,
+  stacked = false,
+  googleLabelOverride = '',
+  separatorLabelOverride = '',
 }) {
   const { locale } = useI18n();
   const isEn = locale === 'en';
   const busy = loading || loadingProvider !== '';
   const unavailableLabel = isEn ? 'Coming soon' : 'Bientot disponible';
   const socialGroupLabel = isEn ? 'Social sign-ins' : 'Connexions sociales';
-  const continueWithEmail = isEn ? 'Or continue with your email address' : 'Ou continuer avec votre adresse email';
-  const googleLabel = loadingProvider === 'google'
+  const continueWithEmail = separatorLabelOverride || (isEn ? 'Or continue with your email address' : 'Ou continuer avec votre adresse email');
+  const googleLabel = googleLabelOverride || (loadingProvider === 'google'
     ? (isEn ? 'Redirecting to Google...' : 'Redirection Google...')
-    : (isEn ? 'Continue with Gmail' : 'Continuer avec Gmail');
+    : (isEn ? 'Continue with Gmail' : 'Continuer avec Gmail'));
   const microsoftLabel = loadingProvider === 'microsoft'
     ? (isEn ? 'Redirecting to Microsoft...' : 'Redirection Microsoft...')
     : (isEn ? 'Continue with Microsoft' : 'Continuer avec Microsoft');
 
   return (
     <div className="social-auth-stack">
-      <div className="social-auth-row" role="group" aria-label={socialGroupLabel}>
+      <div className={`social-auth-row${stacked ? ' social-auth-row--stacked' : ''}`} role="group" aria-label={socialGroupLabel}>
         <SocialButton
           label={googleLabel}
           provider="google"
