@@ -243,7 +243,9 @@ export default function ParticipantPage() {
         });
         if (res.ok) {
           const data = await res.json();
-          const members = Array.isArray(data) ? data : (data?.data || data?.participants || []);
+          const members = Array.isArray(data)
+            ? data
+            : (data?.items || data?.data || data?.participants || []);
           setTeamMembers(members);
         }
       } catch (err) {
