@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -24,6 +24,7 @@ import {
   Sparkles,
   Target,
   Users,
+  X,
 } from 'lucide-react';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
@@ -615,6 +616,9 @@ export default function HomePage() {
   const landingStatic = useMemo(() => getLandingStatic(locale), [locale]);
   const [dynamicBlocks, setDynamicBlocks] = useState({});
   const [landingLoaded, setLandingLoaded] = useState(false);
+  const [showStickyCta, setShowStickyCta] = useState(false);
+  const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
+  const heroSentinelRef = useRef(null);
   const isLandingCmsStrict = process.env.NEXT_PUBLIC_LANDING_CMS_STRICT === 'true';
 
   function handlePrimaryCtaClick() {
@@ -795,10 +799,17 @@ export default function HomePage() {
   const testimonialItems = useMemo(
     () => ['testimonial_1', 'testimonial_2', 'testimonial_3'].map((key) => {
       const item = testimonialsSection.blocks[key] || {};
+      const initials = String(item.title || '')
+        .split(' ')
+        .map((part) => String(part || '').trim().slice(0, 1).toUpperCase())
+        .filter(Boolean)
+        .slice(0, 2)
+        .join('');
       return {
         title: item.title || '',
         subtitle: item.subtitle || '',
         description: item.description || '',
+        initials: initials || 'TB',
       };
     }).filter((item) => item.title || item.description),
     [testimonialsSection]
@@ -832,6 +843,56 @@ export default function HomePage() {
       }
     );
   }, [isLandingCmsStrict, landingLoaded, cmsAudit]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') return undefined;
+    const sentinel = heroSentinelRef.current;
+    if (!sentinel) return undefined;
+
+    const mobileQuery = window.matchMedia('(max-width: 768px)');
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowStickyCta(Boolean(mobileQuery.matches && !entry.isIntersecting));
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -24% 0px' }
+    );
+
+    observer.observe(sentinel);
+
+    const handleResize = () => {
+      if (!mobileQuery.matches) {
+        setShowStickyCta(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isPreviewExpanded) return undefined;
+
+    const body = document.body;
+    const previousOverflow = body.style.overflow;
+    body.style.overflow = 'hidden';
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsPreviewExpanded(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isPreviewExpanded]);
 
   return (
     <>
@@ -937,16 +998,31 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <figure className="landing-hero-product-frame">
-                  <Image
-                    src="/images/labyrinthe-hero.jpg"
-                    alt="Interface TeamBlender Labyrinthe en session live collaborative"
-                    width={1200}
-                    height={800}
-                    loading="lazy"
-                    className="landing-hero-product-image"
-                  />
-                </figure>
+                <button
+                  type="button"
+                  className="landing-hero-product-button"
+                  aria-label={locale === 'en' ? 'Open the live preview in fullscreen' : 'Ouvrir l’aperçu produit en plein écran'}
+                  onClick={() => setIsPreviewExpanded(true)}
+                >
+                  <figure className="landing-hero-product-frame landing-hero-product-frame--interactive">
+                    <Image
+                      src="/images/labyrinthe-hero.jpg"
+                      alt="Interface TeamBlender Labyrinthe en session live collaborative"
+                      width={1200}
+                      height={800}
+                      priority
+                      className="landing-hero-product-image"
+                    />
+                    <span className="landing-hero-product-overlay">
+                      <PlayCircle className="h-5 w-5" />
+                      <span>{locale === 'en' ? 'Tap to expand' : 'Tap pour agrandir'}</span>
+                    </span>
+                    <span className="landing-hero-product-motion" aria-hidden="true">
+                      <span className="landing-hero-product-motion__chip">{locale === 'en' ? 'Live loop' : 'Boucle live'}</span>
+                      <span className="landing-hero-product-motion__pulse" />
+                    </span>
+                  </figure>
+                </button>
 
                 <div className="landing-hero-product-signals" aria-label={landingStatic.fallback.liveSignals.label}>
                   <span>
@@ -978,9 +1054,11 @@ export default function HomePage() {
           </div>
         </section>
 
+        <div ref={heroSentinelRef} className="landing-hero-sentinel" aria-hidden="true" />
+
         {impactItems.length > 0 ? (
           <section className="landing-impact-band landing-section-full reveal-up" style={{ '--reveal-delay': '90ms' }} aria-label={locale === 'en' ? 'Key metrics' : 'Indicateurs cles'}>
-            <div className="landing-section-inner grid gap-4 md:grid-cols-3">
+            <div className="landing-section-inner grid gap-4 md:grid-cols-3 landing-impact-carousel">
               {impactItems.map((item, index) => (
                 <article
                   key={`impact-${index}`}
@@ -996,6 +1074,11 @@ export default function HomePage() {
                     </div>
                   </div>
                 </article>
+              ))}
+            </div>
+            <div className="landing-swipe-dots landing-impact-dots" aria-hidden="true">
+              {impactItems.map((_, index) => (
+                <span key={`impact-dot-${index}`} className={`landing-swipe-dot${index === 0 ? ' is-active' : ''}`} />
               ))}
             </div>
           </section>
@@ -1206,14 +1289,20 @@ export default function HomePage() {
                   <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-indigo-600 shadow-sm">
                     <Quote className="h-4 w-4" />
                   </div>
-                  <p className="text-base leading-7 text-slate-700">“{item.description}”</p>
-                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-200/80 pt-4">
+                  <div className="landing-testimonial-head">
+                    <div className="landing-testimonial-avatar" aria-hidden="true">{item.initials}</div>
                     <div>
                       <strong className="block text-sm font-semibold text-slate-950">{item.title}</strong>
                       <span className="text-sm text-slate-500">{item.subtitle}</span>
                     </div>
                   </div>
+                  <p className="text-base leading-7 text-slate-700">“{item.description}”</p>
                 </article>
+              ))}
+            </div>
+            <div className="landing-swipe-dots landing-testimonial-dots" aria-hidden="true">
+              {testimonialItems.map((_, index) => (
+                <span key={`testimonial-dot-${index}`} className={`landing-swipe-dot${index === 0 ? ' is-active' : ''}`} />
               ))}
             </div>
           </div>
@@ -1275,6 +1364,54 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {isPreviewExpanded ? (
+          <div
+            className="landing-preview-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={locale === 'en' ? 'Live preview fullscreen view' : 'Vue plein écran de l’aperçu produit'}
+            onClick={() => setIsPreviewExpanded(false)}
+          >
+            <div className="landing-preview-modal__panel" onClick={(event) => event.stopPropagation()}>
+              <div className="landing-preview-modal__head">
+                <div>
+                  <p className="landing-hero-product-label">{landingStatic.fallback.productPreview}</p>
+                  <p className="landing-hero-product-title">{landingStatic.fallback.liveExperience}</p>
+                </div>
+                <button
+                  type="button"
+                  className="landing-preview-modal__close"
+                  aria-label={locale === 'en' ? 'Close fullscreen preview' : 'Fermer l’aperçu plein écran'}
+                  onClick={() => setIsPreviewExpanded(false)}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="landing-preview-modal__copy">
+                {locale === 'en'
+                  ? 'A short looping preview keeps the interface readable on mobile, with a fullscreen tap when users want details.'
+                  : 'Un aperçu animé court garde l’interface lisible sur mobile, avec un tap plein écran pour les détails.'}
+              </p>
+              <Image
+                src="/images/labyrinthe-hero.jpg"
+                alt="Interface TeamBlender Labyrinthe en session live collaborative"
+                width={1600}
+                height={1067}
+                className="landing-preview-modal__image"
+              />
+            </div>
+          </div>
+        ) : null}
+
+        {showStickyCta ? (
+          <div className="landing-sticky-cta" role="region" aria-label={locale === 'en' ? 'Quick signup action' : 'Action rapide d’inscription'}>
+            <Link href={heroPrimaryHref} onClick={handlePrimaryCtaClick} className="landing-sticky-cta__button">
+              <span>{locale === 'en' ? 'Start for free' : 'Démarrer gratuitement'}</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        ) : null}
       </main>
       <Footer />
     </>

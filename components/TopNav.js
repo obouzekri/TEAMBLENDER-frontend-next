@@ -15,6 +15,7 @@ export default function TopNav({ compact = false }) {
   const router = useRouter();
   const pathname = usePathname();
   const plainPathname = stripLocaleFromPath(pathname || '/');
+  const isLandingHome = !compact && plainPathname === '/';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
   const { t, withLocalePath } = useI18n();
@@ -73,7 +74,7 @@ export default function TopNav({ compact = false }) {
   }, [isMenuOpen]);
 
   return (
-    <header className={`top-nav${compact ? ' top-nav--compact' : ''}`}>
+    <header className={`top-nav${compact ? ' top-nav--compact' : ''}${isLandingHome ? ' top-nav--landing' : ''}`}>
       <div className="shell nav-inner">
         <div className="nav-top-row">
           <div className="nav-brand-block">
@@ -82,7 +83,7 @@ export default function TopNav({ compact = false }) {
             </Link>
           </div>
 
-          <div className="nav-mobile-cta" aria-label={t('nav.accountAria')}>
+          <div className={`nav-mobile-cta${isLandingHome ? ' nav-mobile-cta--landing' : ''}`} aria-label={t('nav.accountAria')}>
             <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn">
               {t('nav.login')}
             </Link>
@@ -111,6 +112,48 @@ export default function TopNav({ compact = false }) {
               <NavItem href={withLocalePath('/cgu')} active={isActive('/cgu')} onClick={() => setIsMenuOpen(false)}>{t('nav.terms')}</NavItem>
               <NavItem href={withLocalePath('/confidentialite')} active={isActive('/confidentialite') || isActive('/politique-confidentialite')} onClick={() => setIsMenuOpen(false)}>{t('nav.privacy')}</NavItem>
             </nav>
+          </div>
+
+          <div className="nav-mobile-menu-actions" aria-label={t('nav.accountAria')}>
+            <LanguageSwitcher />
+            {sessionUser ? (
+              <AvatarMenu
+                userLabel={avatarLabel}
+                roleLabel={roleLabel}
+                avatarUrl={avatarUrl}
+                avatarInitials={avatarInitials}
+                triggerLabel={t('nav.userMenuOf', { name: avatarLabel })}
+                menuLabel={t('nav.userMenu')}
+                closeSignal={pathname}
+                items={[
+                  {
+                    key: 'account',
+                    label: t('nav.myAccount'),
+                    href: withLocalePath(accountHref),
+                  },
+                  {
+                    key: 'logout',
+                    label: t('appNav.logout'),
+                    danger: true,
+                    onClick: () => {
+                      localStorage.removeItem('jwt');
+                      sessionStorage.removeItem('jwt');
+                      sessionStorage.removeItem('currentUser');
+                      router.push(withLocalePath('/login'));
+                    },
+                  },
+                ]}
+              />
+            ) : (
+              <>
+                <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn">
+                  {t('nav.login')}
+                </Link>
+                <Link href={mobileSignupHref} className="nav-cta-btn nav-mobile-signup-btn">
+                  {t('nav.signup')}
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="nav-actions" aria-label={t('nav.accountAria')}>

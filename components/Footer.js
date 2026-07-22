@@ -7,6 +7,44 @@ import useI18n from '@/lib/i18n/useI18n';
 export default function Footer() {
   const { t, withLocalePath } = useI18n();
 
+  const footerGroups = [
+    {
+      key: 'product',
+      label: t('footer.product'),
+      links: [
+        { href: withLocalePath('/'), label: t('footer.home') },
+        { href: withLocalePath('/signup'), label: t('footer.signup') },
+        { href: withLocalePath('/pricing'), label: t('footer.pricing') },
+      ],
+    },
+    {
+      key: 'resources',
+      label: t('footer.resources'),
+      links: [
+        { href: withLocalePath('/pricing'), label: t('footer.offers') },
+        { href: withLocalePath('/contact'), label: t('footer.askDemo') },
+        { href: withLocalePath('/login'), label: t('footer.clientArea') },
+      ],
+    },
+    {
+      key: 'legal',
+      label: t('footer.legal'),
+      links: [
+        { href: withLocalePath('/cgu'), label: t('footer.terms') },
+        { href: withLocalePath('/mentions-legales'), label: t('footer.legalNotice') },
+        { href: withLocalePath('/confidentialite'), label: t('footer.privacy') },
+        { href: withLocalePath('/contact-rgpd'), label: t('footer.rgpdContact') },
+      ],
+    },
+    {
+      key: 'contact',
+      label: t('footer.contact'),
+      links: [
+        { href: withLocalePath('/contact'), label: t('footer.talkToExpert') },
+      ],
+    },
+  ];
+
   return (
     <footer className="site-footer">
       <div className="shell footer-inner">
@@ -19,33 +57,31 @@ export default function Footer() {
             <p className="footer-copy">{t('footer.brandCopy')}</p>
           </div>
         </div>
-        <div className="footer-columns" aria-label={t('footer.columnsAria')}>
-          <nav className="footer-col" aria-label={t('footer.product')}>
-            <p>{t('footer.product')}</p>
-            <Link href={withLocalePath('/')}>{t('footer.home')}</Link>
-            <Link href={withLocalePath('/signup')}>{t('footer.signup')}</Link>
-            <Link href={withLocalePath('/pricing')}>{t('footer.pricing')}</Link>
-          </nav>
+        <div className="footer-columns footer-columns--desktop" aria-label={t('footer.columnsAria')}>
+          {footerGroups.map((group) => (
+            <nav key={group.key} className="footer-col" aria-label={group.label}>
+              <p>{group.label}</p>
+              {group.links.map((link) => (
+                <Link key={link.href} href={link.href}>{link.label}</Link>
+              ))}
+            </nav>
+          ))}
+        </div>
 
-          <nav className="footer-col" aria-label={t('footer.resources')}>
-            <p>{t('footer.resources')}</p>
-            <Link href={withLocalePath('/pricing')}>{t('footer.offers')}</Link>
-            <Link href={withLocalePath('/contact')}>{t('footer.askDemo')}</Link>
-            <Link href={withLocalePath('/login')}>{t('footer.clientArea')}</Link>
-          </nav>
-
-          <nav className="footer-col" aria-label={t('footer.legal')}>
-            <p>{t('footer.legal')}</p>
-            <Link href={withLocalePath('/cgu')}>{t('footer.terms')}</Link>
-            <Link href={withLocalePath('/mentions-legales')}>{t('footer.legalNotice')}</Link>
-            <Link href={withLocalePath('/confidentialite')}>{t('footer.privacy')}</Link>
-            <Link href={withLocalePath('/contact-rgpd')}>{t('footer.rgpdContact')}</Link>
-          </nav>
-
-          <nav className="footer-col" aria-label={t('footer.contact')}>
-            <p>{t('footer.contact')}</p>
-            <Link href={withLocalePath('/contact')}>{t('footer.talkToExpert')}</Link>
-          </nav>
+        <div className="footer-accordion" aria-label={t('footer.columnsAria')}>
+          {footerGroups.map((group) => (
+            <details key={group.key} className="footer-accordion__item" open>
+              <summary className="footer-accordion__summary">
+                <span>{group.label}</span>
+                <span className="footer-accordion__toggle" aria-hidden="true">+</span>
+              </summary>
+              <div className="footer-accordion__body">
+                {group.links.map((link) => (
+                  <Link key={link.href} href={link.href}>{link.label}</Link>
+                ))}
+              </div>
+            </details>
+          ))}
         </div>
       </div>
     </footer>
