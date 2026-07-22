@@ -139,9 +139,9 @@ function useManagerGuard() {
   return state;
 }
 
-async function fetchSessions(token) {
+async function fetchSessions() {
   try {
-    const data = await fetchSessionsWithRetry(token);
+    const data = await fetchSessionsWithRetry();
     const items = Array.isArray(data) ? data : (data.sessions || data.data || []);
     return Array.isArray(items) ? items : [];
   } catch (err) {
@@ -277,7 +277,7 @@ export default function ManagerHome() {
   }
 
   const refreshSessions = useCallback(async ({ withToast = false } = {}) => {
-    if (!guard.allowed || !guard.token || authInvalid) return;
+    if (!guard.allowed || authInvalid) return;
 
     let loadingId = null;
     setLoadingSessions(true);
@@ -286,7 +286,7 @@ export default function ManagerHome() {
     }
 
     try {
-      const data = await fetchSessions(guard.token);
+      const data = await fetchSessions();
       setSessions(data);
       if (loadingId) {
         removeToast(loadingId);
@@ -303,19 +303,17 @@ export default function ManagerHome() {
     } finally {
       setLoadingSessions(false);
     }
-  }, [authInvalid, guard.allowed, guard.token, removeToast, showErrorToast, showLoadingToast]);
+  }, [authInvalid, guard.allowed, removeToast, showErrorToast, showLoadingToast]);
 
   const refreshMembers = useCallback(async () => {
-    if (!guard.allowed || !guard.token || authInvalid) return;
+    if (!guard.allowed || authInvalid) return;
 
     setLoadingMembers(true);
     try {
       const response = await fetch(getApiUrl('/participants'), {
         cache: 'no-store',
-        headers: {
-          Authorization: `Bearer ${guard.token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
+        credentials: 'include',
       });
 
       const text = await response.text();
@@ -350,7 +348,7 @@ export default function ManagerHome() {
     } finally {
       setLoadingMembers(false);
     }
-  }, [authInvalid, guard.allowed, guard.token, showErrorToast]);
+  }, [authInvalid, guard.allowed, showErrorToast]);
 
 
 
@@ -422,7 +420,7 @@ export default function ManagerHome() {
 
   async function handleDeleteSession(session) {
     const sessionIdentifier = getSessionIdentifier(session);
-    if (!guard.token || !sessionIdentifier) return;
+    if (!sessionIdentifier) return;
     const label = session.name || `Session #${sessionIdentifier}`;
     const accepted = window.confirm(`Delete ${label}? This action is irreversible.`);
     if (!accepted) return;
@@ -431,10 +429,8 @@ export default function ManagerHome() {
     try {
       const response = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionIdentifier)}`), {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${guard.token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -497,7 +493,7 @@ export default function ManagerHome() {
     event.preventDefault();
     setFormAttempted(true);
     setMemberFormStatus('');
-    if (!guard.token || !guard.user?.id || creatingMember) return;
+    if (!guard.user?.id || creatingMember) return;
 
     const firstName = String(memberForm.first_name || '').trim();
     const lastName = String(memberForm.last_name || '').trim();
@@ -560,10 +556,8 @@ export default function ManagerHome() {
 
       const response = await fetch(targetUrl, {
         method,
-        headers: {
-          Authorization: `Bearer ${guard.token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
+        credentials: 'include',
         body: JSON.stringify(body),
       });
 
@@ -618,7 +612,7 @@ export default function ManagerHome() {
   }
 
   async function handleDeleteMember(member) {
-    if (!guard.token || !member?.id || deletingMemberId) return;
+    if (!member?.id || deletingMemberId) return;
 
     const label = member.email || `${getParticipantFirstName(member)} ${getParticipantLastName(member)}`.trim() || `Participant #${member.id}`;
     const accepted = window.confirm(`Delete ${label}? This action is irreversible.`);
@@ -628,10 +622,8 @@ export default function ManagerHome() {
     try {
       const response = await fetch(getApiUrl(`/participants/${encodeURIComponent(member.id)}`), {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${guard.token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
+        credentials: 'include',
       });
 
       if (!response.ok) {
