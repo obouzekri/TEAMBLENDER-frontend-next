@@ -175,9 +175,110 @@ const STARTUP_GUIDE_STEPS = Object.freeze([
   }
 ]);
 
+const MANAGER_BENEFITS = Object.freeze([
+  'Guided preparation',
+  'Structured live facilitation',
+  'Actionable outcomes',
+]);
+
+function MobileActionMenu({ triggerLabel, menuLabel, items, closeSignal }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    function handlePointerOutside(event) {
+      if (!menuRef.current) return;
+      const path = typeof event.composedPath === 'function' ? event.composedPath() : null;
+      if (Array.isArray(path) && path.includes(menuRef.current)) return;
+      if (!menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerOutside, true);
+    document.addEventListener('touchstart', handlePointerOutside, true);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerOutside, true);
+      document.removeEventListener('touchstart', handlePointerOutside, true);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [closeSignal]);
+
+  function handleAction(item) {
+    setIsOpen(false);
+    if (typeof item.onClick === 'function') {
+      item.onClick();
+    }
+  }
+
+  return (
+    <div className="manager-mobile-menu" ref={menuRef}>
+      <button
+        type="button"
+        className={`icon-action-btn icon-action-btn--mobile-friendly manager-mobile-menu__trigger${isOpen ? ' is-open' : ''}`}
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+        aria-label={triggerLabel}
+        onClick={() => setIsOpen((current) => !current)}
+      >
+        ⋮
+      </button>
+
+      {isOpen ? (
+        <div className="manager-mobile-menu__dropdown" role="menu" aria-label={menuLabel}>
+          {items.map((item) => {
+            const itemClassName = `manager-mobile-menu__item${item.danger ? ' manager-mobile-menu__item--danger' : ''}`;
+            if (item.href) {
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  className={itemClassName}
+                  role="menuitem"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              );
+            }
+
+            return (
+              <button
+                key={item.key}
+                type="button"
+                className={itemClassName}
+                role="menuitem"
+                onClick={() => handleAction(item)}
+                disabled={item.disabled}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function ManagerHome() {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
+  const [activeTrustIndex, setActiveTrustIndex] = useState(0);
   const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
   const guard = useManagerGuard();
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
@@ -194,6 +295,7 @@ export default function ManagerHome() {
   const [memberFormStatus, setMemberFormStatus] = useState('');
   const [showParticipantForm, setShowParticipantForm] = useState(false);
   const [authInvalid, setAuthInvalid] = useState(false);
+  const [mobileMenuSignal, setMobileMenuSignal] = useState(0);
   const onboardingHandledRef = useRef(false);
   const [memberForm, setMemberForm] = useState({
     first_name: '',
@@ -361,6 +463,10 @@ export default function ManagerHome() {
   }, [refreshMembers]);
 
   useEffect(() => {
+    setMobileMenuSignal((current) => current + 1);
+  }, [deletingMemberId, deletingSessionId, visibleCount]);
+
+  useEffect(() => {
     if (!guard.allowed) return;
     if (loadingMembers) return;
     if (onboardingHandledRef.current) return;
@@ -408,6 +514,29 @@ export default function ManagerHome() {
 
   function closeStartupGuide() {
     setIsStartupGuideOpen(false);
+  }
+
+  function handleTrustScroll(event) {
+    const container = event.currentTarget;
+    if (!container) return;
+
+    const items = Array.from(container.querySelectorAll('[data-benefit-index]'));
+    if (!items.length) return;
+
+    const containerLeft = container.getBoundingClientRect().left;
+    let closestIndex = 0;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
+    items.forEach((item) => {
+      const index = Number(item.getAttribute('data-benefit-index'));
+      const distance = Math.abs(item.getBoundingClientRect().left - containerLeft);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = Number.isFinite(index) ? index : 0;
+      }
+    });
+
+    setActiveTrustIndex(closestIndex);
   }
 
   function logout() {
@@ -688,10 +817,23 @@ export default function ManagerHome() {
               {!canCreateSession ? (
                 <p className="home-prerequisite-hint" role="status">{createSessionBlockedReason}</p>
               ) : null}
-              <div className="home-hero-trust" aria-label="Manager benefits">
-                <span>Guided preparation</span>
-                <span>Structured live facilitation</span>
-                <span>Actionable outcomes</span>
+              <div className="home-hero-trust-wrap">
+                <div className="home-hero-trust" aria-label="Manager benefits" onScroll={handleTrustScroll}>
+                  {MANAGER_BENEFITS.map((benefit, index) => (
+                    <span
+                      key={benefit}
+                      data-benefit-index={index}
+                      className={activeTrustIndex === index ? 'is-active' : ''}
+                    >
+                      {benefit}
+                    </span>
+                  ))}
+                </div>
+                <div className="home-hero-trust-dots" aria-hidden="true">
+                  {MANAGER_BENEFITS.map((benefit, index) => (
+                    <span key={benefit} className={activeTrustIndex === index ? 'is-active' : ''} />
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -780,6 +922,11 @@ export default function ManagerHome() {
                     ? withLocalePath(`/session-live/${sessionIdentifier}`)
                     : withLocalePath(`/session-builder?sessionId=${sessionIdentifier}`);
                 const editLink = withLocalePath(`/session-builder?sessionId=${sessionIdentifier}`);
+                const mobileSessionActions = [
+                  { key: 'edit', label: 'Edit session', href: editLink },
+                  { key: 'open', label: isDone ? 'View results' : isActive ? 'Open session' : 'Configure session', href: openLink },
+                  { key: 'delete', label: 'Delete session', danger: true, onClick: () => handleDeleteSession(session), disabled: isDeleting },
+                ];
                 return (
                   <article key={sessionIdentifier} className={`feature-card session-card ${isDeleting ? 'session-card--deleting' : ''}`}>
                     <div className="session-card-body">
@@ -792,6 +939,14 @@ export default function ManagerHome() {
                           <span className="session-date">{formatSessionDate(session.session_date)}</span>
                         ) : null}
                       </p>
+                    </div>
+                    <div className="session-card-mobile-actions">
+                      <MobileActionMenu
+                        triggerLabel="Open session actions"
+                        menuLabel="Session actions"
+                        items={mobileSessionActions}
+                        closeSignal={mobileMenuSignal}
+                      />
                     </div>
                     <div className="session-card-actions">
                       <Link
@@ -880,6 +1035,10 @@ export default function ManagerHome() {
               {members.map((member) => {
                 const title = [getParticipantFirstName(member), getParticipantLastName(member)].filter(Boolean).join(' ').trim() || `Participant #${member.id}`;
                 const details = [member.job_title, member.department].filter(Boolean).join(' · ');
+                const mobileParticipantActions = [
+                  { key: 'edit', label: 'Edit participant', onClick: () => beginEditMember(member), disabled: deletingMemberId === member.id },
+                  { key: 'delete', label: 'Delete participant', danger: true, onClick: () => handleDeleteMember(member), disabled: deletingMemberId === member.id },
+                ];
                 return (
                   <li key={String(member.id)} className="session-item team-member-item">
                     <div>
@@ -889,10 +1048,18 @@ export default function ManagerHome() {
                         {details ? ` · ${details}` : ''}
                       </p>
                     </div>
+                    <div className="team-member-mobile-actions">
+                      <MobileActionMenu
+                        triggerLabel="Open participant actions"
+                        menuLabel="Participant actions"
+                        items={mobileParticipantActions}
+                        closeSignal={mobileMenuSignal}
+                      />
+                    </div>
                     <div className="session-item-actions icon-only-actions team-member-actions">
                       <button
                         type="button"
-                        className="icon-action-btn"
+                        className="icon-action-btn icon-action-btn--mobile-friendly"
                         title="Edit"
                         aria-label="Edit this participant"
                         onClick={() => beginEditMember(member)}
@@ -902,7 +1069,7 @@ export default function ManagerHome() {
                       </button>
                       <button
                         type="button"
-                        className="icon-action-btn icon-action-danger"
+                        className="icon-action-btn icon-action-btn--mobile-friendly icon-action-danger"
                         title="Delete"
                         aria-label="Delete this participant"
                         onClick={() => handleDeleteMember(member)}
