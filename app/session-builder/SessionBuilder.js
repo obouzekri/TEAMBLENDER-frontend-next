@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { CalendarClock, CircleGauge, Layers3, ListChecks } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
@@ -432,6 +433,11 @@ export default function SessionBuilder() {
     () => JSON.stringify(selectedChallenges),
     [selectedChallenges]
   );
+  const creationStep = useMemo(() => {
+    if (!sessionName.trim()) return 1;
+    if (draftParticipantIds.length === 0) return 2;
+    return 3;
+  }, [draftParticipantIds.length, sessionName]);
 
   // On plain /session-builder, reset stale cached session id to start a new flow
   useEffect(() => {
@@ -1207,6 +1213,30 @@ export default function SessionBuilder() {
               <div className={styles.creationHeroTop}>
                 <p className="eyebrow">{t('sessionBuilder.newSessionEyebrow')}</p>
               </div>
+              <nav className={styles.creationStepper} aria-label="Session creation steps">
+                {[
+                  { number: 1, label: 'Cadre', icon: Layers3 },
+                  { number: 2, label: 'Participants', icon: ListChecks },
+                  { number: 3, label: 'Confirmation', icon: CalendarClock },
+                ].map((step, index) => {
+                  const Icon = step.icon;
+                  const isActive = creationStep >= step.number;
+                  const isCurrent = creationStep === step.number;
+
+                  return (
+                    <div
+                      key={step.number}
+                      className={`${styles.creationStepperItem} ${isActive ? styles.creationStepperItemActive : ''} ${isCurrent ? styles.creationStepperItemCurrent : ''}`}
+                    >
+                      <span className={styles.creationStepperNumber} aria-hidden="true">
+                        <Icon className={styles.creationStepperIcon} />
+                      </span>
+                      <span className={styles.creationStepperLabel}>{step.label}</span>
+                      {index < 2 ? <span className={styles.creationStepperConnector} aria-hidden="true" /> : null}
+                    </div>
+                  );
+                })}
+              </nav>
               <p className={styles.creationPrerequisite}>
                 {t('sessionBuilder.prerequisite')}
               </p>
@@ -1235,6 +1265,7 @@ export default function SessionBuilder() {
                         value={sessionDateTime}
                         onChange={(e) => setSessionDateTime(e.target.value)}
                         step="60"
+                        inputClassName={styles.creationDateInput}
                       />
                     </div>
 
@@ -1252,6 +1283,9 @@ export default function SessionBuilder() {
                             checked={flowMode === 'manual'}
                             onChange={() => setFlowMode('manual')}
                           />
+                          <span className={styles.flowModeIcon} aria-hidden="true">
+                            <CircleGauge className={styles.flowModeIconSvg} />
+                          </span>
                           <span className={styles.flowModeContent}>
                             <strong>{t('sessionBuilder.manual')}</strong>
                             <small>{t('sessionBuilder.manualHint')}</small>
@@ -1265,6 +1299,9 @@ export default function SessionBuilder() {
                             checked={flowMode === 'auto'}
                             onChange={() => setFlowMode('auto')}
                           />
+                          <span className={styles.flowModeIcon} aria-hidden="true">
+                            <CalendarClock className={styles.flowModeIconSvg} />
+                          </span>
                           <span className={styles.flowModeContent}>
                             <strong>{t('sessionBuilder.automatic')}</strong>
                             <small>{t('sessionBuilder.automaticHint')}</small>
@@ -1316,9 +1353,11 @@ export default function SessionBuilder() {
                   type="submit"
                   form="create-session-form"
                   className={styles.creationSubmit}
-                  disabled={isCreatingSession || availableParticipantsCount === 0}
+                  disabled={isCreatingSession || availableParticipantsCount === 0 || !sessionName.trim()}
                   title={
-                    availableParticipantsCount === 0
+                    !sessionName.trim()
+                      ? t('sessionBuilder.sessionNamePlaceholder')
+                      : availableParticipantsCount === 0
                       ? t('sessionBuilder.createUnavailableBody')
                       : t('sessionBuilder.createSession')
                   }
