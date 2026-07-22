@@ -1,24 +1,7 @@
 import './globals.css';
-import { Inter } from 'next/font/google';
 import { cookies } from 'next/headers';
 import TrackingConsentGate from '@/components/TrackingConsentGate';
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
-
-const fontUi = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  preload: false,
-  variable: '--font-ui-loaded',
-  weight: ['400', '500', '600', '700'],
-});
-
-const fontDisplay = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  preload: false,
-  variable: '--font-display-loaded',
-  weight: ['500', '600', '700', '800'],
-});
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
@@ -52,7 +35,7 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang={locale}>
-      <body className={`${fontUi.variable} ${fontDisplay.variable}`}>
+      <body>
         <I18nProvider>
           <TrackingConsentGate>{children}</TrackingConsentGate>
         </I18nProvider>

@@ -987,7 +987,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 tabIndex={canMoveSolo ? 0 : -1}
                 onTouchStart={labyPhase !== 'done' ? handleSwipeStart : undefined}
                 onTouchEnd={labyPhase !== 'done' ? handleSwipeEnd : undefined}
-                aria-label="Grille du labyrinthe"
                 aria-label={isEn ? 'Maze grid' : 'Grille du labyrinthe'}
               >
                 {Array.from({ length: mazeRows }).map((_, row) => (
