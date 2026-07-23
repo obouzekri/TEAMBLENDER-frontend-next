@@ -13,7 +13,7 @@
   margin: 0 auto;
   padding: 18px;
   color: var(--ch-text-main);
-  font-family: var(--font-ui, "Inter", "Segoe UI", sans-serif);
+  font-family: var(--font-ui);
   background:
     radial-gradient(1200px 560px at 8% -10%, rgba(40, 179, 208, 0.16), transparent 60%),
     radial-gradient(900px 440px at 90% 0%, rgba(55, 183, 118, 0.1), transparent 55%),
@@ -387,7 +387,7 @@
   margin: 0;
   font-size: 0.74rem;
   color: #9ec3dd;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-ui);
 }
 
 .paletteSwatches {

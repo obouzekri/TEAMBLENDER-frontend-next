@@ -1,5 +1,5 @@
 .timerCard {
-  font-family: var(--font-ui, "Inter", "Segoe UI", sans-serif);
+  font-family: var(--font-ui);
   display: flex;
   flex-direction: column;
   gap: 0.85rem;

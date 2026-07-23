@@ -21,7 +21,7 @@
   margin: 0 auto;
   padding: 20px;
   color: var(--quiz-text);
-  font-family: var(--font-ui, "Inter", "Segoe UI", sans-serif);
+  font-family: var(--font-ui);
   min-height: 100dvh;
 }
 

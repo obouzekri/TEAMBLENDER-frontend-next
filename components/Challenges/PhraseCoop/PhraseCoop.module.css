@@ -12,7 +12,7 @@
   --critical: #ef6b6b;
   --success: #35b776;
   --warn: #f2a640;
-  font-family: var(--font-ui, "Inter", "Segoe UI", sans-serif);
+  font-family: var(--font-ui);
   display: grid;
   gap: 14px;
   min-height: 100dvh;

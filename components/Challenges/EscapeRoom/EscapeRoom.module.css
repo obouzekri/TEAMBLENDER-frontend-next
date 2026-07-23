@@ -13,7 +13,7 @@
   --critical: #ef6b6b;
   --success: #35b776;
   --warn: #f2a640;
-  font-family: var(--font-ui, "Inter", "Segoe UI", sans-serif);
+  font-family: var(--font-ui);
   min-height: 100dvh;
   width: min(100%, 1320px);
   margin: 0 auto;
@@ -521,7 +521,7 @@
 .textMysteryLine {
   margin: 0;
   color: #e2e8f0;
-  font-family: inherit;
+  font-family: var(--font-ui);
   font-size: 13px;
 }
 

@@ -1,5 +1,5 @@
 .labyrinthContainer {
-  font-family: var(--font-ui, "Inter", "Segoe UI", sans-serif);
+  font-family: var(--font-ui);
   --maze-bg-deep: #04080f;
   --maze-bg-surface: #0a1824;
   --maze-wall: #02060a;

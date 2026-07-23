@@ -16,7 +16,7 @@
   --critical: #ef6b6b;
   --success: #35b776;
   --warn: #f2a640;
-  font-family: var(--font-ui, "Inter", "Segoe UI", sans-serif);
+  font-family: var(--font-ui);
   display: grid;
   gap: 14px;
   min-height: 100dvh;
@@ -607,7 +607,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: inherit;
+  font-family: var(--font-ui);
 }
 
 .btnPrimary:hover:not(:disabled) {
@@ -630,7 +630,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: inherit;
+  font-family: var(--font-ui);
 }
 
 .btnSecondary:hover:not(:disabled) {

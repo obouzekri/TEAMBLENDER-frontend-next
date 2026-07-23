@@ -7,7 +7,7 @@
   --challenge-text-secondary: #bfd3e8;
   --challenge-text-muted: #9cb2c7;
   --challenge-text-accent: #7dd3fc;
-  font-family: var(--font-ui, "Inter", "Segoe UI", sans-serif);
+  font-family: var(--font-ui);
   color: var(--challenge-text-secondary);
 }
 
