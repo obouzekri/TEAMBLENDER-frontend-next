@@ -532,6 +532,9 @@ const TRUST_PROOF_METRICS = [
   },
 ];
 
+const METRIC_ICON_SET = [Building2, Gauge, Layers];
+const FLOW_ICON_SET = [Target, PlayCircle, BarChart3];
+
 const TRUST_LOGO_PLACEHOLDERS = ['NovaTech', 'Helios Groupe', 'Axis Retail', 'BluePeak Conseil', 'Mosaic Industries'];
 
 const PLATFORM_STATEMENT = {
@@ -600,10 +603,42 @@ function TrustTag({ title, isActive = false }) {
   );
 }
 
-function TrustProofCard({ value, label, detail }) {
+function resolveHeroTrustIcon(title, index = 0) {
+  const low = String(title || '').toLowerCase();
+  if (/rapid|vite|quick|faster|speed|temps|setup/.test(low)) return Gauge;
+  if (/live|sync|synchron|temps reel|real time|challenge/.test(low)) return PlayCircle;
+  if (/result|insight|mesur|impact|outcome/.test(low)) return BarChart3;
+  if (/hybrid|distance|remote|multi/.test(low)) return Layers;
+  return METRIC_ICON_SET[index % METRIC_ICON_SET.length] || ShieldCheck;
+}
+
+function resolveUseCaseIcon(label, index = 0) {
+  const low = String(label || '').toLowerCase();
+  if (/onboarding|integration|learn|formation/.test(low)) return GraduationCap;
+  if (/rh|hr|talent|people/.test(low)) return Briefcase;
+  if (/multi|site/.test(low)) return Building2;
+  if (/cohes|cohesion|team/.test(low)) return Handshake;
+  if (/manager/.test(low)) return Users;
+  return FLOW_ICON_SET[index % FLOW_ICON_SET.length] || Target;
+}
+
+function resolveMetricIcon(index = 0) {
+  return METRIC_ICON_SET[index % METRIC_ICON_SET.length] || Sparkles;
+}
+
+function resolveFlowStepIcon(index = 0) {
+  return FLOW_ICON_SET[index % FLOW_ICON_SET.length] || PlayCircle;
+}
+
+function TrustProofCard({ value, label, detail, Icon, index = 0 }) {
   return (
-    <article className="rounded-2xl bg-white/80 px-5 py-4 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
-      <p className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{value}</p>
+    <article className="landing-metric-card rounded-2xl bg-white/80 px-5 py-4 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
+      <div className="landing-metric-card__head">
+        <span className={`landing-metric-card__icon landing-metric-card__icon--${index % 3}`} aria-hidden="true">
+          <Icon className="h-4 w-4" />
+        </span>
+        <p className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{value}</p>
+      </div>
       <p className="mt-1 text-sm font-semibold text-slate-800">{label}</p>
       <p className="mt-1 text-xs leading-5 text-slate-600">{detail}</p>
     </article>
@@ -759,6 +794,14 @@ export default function HomePage() {
     [heroSection]
   );
 
+  const heroTrustBadges = useMemo(
+    () => heroTrustItems.slice(0, 3).map((title, index) => ({
+      title,
+      Icon: resolveHeroTrustIcon(title, index),
+    })),
+    [heroTrustItems]
+  );
+
   const structuredHeroTitle = heroTitle === landingStatic.fallback.heroTitle
     ? landingStatic.fallback.heroTitleStructured
     : heroTitle;
@@ -822,6 +865,20 @@ export default function HomePage() {
   const PLATFORM_VALUES_ITEMS = landingStatic.platformValuesItems;
   const PLATFORM_BENEFITS_ITEMS = landingStatic.platformBenefitsItems;
   const USE_CASES = landingStatic.useCases;
+  const useCaseChips = useMemo(
+    () => USE_CASES.map((label, index) => ({
+      label,
+      Icon: resolveUseCaseIcon(label, index),
+    })),
+    [USE_CASES]
+  );
+  const flowStepsWithIcons = useMemo(
+    () => flowSteps.map((step, index) => ({
+      ...step,
+      Icon: resolveFlowStepIcon(index),
+    })),
+    [flowSteps]
+  );
   const glassCardClass = 'rounded-3xl border border-white/60 bg-white/75 shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl';
   const pillClass = 'inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition-all duration-200 ease-in-out';
   const chipClass = 'inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-md transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md';
@@ -969,10 +1026,17 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              {heroTrustItems.length > 0 ? (
-                <p className="landing-hero-trust mt-6 text-sm font-medium leading-7 text-slate-600 sm:text-base">
-                  {heroTrustItems.slice(0, 3).join(' • ')}
-                </p>
+              {heroTrustBadges.length > 0 ? (
+                <ul className="landing-hero-trust mt-6" aria-label={locale === 'en' ? 'Trust points' : 'Points de confiance'}>
+                  {heroTrustBadges.map(({ title, Icon }, index) => (
+                    <li key={`hero-trust-${index}-${title}`} className="landing-hero-trust-item">
+                      <span className="landing-hero-trust-icon" aria-hidden="true">
+                        <Icon className="h-3.5 w-3.5" />
+                      </span>
+                      <span>{title}</span>
+                    </li>
+                  ))}
+                </ul>
               ) : null}
             </div>
 
@@ -1125,7 +1189,14 @@ export default function HomePage() {
 
               <div className="landing-partners-usage rounded-2xl bg-white/6 p-5 shadow-sm ring-1 ring-white/12 backdrop-blur-sm">
                 <p className="landing-partners-title">{locale === 'en' ? 'Teams using TeamBlender' : 'Equipes qui utilisent TeamBlender'}</p>
-                <p className="landing-platform-scent">{USE_CASES.join(' · ')}</p>
+                <div className="landing-platform-scent landing-usecase-chips" aria-label={locale === 'en' ? 'Use cases' : 'Cas d usage'}>
+                  {useCaseChips.map(({ label, Icon }, index) => (
+                    <span key={`use-case-${index}-${label}`} className="landing-usecase-chip">
+                      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>{label}</span>
+                    </span>
+                  ))}
+                </div>
                 <p className="mt-4 text-sm leading-6 text-slate-300">
                   {locale === 'en'
                     ? 'One modern platform, one clear rhythm, and one shared team experience.'
@@ -1135,8 +1206,15 @@ export default function HomePage() {
             </div>
 
             <div className="landing-metrics-grid grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label={locale === 'en' ? 'Key metrics' : 'Indicateurs cles'}>
-              {TRUST_PROOF_METRICS.map((metric) => (
-                <TrustProofCard key={metric.value} value={metric.value} label={metric.label} detail={metric.detail} />
+              {TRUST_PROOF_METRICS.map((metric, index) => (
+                <TrustProofCard
+                  key={`${metric.value}-${index}`}
+                  value={metric.value}
+                  label={metric.label}
+                  detail={metric.detail}
+                  Icon={resolveMetricIcon(index)}
+                  index={index}
+                />
               ))}
             </div>
 
@@ -1325,7 +1403,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="landing-flow-timeline mt-8" role="list" aria-label={locale === 'en' ? 'How TeamBlender works in three steps' : 'Comment TeamBlender fonctionne en trois etapes'}>
-              {flowSteps.map((step, index) => (
+              {flowStepsWithIcons.map((step, index) => (
                 <article
                   key={`flow-step-${index}`}
                   role="listitem"
@@ -1344,7 +1422,12 @@ export default function HomePage() {
                         ? 'bg-gradient-to-br from-cyan-500 to-sky-500 shadow-cyan-500/20'
                         : 'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-500/20'
                   }`}>{String(index + 1).padStart(2, '0')}</span>
-                  <h2 className="mt-4 text-lg font-semibold tracking-tight text-slate-950">{step.title}</h2>
+                  <div className="landing-flow-card-title mt-4">
+                    <span className="landing-flow-card-title-icon" aria-hidden="true">
+                      <step.Icon className="h-4 w-4" />
+                    </span>
+                    <h2 className="text-lg font-semibold tracking-tight text-slate-950">{step.title}</h2>
+                  </div>
                   <p className="mt-2 text-sm leading-6 text-slate-600">{step.description}</p>
                 </article>
               ))}
