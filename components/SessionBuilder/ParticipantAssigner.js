@@ -196,9 +196,6 @@ export default function ParticipantAssigner({
                   className={styles.input}
                   aria-label={t('sessionBuilder.searchParticipantsPlaceholder')}
                 />
-                <span className={styles.resultsCount} aria-live="polite">
-                  {t('sessionBuilder.participantSearchResults', { count: filteredParticipants.length })}
-                </span>
               </div>
 
               {participants.length > 0 ? (
@@ -273,17 +270,6 @@ export default function ParticipantAssigner({
                   ))}
                 </div>
 
-                <div className={styles.summary} aria-live="polite">
-                  <span className={styles.count}>
-                    {t('sessionBuilder.selectedCountDetailed', { count: selected.length })}
-                  </span>
-                  {selectedParticipants.length > 0 ? (
-                    <span className={styles.summaryNames}>
-                      {selectedParticipants.slice(0, 4).map((p) => getMemberDisplayName(p)).join(', ')}
-                      {selectedParticipants.length > 4 ? '...' : ''}
-                    </span>
-                  ) : null}
-                </div>
               </>
             )}
 

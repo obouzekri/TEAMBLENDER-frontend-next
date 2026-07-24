@@ -66,7 +66,8 @@
   border-radius: 18px;
   border-color: rgba(203, 213, 225, 0.9);
   background: rgba(255, 255, 255, 0.7);
-  max-height: min(40vh, 420px);
+  max-height: 232px;
+  overflow-y: auto;
   width: 100%;
   min-width: 0;
 }

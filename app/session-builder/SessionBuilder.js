@@ -1374,12 +1374,6 @@ export default function SessionBuilder() {
                         />
                       </div>
 
-                      <div className={styles.creationTimezone}>
-                        {detectedTimezone
-                          ? t('sessionBuilder.timezoneLabel', { timezone: detectedTimezone })
-                          : t('sessionBuilder.timezoneUnknown')}
-                      </div>
-
                       <div className={styles.flowModeField}>
                         <div className={styles.creationFieldHeading}>
                           <span>{t('sessionBuilder.progressionMode')}</span>

@@ -595,6 +595,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+  align-items: start;
 }
 
 .creationGrid > * {
@@ -603,7 +604,7 @@
 
 .creationPrimary {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
+  align-items: stretch;
 }
 
 .creationPrimary > * {
@@ -679,7 +680,7 @@
 
 .flowModeCard {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto auto 1fr;
   align-items: center;
   gap: 0.65rem;
   padding: 0.72rem 0.78rem;
@@ -714,6 +715,18 @@
   background: rgba(53, 160, 255, 0.1);
   color: var(--builder-accent-strong);
   flex-shrink: 0;
+}
+
+.flowModeCard input {
+  order: 0;
+}
+
+.flowModeContent {
+  order: 1;
+}
+
+.flowModeIcon {
+  order: 2;
 }
 
 .flowModeIconSvg {
