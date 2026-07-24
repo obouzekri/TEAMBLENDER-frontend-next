@@ -405,7 +405,6 @@ export default function SessionBuilder() {
   const [sessionName, setSessionName] = useState('');
   const [flowMode, setFlowMode] = useState('manual');
   const [sessionDateTime, setSessionDateTime] = useState('');
-  const [creationStep, setCreationStep] = useState(1);
   const [creationTouched, setCreationTouched] = useState({
     sessionName: false,
     sessionDateTime: false,
@@ -936,9 +935,6 @@ export default function SessionBuilder() {
           .filter((value) => Number.isInteger(value));
         setDraftParticipantIds(validIds);
       }
-      if (Number.isInteger(draft.creationStep) && draft.creationStep >= 1 && draft.creationStep <= 3) {
-        setCreationStep(draft.creationStep);
-      }
     } catch {
       // Ignore malformed local draft payload.
     }
@@ -952,12 +948,11 @@ export default function SessionBuilder() {
       sessionDateTime,
       flowMode,
       participantIds: draftParticipantIds,
-      creationStep,
       savedAt: new Date().toISOString(),
     };
 
     localStorage.setItem(CREATION_DRAFT_STORAGE_KEY, JSON.stringify(payload));
-  }, [creationStep, draftParticipantIds, flowMode, guard.allowed, hasRouteSessionId, sessionDateTime, sessionId, sessionName]);
+  }, [draftParticipantIds, flowMode, guard.allowed, hasRouteSessionId, sessionDateTime, sessionId, sessionName]);
 
   useEffect(() => {
     if (!guard.allowed || sessionId || !hasUnsavedCreationChanges) return;
@@ -1331,9 +1326,6 @@ export default function SessionBuilder() {
         <main className={`auth-page ${styles.creationPageBackground}`}>
           <section className={styles.creationExperience}>
             <div className={styles.creationHero}>
-              <div className={styles.creationHeroTop}>
-                <p className="eyebrow">{t('sessionBuilder.newSessionEyebrow')}</p>
-              </div>
               <p className={styles.creationPrerequisite}>
                 {t('sessionBuilder.prerequisite')}
               </p>

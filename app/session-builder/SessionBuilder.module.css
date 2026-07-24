@@ -673,8 +673,8 @@
 
 .flowModeCard input {
   margin-top: 0;
-  width: 0.95rem;
-  height: 0.95rem;
+  width: 0.82rem;
+  height: 0.82rem;
   accent-color: var(--accent, #2f62ff);
 }
 
