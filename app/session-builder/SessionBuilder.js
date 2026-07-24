@@ -465,7 +465,6 @@ export default function SessionBuilder() {
   const canCreateSessionNow = Boolean(sessionName.trim())
     && !dateError
     && draftParticipantIds.length > 0
-    && availableParticipantsCount > 0
     && !isCreatingSession;
   const hasUnsavedCreationChanges = Boolean(
     sessionName.trim()

@@ -825,8 +825,16 @@
   min-width: 210px;
   min-height: 3.2rem;
   border-radius: 999px;
+  color: #ffffff;
+  border: 1px solid rgba(31, 70, 210, 0.5);
   box-shadow: 0 18px 40px rgba(99, 102, 241, 0.2);
   background: linear-gradient(135deg, var(--builder-accent) 0%, var(--builder-accent-strong) 100%);
+}
+
+.creationSubmit:not(:disabled) {
+  color: #ffffff;
+  opacity: 1;
+  filter: saturate(1.05);
 }
 
 .creationSubmit:hover:not(:disabled) {
@@ -841,6 +849,8 @@
 
 .creationSubmit:disabled {
   background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+  color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(148, 163, 184, 0.6);
   box-shadow: none;
   opacity: 0.72;
 }
