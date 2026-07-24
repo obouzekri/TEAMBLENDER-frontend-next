@@ -386,8 +386,7 @@
 
 .creationPrimary,
 .creationSecondary {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 1rem;
   align-content: start;
   min-height: 100%;
@@ -580,8 +579,21 @@
 
 .creationGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.creationGrid > * {
+  min-width: 0;
+}
+
+.creationPrimary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.creationPrimary > * {
+  min-width: 0;
 }
 
 .creationTimezone {
@@ -852,6 +864,10 @@
   .creationContent {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+
+  .creationPrimary {
+    grid-template-columns: 1fr;
   }
 
   .creationGrid {
