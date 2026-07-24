@@ -181,17 +181,17 @@ const LANDING_STATIC_BY_LOCALE = {
   fr: {
     trustProofMetrics: [
       {
-        value: '✅ +150 équipes accompagnées',
+        value: '+150 équipes accompagnées',
         label: 'Grands groupes, startups, PME et équipes RH',
         detail: 'Déploiements en contexte réel avec des équipes hybrides.',
       },
       {
-        value: '✅ 3× plus rapide',
+        value: '3× plus rapide',
         label: 'Créez une session en quelques minutes',
         detail: 'Préparation simple, animation guidée, restitution immédiate.',
       },
       {
-        value: '✅ Hybride par nature',
+        value: 'Hybride par nature',
         label: 'Challenges pour équipes sur site, à distance ou multi-sites',
         detail: 'Une expérience fluide quel que soit le format d’organisation.',
       },
@@ -262,17 +262,17 @@ const LANDING_STATIC_BY_LOCALE = {
   en: {
     trustProofMetrics: [
       {
-        value: '✅ 150+ teams supported',
+        value: '150+ teams supported',
         label: 'Enterprise, scale-ups, SMBs and HR teams',
         detail: 'Deployments in real-world hybrid team contexts.',
       },
       {
-        value: '✅ 3× faster setup',
+        value: '3× faster setup',
         label: 'Create a session in minutes',
         detail: 'Simple setup, guided facilitation, instant recap.',
       },
       {
-        value: '✅ Hybrid by design',
+        value: 'Hybrid by design',
         label: 'Challenges for on-site, remote and multi-site teams',
         detail: 'A smooth experience regardless of work format.',
       },
@@ -516,17 +516,17 @@ const TRUST_TAG_ICON_BY_KEYWORD = [
 
 const TRUST_PROOF_METRICS = [
   {
-    value: '✅ +150 équipes accompagnées',
+    value: '+150 équipes accompagnées',
     label: 'Grands groupes, startups, PME et équipes RH',
     detail: 'Déploiements en contexte réel avec des équipes hybrides.',
   },
   {
-    value: '✅ 3× plus rapide',
+    value: '3× plus rapide',
     label: 'Créez une session en quelques minutes',
     detail: 'Préparation simple, animation guidée, restitution immédiate.',
   },
   {
-    value: '✅ Hybride par nature',
+    value: 'Hybride par nature',
     label: 'Challenges pour équipes sur site, à distance ou multi-sites',
     detail: 'Une expérience fluide quel que soit le format d’organisation.',
   },
