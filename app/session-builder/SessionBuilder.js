@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { CalendarClock, CircleGauge, Check } from 'lucide-react';
+import { CalendarClock, CircleGauge } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
@@ -411,9 +411,6 @@ export default function SessionBuilder() {
     sessionDateTime: false,
     participants: false,
   });
-  const [selectedParticipantSummary, setSelectedParticipantSummary] = useState([]);
-  const [lastCreationDraftSaveAt, setLastCreationDraftSaveAt] = useState('');
-  const [creationDraftRestored, setCreationDraftRestored] = useState(false);
   const [sessionParticipantCount, setSessionParticipantCount] = useState(0);
   const [isEditingSessionInfo, setIsEditingSessionInfo] = useState(false);
   const [editName, setEditName] = useState('');
@@ -466,9 +463,11 @@ export default function SessionBuilder() {
   const participantsError = creationTouched.participants && draftParticipantIds.length === 0
     ? t('sessionBuilder.participantsRequired')
     : '';
-  const canGoNextFromStep1 = Boolean(sessionName.trim()) && !dateError;
-  const canGoNextFromStep2 = draftParticipantIds.length > 0 && availableParticipantsCount > 0;
-  const canCreateSessionNow = canGoNextFromStep1 && canGoNextFromStep2 && !isCreatingSession;
+  const canCreateSessionNow = Boolean(sessionName.trim())
+    && !dateError
+    && draftParticipantIds.length > 0
+    && availableParticipantsCount > 0
+    && !isCreatingSession;
   const hasUnsavedCreationChanges = Boolean(
     sessionName.trim()
     || sessionDateTime
@@ -940,15 +939,10 @@ export default function SessionBuilder() {
       if (Number.isInteger(draft.creationStep) && draft.creationStep >= 1 && draft.creationStep <= 3) {
         setCreationStep(draft.creationStep);
       }
-      setCreationDraftRestored(true);
-      if (draft.savedAt) {
-        setLastCreationDraftSaveAt(String(draft.savedAt));
-      }
-      showSuccessToast(t('sessionBuilder.draftRestored'));
     } catch {
       // Ignore malformed local draft payload.
     }
-  }, [guard.allowed, hasRouteSessionId, sessionId, showSuccessToast, t]);
+  }, [guard.allowed, hasRouteSessionId, sessionId]);
 
   useEffect(() => {
     if (!guard.allowed || sessionId || hasRouteSessionId) return;
@@ -963,7 +957,6 @@ export default function SessionBuilder() {
     };
 
     localStorage.setItem(CREATION_DRAFT_STORAGE_KEY, JSON.stringify(payload));
-    setLastCreationDraftSaveAt(payload.savedAt);
   }, [creationStep, draftParticipantIds, flowMode, guard.allowed, hasRouteSessionId, sessionDateTime, sessionId, sessionName]);
 
   useEffect(() => {
@@ -1018,50 +1011,6 @@ export default function SessionBuilder() {
   const handleParticipantSelectionFeedback = useCallback((count) => {
     showSuccessToast(t('sessionBuilder.participantSelectionUpdated', { count }));
   }, [showSuccessToast, t]);
-
-  const handleNextCreationStep = useCallback(() => {
-    if (creationStep === 1) {
-      setCreationTouched((prev) => ({ ...prev, sessionName: true, sessionDateTime: true }));
-      if (!canGoNextFromStep1) {
-        if (!sessionName.trim()) {
-          showErrorToast(t('sessionBuilder.sessionNameRequired'));
-          return;
-        }
-        if (dateError) {
-          showErrorToast(dateError);
-          return;
-        }
-      }
-      setCreationStep(2);
-      return;
-    }
-
-    if (creationStep === 2) {
-      setCreationTouched((prev) => ({ ...prev, participants: true }));
-      if (!canGoNextFromStep2) {
-        showErrorToast(
-          availableParticipantsCount === 0
-            ? t('sessionBuilder.addParticipantsFirst')
-            : t('sessionBuilder.participantsRequired')
-        );
-        return;
-      }
-      setCreationStep(3);
-    }
-  }, [
-    availableParticipantsCount,
-    canGoNextFromStep1,
-    canGoNextFromStep2,
-    creationStep,
-    dateError,
-    sessionName,
-    showErrorToast,
-    t,
-  ]);
-
-  const handleBackCreationStep = useCallback(() => {
-    setCreationStep((prev) => Math.max(1, prev - 1));
-  }, []);
 
   // Load existing session if sessionId is provided and challenge catalog is available
   useEffect(() => {
@@ -1375,12 +1324,6 @@ export default function SessionBuilder() {
   }
 
   if (!sessionId) {
-    const stepItems = [
-      { number: 1, label: t('sessionBuilder.stepFrame') },
-      { number: 2, label: t('sessionBuilder.stepParticipants') },
-      { number: 3, label: t('sessionBuilder.stepConfirmation') },
-    ];
-
     return (
       <>
         <ToastContainer toasts={toasts} onRemove={removeToast} />
@@ -1390,42 +1333,14 @@ export default function SessionBuilder() {
             <div className={styles.creationHero}>
               <div className={styles.creationHeroTop}>
                 <p className="eyebrow">{t('sessionBuilder.newSessionEyebrow')}</p>
-                <h1 className={styles.creationTitle}>{t('sessionBuilder.title')}</h1>
               </div>
-              <nav className={styles.creationStepper} aria-label={t('sessionBuilder.stepperAria')}>
-                {stepItems.map((step, index) => {
-                  const isCompleted = creationStep > step.number;
-                  const isCurrent = creationStep === step.number;
-                  const isUpcoming = creationStep < step.number;
-
-                  return (
-                    <div
-                      key={step.number}
-                      className={`${styles.creationStepperItem} ${isCompleted ? styles.creationStepperItemCompleted : ''} ${isCurrent ? styles.creationStepperItemCurrent : ''} ${isUpcoming ? styles.creationStepperItemUpcoming : ''}`}
-                      aria-current={isCurrent ? 'step' : undefined}
-                    >
-                      <span className={styles.creationStepperNumber} aria-hidden="true">
-                        {isCompleted ? <Check className={styles.creationStepperIcon} /> : step.number}
-                      </span>
-                      <span className={styles.creationStepperLabelWrap}>
-                        <span className={styles.creationStepperLabel}>{step.label}</span>
-                        <small className={styles.creationStepperStateLabel}>
-                          {isCurrent ? t('sessionBuilder.stepCurrent') : isCompleted ? t('sessionBuilder.stepCompleted') : t('sessionBuilder.stepUpcoming')}
-                        </small>
-                      </span>
-                      {index < 2 ? <span className={styles.creationStepperConnector} aria-hidden="true" /> : null}
-                    </div>
-                  );
-                })}
-              </nav>
               <p className={styles.creationPrerequisite}>
                 {t('sessionBuilder.prerequisite')}
               </p>
 
               <div className={styles.creationContent}>
                 <form id="create-session-form" onSubmit={handleCreateSession} className={styles.creationPrimary}>
-                  {creationStep === 1 ? (
-                    <div className={styles.creationForm}>
+                  <div className={styles.creationForm}>
                       <div className={styles.creationSectionHeader}>
                         <div>
                           <h2>{t('sessionBuilder.frameTitle')}</h2>
@@ -1494,7 +1409,6 @@ export default function SessionBuilder() {
                               <strong>{t('sessionBuilder.manual')}</strong>
                               <small>{t('sessionBuilder.manualHint')}</small>
                             </span>
-                            {flowMode === 'manual' ? <span className={styles.modeSelectedBadge}>{t('sessionBuilder.selectedBadge')}</span> : null}
                           </label>
                           <label className={`${styles.flowModeCard} ${flowMode === 'auto' ? styles.flowModeCardActive : ''}`}>
                             <input
@@ -1511,7 +1425,6 @@ export default function SessionBuilder() {
                               <strong>{t('sessionBuilder.automatic')}</strong>
                               <small>{t('sessionBuilder.automaticHint')}</small>
                             </span>
-                            {flowMode === 'auto' ? <span className={styles.modeSelectedBadge}>{t('sessionBuilder.selectedBadge')}</span> : null}
                           </label>
                         </div>
                       </div>
@@ -1519,11 +1432,9 @@ export default function SessionBuilder() {
                       <div className={styles.creationFooter}>
                         <p className={styles.creationHint}>{t('sessionBuilder.dateHint')}</p>
                       </div>
-                    </div>
-                  ) : null}
+                  </div>
 
-                  {creationStep === 2 ? (
-                    <div className={styles.creationParticipantsPane}>
+                  <div className={styles.creationParticipantsPane}>
                       <div className={styles.creationSectionHeader}>
                         <div>
                           <h2>{t('sessionBuilder.assignParticipants')}</h2>
@@ -1545,9 +1456,6 @@ export default function SessionBuilder() {
                         }}
                         onParticipantsLoaded={handleParticipantsLoaded}
                         onSelectionFeedback={handleParticipantSelectionFeedback}
-                        onSelectionSummaryChange={(payload) => {
-                          setSelectedParticipantSummary(payload?.selectedParticipants || []);
-                        }}
                         embedded
                         hideActions
                         title=""
@@ -1568,89 +1476,20 @@ export default function SessionBuilder() {
                           </Button>
                         </div>
                       ) : null}
-                    </div>
-                  ) : null}
-
-                  {creationStep === 3 ? (
-                    <div className={styles.creationOverviewCard}>
-                      <div className={styles.creationSectionHeader}>
-                        <div>
-                          <h2>{t('sessionBuilder.confirmationTitle')}</h2>
-                          <p>{t('sessionBuilder.confirmationBody')}</p>
-                        </div>
-                      </div>
-
-                      <div className={styles.creationChecklist}>
-                        <div className={styles.creationChecklistItem}>
-                          <strong>{t('sessionBuilder.sessionName')}</strong>
-                          <span>{sessionName || '-'}</span>
-                        </div>
-                        <div className={styles.creationChecklistItem}>
-                          <strong>{t('sessionBuilder.sessionDateTime')}</strong>
-                          <span>{sessionDateTime || '-'}</span>
-                        </div>
-                        <div className={styles.creationChecklistItem}>
-                          <strong>{t('sessionBuilder.progressionMode')}</strong>
-                          <span>{flowMode === 'manual' ? t('sessionBuilder.manual') : t('sessionBuilder.automatic')}</span>
-                        </div>
-                        <div className={styles.creationChecklistItem}>
-                          <strong>{t('sessionBuilder.selectedSummaryTitle')}</strong>
-                          <span>
-                            {selectedParticipantSummary.length > 0
-                              ? selectedParticipantSummary.slice(0, 8).map((participant) => {
-                                const first = String(participant?.first_name || participant?.firstname || '').trim();
-                                const last = String(participant?.last_name || participant?.lastname || '').trim();
-                                const full = `${first} ${last}`.trim();
-                                return full || String(participant?.name || participant?.email || '').trim();
-                              }).filter(Boolean).join(', ')
-                              : t('sessionBuilder.noSelectionSummary')}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
+                  </div>
                 </form>
               </div>
 
               <div className={styles.creationGlobalActions}>
-                {lastCreationDraftSaveAt ? (
-                  <span className={styles.creationDraftStatus}>
-                    {creationDraftRestored ? t('sessionBuilder.draftRestored') : t('sessionBuilder.draftSaved')}
-                  </span>
-                ) : null}
-
-                {creationStep > 1 ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={handleBackCreationStep}
-                  >
-                    {t('sessionBuilder.back')}
-                  </Button>
-                ) : null}
-
-                {creationStep < 3 ? (
-                  <Button
-                    type="button"
-                    className={styles.creationSubmit}
-                    onClick={handleNextCreationStep}
-                    disabled={(creationStep === 1 && !canGoNextFromStep1) || (creationStep === 2 && !canGoNextFromStep2)}
-                  >
-                    {t('sessionBuilder.next')}
-                  </Button>
-                ) : null}
-
                 <Button
                   type="submit"
                   form="create-session-form"
                   className={styles.creationSubmit}
-                  disabled={creationStep !== 3 || !canCreateSessionNow}
+                  disabled={!canCreateSessionNow}
                   title={
-                    creationStep !== 3
-                      ? t('sessionBuilder.stepConfirmation')
-                      : !canCreateSessionNow
-                        ? t('sessionBuilder.createUnavailableBody')
-                        : t('sessionBuilder.createSession')
+                    !canCreateSessionNow
+                      ? t('sessionBuilder.createUnavailableBody')
+                      : t('sessionBuilder.createSession')
                   }
                 >
                   {isCreatingSession ? t('sessionBuilder.creating') : t('sessionBuilder.createSession')}
