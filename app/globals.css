@@ -243,6 +243,11 @@ select,
 textarea,
 button {
   max-width: 100%;
+  font-family: inherit;
+}
+
+:where(button, input, select, textarea) {
+  font-family: inherit;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -2335,6 +2340,9 @@ a {
 }
 
 .btn-secondary {
+  font-family: inherit;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   background: linear-gradient(180deg, #ffffff 0%, #f5f8ff 100%);
   border-color: rgba(53, 160, 255, 0.16);
   color: #2b3f63;

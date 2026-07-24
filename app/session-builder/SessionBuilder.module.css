@@ -759,7 +759,7 @@
   gap: 0.9rem;
   justify-content: flex-end;
   margin-top: 1rem;
-  padding: 0.9rem 1rem;
+  padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(53, 160, 255, 0.28);
@@ -908,6 +908,20 @@
     grid-template-columns: 1fr;
   }
 
+  .creationStepper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .creationStepperItem {
+    flex: none;
+  }
+
+  .creationStepperConnector {
+    display: none;
+  }
+
   .creationFooter,
   .creationSectionHeader {
     flex-direction: column;
@@ -915,6 +929,7 @@
   }
 
   .creationGlobalActions {
+    position: static;
     flex-direction: column;
     align-items: stretch;
   }
@@ -997,6 +1012,25 @@
     font-size: 0.84rem;
   }
 
+  .creationStepper {
+    padding: 0.65rem;
+    border-radius: 14px;
+  }
+
+  .creationStepperNumber {
+    width: 1.8rem;
+    height: 1.8rem;
+    font-size: 0.82rem;
+  }
+
+  .creationStepperLabel {
+    font-size: 0.86rem;
+  }
+
+  .creationStepperStateLabel {
+    font-size: 0.7rem;
+  }
+
   .creationForm,
   .creationParticipantsPane,
   .creationOverviewCard {
@@ -1037,5 +1071,9 @@
   .creationActionHint {
     font-size: 0.8rem;
     padding: 0.5rem 0.65rem;
+  }
+
+  .creationDraftStatus {
+    text-align: center;
   }
 }
