@@ -380,7 +380,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(1.5rem, 2vw, 2rem);
-  align-items: start;
+  align-items: stretch;
+  justify-items: stretch;
   margin-top: 1.35rem;
   width: 100%;
 }
@@ -392,6 +393,7 @@
   align-content: start;
   min-height: 100%;
   height: 100%;
+  width: 100%;
 }
 
 .creationSecondary {
@@ -907,6 +909,16 @@
 .creationParticipantsPane .creationSectionHeader > div,
 .creationForm .creationSectionHeader > div {
   min-width: 0;
+}
+
+.creationPrimary > .creationForm,
+.creationPrimary > .creationParticipantsPane {
+  width: 100%;
+}
+
+.creationPrimary {
+  grid-auto-rows: 1fr;
+  align-items: stretch;
 }
 
 .creationParticipantsPane .containerEmbedded .card,
