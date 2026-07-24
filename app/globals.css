@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --font-ui: var(--font-ui-loaded), "Inter", "Segoe UI", sans-serif;
-  --font-display: var(--font-display-loaded), "Inter", "Segoe UI", sans-serif;
+  --font-ui: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Inter", "Segoe UI", system-ui, sans-serif;
   --motion-fast: 160ms;
   --motion-medium: 240ms;
   --motion-slow: 420ms;
