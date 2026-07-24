@@ -1,9 +1,10 @@
 'use client';
 
 import styles from './ParticipantAssigner.module.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getApiUrl } from '@/lib/config';
 import { getAuthHeaders } from '@/lib/auth';
+import useI18n from '@/lib/i18n/useI18n';
 
 export default function ParticipantAssigner({
   isLoading,
@@ -16,7 +17,10 @@ export default function ParticipantAssigner({
   hideActions = false,
   title = 'Assign participants',
   subtitle = 'Select the participants who will join this session',
+  onSelectionFeedback,
+  onSelectionSummaryChange,
 }) {
+  const { t } = useI18n();
   const [participants, setParticipants] = useState([]);
   const [selected, setSelected] = useState([]);
   const [loadingParticipants, setLoadingParticipants] = useState(true);
@@ -69,7 +73,7 @@ export default function ParticipantAssigner({
           payload = {};
         }
 
-        if (!res.ok) throw new Error(payload.error || 'Unable to load participants');
+        if (!res.ok) throw new Error(payload.error || t('sessionBuilder.catalogUnavailableError'));
         return payload;
       })
       .then((data) => {
@@ -105,12 +109,35 @@ export default function ParticipantAssigner({
     );
   });
 
+  const selectedIdsSet = useMemo(() => new Set(selected), [selected]);
+  const selectedParticipants = useMemo(
+    () => participants.filter((p) => selectedIdsSet.has(p.id)),
+    [participants, selectedIdsSet]
+  );
+
+  useEffect(() => {
+    if (typeof onSelectionSummaryChange !== 'function') return;
+    onSelectionSummaryChange({
+      selectedIds: selected,
+      selectedParticipants,
+      totalParticipants: participants.length,
+      filteredParticipantsCount: filteredParticipants.length,
+    });
+  }, [filteredParticipants.length, onSelectionSummaryChange, participants.length, selected, selectedParticipants]);
+
+  const announceSelection = (count) => {
+    if (typeof onSelectionFeedback === 'function') {
+      onSelectionFeedback(count);
+    }
+  };
+
   const toggleParticipant = (id) => {
     setSelected((prev) => {
       const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
       if (typeof onSelectionChange === 'function') {
         onSelectionChange(next);
       }
+      announceSelection(next.length);
       return next;
     });
   };
@@ -121,6 +148,7 @@ export default function ParticipantAssigner({
     if (typeof onSelectionChange === 'function') {
       onSelectionChange(next);
     }
+    announceSelection(next.length);
   };
 
   const deselectAll = () => {
@@ -128,6 +156,7 @@ export default function ParticipantAssigner({
     if (typeof onSelectionChange === 'function') {
       onSelectionChange([]);
     }
+    announceSelection(0);
   };
 
   const handleAssign = () => {
@@ -137,6 +166,7 @@ export default function ParticipantAssigner({
   const showHeader = Boolean(String(title || '').trim() || String(subtitle || '').trim());
   const canSelectAll = participants.length > 0 && selected.length < participants.length;
   const canDeselectAll = selected.length > 0;
+  const hasSearch = searchTerm.trim().length > 0;
 
   return (
     <div className={embedded ? styles.containerEmbedded : styles.container}>
@@ -152,7 +182,7 @@ export default function ParticipantAssigner({
 
         {loadingParticipants ? (
           <div className={styles.loading}>
-            <p>Loading participants...</p>
+            <p>{t('sessionBuilder.loading')}</p>
           </div>
         ) : (
           <>
@@ -160,11 +190,15 @@ export default function ParticipantAssigner({
               <div className={styles.searchBox}>
                 <input
                   type="text"
-                  placeholder="Search by name or email"
+                  placeholder={t('sessionBuilder.searchParticipantsPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className={styles.input}
+                  aria-label={t('sessionBuilder.searchParticipantsPlaceholder')}
                 />
+                <span className={styles.resultsCount} aria-live="polite">
+                  {t('sessionBuilder.participantSearchResults', { count: filteredParticipants.length })}
+                </span>
               </div>
 
               {participants.length > 0 ? (
@@ -172,18 +206,18 @@ export default function ParticipantAssigner({
                   <button
                     type="button"
                     onClick={selectAll}
-                    className={styles.btnLink}
+                    className={styles.btnSecondaryMini}
                     disabled={!canSelectAll}
                   >
-                    Select all
+                    {t('sessionBuilder.selectAll')}
                   </button>
                   <button
                     type="button"
                     onClick={deselectAll}
-                    className={styles.btnLink}
+                    className={styles.btnSecondaryMini}
                     disabled={!canDeselectAll}
                   >
-                    Deselect all
+                    {t('sessionBuilder.deselectAll')}
                   </button>
                 </div>
               ) : null}
@@ -191,10 +225,16 @@ export default function ParticipantAssigner({
 
             {participants.length === 0 ? (
               <div className={styles.empty}>
-                <p>No participants available</p>
+                <p>{t('sessionBuilder.noParticipantsAvailable')}</p>
                 <small>
-                  Create participants first in the manager area. Session creation is available only
-                  after this step.
+                  {t('sessionBuilder.noParticipantsAvailableBody')}
+                </small>
+              </div>
+            ) : filteredParticipants.length === 0 ? (
+              <div className={styles.empty}>
+                <p>{t('sessionBuilder.noParticipantsFound')}</p>
+                <small>
+                  {hasSearch ? t('sessionBuilder.noParticipantsFoundBody') : t('sessionBuilder.noSelectionSummary')}
                 </small>
               </div>
             ) : (
@@ -202,11 +242,14 @@ export default function ParticipantAssigner({
                 <div className={styles.list}>
                   {filteredParticipants.map((participant) => (
                     <label key={participant.id} className={styles.item}>
-                      <input
-                        type="checkbox"
-                        checked={selected.includes(participant.id)}
-                        onChange={() => toggleParticipant(participant.id)}
-                      />
+                      <span className={styles.checkboxHit}>
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(participant.id)}
+                          onChange={() => toggleParticipant(participant.id)}
+                          aria-label={t('sessionBuilder.rowCheckboxLabel', { name: getMemberDisplayName(participant) })}
+                        />
+                      </span>
                       <span className={styles.avatar} aria-hidden="true">{getInitials(participant)}</span>
                       <div className={styles.info}>
                         {embedded ? (
@@ -221,15 +264,25 @@ export default function ParticipantAssigner({
                           </>
                         )}
                       </div>
-                      <span className={styles.badge}>{embedded ? 'Participant' : 'Selected'}</span>
+                      {selected.includes(participant.id) ? (
+                        <span className={styles.badge}>{t('sessionBuilder.selectedBadge')}</span>
+                      ) : (
+                        <span className={styles.badgeMuted}>{t('sessionBuilder.participantBadge')}</span>
+                      )}
                     </label>
                   ))}
                 </div>
 
-                <div className={styles.summary}>
+                <div className={styles.summary} aria-live="polite">
                   <span className={styles.count}>
-                    {selected.length} selected
+                    {t('sessionBuilder.selectedCountDetailed', { count: selected.length })}
                   </span>
+                  {selectedParticipants.length > 0 ? (
+                    <span className={styles.summaryNames}>
+                      {selectedParticipants.slice(0, 4).map((p) => getMemberDisplayName(p)).join(', ')}
+                      {selectedParticipants.length > 4 ? '...' : ''}
+                    </span>
+                  ) : null}
                 </div>
               </>
             )}
@@ -242,7 +295,7 @@ export default function ParticipantAssigner({
                   className={styles.btnSecondary}
                   disabled={isLoading}
                 >
-                  Cancel
+                  {t('sessionBuilder.cancel')}
                 </button>
                 <button
                   type="button"
@@ -250,7 +303,7 @@ export default function ParticipantAssigner({
                   className={styles.btnPrimary}
                   disabled={isLoading || selected.length === 0}
                 >
-                  {isLoading ? 'Assigning...' : 'Assign'}
+                  {isLoading ? t('sessionBuilder.saving') : t('sessionBuilder.assignParticipants')}
                 </button>
               </div>
             ) : null}

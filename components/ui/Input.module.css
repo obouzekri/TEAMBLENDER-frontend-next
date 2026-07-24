@@ -1,6 +1,6 @@
 .field {
   display: grid;
-  gap: var(--space-2, 0.5rem);
+  gap: var(--space-2, 0.52rem);
 }
 
 .label {
@@ -13,7 +13,7 @@
   width: 100%;
   min-height: 2.7rem;
   border-radius: var(--radius-md, 14px);
-  border: 1px solid color-mix(in srgb, var(--line) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 96%, transparent);
   background: color-mix(in srgb, var(--field-bg) 88%, #fff);
   color: var(--ink);
   font: inherit;
@@ -21,10 +21,14 @@
   transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
 }
 
+.control:hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+}
+
 .control:focus-visible {
   outline: none;
-  border-color: color-mix(in srgb, var(--accent) 58%, transparent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 74%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .help {

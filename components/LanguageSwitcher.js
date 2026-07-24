@@ -26,20 +26,19 @@ export default function LanguageSwitcher() {
 
   return (
     <div className="lang-switch" aria-label={t('language.switcherAria')}>
-      {SUPPORTED_LOCALES.map((targetLocale) => {
-        const active = targetLocale === locale;
-        return (
-          <button
-            key={targetLocale}
-            onClick={() => handleLocaleChange(targetLocale)}
-            className={`lang-switch__btn${active ? ' is-active' : ''}`}
-            aria-current={active ? 'page' : undefined}
-            type="button"
-          >
+      <label htmlFor="language-switcher" className="lang-switch__label">{t('language.switcherAria')}</label>
+      <select
+        id="language-switcher"
+        className="lang-switch__select"
+        value={locale}
+        onChange={(event) => handleLocaleChange(event.target.value)}
+      >
+        {SUPPORTED_LOCALES.map((targetLocale) => (
+          <option key={targetLocale} value={targetLocale}>
             {t(`language.${targetLocale}`)}
-          </button>
-        );
-      })}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

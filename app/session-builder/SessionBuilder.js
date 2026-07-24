@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { CalendarClock, CircleGauge, Layers3, ListChecks } from 'lucide-react';
+import { CalendarClock, CircleGauge, Check } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
@@ -208,6 +208,20 @@ function ensureBuilderCatalogChallenges(challenges, locale = 'fr') {
 const SESSION_ID_STORAGE_KEY = 'sessionId';
 const SELECTED_CHALLENGES_STORAGE_KEY = 'selectedChallenges';
 const DRAFT_STORAGE_PREFIX = 'sessionBuilderDraft:';
+const CREATION_DRAFT_STORAGE_KEY = 'sessionBuilderCreationDraft:v1';
+
+function getBrowserTimezone() {
+  if (typeof Intl === 'undefined' || typeof Intl.DateTimeFormat !== 'function') {
+    return 'UTC';
+  }
+
+  try {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return String(timezone || 'UTC').trim() || 'UTC';
+  } catch {
+    return 'UTC';
+  }
+}
 
 function getDraftStorageKey(sessionId) {
   const normalizedId = String(sessionId || '').trim();
@@ -391,6 +405,15 @@ export default function SessionBuilder() {
   const [sessionName, setSessionName] = useState('');
   const [flowMode, setFlowMode] = useState('manual');
   const [sessionDateTime, setSessionDateTime] = useState('');
+  const [creationStep, setCreationStep] = useState(1);
+  const [creationTouched, setCreationTouched] = useState({
+    sessionName: false,
+    sessionDateTime: false,
+    participants: false,
+  });
+  const [selectedParticipantSummary, setSelectedParticipantSummary] = useState([]);
+  const [lastCreationDraftSaveAt, setLastCreationDraftSaveAt] = useState('');
+  const [creationDraftRestored, setCreationDraftRestored] = useState(false);
   const [sessionParticipantCount, setSessionParticipantCount] = useState(0);
   const [isEditingSessionInfo, setIsEditingSessionInfo] = useState(false);
   const [editName, setEditName] = useState('');
@@ -433,11 +456,25 @@ export default function SessionBuilder() {
     () => JSON.stringify(selectedChallenges),
     [selectedChallenges]
   );
-  const creationStep = useMemo(() => {
-    if (!sessionName.trim()) return 1;
-    if (draftParticipantIds.length === 0) return 2;
-    return 3;
-  }, [draftParticipantIds.length, sessionName]);
+  const detectedTimezone = useMemo(() => getBrowserTimezone(), []);
+  const nameError = creationTouched.sessionName && !sessionName.trim() ? t('sessionBuilder.sessionNameRequired') : '';
+  const dateError = useMemo(() => {
+    if (!creationTouched.sessionDateTime || !sessionDateTime) return '';
+    const parsed = new Date(sessionDateTime);
+    return Number.isNaN(parsed.getTime()) ? t('sessionBuilder.invalidDateTimeDetailed') : '';
+  }, [creationTouched.sessionDateTime, sessionDateTime, t]);
+  const participantsError = creationTouched.participants && draftParticipantIds.length === 0
+    ? t('sessionBuilder.participantsRequired')
+    : '';
+  const canGoNextFromStep1 = Boolean(sessionName.trim()) && !dateError;
+  const canGoNextFromStep2 = draftParticipantIds.length > 0 && availableParticipantsCount > 0;
+  const canCreateSessionNow = canGoNextFromStep1 && canGoNextFromStep2 && !isCreatingSession;
+  const hasUnsavedCreationChanges = Boolean(
+    sessionName.trim()
+    || sessionDateTime
+    || flowMode !== 'manual'
+    || draftParticipantIds.length > 0
+  );
 
   // On plain /session-builder, reset stale cached session id to start a new flow
   useEffect(() => {
@@ -876,6 +913,74 @@ export default function SessionBuilder() {
     window.location.replace(withLocalePath('/home?onboarding=participants&reason=no_participants'));
   }, [availableParticipantsCount, guard.allowed, hasRouteSessionId, participantsInventoryLoaded, sessionId, withLocalePath]);
 
+  useEffect(() => {
+    if (!guard.allowed || sessionId || hasRouteSessionId) return;
+
+    try {
+      const raw = localStorage.getItem(CREATION_DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (!draft || typeof draft !== 'object') return;
+
+      if (typeof draft.sessionName === 'string') {
+        setSessionName(draft.sessionName);
+      }
+      if (typeof draft.sessionDateTime === 'string') {
+        setSessionDateTime(draft.sessionDateTime);
+      }
+      if (draft.flowMode === 'auto' || draft.flowMode === 'manual') {
+        setFlowMode(draft.flowMode);
+      }
+      if (Array.isArray(draft.participantIds)) {
+        const validIds = draft.participantIds
+          .map((value) => Number(value))
+          .filter((value) => Number.isInteger(value));
+        setDraftParticipantIds(validIds);
+      }
+      if (Number.isInteger(draft.creationStep) && draft.creationStep >= 1 && draft.creationStep <= 3) {
+        setCreationStep(draft.creationStep);
+      }
+      setCreationDraftRestored(true);
+      if (draft.savedAt) {
+        setLastCreationDraftSaveAt(String(draft.savedAt));
+      }
+      showSuccessToast(t('sessionBuilder.draftRestored'));
+    } catch {
+      // Ignore malformed local draft payload.
+    }
+  }, [guard.allowed, hasRouteSessionId, sessionId, showSuccessToast, t]);
+
+  useEffect(() => {
+    if (!guard.allowed || sessionId || hasRouteSessionId) return;
+
+    const payload = {
+      sessionName,
+      sessionDateTime,
+      flowMode,
+      participantIds: draftParticipantIds,
+      creationStep,
+      savedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem(CREATION_DRAFT_STORAGE_KEY, JSON.stringify(payload));
+    setLastCreationDraftSaveAt(payload.savedAt);
+  }, [creationStep, draftParticipantIds, flowMode, guard.allowed, hasRouteSessionId, sessionDateTime, sessionId, sessionName]);
+
+  useEffect(() => {
+    if (!guard.allowed || sessionId || !hasUnsavedCreationChanges) return;
+
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = t('sessionBuilder.unsavedChangesWarning');
+      return t('sessionBuilder.unsavedChangesWarning');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [guard.allowed, hasUnsavedCreationChanges, sessionId, t]);
+
   const handleSaveDraft = useCallback(async () => {
     if (!sessionId || isSavingDraft) return;
 
@@ -909,6 +1014,54 @@ export default function SessionBuilder() {
     showErrorToast,
     showLoadingToast,
   ]);
+
+  const handleParticipantSelectionFeedback = useCallback((count) => {
+    showSuccessToast(t('sessionBuilder.participantSelectionUpdated', { count }));
+  }, [showSuccessToast, t]);
+
+  const handleNextCreationStep = useCallback(() => {
+    if (creationStep === 1) {
+      setCreationTouched((prev) => ({ ...prev, sessionName: true, sessionDateTime: true }));
+      if (!canGoNextFromStep1) {
+        if (!sessionName.trim()) {
+          showErrorToast(t('sessionBuilder.sessionNameRequired'));
+          return;
+        }
+        if (dateError) {
+          showErrorToast(dateError);
+          return;
+        }
+      }
+      setCreationStep(2);
+      return;
+    }
+
+    if (creationStep === 2) {
+      setCreationTouched((prev) => ({ ...prev, participants: true }));
+      if (!canGoNextFromStep2) {
+        showErrorToast(
+          availableParticipantsCount === 0
+            ? t('sessionBuilder.addParticipantsFirst')
+            : t('sessionBuilder.participantsRequired')
+        );
+        return;
+      }
+      setCreationStep(3);
+    }
+  }, [
+    availableParticipantsCount,
+    canGoNextFromStep1,
+    canGoNextFromStep2,
+    creationStep,
+    dateError,
+    sessionName,
+    showErrorToast,
+    t,
+  ]);
+
+  const handleBackCreationStep = useCallback(() => {
+    setCreationStep((prev) => Math.max(1, prev - 1));
+  }, []);
 
   // Load existing session if sessionId is provided and challenge catalog is available
   useEffect(() => {
@@ -1079,14 +1232,31 @@ export default function SessionBuilder() {
 
   const handleCreateSession = useCallback(async (e) => {
     e.preventDefault();
+    setCreationTouched({
+      sessionName: true,
+      sessionDateTime: true,
+      participants: true,
+    });
+
+    if (!sessionName.trim()) {
+      showErrorToast(t('sessionBuilder.sessionNameRequired'));
+      return;
+    }
+
     if (availableParticipantsCount === 0) {
       showErrorToast(t('sessionBuilder.addParticipantsFirst'));
       return;
     }
+
+    if (draftParticipantIds.length === 0) {
+      showErrorToast(t('sessionBuilder.participantsRequired'));
+      return;
+    }
+
     const name = sessionName.trim() || `Session ${new Date().toLocaleDateString('en-US')}`;
     const sessionDate = sessionDateTime ? new Date(sessionDateTime) : null;
     if (sessionDateTime && Number.isNaN(sessionDate?.getTime())) {
-      showErrorToast(t('sessionBuilder.invalidDateTime'));
+      showErrorToast(t('sessionBuilder.invalidDateTimeDetailed'));
       return;
     }
     const token = getAuthToken();
@@ -1112,6 +1282,7 @@ export default function SessionBuilder() {
       sessionStorage.setItem(SESSION_ID_STORAGE_KEY, newId);
       setSessionId(newId);
       setSessionParticipantCount(draftParticipantIds.length);
+      localStorage.removeItem(CREATION_DRAFT_STORAGE_KEY);
       await loadSessionDetails(newId, token);
       removeToast(loadingId);
       // Participants are already assigned in the creation pane; continue directly to challenge selection.
@@ -1133,6 +1304,7 @@ export default function SessionBuilder() {
     sessionName,
     showErrorToast,
     showLoadingToast,
+    t,
   ]);
 
   const handleSaveSessionInfo = useCallback(async () => {
@@ -1203,6 +1375,12 @@ export default function SessionBuilder() {
   }
 
   if (!sessionId) {
+    const stepItems = [
+      { number: 1, label: t('sessionBuilder.stepFrame') },
+      { number: 2, label: t('sessionBuilder.stepParticipants') },
+      { number: 3, label: t('sessionBuilder.stepConfirmation') },
+    ];
+
     return (
       <>
         <ToastContainer toasts={toasts} onRemove={removeToast} />
@@ -1212,26 +1390,29 @@ export default function SessionBuilder() {
             <div className={styles.creationHero}>
               <div className={styles.creationHeroTop}>
                 <p className="eyebrow">{t('sessionBuilder.newSessionEyebrow')}</p>
+                <h1 className={styles.creationTitle}>{t('sessionBuilder.title')}</h1>
               </div>
-              <nav className={styles.creationStepper} aria-label="Session creation steps">
-                {[
-                  { number: 1, label: 'Cadre', icon: Layers3 },
-                  { number: 2, label: 'Participants', icon: ListChecks },
-                  { number: 3, label: 'Confirmation', icon: CalendarClock },
-                ].map((step, index) => {
-                  const Icon = step.icon;
-                  const isActive = creationStep >= step.number;
+              <nav className={styles.creationStepper} aria-label={t('sessionBuilder.stepperAria')}>
+                {stepItems.map((step, index) => {
+                  const isCompleted = creationStep > step.number;
                   const isCurrent = creationStep === step.number;
+                  const isUpcoming = creationStep < step.number;
 
                   return (
                     <div
                       key={step.number}
-                      className={`${styles.creationStepperItem} ${isActive ? styles.creationStepperItemActive : ''} ${isCurrent ? styles.creationStepperItemCurrent : ''}`}
+                      className={`${styles.creationStepperItem} ${isCompleted ? styles.creationStepperItemCompleted : ''} ${isCurrent ? styles.creationStepperItemCurrent : ''} ${isUpcoming ? styles.creationStepperItemUpcoming : ''}`}
+                      aria-current={isCurrent ? 'step' : undefined}
                     >
                       <span className={styles.creationStepperNumber} aria-hidden="true">
-                        <Icon className={styles.creationStepperIcon} />
+                        {isCompleted ? <Check className={styles.creationStepperIcon} /> : step.number}
                       </span>
-                      <span className={styles.creationStepperLabel}>{step.label}</span>
+                      <span className={styles.creationStepperLabelWrap}>
+                        <span className={styles.creationStepperLabel}>{step.label}</span>
+                        <small className={styles.creationStepperStateLabel}>
+                          {isCurrent ? t('sessionBuilder.stepCurrent') : isCompleted ? t('sessionBuilder.stepCompleted') : t('sessionBuilder.stepUpcoming')}
+                        </small>
+                      </span>
                       {index < 2 ? <span className={styles.creationStepperConnector} aria-hidden="true" /> : null}
                     </div>
                   );
@@ -1242,124 +1423,234 @@ export default function SessionBuilder() {
               </p>
 
               <div className={styles.creationContent}>
-                <div className={styles.creationPrimary}>
-                  <form id="create-session-form" onSubmit={handleCreateSession} className={styles.creationForm}>
-                    <div className={styles.creationSectionHeader}>
-                      <div>
-                        <h2>{t('sessionBuilder.frameTitle')}</h2>
+                <form id="create-session-form" onSubmit={handleCreateSession} className={styles.creationPrimary}>
+                  {creationStep === 1 ? (
+                    <div className={styles.creationForm}>
+                      <div className={styles.creationSectionHeader}>
+                        <div>
+                          <h2>{t('sessionBuilder.frameTitle')}</h2>
+                          <p>{t('sessionBuilder.requiredHint')}</p>
+                        </div>
+                      </div>
+
+                      <div className={styles.creationGrid}>
+                        <Input
+                          id="session-name"
+                          label={`${t('sessionBuilder.sessionName')} ${t('sessionBuilder.requiredAsterisk')}`}
+                          value={sessionName}
+                          onChange={(e) => {
+                            setSessionName(e.target.value);
+                            setCreationTouched((prev) => ({ ...prev, sessionName: true }));
+                          }}
+                          onBlur={() => setCreationTouched((prev) => ({ ...prev, sessionName: true }))}
+                          placeholder={t('sessionBuilder.sessionNamePlaceholder')}
+                          autoFocus
+                          required
+                          error={nameError}
+                          aria-invalid={Boolean(nameError)}
+                        />
+                        <Input
+                          id="session-datetime"
+                          label={t('sessionBuilder.sessionDateTime')}
+                          type="datetime-local"
+                          value={sessionDateTime}
+                          onChange={(e) => {
+                            setSessionDateTime(e.target.value);
+                            setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }));
+                          }}
+                          onBlur={() => setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }))}
+                          step="60"
+                          inputClassName={styles.creationDateInput}
+                          error={dateError}
+                          hint={t('sessionBuilder.dateFormatHelp', { timezone: detectedTimezone })}
+                          aria-invalid={Boolean(dateError)}
+                        />
+                      </div>
+
+                      <div className={styles.creationTimezone}>
+                        {detectedTimezone
+                          ? t('sessionBuilder.timezoneLabel', { timezone: detectedTimezone })
+                          : t('sessionBuilder.timezoneUnknown')}
+                      </div>
+
+                      <div className={styles.flowModeField}>
+                        <div className={styles.creationFieldHeading}>
+                          <span>{t('sessionBuilder.progressionMode')}</span>
+                          <p>{t('sessionBuilder.progressionHint')}</p>
+                        </div>
+                        <div className={styles.flowModeGrid}>
+                          <label className={`${styles.flowModeCard} ${flowMode === 'manual' ? styles.flowModeCardActive : ''}`}>
+                            <input
+                              type="radio"
+                              name="flowMode"
+                              value="manual"
+                              checked={flowMode === 'manual'}
+                              onChange={() => setFlowMode('manual')}
+                            />
+                            <span className={styles.flowModeIcon} aria-hidden="true">
+                              <CircleGauge className={styles.flowModeIconSvg} />
+                            </span>
+                            <span className={styles.flowModeContent}>
+                              <strong>{t('sessionBuilder.manual')}</strong>
+                              <small>{t('sessionBuilder.manualHint')}</small>
+                            </span>
+                            {flowMode === 'manual' ? <span className={styles.modeSelectedBadge}>{t('sessionBuilder.selectedBadge')}</span> : null}
+                          </label>
+                          <label className={`${styles.flowModeCard} ${flowMode === 'auto' ? styles.flowModeCardActive : ''}`}>
+                            <input
+                              type="radio"
+                              name="flowMode"
+                              value="auto"
+                              checked={flowMode === 'auto'}
+                              onChange={() => setFlowMode('auto')}
+                            />
+                            <span className={styles.flowModeIcon} aria-hidden="true">
+                              <CalendarClock className={styles.flowModeIconSvg} />
+                            </span>
+                            <span className={styles.flowModeContent}>
+                              <strong>{t('sessionBuilder.automatic')}</strong>
+                              <small>{t('sessionBuilder.automaticHint')}</small>
+                            </span>
+                            {flowMode === 'auto' ? <span className={styles.modeSelectedBadge}>{t('sessionBuilder.selectedBadge')}</span> : null}
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className={styles.creationFooter}>
+                        <p className={styles.creationHint}>{t('sessionBuilder.dateHint')}</p>
                       </div>
                     </div>
+                  ) : null}
 
-                    <div className={styles.creationGrid}>
-                      <Input
-                        label={t('sessionBuilder.sessionName')}
-                        value={sessionName}
-                        onChange={(e) => setSessionName(e.target.value)}
-                        placeholder={t('sessionBuilder.sessionNamePlaceholder')}
-                        autoFocus
-                        required
+                  {creationStep === 2 ? (
+                    <div className={styles.creationParticipantsPane}>
+                      <div className={styles.creationSectionHeader}>
+                        <div>
+                          <h2>{t('sessionBuilder.assignParticipants')}</h2>
+                          <p>{t('sessionBuilder.participantsAvailable', { count: availableParticipantsCount })}</p>
+                        </div>
+                        <span className={styles.creationParticipantsCount}>
+                          {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
+                        </span>
+                      </div>
+
+                      {participantsError ? <p className={styles.creationErrorInline}>{participantsError}</p> : null}
+
+                      <ParticipantAssigner
+                        isLoading={isCreatingSession}
+                        selectedIds={draftParticipantIds}
+                        onSelectionChange={(ids) => {
+                          setDraftParticipantIds(ids);
+                          setCreationTouched((prev) => ({ ...prev, participants: true }));
+                        }}
+                        onParticipantsLoaded={handleParticipantsLoaded}
+                        onSelectionFeedback={handleParticipantSelectionFeedback}
+                        onSelectionSummaryChange={(payload) => {
+                          setSelectedParticipantSummary(payload?.selectedParticipants || []);
+                        }}
+                        embedded
+                        hideActions
+                        title=""
+                        subtitle=""
                       />
-                      <Input
-                        label={t('sessionBuilder.sessionDateTime')}
-                        type="datetime-local"
-                        value={sessionDateTime}
-                        onChange={(e) => setSessionDateTime(e.target.value)}
-                        step="60"
-                        inputClassName={styles.creationDateInput}
-                      />
-                    </div>
 
-                    <div className={styles.flowModeField}>
-                      <div className={styles.creationFieldHeading}>
-                        <span>{t('sessionBuilder.progressionMode')}</span>
-                        <p>{t('sessionBuilder.progressionHint')}</p>
+                      {availableParticipantsCount === 0 ? (
+                        <div className={styles.creationInlineCtaRow}>
+                          <Alert variant="warning" className={styles.creationActionHint} title={t('sessionBuilder.createUnavailable')}>
+                            {t('sessionBuilder.createUnavailableBody')}
+                          </Alert>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => window.location.assign(withLocalePath('/home#participants'))}
+                          >
+                            {t('sessionBuilder.createParticipantCta')}
+                          </Button>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {creationStep === 3 ? (
+                    <div className={styles.creationOverviewCard}>
+                      <div className={styles.creationSectionHeader}>
+                        <div>
+                          <h2>{t('sessionBuilder.confirmationTitle')}</h2>
+                          <p>{t('sessionBuilder.confirmationBody')}</p>
+                        </div>
                       </div>
-                      <div className={styles.flowModeGrid}>
-                        <label className={`${styles.flowModeCard} ${flowMode === 'manual' ? styles.flowModeCardActive : ''}`}>
-                          <input
-                            type="radio"
-                            name="flowMode"
-                            value="manual"
-                            checked={flowMode === 'manual'}
-                            onChange={() => setFlowMode('manual')}
-                          />
-                          <span className={styles.flowModeIcon} aria-hidden="true">
-                            <CircleGauge className={styles.flowModeIconSvg} />
+
+                      <div className={styles.creationChecklist}>
+                        <div className={styles.creationChecklistItem}>
+                          <strong>{t('sessionBuilder.sessionName')}</strong>
+                          <span>{sessionName || '-'}</span>
+                        </div>
+                        <div className={styles.creationChecklistItem}>
+                          <strong>{t('sessionBuilder.sessionDateTime')}</strong>
+                          <span>{sessionDateTime || '-'}</span>
+                        </div>
+                        <div className={styles.creationChecklistItem}>
+                          <strong>{t('sessionBuilder.progressionMode')}</strong>
+                          <span>{flowMode === 'manual' ? t('sessionBuilder.manual') : t('sessionBuilder.automatic')}</span>
+                        </div>
+                        <div className={styles.creationChecklistItem}>
+                          <strong>{t('sessionBuilder.selectedSummaryTitle')}</strong>
+                          <span>
+                            {selectedParticipantSummary.length > 0
+                              ? selectedParticipantSummary.slice(0, 8).map((participant) => {
+                                const first = String(participant?.first_name || participant?.firstname || '').trim();
+                                const last = String(participant?.last_name || participant?.lastname || '').trim();
+                                const full = `${first} ${last}`.trim();
+                                return full || String(participant?.name || participant?.email || '').trim();
+                              }).filter(Boolean).join(', ')
+                              : t('sessionBuilder.noSelectionSummary')}
                           </span>
-                          <span className={styles.flowModeContent}>
-                            <strong>{t('sessionBuilder.manual')}</strong>
-                            <small>{t('sessionBuilder.manualHint')}</small>
-                          </span>
-                        </label>
-                        <label className={`${styles.flowModeCard} ${flowMode === 'auto' ? styles.flowModeCardActive : ''}`}>
-                          <input
-                            type="radio"
-                            name="flowMode"
-                            value="auto"
-                            checked={flowMode === 'auto'}
-                            onChange={() => setFlowMode('auto')}
-                          />
-                          <span className={styles.flowModeIcon} aria-hidden="true">
-                            <CalendarClock className={styles.flowModeIconSvg} />
-                          </span>
-                          <span className={styles.flowModeContent}>
-                            <strong>{t('sessionBuilder.automatic')}</strong>
-                            <small>{t('sessionBuilder.automaticHint')}</small>
-                          </span>
-                        </label>
+                        </div>
                       </div>
                     </div>
-
-                    <div className={styles.creationFooter}>
-                      <p className={styles.creationHint}>
-                        {t('sessionBuilder.dateHint')}
-                      </p>
-                    </div>
-                  </form>
-                </div>
-
-                <aside className={styles.creationSecondary}>
-                  <div className={styles.creationParticipantsPane}>
-                    <div className={styles.creationSectionHeader}>
-                      <div>
-                        <h2>{t('sessionBuilder.assignParticipants')}</h2>
-                      </div>
-                      <span className={styles.creationParticipantsCount}>
-                        {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
-                      </span>
-                    </div>
-
-                    <ParticipantAssigner
-                      isLoading={isCreatingSession}
-                      selectedIds={draftParticipantIds}
-                      onSelectionChange={setDraftParticipantIds}
-                      onParticipantsLoaded={handleParticipantsLoaded}
-                      embedded
-                      hideActions
-                      title=""
-                      subtitle=""
-                    />
-                  </div>
-                </aside>
+                  ) : null}
+                </form>
               </div>
 
               <div className={styles.creationGlobalActions}>
-                {availableParticipantsCount === 0 ? (
-                  <Alert variant="warning" className={styles.creationActionHint} title={t('sessionBuilder.createUnavailable')}>
-                    {t('sessionBuilder.createUnavailableBody')}
-                  </Alert>
+                {lastCreationDraftSaveAt ? (
+                  <span className={styles.creationDraftStatus}>
+                    {creationDraftRestored ? t('sessionBuilder.draftRestored') : t('sessionBuilder.draftSaved')}
+                  </span>
                 ) : null}
+
+                {creationStep > 1 ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleBackCreationStep}
+                  >
+                    {t('sessionBuilder.back')}
+                  </Button>
+                ) : null}
+
+                {creationStep < 3 ? (
+                  <Button
+                    type="button"
+                    className={styles.creationSubmit}
+                    onClick={handleNextCreationStep}
+                    disabled={(creationStep === 1 && !canGoNextFromStep1) || (creationStep === 2 && !canGoNextFromStep2)}
+                  >
+                    {t('sessionBuilder.next')}
+                  </Button>
+                ) : null}
+
                 <Button
                   type="submit"
                   form="create-session-form"
                   className={styles.creationSubmit}
-                  disabled={isCreatingSession || availableParticipantsCount === 0 || !sessionName.trim()}
+                  disabled={creationStep !== 3 || !canCreateSessionNow}
                   title={
-                    !sessionName.trim()
-                      ? t('sessionBuilder.sessionNamePlaceholder')
-                      : availableParticipantsCount === 0
-                      ? t('sessionBuilder.createUnavailableBody')
-                      : t('sessionBuilder.createSession')
+                    creationStep !== 3
+                      ? t('sessionBuilder.stepConfirmation')
+                      : !canCreateSessionNow
+                        ? t('sessionBuilder.createUnavailableBody')
+                        : t('sessionBuilder.createSession')
                   }
                 >
                   {isCreatingSession ? t('sessionBuilder.creating') : t('sessionBuilder.createSession')}
@@ -1499,7 +1790,7 @@ export default function SessionBuilder() {
 
       <Modal
         open={isLaunchConfirmOpen}
-        title="Confirm Launch"
+        title={t('sessionBuilder.launchConfirmTitle')}
         onClose={() => setIsLaunchConfirmOpen(false)}
         dialogClassName={styles.launchConfirmDialog}
         bodyClassName={styles.launchConfirmBody}
@@ -1507,7 +1798,7 @@ export default function SessionBuilder() {
         closeClassName={styles.launchConfirmClose}
       >
         <p className={styles.launchConfirmText}>
-          Une fois la session lancée, la configuration ne pourra plus être modifiée.
+          {t('sessionBuilder.launchConfirmBody')}
         </p>
         <div className={styles.launchConfirmActions}>
           <Button
@@ -1524,7 +1815,7 @@ export default function SessionBuilder() {
             }}
             disabled={isLaunching}
           >
-            {isLaunching ? 'Launching...' : 'Confirmer'}
+            {isLaunching ? t('sessionBuilder.launching') : t('sessionBuilder.launchConfirmAction')}
           </Button>
         </div>
       </Modal>
