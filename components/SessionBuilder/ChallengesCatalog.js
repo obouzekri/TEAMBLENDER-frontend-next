@@ -6,36 +6,37 @@ import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import styles from './ChallengesCatalog.module.css';
 import { Badge, Button, EmptyState } from '@/components/ui';
 import { formatIdealPlayersLabel } from '@/lib/challenges/playerRange';
+import useI18n from '@/lib/i18n/useI18n';
 
 const MAX_FILTER_OBJECTIVES = 3;
 
 // Mapping technical values to display labels
 const CATEGORY_LABELS = {
-  'escape-game': 'Escape Game',
-  'logique-reflexion': 'Logic & Reflection',
-  'icebreaker': 'Icebreaker',
-  'creativite-innovation': 'Creativity & Innovation',
-  'memoire-attention': 'Memory & Attention',
-  'culture-decouverte': 'Culture & Discovery',
-  'Collaboration': 'Collaboration',
-  'Gestion de projet': 'Project Management',
-  'Engagement collectif': 'Collective Engagement',
+  'escape-game': { fr: 'Escape Game', en: 'Escape Game' },
+  'logique-reflexion': { fr: 'Logique & Reflexion', en: 'Logic & Reflection' },
+  'icebreaker': { fr: 'Icebreaker', en: 'Icebreaker' },
+  'creativite-innovation': { fr: 'Creativite & Innovation', en: 'Creativity & Innovation' },
+  'memoire-attention': { fr: 'Memoire & Attention', en: 'Memory & Attention' },
+  'culture-decouverte': { fr: 'Culture & Decouverte', en: 'Culture & Discovery' },
+  Collaboration: { fr: 'Collaboration', en: 'Collaboration' },
+  'Gestion de projet': { fr: 'Gestion de projet', en: 'Project Management' },
+  'Engagement collectif': { fr: 'Engagement collectif', en: 'Collective Engagement' },
 };
 
 const OBJECTIVE_LABELS = {
-  'cohesion': 'Cohesion',
-  'communication': 'Communication',
-  'collaboration': 'Collaboration',
-  'leadership': 'Leadership',
-  'resolution-problemes': 'Problem Solving',
-  'coordination': 'Coordination',
-  'priorisation': 'Prioritization',
-  'dependances': 'Dependencies',
-  'engagement': 'Engagement',
-  'ecoute active': 'Active Listening',
-  'intelligence-collective': 'Collective Intelligence',
-  'creativite': 'Creativity',
-  'gestion-temps': 'Time Management',
+  cohesion: { fr: 'Cohesion', en: 'Cohesion' },
+  communication: { fr: 'Communication', en: 'Communication' },
+  collaboration: { fr: 'Collaboration', en: 'Collaboration' },
+  leadership: { fr: 'Leadership', en: 'Leadership' },
+  'resolution-problemes': { fr: 'Resolution de problemes', en: 'Problem Solving' },
+  coordination: { fr: 'Coordination', en: 'Coordination' },
+  priorisation: { fr: 'Priorisation', en: 'Prioritization' },
+  dependances: { fr: 'Dependances', en: 'Dependencies' },
+  engagement: { fr: 'Engagement', en: 'Engagement' },
+  'ecoute active': { fr: 'Ecoute active', en: 'Active Listening' },
+  'intelligence-collective': { fr: 'Intelligence collective', en: 'Collective Intelligence' },
+  creativite: { fr: 'Creativite', en: 'Creativity' },
+  'gestion-temps': { fr: 'Gestion du temps', en: 'Time Management' },
 };
 
 function toObjectiveList(value) {
@@ -63,7 +64,16 @@ export default function ChallengesCatalog({
   onToggleObjective,
   onResetFilters,
 }) {
+  const { locale, t } = useI18n();
+  const isEn = locale === 'en';
   const [previewChallenge, setPreviewChallenge] = useState(null);
+    function localizeMappingLabel(entry, fallback) {
+      if (!entry || typeof entry !== 'object') {
+        return fallback;
+      }
+      return String(entry[isEn ? 'en' : 'fr'] || entry.en || entry.fr || fallback || '').trim();
+    }
+
   const [openDropdown, setOpenDropdown] = useState(null);
   const [visibleCount, setVisibleCount] = useState(12);
   const filterMenuRef = useRef(null);
@@ -122,13 +132,13 @@ export default function ChallengesCatalog({
     
     const sorted = Array.from(unique).sort();
     return [
-      { value: '', label: 'All' },
+      { value: '', label: t('sessionBuilder.catalogFilterAll') },
       ...sorted.map((cat) => ({
         value: cat,
-        label: CATEGORY_LABELS[cat] || cat,
+        label: localizeMappingLabel(CATEGORY_LABELS[cat], cat),
       })),
     ];
-  }, [allChallenges, challenges]);
+  }, [allChallenges, challenges, isEn, t]);
 
   // Extract unique objectives from challenges
   // Handle both formats: string (new) and array (legacy)
@@ -141,19 +151,19 @@ export default function ChallengesCatalog({
     
     const sorted = Array.from(unique).sort();
     return [
-      { value: '', label: 'All' },
+      { value: '', label: t('sessionBuilder.catalogFilterAll') },
       ...sorted.map((obj) => ({
         value: obj,
-        label: OBJECTIVE_LABELS[obj] || obj,
+        label: localizeMappingLabel(OBJECTIVE_LABELS[obj], obj),
       })),
     ];
-  }, [allChallenges, challenges]);
+  }, [allChallenges, challenges, isEn, t]);
 
   const durations = [
-    { value: '', label: 'All' },
-    { value: 'short', label: 'Less than 10 min' },
-    { value: 'medium', label: '10-20 min' },
-    { value: 'long', label: 'More than 20 min' },
+    { value: '', label: t('sessionBuilder.catalogFilterAll') },
+    { value: 'short', label: t('sessionBuilder.catalogDurationShort') },
+    { value: 'medium', label: t('sessionBuilder.catalogDurationMedium') },
+    { value: 'long', label: t('sessionBuilder.catalogDurationLong') },
   ];
 
   const selectedCategories = Array.isArray(filters.categories) ? filters.categories : [];
@@ -189,13 +199,13 @@ export default function ChallengesCatalog({
 
   function formatMultiSelectValue(values, labelMap) {
     if (!Array.isArray(values) || values.length === 0) {
-      return 'All';
+      return t('sessionBuilder.catalogFilterAll');
     }
     if (values.length === 1) {
       return labelMap.get(values[0]) || values[0];
     }
     if (values.length > 3) {
-      return `${values.length} selected`;
+      return t('sessionBuilder.catalogFilterSelectedCount', { count: values.length });
     }
     return values
       .map((value) => toAbbreviation(labelMap.get(value) || value))
@@ -220,15 +230,15 @@ export default function ChallengesCatalog({
                 onClick={() => setOpenDropdown((prev) => (prev === 'category' ? null : 'category'))}
                 aria-expanded={openDropdown === 'category'}
                 aria-haspopup="listbox"
-                aria-label={`Category filter: ${categoryTriggerLabel}`}
+                aria-label={t('sessionBuilder.catalogCategoryFilterAria', { value: categoryTriggerLabel })}
               >
-                <span className={styles.filterTriggerPrefix}>Category:</span>
+                <span className={styles.filterTriggerPrefix}>{t('sessionBuilder.catalogCategoryPrefix')}</span>
                 <span className={styles.filterTriggerValue}>{categoryTriggerLabel}</span>
                 <span aria-hidden="true">▾</span>
               </button>
 
               {openDropdown === 'category' ? (
-                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filter by category" aria-multiselectable="true">
+                <div className={styles.filterDropdownPanel} role="listbox" aria-label={t('sessionBuilder.catalogFilterByCategory')} aria-multiselectable="true">
                   <button
                     type="button"
                     role="option"
@@ -236,7 +246,7 @@ export default function ChallengesCatalog({
                     className={`${styles.filterOption} ${selectedCategories.length === 0 ? styles.filterOptionActive : ''}`}
                     onClick={() => onFilterChange({ categories: [] })}
                   >
-                    <span>All</span>
+                    <span>{t('sessionBuilder.catalogFilterAll')}</span>
                     {selectedCategories.length === 0 ? <span aria-hidden="true">✓</span> : null}
                   </button>
                   {categories.filter((cat) => cat.value).map((cat) => {
@@ -266,15 +276,15 @@ export default function ChallengesCatalog({
                 onClick={() => setOpenDropdown((prev) => (prev === 'objective' ? null : 'objective'))}
                 aria-expanded={openDropdown === 'objective'}
                 aria-haspopup="listbox"
-                aria-label={`Objective filter: ${objectiveTriggerLabel}`}
+                aria-label={t('sessionBuilder.catalogObjectiveFilterAria', { value: objectiveTriggerLabel })}
               >
-                <span className={styles.filterTriggerPrefix}>Objectives:</span>
+                <span className={styles.filterTriggerPrefix}>{t('sessionBuilder.catalogObjectivePrefix')}</span>
                 <span className={styles.filterTriggerValue}>{objectiveTriggerLabel}</span>
                 <span aria-hidden="true">▾</span>
               </button>
 
               {openDropdown === 'objective' ? (
-                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filter by objectives" aria-multiselectable="true">
+                <div className={styles.filterDropdownPanel} role="listbox" aria-label={t('sessionBuilder.catalogFilterByObjectives')} aria-multiselectable="true">
                   <button
                     type="button"
                     role="option"
@@ -282,7 +292,7 @@ export default function ChallengesCatalog({
                     className={`${styles.filterOption} ${selectedObjectives.length === 0 ? styles.filterOptionActive : ''}`}
                     onClick={() => onFilterChange({ objectives: [] })}
                   >
-                    <span>All</span>
+                    <span>{t('sessionBuilder.catalogFilterAll')}</span>
                     {selectedObjectives.length === 0 ? <span aria-hidden="true">✓</span> : null}
                   </button>
                   {objectives.filter((obj) => obj.value).map((obj) => {
@@ -305,8 +315,8 @@ export default function ChallengesCatalog({
                   })}
                   <p className={styles.filterHintInline}>
                     {objectiveLimitReached
-                      ? 'Limit reached (max 3 objectives).'
-                      : `Multi-select (max ${MAX_FILTER_OBJECTIVES}).`}
+                      ? t('sessionBuilder.catalogObjectiveLimitReached', { max: MAX_FILTER_OBJECTIVES })
+                      : t('sessionBuilder.catalogObjectiveMultiSelect', { max: MAX_FILTER_OBJECTIVES })}
                   </p>
                 </div>
               ) : null}
@@ -319,15 +329,15 @@ export default function ChallengesCatalog({
                 onClick={() => setOpenDropdown((prev) => (prev === 'duration' ? null : 'duration'))}
                 aria-expanded={openDropdown === 'duration'}
                 aria-haspopup="listbox"
-                aria-label={`Duration filter: ${durationTriggerLabel}`}
+                aria-label={t('sessionBuilder.catalogDurationFilterAria', { value: durationTriggerLabel })}
               >
-                <span className={styles.filterTriggerPrefix}>Duration:</span>
+                <span className={styles.filterTriggerPrefix}>{t('sessionBuilder.catalogDurationPrefix')}</span>
                 <span className={styles.filterTriggerValue}>{durationTriggerLabel}</span>
                 <span aria-hidden="true">▾</span>
               </button>
 
               {openDropdown === 'duration' ? (
-                <div className={styles.filterDropdownPanel} role="listbox" aria-label="Filter by duration">
+                <div className={styles.filterDropdownPanel} role="listbox" aria-label={t('sessionBuilder.catalogFilterByDuration')}>
                   {durations.map((dur) => {
                     const active = String(filters.duration || '') === String(dur.value || '');
                     return (
@@ -357,8 +367,8 @@ export default function ChallengesCatalog({
               className={styles.resetIconButton}
               onClick={onResetFilters}
               type="button"
-              title="Reset filters"
-              aria-label="Reset filters"
+              title={t('sessionBuilder.catalogResetFilters')}
+              aria-label={t('sessionBuilder.catalogResetFilters')}
             >
               <span aria-hidden="true">⟳</span>
             </button>
@@ -375,9 +385,9 @@ export default function ChallengesCatalog({
       ) : challenges.length === 0 ? (
         <EmptyState
           icon="🔍"
-          title="No activity matches your criteria"
-          description="Adjust filters or return to the full catalog view."
-          actions={<Button variant="secondary" size="sm" onClick={onResetFilters}>Reset filters</Button>}
+          title={t('sessionBuilder.catalogEmptyTitle')}
+          description={t('sessionBuilder.catalogEmptyDescription')}
+          actions={<Button variant="secondary" size="sm" onClick={onResetFilters}>{t('sessionBuilder.catalogResetFilters')}</Button>}
           className={styles.emptyState}
         />
       ) : (
@@ -395,11 +405,11 @@ export default function ChallengesCatalog({
                       type="button"
                       className={styles.rulesButton}
                       onClick={() => setPreviewChallenge(challenge)}
-                      title="View rules"
-                      aria-label={`View rules for ${challenge.name}`}
+                      title={t('challengeRulesPanel.showRules')}
+                      aria-label={t('sessionBuilder.catalogViewRulesFor', { name: challenge.name })}
                     >
                       <span aria-hidden="true">📜</span>
-                      <span>View rules</span>
+                      <span>{t('challengeRulesPanel.showRules')}</span>
                     </button>
                     <span className={styles.cardDuration}>{challenge.duration} min</span>
                   </div>
@@ -432,7 +442,7 @@ export default function ChallengesCatalog({
                     }}
                   >
                     <span className={styles.toggleActionKnob} aria-hidden="true" />
-                    <span className={styles.toggleActionLabel}>{isSelected ? 'Retirer' : 'Ajouter'}</span>
+                    <span className={styles.toggleActionLabel}>{isSelected ? t('sessionBuilder.catalogRemoveAction') : t('sessionBuilder.catalogAddAction')}</span>
                   </button>
                   {isSelected && (
                     <Button
@@ -440,7 +450,7 @@ export default function ChallengesCatalog({
                       size="sm"
                       onClick={() => onConfigure(challenge.id)}
                     >
-                      ⚙ Configure
+                      ⚙ {t('sessionBuilder.catalogConfigureAction')}
                     </Button>
                   )}
                 </div>
@@ -453,7 +463,7 @@ export default function ChallengesCatalog({
       {!isLoading && visibleCount < challenges.length ? (
         <div className={styles.loadMoreSentinelWrap}>
           <div ref={loadMoreRef} className={styles.loadMoreSentinel} aria-hidden="true" />
-          <p className={styles.loadingMoreText}>Loading more activities...</p>
+          <p className={styles.loadingMoreText}>{t('sessionBuilder.catalogLoadingMore')}</p>
         </div>
       ) : null}
 

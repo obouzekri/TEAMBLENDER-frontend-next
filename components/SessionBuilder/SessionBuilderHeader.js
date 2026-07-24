@@ -1,6 +1,7 @@
 'use client';
 
 import styles from './SessionBuilderHeader.module.css';
+import useI18n from '@/lib/i18n/useI18n';
 
 export default function SessionBuilderHeader({
   sessionName,
@@ -14,21 +15,22 @@ export default function SessionBuilderHeader({
   isLaunching,
   onLaunch,
 }) {
+  const { t } = useI18n();
   const minutes = Number.isFinite(Number(totalDuration)) ? Math.round(Number(totalDuration)) : 0;
-  const resolvedSessionName = String(sessionName || '').trim() || 'Untitled session';
+  const resolvedSessionName = String(sessionName || '').trim() || t('sessionBuilder.untitledSession');
 
   return (
-    <section className={styles.summaryBar} aria-label="Session summary">
+    <section className={styles.summaryBar} aria-label={t('sessionBuilder.sessionSummaryAria')}>
       <header className={styles.summaryContent}>
         <div className={styles.summaryLeft}>
-          <p className={styles.summaryEyebrow}>Session builder</p>
-          <h1 className={styles.summaryTitle}>Add and configure activities for your session</h1>
+          <p className={styles.summaryEyebrow}>{t('sessionBuilder.headerEyebrow')}</p>
+          <h1 className={styles.summaryTitle}>{t('sessionBuilder.headerTitle')}</h1>
           <p className={styles.summaryMeta}>
             <span className={styles.summaryName}>{resolvedSessionName}</span>
             <span aria-hidden="true" className={styles.dot}>•</span>
-            <span>{participantCount} participant{participantCount !== 1 ? 's' : ''}</span>
+            <span>{t('sessionBuilder.headerParticipants', { count: participantCount })}</span>
             <span aria-hidden="true" className={styles.dot}>•</span>
-            <span>{selectedCount} activit{selectedCount !== 1 ? 'ies' : 'y'}</span>
+            <span>{selectedCount} {selectedCount === 1 ? t('sessionBuilder.activitySingular') : t('sessionBuilder.activityPlural')}</span>
             <span aria-hidden="true" className={styles.dot}>•</span>
             <span>{minutes} min</span>
           </p>
@@ -40,25 +42,25 @@ export default function SessionBuilderHeader({
             className={`btn-secondary ${styles.actionBtn}`}
             onClick={onEditSessionInfo}
           >
-            Edit session details
+            {t('sessionBuilder.editSessionDetails')}
           </button>
           <button
             type="button"
             className={`btn-secondary ${styles.actionBtn}`}
             onClick={onSaveConfig}
             disabled={isSavingDraft || selectedCount === 0}
-            title={selectedCount === 0 ? 'Add at least one activity.' : 'Save session settings'}
+            title={selectedCount === 0 ? t('sessionBuilder.addAtLeastOneActivity') : t('sessionBuilder.saveSessionSettings')}
           >
-            {isSavingDraft ? 'Saving...' : 'Save configuration'}
+            {isSavingDraft ? t('sessionBuilder.saving') : t('sessionBuilder.saveConfiguration')}
           </button>
           <button
             type="button"
             className={`btn-primary ${styles.actionBtn} ${styles.primaryAction}`}
             disabled={isLaunchDisabled || isLaunching}
             onClick={onLaunch}
-            title={isLaunchDisabled ? 'Select at least one activity' : 'Launch session'}
+            title={isLaunchDisabled ? t('sessionBuilder.selectAtLeastOneActivity') : t('sessionBuilder.launchSession')}
           >
-            {isLaunching ? 'Launching...' : 'Launch'}
+            {isLaunching ? t('sessionBuilder.launching') : t('sessionBuilder.launch')}
           </button>
         </div>
       </header>

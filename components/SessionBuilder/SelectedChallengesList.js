@@ -2,6 +2,7 @@
 
 import styles from './SelectedChallengesList.module.css';
 import { Button, EmptyState } from '@/components/ui';
+import useI18n from '@/lib/i18n/useI18n';
 
 export default function SelectedChallengesList({
   challenges,
@@ -11,6 +12,7 @@ export default function SelectedChallengesList({
   onMoveDown,
   onClearAll,
 }) {
+  const { t } = useI18n();
   if (challenges.length === 0) {
     function handleBrowseCatalog() {
       const catalog = document.querySelector('[data-catalog]');
@@ -22,17 +24,17 @@ export default function SelectedChallengesList({
     return (
       <aside className={styles.sidebar}>
         <div className={styles.header}>
-          <h2 className={styles.title}>✓ Selected activities</h2>
+          <h2 className={styles.title}>✓ {t('sessionBuilder.selectedActivitiesTitle')}</h2>
           <span className={styles.count}>0</span>
         </div>
         <p className={styles.hint}>
-          Activities will run in this order. Use Move up/Move down to adjust it.
+          {t('sessionBuilder.selectedActivitiesHint')}
         </p>
         <EmptyState
           icon="📋"
-          title="No activity selected"
-          description="Browse the catalog on the right to add activities."
-          actions={<Button variant="secondary" size="sm" onClick={handleBrowseCatalog}>Browse catalog</Button>}
+          title={t('sessionBuilder.selectedActivitiesEmptyTitle')}
+          description={t('sessionBuilder.selectedActivitiesEmptyDescription')}
+          actions={<Button variant="secondary" size="sm" onClick={handleBrowseCatalog}>{t('sessionBuilder.selectedActivitiesBrowse')}</Button>}
           className={styles.emptyState}
         />
       </aside>
@@ -42,11 +44,11 @@ export default function SelectedChallengesList({
   return (
     <aside className={styles.sidebar}>
       <div className={styles.header}>
-        <h2 className={styles.title}>✓ Selected activities</h2>
+        <h2 className={styles.title}>✓ {t('sessionBuilder.selectedActivitiesTitle')}</h2>
         <span className={styles.count}>{challenges.length}</span>
       </div>
       <p className={styles.hint}>
-        Activities will run in this order. Use Move up/Move down to adjust it.
+        {t('sessionBuilder.selectedActivitiesHint')}
       </p>
 
       <ul className={styles.list}>
@@ -61,8 +63,8 @@ export default function SelectedChallengesList({
                 <button
                   className={`${styles.actionBtn} ${styles.moveBtn}`}
                   onClick={() => onMoveUp(challenge.id)}
-                  title="Move up"
-                  aria-label="Move this activity up"
+                  title={t('sessionBuilder.moveUp')}
+                  aria-label={t('sessionBuilder.moveUpAria')}
                 >
                   ▲
                 </button>
@@ -72,8 +74,8 @@ export default function SelectedChallengesList({
                 <button
                   className={`${styles.actionBtn} ${styles.moveBtn}`}
                   onClick={() => onMoveDown(challenge.id)}
-                  title="Move down"
-                  aria-label="Move this activity down"
+                  title={t('sessionBuilder.moveDown')}
+                  aria-label={t('sessionBuilder.moveDownAria')}
                 >
                   ▼
                 </button>
@@ -82,8 +84,8 @@ export default function SelectedChallengesList({
               <button
                 className={`${styles.actionBtn} ${styles.configBtn}`}
                 onClick={() => onConfigure(challenge.id)}
-                title="Configure"
-                aria-label="Configure this activity"
+                title={t('sessionBuilder.catalogConfigureAction')}
+                aria-label={t('sessionBuilder.configureActivityAria')}
               >
                 ⚙
               </button>
@@ -91,8 +93,8 @@ export default function SelectedChallengesList({
               <button
                 className={`${styles.actionBtn} ${styles.removeBtn}`}
                 onClick={() => onRemove(challenge.id)}
-                title="Remove"
-                aria-label="Remove this activity"
+                title={t('sessionBuilder.catalogRemoveAction')}
+                aria-label={t('sessionBuilder.removeActivityAria')}
               >
                 ✕
               </button>
@@ -103,7 +105,7 @@ export default function SelectedChallengesList({
 
       <div className={styles.footer}>
         <Button variant="secondary" size="sm" block onClick={onClearAll}>
-          Clear selection
+          {t('sessionBuilder.clearSelection')}
         </Button>
       </div>
     </aside>

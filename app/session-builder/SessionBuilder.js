@@ -776,10 +776,10 @@ export default function SessionBuilder() {
 
       setSelectedChallengesSnapshot(JSON.stringify(mergedSelectedChallenges));
       setLastBackendSaveAt(new Date().toISOString());
-      showSuccessToast('Challenge configuration applied immediately.');
+      showSuccessToast(t('sessionBuilder.challengeConfigApplied'));
     } catch (err) {
       if (redirectToUpgrade(err)) return;
-      showErrorToast(err.message || 'Configuration saved locally, but server sync failed.');
+      showErrorToast(err.message || t('sessionBuilder.configurationSyncFailed'));
     }
   }, [
     apiRequest,
@@ -792,6 +792,7 @@ export default function SessionBuilder() {
     sessionId,
     showErrorToast,
     showSuccessToast,
+    t,
     toIntegerId,
     updateChallengeConfig,
   ]);
@@ -972,7 +973,7 @@ export default function SessionBuilder() {
     if (!sessionId || isSavingDraft) return;
 
     if (selectedChallenges.length === 0) {
-      showErrorToast('Add at least one challenge before saving.');
+      showErrorToast(t('sessionBuilder.addAtLeastOneActivity'));
       return;
     }
 
