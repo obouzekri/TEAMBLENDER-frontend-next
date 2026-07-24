@@ -163,7 +163,7 @@
 }
 
 .creationExperience {
-  width: min(1520px, 100%);
+  width: min(1660px, 100%);
   margin: 0 auto;
 }
 
@@ -171,8 +171,8 @@
   position: relative;
   width: 100%;
   min-height: calc(100vh - 84px);
-  padding: 1.4rem clamp(1.2rem, 3vw, 2rem);
-  max-width: 1600px;
+  padding: 1.4rem clamp(1rem, 2.4vw, 1.6rem);
+  max-width: 1720px;
   margin: 0 auto;
 }
 
@@ -378,7 +378,7 @@
 
 .creationContent {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(1.5rem, 2vw, 2rem);
   align-items: start;
   margin-top: 1.35rem;
@@ -853,8 +853,46 @@
   width: 100%;
 }
 
+.creationForm {
+  min-width: 0;
+}
+
+.creationParticipantsPane {
+  min-width: 0;
+}
+
 .creationForm > *,
 .creationParticipantsPane > * {
+  min-width: 0;
+}
+
+.creationForm .creationGrid,
+.creationParticipantsPane .containerEmbedded,
+.creationParticipantsPane :global(.containerEmbedded) {
+  width: 100%;
+  min-width: 0;
+}
+
+.creationForm .flowModeGrid {
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+}
+
+.creationForm .flowModeCard {
+  min-width: 180px;
+}
+
+.creationForm .flowModeContent strong,
+.creationForm .flowModeContent small {
+  white-space: normal;
+}
+
+.creationParticipantsPane .creationSectionHeader,
+.creationForm .creationSectionHeader {
+  width: 100%;
+}
+
+.creationParticipantsPane .creationSectionHeader > div,
+.creationForm .creationSectionHeader > div {
   min-width: 0;
 }
 
@@ -939,6 +977,14 @@
   .creationStats,
   .flowModeGrid {
     grid-template-columns: 1fr;
+  }
+
+  .creationForm .flowModeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .creationForm .flowModeCard {
+    min-width: 0;
   }
 
   .creationStepper {
