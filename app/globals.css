@@ -12405,3 +12405,58 @@ a {
   }
 }
 
+  /* Desktop squeeze hardening (e.g. browser side panels like Gemini) */
+  @media (max-width: 1180px) and (min-width: 861px) {
+    .top-nav:not(.top-nav--live-inline) .nav-inner {
+      gap: 0.55rem;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .nav-top-row {
+      flex: 0 1 auto;
+      min-width: 0;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .nav-panel {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .nav-main-block {
+      gap: 0.5rem;
+      min-width: 0;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .nav-links {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .nav-link {
+      padding-inline: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .nav-actions {
+      gap: 0.35rem;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .lang-switch__btn {
+      padding-inline: 0.36rem;
+      font-size: 0.68rem;
+    }
+
+    .landing-hero-full .landing-hero-inner {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1rem;
+    }
+
+    .landing-hero-product-shell {
+      transform: none !important;
+    }
+
+    .landing-hero-product-image {
+      height: 300px;
+      object-position: center;
+    }
+  }
+
