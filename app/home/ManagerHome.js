@@ -71,11 +71,11 @@ function formatPaywallMessage(payload, fallbackMessage) {
   return `${baseMessage} ${conversionHint} (${ctaPath}).`;
 }
 
-function formatSessionDate(value) {
+function formatSessionDate(value, locale = 'en') {
   if (!value) return '';
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return '';
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(parsed);
@@ -152,34 +152,42 @@ async function fetchSessions() {
   }
 }
 
-const STARTUP_GUIDE_STEPS = Object.freeze([
-  {
-    step: '1',
-    icon: 'P',
-    title: 'Add participants',
-    text: 'Create your participant base to organize workshops faster and more cleanly.',
-    href: '/home#home-participants-block',
-    cta: 'Go to this step',
-  },
-  {
-    step: '2',
-    icon: 'S',
-    title: 'Configure the session',
-    text: 'Choose the challenge, format, and key settings before launch.',
-  },
-  {
-    step: '3',
-    icon: 'L',
-    title: 'Launch the challenge',
-    text: 'Start the session, keep the pace, and finish with an actionable debrief.',
-  }
-]);
+function getStartupGuideSteps(isEn) {
+  return Object.freeze([
+    {
+      step: '1',
+      icon: 'P',
+      title: isEn ? 'Add participants' : 'Ajouter des participants',
+      text: isEn
+        ? 'Create your participant base to organize workshops faster and more cleanly.'
+        : 'Constituez votre base participant pour organiser vos ateliers plus vite et plus clairement.',
+      href: '/home#home-participants-block',
+      cta: isEn ? 'Go to this step' : 'Aller a cette etape',
+    },
+    {
+      step: '2',
+      icon: 'S',
+      title: isEn ? 'Configure the session' : 'Configurer la session',
+      text: isEn
+        ? 'Choose the challenge, format, and key settings before launch.'
+        : 'Choisissez le challenge, le format et les parametres avant le lancement.',
+    },
+    {
+      step: '3',
+      icon: 'L',
+      title: isEn ? 'Launch the challenge' : 'Lancer le challenge',
+      text: isEn
+        ? 'Start the session, keep the pace, and finish with an actionable debrief.'
+        : 'Demarrez la session, maintenez le rythme et concluez avec un debrief actionnable.',
+    }
+  ]);
+}
 
-const MANAGER_BENEFITS = Object.freeze([
-  'Guided preparation',
-  'Structured live facilitation',
-  'Actionable outcomes',
-]);
+function getManagerBenefits(isEn) {
+  return Object.freeze(isEn
+    ? ['Guided preparation', 'Structured live facilitation', 'Actionable outcomes']
+    : ['Preparation guidee', 'Animation live structuree', 'Resultats actionnables']);
+}
 
 function MobileActionMenu({ triggerLabel, menuLabel, items, closeSignal }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -278,6 +286,8 @@ function MobileActionMenu({ triggerLabel, menuLabel, items, closeSignal }) {
 export default function ManagerHome() {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
+  const startupGuideSteps = useMemo(() => getStartupGuideSteps(isEn), [isEn]);
+  const managerBenefits = useMemo(() => getManagerBenefits(isEn), [isEn]);
   const [activeTrustIndex, setActiveTrustIndex] = useState(0);
   const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
   const guard = useManagerGuard();
@@ -308,7 +318,11 @@ export default function ManagerHome() {
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
 
-  const STATUS_LABEL = { en_cours: 'In progress', preparee: 'Preparing', terminee: 'Completed' };
+  const STATUS_LABEL = {
+    en_cours: isEn ? 'In progress' : 'En cours',
+    preparee: isEn ? 'Preparing' : 'En preparation',
+    terminee: isEn ? 'Completed' : 'Terminee'
+  };
 
   const sessionStats = useMemo(() => ({
     enCours: sessions.filter((s) => s.status === 'en_cours').length,
@@ -339,18 +353,22 @@ export default function ManagerHome() {
   const canCreateSession = !loadingMembers && members.length > 0;
   const isParticipantModalOpen = showParticipantForm || Boolean(editingMemberId);
   const createSessionBlockedReason = loadingMembers
-    ? 'Loading participants...'
-    : 'Creation unavailable: add participants first in your manager space.';
+    ? (isEn ? 'Loading participants...' : 'Chargement des participants...')
+    : (isEn
+      ? 'Creation unavailable: add participants first in your manager space.'
+      : 'Creation indisponible: ajoutez d abord des participants dans votre espace manager.');
   const asyncStatusMessage = creatingMember
-    ? (editingMemberId ? 'Updating participant...' : 'Creating participant...')
+    ? (editingMemberId
+      ? (isEn ? 'Updating participant...' : 'Mise a jour du participant...')
+      : (isEn ? 'Creating participant...' : 'Creation du participant...'))
     : deletingMemberId
-      ? 'Deleting participant...'
+      ? (isEn ? 'Deleting participant...' : 'Suppression du participant...')
       : deletingSessionId
-        ? 'Deleting session...'
+        ? (isEn ? 'Deleting session...' : 'Suppression de la session...')
         : loadingSessions
-          ? 'Loading sessions...'
+          ? (isEn ? 'Loading sessions...' : 'Chargement des sessions...')
           : loadingMembers
-            ? 'Loading participants...'
+            ? (isEn ? 'Loading participants...' : 'Chargement des participants...')
             : '';
 
   function handleCreateSessionClick(event) {
@@ -370,7 +388,7 @@ export default function ManagerHome() {
     showErrorToast(createSessionBlockedReason);
   }
 
-  function handleUnauthorizedAuth(message = 'Session expired. Please sign in again.') {
+  function handleUnauthorizedAuth(message = isEn ? 'Session expired. Please sign in again.' : 'Session expiree. Veuillez vous reconnecter.') {
     if (authInvalid) return;
     setAuthInvalid(true);
     showErrorToast(message);
@@ -384,7 +402,7 @@ export default function ManagerHome() {
     let loadingId = null;
     setLoadingSessions(true);
     if (withToast) {
-      loadingId = showLoadingToast('Loading sessions...');
+      loadingId = showLoadingToast(isEn ? 'Loading sessions...' : 'Chargement des sessions...');
     }
 
     try {
@@ -401,11 +419,11 @@ export default function ManagerHome() {
         handleUnauthorizedAuth();
         return;
       }
-      showErrorToast(err.message || 'Unable to load sessions.');
+      showErrorToast(err.message || (isEn ? 'Unable to load sessions.' : 'Impossible de charger les sessions.'));
     } finally {
       setLoadingSessions(false);
     }
-  }, [authInvalid, guard.allowed, removeToast, showErrorToast, showLoadingToast]);
+  }, [authInvalid, guard.allowed, isEn, removeToast, showErrorToast, showLoadingToast]);
 
   const refreshMembers = useCallback(async () => {
     if (!guard.allowed || authInvalid) return;
@@ -446,11 +464,11 @@ export default function ManagerHome() {
         handleUnauthorizedAuth();
         return;
       }
-      showErrorToast(err.message || 'Unable to load participants.');
+      showErrorToast(err.message || (isEn ? 'Unable to load participants.' : 'Impossible de charger les participants.'));
     } finally {
       setLoadingMembers(false);
     }
-  }, [authInvalid, guard.allowed, showErrorToast]);
+  }, [authInvalid, guard.allowed, isEn, showErrorToast]);
 
 
 
@@ -486,7 +504,9 @@ export default function ManagerHome() {
       setFormAttempted(false);
       setEditingMemberId(null);
       setShowParticipantForm(true);
-      setMemberFormStatus('Add your first participant to create sessions faster.');
+      setMemberFormStatus(isEn
+        ? 'Add your first participant to create sessions faster.'
+        : 'Ajoutez votre premier participant pour creer des sessions plus rapidement.');
     }
 
     params.delete('onboarding');
@@ -551,7 +571,9 @@ export default function ManagerHome() {
     const sessionIdentifier = getSessionIdentifier(session);
     if (!sessionIdentifier) return;
     const label = session.name || `Session #${sessionIdentifier}`;
-    const accepted = window.confirm(`Delete ${label}? This action is irreversible.`);
+    const accepted = window.confirm(isEn
+      ? `Delete ${label}? This action is irreversible.`
+      : `Supprimer ${label} ? Cette action est irreversible.`);
     if (!accepted) return;
 
     setDeletingSessionId(sessionIdentifier);
@@ -567,9 +589,9 @@ export default function ManagerHome() {
         throw new Error(body || `Error ${response.status}`);
       }
       await refreshSessions();
-      showSuccessToast('Session deleted.');
+      showSuccessToast(isEn ? 'Session deleted.' : 'Session supprimee.');
     } catch (err) {
-      showErrorToast(err.message || 'Delete failed.');
+      showErrorToast(err.message || (isEn ? 'Delete failed.' : 'La suppression a echoue.'));
     } finally {
       setDeletingSessionId(null);
     }
@@ -633,21 +655,24 @@ export default function ManagerHome() {
 
     if (!firstName || !email || (!editingMemberId && !password)) {
       const message = editingMemberId
-        ? 'First name and email are required.'
-        : 'First name, email, and password are required.';
+        ? (isEn ? 'First name and email are required.' : 'Le prenom et l email sont requis.')
+        : (isEn ? 'First name, email, and password are required.' : 'Le prenom, l email et le mot de passe sont requis.');
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
     }
 
     if (!isValidEmail(email)) {
-      setMemberFormStatus('A valid email address is required.');
-      showErrorToast('A valid email address is required.');
+      const message = isEn ? 'A valid email address is required.' : 'Une adresse email valide est requise.';
+      setMemberFormStatus(message);
+      showErrorToast(message);
       return;
     }
 
     if (password && !isStrongPassword(password)) {
-      const message = 'Password must contain upper/lower case letters, a number, and a symbol (8+ characters).';
+      const message = isEn
+        ? 'Password must contain upper/lower case letters, a number, and a symbol (8+ characters).'
+        : 'Le mot de passe doit contenir majuscule, minuscule, chiffre et symbole (8+ caracteres).';
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
@@ -659,7 +684,9 @@ export default function ManagerHome() {
     ));
 
     if (hasDuplicateEmail) {
-      const message = 'This email is already used by another participant.';
+      const message = isEn
+        ? 'This email is already used by another participant.'
+        : 'Cet email est deja utilise par un autre participant.';
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
@@ -702,7 +729,9 @@ export default function ManagerHome() {
         throw new Error(
           formatPaywallMessage(
             payload,
-            `${editingMemberId ? 'Participant update' : 'Participant creation'} failed (${response.status})`
+            isEn
+              ? `${editingMemberId ? 'Participant update' : 'Participant creation'} failed (${response.status})`
+              : `${editingMemberId ? 'Echec de mise a jour du participant' : 'Echec de creation du participant'} (${response.status})`
           )
         );
       }
@@ -726,13 +755,17 @@ export default function ManagerHome() {
         )));
       }
 
-      showSuccessToast(editingMemberId ? 'Participant updated successfully.' : 'Participant added successfully.');
+      showSuccessToast(editingMemberId
+        ? (isEn ? 'Participant updated successfully.' : 'Participant mis a jour avec succes.')
+        : (isEn ? 'Participant added successfully.' : 'Participant ajoute avec succes.'));
       setShowParticipantForm(false);
       resetMemberForm();
 
       await refreshMembers();
     } catch (err) {
-      const message = err.message || `Unable to ${editingMemberId ? 'update' : 'create'} participant.`;
+      const message = err.message || (isEn
+        ? `Unable to ${editingMemberId ? 'update' : 'create'} participant.`
+        : `Impossible de ${editingMemberId ? 'mettre a jour' : 'creer'} le participant.`);
       setMemberFormStatus(message);
       showErrorToast(message);
     } finally {
@@ -744,7 +777,9 @@ export default function ManagerHome() {
     if (!member?.id || deletingMemberId) return;
 
     const label = member.email || `${getParticipantFirstName(member)} ${getParticipantLastName(member)}`.trim() || `Participant #${member.id}`;
-    const accepted = window.confirm(`Delete ${label}? This action is irreversible.`);
+    const accepted = window.confirm(isEn
+      ? `Delete ${label}? This action is irreversible.`
+      : `Supprimer ${label} ? Cette action est irreversible.`);
     if (!accepted) return;
 
     setDeletingMemberId(member.id);
@@ -760,9 +795,9 @@ export default function ManagerHome() {
         throw new Error(body || `Unable to delete participant (${response.status})`);
       }
       await refreshMembers();
-      showSuccessToast('Participant deleted.');
+      showSuccessToast(isEn ? 'Participant deleted.' : 'Participant supprime.');
     } catch (err) {
-      showErrorToast(err.message || 'Unable to delete participant.');
+      showErrorToast(err.message || (isEn ? 'Unable to delete participant.' : 'Impossible de supprimer le participant.'));
     } finally {
       setDeletingMemberId(null);
     }
@@ -772,8 +807,8 @@ export default function ManagerHome() {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>Checking session...</h1>
-          <p>Loading...</p>
+          <h1>{isEn ? 'Checking session...' : 'Verification de la session...'}</h1>
+          <p>{isEn ? 'Loading...' : 'Chargement...'}</p>
         </section>
       </main>
     );
@@ -790,18 +825,20 @@ export default function ManagerHome() {
         <section className="hero home-hero">
           <div className="home-hero-grid">
             <div className="home-hero-copy">
-              <p className="eyebrow">MANAGER SPACE</p>
-              <h1 className="home-hero-greeting">Hello {userLabel}</h1>
-              <p>Plan, launch, and analyze your gamified team workshops in one clear, actionable workspace.</p>
+              <p className="eyebrow">{isEn ? 'MANAGER SPACE' : 'ESPACE MANAGER'}</p>
+              <h1 className="home-hero-greeting">{isEn ? `Hello ${userLabel}` : `Bonjour ${userLabel}`}</h1>
+              <p>{isEn
+                ? 'Plan, launch, and analyze your gamified team workshops in one clear, actionable workspace.'
+                : 'Planifiez, lancez et analysez vos ateliers gamifies dans un espace clair et actionnable.'}</p>
               <div className="hero-actions home-hero-actions">
                 <Link
                   className={`btn-primary home-create-cta ${canCreateSession ? '' : 'is-disabled'}`}
                   href={withLocalePath('/session-builder')}
                   onClick={handleCreateSessionClick}
                   aria-disabled={!canCreateSession}
-                  title={canCreateSession ? 'Create session' : createSessionBlockedReason}
+                  title={canCreateSession ? (isEn ? 'Create session' : 'Creer une session') : createSessionBlockedReason}
                 >
-                  Create session
+                  {isEn ? 'Create session' : 'Creer une session'}
                 </Link>
                 <button
                   type="button"
@@ -811,15 +848,17 @@ export default function ManagerHome() {
                   {isEn ? 'Create participants' : 'Creer des participants'}
                 </button>
                 {guard.user?.role === 'admin' && (
-                  <Link className="btn-secondary" href={withLocalePath('/admin')}>Admin console</Link>
+                  <Link className="btn-secondary" href={withLocalePath('/admin')}>
+                    {isEn ? 'Admin console' : 'Console admin'}
+                  </Link>
                 )}
               </div>
               {!canCreateSession ? (
                 <p className="home-prerequisite-hint" role="status">{createSessionBlockedReason}</p>
               ) : null}
               <div className="home-hero-trust-wrap">
-                <div className="home-hero-trust" aria-label="Manager benefits" onScroll={handleTrustScroll}>
-                  {MANAGER_BENEFITS.map((benefit, index) => (
+                <div className="home-hero-trust" aria-label={isEn ? 'Manager benefits' : 'Benefices manager'} onScroll={handleTrustScroll}>
+                  {managerBenefits.map((benefit, index) => (
                     <span
                       key={benefit}
                       data-benefit-index={index}
@@ -830,20 +869,22 @@ export default function ManagerHome() {
                   ))}
                 </div>
                 <div className="home-hero-trust-dots" aria-hidden="true">
-                  {MANAGER_BENEFITS.map((benefit, index) => (
+                  {managerBenefits.map((benefit, index) => (
                     <span key={benefit} className={activeTrustIndex === index ? 'is-active' : ''} />
                   ))}
                 </div>
               </div>
             </div>
 
-            <aside className="home-hero-summary" aria-label="Manager summary">
-              <p className="home-hero-summary__eyebrow">Quick view</p>
-              <strong className="home-hero-summary__title">A simple cockpit to run your sessions.</strong>
+            <aside className="home-hero-summary" aria-label={isEn ? 'Manager summary' : 'Resume manager'}>
+              <p className="home-hero-summary__eyebrow">{isEn ? 'Quick view' : 'Vue rapide'}</p>
+              <strong className="home-hero-summary__title">
+                {isEn ? 'A simple cockpit to run your sessions.' : 'Un cockpit simple pour piloter vos sessions.'}
+              </strong>
               <ul className="home-hero-summary__list">
-                <li>Create and configure sessions without friction</li>
-                <li>Track active and upcoming sessions in one place</li>
-                <li>Keep a ready-to-use participant base for future rituals</li>
+                <li>{isEn ? 'Create and configure sessions without friction' : 'Creer et configurer des sessions sans friction'}</li>
+                <li>{isEn ? 'Track active and upcoming sessions in one place' : 'Suivre les sessions actives et a venir au meme endroit'}</li>
+                <li>{isEn ? 'Keep a ready-to-use participant base for future rituals' : 'Maintenir une base participants prete pour les prochains rituels'}</li>
               </ul>
               <button
                 type="button"
@@ -855,21 +896,33 @@ export default function ManagerHome() {
             </aside>
           </div>
         </section>
-        <section className="cards-grid" aria-label="Session statistics">
+        <section className="cards-grid" aria-label={isEn ? 'Session statistics' : 'Statistiques des sessions'}>
           <article className="feature-card stat-card stat-card-live">
-            <p className="eyebrow">IN PROGRESS</p>
+            <p className="eyebrow">{isEn ? 'IN PROGRESS' : 'EN COURS'}</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.enCours}</h2>
-            <p>active session{sessionStats.enCours !== 1 ? 's' : ''}</p>
+            <p>
+              {isEn
+                ? `active session${sessionStats.enCours !== 1 ? 's' : ''}`
+                : `session${sessionStats.enCours !== 1 ? 's' : ''} active${sessionStats.enCours !== 1 ? 's' : ''}`}
+            </p>
           </article>
           <article className="feature-card stat-card stat-card-ready">
-            <p className="eyebrow">TO CONFIGURE</p>
+            <p className="eyebrow">{isEn ? 'TO CONFIGURE' : 'A CONFIGURER'}</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.preparee}</h2>
-            <p>preparing session{sessionStats.preparee !== 1 ? 's' : ''}</p>
+            <p>
+              {isEn
+                ? `preparing session${sessionStats.preparee !== 1 ? 's' : ''}`
+                : `session${sessionStats.preparee !== 1 ? 's' : ''} en preparation`}
+            </p>
           </article>
           <article className="feature-card stat-card stat-card-done">
-            <p className="eyebrow">COMPLETED</p>
+            <p className="eyebrow">{isEn ? 'COMPLETED' : 'TERMINEES'}</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.terminee}</h2>
-            <p>completed session{sessionStats.terminee !== 1 ? 's' : ''}</p>
+            <p>
+              {isEn
+                ? `completed session${sessionStats.terminee !== 1 ? 's' : ''}`
+                : `session${sessionStats.terminee !== 1 ? 's' : ''} terminee${sessionStats.terminee !== 1 ? 's' : ''}`}
+            </p>
 
           </article>
         </section>
@@ -877,18 +930,18 @@ export default function ManagerHome() {
         <section id="home-sessions-block" className="feature-card sessions-panel home-sessions-panel home-anchor-target">
           <div className="panel-head home-sessions-head">
             <div>
-              <p className="eyebrow">YOUR SESSIONS</p>
-              <h2>My sessions</h2>
-              <p>Track preparing, active, and completed sessions from one panel.</p>
+              <p className="eyebrow">{isEn ? 'YOUR SESSIONS' : 'VOS SESSIONS'}</p>
+              <h2>{isEn ? 'My sessions' : 'Mes sessions'}</h2>
+              <p>{isEn ? 'Track preparing, active, and completed sessions from one panel.' : 'Suivez les sessions en preparation, actives et terminees depuis un seul panneau.'}</p>
             </div>
             <Link
               className={`btn-primary ${canCreateSession ? '' : 'is-disabled'}`}
               href={withLocalePath('/session-builder')}
               onClick={handleCreateSessionClick}
               aria-disabled={!canCreateSession}
-              title={canCreateSession ? 'Create session' : createSessionBlockedReason}
+              title={canCreateSession ? (isEn ? 'Create session' : 'Creer une session') : createSessionBlockedReason}
             >
-              Create session
+              {isEn ? 'Create session' : 'Creer une session'}
             </Link>
           </div>
           {!canCreateSession ? (
@@ -904,7 +957,7 @@ export default function ManagerHome() {
           ) : null}
 
           {!loadingSessions && sessions.length === 0 ? (
-            <p>No sessions found yet.</p>
+            <p>{isEn ? 'No sessions found yet.' : 'Aucune session pour le moment.'}</p>
           ) : null}
 
           {!loadingSessions && sessions.length > 0 ? (
@@ -923,9 +976,9 @@ export default function ManagerHome() {
                     : withLocalePath(`/session-builder?sessionId=${sessionIdentifier}`);
                 const editLink = withLocalePath(`/session-builder?sessionId=${sessionIdentifier}`);
                 const mobileSessionActions = [
-                  { key: 'edit', label: 'Edit session', href: editLink },
-                  { key: 'open', label: isDone ? 'View results' : isActive ? 'Open session' : 'Configure session', href: openLink },
-                  { key: 'delete', label: 'Delete session', danger: true, onClick: () => handleDeleteSession(session), disabled: isDeleting },
+                  { key: 'edit', label: isEn ? 'Edit session' : 'Modifier la session', href: editLink },
+                  { key: 'open', label: isDone ? (isEn ? 'View results' : 'Voir les resultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure session' : 'Configurer la session'), href: openLink },
+                  { key: 'delete', label: isEn ? 'Delete session' : 'Supprimer la session', danger: true, onClick: () => handleDeleteSession(session), disabled: isDeleting },
                 ];
                 return (
                   <article key={sessionIdentifier} className={`feature-card session-card ${isDeleting ? 'session-card--deleting' : ''}`}>
@@ -933,17 +986,17 @@ export default function ManagerHome() {
                       <p className="session-title">{session.name || `Session #${sessionIdentifier}`}</p>
                       <p className="session-meta">
                         <span className={`status-pill ${statusClass}`}>
-                          {STATUS_LABEL[session.status] || session.status || 'Preparing'}
+                          {STATUS_LABEL[session.status] || session.status || (isEn ? 'Preparing' : 'En preparation')}
                         </span>
                         {session.session_date ? (
-                          <span className="session-date">{formatSessionDate(session.session_date)}</span>
+                          <span className="session-date">{formatSessionDate(session.session_date, locale)}</span>
                         ) : null}
                       </p>
                     </div>
                     <div className="session-card-mobile-actions">
                       <MobileActionMenu
-                        triggerLabel="Open session actions"
-                        menuLabel="Session actions"
+                        triggerLabel={isEn ? 'Open session actions' : 'Ouvrir les actions session'}
+                        menuLabel={isEn ? 'Session actions' : 'Actions session'}
                         items={mobileSessionActions}
                         closeSignal={mobileMenuSignal}
                       />
@@ -952,24 +1005,24 @@ export default function ManagerHome() {
                       <Link
                         className="icon-action-btn"
                         href={editLink}
-                        title="Edit"
-                        aria-label="Edit session"
+                        title={isEn ? 'Edit' : 'Modifier'}
+                        aria-label={isEn ? 'Edit session' : 'Modifier la session'}
                       >
                         ✏️
                       </Link>
                       <Link
                         className="icon-action-btn"
                         href={openLink}
-                        title={isDone ? 'View results' : isActive ? 'Open session' : 'Configure'}
-                        aria-label={isDone ? 'View results' : isActive ? 'Open session' : 'Configure'}
+                        title={isDone ? (isEn ? 'View results' : 'Voir les resultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure' : 'Configurer')}
+                        aria-label={isDone ? (isEn ? 'View results' : 'Voir les resultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure' : 'Configurer')}
                       >
                         {isDone ? '📊' : isActive ? '▶️' : '⚙️'}
                       </Link>
                       <button
                         type="button"
                         className="icon-action-btn icon-action-danger"
-                        title="Delete"
-                        aria-label="Delete session"
+                        title={isEn ? 'Delete' : 'Supprimer'}
+                        aria-label={isEn ? 'Delete session' : 'Supprimer la session'}
                         onClick={() => handleDeleteSession(session)}
                         disabled={isDeleting}
                       >
@@ -988,7 +1041,7 @@ export default function ManagerHome() {
               className="btn-secondary"
               onClick={() => setVisibleCount((prev) => prev + 8)}
             >
-              Show more
+              {isEn ? 'Show more' : 'Afficher plus'}
             </button>
           ) : null}
 
@@ -998,16 +1051,16 @@ export default function ManagerHome() {
               className="btn-secondary"
               onClick={() => setVisibleCount(8)}
             >
-              Collapse list
+              {isEn ? 'Collapse list' : 'Replier la liste'}
             </button>
           ) : null}
         </section>
 
-        <section id="home-participants-block" className="feature-card participants-panel home-anchor-target" aria-label="Team participants">
+        <section id="home-participants-block" className="feature-card participants-panel home-anchor-target" aria-label={isEn ? 'Team participants' : 'Participants de l equipe'}>
           <div className="participants-panel-head">
             <div>
-              <p className="eyebrow">PARTICIPANTS</p>
-              <h2>Participant list</h2>
+              <p className="eyebrow">{isEn ? 'PARTICIPANTS' : 'PARTICIPANTS'}</p>
+              <h2>{isEn ? 'Participant list' : 'Liste des participants'}</h2>
             </div>
             <div className="participants-panel-actions">
               <button
@@ -1015,19 +1068,23 @@ export default function ManagerHome() {
                 className="btn-secondary"
                 onClick={openNewMemberForm}
               >
-                Create participant
+                {isEn ? 'Create participant' : 'Creer un participant'}
               </button>
             </div>
           </div>
 
-          <div className="participants-panel-kpis" aria-label="Participant summary">
-            <span>{members.length} participant{members.length > 1 ? 's' : ''} total</span>
+          <div className="participants-panel-kpis" aria-label={isEn ? 'Participant summary' : 'Resume participants'}>
+            <span>
+              {isEn
+                ? `${members.length} participant${members.length > 1 ? 's' : ''} total`
+                : `${members.length} participant${members.length > 1 ? 's' : ''} au total`}
+            </span>
           </div>
 
-          {loadingMembers ? <p>Loading participants...</p> : null}
+          {loadingMembers ? <p>{isEn ? 'Loading participants...' : 'Chargement des participants...'}</p> : null}
 
           {!loadingMembers && members.length === 0 ? (
-            <p className="team-empty">No participants yet. Start by creating your first profile.</p>
+            <p className="team-empty">{isEn ? 'No participants yet. Start by creating your first profile.' : 'Aucun participant pour le moment. Commencez par creer votre premier profil.'}</p>
           ) : null}
 
           {!loadingMembers && members.length > 0 ? (
@@ -1036,22 +1093,22 @@ export default function ManagerHome() {
                 const title = [getParticipantFirstName(member), getParticipantLastName(member)].filter(Boolean).join(' ').trim() || `Participant #${member.id}`;
                 const details = [member.job_title, member.department].filter(Boolean).join(' · ');
                 const mobileParticipantActions = [
-                  { key: 'edit', label: 'Edit participant', onClick: () => beginEditMember(member), disabled: deletingMemberId === member.id },
-                  { key: 'delete', label: 'Delete participant', danger: true, onClick: () => handleDeleteMember(member), disabled: deletingMemberId === member.id },
+                  { key: 'edit', label: isEn ? 'Edit participant' : 'Modifier le participant', onClick: () => beginEditMember(member), disabled: deletingMemberId === member.id },
+                  { key: 'delete', label: isEn ? 'Delete participant' : 'Supprimer le participant', danger: true, onClick: () => handleDeleteMember(member), disabled: deletingMemberId === member.id },
                 ];
                 return (
                   <li key={String(member.id)} className="session-item team-member-item">
                     <div>
                       <p className="session-title">{title}</p>
                       <p className="session-meta">
-                        {member.email || 'Email not provided'}
+                        {member.email || (isEn ? 'Email not provided' : 'Email non renseigne')}
                         {details ? ` · ${details}` : ''}
                       </p>
                     </div>
                     <div className="team-member-mobile-actions">
                       <MobileActionMenu
-                        triggerLabel="Open participant actions"
-                        menuLabel="Participant actions"
+                        triggerLabel={isEn ? 'Open participant actions' : 'Ouvrir les actions participant'}
+                        menuLabel={isEn ? 'Participant actions' : 'Actions participant'}
                         items={mobileParticipantActions}
                         closeSignal={mobileMenuSignal}
                       />
@@ -1060,8 +1117,8 @@ export default function ManagerHome() {
                       <button
                         type="button"
                         className="icon-action-btn icon-action-btn--mobile-friendly"
-                        title="Edit"
-                        aria-label="Edit this participant"
+                        title={isEn ? 'Edit' : 'Modifier'}
+                        aria-label={isEn ? 'Edit this participant' : 'Modifier ce participant'}
                         onClick={() => beginEditMember(member)}
                         disabled={deletingMemberId === member.id}
                       >
@@ -1070,8 +1127,8 @@ export default function ManagerHome() {
                       <button
                         type="button"
                         className="icon-action-btn icon-action-btn--mobile-friendly icon-action-danger"
-                        title="Delete"
-                        aria-label="Delete this participant"
+                        title={isEn ? 'Delete' : 'Supprimer'}
+                        aria-label={isEn ? 'Delete this participant' : 'Supprimer ce participant'}
                         onClick={() => handleDeleteMember(member)}
                         disabled={deletingMemberId === member.id}
                       >
@@ -1087,7 +1144,7 @@ export default function ManagerHome() {
       </main>
       <Modal
         open={isStartupGuideOpen}
-        title="Getting started guide"
+        title={isEn ? 'Getting started guide' : 'Guide de demarrage'}
         onClose={closeStartupGuide}
         hideHeader
         overlayClassName="manager-onboarding-modalOverlay"
@@ -1098,11 +1155,12 @@ export default function ManagerHome() {
           <div className="manager-onboarding-shell">
             <div className="manager-onboarding-hero manager-onboarding-hero--modal">
               <div className="manager-onboarding-copy">
-                <p className="eyebrow manager-onboarding-eyebrow">GETTING STARTED GUIDE</p>
-                <h2 id="onboarding-guide-title">Create your first session in 3 simple steps.</h2>
+                <p className="eyebrow manager-onboarding-eyebrow">{isEn ? 'GETTING STARTED GUIDE' : 'GUIDE DE DEMARRAGE'}</p>
+                <h2 id="onboarding-guide-title">{isEn ? 'Create your first session in 3 simple steps.' : 'Creez votre premiere session en 3 etapes simples.'}</h2>
                 <p>
-                  The flow is fast and intuitive:
-                  prepare participants, configure the session, then launch your challenge.
+                  {isEn
+                    ? 'The flow is fast and intuitive: prepare participants, configure the session, then launch your challenge.'
+                    : 'Le flux est rapide et intuitif: preparez les participants, configurez la session, puis lancez votre challenge.'}
                 </p>
               </div>
               <button
@@ -1110,19 +1168,19 @@ export default function ManagerHome() {
                 className="btn-secondary manager-onboarding-close"
                 onClick={closeStartupGuide}
               >
-                Close
+                {isEn ? 'Close' : 'Fermer'}
               </button>
             </div>
 
             <div className="manager-onboarding-grid manager-onboarding-grid--modal">
-              {STARTUP_GUIDE_STEPS.map((item, index) => (
+              {startupGuideSteps.map((item, index) => (
                 <article
                   key={item.step}
                   className="card manager-onboarding-step manager-onboarding-step--premium"
                   style={{ '--onboarding-delay': `${index * 90}ms` }}
                 >
                   <div className="manager-onboarding-step__head">
-                    <span className="manager-onboarding-step__badge">Step {item.step}</span>
+                    <span className="manager-onboarding-step__badge">{isEn ? `Step ${item.step}` : `Etape ${item.step}`}</span>
                     <span className="manager-onboarding-step__index">0{item.step}</span>
                   </div>
                   <span className="manager-onboarding-step__icon" aria-hidden="true">{item.icon}</span>
@@ -1142,7 +1200,9 @@ export default function ManagerHome() {
 
       <Modal
         open={isParticipantModalOpen}
-        title={editingMemberId ? 'Edit participant' : 'Create participant'}
+        title={editingMemberId
+          ? (isEn ? 'Edit participant' : 'Modifier le participant')
+          : (isEn ? 'Create participant' : 'Creer un participant')}
         titleClassName="participant-modal-title"
         onClose={closeParticipantModal}
       >
@@ -1151,8 +1211,8 @@ export default function ManagerHome() {
             <div className="participant-inline-form-head">
               <p>
                 {editingMemberId
-                  ? 'Update the selected participant information.'
-                  : 'Add a participant to assign them to your sessions.'}
+                  ? (isEn ? 'Update the selected participant information.' : 'Mettez a jour les informations du participant selectionne.')
+                  : (isEn ? 'Add a participant to assign them to your sessions.' : 'Ajoutez un participant pour l assigner a vos sessions.')}
               </p>
             </div>
 
@@ -1182,7 +1242,7 @@ export default function ManagerHome() {
               />
               <div className="participant-form-grid">
                 <label>
-                  First name *
+                  {isEn ? 'First name *' : 'Prenom *'}
                   <input
                     type="text"
                     name="participant_first_name"
@@ -1194,11 +1254,11 @@ export default function ManagerHome() {
                     required
                   />
                   {formAttempted && !memberFormChecks.firstNameOk ? (
-                    <span className="field-error">First name is required.</span>
+                    <span className="field-error">{isEn ? 'First name is required.' : 'Le prenom est requis.'}</span>
                   ) : null}
                 </label>
                 <label>
-                  Last name
+                  {isEn ? 'Last name' : 'Nom'}
                   <input
                     type="text"
                     name="participant_last_name"
@@ -1223,33 +1283,35 @@ export default function ManagerHome() {
                     required
                   />
                   {formAttempted && !memberFormChecks.emailOk ? (
-                    <span className="field-error">Email is required.</span>
+                    <span className="field-error">{isEn ? 'Email is required.' : 'L email est requis.'}</span>
                   ) : null}
                 </label>
                 <label className="participant-field-full">
-                  Password {editingMemberId ? '(optional)' : '*'}
+                  {isEn ? 'Password' : 'Mot de passe'} {editingMemberId ? (isEn ? '(optional)' : '(optionnel)') : '*'}
                   <input
                     type="password"
                     name="participant_access_password"
                     value={memberForm.password}
                     onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
-                    placeholder={editingMemberId ? 'Leave blank to keep current password' : 'Minimum 8 characters'}
+                    placeholder={editingMemberId
+                      ? (isEn ? 'Leave blank to keep current password' : 'Laissez vide pour conserver le mot de passe actuel')
+                      : (isEn ? 'Minimum 8 characters' : 'Minimum 8 caracteres')}
                     minLength={8}
                     className={formAttempted && !memberFormChecks.passwordOk ? 'input-invalid' : ''}
                     autoComplete="new-password"
                     required={!editingMemberId}
                   />
                   {!editingMemberId ? (
-                    <span className="field-help">{memberFormChecks.passwordLength}/8 minimum characters</span>
+                    <span className="field-help">{memberFormChecks.passwordLength}/8 {isEn ? 'minimum characters' : 'caracteres minimum'}</span>
                   ) : (
-                    <span className="field-help">Fill this field only to replace the current password.</span>
+                    <span className="field-help">{isEn ? 'Fill this field only to replace the current password.' : 'Renseignez ce champ seulement pour remplacer le mot de passe actuel.'}</span>
                   )}
                   {formAttempted && !memberFormChecks.passwordOk ? (
-                    <span className="field-error">Password must be at least 8 characters long.</span>
+                    <span className="field-error">{isEn ? 'Password must be at least 8 characters long.' : 'Le mot de passe doit contenir au moins 8 caracteres.'}</span>
                   ) : null}
                 </label>
                 <label>
-                  Job title
+                  {isEn ? 'Job title' : 'Poste'}
                   <input
                     type="text"
                     name="participant_job_title"
@@ -1260,7 +1322,7 @@ export default function ManagerHome() {
                   />
                 </label>
                 <label>
-                  Department
+                  {isEn ? 'Department' : 'Departement'}
                   <input
                     type="text"
                     name="participant_department"
@@ -1271,7 +1333,11 @@ export default function ManagerHome() {
                   />
                 </label>
               </div>
-              <p className="participant-form-hint">Fields marked with * are required to create a usable participant profile.</p>
+              <p className="participant-form-hint">
+                {isEn
+                  ? 'Fields marked with * are required to create a usable participant profile.'
+                  : 'Les champs marques d un * sont requis pour creer un profil participant utilisable.'}
+              </p>
               {memberFormStatus ? (
                 <p className="participant-form-status participant-form-status--warn" role="alert" aria-live="polite">
                   {memberFormStatus}
@@ -1279,12 +1345,16 @@ export default function ManagerHome() {
               ) : null}
               <div className="participant-form-actions">
                 <button type="button" className="btn-secondary" onClick={closeParticipantModal} disabled={creatingMember}>
-                  Cancel
+                  {isEn ? 'Cancel' : 'Annuler'}
                 </button>
                 <button type="submit" className="btn-primary" disabled={!canSubmitMember}>
                   {creatingMember
-                    ? (editingMemberId ? 'Updating...' : 'Adding...')
-                    : (editingMemberId ? 'Save changes' : 'Create participant')}
+                    ? (editingMemberId
+                      ? (isEn ? 'Updating...' : 'Mise a jour...')
+                      : (isEn ? 'Adding...' : 'Ajout...'))
+                    : (editingMemberId
+                      ? (isEn ? 'Save changes' : 'Enregistrer')
+                      : (isEn ? 'Create participant' : 'Creer un participant'))}
                 </button>
               </div>
             </form>
