@@ -283,6 +283,8 @@
   background: rgba(14, 30, 44, 0.84);
   padding: 8px 10px;
   font-size: 0.8rem;
+  font-family: inherit;
+  letter-spacing: 0.01em;
   cursor: pointer;
 }
 

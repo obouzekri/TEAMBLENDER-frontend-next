@@ -401,6 +401,8 @@
   padding: 8px 10px;
   font-size: 0.78rem;
   font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0.01em;
   cursor: pointer;
 }
 

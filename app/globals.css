@@ -2123,6 +2123,8 @@ a {
   background: transparent;
   color: var(--ink-soft);
   font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0.01em;
 }
 
 .toggle-btn.active {
@@ -5618,6 +5620,8 @@ a {
   color: var(--ink-soft);
   font-size: 0.88rem;
   font-weight: 500;
+  font-family: inherit;
+  letter-spacing: 0.01em;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
@@ -11631,6 +11635,8 @@ a {
   padding: 0.5rem 1.1rem;
   font-size: 0.875rem;
   font-weight: 500;
+  font-family: inherit;
+  letter-spacing: 0.01em;
   transition: all 180ms ease;
 }
 .toggle-btn.active {
