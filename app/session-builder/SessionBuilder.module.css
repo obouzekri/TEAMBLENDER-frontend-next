@@ -163,7 +163,7 @@
 }
 
 .creationExperience {
-  width: min(1660px, 100%);
+  width: min(1760px, 100%);
   margin: 0 auto;
 }
 
@@ -171,8 +171,8 @@
   position: relative;
   width: 100%;
   min-height: calc(100vh - 84px);
-  padding: 1.4rem clamp(1rem, 2.4vw, 1.6rem);
-  max-width: 1720px;
+  padding: 1.4rem clamp(0.8rem, 1.8vw, 1.2rem);
+  max-width: 1820px;
   margin: 0 auto;
 }
 
@@ -382,6 +382,7 @@
   gap: clamp(1.5rem, 2vw, 2rem);
   align-items: start;
   margin-top: 1.35rem;
+  width: 100%;
 }
 
 .creationPrimary,
@@ -410,6 +411,12 @@
   border: 1px solid var(--builder-line-strong);
   box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
   backdrop-filter: blur(16px);
+}
+
+.creationForm,
+.creationParticipantsPane {
+  width: 100%;
+  min-width: 0;
 }
 
 .creationDateInput {
@@ -444,6 +451,11 @@
 .creationForm,
 .creationParticipantsPane {
   position: relative;
+}
+
+.creationForm > *,
+.creationParticipantsPane > * {
+  min-width: 0;
 }
 
 .creationForm::before,
@@ -874,11 +886,12 @@
 }
 
 .creationForm .flowModeGrid {
-  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
 }
 
 .creationForm .flowModeCard {
-  min-width: 180px;
+  min-width: 200px;
+  width: 100%;
 }
 
 .creationForm .flowModeContent strong,
@@ -894,6 +907,26 @@
 .creationParticipantsPane .creationSectionHeader > div,
 .creationForm .creationSectionHeader > div {
   min-width: 0;
+}
+
+.creationParticipantsPane .containerEmbedded .card,
+.creationParticipantsPane :global(.containerEmbedded .card) {
+  width: 100%;
+  max-width: none;
+}
+
+.creationParticipantsPane .containerEmbedded .item,
+.creationParticipantsPane :global(.containerEmbedded .item) {
+  width: 100%;
+}
+
+.creationParticipantsPane .containerEmbedded .identityInline,
+.creationParticipantsPane .containerEmbedded .email,
+.creationParticipantsPane :global(.containerEmbedded .identityInline),
+.creationParticipantsPane :global(.containerEmbedded .email) {
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
 }
 
 .creationForm:hover,
@@ -985,6 +1018,12 @@
 
   .creationForm .flowModeCard {
     min-width: 0;
+    width: 100%;
+  }
+
+  .creationForm,
+  .creationParticipantsPane {
+    width: 100%;
   }
 
   .creationStepper {
