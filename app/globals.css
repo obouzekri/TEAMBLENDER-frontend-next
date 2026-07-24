@@ -12460,3 +12460,36 @@ a {
     }
   }
 
+  /* Keep language switch compact in nav menus */
+  @media (max-width: 860px) {
+    .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions {
+      grid-template-columns: auto 1fr !important;
+      align-items: center !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .lang-switch {
+      width: auto !important;
+      max-width: max-content !important;
+      justify-content: flex-start !important;
+      justify-self: start !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .lang-switch__btn {
+      flex: 0 0 auto !important;
+      min-width: 2.2rem !important;
+    }
+  }
+
+  @media (max-width: 1180px) and (min-width: 861px) {
+    .top-nav:not(.top-nav--live-inline) .nav-actions .lang-switch {
+      flex: 0 0 auto;
+      width: auto;
+      max-width: max-content;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .nav-actions .lang-switch__btn {
+      flex: 0 0 auto;
+      min-width: 2.2rem;
+    }
+  }
+
