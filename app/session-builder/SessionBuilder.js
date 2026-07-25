@@ -1211,6 +1211,7 @@ export default function SessionBuilder() {
       payload.flow_mode = flowMode;
       if (draftParticipantIds.length > 0) {
         payload.participant_ids = draftParticipantIds;
+        payload.participantIds = draftParticipantIds;
       }
       if (sessionDate) {
         payload.session_date = sessionDate.toISOString();
