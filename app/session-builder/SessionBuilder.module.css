@@ -794,7 +794,7 @@
 
 .creationGlobalActions {
   position: sticky;
-  bottom: 0.75rem;
+  bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
   z-index: 5;
   display: flex;
   align-items: center;
@@ -803,7 +803,7 @@
   margin-top: 1rem;
   padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
   border: 1px solid rgba(53, 160, 255, 0.28);
   box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
   backdrop-filter: blur(16px);
@@ -1107,6 +1107,18 @@
     gap: 1rem;
     padding-inline: 0.65rem;
     padding-top: 0.8rem;
+
+  .creationGlobalActions {
+    position: sticky;
+    bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+    padding: 0.75rem;
+    border-radius: 16px;
+  }
+
+  .creationSubmit {
+    width: 100%;
+    min-width: 0;
+  }
     padding-bottom: 2.4rem;
   }
 

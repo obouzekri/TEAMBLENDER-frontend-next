@@ -41,7 +41,20 @@ const OBJECTIVE_LABELS = {
 
 function toObjectiveList(value) {
   if (Array.isArray(value)) {
-    return value.map((item) => String(item || '').trim()).filter(Boolean);
+    return value
+      .map((item) => {
+        if (item && typeof item === 'object' && !Array.isArray(item)) {
+          const localized = item.fr ?? item.en ?? '';
+          return String(localized || '').trim();
+        }
+        return String(item || '').trim();
+      })
+      .filter(Boolean);
+  }
+
+  if (value && typeof value === 'object') {
+    const localized = value.fr ?? value.en ?? '';
+    return String(localized || '').trim() ? [String(localized).trim()] : [];
   }
 
   const raw = String(value || '').trim();
@@ -67,12 +80,20 @@ export default function ChallengesCatalog({
   const { locale, t } = useI18n();
   const isEn = locale === 'en';
   const [previewChallenge, setPreviewChallenge] = useState(null);
-    function localizeMappingLabel(entry, fallback) {
-      if (!entry || typeof entry !== 'object') {
-        return fallback;
-      }
-      return String(entry[isEn ? 'en' : 'fr'] || entry.en || entry.fr || fallback || '').trim();
+  function localizeMappingLabel(entry, fallback) {
+    if (!entry || typeof entry !== 'object') {
+      return fallback;
     }
+    return String(entry[isEn ? 'en' : 'fr'] || entry.en || entry.fr || fallback || '').trim();
+  }
+
+  function localizePlainValue(value) {
+    if (value == null) return '';
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      return String(value[isEn ? 'en' : 'fr'] || value.en || value.fr || '').trim();
+    }
+    return String(value || '').trim();
+  }
 
   const [openDropdown, setOpenDropdown] = useState(null);
   const [visibleCount, setVisibleCount] = useState(12);
@@ -396,35 +417,40 @@ export default function ChallengesCatalog({
             const isSelected = selectedIds.includes(challenge.id);
             const challengeObjectives = toObjectiveList(challenge.objectives || challenge.objective).slice(0, 3);
             const idealPlayersLabel = formatIdealPlayersLabel(challenge);
+            const challengeName = localizePlainValue(challenge.name) || (isEn ? 'Activity' : 'Activite');
+            const challengeDescription = localizePlainValue(challenge.description);
+            const challengeDuration = Number(challenge?.duration || challenge?.config?.duration_minutes || 0);
             return (
               <div key={challenge.id} className={`${styles.card} ${isSelected ? styles.selected : ''}`}>
                 <div className={styles.cardHeader}>
-                  <h3 className={styles.cardTitle}>{challenge.name}</h3>
+                  <h3 className={styles.cardTitle}>{challengeName}</h3>
                   <div className={styles.rulesMeta}>
                     <button
                       type="button"
                       className={styles.rulesButton}
                       onClick={() => setPreviewChallenge(challenge)}
                       title={t('challengeRulesPanel.showRules')}
-                      aria-label={t('sessionBuilder.catalogViewRulesFor', { name: challenge.name })}
+                      aria-label={t('sessionBuilder.catalogViewRulesFor', { name: challengeName })}
                     >
                       <span aria-hidden="true">📜</span>
                       <span>{t('challengeRulesPanel.showRules')}</span>
                     </button>
-                    <span className={styles.cardDuration}>{challenge.duration} min</span>
+                    <span className={styles.cardDuration}>{challengeDuration > 0 ? `${challengeDuration} min` : '—'}</span>
                   </div>
                 </div>
 
-                <p className={styles.cardDescription}>{challenge.description}</p>
+                <p className={styles.cardDescription}>{challengeDescription}</p>
                 {idealPlayersLabel ? <p className={styles.playerHint}>{idealPlayersLabel}</p> : null}
 
                 <div className={styles.cardMeta}>
                   {challenge.category ? (
-                    <Badge className={styles.badge}>{CATEGORY_LABELS[challenge.category] || challenge.category}</Badge>
+                    <Badge className={styles.badge}>
+                      {localizeMappingLabel(CATEGORY_LABELS[localizePlainValue(challenge.category)], localizePlainValue(challenge.category))}
+                    </Badge>
                   ) : null}
                   {challengeObjectives.map((objective) => (
                     <Badge key={`${challenge.id}-${objective}`} variant="info" className={`${styles.badge} ${styles.objectiveBadge}`}>
-                      {OBJECTIVE_LABELS[objective] || objective}
+                      {localizeMappingLabel(OBJECTIVE_LABELS[objective], objective)}
                     </Badge>
                   ))}
                 </div>

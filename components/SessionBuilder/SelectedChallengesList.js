@@ -12,7 +12,17 @@ export default function SelectedChallengesList({
   onMoveDown,
   onClearAll,
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+
+  function localizePlainValue(value) {
+    if (value == null) return '';
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      const preferredLocale = locale === 'en' ? 'en' : 'fr';
+      return String(value[preferredLocale] || value.fr || value.en || '').trim();
+    }
+    return String(value || '').trim();
+  }
+
   if (challenges.length === 0) {
     function handleBrowseCatalog() {
       const catalog = document.querySelector('[data-catalog]');
@@ -55,7 +65,7 @@ export default function SelectedChallengesList({
         {challenges.map((challenge, index) => (
           <li key={challenge.id} className={styles.item}>
             <div className={styles.itemInfo}>
-              <p className={styles.itemTitle}>{challenge.name}</p>
+              <p className={styles.itemTitle}>{localizePlainValue(challenge.name) || t('sessionBuilder.activitySingular')}</p>
             </div>
 
             <div className={styles.itemActions}>
