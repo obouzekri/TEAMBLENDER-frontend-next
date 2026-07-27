@@ -710,8 +710,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <section className={styles.card}>
             <h2 className={styles.sectionTitle}>{t('vom.votingTitle')}</h2>
             <div className={styles.votePhaseHeader}>
-              <p className={styles.votePhaseTitle}>{t('vom.poserAsks', { name: participantName(poserId) })}</p>
+              <div className={styles.votePhaseCopy}>
+                <span className={styles.voteMonitorEyebrow}>{t('vom.voteWaitingTitle')}</span>
+                <strong className={styles.votePhaseTitle}>{t('vom.poserAsks', { name: participantName(poserId) })}</strong>
+              </div>
               <p className={styles.votePhaseStatement}>"{currentTurn?.statement_prompt || currentTurn?.statement_text || '-'}"</p>
+              <div className={styles.votePhaseMetaRow}>
+                <span className={styles.votePhaseChip}>{t('vom.voteProgress', { answered: answeredVotesCount, total: totalExpectedVotes })}</span>
+                <span className={styles.votePhaseChip}>{isChoiceVoting ? (isEn ? 'Multiple choice' : 'Réponse à choix') : (isEn ? 'Binary vote' : 'Vote binaire')}</span>
+              </div>
             </div>
             {!isFacilitator && !isPoser ? (
               <div className={styles.voteActions}>
@@ -725,7 +732,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                         className={`${styles.choiceOptionBtn}${active ? ` ${styles.choiceOptionBtnActive}` : ''}`}
                         onClick={() => vote(option)}
                       >
-                        {option}
+                        <span className={styles.voteChoiceLabel}>{option}</span>
+                        <span className={styles.voteChoiceHint}>{isEn ? 'Tap to lock this option' : 'Touchez pour valider cette option'}</span>
                       </button>
                     );
                   })
@@ -736,35 +744,42 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                       className={`${styles.voteTrue}${myVote === 'vrai' ? ` ${styles.voteActive}` : ''}`}
                       onClick={() => vote('vrai')}
                     >
-                      {t('vom.voteTrue')}
+                      <span className={styles.voteChoiceLabel}>{t('vom.voteTrue')}</span>
+                      <span className={styles.voteChoiceHint}>{isEn ? 'I believe the statement is true' : 'Je pense que l affirmation est vraie'}</span>
                     </button>
                     <button
                       type="button"
                       className={`${styles.voteFalse}${myVote === 'mensonge' ? ` ${styles.voteActive}` : ''}`}
                       onClick={() => vote('mensonge')}
                     >
-                      {t('vom.voteFalse')}
+                      <span className={styles.voteChoiceLabel}>{t('vom.voteFalse')}</span>
+                      <span className={styles.voteChoiceHint}>{isEn ? 'I believe the poser is bluffing' : 'Je pense que le poseur bluffe'}</span>
                     </button>
                   </>
                 )}
                 <p className={styles.voteStatus}>{t('vom.currentVote', { vote: myVote === 'vrai' ? t('vom.voteTrue') : myVote === 'mensonge' ? t('vom.voteFalse') : myVote || t('vom.absent') })}</p>
                 {myVote ? (
                   <div className={styles.voteMonitorCard}>
-                    <div className={styles.voteMonitorHeader}>
+                    <h3 className={styles.modalTitle}>{t('vom.yourQuestion')}</h3>
+                    <p className={styles.modalIntro}>{isEn ? 'Choose the option that will be shown to the voters.' : 'Choisissez l option qui sera présentée aux votants.'}</p>
                       <div>
                         <span className={styles.voteMonitorEyebrow}>{t('vom.voteWaitingTitle')}</span>
-                        <strong className={styles.voteMonitorHeadline}>{t('vom.voteParticipantWaitingHeadline')}</strong>
-                      </div>
-                      <span className={styles.voteMonitorCount}>{t('vom.voteProgress', { answered: answeredVotesCount, total: totalExpectedVotes })}</span>
-                    </div>
+                        <div className={styles.choicePromptCard}>
+                          <p className={styles.choicePromptEyebrow}>{isEn ? 'Structured choices' : 'Choix structurés'}</p>
+                          <p className={styles.choicePanelTitle}>
+                            {selectedStatementChoices.prompt}{selectedStatementChoices.hasColon ? ':' : ''}
+                          </p>
+                        </div>
+                        <div className={styles.choiceButtonsWrap} role="radiogroup" aria-label={isEn ? 'Answer choices' : 'Choix de réponse'}>
                     <div className={styles.voteProgressTrack} aria-hidden="true">
                       <span className={styles.voteProgressFill} style={{ width: `${totalExpectedVotes > 0 ? Math.round((answeredVotesCount / totalExpectedVotes) * 100) : 0}%` }} />
                     </div>
-                  </div>
+                              <label key={option} className={`${styles.choiceRadioLabel}${active ? ` ${styles.choiceRadioLabelActive}` : ''}`}>
                 ) : null}
               </div>
             ) : isFacilitator ? (
               <div className={styles.voteMonitorCard}>
+                                  className={styles.choiceRadioInput}
                 <div className={styles.voteMonitorHeader}>
                   <div>
                     <span className={styles.voteMonitorEyebrow}>{t('vom.facilitatorObserve')}</span>
@@ -772,7 +787,13 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   </div>
                   <span className={styles.voteMonitorCount}>{t('vom.voteProgress', { answered: answeredVotesCount, total: totalExpectedVotes })}</span>
                 </div>
-                <div className={styles.voteMonitorSummaryGrid}>
+                                <span className={styles.choiceRadioMark} aria-hidden="true">
+                                  <span className={styles.choiceRadioDot} />
+                                </span>
+                                <span className={styles.choiceRadioCopy}>
+                                  <span className={styles.choiceRadioValue}>{option}</span>
+                                  <span className={styles.choiceRadioHelper}>{active ? (isEn ? 'Selected' : 'Sélectionnée') : (isEn ? 'Tap to choose' : 'Touchez pour choisir')}</span>
+                                </span>
                   <article className={styles.voteSummaryTile}>
                     <span>{t('vom.facilitatorQuestionLabel')}</span>
                     <strong>{currentTurn?.statement_text || currentTurn?.statement_prompt || '-'}</strong>
@@ -780,17 +801,21 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   <article className={styles.voteSummaryTile}>
                     <span>{t('vom.facilitatorPoserAnswerLabel')}</span>
                     <strong>{poserAnswerLabel}</strong>
-                  </article>
-                </div>
-                <div className={styles.voteProgressTrack} aria-hidden="true">
+                        <div className={styles.choicePromptCard}>
+                          <p className={styles.choicePromptEyebrow}>{isEn ? 'Statement to publish' : 'Affirmation à publier'}</p>
+                          <p className={styles.choicePanelTitle}>{selectedStatement.text}</p>
+                        </div>
+                        <p className={styles.helper}>{t('vom.chooseTruth')}</p>
+                        <div className={styles.choiceButtonsWrap} role="radiogroup" aria-label={isEn ? 'Answer choices' : 'Choix de réponse'}>
                   <span className={styles.voteProgressFill} style={{ width: `${totalExpectedVotes > 0 ? Math.round((answeredVotesCount / totalExpectedVotes) * 100) : 0}%` }} />
                 </div>
                 <div className={styles.voteResponseGrid}>
-                  {facilitatorVoteRows.map((row) => (
+                              <label key={option} className={`${styles.choiceRadioLabel}${active ? ` ${styles.choiceRadioLabelActive}` : ''}`}>
                     <article key={row.participantId} className={`${styles.voteResponseCard}${row.hasAnswered ? ` ${styles.voteResponseCardAnswered}` : ''}`}>
                       <div className={styles.voteResponseIdentity}>
                         <span className={styles.inlineAvatar}>{getInitials(row.participantName)}</span>
                         <div className={styles.voteResponseCopy}>
+                                  className={styles.choiceRadioInput}
                           <strong>{row.participantName}</strong>
                           <span>{row.hasAnswered ? t('vom.voteAnswered') : t('vom.votePending')}</span>
                         </div>
@@ -798,7 +823,13 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                       <span className={`${styles.voteResponseValue}${row.hasAnswered ? ` ${styles.voteResponseValueAnswered}` : ''}`}>{row.voteLabel}</span>
                     </article>
                   ))}
-                </div>
+                                <span className={styles.choiceRadioMark} aria-hidden="true">
+                                  <span className={styles.choiceRadioDot} />
+                                </span>
+                                <span className={styles.choiceRadioCopy}>
+                                  <span className={styles.choiceRadioValue}>{option}</span>
+                                  <span className={styles.choiceRadioHelper}>{active ? (isEn ? 'Selected' : 'Sélectionnée') : (isEn ? 'Tap to choose' : 'Touchez pour choisir')}</span>
+                                </span>
               </div>
             ) : (
               <div className={styles.voteMonitorCard}>
