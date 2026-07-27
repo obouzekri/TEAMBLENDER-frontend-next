@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import useI18n from '@/lib/i18n/useI18n';
 import { useI18nContext } from '@/lib/i18n/I18nProvider';
@@ -11,6 +12,7 @@ export default function LanguageSwitcher() {
   const searchParams = useSearchParams();
   const { locale, t } = useI18n();
   const { setLocale } = useI18nContext();
+  const switcherId = useId();
 
   const basePath = stripLocaleFromPath(pathname || '/');
   const query = searchParams?.toString() || '';
@@ -26,16 +28,19 @@ export default function LanguageSwitcher() {
 
   return (
     <div className="lang-switch" aria-label={t('language.switcherAria')}>
-      <label htmlFor="language-switcher" className="lang-switch__label">{t('language.switcherAria')}</label>
+      <label htmlFor={switcherId} className="lang-switch__label">{t('language.switcherAria')}</label>
+      <span className="lang-switch__icon" aria-hidden="true">&#127760;</span>
+      <span className="lang-switch__value" aria-hidden="true">{String(locale || 'fr').toUpperCase()}</span>
+      <span className="lang-switch__chevron" aria-hidden="true">&#9662;</span>
       <select
-        id="language-switcher"
+        id={switcherId}
         className="lang-switch__select"
         value={locale}
         onChange={(event) => handleLocaleChange(event.target.value)}
       >
         {SUPPORTED_LOCALES.map((targetLocale) => (
           <option key={targetLocale} value={targetLocale}>
-            {t(`language.${targetLocale}`)}
+            {String(targetLocale).toUpperCase()}
           </option>
         ))}
       </select>
