@@ -30,6 +30,27 @@ function getParticipantLastName(participant) {
   return String(participant?.last_name || participant?.lastname || '').trim();
 }
 
+function getParticipantInitials(participant) {
+  const firstName = getParticipantFirstName(participant).charAt(0).toUpperCase();
+  const lastName = getParticipantLastName(participant).charAt(0).toUpperCase();
+  if (firstName || lastName) {
+    return `${firstName}${lastName}`.trim() || '?';
+  }
+  const fallback = String(participant?.email || '').trim();
+  return fallback ? fallback.charAt(0).toUpperCase() : '?';
+}
+
+function getParticipantAccent(member, index) {
+  const palette = [
+    'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+    'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+    'linear-gradient(135deg, #0f766e 0%, #2dd4bf 100%)',
+    'linear-gradient(135deg, #ea580c 0%, #fb923c 100%)',
+    'linear-gradient(135deg, #be185d 0%, #f472b6 100%)',
+  ];
+  return palette[index % palette.length];
+}
+
 function normalizeParticipant(participant) {
   if (!participant || typeof participant !== 'object') return participant;
   const firstName = getParticipantFirstName(participant);
@@ -320,8 +341,8 @@ export default function ManagerHome() {
 
   const STATUS_LABEL = {
     en_cours: isEn ? 'In progress' : 'En cours',
-    preparee: isEn ? 'Preparing' : 'En preparation',
-    terminee: isEn ? 'Completed' : 'Terminee'
+    preparee: isEn ? 'Upcoming' : 'À venir',
+    terminee: isEn ? 'Completed' : 'Terminée',
   };
 
   const sessionStats = useMemo(() => ({
@@ -966,9 +987,10 @@ export default function ManagerHome() {
                 const sessionIdentifier = getSessionIdentifier(session);
                 if (!sessionIdentifier) return null;
                 const isDeleting = String(deletingSessionId) === sessionIdentifier;
-                const statusClass = `status-${session.status || 'preparee'}`;
                 const isActive = session.status === 'en_cours';
                 const isDone = session.status === 'terminee';
+                const statusVariant = isActive ? 'en-cours' : isDone ? 'terminee' : 'a-venir';
+                const statusClass = `status-pill status-pill--${statusVariant}`;
                 const openLink = isDone
                   ? withLocalePath(`/session-results/${sessionIdentifier}`)
                   : isActive
@@ -1088,19 +1110,23 @@ export default function ManagerHome() {
           ) : null}
 
           {!loadingMembers && members.length > 0 ? (
-            <ul className="session-list manager-member-list">
-              {members.map((member) => {
+            <div className="participants-card-grid">
+              {members.map((member, index) => {
                 const title = [getParticipantFirstName(member), getParticipantLastName(member)].filter(Boolean).join(' ').trim() || `Participant #${member.id}`;
                 const details = [member.job_title, member.department].filter(Boolean).join(' · ');
+                const initials = getParticipantInitials(member);
                 const mobileParticipantActions = [
                   { key: 'edit', label: isEn ? 'Edit participant' : 'Modifier le participant', onClick: () => beginEditMember(member), disabled: deletingMemberId === member.id },
                   { key: 'delete', label: isEn ? 'Delete participant' : 'Supprimer le participant', danger: true, onClick: () => handleDeleteMember(member), disabled: deletingMemberId === member.id },
                 ];
                 return (
-                  <li key={String(member.id)} className="session-item team-member-item">
-                    <div>
-                      <p className="session-title">{title}</p>
-                      <p className="session-meta">
+                  <article key={String(member.id)} className="participant-card">
+                    <div className="participant-card__avatar" style={{ background: getParticipantAccent(member, index) }} aria-hidden="true">
+                      {initials}
+                    </div>
+                    <div className="participant-card__content">
+                      <p className="participant-card__name">{title}</p>
+                      <p className="participant-card__meta">
                         {member.email || (isEn ? 'Email not provided' : 'Email non renseigne')}
                         {details ? ` · ${details}` : ''}
                       </p>
@@ -1135,10 +1161,10 @@ export default function ManagerHome() {
                         {deletingMemberId === member.id ? '…' : '🗑️'}
                       </button>
                     </div>
-                  </li>
+                  </article>
                 );
               })}
-            </ul>
+            </div>
           ) : null}
         </section>
       </main>
