@@ -945,7 +945,6 @@ a {
 .nav-cta-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 16px 32px rgba(58, 99, 255, 0.3);
-  filter: brightness(1.04);
 }
 
 .nav-cta-btn.is-active {
@@ -2376,7 +2375,6 @@ a {
 .btn-violet:hover {
   transform: translateY(-2px);
   box-shadow: var(--button-insight-shadow-hover);
-  filter: brightness(1.02);
 }
 
 .accent-violet {
@@ -2406,7 +2404,6 @@ a {
 .btn-insight:hover {
   transform: translateY(-2px);
   box-shadow: var(--button-insight-shadow-hover);
-  filter: brightness(1.02);
 }
 
 .btn-primary:focus-visible,
@@ -6374,7 +6371,7 @@ a {
 }
 
 .home-hero-actions .btn-primary:hover {
-  filter: brightness(1.04);
+  box-shadow: 0 16px 34px rgba(47, 98, 255, 0.32);
 }
 
 .home-hero-actions .btn-secondary {
@@ -6390,7 +6387,7 @@ a {
 }
 
 .home-create-cta:hover {
-  transform: translateY(-3px) scale(1.015) !important;
+  transform: translateY(-2px) !important;
   box-shadow: 0 22px 44px rgba(47, 98, 255, 0.42) !important;
 }
 
