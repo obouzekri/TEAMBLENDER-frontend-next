@@ -23,6 +23,18 @@ function formatWord(word) {
   return normalized.replace(/_\d+_\d+$/, '');
 }
 
+function toNumber(value, fallback = 0) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+}
+
+function formatDuration(secondsValue) {
+  const total = Math.max(0, Math.floor(toNumber(secondsValue, 0)));
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+
 function buildFallbackAvailableWords(slots, participantSlot, fakeWordsBySlot) {
   const slotNumber = Number(participantSlot || 0);
   if (!slotNumber || !Array.isArray(slots)) {
@@ -138,6 +150,14 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
   );
 
   const summary = state?.summary || null;
+  const summaryCompletion = Math.max(0, Math.min(100, Math.round(toNumber(summary?.completion_percent, completion))));
+  const summaryTimeSeconds = Math.max(0, Math.round(toNumber(summary?.total_time_seconds, 0)));
+  const summaryActions = Math.max(0, Math.round(toNumber(summary?.action_count, 0)));
+  const summaryMessages = Math.max(0, Math.round(toNumber(summary?.message_count, 0)));
+  const summaryScore = Math.max(0, Math.round(toNumber(summary?.collective_score, 0)));
+  const summaryTotalWords = Math.max(0, Math.round(toNumber(summary?.total_words, slots.length)));
+  const summarySolvedWords = Math.max(0, Math.round(toNumber(summary?.correct_words, (summaryCompletion / 100) * summaryTotalWords)));
+  const decoyRisk = Math.max(0, summaryActions - summarySolvedWords);
   const hintBudget = Number(state?.phrase?.hint_budget || 0);
   const hintsUsed = Number(state?.phrase?.hints_used || 0);
   const remainingHints = Math.max(0, hintBudget - hintsUsed);
@@ -301,12 +321,53 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
 
               {summary ? (
                 <div className={styles.summary} style={{ order: -1 }}>
-                  <h3>Débrief équipe</h3>
-                  <p>Completion: {Number(summary.completion_percent || completion)}%</p>
-                  <p>Temps total: {Number(summary.total_time_seconds || 0)}s</p>
-                  <p>Actions: {Number(summary.action_count || 0)}</p>
-                  <p>Messages: {Number(summary.message_count || 0)}</p>
-                  <p>Score collectif: {Number(summary.collective_score || 0)}</p>
+                  <header className={styles.summaryHead}>
+                    <h3>Débrief équipe — Phrase Mystère</h3>
+                    <p>
+                      {isFacilitator
+                        ? 'Analysez la coordination, la gestion des leurres et la qualité des décisions collectives.'
+                        : 'Revenez sur vos choix, votre communication et la détection des faux mots.'}
+                    </p>
+                  </header>
+
+                  <div className={styles.summaryStats}>
+                    <article className={styles.summaryStatCard}>
+                      <span>Score collectif</span>
+                      <strong>{summaryScore}/100</strong>
+                    </article>
+                    <article className={styles.summaryStatCard}>
+                      <span>Progression</span>
+                      <strong>{summarySolvedWords}/{summaryTotalWords}</strong>
+                    </article>
+                    <article className={styles.summaryStatCard}>
+                      <span>Temps total</span>
+                      <strong>{formatDuration(summaryTimeSeconds)}</strong>
+                    </article>
+                    <article className={styles.summaryStatCard}>
+                      <span>Coordination (chat)</span>
+                      <strong>{summaryMessages}</strong>
+                    </article>
+                  </div>
+
+                  <div className={styles.summaryColumns}>
+                    <section className={styles.summaryPanel}>
+                      <h4>✅ Ce qui a bien fonctionné</h4>
+                      <ul>
+                        <li>Complétion finale : {summaryCompletion}%.</li>
+                        <li>{summarySolvedWords} mot(s) correctement positionné(s).</li>
+                        <li>{summaryMessages} échange(s) utiles pour converger.</li>
+                      </ul>
+                    </section>
+
+                    <section className={styles.summaryPanel}>
+                      <h4>🎯 Pistes d'amélioration</h4>
+                      <ul>
+                        <li>Réduire les essais non concluants ({decoyRisk}).</li>
+                        <li>Valider collectivement les mots ambigus (leurres).</li>
+                        <li>Confirmer les placements clés avant validation finale.</li>
+                      </ul>
+                    </section>
+                  </div>
                 </div>
               ) : null}
 
@@ -409,13 +470,9 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
             ) : null}
           </section>
 
-          {isFacilitator ? (
+          {error ? (
             <section className={styles.sideCard}>
-              <h2>Actions facilitateur</h2>
-              <p className={styles.helper}>
-                Suivez la progression et la coordination de l'équipe via les placements et le chat.
-              </p>
-              {error ? <p className={styles.error}>{error}</p> : null}
+              <p className={styles.error}>{error}</p>
             </section>
           ) : null}
         </aside>

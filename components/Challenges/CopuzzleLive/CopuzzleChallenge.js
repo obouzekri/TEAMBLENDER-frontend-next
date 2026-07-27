@@ -146,6 +146,9 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
   }, [runtimePayload, context]);
 
   const pieces = Array.isArray(state?.puzzle?.pieces) ? state.puzzle.pieces : [];
+  const pieceNumberById = useMemo(() => new Map(
+    pieces.map((piece, index) => [String(piece?.id || ''), index + 1])
+  ), [pieces]);
   const participantSlot = Number(state?.participantSlot || 0) || null;
   const timerState = String(state?.timer?.status || 'idle').trim();
   const normalizedTimerState = timerState.toLowerCase();
@@ -155,6 +158,7 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
     || normalizedTimerState === 'completed'
     || normalizedTimerState === 'stopped'
     || normalizedTimerState === 'timeout';
+  const isChallengeCompleted = Boolean(state?.summary) || normalizedTimerState === 'completed' || normalizedTimerState === 'timeout';
   const canPlay = state?.timer?.enabled === false || timerState === 'running';
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
   const timerDurationSeconds = Math.max(
@@ -346,6 +350,11 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
     return cells;
   }, [rowCount, colCount]);
 
+  function getPieceNumber(piece) {
+    const id = String(piece?.id || '').trim();
+    return pieceNumberById.get(id) || Number(piece?.number || piece?.index || 0);
+  }
+
   return (
     <div className={`${styles.copuzzleContainer}${isFacilitator ? ` ${styles.facilitatorView}` : ''}`}>
       <ChallengeHeader
@@ -379,7 +388,6 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
                 {boardCells.map((cell) => {
                   const occupant = boardOccupancy.get(cell.key) || null;
                   const isMyPiece = occupant && participantSlot && Number(occupant.assigned_slot) === participantSlot;
-                  const isHiddenPiece = occupant && !isFacilitator && !isMyPiece;
                   const canDragBoardPiece = Boolean(occupant && canPlay && (isFacilitator || isMyPiece));
                   const canRemoveBoardPiece = Boolean(occupant && canPlay && isMyPiece);
                   const shouldDisableCell = !canPlay || Boolean(occupant && !canRemoveBoardPiece);
@@ -411,37 +419,35 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
                       disabled={shouldDisableCell}
                     >
                       {occupant ? (
-                        isHiddenPiece ? (
-                          <div className={styles.cellContentHidden}>
-                            <span className={styles.hiddenCellLabel}>Pièce assignée</span>
-                          </div>
-                        ) : (
+                        <div
+                          className={styles.cellContent}
+                          draggable={canDragBoardPiece}
+                          onDragStart={(event) => onBoardDragStart(event, occupant)}
+                          onDragEnd={onDragEnd}
+                        >
                           <div
-                            className={styles.cellContent}
-                            draggable={canDragBoardPiece}
-                            onDragStart={(event) => onBoardDragStart(event, occupant)}
-                            onDragEnd={onDragEnd}
+                            className={styles.piecePreview}
+                            style={computePieceStyle(occupant, effectiveConfig, imageUrl)}
                           >
-                            <div
-                              className={styles.piecePreview}
-                              style={computePieceStyle(occupant, effectiveConfig, imageUrl)}
-                            />
-                            <span className={styles.pieceLabel}>{occupant.id}</span>
-                            {isMyPiece && canPlay ? (
-                              <button
-                                type="button"
-                                className={styles.removeBtn}
-                                onClick={(event) => {
-                                  event.preventDefault();
-                                  event.stopPropagation();
-                                  removePiece(occupant.id);
-                                }}
-                              >
-                                Retirer
-                              </button>
-                            ) : null}
+                            <span className={`${styles.pieceBadge} ${isMyPiece ? styles.pieceBadgeMine : ''}`}>
+                              #{getPieceNumber(occupant)}
+                            </span>
                           </div>
-                        )
+                          <span className={styles.pieceLabel}>{isMyPiece ? 'Votre pièce' : 'Pièce visible'}</span>
+                          {isMyPiece && canPlay ? (
+                            <button
+                              type="button"
+                              className={styles.removeBtn}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                removePiece(occupant.id);
+                              }}
+                            >
+                              Retirer
+                            </button>
+                          ) : null}
+                        </div>
                       ) : (
                         <span className={styles.cellHint}>{cell.x + 1}x{cell.y + 1}</span>
                       )}
@@ -527,24 +533,18 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
             ) : null}
           />
 
-          {chatEnabled ? (
-            <ChallengeChatCard
-              title="Chat"
-              messages={chatMessages}
-              currentAuthor={displayName}
-              inputValue={chatInput}
-              onInputChange={setChatInput}
-              onSubmit={submitChat}
-              quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
-              onQuickMessage={sendQuickChat}
-              emptyText="Aucun message pour le moment."
-              placeholder="Ecrire un message d equipe"
-              maxLength={240}
-              submitLabel="➤"
-            />
+          {isChallengeCompleted ? (
+            <section className={styles.completionNotice} role="status" aria-live="polite">
+              <p className={styles.completionNoticeTitle}>Challenge terminé</p>
+              <p className={styles.completionNoticeBody}>
+                {isFacilitator
+                  ? 'Challenge terminé. Passez au challenge suivant lorsque vous êtes prêt.'
+                  : 'En attente du facilitateur. Le facilitateur déclenchera le prochain challenge après le débrief.'}
+              </p>
+            </section>
           ) : null}
 
-          <section className={styles.sideCard}>
+          <section className={styles.sideCard} style={{ order: 3 }}>
             <h2>{isFacilitator ? 'Image de référence' : 'Pièces assignées'}</h2>
 
             {imageUrl && (isFacilitator || effectiveConfig.participants.show_reference_image) ? (
@@ -610,12 +610,14 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
                           onDragStart={(event) => onTrayDragStart(event, piece)}
                           onDragEnd={onDragEnd}
                           disabled={!canPlay}
-                          title={`Piece ${piece.id}`}
+                          title={`Pièce #${getPieceNumber(piece)}`}
                         >
                           <span
                             className={styles.trayPreview}
                             style={computePieceStyle(piece, effectiveConfig, imageUrl)}
-                          />
+                          >
+                            <span className={styles.trayBadge}>#{getPieceNumber(piece)}</span>
+                          </span>
                         </button>
                       );
                     })
@@ -624,13 +626,32 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
               </>
             ) : null}
           </section>
+
+          {chatEnabled ? (
+            <div style={{ order: 4 }}>
+              <ChallengeChatCard
+                title="Chat"
+                messages={chatMessages}
+                currentAuthor={displayName}
+                inputValue={chatInput}
+                onInputChange={setChatInput}
+                onSubmit={submitChat}
+                quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
+                onQuickMessage={sendQuickChat}
+                emptyText="Aucun message pour le moment."
+                placeholder="Ecrire un message d equipe"
+                maxLength={240}
+                submitLabel="➤"
+              />
+            </div>
+          ) : null}
         </aside>
       </div>
 
       {!isFacilitator && selectedPiece ? (
         <section className={styles.selectionBanner}>
           <p>
-            Pièce sélectionnée: <strong>{selectedPiece.id}</strong>. Glissez-la vers une case libre, ou cliquez sur une pièce posée pour la retirer.
+            Pièce sélectionnée: <strong>#{getPieceNumber(selectedPiece)}</strong>. Glissez-la vers une case libre, ou cliquez sur une pièce posée pour la retirer.
           </p>
         </section>
       ) : null}

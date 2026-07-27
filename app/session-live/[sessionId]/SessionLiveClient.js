@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
+import { Button } from '@/components/ui';
 import { clearSessionAuth, getAuthHeaders, getStoredAuthToken, getStoredCurrentUser } from '@/lib/auth';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
@@ -294,22 +295,22 @@ export default function SessionLiveClient() {
             </span>
           </div>
           <div className="session-live-header__row2">
-            <button
-              type="button"
-              className="btn-primary btn--sm"
+            <Button
+              variant="primary"
+              size="sm"
               onClick={handleNextChallenge}
               disabled={actionPending || !canManageFlow}
             >
               {actionPending ? (isEn ? 'In progress...' : 'En cours...') : (isEn ? 'Move to next challenge' : 'Passer au challenge suivant')}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary btn--sm"
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleEndSession}
               disabled={actionPending}
             >
               {isEn ? 'End session' : 'Terminer'}
-            </button>
+            </Button>
             {flowMode === 'auto' && (
               <span className="session-live-header__msg session-live-header__msg--auto">
                 {autoAdvanceCountdown > 0
@@ -343,23 +344,15 @@ export default function SessionLiveClient() {
               </div>
               <p>{isEn ? 'Participants will automatically be moved to the next challenge.' : 'Les participants seront automatiquement deplaces vers le prochain challenge.'}</p>
               <div className="session-live-popup__actions">
-                <button
-                  type="button"
-                  className="btn-secondary btn--sm"
-                  onClick={() => setAdvancePopupOpen(false)}
-                >
+                <Button variant="secondary" size="sm" onClick={() => setAdvancePopupOpen(false)}>
                   {isEn ? 'Cancel' : 'Annuler'}
-                </button>
-                <button
-                  type="button"
-                  className="btn-primary btn--sm"
-                  onClick={async () => {
-                    setAdvancePopupOpen(false);
-                    await advanceToNextChallenge();
-                  }}
-                >
+                </Button>
+                <Button variant="primary" size="sm" onClick={async () => {
+                  setAdvancePopupOpen(false);
+                  await advanceToNextChallenge();
+                }}>
                   {isEn ? 'Confirm' : 'Confirmer'}
-                </button>
+                </Button>
               </div>
             </section>
           </div>

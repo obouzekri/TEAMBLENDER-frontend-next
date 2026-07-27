@@ -291,6 +291,76 @@
   box-shadow: 0 16px 34px rgba(2, 9, 16, 0.22);
 }
 
+.summaryHead {
+  display: grid;
+  gap: 6px;
+}
+
+.summaryHead p {
+  margin: 0;
+  color: #c6d8eb;
+  font-size: 0.82rem;
+}
+
+.summaryStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.summaryStatCard {
+  border-radius: 10px;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  background: rgba(7, 20, 33, 0.6);
+  padding: 8px 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.summaryStatCard span {
+  font-size: 0.72rem;
+  color: #9fc0de;
+}
+
+.summaryStatCard strong {
+  font-size: 0.94rem;
+  color: #e5edf7;
+}
+
+.summaryColumns {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.summaryPanel {
+  border-radius: 10px;
+  border: 1px solid rgba(160, 187, 208, 0.2);
+  background: rgba(8, 17, 29, 0.56);
+  padding: 8px 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.summaryPanel h4 {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #dff0ff;
+}
+
+.summaryPanel ul {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 4px;
+}
+
+.summaryPanel li {
+  color: #d8e5f5;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
 .summary h3 {
   margin: 0 0 2px;
   font-size: 1rem;
@@ -606,6 +676,10 @@
   .boardPanel,
   .sidePanel {
     gap: 10px;
+  }
+
+  .summaryColumns {
+    grid-template-columns: 1fr;
   }
 }
 

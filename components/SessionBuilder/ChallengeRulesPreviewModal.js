@@ -178,9 +178,7 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
       >
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>📜 {t('challengeRulesPanel.kicker')}</p>
-            <h2 id={modalTitleId} className={styles.challengeTitle}>{challenge?.name || (isEn ? 'Activity' : 'Activité')}</h2>
-            <h3 className={styles.briefTitle}>{t('challengeRulesPanel.briefTitle')}</h3>
+            <h2 id={modalTitleId} className={styles.challengeTitle}>{t('challengeRulesPanel.modalTitle')}</h2>
             <p className={styles.objective}>{rules.objective}</p>
           </div>
           <button type="button" className={styles.closeButton} onClick={onClose} aria-label={t('challengeRulesPanel.closeRulesWindow')}>

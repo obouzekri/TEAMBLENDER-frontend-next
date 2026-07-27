@@ -76,8 +76,6 @@ export default function ChallengeRulesPanel({
   const cardContent = (
     <>
       <header className={styles.rulesHeader}>
-        <p className={styles.rulesKicker}>📜 {t('challengeRulesPanel.kicker')}</p>
-        <h2 className="challenge-section-title">{challengeName}</h2>
         <h3 className={styles.rulesBriefTitle}>{resolvedBriefTitle}</h3>
         <p className="challenge-text">{objective}</p>
       </header>
@@ -133,10 +131,12 @@ export default function ChallengeRulesPanel({
     <>
       <button
         type="button"
-        className={styles.rulesButton}
+        className={`${styles.rulesButton} ${styles.rulesButtonIconOnly}`}
         onClick={() => setIsOpen(true)}
+        aria-label={t('challengeRulesPanel.showRules')}
+        title={t('challengeRulesPanel.showRules')}
       >
-        📜 {t('challengeRulesPanel.showRules')}
+        <span aria-hidden="true">📜</span>
       </button>
 
       {isOpen ? (
@@ -149,7 +149,7 @@ export default function ChallengeRulesPanel({
             onClick={(event) => event.stopPropagation()}
           >
             <header className={styles.modalHead}>
-              <h2 id="challenge-rules-modal-title">{t('challengeRulesPanel.modalTitle', { challengeName })}</h2>
+              <h2 id="challenge-rules-modal-title">{t('challengeRulesPanel.modalTitle')}</h2>
               <button type="button" className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label={t('challengeRulesPanel.closeRules')}>
                 {t('challengeRulesPanel.closeRules')}
               </button>

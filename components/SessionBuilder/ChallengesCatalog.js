@@ -417,7 +417,7 @@ export default function ChallengesCatalog({
             const isSelected = selectedIds.includes(challenge.id);
             const challengeObjectives = toObjectiveList(challenge.objectives || challenge.objective).slice(0, 3);
             const idealPlayersLabel = formatIdealPlayersLabel(challenge);
-            const challengeName = localizePlainValue(challenge.name) || (isEn ? 'Activity' : 'Activite');
+            const challengeName = localizePlainValue(challenge.name) || (isEn ? 'Activity' : 'Activité');
             const challengeDescription = localizePlainValue(challenge.description);
             const challengeDuration = Number(challenge?.duration || challenge?.config?.duration_minutes || 0);
             return (
@@ -433,7 +433,6 @@ export default function ChallengesCatalog({
                       aria-label={t('sessionBuilder.catalogViewRulesFor', { name: challengeName })}
                     >
                       <span aria-hidden="true">📜</span>
-                      <span>{t('challengeRulesPanel.showRules')}</span>
                     </button>
                     <span className={styles.cardDuration}>{challengeDuration > 0 ? `${challengeDuration} min` : '—'}</span>
                   </div>

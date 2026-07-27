@@ -463,6 +463,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   const { locale } = useI18n();
   useBodyScrollLock(true);
   const isEn = locale === 'en';
+  const txt = (frText, enText) => (isEn ? enText : frText);
   const [config, setConfig] = useState(() => mergeChallengeConfig(challenge?.engine_config, challenge?.config));
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -516,6 +517,20 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
 
   const kind = getChallengeKind(challenge);
   const playerRange = resolveChallengePlayerRange(challenge);
+  const localizedPhraseTemplateLabels = {
+    tpl_matchs_championnats: { fr: 'Le talent gagne des matchs... (moyen)', en: 'Talent wins games... (medium)' },
+    tpl_reussite_ensemble: { fr: 'Se réunir est un début... (moyen)', en: 'Coming together is a beginning... (medium)' },
+    tpl_grandes_choses: { fr: 'De grandes choses en entreprise... (facile)', en: 'Great things in business... (easy)' },
+    tpl_testez_apprenez: { fr: 'Tester vite, échouer vite... (difficile)', en: 'Test fast, fail fast... (hard)' },
+    tpl_plus_loin: { fr: 'Seul on va plus vite... (facile)', en: 'Alone we go faster... (easy)' },
+    tpl_aiguiser_hache: { fr: 'Donnez-moi six heures pour couper... (difficile)', en: 'Give me six hours to chop... (hard)' },
+    tpl_montagne_pierres: { fr: 'Celui qui déplace une montagne... (moyen)', en: 'The one who moves a mountain... (medium)' },
+  };
+  const localizedPixelTemplateLabels = {
+    tour_signal: { fr: 'Tour Signal', en: 'Signal Tower' },
+    pont_croise: { fr: 'Pont croisé', en: 'Cross Bridge' },
+    agora_pixel: { fr: 'Agora Pixel', en: 'Pixel Agora' },
+  };
 
   function updateValue(path, value) {
     setConfig((prev) => {
@@ -680,8 +695,8 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>
-          <h2 id={modalTitleId}>Configure: {challenge?.name}</h2>
-          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close configuration">
+          <h2 id={modalTitleId}>{txt('Configurer :', 'Configure:')} {challenge?.name}</h2>
+          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label={txt('Fermer la configuration', 'Close configuration')}>
             ✕
           </button>
         </div>
@@ -690,19 +705,17 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
           {challenge?.description ? (
             <p className={styles.challengeDescription}>{challenge.description}</p>
           ) : null}
-          <p className={styles.infoText}>
-            Configuration options depend on the activity type.
-          </p>
+          <p className={styles.infoText}>{txt('Les options de configuration dépendent du type d’activité.', 'Configuration options depend on the activity type.')}</p>
           {playerRange.hasRange ? (
             <p className={styles.playersInfo}>
-              Min: {playerRange.min || '-'} · Recommended: {playerRange.recommended || '-'} · Max: {playerRange.max || '-'} players
+              {txt('Min.', 'Min.')}: {playerRange.min || '-'} · {txt('Recommandé', 'Recommended')}: {playerRange.recommended || '-'} · {txt('Max.', 'Max.')}: {playerRange.max || '-'} {txt('joueurs', 'players')}
             </p>
           ) : null}
 
           {kind === 'copuzzle' && (
             <>
               <div className={styles.configField}>
-                <label className={styles.label}>Image source</label>
+                <label className={styles.label}>{txt('Source de l’image', 'Image source')}</label>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
@@ -710,7 +723,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       checked={resolveCopuzzleSourceMode(config, copuzzleDefaultImages) === 'defaults'}
                       onChange={() => updateValue('image_source_mode', 'defaults')}
                     />
-                    <span>Use admin default images</span>
+                    <span>{txt('Utiliser les images par défaut admin', 'Use admin default images')}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
@@ -718,14 +731,14 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       checked={resolveCopuzzleSourceMode(config, copuzzleDefaultImages) === 'custom'}
                       onChange={() => updateValue('image_source_mode', 'custom')}
                     />
-                    <span>Upload custom image</span>
+                    <span>{txt('Importer une image personnalisée', 'Upload custom image')}</span>
                   </label>
                 </div>
               </div>
 
               {resolveCopuzzleSourceMode(config, copuzzleDefaultImages) === 'defaults' ? (
                 <div className={styles.configField}>
-                  <label htmlFor="copuzzleDefaultImage" className={styles.label}>Default image</label>
+                  <label htmlFor="copuzzleDefaultImage" className={styles.label}>{txt('Image par défaut', 'Default image')}</label>
                   <select
                     id="copuzzleDefaultImage"
                     className={styles.input}
@@ -748,9 +761,9 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               ) : (
                 <>
                   <div className={styles.configField}>
-                    <label htmlFor="copuzzleUpload" className={styles.label}>Upload an image (JPG/PNG)</label>
+                    <label htmlFor="copuzzleUpload" className={styles.label}>{txt('Importer une image (JPG/PNG)', 'Upload an image (JPG/PNG)')}</label>
                     <span className={styles.helpText}>
-                      Recommended: 4x4 or 5x5 grid, JPEG/PNG format, ideally square image.
+                      {txt('Recommandé : grille 4x4 ou 5x5, format JPEG/PNG, image idéalement carrée.', 'Recommended: 4x4 or 5x5 grid, JPEG/PNG format, ideally square image.')}
                     </span>
                     <input
                       id="copuzzleUpload"
@@ -761,7 +774,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       disabled={isUploadingImage}
                     />
                     {isUploadingImage ? (
-                      <p style={{ marginTop: '6px', color: '#6b7280', fontSize: '12px' }}>Uploading...</p>
+                      <p style={{ marginTop: '6px', color: '#6b7280', fontSize: '12px' }}>{txt('Import en cours...', 'Uploading...')}</p>
                     ) : null}
                     {uploadError ? (
                       <p style={{ marginTop: '6px', color: '#dc2626', fontSize: '12px' }}>{uploadError}</p>
@@ -785,7 +798,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               })()}
 
               <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="copuzzleReferenceVisibility">
-                <span className={styles.label}>Show reference image to participants</span>
+                <span className={styles.label}>{txt('Afficher l’image de référence aux participants', 'Show reference image to participants')}</span>
                 <input
                   id="copuzzleReferenceVisibility"
                   type="checkbox"
@@ -795,7 +808,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </label>
 
               <div className={styles.configField}>
-                <label htmlFor="matrixSize" className={styles.label}>Matrix size</label>
+                <label htmlFor="matrixSize" className={styles.label}>{txt('Taille de la matrice', 'Matrix size')}</label>
                 <input
                   id="matrixSize"
                   type="number"
@@ -809,11 +822,11 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   }}
                   className={styles.input}
                 />
-                <span className={styles.helpText}>Applied to both rows and columns.</span>
+                <span className={styles.helpText}>{txt('Appliqué aux lignes et aux colonnes.', 'Applied to both rows and columns.')}</span>
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="durationSeconds" className={styles.label}>Timer (seconds)</label>
+                <label htmlFor="durationSeconds" className={styles.label}>{txt('Chronomètre (secondes)', 'Timer (seconds)')}</label>
                 <input
                   id="durationSeconds"
                   type="number"
@@ -823,11 +836,11 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   onChange={(e) => updateValue('timer.duration_seconds', Number(e.target.value || 1200))}
                   className={styles.input}
                 />
-                <span className={styles.helpText}>Default: 1200 seconds (20 min).</span>
+                <span className={styles.helpText}>{txt('Par défaut : 1200 secondes (20 min).', 'Default: 1200 seconds (20 min).')}</span>
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="warningSeconds" className={styles.label}>Warning threshold (seconds)</label>
+                <label htmlFor="warningSeconds" className={styles.label}>{txt('Seuil d’alerte (secondes)', 'Warning threshold (seconds)')}</label>
                 <input
                   id="warningSeconds"
                   type="number"
@@ -840,7 +853,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </div>
 
               <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="copuzzleTimerEnabled">
-                <span className={styles.label}>Enable timer</span>
+                <span className={styles.label}>{txt('Activer le chronomètre', 'Enable timer')}</span>
                 <input
                   id="copuzzleTimerEnabled"
                   type="checkbox"
@@ -850,7 +863,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </label>
 
               <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="copuzzleChatEnabled">
-                <span className={styles.label}>Enable chat</span>
+                <span className={styles.label}>{txt('Activer le chat', 'Enable chat')}</span>
                 <input
                   id="copuzzleChatEnabled"
                   type="checkbox"
@@ -936,7 +949,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
           {kind === 'the_quiz' && (
             <>
               <div className={styles.configField}>
-                <label htmlFor="quizPreset" className={styles.label}>Preset</label>
+                <label htmlFor="quizPreset" className={styles.label}>{txt('Préréglage', 'Preset')}</label>
                 <select
                   id="quizPreset"
                   className={styles.input}
@@ -948,14 +961,14 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                     updateValue('question_count', nextQuestionCount);
                   }}
                 >
-                  <option value="short">Short · 6 questions · ~15 min</option>
-                  <option value="medium">Medium · 9 questions · ~20 min</option>
-                  <option value="long">Long · 12 questions · ~25 min</option>
+                  <option value="short">{txt('Court · 6 questions · ~15 min', 'Short · 6 questions · ~15 min')}</option>
+                  <option value="medium">{txt('Moyen · 9 questions · ~20 min', 'Medium · 9 questions · ~20 min')}</option>
+                  <option value="long">{txt('Long · 12 questions · ~25 min', 'Long · 12 questions · ~25 min')}</option>
                 </select>
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="quizQuestionCount" className={styles.label}>Number of questions</label>
+                <label htmlFor="quizQuestionCount" className={styles.label}>{txt('Nombre de questions', 'Number of questions')}</label>
                 <input
                   id="quizQuestionCount"
                   type="number"
@@ -968,7 +981,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="quizQuestionDuration" className={styles.label}>Time per question (seconds)</label>
+                <label htmlFor="quizQuestionDuration" className={styles.label}>{txt('Temps par question (secondes)', 'Time per question (seconds)')}</label>
                 <input
                   id="quizQuestionDuration"
                   type="number"
@@ -978,11 +991,11 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   onChange={(e) => updateValue('question_duration_seconds', Number(e.target.value || 30))}
                   className={styles.input}
                 />
-                <span className={styles.helpText}>Maximum 2 minutes. Default value: 30 seconds.</span>
+                <span className={styles.helpText}>{txt('Maximum 2 minutes. Valeur par défaut : 30 secondes.', 'Maximum 2 minutes. Default value: 30 seconds.')}</span>
               </div>
 
               <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="quizChatEnabled">
-                <span className={styles.label}>Enable chat</span>
+                <span className={styles.label}>{txt('Activer le chat', 'Enable chat')}</span>
                 <input
                   id="quizChatEnabled"
                   type="checkbox"
@@ -992,7 +1005,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </label>
 
               <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="quizLeaderboardEnabled">
-                <span className={styles.label}>Enable live leaderboard</span>
+                <span className={styles.label}>{txt('Activer le classement en direct', 'Enable live leaderboard')}</span>
                 <input
                   id="quizLeaderboardEnabled"
                   type="checkbox"
@@ -1007,7 +1020,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
             <>
               {/* Mode: template or custom */}
               <div className={styles.configField}>
-                <label className={styles.label}>Phrase mode</label>
+                <label className={styles.label}>{txt('Mode de phrase', 'Phrase mode')}</label>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
@@ -1015,7 +1028,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       checked={stringValue('mode', 'template') === 'template'}
                       onChange={() => updateValue('mode', 'template')}
                     />
-                    <span>Preset</span>
+                    <span>{txt('Préréglage', 'Preset')}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
@@ -1023,7 +1036,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       checked={stringValue('mode', 'template') === 'custom'}
                       onChange={() => updateValue('mode', 'custom')}
                     />
-                    <span>Custom</span>
+                    <span>{txt('Personnalisé', 'Custom')}</span>
                   </label>
                 </div>
               </div>
@@ -1031,7 +1044,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               {/* Available templates */}
               {stringValue('mode', 'template') === 'template' && (
                 <div className={styles.configField}>
-                  <label htmlFor="phraseTemplate" className={styles.label}>Select a known phrase</label>
+                  <label htmlFor="phraseTemplate" className={styles.label}>{txt('Sélectionner une phrase connue', 'Select a known phrase')}</label>
                   <select
                     id="phraseTemplate"
                     value={stringValue('templateId', PHRASE_DEFAULT_LIBRARY[0].id)}
@@ -1047,11 +1060,11 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                     className={styles.input}
                   >
                     {PHRASE_DEFAULT_LIBRARY.map((template) => (
-                      <option key={template.id} value={template.id}>{template.label}</option>
+                      <option key={template.id} value={template.id}>{localizedPhraseTemplateLabels[template.id]?.[isEn ? 'en' : 'fr'] || template.label}</option>
                     ))}
                   </select>
                   <p className={styles.helpText}>
-                    Hover the preview to see the full phrase:
+                    {txt('Survolez l’aperçu pour voir la phrase complète :', 'Hover the preview to see the full phrase:')}
                   </p>
                   <span
                     className={styles.phrasePreviewTrigger}
@@ -1066,11 +1079,11 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               {/* Custom phrase */}
               {stringValue('mode', 'template') === 'custom' && (
                 <div className={styles.configField}>
-                  <label htmlFor="phraseCustom" className={styles.label}>Your phrase</label>
+                  <label htmlFor="phraseCustom" className={styles.label}>{txt('Votre phrase', 'Your phrase')}</label>
                   <textarea
                     id="phraseCustom"
                     rows="3"
-                    placeholder="Ex: Collaboration is the key to success"
+                    placeholder={txt('Ex : La collaboration est la clé du succès', 'Ex: Collaboration is the key to success')}
                     value={stringValue('textePhrase', '')}
                     onChange={(e) => updateValue('textePhrase', e.target.value)}
                     className={styles.input}
@@ -1080,7 +1093,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
 
               {/* Advanced options */}
               <div className={styles.configField}>
-                <label htmlFor="phraseFauxMots" className={styles.label}>Number of decoy words</label>
+                <label htmlFor="phraseFauxMots" className={styles.label}>{txt('Nombre de faux mots', 'Number of decoy words')}</label>
                 <input
                   id="phraseFauxMots"
                   type="number"
@@ -1093,12 +1106,12 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </div>
 
               <div className={styles.configField}>
-                <label className={styles.label}>Reveal one word (team)</label>
-                <span className={styles.helpText}>Fixed at 2 actions per round. Participants trigger them themselves.</span>
+                <label className={styles.label}>{txt('Révéler un mot (équipe)', 'Reveal one word (team)')}</label>
+                <span className={styles.helpText}>{txt('Fixé à 2 actions par manche. Les participants les déclenchent eux-mêmes.', 'Fixed at 2 actions per round. Participants trigger them themselves.')}</span>
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="phraseTimer" className={styles.label}>Duration (seconds)</label>
+                <label htmlFor="phraseTimer" className={styles.label}>{txt('Durée (secondes)', 'Duration (seconds)')}</label>
                 <input
                   id="phraseTimer"
                   type="number"
@@ -1118,7 +1131,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                     checked={boolValue('modeCommunication', 'libre') === 'restreint' ? false : true}
                     onChange={(e) => updateValue('modeCommunication', e.target.checked ? 'libre' : 'restreint')}
                   />
-                  <span>Chat enabled</span>
+                  <span>{txt('Chat activé', 'Chat enabled')}</span>
                 </label>
               </div>
             </>
@@ -1127,7 +1140,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
           {kind === 'vrai_ou_mensonge' && (
             <>
               <div className={styles.configField}>
-                <label htmlFor="vomRoundsPerParticipant" className={styles.label}>Rounds per participant</label>
+                <label htmlFor="vomRoundsPerParticipant" className={styles.label}>{txt('Manches par participant', 'Rounds per participant')}</label>
                 <input
                   id="vomRoundsPerParticipant"
                   type="number"
@@ -1138,7 +1151,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   className={styles.input}
                 />
                 <span className={styles.helpText}>
-                  Default: 3 rounds when no configuration is defined.
+                  {txt('Par défaut : 3 manches lorsqu’aucune configuration n’est définie.', 'Default: 3 rounds when no configuration is defined.')}
                 </span>
               </div>
             </>
@@ -1148,7 +1161,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
             <>
               {/* Configuration de session (overrides) */}
               <div className={styles.configField}>
-                <label htmlFor="erDuration" className={styles.label}>Duration (seconds)</label>
+                <label htmlFor="erDuration" className={styles.label}>{txt('Durée (secondes)', 'Duration (seconds)')}</label>
                 <input
                   id="erDuration"
                   type="number"
@@ -1162,7 +1175,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="erMaxAttempts" className={styles.label}>Max attempts per puzzle</label>
+                <label htmlFor="erMaxAttempts" className={styles.label}>{txt('Tentatives max par énigme', 'Max attempts per puzzle')}</label>
                 <input
                   id="erMaxAttempts"
                   type="number"
@@ -1178,7 +1191,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               {Array.isArray(challenge?.engine_config?.enigmes) && challenge.engine_config.enigmes.length > 0 ? (
                 <div style={{ marginTop: '16px' }}>
                   <p className={styles.label} style={{ marginBottom: '8px', fontWeight: 600 }}>
-                    Configured puzzles ({challenge.engine_config.enigmes.length})
+                    {txt('Énigmes configurées', 'Configured puzzles')} ({challenge.engine_config.enigmes.length})
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {challenge.engine_config.enigmes.map((enigme, idx) => (
@@ -1210,12 +1223,12 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                     ))}
                   </div>
                   <p style={{ marginTop: '8px', fontSize: '12px', color: '#9ca3af' }}>
-                    Puzzles are managed from challenge administration.
+                    {txt('Les énigmes se gèrent depuis l’administration du challenge.', 'Puzzles are managed from challenge administration.')}
                   </p>
                 </div>
               ) : (
                 <p className={styles.noConfigText} style={{ marginTop: '12px' }}>
-                  No puzzle found in challenge configuration.
+                  {txt('Aucune énigme trouvée dans la configuration du challenge.', 'No puzzle found in challenge configuration.')}
                 </p>
               )}
             </>
@@ -1224,7 +1237,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
           {kind === 'pixel_architect' && (
             <>
               <div className={styles.configField}>
-                <label className={styles.label}>Challenge mode</label>
+                <label className={styles.label}>{txt('Mode du challenge', 'Challenge mode')}</label>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
@@ -1232,7 +1245,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       checked={stringValue('mode', 'replication') === 'replication'}
                       onChange={() => updateValue('mode', 'replication')}
                     />
-                    <span>Replication</span>
+                    <span>{txt('Réplication', 'Replication')}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
@@ -1240,13 +1253,13 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       checked={stringValue('mode', 'replication') === 'creatif'}
                       onChange={() => updateValue('mode', 'creatif')}
                     />
-                    <span>Creative</span>
+                    <span>{txt('Créatif', 'Creative')}</span>
                   </label>
                 </div>
               </div>
 
               <div className={styles.configField}>
-                <label className={styles.label}>Collaboration mode</label>
+                <label className={styles.label}>{txt('Mode de collaboration', 'Collaboration mode')}</label>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
@@ -1254,7 +1267,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       checked={stringValue('collaborationMode', 'standard') === 'standard'}
                       onChange={() => updateValue('collaborationMode', 'standard')}
                     />
-                    <span>Standard</span>
+                    <span>{txt('Standard', 'Standard')}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
@@ -1262,14 +1275,14 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       checked={stringValue('collaborationMode', 'standard') === 'avance'}
                       onChange={() => updateValue('collaborationMode', 'avance')}
                     />
-                    <span>Advanced (roles)</span>
+                    <span>{txt('Avancé (rôles)', 'Advanced (roles)')}</span>
                   </label>
                 </div>
               </div>
 
               {stringValue('mode', 'replication') === 'replication' ? (
                 <div className={styles.configField}>
-                  <label htmlFor="pixelTemplate" className={styles.label}>Template</label>
+                  <label htmlFor="pixelTemplate" className={styles.label}>{txt('Modèle', 'Template')}</label>
                   <select
                     id="pixelTemplate"
                     className={styles.input}
@@ -1282,13 +1295,13 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                     }}
                   >
                     {PIXEL_ARCHITECT_TEMPLATES.map((template) => (
-                      <option key={template.id} value={template.id}>{template.name} ({template.difficulty})</option>
+                      <option key={template.id} value={template.id}>{localizedPixelTemplateLabels[template.id]?.[isEn ? 'en' : 'fr'] || template.name} ({txt(template.difficulty, template.difficulty)})</option>
                     ))}
                   </select>
                 </div>
               ) : (
                 <div className={styles.configField}>
-                  <label htmlFor="pixelTheme" className={styles.label}>Creative theme</label>
+                  <label htmlFor="pixelTheme" className={styles.label}>{txt('Thème créatif', 'Creative theme')}</label>
                   <input
                     id="pixelTheme"
                     className={styles.input}
@@ -1300,7 +1313,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               )}
 
               <div className={styles.configField}>
-                <label htmlFor="pixelDuration" className={styles.label}>Time (seconds)</label>
+                <label htmlFor="pixelDuration" className={styles.label}>{txt('Temps (secondes)', 'Time (seconds)')}</label>
                 <input
                   id="pixelDuration"
                   className={styles.input}
@@ -1313,7 +1326,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="pixelMaxCubes" className={styles.label}>Max cube count</label>
+                <label htmlFor="pixelMaxCubes" className={styles.label}>{txt('Nombre max de cubes', 'Max cube count')}</label>
                 <input
                   id="pixelMaxCubes"
                   className={styles.input}
@@ -1326,7 +1339,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="pixelMaxColors" className={styles.label}>Number of colors</label>
+                <label htmlFor="pixelMaxColors" className={styles.label}>{txt('Nombre de couleurs', 'Number of colors')}</label>
                 <input
                   id="pixelMaxColors"
                   className={styles.input}
@@ -1339,21 +1352,21 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="pixelDifficulty" className={styles.label}>Difficulty</label>
+                <label htmlFor="pixelDifficulty" className={styles.label}>{txt('Difficulté', 'Difficulty')}</label>
                 <select
                   id="pixelDifficulty"
                   className={styles.input}
                   value={stringValue('difficulty', 'moyen')}
                   onChange={(e) => updateValue('difficulty', e.target.value)}
                 >
-                  <option value="facile">easy</option>
-                  <option value="moyen">medium</option>
-                  <option value="difficile">hard</option>
+                  <option value="facile">{txt('facile', 'easy')}</option>
+                  <option value="moyen">{txt('moyen', 'medium')}</option>
+                  <option value="difficile">{txt('difficile', 'hard')}</option>
                 </select>
               </div>
 
               <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="pixelHintsEnabled">
-                <span className={styles.label}>Enable hints</span>
+                <span className={styles.label}>{txt('Activer les indices', 'Enable hints')}</span>
                 <input
                   id="pixelHintsEnabled"
                   type="checkbox"
@@ -1363,7 +1376,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </label>
 
               <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="pixelChatEnabled">
-                <span className={styles.label}>Enable chat</span>
+                <span className={styles.label}>{txt('Activer le chat', 'Enable chat')}</span>
                 <input
                   id="pixelChatEnabled"
                   type="checkbox"
@@ -1373,7 +1386,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </label>
 
               <label className={`${styles.configField} ${styles.checkboxRow}`} htmlFor="pixelTimerEnabled">
-                <span className={styles.label}>Enable timer</span>
+                <span className={styles.label}>{txt('Activer le chronomètre', 'Enable timer')}</span>
                 <input
                   id="pixelTimerEnabled"
                   type="checkbox"
@@ -1387,7 +1400,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
           {kind === 'generic' && (
             <>
               {Object.keys(config || {}).length === 0 && (
-                <p className={styles.noConfigText}>No configuration required for this activity.</p>
+                <p className={styles.noConfigText}>{txt('Aucune configuration requise pour cette activité.', 'No configuration required for this activity.')}</p>
               )}
 
               {Object.entries(config || {}).filter(([key]) => key !== 'rules').map(([key, value]) => (
@@ -1406,16 +1419,16 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
           )}
 
           {kind === 'mission_critique' && (
-            <p className={styles.noConfigText}>No configuration required for Mission Critique.</p>
+            <p className={styles.noConfigText}>{txt('Aucune configuration requise pour Mission Critique.', 'No configuration required for Mission Critique.')}</p>
           )}
         </div>
 
         <div className={styles.footer}>
           <button className="btn-secondary" onClick={onClose}>
-            Cancel
+            {txt('Annuler', 'Cancel')}
           </button>
           <button className="btn-primary" onClick={handleSave}>
-            Save
+            {txt('Enregistrer', 'Save')}
           </button>
         </div>
       </div>
