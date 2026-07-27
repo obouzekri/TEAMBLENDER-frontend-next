@@ -228,10 +228,10 @@ export default function EscapeRoomChallenge({
 
     inFlightStateRef.current = requestPromise;
     return requestPromise;
-  }, [apiCall, endpointBase, token]);
+  }, [apiCall, endpointBase]);
 
   const loadParticipants = useCallback(async () => {
-    if (!endpointBase || !token) return;
+    if (!endpointBase) return;
     try {
       const payload = await apiCall('/participants', { method: 'GET' });
       const rows = Array.isArray(payload?.participants)
@@ -243,7 +243,7 @@ export default function EscapeRoomChallenge({
     } catch {
       setParticipants([]);
     }
-  }, [apiCall, endpointBase, token]);
+  }, [apiCall, endpointBase]);
 
   useEffect(() => {
     loadParticipants().catch(() => {});
@@ -258,7 +258,7 @@ export default function EscapeRoomChallenge({
   }, []);
 
   useEffect(() => {
-    if (!endpointBase || !token) return () => {};
+    if (!endpointBase) return () => {};
     const poll = window.setInterval(() => {
       loadState().catch(() => {
         // Keep polling silent to avoid noisy UI.
@@ -268,7 +268,7 @@ export default function EscapeRoomChallenge({
     return () => {
       window.clearInterval(poll);
     };
-  }, [endpointBase, token, loadState]);
+  }, [endpointBase, loadState]);
 
   const { emitEvent, error: realtimeError } = useRealtimeChallenge({ runtimePayload, socket, context });
 
