@@ -497,12 +497,12 @@ function normalizeCohesionCopy(value, fallback = '', locale = 'fr') {
   const low = collapsed.toLowerCase();
 
   if (low === 'créez des ateliers collaboratifs gamifiés en quelques minutes.') {
-    return 'Créez des ateliers de cohesion gamifies en quelques minutes.';
+    return 'Créez des ateliers de cohésion gamifiés en quelques minutes.';
   }
 
   return collapsed
-    .replace(/team\s*building/gi, 'ateliers de cohesion')
-    .replace(/animation(s)?\s+d[’']equipe/gi, 'rituels de cohesion');
+    .replace(/team\s*building/gi, 'ateliers de cohésion')
+    .replace(/animation(s)?\s+d[’']equipe/gi, 'rituels de cohésion');
 }
 
 const TRUST_TAG_ICON_BY_KEYWORD = [
