@@ -720,6 +720,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 <span className={styles.votePhaseChip}>{isChoiceVoting ? (isEn ? 'Multiple choice' : 'Réponse à choix') : (isEn ? 'Binary vote' : 'Vote binaire')}</span>
               </div>
             </div>
+
             {!isFacilitator && !isPoser ? (
               <div className={styles.voteActions}>
                 {isChoiceVoting ? (
@@ -757,86 +758,25 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                     </button>
                   </>
                 )}
-                <p className={styles.voteStatus}>{t('vom.currentVote', { vote: myVote === 'vrai' ? t('vom.voteTrue') : myVote === 'mensonge' ? t('vom.voteFalse') : myVote || t('vom.absent') })}</p>
-                {myVote ? (
-                  <div className={styles.voteMonitorCard}>
-                    <h3 className={styles.modalTitle}>{t('vom.yourQuestion')}</h3>
-                    <p className={styles.modalIntro}>{isEn ? 'Choose the option that will be shown to the voters.' : 'Choisissez l option qui sera présentée aux votants.'}</p>
-                      <div>
-                        <span className={styles.voteMonitorEyebrow}>{t('vom.voteWaitingTitle')}</span>
-                        <div className={styles.choicePromptCard}>
-                          <p className={styles.choicePromptEyebrow}>{isEn ? 'Structured choices' : 'Choix structurés'}</p>
-                          <p className={styles.choicePanelTitle}>
-                            {selectedStatementChoices.prompt}{selectedStatementChoices.hasColon ? ':' : ''}
-                          </p>
-                        </div>
-                        <div className={styles.choiceButtonsWrap} role="radiogroup" aria-label={isEn ? 'Answer choices' : 'Choix de réponse'}>
-                    <div className={styles.voteProgressTrack} aria-hidden="true">
-                      <span className={styles.voteProgressFill} style={{ width: `${totalExpectedVotes > 0 ? Math.round((answeredVotesCount / totalExpectedVotes) * 100) : 0}%` }} />
-                    </div>
-                              <label key={option} className={`${styles.choiceRadioLabel}${active ? ` ${styles.choiceRadioLabelActive}` : ''}`}>
-                ) : null}
+
+                <p className={styles.voteStatus}>
+                  {t('vom.currentVote', {
+                    vote: myVote === 'vrai'
+                      ? t('vom.voteTrue')
+                      : myVote === 'mensonge'
+                        ? t('vom.voteFalse')
+                        : myVote || t('vom.absent')
+                  })}
+                </p>
               </div>
-            ) : isFacilitator ? (
-              <div className={styles.voteMonitorCard}>
-                                  className={styles.choiceRadioInput}
-                <div className={styles.voteMonitorHeader}>
-                  <div>
-                    <span className={styles.voteMonitorEyebrow}>{t('vom.facilitatorObserve')}</span>
-                    <strong className={styles.voteMonitorHeadline}>{t('vom.facilitatorLiveVoteHeadline')}</strong>
-                  </div>
-                  <span className={styles.voteMonitorCount}>{t('vom.voteProgress', { answered: answeredVotesCount, total: totalExpectedVotes })}</span>
-                </div>
-                                <span className={styles.choiceRadioMark} aria-hidden="true">
-                                  <span className={styles.choiceRadioDot} />
-                                </span>
-                                <span className={styles.choiceRadioCopy}>
-                                  <span className={styles.choiceRadioValue}>{option}</span>
-                                  <span className={styles.choiceRadioHelper}>{active ? (isEn ? 'Selected' : 'Sélectionnée') : (isEn ? 'Tap to choose' : 'Touchez pour choisir')}</span>
-                                </span>
-                  <article className={styles.voteSummaryTile}>
-                    <span>{t('vom.facilitatorQuestionLabel')}</span>
-                    <strong>{currentTurn?.statement_text || currentTurn?.statement_prompt || '-'}</strong>
-                  </article>
-                  <article className={styles.voteSummaryTile}>
-                    <span>{t('vom.facilitatorPoserAnswerLabel')}</span>
-                    <strong>{poserAnswerLabel}</strong>
-                        <div className={styles.choicePromptCard}>
-                          <p className={styles.choicePromptEyebrow}>{isEn ? 'Statement to publish' : 'Affirmation à publier'}</p>
-                          <p className={styles.choicePanelTitle}>{selectedStatement.text}</p>
-                        </div>
-                        <p className={styles.helper}>{t('vom.chooseTruth')}</p>
-                        <div className={styles.choiceButtonsWrap} role="radiogroup" aria-label={isEn ? 'Answer choices' : 'Choix de réponse'}>
-                  <span className={styles.voteProgressFill} style={{ width: `${totalExpectedVotes > 0 ? Math.round((answeredVotesCount / totalExpectedVotes) * 100) : 0}%` }} />
-                </div>
-                <div className={styles.voteResponseGrid}>
-                              <label key={option} className={`${styles.choiceRadioLabel}${active ? ` ${styles.choiceRadioLabelActive}` : ''}`}>
-                    <article key={row.participantId} className={`${styles.voteResponseCard}${row.hasAnswered ? ` ${styles.voteResponseCardAnswered}` : ''}`}>
-                      <div className={styles.voteResponseIdentity}>
-                        <span className={styles.inlineAvatar}>{getInitials(row.participantName)}</span>
-                        <div className={styles.voteResponseCopy}>
-                                  className={styles.choiceRadioInput}
-                          <strong>{row.participantName}</strong>
-                          <span>{row.hasAnswered ? t('vom.voteAnswered') : t('vom.votePending')}</span>
-                        </div>
-                      </div>
-                      <span className={`${styles.voteResponseValue}${row.hasAnswered ? ` ${styles.voteResponseValueAnswered}` : ''}`}>{row.voteLabel}</span>
-                    </article>
-                  ))}
-                                <span className={styles.choiceRadioMark} aria-hidden="true">
-                                  <span className={styles.choiceRadioDot} />
-                                </span>
-                                <span className={styles.choiceRadioCopy}>
-                                  <span className={styles.choiceRadioValue}>{option}</span>
-                                  <span className={styles.choiceRadioHelper}>{active ? (isEn ? 'Selected' : 'Sélectionnée') : (isEn ? 'Tap to choose' : 'Touchez pour choisir')}</span>
-                                </span>
-              </div>
-            ) : (
+            ) : null}
+
+            {(isFacilitator || isPoser) ? (
               <div className={styles.voteMonitorCard}>
                 <div className={styles.voteMonitorHeader}>
                   <div>
-                    <span className={styles.voteMonitorEyebrow}>{t('vom.voteWaitingTitle')}</span>
-                    <strong className={styles.voteMonitorHeadline}>{t('vom.poserWaitingHeadline')}</strong>
+                    <span className={styles.voteMonitorEyebrow}>{isFacilitator ? t('vom.facilitatorObserve') : t('vom.voteWaitingTitle')}</span>
+                    <strong className={styles.voteMonitorHeadline}>{isFacilitator ? t('vom.facilitatorLiveVoteHeadline') : t('vom.poserWaitingHeadline')}</strong>
                   </div>
                   <span className={styles.voteMonitorCount}>{t('vom.voteProgress', { answered: answeredVotesCount, total: totalExpectedVotes })}</span>
                 </div>
@@ -863,12 +803,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                           <span>{row.hasAnswered ? t('vom.voteAnswered') : t('vom.votePending')}</span>
                         </div>
                       </div>
-                      <span className={`${styles.voteResponseValue}${row.hasAnswered ? ` ${styles.voteResponseValueAnswered}` : ''}`}>{row.hasAnswered ? t('vom.voteReceived') : t('vom.voteWaitingShort')}</span>
+                      <span className={`${styles.voteResponseValue}${row.hasAnswered ? ` ${styles.voteResponseValueAnswered}` : ''}`}>
+                        {row.hasAnswered ? t('vom.voteReceived') : t('vom.voteWaitingShort')}
+                      </span>
                     </article>
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
+
             {remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
           </section>
         ) : null}
