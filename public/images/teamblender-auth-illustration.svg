@@ -1,0 +1,35 @@
+<svg width="960" height="720" viewBox="0 0 960 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="authBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#081223" />
+      <stop offset="100%" stop-color="#17315f" />
+    </linearGradient>
+    <linearGradient id="authCard" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fbff" />
+      <stop offset="100%" stop-color="#eef4ff" />
+    </linearGradient>
+  </defs>
+  <rect width="960" height="720" rx="56" fill="url(#authBg)" />
+  <circle cx="764" cy="188" r="142" fill="#243d6f" />
+  <circle cx="214" cy="566" r="150" fill="#243d6f" />
+  <rect x="112" y="116" width="736" height="488" rx="38" fill="#ffffff" opacity="0.95" />
+  <rect x="156" y="174" width="296" height="338" rx="32" fill="url(#authCard)" />
+  <rect x="492" y="174" width="312" height="256" rx="32" fill="#f8fbff" />
+  <rect x="492" y="452" width="312" height="60" rx="24" fill="#eef4ff" />
+  <rect x="184" y="214" width="176" height="16" rx="8" fill="#2f62ff" opacity="0.96" />
+  <rect x="184" y="244" width="132" height="12" rx="6" fill="#98b1ff" />
+  <rect x="184" y="282" width="232" height="148" rx="28" fill="#ffffff" />
+  <circle cx="250" cy="342" r="34" fill="#2f62ff" opacity="0.12" />
+  <circle cx="250" cy="342" r="18" fill="#2f62ff" opacity="0.9" />
+  <rect x="292" y="322" width="92" height="10" rx="5" fill="#9fb8ff" />
+  <rect x="292" y="344" width="70" height="10" rx="5" fill="#c9d9ff" />
+  <rect x="524" y="214" width="120" height="120" rx="28" fill="#2f62ff" opacity="0.95" />
+  <path d="M584 254c8-18 22-28 42-28 22 0 38 16 38 38 0 26-22 44-46 44-18 0-32-10-38-24l12-6c4 8 12 12 20 12 12 0 22-10 22-22 0-10-7-18-16-22l-14 8-6-10 20-10Z" fill="#ffffff" />
+  <rect x="656" y="214" width="108" height="12" rx="6" fill="#2f62ff" opacity="0.95" />
+  <rect x="656" y="244" width="92" height="10" rx="5" fill="#9fb8ff" />
+  <rect x="656" y="268" width="112" height="10" rx="5" fill="#c9d9ff" />
+  <rect x="524" y="352" width="214" height="14" rx="7" fill="#dfe9ff" />
+  <rect x="524" y="380" width="178" height="12" rx="6" fill="#e7eeff" />
+  <rect x="524" y="468" width="122" height="12" rx="6" fill="#2f62ff" opacity="0.8" />
+  <rect x="652" y="468" width="86" height="12" rx="6" fill="#bdd0ff" />
+</svg>

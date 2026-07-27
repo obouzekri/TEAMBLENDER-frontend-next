@@ -1024,6 +1024,13 @@ export default function HomePage() {
                   <span>{heroPrimaryLabel}</span>
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </Link>
+                <Link
+                  href={heroSecondaryHref}
+                  onClick={handleHeroSecondaryCtaClick}
+                  className={`${pillClass} landing-cta-secondary landing-hero-secondary-btn`}
+                >
+                  <span>{heroSecondaryLabel}</span>
+                </Link>
               </div>
 
               {heroTrustBadges.length > 0 ? (
@@ -1070,8 +1077,8 @@ export default function HomePage() {
                 >
                   <figure className="landing-hero-product-frame landing-hero-product-frame--interactive">
                     <Image
-                      src="/images/labyrinthe-hero.jpg"
-                      alt="Interface TeamBlender Labyrinthe en session live collaborative"
+                      src="/images/teamblender-session-illustration.svg"
+                      alt="Interface TeamBlender en session live collaborative"
                       width={1200}
                       height={800}
                       priority

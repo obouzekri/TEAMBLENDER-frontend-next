@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
@@ -149,18 +150,31 @@ export default function PricingPage() {
       <TopNav />
       <main className="shell pricing-page">
         <section className="pricing-hero feature-card reveal-up" aria-label="Tarification TeamBlender">
-          <p className="eyebrow">{isEn ? 'Pricing' : 'Tarification'}</p>
-          <h1>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
-          <p>
-            {isEn
-              ? 'Start light, then scale with more capabilities, support, and customization.'
-              : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
-          </p>
-          <p>
-            {isEn
-              ? '14-day free trial, no credit card required.'
-              : 'Essai gratuit 14 jours, sans carte bancaire.'}
-          </p>
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div>
+              <p className="eyebrow">{isEn ? 'Pricing' : 'Tarification'}</p>
+              <h1>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
+              <p>
+                {isEn
+                  ? 'Start light, then scale with more capabilities, support, and customization.'
+                  : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
+              </p>
+              <p>
+                {isEn
+                  ? '14-day free trial, no credit card required.'
+                  : 'Essai gratuit 14 jours, sans carte bancaire.'}
+              </p>
+            </div>
+            <div className="rounded-3xl border border-white/60 bg-gradient-to-br from-slate-50 to-indigo-50 p-3 shadow-sm">
+              <Image
+                src="/images/teamblender-pricing-illustration.svg"
+                alt="Illustration TeamBlender pricing"
+                width={960}
+                height={720}
+                className="w-full rounded-2xl"
+              />
+            </div>
+          </div>
         </section>
 
         {/* Billing Cycle & Currency Selector */}

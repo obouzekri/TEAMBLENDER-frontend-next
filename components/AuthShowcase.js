@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Logo from './Logo';
 
 export default function AuthShowcase({
@@ -6,6 +7,7 @@ export default function AuthShowcase({
   description,
   highlights = [],
   stats = [],
+  illustration = '/images/teamblender-auth-illustration.svg',
 }) {
   return (
     <section className="auth-showcase-card feature-card reveal-up auth-hero-pane" aria-label="Presentation TeamBlender">
@@ -19,6 +21,17 @@ export default function AuthShowcase({
       <div className="auth-showcase-copy">
         <h1>{title}</h1>
         <p>{description}</p>
+      </div>
+
+      <div className="auth-showcase-illustration">
+        <Image
+          src={illustration}
+          alt="Illustration TeamBlender"
+          width={720}
+          height={540}
+          priority
+          className="auth-showcase-illustration__image"
+        />
       </div>
 
       {highlights.length > 0 ? (
