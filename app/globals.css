@@ -757,20 +757,20 @@ a {
   grid-template-columns: auto auto auto;
   align-items: center;
   gap: 0.28rem;
-  min-height: 36px;
-  padding: 6px 10px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
+  min-height: 34px;
+  padding: 5px 9px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.05);
   color: #314260;
   transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
 }
 
 .lang-switch:hover {
-  border-color: rgba(100, 116, 139, 0.38);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.09);
-  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(100, 116, 139, 0.32);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.07);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .lang-switch__label {
@@ -810,22 +810,22 @@ a {
 }
 
 .lang-switch__icon {
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   line-height: 1;
-  opacity: 0.74;
+  opacity: 0.7;
 }
 
 .lang-switch__value {
-  font-size: 0.73rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   line-height: 1;
 }
 
 .lang-switch__chevron {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   line-height: 1;
-  opacity: 0.66;
+  opacity: 0.62;
 }
 
 .lang-switch__select:focus-visible {
@@ -833,8 +833,8 @@ a {
 }
 
 .lang-switch:focus-within {
-  border-color: rgba(47, 98, 255, 0.46);
-  box-shadow: 0 0 0 3px rgba(47, 98, 255, 0.16);
+  border-color: rgba(47, 98, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(47, 98, 255, 0.14);
 }
 
 .nav-link {
