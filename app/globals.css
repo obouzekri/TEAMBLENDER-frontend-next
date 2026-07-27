@@ -5161,9 +5161,8 @@ a {
 
 .landing-benefits-copy {
   border-radius: 18px;
-  border: 1px solid rgba(147, 197, 253, 0.62);
   background: linear-gradient(155deg, rgba(255, 255, 255, 0.9) 0%, rgba(239, 246, 255, 0.84) 100%);
-  box-shadow: 0 14px 30px rgba(30, 41, 59, 0.08);
+  box-shadow: none;
   padding: 1rem;
   backdrop-filter: blur(8px);
 }
