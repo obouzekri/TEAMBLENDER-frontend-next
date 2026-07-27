@@ -183,7 +183,7 @@ function getStartupGuideSteps(isEn) {
         ? 'Create your participant base to organize workshops faster and more cleanly.'
         : 'Constituez votre base participant pour organiser vos ateliers plus vite et plus clairement.',
       href: '/home#home-participants-block',
-      cta: isEn ? 'Go to this step' : 'Aller a cette etape',
+      cta: isEn ? 'Go to this step' : 'Aller à cette étape',
     },
     {
       step: '2',
@@ -191,7 +191,7 @@ function getStartupGuideSteps(isEn) {
       title: isEn ? 'Configure the session' : 'Configurer la session',
       text: isEn
         ? 'Choose the challenge, format, and key settings before launch.'
-        : 'Choisissez le challenge, le format et les parametres avant le lancement.',
+        : 'Choisissez le challenge, le format et les paramètres avant le lancement.',
     },
     {
       step: '3',
@@ -199,7 +199,7 @@ function getStartupGuideSteps(isEn) {
       title: isEn ? 'Launch the challenge' : 'Lancer le challenge',
       text: isEn
         ? 'Start the session, keep the pace, and finish with an actionable debrief.'
-        : 'Demarrez la session, maintenez le rythme et concluez avec un debrief actionnable.',
+        : 'Démarrez la session, maintenez le rythme et concluez avec un debrief actionnable.',
     }
   ]);
 }
@@ -380,8 +380,8 @@ export default function ManagerHome() {
       : 'Creation indisponible: ajoutez d abord des participants dans votre espace manager.');
   const asyncStatusMessage = creatingMember
     ? (editingMemberId
-      ? (isEn ? 'Updating participant...' : 'Mise a jour du participant...')
-      : (isEn ? 'Creating participant...' : 'Creation du participant...'))
+      ? (isEn ? 'Updating participant...' : 'Mise à jour du participant...')
+      : (isEn ? 'Creating participant...' : 'Création du participant...'))
     : deletingMemberId
       ? (isEn ? 'Deleting participant...' : 'Suppression du participant...')
       : deletingSessionId

@@ -230,9 +230,9 @@ const LANDING_STATIC_BY_LOCALE = {
       'Événements RH',
     ],
     fallback: {
-      heroTitle: 'Créez des ateliers de cohesion gamifies en quelques minutes.',
+      heroTitle: 'Créez des ateliers de cohésion gamifiés en quelques minutes.',
       heroTitleStructured: 'Créez des expériences collaboratives gamifiées à fort impact, en quelques minutes.',
-      heroDescription: 'Le produit aide les equipes a transformer leurs interactions en decisions et alignement.',
+      heroDescription: 'Le produit aide les équipes à transformer leurs interactions en décisions et en alignement.',
       heroDescriptionStructured: 'TeamBlender renforce la cohésion des équipes hybrides à travers des challenges en temps réel engageants et mesurables.',
       heroPrimaryLabel: 'Démarrer gratuitement',
       heroSecondaryLabel: 'Voir les offres',
@@ -1005,12 +1005,12 @@ export default function HomePage() {
 
               <p className="landing-hero-description mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
                 {heroDescription === landingStatic.fallback.heroDescription
-                  ? landingStatic.fallback.heroDescriptionStructured
+                  ? 'TeamBlender transforme vos sessions en défis collaboratifs vivants, faciles à piloter et à déployer avec des équipes hybrides.'
                   : heroDescription}
               </p>
 
               <p className="landing-hero-keyline mt-3 max-w-2xl text-sm font-semibold tracking-wide text-indigo-700 sm:text-base">
-                {landingStatic.fallback.keyline}
+                Lancez des défis engageants, suivez la dynamique en direct et faites émerger des résultats concrets.
               </p>
 
               <span className="block h-6" aria-hidden="true" />
@@ -1077,8 +1077,8 @@ export default function HomePage() {
                 >
                   <figure className="landing-hero-product-frame landing-hero-product-frame--interactive">
                     <Image
-                      src="/images/teamblender-session-illustration.svg"
-                      alt="Interface TeamBlender en session live collaborative"
+                      src="/images/teamblender-collab-challenges-illustration.svg"
+                      alt="Illustration de défis collaboratifs engageants sur TeamBlender"
                       width={1200}
                       height={800}
                       priority
