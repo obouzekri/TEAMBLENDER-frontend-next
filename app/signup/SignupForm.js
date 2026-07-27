@@ -12,6 +12,7 @@ import posthog from 'posthog-js';
 import { trackGtmEvent, trackProductUserEvent } from '@/lib/analytics';
 import {
   clearOAuthCallbackParamsFromUrl,
+  ensureCsrfToken,
   getOAuthStartUrl,
   getRedirectPath,
   readOAuthCallbackFromLocation,
@@ -59,6 +60,10 @@ export default function SignupForm() {
   const emailStatusLabel = emailLooksValid
     ? (isEn ? 'Email format looks valid' : 'Le format de l’email est valide')
     : (isEn ? 'Enter a valid email address' : 'Saisissez une adresse email valide');
+
+  useEffect(() => {
+    ensureCsrfToken().catch(() => {});
+  }, []);
 
   useEffect(() => {
     const oauth = readOAuthCallbackFromLocation();
