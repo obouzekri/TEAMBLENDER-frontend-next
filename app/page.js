@@ -1274,20 +1274,21 @@ export default function HomePage() {
                 <h2 className="landing-section-title">{landingStatic.fallback.valuesTitle}</h2>
               </div>
             </div>
-            <ol className="landing-values-timeline mt-7" aria-label={landingStatic.fallback.valuesTitle}>
+            <ol className="landing-values-timeline mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3" aria-label={landingStatic.fallback.valuesTitle}>
               {PLATFORM_VALUES_ITEMS.map((item, index) => {
                 const Icon = item.icon;
                 return (
                   <li key={item.label} className="landing-values-step">
-                    <span className="landing-values-step-dot" aria-hidden="true" />
-                    <article className="landing-values-step-card">
-                      <div className="landing-values-step-head">
-                        <span className="landing-values-step-index">{String(index + 1).padStart(2, '0')}</span>
-                        <span className="landing-values-step-icon" aria-hidden="true">
+                    <article className="landing-values-step-card rounded-[24px] border border-indigo-100/80 bg-gradient-to-br from-white via-[#f5f8ff] to-[#eef3ff] p-5 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(15,23,42,0.12)]">
+                      <div className="landing-values-step-head flex items-center justify-between">
+                        <span className="landing-values-step-index inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/80 text-sm font-semibold text-slate-950 shadow-sm">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                        <span className="landing-values-step-icon inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 text-indigo-700 shadow-sm" aria-hidden="true">
                           <Icon className="h-5 w-5" />
                         </span>
                       </div>
-                      <p className="landing-values-step-label">{item.label}</p>
+                      <p className="landing-values-step-label mt-4 text-lg font-semibold leading-6 text-slate-950">{item.label}</p>
                     </article>
                   </li>
                 );
