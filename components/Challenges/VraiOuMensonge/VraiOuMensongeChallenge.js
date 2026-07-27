@@ -148,6 +148,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     participantId,
   } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
   const { t, locale } = useI18n();
+  const isEn = locale === 'en';
 
   const vom = state?.vom || {};
   const phase = String(vom?.phase || 'waiting_start');
