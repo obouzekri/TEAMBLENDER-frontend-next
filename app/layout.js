@@ -1,6 +1,7 @@
 import './globals.css';
 import { cookies } from 'next/headers';
 import TrackingConsentGate from '@/components/TrackingConsentGate';
+import ExternalNotificationGuard from '@/components/ExternalNotificationGuard';
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
 
 export const metadata = {
@@ -36,6 +37,7 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={locale}>
       <body>
+        <ExternalNotificationGuard />
         <I18nProvider>
           <TrackingConsentGate>{children}</TrackingConsentGate>
         </I18nProvider>
