@@ -14,6 +14,7 @@ import {
   listPricingPlans,
   updateMyPlan,
   capturePaypalOrder,
+  startPayoneerCheckout,
   getStoredCurrentUser,
   setStoredCurrentUser,
 } from '@/lib/account';
@@ -406,12 +407,28 @@ export default function AccountPage() {
     }
   }
 
-  function handleGoToCheckout(method, planId) {
+  async function handleGoToCheckout(method, planId) {
     const targetPlanId = planId || recommendedPlan?.id || activePlan?.id;
     if (!targetPlanId) {
       showError(t('account.noPlanAvailable'));
       return;
     }
+
+    if (String(method).toLowerCase() === 'payoneer') {
+      try {
+        const result = await startPayoneerCheckout({ pricing_plan_id: targetPlanId });
+        if (result?.url) {
+          window.location.assign(result.url);
+          return;
+        }
+        showError(result?.message || 'Impossible de démarrer le checkout Payoneer.');
+        return;
+      } catch (err) {
+        showError(err.message || 'Impossible de démarrer le checkout Payoneer.');
+        return;
+      }
+    }
+
     window.location.assign(
       `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}&method=${encodeURIComponent(String(method))}`
     );
@@ -449,6 +466,9 @@ export default function AccountPage() {
             <div className="account-upgrade-banner__actions">
               <button type="button" className="btn-primary" onClick={() => handleGoToCheckout('paypal')}>
                 {t('account.checkoutPaypal')}
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => handleGoToCheckout('payoneer')}>
+                Payer avec Payoneer
               </button>
               <button type="button" className="btn-secondary" onClick={() => handleGoToCheckout('bank_transfer')}>
                 {t('account.checkoutWire')}
