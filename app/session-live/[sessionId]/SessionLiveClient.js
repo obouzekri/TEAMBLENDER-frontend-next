@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
@@ -34,6 +34,7 @@ export default function SessionLiveClient() {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
   const params = useParams();
+  const pathname = usePathname();
   const router = useRouter();
   const sessionId = String(params?.sessionId || '');
 
@@ -44,6 +45,7 @@ export default function SessionLiveClient() {
   const [actionPending, setActionPending] = useState(false);
   const [actionMsg, setActionMsg] = useState('');
   const [advancePopupOpen, setAdvancePopupOpen] = useState(false);
+  const [endSessionPopupOpen, setEndSessionPopupOpen] = useState(false);
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(0);
   useBodyScrollLock(advancePopupOpen);
 
@@ -148,7 +150,11 @@ export default function SessionLiveClient() {
   }, [clearAutoAdvanceTimer]);
 
   async function handleEndSession() {
-    if (!window.confirm(isEn ? 'End this session?' : 'Terminer la session ?')) return;
+    setEndSessionPopupOpen(true);
+  }
+
+  async function confirmEndSession() {
+    setEndSessionPopupOpen(false);
     setActionPending(true);
     setActionMsg('');
     try {
@@ -249,6 +255,7 @@ export default function SessionLiveClient() {
   const memberCount = assignedParticipantCount || participantCount || (Array.isArray(session?.members) ? session.members.length : 0);
   const userLabel = pickDisplayName(user);
   const connectionState = connected ? 'connected' : (reconnecting ? 'reconnecting' : 'offline');
+  const isSessionLiveRoute = Boolean(pathname && pathname.includes('/session-live/'));
   const asyncStatusMessage = actionPending
     ? (isEn ? 'Processing action...' : 'Action en cours de traitement...')
     : loading
@@ -358,6 +365,39 @@ export default function SessionLiveClient() {
           </div>
         ) : null}
 
+        {endSessionPopupOpen ? (
+          <div className="session-live-popup-backdrop" role="presentation" onClick={() => setEndSessionPopupOpen(false)}>
+            <section
+              className="session-live-popup"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="session-live-end-popup-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="session-live-popup__header">
+                <h3 id="session-live-end-popup-title">{isEn ? 'End session?' : 'Terminer la session ?'}</h3>
+                <button
+                  type="button"
+                  className="session-live-popup__close"
+                  aria-label={isEn ? 'Close confirmation modal' : 'Fermer la fenetre de confirmation'}
+                  onClick={() => setEndSessionPopupOpen(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <p>{isEn ? 'This will close the current session and show the results page.' : 'Cette action fermera la session en cours et affichera la page de résultats.'}</p>
+              <div className="session-live-popup__actions">
+                <Button variant="secondary" size="sm" onClick={() => setEndSessionPopupOpen(false)}>
+                  {isEn ? 'Cancel' : 'Annuler'}
+                </Button>
+                <Button variant="primary" size="sm" onClick={confirmEndSession}>
+                  {isEn ? 'Confirm' : 'Confirmer'}
+                </Button>
+              </div>
+            </section>
+          </div>
+        ) : null}
+
         {activeEngineKey ? (
           <section className="session-live-challenge-frame">
             <ChallengeWrapper
@@ -382,7 +422,7 @@ export default function SessionLiveClient() {
         )}
 
       </main>
-      <Footer />
+      {!isSessionLiveRoute ? <Footer /> : null}
     </>
   );
 }

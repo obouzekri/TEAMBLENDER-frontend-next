@@ -1678,14 +1678,14 @@
 
 @media (max-width: 760px) {
   .shell {
-    padding: 14px;
-    gap: 12px;
+    padding: 12px;
+    gap: 10px;
   }
 
   .header {
-    padding: 13px;
+    padding: 12px;
     display: grid;
-    gap: 10px;
+    gap: 8px;
   }
 
   .headerLine {
@@ -1694,7 +1694,7 @@
   }
 
   .header h1 {
-    font-size: 1.45rem;
+    font-size: 1.2rem;
   }
 
   .layout {
@@ -1703,6 +1703,7 @@
 
   .sideColumn {
     order: -1;
+    gap: 10px;
   }
 
   .stateCard {
@@ -1713,8 +1714,32 @@
     padding: 12px;
   }
 
+  .sectionTitle {
+    font-size: 0.95rem;
+  }
+
+  .roleSpotlightCard,
+  .voteMonitorCard {
+    padding: 14px;
+  }
+
+  .roleSpotlightTitle {
+    font-size: 1.15rem;
+  }
+
+  .votePhaseHeader {
+    padding: 12px;
+  }
+
+  .votePhaseStatement {
+    font-size: 0.95rem;
+    line-height: 1.45;
+    padding: 11px 12px;
+  }
+
   .resultHero {
     grid-template-columns: 1fr;
+    padding: 12px;
   }
 
   .statementGrid {
@@ -1742,7 +1767,19 @@
   .voteTrue,
   .voteFalse,
   .primaryBtn {
-    min-height: 42px;
+    min-height: 44px;
+  }
+
+  .stickyCtaWrap {
+    position: sticky;
+    bottom: 8px;
+    padding-top: 6px;
+  }
+
+  .stickyCtaBtn {
+    width: 100%;
+    min-height: 50px;
+    font-size: 0.98rem;
   }
 }
 

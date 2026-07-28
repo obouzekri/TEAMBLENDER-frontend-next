@@ -3,6 +3,7 @@
   flex-direction: column;
   min-height: 0;
   height: auto;
+  gap: 12px;
   --challenge-text-primary: #e5edf7;
   --challenge-text-secondary: #bfd3e8;
   --challenge-text-muted: #9cb2c7;
@@ -100,9 +101,19 @@
 @media (max-width: 720px) {
   .challengeContainer {
     padding-bottom: max(8px, env(safe-area-inset-bottom));
+    gap: 10px;
   }
 
   .statusActions {
     flex-direction: column;
+  }
+
+  .statusShell {
+    padding: 12px;
+  }
+
+  .statusCard {
+    padding: 18px;
+    border-radius: 12px;
   }
 }

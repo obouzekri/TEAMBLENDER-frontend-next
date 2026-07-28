@@ -92,6 +92,27 @@
   padding: 8px 10px;
 }
 
+.rulesGroupedList {
+  display: grid;
+  gap: 8px;
+}
+
+.rulesGroup {
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(8, 20, 34, 0.7);
+}
+
+.rulesGroup h4 {
+  margin: 0 0 6px;
+  color: #e6f7ff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .rulesSection ul {
   list-style: disc;
   padding-left: 1.2rem;
@@ -147,8 +168,16 @@
 }
 
 .rulesActions {
-  display: flex;
-  justify-content: flex-start;
+  display: grid;
+  gap: 0.45rem;
+  justify-items: start;
+}
+
+.rulesActionsSticky {
+  position: sticky;
+  bottom: 0.35rem;
+  z-index: 2;
+  padding-top: 0.25rem;
 }
 
 .startButton {
@@ -170,6 +199,19 @@
   border-radius: 10px;
   padding: 0.45rem 0.74rem;
   font-size: 0.78rem;
+}
+
+.startButtonFullWidth {
+  width: 100%;
+  justify-content: center;
+}
+
+.startButtonStatus {
+  margin: 0;
+  color: #a9c0d1;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .startButton:hover:not(:disabled) {
@@ -265,14 +307,30 @@
 @media (max-width: 640px) {
   .rulesCard {
     padding: 12px;
+    gap: 10px;
   }
 
   .rulesSection {
     padding: 10px;
+    gap: 8px;
+  }
+
+  .rulesGroup {
+    padding: 8px;
   }
 
   .rulesSection ul {
     padding-left: 16px;
+  }
+
+  .rulesActionsSticky {
+    position: static;
+  }
+
+  .startButtonFullWidth {
+    width: 100%;
+    min-height: 48px;
+    font-size: 0.96rem;
   }
 
   .rulesKicker {

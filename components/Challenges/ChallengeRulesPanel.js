@@ -21,6 +21,9 @@ export default function ChallengeRulesPanel({
   onStart = null,
   startDisabled = false,
   compactStartButton = false,
+  startStatusText = '',
+  stickyStartButton = false,
+  startButtonFullWidth = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const { locale, t } = useI18n();
@@ -66,8 +69,8 @@ export default function ChallengeRulesPanel({
     ...(playersRuleText.length > 0
       ? [
         isEn
-          ? `Recommended player format: ${playersRuleText.join(', ')}.`
-          : `Format de joueurs recommandé : ${playersRuleText.join(', ')}.`
+          ? `Player format: ${playersRuleText.join(' · ')}.`
+          : `Format de joueurs : ${playersRuleText.join(' · ')}.`
       ]
       : []),
     ...facilitatorRules,
@@ -93,11 +96,24 @@ export default function ChallengeRulesPanel({
 
       <section className={`${styles.rulesSection} ${styles.rulesSectionParticipant}`}>
         <h3 className="challenge-section-title">🧭 {participantLabel}</h3>
-        <ul>
-          {participantRules.map((rule) => (
-            <li key={`participant-${rule}`}>{rule}</li>
-          ))}
-        </ul>
+        <div className={styles.rulesGroupedList}>
+          <div className={styles.rulesGroup}>
+            <h4>{isEn ? 'Game rules' : 'Règles du jeu'}</h4>
+            <ul>
+              {participantRules.filter((rule) => !String(rule).toLowerCase().includes('barème') && !String(rule).toLowerCase().includes('score') && !String(rule).toLowerCase().includes('points')).map((rule) => (
+                <li key={`participant-${rule}`}>{rule}</li>
+              ))}
+            </ul>
+          </div>
+          <div className={styles.rulesGroup}>
+            <h4>{isEn ? 'Scoring' : 'Barème des points'}</h4>
+            <ul>
+              {participantRules.filter((rule) => String(rule).toLowerCase().includes('barème') || String(rule).toLowerCase().includes('score') || String(rule).toLowerCase().includes('points') || String(rule).toLowerCase().includes('bonne réponse') || String(rule).toLowerCase().includes('non posé') || String(rule).toLowerCase().includes('non répondu')).map((rule) => (
+                <li key={`participant-score-${rule}`}>{rule}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </section>
 
       {footnote ? <p className={`${styles.rulesFootnote} challenge-text`}>{footnote}</p> : null}
@@ -105,15 +121,16 @@ export default function ChallengeRulesPanel({
       {extraContent}
 
       {canStartFromRules ? (
-        <div className={styles.rulesActions}>
+        <div className={`${styles.rulesActions}${stickyStartButton ? ` ${styles.rulesActionsSticky}` : ''}`}>
           <button
             type="button"
-            className={`${styles.startButton}${compactStartButton ? ` ${styles.startButtonCompact}` : ''}`}
+            className={`${styles.startButton}${compactStartButton ? ` ${styles.startButtonCompact}` : ''}${startButtonFullWidth ? ` ${styles.startButtonFullWidth}` : ''}`}
             onClick={onStart}
             disabled={startDisabled}
           >
             {resolvedStartLabel}
           </button>
+          {startStatusText && startDisabled ? <p className={styles.startButtonStatus}>{startStatusText}</p> : null}
         </div>
       ) : null}
     </>
