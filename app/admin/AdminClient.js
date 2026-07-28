@@ -1161,6 +1161,9 @@ export default function AdminClient() {
   const [analyticsOverview, setAnalyticsOverview] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsDays, setAnalyticsDays] = useState(30);
+  const [adminActivityLoading, setAdminActivityLoading] = useState(false);
+  const [adminVisits, setAdminVisits] = useState([]);
+  const [adminVisitSummary, setAdminVisitSummary] = useState({ totalVisits: 0, uniqueUsers: 0, recentVisits: [] });
   const [selectedVisitorCountry, setSelectedVisitorCountry] = useState('');
   const [showAllCitiesForCountry, setShowAllCitiesForCountry] = useState(false);
 
@@ -1396,6 +1399,61 @@ export default function AdminClient() {
     }
   }, [analyticsDays, token]);
 
+  const recordAdminVisitEvent = useCallback(async (pagePath = null) => {
+    if (!token) return;
+
+    try {
+      const resolvedPage = String(pagePath || window.location.pathname || '/admin').trim() || '/admin';
+      await fetch(getApiUrl('/admin-analytics/visits'), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventType: 'page_view',
+          page: resolvedPage,
+          metadata: {
+            source: 'admin-dashboard',
+            referrer: typeof document !== 'undefined' ? document.referrer || '' : '',
+          },
+        }),
+      });
+    } catch {
+      // Ignore tracking errors so admin access remains unaffected.
+    }
+  }, [token]);
+
+  const loadAdminVisits = useCallback(async (daysOverride = 30, limit = 12) => {
+    if (!token) return;
+    setAdminActivityLoading(true);
+
+    try {
+      const days = Number(daysOverride || 30);
+      const limitValue = Number(limit || 12);
+      const [visitsPayload, summaryPayload] = await Promise.all([
+        fetchAdminJson(`/admin-analytics/visits?days=${days}&limit=${limitValue}`, token),
+        fetchAdminJson(`/admin-analytics/visits/summary?days=${days}`, token),
+      ]);
+
+      setAdminVisits(Array.isArray(visitsPayload?.visits) ? visitsPayload.visits : []);
+      setAdminVisitSummary(
+        summaryPayload && typeof summaryPayload === 'object'
+          ? {
+            totalVisits: Number(summaryPayload.totalVisits || 0),
+            uniqueUsers: Number(summaryPayload.uniqueUsers || 0),
+            recentVisits: Array.isArray(summaryPayload.recentVisits) ? summaryPayload.recentVisits : [],
+          }
+          : { totalVisits: 0, uniqueUsers: 0, recentVisits: [] }
+      );
+    } catch {
+      setAdminVisits([]);
+      setAdminVisitSummary({ totalVisits: 0, uniqueUsers: 0, recentVisits: [] });
+    } finally {
+      setAdminActivityLoading(false);
+    }
+  }, [token]);
+
   const loadAll = useCallback(async () => {
     if (!token) return;
     setError('');
@@ -1503,6 +1561,12 @@ export default function AdminClient() {
     if (!token) return;
     loadAnalytics();
   }, [analyticsDays, loadAnalytics, token]);
+
+  useEffect(() => {
+    if (!token) return;
+    loadAdminVisits();
+    recordAdminVisitEvent();
+  }, [token, loadAdminVisits, recordAdminVisitEvent]);
 
   async function updateApproval(id, approval_status) {
     if (!token) return;
@@ -3500,6 +3564,52 @@ export default function AdminClient() {
                     <p style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', margin: 0 }}>{item.label}</p>
                   </div>
                 ))}
+              </div>
+
+              <div style={{
+                background: 'var(--color-surface, #fff)',
+                border: '1px solid var(--color-border, #e5e7eb)',
+                borderRadius: '10px',
+                padding: '20px 24px',
+                marginBottom: '20px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                  <div>
+                    <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Recent admin activity' : 'Activite admin recente'}</h2>
+                    <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>
+                      {isEn
+                        ? `${adminVisitSummary.totalVisits} visits recorded in the last 30 days.`
+                        : `${adminVisitSummary.totalVisits} visites enregistrees sur les 30 derniers jours.`}
+                    </p>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', textAlign: 'right' }}>
+                    <div><strong style={{ color: 'var(--color-primary, #4f46e5)' }}>{adminVisitSummary.totalVisits}</strong> {isEn ? 'visits' : 'visites'}</div>
+                    <div>{adminVisitSummary.uniqueUsers} {isEn ? 'active users' : 'utilisateurs actifs'}</div>
+                  </div>
+                </div>
+
+                {adminActivityLoading ? (
+                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>{isEn ? 'Loading activity...' : 'Chargement de l’activite...'}</p>
+                ) : adminVisits.length > 0 ? (
+                  <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {adminVisits.map((visit) => (
+                      <li key={String(visit.id || `${visit.page || 'visit'}-${visit.createdAt || visit.created_at || Math.random()}`)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid var(--color-border, #e5e7eb)' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ fontWeight: 600, margin: '0 0 2px', fontSize: '14px' }}>{String(visit.page || '/admin').trim() || '/admin'}</p>
+                          <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '12px' }}>
+                            {String(visit.eventType || 'page_view').trim() || 'page_view'} · {visit.userEmail || (isEn ? 'Unknown user' : 'Utilisateur inconnu')}
+                          </p>
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', textAlign: 'right', flexShrink: 0 }}>
+                          <div>{visit.createdAt ? new Date(visit.createdAt).toLocaleString(isEn ? 'en-US' : 'fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : (isEn ? 'Just now' : 'A l’instant')}</div>
+                          <div>{visit.userRole || 'admin'}</div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>{isEn ? 'No visit activity has been recorded yet.' : 'Aucune visite n’a encore ete enregistree.'}</p>
+                )}
               </div>
 
               {/* Pending approvals on dashboard */}
