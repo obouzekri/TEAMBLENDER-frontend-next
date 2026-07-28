@@ -857,16 +857,16 @@ export default function ManagerHome() {
                   href={withLocalePath('/session-builder')}
                   onClick={handleCreateSessionClick}
                   aria-disabled={!canCreateSession}
-                  title={canCreateSession ? (isEn ? 'Create session' : 'Creer une session') : createSessionBlockedReason}
+                  title={canCreateSession ? (isEn ? 'Create session' : 'Créer une session') : createSessionBlockedReason}
                 >
-                  {isEn ? 'Create session' : 'Creer une session'}
+                  {isEn ? 'Create session' : 'Créer une session'}
                 </Link>
                 <button
                   type="button"
                   className="btn-secondary home-create-participants-cta"
                   onClick={openNewMemberForm}
                 >
-                  {isEn ? 'Create participants' : 'Creer des participants'}
+                  {isEn ? 'Create participants' : 'Créer des participants'}
                 </button>
                 {guard.user?.role === 'admin' && (
                   <Link className="btn-secondary" href={withLocalePath('/admin')}>
@@ -912,7 +912,7 @@ export default function ManagerHome() {
                 className="btn-secondary home-quickview-guide-cta"
                 onClick={openStartupGuide}
               >
-                {isEn ? 'Open getting started guide' : 'Ouvrir le guide de demarrage'}
+                {isEn ? 'Open getting started guide' : 'Ouvrir le guide de démarrage'}
               </button>
             </aside>
           </div>
@@ -960,9 +960,9 @@ export default function ManagerHome() {
               href={withLocalePath('/session-builder')}
               onClick={handleCreateSessionClick}
               aria-disabled={!canCreateSession}
-              title={canCreateSession ? (isEn ? 'Create session' : 'Creer une session') : createSessionBlockedReason}
+              title={canCreateSession ? (isEn ? 'Create session' : 'Créer une session') : createSessionBlockedReason}
             >
-              {isEn ? 'Create session' : 'Creer une session'}
+              {isEn ? 'Create session' : 'Créer une session'}
             </Link>
           </div>
           {!canCreateSession ? (
@@ -999,7 +999,7 @@ export default function ManagerHome() {
                 const editLink = withLocalePath(`/session-builder?sessionId=${sessionIdentifier}`);
                 const mobileSessionActions = [
                   { key: 'edit', label: isEn ? 'Edit session' : 'Modifier la session', href: editLink },
-                  { key: 'open', label: isDone ? (isEn ? 'View results' : 'Voir les resultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure session' : 'Configurer la session'), href: openLink },
+                  { key: 'open', label: isDone ? (isEn ? 'View results' : 'Voir les résultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure session' : 'Configurer la session'), href: openLink },
                   { key: 'delete', label: isEn ? 'Delete session' : 'Supprimer la session', danger: true, onClick: () => handleDeleteSession(session), disabled: isDeleting },
                 ];
                 return (
@@ -1035,8 +1035,8 @@ export default function ManagerHome() {
                       <Link
                         className="icon-action-btn"
                         href={openLink}
-                        title={isDone ? (isEn ? 'View results' : 'Voir les resultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure' : 'Configurer')}
-                        aria-label={isDone ? (isEn ? 'View results' : 'Voir les resultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure' : 'Configurer')}
+                        title={isDone ? (isEn ? 'View results' : 'Voir les résultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure' : 'Configurer')}
+                        aria-label={isDone ? (isEn ? 'View results' : 'Voir les résultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure' : 'Configurer')}
                       >
                         {isDone ? '📊' : isActive ? '▶️' : '⚙️'}
                       </Link>
@@ -1090,7 +1090,7 @@ export default function ManagerHome() {
                 className="btn-secondary"
                 onClick={openNewMemberForm}
               >
-                {isEn ? 'Create participant' : 'Creer un participant'}
+                {isEn ? 'Create participant' : 'Créer un participant'}
               </button>
             </div>
           </div>

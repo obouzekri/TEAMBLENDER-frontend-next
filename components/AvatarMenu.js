@@ -57,14 +57,18 @@ export default function AvatarMenu({
   };
 
   return (
-    <div className="nav-user-trigger-wrap" ref={menuRef}>
+    <div className="nav-user-trigger-wrap" ref={menuRef} onClick={(event) => event.stopPropagation()}>
       <button
         type="button"
         className={`nav-user-trigger${isOpen ? ' is-open' : ''}`}
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-label={triggerLabel}
-        onClick={() => setIsOpen((current) => !current)}
+        onMouseDown={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          event.stopPropagation();
+          setIsOpen((current) => !current);
+        }}
       >
         {avatarUrl ? (
           <img src={avatarUrl} alt={triggerLabel} className="nav-user-avatar nav-user-avatar--trigger app-user-avatar--photo" />
@@ -76,7 +80,7 @@ export default function AvatarMenu({
       </button>
 
       {isOpen ? (
-        <div className="nav-user-dropdown" role="menu" aria-label={menuLabel}>
+        <div className="nav-user-dropdown" role="menu" aria-label={menuLabel} onClick={(event) => event.stopPropagation()}>
           <div className="nav-user-dropdown__header">
             <span className="nav-user-dropdown__name">{userLabel}</span>
             <span className="nav-user-dropdown__role">{roleLabel}</span>
@@ -91,7 +95,10 @@ export default function AvatarMenu({
                   href={item.href}
                   className={itemClassName}
                   role="menuitem"
-                  onClick={() => setIsOpen(false)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setIsOpen(false);
+                  }}
                 >
                   {item.label}
                 </Link>
@@ -104,7 +111,10 @@ export default function AvatarMenu({
                 type="button"
                 className={itemClassName}
                 role="menuitem"
-                onClick={() => handleAction(item)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleAction(item);
+                }}
               >
                 {item.label}
               </button>

@@ -789,7 +789,7 @@ a {
 }
 
 .shell {
-  width: min(1080px, calc(100% - 2rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+  width: min(1080px, calc(100% - 1.5rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
   margin: 0 auto;
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
@@ -6608,6 +6608,7 @@ a {
   margin-top: 2.5rem;
   border-top: 1px solid rgba(53, 160, 255, 0.2);
   background: linear-gradient(180deg, #eef4ff 0%, #e8f0ff 70%, #eaf1ff 100%);
+  padding-inline: clamp(1rem, 2.6vw, 1.4rem);
 }
 
 .footer-inner {
@@ -8638,6 +8639,7 @@ a {
 
 .manager-mobile-menu {
   position: relative;
+  z-index: 2;
 }
 
 .manager-mobile-menu__trigger {
@@ -8657,6 +8659,7 @@ a {
   right: 0;
   min-width: 190px;
   padding: 0.3rem;
+  z-index: 80;
   border-radius: 14px;
   border: 1px solid rgba(53, 160, 255, 0.14);
   background: rgba(255, 255, 255, 0.98);
@@ -8716,7 +8719,7 @@ a {
   justify-content: space-between;
   gap: 0;
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 14px !important;
   border: 1px solid var(--line) !important;
   background: #fff !important;
@@ -8796,6 +8799,8 @@ a {
 .session-card-mobile-actions,
 .team-member-mobile-actions {
   display: none;
+  position: relative;
+  z-index: 2;
 }
 
 .admin-mobile-tabs {
