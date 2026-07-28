@@ -95,6 +95,7 @@
 .rulesGroupedList {
   display: grid;
   gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .rulesGroup {
@@ -204,6 +205,28 @@
 .startButtonFullWidth {
   width: 100%;
   justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .rulesCard {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .rulesHeader p,
+  .rulesSection li,
+  .rulesSection h3,
+  .rulesFootnote {
+    font-size: 0.95rem;
+  }
+
+  .rulesGroupedList {
+    grid-template-columns: 1fr;
+  }
+
+  .startButtonFullWidth {
+    width: 100%;
+  }
 }
 
 .startButtonStatus {

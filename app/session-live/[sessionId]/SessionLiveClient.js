@@ -305,6 +305,7 @@ export default function SessionLiveClient() {
             <Button
               variant="primary"
               size="sm"
+              className="session-live-header__actionButton"
               onClick={handleNextChallenge}
               disabled={actionPending || !canManageFlow}
             >
@@ -313,6 +314,7 @@ export default function SessionLiveClient() {
             <Button
               variant="secondary"
               size="sm"
+              className="session-live-header__actionButton session-live-header__endButton"
               onClick={handleEndSession}
               disabled={actionPending}
             >
