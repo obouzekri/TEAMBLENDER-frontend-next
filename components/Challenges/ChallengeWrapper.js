@@ -15,6 +15,7 @@ const REALTIME_ENGINES = new Set([
   'phrase_collaborative_v1',
   'copuzzle_live_v1',
   'labyrinthe_live_v1',
+  'lab_d_innovation_v1',
   'mission_critique_v1',
   'the_quiz_v1',
   'vrai_ou_mensonge_v1',
