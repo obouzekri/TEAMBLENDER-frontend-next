@@ -97,7 +97,7 @@ export default function TopNav({ compact = false }) {
               </Link>
             </div>
 
-            <div className={`nav-mobile-cta${isLandingHome ? ' nav-mobile-cta--landing' : ''}`} aria-label={t('nav.accountAria')}>
+            <div className={`nav-mobile-cta topnav-public-mobile-cta${isLandingHome ? ' nav-mobile-cta--landing' : ''}`} aria-label={t('nav.accountAria')}>
               <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn">
                 {t('nav.login')}
               </Link>
@@ -130,7 +130,7 @@ export default function TopNav({ compact = false }) {
             </nav>
           </div>
 
-          <div className="nav-mobile-menu-actions" aria-label={t('nav.accountAria')}>
+          <div className="nav-mobile-menu-actions topnav-public-mobile-actions" aria-label={t('nav.accountAria')}>
             <LanguageSwitcher />
             {sessionUser ? (
               <AvatarMenu
@@ -172,7 +172,7 @@ export default function TopNav({ compact = false }) {
             )}
           </div>
 
-          <div className="nav-actions" aria-label={t('nav.accountAria')}>
+          <div className="nav-actions topnav-public-desktop-actions" aria-label={t('nav.accountAria')}>
             <LanguageSwitcher />
             {sessionUser ? (
               <AvatarMenu

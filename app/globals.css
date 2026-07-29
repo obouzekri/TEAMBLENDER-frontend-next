@@ -409,6 +409,7 @@ body {
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 250, 255, 0.96) 100%);
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  position: relative;
 }
 
 .participant-card__avatar {
@@ -449,11 +450,16 @@ body {
   .participant-card {
     grid-template-columns: auto minmax(0, 1fr);
     gap: 0.75rem;
+    padding-right: 3.15rem;
   }
 
   .participant-card .team-member-mobile-actions {
-    grid-column: 2;
-    justify-self: start;
+    position: absolute;
+    top: 0.62rem;
+    right: 0.62rem;
+    width: auto;
+    margin: 0;
+    z-index: 6;
   }
 
   .participant-card .team-member-actions {
@@ -8641,7 +8647,7 @@ a {
 
 .manager-mobile-menu {
   position: relative;
-  z-index: 2;
+  z-index: 20;
 }
 
 .manager-mobile-menu__trigger {
@@ -8661,14 +8667,18 @@ a {
   right: 0;
   min-width: 190px;
   padding: 0.3rem;
-  z-index: 80;
+  z-index: 500;
   border-radius: 14px;
   border: 1px solid rgba(53, 160, 255, 0.14);
   background: rgba(255, 255, 255, 0.98);
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  z-index: 40;
+}
+
+.manager-mobile-menu__dropdown.is-dropup {
+  top: auto;
+  bottom: calc(100% + 0.4rem);
 }
 
 .manager-mobile-menu__item {
@@ -8803,6 +8813,10 @@ a {
   display: none;
   position: relative;
   z-index: 2;
+}
+
+.session-card:has(.manager-mobile-menu__trigger.is-open) {
+  z-index: 30;
 }
 
 .admin-mobile-tabs {
@@ -11808,7 +11822,7 @@ a {
   }
 
   .team-member-mobile-actions {
-    margin-top: 0.25rem;
+    margin-top: 0;
   }
 
   .session-card-actions,
@@ -13265,6 +13279,173 @@ a {
     .top-nav:not(.top-nav--live-inline) .nav-actions .lang-switch {
       min-height: 34px;
       padding: 5px 9px;
+    }
+  }
+
+  /* Public landing nav: keep one mobile auth/language block in drawer */
+  @media (max-width: 860px) {
+    .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-cta {
+      display: none !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .topnav-public-desktop-actions {
+      display: none !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 0.6rem !important;
+      align-items: stretch !important;
+      width: 100% !important;
+      padding-top: 0.35rem !important;
+      border-top: 1px solid rgba(148, 163, 184, 0.2) !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .lang-switch,
+    .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .nav-mobile-login-btn,
+    .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .nav-mobile-signup-btn {
+      width: 100% !important;
+      min-height: 44px !important;
+      justify-content: center !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .nav-user-trigger-wrap {
+      grid-column: 1 / -1 !important;
+      width: 100% !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  /* Connected app nav: improve hamburger actions and expose direct logout */
+  @media (max-width: 860px) {
+    .top-nav:not(.top-nav--live-inline) #app-nav-panel .appnav-mobile-main-links {
+      gap: 0.58rem !important;
+      padding-bottom: 0.2rem !important;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) #app-nav-panel .appnav-mobile-main-links .nav-link {
+      min-height: 46px !important;
+      border-radius: 13px !important;
+      border: 1px solid rgba(191, 219, 254, 0.85) !important;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 250, 252, 0.96) 100%) !important;
+      color: #0f172a !important;
+      font-weight: 700 !important;
+      box-shadow: 0 7px 16px rgba(15, 23, 42, 0.06) !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) #app-nav-panel .appnav-mobile-main-links .nav-link.is-active {
+      border-color: rgba(37, 99, 235, 0.5) !important;
+      background: linear-gradient(160deg, rgba(219, 234, 254, 0.96) 0%, rgba(239, 246, 255, 0.95) 100%) !important;
+      color: #1e3a8a !important;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.16) !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .appnav-desktop-actions {
+      display: none !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 0.6rem !important;
+      align-items: stretch !important;
+      width: 100% !important;
+      padding-top: 0.4rem !important;
+      border-top: 1px solid rgba(148, 163, 184, 0.22) !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions .lang-switch,
+    .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions .appnav-mobile-account-btn,
+    .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions .appnav-mobile-logout-btn {
+      width: 100% !important;
+      min-height: 44px !important;
+      justify-content: center !important;
+    }
+
+    .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions .appnav-mobile-logout-btn {
+      border: 1px solid rgba(239, 68, 68, 0.35) !important;
+      color: #b91c1c !important;
+      background: rgba(254, 242, 242, 0.92) !important;
+      font-weight: 700 !important;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  /* Product-wide mobile spacing pass */
+  @media (max-width: 900px) {
+    .shell {
+      width: min(1080px, calc(100% - 2rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+    }
+
+    .app-home,
+    .contact-page,
+    .pricing-page,
+    .checkout-page,
+    .auth-page {
+      gap: 0.9rem;
+    }
+
+    .feature-card,
+    .contact-hero,
+    .pricing-hero,
+    .pricing-controls,
+    .pricing-card,
+    .pricing-empty,
+    .pricing-footer-cta,
+    .contact-info-card {
+      border-radius: 18px;
+    }
+
+    .session-live-popup-backdrop,
+    .landing-preview-modal,
+    .manager-onboarding-modalOverlay {
+      padding: 0.8rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .shell {
+      width: min(1080px, calc(100% - 1.7rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+    }
+
+    .app-home,
+    .contact-page,
+    .pricing-page,
+    .checkout-page,
+    .auth-page,
+    .landing-v2 {
+      gap: 0.8rem;
+    }
+
+    .feature-card,
+    .contact-hero,
+    .pricing-hero,
+    .pricing-controls,
+    .pricing-card,
+    .pricing-empty,
+    .pricing-footer-cta,
+    .contact-info-card,
+    .auth-card,
+    .auth-showcase-card {
+      border-radius: 16px;
+    }
+
+    .session-live-popup-backdrop,
+    .landing-preview-modal,
+    .manager-onboarding-modalOverlay {
+      padding: 0.65rem;
     }
   }
 

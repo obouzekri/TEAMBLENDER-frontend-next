@@ -212,7 +212,9 @@ function getManagerBenefits(isEn) {
 
 function MobileActionMenu({ triggerLabel, menuLabel, items, closeSignal }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const menuRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -247,6 +249,24 @@ function MobileActionMenu({ triggerLabel, menuLabel, items, closeSignal }) {
     setIsOpen(false);
   }, [closeSignal]);
 
+  useEffect(() => {
+    if (!isOpen || typeof window === 'undefined') return;
+
+    const triggerEl = menuRef.current;
+    const dropdownEl = dropdownRef.current;
+    if (!triggerEl || !dropdownEl) return;
+
+    const triggerRect = triggerEl.getBoundingClientRect();
+    const dropdownRect = dropdownEl.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || 0;
+    const safetyGap = 12;
+    const neededHeight = dropdownRect.height + safetyGap;
+    const availableBelow = viewportHeight - triggerRect.bottom;
+    const availableAbove = triggerRect.top;
+
+    setOpenUpward(availableBelow < neededHeight && availableAbove > availableBelow);
+  }, [isOpen, items.length]);
+
   function handleAction(item) {
     setIsOpen(false);
     if (typeof item.onClick === 'function') {
@@ -268,7 +288,12 @@ function MobileActionMenu({ triggerLabel, menuLabel, items, closeSignal }) {
       </button>
 
       {isOpen ? (
-        <div className="manager-mobile-menu__dropdown" role="menu" aria-label={menuLabel}>
+        <div
+          ref={dropdownRef}
+          className={`manager-mobile-menu__dropdown${openUpward ? ' is-dropup' : ''}`}
+          role="menu"
+          aria-label={menuLabel}
+        >
           {items.map((item) => {
             const itemClassName = `manager-mobile-menu__item${item.danger ? ' manager-mobile-menu__item--danger' : ''}`;
             if (item.href) {

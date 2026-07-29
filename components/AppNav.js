@@ -155,7 +155,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
           <div id="app-nav-panel" className={`${navPanelClassName}${isCompact ? ' nav-panel--live-inline' : ''}`}>
             {isParticipant && !isCompact && (
               <div className="nav-main-block">
-                <nav className="nav-links" aria-label="Navigation participant">
+                <nav className="nav-links appnav-mobile-main-links" aria-label="Navigation participant">
                   <NavItem
                     href={withLocalePath('/participant')}
                     onClick={() => setIsMenuOpen(false)}
@@ -169,7 +169,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
 
             {!isParticipant && !isCompact && !isAdmin && (
               <div className="nav-main-block">
-                <nav className="nav-links" aria-label="Navigation manager">
+                <nav className="nav-links appnav-mobile-main-links" aria-label="Navigation manager">
                   <NavItem
                     href={withLocalePath('/home#sessions')}
                     active={(isManagerHome && activeHomeBlock === 'sessions') || (!isActive('/account') && !isManagerHome)}
@@ -205,7 +205,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
 
             {isAdmin && !isCompact && (
               <div className="nav-main-block">
-                <nav className="nav-links" aria-label="Navigation admin">
+                <nav className="nav-links appnav-mobile-main-links" aria-label="Navigation admin">
                   <NavItem
                     href={withLocalePath('/admin')}
                     active={isActive('/admin')}
@@ -225,7 +225,30 @@ export default function AppNav({ userLabel, onLogout, role }) {
               </div>
             )}
 
-            <div className="nav-actions" aria-label={t('nav.accountAria')}>
+            {!isCompact ? (
+              <div className="nav-mobile-menu-actions appnav-mobile-actions" aria-label={t('nav.accountAria')}>
+                <LanguageSwitcher />
+                <Link
+                  href={withLocalePath(accountHref)}
+                  className="btn-mini nav-mobile-login-btn appnav-mobile-account-btn"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t('nav.myAccount')}
+                </Link>
+                <button
+                  type="button"
+                  className="btn-mini appnav-mobile-logout-btn"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onLogout?.();
+                  }}
+                >
+                  {t('appNav.logout')}
+                </button>
+              </div>
+            ) : null}
+
+            <div className="nav-actions appnav-desktop-actions" aria-label={t('nav.accountAria')}>
               <LanguageSwitcher />
               <AvatarMenu
                 userLabel={resolvedUserLabel}
