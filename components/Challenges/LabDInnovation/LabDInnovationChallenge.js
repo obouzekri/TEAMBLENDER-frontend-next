@@ -109,6 +109,24 @@ function buildProgress(currentPhase) {
   }));
 }
 
+function getPhaseGuidance(locale, phaseKey) {
+  const guidance = {
+    problem: locale === 'en'
+      ? 'Collect the strongest shared problems before voting closes.'
+      : 'Faites remonter les problématiques les plus structurantes avant la clôture du vote.',
+    solution: locale === 'en'
+      ? 'Turn the retained problems into concrete solution options.'
+      : 'Transformez les problématiques retenues en pistes de solution concrètes.',
+    argument: locale === 'en'
+      ? 'Strengthen finalist solutions with clear, actionable arguments.'
+      : 'Renforcez les solutions finalistes avec des arguments clairs et actionnables.',
+    final_vote: locale === 'en'
+      ? 'Vote anonymously for the solution that should win the lab.'
+      : 'Votez anonymement pour la solution qui doit remporter le Lab.'
+  };
+  return guidance[phaseKey] || '';
+}
+
 function getBadgeText(type, isEn = false) {
   const labels = {
     explorer: isEn ? 'Explorer' : 'Explorateur',
@@ -301,6 +319,18 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     return list.slice(0, 10);
   }, [participantRows, participantMap]);
 
+  const phaseSummary = useMemo(() => ({
+    problems: Number(stats.problems_total || problemList.length || 0),
+    solutions: Number(stats.solutions_total || solutionList.length || 0),
+    contributions: Number(stats.contributions_total || contributionList.length || 0),
+    votes: Number(stats.votes_total || 0),
+  }), [contributionList.length, problemList.length, solutionList.length, stats]);
+
+  const topContributorNames = Array.isArray(stats.top_contributors) ? stats.top_contributors.map((item) => {
+    const id = String(item?.participant_id || '').trim();
+    return participantMap.get(id) || item?.participant_name || 'Participant';
+  }).filter(Boolean) : [];
+
   return (
     <div className={styles.shell}>
       <ChallengeHeader title={rulesPreset?.challengeName || 'Lab d\'Innovation'} subtitle={rulesPreset?.subtitle || 'Innovation collaborative'} />
@@ -315,11 +345,19 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                 <p className={styles.phaseKicker}>{getPhaseLabel(locale, currentPhase)}</p>
                 <h2 className={styles.phaseTitle}>{isEn ? 'Live collaborative lab' : 'Lab collaboratif live'}</h2>
                 <p className={styles.phaseBody}>{rulesContent.objective}</p>
+                <p className={styles.phaseGuidance}>{getPhaseGuidance(locale, currentPhase)}</p>
               </div>
               <div className={styles.phaseClockWrap}>
                 <span className={styles.phaseClock}>{formatClock(timerRemainingSeconds)}</span>
                 <span className={styles.phaseClockLabel}>{currentPhaseIndex + 1}/{PHASE_ORDER.length}</span>
               </div>
+            </div>
+
+            <div className={styles.phaseStatsRow}>
+              <article className={styles.statTile}><strong>{phaseSummary.problems}</strong><span>{isEn ? 'Problems' : 'Problématiques'}</span></article>
+              <article className={styles.statTile}><strong>{phaseSummary.solutions}</strong><span>{isEn ? 'Solutions' : 'Solutions'}</span></article>
+              <article className={styles.statTile}><strong>{phaseSummary.contributions}</strong><span>{isEn ? 'Contributions' : 'Contributions'}</span></article>
+              <article className={styles.statTile}><strong>{phaseSummary.votes}</strong><span>{isEn ? 'Votes' : 'Votes'}</span></article>
             </div>
 
             <div className={styles.progressBar} aria-hidden="true">
@@ -501,6 +539,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               <div className={styles.voteHero}>
                 <span className={styles.voteHeroLabel}>{isEn ? 'Anonymous vote' : 'Vote anonyme'}</span>
                 <strong>{isEn ? 'Choose one solution only' : 'Choisissez une seule solution'}</strong>
+                <p className={styles.phaseBody}>{isEn ? 'The solution with the most votes wins the lab.' : 'La solution ayant le plus de votes remporte le Lab.'}</p>
                 <button type="button" className={styles.primaryBtn} onClick={castFinalVote}>{isEn ? 'Cast final vote' : 'Voter définitivement'}</button>
               </div>
             </section>
@@ -561,6 +600,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             </div>
             <p className={styles.metaLine}>{isEn ? 'Participation rate' : 'Taux de participation'}: {Number(stats.participation_rate || 0)}%</p>
             <p className={styles.metaLine}>{isEn ? 'Winning solution' : 'Solution gagnante'}: {clampText(stats.winner_solution_text || '-', 120)}</p>
+            {topContributorNames.length > 0 ? <p className={styles.metaLine}>{isEn ? 'Top contributors' : 'Top contributeurs'}: {topContributorNames.slice(0, 3).join(' · ')}</p> : null}
           </section>
 
           <ChallengeChatCard
