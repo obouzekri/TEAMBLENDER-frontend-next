@@ -630,12 +630,32 @@ function resolveFlowStepIcon(index = 0) {
   return FLOW_ICON_SET[index % FLOW_ICON_SET.length] || PlayCircle;
 }
 
+const GAMIFIED_ICON_TONES = ['indigo', 'cyan', 'teal', 'slate'];
+
+function resolveGamifiedIconTone(index = 0) {
+  return GAMIFIED_ICON_TONES[index % GAMIFIED_ICON_TONES.length] || 'indigo';
+}
+
+function GamifiedIcon({ Icon, index = 0, size = 'md' }) {
+  const tone = resolveGamifiedIconTone(index);
+
+  return (
+    <span className={`landing-orb-icon landing-orb-icon--${size} landing-orb-icon--${tone}`} aria-hidden="true">
+      <span className="landing-orb-icon__halo" />
+      <span className="landing-orb-icon__core">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="landing-orb-icon__pulse" />
+    </span>
+  );
+}
+
 function TrustProofCard({ value, label, detail, Icon, index = 0 }) {
   return (
     <article className="landing-metric-card rounded-2xl bg-white/80 px-5 py-4 shadow-sm shadow-slate-200/60 ring-1 ring-white/80 backdrop-blur-sm">
       <div className="landing-metric-card__head">
         <span className={`landing-metric-card__icon landing-metric-card__icon--${index % 3}`} aria-hidden="true">
-          <Icon className="h-4 w-4" />
+          <GamifiedIcon Icon={Icon} index={index} size="sm" />
         </span>
         <p className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{value}</p>
       </div>
@@ -1038,7 +1058,7 @@ export default function HomePage() {
                   {heroTrustBadges.map(({ title, Icon }, index) => (
                     <li key={`hero-trust-${index}-${title}`} className="landing-hero-trust-item">
                       <span className="landing-hero-trust-icon" aria-hidden="true">
-                        <Icon className="h-3.5 w-3.5" />
+                        <GamifiedIcon Icon={Icon} index={index} size="xs" />
                       </span>
                       <span>{title}</span>
                     </li>
@@ -1048,15 +1068,6 @@ export default function HomePage() {
             </div>
 
             <div className="landing-hero-product-shell relative lg:translate-x-8 xl:translate-x-14">
-              <div className="landing-hero-floating-note landing-hero-floating-note--top">
-                <Users className="h-4 w-4" />
-                {locale === 'en' ? '28 participants active' : '28 participants actifs'}
-              </div>
-              <div className="landing-hero-floating-note landing-hero-floating-note--bottom">
-                <Sparkles className="h-4 w-4" />
-                {locale === 'en' ? 'Cohesion score +18%' : 'Score cohesion +18%'}
-              </div>
-
               <div className="landing-hero-product-wrap">
                 <div className="landing-hero-product-head">
                   <div>
@@ -1084,14 +1095,6 @@ export default function HomePage() {
                       priority
                       className="landing-hero-product-image"
                     />
-                    <span className="landing-hero-product-overlay">
-                      <PlayCircle className="h-5 w-5" />
-                      <span>{locale === 'en' ? 'Tap to expand' : 'Tap pour agrandir'}</span>
-                    </span>
-                    <span className="landing-hero-product-motion" aria-hidden="true">
-                      <span className="landing-hero-product-motion__chip">{locale === 'en' ? 'Live loop' : 'Boucle live'}</span>
-                      <span className="landing-hero-product-motion__pulse" />
-                    </span>
                   </figure>
                 </button>
 
@@ -1199,7 +1202,7 @@ export default function HomePage() {
                 <div className="landing-platform-scent landing-usecase-chips" aria-label={locale === 'en' ? 'Use cases' : 'Cas d usage'}>
                   {useCaseChips.map(({ label, Icon }, index) => (
                     <span key={`use-case-${index}-${label}`} className="landing-usecase-chip">
-                      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                      <GamifiedIcon Icon={Icon} index={index} size="xs" />
                       <span>{label}</span>
                     </span>
                   ))}
@@ -1251,7 +1254,7 @@ export default function HomePage() {
                     style={{ '--feature-index': index + 1 }}
                   >
                     <span className="landing-feature-icon inline-flex h-10 w-10 items-center justify-center rounded-xl">
-                      <Icon className="h-5 w-5" />
+                      <GamifiedIcon Icon={Icon} index={index} size="md" />
                     </span>
                     <p className="mt-4 text-base font-semibold leading-6 text-slate-800">{item.label}</p>
                   </article>
@@ -1285,7 +1288,7 @@ export default function HomePage() {
                           {String(index + 1).padStart(2, '0')}
                         </span>
                         <span className="landing-values-step-icon inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 text-indigo-700 shadow-sm" aria-hidden="true">
-                          <Icon className="h-5 w-5" />
+                          <GamifiedIcon Icon={Icon} index={index} size="md" />
                         </span>
                       </div>
                       <p className="landing-values-step-label mt-4 text-lg font-semibold leading-6 text-slate-950">{item.label}</p>
@@ -1313,12 +1316,12 @@ export default function HomePage() {
             <div className="landing-benefits-split mt-8">
               <div className="landing-benefits-copy reveal-left" style={{ '--reveal-delay': '180ms' }}>
                 <ul className="landing-benefits-list">
-                  {PLATFORM_BENEFITS_ITEMS.map((item) => {
+                  {PLATFORM_BENEFITS_ITEMS.map((item, index) => {
                     const Icon = item.icon;
                     return (
                       <li key={item.label} className="landing-benefits-item">
                         <span className="landing-benefits-item-icon" aria-hidden="true">
-                          <Icon className="h-5 w-5" />
+                          <GamifiedIcon Icon={Icon} index={index} size="sm" />
                         </span>
                         <p>{item.label}</p>
                       </li>
@@ -1373,7 +1376,7 @@ export default function HomePage() {
                   }`}
                 >
                   <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-indigo-600 shadow-sm">
-                    <Quote className="h-4 w-4" />
+                    <GamifiedIcon Icon={Quote} index={index} size="xs" />
                   </div>
                   <div className="landing-testimonial-head">
                     <div className="landing-testimonial-avatar" aria-hidden="true">{item.initials}</div>
@@ -1432,7 +1435,7 @@ export default function HomePage() {
                   }`}>{String(index + 1).padStart(2, '0')}</span>
                   <div className="landing-flow-card-title mt-4">
                     <span className="landing-flow-card-title-icon" aria-hidden="true">
-                      <step.Icon className="h-4 w-4" />
+                      <GamifiedIcon Icon={step.Icon} index={index} size="sm" />
                     </span>
                     <h2 className="text-lg font-semibold tracking-tight text-slate-950">{step.title}</h2>
                   </div>
