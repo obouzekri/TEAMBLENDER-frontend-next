@@ -52,10 +52,7 @@ export default function Footer() {
           <div className="footer-logo" aria-hidden="true">
             <Logo size="compact" />
           </div>
-          <div>
-            <p className="footer-brand">TeamBlender</p>
-            <p className="footer-copy">{t('footer.brandCopy')}</p>
-          </div>
+          <p className="footer-copy">{t('footer.brandCopy')}</p>
         </div>
         <div className="footer-columns footer-columns--desktop" aria-label={t('footer.columnsAria')}>
           {footerGroups.map((group) => (
