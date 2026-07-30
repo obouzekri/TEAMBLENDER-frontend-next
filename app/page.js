@@ -260,14 +260,14 @@ const LANDING_STATIC_BY_LOCALE = {
       'Événements RH',
     ],
     trustedCompanies: {
-      title: 'Adopte par 32+ entreprises en croissance',
+      title: 'Ils nous font confiance dans 32+ entreprises',
       logos: [
-        { mark: 'NX', name: 'Nexora Systems' },
-        { mark: 'QL', name: 'Quantilabs Group' },
-        { mark: 'AV', name: 'Averon Industries' },
-        { mark: 'PR', name: 'Praxio Networks' },
-        { mark: 'SV', name: 'Solvanta Energy' },
-        { mark: 'HM', name: 'Heliomark Partners' },
+        { mark: 'AR', name: 'Asterion Rail' },
+        { mark: 'CT', name: 'Corta Dynamics' },
+        { mark: 'VL', name: 'Velyon Group' },
+        { mark: 'NP', name: 'Northpeak Labs' },
+        { mark: 'SM', name: 'Solmira Energy' },
+        { mark: 'KD', name: 'Kadris Consulting' },
       ],
     },
     fallback: {
@@ -385,12 +385,12 @@ const LANDING_STATIC_BY_LOCALE = {
     trustedCompanies: {
       title: 'Trusted by 32+ companies around the world',
       logos: [
-        { mark: 'NX', name: 'Nexora Systems' },
-        { mark: 'QL', name: 'Quantilabs Group' },
-        { mark: 'AV', name: 'Averon Industries' },
-        { mark: 'PR', name: 'Praxio Networks' },
-        { mark: 'SV', name: 'Solvanta Energy' },
-        { mark: 'HM', name: 'Heliomark Partners' },
+        { mark: 'AR', name: 'Asterion Rail' },
+        { mark: 'CT', name: 'Corta Dynamics' },
+        { mark: 'VL', name: 'Velyon Group' },
+        { mark: 'NP', name: 'Northpeak Labs' },
+        { mark: 'SM', name: 'Solmira Energy' },
+        { mark: 'KD', name: 'Kadris Consulting' },
       ],
     },
     fallback: {

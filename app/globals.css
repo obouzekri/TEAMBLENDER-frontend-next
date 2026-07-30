@@ -5125,6 +5125,7 @@ a {
   margin: 0.52rem 0 0;
   color: var(--ink-soft);
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -5599,63 +5600,70 @@ a {
 }
 
 .landing-trusted {
-  padding-top: clamp(2.3rem, 4.6vw, 3.4rem);
-  padding-bottom: clamp(2.3rem, 4.8vw, 3.6rem);
+  padding-top: clamp(2.5rem, 5vw, 3.8rem);
+  padding-bottom: clamp(2.5rem, 5vw, 3.8rem);
 }
 
 .landing-trusted-title {
   margin: 0;
   text-align: center;
   font-family: var(--font-display);
-  font-size: clamp(2rem, 3.3vw, 3.4rem);
-  line-height: 1.12;
-  letter-spacing: -0.028em;
+  font-size: clamp(2rem, 3.1vw, 3.1rem);
+  line-height: 1.14;
+  letter-spacing: -0.022em;
   color: #172554;
+  text-wrap: balance;
 }
 
 .landing-trusted-logos {
-  margin: clamp(1.65rem, 3.3vw, 2.4rem) 0 0;
+  margin: clamp(2.2rem, 3.8vw, 3rem) 0 0;
   padding: 0;
   list-style: none;
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
   align-items: center;
 }
 
 .landing-trusted-logo-item {
-  min-height: 4rem;
-  border-radius: 16px;
+  min-height: 3.3rem;
+  border-radius: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  color: #597095;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(245, 248, 253, 0.82));
+  gap: 0.62rem;
+  color: #7b8faf;
+  border: 0;
+  background: transparent;
+  flex: 1 1 150px;
+  max-width: 220px;
 }
 
 .landing-trusted-logo-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 11px;
-  border: 1px solid rgba(100, 116, 139, 0.36);
-  background: rgba(255, 255, 255, 0.9);
-  color: #334155;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 143, 175, 0.32);
+  background: rgba(255, 255, 255, 0.78);
+  color: #6b83aa;
   font-family: var(--font-display);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 
 .landing-trusted-logo-name {
   font-family: var(--font-ui);
-  font-size: 0.98rem;
+  font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: #7188a8;
 }
 
 .landing-testimonials-head .landing-section-eyebrow {
@@ -5884,8 +5892,8 @@ a {
   }
 
   .landing-trusted-logos {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.7rem;
+    justify-content: center;
+    gap: 0.85rem 1.2rem;
   }
 
   .landing-flow-timeline {
@@ -5912,14 +5920,15 @@ a {
   }
 
   .landing-trusted-logos {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: 1.35rem;
+    margin-top: 1.6rem;
+    justify-content: center;
   }
 
   .landing-trusted-logo-item {
-    min-height: 3.35rem;
-    border-radius: 14px;
+    min-height: 3rem;
     gap: 0.42rem;
+    flex: 1 1 45%;
+    max-width: 45%;
   }
 
   .landing-trusted-logo-name {
