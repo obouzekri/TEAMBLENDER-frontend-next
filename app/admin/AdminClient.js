@@ -15,6 +15,7 @@ import { ESCAPE_ROOM_RULES_PRESET_KEY, getEscapeRoomRulesPreset } from '@/lib/ch
 import { LABYRINTHE_RULES_PRESET_KEY, getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
 import { VRAI_OU_MENSONGE_RULES_PRESET_KEY, getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRules';
 import { MISSION_CRITIQUE_RULES_PRESET_KEY, getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueRules';
+import { getLabInnovationRulesPreset } from '@/lib/challenges/labInnovationRules';
 import useI18n from '@/lib/i18n/useI18n';
 
 const USER_ROLES = new Set(['user', 'admin']);
@@ -397,6 +398,42 @@ const COPUZZLE_CATALOG_ENTRY = {
   },
 };
 
+const LAB_INNOVATION_CATALOG_ENTRY = {
+  id: 'lab_innovation_001',
+  name: 'Lab d\'Innovation',
+  type: 'equipe',
+  status: 'actif',
+  source: 'local',
+  category: 'creativite-innovation',
+  objectives: ['intelligence-collective', 'communication', 'collaboration'],
+  duration: '25-35 min',
+  engine_key: 'lab_d_innovation_v1',
+  description: getLabInnovationRulesPreset('fr').objective,
+  rules_objective: {
+    fr: getLabInnovationRulesPreset('fr').objective,
+    en: getLabInnovationRulesPreset('en').objective,
+  },
+  rules_facilitator: {
+    fr: [...getLabInnovationRulesPreset('fr').facilitator],
+    en: [...getLabInnovationRulesPreset('en').facilitator],
+  },
+  rules_participant: {
+    fr: [...getLabInnovationRulesPreset('fr').participant, ...getLabInnovationRulesPreset('fr').scoring],
+    en: [...getLabInnovationRulesPreset('en').participant, ...getLabInnovationRulesPreset('en').scoring],
+  },
+  rules_footnote: {
+    fr: getLabInnovationRulesPreset('fr').footnote,
+    en: getLabInnovationRulesPreset('en').footnote,
+  },
+  engine_config: {
+    participants: {
+      min_count: 3,
+      recommended_count: 6,
+      max_count: 12,
+    },
+  },
+};
+
 function ensurePixelArchitectChallenge(challenges) {
   const list = Array.isArray(challenges) ? [...challenges] : [];
   const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'pixel_architect_v1');
@@ -553,6 +590,45 @@ function ensureCopuzzleChallenge(challenges) {
   return [...list, COPUZZLE_CATALOG_ENTRY];
 }
 
+function ensureLabInnovationChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'lab_d_innovation_v1');
+
+  if (existingIndex >= 0) {
+    const current = list[existingIndex] || {};
+    list[existingIndex] = {
+      ...LAB_INNOVATION_CATALOG_ENTRY,
+      ...current,
+      engine_config: {
+        ...LAB_INNOVATION_CATALOG_ENTRY.engine_config,
+        ...(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {}),
+      },
+    };
+
+    const rulesPresetFr = getLabInnovationRulesPreset('fr');
+    const rulesPresetEn = getLabInnovationRulesPreset('en');
+    list[existingIndex].rules_objective = {
+      fr: rulesPresetFr.objective,
+      en: rulesPresetEn.objective,
+    };
+    list[existingIndex].rules_facilitator = {
+      fr: [...rulesPresetFr.facilitator],
+      en: [...rulesPresetEn.facilitator],
+    };
+    list[existingIndex].rules_participant = {
+      fr: [...rulesPresetFr.participant, ...rulesPresetFr.scoring],
+      en: [...rulesPresetEn.participant, ...rulesPresetEn.scoring],
+    };
+    list[existingIndex].rules_footnote = {
+      fr: rulesPresetFr.footnote,
+      en: rulesPresetEn.footnote,
+    };
+    return list;
+  }
+
+  return [...list, LAB_INNOVATION_CATALOG_ENTRY];
+}
+
 function ensureLabyrintheSignalsChallenge(challenges) {
   const list = Array.isArray(challenges) ? [...challenges] : [];
   const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'labyrinthe_live_v1');
@@ -689,7 +765,9 @@ function ensureAdminCatalogChallenges(challenges) {
           ensureTheQuizChallenge(
             ensurePhraseMystereChallenge(
               ensureCopuzzleChallenge(
-                ensurePixelArchitectChallenge(challenges)
+                ensureLabInnovationChallenge(
+                  ensurePixelArchitectChallenge(challenges)
+                )
               )
             )
           )

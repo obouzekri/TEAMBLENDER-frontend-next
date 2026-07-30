@@ -26,6 +26,7 @@ import { getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
 import { getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRules';
 import { getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueRules';
 import { getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
+import { getLabInnovationRulesPreset } from '@/lib/challenges/labInnovationRules';
 import styles from './SessionBuilder.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
 import useI18n from '@/lib/i18n/useI18n';
@@ -105,6 +106,36 @@ const THE_QUIZ_CATALOG_ENTRY = {
   },
 };
 
+const LAB_INNOVATION_CATALOG_ENTRY = {
+  id: 'lab_innovation_001',
+  name: 'Lab d\'Innovation',
+  category: 'creativite-innovation',
+  objective: 'intelligence-collective',
+  objectives: 'intelligence-collective, communication, collaboration',
+  duration: 30,
+  type: 'equipe',
+  tags: ['Ideation', 'Votes', 'Leadership', 'Innovation'],
+  description: 'Challenge collaboratif en 4 phases pour faire émerger une solution innovante.',
+  engine_key: 'lab_d_innovation_v1',
+  engine_config: {
+    participants: {
+      min_count: 3,
+      recommended_count: 6,
+      max_count: 12,
+    },
+  },
+  config: {
+    timer: {
+      enabled: true,
+      duration_seconds: 2100,
+      warning_threshold_seconds: 120,
+    },
+    participants: {
+      expected_count: 6,
+    },
+  },
+};
+
 function ensurePixelArchitectChallenge(challenges) {
   const list = Array.isArray(challenges) ? [...challenges] : [];
   const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'pixel_architect_v1');
@@ -145,6 +176,26 @@ function ensureTheQuizChallenge(challenges) {
   return [...list, THE_QUIZ_CATALOG_ENTRY];
 }
 
+function ensureLabInnovationChallenge(challenges) {
+  const list = Array.isArray(challenges) ? [...challenges] : [];
+  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'lab_d_innovation_v1');
+
+  if (existingIndex >= 0) {
+    const current = list[existingIndex] || {};
+    list[existingIndex] = {
+      ...LAB_INNOVATION_CATALOG_ENTRY,
+      ...current,
+      config: {
+        ...LAB_INNOVATION_CATALOG_ENTRY.config,
+        ...(current.config && typeof current.config === 'object' ? current.config : {}),
+      },
+    };
+    return list;
+  }
+
+  return [...list, LAB_INNOVATION_CATALOG_ENTRY];
+}
+
 function resolveLocalizedText(value, locale) {
   if (value == null) return '';
   if (typeof value === 'object' && !Array.isArray(value)) {
@@ -172,6 +223,8 @@ function getBuilderRulesPreset(engineKey, locale) {
       return getMissionCritiqueRulesPreset(locale);
     case 'escape_room_v1':
       return getEscapeRoomRulesPreset(locale);
+    case 'lab_d_innovation_v1':
+      return getLabInnovationRulesPreset(locale);
     default:
       return null;
   }
@@ -201,7 +254,7 @@ function localizeBuilderChallenge(challenge, locale) {
 }
 
 function ensureBuilderCatalogChallenges(challenges, locale = 'fr') {
-  return ensureTheQuizChallenge(ensurePixelArchitectChallenge(challenges))
+  return ensureLabInnovationChallenge(ensureTheQuizChallenge(ensurePixelArchitectChallenge(challenges)))
     .map((challenge) => localizeBuilderChallenge(challenge, locale));
 }
 

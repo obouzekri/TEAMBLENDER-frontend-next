@@ -10,6 +10,7 @@ import { getPixelArchitectRulesPreset } from '@/lib/challenges/pixelArchitectRul
 import { getTheQuizRulesPreset } from '@/lib/challenges/theQuizRules';
 import { getPhraseMystereRulesPreset } from '@/lib/challenges/phraseMystereRules';
 import { getCopuzzleRulesPreset } from '@/lib/challenges/copuzzleRules';
+import { getLabInnovationRulesPreset } from '@/lib/challenges/labInnovationRules';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './ChallengeRulesPreviewModal.module.css';
@@ -23,6 +24,7 @@ function getFallbackRules(challenge, locale) {
   const isTheQuiz = String(challenge?.engine_key || '').trim() === 'the_quiz_v1';
   const isPhraseMystere = String(challenge?.engine_key || '').trim() === 'phrase_collaborative_v1';
   const isCopuzzle = String(challenge?.engine_key || '').trim() === 'copuzzle_live_v1';
+  const isLabInnovation = String(challenge?.engine_key || '').trim() === 'lab_d_innovation_v1';
   if (isLabyrinthe) {
     const preset = getLabyrintheRulesPreset(locale);
     return {
@@ -103,6 +105,16 @@ function getFallbackRules(challenge, locale) {
     };
   }
 
+  if (isLabInnovation) {
+    const preset = getLabInnovationRulesPreset(locale);
+    return {
+      objective: preset.objective,
+      facilitator: preset.facilitator,
+      participant: [...preset.participant, ...preset.scoring],
+      footnote: preset.footnote,
+    };
+  }
+
   const description = String(challenge?.description || '').trim();
   const isEn = locale === 'en';
   return {
@@ -142,13 +154,15 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
   const isVom = String(challenge?.engine_key || '').trim() === 'vrai_ou_mensonge_v1';
   const isMissionCritique = String(challenge?.engine_key || '').trim() === 'mission_critique_v1';
   const isEscapeRoom = String(challenge?.engine_key || '').trim() === 'escape_room_v1';
+  const isLabInnovation = String(challenge?.engine_key || '').trim() === 'lab_d_innovation_v1';
   const labyrintheParticipants = isLabyrinthe ? getLabyrintheRulesPreset(locale).participants : null;
   const vomParticipants = isVom ? getVraiOuMensongeRulesPreset(locale).participants : null;
   const missionCritiqueParticipants = isMissionCritique ? getMissionCritiqueRulesPreset(locale).participants : null;
   const escapeRoomParticipants = isEscapeRoom ? getEscapeRoomRulesPreset(locale).participants : null;
-  const minPlayers = String(isLabyrinthe ? labyrintheParticipants?.min : isVom ? vomParticipants?.min : isMissionCritique ? missionCritiqueParticipants?.min : isEscapeRoom ? escapeRoomParticipants?.min : playerRange.min || '').trim();
-  const recommendedPlayers = String(isLabyrinthe ? labyrintheParticipants?.recommended : isVom ? vomParticipants?.recommended : isMissionCritique ? missionCritiqueParticipants?.recommended : isEscapeRoom ? escapeRoomParticipants?.recommended : playerRange.recommended || '').trim();
-  const maxPlayers = String(isLabyrinthe ? labyrintheParticipants?.max : isVom ? vomParticipants?.max : isMissionCritique ? missionCritiqueParticipants?.max : isEscapeRoom ? escapeRoomParticipants?.max : playerRange.max || '').trim();
+  const labInnovationParticipants = isLabInnovation ? getLabInnovationRulesPreset(locale).participants : null;
+  const minPlayers = String(isLabyrinthe ? labyrintheParticipants?.min : isVom ? vomParticipants?.min : isMissionCritique ? missionCritiqueParticipants?.min : isEscapeRoom ? escapeRoomParticipants?.min : isLabInnovation ? labInnovationParticipants?.min : playerRange.min || '').trim();
+  const recommendedPlayers = String(isLabyrinthe ? labyrintheParticipants?.recommended : isVom ? vomParticipants?.recommended : isMissionCritique ? missionCritiqueParticipants?.recommended : isEscapeRoom ? escapeRoomParticipants?.recommended : isLabInnovation ? labInnovationParticipants?.recommended : playerRange.recommended || '').trim();
+  const maxPlayers = String(isLabyrinthe ? labyrintheParticipants?.max : isVom ? vomParticipants?.max : isMissionCritique ? missionCritiqueParticipants?.max : isEscapeRoom ? escapeRoomParticipants?.max : isLabInnovation ? labInnovationParticipants?.max : playerRange.max || '').trim();
   const playersRuleText = [
     minPlayers ? `${isEn ? 'minimum' : 'minimum'} ${minPlayers}` : '',
     recommendedPlayers ? `${isEn ? 'recommended' : 'recommandé'} ${recommendedPlayers}` : '',
