@@ -4298,13 +4298,13 @@ a {
     margin-left: 0;
   }
 
-  /* Full-width mobile — remove all horizontal spacing */
+  /* Mobile gutter: keep comfortable left/right spacing instead of full bleed */
   .shell {
-    width: 100% !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    width: min(1080px, calc(100% - 1.35rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: env(safe-area-inset-left, 0px) !important;
+    padding-right: env(safe-area-inset-right, 0px) !important;
     max-width: 100% !important;
   }
 
@@ -4343,7 +4343,7 @@ a {
 
   .landing-hero-inner {
     gap: 1.1rem;
-    padding-inline: 0 !important;
+    padding-inline: clamp(0.95rem, 4.5vw, 1.2rem) !important;
   }
 
   .landing-hero-copy {
@@ -4426,8 +4426,8 @@ a {
 
   .landing-section-inner {
     width: 100%;
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: clamp(0.95rem, 4vw, 1.2rem);
+    padding-right: clamp(0.95rem, 4vw, 1.2rem);
     margin-inline: auto;
   }
 
@@ -4465,7 +4465,8 @@ a {
   .landing-partners-usage {
     margin-top: 2.15rem;
     width: 100%;
-    padding-right: 0.8rem;
+    padding-left: 0.65rem;
+    padding-right: 0.65rem;
   }
 
   .landing-partners-usage .landing-partners-title {
