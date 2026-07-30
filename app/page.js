@@ -202,12 +202,42 @@ const LANDING_STATIC_BY_LOCALE = {
         'Pensée pour les managers et les équipes RH, elle permet de déployer des expériences simples à organiser, engageantes pour les équipes et mesurables dans leurs résultats.',
     },
     platformOfferItems: [
-      { icon: Rocket, label: 'Créer une session en quelques clics' },
-      { icon: Users, label: 'Inviter et assigner vos équipes' },
-      { icon: Target, label: 'Lancer des défis collaboratifs engageants' },
-      { icon: PlayCircle, label: 'Animer en temps réel' },
-      { icon: Gauge, label: 'Suivre la progression en live' },
-      { icon: BarChart3, label: 'Exploiter les résultats post-session' },
+      {
+        icon: Rocket,
+        label: 'Lancement ultra-rapide',
+        description: 'Créez une session guidée en quelques clics et démarrez sans complexité opérationnelle.',
+        tone: 'crimson',
+      },
+      {
+        icon: Users,
+        label: 'Attribution intelligente des équipes',
+        description: 'Invitez et répartissez les participants avec une structure claire pour les managers et RH.',
+        tone: 'orange',
+      },
+      {
+        icon: Target,
+        label: 'Challenges orientés objectifs',
+        description: 'Déployez des activités collaboratives pensées pour la cohésion, l’alignement et la progression.',
+        tone: 'sky',
+      },
+      {
+        icon: PlayCircle,
+        label: 'Animation live maîtrisée',
+        description: 'Pilotez le rythme de la session en temps réel, en présentiel comme en hybride.',
+        tone: 'teal',
+      },
+      {
+        icon: Gauge,
+        label: 'Suivi instantané de l’engagement',
+        description: 'Visualisez la progression des équipes pendant la session pour ajuster au bon moment.',
+        tone: 'olive',
+      },
+      {
+        icon: BarChart3,
+        label: 'Mesure d’impact post-session',
+        description: 'Transformez les résultats en insights actionnables pour le debrief et les prochains formats.',
+        tone: 'blue',
+      },
     ],
     platformValuesItems: [
       { icon: CheckCircle2, label: 'Déploiement rapide sans friction' },
@@ -250,6 +280,7 @@ const LANDING_STATIC_BY_LOCALE = {
       liveLabel: 'En direct',
       platformEyebrow: 'Plateforme',
       platformOfferTitle: 'Ce que la plateforme offre',
+      platformOfferSubtitle: 'Tout ce qu’il faut pour déployer des expériences de cohésion efficaces, mesurables et scalables.',
       valuesEyebrow: 'Valeurs',
       valuesTitle: 'Des fondations pensées pour le passage à l’échelle',
       benefitsEyebrow: 'Bénéfices',
@@ -283,12 +314,42 @@ const LANDING_STATIC_BY_LOCALE = {
         'Built for managers and HR teams, it delivers sessions that are easy to run, engaging for teams, and measurable in outcomes.',
     },
     platformOfferItems: [
-      { icon: Rocket, label: 'Create a session in a few clicks' },
-      { icon: Users, label: 'Invite and assign your teams' },
-      { icon: Target, label: 'Launch engaging collaborative challenges' },
-      { icon: PlayCircle, label: 'Facilitate in real time' },
-      { icon: Gauge, label: 'Track live progression' },
-      { icon: BarChart3, label: 'Use post-session insights' },
+      {
+        icon: Rocket,
+        label: 'Fast Session Launch',
+        description: 'Create a guided session in a few clicks and start without operational friction.',
+        tone: 'crimson',
+      },
+      {
+        icon: Users,
+        label: 'Smart Team Assignment',
+        description: 'Invite and structure participants with a clear flow for managers and HR teams.',
+        tone: 'orange',
+      },
+      {
+        icon: Target,
+        label: 'Goal-Driven Challenges',
+        description: 'Run collaborative activities designed for cohesion, alignment, and measurable progress.',
+        tone: 'sky',
+      },
+      {
+        icon: PlayCircle,
+        label: 'Confident Live Facilitation',
+        description: 'Control session rhythm in real time across in-person, remote, and hybrid teams.',
+        tone: 'teal',
+      },
+      {
+        icon: Gauge,
+        label: 'Real-Time Engagement Tracking',
+        description: 'Monitor team progression during the session and adjust at the right moment.',
+        tone: 'olive',
+      },
+      {
+        icon: BarChart3,
+        label: 'Post-Session Impact Insights',
+        description: 'Turn outcomes into actionable insights for debriefs and future team formats.',
+        tone: 'blue',
+      },
     ],
     platformValuesItems: [
       { icon: CheckCircle2, label: 'Fast rollout with low friction' },
@@ -331,6 +392,7 @@ const LANDING_STATIC_BY_LOCALE = {
       liveLabel: 'Live',
       platformEyebrow: 'Platform',
       platformOfferTitle: 'What the platform offers',
+      platformOfferSubtitle: 'Everything you need to make team learning effective, measurable, and scalable.',
       valuesEyebrow: 'Values',
       valuesTitle: 'Foundations designed for scale',
       benefitsEyebrow: 'Benefits',
@@ -1238,25 +1300,27 @@ export default function HomePage() {
         >
           <div className="landing-section-rupture landing-section-rupture--accent" />
           <div className="landing-section-inner relative">
-            <div className="panel-head landing-offer-head">
-              <div>
+            <div className="panel-head landing-offer-head landing-offer-head--center">
+              <div className="landing-offer-head-content">
                 <p className="eyebrow landing-section-eyebrow">{landingStatic.fallback.platformEyebrow}</p>
                 <h2 className="landing-section-title">{landingStatic.fallback.platformOfferTitle}</h2>
+                <p className="landing-offer-subtitle">{landingStatic.fallback.platformOfferSubtitle}</p>
               </div>
             </div>
-            <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="landing-core-features-grid" aria-label={landingStatic.fallback.platformOfferTitle}>
               {PLATFORM_OFFER_ITEMS.map((item, index) => {
                 const Icon = item.icon;
                 return (
                   <article
                     key={item.label}
-                    className="landing-feature-card landing-utility-card rounded-2xl p-5"
+                    className="landing-core-feature-card"
                     style={{ '--feature-index': index + 1 }}
                   >
-                    <span className="landing-feature-icon inline-flex h-10 w-10 items-center justify-center rounded-xl">
-                      <GamifiedIcon Icon={Icon} index={index} size="md" />
+                    <span className={`landing-core-feature-icon landing-core-feature-icon--${item.tone || 'blue'}`} aria-hidden="true">
+                      <Icon className="h-6 w-6" strokeWidth={2.2} />
                     </span>
-                    <p className="mt-4 text-base font-semibold leading-6 text-slate-800">{item.label}</p>
+                    <h3 className="landing-core-feature-title">{item.label}</h3>
+                    <p className="landing-core-feature-description">{item.description}</p>
                   </article>
                 );
               })}
