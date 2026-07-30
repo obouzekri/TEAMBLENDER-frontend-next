@@ -5599,6 +5599,66 @@ a {
   padding-bottom: clamp(4.1rem, 8vw, 6.1rem);
 }
 
+.landing-trusted {
+  padding-top: clamp(2.3rem, 4.6vw, 3.4rem);
+  padding-bottom: clamp(2.3rem, 4.8vw, 3.6rem);
+}
+
+.landing-trusted-title {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.3vw, 3.4rem);
+  line-height: 1.12;
+  letter-spacing: -0.028em;
+  color: #172554;
+}
+
+.landing-trusted-logos {
+  margin: clamp(1.65rem, 3.3vw, 2.4rem) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.landing-trusted-logo-item {
+  min-height: 4rem;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #597095;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(245, 248, 253, 0.82));
+}
+
+.landing-trusted-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 11px;
+  border: 1px solid rgba(100, 116, 139, 0.36);
+  background: rgba(255, 255, 255, 0.9);
+  color: #334155;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.landing-trusted-logo-name {
+  font-family: var(--font-ui);
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .landing-testimonials-head .landing-section-eyebrow {
   color: #7dd3fc;
 }
@@ -5818,6 +5878,11 @@ a {
     grid-auto-columns: minmax(280px, 60%);
   }
 
+  .landing-trusted-logos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
   .landing-flow-timeline {
     grid-template-columns: 1fr;
   }
@@ -5831,9 +5896,29 @@ a {
   .landing-values-section,
   .landing-benefits-section,
   .landing-offer-section,
-  .landing-testimonials {
+  .landing-testimonials,
+  .landing-trusted {
     padding-top: 3.15rem;
     padding-bottom: 3.15rem;
+  }
+
+  .landing-trusted-title {
+    font-size: clamp(1.7rem, 6.5vw, 2.35rem);
+  }
+
+  .landing-trusted-logos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 1.35rem;
+  }
+
+  .landing-trusted-logo-item {
+    min-height: 3.35rem;
+    border-radius: 14px;
+    gap: 0.42rem;
+  }
+
+  .landing-trusted-logo-name {
+    font-size: 0.88rem;
   }
 
   .landing-values-timeline {

@@ -259,6 +259,17 @@ const LANDING_STATIC_BY_LOCALE = {
       'Alignement multi-sites',
       'Événements RH',
     ],
+    trustedCompanies: {
+      title: 'Adopte par 32+ entreprises en croissance',
+      logos: [
+        { mark: 'NX', name: 'Nexora Systems' },
+        { mark: 'QL', name: 'Quantilabs Group' },
+        { mark: 'AV', name: 'Averon Industries' },
+        { mark: 'PR', name: 'Praxio Networks' },
+        { mark: 'SV', name: 'Solvanta Energy' },
+        { mark: 'HM', name: 'Heliomark Partners' },
+      ],
+    },
     fallback: {
       heroTitle: 'Créez des ateliers de cohésion gamifiés en quelques minutes.',
       heroTitleStructured: 'Créez des expériences collaboratives gamifiées à fort impact, en quelques minutes.',
@@ -371,6 +382,17 @@ const LANDING_STATIC_BY_LOCALE = {
       'Multi-site alignment',
       'HR events',
     ],
+    trustedCompanies: {
+      title: 'Trusted by 32+ companies around the world',
+      logos: [
+        { mark: 'NX', name: 'Nexora Systems' },
+        { mark: 'QL', name: 'Quantilabs Group' },
+        { mark: 'AV', name: 'Averon Industries' },
+        { mark: 'PR', name: 'Praxio Networks' },
+        { mark: 'SV', name: 'Solvanta Energy' },
+        { mark: 'HM', name: 'Heliomark Partners' },
+      ],
+    },
     fallback: {
       heroTitle: 'Build high-impact collaborative sessions in minutes.',
       heroTitleStructured: 'Build high-impact collaborative sessions in minutes.',
@@ -946,6 +968,7 @@ export default function HomePage() {
   const PLATFORM_OFFER_ITEMS = landingStatic.platformOfferItems;
   const PLATFORM_BENEFITS_ITEMS = landingStatic.platformBenefitsItems;
   const USE_CASES = landingStatic.useCases;
+  const TRUSTED_COMPANIES = landingStatic.trustedCompanies;
   const useCaseChips = useMemo(
     () => USE_CASES.map((label, index) => ({
       label,
@@ -1371,6 +1394,27 @@ export default function HomePage() {
                 </figure>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section
+          className="reveal-up landing-trusted landing-section-full relative overflow-hidden p-6 sm:p-10"
+          style={{
+            '--reveal-delay': '165ms',
+            background: 'linear-gradient(180deg, #f0f4fb 0%, #e9eef7 100%)',
+          }}
+          aria-label={locale === 'en' ? 'Trusted companies' : 'Entreprises de confiance'}
+        >
+          <div className="landing-section-inner relative">
+            <h2 className="landing-trusted-title">{TRUSTED_COMPANIES.title}</h2>
+            <ul className="landing-trusted-logos" aria-label={locale === 'en' ? 'Trusted company logos' : 'Logos des entreprises'}>
+              {TRUSTED_COMPANIES.logos.map((company) => (
+                <li key={company.name} className="landing-trusted-logo-item" title={company.name}>
+                  <span className="landing-trusted-logo-mark" aria-hidden="true">{company.mark}</span>
+                  <span className="landing-trusted-logo-name">{company.name}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
