@@ -34,7 +34,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
   const contextLabel = isParticipant
     ? ''
     : isAdmin
-      ? t('appNav.adminSpace')
+      ? ''
       : isCompact
         ? t('appNav.liveSession')
         : t('appNav.managerSpace');
