@@ -270,7 +270,7 @@
   overflow-x: hidden;
   overflow-y: auto;
   background:
-    linear-gradient(165deg, rgba(16, 33, 49, 0.995), rgba(10, 24, 36, 0.995)),
+    linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9)),
     radial-gradient(420px 180px at 8% -18%, rgba(56, 189, 248, 0.18), transparent 72%);
   border: 1px solid rgba(160, 187, 208, 0.32);
   border-radius: 16px;

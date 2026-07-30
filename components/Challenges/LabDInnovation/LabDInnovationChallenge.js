@@ -180,6 +180,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   const { locale } = useI18n();
   const isEn = locale === 'en';
   const { state, error, isFacilitator, emitEvent, participantId } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
+  const timer = state?.timer || {};
   const challenge = state?.labInnovation || state?.lab_innovation || state?.innovation || buildFallbackState(runtimePayload);
   const [problemText, setProblemText] = useState('');
   const [solutionText, setSolutionText] = useState('');
@@ -217,8 +218,13 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     maxLength: 240
   });
 
-  const timerStatus = currentPhase === 'final_vote' && Number(challenge?.phase_deadline_ms || 0) > 0 ? 'running' : currentPhaseIndex >= 0 ? 'running' : 'idle';
+  const normalizedTimerStatus = String(timer?.status || 'idle').trim().toLowerCase();
+  const hasChallengeStarted = ['running', 'paused', 'completed', 'stopped', 'timeout'].includes(normalizedTimerStatus);
+  const timerStatus = hasChallengeStarted ? normalizedTimerStatus : 'idle';
   const timerRemainingSeconds = useMemo(() => {
+    if (hasChallengeStarted && Number.isFinite(Number(timer?.remaining_seconds))) {
+      return Math.max(0, Number(timer.remaining_seconds || 0));
+    }
     const deadline = Number(challenge?.phase_deadline_ms || 0);
     if (!deadline) {
       const durations = challenge?.phases || [];
@@ -226,11 +232,14 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
       return Number(current.duration_seconds || 0);
     }
     return Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-  }, [challenge?.phase_deadline_ms, currentPhaseIndex]);
+  }, [challenge?.phase_deadline_ms, currentPhaseIndex, hasChallengeStarted, timer?.remaining_seconds]);
   const timerDurationSeconds = useMemo(() => {
+    if (Number.isFinite(Number(timer?.duration_seconds)) && Number(timer.duration_seconds) > 0) {
+      return Number(timer.duration_seconds);
+    }
     const phases = Array.isArray(challenge?.phases) ? challenge.phases : [];
     return phases.reduce((sum, phase) => sum + Number(phase?.duration_seconds || 0), 0) || 2100;
-  }, [challenge?.phases]);
+  }, [challenge?.phases, timer?.duration_seconds]);
 
   const participantRows = useMemo(() => {
     return rankings.length > 0
@@ -331,6 +340,10 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     return participantMap.get(id) || item?.participant_name || 'Participant';
   }).filter(Boolean) : [];
 
+  function startChallenge() {
+    emit('timer.start');
+  }
+
   return (
     <div className={styles.shell}>
       <ChallengeHeader title={rulesPreset?.challengeName || 'Lab d\'Innovation'} subtitle={rulesPreset?.subtitle || 'Innovation collaborative'} />
@@ -339,44 +352,57 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
 
       <div className={styles.layout}>
         <main className={styles.mainColumn}>
-          <section className={styles.card}>
-            <div className={styles.phaseHeader}>
-              <div>
-                <p className={styles.phaseKicker}>{getPhaseLabel(locale, currentPhase)}</p>
-                <h2 className={styles.phaseTitle}>{isEn ? 'Live collaborative lab' : 'Lab collaboratif live'}</h2>
-                <p className={styles.phaseBody}>{rulesContent.objective}</p>
-                <p className={styles.phaseGuidance}>{getPhaseGuidance(locale, currentPhase)}</p>
-              </div>
-              <div className={styles.phaseClockWrap}>
-                <span className={styles.phaseClock}>{formatClock(timerRemainingSeconds)}</span>
-                <span className={styles.phaseClockLabel}>{currentPhaseIndex + 1}/{PHASE_ORDER.length}</span>
-              </div>
-            </div>
+          {!hasChallengeStarted ? (
+            <section className={styles.card}>
+              <ChallengeRulesPanel
+                isStarted={false}
+                isFacilitator={isFacilitator}
+                challengeName={rulesPreset?.challengeName || 'Lab d\'Innovation'}
+                objective={rulesContent.objective}
+                participantsMeta={rulesParticipantsMeta}
+                facilitatorRules={facilitatorRules}
+                participantRules={participantRules}
+                footnote={rulesContent.footnote}
+                onStart={isFacilitator ? startChallenge : null}
+                startLabel={isEn ? 'Start challenge' : 'Demarrer le challenge'}
+                startStatusText={isFacilitator ? '' : (isEn ? 'Waiting for facilitator to start.' : 'En attente du facilitateur pour demarrer.')}
+              />
+            </section>
+          ) : (
+            <>
+              <section className={styles.card}>
+                <div className={styles.phaseHeader}>
+                  <div>
+                    <p className={styles.phaseKicker}>{getPhaseLabel(locale, currentPhase)}</p>
+                    <h2 className={styles.phaseTitle}>{isEn ? 'Live collaborative lab' : 'Lab collaboratif'}</h2>
+                    <p className={styles.phaseBody}>{rulesContent.objective}</p>
+                    {isFacilitator ? <p className={styles.metaLine}>{isEn ? 'Facilitator mode: observation only.' : 'Mode facilitateur : observation uniquement.'}</p> : null}
+                  </div>
+                  <div className={styles.phaseClockWrap}>
+                    <span className={styles.phaseClock}>{formatClock(timerRemainingSeconds)}</span>
+                    <span className={styles.phaseClockLabel}>{currentPhaseIndex + 1}/{PHASE_ORDER.length}</span>
+                  </div>
+                </div>
 
-            <div className={styles.phaseStatsRow}>
-              <article className={styles.statTile}><strong>{phaseSummary.problems}</strong><span>{isEn ? 'Problems' : 'Problématiques'}</span></article>
-              <article className={styles.statTile}><strong>{phaseSummary.solutions}</strong><span>{isEn ? 'Solutions' : 'Solutions'}</span></article>
-              <article className={styles.statTile}><strong>{phaseSummary.contributions}</strong><span>{isEn ? 'Contributions' : 'Contributions'}</span></article>
-              <article className={styles.statTile}><strong>{phaseSummary.votes}</strong><span>{isEn ? 'Votes' : 'Votes'}</span></article>
-            </div>
-
-            <div className={styles.progressBar} aria-hidden="true">
-              {phaseProgress.map((item) => (
-                <span key={item.key} className={`${styles.progressStep}${item.active ? ` ${styles.progressStepActive}` : ''}${item.done ? ` ${styles.progressStepDone}` : ''}`}>
-                  <span className={styles.progressStepDot}>{item.index + 1}</span>
-                  <span className={styles.progressStepLabel}>{getPhaseLabel(locale, item.key)}</span>
-                </span>
-              ))}
-            </div>
-          </section>
+                <div className={styles.progressBar} aria-hidden="true">
+                  {phaseProgress.map((item) => (
+                    <span key={item.key} className={`${styles.progressStep}${item.active ? ` ${styles.progressStepActive}` : ''}${item.done ? ` ${styles.progressStepDone}` : ''}`}>
+                      <span className={styles.progressStepDot}>{item.index + 1}</span>
+                      <span className={styles.progressStepLabel}>{getPhaseLabel(locale, item.key)}</span>
+                    </span>
+                  ))}
+                </div>
+              </section>
 
           {currentPhase === 'problem' ? (
             <section className={styles.card}>
               <h2 className={styles.sectionTitle}>{isEn ? '1. Problem identification' : '1. Identification des problématiques'}</h2>
-              <div className={styles.inputGrid}>
-                <textarea className={styles.textArea} value={problemText} onChange={(event) => setProblemText(event.target.value)} maxLength={200} placeholder={isEn ? 'Describe a problem in 200 characters max' : 'Décrivez une problématique en 200 caractères max'} />
-                <button type="button" className={styles.primaryBtn} onClick={submitProblem}>{isEn ? 'Submit problem' : 'Soumettre la problématique'}</button>
-              </div>
+              {!isFacilitator ? (
+                <div className={styles.inputGrid}>
+                  <textarea className={styles.textArea} value={problemText} onChange={(event) => setProblemText(event.target.value)} maxLength={200} placeholder={isEn ? 'Describe a problem (200 chars max)' : 'Décrivez une problématique (200 caractères max)'} />
+                  <button type="button" className={styles.primaryBtn} onClick={submitProblem}>{isEn ? 'Submit' : 'Soumettre'}</button>
+                </div>
+              ) : null}
               <div className={styles.listGrid}>
                 {problemList.map((item) => (
                   <article key={item.id} className={styles.voteCard}>
@@ -389,7 +415,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                     </div>
                     <div className={styles.cardActions}>
                       <span className={styles.badge}>{Number(item.vote_count || 0)} {isEn ? 'votes' : 'votes'}</span>
-                      <button type="button" className={styles.ghostBtn} onClick={() => castProblemVote(String(item.id))}>{isEn ? 'Vote' : 'Voter'}</button>
+                      {!isFacilitator ? <button type="button" className={styles.ghostBtn} onClick={() => castProblemVote(String(item.id))}>{isEn ? 'Vote' : 'Voter'}</button> : null}
                     </div>
                   </article>
                 ))}
@@ -428,14 +454,16 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                   ))}
                 </div>
               </div>
-              <div className={styles.inputGrid}>
-                <select className={styles.select} value={selectedProblemId} onChange={(event) => setSelectedProblemId(event.target.value)}>
-                  <option value="">{isEn ? 'Choose a problem' : 'Choisir une problématique'}</option>
-                  {visibleProblems.map((item) => <option key={item.id} value={item.id}>{clampText(item.text, 100)}</option>)}
-                </select>
-                <textarea className={styles.textArea} value={solutionText} onChange={(event) => setSolutionText(event.target.value)} maxLength={200} placeholder={isEn ? 'Describe a solution in 200 characters max' : 'Décrivez une solution en 200 caractères max'} />
-                <button type="button" className={styles.primaryBtn} onClick={submitSolution}>{isEn ? 'Submit solution' : 'Soumettre la solution'}</button>
-              </div>
+              {!isFacilitator ? (
+                <div className={styles.inputGrid}>
+                  <select className={styles.select} value={selectedProblemId} onChange={(event) => setSelectedProblemId(event.target.value)}>
+                    <option value="">{isEn ? 'Choose a problem' : 'Choisir une problématique'}</option>
+                    {visibleProblems.map((item) => <option key={item.id} value={item.id}>{clampText(item.text, 100)}</option>)}
+                  </select>
+                  <textarea className={styles.textArea} value={solutionText} onChange={(event) => setSolutionText(event.target.value)} maxLength={200} placeholder={isEn ? 'Describe a solution (200 chars max)' : 'Décrivez une solution (200 caractères max)'} />
+                  <button type="button" className={styles.primaryBtn} onClick={submitSolution}>{isEn ? 'Submit' : 'Soumettre'}</button>
+                </div>
+              ) : null}
               <div className={styles.listGrid}>
                 {solutionList.map((item) => (
                   <article key={item.id} className={styles.voteCard}>
@@ -448,7 +476,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                     </div>
                     <div className={styles.cardActions}>
                       <span className={styles.badge}>{Number(item.vote_count || 0)} {isEn ? 'votes' : 'votes'}</span>
-                      <button type="button" className={styles.ghostBtn} onClick={() => castSolutionVote(String(item.id))}>{isEn ? 'Vote' : 'Voter'}</button>
+                      {!isFacilitator ? <button type="button" className={styles.ghostBtn} onClick={() => castSolutionVote(String(item.id))}>{isEn ? 'Vote' : 'Voter'}</button> : null}
                     </div>
                   </article>
                 ))}
@@ -487,16 +515,18 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                   ))}
                 </div>
               </div>
-              <div className={styles.inputGrid}>
-                <select className={styles.select} value={selectedSolutionId} onChange={(event) => setSelectedSolutionId(event.target.value)}>
-                  <option value="">{isEn ? 'Choose a finalist solution' : 'Choisir une solution finaliste'}</option>
-                  {finalistSolutions.map((item) => <option key={item.id} value={item.id}>{clampText(item.text, 100)}</option>)}
-                </select>
-                <textarea className={styles.textArea} value={contribution.advantage} onChange={(event) => setContribution((prev) => ({ ...prev, advantage: event.target.value }))} maxLength={200} placeholder={isEn ? 'Advantage (200 max)' : 'Avantage (200 max)'} />
-                <textarea className={styles.textArea} value={contribution.improvement} onChange={(event) => setContribution((prev) => ({ ...prev, improvement: event.target.value }))} maxLength={200} placeholder={isEn ? 'Proposed improvement (200 max)' : 'Amélioration proposée (200 max)'} />
-                <textarea className={styles.textArea} value={contribution.impact} onChange={(event) => setContribution((prev) => ({ ...prev, impact: event.target.value }))} maxLength={200} placeholder={isEn ? 'Expected impact / justification (200 max)' : 'Impact attendu / justification (200 max)'} />
-                <button type="button" className={styles.primaryBtn} onClick={submitContribution}>{isEn ? 'Submit contribution' : 'Soumettre la contribution'}</button>
-              </div>
+              {!isFacilitator ? (
+                <div className={styles.inputGrid}>
+                  <select className={styles.select} value={selectedSolutionId} onChange={(event) => setSelectedSolutionId(event.target.value)}>
+                    <option value="">{isEn ? 'Choose a finalist solution' : 'Choisir une solution finaliste'}</option>
+                    {finalistSolutions.map((item) => <option key={item.id} value={item.id}>{clampText(item.text, 100)}</option>)}
+                  </select>
+                  <textarea className={styles.textArea} value={contribution.advantage} onChange={(event) => setContribution((prev) => ({ ...prev, advantage: event.target.value }))} maxLength={200} placeholder={isEn ? 'Advantage (200 max)' : 'Avantage (200 max)'} />
+                  <textarea className={styles.textArea} value={contribution.improvement} onChange={(event) => setContribution((prev) => ({ ...prev, improvement: event.target.value }))} maxLength={200} placeholder={isEn ? 'Improvement (200 max)' : 'Amélioration (200 max)'} />
+                  <textarea className={styles.textArea} value={contribution.impact} onChange={(event) => setContribution((prev) => ({ ...prev, impact: event.target.value }))} maxLength={200} placeholder={isEn ? 'Impact (200 max)' : 'Impact (200 max)'} />
+                  <button type="button" className={styles.primaryBtn} onClick={submitContribution}>{isEn ? 'Submit' : 'Soumettre'}</button>
+                </div>
+              ) : null}
               <div className={styles.listGrid}>
                 {contributionList.map((item) => (
                   <article key={item.id} className={styles.voteCard}>
@@ -531,17 +561,18 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                         <strong>{clampText(item.text, 120)}</strong>
                         <p>{participantMap.get(String(item.participant_id || '')) || 'Participant'}</p>
                       </div>
-                      <button type="button" className={styles.ghostBtn} onClick={() => setFinalVoteId(String(item.id))}>{isEn ? 'Select' : 'Sélectionner'}</button>
+                      {!isFacilitator ? <button type="button" className={styles.ghostBtn} onClick={() => setFinalVoteId(String(item.id))}>{isEn ? 'Select' : 'Sélectionner'}</button> : null}
                     </article>
                   ))}
                 </div>
               </div>
-              <div className={styles.voteHero}>
-                <span className={styles.voteHeroLabel}>{isEn ? 'Anonymous vote' : 'Vote anonyme'}</span>
-                <strong>{isEn ? 'Choose one solution only' : 'Choisissez une seule solution'}</strong>
-                <p className={styles.phaseBody}>{isEn ? 'The solution with the most votes wins the lab.' : 'La solution ayant le plus de votes remporte le Lab.'}</p>
-                <button type="button" className={styles.primaryBtn} onClick={castFinalVote}>{isEn ? 'Cast final vote' : 'Voter définitivement'}</button>
-              </div>
+              {!isFacilitator ? (
+                <div className={styles.voteHero}>
+                  <span className={styles.voteHeroLabel}>{isEn ? 'Anonymous vote' : 'Vote anonyme'}</span>
+                  <strong>{isEn ? 'Choose one solution' : 'Choisissez une solution'}</strong>
+                  <button type="button" className={styles.primaryBtn} onClick={castFinalVote}>{isEn ? 'Submit vote' : 'Valider le vote'}</button>
+                </div>
+              ) : null}
             </section>
           ) : null}
 
@@ -566,11 +597,13 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               ))}
             </div>
           </section>
+            </>
+          )}
         </main>
 
         <aside className={styles.sideColumn}>
           <ChallengeRulesPanel
-            isStarted={true}
+            isStarted={hasChallengeStarted}
             isFacilitator={isFacilitator}
             showPrestartCard={false}
             challengeName={rulesPreset?.challengeName || 'Lab d\'Innovation'}
@@ -587,21 +620,23 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             durationSeconds={timerDurationSeconds}
             status={timerStatus}
             isFacilitator={isFacilitator}
-            waitingText=""
+            waitingText={isEn ? 'Waiting for facilitator to start' : 'En attente du facilitateur pour demarrer'}
           />
 
-          <section className={styles.card}>
-            <h3 className={styles.sectionTitle}>{isEn ? 'Challenge stats' : 'Statistiques du challenge'}</h3>
-            <div className={styles.statGrid}>
-              <article className={styles.statTile}><strong>{Number(stats.problems_total || 0)}</strong><span>{isEn ? 'Problems' : 'Problématiques'}</span></article>
-              <article className={styles.statTile}><strong>{Number(stats.solutions_total || 0)}</strong><span>{isEn ? 'Solutions' : 'Solutions'}</span></article>
-              <article className={styles.statTile}><strong>{Number(stats.contributions_total || 0)}</strong><span>{isEn ? 'Contributions' : 'Contributions'}</span></article>
-              <article className={styles.statTile}><strong>{Number(stats.votes_total || 0)}</strong><span>{isEn ? 'Votes' : 'Votes'}</span></article>
-            </div>
-            <p className={styles.metaLine}>{isEn ? 'Participation rate' : 'Taux de participation'}: {Number(stats.participation_rate || 0)}%</p>
-            <p className={styles.metaLine}>{isEn ? 'Winning solution' : 'Solution gagnante'}: {clampText(stats.winner_solution_text || '-', 120)}</p>
-            {topContributorNames.length > 0 ? <p className={styles.metaLine}>{isEn ? 'Top contributors' : 'Top contributeurs'}: {topContributorNames.slice(0, 3).join(' · ')}</p> : null}
-          </section>
+          {hasChallengeStarted ? (
+            <section className={styles.card}>
+              <h3 className={styles.sectionTitle}>{isEn ? 'Challenge stats' : 'Statistiques'}</h3>
+              <div className={styles.statGrid}>
+                <article className={styles.statTile}><strong>{Number(stats.problems_total || 0)}</strong><span>{isEn ? 'Problems' : 'Problématiques'}</span></article>
+                <article className={styles.statTile}><strong>{Number(stats.solutions_total || 0)}</strong><span>{isEn ? 'Solutions' : 'Solutions'}</span></article>
+                <article className={styles.statTile}><strong>{Number(stats.contributions_total || 0)}</strong><span>{isEn ? 'Contributions' : 'Contributions'}</span></article>
+                <article className={styles.statTile}><strong>{Number(stats.votes_total || 0)}</strong><span>{isEn ? 'Votes' : 'Votes'}</span></article>
+              </div>
+              <p className={styles.metaLine}>{isEn ? 'Participation rate' : 'Taux de participation'}: {Number(stats.participation_rate || 0)}%</p>
+              <p className={styles.metaLine}>{isEn ? 'Winning solution' : 'Solution gagnante'}: {clampText(stats.winner_solution_text || '-', 120)}</p>
+              {topContributorNames.length > 0 ? <p className={styles.metaLine}>{isEn ? 'Top contributors' : 'Top contributeurs'}: {topContributorNames.slice(0, 3).join(' · ')}</p> : null}
+            </section>
+          ) : null}
 
           <ChallengeChatCard
             title={isEn ? 'Chat' : 'Chat'}

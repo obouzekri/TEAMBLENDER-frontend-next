@@ -178,8 +178,17 @@
   border-radius: 14px;
   padding: 12px 14px;
   background: rgba(7, 17, 25, 0.78);
-  color: var(--text-main);
+  color: #ffffff;
   resize: vertical;
+}
+
+.textArea::placeholder {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.select option {
+  color: #ffffff;
+  background: #0a1b29;
 }
 
 .textArea {

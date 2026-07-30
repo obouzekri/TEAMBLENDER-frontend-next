@@ -951,7 +951,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
           ) : (
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
-                <h2>Labyrinthe participant</h2>
                 <div className={styles.livesRow}>
                   <span className={styles.muted}>{isEn ? 'Lives' : 'Vies'}</span>
                   <strong>{'❤️'.repeat(Math.min(8, Math.max(0, Number(myParticipantState?.lives_remaining || 0)))) || '—'}</strong>
