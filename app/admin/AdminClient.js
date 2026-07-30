@@ -348,7 +348,7 @@ const PHRASE_MYSTERE_CATALOG_ENTRY = {
 
 const COPUZZLE_CATALOG_ENTRY = {
   id: 'copuzzle_001',
-  name: 'CoPuzzle Live',
+  name: 'CoPuzzle',
   type: 'equipe',
   status: 'actif',
   source: 'local',
@@ -2618,8 +2618,8 @@ export default function AdminClient() {
   function beginEditChallenge(challengeItem) {
     setChallengeImageUploadError('');
     setShowNewChallengeForm(false);
-    const isCopuzzle = String(challengeItem?.engine_key || '').toLowerCase() === 'copuzzle_live_v1';
-    const normalizedEngineConfig = isCopuzzle
+    const isCoPuzzle = String(challengeItem?.engine_key || '').toLowerCase() === 'copuzzle_live_v1';
+    const normalizedEngineConfig = isCoPuzzle
       ? ensureCopuzzleConfig(challengeItem.engine_config)
       : cloneJson(challengeItem.engine_config, {}) || {};
     const rulesSource = {
@@ -2816,7 +2816,7 @@ export default function AdminClient() {
       };
 
       await persistChallengeEngineConfig(editingChallenge.id, nextEngineConfig);
-      showNotice(isEn ? 'Copuzzle reference image uploaded and saved automatically.' : 'Image de reference Copuzzle uploadee et sauvegardee automatiquement.');
+      showNotice(isEn ? 'CoPuzzle reference image uploaded and saved automatically.' : 'Image de reference CoPuzzle uploadee et sauvegardee automatiquement.');
     } catch (err) {
       setChallengeImageUploadError(err.message || (isEn ? 'Unable to upload image.' : 'Upload image impossible.'));
     } finally {
@@ -4789,7 +4789,7 @@ export default function AdminClient() {
                         ) : null}
                         {(editingChallenge.engine_key || '').toLowerCase() === 'copuzzle_live_v1' ? (
                           <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                            <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Copuzzle configuration (3 admin reference images)' : 'Configuration Copuzzle (3 images de reference administrateur)'}</p>
+                            <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'CoPuzzle configuration (3 admin reference images)' : 'Configuration CoPuzzle (3 images de reference administrateur)'}</p>
                             <p className="session-meta" style={{ margin: 0 }}>
                               {isEn ? 'Define up to 3 reference images with their titles. They will be proposed to the facilitator in the Session Builder.' : 'Definissez jusqu\'a 3 images de reference avec leur titre. Elles seront proposees au facilitateur dans le Session Builder.'}
                             </p>
@@ -5096,7 +5096,7 @@ export default function AdminClient() {
 
                             <Image
                               src={getCopuzzleImageSrc(editingChallenge.engine_config)}
-                              alt={isEn ? 'Copuzzle preview' : 'Apercu Copuzzle'}
+                              alt={isEn ? 'CoPuzzle preview' : 'Apercu CoPuzzle'}
                               unoptimized
                               width={840}
                               height={840}

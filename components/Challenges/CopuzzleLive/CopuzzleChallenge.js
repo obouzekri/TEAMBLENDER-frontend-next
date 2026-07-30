@@ -72,7 +72,7 @@ function normalizeRuntimeConfig(config = {}) {
   const timerWarningSeconds = clampInt(config?.timer?.warning_threshold_seconds, 60, 10, 600);
 
   return {
-    title: String(config?.title || 'CoPuzzle Live'),
+    title: String(config?.title || 'CoPuzzle'),
     default_images: defaultImages,
     grid: { rows, cols },
     image: {
@@ -118,7 +118,7 @@ function computePieceStyle(piece, config, imageUrl) {
   };
 }
 
-export default function CopuzzleChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
+export default function CoPuzzleChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
   const rulesPreset = useMemo(() => getCopuzzleRulesPreset(locale), [locale]);
   const [selectedPieceId, setSelectedPieceId] = useState('');
@@ -179,7 +179,7 @@ export default function CopuzzleChallenge({ runtimePayload, socket, context, onC
     participant: [...rulesPreset.participant, ...rulesPreset.scoring],
     footnote: rulesPreset.footnote,
   }), [rulesPreset]);
-  const challengeName = String(rulesPreset?.challengeName || 'CoPuzzle Live').trim();
+  const challengeName = String(rulesPreset?.challengeName || 'CoPuzzle').trim();
   const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
   const rulesParticipantsMeta = useMemo(() => ({
     min: rulesPreset.participants.min,

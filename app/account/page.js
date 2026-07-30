@@ -139,10 +139,50 @@ export default function AccountPage() {
 
     const params = new URLSearchParams(window.location.search);
     const billing = String(params.get('billing') || '').trim();
+    const reference = String(params.get('reference') || '').trim();
+    const planId = String(params.get('plan_id') || '').trim() || null;
+
+    if (billing === 'payoneer_return') {
+      if (!reference) {
+        showError(t('account.payoneerReturnMissingReference'));
+        return;
+      }
+
+      window.history.replaceState({}, '', window.location.pathname);
+
+      (async () => {
+        try {
+          const [updatedMe, updatedPlans] = await Promise.all([getMe(), listPricingPlans()]);
+          if (updatedMe) {
+            setMe(updatedMe);
+            setSelectedPlanId(updatedMe.pricing_plan_id ? String(updatedMe.pricing_plan_id) : '');
+            const mergedUser = {
+              ...(guard.user || {}),
+              pricing_plan_id: updatedMe.pricing_plan_id || null,
+              pricing_plan: updatedMe.pricing_plan || null,
+              picture_url: updatedMe.picture_url || null,
+            };
+            setStoredCurrentUser(mergedUser);
+            setGuard((prev) => ({ ...prev, user: mergedUser }));
+          }
+          if (Array.isArray(updatedPlans)) setPlans(normalizePlanList(updatedPlans));
+
+          const planName = updatedMe?.pricing_plan?.name || null;
+          showSuccess(
+            planName
+              ? t('account.payoneerConfirmedWithPlan', { plan: planName })
+              : t('account.payoneerConfirmedGeneric')
+          );
+        } catch (err) {
+          showError(err.message || t('account.payoneerConfirmError'));
+        }
+      })();
+      return;
+    }
+
     if (billing !== 'paypal_return') return;
 
     const paypalToken = String(params.get('token') || '').trim();
-    const planId = String(params.get('plan_id') || '').trim() || null;
 
     if (!paypalToken) {
       showError(t('account.paypalReturnMissingOrder'));

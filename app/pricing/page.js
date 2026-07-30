@@ -9,6 +9,7 @@ import { getApiUrl } from '@/lib/config';
 import { startBillingCheckout } from '@/lib/account';
 import PaddleCheckoutButton from '@/components/PaddleCheckoutButton';
 import useI18n from '@/lib/i18n/useI18n';
+import { getCheckoutRedirectUrl } from '@/lib/billing-utils';
 
 function getStoredCurrentUser() {
   if (typeof window === 'undefined') return null;
@@ -108,7 +109,7 @@ export default function PricingPage() {
     });
   }, [sortedPlans, selectedBilling]);
 
-  async function handlePaypalCheckout(plan) {
+  async function handleProviderCheckout(plan, provider) {
     const currentUser = getStoredCurrentUser();
 
     if (!currentUser) {
@@ -122,11 +123,11 @@ export default function PricingPage() {
     try {
       const response = await startBillingCheckout({
         pricing_plan_id: plan.id,
-        method: 'paypal',
+        method: provider,
         billing_cycle: selectedBilling,
       });
 
-      const checkoutUrl = String(response?.url || response?.payment?.checkout_url || '').trim();
+      const checkoutUrl = getCheckoutRedirectUrl(response);
       if (checkoutUrl) {
         window.location.assign(checkoutUrl);
         return;
@@ -137,9 +138,13 @@ export default function PricingPage() {
         return;
       }
 
-      throw new Error(isEn ? 'PayPal checkout is temporarily unavailable.' : 'Le paiement PayPal est temporairement indisponible.');
+      throw new Error(provider === 'payoneer'
+        ? (isEn ? 'Payoneer checkout is temporarily unavailable.' : 'Le paiement Payoneer est temporairement indisponible.')
+        : (isEn ? 'PayPal checkout is temporarily unavailable.' : 'Le paiement PayPal est temporairement indisponible.'));
     } catch (err) {
-      setError(err.message || (isEn ? 'PayPal payment is currently unavailable.' : 'Paiement PayPal impossible pour le moment.'));
+      setError(err.message || (provider === 'payoneer'
+        ? (isEn ? 'Payoneer payment is currently unavailable.' : 'Paiement Payoneer impossible pour le moment.')
+        : (isEn ? 'PayPal payment is currently unavailable.' : 'Paiement PayPal impossible pour le moment.')));
     } finally {
       setCheckoutPlanId('');
     }
@@ -288,10 +293,10 @@ export default function PricingPage() {
                   <button
                     type="button"
                     className="btn-primary"
-                    onClick={() => handlePaypalCheckout(plan)}
+                    onClick={() => handleProviderCheckout(plan, 'payoneer')}
                     disabled={checkoutPlanId === String(plan.id)}
                   >
-                    {checkoutPlanId === String(plan.id) ? (isEn ? 'Opening PayPal...' : 'Ouverture de PayPal...') : (isEn ? 'Pay with PayPal' : 'Payer avec PayPal')}
+                    {checkoutPlanId === String(plan.id) ? (isEn ? 'Opening Payoneer...' : 'Ouverture de Payoneer...') : (isEn ? 'Pay with Payoneer' : 'Payer avec Payoneer')}
                   </button>
                   <PaddleCheckoutButton
                     pricingPlanId={plan.id}

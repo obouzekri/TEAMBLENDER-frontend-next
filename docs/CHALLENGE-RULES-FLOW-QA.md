@@ -7,8 +7,8 @@ Validate the unified UX flow across live challenges:
 3. During game: rules are accessible via popup button.
 
 Challenges covered:
-- CoPuzzle Live
-- Phrase Mystere
+- CoPuzzle
+- Phrase Mystère
 - Mission Critique
 - Escape Room
 - Vrai ou Mensonge
@@ -42,12 +42,12 @@ Challenges covered:
 
 ## Challenge-Specific Checks
 
-### CoPuzzle Live
+### CoPuzzle
 - [ ] Puzzle board hidden by rules panel before start.
 - [ ] Puzzle board appears after start.
 - [ ] Piece drag/drop still works after popup interactions.
 
-### Phrase Mystere
+### Phrase Mystère
 - [ ] Slots view hidden by rules panel before start.
 - [ ] Slots become active after start.
 - [ ] Word drag/drop and slot placement still work after popup interactions.
@@ -90,8 +90,8 @@ Challenges covered:
 - Manual runtime validation in live session: PENDING
 
 ## Suggested Execution Order for Manual QA
-1. CoPuzzle Live (facilitator + participant)
-2. Phrase Mystere (facilitator + participant)
+1. CoPuzzle (facilitator + participant)
+2. Phrase Mystère (facilitator + participant)
 3. Mission Critique (facilitator + participant)
 4. Escape Room (facilitator + participant)
 5. Vrai ou Mensonge (facilitator + participant)

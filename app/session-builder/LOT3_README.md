@@ -71,7 +71,7 @@ Authorization: Bearer <token>
 [
   {
     "id": "copuzzle_001",
-    "name": "CoPuzzle Live",
+    "name": "CoPuzzle",
     "category": "escape-game",
     "objective": "cohesion",
     "duration": 15,
@@ -89,7 +89,7 @@ POST /api/sessions
   "selectedChallenges": [
     {
       "id": "copuzzle_001",
-      "name": "CoPuzzle Live",
+      "name": "CoPuzzle",
       "config": { "expectedCount": 4 }
     }
   ]
