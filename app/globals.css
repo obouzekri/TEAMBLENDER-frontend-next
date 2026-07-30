@@ -5971,55 +5971,32 @@ a {
   }
 
   .footer-inner {
-    gap: 1rem;
+    gap: 1.1rem;
+    grid-template-columns: 1fr;
   }
 
   .footer-columns--desktop {
     display: none;
   }
 
-  .footer-accordion {
+  .footer-columns--mobile {
     display: grid;
-    gap: 0.65rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
   }
 
-  .footer-accordion__item {
-    border-radius: 18px;
-    border: 1px solid rgba(53, 160, 255, 0.16);
-    background: rgba(255, 255, 255, 0.82);
-    overflow: hidden;
+  .footer-brand-block {
+    justify-content: center;
+    text-align: center;
   }
 
-  .footer-accordion__summary {
-    list-style: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.95rem 1rem;
-    cursor: pointer;
-    font-weight: 800;
-    color: #233a72;
+  .footer-copy {
+    max-width: none;
   }
 
-  .footer-accordion__summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .footer-accordion__body {
-    display: grid;
-    gap: 0.55rem;
-    padding: 0 1rem 1rem;
-  }
-
-  .footer-accordion__body a {
-    color: var(--ink-soft);
-  }
-
-  .footer-accordion__toggle {
-    color: #1f46d2;
-    font-size: 1.1rem;
-    line-height: 1;
+  .footer-social {
+    justify-content: center;
+    padding-top: 0.65rem;
   }
 
   .landing-hero-product-button {
@@ -6815,6 +6792,43 @@ a {
 
 .footer-col a:hover {
   color: #1f46d2;
+}
+
+.footer-columns--mobile {
+  display: none;
+}
+
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(53, 160, 255, 0.18);
+  grid-column: 1 / -1;
+}
+
+.footer-social__label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7a99;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.footer-social__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  color: #1f46d2;
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: color 0.16s ease;
+}
+
+.footer-social__link:hover {
+  color: #0f2fa8;
 }
 
 .app-home {
@@ -12011,17 +12025,19 @@ a {
   .footer-brand-block {
     display: grid;
     gap: 0.5rem;
+    justify-items: center;
   }
 
   .footer-copy {
     font-size: 0.86rem;
     line-height: 1.55;
     max-width: none;
+    text-align: center;
   }
 
-  .footer-columns {
-    grid-template-columns: 1fr;
-    gap: 0.9rem;
+  .footer-columns--mobile {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
   }
 
   .footer-col {
