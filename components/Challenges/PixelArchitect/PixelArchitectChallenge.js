@@ -1052,6 +1052,16 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 </div>
 
                 <div className={styles.viewportWrap}>
+                  <p className={styles.viewportHint}>
+                    {isFacilitator
+                      ? (isEn
+                        ? '3D observer view. Participants place cubes in the layer blueprint below.'
+                        : 'Vue 3D d\'observation. Les participants posent les cubes dans le plan de couche ci-dessous.')
+                      : (isEn
+                        ? 'Drag to orbit, click to place/remove cubes. Build using the selected layer.'
+                        : 'Glissez pour orbiter, cliquez pour poser/retirer des cubes. Construisez via la couche selectionnee.')}
+                  </p>
+                      <span className={styles.viewportWatermark}>{isEn ? '3D Build View' : 'Vue 3D Build'}</span>
                   <div ref={mountRef} className={styles.viewport3d} />
                 </div>
 

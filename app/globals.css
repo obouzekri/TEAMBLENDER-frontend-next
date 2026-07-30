@@ -5715,7 +5715,6 @@ a {
 .landing-flow-timeline {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-auto-rows: 1fr;
   gap: 1rem;
   position: relative;
   align-items: stretch;
@@ -5734,14 +5733,11 @@ a {
 .landing-flow-node {
   position: relative;
   z-index: 1;
-  height: 100%;
 }
 
 .landing-flow-card {
-  display: grid;
-  grid-template-rows: auto auto 1fr;
-  align-content: start;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
   min-height: 100%;
 }
 
@@ -11029,9 +11025,8 @@ a {
 
 .landing-flow-card-title {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.55rem;
-  min-height: 3rem;
 }
 
 .landing-flow-card-title-icon {
