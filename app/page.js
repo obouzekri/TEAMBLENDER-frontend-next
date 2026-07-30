@@ -1229,7 +1229,6 @@ export default function HomePage() {
             <span className="landing-statement-break" aria-hidden="true" />
             <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{PLATFORM_STATEMENT.title}</h2>
             <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">{PLATFORM_STATEMENT.description}</p>
-            <span className="landing-statement-break" aria-hidden="true" />
           </div>
         </section>
 
