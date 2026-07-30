@@ -262,12 +262,12 @@ const LANDING_STATIC_BY_LOCALE = {
     trustedCompanies: {
       title: 'Ils nous font confiance dans 32+ entreprises',
       logos: [
-        { mark: 'AR', name: 'Asterion Rail' },
-        { mark: 'CT', name: 'Corta Dynamics' },
-        { mark: 'VL', name: 'Velyon Group' },
-        { mark: 'NP', name: 'Northpeak Labs' },
-        { mark: 'SM', name: 'Solmira Energy' },
-        { mark: 'KD', name: 'Kadris Consulting' },
+        { mark: 'NS', name: 'NorthSteel' },
+        { mark: 'JX', name: 'Jexa' },
+        { mark: 'OC', name: 'OrbiCore' },
+        { mark: 'IP', name: 'InterPulse' },
+        { mark: 'NM', name: 'Nomara' },
+        { mark: 'LH', name: 'Laforhive' },
       ],
     },
     fallback: {
@@ -385,12 +385,12 @@ const LANDING_STATIC_BY_LOCALE = {
     trustedCompanies: {
       title: 'Trusted by 32+ companies around the world',
       logos: [
-        { mark: 'AR', name: 'Asterion Rail' },
-        { mark: 'CT', name: 'Corta Dynamics' },
-        { mark: 'VL', name: 'Velyon Group' },
-        { mark: 'NP', name: 'Northpeak Labs' },
-        { mark: 'SM', name: 'Solmira Energy' },
-        { mark: 'KD', name: 'Kadris Consulting' },
+        { mark: 'NS', name: 'NorthSteel' },
+        { mark: 'JX', name: 'Jexa' },
+        { mark: 'OC', name: 'OrbiCore' },
+        { mark: 'IP', name: 'InterPulse' },
+        { mark: 'NM', name: 'Nomara' },
+        { mark: 'LH', name: 'Laforhive' },
       ],
     },
     fallback: {
@@ -1408,8 +1408,8 @@ export default function HomePage() {
           <div className="landing-section-inner relative">
             <h2 className="landing-trusted-title">{TRUSTED_COMPANIES.title}</h2>
             <ul className="landing-trusted-logos" aria-label={locale === 'en' ? 'Trusted company logos' : 'Logos des entreprises'}>
-              {TRUSTED_COMPANIES.logos.map((company) => (
-                <li key={company.name} className="landing-trusted-logo-item" title={company.name}>
+              {TRUSTED_COMPANIES.logos.map((company, index) => (
+                <li key={company.name} className={`landing-trusted-logo-item landing-trusted-logo-item--${index + 1}`} title={company.name}>
                   <span className="landing-trusted-logo-mark" aria-hidden="true">{company.mark}</span>
                   <span className="landing-trusted-logo-name">{company.name}</span>
                 </li>
