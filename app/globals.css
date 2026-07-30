@@ -13939,6 +13939,50 @@ a {
     }
   }
 
+  /* Final landing reliability overrides: process alignment + trusted visibility */
+  .landing-flow-timeline {
+    align-items: stretch !important;
+  }
+
+  .landing-flow-card.landing-flow-node {
+    display: grid !important;
+    grid-template-rows: auto auto 1fr !important;
+    align-content: start !important;
+    align-items: start !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    margin: 0 !important;
+    transform: translateY(0) !important;
+  }
+
+  .landing-flow-card.landing-flow-node:hover {
+    transform: translateY(-6px) !important;
+  }
+
+  .landing-trusted {
+    position: relative !important;
+    z-index: 3 !important;
+    isolation: isolate !important;
+  }
+
+  .landing-trusted .landing-section-inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .landing-trusted-title,
+  .landing-trusted-logo-name,
+  .landing-trusted-logo-mark {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .landing-trusted-logos {
+    display: flex !important;
+    width: 100% !important;
+  }
+
   @media (max-width: 640px) {
     .shell {
       width: min(1080px, calc(100% - 1.7rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
