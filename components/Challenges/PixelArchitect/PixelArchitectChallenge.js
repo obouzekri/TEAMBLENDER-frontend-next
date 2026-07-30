@@ -134,6 +134,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const [activeLayer, setActiveLayer] = useState(0);
   const [selectedColor, setSelectedColor] = useState(FALLBACK_PALETTE[0]);
   const [expandedLayers, setExpandedLayers] = useState({});
+  const [webglUnavailable, setWebglUnavailable] = useState(false);
   const hasAutoSelectedStartLayerRef = useRef(false);
 
   const { state, error, isFacilitator, emitEvent } = useRealtimeChallenge({
@@ -286,7 +287,16 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 200);
     camera.position.set(gridSize + 2, Math.max(8, grid.y + 2), gridSize + 2);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = (() => {
+      try {
+        const r = new THREE.WebGLRenderer({ antialias: true });
+        return r;
+      } catch {
+        setWebglUnavailable(true);
+        return null;
+      }
+    })();
+    if (!renderer) return () => {};
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(width, height);
     renderer.shadowMap.enabled = true;
@@ -962,6 +972,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         title={challengeName}
         subtitle={challengeSubtitle || (isEn ? 'Replicate the model together in real time with grid and palette constraints.' : 'Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette.')}
       />
+
+      {webglUnavailable ? (
+        <div className={styles.webglFallback}>
+          <p>{isEn ? 'Your browser or device does not support WebGL 3D rendering.' : 'Votre navigateur ou appareil ne supporte pas le rendu 3D WebGL.'}</p>
+          <p>{isEn ? 'Please try on a recent desktop browser (Chrome, Firefox, Edge).' : 'Essayez sur un navigateur de bureau récent (Chrome, Firefox, Edge).'}</p>
+        </div>
+      ) : null}
 
       <div className={styles.layout}>
         <main className={styles.mainPane}>

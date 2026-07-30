@@ -399,7 +399,10 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               <h2 className={styles.sectionTitle}>{isEn ? '1. Problem identification' : '1. Identification des problématiques'}</h2>
               {!isFacilitator ? (
                 <div className={styles.inputGrid}>
-                  <textarea className={styles.textArea} value={problemText} onChange={(event) => setProblemText(event.target.value)} maxLength={200} placeholder={isEn ? 'Describe a problem (200 chars max)' : 'Décrivez une problématique (200 caractères max)'} />
+                  <div className={styles.textAreaWrap}>
+                    <textarea className={styles.textArea} value={problemText} onChange={(event) => setProblemText(event.target.value)} maxLength={200} placeholder={isEn ? 'Describe a problem (200 chars max)' : 'Décrivez une problématique (200 caractères max)'} />
+                    <span className={`${styles.charCount}${problemText.length >= 180 ? ` ${problemText.length >= 200 ? styles.charCountFull : styles.charCountNear}` : ''}`}>{problemText.length}/200</span>
+                  </div>
                   <button type="button" className={styles.primaryBtn} onClick={submitProblem}>{isEn ? 'Submit' : 'Soumettre'}</button>
                 </div>
               ) : null}
@@ -460,7 +463,10 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                     <option value="">{isEn ? 'Choose a problem' : 'Choisir une problématique'}</option>
                     {visibleProblems.map((item) => <option key={item.id} value={item.id}>{clampText(item.text, 100)}</option>)}
                   </select>
-                  <textarea className={styles.textArea} value={solutionText} onChange={(event) => setSolutionText(event.target.value)} maxLength={200} placeholder={isEn ? 'Describe a solution (200 chars max)' : 'Décrivez une solution (200 caractères max)'} />
+                  <div className={styles.textAreaWrap}>
+                    <textarea className={styles.textArea} value={solutionText} onChange={(event) => setSolutionText(event.target.value)} maxLength={200} placeholder={isEn ? 'Describe a solution (200 chars max)' : 'Décrivez une solution (200 caractères max)'} />
+                    <span className={`${styles.charCount}${solutionText.length >= 180 ? ` ${solutionText.length >= 200 ? styles.charCountFull : styles.charCountNear}` : ''}`}>{solutionText.length}/200</span>
+                  </div>
                   <button type="button" className={styles.primaryBtn} onClick={submitSolution}>{isEn ? 'Submit' : 'Soumettre'}</button>
                 </div>
               ) : null}
@@ -521,9 +527,18 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                     <option value="">{isEn ? 'Choose a finalist solution' : 'Choisir une solution finaliste'}</option>
                     {finalistSolutions.map((item) => <option key={item.id} value={item.id}>{clampText(item.text, 100)}</option>)}
                   </select>
-                  <textarea className={styles.textArea} value={contribution.advantage} onChange={(event) => setContribution((prev) => ({ ...prev, advantage: event.target.value }))} maxLength={200} placeholder={isEn ? 'Advantage (200 max)' : 'Avantage (200 max)'} />
-                  <textarea className={styles.textArea} value={contribution.improvement} onChange={(event) => setContribution((prev) => ({ ...prev, improvement: event.target.value }))} maxLength={200} placeholder={isEn ? 'Improvement (200 max)' : 'Amélioration (200 max)'} />
-                  <textarea className={styles.textArea} value={contribution.impact} onChange={(event) => setContribution((prev) => ({ ...prev, impact: event.target.value }))} maxLength={200} placeholder={isEn ? 'Impact (200 max)' : 'Impact (200 max)'} />
+                  <div className={styles.textAreaWrap}>
+                    <textarea className={styles.textArea} value={contribution.advantage} onChange={(event) => setContribution((prev) => ({ ...prev, advantage: event.target.value }))} maxLength={200} placeholder={isEn ? 'Advantage (200 max)' : 'Avantage (200 max)'} />
+                    <span className={`${styles.charCount}${contribution.advantage.length >= 180 ? ` ${contribution.advantage.length >= 200 ? styles.charCountFull : styles.charCountNear}` : ''}`}>{contribution.advantage.length}/200</span>
+                  </div>
+                  <div className={styles.textAreaWrap}>
+                    <textarea className={styles.textArea} value={contribution.improvement} onChange={(event) => setContribution((prev) => ({ ...prev, improvement: event.target.value }))} maxLength={200} placeholder={isEn ? 'Improvement (200 max)' : 'Amélioration (200 max)'} />
+                    <span className={`${styles.charCount}${contribution.improvement.length >= 180 ? ` ${contribution.improvement.length >= 200 ? styles.charCountFull : styles.charCountNear}` : ''}`}>{contribution.improvement.length}/200</span>
+                  </div>
+                  <div className={styles.textAreaWrap}>
+                    <textarea className={styles.textArea} value={contribution.impact} onChange={(event) => setContribution((prev) => ({ ...prev, impact: event.target.value }))} maxLength={200} placeholder={isEn ? 'Impact (200 max)' : 'Impact (200 max)'} />
+                    <span className={`${styles.charCount}${contribution.impact.length >= 180 ? ` ${contribution.impact.length >= 200 ? styles.charCountFull : styles.charCountNear}` : ''}`}>{contribution.impact.length}/200</span>
+                  </div>
                   <button type="button" className={styles.primaryBtn} onClick={submitContribution}>{isEn ? 'Submit' : 'Soumettre'}</button>
                 </div>
               ) : null}

@@ -345,6 +345,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     return (
       <main className={styles.statusShell}>
         <section className={styles.statusCard}>
+          <div className={styles.spinner} aria-hidden="true" />
           <h1>Chargement du challenge</h1>
           <p>Préparation de votre expérience en cours...</p>
         </section>
@@ -354,11 +355,16 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
 
   // Render: Error state
   if (error) {
+    const isAuthError = /connect|session|authentif/i.test(error);
+    const userMessage = isAuthError
+      ? 'Votre session a expiré ou vous n\'avez pas accès à ce challenge.'
+      : 'Le challenge n\'a pas pu être chargé. Vérifiez votre connexion et réessayez.';
     return (
       <main className={styles.statusShell}>
         <section className={styles.statusCard}>
-          <h1>Erreur</h1>
-          <p className={styles.error}>{error}</p>
+          <h1>Impossible de charger le challenge</h1>
+          <p className={styles.error}>{userMessage}</p>
+          <p className={styles.errorDetail}>{error}</p>
           <div className={styles.statusActions}>
             <button className="btn-primary" onClick={() => window.location.reload()}>Réessayer</button>
             <a href="/home" className="btn-secondary">Retour à l'accueil</a>
@@ -373,11 +379,12 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     return (
       <main className={styles.statusShell}>
         <section className={styles.statusCard}>
+          <div className={styles.spinner} aria-hidden="true" />
           <h1>Connexion en cours</h1>
           <p>
             {requiresRealtime && !connected ? 'Connexion au serveur temps réel...' : 'Initialisation du challenge...'}
           </p>
-          {socketError ? <p className={styles.error}>Détail: {socketError}</p> : null}
+          {socketError ? <p className={styles.error}>Problème de connexion — vérifiez votre réseau.</p> : null}
         </section>
       </main>
     );

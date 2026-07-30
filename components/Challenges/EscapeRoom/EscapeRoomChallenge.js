@@ -18,65 +18,65 @@ import styles from './EscapeRoom.module.css';
 const OUTCOME_UI = {
   waiting: {
     tone: 'Info',
-    feedback: 'En attente: tous les participants doivent soumettre avant validation.',
+    feedback: 'En attente : tous les participants doivent soumettre avant validation.',
     title: 'Validation en attente',
-    detail: 'L equipe n a pas encore fini de repondre.',
+    detail: 'L’équipe n’a pas encore fini de répondre.',
     durationMs: 1200,
     blockProgression: false,
   },
   divergent: {
     tone: 'Warning',
-     feedback: 'Reponses divergentes: coordinez-vous via le chat. Le facilitateur passera a l enigme suivante.',
-    title: 'Reponses divergentes',
-    detail: 'Les reponses ne sont pas identiques dans l equipe.',
+    feedback: 'Réponses divergentes : coordonnez-vous via le chat. Le facilitateur passera à l’énigme suivante.',
+    title: 'Réponses divergentes',
+    detail: 'Les réponses ne sont pas identiques dans l’équipe.',
     durationMs: 1800,
-     blockProgression: true,
+    blockProgression: true,
   },
   wrong: {
     tone: 'Danger',
-    feedback: 'Reponse incorrecte. Reessayez avec une proposition commune.',
-    title: 'Reponse incorrecte',
-    detail: 'La reponse commune ne correspond pas a la solution attendue.',
+    feedback: 'Réponse incorrecte. Réessayez avec une proposition commune.',
+    title: 'Réponse incorrecte',
+    detail: 'La réponse commune ne correspond pas à la solution attendue.',
     durationMs: 1800,
     blockProgression: false,
   },
   correct: {
     tone: 'Success',
-    feedback: 'Enigme validee. Passage a la suivante...',
-    title: 'Enigme reussie',
-    detail: 'Excellent travail d equipe. Preparation de la prochaine enigme.',
+    feedback: 'Énigme validée. Passage à la suivante…',
+    title: 'Énigme réussie',
+    detail: 'Excellent travail d’équipe. Préparation de la prochaine énigme.',
     durationMs: 2000,
     blockProgression: true,
   },
   escaped: {
     tone: 'Success',
-    feedback: 'Salle deverrouillee. Bravo, mission accomplie.',
-    title: 'Salle deverrouillee',
-    detail: 'Toutes les enigmes ont ete resolues.',
+    feedback: 'Salle déverrouillée. Bravo, mission accomplie !',
+    title: 'Salle déverrouillée',
+    detail: 'Toutes les énigmes ont été résolues.',
     durationMs: 2200,
     blockProgression: false,
   },
   max_attempts: {
     tone: 'Danger',
-    feedback: 'Nombre maximal de tentatives atteint pour cette enigme.',
+    feedback: 'Nombre maximal de tentatives atteint pour cette énigme.',
     title: 'Limite de tentatives atteinte',
-    detail: 'Demandez un indice ou passez a l enigme suivante.',
+    detail: 'Demandez un indice ou attendez que le facilitateur passe à la suivante.',
     durationMs: 2200,
     blockProgression: true,
   },
   already_finished: {
     tone: 'Info',
-    feedback: 'La partie est deja terminee.',
-    title: 'Partie terminee',
-    detail: 'Aucune action supplementaire n est necessaire.',
+    feedback: 'La partie est déjà terminée.',
+    title: 'Partie terminée',
+    detail: 'Aucune action supplémentaire n’est nécessaire.',
     durationMs: 1200,
     blockProgression: false,
   },
   enigme_not_found: {
     tone: 'Danger',
-    feedback: 'Enigme introuvable. Rechargez la vue et reessayez.',
-    title: 'Enigme introuvable',
-    detail: 'La synchronisation a echoue entre client et serveur.',
+    feedback: 'Énigme introuvable. Rechargez la vue et réessayez.',
+    title: 'Énigme introuvable',
+    detail: 'La synchronisation a échoué entre client et serveur.',
     durationMs: 2000,
     blockProgression: false,
   },
@@ -560,6 +560,9 @@ export default function EscapeRoomChallenge({
                   <h2>{currentEnigme?.label || 'Énigme en attente'}</h2>
                 </div>
                 <div className={styles.enigmeMetaChips}>
+                  {state.total_enigmes > 0 ? (
+                    <span className={styles.enigmeMetaChip}>Énigme {(state.current_enigme_index ?? 0) + 1} / {state.total_enigmes}</span>
+                  ) : null}
                   <span className={styles.enigmeMetaChip}>Validation collective</span>
                   <span className={styles.enigmeMetaChip}>{totalResponded}/{Math.max(totalExpected, 0)} réponses</span>
                 </div>

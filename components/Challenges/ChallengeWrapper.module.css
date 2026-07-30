@@ -86,6 +86,29 @@
   color: #9cb2c7;
 }
 
+@keyframes challengeSpinnerRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(125, 211, 252, 0.22);
+  border-top-color: #7dd3fc;
+  border-radius: 50%;
+  animation: challengeSpinnerRotate 0.75s linear infinite;
+  margin: 0 auto 16px;
+}
+
+.errorDetail {
+  color: #9cb2c7;
+  font-size: 0.78rem;
+  margin-top: 6px;
+  opacity: 0.8;
+}
+
 .statusActions {
   display: flex;
   gap: 10px;

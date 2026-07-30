@@ -195,6 +195,27 @@
   min-height: 88px;
 }
 
+.textAreaWrap {
+  display: grid;
+  gap: 2px;
+}
+
+.charCount {
+  text-align: right;
+  font-size: 0.72rem;
+  color: rgba(163, 190, 214, 0.55);
+  padding-right: 4px;
+  line-height: 1;
+}
+
+.charCountNear {
+  color: #fbbf24;
+}
+
+.charCountFull {
+  color: #ef4444;
+}
+
 .primaryBtn,
 .ghostBtn {
   border-radius: 12px;
