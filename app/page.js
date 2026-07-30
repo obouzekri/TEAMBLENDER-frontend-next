@@ -1259,8 +1259,8 @@ export default function HomePage() {
               </div>
 
               <div className="landing-partners-usage rounded-2xl bg-white/6 p-5 shadow-sm ring-1 ring-white/12 backdrop-blur-sm">
-                <p className="landing-partners-title">{locale === 'en' ? 'Teams using TeamBlender' : 'Equipes qui utilisent TeamBlender'}</p>
-                <div className="landing-platform-scent landing-usecase-chips" aria-label={locale === 'en' ? 'Use cases' : 'Cas d usage'}>
+                <p className="landing-partners-title">{locale === 'en' ? 'Teams using TeamBlender' : 'Équipes qui utilisent TeamBlender'}</p>
+                <div className="landing-platform-scent landing-usecase-chips" aria-label={locale === 'en' ? 'Use cases' : 'Cas d’usage'}>
                   {useCaseChips.map(({ label, Icon }, index) => (
                     <span key={`use-case-${index}-${label}`} className="landing-usecase-chip">
                       <GamifiedIcon Icon={Icon} index={index} size="xs" />
@@ -1268,15 +1268,15 @@ export default function HomePage() {
                     </span>
                   ))}
                 </div>
-                <p className="mt-4 text-sm leading-6 text-slate-300">
+                <p className="landing-partners-summary text-sm leading-6 text-slate-300">
                   {locale === 'en'
                     ? 'One modern platform, one clear rhythm, and one shared team experience.'
-                    : 'Une plateforme moderne, un rythme clair et une experience d equipe partagee.'}
+                    : 'Une plateforme moderne, un rythme clair et une expérience d’équipe partagée.'}
                 </p>
               </div>
             </div>
 
-            <div className="landing-metrics-grid grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label={locale === 'en' ? 'Key metrics' : 'Indicateurs cles'}>
+            <div className="landing-metrics-grid grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label={locale === 'en' ? 'Key metrics' : 'Indicateurs clés'}>
               {TRUST_PROOF_METRICS.map((metric, index) => (
                 <TrustProofCard
                   key={`${metric.value}-${index}`}

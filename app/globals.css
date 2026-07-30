@@ -3888,6 +3888,7 @@ a {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  gap: 0;
 }
 
 .landing-partners-usage .landing-partners-title {
@@ -3896,7 +3897,7 @@ a {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #93c5fd;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.05rem;
 }
 
 .landing-partners-usage .landing-platform-scent {
@@ -3906,8 +3907,20 @@ a {
   text-overflow: clip;
   max-width: 100%;
   margin-top: 0;
+  margin-bottom: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.landing-partners-usage .landing-usecase-chips {
+  row-gap: 0.65rem;
+  column-gap: 0.6rem;
+}
+
+.landing-partners-summary {
+  margin-top: 1rem;
+  margin-bottom: 0;
+  max-width: 34ch;
 }
 
 .landing-partners-usage p,
@@ -4456,7 +4469,17 @@ a {
   }
 
   .landing-partners-usage .landing-partners-title {
-    margin-bottom: 1.2rem;
+    margin-bottom: 0.95rem;
+  }
+
+  .landing-partners-usage .landing-usecase-chips {
+    row-gap: 0.55rem;
+    column-gap: 0.5rem;
+  }
+
+  .landing-partners-summary {
+    margin-top: 0.85rem;
+    max-width: 100%;
   }
 
   .landing-impact-band .landing-impact-card,
