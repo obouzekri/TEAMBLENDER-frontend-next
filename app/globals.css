@@ -5717,6 +5717,7 @@ a {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   position: relative;
+  align-items: stretch;
 }
 
 .landing-flow-timeline::before {
@@ -5734,6 +5735,12 @@ a {
   z-index: 1;
 }
 
+.landing-flow-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
 .landing-flow .landing-section-eyebrow,
 .landing-flow .landing-section-title {
   color: #ffffff;
@@ -5746,14 +5753,6 @@ a {
 .landing-flow .landing-flow-card h2,
 .landing-flow .landing-flow-card p {
   color: #0f172a;
-}
-
-.landing-flow .landing-flow-node:nth-child(2n) {
-  transform: translateY(10px);
-}
-
-.landing-flow .landing-flow-node:nth-child(3n) {
-  transform: translateY(18px);
 }
 
 .landing-flow-node:hover {
