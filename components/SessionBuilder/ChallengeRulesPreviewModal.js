@@ -30,7 +30,7 @@ function getFallbackRules(challenge, locale) {
     return {
       objective: preset.objective,
       facilitator: preset.facilitator,
-      participant: preset.participant,
+      participant: [...preset.participant, ...preset.scoring],
       footnote: preset.footnote,
     };
   }

@@ -98,7 +98,6 @@ export default function ChallengeRulesPanel({
         <h3 className="challenge-section-title">🧭 {participantLabel}</h3>
         <div className={styles.rulesGroupedList}>
           <div className={styles.rulesGroup}>
-            <h4>{isEn ? 'Game rules' : 'Règles du jeu'}</h4>
             <ul>
               {participantRules.filter((rule) => !String(rule).toLowerCase().includes('barème') && !String(rule).toLowerCase().includes('score') && !String(rule).toLowerCase().includes('points')).map((rule) => (
                 <li key={`participant-${rule}`}>{rule}</li>
