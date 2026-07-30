@@ -5241,6 +5241,8 @@ a {
   display: grid;
   gap: 2.45rem 2.35rem;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  padding: 0;
 }
 
 .landing-core-feature-card {

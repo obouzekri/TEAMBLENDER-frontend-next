@@ -1307,11 +1307,12 @@ export default function HomePage() {
                 <p className="landing-offer-subtitle">{landingStatic.fallback.platformOfferSubtitle}</p>
               </div>
             </div>
-            <div className="landing-core-features-grid" aria-label={landingStatic.fallback.platformOfferTitle}>
+            <ul className="landing-core-features-grid" aria-label={landingStatic.fallback.platformOfferTitle}>
               {PLATFORM_OFFER_ITEMS.map((item, index) => {
                 const Icon = item.icon;
+                const featureTitleId = `platform-feature-title-${index}`;
                 return (
-                  <article
+                  <li
                     key={item.label}
                     className="landing-core-feature-card"
                     style={{ '--feature-index': index + 1 }}
@@ -1319,12 +1320,12 @@ export default function HomePage() {
                     <span className={`landing-core-feature-icon landing-core-feature-icon--${item.tone || 'blue'}`} aria-hidden="true">
                       <Icon className="h-6 w-6" strokeWidth={2.2} />
                     </span>
-                    <h3 className="landing-core-feature-title">{item.label}</h3>
+                    <h3 id={featureTitleId} className="landing-core-feature-title">{item.label}</h3>
                     <p className="landing-core-feature-description">{item.description}</p>
-                  </article>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </div>
         </section>
 
