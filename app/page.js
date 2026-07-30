@@ -1366,7 +1366,7 @@ export default function HomePage() {
             <div className="landing-benefits-split mt-8">
               <div className="landing-benefits-copy reveal-left" style={{ '--reveal-delay': '180ms' }}>
                 <ul className="landing-benefits-list">
-                  {PLATFORM_BENEFITS_ITEMS.map((item, index) => {
+                  {PLATFORM_BENEFITS_ITEMS.slice(0, 3).map((item, index) => {
                     const Icon = item.icon;
                     return (
                       <li key={item.label} className="landing-benefits-item">
@@ -1378,20 +1378,35 @@ export default function HomePage() {
                     );
                   })}
                 </ul>
+                <div className="landing-benefits-pills" aria-label={locale === 'en' ? 'Core value tags' : 'Piliers de valeur'}>
+                  <span>Hybride</span>
+                  <span>Simple</span>
+                  <span>Mesurable</span>
+                </div>
               </div>
 
               <div className="landing-benefits-visual reveal-right" style={{ '--reveal-delay': '210ms' }}>
-                <figure className="landing-benefits-media-frame">
-                  <Image
-                    src="/images/labyrinthe-hero.jpg"
-                    alt={locale === 'en' ? 'Hybrid team workshop in progress on TeamBlender' : 'Atelier equipe hybride en cours sur TeamBlender'}
-                    width={1200}
-                    height={800}
-                    loading="lazy"
-                    className="landing-benefits-media-image"
-                  />
-                  <figcaption>{locale === 'en' ? 'Hybrid-ready, manager-friendly and measurable.' : 'Hybride, simple pour managers et mesurable.'}</figcaption>
-                </figure>
+                <article className="landing-benefits-dashboard" aria-label={locale === 'en' ? 'Benefits summary dashboard' : 'Tableau de synthese des benefices'}>
+                  <header>
+                    <p>{locale === 'en' ? 'Summary Performance' : 'Summary Performance'}</p>
+                    <span>{locale === 'en' ? 'Live session' : 'Session live'}</span>
+                  </header>
+                  <div className="landing-benefits-dashboard-grid">
+                    <div className="landing-benefits-dashboard-team" aria-label={locale === 'en' ? 'Participants engagement' : 'Engagement participants'}>
+                      <span>{locale === 'en' ? 'Mohammed' : 'Mohammed'}<i>❤</i></span>
+                      <span>{locale === 'en' ? 'Iyad' : 'Iyad'}<i>❤</i></span>
+                      <span>{locale === 'en' ? 'Soukaina' : 'Soukaina'}<i>❤</i></span>
+                    </div>
+                    <div className="landing-benefits-dashboard-chrono" aria-label={locale === 'en' ? 'Session timer' : 'Chronometre session'}>
+                      <strong>09:26</strong>
+                    </div>
+                    <div className="landing-benefits-dashboard-side">
+                      <span>{locale === 'en' ? 'Performance' : 'Performance'}</span>
+                      <span>{locale === 'en' ? 'Chat: team aligned' : 'Chat : equipe alignee'}</span>
+                    </div>
+                  </div>
+                  <footer>{locale === 'en' ? 'Hybrid-ready, manager-friendly and measurable.' : 'Hybride, simple pour managers et mesurable.'}</footer>
+                </article>
               </div>
             </div>
           </div>
