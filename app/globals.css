@@ -5724,6 +5724,9 @@ a {
 .landing-trusted {
   padding-top: clamp(2.5rem, 5vw, 3.8rem);
   padding-bottom: clamp(2.5rem, 5vw, 3.8rem);
+  position: relative;
+  isolation: isolate;
+  z-index: 2;
 }
 
 .landing-trusted-title {
@@ -5743,6 +5746,7 @@ a {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
+  width: 100%;
   justify-content: center;
   gap: 1rem clamp(1.2rem, 2.2vw, 2.8rem);
   align-items: center;
@@ -5755,6 +5759,7 @@ a {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  white-space: nowrap;
   color: #7b8faf;
   border: 0;
   background: transparent;
@@ -5887,15 +5892,19 @@ a {
   z-index: 1;
   height: 100%;
   display: flex;
+  align-items: stretch;
+  transform: none;
 }
 
 .landing-flow-card {
   display: grid;
   grid-template-rows: auto auto 1fr;
   align-content: start;
+  align-self: stretch;
   width: 100%;
   height: 100%;
   min-height: 100%;
+  max-width: none;
   margin: 0;
 }
 
@@ -5914,6 +5923,10 @@ a {
 }
 
 .landing-flow-node:hover {
+  transform: none;
+}
+
+.landing-flow-node:hover .landing-flow-card {
   transform: translateY(-6px);
 }
 
@@ -6071,6 +6084,7 @@ a {
     min-height: 3rem;
     gap: 0.42rem;
     flex: 0 1 calc(50% - 0.6rem);
+    justify-content: flex-start;
   }
 
   .landing-trusted-logo-name {
@@ -6215,6 +6229,7 @@ a {
 
   .landing-flow-node {
     padding-left: 1rem;
+    align-items: stretch;
   }
 
   .landing-flow-node::before {
@@ -9231,6 +9246,62 @@ a {
   align-items: center;
   gap: 6px;
   margin-top: 4px;
+}
+
+.session-card-body .status-pill {
+  padding: 0.32rem 0.72rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.055em;
+}
+
+.session-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+}
+
+.session-tag {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 24px;
+  padding: 0.24rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.73rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-tag--modality {
+  border-color: rgba(30, 64, 175, 0.22);
+  background: rgba(219, 234, 254, 0.62);
+  color: #1e40af;
+}
+
+.session-tag--format {
+  border-color: rgba(15, 118, 110, 0.24);
+  background: rgba(204, 251, 241, 0.58);
+  color: #0f766e;
+}
+
+.session-tag--duration {
+  border-color: rgba(107, 114, 128, 0.26);
+  background: rgba(241, 245, 249, 0.9);
+  color: #334155;
+}
+
+@media (max-width: 640px) {
+  .session-tag {
+    max-width: 100%;
+    white-space: normal;
+  }
 }
 
 .session-card-actions {
