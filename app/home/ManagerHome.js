@@ -102,6 +102,26 @@ function formatSessionDate(value, locale = 'en') {
   }).format(parsed);
 }
 
+function getSessionModalityLabel(value, isEn) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (!normalized) return '';
+  if (normalized === 'remote') return isEn ? 'Remote' : 'A distance';
+  if (normalized === 'hybrid') return isEn ? 'Hybrid' : 'Hybride';
+  if (normalized === 'in-person' || normalized === 'in_person') return isEn ? 'In person' : 'Presentiel';
+  return normalized;
+}
+
+function getSessionDurationLabel(session, isEn) {
+  const raw = session?.duration_minutes ?? session?.durationMinutes ?? session?.duration;
+  const duration = Number(raw);
+  if (!Number.isFinite(duration) || duration <= 0) return '';
+  return isEn ? `${duration} min` : `${duration} min`;
+}
+
+function getSessionFormatLabel(session) {
+  return String(session?.format || session?.session_format || '').trim();
+}
+
 function getSessionIdentifier(session) {
   const raw = session?.id ?? session?.session_id ?? session?.sessionId;
   const normalized = String(raw ?? '').trim();
@@ -1015,7 +1035,10 @@ export default function ManagerHome() {
                 const isActive = session.status === 'en_cours';
                 const isDone = session.status === 'terminee';
                 const statusVariant = isActive ? 'en-cours' : isDone ? 'terminee' : 'a-venir';
-                const statusClass = `status-pill status-pill--${statusVariant}`;
+                const statusClass = `status-pill--${statusVariant}`;
+                const modalityLabel = getSessionModalityLabel(session.modality, isEn);
+                const formatLabel = getSessionFormatLabel(session);
+                const durationLabel = getSessionDurationLabel(session, isEn);
                 const openLink = isDone
                   ? withLocalePath(`/session-results/${sessionIdentifier}`)
                   : isActive
@@ -1039,6 +1062,17 @@ export default function ManagerHome() {
                           <span className="session-date">{formatSessionDate(session.session_date, locale)}</span>
                         ) : null}
                       </p>
+                      <div className="session-tags" aria-label={isEn ? 'Session metadata' : 'Metadonnees de session'}>
+                        {modalityLabel ? (
+                          <span className="session-tag session-tag--modality">{modalityLabel}</span>
+                        ) : null}
+                        {formatLabel ? (
+                          <span className="session-tag session-tag--format">{formatLabel}</span>
+                        ) : null}
+                        {durationLabel ? (
+                          <span className="session-tag session-tag--duration">{durationLabel}</span>
+                        ) : null}
+                      </div>
                     </div>
                     <div className="session-card-mobile-actions">
                       <MobileActionMenu
