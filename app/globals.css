@@ -5223,44 +5223,44 @@ a {
 
 .landing-offer-head-content {
   margin-inline: auto;
-  max-width: 56rem;
+  max-width: 66rem;
 }
 
 .landing-offer-subtitle {
-  margin: 0.9rem auto 0;
-  max-width: 52rem;
-  color: #4b5563;
-  font-size: clamp(1.01rem, 1.75vw, 1.9rem);
-  line-height: 1.55;
-  font-weight: 600;
+  margin: 0.78rem auto 0;
+  max-width: 54rem;
+  color: #52525b;
+  font-size: clamp(1rem, 1.2vw, 1.62rem);
+  line-height: 1.48;
+  font-weight: 620;
   letter-spacing: -0.01em;
 }
 
 .landing-core-features-grid {
-  margin-top: 3rem;
+  margin-top: 3.35rem;
   display: grid;
-  gap: 2rem 2.5rem;
+  gap: 2.45rem 2.35rem;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .landing-core-feature-card {
   display: grid;
   grid-template-columns: auto 1fr;
-  column-gap: 1rem;
-  row-gap: 0.45rem;
+  column-gap: 1.1rem;
+  row-gap: 0.38rem;
   align-items: flex-start;
   background: transparent;
 }
 
 .landing-core-feature-icon {
-  width: 4.5rem;
-  height: 4.5rem;
+  width: 4.35rem;
+  height: 4.35rem;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.14);
   grid-row: 1 / span 2;
 }
 
@@ -5289,21 +5289,21 @@ a {
 }
 
 .landing-core-feature-title {
-  margin: 0.35rem 0 0;
+  margin: 0.22rem 0 0;
   font-family: var(--font-display);
-  font-size: clamp(1.35rem, 1.7vw, 1.98rem);
-  line-height: 1.2;
+  font-size: clamp(1.28rem, 1.45vw, 1.88rem);
+  line-height: 1.18;
   letter-spacing: -0.02em;
-  color: #111827;
+  color: #18181b;
 }
 
 .landing-core-feature-description {
-  margin: 0;
-  color: #4b5563;
+  margin: 0.04rem 0 0;
+  color: #57534e;
   font-family: var(--font-ui);
-  font-size: 1.02rem;
-  line-height: 1.62;
-  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.56;
+  font-weight: 520;
 }
 
 .landing-values-timeline {
@@ -5776,12 +5776,12 @@ a {
 
   .landing-core-features-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.7rem 1.45rem;
+    gap: 1.7rem 1.3rem;
   }
 
   .landing-core-feature-icon {
-    width: 4rem;
-    height: 4rem;
+    width: 3.85rem;
+    height: 3.85rem;
   }
 
   .landing-testimonials-carousel {
@@ -5824,30 +5824,31 @@ a {
   }
 
   .landing-core-features-grid {
-    margin-top: 2rem;
+    margin-top: 1.9rem;
     grid-template-columns: 1fr;
-    gap: 1.2rem;
+    gap: 1rem;
   }
 
   .landing-core-feature-card {
-    padding: 1rem;
+    padding: 0.95rem;
     border-radius: 16px;
-    border: 1px solid rgba(148, 163, 184, 0.24);
-    background: linear-gradient(160deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.9));
-    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(249, 250, 251, 0.92));
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.055);
   }
 
   .landing-core-feature-icon {
-    width: 3.55rem;
-    height: 3.55rem;
+    width: 3.4rem;
+    height: 3.4rem;
   }
 
   .landing-core-feature-title {
-    font-size: 1.22rem;
+    font-size: 1.17rem;
   }
 
   .landing-core-feature-description {
-    font-size: 0.94rem;
+    font-size: 0.93rem;
+    line-height: 1.52;
   }
 
   .landing-testimonials-carousel {
