@@ -5580,6 +5580,7 @@ a {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(280px, 34%);
+  align-items: stretch;
   gap: 1rem;
   overflow-x: auto;
   padding-bottom: 0.45rem;
@@ -5614,14 +5615,6 @@ a {
 
 .landing-testimonial-card--accent {
   background: linear-gradient(155deg, rgba(224, 242, 254, 0.96) 0%, rgba(240, 249, 255, 0.92) 100%);
-}
-
-.landing-testimonials-carousel .landing-testimonial-card:nth-child(2n) {
-  transform: translateY(10px);
-}
-
-.landing-testimonials-carousel .landing-testimonial-card:nth-child(3n) {
-  transform: translateY(18px);
 }
 
 .landing-flow-timeline {
