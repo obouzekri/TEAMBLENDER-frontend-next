@@ -20,7 +20,6 @@
   color: var(--challenge-text-accent, #7dd3fc);
   font-size: 0.95rem;
   font-weight: 700;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
