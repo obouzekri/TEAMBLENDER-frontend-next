@@ -1489,7 +1489,10 @@ export default function HomePage() {
                   key={company.name}
                   className={`landing-trusted-logo-item landing-trusted-logo-item--${index + 1}`}
                   title={company.name}
-                  style={{ '--trusted-accent': company.accent || '#35507b' }}
+                  style={{
+                    '--trusted-accent': company.accent || '#35507b',
+                    '--trusted-delay': `${index * 110}ms`,
+                  }}
                 >
                   <span className="landing-trusted-logo-mark" aria-hidden="true">
                     <TrustedCompanyLogo company={company} />
