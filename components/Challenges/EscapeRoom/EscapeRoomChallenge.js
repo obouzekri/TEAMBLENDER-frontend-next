@@ -319,6 +319,49 @@ export default function EscapeRoomChallenge({
   const safeAnagramLength = Number.isInteger(anagramAnswerLength) && anagramAnswerLength > 0
     ? anagramAnswerLength
     : anagramLetters.length;
+  const wordCodeRows = useMemo(() => {
+    if (currentUiType !== 'text_mystery') {
+      return [];
+    }
+
+    const knownAnimals = {
+      girafe: { icon: '🦒', badgeTone: 'amber' },
+      elephant: { icon: '🐘', badgeTone: 'azure' },
+      hippopotame: { icon: '🦛', badgeTone: 'mint' },
+      lion: { icon: '🦁', badgeTone: 'gold' },
+    };
+
+    const rows = Array.isArray(currentUiData?.question_lines) ? currentUiData.question_lines : [];
+    return rows
+      .map((line) => {
+        const safeLine = String(line || '').trim();
+        const match = safeLine.match(/^([^=]+)=\s*(.+)$/);
+        if (!match) {
+          return null;
+        }
+
+        const rawAnimal = String(match[1] || '').trim();
+        const answerValue = String(match[2] || '').trim();
+        const key = rawAnimal
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase();
+        const animal = knownAnimals[key];
+        if (!animal) {
+          return null;
+        }
+
+        return {
+          key,
+          rawAnimal,
+          answerValue,
+          icon: animal.icon,
+          badgeTone: animal.badgeTone,
+          isQuestion: answerValue.includes('?'),
+        };
+      })
+      .filter(Boolean);
+  }, [currentUiData, currentUiType]);
 
   const runAction = useCallback(
     async (actionKey, runner) => {
@@ -620,7 +663,25 @@ export default function EscapeRoomChallenge({
                 <div className={styles.enigmeUiBlock}>
                   <p className={styles.enigmeUiTitle}>{currentUiData?.title || 'Énigme texte'}</p>
                   {currentUiData?.instruction ? <p className={styles.enigmeUiInstruction}>{currentUiData.instruction}</p> : null}
-                  {Array.isArray(currentUiData?.question_lines) && currentUiData.question_lines.length > 0 ? (
+                  {wordCodeRows.length > 0 ? (
+                    <div className={styles.wordCodeBoard}>
+                      {wordCodeRows.map((row, idx) => (
+                        <div key={`word-code-row-${row.key}-${idx}`} className={styles.wordCodeRow}>
+                          <span
+                            className={`${styles.wordCodeAnimal} ${styles[`wordCodeAnimal${row.badgeTone}`]}`}
+                            aria-label={row.rawAnimal}
+                            title={row.rawAnimal}
+                          >
+                            {row.icon}
+                          </span>
+                          <span className={styles.wordCodeEquals}>=</span>
+                          <span className={`${styles.wordCodeValue}${row.isQuestion ? ` ${styles.wordCodeValueQuestion}` : ''}`}>
+                            {row.answerValue}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : Array.isArray(currentUiData?.question_lines) && currentUiData.question_lines.length > 0 ? (
                     <div className={styles.textMysteryLines}>
                       {currentUiData.question_lines.map((line, idx) => (
                         <p key={`mystery-line-${idx}`} className={styles.textMysteryLine}>{String(line)}</p>

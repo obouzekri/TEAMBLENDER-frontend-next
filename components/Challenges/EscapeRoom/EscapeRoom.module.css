@@ -530,6 +530,74 @@
   font-size: 13px;
 }
 
+.wordCodeBoard {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.wordCodeRow {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: linear-gradient(165deg, rgba(15, 30, 46, 0.92), rgba(10, 21, 36, 0.92));
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.wordCodeAnimal {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  line-height: 1;
+  border: 1px solid transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.wordCodeAnimalamber {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: rgba(251, 191, 36, 0.34);
+}
+
+.wordCodeAnimalazure {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: rgba(125, 211, 252, 0.34);
+}
+
+.wordCodeAnimalmint {
+  background: rgba(52, 211, 153, 0.14);
+  border-color: rgba(110, 231, 183, 0.34);
+}
+
+.wordCodeAnimalgold {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(252, 211, 77, 0.34);
+}
+
+.wordCodeEquals {
+  color: #bfdbfe;
+  font-size: 1.14rem;
+  font-weight: 900;
+}
+
+.wordCodeValue {
+  color: #ecf7ff;
+  font-size: 1.06rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.wordCodeValueQuestion {
+  color: #fde68a;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.26);
+}
+
 .hintBox {
   border-left: 3px solid #fbbf24;
   background: rgba(251, 191, 36, 0.12);
@@ -1059,6 +1127,27 @@
   .matrixGridFeatured {
     grid-template-columns: repeat(3, minmax(56px, 1fr));
     max-width: 100%;
+  }
+
+  .wordCodeRow {
+    border-radius: 12px;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .wordCodeAnimal {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 1.22rem;
+  }
+
+  .wordCodeEquals {
+    font-size: 1rem;
+  }
+
+  .wordCodeValue {
+    font-size: 0.96rem;
   }
 
   .matrixGrid {
