@@ -134,7 +134,9 @@
   border-radius: 9px;
   padding: 0.5rem 0.65rem;
   background: rgba(12, 25, 38, 0.94);
-  color: #e2edf6;
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  caret-color: #ffffff;
 }
 
 .chatInput:focus-visible,
@@ -144,8 +146,36 @@
   outline-offset: 2px;
 }
 
+.chatInput:focus,
+.chatInput:active {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  border-color: rgba(125, 211, 252, 0.6);
+  background: rgba(15, 32, 49, 0.98);
+}
+
+.chatInput:disabled {
+  color: rgba(255, 255, 255, 0.72);
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.72);
+  background: rgba(8, 18, 28, 0.78);
+  border-color: rgba(125, 211, 252, 0.18);
+  cursor: not-allowed;
+}
+
 .chatInput::placeholder {
-  color: #7f97a8;
+  color: rgba(191, 211, 232, 0.8);
+}
+
+.chatInput:disabled::placeholder {
+  color: rgba(156, 178, 199, 0.56);
+}
+
+.chatInput:-webkit-autofill,
+.chatInput:-webkit-autofill:hover,
+.chatInput:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+  box-shadow: 0 0 0 1000px rgba(12, 25, 38, 0.94) inset;
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 .chatSubmit {
@@ -275,12 +305,23 @@
   .mobileChatClose {
     border: 1px solid rgba(125, 211, 252, 0.42);
     border-radius: 999px;
-    padding: 0.35rem 0.7rem;
+    min-height: 40px;
+    padding: 0.35rem 0.8rem;
     background: rgba(14, 165, 233, 0.14);
     color: #d7ecfb;
     font-size: 0.76rem;
     font-weight: 700;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.38rem;
+    white-space: nowrap;
+  }
+
+  .mobileChatCloseIcon {
+    font-size: 0.82rem;
+    line-height: 1;
   }
 
   .mobileChatSheet .chatLog {
