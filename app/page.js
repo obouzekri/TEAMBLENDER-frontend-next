@@ -689,54 +689,69 @@ function TrustTag({ title, isActive = false }) {
 
 function TrustedCompanyLogo({ company }) {
   const mark = String(company?.mark || '').toUpperCase();
+  const name = String(company?.name || '').trim().toLowerCase();
 
-  switch (mark) {
+  switch (name || mark) {
+    case 'northsteel':
     case 'NS':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-          <path d="M5 19V5l6 8V5h8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M13 19h6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+          <path d="M4.5 8.5 12 4l7.5 4.5v7L12 20l-7.5-4.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+          <path d="M8 9.2h8M8 14.8h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M12 6.6v10.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" opacity="0.75" />
         </svg>
       );
+    case 'jexa':
     case 'JX':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-          <path d="M6 6h8v6a5 5 0 0 1-5 5H6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M14 8l5 8M19 8l-5 8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+          <path d="M6 6h7.3v3.2H9.4v2.4h3.6V15A3.8 3.8 0 0 1 9.2 19H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="m14.2 6 3.2 4 3.2-4M14.2 18l3.2-4 3.2 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
+    case 'orbicore':
     case 'OC':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-          <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.9" />
-          <circle cx="12" cy="12" r="2.3" fill="currentColor" />
-          <path d="M4 12h2.2M17.8 12H20" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+          <circle cx="12" cy="12" r="6.9" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M12 4.8v3.1M12 16.1v3.1M4.8 12h3.1M16.1 12h3.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <circle cx="12" cy="12" r="2.1" fill="currentColor" />
         </svg>
       );
+    case 'interpulse':
     case 'IP':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-          <path d="M5 6h2v12H5z" fill="currentColor" />
-          <path d="M10 15h2.6l1.6-5 1.5 7 1.4-4H20" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M5 6h1.8v12H5z" fill="currentColor" />
+          <path d="M8.4 14.5h2.3l1.2-4.2 1.4 6 1.3-3.1H19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="19.2" cy="13.2" r="1" fill="currentColor" />
         </svg>
       );
+    case 'nomara':
     case 'NM':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-          <path d="M4 18V6l4 6 4-6v12" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M14 18V6l6 12V6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M4.5 18V6.8L8.9 13l4.4-6.2V18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14.2 18V6.8l5.3 11.2V6.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14.2 12.2h5.3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" opacity="0.7" />
         </svg>
       );
+    case 'laforhive':
     case 'LH':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-          <path d="M5 6v12h2.8M7.8 18V13.3H12V18" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M15 6v12h5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M12 8l1.5-.9L15 8v1.8l-1.5.9L12 9.8z" fill="currentColor" opacity="0.72" />
+          <path d="M5.2 16.8V7.2l3.6 5 3.6-5v9.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14.8 16.8V7.2h4.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 6.4 15.4 8.4v3.9L12 14.2 8.6 12.3V8.4z" fill="currentColor" opacity="0.72" />
         </svg>
       );
     default:
-      return <span>{mark || 'TB'}</span>;
+      return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.2" stroke="currentColor" strokeWidth="1.8" opacity="0.9" />
+          <path d="M8.2 8.4h7.2M8.2 12h4.8M8.2 15.6h5.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      );
   }
 }
 
