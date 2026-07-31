@@ -7,7 +7,6 @@ import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 import { startBillingCheckout } from '@/lib/account';
-import PaddleCheckoutButton from '@/components/PaddleCheckoutButton';
 import useI18n from '@/lib/i18n/useI18n';
 import { getCheckoutRedirectUrl } from '@/lib/billing-utils';
 
@@ -296,15 +295,8 @@ export default function PricingPage() {
                     onClick={() => handleProviderCheckout(plan, 'payoneer')}
                     disabled={checkoutPlanId === String(plan.id)}
                   >
-                    {checkoutPlanId === String(plan.id) ? (isEn ? 'Opening Payoneer...' : 'Ouverture de Payoneer...') : (isEn ? 'Pay with Payoneer' : 'Payer avec Payoneer')}
+                    {checkoutPlanId === String(plan.id) ? (isEn ? 'Opening checkout...' : 'Ouverture du paiement...') : (isEn ? 'Pay now' : 'Payer maintenant')}
                   </button>
-                  <PaddleCheckoutButton
-                    pricingPlanId={plan.id}
-                    billingCycle={selectedBilling}
-                    className="btn-primary"
-                    onSuccess={() => window.location.assign(withLocalePath('/account?billing=paddle_success'))}
-                  />
-                  <Link href={withLocalePath('/contact')} className="btn-secondary">{isEn ? 'Talk to the team' : 'Parler à l\'équipe'}</Link>
                 </div>
               </article>
             ))}
