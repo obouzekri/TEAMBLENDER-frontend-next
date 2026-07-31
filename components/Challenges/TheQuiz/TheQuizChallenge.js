@@ -11,7 +11,6 @@ import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import {
   QuizFinalScreen,
-  QuizHostResponsesScreen,
   QuizLeaderboardScreen,
   QuizQuestionResultScreen,
   QuizQuestionScreen,
@@ -458,12 +457,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
               <div className={styles.autoTransitionHint} aria-live="polite">
                 {isEn ? 'Auto transition to the next question...' : 'Transition automatique vers la prochaine question...'}
               </div>
-            ) : null}
-
-            {isFacilitator && isStarted ? (
-              <section className={styles.hostPanel}>
-                <QuizHostResponsesScreen isEn={isEn} quiz={quiz} />
-              </section>
             ) : null}
 
             {isStarted ? (

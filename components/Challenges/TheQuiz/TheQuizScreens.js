@@ -30,6 +30,60 @@ function formatRelativeMs(value) {
   return `${Math.round((millis / 1000) * 10) / 10}s`;
 }
 
+function getInitials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+}
+
+function getRankMedal(rank) {
+  if (rank === 1) return '🥇';
+  if (rank === 2) return '🥈';
+  if (rank === 3) return '🥉';
+  return null;
+}
+
+function renderLeaderboardRows({ rows, maxScore, rankMovementByParticipantId = {}, isEn = false }) {
+  return rows.map((entry, index) => {
+    const participantKey = String(entry.participant_id);
+    const movement = String(rankMovementByParticipantId[participantKey] || 'same');
+    const movementLabel = movement === 'up' ? (isEn ? 'Up' : 'En hausse') : movement === 'down' ? (isEn ? 'Down' : 'En baisse') : (isEn ? 'Stable' : 'Stable');
+    const movementGlyph = movement === 'up' ? '↑' : movement === 'down' ? '↓' : '→';
+    const progressWidth = `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%`;
+    const medal = getRankMedal(Number(entry.rank));
+
+    return (
+      <article
+        key={entry.participant_id}
+        className={`${styles.leaderboardCard}${index < 3 ? ` ${styles.leaderboardCardTop}` : ''}${movement === 'up' ? ` ${styles.rankUp}` : ''}${movement === 'down' ? ` ${styles.rankDown}` : ''}`}
+      >
+        <div className={styles.leaderboardIdentity}>
+          <div className={styles.leaderboardRankWrap}>
+            <span className={styles.rankPill}>{medal || `#${entry.rank}`}</span>
+            <span className={`${styles.rankDeltaBadge}${movement === 'up' ? ` ${styles.rankDeltaUp}` : movement === 'down' ? ` ${styles.rankDeltaDown}` : ''}`} aria-label={movementLabel}>{movementGlyph}</span>
+          </div>
+          <span className={styles.leaderAvatar}>{getInitials(entry.display_name)}</span>
+          <div className={styles.leaderboardCopy}>
+            <span className={styles.leaderboardLine}>{entry.display_name}</span>
+            <span className={styles.leaderboardSubline}>{isEn ? 'Live rank' : `Rang #${entry.rank}`}</span>
+          </div>
+        </div>
+
+        <div className={styles.leaderboardScoreWrap}>
+          <div className={styles.leaderboardScoreTopline}>
+            <span className={styles.leaderboardScore}>{entry.score} pts</span>
+            {medal ? <span className={styles.leaderboardReward}>{medal}</span> : null}
+          </div>
+          <span className={styles.leaderProgressTrack}>
+            <span className={styles.leaderProgressFill} style={{ width: progressWidth }} />
+          </span>
+        </div>
+      </article>
+    );
+  });
+}
+
 export function QuizQuestionScreen({
   isEn = false,
   quiz,
@@ -121,71 +175,16 @@ export function QuizQuestionScreen({
 
 export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByParticipantId = {} }) {
   const topRows = (quiz.leaderboard || []).slice(0, 10);
-
-  function getInitials(name) {
-    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-    if (parts.length === 0) return '?';
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
-  }
-
-  function getRankMedal(rank) {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return null;
-  }
-
   const maxScore = Math.max(1, ...topRows.map((entry) => Number(entry.score || 0)));
 
   return (
-    <section className={styles.screenCard}>
-      <div className={styles.screenHeader}>
-        <div>
-          <p className={styles.kicker}>Leaderboard live</p>
-          <h2 className={styles.screenTitle}>{isEn ? 'Leaderboard updated in real time' : 'Classement mis à jour en temps réel'}</h2>
-        </div>
-        <span className={styles.phaseBadge}>Live</span>
+    <section className={styles.rankingCardWrap}>
+      <div className={styles.rankingCardHeader}>
+        <h3 className={`${styles.rankingCardTitle} challenge-section-title`}>{isEn ? 'Leaderboard' : 'Classement'}</h3>
+        <span className={styles.rankingMeta}>{isEn ? 'Live update' : 'Mis à jour en direct'}</span>
       </div>
-
       <div className={styles.leaderboardList}>
-        {topRows.map((entry, index) => {
-          const participantKey = String(entry.participant_id);
-          const movement = String(rankMovementByParticipantId[participantKey] || 'same');
-          const progressWidth = `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%`;
-          const medal = getRankMedal(Number(entry.rank));
-          const movementGlyph = movement === 'up' ? '↑' : movement === 'down' ? '↓' : '→';
-          return (
-            <article
-              key={entry.participant_id}
-              className={`${styles.leaderboardCard}${index < 3 ? ` ${styles.leaderboardCardTop}` : ''}${movement === 'up' ? ` ${styles.rankUp}` : ''}${movement === 'down' ? ` ${styles.rankDown}` : ''}`}
-            >
-              <div className={styles.leaderboardIdentity}>
-                <div className={styles.leaderboardRankWrap}>
-                  <span className={styles.rankPill}>{medal || `#${entry.rank}`}</span>
-                  <span className={`${styles.rankDeltaBadge}${movement === 'up' ? ` ${styles.rankDeltaUp}` : movement === 'down' ? ` ${styles.rankDeltaDown}` : ''}`} aria-label={movement}>
-                    {movementGlyph}
-                  </span>
-                </div>
-                <span className={styles.leaderAvatar}>{getInitials(entry.display_name)}</span>
-                <div className={styles.leaderboardCopy}>
-                  <span className={styles.leaderboardLine}>{entry.display_name}</span>
-                  <span className={styles.leaderboardSubline}>{isEn ? 'Live rank' : `Rang #${entry.rank}`}</span>
-                </div>
-              </div>
-
-              <div className={styles.leaderboardScoreWrap}>
-                <div className={styles.leaderboardScoreTopline}>
-                  <span className={styles.leaderboardScore}>{entry.score} pts</span>
-                  {medal ? <span className={styles.leaderboardReward}>{medal}</span> : null}
-                </div>
-                <span className={styles.leaderProgressTrack}>
-                  <span className={styles.leaderProgressFill} style={{ width: progressWidth }} />
-                </span>
-              </div>
-            </article>
-          );
-        })}
+        {renderLeaderboardRows({ rows: topRows, maxScore, rankMovementByParticipantId, isEn })}
       </div>
     </section>
   );
@@ -222,13 +221,12 @@ export function QuizQuestionResultScreen({ isEn = false, quiz }) {
       </div>
 
       <div className={styles.rankingList}>
-        {(quiz.leaderboard || []).slice(0, 5).map((entry) => (
-          <article key={entry.participant_id} className={styles.rankingCard}>
-            <strong>#{entry.rank}</strong>
-            <span>{entry.display_name}</span>
-            <span>{entry.score} {isEn ? 'pts' : 'pts'}</span>
-          </article>
-        ))}
+        {renderLeaderboardRows({
+          rows: (quiz.leaderboard || []).slice(0, 5),
+          maxScore: Math.max(1, ...(quiz.leaderboard || []).slice(0, 5).map((entry) => Number(entry.score || 0))),
+          rankMovementByParticipantId: {},
+          isEn,
+        })}
       </div>
     </section>
   );
@@ -259,13 +257,12 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
       <div className={styles.finalDebriefBlock}>
         <p className={styles.kicker}>{isEn ? 'Detailed ranking' : 'Classement détaillé'}</p>
         <div className={styles.rankingList}>
-          {standings.map((entry) => (
-            <article key={entry.participant_id} className={styles.rankingCard}>
-              <strong>#{entry.rank}</strong>
-              <span>{entry.display_name}</span>
-              <span>{entry.score} {isEn ? 'pts' : 'pts'}</span>
-            </article>
-          ))}
+          {renderLeaderboardRows({
+            rows: standings,
+            maxScore: Math.max(1, ...standings.map((entry) => Number(entry.score || 0))),
+            rankMovementByParticipantId: {},
+            isEn,
+          })}
         </div>
       </div>
 
@@ -299,41 +296,6 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
             <p className={styles.helperText}>{isEn ? 'Question recap unavailable for this session.' : 'Le récapitulatif des questions n est pas disponible pour cette session.'}</p>
           )}
         </div>
-      </div>
-    </section>
-  );
-}
-
-
-export function QuizHostResponsesScreen({ isEn = false, quiz }) {
-  const participants = quiz.participants || [];
-  const liveAnswers = quiz.live_answers_by_participant && typeof quiz.live_answers_by_participant === 'object'
-    ? quiz.live_answers_by_participant
-    : {};
-
-  return (
-    <section className={styles.screenCard}>
-      <div className={styles.screenHeader}>
-        <div>
-          <p className={styles.kicker}>{isEn ? 'Participant live answers' : 'Réponses live participants'}</p>
-          <h2 className={styles.screenTitle}>{isEn ? 'Host view of incoming validations' : 'Vue animateur sur les validations en cours'}</h2>
-        </div>
-        <span className={styles.phaseBadge}>Live answers</span>
-      </div>
-
-      <div className={styles.answersFeed}>
-        {participants.map((participant, index) => (
-          <article key={participant.participant_id} className={styles.answerFeedCard}>
-            <strong>{participant.display_name}</strong>
-            <span>
-              {liveAnswers[String(participant.participant_id)]
-                ? `${isEn ? 'Answer' : 'Réponse'} #${Number(liveAnswers[String(participant.participant_id)]?.selected_option || 0) + 1}`
-                : `${isEn ? 'Waiting' : 'En attente'} #${(index % 4) + 1}`}
-            </span>
-            <span>{participant.is_connected ? (isEn ? 'Connected' : 'Connecté') : (isEn ? 'Offline' : 'Hors ligne')}</span>
-            <span>{liveAnswers[String(participant.participant_id)] ? formatRelativeMs(liveAnswers[String(participant.participant_id)]?.response_time_ms) : '-'}</span>
-          </article>
-        ))}
       </div>
     </section>
   );
