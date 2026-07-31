@@ -5631,10 +5631,10 @@ a {
 .landing-benefits-orbit {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   align-items: stretch;
-  min-height: 520px;
+  min-height: 560px;
   padding: 1.2rem;
 }
 
@@ -5642,12 +5642,12 @@ a {
   content: '';
   position: absolute;
   inset: 50% auto auto 50%;
-  width: min(42vw, 380px);
-  height: min(42vw, 380px);
+  width: min(38vw, 350px);
+  height: min(38vw, 350px);
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  border: 1px dashed rgba(125, 211, 252, 0.28);
-  background: radial-gradient(circle, rgba(14, 22, 40, 0.08) 0%, rgba(14, 22, 40, 0) 62%);
+  border: 1px dashed rgba(125, 211, 252, 0.2);
+  background: radial-gradient(circle, rgba(15, 23, 42, 0.46) 0%, rgba(15, 23, 42, 0.18) 34%, rgba(15, 23, 42, 0) 68%);
   pointer-events: none;
 }
 
@@ -5656,11 +5656,11 @@ a {
   position: relative;
   z-index: 1;
   border-radius: 22px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  background: linear-gradient(160deg, rgba(26, 35, 58, 0.9), rgba(14, 22, 40, 0.96));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 14px 28px rgba(2, 6, 23, 0.22);
-  padding: 1rem 1.05rem;
-  color: #eff6ff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(160deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 28px rgba(2, 6, 23, 0.28);
+  padding: 1.05rem 1.08rem;
+  color: #f8fafc;
 }
 
 .landing-benefits-orbit-item h3,
@@ -5670,67 +5670,95 @@ a {
 }
 
 .landing-benefits-orbit-item h3 {
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   line-height: 1.2;
 }
 
 .landing-benefits-orbit-item p,
 .landing-benefits-orbit-center p {
   margin: 0.45rem 0 0;
-  color: #dbeafe;
-  font-size: 0.92rem;
+  color: #94a3b8;
+  font-size: 0.93rem;
   line-height: 1.55;
+}
+
+.landing-benefits-head__intro {
+  max-width: 70ch;
+  margin: 0.65rem 0 0;
+  color: #cbd5e1;
+  font-size: 0.98rem;
+  line-height: 1.6;
 }
 
 .landing-benefits-orbit-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.55rem;
-  height: 2.55rem;
+  width: 2.85rem;
+  height: 2.85rem;
   border-radius: 999px;
   margin-bottom: 0.8rem;
-  color: #fde68a;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  background: rgba(96, 165, 250, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
 }
 
-.landing-benefits-orbit-item--center {
-  grid-column: 2;
-  grid-row: 2;
+.landing-benefits-orbit-metric {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  margin-top: 0.95rem;
+  padding: 0.42rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  font-size: 0.77rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.landing-benefits-orbit-item--center,
+.landing-benefits-orbit-center {
+  grid-column: 1 / -1;
+  grid-row: 1;
   align-self: center;
   justify-self: center;
-  max-width: 320px;
-  min-height: 260px;
+  max-width: 360px;
+  min-height: 290px;
   display: grid;
   align-content: center;
   text-align: center;
-  background: linear-gradient(155deg, rgba(236, 72, 153, 0.95), rgba(190, 24, 93, 0.98));
-  border-color: rgba(244, 114, 182, 0.35);
-  box-shadow: 0 18px 36px rgba(157, 23, 77, 0.28);
-  transform: scale(1.05);
+  gap: 0.45rem;
+  background: linear-gradient(155deg, rgba(56, 189, 248, 0.18), rgba(30, 41, 59, 0.98));
+  border-color: rgba(125, 211, 252, 0.18);
+  box-shadow: 0 20px 42px rgba(2, 6, 23, 0.34), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  transform: translateY(0);
 }
 
-.landing-benefits-orbit-item--center .landing-benefits-orbit-icon {
+.landing-benefits-orbit-item--center .landing-benefits-orbit-icon,
+.landing-benefits-orbit-center .landing-benefits-orbit-icon {
   color: #fff;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(59, 130, 246, 0.18);
 }
 
 .landing-benefits-orbit-item--center h3,
 .landing-benefits-orbit-center strong {
-  font-size: 1.2rem;
+  font-size: 1.22rem;
 }
 
 .landing-benefits-orbit-item--center p,
 .landing-benefits-orbit-center p {
-  color: rgba(255, 255, 255, 0.88);
+  color: #dbeafe;
 }
 
 .landing-benefits-orbit-center__eyebrow {
   font-size: 0.76rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.82);
+  color: #93c5fd;
 }
 
 .landing-benefits-orbit-center strong {
@@ -5742,25 +5770,12 @@ a {
   font-size: 0.95rem;
 }
 
-.landing-benefits-orbit-item--1 { grid-column: 1; grid-row: 1; }
-.landing-benefits-orbit-item--2 { grid-column: 3; grid-row: 1; }
-.landing-benefits-orbit-item--3 { grid-column: 1; grid-row: 2; }
-.landing-benefits-orbit-item--4 { grid-column: 3; grid-row: 2; }
-.landing-benefits-orbit-item--5 { grid-column: 1; grid-row: 3; }
-.landing-benefits-orbit-item--6 { grid-column: 3; grid-row: 3; }
-
-.landing-benefits-orbit-item--3,
-.landing-benefits-orbit-item--4,
-.landing-benefits-orbit-item--5,
-.landing-benefits-orbit-item--6 {
-  min-height: 132px;
-}
-
 .landing-benefits-orbit-item--1,
 .landing-benefits-orbit-item--2,
-.landing-benefits-orbit-item--5,
-.landing-benefits-orbit-item--6 {
-  min-height: 140px;
+.landing-benefits-orbit-item--3,
+.landing-benefits-orbit-item--4,
+.landing-benefits-orbit-item--support {
+  min-height: 166px;
 }
 
 @media (max-width: 980px) {

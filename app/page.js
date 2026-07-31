@@ -1434,25 +1434,48 @@ export default function HomePage() {
               <div>
                 <p className="eyebrow landing-section-eyebrow">{landingStatic.fallback.benefitsEyebrow}</p>
                 <h2 className="landing-section-title">{landingStatic.fallback.benefitsTitle}</h2>
+                <p className="landing-benefits-head__intro">
+                  {locale === 'en'
+                    ? 'A clearer structure, a stronger center of gravity, and benefits that are easier to scan, remember and convert.'
+                    : 'Une structure plus lisible, un centre de gravité plus fort, et des bénéfices plus faciles à parcourir, retenir et convertir.'}
+                </p>
               </div>
             </div>
             <div className="landing-benefits-orbit mt-8">
-              {PLATFORM_BENEFITS_ITEMS.map((item, index) => {
+              {PLATFORM_BENEFITS_ITEMS.slice(0, 4).map((item, index) => {
                 const Icon = item.icon;
-                const isCenter = index === 2;
                 return (
                   <article
                     key={item.label}
-                    className={`landing-benefits-orbit-item landing-benefits-orbit-item--${index + 1}${isCenter ? ' landing-benefits-orbit-item--center' : ''}`}
+                    className={`landing-benefits-orbit-item landing-benefits-orbit-item--${index + 1}`}
                   >
                     <span className="landing-benefits-orbit-icon" aria-hidden="true">
-                      <GamifiedIcon Icon={Icon} index={index} size={isCenter ? 'md' : 'sm'} />
+                      <GamifiedIcon Icon={Icon} index={index} size="sm" />
                     </span>
                     <h3>{item.label}</h3>
                     <p>{item.description}</p>
+                    <strong className="landing-benefits-orbit-metric">
+                      {index === 0
+                        ? (locale === 'en' ? '-60% prep time' : '-60% de temps de préparation')
+                        : index === 1
+                          ? (locale === 'en' ? '95% participation' : '95% de participation')
+                          : index === 2
+                            ? (locale === 'en' ? '3× faster onboarding' : 'Onboarding 3× plus rapide')
+                            : (locale === 'en' ? 'Instant debrief' : 'Débrief immédiat')}
+                    </strong>
                   </article>
                 );
               })}
+              <article className="landing-benefits-orbit-item landing-benefits-orbit-item--support">
+                <span className="landing-benefits-orbit-icon" aria-hidden="true">
+                  <GamifiedIcon Icon={Sparkles} index={4} size="sm" />
+                </span>
+                <h3>{PLATFORM_BENEFITS_ITEMS[4].label}</h3>
+                <p>{PLATFORM_BENEFITS_ITEMS[4].description}</p>
+                <strong className="landing-benefits-orbit-metric">
+                  {locale === 'en' ? 'Premium feel' : 'Image premium'}
+                </strong>
+              </article>
               <div className="landing-benefits-orbit-center" aria-label={locale === 'en' ? 'Core benefits summary' : 'Synthese des benefices'}>
                 <span className="landing-benefits-orbit-center__eyebrow">{locale === 'en' ? 'Core platform value' : 'Valeur centrale'}</span>
                 <strong>{locale === 'en' ? 'Make every session clearer, faster, and easier to measure.' : 'Rendez chaque session plus claire, plus rapide et plus mesurable.'}</strong>

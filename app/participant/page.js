@@ -41,6 +41,10 @@ export default function ParticipantPage() {
   const flowMode = String(sessionState?.flowMode || sessionState?.flow_mode || 'manual').trim().toLowerCase() === 'auto'
     ? 'auto'
     : 'manual';
+  const stateEngineKey = useMemo(
+    () => String(sessionState?.current_challenge?.engine_key || '').trim(),
+    [sessionState?.current_challenge?.engine_key]
+  );
 
   useEffect(() => {
     if (authInitRef.current) {
@@ -128,8 +132,11 @@ export default function ParticipantPage() {
     if (joiningSessionId) return isEn ? 'Connecting to session...' : 'Connexion a la session en cours...';
     if (joining) return isEn ? 'Loading active challenge...' : 'Chargement du challenge actif...';
     if (loadingSessions) return isEn ? 'Loading assigned sessions...' : 'Chargement des sessions assignées...';
+    if (sessionId && !runtime?.engine_key && (connected || reconnecting || pollingActive)) {
+      return isEn ? 'Synchronizing next challenge...' : 'Synchronisation du prochain challenge...';
+    }
     return '';
-  }, [isEn, joiningSessionId, joining, loadingSessions]);
+  }, [isEn, joiningSessionId, joining, loadingSessions, sessionId, runtime?.engine_key, connected, reconnecting, pollingActive]);
 
   useEffect(() => {
     if (!ready || typeof window === 'undefined') return;
@@ -161,6 +168,12 @@ export default function ParticipantPage() {
 
   useEffect(() => {
     if (!ready || !sessionId) return;
+
+    if (stateEngineKey) {
+      setJoining(false);
+      setRuntimeError('');
+      return;
+    }
 
     const hasActiveChallenge = Boolean(sessionState?.active_challenge_id);
     if (!hasActiveChallenge) {
@@ -204,7 +217,7 @@ export default function ParticipantPage() {
     return () => {
       cancelled = true;
     };
-  }, [isEn, ready, sessionId, sessionState?.active_challenge_id]);
+  }, [isEn, ready, sessionId, sessionState?.active_challenge_id, stateEngineKey]);
 
 // Load participant's assigned sessions
   useEffect(() => {
@@ -258,10 +271,10 @@ export default function ParticipantPage() {
 
 
   const challengeLink = useMemo(() => {
-    const engine = String(runtime?.engine_key || '').trim();
+    const engine = String(stateEngineKey || runtime?.engine_key || '').trim();
     if (!engine || !sessionId) return '';
     return withLocalePath(`/challenges/${encodeURIComponent(engine)}?sessionId=${encodeURIComponent(sessionId)}`);
-  }, [runtime, sessionId, withLocalePath]);
+  }, [stateEngineKey, runtime, sessionId, withLocalePath]);
 
   // Auto-redirect to challenge as soon as it is available (removes the manual second click)
   useEffect(() => {
