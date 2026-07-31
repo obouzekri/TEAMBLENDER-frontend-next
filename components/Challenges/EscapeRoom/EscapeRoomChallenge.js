@@ -438,6 +438,27 @@ export default function EscapeRoomChallenge({
   const hasCurrentParticipantResponded = currentParticipantId != null && respondedSet.has(currentParticipantId);
 
   const timerSeconds = Number(state?.timer?.duration_seconds || 0);
+  const configuredCurrentEnigme = useMemo(() => {
+    const configuredEnigmes = Array.isArray(runtimePayload?.config?.enigmes)
+      ? runtimePayload.config.enigmes
+      : [];
+
+    if (configuredEnigmes.length === 0) {
+      return null;
+    }
+
+    const currentIndex = Number(state?.current_enigme_index);
+    if (Number.isInteger(currentIndex) && currentIndex >= 0 && currentIndex < configuredEnigmes.length) {
+      return configuredEnigmes[currentIndex] || null;
+    }
+
+    const currentId = String(currentEnigme?.id || '').trim().toLowerCase();
+    if (!currentId) {
+      return null;
+    }
+
+    return configuredEnigmes.find((enigme) => String(enigme?.id || '').trim().toLowerCase() === currentId) || null;
+  }, [runtimePayload, state?.current_enigme_index, currentEnigme?.id]);
   const rawEnigmeImageSrc = String(
     currentEnigme?.image?.src
     || currentEnigme?.image?.url
@@ -445,6 +466,12 @@ export default function EscapeRoomChallenge({
     || currentEnigme?.imageSrc
     || currentEnigme?.ui_data?.image?.src
     || currentEnigme?.ui_data?.image_url
+    || configuredCurrentEnigme?.image?.src
+    || configuredCurrentEnigme?.image?.url
+    || configuredCurrentEnigme?.image_url
+    || configuredCurrentEnigme?.imageSrc
+    || configuredCurrentEnigme?.ui_data?.image?.src
+    || configuredCurrentEnigme?.ui_data?.image_url
     || ''
   ).trim();
   const enigmeImageSrc = normalizeBackendAssetUrl(rawEnigmeImageSrc);
