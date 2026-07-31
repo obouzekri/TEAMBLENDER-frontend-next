@@ -941,6 +941,14 @@
     grid-template-columns: 1fr;
   }
 
+  .mainCard {
+    order: 1;
+  }
+
+  .sidePanel {
+    order: 2;
+  }
+
   .enigmeHero {
     flex-direction: column;
   }
@@ -964,11 +972,35 @@
 
 @media (max-width: 640px) {
   .escapeRoomContainer {
-    padding: 12px;
+    padding: 10px;
   }
 
   .card {
+    padding: 10px;
+  }
+
+  .escapeHeader {
     padding: 12px;
+  }
+
+  .headerTitleLine,
+  .meta {
+    white-space: normal;
+  }
+
+  .headerLine,
+  .enigmeHero,
+  .answerRow {
+    gap: 8px;
+  }
+
+  .enigmeMetaChips {
+    width: 100%;
+  }
+
+  .enigmeMetaChip {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .title {
@@ -985,8 +1017,22 @@
   }
 
   .matrixGridFeatured {
-    grid-template-columns: repeat(3, minmax(68px, 1fr));
+    grid-template-columns: repeat(3, minmax(56px, 1fr));
     max-width: 100%;
+  }
+
+  .matrixGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .matrixCell,
+  .matrixCellFeatured {
+    min-height: 50px;
+    font-size: 1rem;
+  }
+
+  .mysteryMark {
+    font-size: 1.45em;
   }
 
   .input {
@@ -1014,6 +1060,15 @@
 
   .title {
     font-size: 21px;
+  }
+
+  .description,
+  .enigmeUiInstruction,
+  .textMysteryLine,
+  .timerMeta,
+  .footerNote {
+    font-size: 0.82rem;
+    line-height: 1.45;
   }
 }
 

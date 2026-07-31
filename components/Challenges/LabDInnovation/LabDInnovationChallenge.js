@@ -341,7 +341,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   }).filter(Boolean) : [];
 
   function startChallenge() {
-    emit('timer.start');
+    emitEvent('timer.start');
   }
 
   return (

@@ -395,7 +395,16 @@ export default function EscapeRoomChallenge({
   const hasCurrentParticipantResponded = currentParticipantId != null && respondedSet.has(currentParticipantId);
 
   const timerSeconds = Number(state?.timer?.duration_seconds || 0);
-  const enigmeImageSrc = normalizeBackendAssetUrl(String(currentEnigme?.image?.src || '').trim());
+  const rawEnigmeImageSrc = String(
+    currentEnigme?.image?.src
+    || currentEnigme?.image?.url
+    || currentEnigme?.image_url
+    || currentEnigme?.imageSrc
+    || currentEnigme?.ui_data?.image?.src
+    || currentEnigme?.ui_data?.image_url
+    || ''
+  ).trim();
+  const enigmeImageSrc = normalizeBackendAssetUrl(rawEnigmeImageSrc);
   const challengeStatus = String(state?.status || '').trim();
   const hasChallengeStarted = challengeStatus !== 'waiting_for_start';
   const rulesContent = useMemo(() => ({

@@ -615,7 +615,7 @@
 
 @media (max-width: 760px) {
   .container {
-    padding: 14px;
+    padding: 12px;
   }
 
   .container > :first-child {
@@ -634,6 +634,15 @@
     align-items: stretch;
   }
 
+  .timelineHead h2 {
+    font-size: 1rem;
+  }
+
+  .timelineHead p,
+  .sectionHead p {
+    font-size: 0.8rem;
+  }
+
   .taskGrid {
     grid-template-columns: 1fr;
   }
@@ -643,10 +652,40 @@
     padding: 12px;
   }
 
+  .workspaceGrid,
+  .layout {
+    gap: 10px;
+  }
+
+  .phaseLineHeader h3,
+  .sectionHead h2,
+  .timelineHead h2 {
+    font-size: 0.95rem;
+  }
+
+  .phaseTimeline,
+  .timelineLane {
+    max-height: none;
+  }
+
   .taskChip,
   .primaryBtn,
   .ghostBtn {
     min-height: 44px;
+  }
+
+  .timelineItemControls {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .timelineCodeItem {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timelineItemControls .ghostBtn {
+    flex: 1 1 calc(33.333% - 6px);
   }
 }
 
@@ -657,6 +696,19 @@
 
   .headerTitle {
     font-size: 0.96rem;
+  }
+
+  .phaseClock {
+    font-size: 1.12rem;
+  }
+
+  .progressBar,
+  .phaseStatsRow {
+    grid-template-columns: 1fr;
+  }
+
+  .boardGrid {
+    grid-template-columns: 1fr;
   }
 
 }

@@ -988,6 +988,111 @@
   top: 12px;
 }
 
+@media (max-width: 980px) {
+  .layout {
+    gap: 12px;
+  }
+
+  .mainColumn,
+  .sideColumn {
+    gap: 10px;
+  }
+
+  .stateCard {
+    position: static;
+  }
+
+  .sideColumn {
+    order: 3;
+  }
+}
+
+@media (max-width: 760px) {
+  .shell {
+    padding: 14px;
+  }
+
+  .layout {
+    gap: 10px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  .statementGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .voteActions {
+    grid-template-columns: 1fr;
+  }
+
+  .votePhaseHeader,
+  .voteMonitorCard,
+  .roleSpotlightCard {
+    padding: 12px;
+  }
+
+  .votePhaseStatement {
+    font-size: 0.96rem;
+  }
+
+  .voteTrue,
+  .voteFalse,
+  .choiceOptionBtn {
+    min-height: 88px;
+  }
+
+  .voteResponseCard,
+  .stateRow,
+  .historyList li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .voteMonitorHeader,
+  .roleSpotlightMetaRow,
+  .votePhaseMetaRow,
+  .resultMetaBar {
+    gap: 6px;
+  }
+
+  .historyList li {
+    gap: 6px;
+  }
+
+  .leaderboardScoreWrap {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .shell {
+    padding: 10px;
+  }
+
+  .card {
+    padding: 10px;
+  }
+
+  .sectionTitle,
+  .votePhaseTitle,
+  .roleSpotlightTitle {
+    font-size: 0.98rem;
+  }
+
+  .votePhaseStatement,
+  .roleSpotlightBody,
+  .helper,
+  .instruction,
+  .timeUpFeedback {
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+}
+
 .rankingCard {
   font-family: var(--font-ui);
   border: 1px solid rgba(14, 165, 233, 0.32);

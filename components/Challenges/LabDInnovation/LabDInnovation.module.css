@@ -397,7 +397,11 @@
 
 @media (max-width: 720px) {
   .shell {
-    padding: 14px;
+    padding: 12px;
+  }
+
+  .layout {
+    gap: 10px;
   }
 
   .phaseHeader,
@@ -409,8 +413,57 @@
     align-items: flex-start;
   }
 
+  .phaseHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .phaseClockWrap {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .phaseClock {
+    font-size: 1.3rem;
+  }
+
+  .progressBar {
+    grid-template-columns: 1fr;
+  }
+
+  .progressStep {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+
+  .progressStepDot {
+    width: 24px;
+    height: 24px;
+  }
+
+  .inputGrid {
+    gap: 8px;
+  }
+
+  .textArea,
+  .select,
+  .primaryBtn,
+  .ghostBtn {
+    min-height: 44px;
+  }
+
+  .voteCard,
+  .leaderboardCard,
+  .listCard,
+  .voteHero {
+    padding: 12px;
+  }
+
   .progressBar,
   .statGrid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .leaderboardGrid {
+    grid-template-columns: 1fr;
   }
 }
