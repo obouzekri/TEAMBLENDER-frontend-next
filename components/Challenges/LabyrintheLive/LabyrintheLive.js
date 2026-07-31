@@ -99,7 +99,6 @@ const OPEN_THICK = '0px';
 const WALL_COLOR = 'rgba(248, 250, 252, 0.95)';
 const OPEN_COLOR = 'transparent';
 const FLOOR_BG = 'transparent';
-const WALL_CELL_BG = '#030810';
 
 function buildMazeCellStyle(maze, row, col) {
   const cell = getMazeCell(maze, row, col);
@@ -109,9 +108,9 @@ function buildMazeCellStyle(maze, row, col) {
       borderRightWidth: '0',
       borderBottomWidth: '0',
       borderLeftWidth: '0',
-      backgroundColor: WALL_CELL_BG,
-      backgroundImage: 'none',
-      boxShadow: 'none',
+      backgroundColor: FLOOR_BG,
+      backgroundImage: 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 55%)',
+      boxShadow: 'inset 0 0 6px rgba(0,0,0,0.28)',
     };
   }
 
@@ -180,166 +179,6 @@ function formatDurationLabel(totalSeconds) {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-function getAudioContext() {
-  if (typeof window === 'undefined') return null;
-  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextCtor) return null;
-  return AudioContextCtor;
-}
-
-function playToneSequence(audioState, notes) {
-  const AudioContextCtor = getAudioContext();
-  if (!AudioContextCtor || !Array.isArray(notes) || notes.length === 0) return;
-
-  if (!audioState.context) {
-    audioState.context = new AudioContextCtor();
-  }
-
-  const ctx = audioState.context;
-  if (!ctx) return;
-  if (ctx.state === 'suspended') {
-    ctx.resume().catch(() => {});
-  }
-
-  let startAt = ctx.currentTime + 0.02;
-  notes.forEach((note) => {
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    oscillator.type = note.type || 'sine';
-    oscillator.frequency.value = Number(note.frequency || note.freq || 440);
-    if (Number.isFinite(Number(note.detune))) {
-      oscillator.detune.value = Number(note.detune);
-    }
-    const attack = Math.max(0.005, Number(note.attack || 0.02));
-    const release = Math.max(0.02, Number(note.release || 0.08));
-    const duration = Math.max(0.08, Number(note.duration || 0.18));
-    gainNode.gain.setValueAtTime(0.0001, startAt);
-    gainNode.gain.exponentialRampToValueAtTime(Math.max(0.0001, Number(note.gain || 0.05)), startAt + attack);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, startAt + Math.max(attack + 0.02, duration + release));
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    oscillator.start(startAt);
-    oscillator.stop(startAt + duration + release + 0.03);
-    oscillator.onended = () => {
-      try { oscillator.disconnect(); } catch {}
-      try { gainNode.disconnect(); } catch {}
-    };
-    startAt += Math.max(0.12, duration + Number(note.gap || 0.04));
-  });
-}
-
-function startAmbientTrack(audioState) {
-  const AudioContextCtor = getAudioContext();
-  if (!AudioContextCtor) return false;
-
-  if (!audioState.context) {
-    audioState.context = new AudioContextCtor();
-  }
-
-  const ctx = audioState.context;
-  if (!ctx) return false;
-  if (ctx.state === 'suspended') {
-    ctx.resume().catch(() => {});
-  }
-  if (audioState.ambient) return true;
-
-  const master = ctx.createGain();
-  const padBus = ctx.createGain();
-  const pulseBus = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
-  const lfo = ctx.createOscillator();
-  const lfoGain = ctx.createGain();
-  master.gain.value = 0.0001;
-  padBus.gain.value = 0.65;
-  pulseBus.gain.value = 0.35;
-  filter.type = 'lowpass';
-  filter.frequency.value = 520;
-  filter.Q.value = 0.9;
-
-  lfo.type = 'sine';
-  lfo.frequency.value = 0.08;
-  lfoGain.gain.value = 110;
-  lfo.connect(lfoGain);
-  lfoGain.connect(filter.frequency);
-  lfo.start();
-
-  const oscillators = [
-    { frequency: 92, type: 'sine', detune: 0 },
-    { frequency: 184, type: 'triangle', detune: -4 },
-    { frequency: 276, type: 'sine', detune: 6 },
-    { frequency: 138, type: 'triangle', detune: 3 },
-  ].map((config) => {
-    const oscillator = ctx.createOscillator();
-    oscillator.type = config.type;
-    oscillator.frequency.value = config.frequency;
-    oscillator.detune.value = config.detune;
-    oscillator.connect(config.frequency < 170 ? pulseBus : padBus);
-    oscillator.start();
-    return oscillator;
-  });
-
-  padBus.connect(filter);
-  pulseBus.connect(filter);
-  filter.connect(master);
-  master.connect(ctx.destination);
-  master.gain.setTargetAtTime(0.026, ctx.currentTime + 0.05, 0.22);
-
-  audioState.ambient = { master, filter, padBus, pulseBus, lfo, lfoGain, oscillators };
-  return true;
-}
-
-function stopAmbientTrack(audioState) {
-  const ambient = audioState.ambient;
-  if (!ambient) return;
-
-  const ctx = audioState.context;
-  if (ctx && ambient.master) {
-    ambient.master.gain.cancelScheduledValues(ctx.currentTime);
-    ambient.master.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.12);
-  }
-
-  window.setTimeout(() => {
-    (ambient.oscillators || []).forEach((oscillator) => {
-      try { oscillator.stop(); } catch {}
-      try { oscillator.disconnect(); } catch {}
-    });
-    try { ambient.lfo?.stop(); } catch {}
-    try { ambient.lfo?.disconnect(); } catch {}
-    try { ambient.lfoGain?.disconnect(); } catch {}
-    try { ambient.padBus?.disconnect(); } catch {}
-    try { ambient.pulseBus?.disconnect(); } catch {}
-    try { ambient.filter.disconnect(); } catch {}
-    try { ambient.master.disconnect(); } catch {}
-    if (audioState.ambient === ambient) {
-      audioState.ambient = null;
-    }
-  }, 180);
-}
-
-function playLabyrintheCue(audioState, cueType) {
-  const cueMap = {
-    trap: [
-      { frequency: 176, duration: 0.08, gain: 0.065, type: 'square', attack: 0.006 },
-      { frequency: 132, duration: 0.1, gain: 0.075, type: 'sawtooth', attack: 0.006, gap: 0.02 },
-      { frequency: 84, duration: 0.2, gain: 0.08, type: 'triangle', release: 0.12 },
-    ],
-    success: [
-      { frequency: 392, duration: 0.12, gain: 0.045, type: 'triangle' },
-      { frequency: 523, duration: 0.14, gain: 0.052, type: 'triangle' },
-      { frequency: 659, duration: 0.18, gain: 0.055, type: 'sine' },
-      { frequency: 784, duration: 0.2, gain: 0.05, type: 'sine', release: 0.12 },
-    ],
-    failure: [
-      { frequency: 220, duration: 0.12, gain: 0.05, type: 'sine' },
-      { frequency: 164, duration: 0.16, gain: 0.058, type: 'square', gap: 0.05 },
-      { frequency: 116, duration: 0.2, gain: 0.064, type: 'sawtooth', gap: 0.03 },
-      { frequency: 82, duration: 0.24, gain: 0.068, type: 'triangle', release: 0.14 },
-    ],
-  };
-
-  playToneSequence(audioState, cueMap[cueType] || []);
-}
-
 export default function LabyrintheLive({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
   const isEn = locale === 'en';
@@ -353,7 +192,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   useBodyScrollLock(Boolean(announcement));
 
   const microCueTimerRef = useRef(null);
-  const audioStateRef = useRef({ context: null, ambient: null });
   const finalEventSignatureRef = useRef('');
   const {
     state,
@@ -537,7 +375,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       const dir = map[String(event.key || '').toLowerCase()] || map[event.key];
       if (!dir) return;
       event.preventDefault();
-      startAmbientTrack(audioStateRef.current);
       emitEvent('laby.solo.move', { dir });
     };
 
@@ -599,8 +436,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
       const outcome = String(payload?.outcome || '').trim();
       if (outcome === 'exit') {
-        playLabyrintheCue(audioStateRef.current, 'success');
-        stopAmbientTrack(audioStateRef.current);
         setAnnouncement({
           tone: 'success',
           title: 'Félicitations ! Toute l\'équipe a réussi le Labyrinthe des Signaux.',
@@ -612,7 +447,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         return;
       }
       if (outcome === 'trap') {
-        playLabyrintheCue(audioStateRef.current, 'trap');
         setMoveFeedback('💥 Piège déclenché : -1 vie');
         setMoveFeedbackTone('danger');
         showMicroCue(impactedCellKey, 'danger', '💥 Boom !', '−1 vie');
@@ -624,8 +458,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
           });
         }
         if (payload?.all_lost) {
-          playLabyrintheCue(audioStateRef.current, 'failure');
-          stopAmbientTrack(audioStateRef.current);
           setAnnouncement({
             tone: 'failure',
             title: 'Challenge perdu ! Toutes les vies ont été consommées ou le temps est écoulé.',
@@ -635,7 +467,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         return;
       }
       if (outcome === 'blocked') {
-        playLabyrintheCue(audioStateRef.current, 'trap');
         setMoveFeedback('🚧 Chemin bloqué : -1 vie');
         setMoveFeedbackTone('danger');
         showMicroCue(impactedCellKey, 'danger', '🚧 Chemin bloqué', '−1 vie');
@@ -673,13 +504,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   }, [socket, participantId, playerPosKey]);
 
   useEffect(() => {
-    if (!hasChallengeStarted || labyPhase === 'done') {
-      stopAmbientTrack(audioStateRef.current);
-      return () => stopAmbientTrack(audioStateRef.current);
-    }
-
-    startAmbientTrack(audioStateRef.current);
-    return () => stopAmbientTrack(audioStateRef.current);
+    return () => {};
   }, [hasChallengeStarted, labyPhase]);
 
   useEffect(() => {
@@ -690,8 +515,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     finalEventSignatureRef.current = signature;
 
     if (labyFinalSummary.isSuccess) {
-      playLabyrintheCue(audioStateRef.current, 'success');
-      stopAmbientTrack(audioStateRef.current);
       setAnnouncement({
         tone: 'success',
         title: 'Félicitations ! Toute l\'équipe a réussi le Labyrinthe des Signaux.',
@@ -700,8 +523,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       return;
     }
 
-    playLabyrintheCue(audioStateRef.current, 'failure');
-    stopAmbientTrack(audioStateRef.current);
     setAnnouncement({
       tone: 'failure',
       title: 'Challenge perdu ! Toutes les vies ont été consommées ou le temps est écoulé.',
@@ -741,7 +562,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     if (!canMoveDir) return;
     const touch = event.touches?.[0];
     if (!touch) return;
-    startAmbientTrack(audioStateRef.current);
     swipeStartRef.current = { x: touch.clientX, y: touch.clientY };
   }
 
@@ -759,17 +579,14 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
 
     if (Math.abs(dx) > Math.abs(dy)) {
-      startAmbientTrack(audioStateRef.current);
       emitEvent('laby.solo.move', { dir: dx > 0 ? 'E' : 'W' });
       return;
     }
-    startAmbientTrack(audioStateRef.current);
     emitEvent('laby.solo.move', { dir: dy > 0 ? 'S' : 'N' });
   }
 
   function handleCellClick(row, col) {
     if (!canMoveSolo) return;
-    startAmbientTrack(audioStateRef.current);
     const clickedKey = `${row},${col}`;
     const hasMovedAway = Array.isArray(myParticipantState?.solo?.path) && myParticipantState.solo.path.length > 1;
     if (allStartKeys.has(clickedKey) && (!hasMovedAway || isRespawning)) {
@@ -807,7 +624,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
   function moveByDirection(dir) {
     if (!canMoveDir) return;
-    startAmbientTrack(audioStateRef.current);
     emitEvent('laby.solo.move', { dir });
     if (gridRef.current && typeof gridRef.current.focus === 'function') {
       gridRef.current.focus();

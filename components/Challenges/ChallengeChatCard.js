@@ -24,7 +24,8 @@ export default function ChallengeChatCard({
   collapsible = true,
   defaultCollapsed = false,
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const isEn = locale === 'en';
   const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -34,6 +35,7 @@ export default function ChallengeChatCard({
   const resolvedTitle = title || t('chatCard.title');
   const resolvedEmptyText = emptyText || t('chatCard.empty');
   const resolvedPlaceholder = placeholder || t('chatCard.placeholder');
+  const closeChatLabel = isEn ? 'Close chat' : 'Fermer le chat';
   const isMobileMode = isMobileViewport;
 
   useBodyScrollLock(mobileOpen && isMobileMode);
@@ -199,9 +201,11 @@ export default function ChallengeChatCard({
                 type="button"
                 className={styles.mobileChatClose}
                 onClick={() => setMobileOpen(false)}
-                aria-label={t('challengeRulesPanel.closeRules')}
+                aria-label={closeChatLabel}
+                title={closeChatLabel}
               >
-                {t('challengeRulesPanel.closeRules')}
+                <span className={styles.mobileChatCloseIcon} aria-hidden="true">✕</span>
+                <span>{isEn ? 'Close' : 'Fermer'}</span>
               </button>
             </div>
             {chatContent}
