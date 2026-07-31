@@ -5758,14 +5758,14 @@ a {
   border-radius: 0;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.5rem;
   white-space: nowrap;
   color: #7b8faf;
   border: 0;
   background: transparent;
-  flex: 0 1 auto;
-  max-width: none;
+  flex: 1 1 11.5rem;
+  max-width: 13.5rem;
   opacity: 0.74;
   transition: opacity 180ms ease, transform 180ms ease;
 }
@@ -5800,17 +5800,12 @@ a {
 
 .landing-trusted-logo-name {
   font-family: var(--font-ui);
-  font-size: clamp(1rem, 1.45vw, 1.2rem);
+  font-size: clamp(0.98rem, 1.2vw, 1.1rem);
   font-weight: 800;
   line-height: 1.2;
-  letter-spacing: 0.015em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: #788eb1;
-}
-
-.landing-trusted-logo-item--2 .landing-trusted-logo-name {
-  letter-spacing: 0.025em;
-  font-size: clamp(1.25rem, 2vw, 2rem);
+  color: #6f84a8;
 }
 
 .landing-trusted-logo-item--1 .landing-trusted-logo-mark,
@@ -5825,15 +5820,7 @@ a {
   color: #5b5fb5;
 }
 
-.landing-trusted-logo-item--3 .landing-trusted-logo-name {
-  letter-spacing: 0.08em;
-  font-weight: 700;
-}
 
-.landing-trusted-logo-item--4 .landing-trusted-logo-name,
-.landing-trusted-logo-item--6 .landing-trusted-logo-name {
-  font-size: clamp(0.98rem, 1.35vw, 1.14rem);
-}
 
 .landing-testimonials-head .landing-section-eyebrow {
   color: #7dd3fc;
