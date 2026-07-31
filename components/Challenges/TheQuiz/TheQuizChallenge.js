@@ -418,6 +418,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || (isEn ? 'Real-time multiplayer general knowledge quiz' : 'Quiz multijoueur realtime de culture générale')}
+        uppercaseSubtitle={false}
       />
 
       <section className={styles.challengeBoard}>
@@ -505,7 +506,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 <div className={`${styles.chatWrap} ${unreadChatPulse ? styles.chatWrapPulse : ''}`}>
                   {unreadChatCount > 0 ? <span className={styles.chatNotifBadge}>{unreadChatCount}</span> : null}
                   <ChallengeChatCard
-                  title={isEn ? 'Live chat' : 'Chat live'}
+                  title={isEn ? 'Chat' : 'Chat'}
                   messages={chatMessages}
                   currentAuthor={author}
                   inputValue={chatInput}

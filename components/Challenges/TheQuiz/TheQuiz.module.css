@@ -16,7 +16,7 @@
 
 .pageShell {
   display: grid;
-  gap: 16px;
+  gap: 0;
   width: min(100%, 1320px);
   margin: 0 auto;
   padding: 20px;
@@ -25,10 +25,23 @@
   min-height: 100dvh;
 }
 
+.pageShell :global(.challenge-header) {
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.pageShell :global(.challenge-subtitle),
+.pageShell :global(.challenge-section-title) {
+  text-transform: none;
+}
+
 .challengeBoard {
   display: grid;
   gap: 12px;
   border-radius: 18px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
   border: 1px solid rgba(148, 163, 184, 0.24);
   background:
     radial-gradient(1200px 560px at 8% -10%, rgba(66, 212, 248, 0.15), transparent 60%),

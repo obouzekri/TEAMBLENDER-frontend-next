@@ -105,7 +105,7 @@ export default function ChallengeRulesPanel({
             </ul>
           </div>
           <div className={styles.rulesGroup}>
-            <h4>{isEn ? 'Scoring' : 'Scoring'}</h4>
+            <h4>{isEn ? 'Scoring' : 'Barème des points'}</h4>
             <ul>
               {participantRules.filter((rule) => String(rule).toLowerCase().includes('barème') || String(rule).toLowerCase().includes('score') || String(rule).toLowerCase().includes('points') || String(rule).toLowerCase().includes('bonne réponse') || String(rule).toLowerCase().includes('non posé') || String(rule).toLowerCase().includes('non répondu')).map((rule) => (
                 <li key={`participant-score-${rule}`}>{rule}</li>
