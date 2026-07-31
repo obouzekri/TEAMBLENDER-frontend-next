@@ -124,7 +124,37 @@
 @media (max-width: 720px) {
   .challengeContainer {
     padding-bottom: max(8px, env(safe-area-inset-bottom));
-    gap: 10px;
+    gap: 7px;
+  }
+
+  .challengeContainer :global(.challenge-header) {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .challengeContainer :global(.challenge-header-line) {
+    gap: 6px;
+  }
+
+  .challengeContainer :global(.challenge-title) {
+    font-size: 1.02rem;
+  }
+
+  .challengeContainer :global(.challenge-subtitle) {
+    font-size: 0.72rem;
+  }
+
+  .challengeContainer :global(.challenge-section-title) {
+    font-size: 0.8rem;
+  }
+
+  .challengeContainer :global(.card),
+  .challengeContainer :global(.panel),
+  .challengeContainer :global(.screenCard),
+  .challengeContainer :global(.stateCard),
+  .challengeContainer :global(.rulesCard) {
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
 
   .statusActions {

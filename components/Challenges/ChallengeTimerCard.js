@@ -87,6 +87,8 @@ export default function ChallengeTimerCard({
 
   const ringColor = tone === 'danger' ? '#ef4444' : tone === 'warn' ? '#f59e0b' : tone === 'safe' ? '#22c55e' : '#38bdf8';
   const ringSweep = clampPercent(computedProgress);
+  const compactTime = formatTimer(remainingSeconds);
+  const compactStatus = statusLabel(normalizedStatus);
   const normalizedRingAction = React.isValidElement(ringAction)
     ? React.cloneElement(ringAction, {
       className: [styles.timerIconBtn, ringAction.props?.className || ''].filter(Boolean).join(' ')
@@ -95,6 +97,12 @@ export default function ChallengeTimerCard({
 
   return (
     <section className={`${styles.timerCard} ${className}`.trim()}>
+      <div className={styles.timerCompactBar} role="status" aria-live="polite">
+        <span className={styles.timerCompactIcon} aria-hidden="true">⏱</span>
+        <span className={styles.timerCompactTime}>{compactTime}</span>
+        <span className={styles.timerCompactState}>{compactStatus}</span>
+      </div>
+
       <div className={styles.timerHeader}>
         <h3 className={`${styles.timerTitle} challenge-section-title`}>{title}</h3>
         {collapsible ? (
