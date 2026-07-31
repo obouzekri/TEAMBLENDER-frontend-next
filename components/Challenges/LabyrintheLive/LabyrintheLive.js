@@ -857,21 +857,25 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               {error ? <p className={styles.error}>{error}</p> : null}
             </section>
           )}
+
+          {hasChallengeStarted ? (
+            <section className={styles.panel} style={{ opacity: 0.88 }}>
+              <ChallengeRulesPanel
+                isStarted={hasChallengeStarted}
+                isFacilitator={isFacilitator}
+                showPrestartCard={false}
+                challengeName={challengeName}
+                objective={rulesContent.objective}
+                participantsMeta={rulesParticipantsMeta}
+                facilitatorRules={rulesContent.facilitator}
+                participantRules={rulesContent.participant}
+                footnote={rulesContent.footnote}
+              />
+            </section>
+          ) : null}
         </div>
 
         <aside className={styles.sideStack}>
-          <ChallengeRulesPanel
-            isStarted={hasChallengeStarted}
-            isFacilitator={isFacilitator}
-            showPrestartCard={false}
-            challengeName={challengeName}
-            objective={rulesContent.objective}
-            participantsMeta={rulesParticipantsMeta}
-            facilitatorRules={rulesContent.facilitator}
-            participantRules={rulesContent.participant}
-            footnote={rulesContent.footnote}
-          />
-
           <ChallengeTimerCard
             title={isEn ? 'Timer' : 'Chrono'}
             remainingSeconds={Number(timer?.remaining_seconds || 0)}

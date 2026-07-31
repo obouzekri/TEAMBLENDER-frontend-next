@@ -1126,6 +1126,25 @@
   position: static;
 }
 
+.postStartSecondaryCard {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.postStartSecondaryCard::before {
+  display: none;
+}
+
+.postStartSecondaryCard .rankingCard {
+  position: static;
+}
+
+.postStartRulesCard {
+  opacity: 0.9;
+}
+
 .stateGrid {
   display: grid;
   gap: 8px;

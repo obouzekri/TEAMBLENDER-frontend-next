@@ -612,23 +612,25 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               ))}
             </div>
           </section>
+
+          <section className={styles.card} style={{ opacity: 0.88 }}>
+            <ChallengeRulesPanel
+              isStarted={hasChallengeStarted}
+              isFacilitator={isFacilitator}
+              showPrestartCard={false}
+              challengeName={rulesPreset?.challengeName || 'Lab d\'Innovation'}
+              objective={rulesContent.objective}
+              participantsMeta={rulesParticipantsMeta}
+              facilitatorRules={facilitatorRules}
+              participantRules={participantRules}
+              footnote={rulesContent.footnote}
+            />
+          </section>
             </>
           )}
         </main>
 
         <aside className={styles.sideColumn}>
-          <ChallengeRulesPanel
-            isStarted={hasChallengeStarted}
-            isFacilitator={isFacilitator}
-            showPrestartCard={false}
-            challengeName={rulesPreset?.challengeName || 'Lab d\'Innovation'}
-            objective={rulesContent.objective}
-            participantsMeta={rulesParticipantsMeta}
-            facilitatorRules={facilitatorRules}
-            participantRules={participantRules}
-            footnote={rulesContent.footnote}
-          />
-
           <ChallengeTimerCard
             title={isEn ? 'Timer' : 'Chrono'}
             remainingSeconds={timerRemainingSeconds}

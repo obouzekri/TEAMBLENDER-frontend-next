@@ -709,19 +709,23 @@ export default function EscapeRoomChallenge({
           )}
         </article>
 
-        <aside className={`${styles.card} ${styles.sidePanel}`}>
-          <ChallengeRulesPanel
-            isStarted={hasChallengeStarted}
-            isFacilitator={isFacilitator}
-            showPrestartCard={false}
-            challengeName={challengeName}
-            objective={rulesContent.objective}
-            participantsMeta={rulesParticipantsMeta}
-            facilitatorRules={rulesContent.facilitator}
-            participantRules={rulesContent.participant}
-            footnote={rulesContent.footnote}
-          />
+        {hasChallengeStarted ? (
+          <article className={`${styles.card} ${styles.mainCard}`} style={{ opacity: 0.88 }}>
+            <ChallengeRulesPanel
+              isStarted={hasChallengeStarted}
+              isFacilitator={isFacilitator}
+              showPrestartCard={false}
+              challengeName={challengeName}
+              objective={rulesContent.objective}
+              participantsMeta={rulesParticipantsMeta}
+              facilitatorRules={rulesContent.facilitator}
+              participantRules={rulesContent.participant}
+              footnote={rulesContent.footnote}
+            />
+          </article>
+        ) : null}
 
+        <aside className={`${styles.card} ${styles.sidePanel}`}>
           <ChallengeTimerCard
             title="Chrono"
             remainingSeconds={timerSeconds}

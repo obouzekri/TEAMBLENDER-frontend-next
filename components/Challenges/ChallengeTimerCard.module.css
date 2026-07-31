@@ -11,6 +11,17 @@
   padding: 1rem;
 }
 
+.timerCardStarted {
+  position: sticky;
+  top: calc(var(--header-height, 64px) + 8px);
+  z-index: 34;
+  border: 1px solid rgba(251, 191, 36, 0.52);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(251, 191, 36, 0.22), transparent 42%),
+    linear-gradient(160deg, rgba(34, 25, 8, 0.96), rgba(20, 31, 58, 0.94));
+  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.34), inset 0 0 0 1px rgba(251, 191, 36, 0.12);
+}
+
 .timerCompactBar {
   display: none;
 }
@@ -193,6 +204,17 @@
     padding: 0.48rem 0.7rem;
     gap: 0;
     background: linear-gradient(165deg, rgba(10, 24, 36, 0.96), rgba(7, 23, 46, 0.96));
+  }
+
+  .timerCardStarted {
+    position: fixed;
+    top: calc(var(--header-height, 64px) + env(safe-area-inset-top) + 4px);
+    left: max(10px, env(safe-area-inset-left));
+    right: max(10px, env(safe-area-inset-right));
+    border-color: rgba(251, 191, 36, 0.62);
+    background:
+      radial-gradient(circle at 10% 0%, rgba(251, 191, 36, 0.24), transparent 42%),
+      linear-gradient(165deg, rgba(34, 25, 8, 0.98), rgba(20, 31, 58, 0.96));
   }
 
   .timerCompactBar {

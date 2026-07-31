@@ -581,22 +581,26 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             </section>
           )}
 
+          {hasChallengeStarted ? (
+            <section className={styles.card} style={{ opacity: 0.88 }}>
+              <ChallengeRulesPanel
+                isStarted={hasChallengeStarted}
+                isFacilitator={isFacilitator}
+                showPrestartCard={false}
+                challengeName={challengeName}
+                objective={rulesContent.objective}
+                participantsMeta={rulesParticipantsMeta}
+                facilitatorRules={facilitatorRules}
+                participantRules={participantRules}
+                footnote={rulesContent.footnote}
+              />
+            </section>
+          ) : null}
+
           {error ? <p className={styles.error}>{error}</p> : null}
         </main>
 
         <aside className={styles.sidebar}>
-          <ChallengeRulesPanel
-            isStarted={hasChallengeStarted}
-            isFacilitator={isFacilitator}
-            showPrestartCard={false}
-            challengeName={challengeName}
-            objective={rulesContent.objective}
-            participantsMeta={rulesParticipantsMeta}
-            facilitatorRules={facilitatorRules}
-            participantRules={participantRules}
-            footnote={rulesContent.footnote}
-          />
-
           <ChallengeTimerCard
             title={isEn ? 'Timer' : 'Chrono'}
             remainingSeconds={timerRemainingSeconds}

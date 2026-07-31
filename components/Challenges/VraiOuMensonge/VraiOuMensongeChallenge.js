@@ -965,21 +965,31 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             </div>
           </section>
         ) : null}
+
+        {hasChallengeStarted ? (
+          <section className={`${styles.card} ${styles.postStartSecondaryCard}`}>
+            {renderRankingCard('poststart-main')}
+          </section>
+        ) : null}
+
+        {hasChallengeStarted ? (
+          <section className={`${styles.card} ${styles.postStartRulesCard}`}>
+            <ChallengeRulesPanel
+              isStarted={hasChallengeStarted}
+              isFacilitator={isFacilitator}
+              showPrestartCard={false}
+              challengeName={challengeName || t('vom.title')}
+              objective={rulesContent.objective}
+              participantsMeta={rulesParticipantsMeta}
+              facilitatorRules={facilitatorRules}
+              participantRules={participantRules}
+              footnote={rulesContent.footnote}
+            />
+          </section>
+        ) : null}
         </div>
 
         <aside className={styles.sideColumn}>
-          <ChallengeRulesPanel
-            isStarted={hasChallengeStarted}
-            isFacilitator={isFacilitator}
-            showPrestartCard={false}
-            challengeName={challengeName || t('vom.title')}
-            objective={rulesContent.objective}
-            participantsMeta={rulesParticipantsMeta}
-            facilitatorRules={facilitatorRules}
-            participantRules={participantRules}
-            footnote={rulesContent.footnote}
-          />
-
           <ChallengeTimerCard
             title="Chrono"
             remainingSeconds={remainingSecondsForCard}
@@ -1003,8 +1013,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             maxLength={240}
             disabled={!chatEnabled}
           />
-
-          {renderRankingCard('aside')}
         </aside>
       </div>
 

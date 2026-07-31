@@ -74,6 +74,7 @@ export default function ChallengeTimerCard({
     if (computedProgress <= 55) return 'warn';
     return 'safe';
   }, [computedProgress, normalizedStatus]);
+  const isStartedState = ['running', 'paused', 'completed', 'stopped', 'timeout'].includes(normalizedStatus);
 
   const ringClassName = `${styles.timerRing} ${
     tone === 'safe'
@@ -96,7 +97,7 @@ export default function ChallengeTimerCard({
     : ringAction;
 
   return (
-    <section className={`${styles.timerCard} ${className}`.trim()}>
+    <section className={`${styles.timerCard}${isStartedState ? ` ${styles.timerCardStarted}` : ''} ${className}`.trim()}>
       <div className={styles.timerCompactBar} role="status" aria-live="polite">
         <span className={styles.timerCompactIcon} aria-hidden="true">⏱</span>
         <span className={styles.timerCompactTime}>{compactTime}</span>

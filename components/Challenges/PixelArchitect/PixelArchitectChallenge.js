@@ -1169,26 +1169,26 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   </div>
                 </section>
               ) : null}
+
+              <section className={styles.panel} style={{ opacity: 0.88 }}>
+                <ChallengeRulesPanel
+                  isStarted={hasChallengeStarted}
+                  isFacilitator={isFacilitator}
+                  showPrestartCard={false}
+                  challengeName={challengeName}
+                  objective={rulesContent.objective}
+                  participantsMeta={rulesParticipantsMeta}
+                  facilitatorRules={rulesContent.facilitator}
+                  participantRules={rulesContent.participant}
+                  footnote={rulesContent.footnote}
+                  extraContent={rulesExtraContent}
+                />
+              </section>
             </>
           )}
         </main>
 
         <aside className={styles.sidebar}>
-          {hasChallengeStarted ? (
-            <ChallengeRulesPanel
-              isStarted={hasChallengeStarted}
-              isFacilitator={isFacilitator}
-              showPrestartCard={false}
-              challengeName={challengeName}
-              objective={rulesContent.objective}
-              participantsMeta={rulesParticipantsMeta}
-              facilitatorRules={rulesContent.facilitator}
-              participantRules={rulesContent.participant}
-              footnote={rulesContent.footnote}
-              extraContent={rulesExtraContent}
-            />
-          ) : null}
-
           <ChallengeTimerCard
             title={isEn ? 'Timer' : 'Chrono'}
             remainingSeconds={Number(timer?.remaining_seconds || 0)}

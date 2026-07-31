@@ -417,19 +417,23 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
           )}
         </section>
 
-        <aside className={styles.sidePanel}>
-          <ChallengeRulesPanel
-            isStarted={hasChallengeStarted}
-            isFacilitator={isFacilitator}
-            showPrestartCard={false}
-            challengeName={challengeName}
-            objective={rulesContent.objective}
-            participantsMeta={rulesParticipantsMeta}
-            facilitatorRules={rulesContent.facilitator}
-            participantRules={rulesContent.participant}
-            footnote={rulesContent.footnote}
-          />
+        {hasChallengeStarted ? (
+          <section className={styles.sideCard} style={{ opacity: 0.88 }}>
+            <ChallengeRulesPanel
+              isStarted={hasChallengeStarted}
+              isFacilitator={isFacilitator}
+              showPrestartCard={false}
+              challengeName={challengeName}
+              objective={rulesContent.objective}
+              participantsMeta={rulesParticipantsMeta}
+              facilitatorRules={rulesContent.facilitator}
+              participantRules={rulesContent.participant}
+              footnote={rulesContent.footnote}
+            />
+          </section>
+        ) : null}
 
+        <aside className={styles.sidePanel}>
           <ChallengeTimerCard
             title="Chrono"
             remainingSeconds={Number(timer?.remaining_seconds || 0)}

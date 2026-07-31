@@ -464,23 +464,25 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 <QuizHostResponsesScreen isEn={isEn} quiz={quiz} />
               </section>
             ) : null}
+
+            {isStarted ? (
+              <section className={styles.screenCard} style={{ opacity: 0.88 }}>
+                <ChallengeRulesPanel
+                  challengeName={challengeName}
+                  isStarted={isStarted}
+                  isFacilitator={isFacilitator}
+                  showPrestartCard={false}
+                  objective={rules.objective}
+                  participantsMeta={rulesParticipantsMeta}
+                  facilitatorRules={rules.facilitator}
+                  participantRules={rules.participant}
+                  footnote={rules.footnote}
+                />
+              </section>
+            ) : null}
           </div>
 
           <aside className={styles.sideColumn}>
-            {isStarted ? (
-              <ChallengeRulesPanel
-                challengeName={challengeName}
-                isStarted={isStarted}
-                isFacilitator={isFacilitator}
-                showPrestartCard={false}
-                objective={rules.objective}
-                participantsMeta={rulesParticipantsMeta}
-                facilitatorRules={rules.facilitator}
-                participantRules={rules.participant}
-                footnote={rules.footnote}
-              />
-            ) : null}
-
             {!isStarted && isFacilitator && !canStartQuiz ? (
               <p className={styles.helperText}>
                 {isEn
