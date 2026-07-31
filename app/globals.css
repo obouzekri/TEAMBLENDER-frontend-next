@@ -3244,7 +3244,7 @@ a {
   }
 
   .footer-logo {
-    width: clamp(10rem, 58vw, 15rem);
+    width: clamp(11rem, 60vw, 16rem);
     height: auto;
   }
 
@@ -7449,12 +7449,13 @@ a {
 
 .footer-brand-block {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
   gap: 0.8rem;
 }
 
 .footer-logo {
-  width: 18.4rem;
+  width: 20rem;
   height: 6rem;
   display: inline-flex;
   align-items: center;
