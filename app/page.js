@@ -1436,51 +1436,47 @@ export default function HomePage() {
                 <h2 className="landing-section-title">{landingStatic.fallback.benefitsTitle}</h2>
                 <p className="landing-benefits-head__intro">
                   {locale === 'en'
-                    ? 'A clearer structure, a stronger center of gravity, and benefits that are easier to scan, remember and convert.'
-                    : 'Une structure plus lisible, un centre de gravité plus fort, et des bénéfices plus faciles à parcourir, retenir et convertir.'}
+                    ? 'A clearer structure, a stronger center of gravity, and benefits that are easier to scan in under three seconds.'
+                    : 'Une structure plus lisible, un centre de gravité plus fort, et des bénéfices compréhensibles en moins de trois secondes.'}
                 </p>
               </div>
             </div>
             <div className="landing-benefits-orbit mt-8">
-              {PLATFORM_BENEFITS_ITEMS.slice(0, 4).map((item, index) => {
+              <div className="landing-benefits-orbit-center" aria-label={locale === 'en' ? 'Core platform value' : 'Valeur centrale'}>
+                <span className="landing-benefits-orbit-center__eyebrow">{locale === 'en' ? 'Core value' : 'Valeur centrale'}</span>
+                <div className="landing-benefits-orbit-center__halo" aria-hidden="true" />
+                <div className="landing-benefits-orbit-center__badge" aria-hidden="true">
+                  <Sparkles className="h-5 w-5" strokeWidth={2.2} />
+                </div>
+                <strong>{locale === 'en' ? 'One platform to run hybrid team experiences that feel clear, connected, and measurable.' : 'Une seule plateforme pour orchestrer des expériences d’équipe hybrides, claires, connectées et mesurables.'}</strong>
+                <p>{locale === 'en' ? 'Designed for managers and HR teams who need a simple system with real business impact.' : 'Pensée pour les managers et RH qui veulent un système simple avec un vrai impact business.'}</p>
+              </div>
+
+              {PLATFORM_BENEFITS_ITEMS.slice(0, 5).map((item, index) => {
                 const Icon = item.icon;
+                const metricByIndex = [
+                  locale === 'en' ? '-60% prep time' : '-60% de temps de préparation',
+                  locale === 'en' ? '95% participation' : '95% de participation',
+                  locale === 'en' ? '3× faster onboarding' : 'Onboarding 3× plus rapide',
+                  locale === 'en' ? 'Instant debrief' : 'Débrief immédiat',
+                  locale === 'en' ? 'Premium employer brand' : 'Image employeur premium',
+                ];
                 return (
                   <article
                     key={item.label}
                     className={`landing-benefits-orbit-item landing-benefits-orbit-item--${index + 1}`}
+                    tabIndex={0}
                   >
+                    <div className="landing-benefits-orbit-item__line" aria-hidden="true" />
                     <span className="landing-benefits-orbit-icon" aria-hidden="true">
                       <GamifiedIcon Icon={Icon} index={index} size="sm" />
                     </span>
                     <h3>{item.label}</h3>
                     <p>{item.description}</p>
-                    <strong className="landing-benefits-orbit-metric">
-                      {index === 0
-                        ? (locale === 'en' ? '-60% prep time' : '-60% de temps de préparation')
-                        : index === 1
-                          ? (locale === 'en' ? '95% participation' : '95% de participation')
-                          : index === 2
-                            ? (locale === 'en' ? '3× faster onboarding' : 'Onboarding 3× plus rapide')
-                            : (locale === 'en' ? 'Instant debrief' : 'Débrief immédiat')}
-                    </strong>
+                    <strong className="landing-benefits-orbit-metric">{metricByIndex[index]}</strong>
                   </article>
                 );
               })}
-              <article className="landing-benefits-orbit-item landing-benefits-orbit-item--support">
-                <span className="landing-benefits-orbit-icon" aria-hidden="true">
-                  <GamifiedIcon Icon={Sparkles} index={4} size="sm" />
-                </span>
-                <h3>{PLATFORM_BENEFITS_ITEMS[4].label}</h3>
-                <p>{PLATFORM_BENEFITS_ITEMS[4].description}</p>
-                <strong className="landing-benefits-orbit-metric">
-                  {locale === 'en' ? 'Premium feel' : 'Image premium'}
-                </strong>
-              </article>
-              <div className="landing-benefits-orbit-center" aria-label={locale === 'en' ? 'Core benefits summary' : 'Synthese des benefices'}>
-                <span className="landing-benefits-orbit-center__eyebrow">{locale === 'en' ? 'Core platform value' : 'Valeur centrale'}</span>
-                <strong>{locale === 'en' ? 'Make every session clearer, faster, and easier to measure.' : 'Rendez chaque session plus claire, plus rapide et plus mesurable.'}</strong>
-                <p>{locale === 'en' ? 'Built for managers and HR teams running hybrid team experiences.' : 'Pensé pour les managers et les équipes RH qui animent des expériences hybrides.'}</p>
-              </div>
             </div>
           </div>
         </section>
