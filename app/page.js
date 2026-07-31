@@ -1436,50 +1436,27 @@ export default function HomePage() {
                 <h2 className="landing-section-title">{landingStatic.fallback.benefitsTitle}</h2>
               </div>
             </div>
-            <div className="landing-benefits-split mt-8">
-              <div className="landing-benefits-copy reveal-left" style={{ '--reveal-delay': '180ms' }}>
-                <ul className="landing-benefits-list">
-                  {PLATFORM_BENEFITS_ITEMS.slice(0, 3).map((item, index) => {
-                    const Icon = item.icon;
-                    return (
-                      <li key={item.label} className="landing-benefits-item">
-                        <span className="landing-benefits-item-icon" aria-hidden="true">
-                          <GamifiedIcon Icon={Icon} index={index} size="sm" />
-                        </span>
-                        <p>{item.label}</p>
-                      </li>
-                    );
-                  })}
-                </ul>
-                <div className="landing-benefits-pills" aria-label={locale === 'en' ? 'Core value tags' : 'Piliers de valeur'}>
-                  <span>Hybride</span>
-                  <span>Simple</span>
-                  <span>Mesurable</span>
-                </div>
-              </div>
-
-              <div className="landing-benefits-visual reveal-right" style={{ '--reveal-delay': '210ms' }}>
-                <article className="landing-benefits-dashboard" aria-label={locale === 'en' ? 'Benefits summary dashboard' : 'Tableau de synthese des benefices'}>
-                  <header>
-                    <p>{locale === 'en' ? 'Summary Performance' : 'Summary Performance'}</p>
-                    <span>{locale === 'en' ? 'Live session' : 'Session live'}</span>
-                  </header>
-                  <div className="landing-benefits-dashboard-grid">
-                    <div className="landing-benefits-dashboard-team" aria-label={locale === 'en' ? 'Participants engagement' : 'Engagement participants'}>
-                      <span>{locale === 'en' ? 'Mohammed' : 'Mohammed'}<i>❤</i></span>
-                      <span>{locale === 'en' ? 'Iyad' : 'Iyad'}<i>❤</i></span>
-                      <span>{locale === 'en' ? 'Soukaina' : 'Soukaina'}<i>❤</i></span>
-                    </div>
-                    <div className="landing-benefits-dashboard-chrono" aria-label={locale === 'en' ? 'Session timer' : 'Chronometre session'}>
-                      <strong>09:26</strong>
-                    </div>
-                    <div className="landing-benefits-dashboard-side">
-                      <span>{locale === 'en' ? 'Performance' : 'Performance'}</span>
-                      <span>{locale === 'en' ? 'Chat: team aligned' : 'Chat : equipe alignee'}</span>
-                    </div>
-                  </div>
-                  <footer>{locale === 'en' ? 'Hybrid-ready, manager-friendly and measurable.' : 'Hybride, simple pour managers et mesurable.'}</footer>
-                </article>
+            <div className="landing-benefits-orbit mt-8">
+              {PLATFORM_BENEFITS_ITEMS.map((item, index) => {
+                const Icon = item.icon;
+                const isCenter = index === 2;
+                return (
+                  <article
+                    key={item.label}
+                    className={`landing-benefits-orbit-item landing-benefits-orbit-item--${index + 1}${isCenter ? ' landing-benefits-orbit-item--center' : ''}`}
+                  >
+                    <span className="landing-benefits-orbit-icon" aria-hidden="true">
+                      <GamifiedIcon Icon={Icon} index={index} size={isCenter ? 'md' : 'sm'} />
+                    </span>
+                    <h3>{item.label}</h3>
+                    <p>{item.description}</p>
+                  </article>
+                );
+              })}
+              <div className="landing-benefits-orbit-center" aria-label={locale === 'en' ? 'Core benefits summary' : 'Synthese des benefices'}>
+                <span className="landing-benefits-orbit-center__eyebrow">{locale === 'en' ? 'Core platform value' : 'Valeur centrale'}</span>
+                <strong>{locale === 'en' ? 'Make every session clearer, faster, and easier to measure.' : 'Rendez chaque session plus claire, plus rapide et plus mesurable.'}</strong>
+                <p>{locale === 'en' ? 'Built for managers and HR teams running hybrid team experiences.' : 'Pensé pour les managers et les équipes RH qui animent des expériences hybrides.'}</p>
               </div>
             </div>
           </div>
