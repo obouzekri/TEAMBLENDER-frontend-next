@@ -1434,14 +1434,9 @@ export default function HomePage() {
               <div>
                 <p className="eyebrow landing-section-eyebrow">{landingStatic.fallback.benefitsEyebrow}</p>
                 <h2 className="landing-section-title">{landingStatic.fallback.benefitsTitle}</h2>
-                <p className="landing-benefits-head__intro">
-                  {locale === 'en'
-                    ? 'A clearer structure, a stronger center of gravity, and benefits that are easier to scan in under three seconds.'
-                    : 'Une structure plus lisible, un centre de gravité plus fort, et des bénéfices compréhensibles en moins de trois secondes.'}
-                </p>
               </div>
             </div>
-            <div className="landing-benefits-orbit mt-8">
+            <div className="landing-benefits-orbit mt-6">
               <div className="landing-benefits-orbit-center" aria-label={locale === 'en' ? 'Core platform value' : 'Valeur centrale'}>
                 <span className="landing-benefits-orbit-center__eyebrow">{locale === 'en' ? 'Core value' : 'Valeur centrale'}</span>
                 <div className="landing-benefits-orbit-center__halo" aria-hidden="true" />
