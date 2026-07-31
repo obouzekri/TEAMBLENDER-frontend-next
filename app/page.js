@@ -687,6 +687,59 @@ function TrustTag({ title, isActive = false }) {
   );
 }
 
+function TrustedCompanyLogo({ company }) {
+  const mark = String(company?.mark || '').toUpperCase();
+
+  switch (mark) {
+    case 'NS':
+      return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+          <path d="M5 19V5l6 8V5h8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M13 19h6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+        </svg>
+      );
+    case 'JX':
+      return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+          <path d="M6 6h8v6a5 5 0 0 1-5 5H6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14 8l5 8M19 8l-5 8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+        </svg>
+      );
+    case 'OC':
+      return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.9" />
+          <circle cx="12" cy="12" r="2.3" fill="currentColor" />
+          <path d="M4 12h2.2M17.8 12H20" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+        </svg>
+      );
+    case 'IP':
+      return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+          <path d="M5 6h2v12H5z" fill="currentColor" />
+          <path d="M10 15h2.6l1.6-5 1.5 7 1.4-4H20" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'NM':
+      return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+          <path d="M4 18V6l4 6 4-6v12" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14 18V6l6 12V6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'LH':
+      return (
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+          <path d="M5 6v12h2.8M7.8 18V13.3H12V18" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M15 6v12h5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 8l1.5-.9L15 8v1.8l-1.5.9L12 9.8z" fill="currentColor" opacity="0.72" />
+        </svg>
+      );
+    default:
+      return <span>{mark || 'TB'}</span>;
+  }
+}
+
 function resolveHeroTrustIcon(title, index = 0) {
   const low = String(title || '').toLowerCase();
   if (/rapid|vite|quick|faster|speed|temps|setup/.test(low)) return Gauge;
@@ -1425,7 +1478,9 @@ export default function HomePage() {
             <ul className="landing-trusted-logos" aria-label={locale === 'en' ? 'Trusted company logos' : 'Logos des entreprises'}>
               {TRUSTED_COMPANIES.logos.map((company, index) => (
                 <li key={company.name} className={`landing-trusted-logo-item landing-trusted-logo-item--${index + 1}`} title={company.name}>
-                  <span className="landing-trusted-logo-mark" aria-hidden="true">{company.mark}</span>
+                  <span className="landing-trusted-logo-mark" aria-hidden="true">
+                    <TrustedCompanyLogo company={company} />
+                  </span>
                   <span className="landing-trusted-logo-name">{company.name}</span>
                 </li>
               ))}

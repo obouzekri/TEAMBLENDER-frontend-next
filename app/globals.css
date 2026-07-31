@@ -5791,6 +5791,12 @@ a {
   letter-spacing: 0.06em;
 }
 
+.landing-trusted-logo-mark svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  display: block;
+}
+
 .landing-trusted-logo-name {
   font-family: var(--font-ui);
   font-size: clamp(1rem, 1.45vw, 1.2rem);
