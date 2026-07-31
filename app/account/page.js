@@ -81,6 +81,25 @@ function formatDate(dateValue, locale = 'fr') {
   }).format(parsed);
 }
 
+function formatCount(value, locale = 'fr') {
+  const numberValue = Number(value || 0);
+  return new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR').format(numberValue);
+}
+
+function getPlanCycleLabel(locale, me, activePlan) {
+  const billingCycle = String(me?.billing_cycle || me?.billing_period || activePlan?.billing_cycle || 'monthly').toLowerCase();
+  if (billingCycle === 'annual' || billingCycle === 'yearly') {
+    return locale === 'en' ? 'Annual' : 'Annuel';
+  }
+  return locale === 'en' ? 'Monthly' : 'Mensuel';
+}
+
+function getRenewalDate(me, locale = 'fr') {
+  const raw = me?.billing_renews_at || me?.current_period_end || me?.renewal_date || me?.next_billing_at || null;
+  const formatted = formatDate(raw, locale);
+  return formatted || (locale === 'en' ? 'Not scheduled' : 'Non planifiée');
+}
+
 export default function AccountPage() {
   const { toasts, removeToast, success: showSuccess, error: showError } = useToast();
   const { t, locale, withLocalePath } = useI18n();
@@ -104,6 +123,7 @@ export default function AccountPage() {
   });
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [planHistory, setPlanHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState('profile');
 
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
@@ -305,6 +325,15 @@ export default function AccountPage() {
   const currentPlanLabel = activePlan?.name || t('account.noPlan');
   const historyCount = planHistory.length;
   const roleLabel = String(guard.user?.role || '').toLowerCase() === 'admin' ? t('account.roleAdmin') : t('account.roleManager');
+  const cycleLabel = getPlanCycleLabel(locale, me, activePlan);
+  const renewalLabel = getRenewalDate(me, locale);
+  const planSeats = activePlan?.max_users || me?.max_users || 0;
+  const planSessions = activePlan?.max_sessions_per_month || me?.max_sessions_per_month || 0;
+  const billingSummary = [
+    activePlan ? currentPlanLabel : (locale === 'en' ? 'No active plan' : 'Aucun plan actif'),
+    `${formatCount(planSessions, locale)} ${locale === 'en' ? 'sessions / month' : 'sessions / mois'}`,
+    `${formatCount(planSeats, locale)} ${locale === 'en' ? 'participants max' : 'participants max'}`,
+  ];
 
   const recommendedPlan = useMemo(() => {
     const bySlug = plans.find((plan) => String(plan.slug || '').toLowerCase() === 'pro');
@@ -474,6 +503,18 @@ export default function AccountPage() {
     );
   }
 
+  async function handleChoosePlan(planId) {
+    const targetPlanId = planId || recommendedPlan?.id || activePlan?.id;
+    if (!targetPlanId) {
+      showError(t('account.noPlanAvailable'));
+      return;
+    }
+
+    window.location.assign(
+      `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}`
+    );
+  }
+
   function logout() {
     clearStoredAuth();
     sessionStorage.removeItem('selectedChallenges');
@@ -523,10 +564,10 @@ export default function AccountPage() {
               <p className="eyebrow">{t('account.heroEyebrow')}</p>
               <h1>{t('account.heroTitle')}</h1>
               <p>{t('account.heroBody')}</p>
-              <div className="home-hero-trust">
-                <a href="#account-profile">{t('account.heroProfile')}</a>
-                <a href="#account-security">{t('account.heroSecurity')}</a>
-                <a href="#account-pricing">{t('account.heroPricing')}</a>
+              <div className="account-tabs" role="tablist" aria-label={locale === 'en' ? 'Account sections' : 'Sections du compte'}>
+                <button type="button" role="tab" aria-selected={activeTab === 'profile'} className={`account-tab ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => setActiveTab('profile')}>{t('account.heroProfile')}</button>
+                <button type="button" role="tab" aria-selected={activeTab === 'security'} className={`account-tab ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => setActiveTab('security')}>{t('account.heroSecurity')}</button>
+                <button type="button" role="tab" aria-selected={activeTab === 'pricing'} className={`account-tab ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => setActiveTab('pricing')}>{t('account.heroPricing')}</button>
               </div>
             </div>
             <aside className="home-hero-summary" aria-label={t('account.summaryAria')}>
@@ -557,7 +598,7 @@ export default function AccountPage() {
         </section>
 
         <div className="account-card-container">
-          <section id="account-profile" className="account-saas-card">
+          <section id="account-profile" className={`account-saas-card account-panel ${activeTab === 'profile' ? 'is-active' : ''}`} hidden={activeTab !== 'profile'}>
             <header className="account-saas-card__header">
               <p className="eyebrow">{t('account.profileEyebrow')}</p>
               <h2 className="account-saas-card__title">{t('account.profileTitle')}</h2>
@@ -619,7 +660,7 @@ export default function AccountPage() {
             </form>
           </section>
 
-          <section id="account-security" className="account-saas-card">
+          <section id="account-security" className={`account-saas-card account-panel ${activeTab === 'security' ? 'is-active' : ''}`} hidden={activeTab !== 'security'}>
             <header className="account-saas-card__header">
               <p className="eyebrow">{t('account.securityEyebrow')}</p>
               <h2 className="account-saas-card__title">{t('account.securityTitle')}</h2>
@@ -674,7 +715,7 @@ export default function AccountPage() {
           </section>
         </div>
 
-        <section id="account-pricing" className="account-pricing-section">
+        <section id="account-pricing" className={`account-pricing-section account-panel ${activeTab === 'pricing' ? 'is-active' : ''}`} hidden={activeTab !== 'pricing'}>
           <div className="account-pricing-surface">
             <header className="account-pricing-head">
               <div>
@@ -690,12 +731,27 @@ export default function AccountPage() {
               ) : null}
             </header>
 
+            <div className="account-billing-summary">
+              <div className="account-billing-summary__main">
+                <p className="account-billing-summary__label">{locale === 'en' ? 'Current plan' : 'Formule actuelle'}</p>
+                <strong>{billingSummary[0]}</strong>
+                <p className="account-billing-summary__meta">
+                  {billingSummary[1]} • {billingSummary[2]} • {cycleLabel}
+                </p>
+              </div>
+              <div className="account-billing-summary__renewal">
+                <span>{locale === 'en' ? 'Renewal' : 'Renouvellement'}</span>
+                <strong>{renewalLabel}</strong>
+              </div>
+            </div>
+
             {plans.length > 0 ? (
               <div className="account-plan-cards-grid">
                 {plans.map((plan) => {
                   const planId = String(plan.id);
                   const isCurrent = planId === String(currentPlanId || '');
                   const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
+                  const isPro = String(plan.slug || plan.name || '').toLowerCase().includes('pro');
                   const priceFmt = formatPriceCents(plan.price_cents, plan.currency, locale);
                   return (
                     <article
@@ -704,17 +760,19 @@ export default function AccountPage() {
                         'pricing-card account-pricing-card',
                         isCurrent ? 'account-pricing-card--current' : '',
                         isRecommended ? 'pricing-card-featured' : '',
+                        isPro ? 'account-pricing-card--pro' : '',
                       ].filter(Boolean).join(' ')}
                     >
                       <div className="pricing-card-top">
-                        {isRecommended ? <span className="pricing-badge">{t('account.recommended')}</span> : null}
+                        {isRecommended ? <span className="pricing-badge">{locale === 'en' ? 'Most popular' : 'Le plus populaire'}</span> : null}
                         {isCurrent ? <span className="account-current-badge">{t('account.yourPlan')}</span> : null}
                         <p className="eyebrow">{plan.name}</p>
                       </div>
                       <h3 className="pricing-price">
                         {priceFmt}
-                        <span>/mois</span>
+                        <span>{plan.currency ? `${String(plan.currency).toUpperCase()}` : ''} {locale === 'en' ? '/month' : '/mois'}</span>
                       </h3>
+                      <p className="pricing-tax-note">{locale === 'en' ? 'Excl. taxes' : 'HT'}</p>
                       {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
                       {Array.isArray(plan.features) && plan.features.length > 0 ? (
                         <ul className="pricing-feature-list">
@@ -733,29 +791,8 @@ export default function AccountPage() {
                         </div>
                       ) : (
                         <div className="pricing-actions account-plan-card-actions">
-                          <PaddleCheckoutButton
-                            pricingPlanId={plan.id}
-                            billingCycle="monthly"
-                            customerEmail={String(me?.email || guard.user?.email || '')}
-                            className="btn-primary"
-                            onSuccess={() => {
-                              showSuccess(t('account.paddleSuccess') || 'Paiement reçu — votre plan sera mis à jour dans quelques instants.');
-                              window.history.replaceState({}, '', window.location.pathname);
-                            }}
-                          />
-                          <button
-                            type="button"
-                            className="btn-secondary"
-                            onClick={() => handleGoToCheckout('paypal', plan.id)}
-                          >
-                            {t('account.checkoutPaypal')}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn-secondary"
-                            onClick={() => handleGoToCheckout('bank_transfer', plan.id)}
-                          >
-                            {t('account.checkoutWire')}
+                          <button type="button" className="btn-primary account-plan-card-actions__primary" onClick={() => handleChoosePlan(plan.id)}>
+                            {isRecommended ? (locale === 'en' ? 'Choose Pro plan' : 'Choisir la formule Pro') : (locale === 'en' ? 'Choose plan' : 'Choisir la formule')}
                           </button>
                         </div>
                       )}
@@ -770,16 +807,32 @@ export default function AccountPage() {
             {planHistory.length > 0 ? (
               <div className="account-plan-history">
                 <p className="eyebrow">{t('account.historyEyebrow')}</p>
-                <ul className="session-list">
-                  {planHistory.map((entry) => (
-                    <li key={String(entry.id)} className="session-item">
-                      <div>
-                        <p className="session-title">{entry.from} {" -> "} {entry.to}</p>
-                        <p className="session-meta">{formatDate(entry.at, locale)}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <div className="account-history-table-wrap">
+                  <table className="account-history-table">
+                    <thead>
+                      <tr>
+                        <th>{locale === 'en' ? 'Date' : 'Date'}</th>
+                        <th>{locale === 'en' ? 'Plan' : 'Formule'}</th>
+                        <th>{locale === 'en' ? 'Amount' : 'Montant'}</th>
+                        <th>{locale === 'en' ? 'Status' : 'Statut'}</th>
+                        <th>{locale === 'en' ? 'Invoice' : 'Facture'}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {planHistory.map((entry) => (
+                        <tr key={String(entry.id)}>
+                          <td>{formatDate(entry.at, locale)}</td>
+                          <td>{entry.to}</td>
+                          <td>—</td>
+                          <td><span className="account-history-status account-history-status--success">{locale === 'en' ? 'Successful' : 'Réussi'}</span></td>
+                          <td>
+                            <button type="button" className="account-history-link" onClick={() => window.alert(locale === 'en' ? 'Invoice PDF will be connected from billing history data.' : 'Le PDF de facture sera branché sur les données d\'historique de facturation.')}>PDF</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ) : null}
             {planHistory.length === 0 ? (
