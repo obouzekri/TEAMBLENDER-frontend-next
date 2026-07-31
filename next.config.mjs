@@ -66,8 +66,37 @@ function parseRemoteImageHosts(rawValue) {
     }));
 }
 
+function normalizePosthogHost(rawValue) {
+  const fallback = 'https://eu.i.posthog.com';
+  const normalized = String(rawValue || '').trim().replace(/\/+$/, '');
+  if (!normalized) return fallback;
+  return normalized;
+}
+
+function getPosthogIngestDestinations(rawHost) {
+  const normalizedHost = normalizePosthogHost(rawHost);
+  let parsedHost;
+
+  try {
+    parsedHost = new URL(normalizedHost);
+  } catch {
+    parsedHost = new URL('https://eu.i.posthog.com');
+  }
+
+  const host = parsedHost.hostname.toLowerCase();
+  const staticHost = host.includes('eu.i.posthog.com')
+    ? 'https://eu-assets.i.posthog.com'
+    : 'https://us-assets.i.posthog.com';
+
+  return {
+    ingestHost: `${parsedHost.protocol}//${parsedHost.host}`,
+    staticHost,
+  };
+}
+
 const cdnOrigin = normalizeCdnOrigin(process.env.NEXT_PUBLIC_CDN_ORIGIN);
 const remoteImageHosts = parseRemoteImageHosts(process.env.NEXT_PUBLIC_CDN_IMAGE_HOSTS);
+const posthogIngestDestinations = getPosthogIngestDestinations(process.env.NEXT_PUBLIC_POSTHOG_HOST);
 
 const nextConfig = {
   reactStrictMode: true,
@@ -96,11 +125,11 @@ const nextConfig = {
       },
       {
         source: '/ingest/static/:path*',
-        destination: 'https://us-assets.i.posthog.com/static/:path*',
+        destination: `${posthogIngestDestinations.staticHost}/static/:path*`,
       },
       {
         source: '/ingest/:path*',
-        destination: 'https://us.i.posthog.com/:path*',
+        destination: `${posthogIngestDestinations.ingestHost}/:path*`,
       },
     ];
   },
