@@ -482,6 +482,21 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const myRank = Number(myLiveEntry?.rank || 0);
   const myRankMedal = getRankMedal(myRank);
 
+  function renderRankingCard(keyPrefix = 'aside') {
+    return (
+      <section className={`${styles.rankingCard} ${styles.stateCard}`}>
+        <div className={styles.rankingCardHeader}>
+          <h3 className={`${styles.rankingCardTitle} challenge-section-title`}>Classement</h3>
+          <span className={styles.rankingMeta}>Mis à jour en direct</span>
+        </div>
+        <div className={styles.leaderboardList}>
+          {liveRanking.length === 0 ? <p className={styles.helper}>{t('vom.noParticipants')}</p> : null}
+          {liveRanking.map((entry, index) => renderLeaderboardRow(entry, index, { compact: true, keyPrefix }))}
+        </div>
+      </section>
+    );
+  }
+
   function renderLeaderboardRow(entry, index, options = {}) {
     const participantKey = String(entry.participant_id);
     const movement = String(rankMovementByParticipantId[participantKey] || 'same');
@@ -609,7 +624,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell}${!hasChallengeStarted ? ` ${styles.shellPrestart}` : ''}`}>
       <ChallengeHeader
         title={challengeName || 'QUI ME CONNAIT LE MIEUX ?'}
         subtitle={challengeSubtitle || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !'}
@@ -638,6 +653,12 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               startButtonFullWidth
             />
           </section>
+        ) : null}
+
+        {!hasChallengeStarted ? (
+          <div className={styles.prestartRankingMobile}>
+            {renderRankingCard('prestart-mobile')}
+          </div>
         ) : null}
 
         {phase === 'selecting_statement' ? (
@@ -983,16 +1004,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             disabled={!chatEnabled}
           />
 
-          <section className={`${styles.rankingCard} ${styles.stateCard}`}>
-            <div className={styles.rankingCardHeader}>
-              <h3 className={`${styles.rankingCardTitle} challenge-section-title`}>Classement</h3>
-              <span className={styles.rankingMeta}>Mis a jour en direct</span>
-            </div>
-            <div className={styles.leaderboardList}>
-              {liveRanking.length === 0 ? <p className={styles.helper}>{t('vom.noParticipants')}</p> : null}
-              {liveRanking.map((entry, index) => renderLeaderboardRow(entry, index, { compact: true, keyPrefix: 'aside' }))}
-            </div>
-          </section>
+          {renderRankingCard('aside')}
         </aside>
       </div>
 

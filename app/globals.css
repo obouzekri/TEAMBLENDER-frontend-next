@@ -870,10 +870,9 @@ a {
 
 .challenge-section-title {
   margin: 0;
-  color: rgba(125, 211, 252, 0.9);
+  color: var(--challenge-text-accent, #7dd3fc);
   font-size: 0.92rem;
   font-weight: 700;
-  text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 

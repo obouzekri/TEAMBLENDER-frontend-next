@@ -130,7 +130,6 @@
   font-size: 1.04rem;
   font-weight: 800;
   letter-spacing: 0.01em;
-  text-transform: uppercase;
 }
 
 .card p,
@@ -492,14 +491,12 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   line-height: 1.35;
-  text-transform: uppercase;
 }
 
 .votePhaseTitle {
   margin: 0;
   font-size: 0.82rem;
   color: #9fd3e9;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
 }
@@ -542,7 +539,6 @@
   font-size: 0.74rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .roleSpotlightTitle {
@@ -603,7 +599,6 @@
   font-size: 0.74rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .voteMonitorHeadline {
@@ -645,7 +640,6 @@
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .voteSummaryTile strong {
@@ -714,7 +708,6 @@
   color: #95b4c8;
   font-size: 0.76rem;
   font-weight: 700;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
@@ -859,14 +852,14 @@
 }
 
 .leaderboardSubline {
-  color: #97b0c4;
+  font-size: 0.86rem;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.resultRow:hover {
+  font-size: 0.67rem;
   border-color: rgba(40, 179, 208, 0.62);
   transform: translateY(-1px);
   background: rgba(12, 28, 42, 0.92);
@@ -935,7 +928,7 @@
 }
 
 .leaderboardScore {
-  font-size: 0.96rem;
+  font-size: 0.84rem;
   font-weight: 800;
   color: #f5fbff;
 }
@@ -1115,16 +1108,22 @@
   margin: 0;
   font-size: 0.95rem;
   color: var(--challenge-text-accent, #7dd3fc);
-  text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .rankingMeta {
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   color: #95b4c8;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
+}
+
+.prestartRankingMobile {
+  display: none;
+}
+
+.prestartRankingMobile .rankingCard {
+  position: static;
 }
 
 .stateGrid {
@@ -1811,6 +1810,18 @@
     gap: 10px;
   }
 
+  .shellPrestart .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .shellPrestart .sideColumn .rankingCard {
+    display: none;
+  }
+
+  .prestartRankingMobile {
+    display: block;
+  }
+
   .stateCard {
     position: static;
   }
@@ -1863,6 +1874,28 @@
   .leaderboardScoreWrap {
     justify-items: start;
     min-width: 0;
+  }
+
+  .prestartRankingMobile .leaderboardCard {
+    font-size: 0.9em;
+  }
+
+  .prestartRankingMobile .leaderboardLine {
+    font-size: 0.84rem;
+  }
+
+  .prestartRankingMobile .leaderboardSubline {
+    font-size: 0.68rem;
+  }
+
+  .prestartRankingMobile .leaderboardScore {
+    font-size: 0.84rem;
+  }
+
+  .prestartRankingMobile .rankPill {
+    min-width: 40px;
+    height: 30px;
+    font-size: 0.8rem;
   }
 
   .resultRow {
