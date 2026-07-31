@@ -185,8 +185,10 @@
 
 @media (max-width: 900px) {
   .timerCard {
-    position: sticky;
-    top: calc(8px + env(safe-area-inset-top));
+    position: fixed;
+    top: calc(64px + env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
+    right: max(10px, env(safe-area-inset-right));
     z-index: 32;
     border-radius: 12px;
     padding: 0.48rem 0.7rem;
