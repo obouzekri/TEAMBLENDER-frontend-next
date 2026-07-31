@@ -262,12 +262,12 @@ const LANDING_STATIC_BY_LOCALE = {
     trustedCompanies: {
       title: 'Ils nous font confiance dans 32+ entreprises',
       logos: [
-        { mark: 'AB', name: 'Airbus', meta: 'Aeronautique', accent: '#245ab8' },
-        { mark: 'DE', name: 'Decathlon', meta: 'Retail', accent: '#1f7ae0' },
-        { mark: 'CG', name: 'Capgemini', meta: 'Conseil & Tech', accent: '#2f6ba6' },
-        { mark: 'OR', name: 'Orange', meta: 'Telecom', accent: '#d97706' },
-        { mark: 'SA', name: 'Sanofi', meta: 'Sante', accent: '#0f766e' },
-        { mark: 'DL', name: 'Doctolib', meta: 'SaaS RH', accent: '#2563eb' },
+        { mark: 'NV', name: 'Novacore', meta: 'Industrie', accent: '#245ab8' },
+        { mark: 'AR', name: 'Asterion', meta: 'Retail', accent: '#1f7ae0' },
+        { mark: 'LM', name: 'Lumaris', meta: 'Conseil & Tech', accent: '#2f6ba6' },
+        { mark: 'OR', name: 'Oravia', meta: 'Telecom', accent: '#d97706' },
+        { mark: 'SY', name: 'Synora', meta: 'Sante', accent: '#0f766e' },
+        { mark: 'BL', name: 'Bluehive', meta: 'SaaS RH', accent: '#2563eb' },
       ],
     },
     fallback: {
@@ -385,12 +385,12 @@ const LANDING_STATIC_BY_LOCALE = {
     trustedCompanies: {
       title: 'Trusted by 32+ companies around the world',
       logos: [
-        { mark: 'AB', name: 'Airbus', meta: 'Aerospace', accent: '#245ab8' },
-        { mark: 'DE', name: 'Decathlon', meta: 'Retail', accent: '#1f7ae0' },
-        { mark: 'CG', name: 'Capgemini', meta: 'Consulting & Tech', accent: '#2f6ba6' },
-        { mark: 'OR', name: 'Orange', meta: 'Telecom', accent: '#d97706' },
-        { mark: 'SA', name: 'Sanofi', meta: 'Healthcare', accent: '#0f766e' },
-        { mark: 'DL', name: 'Doctolib', meta: 'HR SaaS', accent: '#2563eb' },
+        { mark: 'NV', name: 'Novacore', meta: 'Industry', accent: '#245ab8' },
+        { mark: 'AR', name: 'Asterion', meta: 'Retail', accent: '#1f7ae0' },
+        { mark: 'LM', name: 'Lumaris', meta: 'Consulting & Tech', accent: '#2f6ba6' },
+        { mark: 'OR', name: 'Oravia', meta: 'Telecom', accent: '#d97706' },
+        { mark: 'SY', name: 'Synora', meta: 'Healthcare', accent: '#0f766e' },
+        { mark: 'BL', name: 'Bluehive', meta: 'HR SaaS', accent: '#2563eb' },
       ],
     },
     fallback: {
@@ -692,24 +692,24 @@ function TrustedCompanyLogo({ company }) {
   const name = String(company?.name || '').trim().toLowerCase();
 
   switch (name || mark) {
-    case 'airbus':
-    case 'AB':
+    case 'novacore':
+    case 'NV':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
           <path d="M3.8 18.8 11.9 4.9l8.3 13.9h-3.3l-1.6-2.9H8.8l-1.6 2.9z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
           <path d="M10.3 13.4h3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       );
-    case 'decathlon':
-    case 'DE':
+    case 'asterion':
+    case 'AR':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
           <path d="M6.2 6.2h7.2a5.6 5.6 0 0 1 0 11.2H6.2z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
           <path d="M10.1 9.7h6.2M10.1 14.3h6.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       );
-    case 'capgemini':
-    case 'CG':
+    case 'lumaris':
+    case 'LM':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
           <circle cx="9" cy="9" r="3.5" stroke="currentColor" strokeWidth="1.8" />
@@ -717,7 +717,7 @@ function TrustedCompanyLogo({ company }) {
           <path d="M6.2 15.1c1.3 1.8 3.4 2.8 5.8 2.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       );
-    case 'orange':
+    case 'oravia':
     case 'OR':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
@@ -726,16 +726,16 @@ function TrustedCompanyLogo({ company }) {
           <circle cx="11" cy="8.9" r="1.1" fill="currentColor" opacity="0.8" />
         </svg>
       );
-    case 'sanofi':
-    case 'SA':
+    case 'synora':
+    case 'SY':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
           <path d="M9.4 6.6c1.7 0 3 1.4 3 3 0 2.2-3 4.8-3 4.8s-3-2.6-3-4.8c0-1.6 1.3-3 3-3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
           <path d="M16.2 9.2c1.2 0 2.2 1 2.2 2.2 0 1.5-2.2 3.4-2.2 3.4s-2.2-1.9-2.2-3.4c0-1.2 1-2.2 2.2-2.2z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
         </svg>
       );
-    case 'doctolib':
-    case 'DL':
+    case 'bluehive':
+    case 'BL':
       return (
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
           <rect x="5.2" y="6" width="13.6" height="12" rx="3" stroke="currentColor" strokeWidth="1.8" />
@@ -1147,7 +1147,7 @@ export default function HomePage() {
         ) : null}
 
         <section
-          className="landing-hero-full reveal-up relative overflow-hidden px-0 py-4 sm:py-5 lg:py-6"
+          className="landing-hero-full relative overflow-hidden px-0 py-4 sm:py-5 lg:py-6"
           style={{ '--reveal-delay': '40ms' }}
           aria-label={locale === 'en' ? 'TeamBlender overview' : 'Presentation TeamBlender'}
         >
@@ -1280,7 +1280,7 @@ export default function HomePage() {
         <div ref={heroSentinelRef} className="landing-hero-sentinel" aria-hidden="true" />
 
         {impactItems.length > 0 ? (
-          <section className="landing-impact-band landing-section-full reveal-up" style={{ '--reveal-delay': '90ms' }} aria-label={locale === 'en' ? 'Key metrics' : 'Indicateurs cles'}>
+          <section className="landing-impact-band landing-section-full" style={{ '--reveal-delay': '90ms' }} aria-label={locale === 'en' ? 'Key metrics' : 'Indicateurs cles'}>
             <div className="landing-section-inner grid gap-4 md:grid-cols-3 landing-impact-carousel">
               {impactItems.map((item, index) => (
                 <article
@@ -1308,7 +1308,7 @@ export default function HomePage() {
         ) : null}
 
         <section
-          className="reveal-up landing-section-full landing-section-full--statement relative overflow-hidden p-8 sm:p-10"
+          className="landing-section-full landing-section-full--statement relative overflow-hidden p-8 sm:p-10"
           style={{ '--reveal-delay': '100ms', background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)' }}
           aria-label={locale === 'en' ? 'Platform positioning' : 'Positionnement plateforme'}
         >
@@ -1321,7 +1321,7 @@ export default function HomePage() {
         </section>
 
         <section
-          className="reveal-up landing-partners landing-section-full landing-section-full--proof relative overflow-hidden p-8 sm:p-12"
+          className="landing-partners landing-section-full landing-section-full--proof relative overflow-hidden p-8 sm:p-12"
           style={{
             '--reveal-delay': '110ms',
             background: 'linear-gradient(180deg, #07111f 0%, #0b1730 100%)',
@@ -1380,7 +1380,7 @@ export default function HomePage() {
         </section>
 
         <section
-          className="reveal-up landing-section-full landing-offer-section relative overflow-hidden p-6 sm:p-9"
+          className="landing-section-full landing-offer-section relative overflow-hidden p-6 sm:p-9"
           style={{ '--reveal-delay': '140ms' }}
           aria-label={landingStatic.fallback.platformOfferTitle}
         >
@@ -1416,7 +1416,7 @@ export default function HomePage() {
         </section>
 
         <section
-          className="reveal-up landing-section-full landing-benefits-section relative overflow-hidden p-6 sm:p-10"
+          className="landing-section-full landing-benefits-section relative overflow-hidden p-6 sm:p-10"
           style={{ '--reveal-delay': '160ms' }}
           aria-label={landingStatic.fallback.benefitsTitle}
         >
@@ -1469,7 +1469,7 @@ export default function HomePage() {
         </section>
 
         <section
-          className="reveal-up landing-trusted landing-section-full relative overflow-hidden p-6 sm:p-10"
+          className="landing-trusted landing-section-full relative overflow-hidden p-6 sm:p-10"
           style={{
             '--reveal-delay': '165ms',
             background: 'linear-gradient(180deg, #f0f4fb 0%, #e9eef7 100%)',
@@ -1505,7 +1505,7 @@ export default function HomePage() {
         </section>
 
         <section
-          className="reveal-up landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-10"
+          className="landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-10"
           style={{
             '--reveal-delay': '170ms',
             background: 'linear-gradient(145deg, #f6fbff 0%, #eef6ff 100%)',
@@ -1555,7 +1555,7 @@ export default function HomePage() {
         </section>
 
         <section
-          className="reveal-up landing-flow landing-section-full relative overflow-hidden p-6 sm:p-8"
+          className="landing-flow landing-section-full relative overflow-hidden p-6 sm:p-8"
           style={{
             '--reveal-delay': '190ms',
             background: 'linear-gradient(180deg, #0b1223 0%, #111b36 100%)',
@@ -1603,7 +1603,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className={`landing-cta-block landing-section-full reveal-up p-8 text-center`} style={{ '--reveal-delay': '240ms' }} aria-label={locale === 'en' ? 'Final call to action' : 'Dernier appel à l’action'}>
+        <section className={`landing-cta-block landing-section-full p-8 text-center`} style={{ '--reveal-delay': '240ms' }} aria-label={locale === 'en' ? 'Final call to action' : 'Dernier appel à l’action'}>
           <div className="landing-section-inner">
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title || landingStatic.fallback.finalCtaTitle}</h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">{finalCta.description || landingStatic.fallback.finalCtaDescription}</p>

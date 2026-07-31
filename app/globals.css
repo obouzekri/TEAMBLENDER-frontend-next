@@ -4523,6 +4523,8 @@ a {
 }
 
 .reveal-up {
+  opacity: 1;
+  transform: none;
   animation: revealUp var(--motion-slow) var(--ease-standard) both;
   animation-delay: var(--reveal-delay, 0ms);
 }
@@ -5824,14 +5826,14 @@ a {
   grid-column: 3 / 6;
   grid-row: 1;
   align-self: center;
-  margin-top: 24px;
+  margin-top: 18px;
 }
 
 .landing-benefits-orbit-item--2 {
   grid-column: 8 / 11;
   grid-row: 1;
   align-self: center;
-  margin-top: 24px;
+  margin-top: 18px;
 }
 
 .landing-benefits-orbit-item--3 {
@@ -6110,6 +6112,8 @@ a {
   position: relative;
   isolation: isolate;
   z-index: 2;
+  opacity: 1 !important;
+  transform: none !important;
 }
 
 .landing-trusted-title {
