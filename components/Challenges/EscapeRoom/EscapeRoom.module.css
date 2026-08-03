@@ -329,6 +329,37 @@
   font-style: italic;
 }
 
+.imageFallbackCard {
+  margin: 0 0 12px;
+  border: 1px dashed rgba(125, 211, 252, 0.4);
+  border-radius: 12px;
+  background: linear-gradient(165deg, rgba(10, 21, 36, 0.88), rgba(15, 30, 46, 0.88));
+  padding: 14px;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.imageFallbackEmoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.imageFallbackTitle {
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.imageFallbackBody {
+  margin: 0;
+  color: #bfdbfe;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .enigmeHero {
   display: block;
   margin-bottom: 4px;
@@ -1122,6 +1153,10 @@
 
   .image {
     max-height: 200px;
+  }
+
+  .imageFallbackCard {
+    padding: 10px;
   }
 
   .matrixGridFeatured {

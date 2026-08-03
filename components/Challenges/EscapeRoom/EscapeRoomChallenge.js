@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
-import { getApiUrl, normalizeBackendAssetUrl } from '@/lib/config';
+import { buildBackendAssetCandidates, getApiUrl } from '@/lib/config';
 import { getAuthHeaders } from '@/lib/auth';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
@@ -15,86 +15,23 @@ import ChallengeHeader from '../ChallengeHeader';
 import useI18n from '@/lib/i18n/useI18n';
 import styles from './EscapeRoom.module.css';
 
-const OUTCOME_UI = {
-  waiting: {
-    tone: 'Info',
-    feedback: 'En attente : tous les participants doivent soumettre avant validation.',
-    title: 'Validation en attente',
-    detail: 'L’équipe n’a pas encore fini de répondre.',
-    durationMs: 1200,
-    blockProgression: false,
-  },
-  divergent: {
-    tone: 'Warning',
-    feedback: 'Les réponses de l\'équipe ne sont pas encore alignées. Discutez ensemble puis soumettez une nouvelle réponse.',
-    title: 'Réponses divergentes',
-    detail: 'Les réponses ne sont pas identiques dans l\'équipe.',
-    durationMs: 2000,
-    blockProgression: false,
-  },
-  wrong: {
-    tone: 'Danger',
-    feedback: 'Réponse incorrecte. Réessayez avec une proposition commune.',
-    title: 'Réponse incorrecte',
-    detail: 'La réponse commune ne correspond pas à la solution attendue.',
-    durationMs: 1800,
-    blockProgression: false,
-  },
-  correct: {
-    tone: 'Success',
-    feedback: 'Énigme validée. Passage à la suivante…',
-    title: 'Énigme réussie',
-    detail: 'Excellent travail d’équipe. Préparation de la prochaine énigme.',
-    durationMs: 2000,
-    blockProgression: true,
-  },
-  escaped: {
-    tone: 'Success',
-    feedback: 'Salle déverrouillée. Bravo, mission accomplie !',
-    title: 'Salle déverrouillée',
-    detail: 'Toutes les énigmes ont été résolues.',
-    durationMs: 2200,
-    blockProgression: false,
-  },
-  max_attempts: {
-    tone: 'Danger',
-    feedback: 'Nombre maximal de tentatives atteint pour cette énigme.',
-    title: 'Limite de tentatives atteinte',
-    detail: 'Demandez un indice ou attendez que le facilitateur passe à la suivante.',
-    durationMs: 2200,
-    blockProgression: true,
-  },
-  already_finished: {
-    tone: 'Info',
-    feedback: 'La partie est déjà terminée.',
-    title: 'Partie terminée',
-    detail: 'Aucune action supplémentaire n’est nécessaire.',
-    durationMs: 1200,
-    blockProgression: false,
-  },
-  enigme_not_found: {
-    tone: 'Danger',
-    feedback: 'Énigme introuvable. Rechargez la vue et réessayez.',
-    title: 'Énigme introuvable',
-    detail: 'La synchronisation a échoué entre client et serveur.',
-    durationMs: 2000,
-    blockProgression: false,
-  },
-};
-
 function wait(ms) {
   return new Promise((resolve) => {
     window.setTimeout(resolve, ms);
   });
 }
 
-function formatValidationFeedback(validation = {}) {
+function applyTemplate(template, values = {}) {
+  return String(template || '').replace(/\{(\w+)\}/g, (_, key) => String(values?.[key] ?? `{${key}}`));
+}
+
+function formatValidationFeedback(validation = {}, outcomeUi = {}, copy = {}) {
   const outcome = String(validation?.outcome || '').trim();
-  const preset = OUTCOME_UI[outcome];
+  const preset = outcomeUi[outcome];
 
   if (!preset) {
     return {
-      feedback: outcome ? `Validation: ${outcome}` : 'Reponse envoyee.',
+      feedback: outcome ? `Validation: ${outcome}` : copy.answerSubmittedFallback,
       verdict: null,
       holdBeforeRefreshMs: 0,
       blockProgression: false,
@@ -106,14 +43,14 @@ function formatValidationFeedback(validation = {}) {
     const responded = Number(validation?.responded || 0);
     const total = Number(validation?.total || 0);
     if (total > 0) {
-      detail = `Progression equipe: ${responded}/${total} reponses.`;
+      detail = applyTemplate(copy.teamProgressDetail, { responded, total });
     }
   }
   if (outcome === 'divergent' || outcome === 'wrong' || outcome === 'max_attempts') {
     const attempts = Number(validation?.attempts || 0);
     const maxAttempts = Number(validation?.max_attempts || 0);
     if (attempts > 0 && maxAttempts > 0) {
-      detail = `${detail} Tentative ${attempts}/${maxAttempts}.`;
+      detail = `${detail} ${applyTemplate(copy.attemptSuffix, { attempts, maxAttempts })}`;
     }
   }
 
@@ -144,6 +81,224 @@ export default function EscapeRoomChallenge({
   onChallengeCompleted,
 }) {
   const { locale } = useI18n();
+  const isEn = locale === 'en';
+  const copy = useMemo(() => (isEn ? {
+    apiError: 'API error ({status})',
+    actionUnavailable: 'Action is currently unavailable.',
+    timerUnsupported: 'Pause/reset are not available for Secret Room (current MVP).',
+    loadingRoom: 'Loading room...',
+    missingParams: 'Missing parameters',
+    missingParamsDetail: 'sessionId or challengeId is missing.',
+    challengeEnded: 'Game finished',
+    issue: 'Outcome:',
+    start: 'Start:',
+    end: 'End:',
+    pendingRiddle: 'Riddle pending',
+    riddleCounter: 'Riddle {current}/{total}',
+    riddleCounterFallback: 'Riddle -/-',
+    responsesCounter: '{responded}/{total} answers',
+    imageUnavailable: 'Image unavailable for this riddle.',
+    imageFallbackTitle: 'Visual unavailable',
+    imageFallbackBody: 'Continue by solving the text clues while the image cannot be loaded.',
+    noDescription: 'No description.',
+    textRiddleTitle: 'Text riddle',
+    wordCodeTitle: 'Word code',
+    wordCodeInstruction: 'Find the logic and provide the correct value.',
+    puzzleHint: 'Hint:',
+    answerTitle: 'Your proposal',
+    answerVisibility: 'Visible only to you until collective validation',
+    answerSent: 'Answer sent. You can edit and submit again.',
+    answersReceived: '{responded}/{total} answers received',
+    answerPlaceholder: 'YOUR ANSWER',
+    submit: 'Submit',
+    timerTitle: 'Timer',
+    unlockHint: 'Unlock a hint',
+    skipRiddle: 'Skip the riddle',
+    chatTitle: 'Chat',
+    chatEmpty: 'No messages yet.',
+    chatPlaceholder: 'Team message',
+    participantListUnavailable: 'Participant list unavailable.',
+    responded: 'responded',
+    waiting: 'waiting',
+    subtitleFallback: 'Solve riddles as a team with collective validation',
+    answerSubmittedFallback: 'Answer sent.',
+    teamProgressDetail: 'Team progress: {responded}/{total} answers.',
+    attemptSuffix: 'Attempt {attempts}/{maxAttempts}.',
+    outcomeUi: {
+      waiting: {
+        tone: 'Info',
+        feedback: 'Waiting: all participants must submit before validation.',
+        title: 'Validation pending',
+        detail: 'The team has not finished answering yet.',
+        durationMs: 1200,
+        blockProgression: false,
+      },
+      divergent: {
+        tone: 'Warning',
+        feedback: 'Team answers are not aligned yet. Discuss, then submit a new answer.',
+        title: 'Divergent answers',
+        detail: 'Answers are not identical within the team.',
+        durationMs: 2000,
+        blockProgression: false,
+      },
+      wrong: {
+        tone: 'Danger',
+        feedback: 'Incorrect answer. Try again with one shared proposal.',
+        title: 'Incorrect answer',
+        detail: 'The shared answer does not match the expected solution.',
+        durationMs: 1800,
+        blockProgression: false,
+      },
+      correct: {
+        tone: 'Success',
+        feedback: 'Riddle validated. Moving to the next one...',
+        title: 'Riddle solved',
+        detail: 'Great teamwork. Preparing the next riddle.',
+        durationMs: 2000,
+        blockProgression: true,
+      },
+      escaped: {
+        tone: 'Success',
+        feedback: 'Room unlocked. Great job, mission accomplished!',
+        title: 'Room unlocked',
+        detail: 'All riddles have been solved.',
+        durationMs: 2200,
+        blockProgression: false,
+      },
+      max_attempts: {
+        tone: 'Danger',
+        feedback: 'Maximum attempts reached for this riddle.',
+        title: 'Attempt limit reached',
+        detail: 'Ask for a hint or wait for the facilitator to skip it.',
+        durationMs: 2200,
+        blockProgression: true,
+      },
+      already_finished: {
+        tone: 'Info',
+        feedback: 'The game is already finished.',
+        title: 'Game finished',
+        detail: 'No further action is required.',
+        durationMs: 1200,
+        blockProgression: false,
+      },
+      enigme_not_found: {
+        tone: 'Danger',
+        feedback: 'Riddle not found. Reload and try again.',
+        title: 'Riddle not found',
+        detail: 'Client/server synchronization failed.',
+        durationMs: 2000,
+        blockProgression: false,
+      },
+    },
+  } : {
+    apiError: 'Erreur API ({status})',
+    actionUnavailable: 'Action impossible pour le moment.',
+    timerUnsupported: 'Pause/Reinitialisation du chrono non disponibles pour Salle secrete (MVP actuel).',
+    loadingRoom: 'Chargement de la salle...',
+    missingParams: 'Parametres manquants',
+    missingParamsDetail: 'sessionId ou challengeId est absent.',
+    challengeEnded: 'Partie terminee',
+    issue: 'Issue:',
+    start: 'Debut:',
+    end: 'Fin:',
+    pendingRiddle: 'Enigme en attente',
+    riddleCounter: 'Enigme {current}/{total}',
+    riddleCounterFallback: 'Enigme -/-',
+    responsesCounter: '{responded}/{total} reponses',
+    imageUnavailable: 'Image indisponible pour cette enigme.',
+    imageFallbackTitle: 'Visuel indisponible',
+    imageFallbackBody: 'Continuez avec les indices textuels pendant le chargement du visuel.',
+    noDescription: 'Aucune description.',
+    textRiddleTitle: 'Enigme texte',
+    wordCodeTitle: 'Code de mots',
+    wordCodeInstruction: 'Identifiez la logique et donnez la valeur correcte.',
+    puzzleHint: 'Indice:',
+    answerTitle: 'Votre proposition',
+    answerVisibility: 'Visible uniquement par vous jusqu\'a validation collective',
+    answerSent: 'Reponse envoyee. Vous pouvez la modifier et soumettre de nouveau.',
+    answersReceived: '{responded}/{total} reponses recues',
+    answerPlaceholder: 'VOTRE REPONSE',
+    submit: 'Soumettre',
+    timerTitle: 'Chrono',
+    unlockHint: 'Débloquer un indice',
+    skipRiddle: 'Passer l\'énigme',
+    chatTitle: 'Chat',
+    chatEmpty: 'Aucun message pour le moment.',
+    chatPlaceholder: 'Message equipe',
+    participantListUnavailable: 'Liste participants indisponible.',
+    responded: 'repondu',
+    waiting: 'en attente',
+    subtitleFallback: 'Resolvez les enigmes en equipe, avec validation collective',
+    answerSubmittedFallback: 'Reponse envoyee.',
+    teamProgressDetail: 'Progression equipe: {responded}/{total} reponses.',
+    attemptSuffix: 'Tentative {attempts}/{maxAttempts}.',
+    outcomeUi: {
+      waiting: {
+        tone: 'Info',
+        feedback: 'En attente: tous les participants doivent soumettre avant validation.',
+        title: 'Validation en attente',
+        detail: 'L\'equipe n\'a pas encore fini de repondre.',
+        durationMs: 1200,
+        blockProgression: false,
+      },
+      divergent: {
+        tone: 'Warning',
+        feedback: 'Les reponses de l\'equipe ne sont pas encore alignees. Discutez ensemble puis soumettez une nouvelle reponse.',
+        title: 'Reponses divergentes',
+        detail: 'Les reponses ne sont pas identiques dans l\'equipe.',
+        durationMs: 2000,
+        blockProgression: false,
+      },
+      wrong: {
+        tone: 'Danger',
+        feedback: 'Reponse incorrecte. Reessayez avec une proposition commune.',
+        title: 'Reponse incorrecte',
+        detail: 'La reponse commune ne correspond pas a la solution attendue.',
+        durationMs: 1800,
+        blockProgression: false,
+      },
+      correct: {
+        tone: 'Success',
+        feedback: 'Enigme validee. Passage a la suivante...',
+        title: 'Enigme reussie',
+        detail: 'Excellent travail d\'equipe. Preparation de la prochaine enigme.',
+        durationMs: 2000,
+        blockProgression: true,
+      },
+      escaped: {
+        tone: 'Success',
+        feedback: 'Salle deverrouillee. Bravo, mission accomplie!',
+        title: 'Salle deverrouillee',
+        detail: 'Toutes les enigmes ont ete resolues.',
+        durationMs: 2200,
+        blockProgression: false,
+      },
+      max_attempts: {
+        tone: 'Danger',
+        feedback: 'Nombre maximal de tentatives atteint pour cette enigme.',
+        title: 'Limite de tentatives atteinte',
+        detail: 'Demandez un indice ou attendez que le facilitateur passe a la suivante.',
+        durationMs: 2200,
+        blockProgression: true,
+      },
+      already_finished: {
+        tone: 'Info',
+        feedback: 'La partie est deja terminee.',
+        title: 'Partie terminee',
+        detail: 'Aucune action supplementaire n\'est necessaire.',
+        durationMs: 1200,
+        blockProgression: false,
+      },
+      enigme_not_found: {
+        tone: 'Danger',
+        feedback: 'Enigme introuvable. Rechargez la vue et reessayez.',
+        title: 'Enigme introuvable',
+        detail: 'La synchronisation a echoue entre client et serveur.',
+        durationMs: 2000,
+        blockProgression: false,
+      },
+    },
+  }), [isEn]);
   const rulesPreset = useMemo(() => getEscapeRoomRulesPreset(locale), [locale]);
   const [state, setState] = useState(null);
   const [participants, setParticipants] = useState([]);
@@ -152,6 +307,7 @@ export default function EscapeRoomChallenge({
   const [feedback, setFeedback] = useState('');
   const [verdict, setVerdict] = useState(null);
   const [imageBroken, setImageBroken] = useState(false);
+  const [imageCandidateIndex, setImageCandidateIndex] = useState(0);
   const completionGuardRef = useRef('');
   const stateRequestIdRef = useRef(0);
   const appliedStateRequestIdRef = useRef(0);
@@ -195,12 +351,12 @@ export default function EscapeRoomChallenge({
       }
 
       if (!response.ok) {
-        throw new Error(payload.error || `Erreur API (${response.status})`);
+        throw new Error(payload.error || applyTemplate(copy.apiError, { status: response.status }));
       }
 
       return payload;
     },
-    [endpointBase]
+    [copy.apiError, endpointBase]
   );
 
   const loadState = useCallback(async () => {
@@ -326,8 +482,10 @@ export default function EscapeRoomChallenge({
 
     const knownAnimals = {
       girafe: { icon: '🦒', badgeTone: 'amber' },
+      giraffe: { icon: '🦒', badgeTone: 'amber' },
       elephant: { icon: '🐘', badgeTone: 'azure' },
       hippopotame: { icon: '🦛', badgeTone: 'mint' },
+      hippopotamus: { icon: '🦛', badgeTone: 'mint' },
       lion: { icon: '🦁', badgeTone: 'gold' },
     };
 
@@ -372,12 +530,12 @@ export default function EscapeRoomChallenge({
         await loadState();
         await loadParticipants();
       } catch (err) {
-        setFeedback(err.message || 'Action impossible pour le moment.');
+        setFeedback(err.message || copy.actionUnavailable);
       } finally {
         setBusyAction('');
       }
     },
-    [loadParticipants, loadState]
+    [copy.actionUnavailable, loadParticipants, loadState]
   );
 
   const submitAnswer = useCallback(() => {
@@ -394,7 +552,7 @@ export default function EscapeRoomChallenge({
         verdictTimeoutRef.current = null;
       }
 
-      const validationFeedback = formatValidationFeedback(payload?.validation || {});
+      const validationFeedback = formatValidationFeedback(payload?.validation || {}, copy.outcomeUi, copy);
       setFeedback(validationFeedback.feedback);
 
       if (validationFeedback.verdict) {
@@ -474,7 +632,11 @@ export default function EscapeRoomChallenge({
     || configuredCurrentEnigme?.ui_data?.image_url
     || ''
   ).trim();
-  const enigmeImageSrc = normalizeBackendAssetUrl(rawEnigmeImageSrc);
+  const enigmeImageCandidates = useMemo(
+    () => buildBackendAssetCandidates(rawEnigmeImageSrc),
+    [rawEnigmeImageSrc]
+  );
+  const enigmeImageSrc = enigmeImageCandidates[imageCandidateIndex] || '';
   const challengeStatus = String(state?.status || '').trim();
   const hasChallengeStarted = challengeStatus !== 'waiting_for_start';
   const rulesContent = useMemo(() => ({
@@ -483,7 +645,7 @@ export default function EscapeRoomChallenge({
     participant: [...rulesPreset.participant, ...rulesPreset.scoring],
     footnote: rulesPreset.footnote,
   }), [rulesPreset]);
-  const challengeName = String(rulesPreset?.challengeName || 'Salle Secrète').trim();
+  const challengeName = String(rulesPreset?.challengeName || (isEn ? 'Secret Room' : 'Salle secrete')).trim();
   const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
   const rulesParticipantsMeta = useMemo(() => ({
     min: rulesPreset.participants.min,
@@ -529,7 +691,8 @@ export default function EscapeRoomChallenge({
 
   useEffect(() => {
     setImageBroken(false);
-  }, [currentEnigme?.id, enigmeImageSrc]);
+    setImageCandidateIndex(0);
+  }, [currentEnigme?.id, rawEnigmeImageSrc]);
 
   useEffect(() => {
     if (!shouldUseFastPolling) {
@@ -574,15 +737,15 @@ export default function EscapeRoomChallenge({
       });
       return;
     }
-    setFeedback('Pause/Reinitialisation du chrono non disponibles pour Salle secrète (MVP actuel).');
-  }, [apiCall, runAction]);
+    setFeedback(copy.timerUnsupported);
+  }, [apiCall, copy.timerUnsupported, runAction]);
 
   if (!endpointBase) {
     return (
       <div className={styles.escapeRoomContainer}>
         <div className={styles.card}>
-          <h2>Paramètres manquants</h2>
-          <p>sessionId ou challengeId est absent.</p>
+          <h2>{copy.missingParams}</h2>
+          <p>{copy.missingParamsDetail}</p>
         </div>
       </div>
     );
@@ -592,7 +755,7 @@ export default function EscapeRoomChallenge({
     return (
       <div className={styles.escapeRoomContainer}>
         <div className={styles.card}>
-          <h2>Chargement de la salle...</h2>
+          <h2>{copy.loadingRoom}</h2>
         </div>
       </div>
     );
@@ -602,7 +765,7 @@ export default function EscapeRoomChallenge({
     <div className={styles.escapeRoomContainer}>
       <ChallengeHeader
         title={challengeName}
-        subtitle={challengeSubtitle || 'Résolvez les énigmes en équipe, avec validation collective'}
+        subtitle={challengeSubtitle || copy.subtitleFallback}
         className={styles.escapeHeader}
       />
 
@@ -623,25 +786,25 @@ export default function EscapeRoomChallenge({
             />
           ) : isFinished ? (
             <>
-              <h2>Partie terminée</h2>
+              <h2>{copy.challengeEnded}</h2>
               <p className={styles.issueRow}>
-                <span className={styles.issueLabel}>Issue:</span>{' '}
+                <span className={styles.issueLabel}>{copy.issue}</span>{' '}
                 <strong className={issueToneClass}>{state.status}</strong>
               </p>
-              <p>Début: {state.started_at || '-'}</p>
-              <p>Fin: {state.finished_at || '-'}</p>
+              <p>{copy.start} {state.started_at || '-'}</p>
+              <p>{copy.end} {state.finished_at || '-'}</p>
             </>
           ) : (
             <>
               <div className={styles.enigmeHero}>
                 <div>
-                  <h2>{currentEnigme?.label || 'Énigme en attente'}</h2>
+                  <h2>{currentEnigme?.label || copy.pendingRiddle}</h2>
                   <p className={styles.enigmeContextLine}>
                     {state.total_enigmes > 0
-                      ? `Énigme ${(state.current_enigme_index ?? 0) + 1}/${state.total_enigmes}`
-                      : 'Énigme -/-'}
+                      ? applyTemplate(copy.riddleCounter, { current: (state.current_enigme_index ?? 0) + 1, total: state.total_enigmes })
+                      : copy.riddleCounterFallback}
                     {' • '}
-                    {`${totalResponded}/${Math.max(totalExpected, 0)} réponses`}
+                    {applyTemplate(copy.responsesCounter, { responded: totalResponded, total: Math.max(totalExpected, 0) })}
                   </p>
                 </div>
               </div>
@@ -655,14 +818,28 @@ export default function EscapeRoomChallenge({
                   height={800}
                   loading="lazy"
                   onError={() => {
-                    setImageBroken(true);
+                    setImageCandidateIndex((prev) => {
+                      const next = prev + 1;
+                      if (next < enigmeImageCandidates.length) {
+                        return next;
+                      }
+                      setImageBroken(true);
+                      return prev;
+                    });
                   }}
                 />
               ) : null}
               {enigmeImageSrc && imageBroken ? (
-                <p className={styles.imageFallbackNote}>Image indisponible pour cette énigme.</p>
+                <p className={styles.imageFallbackNote}>{copy.imageUnavailable}</p>
               ) : null}
-              <p className={styles.description}>{currentEnigme?.description || 'Aucune description.'}</p>
+              {!enigmeImageSrc || imageBroken ? (
+                <div className={styles.imageFallbackCard} role="img" aria-label={copy.imageFallbackTitle}>
+                  <span className={styles.imageFallbackEmoji} aria-hidden="true">🖼️</span>
+                  <p className={styles.imageFallbackTitle}>{copy.imageFallbackTitle}</p>
+                  <p className={styles.imageFallbackBody}>{copy.imageFallbackBody}</p>
+                </div>
+              ) : null}
+              <p className={styles.description}>{currentEnigme?.description || copy.noDescription}</p>
 
               {isGridEnigme ? (
                 <div className={`${styles.enigmeUiBlock}${isFirstGridEnigme ? ` ${styles.enigmeUiBlockFeatured}` : ''}`}>
@@ -675,7 +852,7 @@ export default function EscapeRoomChallenge({
                           className={`${styles.matrixCell}${isMystery ? ` ${styles.matrixCellMystery}` : ''}${isFirstGridEnigme ? ` ${styles.matrixCellFeatured}` : ''}`}
                         >
                           {isMystery ? (
-                            <span className={styles.mysteryMark} aria-label="Case à trouver">?</span>
+                            <span className={styles.mysteryMark} aria-label={isEn ? 'Cell to solve' : 'Case a trouver'}>?</span>
                           ) : (
                             <span className={styles.cellValue}>{cell == null ? '-' : String(cell)}</span>
                           )}
@@ -688,8 +865,10 @@ export default function EscapeRoomChallenge({
 
               {currentUiType === 'text_mystery' ? (
                 <div className={styles.enigmeUiBlock}>
-                  <p className={styles.enigmeUiTitle}>{currentUiData?.title || 'Énigme texte'}</p>
-                  {currentUiData?.instruction ? <p className={styles.enigmeUiInstruction}>{currentUiData.instruction}</p> : null}
+                  <p className={styles.enigmeUiTitle}>{wordCodeRows.length > 0 ? copy.wordCodeTitle : (currentUiData?.title || copy.textRiddleTitle)}</p>
+                  {(wordCodeRows.length > 0 || currentUiData?.instruction) ? (
+                    <p className={styles.enigmeUiInstruction}>{wordCodeRows.length > 0 ? copy.wordCodeInstruction : currentUiData.instruction}</p>
+                  ) : null}
                   {wordCodeRows.length > 0 ? (
                     <div className={styles.wordCodeBoard}>
                       {wordCodeRows.map((row, idx) => (
@@ -720,13 +899,9 @@ export default function EscapeRoomChallenge({
 
               {currentUiType === 'word_anagram' ? (
                 <div className={styles.enigmeUiBlock}>
-                  <p className={styles.enigmeUiTitle}>{currentUiData?.title || 'Anagramme'}</p>
-                  <p className={styles.enigmeUiInstruction}>
-                    Réorganisez les lettres ci-dessous pour former un mot de {safeAnagramLength} lettres.
-                  </p>
                   <div className={styles.anagramLettersWrap}>
                     {anagramLetters.length === 0 ? (
-                      <p className={styles.teamEmpty}>Lettres indisponibles pour cette énigme.</p>
+                      <p className={styles.teamEmpty}>{isEn ? 'Letters unavailable for this riddle.' : 'Lettres indisponibles pour cette enigme.'}</p>
                     ) : anagramLetters.map((letter, idx) => (
                       <span key={`anagram-letter-${idx}-${letter}`} className={styles.anagramLetterChip}>
                         {letter}
@@ -745,30 +920,30 @@ export default function EscapeRoomChallenge({
 
               {state.hint_unlocked && currentEnigme?.hint ? (
                 <div className={styles.hintBox}>
-                  <strong>Indice:</strong> {currentEnigme.hint}
+                  <strong>{copy.puzzleHint}</strong> {currentEnigme.hint}
                 </div>
               ) : null}
 
               {!isFacilitator ? (
                 <div className={styles.answerPanel}>
                   <div className={styles.answerPanelHeader}>
-                    <p className={styles.answerPanelTitle}>🔑 Votre proposition</p>
-                    <span className={styles.answerPanelHint}>Visible uniquement par vous jusqu'à validation collective</span>
+                    <p className={styles.answerPanelTitle}>🔑 {copy.answerTitle}</p>
+                    <span className={styles.answerPanelHint}>{copy.answerVisibility}</span>
                   </div>
                   {hasCurrentParticipantResponded ? (
                     <div className={styles.answeredBanner}>
-                      <span>✅ Réponse envoyée. Vous pouvez la modifier et soumettre de nouveau.</span>
+                      <span>✅ {copy.answerSent}</span>
                       <div className={styles.answeredProgress}>
                         <span className={styles.answeredProgressFill} style={{ width: `${responseProgress}%` }} />
                       </div>
-                      <span className={styles.answeredProgressLabel}>{totalResponded}/{totalExpected} réponses reçues</span>
+                      <span className={styles.answeredProgressLabel}>{applyTemplate(copy.answersReceived, { responded: totalResponded, total: totalExpected })}</span>
                     </div>
                   ) : null}
                   <div className={styles.answerRow}>
                     <input
                       value={answer}
                       onChange={(event) => setAnswer(event.target.value.toUpperCase())}
-                      placeholder={String(currentUiData?.placeholder || 'VOTRE RÉPONSE').toUpperCase()}
+                      placeholder={String(currentUiData?.placeholder || copy.answerPlaceholder).toUpperCase()}
                       className={styles.input}
                       disabled={busyAction === 'submit' || !currentEnigme}
                       autoComplete="off"
@@ -781,7 +956,7 @@ export default function EscapeRoomChallenge({
                       className={styles.primaryBtn}
                       type="button"
                     >
-                      {busyAction === 'submit' ? '⏳' : '✓ Soumettre'}
+                      {busyAction === 'submit' ? '⏳' : `✓ ${copy.submit}`}
                     </button>
                   </div>
                 </div>
@@ -808,7 +983,7 @@ export default function EscapeRoomChallenge({
 
         <aside className={`${styles.card} ${styles.sidePanel}`}>
           <ChallengeTimerCard
-            title="Chrono"
+            title={copy.timerTitle}
             remainingSeconds={timerSeconds}
             durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
             status={isTimerRunning ? 'running' : 'idle'}
@@ -821,14 +996,14 @@ export default function EscapeRoomChallenge({
                   disabled={!!busyAction}
                   onClick={() => facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })}
                 >
-                  Debloquer indice
+                  {copy.unlockHint}
                 </button>
                 <button
                   className={styles.secondaryBtn}
                   disabled={!!busyAction}
                   onClick={() => facilitatorAction('skip', '/skip')}
                 >
-                  Passer l'enigme
+                  {copy.skipRiddle}
                 </button>
               </div>
             ) : null}
@@ -837,7 +1012,7 @@ export default function EscapeRoomChallenge({
           {chatEnabled ? (
             <>
               <ChallengeChatCard
-                title="Chat"
+                title={copy.chatTitle}
                 messages={chatMessages}
                 currentAuthor={displayName}
                 inputValue={chatInput}
@@ -845,8 +1020,8 @@ export default function EscapeRoomChallenge({
                 onSubmit={submitChat}
                 quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
                 onQuickMessage={sendQuickChat}
-                emptyText="Aucun message pour le moment."
-                placeholder="Message equipe"
+                emptyText={copy.chatEmpty}
+                placeholder={copy.chatPlaceholder}
                 maxLength={240}
               />
               {realtimeError ? <p className={styles.feedback}>{realtimeError}</p> : null}
@@ -859,12 +1034,12 @@ export default function EscapeRoomChallenge({
 
           <section className={styles.teamList}>
             {participantRows.length === 0 ? (
-              <p className={styles.teamEmpty}>Liste participants indisponible.</p>
+              <p className={styles.teamEmpty}>{copy.participantListUnavailable}</p>
             ) : participantRows.map((row) => (
               <div key={String(row.id || row.name)} className={styles.teamRow}>
                 <span>{row.name}</span>
                 <span className={row.responded ? styles.teamStatusOk : styles.teamStatusPending}>
-                  {row.responded ? 'repondu' : 'en attente'}
+                  {row.responded ? copy.responded : copy.waiting}
                 </span>
               </div>
             ))}
