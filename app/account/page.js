@@ -40,10 +40,19 @@ function formatPriceCents(priceCents, currency, locale = 'fr') {
 
 function normalizeDisplayName(user) {
   if (!user || typeof user !== 'object') return 'Manager';
-  const first = String(user.first_name || '').trim();
-  const last = String(user.last_name || '').trim();
+  const first = toNameTitleCase(user.first_name);
+  const last = toNameTitleCase(user.last_name);
   const full = `${first} ${last}`.trim();
   return full || String(user.name || user.email || 'Manager');
+}
+
+function toNameTitleCase(value) {
+  const text = String(value || '').trim().toLowerCase();
+  if (!text) return '';
+  return text
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 function normalizePlanList(plans) {
@@ -276,8 +285,8 @@ export default function AccountPage() {
         setMe(mePayload || null);
         setPlans(mergedPlans);
         setProfileForm({
-          first_name: String(mePayload?.first_name || '').trim(),
-          last_name: String(mePayload?.last_name || '').trim(),
+          first_name: toNameTitleCase(mePayload?.first_name),
+          last_name: toNameTitleCase(mePayload?.last_name),
           job_title: String(mePayload?.job_title || '').trim(),
           department: String(mePayload?.department || '').trim(),
         });
@@ -290,8 +299,8 @@ export default function AccountPage() {
           setGuard((prev) => {
             const mergedUser = {
               ...(prev.user || {}),
-              first_name: mePayload?.first_name,
-              last_name: mePayload?.last_name,
+              first_name: toNameTitleCase(mePayload?.first_name),
+              last_name: toNameTitleCase(mePayload?.last_name),
               name: mePayload?.name,
               job_title: mePayload?.job_title,
               department: mePayload?.department,
@@ -341,6 +350,14 @@ export default function AccountPage() {
     const byName = plans.find((plan) => String(plan.name || '').toLowerCase().includes('pro'));
     return byName || null;
   }, [plans]);
+
+  const isProfileDirty = useMemo(() => {
+    const jobNow = String(profileForm.job_title || '').trim();
+    const depNow = String(profileForm.department || '').trim();
+    const jobBase = String(me?.job_title || '').trim();
+    const depBase = String(me?.department || '').trim();
+    return jobNow !== jobBase || depNow !== depBase;
+  }, [me?.department, me?.job_title, profileForm.department, profileForm.job_title]);
 
   async function handleSaveProfile(event) {
     event.preventDefault();
@@ -564,11 +581,6 @@ export default function AccountPage() {
               <p className="eyebrow">{t('account.heroEyebrow')}</p>
               <h1>{t('account.heroTitle')}</h1>
               <p>{t('account.heroBody')}</p>
-              <div className="account-tabs" role="tablist" aria-label={locale === 'en' ? 'Account sections' : 'Sections du compte'}>
-                <button type="button" role="tab" aria-selected={activeTab === 'profile'} className={`account-tab ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => setActiveTab('profile')}>{t('account.heroProfile')}</button>
-                <button type="button" role="tab" aria-selected={activeTab === 'security'} className={`account-tab ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => setActiveTab('security')}>{t('account.heroSecurity')}</button>
-                <button type="button" role="tab" aria-selected={activeTab === 'pricing'} className={`account-tab ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => setActiveTab('pricing')}>{t('account.heroPricing')}</button>
-              </div>
             </div>
             <aside className="home-hero-summary" aria-label={t('account.summaryAria')}>
               {String(me?.picture_url || guard.user?.picture_url || '').trim() ? (
@@ -590,14 +602,26 @@ export default function AccountPage() {
               <p className="home-hero-summary__eyebrow">{t('account.yourAccount')}</p>
               <strong className="home-hero-summary__title">{String(me?.email || guard.user?.email || '').trim() || '-'}</strong>
               <ul className="home-hero-summary__list">
-                <li>{t('account.activePlan')} <strong>{currentPlanLabel}</strong></li>
+                <li>
+                  {t('account.activePlan')}
+                  <span className="account-plan-pill">{currentPlanLabel}</span>
+                </li>
                 <li>{t('account.role')} {roleLabel}</li>
               </ul>
+              <button type="button" className="account-change-plan-link" onClick={() => setActiveTab('pricing')}>
+                {locale === 'en' ? 'Change plan' : 'Changer de plan'}
+              </button>
             </aside>
           </div>
         </section>
 
         <div className="account-card-container">
+          <div className="account-tabs account-tabs--inside-card" role="tablist" aria-label={locale === 'en' ? 'Account sections' : 'Sections du compte'}>
+            <button type="button" role="tab" aria-selected={activeTab === 'profile'} className={`account-tab ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => setActiveTab('profile')}>{t('account.heroProfile')}</button>
+            <button type="button" role="tab" aria-selected={activeTab === 'security'} className={`account-tab ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => setActiveTab('security')}>{t('account.heroSecurity')}</button>
+            <button type="button" role="tab" aria-selected={activeTab === 'pricing'} className={`account-tab ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => setActiveTab('pricing')}>{t('account.heroPricing')}</button>
+          </div>
+
           <section id="account-profile" className={`account-saas-card account-panel ${activeTab === 'profile' ? 'is-active' : ''}`} hidden={activeTab !== 'profile'}>
             <header className="account-saas-card__header">
               <p className="eyebrow">{t('account.profileEyebrow')}</p>
@@ -607,7 +631,7 @@ export default function AccountPage() {
             <form className="account-saas-card__body" onSubmit={handleSaveProfile}>
               <div className="account-form-grid">
                 <div className="account-form-field">
-                  <label className="account-form-label" htmlFor="account-first-name">{t('account.firstName')}</label>
+                  <label className="account-form-label" htmlFor="account-first-name">{t('account.firstName')} <span className="account-lock-indicator" aria-hidden="true">🔒</span></label>
                   <input
                     id="account-first-name"
                     className="account-form-input account-form-input--disabled"
@@ -618,7 +642,7 @@ export default function AccountPage() {
                   />
                 </div>
                 <div className="account-form-field">
-                  <label className="account-form-label" htmlFor="account-last-name">{t('account.lastName')}</label>
+                  <label className="account-form-label" htmlFor="account-last-name">{t('account.lastName')} <span className="account-lock-indicator" aria-hidden="true">🔒</span></label>
                   <input
                     id="account-last-name"
                     className="account-form-input account-form-input--disabled"
@@ -653,7 +677,7 @@ export default function AccountPage() {
               </div>
               <p className="account-form-hint">{t('account.immutableNameHint')}</p>
               <div className="account-saas-card__actions">
-                <button type="submit" className="btn-primary" disabled={savingProfile}>
+                <button type="submit" className="btn-primary account-save-profile-btn" disabled={savingProfile || !isProfileDirty}>
                   {savingProfile ? t('account.savingProfile') : t('account.saveProfile')}
                 </button>
               </div>
@@ -840,6 +864,111 @@ export default function AccountPage() {
             ) : null}
           </div>
         </section>
+
+        <style jsx global>{`
+          .account-tabs--inside-card {
+            margin-top: 0;
+            margin-bottom: 0.25rem;
+            padding: 0.35rem;
+            border: 1px solid #e6edf8;
+            border-radius: 16px;
+            background: #f8fbff;
+          }
+
+          .account-tab {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 9.6rem;
+            border: 1px solid #d9e1ef;
+            background: #ffffff;
+            color: #3b4d6b;
+            border-radius: 12px;
+            padding: 0.72rem 1.08rem;
+            transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
+          }
+
+          .account-tab:hover,
+          .account-tab:focus-visible {
+            border-color: #c7d3ea;
+            background: #f5f8ff;
+            color: #2c3f64;
+          }
+
+          .account-tab.is-active {
+            background: #6d4aff;
+            border-color: #6d4aff;
+            color: #ffffff;
+          }
+
+          .account-saas-card__header {
+            padding: 1.4rem 1.75rem 0.8rem;
+          }
+
+          .account-saas-card__subtitle {
+            margin: 0.28rem 0 0;
+          }
+
+          .account-saas-card__body {
+            padding: 1.2rem 1.75rem 1.5rem;
+          }
+
+          .account-form-input {
+            border: 1px solid #e2e8f0;
+          }
+
+          .account-form-input::placeholder {
+            color: #64748b;
+            opacity: 1;
+          }
+
+          .account-form-input--disabled,
+          .account-form-input:disabled {
+            border-color: #e2e8f0;
+          }
+
+          .account-lock-indicator {
+            margin-left: 0.28rem;
+            font-size: 0.82rem;
+          }
+
+          .account-save-profile-btn:disabled {
+            background: #cbd5e1 !important;
+            color: #f8fafc !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+          }
+
+          .account-plan-pill {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 0.45rem;
+            padding: 0.15rem 0.62rem;
+            border-radius: 999px;
+            background: #ebe8ff;
+            border: 1px solid #d6d0ff;
+            color: #4c34cc;
+            font-weight: 700;
+            font-size: 0.78rem;
+          }
+
+          .account-change-plan-link {
+            margin-top: 0.65rem;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: #365fd7;
+            font-weight: 700;
+            font-size: 0.84rem;
+            cursor: pointer;
+          }
+
+          .account-change-plan-link:hover,
+          .account-change-plan-link:focus-visible {
+            color: #2a47a8;
+            text-decoration: underline;
+          }
+        `}</style>
       </main>
       <Footer />
     </>

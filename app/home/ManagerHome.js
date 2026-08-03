@@ -422,7 +422,7 @@ export default function ManagerHome() {
     ? (isEn ? 'Loading participants...' : 'Chargement des participants...')
     : (isEn
       ? 'Creation unavailable: add participants first in your manager space.'
-      : 'Creation indisponible: ajoutez d abord des participants dans votre espace manager.');
+      : 'Création indisponible : ajoutez d\'abord des participants dans votre espace manager.');
   const asyncStatusMessage = creatingMember
     ? (editingMemberId
       ? (isEn ? 'Updating participant...' : 'Mise à jour du participant...')
@@ -1165,7 +1165,7 @@ export default function ManagerHome() {
           {loadingMembers ? <p>{isEn ? 'Loading participants...' : 'Chargement des participants...'}</p> : null}
 
           {!loadingMembers && members.length === 0 ? (
-            <p className="team-empty">{isEn ? 'No participants yet. Start by creating your first profile.' : 'Aucun participant pour le moment. Commencez par creer votre premier profil.'}</p>
+            <p className="team-empty">{isEn ? 'No participants yet. Start by creating your first profile.' : 'Aucun participant pour le moment. Commencez par créer votre premier profil.'}</p>
           ) : null}
 
           {!loadingMembers && members.length > 0 ? (
@@ -1446,6 +1446,29 @@ export default function ManagerHome() {
           </article>
         </div>
       </Modal>
+      <style jsx global>{`
+        .manager-onboarding-grid--modal {
+          display: flex;
+          flex-direction: row;
+          flex-wrap: nowrap;
+          gap: 1rem;
+          overflow-x: auto;
+          padding-bottom: 0.25rem;
+        }
+
+        .manager-onboarding-grid--modal .manager-onboarding-step {
+          flex: 1 1 0;
+          min-width: 240px;
+          background: linear-gradient(155deg, #ffffff 0%, #eef4ff 100%);
+          border: 1px solid rgba(91, 140, 255, 0.22);
+          box-shadow: 0 12px 30px rgba(31, 70, 210, 0.12);
+        }
+
+        .manager-onboarding-grid--modal .manager-onboarding-step:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 18px 34px rgba(31, 70, 210, 0.18);
+        }
+      `}</style>
       <Footer />
     </>
   );
