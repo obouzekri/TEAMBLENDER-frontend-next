@@ -132,6 +132,14 @@
   letter-spacing: 0.01em;
 }
 
+.selectionTitle {
+  margin: 0;
+  color: #eef7ff;
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
 .card p,
 .card li {
   color: #bfd3e8;
@@ -170,6 +178,7 @@
   isolation: isolate;
   box-shadow: 0 16px 32px rgba(2, 9, 16, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   animation: cardReveal 360ms ease both;
+  min-height: 152px;
 }
 
 .statementBtn:focus-visible,
@@ -238,6 +247,21 @@
   font-weight: 700;
 }
 
+.categoryBadge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  background: rgba(10, 33, 50, 0.9);
+  color: #bfeaff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 9px;
+}
+
 .statementPrompt {
   font-weight: 700;
   color: #e6f3ff;
@@ -246,6 +270,12 @@
 .statementOptionsPreview {
   font-size: 0.86rem;
   color: #b4d9ef;
+}
+
+.statementMeta {
+  color: #97b8cc;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .choicePanel {
@@ -425,6 +455,165 @@
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
   align-items: stretch;
+}
+
+.turnCompactCard {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(14, 165, 233, 0.14), transparent 35%),
+    linear-gradient(160deg, rgba(8, 20, 31, 0.96), rgba(11, 26, 40, 0.98));
+  box-shadow: 0 12px 26px rgba(2, 9, 16, 0.28);
+}
+
+.turnCompactEyebrow {
+  margin: 0;
+  color: #8cd5fa;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.turnCompactTitle {
+  margin: 0;
+  color: #f3fbff;
+  font-size: clamp(1.02rem, 1.8vw, 1.22rem);
+  line-height: 1.25;
+}
+
+.turnCompactBody {
+  margin: 0;
+  color: #c6dced;
+  font-size: 0.88rem;
+  line-height: 1.42;
+}
+
+.turnCompactBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.turnCompactBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 164, 188, 0.26);
+  background: rgba(16, 33, 49, 0.9);
+  color: #e2f2ff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 6px 10px;
+}
+
+.voteCompactCard {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(125, 164, 188, 0.22);
+  background: linear-gradient(160deg, rgba(9, 22, 34, 0.96), rgba(8, 19, 31, 0.98));
+  box-shadow: 0 14px 30px rgba(2, 9, 16, 0.24);
+}
+
+.voteCompactQuestionLabel {
+  margin: 0;
+  color: #8dd1f0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.voteCompactQuestion {
+  margin: 0;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: rgba(14, 33, 49, 0.84);
+  color: #eaf6ff;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  font-weight: 800;
+}
+
+.voteCompactProgress {
+  margin: 0;
+  color: #d2e7f5;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.observerBadge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  background: rgba(12, 39, 59, 0.9);
+  color: #dcf3ff;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 6px 10px;
+}
+
+.voteStatusList {
+  display: grid;
+  gap: 8px;
+}
+
+.voteStatusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(125, 164, 188, 0.16);
+  background: rgba(11, 25, 38, 0.8);
+}
+
+.voteStatusRowDone {
+  border-color: rgba(53, 183, 118, 0.3);
+  background: linear-gradient(145deg, rgba(16, 43, 36, 0.88), rgba(11, 29, 31, 0.94));
+}
+
+.voteStatusIdentity {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.voteStatusIdentity strong {
+  color: #f2f9fd;
+  font-size: 0.9rem;
+}
+
+.voteStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  border: 1px solid rgba(125, 164, 188, 0.2);
+}
+
+.voteStatusBadgeDone {
+  color: #e8fff1;
+  background: rgba(17, 63, 46, 0.9);
+  border-color: rgba(53, 183, 118, 0.32);
+}
+
+.voteStatusBadgePending {
+  color: #cbe1f0;
+  background: rgba(17, 36, 54, 0.9);
 }
 
 .votePhaseHeader {
@@ -859,12 +1048,6 @@
   text-transform: uppercase;
 }
 
-  font-size: 0.67rem;
-  border-color: rgba(40, 179, 208, 0.62);
-  transform: translateY(-1px);
-  background: rgba(12, 28, 42, 0.92);
-}
-
 .resultRowTop {
   border-color: rgba(245, 195, 77, 0.5);
   background: linear-gradient(145deg, rgba(44, 34, 14, 0.58), rgba(13, 33, 49, 0.84));
@@ -1216,18 +1399,37 @@
 }
 
 .participantChip {
-  border: 1px solid rgba(125, 164, 188, 0.36);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(125, 164, 188, 0.32);
   border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 0.76rem;
-  background: rgba(7, 19, 30, 0.72);
-  color: #d6e8f7;
+  padding: 6px 11px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: linear-gradient(160deg, rgba(9, 23, 36, 0.84), rgba(8, 20, 31, 0.92));
+  color: #deedf9;
+}
+
+.participantChipAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 164, 188, 0.24);
+  background: rgba(22, 62, 92, 0.75);
+  color: #e8f5ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.66rem;
+  font-weight: 800;
 }
 
 .participantChipPoser {
-  border-color: rgba(53, 183, 118, 0.7);
-  background: rgba(18, 61, 44, 0.62);
-  color: #cbf8df;
+  border-color: rgba(53, 183, 118, 0.58);
+  background: linear-gradient(145deg, rgba(18, 61, 44, 0.8), rgba(13, 42, 33, 0.9));
+  color: #dbffe9;
+  box-shadow: 0 0 0 2px rgba(53, 183, 118, 0.14);
 }
 
 .participantChipMe {
@@ -1799,6 +2001,14 @@
   cursor: not-allowed;
 }
 
+.mobileTimerWrap {
+  display: none;
+}
+
+.desktopTimerCard {
+  display: block;
+}
+
 @media (max-width: 760px) {
   .shell {
     padding: 12px;
@@ -1825,8 +2035,22 @@
   }
 
   .sideColumn {
-    order: -1;
+    order: 4;
     gap: 10px;
+  }
+
+  .mobileTimerWrap {
+    display: block;
+    order: 1;
+  }
+
+  .mobileTimerCard {
+    border-color: rgba(125, 211, 252, 0.54);
+    box-shadow: 0 14px 28px rgba(2, 9, 16, 0.34), 0 0 0 1px rgba(125, 211, 252, 0.14);
+  }
+
+  .desktopTimerCard {
+    display: none;
   }
 
   .shellPrestart .layout {
@@ -1870,6 +2094,11 @@
     font-size: 0.95rem;
     line-height: 1.45;
     padding: 11px 12px;
+  }
+
+  .voteStatusRow {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .resultHero {

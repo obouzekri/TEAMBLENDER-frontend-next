@@ -326,14 +326,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
   const answeredVotesCount = facilitatorVoteRows.filter((item) => item.hasAnswered).length;
   const totalExpectedVotes = facilitatorVoteRows.length;
-  const poserAnswerLabel = useMemo(() => {
-    const rawAnswer = String(currentTurn?.correct_answer || currentTurn?.selected_option || '').trim();
-    const normalizedAnswer = rawAnswer.toLowerCase();
-    if (!rawAnswer) return '—';
-    if (normalizedAnswer === 'vrai') return t('vom.voteTrue');
-    if (normalizedAnswer === 'mensonge') return t('vom.voteFalse');
-    return rawAnswer;
-  }, [currentTurn?.correct_answer, currentTurn?.selected_option, t]);
+  const voteProgressLabel = `${answeredVotesCount}/${totalExpectedVotes} ${isEn ? 'response received' : 'reponse recue'}${answeredVotesCount > 1 ? (isEn ? 's' : 's') : ''}`;
 
   const remainingMs = useMemo(() => {
     const deadline = Number(vom?.phase_deadline_ms || 0);
@@ -635,6 +628,20 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       <div className={styles.layout}>
         <div className={styles.mainColumn}>
 
+        <div className={styles.mobileTimerWrap}>
+          <ChallengeTimerCard
+            className={styles.mobileTimerCard}
+            title="Chrono"
+            remainingSeconds={remainingSecondsForCard}
+            durationSeconds={Math.max(1, phaseDurationSeconds)}
+            status={timerStatus}
+            isFacilitator={isFacilitator}
+            waitingText=""
+            collapsible={false}
+            footer={(phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
+          />
+        </div>
+
         {!hasChallengeStarted ? (
           <section className={styles.card}>
             <ChallengeRulesPanel
@@ -663,33 +670,28 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
         {phase === 'selecting_statement' ? (
           <section className={styles.card}>
-            {isFacilitator ? (
-              <div className={styles.roleSpotlightCard}>
-                <span className={styles.roleSpotlightEyebrow}>{t('vom.facilitatorRoundLabel')}</span>
-                <h2 className={styles.roleSpotlightTitle}>{t('vom.facilitatorSelectingFocus', { name: participantName(poserId) || '-' })}</h2>
-                <p className={styles.roleSpotlightBody}>{t('vom.facilitatorSelectingBody')}</p>
-                <div className={styles.roleSpotlightMetaRow}>
-                  <span className={styles.roleSpotlightChip}>{t('vom.currentCycleLabel', { current: currentCycle, total: totalCycles })}</span>
-                  <span className={styles.roleSpotlightChip}>{t('vom.currentPoser', { name: participantName(poserId) || '-' })}</span>
-                </div>
+            <div className={styles.turnCompactCard}>
+              <p className={styles.turnCompactEyebrow}>{isEn ? 'Current turn' : 'Tour en cours'}</p>
+              <h2 className={styles.turnCompactTitle}>{participantName(poserId) || '-'} {isEn ? 'is choosing a statement' : 'choisit une affirmation'}</h2>
+              <p className={styles.turnCompactBody}>{isEn ? 'The poser selects their statement.' : 'Le poseur selectionne son affirmation.'}</p>
+              <div className={styles.turnCompactBadges}>
+                <span className={styles.turnCompactBadge}>{isEn ? `Passage ${currentCycle}/${totalCycles}` : `Passage ${currentCycle}/${totalCycles}`}</span>
+                <span className={styles.turnCompactBadge}>{isEn ? `Current poser: ${participantName(poserId) || '-'}` : `Poseur actuel: ${participantName(poserId) || '-'}`}</span>
               </div>
-            ) : (
-              <>
-                <h2 className={styles.sectionTitle}>{t('vom.selectingTitle')}</h2>
-                <p>{t('vom.currentPoser', { name: participantName(poserId) || '-' })}</p>
-                <p className={styles.instruction}>{t('vom.selectingInstruction')}</p>
-                <div className={styles.participantsRow}>
-                  {orderedParticipantIds.map((id) => (
-                    <span
-                      key={id}
-                      className={`${styles.participantChip}${id === poserId ? ` ${styles.participantChipPoser}` : ''}${id === me ? ` ${styles.participantChipMe}` : ''}`}
-                    >
-                      {participantName(id)}{id === poserId ? ` ${t('vom.poserLabel')}` : ''}
-                    </span>
-                  ))}
-                </div>
-              </>
-            )}
+            </div>
+
+            <h3 className={styles.selectionTitle}>{isEn ? 'Choose a statement' : 'Choisissez une affirmation'}</h3>
+            <div className={styles.participantsRow}>
+              {orderedParticipantIds.map((id) => (
+                <span
+                  key={id}
+                  className={`${styles.participantChip}${id === poserId ? ` ${styles.participantChipPoser}` : ''}${id === me ? ` ${styles.participantChipMe}` : ''}`}
+                >
+                  <span className={styles.participantChipAvatar}>{getInitials(participantName(id))}</span>
+                  <span>{participantName(id)}</span>
+                </span>
+              ))}
+            </div>
             {isPoser ? (
               <>
                 <div className={styles.statementGrid}>
@@ -714,7 +716,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                         }}
                       >
                         <span className={styles.statementGlow} aria-hidden="true" />
-                        <span className={styles.category}>{statement.category}</span>
+                        <span className={styles.categoryBadge}>{statement.category}</span>
                         {parsedChoices ? (
                           <>
                             <span className={styles.statementPrompt}>
@@ -723,20 +725,20 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                             <span className={styles.statementOptionsPreview}>
                               {parsedChoices.options.join(' / ')}
                             </span>
-                            {selected && pickedChoice ? <small>{t('vom.selectedOption', { option: pickedChoice })}</small> : null}
+                            {selected && pickedChoice ? <small className={styles.statementMeta}>{t('vom.selectedOption', { option: pickedChoice })}</small> : null}
                           </>
                         ) : (
                           <span>{statement.text}</span>
                         )}
                         {selected ? <span className={styles.selectedMark}>{t('vom.selected')}</span> : null}
-                        {disabled ? <small>{t('vom.alreadyUsed')}</small> : null}
+                        {disabled ? <small className={styles.statementMeta}>{t('vom.alreadyUsed')}</small> : null}
                       </button>
                     );
                   })}
                 </div>
               </>
             ) : !isFacilitator ? (
-              <p className={styles.helper}>{t('vom.poserHelper')}</p>
+              <p className={styles.helper}>{isEn ? 'Waiting for the active poser.' : 'En attente du poseur actif.'}</p>
             ) : null}
           </section>
         ) : null}
@@ -744,15 +746,23 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'voting_open' ? (
           <section className={styles.card}>
             <h2 className={styles.sectionTitle}>{t('vom.votingTitle')}</h2>
-            <div className={styles.votePhaseHeader}>
-              <div className={styles.votePhaseCopy}>
-                <span className={styles.voteMonitorEyebrow}>{t('vom.voteWaitingTitle')}</span>
-                <strong className={styles.votePhaseTitle}>{t('vom.poserAsks', { name: participantName(poserId) })}</strong>
-              </div>
-              <p className={styles.votePhaseStatement}>"{currentTurn?.statement_prompt || currentTurn?.statement_text || '-'}"</p>
-              <div className={styles.votePhaseMetaRow}>
-                <span className={styles.votePhaseChip}>{t('vom.voteProgress', { answered: answeredVotesCount, total: totalExpectedVotes })}</span>
-                <span className={styles.votePhaseChip}>{isChoiceVoting ? (isEn ? 'Multiple choice' : 'Réponse à choix') : (isEn ? 'Binary vote' : 'Vote binaire')}</span>
+            <div className={styles.voteCompactCard}>
+              <p className={styles.voteCompactQuestionLabel}>{isEn ? 'Question' : 'Question'}</p>
+              <p className={styles.voteCompactQuestion}>"{currentTurn?.statement_prompt || currentTurn?.statement_text || '-'}"</p>
+              <p className={styles.voteCompactProgress}>{isEn ? `Progress: ${voteProgressLabel}` : `Progression: ${voteProgressLabel}`}</p>
+              {isFacilitator ? <span className={styles.observerBadge}>{isEn ? 'Observation only' : 'Observation uniquement'}</span> : null}
+              <div className={styles.voteStatusList}>
+                {facilitatorVoteRows.map((row) => (
+                  <article key={row.participantId} className={`${styles.voteStatusRow}${row.hasAnswered ? ` ${styles.voteStatusRowDone}` : ''}`}>
+                    <div className={styles.voteStatusIdentity}>
+                      <span className={styles.inlineAvatar}>{getInitials(row.participantName)}</span>
+                      <strong>{row.participantName}</strong>
+                    </div>
+                    <span className={`${styles.voteStatusBadge}${row.hasAnswered ? ` ${styles.voteStatusBadgeDone}` : ` ${styles.voteStatusBadgePending}`}`}>
+                      {row.hasAnswered ? `✅ ${isEn ? 'Answered' : 'Repondu'}` : `⏳ ${isEn ? 'Pending' : 'En attente'}`}
+                    </span>
+                  </article>
+                ))}
               </div>
             </div>
 
@@ -803,47 +813,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                         : myVote || t('vom.absent')
                   })}
                 </p>
-              </div>
-            ) : null}
-
-            {(isFacilitator || isPoser) ? (
-              <div className={styles.voteMonitorCard}>
-                <div className={styles.voteMonitorHeader}>
-                  <div>
-                    <span className={styles.voteMonitorEyebrow}>{isFacilitator ? t('vom.facilitatorObserve') : t('vom.voteWaitingTitle')}</span>
-                    <strong className={styles.voteMonitorHeadline}>{isFacilitator ? t('vom.facilitatorLiveVoteHeadline') : t('vom.poserWaitingHeadline')}</strong>
-                  </div>
-                  <span className={styles.voteMonitorCount}>{t('vom.voteProgress', { answered: answeredVotesCount, total: totalExpectedVotes })}</span>
-                </div>
-                <div className={styles.voteMonitorSummaryGrid}>
-                  <article className={styles.voteSummaryTile}>
-                    <span>{t('vom.facilitatorQuestionLabel')}</span>
-                    <strong>{currentTurn?.statement_text || currentTurn?.statement_prompt || '-'}</strong>
-                  </article>
-                  <article className={styles.voteSummaryTile}>
-                    <span>{t('vom.facilitatorPoserAnswerLabel')}</span>
-                    <strong>{poserAnswerLabel}</strong>
-                  </article>
-                </div>
-                <div className={styles.voteProgressTrack} aria-hidden="true">
-                  <span className={styles.voteProgressFill} style={{ width: `${totalExpectedVotes > 0 ? Math.round((answeredVotesCount / totalExpectedVotes) * 100) : 0}%` }} />
-                </div>
-                <div className={styles.voteResponseGrid}>
-                  {facilitatorVoteRows.map((row) => (
-                    <article key={row.participantId} className={`${styles.voteResponseCard}${row.hasAnswered ? ` ${styles.voteResponseCardAnswered}` : ''}`}>
-                      <div className={styles.voteResponseIdentity}>
-                        <span className={styles.inlineAvatar}>{getInitials(row.participantName)}</span>
-                        <div className={styles.voteResponseCopy}>
-                          <strong>{row.participantName}</strong>
-                          <span>{row.hasAnswered ? t('vom.voteAnswered') : t('vom.votePending')}</span>
-                        </div>
-                      </div>
-                      <span className={`${styles.voteResponseValue}${row.hasAnswered ? ` ${styles.voteResponseValueAnswered}` : ''}`}>
-                        {row.hasAnswered ? t('vom.voteReceived') : t('vom.voteWaitingShort')}
-                      </span>
-                    </article>
-                  ))}
-                </div>
               </div>
             ) : null}
 
@@ -991,6 +960,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
         <aside className={styles.sideColumn}>
           <ChallengeTimerCard
+            className={styles.desktopTimerCard}
             title="Chrono"
             remainingSeconds={remainingSecondsForCard}
             durationSeconds={Math.max(1, phaseDurationSeconds)}

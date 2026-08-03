@@ -121,12 +121,6 @@
   margin-top: 0.5rem;
 }
 
-@media (max-width: 900px) {
-  .challengeContainer {
-    padding-top: calc(54px + env(safe-area-inset-top));
-  }
-}
-
 @media (max-width: 720px) {
   .challengeContainer {
     padding-bottom: max(8px, env(safe-area-inset-bottom));
