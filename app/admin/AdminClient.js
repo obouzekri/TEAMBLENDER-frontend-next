@@ -3492,64 +3492,26 @@ export default function AdminClient() {
   return (
     <>
       <AppNav userLabel={pickUserLabel(user)} onLogout={logout} role="admin" />
-      <div className="admin-console-layout" style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg, #f8f9fa)' }}>
+      <div className="admin-console-layout">
 
         {/* Sidebar - responsive via CSS media query */}
-        <aside style={{
-          width: '220px',
-          minWidth: '220px',
-          background: 'var(--color-surface, #fff)',
-          borderRight: '1px solid var(--color-border, #e5e7eb)',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '0',
-          position: 'sticky',
-          top: 0,
-          height: '100vh',
-          overflowY: 'auto',
-        }}>
-          <div style={{
-            padding: '20px 20px 14px',
-            borderBottom: '1px solid var(--color-border, #e5e7eb)',
-          }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-muted, #6b7280)', textTransform: 'uppercase', margin: 0 }}>TeamBlender</p>
+        <aside className="admin-sidebar">
+          <div className="admin-sidebar__brand">
+            <p className="admin-sidebar__eyebrow">TeamBlender</p>
+            <p className="admin-sidebar__title">Console admin</p>
           </div>
 
-          <nav style={{ flex: 1, padding: '12px 0' }}>
+          <nav className="admin-sidebar__nav">
             {TAB_ITEMS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
+                className={`admin-nav-button${activeTab === tab.id ? ' is-active' : ''}`}
                 onClick={() => handleAdminTabClick(tab)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  width: '100%',
-                  padding: '10px 20px',
-                  background: activeTab === tab.id ? 'var(--color-primary-light, #eef2ff)' : 'transparent',
-                  border: 'none',
-                  borderLeft: activeTab === tab.id ? '3px solid var(--color-primary, #4f46e5)' : '3px solid transparent',
-                  color: activeTab === tab.id ? 'var(--color-primary, #4f46e5)' : 'var(--color-text, #374151)',
-                  fontWeight: activeTab === tab.id ? 600 : 400,
-                  fontSize: '14px',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  transition: 'background 0.15s',
-                }}
               >
-                {tab.label}
+                <span>{tab.label}</span>
                 {tab.badge != null ? (
-                  <span style={{
-                    background: 'var(--color-primary, #4f46e5)',
-                    color: '#fff',
-                    borderRadius: '10px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    padding: '2px 7px',
-                    minWidth: '20px',
-                    textAlign: 'center',
-                  }}>{tab.badge}</span>
+                  <span className="admin-nav-badge">{tab.badge}</span>
                 ) : null}
               </button>
             ))}
@@ -3557,21 +3519,14 @@ export default function AdminClient() {
         </aside>
 
         {/* Main content */}
-        <main style={{ flex: 1, padding: '24px 24px', overflowY: 'auto' }}>
+        <main className="admin-main-shell">
 
           {/* Notifications */}
           {error ? (
-            <div style={{
+            <div className="admin-alert admin-alert--error" style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              borderRadius: '8px',
-              padding: '12px 16px',
-              marginBottom: '20px',
-              color: '#b91c1c',
-              fontSize: '14px',
             }}>
               <span>{error}</span>
               <button type="button" aria-label={isEn ? 'Close error message' : 'Fermer le message d\'erreur'} onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
@@ -3579,17 +3534,10 @@ export default function AdminClient() {
           ) : null}
 
           {notice ? (
-            <div style={{
+            <div className="admin-alert admin-alert--success" style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              borderRadius: '8px',
-              padding: '12px 16px',
-              marginBottom: '20px',
-              color: '#15803d',
-              fontSize: '14px',
             }}>
               <span>{notice}</span>
               <button type="button" aria-label={isEn ? 'Close info message' : 'Fermer le message d\'information'} onClick={() => setNotice('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#15803d', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
@@ -3613,11 +3561,15 @@ export default function AdminClient() {
           {/* ── DASHBOARD ── */}
           {activeTab === 'dashboard' ? (
             <div>
-              <div style={{ marginBottom: '28px' }}>
-                <h1 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 6px' }}>{isEn ? 'Dashboard' : 'Tableau de bord'}</h1>
-                <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{isEn ? 'Platform overview in real time.' : 'Vue d\'ensemble de la plateforme en temps reel.'}</p>
+              <div className="admin-page-hero">
+                <div>
+                  <p className="admin-page-hero__eyebrow">{isEn ? 'Operations center' : 'Centre d\'opérations'}</p>
+                  <h1 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 6px' }}>{isEn ? 'Dashboard' : 'Tableau de bord'}</h1>
+                  <p className="admin-page-hero__text">{isEn ? 'Platform overview in real time.' : 'Vue d\'ensemble de la plateforme en temps reel.'}</p>
+                </div>
+                <div className="admin-page-hero__pill">{pickUserLabel(user)}</div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+              <div className="admin-stat-grid" style={{ marginBottom: '24px' }}>
                 {[
                   { value: stats.users, label: isEn ? 'Users' : 'Utilisateurs' },
                   { value: stats.activeUsers, label: isEn ? 'Active users' : 'Utilisateurs actifs' },
@@ -3631,26 +3583,14 @@ export default function AdminClient() {
                   { value: stats.pricingPlans, label: isEn ? 'Pricing plans' : 'Formules tarifaires' },
                   { value: stats.landingBlocks, label: isEn ? 'Landing CMS blocks' : 'Blocs landing CMS' },
                 ].map((item) => (
-                    <div key={item.label} style={{
-                    background: 'var(--color-surface, #fff)',
-                    border: item.highlight ? '1px solid var(--color-primary, #4f46e5)' : '1px solid var(--color-border, #e5e7eb)',
-                    borderRadius: '10px',
-                      padding: '14px 12px',
-                    textAlign: 'center',
-                  }}>
-                    <p style={{ fontSize: '24px', fontWeight: 700, color: item.highlight ? 'var(--color-primary, #4f46e5)' : 'var(--color-text, #111)', margin: '0 0 2px' }}>{item.value}</p>
-                    <p style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', margin: 0 }}>{item.label}</p>
+                  <div key={item.label} className={`admin-stat-card${item.highlight ? ' admin-stat-card--highlight' : ''}`}>
+                    <p className="admin-stat-card__value">{item.value}</p>
+                    <p className="admin-stat-card__label">{item.label}</p>
                   </div>
                 ))}
               </div>
 
-              <div style={{
-                background: 'var(--color-surface, #fff)',
-                border: '1px solid var(--color-border, #e5e7eb)',
-                borderRadius: '10px',
-                padding: '20px 24px',
-                marginBottom: '20px',
-              }}>
+              <div className="admin-panel-card" style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                   <div>
                     <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Recent admin activity' : 'Activite admin recente'}</h2>
@@ -3692,12 +3632,7 @@ export default function AdminClient() {
 
               {/* Pending approvals on dashboard */}
               {pendingUsers.length > 0 ? (
-                <div style={{
-                  background: 'var(--color-surface, #fff)',
-                  border: '1px solid var(--color-primary, #4f46e5)',
-                  borderRadius: '10px',
-                  padding: '20px 24px',
-                }}>
+                <div className="admin-panel-card admin-panel-card--accent">
                   <h2 style={{ fontSize: '16px', fontWeight: 700, marginTop: 0, marginBottom: '16px' }}>{isEn ? 'Pending requests' : 'Demandes en attente'} ({pendingUsers.length})</h2>
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {pendingUsers.map((u) => (
@@ -3760,7 +3695,7 @@ export default function AdminClient() {
                 </div>
               </div>
 
-              <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
+              <div className="admin-panel-card" style={{ marginBottom: '16px' }}>
                 {analyticsSnapshot.configured ? (
                   <p style={{ margin: 0, fontSize: '13px', color: '#15803d', fontWeight: 600 }}>
                     {isEn ? '✓ PostHog connected' : '✓ PostHog connecte'}
@@ -3794,7 +3729,7 @@ export default function AdminClient() {
                 </div>
               ) : null}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(168px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+              <div className="admin-stat-grid" style={{ marginBottom: '16px' }}>
                 {[
                   { label: isEn ? 'Active users' : 'Utilisateurs actifs', value: Number(analyticsSnapshot.users.totalActive || 0) },
                   { label: isEn ? 'New users' : 'Nouveaux utilisateurs', value: Number(analyticsSnapshot.users.newUsers || 0) },
