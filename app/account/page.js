@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
+import Modal from '@/components/ui/Modal';
 import ToastContainer from '@/components/ToastContainer';
-import PaddleCheckoutButton from '@/components/PaddleCheckoutButton';
 import useToast from '@/lib/useToast';
 import {
   getMe,
@@ -14,14 +14,17 @@ import {
   listPricingPlans,
   updateMyPlan,
   capturePaypalOrder,
+  startStripeCheckout,
   startPayoneerCheckout,
   getStoredCurrentUser,
   setStoredCurrentUser,
 } from '@/lib/account';
 import { clearStoredAuth } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
+import { fetchSessionsWithRetry } from '@/lib/api';
 
 const PLAN_HISTORY_STORAGE_KEY = 'accountPlanChangeHistory';
+const FIXED_DH_BY_INDEX = [0, 70, 390, 690];
 
 function formatPriceCents(priceCents, currency, locale = 'fr') {
   const amount = Number(priceCents || 0) / 100;
@@ -36,6 +39,99 @@ function formatPriceCents(priceCents, currency, locale = 'fr') {
   } catch {
     return `${amount.toFixed(2)} ${currencyCode}`;
   }
+}
+
+function buildDhPriceByPlanId(plans) {
+  const map = {};
+  normalizePlanList(plans).forEach((plan, index) => {
+    const fallback = Math.max(0, Math.round(Number(plan?.price_cents || 0) / 100));
+    map[String(plan.id)] = Number.isFinite(FIXED_DH_BY_INDEX[index]) ? FIXED_DH_BY_INDEX[index] : fallback;
+  });
+  return map;
+}
+
+function formatDhAmount(amountDh) {
+  const value = Number(amountDh || 0);
+  return `${value} DH`;
+}
+
+function normalizeFeatureLabel(feature) {
+  const raw = String(feature || '').trim();
+  if (!raw) return '';
+  const normalized = raw
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[’']/g, "'")
+    .toLowerCase();
+
+  if (normalized.includes("pas d") && normalized.includes('export')) {
+    return '❌ Export CSV/PDF';
+  }
+  if (normalized.includes("pas d") && normalized.includes('insights avances')) {
+    return '❌ Insights avancés';
+  }
+
+  return raw
+    .replace(/^\s*[✓✔]\s*/u, '')
+    .replace(/^\s*❌\s*pas d[’']?\s*/iu, '❌ ')
+    .trim();
+}
+
+function getCheckoutRedirectUrl(response) {
+  const topLevelUrl = String(response?.url || '').trim();
+  if (topLevelUrl) return topLevelUrl;
+  const paymentCheckoutUrl = String(response?.payment?.checkout_url || '').trim();
+  if (paymentCheckoutUrl) return paymentCheckoutUrl;
+  return '';
+}
+
+function buildInvoiceDownload(entry, locale) {
+  const external = String(
+    entry?.invoice_pdf_url || entry?.pdf_url || entry?.invoice_url || entry?.receipt_url || ''
+  ).trim();
+  if (external) {
+    return {
+      href: external,
+      filename: `invoice-${String(entry?.id || Date.now())}.pdf`,
+      external: true,
+    };
+  }
+
+  const invoiceText = [
+    locale === 'en' ? 'Invoice' : 'Facture',
+    `Reference: ${String(entry?.id || Date.now())}`,
+    `${locale === 'en' ? 'Date' : 'Date'}: ${String(entry?.at || '')}`,
+    `${locale === 'en' ? 'Plan' : 'Formule'}: ${String(entry?.to || '-')}`,
+    `${locale === 'en' ? 'Amount' : 'Montant'}: ${String(entry?.amount_label || '0 DH HT')}`,
+  ].join('\n');
+
+  const blob = new Blob([invoiceText], { type: 'application/pdf' });
+  return {
+    href: URL.createObjectURL(blob),
+    filename: `invoice-${String(entry?.id || Date.now())}.pdf`,
+    external: false,
+  };
+}
+
+function resolveHistoryAmountLabel(entry, plans, dhPriceByPlanId) {
+  const explicit = String(entry?.amount_label || '').trim();
+  if (explicit) return explicit;
+
+  const byPlanId = String(entry?.to_plan_id || '').trim();
+  if (byPlanId && Object.prototype.hasOwnProperty.call(dhPriceByPlanId, byPlanId)) {
+    return `${formatDhAmount(dhPriceByPlanId[byPlanId])} HT`;
+  }
+
+  const planName = String(entry?.to || '').trim().toLowerCase();
+  if (planName) {
+    const match = plans.find((plan) => String(plan?.name || '').trim().toLowerCase() === planName);
+    if (match) {
+      const amountDh = Number(dhPriceByPlanId[String(match.id)] || 0);
+      return `${formatDhAmount(amountDh)} HT`;
+    }
+  }
+
+  return '0 DH HT';
 }
 
 function normalizeDisplayName(user) {
@@ -133,11 +229,45 @@ export default function AccountPage() {
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [planHistory, setPlanHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('profile');
+  const [sessionsThisMonth, setSessionsThisMonth] = useState(0);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState(null);
+  const [openingCheckout, setOpeningCheckout] = useState(false);
 
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingPlan, setSavingPlan] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
+
+  useEffect(() => {
+    if (!guard.allowed) return;
+    let cancelled = false;
+
+    fetchSessionsWithRetry()
+      .then((payload) => {
+        if (cancelled) return;
+        const source = Array.isArray(payload) ? payload : (payload?.sessions || payload?.data || []);
+        const list = Array.isArray(source) ? source : [];
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = now.getMonth();
+        const count = list.filter((session) => {
+          const raw = session?.createdAt || session?.created_at || session?.updatedAt || null;
+          if (!raw) return false;
+          const parsed = new Date(raw);
+          if (Number.isNaN(parsed.getTime())) return false;
+          return parsed.getFullYear() === y && parsed.getMonth() === m;
+        }).length;
+        setSessionsThisMonth(count);
+      })
+      .catch(() => {
+        if (!cancelled) setSessionsThisMonth(0);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [guard.allowed]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -231,6 +361,8 @@ export default function AccountPage() {
         );
 
         const [updatedMe, updatedPlans] = await Promise.all([getMe(), listPricingPlans()]);
+        const normalizedPlans = Array.isArray(updatedPlans) ? normalizePlanList(updatedPlans) : [];
+        const dhMap = buildDhPriceByPlanId(normalizedPlans);
         if (updatedMe) {
           setMe(updatedMe);
           setSelectedPlanId(updatedMe.pricing_plan_id ? String(updatedMe.pricing_plan_id) : '');
@@ -243,7 +375,26 @@ export default function AccountPage() {
           setStoredCurrentUser(mergedUser);
           setGuard((prev) => ({ ...prev, user: mergedUser }));
         }
-        if (Array.isArray(updatedPlans)) setPlans(normalizePlanList(updatedPlans));
+        if (normalizedPlans.length > 0) setPlans(normalizedPlans);
+
+        const paypalPlanId = String(result?.plan?.id || planId || updatedMe?.pricing_plan_id || '').trim();
+        if (paypalPlanId) {
+          const amountDh = Number(dhMap[paypalPlanId] || 0);
+          const historyEntry = {
+            id: Date.now(),
+            at: new Date().toISOString(),
+            from: '',
+            to: result?.plan?.name || updatedMe?.pricing_plan?.name || 'Plan',
+            to_plan_id: paypalPlanId,
+            amount_dh: amountDh,
+            amount_label: `${formatDhAmount(amountDh)} HT`,
+            invoice_pdf_url: String(result?.invoice_pdf_url || result?.pdf_url || '').trim() || null,
+          };
+          const existingHistory = parseHistory();
+          const nextHistory = [historyEntry, ...existingHistory].slice(0, 15);
+          setPlanHistory(nextHistory);
+          saveHistory(nextHistory);
+        }
       } catch (err) {
         showError(err.message || t('account.paypalConfirmError'));
       }
@@ -338,11 +489,11 @@ export default function AccountPage() {
   const renewalLabel = getRenewalDate(me, locale);
   const planSeats = activePlan?.max_users || me?.max_users || 0;
   const planSessions = activePlan?.max_sessions_per_month || me?.max_sessions_per_month || 0;
-  const billingSummary = [
-    activePlan ? currentPlanLabel : (locale === 'en' ? 'No active plan' : 'Aucun plan actif'),
-    `${formatCount(planSessions, locale)} ${locale === 'en' ? 'sessions / month' : 'sessions / mois'}`,
-    `${formatCount(planSeats, locale)} ${locale === 'en' ? 'participants max' : 'participants max'}`,
-  ];
+  const dhPriceByPlanId = useMemo(() => buildDhPriceByPlanId(plans), [plans]);
+  const sessionLimitValue = Number(planSessions || 0);
+  const usageLabel = sessionLimitValue > 0
+    ? `${formatCount(sessionsThisMonth, locale)}/${formatCount(sessionLimitValue, locale)} ${locale === 'en' ? 'sessions this month' : 'session ce mois-ci'}`
+    : (locale === 'en' ? `${formatCount(sessionsThisMonth, locale)} sessions this month` : `${formatCount(sessionsThisMonth, locale)} session ce mois-ci`);
 
   const recommendedPlan = useMemo(() => {
     const bySlug = plans.find((plan) => String(plan.slug || '').toLowerCase() === 'pro');
@@ -459,6 +610,7 @@ export default function AccountPage() {
       const previousPlan = activePlan;
       const latestPlanId = updatedUser?.pricing_plan_id ? String(updatedUser.pricing_plan_id) : '';
       const latestPlan = plans.find((plan) => String(plan.id) === latestPlanId) || null;
+      const amountDh = Number(dhPriceByPlanId[latestPlanId] || 0);
 
       setMe(updatedUser);
       setSelectedPlanId(latestPlanId);
@@ -476,6 +628,9 @@ export default function AccountPage() {
         at: new Date().toISOString(),
         from: previousPlan ? previousPlan.name : 'No plan',
         to: latestPlan ? latestPlan.name : 'No plan',
+        to_plan_id: latestPlanId || null,
+        amount_dh: amountDh,
+        amount_label: `${formatDhAmount(amountDh)} HT`,
       };
       const nextHistory = [historyEntry, ...planHistory].slice(0, 15);
       setPlanHistory(nextHistory);
@@ -527,9 +682,69 @@ export default function AccountPage() {
       return;
     }
 
-    window.location.assign(
-      `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}`
-    );
+    const targetPlan = plans.find((plan) => String(plan.id) === String(targetPlanId)) || null;
+    const amountDh = Number(dhPriceByPlanId[String(targetPlanId)] || 0);
+
+    if (amountDh <= 0) {
+      setSelectedPlanId(String(targetPlanId));
+      showSuccess(locale === 'en' ? 'Free plan selected.' : 'Formule Free sélectionnée.');
+      return;
+    }
+
+    setCheckoutPlan(targetPlan);
+    setCheckoutModalOpen(true);
+  }
+
+  function closeCheckoutModal() {
+    if (openingCheckout) return;
+    setCheckoutModalOpen(false);
+    setCheckoutPlan(null);
+  }
+
+  async function handleStartPlanCheckout(method) {
+    const targetPlanId = checkoutPlan?.id;
+    if (!targetPlanId || openingCheckout) return;
+
+    setOpeningCheckout(true);
+    try {
+      if (String(method).toLowerCase() === 'payoneer') {
+        const result = await startPayoneerCheckout({ pricing_plan_id: targetPlanId });
+        const url = getCheckoutRedirectUrl(result);
+        if (!url) throw new Error('Impossible de démarrer le checkout Payoneer.');
+        window.location.assign(url);
+        return;
+      }
+
+      const response = await startStripeCheckout({ pricing_plan_id: targetPlanId, method: 'stripe' });
+      const checkoutUrl = getCheckoutRedirectUrl(response);
+      if (checkoutUrl) {
+        window.location.assign(checkoutUrl);
+        return;
+      }
+
+      window.location.assign(
+        `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}`
+      );
+    } catch (err) {
+      showError(err.message || (locale === 'en' ? 'Checkout unavailable.' : 'Checkout indisponible.'));
+    } finally {
+      setOpeningCheckout(false);
+    }
+  }
+
+  function handleDownloadInvoice(entry) {
+    const { href, filename, external } = buildInvoiceDownload(entry, locale);
+    const anchor = document.createElement('a');
+    anchor.href = href;
+    anchor.download = filename;
+    anchor.rel = 'noopener noreferrer';
+    anchor.target = external ? '_blank' : '_self';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    if (!external) {
+      setTimeout(() => URL.revokeObjectURL(href), 1000);
+    }
   }
 
   function logout() {
@@ -603,8 +818,8 @@ export default function AccountPage() {
               <strong className="home-hero-summary__title">{String(me?.email || guard.user?.email || '').trim() || '-'}</strong>
               <ul className="home-hero-summary__list">
                 <li>
-                  {t('account.activePlan')}
-                  <span className="account-plan-pill">{currentPlanLabel}</span>
+                  {locale === 'en' ? 'Usage' : 'Consommation'}
+                  <span className="account-plan-pill">{usageLabel}</span>
                 </li>
                 <li>{t('account.role')} {roleLabel}</li>
               </ul>
@@ -747,20 +962,14 @@ export default function AccountPage() {
                 <h2>{t('account.pricingTitle')}</h2>
                 <p>{t('account.pricingSubtitle')}</p>
               </div>
-              {activePlan ? (
-                <div className="account-active-plan-badge">
-                  <span className="eyebrow">{t('account.activeBadgeEyebrow')}</span>
-                  <strong>{activePlan.name}</strong>
-                </div>
-              ) : null}
             </header>
 
             <div className="account-billing-summary">
               <div className="account-billing-summary__main">
-                <p className="account-billing-summary__label">{locale === 'en' ? 'Current plan' : 'Formule actuelle'}</p>
-                <strong>{billingSummary[0]}</strong>
+                <p className="account-billing-summary__label">{locale === 'en' ? 'Current usage' : 'Consommation actuelle'}</p>
+                <strong>{usageLabel}</strong>
                 <p className="account-billing-summary__meta">
-                  {billingSummary[1]} • {billingSummary[2]} • {cycleLabel}
+                  {formatCount(planSessions, locale)} {locale === 'en' ? 'sessions / month' : 'sessions / mois'} • {formatCount(planSeats, locale)} {locale === 'en' ? 'participants max' : 'participants max'} • {cycleLabel}
                 </p>
               </div>
               <div className="account-billing-summary__renewal">
@@ -776,7 +985,8 @@ export default function AccountPage() {
                   const isCurrent = planId === String(currentPlanId || '');
                   const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
                   const isPro = String(plan.slug || plan.name || '').toLowerCase().includes('pro');
-                  const priceFmt = formatPriceCents(plan.price_cents, plan.currency, locale);
+                  const amountDh = Number(dhPriceByPlanId[planId] || 0);
+                  const priceFmt = formatDhAmount(amountDh);
                   return (
                     <article
                       key={planId}
@@ -794,14 +1004,14 @@ export default function AccountPage() {
                       </div>
                       <h3 className="pricing-price">
                         {priceFmt}
-                        <span>{plan.currency ? `${String(plan.currency).toUpperCase()}` : ''} {locale === 'en' ? '/month' : '/mois'}</span>
+                        <span>{locale === 'en' ? '/month' : '/mois'}</span>
                       </h3>
                       <p className="pricing-tax-note">{locale === 'en' ? 'Excl. taxes' : 'HT'}</p>
                       {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
                       {Array.isArray(plan.features) && plan.features.length > 0 ? (
                         <ul className="pricing-feature-list">
                           {plan.features.map((item, i) => (
-                            <li key={i}>{item}</li>
+                            <li key={i}>{normalizeFeatureLabel(item)}</li>
                           ))}
                         </ul>
                       ) : null}
@@ -847,10 +1057,10 @@ export default function AccountPage() {
                         <tr key={String(entry.id)}>
                           <td>{formatDate(entry.at, locale)}</td>
                           <td>{entry.to}</td>
-                          <td>—</td>
+                          <td>{resolveHistoryAmountLabel(entry, plans, dhPriceByPlanId)}</td>
                           <td><span className="account-history-status account-history-status--success">{locale === 'en' ? 'Successful' : 'Réussi'}</span></td>
                           <td>
-                            <button type="button" className="account-history-link" onClick={() => window.alert(locale === 'en' ? 'Invoice PDF will be connected from billing history data.' : 'Le PDF de facture sera branché sur les données d\'historique de facturation.')}>PDF</button>
+                            <button type="button" className="account-history-link" onClick={() => handleDownloadInvoice(entry)}>PDF</button>
                           </td>
                         </tr>
                       ))}
@@ -864,6 +1074,29 @@ export default function AccountPage() {
             ) : null}
           </div>
         </section>
+
+        <Modal
+          open={checkoutModalOpen}
+          title={locale === 'en' ? 'Complete your payment' : 'Finalisez votre paiement'}
+          onClose={closeCheckoutModal}
+          bodyClassName="account-checkout-modal-body"
+        >
+          <div className="account-checkout-modal-content">
+            <p>
+              {locale === 'en'
+                ? `You selected ${checkoutPlan?.name || 'your plan'} (${formatDhAmount(Number(dhPriceByPlanId[String(checkoutPlan?.id || '')] || 0))} HT).`
+                : `Vous avez sélectionné ${checkoutPlan?.name || 'votre formule'} (${formatDhAmount(Number(dhPriceByPlanId[String(checkoutPlan?.id || '')] || 0))} HT).`}
+            </p>
+            <div className="account-checkout-modal-actions">
+              <button type="button" className="btn-primary" onClick={() => handleStartPlanCheckout('stripe')} disabled={openingCheckout}>
+                {openingCheckout ? (locale === 'en' ? 'Opening checkout...' : 'Ouverture du paiement...') : 'Payer avec Stripe'}
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => handleStartPlanCheckout('payoneer')} disabled={openingCheckout}>
+                Payer avec Payoneer
+              </button>
+            </div>
+          </div>
+        </Modal>
 
         <style jsx global>{`
           .account-tabs--inside-card {
@@ -967,6 +1200,58 @@ export default function AccountPage() {
           .account-change-plan-link:focus-visible {
             color: #2a47a8;
             text-decoration: underline;
+          }
+
+          .account-plan-cards-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            align-items: stretch;
+          }
+
+          .account-pricing-card {
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+          }
+
+          .account-plan-card-actions {
+            display: flex;
+            flex-direction: column;
+            margin-top: auto;
+          }
+
+          .account-plan-card-actions__primary {
+            margin-top: auto;
+          }
+
+          .account-checkout-modal-body {
+            padding: 0.5rem 0.2rem 0.2rem;
+          }
+
+          .account-checkout-modal-content {
+            display: grid;
+            gap: 1rem;
+          }
+
+          .account-checkout-modal-content p {
+            margin: 0;
+            color: #334155;
+          }
+
+          .account-checkout-modal-actions {
+            display: grid;
+            gap: 0.65rem;
+          }
+
+          @media (max-width: 1180px) {
+            .account-plan-cards-grid {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+          }
+
+          @media (max-width: 640px) {
+            .account-plan-cards-grid {
+              grid-template-columns: 1fr;
+            }
           }
         `}</style>
       </main>
