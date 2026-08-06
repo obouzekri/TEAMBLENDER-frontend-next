@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
@@ -31,11 +31,10 @@ function isParticipantRole(role) {
 }
 
 export default function SessionLiveClient() {
-  const { locale, withLocalePath } = useI18n();
+  const { locale, t, withLocalePath } = useI18n();
   const isEn = locale === 'en';
   const params = useParams();
   const pathname = usePathname();
-  const router = useRouter();
   const sessionId = String(params?.sessionId || '');
 
   const [user, setUser] = useState(null);
@@ -43,10 +42,8 @@ export default function SessionLiveClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionPending, setActionPending] = useState(false);
-  const [actionMsg, setActionMsg] = useState('');
+  const [actionError, setActionError] = useState('');
   const [advancePopupOpen, setAdvancePopupOpen] = useState(false);
-  const [endSessionPopupOpen, setEndSessionPopupOpen] = useState(false);
-  const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(0);
   useBodyScrollLock(advancePopupOpen);
 
   const autoAdvanceTimerRef = useRef(null);
@@ -106,7 +103,6 @@ export default function SessionLiveClient() {
       clearInterval(autoAdvanceTimerRef.current);
       autoAdvanceTimerRef.current = null;
     }
-    setAutoAdvanceCountdown(0);
   }, []);
 
   const advanceToNextChallenge = useCallback(async () => {
@@ -115,7 +111,7 @@ export default function SessionLiveClient() {
     }
 
     setActionPending(true);
-    setActionMsg('');
+    setActionError('');
     try {
       const res = await fetch(
         getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/flow/complete-active`),
@@ -131,51 +127,20 @@ export default function SessionLiveClient() {
         }
         throw new Error(payload?.error || body || `${isEn ? 'Error' : 'Erreur'} ${res.status}`);
       }
-      const updated = await res.json();
-      setActionMsg(updated?.active_challenge_id
-        ? (isEn ? 'Next challenge activated.' : 'Challenge suivant activé.')
-        : (isEn ? 'Last challenge completed.' : 'Dernier challenge terminé.'));
+      await res.json();
       await loadSession();
       refetchSessionState();
     } catch (err) {
-      setActionMsg(err.message || (isEn ? 'Error while moving to next challenge.' : 'Erreur lors du passage au challenge suivant.'));
+      setActionError(err.message || t('sessionLive.actionMoveNextError'));
     } finally {
       setActionPending(false);
     }
-  }, [canManageFlow, isEn, loadSession, refetchSessionState]);
+  }, [canManageFlow, loadSession, refetchSessionState, t]);
 
   const handleNextChallenge = useCallback(() => {
     clearAutoAdvanceTimer();
     setAdvancePopupOpen(true);
   }, [clearAutoAdvanceTimer]);
-
-  async function handleEndSession() {
-    setEndSessionPopupOpen(true);
-  }
-
-  async function confirmEndSession() {
-    setEndSessionPopupOpen(false);
-    setActionPending(true);
-    setActionMsg('');
-    try {
-      const res = await fetch(
-        getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`),
-        {
-          method: 'PUT',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ status: 'terminee' }),
-        }
-      );
-      if (!res.ok) {
-        const body = await res.text();
-        throw new Error(body || `${isEn ? 'Error' : 'Erreur'} ${res.status}`);
-      }
-      router.push(withLocalePath(`/session-results/${encodeURIComponent(sessionId)}`));
-    } catch (err) {
-      setActionMsg(err.message || (isEn ? 'Error while ending session.' : 'Erreur lors de la fin de session.'));
-      setActionPending(false);
-    }
-  }
 
   const flowMode = String(
     sessionState?.flowMode
@@ -190,7 +155,6 @@ export default function SessionLiveClient() {
   const scheduleAutoAdvance = useCallback(() => {
     clearAutoAdvanceTimer();
     let remaining = 5;
-    setAutoAdvanceCountdown(remaining);
     autoAdvanceTimerRef.current = setInterval(() => {
       remaining -= 1;
       if (remaining <= 0) {
@@ -198,7 +162,6 @@ export default function SessionLiveClient() {
         advanceToNextChallenge();
         return;
       }
-      setAutoAdvanceCountdown(remaining);
     }, 1000);
   }, [advanceToNextChallenge, clearAutoAdvanceTimer]);
 
@@ -221,15 +184,8 @@ export default function SessionLiveClient() {
     completedChallengeKeyRef.current = completionKey;
 
     if (flowMode === 'auto' && canManageFlow) {
-      setActionMsg(isEn ? 'Challenge completed. Auto-progress in progress...' : 'Challenge terminé. Passage automatique en cours...');
       scheduleAutoAdvance();
       return;
-    }
-
-    if (canManageFlow) {
-      setActionMsg(isEn
-        ? 'Challenge completed. Move to the next challenge when you are ready.'
-        : 'Challenge terminé. Passez au challenge suivant quand vous êtes prêt.');
     }
   }, [activeChallengeId, canManageFlow, flowMode, isEn, scheduleAutoAdvance, sessionState?.current_challenge?.id]);
 
@@ -257,9 +213,11 @@ export default function SessionLiveClient() {
   const connectionState = connected ? 'connected' : (reconnecting ? 'reconnecting' : 'offline');
   const isSessionLiveRoute = Boolean(pathname && pathname.includes('/session-live/'));
   const asyncStatusMessage = actionPending
-    ? (isEn ? 'Processing action...' : 'Action en cours de traitement...')
-    : loading
-      ? (isEn ? 'Loading session...' : 'Chargement de la session...')
+    ? t('sessionLive.processingAction')
+    : actionError
+      ? actionError
+      : loading
+        ? t('sessionLive.loadingSession')
       : '';
 
   if (loading) {
@@ -293,15 +251,15 @@ export default function SessionLiveClient() {
         ) : null}
         <section className="session-live-header session-live-surface">
           <div className="session-live-header__row1">
-            <strong className="session-live-header__name">{session?.name || `Session ${sessionId}`}</strong>
-            {activeChallenge && (
-              <span className="eyebrow session-live-header__meta">{activeChallenge.name || activeEngineKey}</span>
-            )}
-            <span className="eyebrow session-live-header__meta session-live-header__meta--count">
-              {memberCount} {isEn ? `participant${memberCount !== 1 ? 's' : ''}` : `participant${memberCount !== 1 ? 's' : ''}`}
-            </span>
+            <strong className="session-live-header__challengeTitle">{activeChallenge?.name || activeEngineKey || t('sessionLive.noActiveChallengeTitle')}</strong>
           </div>
           <div className="session-live-header__row2">
+            <span className="session-live-header__sessionBadge">
+              {t('sessionLive.sessionBadge', {
+                name: session?.name || `${t('sessionLive.sessionFallbackName')} ${sessionId}`,
+                count: memberCount,
+              })}
+            </span>
             <Button
               variant="primary"
               size="sm"
@@ -309,25 +267,8 @@ export default function SessionLiveClient() {
               onClick={handleNextChallenge}
               disabled={actionPending || !canManageFlow}
             >
-              {actionPending ? (isEn ? 'In progress...' : 'En cours...') : (isEn ? 'Move to next challenge' : 'Passer au challenge suivant')}
+              {actionPending ? t('sessionLive.inProgress') : t('sessionLive.moveToNextChallenge')}
             </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="session-live-header__actionButton session-live-header__endButton"
-              onClick={handleEndSession}
-              disabled={actionPending}
-            >
-              {isEn ? 'End session' : 'Terminer'}
-            </Button>
-            {flowMode === 'auto' && (
-              <span className="session-live-header__msg session-live-header__msg--auto">
-                {autoAdvanceCountdown > 0
-                  ? (isEn ? `Auto progression in ${autoAdvanceCountdown}s` : `Passage auto dans ${autoAdvanceCountdown}s`)
-                  : (isEn ? 'Auto progression enabled' : 'Passage auto activé')}
-              </span>
-            )}
-            {actionMsg && <span className="session-live-header__msg">{actionMsg}</span>}
           </div>
         </section>
 
@@ -341,59 +282,26 @@ export default function SessionLiveClient() {
               onClick={(event) => event.stopPropagation()}
             >
               <div className="session-live-popup__header">
-                <h3 id="session-live-popup-title">{isEn ? 'Confirm next challenge' : 'Confirmer le prochain challenge'}</h3>
+                <h3 id="session-live-popup-title">{t('sessionLive.confirmNextChallengeTitle')}</h3>
                 <button
                   type="button"
                   className="session-live-popup__close"
-                  aria-label={isEn ? 'Close confirmation modal' : 'Fermer la fenetre de confirmation'}
+                  aria-label={t('sessionLive.closeConfirmationModal')}
                   onClick={() => setAdvancePopupOpen(false)}
                 >
                   ×
                 </button>
               </div>
-              <p>{isEn ? 'Participants will automatically be moved to the next challenge.' : 'Les participants seront automatiquement deplaces vers le prochain challenge.'}</p>
+              <p>{t('sessionLive.confirmNextChallengeBody')}</p>
               <div className="session-live-popup__actions">
                 <Button variant="secondary" size="sm" onClick={() => setAdvancePopupOpen(false)}>
-                  {isEn ? 'Cancel' : 'Annuler'}
+                  {t('sessionLive.cancel')}
                 </Button>
                 <Button variant="primary" size="sm" onClick={async () => {
                   setAdvancePopupOpen(false);
                   await advanceToNextChallenge();
                 }}>
-                  {isEn ? 'Confirm' : 'Confirmer'}
-                </Button>
-              </div>
-            </section>
-          </div>
-        ) : null}
-
-        {endSessionPopupOpen ? (
-          <div className="session-live-popup-backdrop" role="presentation" onClick={() => setEndSessionPopupOpen(false)}>
-            <section
-              className="session-live-popup"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="session-live-end-popup-title"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="session-live-popup__header">
-                <h3 id="session-live-end-popup-title">{isEn ? 'End session?' : 'Terminer la session ?'}</h3>
-                <button
-                  type="button"
-                  className="session-live-popup__close"
-                  aria-label={isEn ? 'Close confirmation modal' : 'Fermer la fenetre de confirmation'}
-                  onClick={() => setEndSessionPopupOpen(false)}
-                >
-                  ×
-                </button>
-              </div>
-              <p>{isEn ? 'This will close the current session and show the results page.' : 'Cette action fermera la session en cours et affichera la page de résultats.'}</p>
-              <div className="session-live-popup__actions">
-                <Button variant="secondary" size="sm" onClick={() => setEndSessionPopupOpen(false)}>
-                  {isEn ? 'Cancel' : 'Annuler'}
-                </Button>
-                <Button variant="primary" size="sm" onClick={confirmEndSession}>
-                  {isEn ? 'Confirm' : 'Confirmer'}
+                  {t('sessionLive.confirm')}
                 </Button>
               </div>
             </section>
