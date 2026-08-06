@@ -441,22 +441,6 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
           )}
         </section>
 
-        {hasChallengeStarted ? (
-          <section className={styles.sideCard} style={{ opacity: 0.88 }}>
-            <ChallengeRulesPanel
-              isStarted={hasChallengeStarted}
-              isFacilitator={isFacilitator}
-              showPrestartCard={false}
-              challengeName={challengeName}
-              objective={rulesContent.objective}
-              participantsMeta={rulesParticipantsMeta}
-              facilitatorRules={rulesContent.facilitator}
-              participantRules={rulesContent.participant}
-              footnote={rulesContent.footnote}
-            />
-          </section>
-        ) : null}
-
         <aside className={styles.sidePanel}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
@@ -481,6 +465,24 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
               ) : null}
             />
           </div>
+
+          {hasChallengeStarted ? (
+            <div className="challenge-desktop-timer">
+              <section className={styles.sideCard} style={{ opacity: 0.88 }}>
+                <ChallengeRulesPanel
+                  isStarted={hasChallengeStarted}
+                  isFacilitator={isFacilitator}
+                  showPrestartCard={false}
+                  challengeName={challengeName}
+                  objective={rulesContent.objective}
+                  participantsMeta={rulesParticipantsMeta}
+                  facilitatorRules={rulesContent.facilitator}
+                  participantRules={rulesContent.participant}
+                  footnote={rulesContent.footnote}
+                />
+              </section>
+            </div>
+          ) : null}
 
           <section className={styles.sideCard}>
             {chatEnabled ? (

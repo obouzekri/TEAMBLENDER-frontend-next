@@ -994,22 +994,6 @@ export default function EscapeRoomChallenge({
           )}
         </article>
 
-        {hasChallengeStarted ? (
-          <article className={`${styles.card} ${styles.mainCard}`} style={{ opacity: 0.88 }}>
-            <ChallengeRulesPanel
-              isStarted={hasChallengeStarted}
-              isFacilitator={isFacilitator}
-              showPrestartCard={false}
-              challengeName={challengeName}
-              objective={rulesContent.objective}
-              participantsMeta={rulesParticipantsMeta}
-              facilitatorRules={rulesContent.facilitator}
-              participantRules={rulesContent.participant}
-              footnote={rulesContent.footnote}
-            />
-          </article>
-        ) : null}
-
         <aside className={`${styles.card} ${styles.sidePanel}`}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
@@ -1039,6 +1023,24 @@ export default function EscapeRoomChallenge({
               ) : null}
             />
           </div>
+
+          {hasChallengeStarted ? (
+            <div className="challenge-desktop-timer">
+              <article className={`${styles.card} ${styles.mainCard}`} style={{ opacity: 0.88 }}>
+                <ChallengeRulesPanel
+                  isStarted={hasChallengeStarted}
+                  isFacilitator={isFacilitator}
+                  showPrestartCard={false}
+                  challengeName={challengeName}
+                  objective={rulesContent.objective}
+                  participantsMeta={rulesParticipantsMeta}
+                  facilitatorRules={rulesContent.facilitator}
+                  participantRules={rulesContent.participant}
+                  footnote={rulesContent.footnote}
+                />
+              </article>
+            </div>
+          ) : null}
 
           {chatEnabled ? (
             <>

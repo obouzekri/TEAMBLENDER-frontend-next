@@ -624,19 +624,6 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             </div>
           </section>
 
-          <section className={styles.card} style={{ opacity: 0.88 }}>
-            <ChallengeRulesPanel
-              isStarted={hasChallengeStarted}
-              isFacilitator={isFacilitator}
-              showPrestartCard={false}
-              challengeName={rulesPreset?.challengeName || 'Lab d\'Innovation'}
-              objective={rulesContent.objective}
-              participantsMeta={rulesParticipantsMeta}
-              facilitatorRules={facilitatorRules}
-              participantRules={participantRules}
-              footnote={rulesContent.footnote}
-            />
-          </section>
             </>
           )}
         </main>
@@ -652,6 +639,24 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               waitingText={isEn ? 'Waiting for facilitator to start' : 'En attente du facilitateur pour demarrer'}
             />
           </div>
+
+          {hasChallengeStarted ? (
+            <div className="challenge-desktop-timer">
+              <section className={styles.card} style={{ opacity: 0.88 }}>
+                <ChallengeRulesPanel
+                  isStarted={hasChallengeStarted}
+                  isFacilitator={isFacilitator}
+                  showPrestartCard={false}
+                  challengeName={rulesPreset?.challengeName || 'Lab d\'Innovation'}
+                  objective={rulesContent.objective}
+                  participantsMeta={rulesParticipantsMeta}
+                  facilitatorRules={facilitatorRules}
+                  participantRules={participantRules}
+                  footnote={rulesContent.footnote}
+                />
+              </section>
+            </div>
+          ) : null}
 
           {hasChallengeStarted ? (
             <section className={styles.card}>

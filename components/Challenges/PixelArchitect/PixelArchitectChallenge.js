@@ -1182,20 +1182,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 </section>
               ) : null}
 
-              <section className={styles.panel} style={{ opacity: 0.88 }}>
-                <ChallengeRulesPanel
-                  isStarted={hasChallengeStarted}
-                  isFacilitator={isFacilitator}
-                  showPrestartCard={false}
-                  challengeName={challengeName}
-                  objective={rulesContent.objective}
-                  participantsMeta={rulesParticipantsMeta}
-                  facilitatorRules={rulesContent.facilitator}
-                  participantRules={rulesContent.participant}
-                  footnote={rulesContent.footnote}
-                  extraContent={rulesExtraContent}
-                />
-              </section>
             </>
           )}
         </main>
@@ -1212,6 +1198,25 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               collapsible={false}
             />
           </div>
+
+          {hasChallengeStarted ? (
+            <div className="challenge-desktop-timer">
+              <section className={styles.panel} style={{ opacity: 0.88 }}>
+                <ChallengeRulesPanel
+                  isStarted={hasChallengeStarted}
+                  isFacilitator={isFacilitator}
+                  showPrestartCard={false}
+                  challengeName={challengeName}
+                  objective={rulesContent.objective}
+                  participantsMeta={rulesParticipantsMeta}
+                  facilitatorRules={rulesContent.facilitator}
+                  participantRules={rulesContent.participant}
+                  footnote={rulesContent.footnote}
+                  extraContent={rulesExtraContent}
+                />
+              </section>
+            </div>
+          ) : null}
 
           <section className={styles.panel}>
             <div className={styles.panelHead}>

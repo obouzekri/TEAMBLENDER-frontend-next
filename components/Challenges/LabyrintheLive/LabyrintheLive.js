@@ -886,21 +886,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
             </section>
           )}
 
-          {hasChallengeStarted ? (
-            <section className={styles.panel} style={{ opacity: 0.88 }}>
-              <ChallengeRulesPanel
-                isStarted={hasChallengeStarted}
-                isFacilitator={isFacilitator}
-                showPrestartCard={false}
-                challengeName={challengeName}
-                objective={rulesContent.objective}
-                participantsMeta={rulesParticipantsMeta}
-                facilitatorRules={rulesContent.facilitator}
-                participantRules={rulesContent.participant}
-                footnote={rulesContent.footnote}
-              />
-            </section>
-          ) : null}
         </div>
 
         <aside className={styles.sideStack}>
@@ -931,6 +916,24 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               ) : null}
             />
           </div>
+
+          {hasChallengeStarted ? (
+            <div className="challenge-desktop-timer">
+              <section className={styles.panel} style={{ opacity: 0.88 }}>
+                <ChallengeRulesPanel
+                  isStarted={hasChallengeStarted}
+                  isFacilitator={isFacilitator}
+                  showPrestartCard={false}
+                  challengeName={challengeName}
+                  objective={rulesContent.objective}
+                  participantsMeta={rulesParticipantsMeta}
+                  facilitatorRules={rulesContent.facilitator}
+                  participantRules={rulesContent.participant}
+                  footnote={rulesContent.footnote}
+                />
+              </section>
+            </div>
+          ) : null}
 
           {chatEnabled ? (
             <ChallengeChatCard

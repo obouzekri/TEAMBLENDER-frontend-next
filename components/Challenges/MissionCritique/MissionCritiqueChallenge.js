@@ -604,22 +604,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             </section>
           )}
 
-          {hasChallengeStarted ? (
-            <section className={styles.card} style={{ opacity: 0.88 }}>
-              <ChallengeRulesPanel
-                isStarted={hasChallengeStarted}
-                isFacilitator={isFacilitator}
-                showPrestartCard={false}
-                challengeName={challengeName}
-                objective={rulesContent.objective}
-                participantsMeta={rulesParticipantsMeta}
-                facilitatorRules={facilitatorRules}
-                participantRules={participantRules}
-                footnote={rulesContent.footnote}
-              />
-            </section>
-          ) : null}
-
           {error ? <p className={styles.error}>{error}</p> : null}
         </main>
 
@@ -646,6 +630,24 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
               ) : null}
             />
           </div>
+
+          {hasChallengeStarted ? (
+            <div className="challenge-desktop-timer">
+              <section className={styles.card} style={{ opacity: 0.88 }}>
+                <ChallengeRulesPanel
+                  isStarted={hasChallengeStarted}
+                  isFacilitator={isFacilitator}
+                  showPrestartCard={false}
+                  challengeName={challengeName}
+                  objective={rulesContent.objective}
+                  participantsMeta={rulesParticipantsMeta}
+                  facilitatorRules={facilitatorRules}
+                  participantRules={participantRules}
+                  footnote={rulesContent.footnote}
+                />
+              </section>
+            </div>
+          ) : null}
 
           <ChallengeChatCard
             title={isEn ? 'Chat' : 'Chat'}

@@ -941,21 +941,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           </section>
         ) : null}
 
-        {hasChallengeStarted ? (
-          <section className={`${styles.card} ${styles.postStartRulesCard}`}>
-            <ChallengeRulesPanel
-              isStarted={hasChallengeStarted}
-              isFacilitator={isFacilitator}
-              showPrestartCard={false}
-              challengeName={challengeName || t('vom.title')}
-              objective={rulesContent.objective}
-              participantsMeta={rulesParticipantsMeta}
-              facilitatorRules={facilitatorRules}
-              participantRules={participantRules}
-              footnote={rulesContent.footnote}
-            />
-          </section>
-        ) : null}
         </div>
 
         <aside className={styles.sideColumn}>
@@ -971,6 +956,24 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               footer={(phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
             />
           </div>
+
+          {hasChallengeStarted ? (
+            <div className="challenge-desktop-timer">
+              <section className={`${styles.card} ${styles.postStartRulesCard}`}>
+                <ChallengeRulesPanel
+                  isStarted={hasChallengeStarted}
+                  isFacilitator={isFacilitator}
+                  showPrestartCard={false}
+                  challengeName={challengeName || t('vom.title')}
+                  objective={rulesContent.objective}
+                  participantsMeta={rulesParticipantsMeta}
+                  facilitatorRules={facilitatorRules}
+                  participantRules={participantRules}
+                  footnote={rulesContent.footnote}
+                />
+              </section>
+            </div>
+          ) : null}
 
           <ChallengeChatCard
             title="Chat"

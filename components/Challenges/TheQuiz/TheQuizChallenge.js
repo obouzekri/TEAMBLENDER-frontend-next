@@ -470,21 +470,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
               </div>
             ) : null}
 
-            {isStarted ? (
-              <section className={styles.screenCard} style={{ opacity: 0.88 }}>
-                <ChallengeRulesPanel
-                  challengeName={challengeName}
-                  isStarted={isStarted}
-                  isFacilitator={isFacilitator}
-                  showPrestartCard={false}
-                  objective={rules.objective}
-                  participantsMeta={rulesParticipantsMeta}
-                  facilitatorRules={rules.facilitator}
-                  participantRules={rules.participant}
-                  footnote={rules.footnote}
-                />
-              </section>
-            ) : null}
           </div>
 
           <aside className={styles.sideColumn}>
@@ -506,6 +491,24 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 waitingText=""
               />
             </div>
+
+            {isStarted ? (
+              <div className="challenge-desktop-timer">
+                <section className={styles.screenCard} style={{ opacity: 0.88 }}>
+                  <ChallengeRulesPanel
+                    challengeName={challengeName}
+                    isStarted={isStarted}
+                    isFacilitator={isFacilitator}
+                    showPrestartCard={false}
+                    objective={rules.objective}
+                    participantsMeta={rulesParticipantsMeta}
+                    facilitatorRules={rules.facilitator}
+                    participantRules={rules.participant}
+                    footnote={rules.footnote}
+                  />
+                </section>
+              </div>
+            ) : null}
 
             {chatEnabled ? (
               <div className={styles.sideStack}>
