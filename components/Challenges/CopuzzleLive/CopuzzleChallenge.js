@@ -549,7 +549,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
 
           {hasChallengeStarted ? (
             <div className="challenge-desktop-timer">
-              <section className={styles.sideCard} style={{ opacity: 0.88 }}>
+              <section className={styles.sideCard}>
                 <ChallengeRulesPanel
                   isStarted={hasChallengeStarted}
                   isFacilitator={isFacilitator}

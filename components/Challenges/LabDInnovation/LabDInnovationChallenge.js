@@ -642,7 +642,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
 
           {hasChallengeStarted ? (
             <div className="challenge-desktop-timer">
-              <section className={styles.card} style={{ opacity: 0.88 }}>
+              <section className={styles.card}>
                 <ChallengeRulesPanel
                   isStarted={hasChallengeStarted}
                   isFacilitator={isFacilitator}

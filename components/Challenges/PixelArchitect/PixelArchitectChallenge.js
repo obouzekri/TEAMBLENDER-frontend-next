@@ -1201,7 +1201,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
           {hasChallengeStarted ? (
             <div className="challenge-desktop-timer">
-              <section className={styles.panel} style={{ opacity: 0.88 }}>
+              <section className={styles.panel}>
                 <ChallengeRulesPanel
                   isStarted={hasChallengeStarted}
                   isFacilitator={isFacilitator}

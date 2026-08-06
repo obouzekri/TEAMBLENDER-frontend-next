@@ -494,7 +494,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
             {isStarted ? (
               <div className="challenge-desktop-timer">
-                <section className={styles.screenCard} style={{ opacity: 0.88 }}>
+                <section className={styles.screenCard}>
                   <ChallengeRulesPanel
                     challengeName={challengeName}
                     isStarted={isStarted}

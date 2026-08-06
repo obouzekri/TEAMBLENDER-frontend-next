@@ -1,11 +1,11 @@
 .rulesCard {
-  background: linear-gradient(168deg, rgba(2, 6, 23, 0.97), rgba(7, 23, 46, 0.96));
-  border: 1px solid rgba(14, 165, 233, 0.46);
+  background: #0c1726;
+  border: 1px solid #6f88a3;
   border-radius: 14px;
-  padding: 16px;
+  padding: 18px;
   display: grid;
-  gap: 8px;
-  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.3), inset 0 0 0 1px rgba(14, 165, 233, 0.12);
+  gap: 12px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
   width: 100%;
   max-width: 100%;
   overflow-wrap: anywhere;
@@ -62,7 +62,7 @@
 
 .rulesBriefTitle {
   margin: 0;
-  color: #f0f9ff;
+  color: #f8fbff;
   font-size: 1.08rem;
   font-weight: 800;
   letter-spacing: 0.01em;
@@ -71,25 +71,25 @@
 
 .rulesHeader h2 {
   margin: 0;
-    color: rgba(125, 211, 252, 0.9);
+  color: #8fd0ff;
   font-size: 1.06rem;
 }
 
 .rulesHeader p {
   margin: 0;
-  color: #dbe9f5;
+  color: #e5eef8;
   font-size: 0.88rem;
-  line-height: 1.45;
+  line-height: 1.55;
   overflow-wrap: anywhere;
 }
 
 .rulesSection {
   display: grid;
-  gap: 6px;
-  border: 1px solid rgba(125, 211, 252, 0.3);
-  background: rgba(4, 13, 22, 0.84);
+  gap: 8px;
+  border: 1px solid #4f6781;
+  background: #0f2136;
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 10px 12px;
 }
 
 .rulesGroupedList {
@@ -98,10 +98,10 @@
 }
 
 .rulesGroup {
-  border: 1px solid rgba(125, 211, 252, 0.28);
+  border: 1px solid #4b6280;
   border-radius: 10px;
-  padding: 8px 10px;
-  background: rgba(8, 20, 34, 0.88);
+  padding: 10px 12px;
+  background: #13273f;
 }
 
 .rulesGroup h4 {
@@ -120,9 +120,9 @@
 }
 
 .rulesSection li {
-  color: #e1edf7;
+  color: #edf4fb;
   font-size: 0.88rem;
-  line-height: 1.45;
+  line-height: 1.55;
 }
 
 .rulesSection h3 {
@@ -134,11 +134,11 @@
 .rulesSection ul {
   margin: 0;
   padding-left: 18px;
-  color: #c9ddf0;
+  color: #e3edf7;
   font-size: 0.85rem;
   display: grid;
   gap: 6px;
-  line-height: 1.45;
+  line-height: 1.55;
   overflow-wrap: anywhere;
 }
 
@@ -161,9 +161,9 @@
 
 .rulesFootnote {
   margin: 0;
-  color: #c1d2e2;
+  color: #d9e6f3;
   font-size: 0.78rem;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .rulesActions {
@@ -254,8 +254,7 @@
 .modalBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(2, 10, 18, 0.78);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.82);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -269,15 +268,13 @@
   max-height: min(84vh, 760px);
   overflow-x: hidden;
   overflow-y: auto;
-  background:
-    linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9)),
-    radial-gradient(420px 180px at 8% -18%, rgba(56, 189, 248, 0.18), transparent 72%);
-  border: 1px solid rgba(160, 187, 208, 0.48);
+  background: #0c1726;
+  border: 1px solid #6f88a3;
   border-radius: 16px;
-  box-shadow: 0 20px 46px rgba(2, 9, 16, 0.46);
-  padding: 14px;
+  box-shadow: 0 24px 46px rgba(0, 0, 0, 0.55);
+  padding: 16px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
   overflow-wrap: anywhere;
 }
 
@@ -295,9 +292,9 @@
 }
 
 .closeBtn {
-  border: 1px solid rgba(148, 163, 184, 0.34);
-  background: rgba(15, 23, 42, 0.6);
-  color: #dbeafe;
+  border: 1px solid #6b7f96;
+  background: #1a2b42;
+  color: #edf4fb;
   border-radius: 8px;
   padding: 6px 10px;
   font-size: 0.8rem;

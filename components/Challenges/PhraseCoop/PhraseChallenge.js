@@ -468,7 +468,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
 
           {hasChallengeStarted ? (
             <div className="challenge-desktop-timer">
-              <section className={styles.sideCard} style={{ opacity: 0.88 }}>
+              <section className={styles.sideCard}>
                 <ChallengeRulesPanel
                   isStarted={hasChallengeStarted}
                   isFacilitator={isFacilitator}

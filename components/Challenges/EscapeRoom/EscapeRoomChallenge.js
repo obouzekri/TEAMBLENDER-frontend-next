@@ -1026,7 +1026,7 @@ export default function EscapeRoomChallenge({
 
           {hasChallengeStarted ? (
             <div className="challenge-desktop-timer">
-              <article className={`${styles.card} ${styles.mainCard}`} style={{ opacity: 0.88 }}>
+              <article className={`${styles.card} ${styles.mainCard}`}>
                 <ChallengeRulesPanel
                   isStarted={hasChallengeStarted}
                   isFacilitator={isFacilitator}
