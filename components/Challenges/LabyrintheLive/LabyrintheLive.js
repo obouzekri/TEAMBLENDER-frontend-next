@@ -637,6 +637,20 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || (isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, évitez les pièges, ouvrez la sortie.')}
+        headerAction={hasChallengeStarted ? (
+          <ChallengeRulesPanel
+            inHeader
+            isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
+            showPrestartCard={false}
+            challengeName={challengeName}
+            objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
+            facilitatorRules={rulesContent.facilitator}
+            participantRules={rulesContent.participant}
+            footnote={rulesContent.footnote}
+          />
+        ) : null}
       />
 
       <div className="challenge-mobile-timer">
@@ -916,24 +930,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               ) : null}
             />
           </div>
-
-          {hasChallengeStarted ? (
-            <div className="challenge-desktop-timer">
-              <section className={styles.panel}>
-                <ChallengeRulesPanel
-                  isStarted={hasChallengeStarted}
-                  isFacilitator={isFacilitator}
-                  showPrestartCard={false}
-                  challengeName={challengeName}
-                  objective={rulesContent.objective}
-                  participantsMeta={rulesParticipantsMeta}
-                  facilitatorRules={rulesContent.facilitator}
-                  participantRules={rulesContent.participant}
-                  footnote={rulesContent.footnote}
-                />
-              </section>
-            </div>
-          ) : null}
 
           {chatEnabled ? (
             <ChallengeChatCard

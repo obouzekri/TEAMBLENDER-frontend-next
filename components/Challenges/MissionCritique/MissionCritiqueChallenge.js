@@ -329,6 +329,20 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || String(state?.config?.scenario || runtimePayload?.config?.scenario || 'Organiser un séminaire d’entreprise pour 80 personnes.')}
+        headerAction={hasChallengeStarted ? (
+          <ChallengeRulesPanel
+            inHeader
+            isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
+            showPrestartCard={false}
+            challengeName={challengeName}
+            objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
+            facilitatorRules={facilitatorRules}
+            participantRules={participantRules}
+            footnote={rulesContent.footnote}
+          />
+        ) : null}
       />
 
       <div className="challenge-mobile-timer">
@@ -630,24 +644,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
               ) : null}
             />
           </div>
-
-          {hasChallengeStarted ? (
-            <div className="challenge-desktop-timer">
-              <section className={styles.card}>
-                <ChallengeRulesPanel
-                  isStarted={hasChallengeStarted}
-                  isFacilitator={isFacilitator}
-                  showPrestartCard={false}
-                  challengeName={challengeName}
-                  objective={rulesContent.objective}
-                  participantsMeta={rulesParticipantsMeta}
-                  facilitatorRules={facilitatorRules}
-                  participantRules={participantRules}
-                  footnote={rulesContent.footnote}
-                />
-              </section>
-            </div>
-          ) : null}
 
           <ChallengeChatCard
             title={isEn ? 'Chat' : 'Chat'}

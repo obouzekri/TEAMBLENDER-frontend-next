@@ -971,6 +971,21 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || (isEn ? 'Replicate the model together in real time with grid and palette constraints.' : 'Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette.')}
+        headerAction={hasChallengeStarted ? (
+          <ChallengeRulesPanel
+            inHeader
+            isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
+            showPrestartCard={false}
+            challengeName={challengeName}
+            objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
+            facilitatorRules={rulesContent.facilitator}
+            participantRules={rulesContent.participant}
+            footnote={rulesContent.footnote}
+            extraContent={rulesExtraContent}
+          />
+        ) : null}
       />
 
       <div className="challenge-mobile-timer">
@@ -1198,25 +1213,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               collapsible={false}
             />
           </div>
-
-          {hasChallengeStarted ? (
-            <div className="challenge-desktop-timer">
-              <section className={styles.panel}>
-                <ChallengeRulesPanel
-                  isStarted={hasChallengeStarted}
-                  isFacilitator={isFacilitator}
-                  showPrestartCard={false}
-                  challengeName={challengeName}
-                  objective={rulesContent.objective}
-                  participantsMeta={rulesParticipantsMeta}
-                  facilitatorRules={rulesContent.facilitator}
-                  participantRules={rulesContent.participant}
-                  footnote={rulesContent.footnote}
-                  extraContent={rulesExtraContent}
-                />
-              </section>
-            </div>
-          ) : null}
 
           <section className={styles.panel}>
             <div className={styles.panelHead}>

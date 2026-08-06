@@ -250,6 +250,20 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || 'Reconstituez la phrase en équipe, slot par slot'}
+        headerAction={hasChallengeStarted ? (
+          <ChallengeRulesPanel
+            inHeader
+            isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
+            showPrestartCard={false}
+            challengeName={challengeName}
+            objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
+            facilitatorRules={rulesContent.facilitator}
+            participantRules={rulesContent.participant}
+            footnote={rulesContent.footnote}
+          />
+        ) : null}
       />
 
       <div className="challenge-mobile-timer">
@@ -465,24 +479,6 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
               ) : null}
             />
           </div>
-
-          {hasChallengeStarted ? (
-            <div className="challenge-desktop-timer">
-              <section className={styles.sideCard}>
-                <ChallengeRulesPanel
-                  isStarted={hasChallengeStarted}
-                  isFacilitator={isFacilitator}
-                  showPrestartCard={false}
-                  challengeName={challengeName}
-                  objective={rulesContent.objective}
-                  participantsMeta={rulesParticipantsMeta}
-                  facilitatorRules={rulesContent.facilitator}
-                  participantRules={rulesContent.participant}
-                  footnote={rulesContent.footnote}
-                />
-              </section>
-            </div>
-          ) : null}
 
           <section className={styles.sideCard}>
             {chatEnabled ? (

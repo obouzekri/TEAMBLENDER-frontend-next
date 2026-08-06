@@ -621,6 +621,20 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       <ChallengeHeader
         title={challengeName || 'QUI ME CONNAIT LE MIEUX ?'}
         subtitle={challengeSubtitle || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !'}
+        headerAction={hasChallengeStarted ? (
+          <ChallengeRulesPanel
+            inHeader
+            isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
+            showPrestartCard={false}
+            challengeName={challengeName || t('vom.title')}
+            objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
+            facilitatorRules={facilitatorRules}
+            participantRules={participantRules}
+            footnote={rulesContent.footnote}
+          />
+        ) : null}
       />
 
       <div className="challenge-mobile-timer">
@@ -956,24 +970,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               footer={(phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
             />
           </div>
-
-          {hasChallengeStarted ? (
-            <div className="challenge-desktop-timer">
-              <section className={`${styles.card} ${styles.postStartRulesCard}`}>
-                <ChallengeRulesPanel
-                  isStarted={hasChallengeStarted}
-                  isFacilitator={isFacilitator}
-                  showPrestartCard={false}
-                  challengeName={challengeName || t('vom.title')}
-                  objective={rulesContent.objective}
-                  participantsMeta={rulesParticipantsMeta}
-                  facilitatorRules={facilitatorRules}
-                  participantRules={participantRules}
-                  footnote={rulesContent.footnote}
-                />
-              </section>
-            </div>
-          ) : null}
 
           <ChallengeChatCard
             title="Chat"

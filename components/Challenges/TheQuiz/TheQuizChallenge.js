@@ -418,6 +418,20 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         title={challengeName}
         subtitle={challengeSubtitle || (isEn ? 'Real-time multiplayer general knowledge quiz' : 'Quiz multijoueur realtime de culture générale')}
         uppercaseSubtitle={false}
+        headerAction={isStarted ? (
+          <ChallengeRulesPanel
+            inHeader
+            challengeName={challengeName}
+            isStarted={isStarted}
+            isFacilitator={isFacilitator}
+            showPrestartCard={false}
+            objective={rules.objective}
+            participantsMeta={rulesParticipantsMeta}
+            facilitatorRules={rules.facilitator}
+            participantRules={rules.participant}
+            footnote={rules.footnote}
+          />
+        ) : null}
       />
 
       <div className="challenge-mobile-timer">
@@ -491,24 +505,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 waitingText=""
               />
             </div>
-
-            {isStarted ? (
-              <div className="challenge-desktop-timer">
-                <section className={styles.screenCard}>
-                  <ChallengeRulesPanel
-                    challengeName={challengeName}
-                    isStarted={isStarted}
-                    isFacilitator={isFacilitator}
-                    showPrestartCard={false}
-                    objective={rules.objective}
-                    participantsMeta={rulesParticipantsMeta}
-                    facilitatorRules={rules.facilitator}
-                    participantRules={rules.participant}
-                    footnote={rules.footnote}
-                  />
-                </section>
-              </div>
-            ) : null}
 
             {chatEnabled ? (
               <div className={styles.sideStack}>

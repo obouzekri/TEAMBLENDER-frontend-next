@@ -247,6 +247,10 @@
   font-size: 0.82rem;
 }
 
+.desktopHeaderRulesButton {
+  display: inline-flex;
+}
+
 .rulesButton:hover {
   filter: brightness(1.1);
 }

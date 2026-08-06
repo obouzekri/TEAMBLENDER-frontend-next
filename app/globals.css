@@ -1126,6 +1126,26 @@ a {
   white-space: nowrap;
 }
 
+.challenge-header-copy {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  white-space: nowrap;
+  flex: 1 1 auto;
+}
+
+.challenge-header-action {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.challenge-rules-header-button {
+  display: inline-flex;
+}
+
 .challenge-header-separator {
   color: rgba(191, 211, 232, 0.64);
   font-weight: 700;
@@ -1187,6 +1207,16 @@ a {
   .challenge-header-line {
     white-space: normal;
     flex-wrap: wrap;
+  }
+
+  .challenge-header-copy {
+    white-space: normal;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .challenge-rules-header-button {
+    display: none !important;
   }
 }
 

@@ -24,6 +24,7 @@ export default function ChallengeRulesPanel({
   startStatusText = '',
   stickyStartButton = false,
   startButtonFullWidth = false,
+  inHeader = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const { locale, t } = useI18n();
@@ -147,7 +148,7 @@ export default function ChallengeRulesPanel({
     <>
       <button
         type="button"
-        className={`${styles.rulesButton} ${styles.rulesButtonIconOnly}`}
+        className={`${styles.rulesButton} ${styles.rulesButtonIconOnly}${inHeader ? ` ${styles.desktopHeaderRulesButton} challenge-rules-header-button` : ''}`}
         onClick={() => setIsOpen(true)}
         aria-label={t('challengeRulesPanel.showRules')}
         title={t('challengeRulesPanel.showRules')}

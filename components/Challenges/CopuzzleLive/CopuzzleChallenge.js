@@ -360,6 +360,20 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
       <ChallengeHeader
         title={effectiveConfig.title}
         subtitle={challengeSubtitle || 'Puzzle collaboratif en temps réel'}
+        headerAction={hasChallengeStarted ? (
+          <ChallengeRulesPanel
+            inHeader
+            isStarted={hasChallengeStarted}
+            isFacilitator={isFacilitator}
+            showPrestartCard={false}
+            challengeName={challengeName}
+            objective={rulesContent.objective}
+            participantsMeta={rulesParticipantsMeta}
+            facilitatorRules={rulesContent.facilitator}
+            participantRules={rulesContent.participant}
+            footnote={rulesContent.footnote}
+          />
+        ) : null}
       />
 
       <div className="challenge-mobile-timer">
@@ -546,24 +560,6 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
               ) : null}
             />
           </div>
-
-          {hasChallengeStarted ? (
-            <div className="challenge-desktop-timer">
-              <section className={styles.sideCard}>
-                <ChallengeRulesPanel
-                  isStarted={hasChallengeStarted}
-                  isFacilitator={isFacilitator}
-                  showPrestartCard={false}
-                  challengeName={challengeName}
-                  objective={rulesContent.objective}
-                  participantsMeta={rulesParticipantsMeta}
-                  facilitatorRules={rulesContent.facilitator}
-                  participantRules={rulesContent.participant}
-                  footnote={rulesContent.footnote}
-                />
-              </section>
-            </div>
-          ) : null}
 
           {isChallengeCompleted ? (
             <section className={styles.completionNotice} role="status" aria-live="polite">
