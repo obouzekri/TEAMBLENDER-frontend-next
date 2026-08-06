@@ -420,6 +420,17 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         uppercaseSubtitle={false}
       />
 
+      <div className="challenge-mobile-timer">
+        <ChallengeTimerCard
+          title={isEn ? 'Timer' : 'Chrono'}
+          remainingSeconds={timerRemainingSeconds}
+          durationSeconds={timerDurationSeconds}
+          status={timerStatus}
+          isFacilitator={isFacilitator}
+          waitingText=""
+        />
+      </div>
+
       <section className={styles.challengeBoard}>
         {error ? <div className={styles.errorBanner}>{error}</div> : null}
         {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>{isEn ? 'Reconnecting, restoring active question...' : 'Reconnexion en cours, restauration de la question active...'}</div> : null}
@@ -485,14 +496,16 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
               </p>
             ) : null}
 
-            <ChallengeTimerCard
-              title={isEn ? 'Timer' : 'Chrono'}
-              remainingSeconds={timerRemainingSeconds}
-              durationSeconds={timerDurationSeconds}
-              status={timerStatus}
-              isFacilitator={isFacilitator}
-              waitingText=""
-            />
+            <div className="challenge-desktop-timer">
+              <ChallengeTimerCard
+                title={isEn ? 'Timer' : 'Chrono'}
+                remainingSeconds={timerRemainingSeconds}
+                durationSeconds={timerDurationSeconds}
+                status={timerStatus}
+                isFacilitator={isFacilitator}
+                waitingText=""
+              />
+            </div>
 
             {chatEnabled ? (
               <div className={styles.sideStack}>

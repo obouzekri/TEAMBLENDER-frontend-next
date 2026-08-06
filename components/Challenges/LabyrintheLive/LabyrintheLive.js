@@ -639,6 +639,34 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         subtitle={challengeSubtitle || (isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, évitez les pièges, ouvrez la sortie.')}
       />
 
+      <div className="challenge-mobile-timer">
+        <ChallengeTimerCard
+          title={isEn ? 'Timer' : 'Chrono'}
+          remainingSeconds={Number(timer?.remaining_seconds || 0)}
+          durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || runtimePayload?.config?.timer_seconds || 300)}
+          status={String(timer?.status || 'idle')}
+          isFacilitator={isFacilitator}
+          waitingText=""
+          ringAction={isFacilitator && hasChallengeStarted ? (
+            <button
+              type="button"
+              onClick={() => {
+                const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
+                if (timerStatus === 'running') {
+                  emitEvent('timer.pause');
+                } else if (timerStatus === 'paused') {
+                  emitEvent('timer.resume');
+                }
+              }}
+              title={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
+              aria-label={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
+            >
+              {String(timer?.status || '').trim().toLowerCase() === 'running' ? '⏸' : '▶'}
+            </button>
+          ) : null}
+        />
+      </div>
+
       <div className={styles.layout}>
         <div className={styles.mainRail}>
           {!hasChallengeStarted ? (
@@ -876,31 +904,33 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         </div>
 
         <aside className={styles.sideStack}>
-          <ChallengeTimerCard
-            title={isEn ? 'Timer' : 'Chrono'}
-            remainingSeconds={Number(timer?.remaining_seconds || 0)}
-            durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || runtimePayload?.config?.timer_seconds || 300)}
-            status={String(timer?.status || 'idle')}
-            isFacilitator={isFacilitator}
-            waitingText=""
-            ringAction={isFacilitator && hasChallengeStarted ? (
-              <button
-                type="button"
-                onClick={() => {
-                  const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
-                  if (timerStatus === 'running') {
-                    emitEvent('timer.pause');
-                  } else if (timerStatus === 'paused') {
-                    emitEvent('timer.resume');
-                  }
-                }}
-                title={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
-                aria-label={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
-              >
-                {String(timer?.status || '').trim().toLowerCase() === 'running' ? '⏸' : '▶'}
-              </button>
-            ) : null}
-          />
+          <div className="challenge-desktop-timer">
+            <ChallengeTimerCard
+              title={isEn ? 'Timer' : 'Chrono'}
+              remainingSeconds={Number(timer?.remaining_seconds || 0)}
+              durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || runtimePayload?.config?.timer_seconds || 300)}
+              status={String(timer?.status || 'idle')}
+              isFacilitator={isFacilitator}
+              waitingText=""
+              ringAction={isFacilitator && hasChallengeStarted ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
+                    if (timerStatus === 'running') {
+                      emitEvent('timer.pause');
+                    } else if (timerStatus === 'paused') {
+                      emitEvent('timer.resume');
+                    }
+                  }}
+                  title={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
+                  aria-label={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
+                >
+                  {String(timer?.status || '').trim().toLowerCase() === 'running' ? '⏸' : '▶'}
+                </button>
+              ) : null}
+            />
+          </div>
 
           {chatEnabled ? (
             <ChallengeChatCard

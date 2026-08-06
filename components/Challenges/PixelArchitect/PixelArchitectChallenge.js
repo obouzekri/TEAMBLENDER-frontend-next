@@ -973,6 +973,18 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         subtitle={challengeSubtitle || (isEn ? 'Replicate the model together in real time with grid and palette constraints.' : 'Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette.')}
       />
 
+      <div className="challenge-mobile-timer">
+        <ChallengeTimerCard
+          title={isEn ? 'Timer' : 'Chrono'}
+          remainingSeconds={Number(timer?.remaining_seconds || 0)}
+          durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
+          status={String(timer?.status || 'idle')}
+          progressPercent={progress}
+          isFacilitator={isFacilitator}
+          collapsible={false}
+        />
+      </div>
+
       {webglUnavailable ? (
         <div className={styles.webglFallback}>
           <p>{isEn ? 'Your browser or device does not support WebGL 3D rendering.' : 'Votre navigateur ou appareil ne supporte pas le rendu 3D WebGL.'}</p>
@@ -1189,15 +1201,17 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         </main>
 
         <aside className={styles.sidebar}>
-          <ChallengeTimerCard
-            title={isEn ? 'Timer' : 'Chrono'}
-            remainingSeconds={Number(timer?.remaining_seconds || 0)}
-            durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
-            status={String(timer?.status || 'idle')}
-            progressPercent={progress}
-            isFacilitator={isFacilitator}
-            collapsible={false}
-          />
+          <div className="challenge-desktop-timer">
+            <ChallengeTimerCard
+              title={isEn ? 'Timer' : 'Chrono'}
+              remainingSeconds={Number(timer?.remaining_seconds || 0)}
+              durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
+              status={String(timer?.status || 'idle')}
+              progressPercent={progress}
+              isFacilitator={isFacilitator}
+              collapsible={false}
+            />
+          </div>
 
           <section className={styles.panel}>
             <div className={styles.panelHead}>

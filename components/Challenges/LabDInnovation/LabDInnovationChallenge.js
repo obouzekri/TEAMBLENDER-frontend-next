@@ -348,6 +348,17 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     <div className={styles.shell}>
       <ChallengeHeader title={rulesPreset?.challengeName || 'Lab d\'Innovation'} subtitle={rulesPreset?.subtitle || 'Innovation collaborative'} />
 
+      <div className="challenge-mobile-timer">
+        <ChallengeTimerCard
+          title={isEn ? 'Timer' : 'Chrono'}
+          remainingSeconds={timerRemainingSeconds}
+          durationSeconds={timerDurationSeconds}
+          status={timerStatus}
+          isFacilitator={isFacilitator}
+          waitingText={isEn ? 'Waiting for facilitator to start' : 'En attente du facilitateur pour demarrer'}
+        />
+      </div>
+
       {error ? <p className={styles.errorBanner}>{error}</p> : null}
 
       <div className={styles.layout}>
@@ -631,14 +642,16 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
         </main>
 
         <aside className={styles.sideColumn}>
-          <ChallengeTimerCard
-            title={isEn ? 'Timer' : 'Chrono'}
-            remainingSeconds={timerRemainingSeconds}
-            durationSeconds={timerDurationSeconds}
-            status={timerStatus}
-            isFacilitator={isFacilitator}
-            waitingText={isEn ? 'Waiting for facilitator to start' : 'En attente du facilitateur pour demarrer'}
-          />
+          <div className="challenge-desktop-timer">
+            <ChallengeTimerCard
+              title={isEn ? 'Timer' : 'Chrono'}
+              remainingSeconds={timerRemainingSeconds}
+              durationSeconds={timerDurationSeconds}
+              status={timerStatus}
+              isFacilitator={isFacilitator}
+              waitingText={isEn ? 'Waiting for facilitator to start' : 'En attente du facilitateur pour demarrer'}
+            />
+          </div>
 
           {hasChallengeStarted ? (
             <section className={styles.card}>

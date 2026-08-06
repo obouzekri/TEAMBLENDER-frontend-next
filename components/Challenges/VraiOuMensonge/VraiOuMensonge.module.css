@@ -2001,10 +2001,6 @@
   cursor: not-allowed;
 }
 
-.mobileTimerWrap {
-  display: none;
-}
-
 .desktopTimerCard {
   display: block;
 }
@@ -2037,11 +2033,6 @@
   .sideColumn {
     order: 4;
     gap: 10px;
-  }
-
-  .mobileTimerWrap {
-    display: block;
-    order: 1;
   }
 
   .mobileTimerCard {

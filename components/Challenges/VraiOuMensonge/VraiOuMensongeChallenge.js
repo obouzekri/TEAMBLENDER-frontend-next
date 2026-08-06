@@ -623,24 +623,24 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         subtitle={challengeSubtitle || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !'}
       />
 
+      <div className="challenge-mobile-timer">
+        <ChallengeTimerCard
+          className={styles.mobileTimerCard}
+          title="Chrono"
+          remainingSeconds={remainingSecondsForCard}
+          durationSeconds={Math.max(1, phaseDurationSeconds)}
+          status={timerStatus}
+          isFacilitator={isFacilitator}
+          waitingText=""
+          collapsible={false}
+          footer={(phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
+        />
+      </div>
+
       {error ? <p className={styles.errorBanner}>{error}</p> : null}
 
       <div className={styles.layout}>
         <div className={styles.mainColumn}>
-
-        <div className={styles.mobileTimerWrap}>
-          <ChallengeTimerCard
-            className={styles.mobileTimerCard}
-            title="Chrono"
-            remainingSeconds={remainingSecondsForCard}
-            durationSeconds={Math.max(1, phaseDurationSeconds)}
-            status={timerStatus}
-            isFacilitator={isFacilitator}
-            waitingText=""
-            collapsible={false}
-            footer={(phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
-          />
-        </div>
 
         {!hasChallengeStarted ? (
           <section className={styles.card}>
@@ -959,16 +959,18 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         </div>
 
         <aside className={styles.sideColumn}>
-          <ChallengeTimerCard
-            className={styles.desktopTimerCard}
-            title="Chrono"
-            remainingSeconds={remainingSecondsForCard}
-            durationSeconds={Math.max(1, phaseDurationSeconds)}
-            status={timerStatus}
-            isFacilitator={isFacilitator}
-            waitingText=""
-            footer={(phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
-          />
+          <div className="challenge-desktop-timer">
+            <ChallengeTimerCard
+              className={styles.desktopTimerCard}
+              title="Chrono"
+              remainingSeconds={remainingSecondsForCard}
+              durationSeconds={Math.max(1, phaseDurationSeconds)}
+              status={timerStatus}
+              isFacilitator={isFacilitator}
+              waitingText=""
+              footer={(phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
+            />
+          </div>
 
           <ChallengeChatCard
             title="Chat"

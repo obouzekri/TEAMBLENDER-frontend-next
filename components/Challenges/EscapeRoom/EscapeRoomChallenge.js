@@ -769,6 +769,35 @@ export default function EscapeRoomChallenge({
         className={styles.escapeHeader}
       />
 
+      <div className="challenge-mobile-timer">
+        <ChallengeTimerCard
+          title={copy.timerTitle}
+          remainingSeconds={timerSeconds}
+          durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
+          status={isTimerRunning ? 'running' : 'idle'}
+          isFacilitator={isFacilitator}
+          waitingText=""
+          footer={isFacilitator && !isFinished && currentEnigme ? (
+            <div className={styles.timerQuickActions}>
+              <button
+                className={styles.secondaryBtn}
+                disabled={!!busyAction}
+                onClick={() => facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })}
+              >
+                {copy.unlockHint}
+              </button>
+              <button
+                className={styles.secondaryBtn}
+                disabled={!!busyAction}
+                onClick={() => facilitatorAction('skip', '/skip')}
+              >
+                {copy.skipRiddle}
+              </button>
+            </div>
+          ) : null}
+        />
+      </div>
+
       <section className={styles.layout}>
         <article className={`${styles.card} ${styles.mainCard}`}>
           {!hasChallengeStarted ? (
@@ -982,32 +1011,34 @@ export default function EscapeRoomChallenge({
         ) : null}
 
         <aside className={`${styles.card} ${styles.sidePanel}`}>
-          <ChallengeTimerCard
-            title={copy.timerTitle}
-            remainingSeconds={timerSeconds}
-            durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
-            status={isTimerRunning ? 'running' : 'idle'}
-            isFacilitator={isFacilitator}
-            waitingText=""
-            footer={isFacilitator && !isFinished && currentEnigme ? (
-              <div className={styles.timerQuickActions}>
-                <button
-                  className={styles.secondaryBtn}
-                  disabled={!!busyAction}
-                  onClick={() => facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })}
-                >
-                  {copy.unlockHint}
-                </button>
-                <button
-                  className={styles.secondaryBtn}
-                  disabled={!!busyAction}
-                  onClick={() => facilitatorAction('skip', '/skip')}
-                >
-                  {copy.skipRiddle}
-                </button>
-              </div>
-            ) : null}
-          />
+          <div className="challenge-desktop-timer">
+            <ChallengeTimerCard
+              title={copy.timerTitle}
+              remainingSeconds={timerSeconds}
+              durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
+              status={isTimerRunning ? 'running' : 'idle'}
+              isFacilitator={isFacilitator}
+              waitingText=""
+              footer={isFacilitator && !isFinished && currentEnigme ? (
+                <div className={styles.timerQuickActions}>
+                  <button
+                    className={styles.secondaryBtn}
+                    disabled={!!busyAction}
+                    onClick={() => facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })}
+                  >
+                    {copy.unlockHint}
+                  </button>
+                  <button
+                    className={styles.secondaryBtn}
+                    disabled={!!busyAction}
+                    onClick={() => facilitatorAction('skip', '/skip')}
+                  >
+                    {copy.skipRiddle}
+                  </button>
+                </div>
+              ) : null}
+            />
+          </div>
 
           {chatEnabled ? (
             <>

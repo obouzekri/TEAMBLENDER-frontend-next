@@ -1165,6 +1165,14 @@ a {
   letter-spacing: 0.06em;
 }
 
+.challenge-mobile-timer {
+  display: none;
+}
+
+.challenge-desktop-timer {
+  display: block;
+}
+
 .challenge-text {
   color: #c9ddf0;
   line-height: 1.5;
@@ -1179,6 +1187,22 @@ a {
   .challenge-header-line {
     white-space: normal;
     flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 900px) {
+  .challenge-mobile-timer {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .challenge-mobile-timer > * {
+    width: 100%;
+  }
+
+  .challenge-desktop-timer {
+    display: none !important;
   }
 }
 

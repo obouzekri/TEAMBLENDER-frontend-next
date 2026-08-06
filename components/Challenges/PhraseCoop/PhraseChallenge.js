@@ -252,6 +252,30 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
         subtitle={challengeSubtitle || 'Reconstituez la phrase en équipe, slot par slot'}
       />
 
+      <div className="challenge-mobile-timer">
+        <ChallengeTimerCard
+          title="Chrono"
+          remainingSeconds={Number(timer?.remaining_seconds || 0)}
+          durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
+          status={timerStatus}
+          isFacilitator={isFacilitator}
+          waitingText=""
+          ringAction={isFacilitator && hasChallengeStarted ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (timerStatus === 'running') emitEvent('timer.pause');
+                else if (timerStatus === 'paused') emitEvent('timer.resume');
+              }}
+              title={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
+              aria-label={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
+            >
+              {timerStatus === 'running' ? '⏸' : '▶'}
+            </button>
+          ) : null}
+        />
+      </div>
+
       <div className={styles.shell}>
         <section className={styles.boardPanel}>
           {!hasChallengeStarted ? (
@@ -434,27 +458,29 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
         ) : null}
 
         <aside className={styles.sidePanel}>
-          <ChallengeTimerCard
-            title="Chrono"
-            remainingSeconds={Number(timer?.remaining_seconds || 0)}
-            durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
-            status={timerStatus}
-            isFacilitator={isFacilitator}
-            waitingText=""
-            ringAction={isFacilitator && hasChallengeStarted ? (
-              <button
-                type="button"
-                onClick={() => {
-                  if (timerStatus === 'running') emitEvent('timer.pause');
-                  else if (timerStatus === 'paused') emitEvent('timer.resume');
-                }}
-                title={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
-                aria-label={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
-              >
-                {timerStatus === 'running' ? '⏸' : '▶'}
-              </button>
-            ) : null}
-          />
+          <div className="challenge-desktop-timer">
+            <ChallengeTimerCard
+              title="Chrono"
+              remainingSeconds={Number(timer?.remaining_seconds || 0)}
+              durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
+              status={timerStatus}
+              isFacilitator={isFacilitator}
+              waitingText=""
+              ringAction={isFacilitator && hasChallengeStarted ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (timerStatus === 'running') emitEvent('timer.pause');
+                    else if (timerStatus === 'paused') emitEvent('timer.resume');
+                  }}
+                  title={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
+                  aria-label={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
+                >
+                  {timerStatus === 'running' ? '⏸' : '▶'}
+                </button>
+              ) : null}
+            />
+          </div>
 
           <section className={styles.sideCard}>
             {chatEnabled ? (
