@@ -1092,7 +1092,7 @@ a {
 
 .challenge-header {
   border-radius: 18px;
-  padding: 14px 16px;
+  padding: 10px 14px;
   border: 1px solid rgba(125, 211, 252, 0.24);
   background: linear-gradient(165deg, rgba(16, 33, 49, 0.96), rgba(10, 24, 36, 0.96));
   box-shadow: 0 16px 34px rgba(2, 9, 16, 0.28);
@@ -1103,7 +1103,8 @@ a {
 .challenge-header-line {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: nowrap;
   min-width: 0;
   white-space: nowrap;
 }
@@ -1112,8 +1113,9 @@ a {
   min-width: 0;
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 6px;
   white-space: nowrap;
+  overflow: hidden;
   flex: 1 1 auto;
 }
 
@@ -1136,7 +1138,7 @@ a {
 .challenge-title {
   margin: 0;
   font-family: var(--font-ui);
-  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  font-size: clamp(1rem, 1.35vw, 1.2rem);
   line-height: 1;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -1150,7 +1152,7 @@ a {
 
 .challenge-subtitle {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #94a3b8;
   letter-spacing: 0.08em;
   font-weight: 500;

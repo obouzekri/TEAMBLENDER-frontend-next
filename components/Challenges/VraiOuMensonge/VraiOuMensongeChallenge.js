@@ -137,7 +137,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const [clickedStatementId, setClickedStatementId] = useState('');
   const [resultPulse, setResultPulse] = useState(false);
   const [selectionModalOpen, setSelectionModalOpen] = useState(false);
+  const [voteIntroOpen, setVoteIntroOpen] = useState(false);
   const audioRef = useRef(null);
+  const voteIntroSeenTurnRef = useRef('');
 
 
   const {
@@ -492,8 +494,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     return (
       <section className={`${styles.rankingCard} ${styles.stateCard}`}>
         <div className={styles.rankingCardHeader}>
-          <h3 className={`${styles.rankingCardTitle} challenge-section-title`}>Classement</h3>
-          <span className={styles.rankingMeta}>Mis à jour en direct</span>
+          <h3 className={`${styles.rankingCardTitle} challenge-section-title`}>{t('vom.ranking')}</h3>
+          <span className={styles.rankingMeta}>{t('vom.rankingLiveUpdate')}</span>
         </div>
         <div className={styles.leaderboardList}>
           {liveRanking.length === 0 ? <p className={styles.helper}>{t('vom.noParticipants')}</p> : null}
@@ -575,6 +577,22 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       setSelectionModalOpen(false);
     }
   }, [phase]);
+
+  useEffect(() => {
+    if (phase !== 'voting_open') {
+      setVoteIntroOpen(false);
+      return;
+    }
+
+    const turnKey = `${currentTurn?.id || ''}:${currentTurn?.poser_id || ''}:${currentTurn?.statement_prompt || currentTurn?.statement_text || ''}`;
+    if (!turnKey || voteIntroSeenTurnRef.current === turnKey) return;
+
+    voteIntroSeenTurnRef.current = turnKey;
+    setVoteIntroOpen(true);
+
+    const autoClose = window.setTimeout(() => setVoteIntroOpen(false), 2600);
+    return () => window.clearTimeout(autoClose);
+  }, [phase, currentTurn?.id, currentTurn?.poser_id, currentTurn?.statement_prompt, currentTurn?.statement_text]);
 
   useEffect(() => {
     if (phase === 'round_result') {
@@ -774,21 +792,27 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             <div className={styles.voteCompactCard}>
               <p className={styles.voteCompactQuestionLabel}>{isEn ? 'Question' : 'Question'}</p>
               <p className={styles.voteCompactQuestion}>"{currentTurn?.statement_prompt || currentTurn?.statement_text || '-'}"</p>
-              <p className={styles.voteCompactProgress}>{isEn ? `Progress: ${voteProgressLabel}` : `Progression: ${voteProgressLabel}`}</p>
-              {isFacilitator ? <span className={styles.observerBadge}>{isEn ? 'Observation only' : 'Observation uniquement'}</span> : null}
-              <div className={styles.voteStatusList}>
-                {facilitatorVoteRows.map((row) => (
-                  <article key={row.participantId} className={`${styles.voteStatusRow}${row.hasAnswered ? ` ${styles.voteStatusRowDone}` : ''}`}>
-                    <div className={styles.voteStatusIdentity}>
-                      <span className={styles.inlineAvatar}>{getInitials(row.participantName)}</span>
-                      <strong>{row.participantName}</strong>
-                    </div>
-                    <span className={`${styles.voteStatusBadge}${row.hasAnswered ? ` ${styles.voteStatusBadgeDone}` : ` ${styles.voteStatusBadgePending}`}`}>
-                      {row.hasAnswered ? `✅ ${isEn ? 'Answered' : 'Repondu'}` : `⏳ ${isEn ? 'Pending' : 'En attente'}`}
-                    </span>
-                  </article>
-                ))}
-              </div>
+              {!isFacilitator ? (
+                <p className={styles.voteCompactProgress}>{isEn ? 'Pick the true option' : 'Choisissez l option vraie'}</p>
+              ) : (
+                <>
+                  <p className={styles.voteCompactProgress}>{isEn ? `Progress: ${voteProgressLabel}` : `Progression: ${voteProgressLabel}`}</p>
+                  <span className={styles.observerBadge}>{isEn ? 'Observation only' : 'Observation uniquement'}</span>
+                  <div className={styles.voteStatusList}>
+                    {facilitatorVoteRows.map((row) => (
+                      <article key={row.participantId} className={`${styles.voteStatusRow}${row.hasAnswered ? ` ${styles.voteStatusRowDone}` : ''}`}>
+                        <div className={styles.voteStatusIdentity}>
+                          <span className={styles.inlineAvatar}>{getInitials(row.participantName)}</span>
+                          <strong>{row.participantName}</strong>
+                        </div>
+                        <span className={`${styles.voteStatusBadge}${row.hasAnswered ? ` ${styles.voteStatusBadgeDone}` : ` ${styles.voteStatusBadgePending}`}`}>
+                          {row.hasAnswered ? `✅ ${isEn ? 'Answered' : 'Repondu'}` : `⏳ ${isEn ? 'Pending' : 'En attente'}`}
+                        </span>
+                      </article>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             {!isFacilitator && !isPoser ? (
@@ -804,7 +828,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                         onClick={() => vote(option)}
                       >
                         <span className={styles.voteChoiceLabel}>{option}</span>
-                        <span className={styles.voteChoiceHint}>{isEn ? 'Tap to lock this option' : 'Touchez pour valider cette option'}</span>
+                        <span className={styles.voteChoiceHint}>{active ? (isEn ? 'Selected' : 'Selectionne') : (isEn ? 'Select' : 'Choisir')}</span>
                       </button>
                     );
                   })
@@ -816,7 +840,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                       onClick={() => vote('vrai')}
                     >
                       <span className={styles.voteChoiceLabel}>{t('vom.voteTrue')}</span>
-                      <span className={styles.voteChoiceHint}>{isEn ? 'I believe the statement is true' : 'Je pense que l affirmation est vraie'}</span>
+                      <span className={styles.voteChoiceHint}>{myVote === 'vrai' ? (isEn ? 'Selected' : 'Selectionne') : (isEn ? 'Select' : 'Choisir')}</span>
                     </button>
                     <button
                       type="button"
@@ -824,20 +848,10 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                       onClick={() => vote('mensonge')}
                     >
                       <span className={styles.voteChoiceLabel}>{t('vom.voteFalse')}</span>
-                      <span className={styles.voteChoiceHint}>{isEn ? 'I believe the poser is bluffing' : 'Je pense que le poseur bluffe'}</span>
+                      <span className={styles.voteChoiceHint}>{myVote === 'mensonge' ? (isEn ? 'Selected' : 'Selectionne') : (isEn ? 'Select' : 'Choisir')}</span>
                     </button>
                   </>
                 )}
-
-                <p className={styles.voteStatus}>
-                  {t('vom.currentVote', {
-                    vote: myVote === 'vrai'
-                      ? t('vom.voteTrue')
-                      : myVote === 'mensonge'
-                        ? t('vom.voteFalse')
-                        : myVote || t('vom.absent')
-                  })}
-                </p>
               </div>
             ) : null}
 
@@ -1076,6 +1090,35 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 }}
               >
                 {t('vom.confirm')}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {voteIntroOpen && phase === 'voting_open' ? (
+        <div className={styles.modalOverlay} role="presentation" onClick={() => setVoteIntroOpen(false)}>
+          <section
+            className={styles.modalCard}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('vom.voteIntroTitle')}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className={styles.modalIntro}>{t('vom.voteIntroTitle')}</p>
+            <p className={styles.choicePanelTitle}>{currentTurn?.statement_prompt || currentTurn?.statement_text || '-'}</p>
+            {isChoiceVoting && votingChoices.length > 0 ? (
+              <div className={styles.choiceButtonsWrap}>
+                {votingChoices.map((option) => (
+                  <div key={option} className={styles.choiceOptionBtn} aria-hidden="true">
+                    <span className={styles.voteChoiceLabel}>{option}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <div className={styles.modalActions}>
+              <button type="button" className={styles.primaryBtn} onClick={() => setVoteIntroOpen(false)}>
+                {t('vom.voteIntroCta')}
               </button>
             </div>
           </section>
