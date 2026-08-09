@@ -282,6 +282,8 @@
   font-size: 0.75rem;
   line-height: 1rem;
   font-weight: 500;
+  white-space: nowrap;
+  flex-wrap: nowrap;
   box-shadow: none;
   transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
