@@ -20,9 +20,10 @@
   display: grid;
   gap: 14px;
   min-height: 100dvh;
-  width: min(100%, 1320px);
+  width: 100%;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 14px;
+  padding: clamp(12px, 1.5vw, 22px);
   background:
     radial-gradient(1200px 560px at 8% -10%, rgba(40, 179, 208, 0.16), transparent 60%),
     radial-gradient(900px 440px at 90% 0%, rgba(55, 183, 118, 0.1), transparent 55%),
@@ -37,7 +38,7 @@
 }
 
 .facilitatorView .shell {
-  grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.95fr);
+  grid-template-columns: minmax(0, 1fr) clamp(340px, 30vw, 560px);
 }
 
 .facilitatorView .boardPanel {
@@ -126,8 +127,8 @@
 
 .shell {
   display: grid;
-  gap: 14px;
-  grid-template-columns: minmax(0, 1.45fr) minmax(380px, 1.1fr);
+  gap: clamp(12px, 1.2vw, 20px);
+  grid-template-columns: minmax(0, 1fr) clamp(360px, 30vw, 560px);
 }
 
 /* BOARD PANEL */
@@ -135,9 +136,16 @@
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(20, 30, 54, 0.82);
-  padding: 15px;
+  padding: clamp(12px, 1vw, 18px);
   display: grid;
-  gap: 15px;
+  gap: clamp(10px, 1vw, 16px);
+}
+
+@media (min-width: 1360px) {
+  .facilitatorView .shell,
+  .shell {
+    grid-template-columns: minmax(0, 1fr) clamp(380px, 32vw, 620px);
+  }
 }
 
 .board {

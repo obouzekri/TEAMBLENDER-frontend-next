@@ -16,9 +16,10 @@
   display: grid;
   gap: 14px;
   min-height: 100dvh;
-  width: min(100%, 1320px);
+  width: 100%;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 16px;
+  padding: clamp(12px, 1.6vw, 24px);
   color: var(--text-main);
   background:
     radial-gradient(1200px 560px at 8% -10%, rgba(40, 179, 208, 0.16), transparent 60%),
@@ -188,17 +189,23 @@
 
 .shell {
   display: grid;
-  gap: 16px;
-  grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.85fr);
+  gap: clamp(12px, 1.2vw, 20px);
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 24vw, 420px);
 }
 
 .boardPanel {
   border-radius: 16px;
   border: 1px solid #dbe5f5;
   background: #f8fbff;
-  padding: 14px;
+  padding: clamp(12px, 1vw, 18px);
   display: grid;
-  gap: 14px;
+  gap: clamp(10px, 1vw, 16px);
+}
+
+@media (min-width: 1360px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 28vw, 520px);
+  }
 }
 
 .board {

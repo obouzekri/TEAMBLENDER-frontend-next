@@ -11,9 +11,10 @@
   --danger: #ef6b6b;
   font-family: var(--font-ui);
   min-height: 100dvh;
-  width: min(100%, 1400px);
+  width: 100%;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 20px;
+  padding: clamp(14px, 1.8vw, 26px);
   display: grid;
   gap: 16px;
   color: var(--text-main);
@@ -25,14 +26,14 @@
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) clamp(320px, 25vw, 430px);
+  gap: clamp(12px, 1.2vw, 20px);
 }
 
 .mainColumn,
 .sideColumn {
   display: grid;
-  gap: 12px;
+  gap: clamp(10px, 1vw, 14px);
   align-content: start;
 }
 
@@ -41,11 +42,17 @@
   border: 1px solid var(--line-soft);
   background: linear-gradient(165deg, var(--surface-2), var(--surface-1));
   box-shadow: 0 12px 28px rgba(2, 9, 16, 0.26);
-  padding: 16px;
+  padding: clamp(12px, 1vw, 18px);
   display: grid;
-  gap: 12px;
+  gap: clamp(10px, 0.9vw, 14px);
   position: relative;
   overflow: hidden;
+}
+
+@media (min-width: 1360px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) clamp(360px, 28vw, 520px);
+  }
 }
 
 .card::before {
