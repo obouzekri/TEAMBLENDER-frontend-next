@@ -671,7 +671,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
           className={styles.mobileTimerCard}
-          title="Chrono"
+          title="Minuteur"
           remainingSeconds={remainingSecondsForCard}
           durationSeconds={Math.max(1, phaseDurationSeconds)}
           status={timerStatus}
@@ -988,7 +988,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
               className={styles.desktopTimerCard}
-              title="Chrono"
+              title="Minuteur"
               remainingSeconds={remainingSecondsForCard}
               durationSeconds={Math.max(1, phaseDurationSeconds)}
               status={timerStatus}

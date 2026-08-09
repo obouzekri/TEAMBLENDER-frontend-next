@@ -378,7 +378,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
-          title="Chrono"
+          title="Minuteur"
           remainingSeconds={timerRemainingSeconds}
           durationSeconds={timerDurationSeconds}
           status={timerState}
@@ -526,7 +526,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
         <aside className={styles.sidePanel}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
-              title="Chrono"
+              title="Minuteur"
               remainingSeconds={timerRemainingSeconds}
               durationSeconds={timerDurationSeconds}
               status={timerState}

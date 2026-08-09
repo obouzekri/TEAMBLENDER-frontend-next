@@ -135,6 +135,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const [selectedColor, setSelectedColor] = useState(FALLBACK_PALETTE[0]);
   const [expandedLayers, setExpandedLayers] = useState({});
   const [webglUnavailable, setWebglUnavailable] = useState(false);
+  const [isViewportReady, setIsViewportReady] = useState(false);
+  const [viewportError, setViewportError] = useState('');
   const hasAutoSelectedStartLayerRef = useRef(false);
 
   const { state, error, isFacilitator, emitEvent } = useRealtimeChallenge({
@@ -277,6 +279,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   useEffect(() => {
     if (!mountRef.current) return () => {};
 
+    setIsViewportReady(false);
+    setViewportError('');
+    setWebglUnavailable(false);
+
     const container = mountRef.current;
     const width = Math.max(320, container.clientWidth || 900);
     const height = Math.max(320, container.clientHeight || 520);
@@ -293,6 +299,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         return r;
       } catch {
         setWebglUnavailable(true);
+        setViewportError(isEn
+          ? '3D rendering is unavailable on this device/browser.'
+          : 'Le rendu 3D est indisponible sur cet appareil/navigateur.');
         return null;
       }
     })();
@@ -304,6 +313,16 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
+
+    const onWebglContextLost = (event) => {
+      event.preventDefault();
+      setWebglUnavailable(true);
+      setViewportError(isEn
+        ? 'WebGL context was lost. Please reload the page.'
+        : 'Le contexte WebGL a ete perdu. Rechargez la page.');
+    };
+
+    renderer.domElement.addEventListener('webglcontextlost', onWebglContextLost);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -584,6 +603,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     window.addEventListener('resize', onResize);
 
     let rafId = 0;
+    let hasRenderedFrame = false;
     const animate = () => {
       rafId = window.requestAnimationFrame(animate);
       controls.update();
@@ -596,7 +616,18 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         cube.scale.set(scale, scale, scale);
       });
 
-      renderer.render(scene, camera);
+      try {
+        renderer.render(scene, camera);
+        if (!hasRenderedFrame) {
+          hasRenderedFrame = true;
+          setIsViewportReady(true);
+        }
+      } catch {
+        setViewportError(isEn
+          ? '3D view failed to render. Please refresh and try again.'
+          : 'La vue 3D n a pas pu s afficher. Rechargez puis reessayez.');
+        setWebglUnavailable(true);
+      }
     };
     animate();
 
@@ -617,6 +648,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
     return () => {
       window.removeEventListener('resize', onResize);
+      renderer.domElement.removeEventListener('webglcontextlost', onWebglContextLost);
       renderer.domElement.removeEventListener('pointermove', onPointerMove);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       renderer.domElement.removeEventListener('pointerup', onPointerUp);
@@ -933,6 +965,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     }));
   }, [grid, layers, targetSet]);
 
+  const liveLayerBoards = useMemo(() => {
+    return layers.map((layer) => ({
+      layer,
+      rows: buildLayerBoard(grid, layer, targetSet, cubesByKey),
+    }));
+  }, [cubesByKey, grid, layers, targetSet]);
+
   const rulesExtraContent = useMemo(() => (
     <>
       <section className={styles.rulesMetaSection}>
@@ -1027,7 +1066,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             <>
               <section className={styles.panel}>
                 <div className={styles.panelHead}>
-                  <h2>{isEn ? '3D build arena' : 'Arene de construction 3D'}</h2>
+                  <h2>{isEn ? 'Layer build workspace' : 'Espace de build par couche'}</h2>
                 </div>
 
                 <div className={styles.arenaControlRow}>
@@ -1095,19 +1134,62 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   <p className={styles.paletteValue}>{isEn ? 'Selection' : 'Selection'}: {selectedColor}</p>
                 </div>
 
-                <div className={styles.viewportWrap}>
-                  <p className={styles.viewportHint}>
-                    {isFacilitator
-                      ? (isEn
-                        ? '3D observer view. Participants place cubes in the layer blueprint below.'
-                        : 'Vue 3D d\'observation. Les participants posent les cubes dans le plan de couche ci-dessous.')
-                      : (isEn
-                        ? 'Drag to orbit, click to place/remove cubes. Build using the selected layer.'
-                        : 'Glissez pour orbiter, cliquez pour poser/retirer des cubes. Construisez via la couche selectionnee.')}
-                  </p>
-                      <span className={styles.viewportWatermark}>{isEn ? '3D Build View' : 'Vue 3D Build'}</span>
-                  <div ref={mountRef} className={styles.viewport3d} />
-                </div>
+                <section className={styles.layerQuickSection} aria-label={isEn ? 'Layer quick map' : 'Carte rapide des couches'}>
+                  <div className={styles.panelHead}>
+                    <h3>{isEn ? 'Layer quick map' : 'Carte rapide des couches'}</h3>
+                    <p>{isEn ? 'Small previews for all layers. Click to switch active layer.' : 'Apercus des couches. Cliquez pour changer la couche active.'}</p>
+                  </div>
+                  <div className={styles.layerQuickList}>
+                    {liveLayerBoards.map(({ layer, rows }) => {
+                      const stats = layerStats.find((item) => Number(item.layer) === Number(layer)) || null;
+                      const isActive = safeLayer === layer;
+                      const claim = layerClaims[String(layer)] || null;
+                      const isReservedByMe = myLayerClaim && Number(myLayerClaim.layer) === layer;
+                      const isReservedByOther = claim && !isReservedByMe;
+                      return (
+                        <button
+                          key={`layer-mini-${layer}`}
+                          type="button"
+                          className={`${styles.layerQuickCard}${isActive ? ` ${styles.layerQuickCardActive}` : ''}`}
+                          onClick={() => setActiveLayer(layer)}
+                          aria-pressed={isActive}
+                          aria-label={`${isEn ? 'Activate layer' : 'Activer couche'} ${layer + 1}`}
+                        >
+                          <div className={styles.layerQuickHeadRow}>
+                            <strong>{isEn ? 'Layer' : 'Couche'} {layer + 1}</strong>
+                            <span>
+                              {isReservedByMe
+                                ? (isEn ? 'Mine' : 'Ma couche')
+                                : isReservedByOther
+                                  ? (isEn ? 'Reserved' : 'Reservee')
+                                  : (isEn ? 'Open' : 'Libre')}
+                            </span>
+                          </div>
+                          <div
+                            className={styles.layerQuickGrid}
+                            style={{ gridTemplateColumns: `repeat(${grid.x}, minmax(0, 1fr))` }}
+                            aria-hidden="true"
+                          >
+                            {rows.flatMap((row) => row).map((cell) => {
+                              const isPlacedCorrect = cell.isPlaced && cell.isTarget;
+                              const isPlacedWrong = cell.isPlaced && !cell.isTarget;
+                              return (
+                                <div
+                                  key={`mini-${cell.key}`}
+                                  className={`${styles.layerQuickCell}${cell.isTarget ? ` ${styles.layerQuickCellTarget}` : ''}${isPlacedCorrect ? ` ${styles.layerQuickCellCorrect}` : ''}${isPlacedWrong ? ` ${styles.layerQuickCellWrong}` : ''}`}
+                                />
+                              );
+                            })}
+                          </div>
+                          <div className={styles.layerQuickMetaRow}>
+                            <span>{stats ? `${stats.matchedCount}/${stats.targetCount}` : '-'}</span>
+                            <span>{stats ? `${stats.completion}%` : '0%'}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
 
                 <section className={styles.layerBoardCard}>
                   <div className={styles.panelHead}>
@@ -1228,6 +1310,30 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               ) : (
                 <p className={styles.modelMiniHidden}>{isEn ? 'Model hidden for this role' : 'Modele masque pour ce role'}</p>
               )}
+            </div>
+
+            <div className={styles.viewportWrapCompact}>
+              <p className={styles.viewportHint}>
+                {isFacilitator
+                  ? (isEn
+                    ? '3D observer view of team construction.'
+                    : 'Vue 3D d observation de la construction equipe.')
+                  : (isEn
+                    ? '3D team build view. Drag to orbit, click cubes to remove.'
+                    : 'Vue 3D equipe. Glissez pour orbiter, cliquez les cubes pour retirer.')}
+              </p>
+              <span className={styles.viewportWatermark}>{isEn ? '3D Build View' : 'Vue 3D Build'}</span>
+              {!isViewportReady && !viewportError ? (
+                <div className={styles.viewportOverlay} role="status" aria-live="polite">
+                  {isEn ? 'Loading 3D scene...' : 'Chargement de la scene 3D...'}
+                </div>
+              ) : null}
+              {viewportError ? (
+                <div className={styles.viewportOverlayError} role="alert">
+                  {viewportError}
+                </div>
+              ) : null}
+              <div ref={mountRef} className={styles.viewport3dCompact} />
             </div>
 
             <div className={styles.modelLayerList}>

@@ -39,7 +39,7 @@ function clampPercent(value) {
 
 export default function ChallengeTimerCard({
   className = '',
-  title = 'Chrono',
+  title = 'Minuteur',
   remainingSeconds = 0,
   durationSeconds = 0,
   status = 'idle',
@@ -106,7 +106,7 @@ export default function ChallengeTimerCard({
             className={styles.timerToggleBtn}
             onClick={() => setCollapsed((prev) => !prev)}
             aria-expanded={!collapsed}
-            aria-label={collapsed ? 'Afficher le chrono' : 'Réduire le chrono'}
+            aria-label={collapsed ? 'Afficher le minuteur' : 'Réduire le minuteur'}
             title={collapsed ? 'Afficher' : 'Réduire'}
           >
             {collapsed ? '▾' : '▴'}
