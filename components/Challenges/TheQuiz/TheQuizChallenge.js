@@ -519,7 +519,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                   onSubmit={submitChat}
                   quickMessages={quiz.quick_reactions_enabled ? quickMessages : []}
                   onQuickMessage={sendQuickChat}
-                  placeholder={isEn ? 'Send a message or quick reaction' : 'Envoyer un message ou une réaction rapide'}
                   emptyText={isEn ? 'No messages yet.' : 'Aucun message pour le moment.'}
                   />
                 </div>

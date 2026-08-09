@@ -980,7 +980,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             onSubmit={submitChat}
             quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
             onQuickMessage={sendQuickChat}
-            placeholder="Écrire un message"
             maxLength={240}
             disabled={!chatEnabled}
           />

@@ -162,10 +162,13 @@
 .cols20 { grid-template-columns: repeat(20, minmax(0, 1fr)); }
 
 .cell {
+  box-sizing: border-box;
+  appearance: none;
   border-style: solid;
   border-color: rgba(248, 250, 252, 0.95);
   border-width: 1px;
   border-radius: 0;
+  background-color: transparent;
   color: var(--challenge-text-secondary);
   display: inline-flex;
   align-items: center;
@@ -216,7 +219,11 @@ button.cell:focus-visible {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(56, 189, 248, 0.15);
+  background: rgba(34, 211, 238, 0.42);
+  box-shadow:
+    inset 0 0 0 1px rgba(103, 232, 249, 0.72),
+    inset 0 0 10px rgba(34, 211, 238, 0.5),
+    0 0 8px rgba(34, 211, 238, 0.32);
   pointer-events: none;
   z-index: 1;
 }

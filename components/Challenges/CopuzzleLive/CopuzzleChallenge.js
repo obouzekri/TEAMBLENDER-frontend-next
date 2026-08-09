@@ -384,19 +384,6 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
           status={timerState}
           isFacilitator={isFacilitator}
           waitingText=""
-          ringAction={isFacilitator && hasChallengeStarted ? (
-            <button
-              type="button"
-              onClick={() => {
-                if (timerState === 'running') emitEvent('timer.pause');
-                else if (timerState === 'paused') emitEvent('timer.resume');
-              }}
-              title={timerState === 'running' ? 'Mettre en pause' : 'Reprendre'}
-              aria-label={timerState === 'running' ? 'Mettre en pause' : 'Reprendre'}
-            >
-              {timerState === 'running' ? '⏸' : '▶'}
-            </button>
-          ) : null}
         />
       </div>
 
@@ -545,19 +532,6 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
               status={timerState}
               isFacilitator={isFacilitator}
               waitingText=""
-              ringAction={isFacilitator && hasChallengeStarted ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (timerState === 'running') emitEvent('timer.pause');
-                    else if (timerState === 'paused') emitEvent('timer.resume');
-                  }}
-                  title={timerState === 'running' ? 'Mettre en pause' : 'Reprendre'}
-                  aria-label={timerState === 'running' ? 'Mettre en pause' : 'Reprendre'}
-                >
-                  {timerState === 'running' ? '⏸' : '▶'}
-                </button>
-              ) : null}
             />
           </div>
 
@@ -667,9 +641,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                 quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
                 onQuickMessage={sendQuickChat}
                 emptyText="Aucun message pour le moment."
-                placeholder="Ecrire un message d equipe"
                 maxLength={240}
-                submitLabel="➤"
               />
             </div>
           ) : null}

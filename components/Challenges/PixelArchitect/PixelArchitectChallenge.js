@@ -1303,7 +1303,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               onQuickMessage={sendQuickChat}
               quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
               disabled={!hasChallengeStarted}
-              placeholder={isEn ? 'Coordinate your actions' : 'Coordonnez vos actions'}
             />
           ) : null}
 

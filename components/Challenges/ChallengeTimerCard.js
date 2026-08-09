@@ -45,7 +45,6 @@ export default function ChallengeTimerCard({
   status = 'idle',
   progressPercent,
   isFacilitator = false,
-  ringAction = null,
   actions = null,
   footer = null,
   waitingText = '⏳ En attente du facilitateur',
@@ -90,11 +89,6 @@ export default function ChallengeTimerCard({
   const ringSweep = clampPercent(computedProgress);
   const compactTime = formatTimer(remainingSeconds);
   const compactStatus = statusLabel(normalizedStatus);
-  const normalizedRingAction = React.isValidElement(ringAction)
-    ? React.cloneElement(ringAction, {
-      className: [styles.timerIconBtn, ringAction.props?.className || ''].filter(Boolean).join(' ')
-    })
-    : ringAction;
 
   return (
     <section className={`${styles.timerCard}${isStartedState ? ` ${styles.timerCardStarted}` : ''} ${className}`.trim()}>
@@ -131,13 +125,6 @@ export default function ChallengeTimerCard({
             >
               <div className={styles.timerDisplay}>
                 <div className={styles.timerTime}>{formatTimer(remainingSeconds)}</div>
-                <div className={styles.timerState}>{statusLabel(normalizedStatus)}</div>
-
-                {ringAction ? (
-                  <div className={styles.timerRingActions}>
-                    {normalizedRingAction}
-                  </div>
-                ) : null}
               </div>
             </div>
           </div>

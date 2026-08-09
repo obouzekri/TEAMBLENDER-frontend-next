@@ -153,8 +153,8 @@ export default function ChallengeRulesPanel({
         aria-label={t('challengeRulesPanel.showRules')}
         title={t('challengeRulesPanel.showRules')}
       >
-        <span aria-hidden="true">📜</span>
-        <span>{isEn ? 'Rules' : 'Règles'}</span>
+        {inHeader ? null : <span aria-hidden="true">📜</span>}
+        <span>{t('challengeRulesPanel.rulesLabel')}</span>
       </button>
 
       {isOpen ? (

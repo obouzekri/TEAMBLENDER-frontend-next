@@ -681,7 +681,6 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             onSubmit={submitChat}
             quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
             onQuickMessage={sendQuickChat}
-            placeholder={isEn ? 'Write a message' : 'Écrire un message'}
             maxLength={240}
           />
         </aside>

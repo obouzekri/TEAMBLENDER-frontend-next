@@ -4,10 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { Users } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui';
 import { clearSessionAuth, getAuthHeaders, getStoredAuthToken, getStoredCurrentUser } from '@/lib/auth';
+import { getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
 import useI18n from '@/lib/i18n/useI18n';
@@ -205,6 +207,9 @@ export default function SessionLiveClient() {
   const activeChallenge = sessionState?.current_challenge
     || (activeChallengeId ? challenges.find((c) => c.id === activeChallengeId) || null : challenges[0] || null);
   const activeEngineKey = activeChallenge?.engine_key || '';
+  const activeChallengeName = activeEngineKey === 'labyrinthe_live_v1'
+    ? getLabyrintheRulesPreset(locale).challengeName
+    : activeChallenge?.name || activeEngineKey || t('sessionLive.noActiveChallengeTitle');
   const liveConfigVersion = String(sessionState?.updatedAt || session?.updatedAt || '');
   const assignedParticipantCount = Array.isArray(session?.assigned_participants) ? session.assigned_participants.length : 0;
   const participantCount = Array.isArray(session?.participants) ? session.participants.length : 0;
@@ -250,16 +255,22 @@ export default function SessionLiveClient() {
           <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
         ) : null}
         <section className="session-live-header session-live-surface">
-          <div className="session-live-header__row1">
-            <strong className="session-live-header__challengeTitle">{activeChallenge?.name || activeEngineKey || t('sessionLive.noActiveChallengeTitle')}</strong>
-          </div>
-          <div className="session-live-header__row2">
-            <span className="session-live-header__sessionBadge">
-              {t('sessionLive.sessionBadge', {
+          <div className="session-live-header__details">
+            <strong className="session-live-header__sessionName">
+              {t('sessionLive.sessionLabel', {
                 name: session?.name || `${t('sessionLive.sessionFallbackName')} ${sessionId}`,
-                count: memberCount,
               })}
+            </strong>
+            <span className="session-live-header__separator" aria-hidden="true">•</span>
+            <span className="session-live-header__challengeBadge" title={activeChallengeName}>
+              {activeChallengeName}
             </span>
+            <span className="session-live-header__participantBadge">
+              <Users aria-hidden="true" size={14} strokeWidth={2} />
+              {t('sessionLive.participantCount', { count: memberCount })}
+            </span>
+          </div>
+          <div className="session-live-header__actions">
             <Button
               variant="primary"
               size="sm"

@@ -223,8 +223,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const revealedCells = laby?.revealed_cells && typeof laby.revealed_cells === 'object' ? laby.revealed_cells : {};
   const revealedTraps = laby?.revealed_traps && typeof laby.revealed_traps === 'object' ? laby.revealed_traps : {};
   const revealedWalls = laby?.revealed_walls && typeof laby.revealed_walls === 'object' ? laby.revealed_walls : {};
-  const mazeRows = safeInt(laby?.cfg?.rows ?? laby?.cfg?.r, 20, 10, 20);
-  const mazeCols = safeInt(laby?.cfg?.cols ?? laby?.cfg?.c, 20, 10, 20);
+  const mazeRows = safeInt(laby?.cfg?.rows ?? laby?.cfg?.r, 10, 10, 20);
+  const mazeCols = safeInt(laby?.cfg?.cols ?? laby?.cfg?.c, 10, 10, 20);
   const participantEntries = useMemo(() => Object.entries(laby?.parts || {}), [laby?.parts]);
   const participantNameById = useMemo(() => {
     return participantEntries.reduce((acc, [id, participant]) => {
@@ -308,7 +308,12 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   }, [maze?.safe_path]);
 
   const myVisited = useMemo(() => {
-    const visitedFromState = normalizeVisited(myParticipantState?.solo?.visited || myParticipantState?.solo?.visited_cells || myParticipantState?.visited_cells);
+    const visitedFromState = normalizeVisited(
+      myParticipantState?.solo?.path
+      || myParticipantState?.solo?.visited
+      || myParticipantState?.solo?.visited_cells
+      || myParticipantState?.visited_cells
+    );
     if (visitedFromState.size > 0) return visitedFromState;
     const fallback = new Set();
     Object.entries(revealedCells).forEach(([key, value]) => {
@@ -661,23 +666,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
           status={String(timer?.status || 'idle')}
           isFacilitator={isFacilitator}
           waitingText=""
-          ringAction={isFacilitator && hasChallengeStarted ? (
-            <button
-              type="button"
-              onClick={() => {
-                const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
-                if (timerStatus === 'running') {
-                  emitEvent('timer.pause');
-                } else if (timerStatus === 'paused') {
-                  emitEvent('timer.resume');
-                }
-              }}
-              title={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
-              aria-label={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
-            >
-              {String(timer?.status || '').trim().toLowerCase() === 'running' ? '⏸' : '▶'}
-            </button>
-          ) : null}
         />
       </div>
 
@@ -750,7 +738,12 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 <div className={styles.miniGridList}>
                   {participantEntries.map(([id, participant]) => {
                     const playerPosKey = posKey(participant?.solo?.pos);
-                    const playerVisited = normalizeVisited(participant?.solo?.visited || participant?.solo?.visited_cells || participant?.visited_cells);
+                    const playerVisited = normalizeVisited(
+                      participant?.solo?.path
+                      || participant?.solo?.visited
+                      || participant?.solo?.visited_cells
+                      || participant?.visited_cells
+                    );
                     const lives = Math.max(0, Number(participant?.lives_remaining || 0));
                     const lifeIcons = '❤️'.repeat(Math.min(8, lives));
 
@@ -911,23 +904,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               status={String(timer?.status || 'idle')}
               isFacilitator={isFacilitator}
               waitingText=""
-              ringAction={isFacilitator && hasChallengeStarted ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
-                    if (timerStatus === 'running') {
-                      emitEvent('timer.pause');
-                    } else if (timerStatus === 'paused') {
-                      emitEvent('timer.resume');
-                    }
-                  }}
-                  title={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
-                  aria-label={String(timer?.status || '').trim().toLowerCase() === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
-                >
-                  {String(timer?.status || '').trim().toLowerCase() === 'running' ? '⏸' : '▶'}
-                </button>
-              ) : null}
             />
           </div>
 
@@ -941,7 +917,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               onSubmit={submitChat}
               quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
               onQuickMessage={sendQuickChat}
-              placeholder={isEn ? 'Message to the team' : 'Message à l\'équipe'}
               maxLength={240}
             />
           ) : null}

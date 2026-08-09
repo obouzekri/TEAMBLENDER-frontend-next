@@ -249,10 +249,27 @@
 
 .desktopHeaderRulesButton {
   display: inline-flex;
+  width: auto;
+  height: auto;
+  padding: 6px 12px;
+  border: 1px solid rgba(51, 65, 85, 0.6);
+  border-radius: 8px;
+  background: rgba(30, 41, 59, 0.8);
+  color: #e2e8f0;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  box-shadow: none;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 .rulesButton:hover {
   filter: brightness(1.1);
+}
+
+.desktopHeaderRulesButton:hover {
+  background: #334155;
+  filter: none;
 }
 
 .modalBackdrop {

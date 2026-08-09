@@ -352,19 +352,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
           durationSeconds={timerDurationSeconds}
           status={timerState}
           isFacilitator={isFacilitator}
-          ringAction={isFacilitator && hasChallengeStarted ? (
-            <button
-              type="button"
-              onClick={() => {
-                if (timerState === 'running') emitEvent('timer.pause');
-                else if (timerState === 'paused') emitEvent('timer.resume');
-              }}
-              title={timerState === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
-              aria-label={timerState === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
-            >
-              {timerState === 'running' ? '⏸' : '▶'}
-            </button>
-          ) : null}
         />
       </div>
 
@@ -629,19 +616,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
               durationSeconds={timerDurationSeconds}
               status={timerState}
               isFacilitator={isFacilitator}
-              ringAction={isFacilitator && hasChallengeStarted ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (timerState === 'running') emitEvent('timer.pause');
-                    else if (timerState === 'paused') emitEvent('timer.resume');
-                  }}
-                  title={timerState === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
-                  aria-label={timerState === 'running' ? (isEn ? 'Pause' : 'Mettre en pause') : (isEn ? 'Resume' : 'Reprendre')}
-                >
-                  {timerState === 'running' ? '⏸' : '▶'}
-                </button>
-              ) : null}
             />
           </div>
 
@@ -654,7 +628,6 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             onSubmit={submitChat}
             quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
             onQuickMessage={sendQuickChat}
-            placeholder={isEn ? 'Write a message' : 'Écrire un message'}
             maxLength={240}
           />
         </aside>

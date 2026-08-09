@@ -1041,7 +1041,6 @@ export default function EscapeRoomChallenge({
           {chatEnabled ? (
             <>
               <ChallengeChatCard
-                title={copy.chatTitle}
                 messages={chatMessages}
                 currentAuthor={displayName}
                 inputValue={chatInput}
@@ -1049,8 +1048,6 @@ export default function EscapeRoomChallenge({
                 onSubmit={submitChat}
                 quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
                 onQuickMessage={sendQuickChat}
-                emptyText={copy.chatEmpty}
-                placeholder={copy.chatPlaceholder}
                 maxLength={240}
               />
               {realtimeError ? <p className={styles.feedback}>{realtimeError}</p> : null}

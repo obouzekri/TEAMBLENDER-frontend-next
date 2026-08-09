@@ -274,19 +274,6 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
           status={timerStatus}
           isFacilitator={isFacilitator}
           waitingText=""
-          ringAction={isFacilitator && hasChallengeStarted ? (
-            <button
-              type="button"
-              onClick={() => {
-                if (timerStatus === 'running') emitEvent('timer.pause');
-                else if (timerStatus === 'paused') emitEvent('timer.resume');
-              }}
-              title={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
-              aria-label={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
-            >
-              {timerStatus === 'running' ? '⏸' : '▶'}
-            </button>
-          ) : null}
         />
       </div>
 
@@ -464,19 +451,6 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
               status={timerStatus}
               isFacilitator={isFacilitator}
               waitingText=""
-              ringAction={isFacilitator && hasChallengeStarted ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (timerStatus === 'running') emitEvent('timer.pause');
-                    else if (timerStatus === 'paused') emitEvent('timer.resume');
-                  }}
-                  title={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
-                  aria-label={timerStatus === 'running' ? 'Mettre en pause' : 'Reprendre'}
-                >
-                  {timerStatus === 'running' ? '⏸' : '▶'}
-                </button>
-              ) : null}
             />
           </div>
 
@@ -492,7 +466,6 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                 quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
                 onQuickMessage={sendQuickChat}
                 emptyText="Aucun message pour le moment."
-                placeholder="Ecrire un message"
                 maxLength={240}
               />
             ) : null}
