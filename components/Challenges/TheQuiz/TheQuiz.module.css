@@ -16,7 +16,7 @@
 
 .pageShell {
   display: grid;
-  gap: 0;
+  gap: 12px;
   width: min(100%, 1320px);
   margin: 0 auto;
   padding: 20px;
@@ -27,21 +27,44 @@
 
 .pageShell :global(.challenge-header) {
   margin-bottom: 0;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+  border-radius: 18px;
+  padding: 10px 14px;
+}
+
+.pageShell :global(.challenge-header-line) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.pageShell :global(.challenge-header-copy) {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  overflow: hidden;
+  flex: 1 1 auto;
+}
+
+.pageShell :global(.challenge-header-action) {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
 }
 
 .pageShell :global(.challenge-subtitle),
 .pageShell :global(.challenge-section-title) {
-  text-transform: none;
+  text-transform: uppercase;
 }
 
 .challengeBoard {
   display: grid;
   gap: 12px;
   border-radius: 18px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
   border: 1px solid rgba(148, 163, 184, 0.24);
   background:
     radial-gradient(1200px 560px at 8% -10%, rgba(66, 212, 248, 0.15), transparent 60%),
