@@ -134,6 +134,8 @@
   padding: 0.5rem 0.65rem;
   background: rgba(12, 25, 38, 0.94);
   color: #ffffff;
+  font-size: 0.9rem;
+  line-height: 1.35;
   -webkit-text-fill-color: #ffffff;
   caret-color: #ffffff;
 }
@@ -163,6 +165,7 @@
 
 .chatInput::placeholder {
   color: rgba(191, 211, 232, 0.8);
+  font-size: 0.9rem;
 }
 
 .chatInput:disabled::placeholder {

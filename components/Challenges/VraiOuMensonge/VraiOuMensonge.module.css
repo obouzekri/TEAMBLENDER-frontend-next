@@ -13,9 +13,10 @@
   --danger: #ef6b6b;
   font-family: var(--font-ui);
   min-height: 100dvh;
-  width: min(100%, 1320px);
+  width: 100%;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 20px;
+  padding: clamp(14px, 1.8vw, 26px);
   display: grid;
   gap: 16px;
   color: var(--text-main);
@@ -86,14 +87,14 @@
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) clamp(320px, 26vw, 420px);
+  gap: clamp(12px, 1.4vw, 20px);
 }
 
 .mainColumn,
 .sideColumn {
   display: grid;
-  gap: 12px;
+  gap: clamp(10px, 1vw, 14px);
   align-content: start;
 }
 
@@ -102,7 +103,7 @@
   border: 1px solid var(--line-soft);
   background: linear-gradient(165deg, var(--surface-2), var(--surface-1));
   box-shadow: 0 12px 28px rgba(2, 9, 16, 0.24);
-  padding: 15px;
+  padding: clamp(13px, 1.1vw, 18px);
   display: grid;
   gap: 10px;
   position: relative;
@@ -1166,6 +1167,7 @@
 
 @media (max-width: 980px) {
   .layout {
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
 
@@ -1180,6 +1182,12 @@
 
   .sideColumn {
     order: 3;
+  }
+}
+
+@media (min-width: 1360px) {
+  .shellPrestart .layout {
+    grid-template-columns: minmax(0, 1fr) clamp(360px, 30vw, 520px);
   }
 }
 

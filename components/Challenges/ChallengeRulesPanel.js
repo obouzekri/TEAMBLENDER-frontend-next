@@ -5,6 +5,25 @@ import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './ChallengeRulesPanel.module.css';
 
+function isScoringRule(rule) {
+  const normalizedRule = String(rule || '').toLowerCase();
+  return (
+    normalizedRule.includes('barème')
+    || normalizedRule.includes('score')
+    || normalizedRule.includes('scoring')
+    || normalizedRule.includes('points')
+    || normalizedRule.includes('point')
+    || normalizedRule.includes('bonne réponse')
+    || normalizedRule.includes('correct answer')
+    || normalizedRule.includes('non posé')
+    || normalizedRule.includes('non répondu')
+    || normalizedRule.includes('no statement')
+    || normalizedRule.includes('no answer')
+    || normalizedRule.includes('wrong answer')
+    || normalizedRule.includes('mauvaise réponse')
+  );
+}
+
 export default function ChallengeRulesPanel({
   isStarted,
   isFacilitator = true,
@@ -100,7 +119,7 @@ export default function ChallengeRulesPanel({
         <div className={styles.rulesGroupedList}>
           <div className={styles.rulesGroup}>
             <ul>
-              {participantRules.filter((rule) => !String(rule).toLowerCase().includes('barème') && !String(rule).toLowerCase().includes('score') && !String(rule).toLowerCase().includes('points')).map((rule) => (
+              {participantRules.filter((rule) => !isScoringRule(rule)).map((rule) => (
                 <li key={`participant-${rule}`}>{rule}</li>
               ))}
             </ul>
@@ -108,7 +127,7 @@ export default function ChallengeRulesPanel({
           <div className={styles.rulesGroup}>
             <h3 className="challenge-section-title">{isEn ? 'Scoring' : 'Barème des points'}</h3>
             <ul>
-              {participantRules.filter((rule) => String(rule).toLowerCase().includes('barème') || String(rule).toLowerCase().includes('score') || String(rule).toLowerCase().includes('points') || String(rule).toLowerCase().includes('bonne réponse') || String(rule).toLowerCase().includes('non posé') || String(rule).toLowerCase().includes('non répondu')).map((rule) => (
+              {participantRules.filter((rule) => isScoringRule(rule)).map((rule) => (
                 <li key={`participant-score-${rule}`}>{rule}</li>
               ))}
             </ul>

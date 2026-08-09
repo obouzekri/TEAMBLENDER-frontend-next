@@ -255,16 +255,24 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const isChoiceVoting = votingChoices.length > 1;
   const rulesPreset = useMemo(() => getVraiOuMensongeRulesPreset(locale), [locale]);
   const rulesContent = useMemo(() => ({
-    objective: rulesPreset.objective || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !',
+    objective: rulesPreset.objective || (isEn
+      ? 'Each participant takes turns sharing personal information. A playful challenge to see how well you know each other!'
+      : 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !'),
     facilitator: [...rulesPreset.facilitator],
     participant: [
-      'Règles du jeu : écoutez, observez et devinez si la déclaration est vraie ou bluff.',
-      'Barème : 0 non posé, 0 non répondu, 1 bonne réponse.',
+      isEn
+        ? 'Game rules: listen, observe, and guess if the statement is true or a bluff.'
+        : 'Règles du jeu : écoutez, observez et devinez si la déclaration est vraie ou bluff.',
+      isEn
+        ? 'Scoring system: 0 for no statement, 0 for no answer, 1 for correct answer.'
+        : 'Barème : 0 non posé, 0 non répondu, 1 bonne réponse.',
       ...(Array.isArray(rulesPreset.participant) ? rulesPreset.participant : []),
       ...(Array.isArray(rulesPreset.scoring) ? rulesPreset.scoring : []),
     ],
-    footnote: rulesPreset.footnote || 'Durée moyenne : 20 min. Temps de réflexion : 40 s pour poser, 40 s pour répondre, 10 s pour le résultat.',
-  }), [rulesPreset]);
+    footnote: rulesPreset.footnote || (isEn
+      ? 'Average duration: 20 min. Reflection time: 40 s to ask, 40 s to answer, 10 s for result.'
+      : 'Durée moyenne : 20 min. Temps de réflexion : 40 s pour poser, 40 s pour répondre, 10 s pour le résultat.'),
+  }), [isEn, rulesPreset]);
   const challengeName = String(rulesPreset?.challengeName || 'QUI ME CONNAIT LE MIEUX ?').trim();
   const challengeSubtitle = String(rulesPreset?.subtitle || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !').trim();
   const rulesParticipantsMeta = useMemo(() => ({
@@ -275,7 +283,12 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const minParticipantsRequired = Number(String(rulesParticipantsMeta.min || '2').replace(/[^0-9]/g, '')) || 2;
   const participantCount = orderedParticipantIds.length;
   const canStartChallenge = participantCount >= minParticipantsRequired;
-  const startStatusText = canStartChallenge ? '' : `En attente de ${Math.max(0, minParticipantsRequired - participantCount)} participant${minParticipantsRequired - participantCount > 1 ? 's' : ''}...`;
+  const missingParticipants = Math.max(0, minParticipantsRequired - participantCount);
+  const startStatusText = canStartChallenge
+    ? ''
+    : isEn
+      ? `Waiting for ${missingParticipants} participant${missingParticipants > 1 ? 's' : ''}...`
+      : `En attente de ${missingParticipants} participant${missingParticipants > 1 ? 's' : ''}...`;
   const facilitatorRules = useMemo(
     () => (Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : []),
     [rulesContent?.facilitator]
@@ -670,8 +683,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               onStart={isFacilitator ? startChallenge : null}
               startDisabled={!canStartChallenge}
               startStatusText={startStatusText}
-              stickyStartButton
-              startButtonFullWidth
             />
           </section>
         ) : null}

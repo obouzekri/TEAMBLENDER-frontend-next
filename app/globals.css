@@ -8296,16 +8296,19 @@ a {
 .session-live-header__details {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.625rem;
   flex-wrap: nowrap;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  margin-right: auto;
   min-width: 0;
   white-space: nowrap;
 }
 
 .session-live-header__sessionName {
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  max-width: min(40vw, 380px);
   font-size: 0.9rem;
   font-weight: 800;
   color: #0f172a;
@@ -8485,6 +8488,26 @@ a {
   .session-live-header {
     padding: 0.5rem 0.62rem;
     gap: 0.45rem;
+    max-height: none;
+    overflow-x: hidden;
+  }
+
+  .session-live-header__details {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 0.45rem;
+  }
+
+  .session-live-header__sessionName {
+    max-width: min(52vw, 320px);
+  }
+
+  .session-live-header__challengeBadge {
+    max-width: min(36vw, 220px);
+  }
+
+  .session-live-header__actions {
+    margin-left: auto;
   }
 
   .session-live-header__challengeTitle {
@@ -8502,6 +8525,29 @@ a {
 
   .session-live-track .challenge-list-item {
     padding: 0.5rem 0.6rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .session-live-header {
+    flex-wrap: wrap;
+  }
+
+  .session-live-header__details {
+    width: 100%;
+  }
+
+  .session-live-header__sessionName {
+    max-width: 100%;
+  }
+
+  .session-live-header__challengeBadge {
+    max-width: min(58vw, 240px);
+  }
+
+  .session-live-header__actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 }
 

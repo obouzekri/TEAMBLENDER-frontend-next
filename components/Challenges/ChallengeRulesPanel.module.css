@@ -2,9 +2,9 @@
   background: #0c1726;
   border: 1px solid #6f88a3;
   border-radius: 14px;
-  padding: 18px;
+  padding: clamp(14px, 1.4vw, 22px);
   display: grid;
-  gap: 12px;
+  gap: clamp(10px, 1vw, 16px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
   width: 100%;
   max-width: 100%;
@@ -85,22 +85,22 @@
 
 .rulesSection {
   display: grid;
-  gap: 8px;
+  gap: clamp(7px, 0.7vw, 10px);
   border: 1px solid #4f6781;
   background: #0f2136;
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: clamp(10px, 0.9vw, 14px) clamp(11px, 1vw, 16px);
 }
 
 .rulesGroupedList {
   display: grid;
-  gap: 8px;
+  gap: clamp(8px, 0.8vw, 12px);
 }
 
 .rulesGroup {
   border: 1px solid #4b6280;
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: clamp(9px, 0.8vw, 13px) clamp(10px, 0.9vw, 15px);
   background: #13273f;
 }
 
@@ -127,19 +127,40 @@
 
 .rulesSection h3 {
   margin: 0;
-    color: var(--challenge-text-accent, #7dd3fc);
+  color: var(--challenge-text-accent, #7dd3fc);
   font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 .rulesSection ul {
   margin: 0;
-  padding-left: 18px;
+  padding-left: clamp(16px, 1.2vw, 22px);
   color: #e3edf7;
   font-size: 0.85rem;
   display: grid;
-  gap: 6px;
+  gap: clamp(5px, 0.6vw, 8px);
   line-height: 1.55;
   overflow-wrap: anywhere;
+}
+
+@media (min-width: 1360px) {
+  .rulesCard {
+    padding: 22px;
+    gap: 16px;
+  }
+
+  .rulesHeader {
+    gap: 8px;
+  }
+
+  .rulesSection {
+    padding: 14px 16px;
+  }
+
+  .rulesGroup {
+    padding: 12px 14px;
+  }
 }
 
 .rulesSection ul li {
@@ -181,16 +202,17 @@
 
 .startButton {
   border: 1px solid rgba(56, 189, 248, 0.42);
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.24), rgba(14, 116, 144, 0.28));
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.28), rgba(14, 116, 144, 0.32));
   color: #eff8ff;
   border-radius: 12px;
   min-height: 44px;
-  padding: 0.7rem 1.1rem;
+  padding: 0.78rem 1.15rem;
   font-size: 0.92rem;
   line-height: 1.2;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 14px 28px rgba(2, 132, 199, 0.18);
+  transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
 }
 
 .startButtonCompact {
@@ -216,6 +238,7 @@
 .startButton:hover:not(:disabled) {
   filter: brightness(1.06);
   transform: translateY(-1px);
+  box-shadow: 0 18px 32px rgba(2, 132, 199, 0.24);
 }
 
 .startButton:disabled {
