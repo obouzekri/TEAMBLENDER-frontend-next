@@ -414,38 +414,37 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
   return (
     <main className={styles.pageShell}>
-      <ChallengeHeader
-        title={challengeName}
-        subtitle={challengeSubtitle || (isEn ? 'Real-time multiplayer general knowledge quiz' : 'Quiz multijoueur realtime de culture générale')}
-        uppercaseSubtitle={false}
-        headerAction={isStarted ? (
-          <ChallengeRulesPanel
-            inHeader
-            challengeName={challengeName}
-            isStarted={isStarted}
-            isFacilitator={isFacilitator}
-            showPrestartCard={false}
-            objective={rules.objective}
-            participantsMeta={rulesParticipantsMeta}
-            facilitatorRules={rules.facilitator}
-            participantRules={rules.participant}
-            footnote={rules.footnote}
-          />
-        ) : null}
-      />
-
-      <div className="challenge-mobile-timer">
-        <ChallengeTimerCard
-          title={isEn ? 'Timer' : 'Chrono'}
-          remainingSeconds={timerRemainingSeconds}
-          durationSeconds={timerDurationSeconds}
-          status={timerStatus}
-          isFacilitator={isFacilitator}
-          waitingText=""
-        />
-      </div>
-
       <section className={styles.challengeBoard}>
+        <ChallengeHeader
+          title={challengeName}
+          subtitle={challengeSubtitle || (isEn ? 'Real-time multiplayer general knowledge quiz' : 'Quiz multijoueur realtime de culture générale')}
+          uppercaseSubtitle={false}
+          headerAction={isStarted ? (
+            <ChallengeRulesPanel
+              inHeader
+              challengeName={challengeName}
+              isStarted={isStarted}
+              isFacilitator={isFacilitator}
+              showPrestartCard={false}
+              objective={rules.objective}
+              participantsMeta={rulesParticipantsMeta}
+              facilitatorRules={rules.facilitator}
+              participantRules={rules.participant}
+              footnote={rules.footnote}
+            />
+          ) : null}
+        />
+
+        <div className="challenge-mobile-timer">
+          <ChallengeTimerCard
+            title={isEn ? 'Timer' : 'Chrono'}
+            remainingSeconds={timerRemainingSeconds}
+            durationSeconds={timerDurationSeconds}
+            status={timerStatus}
+            isFacilitator={isFacilitator}
+            waitingText=""
+          />
+        </div>
         {error ? <div className={styles.errorBanner}>{error}</div> : null}
         {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>{isEn ? 'Reconnecting, restoring active question...' : 'Reconnexion en cours, restauration de la question active...'}</div> : null}
         {reconnectState === 'reconnected' ? <div className={styles.reconnectBannerSuccess}>{isEn ? 'Connection restored' : 'Connexion restaurée'}</div> : null}
