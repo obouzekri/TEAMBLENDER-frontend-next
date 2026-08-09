@@ -960,11 +960,13 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 <span>{t('vom.bestScore')}</span>
               </article>
             </div>
-            <div className={`${styles.mainScoreCard} ${styles.finalWow}`}>
-              <span className={styles.mainScoreLabel}>{t('vom.finalScore')}</span>
-              <span className={styles.mainScoreValue}>{myScore}</span>
-              <span className={styles.mainScoreUnit}>{t('vom.points')}</span>
-            </div>
+            {!isFacilitator ? (
+              <div className={`${styles.mainScoreCard} ${styles.finalWow}`}>
+                <span className={styles.mainScoreLabel}>{t('vom.finalScore')}</span>
+                <span className={styles.mainScoreValue}>{myScore}</span>
+                <span className={styles.mainScoreUnit}>{t('vom.points')}</span>
+              </div>
+            ) : null}
             <div className={styles.finalBlock}>
               <h3 className={styles.sectionTitle}>{t('vom.finalRanking')}</h3>
               <div className={styles.leaderboardList}>
@@ -974,7 +976,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           </section>
         ) : null}
 
-        {hasChallengeStarted ? (
+        {hasChallengeStarted && !(phase === 'finished' && isFacilitator) ? (
           <section className={`${styles.card} ${styles.postStartSecondaryCard}`}>
             {renderRankingCard('poststart-main')}
           </section>
