@@ -640,6 +640,46 @@
   background: rgba(10, 24, 36, 0.72);
 }
 
+.layerQuickCellBtn {
+  --pixel-cell-color: #2d9cdb;
+  width: 100%;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.layerQuickCellBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(125, 211, 252, 0.62);
+  box-shadow: 0 6px 12px rgba(2, 9, 16, 0.2);
+}
+
+.layerQuickCellBtn:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.layerQuickCellPlaced {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pixel-cell-color) 88%, #ffffff 12%), var(--pixel-cell-color));
+  border-color: rgba(231, 239, 246, 0.38);
+}
+
+.layerQuickActivateBtn {
+  border: 1px solid rgba(130, 167, 192, 0.4);
+  border-radius: 8px;
+  background: rgba(14, 30, 44, 0.84);
+  color: #eaf6ff;
+  font-size: 0.78rem;
+  font-family: inherit;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.layerQuickActivateBtn[aria-pressed='true'] {
+  border-color: rgba(40, 179, 208, 0.8);
+  background: rgba(24, 64, 84, 0.9);
+}
+
 .layerQuickCellTarget {
   background: linear-gradient(180deg, rgba(96, 165, 250, 0.5), rgba(37, 99, 235, 0.38));
 }

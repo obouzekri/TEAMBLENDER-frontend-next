@@ -824,15 +824,16 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     emitEvent('pixel.submit_final');
   }
 
-  function handleBoardCellToggle(x, z) {
+  function handleBoardCellToggle(x, z, layer = safeLayer) {
     if (!canBuild) return;
-    const key = toCellKey(x, safeLayer, z);
+    const normalizedLayer = Math.max(0, Math.min(Number(layer), Math.max(0, grid.y - 1)));
+    const key = toCellKey(x, normalizedLayer, z);
     const existingCube = cubesByKey.get(key);
     if (existingCube) {
-      emitEvent('pixel.cube.remove', { x, y: safeLayer, z });
+      emitEvent('pixel.cube.remove', { x, y: normalizedLayer, z });
       return;
     }
-    emitEvent('pixel.cube.place', { x, y: safeLayer, z, color: selectedColorRef.current });
+    emitEvent('pixel.cube.place', { x, y: normalizedLayer, z, color: selectedColorRef.current });
   }
 
   function handleToggleLayerClaim(layer) {
@@ -952,11 +953,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       .sort((a, b) => b.cubeCount - a.cubeCount)
       .slice(0, 6);
   }, [serverCubes]);
-
-  const activeLayerBoard = useMemo(
-    () => buildLayerBoard(grid, safeLayer, targetSet, cubesByKey),
-    [cubesByKey, grid, safeLayer, targetSet]
-  );
 
   const targetLayerBoards = useMemo(() => {
     return layers.map((layer) => ({
@@ -1137,7 +1133,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 <section className={styles.layerQuickSection} aria-label={isEn ? 'Layer quick map' : 'Carte rapide des couches'}>
                   <div className={styles.panelHead}>
                     <h3>{isEn ? 'Layer quick map' : 'Carte rapide des couches'}</h3>
-                    <p>{isEn ? 'Small previews for all layers. Click to switch active layer.' : 'Apercus des couches. Cliquez pour changer la couche active.'}</p>
+                    <p>{isEn ? 'All layers are editable here. Click a layer title to set it active, then click cells to place or remove cubes.' : 'Toutes les couches sont editables ici. Cliquez le titre pour activer, puis les cellules pour poser ou retirer des cubes.'}</p>
                   </div>
                   <div className={styles.layerQuickList}>
                     {liveLayerBoards.map(({ layer, rows }) => {
@@ -1147,16 +1143,21 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                       const isReservedByMe = myLayerClaim && Number(myLayerClaim.layer) === layer;
                       const isReservedByOther = claim && !isReservedByMe;
                       return (
-                        <button
+                        <section
                           key={`layer-mini-${layer}`}
-                          type="button"
                           className={`${styles.layerQuickCard}${isActive ? ` ${styles.layerQuickCardActive}` : ''}`}
-                          onClick={() => setActiveLayer(layer)}
-                          aria-pressed={isActive}
-                          aria-label={`${isEn ? 'Activate layer' : 'Activer couche'} ${layer + 1}`}
+                          aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}`}
                         >
                           <div className={styles.layerQuickHeadRow}>
-                            <strong>{isEn ? 'Layer' : 'Couche'} {layer + 1}</strong>
+                            <button
+                              type="button"
+                              className={styles.layerQuickActivateBtn}
+                              onClick={() => setActiveLayer(layer)}
+                              aria-pressed={isActive}
+                              aria-label={`${isEn ? 'Activate layer' : 'Activer couche'} ${layer + 1}`}
+                            >
+                              {isEn ? 'Layer' : 'Couche'} {layer + 1}
+                            </button>
                             <span>
                               {isReservedByMe
                                 ? (isEn ? 'Mine' : 'Ma couche')
@@ -1168,15 +1169,22 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                           <div
                             className={styles.layerQuickGrid}
                             style={{ gridTemplateColumns: `repeat(${grid.x}, minmax(0, 1fr))` }}
-                            aria-hidden="true"
+                            role="grid"
+                            aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}`}
                           >
                             {rows.flatMap((row) => row).map((cell) => {
                               const isPlacedCorrect = cell.isPlaced && cell.isTarget;
                               const isPlacedWrong = cell.isPlaced && !cell.isTarget;
+                              const placedColor = String(cell.cube?.color || selectedColor || '#2D9CDB');
                               return (
-                                <div
+                                <button
                                   key={`mini-${cell.key}`}
-                                  className={`${styles.layerQuickCell}${cell.isTarget ? ` ${styles.layerQuickCellTarget}` : ''}${isPlacedCorrect ? ` ${styles.layerQuickCellCorrect}` : ''}${isPlacedWrong ? ` ${styles.layerQuickCellWrong}` : ''}`}
+                                  type="button"
+                                  className={`${styles.layerQuickCell}${styles.layerQuickCellBtn}${cell.isTarget ? ` ${styles.layerQuickCellTarget}` : ''}${cell.isPlaced ? ` ${styles.layerQuickCellPlaced}` : ''}${isPlacedCorrect ? ` ${styles.layerQuickCellCorrect}` : ''}${isPlacedWrong ? ` ${styles.layerQuickCellWrong}` : ''}`}
+                                  style={cell.isPlaced ? { '--pixel-cell-color': placedColor } : undefined}
+                                  onClick={() => handleBoardCellToggle(cell.x, cell.z, layer)}
+                                  disabled={!canBuild}
+                                  aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}, ${isEn ? 'cell' : 'case'} x${cell.x + 1} z${cell.z + 1}${cell.isTarget ? `, ${isEn ? 'target' : 'cible'}` : ''}${cell.isPlaced ? `, ${isEn ? 'occupied' : 'occupee'}` : ''}`}
                                 />
                               );
                             })}
@@ -1185,43 +1193,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                             <span>{stats ? `${stats.matchedCount}/${stats.targetCount}` : '-'}</span>
                             <span>{stats ? `${stats.completion}%` : '0%'}</span>
                           </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-
-                <section className={styles.layerBoardCard}>
-                  <div className={styles.panelHead}>
-                    <h3>{isEn ? 'Layer blueprint' : 'Plan de couche'}</h3>
-                    <p>
-                      {isEn
-                        ? `Layer ${safeLayer + 1}: click a cell to place or remove a cube.`
-                        : `Couche ${safeLayer + 1} : cliquez une case pour poser ou retirer un cube.`}
-                    </p>
-                  </div>
-                  <div
-                    className={styles.layerBoardGrid}
-                    style={{ gridTemplateColumns: `repeat(${grid.x}, minmax(0, 1fr))` }}
-                    role="grid"
-                    aria-label={isEn ? 'Editable layer grid' : 'Grille editable de couche'}
-                  >
-                    {activeLayerBoard.flatMap((row) => row).map((cell) => {
-                      const isPlacedCorrect = cell.isPlaced && cell.isTarget;
-                      const isPlacedWrong = cell.isPlaced && !cell.isTarget;
-                      const placedColor = String(cell.cube?.color || selectedColor || '#2D9CDB');
-                      return (
-                        <button
-                          key={`build-${cell.key}`}
-                          type="button"
-                          className={`${styles.layerBoardCell}${cell.isTarget ? ` ${styles.layerBoardCellTarget}` : ''}${cell.isPlaced ? ` ${styles.layerBoardCellPlaced}` : ''}${isPlacedCorrect ? ` ${styles.layerBoardCellCorrect}` : ''}${isPlacedWrong ? ` ${styles.layerBoardCellWrong}` : ''}`}
-                          style={cell.isPlaced ? { '--pixel-cell-color': placedColor } : undefined}
-                          onClick={() => handleBoardCellToggle(cell.x, cell.z)}
-                          disabled={!canBuild}
-                          aria-label={`${isEn ? 'Cell' : 'Case'} x${cell.x + 1} z${cell.z + 1}${cell.isTarget ? `, ${isEn ? 'target' : 'cible'}` : ''}${cell.isPlaced ? `, ${isEn ? 'occupied' : 'occupee'}` : ''}`}
-                        >
-                          <span className={styles.layerBoardCoords}>{cell.x + 1},{cell.z + 1}</span>
-                        </button>
+                        </section>
                       );
                     })}
                   </div>
