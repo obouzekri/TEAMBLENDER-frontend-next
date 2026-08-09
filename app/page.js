@@ -1483,27 +1483,32 @@ export default function HomePage() {
                 ? 'Leading teams in industry, retail, healthcare and technology rely on structured collaborative formats.'
                 : 'Des equipes exigeantes de l\'industrie, du retail, de la sante et de la tech s\'appuient sur des formats collaboratifs structures.'}
             </p>
-            <ul className="landing-trusted-logos" aria-label={locale === 'en' ? 'Trusted company logos' : 'Logos des entreprises'}>
-              {TRUSTED_COMPANIES.logos.map((company, index) => (
-                <li
-                  key={company.name}
-                  className={`landing-trusted-logo-item landing-trusted-logo-item--${index + 1}`}
-                  title={company.name}
-                  style={{
-                    '--trusted-accent': company.accent || '#35507b',
-                    '--trusted-delay': `${index * 110}ms`,
-                  }}
-                >
-                  <span className="landing-trusted-logo-mark" aria-hidden="true">
-                    <TrustedCompanyLogo company={company} />
-                  </span>
-                  <span className="landing-trusted-logo-text">
-                    <span className="landing-trusted-logo-name">{company.name}</span>
-                    <span className="landing-trusted-logo-meta">{company.meta}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div className="landing-trusted-marquee">
+              <div className="landing-trusted-marquee-track">
+                {[false, true].map((isDuplicate) => (
+                  <ul
+                    key={isDuplicate ? 'duplicate' : 'primary'}
+                    className="landing-trusted-logos"
+                    aria-label={isDuplicate ? undefined : locale === 'en' ? 'Trusted company logos' : 'Logos des entreprises'}
+                    aria-hidden={isDuplicate || undefined}
+                  >
+                    {TRUSTED_COMPANIES.logos.map((company) => (
+                      <li
+                        key={company.name}
+                        className="landing-trusted-logo-item"
+                        title={company.name}
+                        style={{ '--trusted-accent': company.accent || '#35507b' }}
+                      >
+                        <span className="landing-trusted-logo-mark" aria-hidden="true">
+                          <TrustedCompanyLogo company={company} />
+                        </span>
+                        <span className="landing-trusted-logo-name">{company.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
