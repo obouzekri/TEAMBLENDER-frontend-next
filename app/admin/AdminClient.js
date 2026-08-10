@@ -381,8 +381,8 @@ const COPUZZLE_CATALOG_ENTRY = {
     },
     image_source_mode: 'defaults',
     grid: {
-      rows: 4,
-      cols: 4,
+      rows: 10,
+      cols: 10,
     },
     timer: {
       enabled: true,
@@ -643,12 +643,23 @@ function ensureLabyrintheSignalsChallenge(challenges) {
   const existingParticipants = existingConfig.participants && typeof existingConfig.participants === 'object'
     ? existingConfig.participants
     : {};
+  const existingGrid = existingConfig.grid && typeof existingConfig.grid === 'object'
+    ? existingConfig.grid
+    : {};
 
   list[existingIndex] = {
     ...current,
     name: String(current?.name || '').trim() || presetFr.challengeName,
     engine_config: {
       ...existingConfig,
+      rows: Number.isFinite(Number(existingConfig.rows)) ? Number(existingConfig.rows) : 10,
+      cols: Number.isFinite(Number(existingConfig.cols)) ? Number(existingConfig.cols) : 10,
+      complexity: Number.isFinite(Number(existingConfig.complexity)) ? Number(existingConfig.complexity) : 0.8,
+      grid: {
+        ...existingGrid,
+        rows: Number.isFinite(Number(existingGrid.rows)) ? Number(existingGrid.rows) : 10,
+        cols: Number.isFinite(Number(existingGrid.cols)) ? Number(existingGrid.cols) : 10,
+      },
       participants: {
         ...existingParticipants,
         min_count: existingParticipants.min_count || 2,
@@ -1218,6 +1229,12 @@ function getChallengeStatusLabel(status, isEn) {
 function getPricingBillingCycleLabel(value, isEn) {
   return getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS[String(value || 'monthly')], isEn)
     || String(value || 'monthly');
+}
+
+function normalizePricingPlanId(value) {
+  if (value === null || value === undefined) return '';
+  const normalized = String(value).trim();
+  return normalized;
 }
 
 export default function AdminClient() {
@@ -1918,6 +1935,7 @@ export default function AdminClient() {
       role: targetUser.role || 'user',
       job_title: targetUser.job_title || '',
       department: targetUser.department || '',
+      pricing_plan_id: normalizePricingPlanId(targetUser.pricing_plan_id),
       password: '',
     });
   }
@@ -1953,6 +1971,7 @@ export default function AdminClient() {
           role: editingUser.role,
           job_title: editingUser.job_title,
           department: editingUser.department,
+          pricing_plan_id: normalizePricingPlanId(editingUser.pricing_plan_id) || null,
           ...(editingUser.password ? { password: editingUser.password } : {}),
         }),
       });
@@ -4156,6 +4175,19 @@ export default function AdminClient() {
                   <select value={editingUser.role} onChange={(e) => setEditingUser((p) => ({ ...p, role: e.target.value }))}>
                     <option value="user">{isEn ? 'User' : 'Utilisateur'}</option>
                     <option value="admin">Admin</option>
+                  </select>
+                </label>
+                <label>{isEn ? 'Current offer' : 'Offre actuelle'}
+                  <select
+                    value={normalizePricingPlanId(editingUser.pricing_plan_id)}
+                    onChange={(e) => setEditingUser((p) => ({ ...p, pricing_plan_id: e.target.value }))}
+                  >
+                    <option value="">{isEn ? 'No offer assigned' : 'Aucune offre assignee'}</option>
+                    {pricingPlans.map((plan) => (
+                      <option key={String(plan.id)} value={String(plan.id)}>
+                        {plan.name || `${isEn ? 'Offer' : 'Offre'} #${plan.id}`}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label>{isEn ? 'Job title' : 'Fonction'}<input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} /></label>
