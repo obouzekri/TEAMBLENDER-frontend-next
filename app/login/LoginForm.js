@@ -15,6 +15,7 @@ import {
   ensureCsrfToken,
   getOAuthStartUrl,
   getRedirectPath,
+  joinParticipantInstant,
   loginWithFallback,
   readOAuthCallbackFromLocation,
   resendVerification,
@@ -23,6 +24,11 @@ import {
   shouldStoreParticipantTargetSession
 } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
+
+function looksLikeEmail(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+}
 
 function errorMessage(resStatus, data, isEn) {
   if (data?.code === 'ACCOUNT_PENDING') return isEn ? 'Your account is pending admin approval.' : 'Votre compte est en attente de validation par un administrateur.';
@@ -39,7 +45,7 @@ export default function LoginForm({ requestedSessionId = '' }) {
   const normalizedRequestedSessionId = useMemo(() => String(requestedSessionId || '').trim(), [requestedSessionId]);
   const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'false').toLowerCase() === 'true';
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -49,17 +55,31 @@ export default function LoginForm({ requestedSessionId = '' }) {
   const [resendMessage, setResendMessage] = useState('');
   const [oauthLoadingProvider, setOauthLoadingProvider] = useState('');
   const [needsVerificationResend, setNeedsVerificationResend] = useState(false);
-  const [emailTouched, setEmailTouched] = useState(false);
+  const [identifierTouched, setIdentifierTouched] = useState(false);
+  const [joinSessionCode, setJoinSessionCode] = useState('');
+  const [joinNickname, setJoinNickname] = useState('');
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinMessage, setJoinMessage] = useState('');
+  const [scannerSupported, setScannerSupported] = useState(false);
+  const [scannerActive, setScannerActive] = useState(false);
 
-  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
-  const emailLooksValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
-  const showEmailStatus = emailTouched && normalizedEmail.length > 0;
-  const emailStatusLabel = emailLooksValid
+  const normalizedIdentifier = useMemo(() => identifier.trim(), [identifier]);
+  const identifierIsEmail = useMemo(() => looksLikeEmail(normalizedIdentifier), [normalizedIdentifier]);
+  const showIdentifierStatus = identifierTouched && normalizedIdentifier.length > 0;
+  const identifierStatusLabel = identifierIsEmail
     ? (isEn ? 'Email format looks valid' : 'Le format de l’email est valide')
-    : (isEn ? 'Enter a valid email address' : 'Saisissez une adresse email valide');
+    : (isEn ? 'Participant alias login enabled' : 'Connexion participant par identifiant activee');
 
   useEffect(() => {
     ensureCsrfToken().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const hasScanner = typeof window !== 'undefined'
+      && typeof navigator !== 'undefined'
+      && 'mediaDevices' in navigator
+      && typeof window.BarcodeDetector !== 'undefined';
+    setScannerSupported(Boolean(hasScanner));
   }, []);
 
   useEffect(() => {
@@ -131,7 +151,7 @@ export default function LoginForm({ requestedSessionId = '' }) {
     setResendStatus('idle');
     setResendMessage('');
 
-    if (!normalizedEmail || !password) {
+    if (!normalizedIdentifier || !password) {
       setMessage(isEn ? 'Please fill in all fields.' : 'Veuillez remplir tous les champs.');
       return;
     }
@@ -139,7 +159,7 @@ export default function LoginForm({ requestedSessionId = '' }) {
     setLoading(true);
     try {
       const allowParticipantFallback = true;
-      const { response, data, authScope } = await loginWithFallback(normalizedEmail, password, { allowParticipantFallback });
+      const { response, data, authScope } = await loginWithFallback(normalizedIdentifier, password, { allowParticipantFallback });
       setLastAuthScope(authScope || 'user');
       if (response.ok) {
         const token = String(data?.token || '').trim();
@@ -178,10 +198,10 @@ export default function LoginForm({ requestedSessionId = '' }) {
   }
 
   async function onResendVerification() {
-    const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail) {
+    const normalizedEmail = identifier.trim().toLowerCase();
+    if (!normalizedEmail || !looksLikeEmail(normalizedEmail)) {
       setResendStatus('error');
-      setResendMessage(isEn ? 'Enter your email to resend the link.' : 'Saisissez votre email pour renvoyer le lien.');
+      setResendMessage(isEn ? 'Enter a valid email to resend the link.' : 'Saisissez un email valide pour renvoyer le lien.');
       return;
     }
 
@@ -204,6 +224,107 @@ export default function LoginForm({ requestedSessionId = '' }) {
     } catch {
       setResendStatus('error');
       setResendMessage(isEn ? 'Unable to reach the server. Check your connection and try again.' : 'Impossible de contacter le serveur. Verifiez votre connexion et reessayez.');
+    }
+  }
+
+  async function onJoinInstant(event) {
+    event.preventDefault();
+    setJoinMessage('');
+
+    const sessionCode = String(joinSessionCode || '').trim();
+    const nickname = String(joinNickname || '').trim();
+
+    if (!sessionCode || !nickname) {
+      setJoinMessage(isEn ? 'Session code and nickname are required.' : 'Le code session et le pseudo sont requis.');
+      return;
+    }
+
+    setJoinLoading(true);
+    try {
+      const { res, data } = await joinParticipantInstant({ sessionCode, nickname });
+      if (!res.ok) {
+        setJoinMessage(data?.error || (isEn ? 'Unable to join session right now.' : 'Impossible de rejoindre la session pour le moment.'));
+        return;
+      }
+
+      const token = String(data?.token || '').trim();
+      const user = data?.user || null;
+      const resolvedSessionId = String(data?.sessionId || '').trim();
+      if (!token || !user) {
+        setJoinMessage(isEn ? 'Invalid join response. Please try again.' : 'Reponse de connexion invalide. Veuillez reessayer.');
+        return;
+      }
+
+      setStoredAuthSession({
+        token,
+        user,
+        targetSessionId: shouldStoreParticipantTargetSession('participant', resolvedSessionId),
+      });
+
+      const redirect = withLocalePath(getRedirectPath('participant', resolvedSessionId, resolveConnectedUserId(user)));
+      window.location.href = redirect;
+    } catch {
+      setJoinMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Verifiez votre connexion.');
+    } finally {
+      setJoinLoading(false);
+    }
+  }
+
+  async function startQrScanner() {
+    if (!scannerSupported || scannerActive) return;
+
+    setJoinMessage('');
+    setScannerActive(true);
+
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' }
+        }
+      });
+
+      const video = document.createElement('video');
+      video.setAttribute('playsinline', 'true');
+      video.srcObject = stream;
+      await video.play();
+
+      const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+
+      const stopStream = () => {
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+        }
+      };
+
+      const maxAttempts = 180;
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        const codes = await detector.detect(video);
+        if (Array.isArray(codes) && codes.length > 0) {
+          const rawValue = String(codes[0]?.rawValue || '').trim();
+          if (rawValue) {
+            const match = rawValue.match(/(?:sessionCode|session_code|code|session)=([A-Za-z0-9_-]+)/i);
+            const extracted = String(match?.[1] || rawValue).trim().toUpperCase();
+            setJoinSessionCode(extracted);
+            setJoinMessage(isEn ? 'QR code detected. Session code pre-filled.' : 'QR detecte. Code session pre-rempli.');
+            stopStream();
+            setScannerActive(false);
+            return;
+          }
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
+
+      stopStream();
+      setJoinMessage(isEn ? 'No QR code detected. Please try again.' : 'Aucun QR detecte. Veuillez reessayer.');
+    } catch {
+      setJoinMessage(isEn ? 'Camera unavailable or permission denied.' : 'Camera indisponible ou permission refusee.');
+    } finally {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+      setScannerActive(false);
     }
   }
 
@@ -240,28 +361,28 @@ export default function LoginForm({ requestedSessionId = '' }) {
         <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
           <AuthField
             id="login-email"
-            label={isEn ? 'Work email' : 'Email professionnel'}
+            label={isEn ? 'Email or participant alias' : 'Email ou identifiant participant'}
             icon={<Mail size={18} strokeWidth={1.9} />}
-            after={showEmailStatus ? (
-              <span className={`auth-input-status${emailLooksValid ? ' is-valid' : ''}`} aria-label={emailStatusLabel} title={emailStatusLabel}>
+            after={showIdentifierStatus ? (
+              <span className={`auth-input-status${identifierIsEmail ? ' is-valid' : ''}`} aria-label={identifierStatusLabel} title={identifierStatusLabel}>
                 <CheckCircle2 size={16} strokeWidth={2} />
               </span>
             ) : null}
           >
             <input
               id="login-email"
-              type="email"
-              value={email}
+              type="text"
+              value={identifier}
               onChange={(e) => {
-                setEmail(e.target.value);
-                setEmailTouched(true);
+                setIdentifier(e.target.value);
+                setIdentifierTouched(true);
               }}
-              onBlur={() => setEmailTouched(true)}
+              onBlur={() => setIdentifierTouched(true)}
               required
-              placeholder={isEn ? 'you@company.com' : 'vous@entreprise.com'}
+              placeholder={isEn ? 'you@company.com or sophie' : 'vous@entreprise.com ou sophie'}
               autoComplete="email"
-              aria-label={isEn ? 'Work email' : 'Email professionnel'}
-              aria-invalid={showEmailStatus ? String(!emailLooksValid) : undefined}
+              aria-label={isEn ? 'Email or participant alias' : 'Email ou identifiant participant'}
+              aria-invalid={showIdentifierStatus ? String(false) : undefined}
             />
           </AuthField>
 
@@ -322,6 +443,49 @@ export default function LoginForm({ requestedSessionId = '' }) {
           <p style={{ textAlign: 'center', marginTop: '0.5rem' }}>
             <Link href={withLocalePath('/forgot-password')} className="form-help">{isEn ? 'Forgot password?' : 'Mot de passe oublié ?'}</Link>
           </p>
+        </form>
+
+        <form onSubmit={onJoinInstant} className="auth-form" autoComplete="off" style={{ marginTop: '1.25rem' }}>
+          <p className="form-help" style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
+            {isEn ? 'Join a session instantly (participants)' : 'Rejoindre une session instantanement (participants)'}
+          </p>
+          <AuthField id="join-session-code" label={isEn ? 'Session code' : 'Code session'}>
+            <input
+              id="join-session-code"
+              type="text"
+              value={joinSessionCode}
+              onChange={(e) => setJoinSessionCode(e.target.value.toUpperCase())}
+              placeholder={isEn ? 'AB12' : 'AB12'}
+              autoComplete="off"
+            />
+          </AuthField>
+          {scannerSupported ? (
+            <button
+              type="button"
+              className="btn-secondary wide"
+              onClick={startQrScanner}
+              disabled={scannerActive}
+              aria-busy={scannerActive}
+            >
+              {scannerActive
+                ? (isEn ? 'Scanning QR...' : 'Scan QR en cours...')
+                : (isEn ? 'Scan QR with camera' : 'Scanner le QR avec la camera')}
+            </button>
+          ) : null}
+          <AuthField id="join-nickname" label={isEn ? 'Nickname' : 'Pseudo'}>
+            <input
+              id="join-nickname"
+              type="text"
+              value={joinNickname}
+              onChange={(e) => setJoinNickname(e.target.value)}
+              placeholder={isEn ? 'Sophie' : 'Sophie'}
+              autoComplete="nickname"
+            />
+          </AuthField>
+          <button type="submit" className="btn-secondary wide" disabled={joinLoading} aria-busy={joinLoading}>
+            {joinLoading ? (isEn ? 'Joining...' : 'Connexion...') : (isEn ? 'Join instantly' : 'Rejoindre maintenant')}
+          </button>
+          {joinMessage ? <p className="form-error">{joinMessage}</p> : null}
         </form>
         </AuthCard>
       </div>

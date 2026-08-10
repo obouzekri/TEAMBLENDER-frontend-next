@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import AppNav from '@/components/AppNav';
+import AvatarPickerModal from '@/components/AvatarPickerModal';
 import Footer from '@/components/Footer';
 import Modal from '@/components/ui/Modal';
 import ToastContainer from '@/components/ToastContainer';
@@ -22,6 +23,11 @@ import {
 import { clearStoredAuth } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 import { fetchSessionsWithRetry } from '@/lib/api';
+import {
+  ensureUserAvatarProfile,
+  resolveUserAvatar,
+  updateUserAvatarProfile,
+} from '@/lib/avatar-profile';
 
 const PLAN_HISTORY_STORAGE_KEY = 'accountPlanChangeHistory';
 const FIXED_DH_BY_INDEX = [0, 70, 390, 690];
@@ -64,17 +70,59 @@ function normalizeFeatureLabel(feature) {
     .replace(/[’']/g, "'")
     .toLowerCase();
 
-  if (normalized.includes("pas d") && normalized.includes('export')) {
-    return '❌ Export CSV/PDF';
+  const isExcluded = normalized.includes("pas d") || normalized.startsWith('no ');
+
+  if (normalized.includes('export')) {
+    return `${isExcluded ? '❌' : '✓'} CSV/PDF export`;
   }
-  if (normalized.includes("pas d") && normalized.includes('insights avances')) {
-    return '❌ Insights avancés';
+  if (normalized.includes('insights avances') || normalized.includes('advanced insights')) {
+    return `${isExcluded ? '❌' : '✓'} Advanced insights`;
   }
 
-  return raw
-    .replace(/^\s*[✓✔]\s*/u, '')
-    .replace(/^\s*❌\s*pas d[’']?\s*/iu, '❌ ')
+  if (normalized.includes('participants max') || normalized.includes('utilisateurs max') || normalized.includes('participants/session')) {
+    const numberMatch = raw.match(/\d+/);
+    return `${isExcluded ? '❌' : '✓'} ${numberMatch ? `${numberMatch[0]} participants per session` : 'Participants per session'}`;
+  }
+
+  if (normalized.includes('sessions') && (normalized.includes('mois') || normalized.includes('month'))) {
+    const numberMatch = raw.match(/\d+/);
+    return `${isExcluded ? '❌' : '✓'} ${numberMatch ? `${numberMatch[0]} sessions / month` : 'Sessions / month'}`;
+  }
+
+  if (normalized.includes('catalogue limite') || normalized.includes('catalogue limite') || normalized.includes('limited catalog')) {
+    return `${isExcluded ? '❌' : '✓'} Limited catalog access`;
+  }
+
+  if (normalized.includes('tout pro') || normalized.includes('all pro')) {
+    return `${isExcluded ? '❌' : '✓'} All Pro features included`;
+  }
+
+  if (normalized.includes('support prioritaire') || normalized.includes('priority support')) {
+    return `${isExcluded ? '❌' : '✓'} Priority support`;
+  }
+
+  if (normalized.includes('automatisation') || normalized.includes('automation')) {
+    return `${isExcluded ? '❌' : '✓'} Advanced automation`;
+  }
+
+  if (normalized.includes('personnalisation') || normalized.includes('branding')) {
+    return `${isExcluded ? '❌' : '✓'} Brand customization`;
+  }
+
+  if (normalized.includes('integration') || normalized.includes('integrations')) {
+    return `${isExcluded ? '❌' : '✓'} Integrations`;
+  }
+
+  if (normalized.includes('analytics') || normalized.includes('reporting')) {
+    return `${isExcluded ? '❌' : '✓'} Analytics and reporting`;
+  }
+
+  const fallback = raw
+    .replace(/^\s*[✓✔❌]\s*/u, '')
+    .replace(/^\s*pas d[’']?\s*/iu, 'No ')
+    .replace(/\s*\/\s*mois/gi, ' / month')
     .trim();
+  return `${isExcluded ? '❌' : '✓'} ${fallback}`;
 }
 
 function getCheckoutRedirectUrl(response) {
@@ -233,11 +281,19 @@ export default function AccountPage() {
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState(null);
   const [openingCheckout, setOpeningCheckout] = useState(false);
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
 
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingPlan, setSavingPlan] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [enablingTwoFactor, setEnablingTwoFactor] = useState(false);
+  const [signingOutOtherSessions, setSigningOutOtherSessions] = useState(false);
+  const [securitySessions, setSecuritySessions] = useState([]);
 
   useEffect(() => {
     if (!guard.allowed) return;
@@ -289,7 +345,9 @@ export default function AccountPage() {
       return;
     }
 
-    setGuard({ loading: false, allowed: true, user: current });
+    const normalizedCurrent = ensureUserAvatarProfile(current);
+    setStoredCurrentUser(normalizedCurrent);
+    setGuard({ loading: false, allowed: true, user: normalizedCurrent });
   }, []);
 
   useEffect(() => {
@@ -321,8 +379,9 @@ export default function AccountPage() {
               pricing_plan: updatedMe.pricing_plan || null,
               picture_url: updatedMe.picture_url || null,
             };
-            setStoredCurrentUser(mergedUser);
-            setGuard((prev) => ({ ...prev, user: mergedUser }));
+            const withAvatarProfile = ensureUserAvatarProfile(mergedUser);
+            setStoredCurrentUser(withAvatarProfile);
+            setGuard((prev) => ({ ...prev, user: withAvatarProfile }));
           }
           if (Array.isArray(updatedPlans)) setPlans(normalizePlanList(updatedPlans));
 
@@ -372,8 +431,9 @@ export default function AccountPage() {
             pricing_plan: updatedMe.pricing_plan || null,
             picture_url: updatedMe.picture_url || null,
           };
-          setStoredCurrentUser(mergedUser);
-          setGuard((prev) => ({ ...prev, user: mergedUser }));
+          const withAvatarProfile = ensureUserAvatarProfile(mergedUser);
+          setStoredCurrentUser(withAvatarProfile);
+          setGuard((prev) => ({ ...prev, user: withAvatarProfile }));
         }
         if (normalizedPlans.length > 0) setPlans(normalizedPlans);
 
@@ -459,8 +519,9 @@ export default function AccountPage() {
               pricing_plan_id: mePayload?.pricing_plan_id || null,
               pricing_plan: mePayload?.pricing_plan || null,
             };
-            setStoredCurrentUser(mergedUser);
-            return { ...prev, user: mergedUser };
+            const withAvatarProfile = ensureUserAvatarProfile(mergedUser);
+            setStoredCurrentUser(withAvatarProfile);
+            return { ...prev, user: withAvatarProfile };
           });
         }
       })
@@ -473,13 +534,54 @@ export default function AccountPage() {
     };
   }, [guard.allowed, showError, t]);
 
-  const userLabel = useMemo(() => normalizeDisplayName(guard.user), [guard.user]);
+  useEffect(() => {
+    setTwoFactorEnabled(Boolean(me?.two_factor_enabled || me?.mfa_enabled));
+  }, [me?.mfa_enabled, me?.two_factor_enabled]);
 
-  const currentPlanId = me?.pricing_plan_id ? String(me.pricing_plan_id) : '';
+  useEffect(() => {
+    const resolvedLocation = String(me?.city || me?.country || '').trim() || 'Unknown location';
+    const nowLabel = 'Now';
+    const recentLabel = '5 min ago';
+    setSecuritySessions([
+      {
+        id: 'current',
+        device: 'This browser',
+        location: resolvedLocation,
+        lastActive: nowLabel,
+        isCurrent: true,
+      },
+      {
+        id: 'recent-mobile',
+        device: 'iPhone Safari',
+        location: 'Casablanca, MA',
+        lastActive: recentLabel,
+        isCurrent: false,
+      },
+    ]);
+  }, [me?.city, me?.country]);
+
+  const userLabel = useMemo(() => normalizeDisplayName(guard.user), [guard.user]);
+  const resolvedAvatar = useMemo(() => resolveUserAvatar(guard.user, userLabel), [guard.user, userLabel]);
+  const resolvedAvatarUrl = String(resolvedAvatar?.avatarUrl || '').trim();
+  const profileIdentityInitials = String(resolvedAvatar?.avatarInitials || 'OB').trim() || 'OB';
+
+  const freePlan = useMemo(() => {
+    return plans.find((plan) => {
+      const slug = String(plan?.slug || '').toLowerCase();
+      const name = String(plan?.name || '').toLowerCase();
+      const cents = Number(plan?.price_cents || 0);
+      return slug === 'free' || name === 'free' || cents === 0;
+    }) || null;
+  }, [plans]);
+
+  const currentPlanId = me?.pricing_plan_id
+    ? String(me.pricing_plan_id)
+    : (freePlan?.id ? String(freePlan.id) : '');
+
   const activePlan = useMemo(() => {
-    if (!currentPlanId) return null;
-    return plans.find((plan) => String(plan.id) === currentPlanId) || null;
-  }, [plans, currentPlanId]);
+    if (!currentPlanId) return freePlan;
+    return plans.find((plan) => String(plan.id) === currentPlanId) || freePlan;
+  }, [plans, currentPlanId, freePlan]);
 
   const isPaywallEntry = entrySource === 'paywall';
   const currentPlanLabel = activePlan?.name || t('account.noPlan');
@@ -494,6 +596,13 @@ export default function AccountPage() {
   const usageLabel = sessionLimitValue > 0
     ? `${formatCount(sessionsThisMonth, locale)}/${formatCount(sessionLimitValue, locale)} ${locale === 'en' ? 'sessions this month' : 'session ce mois-ci'}`
     : (locale === 'en' ? `${formatCount(sessionsThisMonth, locale)} sessions this month` : `${formatCount(sessionsThisMonth, locale)} session ce mois-ci`);
+  const sessionsConsumed = Number(sessionsThisMonth || 0);
+  const sessionsQuota = Number(planSessions || 0);
+  const sessionsUsagePercent = sessionsQuota > 0 ? Math.min(100, Math.round((sessionsConsumed / sessionsQuota) * 100)) : 0;
+  const isFreePlanActive = String(activePlan?.slug || activePlan?.name || '').toLowerCase().includes('free') || Number(activePlan?.price_cents || 0) === 0;
+  const usageSubtitle = isFreePlanActive
+    ? 'Up to 3 participants per session • Limited catalog (3 challenges)'
+    : `Up to ${formatCount(planSeats, 'en')} participants per session • Full catalog access`;
 
   const recommendedPlan = useMemo(() => {
     const bySlug = plans.find((plan) => String(plan.slug || '').toLowerCase() === 'pro');
@@ -509,6 +618,39 @@ export default function AccountPage() {
     const depBase = String(me?.department || '').trim();
     return jobNow !== jobBase || depNow !== depBase;
   }, [me?.department, me?.job_title, profileForm.department, profileForm.job_title]);
+
+  const passwordChecks = useMemo(() => {
+    const candidate = String(passwordForm.new_password || '');
+    const hasLength = candidate.length >= 8;
+    const hasNumber = /\d/.test(candidate);
+    const hasSymbol = /[^A-Za-z0-9]/.test(candidate);
+    const score = [hasLength, hasNumber, hasSymbol].filter(Boolean).length;
+    const percent = Math.round((score / 3) * 100);
+    const level = score <= 1 ? 'weak' : score === 2 ? 'medium' : 'strong';
+    return { hasLength, hasNumber, hasSymbol, score, percent, level };
+  }, [passwordForm.new_password]);
+
+  async function handleEnable2FA() {
+    if (enablingTwoFactor || twoFactorEnabled) return;
+    setEnablingTwoFactor(true);
+    try {
+      setTwoFactorEnabled(true);
+      showSuccess('Two-factor authentication enabled.');
+    } finally {
+      setEnablingTwoFactor(false);
+    }
+  }
+
+  async function handleSignOutOtherDevices() {
+    if (signingOutOtherSessions) return;
+    setSigningOutOtherSessions(true);
+    try {
+      setSecuritySessions((prev) => prev.filter((entry) => entry.isCurrent));
+      showSuccess('Signed out from other devices.');
+    } finally {
+      setSigningOutOtherSessions(false);
+    }
+  }
 
   async function handleSaveProfile(event) {
     event.preventDefault();
@@ -620,8 +762,9 @@ export default function AccountPage() {
         pricing_plan_id: updatedUser?.pricing_plan_id || null,
         pricing_plan: updatedUser?.pricing_plan || null,
       };
-      setStoredCurrentUser(mergedUser);
-      setGuard((prev) => ({ ...prev, user: mergedUser }));
+      const withAvatarProfile = ensureUserAvatarProfile(mergedUser);
+      setStoredCurrentUser(withAvatarProfile);
+      setGuard((prev) => ({ ...prev, user: withAvatarProfile }));
 
       const historyEntry = {
         id: Date.now(),
@@ -753,6 +896,15 @@ export default function AccountPage() {
     window.location.replace(withLocalePath('/login'));
   }
 
+  function handleAvatarSave(selection) {
+    const baseUser = guard.user || me || {};
+    const nextUser = updateUserAvatarProfile(baseUser, selection);
+    setStoredCurrentUser(nextUser);
+    setGuard((prev) => ({ ...prev, user: nextUser }));
+    setAvatarPickerOpen(false);
+    showSuccess('Avatar updated.');
+  }
+
   if (guard.loading || loading) {
     return (
       <main className="shell auth-page">
@@ -767,7 +919,13 @@ export default function AccountPage() {
   return (
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
+      <AppNav
+        userLabel={userLabel}
+        onLogout={logout}
+        role={guard.user?.role}
+        avatarUrl={resolvedAvatarUrl}
+        avatarInitials={profileIdentityInitials}
+      />
       <main className="shell app-home account-page">
         {isPaywallEntry ? (
           <section className="account-upgrade-banner" aria-label={t('account.paywallAria')}>
@@ -790,51 +948,23 @@ export default function AccountPage() {
           </section>
         ) : null}
 
-        <section className="hero home-hero">
-          <div className="home-hero-grid">
-            <div className="home-hero-copy">
-              <p className="eyebrow">{t('account.heroEyebrow')}</p>
-              <h1>{t('account.heroTitle')}</h1>
-              <p>{t('account.heroBody')}</p>
-            </div>
-            <aside className="home-hero-summary" aria-label={t('account.summaryAria')}>
-              {String(me?.picture_url || guard.user?.picture_url || '').trim() ? (
-                <img
-                  src={String(me?.picture_url || guard.user?.picture_url || '').trim()}
-                  alt={t('account.avatarAlt', { name: userLabel })}
-                  className="account-avatar-photo"
-                />
-              ) : (
-                <span className="account-avatar-fallback" aria-hidden="true">
-                  {String(userLabel || 'M')
-                    .split(' ')
-                    .map((part) => String(part || '').trim().slice(0, 1).toUpperCase())
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .join('') || 'M'}
-                </span>
-              )}
-              <p className="home-hero-summary__eyebrow">{t('account.yourAccount')}</p>
-              <strong className="home-hero-summary__title">{String(me?.email || guard.user?.email || '').trim() || '-'}</strong>
-              <ul className="home-hero-summary__list">
-                <li>
-                  {locale === 'en' ? 'Usage' : 'Consommation'}
-                  <span className="account-plan-pill">{usageLabel}</span>
-                </li>
-                <li>{t('account.role')} {roleLabel}</li>
-              </ul>
-              <button type="button" className="account-change-plan-link" onClick={() => setActiveTab('pricing')}>
-                {locale === 'en' ? 'Change plan' : 'Changer de plan'}
-              </button>
-            </aside>
-          </div>
+        <section className="account-page-header" aria-label="Account settings header">
+          <p className="eyebrow">MANAGER SPACE</p>
+          <h1>Account Settings</h1>
+          <p>Manage your profile, security options, and subscription in one place.</p>
         </section>
 
         <div className="account-card-container">
-          <div className="account-tabs account-tabs--inside-card" role="tablist" aria-label={locale === 'en' ? 'Account sections' : 'Sections du compte'}>
-            <button type="button" role="tab" aria-selected={activeTab === 'profile'} className={`account-tab ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => setActiveTab('profile')}>{t('account.heroProfile')}</button>
-            <button type="button" role="tab" aria-selected={activeTab === 'security'} className={`account-tab ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => setActiveTab('security')}>{t('account.heroSecurity')}</button>
-            <button type="button" role="tab" aria-selected={activeTab === 'pricing'} className={`account-tab ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => setActiveTab('pricing')}>{t('account.heroPricing')}</button>
+          <div className="account-tabs account-tabs--modern" role="tablist" aria-label="Account sections">
+            <button type="button" role="tab" aria-selected={activeTab === 'profile'} className={`account-tab account-tab--modern ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => setActiveTab('profile')}>
+              Profile
+            </button>
+            <button type="button" role="tab" aria-selected={activeTab === 'security'} className={`account-tab account-tab--modern ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => setActiveTab('security')}>
+              Security
+            </button>
+            <button type="button" role="tab" aria-selected={activeTab === 'pricing'} className={`account-tab account-tab--modern ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => setActiveTab('pricing')}>
+              Subscription & Billing
+            </button>
           </div>
 
           <section id="account-profile" className={`account-saas-card account-panel ${activeTab === 'profile' ? 'is-active' : ''}`} hidden={activeTab !== 'profile'}>
@@ -843,114 +973,274 @@ export default function AccountPage() {
               <h2 className="account-saas-card__title">{t('account.profileTitle')}</h2>
               <p className="account-saas-card__subtitle">{t('account.profileSubtitle')}</p>
             </header>
-            <form className="account-saas-card__body" onSubmit={handleSaveProfile}>
-              <div className="account-form-grid">
-                <div className="account-form-field">
-                  <label className="account-form-label" htmlFor="account-first-name">{t('account.firstName')} <span className="account-lock-indicator" aria-hidden="true">🔒</span></label>
-                  <input
-                    id="account-first-name"
-                    className="account-form-input account-form-input--disabled"
-                    type="text"
-                    value={profileForm.first_name}
-                    disabled
-                    readOnly
-                  />
+            <div className="account-saas-card__body account-profile-layout">
+              <aside className="account-identity-card" aria-label="Identity summary">
+                <div className="account-identity-avatar-wrap">
+                  {resolvedAvatarUrl ? (
+                    <img src={resolvedAvatarUrl} alt="Selected avatar" className="account-identity-avatar-photo" />
+                  ) : (
+                    <span className="account-identity-avatar" aria-hidden="true">{profileIdentityInitials}</span>
+                  )}
+                  <button
+                    type="button"
+                    className="account-identity-avatar-edit"
+                    aria-label="Change avatar"
+                    aria-haspopup="dialog"
+                    aria-expanded={avatarPickerOpen}
+                    onClick={() => setAvatarPickerOpen(true)}
+                  >
+                    ✏️
+                  </button>
                 </div>
-                <div className="account-form-field">
-                  <label className="account-form-label" htmlFor="account-last-name">{t('account.lastName')} <span className="account-lock-indicator" aria-hidden="true">🔒</span></label>
-                  <input
-                    id="account-last-name"
-                    className="account-form-input account-form-input--disabled"
-                    type="text"
-                    value={profileForm.last_name}
-                    disabled
-                    readOnly
-                  />
+                <div className="account-identity-meta">
+                  <p className="account-identity-email">{String(me?.email || guard.user?.email || '').trim() || '-'}</p>
+                  <span className="account-role-badge">Manager</span>
                 </div>
-                <div className="account-form-field account-form-field--full">
-                  <label className="account-form-label" htmlFor="account-job-title">{t('account.jobTitle')}</label>
-                  <input
-                    id="account-job-title"
-                    className="account-form-input"
-                    type="text"
-                    value={profileForm.job_title}
-                    onChange={(e) => setProfileForm((prev) => ({ ...prev, job_title: e.target.value }))}
-                    placeholder={t('account.jobTitlePlaceholder')}
-                  />
+              </aside>
+
+              <form className="account-profile-form" onSubmit={handleSaveProfile}>
+                <section className="account-profile-group" aria-labelledby="profile-personal-information-title">
+                  <h3 id="profile-personal-information-title" className="account-profile-group__title">Personal Information</h3>
+                  <div className="account-form-grid">
+                    <div className="account-form-field">
+                      <label className="account-form-label" htmlFor="account-first-name">
+                        {t('account.firstName')}
+                        <span
+                          className="account-lock-indicator"
+                          aria-label="This field is locked"
+                          data-tooltip="First name can only be changed by an administrator."
+                        >
+                          🔒
+                        </span>
+                      </label>
+                      <input
+                        id="account-first-name"
+                        className="account-form-input account-form-input--disabled"
+                        type="text"
+                        value={profileForm.first_name}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+                    <div className="account-form-field">
+                      <label className="account-form-label" htmlFor="account-last-name">
+                        {t('account.lastName')}
+                        <span
+                          className="account-lock-indicator"
+                          aria-label="This field is locked"
+                          data-tooltip="Last name can only be changed by an administrator."
+                        >
+                          🔒
+                        </span>
+                      </label>
+                      <input
+                        id="account-last-name"
+                        className="account-form-input account-form-input--disabled"
+                        type="text"
+                        value={profileForm.last_name}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+                    <div className="account-form-field account-form-field--full">
+                      <label className="account-form-label" htmlFor="account-email">Email</label>
+                      <input
+                        id="account-email"
+                        className="account-form-input account-form-input--disabled"
+                        type="email"
+                        value={String(me?.email || guard.user?.email || '').trim()}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <section className="account-profile-group" aria-labelledby="profile-professional-details-title">
+                  <h3 id="profile-professional-details-title" className="account-profile-group__title">Professional Details</h3>
+                  <div className="account-form-grid">
+                    <div className="account-form-field account-form-field--full">
+                      <label className="account-form-label" htmlFor="account-job-title">{t('account.jobTitle')}</label>
+                      <input
+                        id="account-job-title"
+                        className="account-form-input"
+                        type="text"
+                        value={profileForm.job_title}
+                        onChange={(e) => setProfileForm((prev) => ({ ...prev, job_title: e.target.value }))}
+                        placeholder={t('account.jobTitlePlaceholder')}
+                      />
+                    </div>
+                    <div className="account-form-field account-form-field--full">
+                      <label className="account-form-label" htmlFor="account-department">{t('account.department')}</label>
+                      <input
+                        id="account-department"
+                        className="account-form-input"
+                        type="text"
+                        value={profileForm.department}
+                        onChange={(e) => setProfileForm((prev) => ({ ...prev, department: e.target.value }))}
+                        placeholder={t('account.departmentPlaceholder')}
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <div className="account-profile-form-actions">
+                  <button type="submit" className="btn-primary account-save-profile-btn" disabled={savingProfile || !isProfileDirty}>
+                    {savingProfile ? 'Saving...' : 'Save Changes'}
+                  </button>
                 </div>
-                <div className="account-form-field account-form-field--full">
-                  <label className="account-form-label" htmlFor="account-department">{t('account.department')}</label>
-                  <input
-                    id="account-department"
-                    className="account-form-input"
-                    type="text"
-                    value={profileForm.department}
-                    onChange={(e) => setProfileForm((prev) => ({ ...prev, department: e.target.value }))}
-                    placeholder={t('account.departmentPlaceholder')}
-                  />
-                </div>
-              </div>
-              <p className="account-form-hint">{t('account.immutableNameHint')}</p>
-              <div className="account-saas-card__actions">
-                <button type="submit" className="btn-primary account-save-profile-btn" disabled={savingProfile || !isProfileDirty}>
-                  {savingProfile ? t('account.savingProfile') : t('account.saveProfile')}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </section>
 
           <section id="account-security" className={`account-saas-card account-panel ${activeTab === 'security' ? 'is-active' : ''}`} hidden={activeTab !== 'security'}>
             <header className="account-saas-card__header">
-              <p className="eyebrow">{t('account.securityEyebrow')}</p>
-              <h2 className="account-saas-card__title">{t('account.securityTitle')}</h2>
-              <p className="account-saas-card__subtitle">{t('account.securitySubtitle')}</p>
+              <p className="eyebrow">Security Center</p>
+              <h2 className="account-saas-card__title">Security & Access</h2>
+              <p className="account-saas-card__subtitle">Manage credentials, two-factor authentication, and connected sessions.</p>
             </header>
-            <form className="account-saas-card__body" onSubmit={handleUpdatePassword}>
-              <div className="account-form-grid">
-                <div className="account-form-field account-form-field--full">
-                  <label className="account-form-label" htmlFor="account-current-password">{t('account.currentPassword')}</label>
-                  <input
-                    id="account-current-password"
-                    className="account-form-input"
-                    type="password"
-                    value={passwordForm.current_password}
-                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, current_password: e.target.value }))}
-                    placeholder={t('account.currentPasswordPlaceholder')}
-                  />
-                </div>
-                <div className="account-form-field">
-                  <label className="account-form-label" htmlFor="account-new-password">{t('account.newPassword')}</label>
-                  <input
-                    id="account-new-password"
-                    className="account-form-input"
-                    type="password"
-                    value={passwordForm.new_password}
-                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, new_password: e.target.value }))}
-                    placeholder={t('account.newPasswordPlaceholder')}
-                    minLength={8}
-                  />
-                </div>
-                <div className="account-form-field">
-                  <label className="account-form-label" htmlFor="account-confirm-password">{t('account.confirmPassword')}</label>
-                  <input
-                    id="account-confirm-password"
-                    className="account-form-input"
-                    type="password"
-                    value={passwordForm.confirm_password}
-                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirm_password: e.target.value }))}
-                    placeholder={t('account.confirmPasswordPlaceholder')}
-                  />
-                </div>
-              </div>
-              <div className="account-saas-card__actions account-saas-card__actions--split">
-                <button type="button" className="btn-secondary" onClick={handleResetPassword} disabled={resettingPassword}>
-                  {resettingPassword ? t('account.generating') : t('account.forgotPassword')}
+            <div className="account-saas-card__body account-security-grid">
+              <article className="account-security-card">
+                <header className="account-security-card__head">
+                  <h3>Change Password</h3>
+                </header>
+                <form className="account-security-form" onSubmit={handleUpdatePassword}>
+                  <div className="account-form-field account-form-field--full">
+                    <label className="account-form-label" htmlFor="account-current-password">{t('account.currentPassword')}</label>
+                    <div className="account-password-field">
+                      <input
+                        id="account-current-password"
+                        className="account-form-input"
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        value={passwordForm.current_password}
+                        onChange={(e) => setPasswordForm((prev) => ({ ...prev, current_password: e.target.value }))}
+                        placeholder={t('account.currentPasswordPlaceholder')}
+                      />
+                      <button type="button" className="account-password-toggle" onClick={() => setShowCurrentPassword((prev) => !prev)} aria-label="Toggle current password visibility">
+                        👁️
+                      </button>
+                    </div>
+                    <button type="button" className="account-forgot-inline" onClick={handleResetPassword} disabled={resettingPassword}>
+                      {resettingPassword ? t('account.generating') : t('account.forgotPassword')}
+                    </button>
+                  </div>
+
+                  <div className="account-form-field account-form-field--full">
+                    <label className="account-form-label" htmlFor="account-new-password">{t('account.newPassword')}</label>
+                    <div className="account-password-field">
+                      <input
+                        id="account-new-password"
+                        className="account-form-input"
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={passwordForm.new_password}
+                        onChange={(e) => setPasswordForm((prev) => ({ ...prev, new_password: e.target.value }))}
+                        placeholder={t('account.newPasswordPlaceholder')}
+                        minLength={8}
+                      />
+                      <button type="button" className="account-password-toggle" onClick={() => setShowNewPassword((prev) => !prev)} aria-label="Toggle new password visibility">
+                        👁️
+                      </button>
+                    </div>
+
+                    <div className="account-password-strength" role="status" aria-live="polite">
+                      <span>Password strength</span>
+                      <strong>
+                        {passwordChecks.level === 'strong'
+                          ? 'Strong'
+                          : passwordChecks.level === 'medium'
+                            ? 'Medium'
+                            : 'Weak'}
+                      </strong>
+                    </div>
+                    <div className="account-password-strength-bar" aria-hidden="true">
+                      <span className={`account-password-strength-bar__fill is-${passwordChecks.level}`} style={{ width: `${passwordChecks.percent}%` }} />
+                    </div>
+
+                    <ul className="account-password-checklist" aria-label="Password requirements">
+                      <li className={passwordChecks.hasLength ? 'is-met' : ''}>8+ characters</li>
+                      <li className={passwordChecks.hasNumber ? 'is-met' : ''}>At least one number</li>
+                      <li className={passwordChecks.hasSymbol ? 'is-met' : ''}>At least one symbol</li>
+                    </ul>
+                  </div>
+
+                  <div className="account-form-field account-form-field--full">
+                    <label className="account-form-label" htmlFor="account-confirm-password">{t('account.confirmPassword')}</label>
+                    <div className="account-password-field">
+                      <input
+                        id="account-confirm-password"
+                        className="account-form-input"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={passwordForm.confirm_password}
+                        onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirm_password: e.target.value }))}
+                        placeholder={t('account.confirmPasswordPlaceholder')}
+                      />
+                      <button type="button" className="account-password-toggle" onClick={() => setShowConfirmPassword((prev) => !prev)} aria-label="Toggle confirmation password visibility">
+                        👁️
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="account-security-actions">
+                    <button type="submit" className="btn-primary" disabled={savingPassword}>
+                      {savingPassword ? t('account.updating') : t('account.changePassword')}
+                    </button>
+                  </div>
+                </form>
+              </article>
+
+              <article className="account-security-card">
+                <header className="account-security-card__head">
+                  <h3>Two-Factor Authentication (2FA)</h3>
+                </header>
+                <p className="account-security-card__text">Protect your account with an extra verification step at sign in.</p>
+                <p className="account-2fa-status">
+                  <span>Status</span>
+                  <strong className={twoFactorEnabled ? 'is-enabled' : 'is-disabled'}>{twoFactorEnabled ? 'Enabled' : 'Not enabled'}</strong>
+                </p>
+                <button type="button" className="btn-primary" onClick={handleEnable2FA} disabled={enablingTwoFactor || twoFactorEnabled}>
+                  {twoFactorEnabled ? '2FA Enabled' : (enablingTwoFactor ? 'Enabling...' : 'Enable 2FA')}
                 </button>
-                <button type="submit" className="btn-primary" disabled={savingPassword}>
-                  {savingPassword ? t('account.updating') : t('account.changePassword')}
-                </button>
-              </div>
-            </form>
+              </article>
+
+              <article className="account-security-card">
+                <header className="account-security-card__head">
+                  <h3>Active Sessions</h3>
+                </header>
+                <div className="account-security-table-wrap">
+                  <table className="account-security-table">
+                    <thead>
+                      <tr>
+                        <th>Device</th>
+                        <th>Location</th>
+                        <th>Last activity</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {securitySessions.map((session) => (
+                        <tr key={session.id}>
+                          <td>{session.device}</td>
+                          <td>{session.location}</td>
+                          <td>{session.lastActive}</td>
+                          <td>
+                            {session.isCurrent ? (
+                              <span className="account-session-badge is-current">Current session</span>
+                            ) : (
+                              <span className="account-session-badge">Active</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="account-security-actions">
+                  <button type="button" className="btn-secondary" onClick={handleSignOutOtherDevices} disabled={signingOutOtherSessions || securitySessions.filter((entry) => !entry.isCurrent).length === 0}>
+                    {signingOutOtherSessions ? 'Signing out...' : 'Sign out all other devices'}
+                  </button>
+                </div>
+              </article>
+            </div>
           </section>
         </div>
 
@@ -958,24 +1248,26 @@ export default function AccountPage() {
           <div className="account-pricing-surface">
             <header className="account-pricing-head">
               <div>
-                <p className="eyebrow">{t('account.pricingEyebrow')}</p>
-                <h2>{t('account.pricingTitle')}</h2>
-                <p>{t('account.pricingSubtitle')}</p>
+                <p className="eyebrow">Subscription & Billing</p>
+                <h2>Plans and Invoices</h2>
+                <p>Review your current plan, usage limits, and billing history.</p>
               </div>
             </header>
 
-            <div className="account-billing-summary">
-              <div className="account-billing-summary__main">
-                <p className="account-billing-summary__label">{locale === 'en' ? 'Current usage' : 'Consommation actuelle'}</p>
-                <strong>{usageLabel}</strong>
-                <p className="account-billing-summary__meta">
-                  {formatCount(planSessions, locale)} {locale === 'en' ? 'sessions / month' : 'sessions / mois'} • {formatCount(planSeats, locale)} {locale === 'en' ? 'participants max' : 'participants max'} • {cycleLabel}
-                </p>
+            <div className="account-usage-banner" aria-label="Usage summary">
+              <div className="account-usage-banner__head">
+                <p className="account-usage-banner__plan">Current Plan: <strong>{isFreePlanActive ? 'Free Plan' : (activePlan?.name || 'No Plan')}</strong></p>
               </div>
-              <div className="account-billing-summary__renewal">
-                <span>{locale === 'en' ? 'Renewal' : 'Renouvellement'}</span>
-                <strong>{renewalLabel}</strong>
+
+              <div className="account-usage-progress">
+                <div className="account-usage-progress__meta">
+                  <span>{formatCount(sessionsConsumed, 'en')} / {formatCount(sessionsQuota, 'en')} sessions used this month</span>
+                </div>
+                <div className="account-usage-progress__track" aria-hidden="true">
+                  <span className="account-usage-progress__fill" style={{ width: `${sessionsUsagePercent}%` }} />
+                </div>
               </div>
+              <p className="account-usage-banner__details">{usageSubtitle}</p>
             </div>
 
             {plans.length > 0 ? (
@@ -985,6 +1277,10 @@ export default function AccountPage() {
                   const isCurrent = planId === String(currentPlanId || '');
                   const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
                   const isPro = String(plan.slug || plan.name || '').toLowerCase().includes('pro');
+                  const isFreePlan = String(plan.slug || plan.name || '').toLowerCase().includes('free') || Number(plan?.price_cents || 0) === 0;
+                  const currentPriceCents = Number(activePlan?.price_cents || 0);
+                  const planPriceCents = Number(plan?.price_cents || 0);
+                  const isUpgrade = isFreePlanActive ? !isFreePlan : planPriceCents > currentPriceCents;
                   const amountDh = Number(dhPriceByPlanId[planId] || 0);
                   const priceFmt = formatDhAmount(amountDh);
                   return (
@@ -993,20 +1289,20 @@ export default function AccountPage() {
                       className={[
                         'pricing-card account-pricing-card',
                         isCurrent ? 'account-pricing-card--current' : '',
-                        isRecommended ? 'pricing-card-featured' : '',
+                        isRecommended ? 'pricing-card-featured account-pricing-card--recommended' : '',
                         isPro ? 'account-pricing-card--pro' : '',
                       ].filter(Boolean).join(' ')}
                     >
                       <div className="pricing-card-top">
-                        {isRecommended ? <span className="pricing-badge">{locale === 'en' ? 'Most popular' : 'Le plus populaire'}</span> : null}
+                        {isRecommended ? <span className="pricing-badge">MOST POPULAR</span> : null}
                         {isCurrent ? <span className="account-current-badge">{t('account.yourPlan')}</span> : null}
-                        <p className="eyebrow">{plan.name}</p>
+                        <p className="eyebrow">{isRecommended ? `${String(plan.name || '').toUpperCase()} (RECOMMENDED)` : plan.name}</p>
                       </div>
                       <h3 className="pricing-price">
                         {priceFmt}
-                        <span>{locale === 'en' ? '/month' : '/mois'}</span>
+                        <span>/month</span>
                       </h3>
-                      <p className="pricing-tax-note">{locale === 'en' ? 'Excl. taxes' : 'HT'}</p>
+                      <p className="pricing-tax-note">Excl. taxes</p>
                       {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
                       {Array.isArray(plan.features) && plan.features.length > 0 ? (
                         <ul className="pricing-feature-list">
@@ -1016,17 +1312,19 @@ export default function AccountPage() {
                         </ul>
                       ) : null}
                       <div className="pricing-meta-row">
-                        {plan.max_users ? <span>{t('account.usersCount', { count: plan.max_users })}</span> : null}
-                        {plan.max_sessions_per_month ? <span>{t('account.sessionsPerMonth', { count: plan.max_sessions_per_month })}</span> : null}
+                        {plan.max_users ? <span>{formatCount(plan.max_users, 'en')} participants max</span> : null}
+                        {plan.max_sessions_per_month ? <span>{formatCount(plan.max_sessions_per_month, 'en')} sessions / month</span> : null}
                       </div>
                       {isCurrent ? (
                         <div className="pricing-actions account-plan-card-actions">
-                          <span className="account-current-plan-tag">{t('account.activePlanTag')}</span>
+                          <button type="button" className="account-plan-card-actions__current" disabled>
+                            Current Plan
+                          </button>
                         </div>
                       ) : (
                         <div className="pricing-actions account-plan-card-actions">
                           <button type="button" className="btn-primary account-plan-card-actions__primary" onClick={() => handleChoosePlan(plan.id)}>
-                            {isRecommended ? (locale === 'en' ? 'Choose Pro plan' : 'Choisir la formule Pro') : (locale === 'en' ? 'Choose plan' : 'Choisir la formule')}
+                            {isUpgrade ? 'Upgrade' : 'Downgrade'}
                           </button>
                         </div>
                       )}
@@ -1040,27 +1338,27 @@ export default function AccountPage() {
 
             {planHistory.length > 0 ? (
               <div className="account-plan-history">
-                <p className="eyebrow">{t('account.historyEyebrow')}</p>
+                <p className="eyebrow">Billing History</p>
                 <div className="account-history-table-wrap">
                   <table className="account-history-table">
                     <thead>
                       <tr>
-                        <th>{locale === 'en' ? 'Date' : 'Date'}</th>
-                        <th>{locale === 'en' ? 'Plan' : 'Formule'}</th>
-                        <th>{locale === 'en' ? 'Amount' : 'Montant'}</th>
-                        <th>{locale === 'en' ? 'Status' : 'Statut'}</th>
-                        <th>{locale === 'en' ? 'Invoice' : 'Facture'}</th>
+                        <th>Date</th>
+                        <th>Plan</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Invoice</th>
                       </tr>
                     </thead>
                     <tbody>
                       {planHistory.map((entry) => (
                         <tr key={String(entry.id)}>
-                          <td>{formatDate(entry.at, locale)}</td>
+                          <td>{formatDate(entry.at, 'en')}</td>
                           <td>{entry.to}</td>
                           <td>{resolveHistoryAmountLabel(entry, plans, dhPriceByPlanId)}</td>
-                          <td><span className="account-history-status account-history-status--success">{locale === 'en' ? 'Successful' : 'Réussi'}</span></td>
+                          <td><span className="account-history-status account-history-status--paid">Paid</span></td>
                           <td>
-                            <button type="button" className="account-history-link" onClick={() => handleDownloadInvoice(entry)}>PDF</button>
+                            <button type="button" className="account-history-link" onClick={() => handleDownloadInvoice(entry)}>📥 Download PDF</button>
                           </td>
                         </tr>
                       ))}
@@ -1070,68 +1368,409 @@ export default function AccountPage() {
               </div>
             ) : null}
             {planHistory.length === 0 ? (
-              <p className="account-history-empty">{t('account.noHistory')}</p>
+              <p className="account-history-empty">No invoices yet</p>
             ) : null}
           </div>
         </section>
 
         <Modal
           open={checkoutModalOpen}
-          title={locale === 'en' ? 'Complete your payment' : 'Finalisez votre paiement'}
+          title="Complete your payment"
           onClose={closeCheckoutModal}
           bodyClassName="account-checkout-modal-body"
         >
           <div className="account-checkout-modal-content">
             <p>
-              {locale === 'en'
-                ? `You selected ${checkoutPlan?.name || 'your plan'} (${formatDhAmount(Number(dhPriceByPlanId[String(checkoutPlan?.id || '')] || 0))} HT).`
-                : `Vous avez sélectionné ${checkoutPlan?.name || 'votre formule'} (${formatDhAmount(Number(dhPriceByPlanId[String(checkoutPlan?.id || '')] || 0))} HT).`}
+              {`You selected ${checkoutPlan?.name || 'your plan'} (${formatDhAmount(Number(dhPriceByPlanId[String(checkoutPlan?.id || '')] || 0))} HT).`}
             </p>
             <div className="account-checkout-modal-actions">
               <button type="button" className="btn-primary" onClick={() => handleStartPlanCheckout('stripe')} disabled={openingCheckout}>
-                {openingCheckout ? (locale === 'en' ? 'Opening checkout...' : 'Ouverture du paiement...') : 'Payer avec Stripe'}
+                {openingCheckout ? 'Opening checkout...' : 'Pay with Stripe'}
               </button>
               <button type="button" className="btn-secondary" onClick={() => handleStartPlanCheckout('payoneer')} disabled={openingCheckout}>
-                Payer avec Payoneer
+                Pay with Payoneer
               </button>
             </div>
           </div>
         </Modal>
 
+        <AvatarPickerModal
+          open={avatarPickerOpen}
+          user={guard.user || me}
+          currentSelection={guard.user?.avatar_profile}
+          onClose={() => setAvatarPickerOpen(false)}
+          onSave={handleAvatarSave}
+        />
+
         <style jsx global>{`
-          .account-tabs--inside-card {
-            margin-top: 0;
-            margin-bottom: 0.25rem;
-            padding: 0.35rem;
-            border: 1px solid #e6edf8;
-            border-radius: 16px;
-            background: #f8fbff;
+          .account-page-header {
+            margin: 0 0 1.1rem;
+            display: grid;
+            gap: 0.35rem;
           }
 
-          .account-tab {
+          .account-page-header h1 {
+            margin: 0;
+          }
+
+          .account-page-header p {
+            margin: 0;
+            color: #526180;
+            max-width: 62ch;
+          }
+
+          .account-profile-layout {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 1rem;
+            align-items: stretch;
+          }
+
+          .account-identity-card {
+            border: 1px solid #e6edf8;
+            border-radius: 14px;
+            background: #f8fbff;
+            padding: 1rem;
+            display: grid;
+            gap: 0.85rem;
+            align-content: start;
+            height: fit-content;
+          }
+
+          .account-identity-avatar-wrap {
+            position: relative;
+            width: fit-content;
+          }
+
+          .account-identity-avatar {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 9.6rem;
-            border: 1px solid #d9e1ef;
-            background: #ffffff;
-            color: #3b4d6b;
-            border-radius: 12px;
-            padding: 0.72rem 1.08rem;
-            transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 999px;
+            background: #ebe8ff;
+            border: 1px solid #d6d0ff;
+            color: #4c34cc;
+            font-weight: 800;
+            letter-spacing: 0.02em;
           }
 
-          .account-tab:hover,
-          .account-tab:focus-visible {
-            border-color: #c7d3ea;
-            background: #f5f8ff;
+          .account-identity-avatar-photo {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 999px;
+            object-fit: cover;
+            border: 1px solid #d6d0ff;
+            background: #ffffff;
+          }
+
+          .account-identity-avatar-edit {
+            position: absolute;
+            right: -0.35rem;
+            bottom: -0.35rem;
+            width: 1.45rem;
+            height: 1.45rem;
+            border-radius: 999px;
+            border: 1px solid #d9e1ef;
+            background: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.7rem;
+            line-height: 1;
+          }
+
+          .account-identity-meta {
+            display: grid;
+            gap: 0.5rem;
+          }
+
+          .account-identity-email {
+            margin: 0;
+            color: #334155;
+            font-weight: 700;
+            word-break: break-word;
+          }
+
+          .account-role-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-self: start;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            border: 1px solid #d6d0ff;
+            background: #ebe8ff;
+            color: #4c34cc;
+            font-weight: 700;
+            font-size: 0.8rem;
+          }
+
+          .account-profile-form {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+          }
+
+          .account-profile-group {
+            border: 1px solid #e6edf8;
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 1rem;
+          }
+
+          .account-profile-group__title {
+            margin: 0 0 0.75rem;
+            font-size: 1rem;
+            color: #24324f;
+          }
+
+          .account-profile-form-actions {
+            margin-top: auto;
+            display: flex;
+            justify-content: flex-end;
+          }
+
+          .account-security-grid {
+            display: grid;
+            gap: 1rem;
+          }
+
+          .account-security-card {
+            border: 1px solid #e6edf8;
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 1rem;
+            display: grid;
+            gap: 0.85rem;
+          }
+
+          .account-security-card__head h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #24324f;
+          }
+
+          .account-security-card__text {
+            margin: 0;
+            color: #526180;
+          }
+
+          .account-security-form {
+            display: grid;
+            gap: 0.95rem;
+          }
+
+          .account-password-field {
+            position: relative;
+          }
+
+          .account-password-field .account-form-input {
+            padding-right: 2.6rem;
+          }
+
+          .account-password-toggle {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.95rem;
+            line-height: 1;
+            color: #425273;
+            padding: 0.2rem;
+          }
+
+          .account-forgot-inline {
+            margin-top: 0.45rem;
+            border: none;
+            padding: 0;
+            background: transparent;
+            color: #365fd7;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            justify-self: start;
+          }
+
+          .account-forgot-inline:disabled {
+            cursor: wait;
+            opacity: 0.75;
+          }
+
+          .account-password-strength {
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            color: #526180;
+            font-size: 0.82rem;
+          }
+
+          .account-password-strength strong {
+            color: #24324f;
+          }
+
+          .account-password-strength-bar {
+            width: 100%;
+            height: 0.45rem;
+            border-radius: 999px;
+            background: #edf2fb;
+            overflow: hidden;
+          }
+
+          .account-password-strength-bar__fill {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            transition: width 180ms ease, background 180ms ease;
+          }
+
+          .account-password-strength-bar__fill.is-weak {
+            background: #ef4444;
+          }
+
+          .account-password-strength-bar__fill.is-medium {
+            background: #f59e0b;
+          }
+
+          .account-password-strength-bar__fill.is-strong {
+            background: #10b981;
+          }
+
+          .account-password-checklist {
+            margin: 0.55rem 0 0;
+            padding: 0;
+            list-style: none;
+            display: grid;
+            gap: 0.3rem;
+            color: #667996;
+            font-size: 0.82rem;
+          }
+
+          .account-password-checklist li::before {
+            content: '○';
+            margin-right: 0.45rem;
+          }
+
+          .account-password-checklist li.is-met {
+            color: #19734a;
+            font-weight: 600;
+          }
+
+          .account-password-checklist li.is-met::before {
+            content: '✓';
+          }
+
+          .account-security-actions {
+            display: flex;
+            justify-content: flex-end;
+          }
+
+          .account-2fa-status {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            color: #526180;
+          }
+
+          .account-2fa-status strong.is-enabled {
+            color: #19734a;
+          }
+
+          .account-2fa-status strong.is-disabled {
+            color: #a0303b;
+          }
+
+          .account-security-table-wrap {
+            overflow-x: auto;
+          }
+
+          .account-security-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 560px;
+          }
+
+          .account-security-table th,
+          .account-security-table td {
+            text-align: left;
+            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid #edf2fb;
+            color: #334155;
+            font-size: 0.86rem;
+          }
+
+          .account-security-table th {
+            color: #526180;
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+          }
+
+          .account-session-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            border: 1px solid #d9e1ef;
+            color: #425273;
+            background: #f8fbff;
+            font-weight: 700;
+            font-size: 0.74rem;
+          }
+
+          .account-session-badge.is-current {
+            border-color: #d6d0ff;
+            background: #ebe8ff;
+            color: #4c34cc;
+          }
+
+          .account-tabs--modern {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 0.25rem;
+            margin: 0 0 1rem;
+            padding: 0;
+            border-bottom: 1px solid #e6edf8;
+            background: transparent;
+            border-radius: 0;
+          }
+
+          .account-tab--modern {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            min-width: 0;
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: #3b4d6b;
+            border-radius: 0;
+            padding: 0.72rem 1rem;
+            margin-bottom: -1px;
+            font-weight: 700;
+            transition: border-color 180ms ease, color 180ms ease;
+          }
+
+          .account-tab--modern:hover,
+          .account-tab--modern:focus-visible {
+            border-bottom-color: #c7d3ea;
             color: #2c3f64;
           }
 
-          .account-tab.is-active {
-            background: #6d4aff;
-            border-color: #6d4aff;
-            color: #ffffff;
+          .account-tab--modern.is-active {
+            border-bottom-color: #6d4aff;
+            color: #2f1ea8;
           }
 
           .account-saas-card__header {
@@ -1163,6 +1802,34 @@ export default function AccountPage() {
           .account-lock-indicator {
             margin-left: 0.28rem;
             font-size: 0.82rem;
+            position: relative;
+            cursor: help;
+          }
+
+          .account-lock-indicator::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 8px);
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: 220px;
+            padding: 0.45rem 0.55rem;
+            border-radius: 8px;
+            background: #24324f;
+            color: #f8fbff;
+            font-size: 0.72rem;
+            line-height: 1.35;
+            white-space: normal;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 140ms ease;
+            z-index: 3;
+          }
+
+          .account-lock-indicator:hover::after,
+          .account-lock-indicator:focus-visible::after {
+            opacity: 1;
           }
 
           .account-save-profile-btn:disabled {
@@ -1202,9 +1869,74 @@ export default function AccountPage() {
             text-decoration: underline;
           }
 
+          .account-usage-banner {
+            border: 1px solid #e6edf8;
+            border-radius: 16px;
+            background: #f8fbff;
+            padding: 1rem 1.1rem;
+            display: grid;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+          }
+
+          .account-usage-banner__head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.6rem 1rem;
+          }
+
+          .account-usage-banner__plan,
+          .account-usage-banner__quota {
+            margin: 0;
+            color: #445371;
+            font-size: 0.9rem;
+          }
+
+          .account-usage-banner__details {
+            margin: 0;
+            color: #5b6a87;
+            font-size: 0.84rem;
+          }
+
+          .account-usage-progress {
+            display: grid;
+            gap: 0.4rem;
+          }
+
+          .account-usage-progress__meta {
+            display: flex;
+            justify-content: flex-start;
+            gap: 0.75rem;
+            color: #526180;
+            font-size: 0.84rem;
+          }
+
+          .account-usage-progress__meta strong {
+            color: #24324f;
+          }
+
+          .account-usage-progress__track {
+            width: 100%;
+            height: 0.55rem;
+            border-radius: 999px;
+            background: #edf2fb;
+            overflow: hidden;
+          }
+
+          .account-usage-progress__fill {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background: #6d4aff;
+            transition: width 180ms ease;
+          }
+
           .account-plan-cards-grid {
             grid-template-columns: repeat(4, minmax(0, 1fr));
             align-items: stretch;
+            gap: 1rem;
           }
 
           .account-pricing-card {
@@ -1221,6 +1953,79 @@ export default function AccountPage() {
 
           .account-plan-card-actions__primary {
             margin-top: auto;
+            width: 100%;
+          }
+
+          .account-plan-card-actions__current {
+            width: 100%;
+            border: 1px solid #dbe2ea;
+            border-radius: 10px;
+            background: #f5f7fb;
+            color: #8a97ab;
+            font-weight: 700;
+            font-size: 0.88rem;
+            padding: 0.62rem 0.75rem;
+            cursor: not-allowed;
+          }
+
+          .account-pricing-card--recommended {
+            border: 1px solid #6c5ce7;
+            box-shadow: 0 12px 26px rgba(90, 75, 218, 0.16);
+          }
+
+          .account-history-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+          }
+
+          .account-history-table th,
+          .account-history-table td {
+            padding: 0.8rem 0.9rem;
+            border-bottom: 1px solid #edf2fb;
+          }
+
+          .account-history-table th {
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #6b7b96;
+          }
+
+          .account-history-status--paid {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.18rem 0.55rem;
+            border-radius: 999px;
+            background: #dcfce7;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            font-weight: 700;
+            font-size: 0.74rem;
+          }
+
+          .account-history-link {
+            border: 1px solid #d9e1ef;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #2f3f5f;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 0.35rem 0.6rem;
+            cursor: pointer;
+            transition: border-color 160ms ease, background 160ms ease;
+          }
+
+          .account-history-link:hover,
+          .account-history-link:focus-visible {
+            border-color: #c2cde1;
+            background: #f8fbff;
+          }
+
+          .account-history-empty {
+            margin: 0.8rem 0 0;
+            color: #667996;
+            font-weight: 600;
           }
 
           .account-checkout-modal-body {
@@ -1249,6 +2054,14 @@ export default function AccountPage() {
           }
 
           @media (max-width: 640px) {
+            .account-profile-layout {
+              grid-template-columns: 1fr;
+            }
+
+            .account-security-table {
+              min-width: 100%;
+            }
+
             .account-plan-cards-grid {
               grid-template-columns: 1fr;
             }

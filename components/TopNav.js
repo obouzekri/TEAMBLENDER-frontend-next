@@ -10,6 +10,7 @@ import NavItem from './NavItem';
 import AvatarMenu from './AvatarMenu';
 import useI18n from '@/lib/i18n/useI18n';
 import { stripLocaleFromPath } from '@/lib/i18n/routing';
+import { resolveUserAvatar } from '@/lib/avatar-profile';
 
 export default function TopNav({ compact = false }) {
   const router = useRouter();
@@ -42,7 +43,9 @@ export default function TopNav({ compact = false }) {
     .filter(Boolean)
     .slice(0, 2)
     .join('') || 'U';
-  const avatarUrl = String(sessionUser?.picture_url || '').trim();
+  const resolvedAvatar = resolveUserAvatar(sessionUser, avatarLabel);
+  const avatarUrl = String(resolvedAvatar.avatarUrl || '').trim();
+  const avatarInitialsResolved = String(resolvedAvatar.avatarInitials || avatarInitials).trim() || avatarInitials;
   const accountHref = sessionUser?.role === 'participant' ? '/participant' : '/account';
   const roleLabel = sessionUser?.role === 'participant' ? t('nav.participant') : sessionUser?.role === 'admin' ? t('nav.admin') : t('nav.manager');
   const mobileLoginHref = withLocalePath('/login');
@@ -137,7 +140,7 @@ export default function TopNav({ compact = false }) {
                 userLabel={avatarLabel}
                 roleLabel={roleLabel}
                 avatarUrl={avatarUrl}
-                avatarInitials={avatarInitials}
+                avatarInitials={avatarInitialsResolved}
                 triggerLabel={t('nav.userMenuOf', { name: avatarLabel })}
                 menuLabel={t('nav.userMenu')}
                 closeSignal={pathname}
@@ -179,7 +182,7 @@ export default function TopNav({ compact = false }) {
                 userLabel={avatarLabel}
                 roleLabel={roleLabel}
                 avatarUrl={avatarUrl}
-                avatarInitials={avatarInitials}
+                avatarInitials={avatarInitialsResolved}
                 triggerLabel={t('nav.userMenuOf', { name: avatarLabel })}
                 menuLabel={t('nav.userMenu')}
                 closeSignal={pathname}

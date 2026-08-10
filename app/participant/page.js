@@ -7,18 +7,8 @@ import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
-import { clearStoredAuth, getAuthHeaders } from '@/lib/auth';
+import { clearStoredAuth, getAuthHeaders, getStoredCurrentUser } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
-
-function parseUser() {
-  const raw = sessionStorage.getItem('currentUser');
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
 
 export default function ParticipantPage() {
   const { locale, withLocalePath } = useI18n();
@@ -51,7 +41,7 @@ export default function ParticipantPage() {
       return;
     }
 
-    const currentUser = parseUser();
+    const currentUser = getStoredCurrentUser();
 
     if (!currentUser) {
       window.location.replace(withLocalePath('/login'));

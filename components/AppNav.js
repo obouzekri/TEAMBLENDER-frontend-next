@@ -10,8 +10,9 @@ import AvatarMenu from './AvatarMenu';
 import useI18n from '@/lib/i18n/useI18n';
 import { stripLocaleFromPath } from '@/lib/i18n/routing';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
+import { resolveUserAvatar } from '@/lib/avatar-profile';
 
-export default function AppNav({ userLabel, onLogout, role }) {
+export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrlProp = '', avatarInitials: avatarInitialsProp = '' }) {
   const pathname = usePathname();
   const plainPathname = stripLocaleFromPath(pathname || '/');
   const [activeHomeBlock, setActiveHomeBlock] = useState('');
@@ -42,7 +43,7 @@ export default function AppNav({ userLabel, onLogout, role }) {
   const resolvedUserLabel = userLabel || (isParticipant ? t('appNav.participant') : t('appNav.manager'));
   const accountHref = isParticipant ? '/participant' : '/account';
   const roleLabel = isParticipant ? t('appNav.participant') : isAdmin ? t('appNav.admin') : t('appNav.manager');
-  const [userAvatarUrl, setUserAvatarUrl] = useState('');
+  const [sessionUser, setSessionUser] = useState(null);
   const canUseMobileDrawer = !isCompact;
   const menuSignal = `${pathname}:${isMenuOpen ? 'open' : 'closed'}`;
 
@@ -53,10 +54,9 @@ export default function AppNav({ userLabel, onLogout, role }) {
     try {
       const raw = sessionStorage.getItem('currentUser');
       const parsed = raw ? JSON.parse(raw) : null;
-      const candidate = String(parsed?.picture_url || '').trim();
-      setUserAvatarUrl(candidate);
+      setSessionUser(parsed || null);
     } catch {
-      setUserAvatarUrl('');
+      setSessionUser(null);
     }
   }, [pathname]);
 
@@ -66,6 +66,10 @@ export default function AppNav({ userLabel, onLogout, role }) {
     .filter(Boolean)
     .slice(0, 2)
     .join('') || 'U';
+
+  const resolvedAvatar = resolveUserAvatar(sessionUser, resolvedUserLabel);
+  const computedAvatarUrl = String(avatarUrlProp || resolvedAvatar.avatarUrl || '').trim();
+  const computedAvatarInitials = String(avatarInitialsProp || resolvedAvatar.avatarInitials || userInitials).trim() || userInitials;
 
   useEffect(() => {
     if (!isMenuOpen || !canUseMobileDrawer) return undefined;
@@ -253,8 +257,8 @@ export default function AppNav({ userLabel, onLogout, role }) {
               <AvatarMenu
                 userLabel={resolvedUserLabel}
                 roleLabel={roleLabel}
-                avatarUrl={userAvatarUrl}
-                avatarInitials={userInitials}
+                avatarUrl={computedAvatarUrl}
+                avatarInitials={computedAvatarInitials}
                 triggerLabel={t('appNav.userMenuOf', { name: resolvedUserLabel })}
                 menuLabel={t('appNav.userMenu')}
                 closeSignal={menuSignal}

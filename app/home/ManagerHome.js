@@ -372,6 +372,7 @@ export default function ManagerHome() {
   const [showParticipantForm, setShowParticipantForm] = useState(false);
   const [authInvalid, setAuthInvalid] = useState(false);
   const [mobileMenuSignal, setMobileMenuSignal] = useState(0);
+  const [lastCreatedCredentials, setLastCreatedCredentials] = useState(null);
   const onboardingHandledRef = useRef(false);
   const [memberForm, setMemberForm] = useState({
     first_name: '',
@@ -405,7 +406,7 @@ export default function ManagerHome() {
     const needsPassword = !editingMemberId;
     return {
       firstNameOk: firstName.length > 0,
-      emailOk: email.length > 0,
+      emailOk: email.length === 0 || isValidEmail(email),
       passwordOk: !needsPassword || password.length >= 8,
       passwordLength: password.length,
     };
@@ -683,6 +684,7 @@ export default function ManagerHome() {
     setMemberFormStatus('');
     setShowParticipantForm(true);
     setEditingMemberId(null);
+    setLastCreatedCredentials(null);
     setMemberForm({
       first_name: '',
       last_name: '',
@@ -698,6 +700,7 @@ export default function ManagerHome() {
     setMemberFormStatus('');
     setShowParticipantForm(false);
     setEditingMemberId(null);
+    setLastCreatedCredentials(null);
     setMemberForm({ first_name: '', last_name: '', email: '', password: '', job_title: '', department: '' });
   }
 
@@ -719,16 +722,16 @@ export default function ManagerHome() {
     const jobTitle = String(memberForm.job_title || '').trim();
     const department = String(memberForm.department || '').trim();
 
-    if (!firstName || !email || (!editingMemberId && !password)) {
+    if (!firstName || (!editingMemberId && !password)) {
       const message = editingMemberId
-        ? (isEn ? 'First name and email are required.' : 'Le prenom et l email sont requis.')
-        : (isEn ? 'First name, email, and password are required.' : 'Le prenom, l email et le mot de passe sont requis.');
+        ? (isEn ? 'First name is required.' : 'Le prenom est requis.')
+        : (isEn ? 'First name and password are required.' : 'Le prenom et le mot de passe sont requis.');
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
     }
 
-    if (!isValidEmail(email)) {
+    if (email && !isValidEmail(email)) {
       const message = isEn ? 'A valid email address is required.' : 'Une adresse email valide est requise.';
       setMemberFormStatus(message);
       showErrorToast(message);
@@ -746,6 +749,7 @@ export default function ManagerHome() {
 
     const hasDuplicateEmail = members.some((member) => (
       String(member?.id || '') !== String(editingMemberId || '')
+      && email
       && String(member?.email || '').trim().toLowerCase() === email
     ));
 
@@ -767,7 +771,7 @@ export default function ManagerHome() {
       const body = {
         first_name: firstName,
         last_name: lastName || null,
-        email,
+        email: email || null,
         job_title: jobTitle || null,
         department: department || null,
       };
@@ -821,11 +825,27 @@ export default function ManagerHome() {
         )));
       }
 
+      if (!editingMemberId) {
+        setLastCreatedCredentials({
+          loginIdentifier: String(payload?.login_identifier || '').trim(),
+          tempPassword: String(payload?.tempPassword || '').trim(),
+          deliveredEmail: String(payload?.email || '').trim(),
+        });
+      }
+
       showSuccessToast(editingMemberId
         ? (isEn ? 'Participant updated successfully.' : 'Participant mis a jour avec succes.')
         : (isEn ? 'Participant added successfully.' : 'Participant ajoute avec succes.'));
-      setShowParticipantForm(false);
-      resetMemberForm();
+
+      if (editingMemberId) {
+        setShowParticipantForm(false);
+        resetMemberForm();
+      } else {
+        setEditingMemberId(null);
+        setMemberForm((prev) => ({ ...prev, password: '' }));
+        setFormAttempted(false);
+        setMemberFormStatus('');
+      }
 
       await refreshMembers();
     } catch (err) {
@@ -1354,7 +1374,7 @@ export default function ManagerHome() {
                   />
                 </label>
                 <label className="participant-field-full">
-                  Email *
+                  Email (optional)
                   <input
                     type="email"
                     name="participant_contact_email"
@@ -1365,10 +1385,9 @@ export default function ManagerHome() {
                     autoComplete="off"
                     autoCapitalize="none"
                     spellCheck={false}
-                    required
                   />
                   {formAttempted && !memberFormChecks.emailOk ? (
-                    <span className="field-error">{isEn ? 'Email is required.' : 'L email est requis.'}</span>
+                    <span className="field-error">{isEn ? 'Email format is invalid.' : 'Le format de l email est invalide.'}</span>
                   ) : null}
                 </label>
                 <label className="participant-field-full">
@@ -1426,6 +1445,13 @@ export default function ManagerHome() {
               {memberFormStatus ? (
                 <p className="participant-form-status participant-form-status--warn" role="alert" aria-live="polite">
                   {memberFormStatus}
+                </p>
+              ) : null}
+              {lastCreatedCredentials && !editingMemberId ? (
+                <p className="participant-form-status" role="status" aria-live="polite">
+                  {isEn
+                    ? `Participant created. Login: ${lastCreatedCredentials.loginIdentifier || 'n/a'} · Temporary PIN: ${lastCreatedCredentials.tempPassword || 'n/a'}${lastCreatedCredentials.deliveredEmail ? ` · Invitation sent to ${lastCreatedCredentials.deliveredEmail}` : ' · No email invitation sent.'}`
+                    : `Participant cree. Identifiant: ${lastCreatedCredentials.loginIdentifier || 'n/a'} · PIN temporaire: ${lastCreatedCredentials.tempPassword || 'n/a'}${lastCreatedCredentials.deliveredEmail ? ` · Invitation envoyee a ${lastCreatedCredentials.deliveredEmail}` : ' · Aucune invitation email envoyee.'}`}
                 </p>
               ) : null}
               <div className="participant-form-actions">
