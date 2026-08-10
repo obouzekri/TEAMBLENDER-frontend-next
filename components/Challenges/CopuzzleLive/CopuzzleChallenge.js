@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getCopuzzleRulesPreset } from '@/lib/challenges/copuzzleRules';
@@ -350,6 +351,11 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
     return cells;
   }, [rowCount, colCount]);
 
+  function handleStartChallenge() {
+    refreshChallengeStateBeforeStart(emitEvent);
+    emitEvent('timer.start');
+  }
+
   function getPieceNumber(piece) {
     const id = String(piece?.id || '').trim();
     return pieceNumberById.get(id) || Number(piece?.number || piece?.index || 0);
@@ -399,7 +405,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
-              onStart={isFacilitator ? () => emitEvent('timer.start') : null}
+              onStart={isFacilitator ? handleStartChallenge : null}
               compactStartButton
             />
           ) : (

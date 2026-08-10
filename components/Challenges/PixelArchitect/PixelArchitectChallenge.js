@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getPixelArchitectRulesPreset } from '@/lib/challenges/pixelArchitectRules';
@@ -1008,6 +1009,11 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     </>
   ), [accuracyPercent, phase, remainingCubes, isEn]);
 
+  function handleStartChallenge() {
+    refreshChallengeStateBeforeStart(emitEvent);
+    emitEvent('timer.start');
+  }
+
   return (
     <div className={styles.container}>
       <ChallengeHeader
@@ -1061,7 +1067,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
               extraContent={rulesExtraContent}
-              onStart={isFacilitator ? () => emitEvent('timer.start') : null}
+              onStart={isFacilitator ? handleStartChallenge : null}
               compactStartButton
             />
           ) : (

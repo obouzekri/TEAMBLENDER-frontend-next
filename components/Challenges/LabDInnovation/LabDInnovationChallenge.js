@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getDictionary } from '@/lib/i18n';
@@ -341,6 +342,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   }).filter(Boolean) : [];
 
   function startChallenge() {
+    refreshChallengeStateBeforeStart(emitEvent);
     emitEvent('timer.start');
   }
 

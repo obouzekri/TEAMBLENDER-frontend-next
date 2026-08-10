@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRules';
@@ -613,6 +614,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }, [phase, myRoundVote?.status, isPoser, poseurRoundPoints]);
 
   function startChallenge() {
+    refreshChallengeStateBeforeStart(emitEvent);
     emitEvent('vom.start', {});
   }
 

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { buildBackendAssetCandidates, getApiUrl } from '@/lib/config';
 import { getAuthHeaders } from '@/lib/auth';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
@@ -732,13 +733,14 @@ export default function EscapeRoomChallenge({
 
   const handleTimerAction = useCallback((actionKey) => {
     if (actionKey === 'start') {
+      refreshChallengeStateBeforeStart(emitEvent);
       runAction('start', async () => {
         await apiCall('/start', { method: 'POST' });
       });
       return;
     }
     setFeedback(copy.timerUnsupported);
-  }, [apiCall, copy.timerUnsupported, runAction]);
+  }, [apiCall, copy.timerUnsupported, emitEvent, runAction]);
 
   if (!endpointBase) {
     return (

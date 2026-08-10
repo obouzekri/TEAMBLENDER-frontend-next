@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueRules';
@@ -324,6 +325,11 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
   const roleViewClass = isFacilitator ? styles.facilitatorView : styles.participantView;
 
+  function handleStartChallenge() {
+    refreshChallengeStateBeforeStart(emitEvent);
+    emitEvent('timer.start');
+  }
+
   return (
     <div className={`${styles.container} ${roleViewClass}`}>
       <ChallengeHeader
@@ -368,7 +374,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                 facilitatorRules={facilitatorRules}
                 participantRules={participantRules}
                 footnote={rulesContent.footnote}
-                onStart={isFacilitator ? () => emitEvent('timer.start') : null}
+                onStart={isFacilitator ? handleStartChallenge : null}
               />
             </section>
           ) : !isFacilitator ? (

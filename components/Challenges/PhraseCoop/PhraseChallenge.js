@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getPhraseMystereRulesPreset } from '@/lib/challenges/phraseMystereRules';
@@ -245,6 +246,11 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
     emitEvent('phrase.request_hint');
   }
 
+  function handleStartChallenge() {
+    refreshChallengeStateBeforeStart(emitEvent);
+    emitEvent('timer.start');
+  }
+
   return (
     <div className={styles.phraseContainer}>
       <ChallengeHeader
@@ -289,7 +295,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
               facilitatorRules={rulesContent.facilitator}
               participantRules={rulesContent.participant}
               footnote={rulesContent.footnote}
-              onStart={isFacilitator ? () => emitEvent('timer.start') : null}
+              onStart={isFacilitator ? handleStartChallenge : null}
             />
           ) : (
             <>

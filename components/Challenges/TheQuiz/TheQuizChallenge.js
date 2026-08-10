@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getTheQuizRulesPreset } from '@/lib/challenges/theQuizRules';
@@ -339,6 +340,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
   function handleHostAction(type) {
     if (!type) return;
+    refreshChallengeStateBeforeStart(emitEvent);
     emitEvent(type, {});
   }
 
@@ -464,6 +466,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 footnote={rules.footnote}
                 onStart={isFacilitator ? () => handleHostAction('quiz.session.start') : null}
                 startDisabled={!canStartQuiz}
+                startStatusText={isFacilitator && !canStartQuiz ? 'At least 2 participants must be connected to start the challenge.' : ''}
               />
             ) : (
               <div className={`${styles.phaseTransitionCard} ${isPhaseFading ? styles.phaseTransitionCardExit : styles.phaseTransitionCardEnter}`}>
@@ -486,14 +489,6 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
           </div>
 
           <aside className={styles.sideColumn}>
-            {!isStarted && isFacilitator && !canStartQuiz ? (
-              <p className={styles.helperText}>
-                {isEn
-                  ? 'At least 2 participants must be connected to start the challenge.'
-                  : 'Au moins 2 participants doivent etre connectes pour demarrer le challenge.'}
-              </p>
-            ) : null}
-
             <div className="challenge-desktop-timer">
               <ChallengeTimerCard
                 title={isEn ? 'Timer' : 'Chrono'}

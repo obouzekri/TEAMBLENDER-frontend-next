@@ -149,7 +149,7 @@ export default function ChallengeRulesPanel({
           >
             {resolvedStartLabel}
           </button>
-          {startStatusText && startDisabled ? <p className={styles.startButtonStatus}>{startStatusText}</p> : null}
+          {startStatusText ? <p className={styles.startButtonStatus}>{startStatusText}</p> : null}
         </div>
       ) : null}
     </>

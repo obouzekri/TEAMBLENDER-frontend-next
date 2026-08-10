@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
@@ -635,6 +636,11 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     }
   }
 
+  function handleStartChallenge() {
+    refreshChallengeStateBeforeStart(emitEvent);
+    emitEvent('timer.start');
+  }
+
   const colsClass = styles[`cols${mazeCols}`] || styles.cols20;
 
   return (
@@ -682,7 +688,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 facilitatorRules={rulesContent.facilitator}
                 participantRules={rulesContent.participant}
                 footnote={rulesContent.footnote}
-                onStart={isFacilitator ? () => emitEvent('timer.start') : null}
+                onStart={isFacilitator ? handleStartChallenge : null}
               />
               {error ? <p className={styles.error}>{error}</p> : null}
             </section>
