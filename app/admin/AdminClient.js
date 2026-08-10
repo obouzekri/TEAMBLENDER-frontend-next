@@ -1237,6 +1237,20 @@ function normalizePricingPlanId(value) {
   return normalized;
 }
 
+function resolveUserPricingPlanId(user) {
+  const direct = normalizePricingPlanId(user?.pricing_plan_id);
+  if (direct) return direct;
+
+  const fromUserPlan = normalizePricingPlanId(user?.pricing_plan?.id);
+  if (fromUserPlan) return fromUserPlan;
+
+  const firstSubscription = Array.isArray(user?.subscriptions) ? user.subscriptions[0] : null;
+  const fromSubscription = normalizePricingPlanId(firstSubscription?.pricing_plan_id);
+  if (fromSubscription) return fromSubscription;
+
+  return normalizePricingPlanId(firstSubscription?.pricing_plan?.id);
+}
+
 export default function AdminClient() {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
@@ -1935,7 +1949,7 @@ export default function AdminClient() {
       role: targetUser.role || 'user',
       job_title: targetUser.job_title || '',
       department: targetUser.department || '',
-      pricing_plan_id: normalizePricingPlanId(targetUser.pricing_plan_id),
+      pricing_plan_id: resolveUserPricingPlanId(targetUser),
       password: '',
     });
   }
