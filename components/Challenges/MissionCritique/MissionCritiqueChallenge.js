@@ -434,7 +434,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                       const items = phaseItems[phase.key] || [];
                       const phaseDropIndex = items.length;
                       return (
-                        <React.Fragment key={phase.key}>
+                        <div className={styles.phaseColumn} key={phase.key}>
                           <section className={`${styles.phaseLine} ${styles[phase.className]}`}>
                             <div className={styles.phaseLineHeader}>
                               <h3>{isEn
@@ -514,7 +514,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                               })
                             )}
                           </section>
-                        </React.Fragment>
+                        </div>
                       );
                     })}
                   </div>

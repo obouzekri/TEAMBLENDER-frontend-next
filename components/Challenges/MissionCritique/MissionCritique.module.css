@@ -310,6 +310,11 @@
   gap: 10px;
 }
 
+.phaseColumn {
+  display: grid;
+  gap: 8px;
+}
+
 .phaseTimelineDragging .timelineLane {
   border-color: rgba(135, 205, 223, 0.48);
   box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.14);
@@ -670,9 +675,33 @@
     font-size: 0.95rem;
   }
 
+  .phaseTimeline {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 6px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .phaseColumn {
+    flex: 0 0 min(84vw, 320px);
+    min-width: min(84vw, 320px);
+    scroll-snap-align: start;
+    align-self: start;
+  }
+
   .phaseTimeline,
   .timelineLane {
     max-height: none;
+  }
+
+  .timelineLane {
+    max-height: 300px;
+    overflow-y: auto;
   }
 
   .taskChip,
