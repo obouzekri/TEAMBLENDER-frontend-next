@@ -139,6 +139,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const [viewportError, setViewportError] = useState('');
   const hasAutoSelectedStartLayerRef = useRef(false);
 
+  function selectColor(color) {
+    const nextColor = String(color || '').trim();
+    if (!nextColor) return;
+    selectedColorRef.current = nextColor;
+    setSelectedColor(nextColor);
+  }
+
   const { state, error, isFacilitator, emitEvent } = useRealtimeChallenge({
     runtimePayload,
     socket,
@@ -1029,9 +1036,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           remainingSeconds={Number(timer?.remaining_seconds || 0)}
           durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
           status={String(timer?.status || 'idle')}
-          progressPercent={progress}
           isFacilitator={isFacilitator}
-          collapsible={false}
+          waitingText=""
         />
       </div>
 
@@ -1068,22 +1074,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 <div className={styles.arenaControlRow}>
                   <section className={styles.layerControlCard}>
                     <p className={styles.layerControlTitle}>{isEn ? 'Build layers' : 'Couches de construction'}</p>
-                    {!isFacilitator ? (
-                      <div className={styles.claimBarInside}>
-                        <p className={styles.claimText}>
-                          {myLayerClaim
-                            ? `${isEn ? 'Reserved layer' : 'Couche reservee'}: ${Number(myLayerClaim.layer) + 1}`
-                            : (isEn ? 'No layer reserved' : 'Aucune couche reservee')}
-                        </p>
-                        <button
-                          type="button"
-                          className={styles.btnSecondary}
-                          onClick={() => handleToggleLayerClaim(safeLayer)}
-                        >
-                          {myLayerClaim && Number(myLayerClaim.layer) === safeLayer ? (isEn ? 'Release this layer' : 'Liberer cette couche') : (isEn ? 'Reserve this layer' : 'Reserver cette couche')}
-                        </button>
-                      </div>
-                    ) : null}
                     <div className={styles.layerTabs}>
                       {layers.map((layer) => {
                         const claim = layerClaims[String(layer)] || null;
@@ -1104,7 +1094,28 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                           </button>
                         );
                       })}
+                      {!isFacilitator ? (
+                        <button
+                          type="button"
+                          className={`${styles.layerBtn} ${styles.layerBtnClaimAction}`}
+                          onClick={() => handleToggleLayerClaim(safeLayer)}
+                          aria-label={myLayerClaim && Number(myLayerClaim.layer) === safeLayer
+                            ? (isEn ? 'Release this layer' : 'Liberer cette couche')
+                            : (isEn ? 'Reserve this layer' : 'Reserver cette couche')}
+                        >
+                          {myLayerClaim && Number(myLayerClaim.layer) === safeLayer
+                            ? (isEn ? 'Release layer' : 'Liberer')
+                            : (isEn ? '+ Reserve' : '+ Reserver')}
+                        </button>
+                      ) : null}
                     </div>
+                    {!isFacilitator ? (
+                      <p className={styles.claimTextCompact}>
+                        {myLayerClaim
+                          ? `${isEn ? 'Reserved' : 'Reservee'}: ${Number(myLayerClaim.layer) + 1}`
+                          : (isEn ? 'No layer reserved' : 'Aucune couche reservee')}
+                      </p>
+                    ) : null}
                   </section>
                 </div>
 
@@ -1122,82 +1133,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                         data-tooltip={describeColor(color)}
                         className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
                         style={{ background: color }}
-                        onClick={() => setSelectedColor(color)}
+                        onClick={() => selectColor(color)}
                         disabled={isFacilitator}
                       />
                     ))}
                   </div>
                   <p className={styles.paletteValue}>{isEn ? 'Selection' : 'Selection'}: {selectedColor}</p>
                 </div>
-
-                <section className={styles.layerQuickSection} aria-label={isEn ? 'Layer quick map' : 'Carte rapide des couches'}>
-                  <div className={styles.panelHead}>
-                    <h3>{isEn ? 'Layer quick map' : 'Carte rapide des couches'}</h3>
-                    <p>{isEn ? 'All layers are editable here. Click a layer title to set it active, then click cells to place or remove cubes.' : 'Toutes les couches sont editables ici. Cliquez le titre pour activer, puis les cellules pour poser ou retirer des cubes.'}</p>
-                  </div>
-                  <div className={styles.layerQuickList}>
-                    {liveLayerBoards.map(({ layer, rows }) => {
-                      const stats = layerStats.find((item) => Number(item.layer) === Number(layer)) || null;
-                      const isActive = safeLayer === layer;
-                      const claim = layerClaims[String(layer)] || null;
-                      const isReservedByMe = myLayerClaim && Number(myLayerClaim.layer) === layer;
-                      const isReservedByOther = claim && !isReservedByMe;
-                      return (
-                        <section
-                          key={`layer-mini-${layer}`}
-                          className={`${styles.layerQuickCard}${isActive ? ` ${styles.layerQuickCardActive}` : ''}`}
-                          aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}`}
-                        >
-                          <div className={styles.layerQuickHeadRow}>
-                            <button
-                              type="button"
-                              className={styles.layerQuickActivateBtn}
-                              onClick={() => setActiveLayer(layer)}
-                              aria-pressed={isActive}
-                              aria-label={`${isEn ? 'Activate layer' : 'Activer couche'} ${layer + 1}`}
-                            >
-                              {isEn ? 'Layer' : 'Couche'} {layer + 1}
-                            </button>
-                            <span>
-                              {isReservedByMe
-                                ? (isEn ? 'Mine' : 'Ma couche')
-                                : isReservedByOther
-                                  ? (isEn ? 'Reserved' : 'Reservee')
-                                  : (isEn ? 'Open' : 'Libre')}
-                            </span>
-                          </div>
-                          <div
-                            className={styles.layerQuickGrid}
-                            style={{ gridTemplateColumns: `repeat(${grid.x}, minmax(0, 1fr))` }}
-                            role="grid"
-                            aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}`}
-                          >
-                            {rows.flatMap((row) => row).map((cell) => {
-                              const isPlacedCorrect = cell.isPlaced && cell.isTarget;
-                              const isPlacedWrong = cell.isPlaced && !cell.isTarget;
-                              const placedColor = String(cell.cube?.color || selectedColor || '#2D9CDB');
-                              return (
-                                <button
-                                  key={`mini-${cell.key}`}
-                                  type="button"
-                                  className={`${styles.layerQuickCell}${styles.layerQuickCellBtn}${cell.isTarget ? ` ${styles.layerQuickCellTarget}` : ''}${cell.isPlaced ? ` ${styles.layerQuickCellPlaced}` : ''}${isPlacedCorrect ? ` ${styles.layerQuickCellCorrect}` : ''}${isPlacedWrong ? ` ${styles.layerQuickCellWrong}` : ''}`}
-                                  style={cell.isPlaced ? { '--pixel-cell-color': placedColor } : undefined}
-                                  onClick={() => handleBoardCellToggle(cell.x, cell.z, layer)}
-                                  disabled={!canBuild}
-                                  aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}, ${isEn ? 'cell' : 'case'} x${cell.x + 1} z${cell.z + 1}${cell.isTarget ? `, ${isEn ? 'target' : 'cible'}` : ''}${cell.isPlaced ? `, ${isEn ? 'occupied' : 'occupee'}` : ''}`}
-                                />
-                              );
-                            })}
-                          </div>
-                          <div className={styles.layerQuickMetaRow}>
-                            <span>{stats ? `${stats.matchedCount}/${stats.targetCount}` : '-'}</span>
-                            <span>{stats ? `${stats.completion}%` : '0%'}</span>
-                          </div>
-                        </section>
-                      );
-                    })}
-                  </div>
-                </section>
 
                 {!isFacilitator ? (
                   <div className={`${styles.actionsRow} ${styles.actionsRowSticky}`} aria-label="Actions de construction">
@@ -1262,9 +1204,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               remainingSeconds={Number(timer?.remaining_seconds || 0)}
               durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
               status={String(timer?.status || 'idle')}
-              progressPercent={progress}
               isFacilitator={isFacilitator}
-              collapsible={false}
+              waitingText=""
             />
           </div>
 
