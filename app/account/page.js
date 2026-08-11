@@ -61,6 +61,23 @@ function formatDhAmount(amountDh) {
   return `${value} DH`;
 }
 
+function normalizeUnknownLocationLabel(location, isCurrent, locale = 'en') {
+  const raw = String(location || '').trim();
+  const unknownValues = [
+    '',
+    'unknown',
+    'unknown location',
+    'n/a',
+    'na',
+    '-',
+  ];
+  if (!unknownValues.includes(raw.toLowerCase())) return raw;
+  if (isCurrent) {
+    return locale === 'en' ? 'Location unavailable - Current device' : 'Emplacement non identifie - appareil actuel';
+  }
+  return locale === 'en' ? 'Location unavailable' : 'Emplacement non identifie';
+}
+
 function normalizeFeatureLabel(feature) {
   const raw = String(feature || '').trim();
   if (!raw) return '';
@@ -79,6 +96,12 @@ function normalizeFeatureLabel(feature) {
     return `${isExcluded ? '❌' : '✓'} Advanced insights`;
   }
 
+  if (normalized.includes('illimite') || normalized.includes('unlimited')) {
+    if (normalized.includes('session')) {
+      return `${isExcluded ? '❌' : '✓'} Unlimited sessions`;
+    }
+  }
+
   if (normalized.includes('participants max') || normalized.includes('utilisateurs max') || normalized.includes('participants/session')) {
     const numberMatch = raw.match(/\d+/);
     return `${isExcluded ? '❌' : '✓'} ${numberMatch ? `${numberMatch[0]} participants per session` : 'Participants per session'}`;
@@ -91,6 +114,15 @@ function normalizeFeatureLabel(feature) {
 
   if (normalized.includes('catalogue limite') || normalized.includes('catalogue limite') || normalized.includes('limited catalog')) {
     return `${isExcluded ? '❌' : '✓'} Limited catalog access`;
+  }
+
+  if (normalized.includes('jusqu') && normalized.includes('participant')) {
+    const numberMatch = raw.match(/\d+/);
+    return `${isExcluded ? '❌' : '✓'} ${numberMatch ? `Up to ${numberMatch[0]} participants` : 'Up to participants limit'}`;
+  }
+
+  if (normalized.includes('dh ht') || normalized.includes('hors taxe')) {
+    return `${isExcluded ? '❌' : '✓'} Excl. taxes`;
   }
 
   if (normalized.includes('tout pro') || normalized.includes('all pro')) {
@@ -163,11 +195,15 @@ function buildInvoiceDownload(entry, locale) {
 
 function resolveHistoryAmountLabel(entry, plans, dhPriceByPlanId) {
   const explicit = String(entry?.amount_label || '').trim();
-  if (explicit) return explicit;
+  if (explicit) {
+    return explicit
+      .replace(/\bDH\s*HT\b/gi, 'DH Excl. taxes')
+      .replace(/\bHT\b/gi, 'Excl. taxes');
+  }
 
   const byPlanId = String(entry?.to_plan_id || '').trim();
   if (byPlanId && Object.prototype.hasOwnProperty.call(dhPriceByPlanId, byPlanId)) {
-    return `${formatDhAmount(dhPriceByPlanId[byPlanId])} HT`;
+    return `${formatDhAmount(dhPriceByPlanId[byPlanId])} Excl. taxes`;
   }
 
   const planName = String(entry?.to || '').trim().toLowerCase();
@@ -175,11 +211,11 @@ function resolveHistoryAmountLabel(entry, plans, dhPriceByPlanId) {
     const match = plans.find((plan) => String(plan?.name || '').trim().toLowerCase() === planName);
     if (match) {
       const amountDh = Number(dhPriceByPlanId[String(match.id)] || 0);
-      return `${formatDhAmount(amountDh)} HT`;
+      return `${formatDhAmount(amountDh)} Excl. taxes`;
     }
   }
 
-  return '0 DH HT';
+  return '0 DH Excl. taxes';
 }
 
 function normalizeDisplayName(user) {
@@ -251,6 +287,13 @@ function getRenewalDate(me, locale = 'fr') {
   const raw = me?.billing_renews_at || me?.current_period_end || me?.renewal_date || me?.next_billing_at || null;
   const formatted = formatDate(raw, locale);
   return formatted || (locale === 'en' ? 'Not scheduled' : 'Non planifiée');
+}
+
+function normalizePlanDisplayName(planName) {
+  const name = String(planName || '').trim();
+  if (!name) return 'Plan';
+  if (name.toLowerCase() === 'gratuit') return 'Free';
+  return name;
 }
 
 export default function AccountPage() {
@@ -539,26 +582,29 @@ export default function AccountPage() {
   }, [me?.mfa_enabled, me?.two_factor_enabled]);
 
   useEffect(() => {
-    const resolvedLocation = String(me?.city || me?.country || '').trim() || 'Unknown location';
+    const resolvedLocationRaw = String(me?.city || me?.country || '').trim() || 'Unknown location';
     const nowLabel = 'Now';
     const recentLabel = '5 min ago';
+    const currentLocationLabel = normalizeUnknownLocationLabel(resolvedLocationRaw, true, locale);
     setSecuritySessions([
       {
         id: 'current',
-        device: 'This browser',
-        location: resolvedLocation,
+        device: 'Desktop browser',
+        location: currentLocationLabel,
         lastActive: nowLabel,
         isCurrent: true,
+        deviceType: 'desktop',
       },
       {
         id: 'recent-mobile',
         device: 'iPhone Safari',
-        location: 'Casablanca, MA',
+        location: normalizeUnknownLocationLabel('Casablanca, MA', false, locale),
         lastActive: recentLabel,
         isCurrent: false,
+        deviceType: 'mobile',
       },
     ]);
-  }, [me?.city, me?.country]);
+  }, [locale, me?.city, me?.country]);
 
   const userLabel = useMemo(() => normalizeDisplayName(guard.user), [guard.user]);
   const resolvedAvatar = useMemo(() => resolveUserAvatar(guard.user, userLabel), [guard.user, userLabel]);
@@ -601,8 +647,26 @@ export default function AccountPage() {
   const sessionsUsagePercent = sessionsQuota > 0 ? Math.min(100, Math.round((sessionsConsumed / sessionsQuota) * 100)) : 0;
   const isFreePlanActive = String(activePlan?.slug || activePlan?.name || '').toLowerCase().includes('free') || Number(activePlan?.price_cents || 0) === 0;
   const usageSubtitle = isFreePlanActive
-    ? 'Up to 3 participants per session • Limited catalog (3 challenges)'
-    : `Up to ${formatCount(planSeats, 'en')} participants per session • Full catalog access`;
+    ? 'Up to 3 participants per session - Limited catalog (3 challenges)'
+    : `Up to ${formatCount(planSeats, 'en')} participants per session - Full catalog access`;
+
+  const lastPaidHistory = useMemo(() => {
+    if (!Array.isArray(planHistory) || planHistory.length === 0) return null;
+    return planHistory.find((entry) => {
+      const amount = Number(entry?.amount_dh || 0);
+      const toPlan = String(entry?.to || '').toLowerCase();
+      return amount > 0 || toPlan.includes('pro');
+    }) || null;
+  }, [planHistory]);
+
+  const billingStatusHint = useMemo(() => {
+    if (!isFreePlanActive || !lastPaidHistory) return '';
+    const dateLabel = formatDate(lastPaidHistory.at, 'en');
+    if (dateLabel) {
+      return `Previous Pro subscription ended on ${dateLabel}.`;
+    }
+    return 'Previous Pro subscription has ended.';
+  }, [isFreePlanActive, lastPaidHistory]);
 
   const recommendedPlan = useMemo(() => {
     const bySlug = plans.find((plan) => String(plan.slug || '').toLowerCase() === 'pro');
@@ -969,8 +1033,8 @@ export default function AccountPage() {
 
           <section id="account-profile" className={`account-saas-card account-panel ${activeTab === 'profile' ? 'is-active' : ''}`} hidden={activeTab !== 'profile'}>
             <header className="account-saas-card__header">
-              <p className="eyebrow">{t('account.profileEyebrow')}</p>
-              <h2 className="account-saas-card__title">{t('account.profileTitle')}</h2>
+              <p className="eyebrow">PROFILE</p>
+              <h2 className="account-saas-card__title">Profile Settings</h2>
               <p className="account-saas-card__subtitle">{t('account.profileSubtitle')}</p>
             </header>
             <div className="account-saas-card__body account-profile-layout">
@@ -985,6 +1049,7 @@ export default function AccountPage() {
                     type="button"
                     className="account-identity-avatar-edit"
                     aria-label="Change avatar"
+                    title="JPG, PNG. Max 2MB"
                     aria-haspopup="dialog"
                     aria-expanded={avatarPickerOpen}
                     onClick={() => setAvatarPickerOpen(true)}
@@ -1000,11 +1065,11 @@ export default function AccountPage() {
 
               <form className="account-profile-form" onSubmit={handleSaveProfile}>
                 <section className="account-profile-group" aria-labelledby="profile-personal-information-title">
-                  <h3 id="profile-personal-information-title" className="account-profile-group__title">Personal Information</h3>
+                  <h3 id="profile-personal-information-title" className="account-profile-group__title">Personal Details</h3>
                   <div className="account-form-grid">
                     <div className="account-form-field">
                       <label className="account-form-label" htmlFor="account-first-name">
-                        {t('account.firstName')}
+                        {t('account.firstName')} <span className="account-field-required" aria-hidden="true">*</span>
                         <span
                           className="account-lock-indicator"
                           aria-label="This field is locked"
@@ -1024,7 +1089,7 @@ export default function AccountPage() {
                     </div>
                     <div className="account-form-field">
                       <label className="account-form-label" htmlFor="account-last-name">
-                        {t('account.lastName')}
+                        {t('account.lastName')} <span className="account-field-required" aria-hidden="true">*</span>
                         <span
                           className="account-lock-indicator"
                           aria-label="This field is locked"
@@ -1043,7 +1108,12 @@ export default function AccountPage() {
                       />
                     </div>
                     <div className="account-form-field account-form-field--full">
-                      <label className="account-form-label" htmlFor="account-email">Email</label>
+                      <label className="account-form-label account-form-label--with-action" htmlFor="account-email">
+                        <span>Email <span className="account-field-required" aria-hidden="true">*</span></span>
+                        <button type="button" className="account-inline-link" onClick={handleResetPassword} disabled={resettingPassword}>
+                          {resettingPassword ? 'Preparing...' : 'Request email change'}
+                        </button>
+                      </label>
                       <input
                         id="account-email"
                         className="account-form-input account-form-input--disabled"
@@ -1058,9 +1128,10 @@ export default function AccountPage() {
 
                 <section className="account-profile-group" aria-labelledby="profile-professional-details-title">
                   <h3 id="profile-professional-details-title" className="account-profile-group__title">Professional Details</h3>
+                  <p className="account-group-caption">Fields marked with * are required. Other fields are optional.</p>
                   <div className="account-form-grid">
                     <div className="account-form-field account-form-field--full">
-                      <label className="account-form-label" htmlFor="account-job-title">{t('account.jobTitle')}</label>
+                      <label className="account-form-label" htmlFor="account-job-title">{t('account.jobTitle')} <span className="account-field-optional">(Optional)</span></label>
                       <input
                         id="account-job-title"
                         className="account-form-input"
@@ -1071,7 +1142,7 @@ export default function AccountPage() {
                       />
                     </div>
                     <div className="account-form-field account-form-field--full">
-                      <label className="account-form-label" htmlFor="account-department">{t('account.department')}</label>
+                      <label className="account-form-label" htmlFor="account-department">{t('account.department')} <span className="account-field-optional">(Optional)</span></label>
                       <input
                         id="account-department"
                         className="account-form-input"
@@ -1095,7 +1166,7 @@ export default function AccountPage() {
 
           <section id="account-security" className={`account-saas-card account-panel ${activeTab === 'security' ? 'is-active' : ''}`} hidden={activeTab !== 'security'}>
             <header className="account-saas-card__header">
-              <p className="eyebrow">Security Center</p>
+              <p className="eyebrow">SECURITY</p>
               <h2 className="account-saas-card__title">Security & Access</h2>
               <p className="account-saas-card__subtitle">Manage credentials, two-factor authentication, and connected sessions.</p>
             </header>
@@ -1106,7 +1177,12 @@ export default function AccountPage() {
                 </header>
                 <form className="account-security-form" onSubmit={handleUpdatePassword}>
                   <div className="account-form-field account-form-field--full">
-                    <label className="account-form-label" htmlFor="account-current-password">{t('account.currentPassword')}</label>
+                    <label className="account-form-label account-form-label--with-action" htmlFor="account-current-password">
+                      <span>{t('account.currentPassword')}</span>
+                      <button type="button" className="account-inline-link" onClick={handleResetPassword} disabled={resettingPassword}>
+                        {resettingPassword ? t('account.generating') : t('account.forgotPassword')}
+                      </button>
+                    </label>
                     <div className="account-password-field">
                       <input
                         id="account-current-password"
@@ -1120,9 +1196,6 @@ export default function AccountPage() {
                         👁️
                       </button>
                     </div>
-                    <button type="button" className="account-forgot-inline" onClick={handleResetPassword} disabled={resettingPassword}>
-                      {resettingPassword ? t('account.generating') : t('account.forgotPassword')}
-                    </button>
                   </div>
 
                   <div className="account-form-field account-form-field--full">
@@ -1193,11 +1266,12 @@ export default function AccountPage() {
                   <h3>Two-Factor Authentication (2FA)</h3>
                 </header>
                 <p className="account-security-card__text">Protect your account with an extra verification step at sign in.</p>
+                <p className="account-security-card__hint">Use an authenticator app such as Google Authenticator or Authy to generate one-time codes.</p>
                 <p className="account-2fa-status">
                   <span>Status</span>
                   <strong className={twoFactorEnabled ? 'is-enabled' : 'is-disabled'}>{twoFactorEnabled ? 'Enabled' : 'Not enabled'}</strong>
                 </p>
-                <button type="button" className="btn-primary" onClick={handleEnable2FA} disabled={enablingTwoFactor || twoFactorEnabled}>
+                <button type="button" className="btn-primary account-security-cta" onClick={handleEnable2FA} disabled={enablingTwoFactor || twoFactorEnabled}>
                   {twoFactorEnabled ? '2FA Enabled' : (enablingTwoFactor ? 'Enabling...' : 'Enable 2FA')}
                 </button>
               </article>
@@ -1206,33 +1280,23 @@ export default function AccountPage() {
                 <header className="account-security-card__head">
                   <h3>Active Sessions</h3>
                 </header>
-                <div className="account-security-table-wrap">
-                  <table className="account-security-table">
-                    <thead>
-                      <tr>
-                        <th>Device</th>
-                        <th>Location</th>
-                        <th>Last activity</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {securitySessions.map((session) => (
-                        <tr key={session.id}>
-                          <td>{session.device}</td>
-                          <td>{session.location}</td>
-                          <td>{session.lastActive}</td>
-                          <td>
-                            {session.isCurrent ? (
-                              <span className="account-session-badge is-current">Current session</span>
-                            ) : (
-                              <span className="account-session-badge">Active</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="account-session-list" role="list" aria-label="Active sessions list">
+                  {securitySessions.map((session) => (
+                    <article key={session.id} role="listitem" className="account-session-item">
+                      <div className="account-session-item__icon" aria-hidden="true">{session.deviceType === 'mobile' ? '📱' : '💻'}</div>
+                      <div className="account-session-item__meta">
+                        <p className="account-session-item__device">{session.device}</p>
+                        <p className="account-session-item__details">{session.location} • {session.lastActive}</p>
+                      </div>
+                      <div className="account-session-item__status">
+                        {session.isCurrent ? (
+                          <span className="account-session-badge is-current">Current session</span>
+                        ) : (
+                          <span className="account-session-badge">Active</span>
+                        )}
+                      </div>
+                    </article>
+                  ))}
                 </div>
                 <div className="account-security-actions">
                   <button type="button" className="btn-secondary" onClick={handleSignOutOtherDevices} disabled={signingOutOtherSessions || securitySessions.filter((entry) => !entry.isCurrent).length === 0}>
@@ -1268,6 +1332,7 @@ export default function AccountPage() {
                 </div>
               </div>
               <p className="account-usage-banner__details">{usageSubtitle}</p>
+              {billingStatusHint ? <p className="account-usage-banner__hint">{billingStatusHint}</p> : null}
             </div>
 
             {plans.length > 0 ? (
@@ -1294,9 +1359,9 @@ export default function AccountPage() {
                       ].filter(Boolean).join(' ')}
                     >
                       <div className="pricing-card-top">
-                        {isRecommended ? <span className="pricing-badge">MOST POPULAR</span> : null}
+                        {isRecommended ? <span className="pricing-badge account-pricing-badge">MOST POPULAR</span> : null}
                         {isCurrent ? <span className="account-current-badge">{t('account.yourPlan')}</span> : null}
-                        <p className="eyebrow">{isRecommended ? `${String(plan.name || '').toUpperCase()} (RECOMMENDED)` : plan.name}</p>
+                        <p className="eyebrow">{isRecommended ? `${normalizePlanDisplayName(plan.name).toUpperCase()} (RECOMMENDED)` : normalizePlanDisplayName(plan.name)}</p>
                       </div>
                       <h3 className="pricing-price">
                         {priceFmt}
@@ -1324,7 +1389,7 @@ export default function AccountPage() {
                       ) : (
                         <div className="pricing-actions account-plan-card-actions">
                           <button type="button" className="btn-primary account-plan-card-actions__primary" onClick={() => handleChoosePlan(plan.id)}>
-                            {isUpgrade ? 'Upgrade' : 'Downgrade'}
+                            {isUpgrade ? 'Upgrade to Pro' : 'Downgrade'}
                           </button>
                         </div>
                       )}
@@ -1403,6 +1468,14 @@ export default function AccountPage() {
         />
 
         <style jsx global>{`
+          :root {
+            --account-primary: #5b4ce6;
+            --account-primary-dark: #4338ca;
+            --account-primary-light: #ece9ff;
+            --account-border-soft: #e2e8f0;
+            --account-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+          }
+
           .account-page-header {
             margin: 0 0 1.1rem;
             display: grid;
@@ -1427,7 +1500,7 @@ export default function AccountPage() {
           }
 
           .account-identity-card {
-            border: 1px solid #e6edf8;
+            border: 1px solid var(--account-border-soft);
             border-radius: 14px;
             background: #f8fbff;
             padding: 1rem;
@@ -1435,6 +1508,7 @@ export default function AccountPage() {
             gap: 0.85rem;
             align-content: start;
             height: fit-content;
+            box-shadow: var(--account-card-shadow);
           }
 
           .account-identity-avatar-wrap {
@@ -1491,7 +1565,9 @@ export default function AccountPage() {
             margin: 0;
             color: #334155;
             font-weight: 700;
-            word-break: break-word;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
           }
 
           .account-role-badge {
@@ -1515,16 +1591,34 @@ export default function AccountPage() {
           }
 
           .account-profile-group {
-            border: 1px solid #e6edf8;
+            border: 1px solid var(--account-border-soft);
             border-radius: 14px;
             background: #ffffff;
             padding: 1rem;
+            box-shadow: var(--account-card-shadow);
           }
 
           .account-profile-group__title {
             margin: 0 0 0.75rem;
             font-size: 1rem;
             color: #24324f;
+          }
+
+          .account-group-caption {
+            margin: -0.25rem 0 0.75rem;
+            color: #5b6a87;
+            font-size: 0.82rem;
+          }
+
+          .account-field-required {
+            color: #b42318;
+            font-weight: 800;
+          }
+
+          .account-field-optional {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.82rem;
           }
 
           .account-profile-form-actions {
@@ -1539,12 +1633,13 @@ export default function AccountPage() {
           }
 
           .account-security-card {
-            border: 1px solid #e6edf8;
+            border: 1px solid var(--account-border-soft);
             border-radius: 14px;
             background: #ffffff;
             padding: 1rem;
             display: grid;
             gap: 0.85rem;
+            box-shadow: var(--account-card-shadow);
           }
 
           .account-security-card__head h3 {
@@ -1556,6 +1651,12 @@ export default function AccountPage() {
           .account-security-card__text {
             margin: 0;
             color: #526180;
+          }
+
+          .account-security-card__hint {
+            margin: -0.15rem 0 0;
+            color: #64748b;
+            font-size: 0.84rem;
           }
 
           .account-security-form {
@@ -1576,13 +1677,22 @@ export default function AccountPage() {
             right: 0.5rem;
             top: 50%;
             transform: translateY(-50%);
-            border: none;
+            border: 1px solid transparent;
             background: transparent;
             cursor: pointer;
             font-size: 0.95rem;
             line-height: 1;
             color: #425273;
-            padding: 0.2rem;
+            padding: 0.3rem;
+            border-radius: 8px;
+            transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+          }
+
+          .account-password-toggle:hover,
+          .account-password-toggle:focus-visible {
+            background: #f3f4f6;
+            border-color: #cbd5e1;
+            color: #1f2937;
           }
 
           .account-forgot-inline {
@@ -1595,6 +1705,34 @@ export default function AccountPage() {
             font-size: 0.82rem;
             cursor: pointer;
             justify-self: start;
+          }
+
+          .account-form-label--with-action {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+          }
+
+          .account-inline-link {
+            border: none;
+            background: transparent;
+            color: #365fd7;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 0;
+            cursor: pointer;
+          }
+
+          .account-inline-link:hover,
+          .account-inline-link:focus-visible {
+            color: #2a47a8;
+            text-decoration: underline;
+          }
+
+          .account-inline-link:disabled {
+            opacity: 0.7;
+            cursor: wait;
           }
 
           .account-forgot-inline:disabled {
@@ -1689,31 +1827,49 @@ export default function AccountPage() {
             color: #a0303b;
           }
 
-          .account-security-table-wrap {
-            overflow-x: auto;
+          .account-session-list {
+            display: grid;
+            gap: 0.7rem;
           }
 
-          .account-security-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 560px;
+          .account-session-item {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 0.72rem 0.78rem;
+            background: #ffffff;
           }
 
-          .account-security-table th,
-          .account-security-table td {
-            text-align: left;
-            padding: 0.6rem 0.5rem;
-            border-bottom: 1px solid #edf2fb;
-            color: #334155;
-            font-size: 0.86rem;
+          .account-session-item__icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 999px;
+            border: 1px solid #dbe2ea;
+            background: #f8fbff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
           }
 
-          .account-security-table th {
-            color: #526180;
+          .account-session-item__meta {
+            min-width: 0;
+          }
+
+          .account-session-item__device {
+            margin: 0;
+            color: #1e293b;
             font-weight: 700;
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
+            font-size: 0.9rem;
+          }
+
+          .account-session-item__details {
+            margin: 0.16rem 0 0;
+            color: #64748b;
+            font-size: 0.82rem;
+            line-height: 1.35;
           }
 
           .account-session-badge {
@@ -1738,7 +1894,7 @@ export default function AccountPage() {
             display: flex;
             flex-wrap: wrap;
             align-items: flex-end;
-            gap: 0.25rem;
+            gap: 0.35rem;
             margin: 0 0 1rem;
             padding: 0;
             border-bottom: 1px solid #e6edf8;
@@ -1751,26 +1907,31 @@ export default function AccountPage() {
             align-items: center;
             justify-content: flex-start;
             min-width: 0;
-            border: none;
+            border: 1px solid transparent;
             border-bottom: 2px solid transparent;
-            background: transparent;
+            background: #f8fafc;
             color: #3b4d6b;
-            border-radius: 0;
-            padding: 0.72rem 1rem;
+            border-radius: 10px 10px 0 0;
+            height: 2.5rem;
+            padding: 0 1rem;
             margin-bottom: -1px;
             font-weight: 700;
-            transition: border-color 180ms ease, color 180ms ease;
+            transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
           }
 
           .account-tab--modern:hover,
           .account-tab--modern:focus-visible {
+            border-color: #e4dcff;
             border-bottom-color: #c7d3ea;
-            color: #2c3f64;
+            color: var(--account-primary);
+            background: #f5f3ff;
           }
 
           .account-tab--modern.is-active {
-            border-bottom-color: #6d4aff;
-            color: #2f1ea8;
+            border-color: #ddd6fe;
+            border-bottom-color: var(--account-primary);
+            color: var(--account-primary-dark);
+            background: #ffffff;
           }
 
           .account-saas-card__header {
@@ -1796,7 +1957,11 @@ export default function AccountPage() {
 
           .account-form-input--disabled,
           .account-form-input:disabled {
-            border-color: #e2e8f0;
+            border-color: #cbd5e1;
+            background: #f1f5f9;
+            color: #4b5563;
+            -webkit-text-fill-color: #4b5563;
+            opacity: 1;
           }
 
           .account-lock-indicator {
@@ -1870,13 +2035,14 @@ export default function AccountPage() {
           }
 
           .account-usage-banner {
-            border: 1px solid #e6edf8;
+            border: 1px solid var(--account-border-soft);
             border-radius: 16px;
-            background: #f8fbff;
+            background: #f8faff;
             padding: 1rem 1.1rem;
             display: grid;
             gap: 0.8rem;
             margin-bottom: 1rem;
+            box-shadow: var(--account-card-shadow);
           }
 
           .account-usage-banner__head {
@@ -1898,6 +2064,12 @@ export default function AccountPage() {
             margin: 0;
             color: #5b6a87;
             font-size: 0.84rem;
+          }
+
+          .account-usage-banner__hint {
+            margin: -0.2rem 0 0;
+            color: #475569;
+            font-size: 0.82rem;
           }
 
           .account-usage-progress {
@@ -1929,7 +2101,7 @@ export default function AccountPage() {
             display: block;
             height: 100%;
             border-radius: 999px;
-            background: #6d4aff;
+            background: var(--account-primary);
             transition: width 180ms ease;
           }
 
@@ -1943,6 +2115,35 @@ export default function AccountPage() {
             display: flex;
             flex-direction: column;
             min-height: 100%;
+            height: 100%;
+            border-radius: 16px;
+            border: 1px solid var(--account-border-soft);
+            box-shadow: var(--account-card-shadow);
+          }
+
+          .account-pricing-card .pricing-card-top {
+            min-height: 4.6rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+          }
+
+          .account-pricing-card .pricing-feature-list {
+            flex: 1;
+          }
+
+          .account-pricing-badge {
+            align-self: flex-start;
+            margin-bottom: 0.45rem;
+            background: var(--account-primary-light);
+            color: var(--account-primary-dark);
+            border: 1px solid #ddd6fe;
+          }
+
+          .account-pricing-card--current {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            opacity: 0.98;
           }
 
           .account-plan-card-actions {
@@ -1954,6 +2155,14 @@ export default function AccountPage() {
           .account-plan-card-actions__primary {
             margin-top: auto;
             width: 100%;
+          }
+
+          .account-security-cta,
+          .account-security-actions .btn-primary,
+          .account-security-actions .btn-secondary {
+            min-height: 2.5rem;
+            border-radius: 10px;
+            padding: 0.6rem 1rem;
           }
 
           .account-plan-card-actions__current {
