@@ -512,12 +512,9 @@ export default function SessionBuilder() {
     const parsed = new Date(sessionDateTime);
     return Number.isNaN(parsed.getTime()) ? t('sessionBuilder.invalidDateTimeDetailed') : '';
   }, [creationTouched.sessionDateTime, sessionDateTime, t]);
-  const participantsError = creationTouched.participants && draftParticipantIds.length === 0
-    ? t('sessionBuilder.participantsRequired')
-    : '';
+  const participantsError = '';
   const canCreateSessionNow = Boolean(sessionName.trim())
     && !dateError
-    && draftParticipantIds.length > 0
     && !isCreatingSession;
   const hasUnsavedCreationChanges = Boolean(
     sessionName.trim()
@@ -1240,16 +1237,6 @@ export default function SessionBuilder() {
       return;
     }
 
-    if (availableParticipantsCount === 0) {
-      showErrorToast(t('sessionBuilder.addParticipantsFirst'));
-      return;
-    }
-
-    if (draftParticipantIds.length === 0) {
-      showErrorToast(t('sessionBuilder.participantsRequired'));
-      return;
-    }
-
     const name = sessionName.trim() || `Session ${new Date().toLocaleDateString('en-US')}`;
     const sessionDate = sessionDateTime ? new Date(sessionDateTime) : null;
     if (sessionDateTime && Number.isNaN(sessionDate?.getTime())) {
@@ -1485,7 +1472,7 @@ export default function SessionBuilder() {
                         </span>
                       </div>
 
-                      {participantsError ? <p className={styles.creationErrorInline}>{participantsError}</p> : null}
+                      <p className={styles.creationHint}>{t('sessionBuilder.participantsOptionalHint')}</p>
 
                       <ParticipantAssigner
                         isLoading={isCreatingSession}
@@ -1515,7 +1502,13 @@ export default function SessionBuilder() {
                             {t('sessionBuilder.createParticipantCta')}
                           </Button>
                         </div>
-                      ) : null}
+                      ) : (
+                        <div className={styles.creationInlineCtaRow}>
+                          <Alert variant="info" className={styles.creationActionHint} title={t('sessionBuilder.participantsCanBeAddedLater')}>
+                            {t('sessionBuilder.participantsCanBeAddedLaterBody')}
+                          </Alert>
+                        </div>
+                      )}
                   </div>
                 </form>
               </div>

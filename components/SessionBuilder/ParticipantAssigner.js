@@ -6,6 +6,8 @@ import { getApiUrl } from '@/lib/config';
 import { getAuthHeaders } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
+const MAX_PARTICIPANTS = 3;
+
 export default function ParticipantAssigner({
   isLoading,
   onAssign,
@@ -133,7 +135,16 @@ export default function ParticipantAssigner({
 
   const toggleParticipant = (id) => {
     setSelected((prev) => {
-      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      const alreadySelected = prev.includes(id);
+      if (!alreadySelected && prev.length >= MAX_PARTICIPANTS) {
+        const message = t('sessionBuilder.maxParticipantsReached', { count: MAX_PARTICIPANTS });
+        if (typeof onSelectionFeedback === 'function') {
+          onSelectionFeedback(message);
+        }
+        return prev;
+      }
+
+      const next = alreadySelected ? prev.filter((x) => x !== id) : [...prev, id];
       if (typeof onSelectionChange === 'function') {
         onSelectionChange(next);
       }
@@ -220,6 +231,13 @@ export default function ParticipantAssigner({
               ) : null}
             </div>
 
+            {selected.length >= MAX_PARTICIPANTS ? (
+              <div className={styles.empty}>
+                <p>{t('sessionBuilder.maxParticipantsReached', { count: MAX_PARTICIPANTS })}</p>
+                <small>{t('sessionBuilder.maxParticipantsReachedBody')}</small>
+              </div>
+            ) : null}
+
             {participants.length === 0 ? (
               <div className={styles.empty}>
                 <p>{t('sessionBuilder.noParticipantsAvailable')}</p>
@@ -244,6 +262,7 @@ export default function ParticipantAssigner({
                           type="checkbox"
                           checked={selected.includes(participant.id)}
                           onChange={() => toggleParticipant(participant.id)}
+                          disabled={!selected.includes(participant.id) && selected.length >= MAX_PARTICIPANTS}
                           aria-label={t('sessionBuilder.rowCheckboxLabel', { name: getMemberDisplayName(participant) })}
                         />
                       </span>
