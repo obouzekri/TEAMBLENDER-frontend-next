@@ -39,7 +39,7 @@ function errorMessage(resStatus, data, isEn) {
   return data?.error || (isEn ? 'Something went wrong. Please try again.' : 'Une erreur est survenue. Veuillez réessayer.');
 }
 
-export default function LoginForm({ requestedSessionId = '' }) {
+export default function LoginForm({ requestedSessionId = '', requestedInviteToken = '' }) {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
   const normalizedRequestedSessionId = useMemo(() => String(requestedSessionId || '').trim(), [requestedSessionId]);
@@ -57,11 +57,14 @@ export default function LoginForm({ requestedSessionId = '' }) {
   const [needsVerificationResend, setNeedsVerificationResend] = useState(false);
   const [identifierTouched, setIdentifierTouched] = useState(false);
   const [joinSessionCode, setJoinSessionCode] = useState('');
-  const [joinNickname, setJoinNickname] = useState('');
+  const [joinFirstName, setJoinFirstName] = useState('');
+  const [joinLastName, setJoinLastName] = useState('');
+  const [joinEmail, setJoinEmail] = useState('');
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinMessage, setJoinMessage] = useState('');
   const [scannerSupported, setScannerSupported] = useState(false);
   const [scannerActive, setScannerActive] = useState(false);
+  const normalizedRequestedInviteToken = useMemo(() => String(requestedInviteToken || '').trim(), [requestedInviteToken]);
 
   const normalizedIdentifier = useMemo(() => identifier.trim(), [identifier]);
   const identifierIsEmail = useMemo(() => looksLikeEmail(normalizedIdentifier), [normalizedIdentifier]);
@@ -81,6 +84,11 @@ export default function LoginForm({ requestedSessionId = '' }) {
       && typeof window.BarcodeDetector !== 'undefined';
     setScannerSupported(Boolean(hasScanner));
   }, []);
+
+  useEffect(() => {
+    if (!normalizedRequestedInviteToken) return;
+    setJoinMessage(isEn ? 'Secure invitation detected. Complete your participant details to join.' : 'Invitation detectee. Completez vos informations pour rejoindre la session.');
+  }, [isEn, normalizedRequestedInviteToken]);
 
   useEffect(() => {
     const oauth = readOAuthCallbackFromLocation();
@@ -232,16 +240,31 @@ export default function LoginForm({ requestedSessionId = '' }) {
     setJoinMessage('');
 
     const sessionCode = String(joinSessionCode || '').trim();
-    const nickname = String(joinNickname || '').trim();
+    const firstName = String(joinFirstName || '').trim();
+    const lastName = String(joinLastName || '').trim();
+    const email = String(joinEmail || '').trim();
+    const inviteToken = normalizedRequestedInviteToken;
 
-    if (!sessionCode || !nickname) {
-      setJoinMessage(isEn ? 'Session code and nickname are required.' : 'Le code session et le pseudo sont requis.');
+    if ((!sessionCode && !inviteToken) || !firstName) {
+      setJoinMessage(isEn ? 'Session access and first name are required.' : 'L acces session et le prenom sont requis.');
+      return;
+    }
+
+    if (email && !looksLikeEmail(email)) {
+      setJoinMessage(isEn ? 'Enter a valid email address.' : 'Saisissez une adresse email valide.');
       return;
     }
 
     setJoinLoading(true);
     try {
-      const { res, data } = await joinParticipantInstant({ sessionCode, nickname });
+      const { res, data } = await joinParticipantInstant({
+        sessionCode,
+        inviteToken,
+        firstName,
+        lastName,
+        email,
+        nickname: firstName,
+      });
       if (!res.ok) {
         setJoinMessage(data?.error || (isEn ? 'Unable to join session right now.' : 'Impossible de rejoindre la session pour le moment.'));
         return;
@@ -457,6 +480,7 @@ export default function LoginForm({ requestedSessionId = '' }) {
               onChange={(e) => setJoinSessionCode(e.target.value.toUpperCase())}
               placeholder={isEn ? 'AB12' : 'AB12'}
               autoComplete="off"
+              disabled={Boolean(normalizedRequestedInviteToken)}
             />
           </AuthField>
           {scannerSupported ? (
@@ -472,14 +496,34 @@ export default function LoginForm({ requestedSessionId = '' }) {
                 : (isEn ? 'Scan QR with camera' : 'Scanner le QR avec la camera')}
             </button>
           ) : null}
-          <AuthField id="join-nickname" label={isEn ? 'Nickname' : 'Pseudo'}>
+          <AuthField id="join-first-name" label={isEn ? 'First name' : 'Prenom'}>
             <input
-              id="join-nickname"
+              id="join-first-name"
               type="text"
-              value={joinNickname}
-              onChange={(e) => setJoinNickname(e.target.value)}
+              value={joinFirstName}
+              onChange={(e) => setJoinFirstName(e.target.value)}
               placeholder={isEn ? 'Sophie' : 'Sophie'}
-              autoComplete="nickname"
+              autoComplete="given-name"
+            />
+          </AuthField>
+          <AuthField id="join-last-name" label={isEn ? 'Last name' : 'Nom'}>
+            <input
+              id="join-last-name"
+              type="text"
+              value={joinLastName}
+              onChange={(e) => setJoinLastName(e.target.value)}
+              placeholder={isEn ? 'Martin' : 'Martin'}
+              autoComplete="family-name"
+            />
+          </AuthField>
+          <AuthField id="join-email" label={isEn ? 'Email (optional)' : 'Email (optionnel)'}>
+            <input
+              id="join-email"
+              type="email"
+              value={joinEmail}
+              onChange={(e) => setJoinEmail(e.target.value)}
+              placeholder={isEn ? 'sophie@company.com' : 'sophie@entreprise.com'}
+              autoComplete="email"
             />
           </AuthField>
           <button type="submit" className="btn-secondary wide" disabled={joinLoading} aria-busy={joinLoading}>

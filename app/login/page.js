@@ -13,11 +13,12 @@ export async function generateMetadata() {
 export default async function LoginPage({ searchParams }) {
   const resolvedSearchParams = await searchParams;
   const requestedSessionId = String(resolvedSearchParams?.sessionId || '').trim();
+  const requestedInviteToken = String(resolvedSearchParams?.invite || '').trim();
 
   return (
     <>
       <TopNav compact />
-      <LoginForm requestedSessionId={requestedSessionId} />
+      <LoginForm requestedSessionId={requestedSessionId} requestedInviteToken={requestedInviteToken} />
     </>
   );
 }

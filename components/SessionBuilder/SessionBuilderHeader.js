@@ -14,6 +14,7 @@ export default function SessionBuilderHeader({
   isLaunchDisabled,
   isLaunching,
   onLaunch,
+  invitePanel,
 }) {
   const { t } = useI18n();
   const minutes = Number.isFinite(Number(totalDuration)) ? Math.round(Number(totalDuration)) : 0;
@@ -37,6 +38,11 @@ export default function SessionBuilderHeader({
         </div>
 
         <div className={styles.actions}>
+          {invitePanel ? (
+            <div className={styles.invitePanel}>
+              {invitePanel}
+            </div>
+          ) : null}
           <button
             type="button"
             className={`btn-secondary ${styles.actionBtn}`}

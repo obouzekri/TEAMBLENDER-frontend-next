@@ -69,6 +69,11 @@
   min-width: 440px;
 }
 
+.invitePanel {
+  flex: 1 1 100%;
+  min-width: min(100%, 420px);
+}
+
 .actionBtn {
   white-space: normal;
   min-height: 2.15rem;
