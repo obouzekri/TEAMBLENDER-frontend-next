@@ -211,7 +211,7 @@ export default function TopNav({ compact = false }) {
               />
             ) : (
               <>
-                <NavItem href={withLocalePath('/login?mode=join')} active={isActive('/login')} onClick={() => setIsMenuOpen(false)}>{t('nav.participant')}</NavItem>
+                <NavItem href={withLocalePath('/login?mode=join')} className="nav-link--participant-cta" active={isActive('/login')} onClick={() => setIsMenuOpen(false)}>{t('nav.participant')}</NavItem>
                 <NavItem href={withLocalePath('/login')} active={isActive('/login')} onClick={() => setIsMenuOpen(false)}>{t('nav.login')}</NavItem>
                 <NavItem href={withLocalePath('/signup')} active={isActive('/signup')} onClick={() => setIsMenuOpen(false)}>{t('nav.signup')}</NavItem>
               </>

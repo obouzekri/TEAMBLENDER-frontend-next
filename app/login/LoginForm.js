@@ -507,6 +507,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
             role="tabpanel"
             aria-labelledby="login-tab-join"
             hidden={activeTab !== TAB_JOIN}
+            className="auth-tab-panel"
           >
             <form onSubmit={onJoinInstant} className="auth-form auth-form--join" autoComplete="off">
               <AuthField id="join-session-code" label={isEn ? 'Session code' : 'Code de session'}>
@@ -522,7 +523,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                   placeholder={isEn ? 'Ex: AB12' : 'Ex: AB12'}
                   autoComplete="off"
                   required={joinSessionCodeRequired}
-                  className="join-session-code-input"
+                  className="join-session-code-input join-session-code-placeholder"
                   disabled={Boolean(normalizedRequestedInviteToken)}
                 />
               </AuthField>
@@ -590,6 +591,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
             role="tabpanel"
             aria-labelledby="login-tab-login"
             hidden={activeTab !== TAB_LOGIN}
+            className="auth-tab-panel"
           >
             <AuthSocialButtons
               loading={loading}
