@@ -49,6 +49,7 @@ export default function TopNav({ compact = false }) {
   const accountHref = sessionUser?.role === 'participant' ? '/participant' : '/account';
   const roleLabel = sessionUser?.role === 'participant' ? t('nav.participant') : sessionUser?.role === 'admin' ? t('nav.admin') : t('nav.manager');
   const mobileLoginHref = withLocalePath('/login');
+  const mobileJoinHref = withLocalePath('/login?mode=join');
   const mobileSignupHref = withLocalePath('/signup');
 
   useEffect(() => {
@@ -165,6 +166,9 @@ export default function TopNav({ compact = false }) {
               />
             ) : (
               <>
+                <Link href={mobileJoinHref} className="btn-mini nav-mobile-login-btn">
+                  {t('nav.participant')}
+                </Link>
                 <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn">
                   {t('nav.login')}
                 </Link>
@@ -207,6 +211,7 @@ export default function TopNav({ compact = false }) {
               />
             ) : (
               <>
+                <NavItem href={withLocalePath('/login?mode=join')} active={isActive('/login')} onClick={() => setIsMenuOpen(false)}>{t('nav.participant')}</NavItem>
                 <NavItem href={withLocalePath('/login')} active={isActive('/login')} onClick={() => setIsMenuOpen(false)}>{t('nav.login')}</NavItem>
                 <NavItem href={withLocalePath('/signup')} active={isActive('/signup')} onClick={() => setIsMenuOpen(false)}>{t('nav.signup')}</NavItem>
               </>

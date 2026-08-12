@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail } from 'lucide-react';
 import AuthCard from '@/components/AuthCard';
 import AuthField from '@/components/AuthField';
@@ -39,12 +40,37 @@ function errorMessage(resStatus, data, isEn) {
   return data?.error || (isEn ? 'Something went wrong. Please try again.' : 'Une erreur est survenue. Veuillez réessayer.');
 }
 
-export default function LoginForm({ requestedSessionId = '', requestedInviteToken = '' }) {
+const TAB_JOIN = 'join';
+const TAB_LOGIN = 'login';
+
+function normalizeJoinCode(rawCode) {
+  return String(rawCode || '').trim().toUpperCase();
+}
+
+function resolveTabFromSearchParams(searchParams, inviteToken) {
+  const mode = String(searchParams.get('mode') || '').trim().toLowerCase();
+  const code = String(searchParams.get('code') || '').trim();
+
+  if (mode === TAB_LOGIN) return TAB_LOGIN;
+  if (mode === TAB_JOIN || code || inviteToken) return TAB_JOIN;
+  return TAB_LOGIN;
+}
+
+export default function LoginForm({ requestedSessionId = '', requestedInviteToken = '', requestedMode = '', requestedJoinCode = '' }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
   const normalizedRequestedSessionId = useMemo(() => String(requestedSessionId || '').trim(), [requestedSessionId]);
   const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'false').toLowerCase() === 'true';
+  const normalizedRequestedInviteToken = useMemo(() => String(requestedInviteToken || '').trim(), [requestedInviteToken]);
+  const initialTab = useMemo(
+    () => resolveTabFromSearchParams(searchParams, normalizedRequestedInviteToken),
+    [normalizedRequestedInviteToken, searchParams]
+  );
 
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -64,7 +90,8 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
   const [joinMessage, setJoinMessage] = useState('');
   const [scannerSupported, setScannerSupported] = useState(false);
   const [scannerActive, setScannerActive] = useState(false);
-  const normalizedRequestedInviteToken = useMemo(() => String(requestedInviteToken || '').trim(), [requestedInviteToken]);
+  const joinTabRef = useRef(null);
+  const loginTabRef = useRef(null);
 
   const normalizedIdentifier = useMemo(() => identifier.trim(), [identifier]);
   const identifierIsEmail = useMemo(() => looksLikeEmail(normalizedIdentifier), [normalizedIdentifier]);
@@ -84,6 +111,20 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       && typeof window.BarcodeDetector !== 'undefined';
     setScannerSupported(Boolean(hasScanner));
   }, []);
+
+  useEffect(() => {
+    const nextTab = resolveTabFromSearchParams(searchParams, normalizedRequestedInviteToken);
+    const modeFromServer = String(requestedMode || '').trim().toLowerCase();
+    const serverForcedTab = modeFromServer === TAB_LOGIN ? TAB_LOGIN : modeFromServer === TAB_JOIN ? TAB_JOIN : '';
+    setActiveTab(serverForcedTab || nextTab);
+
+    const codeFromUrl = normalizeJoinCode(searchParams.get('code'));
+    const codeFromServer = normalizeJoinCode(requestedJoinCode);
+    const resolvedCode = codeFromUrl || codeFromServer;
+    if (resolvedCode) {
+      setJoinSessionCode(resolvedCode);
+    }
+  }, [normalizedRequestedInviteToken, requestedJoinCode, requestedMode, searchParams]);
 
   useEffect(() => {
     if (!normalizedRequestedInviteToken) return;
@@ -137,6 +178,61 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     const redirect = withLocalePath(getRedirectPath(oauth.user.role, normalizedRequestedSessionId, connectedUserId));
     window.location.href = redirect;
   }, [isEn, normalizedRequestedSessionId, withLocalePath]);
+
+  function pushTabInUrl(nextTab, nextCode = '') {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('mode', nextTab);
+
+    if (nextTab === TAB_JOIN) {
+      const normalizedCode = normalizeJoinCode(nextCode);
+      if (normalizedCode) {
+        params.set('code', normalizedCode);
+      }
+    } else {
+      params.delete('code');
+    }
+
+    const query = params.toString();
+    const target = query ? `${pathname}?${query}` : pathname;
+    router.replace(target, { scroll: false });
+  }
+
+  function changeTab(nextTab) {
+    if (nextTab === activeTab) return;
+    setActiveTab(nextTab);
+    pushTabInUrl(nextTab, joinSessionCode);
+  }
+
+  function onTabKeyDown(event) {
+    const tabs = [TAB_JOIN, TAB_LOGIN];
+    const currentIndex = tabs.indexOf(activeTab);
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      const direction = event.key === 'ArrowRight' ? 1 : -1;
+      const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+      const nextTab = tabs[nextIndex];
+      changeTab(nextTab);
+      if (nextTab === TAB_JOIN) {
+        joinTabRef.current?.focus();
+      } else {
+        loginTabRef.current?.focus();
+      }
+      return;
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault();
+      changeTab(TAB_JOIN);
+      joinTabRef.current?.focus();
+      return;
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault();
+      changeTab(TAB_LOGIN);
+      loginTabRef.current?.focus();
+    }
+  }
 
   function startOAuth(provider) {
     const url = getOAuthStartUrl(provider, '/login');
@@ -245,8 +341,8 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     const email = String(joinEmail || '').trim();
     const inviteToken = normalizedRequestedInviteToken;
 
-    if ((!sessionCode && !inviteToken) || !firstName) {
-      setJoinMessage(isEn ? 'Session access and first name are required.' : 'L acces session et le prenom sont requis.');
+    if ((!sessionCode && !inviteToken) || !firstName || !lastName) {
+      setJoinMessage(isEn ? 'Session code, first name, and last name are required.' : 'Le code session, le prenom et le nom sont requis.');
       return;
     }
 
@@ -329,6 +425,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
             const match = rawValue.match(/(?:sessionCode|session_code|code|session)=([A-Za-z0-9_-]+)/i);
             const extracted = String(match?.[1] || rawValue).trim().toUpperCase();
             setJoinSessionCode(extracted);
+            pushTabInUrl(TAB_JOIN, extracted);
             setJoinMessage(isEn ? 'QR code detected. Session code pre-filled.' : 'QR detecte. Code session pre-rempli.');
             stopStream();
             setScannerActive(false);
@@ -353,184 +450,236 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
 
   return (
     <main className="shell auth-page auth-page--split">
-      <AuthShowcase
-        title={isEn ? 'Launch collaborative challenges in real time.' : 'Lancez des challenges collaboratifs en temps reel.'}
-        description={isEn
-            ? 'Access your sessions, run your team activities, and keep clear real-time visibility from a focused professional interface.'
-            : 'Retrouvez vos sessions, animez vos equipes et gardez une vision claire du realtime depuis une interface professionnelle et concentree.'}
-        highlights={[
-          { title: isEn ? 'Realtime orchestration' : 'Realtime orchestration', text: isEn ? 'Start a session, track connections, and run challenges without friction.' : 'Lancez une session, suivez les connexions et pilotez vos challenges sans friction.' },
-          { title: isEn ? 'Aligned facilitation' : 'Aligned facilitation', text: isEn ? 'Managers, HR, and facilitators share one clear premium product experience.' : 'Managers, RH et facilitateurs accedent a la meme experience produit, claire et premium.' },
-          { title: isEn ? 'Reliable access' : 'Reliable access', text: isEn ? 'Fast sign-in, clear states, and flows designed for hybrid teams.' : 'Connexion rapide, etats lisibles et parcours pensés pour des equipes hybrides.' },
-        ]}
-      />
+      <div className="auth-showcase-pane hidden lg:block">
+        <AuthShowcase
+          title={isEn ? 'Launch collaborative challenges in real time.' : 'Lancez des challenges collaboratifs en temps reel.'}
+          description={isEn
+              ? 'Access your sessions, run your team activities, and keep clear real-time visibility from a focused professional interface.'
+              : 'Retrouvez vos sessions, animez vos equipes et gardez une vision claire du realtime depuis une interface professionnelle et concentree.'}
+          highlights={[
+            { title: isEn ? 'Realtime orchestration' : 'Realtime orchestration', text: isEn ? 'Start a session, track connections, and run challenges without friction.' : 'Lancez une session, suivez les connexions et pilotez vos challenges sans friction.' },
+            { title: isEn ? 'Aligned facilitation' : 'Aligned facilitation', text: isEn ? 'Managers, HR, and facilitators share one clear premium product experience.' : 'Managers, RH et facilitateurs accedent a la meme experience produit, claire et premium.' },
+            { title: isEn ? 'Reliable access' : 'Reliable access', text: isEn ? 'Fast sign-in, clear states, and flows designed for hybrid teams.' : 'Connexion rapide, etats lisibles et parcours pensés pour des equipes hybrides.' },
+          ]}
+        />
+      </div>
 
       <div className="auth-login-pane">
         <AuthCard
-          title={isEn ? 'Log in to TeamBlender' : 'Connexion à TeamBlender'}
+          title={isEn ? 'Access TeamBlender' : 'Acceder a TeamBlender'}
           brand={<Link href={withLocalePath('/')} className="auth-card-brand-link" aria-label={isEn ? 'Back to TeamBlender home' : 'Retour a l accueil TeamBlender'}><Logo size="compact" /></Link>}
           footer={<span>{isEn ? 'No account yet? ' : 'Pas encore de compte ? '}<Link href={withLocalePath('/signup')}>{isEn ? 'Create account' : 'Créer un compte'}</Link></span>}
         >
-        <AuthSocialButtons
-          loading={loading}
-          loadingProvider={oauthLoadingProvider}
-          microsoftEnabled={microsoftLoginEnabled}
-          stacked
-          googleLabelOverride={isEn ? 'Continue with Google' : 'Continuer avec Google'}
-          separatorLabelOverride={isEn ? 'Or continue with your email address' : 'Ou continuer avec votre adresse email'}
-          onProviderClick={(provider) => startOAuth(provider)}
-        />
-
-        <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
-          <AuthField
-            id="login-email"
-            label={isEn ? 'Email or participant alias' : 'Email ou identifiant participant'}
-            icon={<Mail size={18} strokeWidth={1.9} />}
-            after={showIdentifierStatus ? (
-              <span className={`auth-input-status${identifierIsEmail ? ' is-valid' : ''}`} aria-label={identifierStatusLabel} title={identifierStatusLabel}>
-                <CheckCircle2 size={16} strokeWidth={2} />
-              </span>
-            ) : null}
-          >
-            <input
-              id="login-email"
-              type="text"
-              value={identifier}
-              onChange={(e) => {
-                setIdentifier(e.target.value);
-                setIdentifierTouched(true);
-              }}
-              onBlur={() => setIdentifierTouched(true)}
-              required
-              placeholder={isEn ? 'you@company.com or sophie' : 'vous@entreprise.com ou sophie'}
-              autoComplete="email"
-              aria-label={isEn ? 'Email or participant alias' : 'Email ou identifiant participant'}
-              aria-invalid={showIdentifierStatus ? String(false) : undefined}
-            />
-          </AuthField>
-
-          <AuthField id="login-password" label={isEn ? 'Password' : 'Mot de passe'} icon={<LockKeyhole size={18} strokeWidth={1.9} />} className="auth-field--password">
-            <div className="password-input-wrap">
-              <input
-                id="login-password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder={isEn ? 'Your password' : 'Votre mot de passe'}
-                autoComplete="current-password"
-                aria-label={isEn ? 'Password' : 'Mot de passe'}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-controls="login-password"
-                aria-label={showPassword ? (isEn ? 'Hide password' : 'Masquer le mot de passe') : (isEn ? 'Show password' : 'Afficher le mot de passe')}
-                aria-pressed={showPassword}
-              >
-                {showPassword ? <EyeOff size={18} strokeWidth={1.9} aria-hidden="true" /> : <Eye size={18} strokeWidth={1.9} aria-hidden="true" />}
-              </button>
-            </div>
-          </AuthField>
-
-          <button type="submit" className="btn-primary wide login-submit-btn" disabled={loading} aria-busy={loading}>
-            {loading ? (
-              <>
-                <LoaderCircle className="login-submit-spinner" size={18} strokeWidth={2.2} />
-                <span>{isEn ? 'Signing in...' : 'Connexion...'}</span>
-              </>
-            ) : (
-              isEn ? 'Log in' : 'Se connecter'
-            )}
-          </button>
-
-          {message ? <p className="form-error">{message}</p> : null}
-
-          {needsVerificationResend ? (
-            <>
-              <button
-                type="button"
-                className="btn-secondary wide"
-                onClick={onResendVerification}
-                disabled={resendStatus === 'sending'}
-              >
-                {resendStatus === 'sending' ? (isEn ? 'Sending...' : 'Envoi...') : (isEn ? 'Resend verification link' : 'Renvoyer le lien de verification')}
-              </button>
-              {resendStatus !== 'idle' ? (
-                <p className={resendStatus === 'error' ? 'form-error' : 'form-help'}>{resendMessage}</p>
-              ) : null}
-            </>
-          ) : null}
-
-          <p style={{ textAlign: 'center', marginTop: '0.5rem' }}>
-            <Link href={withLocalePath('/forgot-password')} className="form-help">{isEn ? 'Forgot password?' : 'Mot de passe oublié ?'}</Link>
-          </p>
-        </form>
-
-        <form onSubmit={onJoinInstant} className="auth-form" autoComplete="off" style={{ marginTop: '1.25rem' }}>
-          <p className="form-help" style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
-            {isEn ? 'Join a session instantly (participants)' : 'Rejoindre une session instantanement (participants)'}
-          </p>
-          <AuthField id="join-session-code" label={isEn ? 'Session code' : 'Code session'}>
-            <input
-              id="join-session-code"
-              type="text"
-              value={joinSessionCode}
-              onChange={(e) => setJoinSessionCode(e.target.value.toUpperCase())}
-              placeholder={isEn ? 'AB12' : 'AB12'}
-              autoComplete="off"
-              disabled={Boolean(normalizedRequestedInviteToken)}
-            />
-          </AuthField>
-          {scannerSupported ? (
+          <div className="auth-tabs" role="tablist" aria-label={isEn ? 'Select connection mode' : 'Selectionner le mode de connexion'}>
             <button
+              ref={joinTabRef}
               type="button"
-              className="btn-secondary wide"
-              onClick={startQrScanner}
-              disabled={scannerActive}
-              aria-busy={scannerActive}
+              role="tab"
+              id="login-tab-join"
+              aria-controls="login-panel-join"
+              aria-selected={activeTab === TAB_JOIN}
+              tabIndex={activeTab === TAB_JOIN ? 0 : -1}
+              className={`auth-tab-btn${activeTab === TAB_JOIN ? ' is-active' : ''}`}
+              onClick={() => changeTab(TAB_JOIN)}
+              onKeyDown={onTabKeyDown}
             >
-              {scannerActive
-                ? (isEn ? 'Scanning QR...' : 'Scan QR en cours...')
-                : (isEn ? 'Scan QR with camera' : 'Scanner le QR avec la camera')}
+              {isEn ? 'Join a session' : 'Rejoindre une session'}
             </button>
-          ) : null}
-          <AuthField id="join-first-name" label={isEn ? 'First name' : 'Prenom'}>
-            <input
-              id="join-first-name"
-              type="text"
-              value={joinFirstName}
-              onChange={(e) => setJoinFirstName(e.target.value)}
-              placeholder={isEn ? 'Sophie' : 'Sophie'}
-              autoComplete="given-name"
+            <button
+              ref={loginTabRef}
+              type="button"
+              role="tab"
+              id="login-tab-login"
+              aria-controls="login-panel-login"
+              aria-selected={activeTab === TAB_LOGIN}
+              tabIndex={activeTab === TAB_LOGIN ? 0 : -1}
+              className={`auth-tab-btn${activeTab === TAB_LOGIN ? ' is-active' : ''}`}
+              onClick={() => changeTab(TAB_LOGIN)}
+              onKeyDown={onTabKeyDown}
+            >
+              {isEn ? 'Organizer login' : 'Connexion Organisateur'}
+            </button>
+          </div>
+
+          <div
+            id="login-panel-join"
+            role="tabpanel"
+            aria-labelledby="login-tab-join"
+            hidden={activeTab !== TAB_JOIN}
+          >
+            <form onSubmit={onJoinInstant} className="auth-form" autoComplete="off">
+              <AuthField id="join-session-code" label={isEn ? 'Session code' : 'Code de session'}>
+                <input
+                  id="join-session-code"
+                  type="text"
+                  value={joinSessionCode}
+                  onChange={(e) => {
+                    const value = normalizeJoinCode(e.target.value);
+                    setJoinSessionCode(value);
+                    pushTabInUrl(TAB_JOIN, value);
+                  }}
+                  placeholder={isEn ? 'AB12' : 'AB12'}
+                  autoComplete="off"
+                  required={!normalizedRequestedInviteToken}
+                  className="join-session-code-input"
+                  disabled={Boolean(normalizedRequestedInviteToken)}
+                />
+              </AuthField>
+              {scannerSupported ? (
+                <button
+                  type="button"
+                  className="btn-secondary wide"
+                  onClick={startQrScanner}
+                  disabled={scannerActive}
+                  aria-busy={scannerActive}
+                >
+                  {scannerActive
+                    ? (isEn ? 'Scanning QR...' : 'Scan QR en cours...')
+                    : (isEn ? 'Scan QR with camera' : 'Scanner le QR avec la camera')}
+                </button>
+              ) : null}
+              <AuthField id="join-first-name" label={isEn ? 'First name' : 'Prenom'}>
+                <input
+                  id="join-first-name"
+                  type="text"
+                  value={joinFirstName}
+                  onChange={(e) => setJoinFirstName(e.target.value)}
+                  placeholder={isEn ? 'Sophie' : 'Sophie'}
+                  autoComplete="given-name"
+                  required
+                />
+              </AuthField>
+              <AuthField id="join-last-name" label={isEn ? 'Last name' : 'Nom'}>
+                <input
+                  id="join-last-name"
+                  type="text"
+                  value={joinLastName}
+                  onChange={(e) => setJoinLastName(e.target.value)}
+                  placeholder={isEn ? 'Martin' : 'Martin'}
+                  autoComplete="family-name"
+                  required
+                />
+              </AuthField>
+              <AuthField id="join-email" label={isEn ? 'Email (optional)' : 'Adresse e-mail (optionnel)'}>
+                <input
+                  id="join-email"
+                  type="email"
+                  value={joinEmail}
+                  onChange={(e) => setJoinEmail(e.target.value)}
+                  placeholder={isEn ? 'sophie@company.com' : 'sophie@entreprise.com'}
+                  autoComplete="email"
+                />
+              </AuthField>
+              <button type="submit" className="btn-primary wide login-submit-btn" disabled={joinLoading} aria-busy={joinLoading}>
+                {joinLoading ? (isEn ? 'Joining...' : 'Connexion...') : (isEn ? 'Join session' : 'Rejoindre la session')}
+              </button>
+              {joinMessage ? <p className="form-error">{joinMessage}</p> : null}
+            </form>
+          </div>
+
+          <div
+            id="login-panel-login"
+            role="tabpanel"
+            aria-labelledby="login-tab-login"
+            hidden={activeTab !== TAB_LOGIN}
+          >
+            <AuthSocialButtons
+              loading={loading}
+              loadingProvider={oauthLoadingProvider}
+              microsoftEnabled={microsoftLoginEnabled}
+              stacked
+              googleLabelOverride={isEn ? 'Continue with Google' : 'Continuer avec Google'}
+              separatorLabelOverride={isEn ? 'OR CONTINUE WITH YOUR EMAIL' : 'OU CONTINUER AVEC VOTRE E-MAIL'}
+              onProviderClick={(provider) => startOAuth(provider)}
             />
-          </AuthField>
-          <AuthField id="join-last-name" label={isEn ? 'Last name' : 'Nom'}>
-            <input
-              id="join-last-name"
-              type="text"
-              value={joinLastName}
-              onChange={(e) => setJoinLastName(e.target.value)}
-              placeholder={isEn ? 'Martin' : 'Martin'}
-              autoComplete="family-name"
-            />
-          </AuthField>
-          <AuthField id="join-email" label={isEn ? 'Email (optional)' : 'Email (optionnel)'}>
-            <input
-              id="join-email"
-              type="email"
-              value={joinEmail}
-              onChange={(e) => setJoinEmail(e.target.value)}
-              placeholder={isEn ? 'sophie@company.com' : 'sophie@entreprise.com'}
-              autoComplete="email"
-            />
-          </AuthField>
-          <button type="submit" className="btn-secondary wide" disabled={joinLoading} aria-busy={joinLoading}>
-            {joinLoading ? (isEn ? 'Joining...' : 'Connexion...') : (isEn ? 'Join instantly' : 'Rejoindre maintenant')}
-          </button>
-          {joinMessage ? <p className="form-error">{joinMessage}</p> : null}
-        </form>
+
+            <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
+              <AuthField
+                id="login-email"
+                label={isEn ? 'Email or participant alias' : 'Email ou identifiant participant'}
+                icon={<Mail size={18} strokeWidth={1.9} />}
+                after={showIdentifierStatus ? (
+                  <span className={`auth-input-status${identifierIsEmail ? ' is-valid' : ''}`} aria-label={identifierStatusLabel} title={identifierStatusLabel}>
+                    <CheckCircle2 size={16} strokeWidth={2} />
+                  </span>
+                ) : null}
+              >
+                <input
+                  id="login-email"
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => {
+                    setIdentifier(e.target.value);
+                    setIdentifierTouched(true);
+                  }}
+                  onBlur={() => setIdentifierTouched(true)}
+                  required
+                  placeholder={isEn ? 'you@company.com or sophie' : 'vous@entreprise.com ou sophie'}
+                  autoComplete="email"
+                  aria-label={isEn ? 'Email or participant alias' : 'Email ou identifiant participant'}
+                  aria-invalid={showIdentifierStatus ? String(false) : undefined}
+                />
+              </AuthField>
+
+              <AuthField id="login-password" label={isEn ? 'Password' : 'Mot de passe'} icon={<LockKeyhole size={18} strokeWidth={1.9} />} className="auth-field--password">
+                <div className="password-input-wrap">
+                  <input
+                    id="login-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder={isEn ? 'Your password' : 'Votre mot de passe'}
+                    autoComplete="current-password"
+                    aria-label={isEn ? 'Password' : 'Mot de passe'}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-controls="login-password"
+                    aria-label={showPassword ? (isEn ? 'Hide password' : 'Masquer le mot de passe') : (isEn ? 'Show password' : 'Afficher le mot de passe')}
+                    aria-pressed={showPassword}
+                  >
+                    {showPassword ? <EyeOff size={18} strokeWidth={1.9} aria-hidden="true" /> : <Eye size={18} strokeWidth={1.9} aria-hidden="true" />}
+                  </button>
+                </div>
+              </AuthField>
+
+              <button type="submit" className="btn-primary wide login-submit-btn" disabled={loading} aria-busy={loading}>
+                {loading ? (
+                  <>
+                    <LoaderCircle className="login-submit-spinner" size={18} strokeWidth={2.2} />
+                    <span>{isEn ? 'Signing in...' : 'Connexion...'}</span>
+                  </>
+                ) : (
+                  isEn ? 'Log in' : 'Se connecter'
+                )}
+              </button>
+
+              {message ? <p className="form-error">{message}</p> : null}
+
+              {needsVerificationResend ? (
+                <>
+                  <button
+                    type="button"
+                    className="btn-secondary wide"
+                    onClick={onResendVerification}
+                    disabled={resendStatus === 'sending'}
+                  >
+                    {resendStatus === 'sending' ? (isEn ? 'Sending...' : 'Envoi...') : (isEn ? 'Resend verification link' : 'Renvoyer le lien de verification')}
+                  </button>
+                  {resendStatus !== 'idle' ? (
+                    <p className={resendStatus === 'error' ? 'form-error' : 'form-help'}>{resendMessage}</p>
+                  ) : null}
+                </>
+              ) : null}
+
+              <p style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+                <Link href={withLocalePath('/forgot-password')} className="form-help">{isEn ? 'Forgot password?' : 'Mot de passe oublié ?'}</Link>
+              </p>
+            </form>
+          </div>
         </AuthCard>
       </div>
     </main>

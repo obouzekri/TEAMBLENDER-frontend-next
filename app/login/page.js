@@ -14,11 +14,18 @@ export default async function LoginPage({ searchParams }) {
   const resolvedSearchParams = await searchParams;
   const requestedSessionId = String(resolvedSearchParams?.sessionId || '').trim();
   const requestedInviteToken = String(resolvedSearchParams?.invite || '').trim();
+  const requestedMode = String(resolvedSearchParams?.mode || '').trim().toLowerCase();
+  const requestedJoinCode = String(resolvedSearchParams?.code || '').trim();
 
   return (
     <>
       <TopNav compact />
-      <LoginForm requestedSessionId={requestedSessionId} requestedInviteToken={requestedInviteToken} />
+      <LoginForm
+        requestedSessionId={requestedSessionId}
+        requestedInviteToken={requestedInviteToken}
+        requestedMode={requestedMode}
+        requestedJoinCode={requestedJoinCode}
+      />
     </>
   );
 }
