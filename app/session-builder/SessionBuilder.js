@@ -479,6 +479,8 @@ export default function SessionBuilder() {
   const [participantsInventoryLoaded, setParticipantsInventoryLoaded] = useState(false);
   const [loadedFromLocalDraft, setLoadedFromLocalDraft] = useState(false);
   const [selectedChallengesSnapshot, setSelectedChallengesSnapshot] = useState('[]');
+  const [sessionInvite, setSessionInvite] = useState(null);
+  const [inviteCopyState, setInviteCopyState] = useState('');
   const hasHydratedSessionSelectionRef = useRef(false);
   const onboardingRedirectedRef = useRef(false);
 
@@ -488,6 +490,11 @@ export default function SessionBuilder() {
   }, []);
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
+  const inviteLink = useMemo(() => {
+    const token = String(sessionInvite?.invite_token || '').trim();
+    if (!token || typeof window === 'undefined') return '';
+    return `${window.location.origin}${withLocalePath(`/login?invite=${encodeURIComponent(token)}&sessionId=${encodeURIComponent(String(sessionId || ''))}`)}`;
+  }, [sessionId, sessionInvite?.invite_token, withLocalePath]);
   const asyncStatusMessage = isCreatingSession
     ? t('sessionBuilder.creatingSession')
     : isSavingSessionInfo
@@ -877,8 +884,47 @@ export default function SessionBuilder() {
 
     setSessionParticipantCount(assigned.length);
     setDraftParticipantIds(assignedIds);
+    setSessionInvite({
+      invite_token: session?.invite_token || '',
+      code: session?.code || '',
+      name: session?.name || '',
+      assigned_participant_count: assigned.length,
+    });
     return session;
   }, [apiRequest, getAuthToken]);
+
+  const loadSessionInvite = useCallback(async (targetSessionId, tokenOverride) => {
+    const targetId = String(targetSessionId || '').trim();
+    if (!targetId) return null;
+
+    const token = tokenOverride || getAuthToken();
+    if (!token) return null;
+
+    const invite = await apiRequest(`/sessions/${targetId}/invite`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    setSessionInvite(invite || null);
+    return invite;
+  }, [apiRequest, getAuthToken]);
+
+  const handleCopyInviteValue = useCallback(async (value, feedbackKey) => {
+    const text = String(value || '').trim();
+    if (!text || typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setInviteCopyState(feedbackKey);
+      window.setTimeout(() => setInviteCopyState(''), 1800);
+    } catch {
+      setInviteCopyState('');
+    }
+  }, []);
 
   const handleLaunchSession = useCallback(async () => {
     if (!selectedChallenges.length || isLaunching) {
@@ -953,12 +999,6 @@ export default function SessionBuilder() {
   useEffect(() => {
     if (!guard.allowed) return;
     if (sessionId || hasRouteSessionId) return;
-    if (!participantsInventoryLoaded) return;
-    if (availableParticipantsCount > 0) return;
-    if (onboardingRedirectedRef.current) return;
-
-    onboardingRedirectedRef.current = true;
-    window.location.replace(withLocalePath('/home?onboarding=participants&reason=no_participants'));
   }, [availableParticipantsCount, guard.allowed, hasRouteSessionId, participantsInventoryLoaded, sessionId, withLocalePath]);
 
   useEffect(() => {
@@ -1093,6 +1133,7 @@ export default function SessionBuilder() {
         if (!cancelled) {
           // Pre-populate session metadata
           loadSessionDetails(sessionId, token).catch(() => null);
+          loadSessionInvite(sessionId, token).catch(() => null);
 
           // Pre-populate selectedChallenges from session
           const sessionChallenges = Array.isArray(session.challenges) ? session.challenges : [];
@@ -1147,6 +1188,7 @@ export default function SessionBuilder() {
     getAuthToken,
     guard.allowed,
     loadSessionDetails,
+    loadSessionInvite,
     restoreSelectedChallenges,
     sessionChallengesLoaded,
     sessionId,
@@ -1269,6 +1311,7 @@ export default function SessionBuilder() {
       setSessionParticipantCount(draftParticipantIds.length);
       localStorage.removeItem(CREATION_DRAFT_STORAGE_KEY);
       await loadSessionDetails(newId, token);
+      await loadSessionInvite(newId, token);
       removeToast(loadingId);
       // Participants are already assigned in the creation pane; continue directly to challenge selection.
     } catch (err) {
@@ -1280,9 +1323,9 @@ export default function SessionBuilder() {
     }
   }, [
     apiRequest,
-    availableParticipantsCount,
     draftParticipantIds,
     getAuthToken,
+    loadSessionInvite,
     removeToast,
     redirectToUpgrade,
     sessionDateTime,
@@ -1322,6 +1365,7 @@ export default function SessionBuilder() {
         body: JSON.stringify(payload),
       });
       await loadSessionDetails(sessionId, token);
+      await loadSessionInvite(sessionId, token);
       setIsEditingSessionInfo(false);
     } catch (err) {
       if (redirectToUpgrade(err)) return;
@@ -1337,6 +1381,7 @@ export default function SessionBuilder() {
     draftParticipantIds,
     getAuthToken,
     loadSessionDetails,
+    loadSessionInvite,
     redirectToUpgrade,
     sessionId,
     showErrorToast,
@@ -1347,6 +1392,37 @@ export default function SessionBuilder() {
     sessionStorage.removeItem(SELECTED_CHALLENGES_STORAGE_KEY);
     window.location.replace(withLocalePath('/login'));
   }
+
+  const invitePanel = sessionId ? (
+    <div className={styles.inviteCard}>
+      <div className={styles.inviteCardHeader}>
+        <div>
+          <p className={styles.inviteEyebrow}>{t('sessionBuilder.inviteEyebrow')}</p>
+          <strong>{t('sessionBuilder.inviteTitle')}</strong>
+        </div>
+        <span className={styles.inviteBadge}>{t('sessionBuilder.inviteAssignedCount', { count: Number(sessionInvite?.assigned_participant_count || sessionParticipantCount || 0) })}</span>
+      </div>
+      <p className={styles.inviteBody}>{t('sessionBuilder.inviteBody')}</p>
+      <div className={styles.inviteFieldRow}>
+        <div className={styles.inviteFieldBlock}>
+          <span>{t('sessionBuilder.inviteLinkLabel')}</span>
+          <div className={styles.inviteFieldValue}>{inviteLink || '...'}</div>
+        </div>
+        <button type="button" className="btn-secondary" onClick={() => handleCopyInviteValue(inviteLink, 'link')}>
+          {inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
+        </button>
+      </div>
+      <div className={styles.inviteFieldRow}>
+        <div className={styles.inviteFieldBlock}>
+          <span>{t('sessionBuilder.inviteCodeLabel')}</span>
+          <div className={styles.inviteCodeValue}>{String(sessionInvite?.code || '').trim() || '...'}</div>
+        </div>
+        <button type="button" className="btn-secondary" onClick={() => handleCopyInviteValue(sessionInvite?.code, 'code')}>
+          {inviteCopyState === 'code' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteCode')}
+        </button>
+      </div>
+    </div>
+  ) : null;
 
   if (guard.loading) {
     return (
@@ -1472,8 +1548,6 @@ export default function SessionBuilder() {
                         </span>
                       </div>
 
-                      <p className={styles.creationHint}>{t('sessionBuilder.participantsOptionalHint')}</p>
-
                       <ParticipantAssigner
                         isLoading={isCreatingSession}
                         selectedIds={draftParticipantIds}
@@ -1491,8 +1565,8 @@ export default function SessionBuilder() {
 
                       {availableParticipantsCount === 0 ? (
                         <div className={styles.creationInlineCtaRow}>
-                          <Alert variant="warning" className={styles.creationActionHint} title={t('sessionBuilder.createUnavailable')}>
-                            {t('sessionBuilder.createUnavailableBody')}
+                          <Alert variant="info" className={styles.creationActionHint} title={t('sessionBuilder.noParticipantsAvailable')}>
+                            {t('sessionBuilder.noParticipantsFoundBody')}
                           </Alert>
                           <Button
                             type="button"
@@ -1502,13 +1576,7 @@ export default function SessionBuilder() {
                             {t('sessionBuilder.createParticipantCta')}
                           </Button>
                         </div>
-                      ) : (
-                        <div className={styles.creationInlineCtaRow}>
-                          <Alert variant="info" className={styles.creationActionHint} title={t('sessionBuilder.participantsCanBeAddedLater')}>
-                            {t('sessionBuilder.participantsCanBeAddedLaterBody')}
-                          </Alert>
-                        </div>
-                      )}
+                      ) : null}
                   </div>
                 </form>
               </div>
@@ -1519,11 +1587,7 @@ export default function SessionBuilder() {
                   form="create-session-form"
                   className={styles.creationSubmit}
                   disabled={!canCreateSessionNow}
-                  title={
-                    !canCreateSessionNow
-                      ? t('sessionBuilder.createUnavailableBody')
-                      : t('sessionBuilder.createSession')
-                  }
+                  title={!canCreateSessionNow ? t('sessionBuilder.sessionNameRequired') : t('sessionBuilder.createSession')}
                 >
                   {isCreatingSession ? t('sessionBuilder.creating') : t('sessionBuilder.createSession')}
                 </Button>
@@ -1564,6 +1628,7 @@ export default function SessionBuilder() {
           isLaunchDisabled={selectedChallenges.length === 0}
           isLaunching={isLaunching}
           onLaunch={handleRequestLaunch}
+          invitePanel={invitePanel}
         />
 
         <div className={styles.mainLayout}>
