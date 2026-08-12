@@ -523,7 +523,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                   placeholder={isEn ? 'Ex: AB12' : 'Ex: AB12'}
                   autoComplete="off"
                   required={joinSessionCodeRequired}
-                  className="join-session-code-input join-session-code-placeholder"
+                  className="join-field-input join-session-code-input join-session-code-placeholder"
                   disabled={Boolean(normalizedRequestedInviteToken)}
                 />
               </AuthField>
@@ -549,6 +549,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                     onChange={(e) => setJoinFirstName(e.target.value)}
                     placeholder={isEn ? 'Sophie' : 'Sophie'}
                     autoComplete="given-name"
+                    className="join-field-input"
                     required
                   />
                 </AuthField>
@@ -560,6 +561,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                     onChange={(e) => setJoinLastName(e.target.value)}
                     placeholder={isEn ? 'Martin' : 'Martin'}
                     autoComplete="family-name"
+                    className="join-field-input"
                     required
                   />
                 </AuthField>
@@ -572,6 +574,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                   onChange={(e) => setJoinEmail(e.target.value)}
                   placeholder={isEn ? 'sophie@company.com' : 'sophie@entreprise.com'}
                   autoComplete="email"
+                  className="join-field-input"
                 />
               </AuthField>
               <button

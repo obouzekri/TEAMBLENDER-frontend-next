@@ -2020,7 +2020,7 @@ a {
 
 /* Premium auth redesign */
 .auth-page {
-  padding: clamp(0.35rem, 1.1vw, 0.9rem) 0 clamp(2rem, 4vw, 3.6rem);
+  padding: clamp(0.35rem, 1.1vw, 0.9rem) clamp(0.5rem, 1.8vw, 1.2rem) clamp(2rem, 4vw, 3.6rem);
   min-height: 100svh;
   display: flex;
   align-items: flex-start;
@@ -2036,6 +2036,10 @@ a {
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: clamp(1rem, 2vw, 1.5rem);
+  width: 100%;
+  max-width: min(100%, 1240px);
+  margin-inline: auto;
+  box-sizing: border-box;
 }
 
 .auth-showcase-pane {
@@ -2050,8 +2054,9 @@ a {
 .auth-login-pane {
   display: grid;
   align-items: start;
-  margin-top: 0;
+  margin-top: clamp(0.35rem, 0.9vw, 0.7rem);
   padding-top: 0;
+  min-width: 0;
 }
 
 .auth-shell {
@@ -2081,6 +2086,7 @@ a {
 .auth-card {
   width: 100%;
   padding: clamp(1.1rem, 2vw, 1.55rem);
+  box-sizing: border-box;
 }
 
 .auth-card-brand {
@@ -2318,6 +2324,15 @@ a {
 
 .join-session-code-placeholder::placeholder {
   color: #9ca3af !important;
+}
+
+.join-field-input::placeholder {
+  opacity: 1;
+  transition: opacity var(--motion-fast) var(--ease-standard);
+}
+
+.join-field-input:focus::placeholder {
+  opacity: 0;
 }
 
 .auth-form--join {
@@ -2675,6 +2690,7 @@ a {
     grid-template-columns: 1fr;
     gap: 0.9rem;
     min-height: auto;
+    max-width: 100%;
   }
 
   .auth-page--split .auth-shell,
@@ -2708,7 +2724,7 @@ a {
 
 @media (max-width: 720px) {
   .auth-page {
-    padding: 0.85rem 0 1.6rem;
+    padding: 0.85rem 0.65rem 1.6rem;
   }
 
   .auth-page--split {
