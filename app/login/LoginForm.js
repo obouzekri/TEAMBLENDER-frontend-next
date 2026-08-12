@@ -8,7 +8,6 @@ import AuthCard from '@/components/AuthCard';
 import AuthField from '@/components/AuthField';
 import AuthShowcase from '@/components/AuthShowcase';
 import AuthSocialButtons from '@/components/AuthSocialButtons';
-import Logo from '@/components/Logo';
 import posthog from 'posthog-js';
 import { trackGtmEvent, trackProductUserEvent } from '@/lib/analytics';
 import {
@@ -95,10 +94,13 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
 
   const normalizedIdentifier = useMemo(() => identifier.trim(), [identifier]);
   const identifierIsEmail = useMemo(() => looksLikeEmail(normalizedIdentifier), [normalizedIdentifier]);
-  const showIdentifierStatus = identifierTouched && normalizedIdentifier.length > 0;
+  const showIdentifierStatus = identifierTouched && normalizedIdentifier.length > 0 && identifierIsEmail;
   const identifierStatusLabel = identifierIsEmail
     ? (isEn ? 'Email format looks valid' : 'Le format de l’email est valide')
     : (isEn ? 'Participant alias login enabled' : 'Connexion participant par identifiant activee');
+  const joinSessionCodeRequired = !normalizedRequestedInviteToken;
+  const canSubmitJoin = (Boolean(normalizedRequestedInviteToken) || String(joinSessionCode || '').trim().length > 0)
+    && String(joinFirstName || '').trim().length > 0;
 
   useEffect(() => {
     ensureCsrfToken().catch(() => {});
@@ -467,7 +469,6 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       <div className="auth-login-pane">
         <AuthCard
           title={isEn ? 'Access TeamBlender' : 'Acceder a TeamBlender'}
-          brand={<Link href={withLocalePath('/')} className="auth-card-brand-link" aria-label={isEn ? 'Back to TeamBlender home' : 'Retour a l accueil TeamBlender'}><Logo size="compact" /></Link>}
           footer={<span>{isEn ? 'No account yet? ' : 'Pas encore de compte ? '}<Link href={withLocalePath('/signup')}>{isEn ? 'Create account' : 'Créer un compte'}</Link></span>}
         >
           <div className="auth-tabs" role="tablist" aria-label={isEn ? 'Select connection mode' : 'Selectionner le mode de connexion'}>
@@ -507,7 +508,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
             aria-labelledby="login-tab-join"
             hidden={activeTab !== TAB_JOIN}
           >
-            <form onSubmit={onJoinInstant} className="auth-form" autoComplete="off">
+            <form onSubmit={onJoinInstant} className="auth-form auth-form--join" autoComplete="off">
               <AuthField id="join-session-code" label={isEn ? 'Session code' : 'Code de session'}>
                 <input
                   id="join-session-code"
@@ -518,9 +519,9 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                     setJoinSessionCode(value);
                     pushTabInUrl(TAB_JOIN, value);
                   }}
-                  placeholder={isEn ? 'AB12' : 'AB12'}
+                  placeholder={isEn ? 'Ex: AB12' : 'Ex: AB12'}
                   autoComplete="off"
-                  required={!normalizedRequestedInviteToken}
+                  required={joinSessionCodeRequired}
                   className="join-session-code-input"
                   disabled={Boolean(normalizedRequestedInviteToken)}
                 />
@@ -538,28 +539,30 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                     : (isEn ? 'Scan QR with camera' : 'Scanner le QR avec la camera')}
                 </button>
               ) : null}
-              <AuthField id="join-first-name" label={isEn ? 'First name' : 'Prenom'}>
-                <input
-                  id="join-first-name"
-                  type="text"
-                  value={joinFirstName}
-                  onChange={(e) => setJoinFirstName(e.target.value)}
-                  placeholder={isEn ? 'Sophie' : 'Sophie'}
-                  autoComplete="given-name"
-                  required
-                />
-              </AuthField>
-              <AuthField id="join-last-name" label={isEn ? 'Last name' : 'Nom'}>
-                <input
-                  id="join-last-name"
-                  type="text"
-                  value={joinLastName}
-                  onChange={(e) => setJoinLastName(e.target.value)}
-                  placeholder={isEn ? 'Martin' : 'Martin'}
-                  autoComplete="family-name"
-                  required
-                />
-              </AuthField>
+              <div className="auth-field-grid auth-field-grid--join">
+                <AuthField id="join-first-name" label={isEn ? 'First name' : 'Prenom'}>
+                  <input
+                    id="join-first-name"
+                    type="text"
+                    value={joinFirstName}
+                    onChange={(e) => setJoinFirstName(e.target.value)}
+                    placeholder={isEn ? 'Sophie' : 'Sophie'}
+                    autoComplete="given-name"
+                    required
+                  />
+                </AuthField>
+                <AuthField id="join-last-name" label={isEn ? 'Last name' : 'Nom'}>
+                  <input
+                    id="join-last-name"
+                    type="text"
+                    value={joinLastName}
+                    onChange={(e) => setJoinLastName(e.target.value)}
+                    placeholder={isEn ? 'Martin' : 'Martin'}
+                    autoComplete="family-name"
+                    required
+                  />
+                </AuthField>
+              </div>
               <AuthField id="join-email" label={isEn ? 'Email (optional)' : 'Adresse e-mail (optionnel)'}>
                 <input
                   id="join-email"
@@ -570,7 +573,12 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                   autoComplete="email"
                 />
               </AuthField>
-              <button type="submit" className="btn-primary wide login-submit-btn" disabled={joinLoading} aria-busy={joinLoading}>
+              <button
+                type="submit"
+                className="btn-primary wide login-submit-btn join-submit-btn"
+                disabled={joinLoading || !canSubmitJoin}
+                aria-busy={joinLoading}
+              >
                 {joinLoading ? (isEn ? 'Joining...' : 'Connexion...') : (isEn ? 'Join session' : 'Rejoindre la session')}
               </button>
               {joinMessage ? <p className="form-error">{joinMessage}</p> : null}
