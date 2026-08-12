@@ -2037,7 +2037,7 @@ a {
   align-items: start;
   gap: clamp(1rem, 2vw, 1.5rem);
   width: 100%;
-  max-width: min(100%, 1240px);
+  max-width: min(100%, 1140px);
   margin-inline: auto;
   box-sizing: border-box;
 }
@@ -2054,7 +2054,7 @@ a {
 .auth-login-pane {
   display: grid;
   align-items: start;
-  margin-top: clamp(0.35rem, 0.9vw, 0.7rem);
+  margin-top: clamp(0.16rem, 0.42vw, 0.34rem);
   padding-top: 0;
   min-width: 0;
 }
@@ -2714,11 +2714,18 @@ a {
 
 @media (min-width: 1024px) {
   .auth-page--split {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1fr);
   }
 
   .auth-showcase-pane {
     display: block;
+    max-width: 520px;
+  }
+
+  .auth-login-pane {
+    max-width: 560px;
+    justify-self: end;
+    width: 100%;
   }
 }
 
