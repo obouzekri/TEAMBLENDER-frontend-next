@@ -2724,8 +2724,9 @@ a {
 
   .auth-login-pane {
     max-width: 560px;
-    justify-self: end;
+    justify-self: start;
     width: 100%;
+    margin-left: -0.5rem;
   }
 }
 
