@@ -7676,6 +7676,15 @@ a {
 }
 
 @media (min-width: 1024px) {
+  .auth-page--split .auth-showcase-pane {
+    width: min(100%, 500px);
+    justify-self: end;
+  }
+
+  .auth-page--split .auth-showcase-card {
+    width: 100%;
+  }
+
   .auth-page--split .auth-login-pane {
     transform: translateX(-2rem);
   }
@@ -7685,7 +7694,7 @@ a {
   }
 
   .auth-page--split .auth-login-pane--login {
-    transform: translateX(calc(-2rem - 1.5cm));
+    transform: translateX(calc(-3rem - 1.5cm));
   }
 }
 
