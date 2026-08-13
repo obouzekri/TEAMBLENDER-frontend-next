@@ -26,7 +26,6 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import { trackGaEvent } from '@/lib/analytics';
 import { getApiUrl } from '@/lib/config';
@@ -176,7 +175,6 @@ const DEFAULT_BLOCKS_BY_LOCALE = {
     },
   }
 };
-
 const LANDING_STATIC_BY_LOCALE = {
   fr: {
     trustProofMetrics: [
@@ -197,7 +195,7 @@ const LANDING_STATIC_BY_LOCALE = {
       },
     ],
     platformStatement: {
-      title: 'TeamBlender est la plateforme B2B pour concevoir, piloter et industrialiser des expériences de team building hybrides.',
+      title: 'La plateforme B2B moderne pour concevoir, piloter et déployer vos initiatives d’équipe.',
       description:
         'Pensée pour les managers et les équipes RH, elle permet de déployer des expériences simples à organiser, engageantes pour les équipes et mesurables dans leurs résultats.',
     },
@@ -271,10 +269,10 @@ const LANDING_STATIC_BY_LOCALE = {
       ],
     },
     fallback: {
-      heroTitle: 'Créez des ateliers de cohésion gamifiés en quelques minutes.',
-      heroTitleStructured: 'Créez des expériences collaboratives gamifiées à fort impact, en quelques minutes.',
-      heroDescription: 'Le produit aide les équipes à transformer leurs interactions en décisions et en alignement.',
-      heroDescriptionStructured: 'TeamBlender renforce la cohésion des équipes hybrides à travers des challenges en temps réel engageants et mesurables.',
+      heroTitle: 'Engage and connect your teams through interactive challenges.',
+      heroTitleStructured: 'Engage and connect your teams through interactive challenges.',
+      heroDescription: 'TeamBlender transforme vos événements et programmes RH en défis d’équipe vivants, faciles à piloter et à déployer pour vos équipes hybrides.',
+      heroDescriptionStructured: 'TeamBlender transforme vos événements et programmes RH en défis d’équipe vivants, faciles à piloter et à déployer pour vos équipes hybrides.',
       heroPrimaryLabel: 'Démarrer gratuitement',
       heroSecondaryLabel: 'Voir les offres',
       finalPrimaryLabel: 'Démarrer gratuitement',
@@ -287,7 +285,7 @@ const LANDING_STATIC_BY_LOCALE = {
         progress: 'Progression collaborative instantanée',
       },
       productPreview: 'Product preview',
-      liveExperience: 'Expérience live collaborative',
+      liveExperience: 'Interactive team building experience',
       liveLabel: 'En direct',
       platformEyebrow: 'Plateforme',
       platformOfferTitle: 'Ce que la plateforme offre',
@@ -394,10 +392,10 @@ const LANDING_STATIC_BY_LOCALE = {
       ],
     },
     fallback: {
-      heroTitle: 'Build high-impact collaborative sessions in minutes.',
-      heroTitleStructured: 'Build high-impact collaborative sessions in minutes.',
-      heroDescription: 'The platform helps teams turn interactions into decisions and alignment.',
-      heroDescriptionStructured: 'TeamBlender strengthens hybrid team cohesion through engaging, measurable real-time challenges.',
+      heroTitle: 'Engage and connect your teams through interactive challenges.',
+      heroTitleStructured: 'Engage and connect your teams through interactive challenges.',
+      heroDescription: 'TeamBlender transforme vos événements et programmes RH en défis d’équipe vivants, faciles à piloter et à déployer pour vos équipes hybrides.',
+      heroDescriptionStructured: 'TeamBlender transforme vos événements et programmes RH en défis d’équipe vivants, faciles à piloter et à déployer pour vos équipes hybrides.',
       heroPrimaryLabel: 'Get started free',
       heroSecondaryLabel: 'View plans',
       finalPrimaryLabel: 'Get started free',
@@ -410,7 +408,7 @@ const LANDING_STATIC_BY_LOCALE = {
         progress: 'Instant collaborative progression',
       },
       productPreview: 'Product preview',
-      liveExperience: 'Live collaborative experience',
+      liveExperience: 'Interactive team building experience',
       liveLabel: 'Live',
       platformEyebrow: 'Platform',
       platformOfferTitle: 'What the platform offers',
@@ -568,25 +566,6 @@ function buildSectionBlocks(sectionKeys, dynamicBlocks, defaultBlocks) {
 
 function safeHref(value, fallback = '/') {
   return hasCmsValue(value) ? value : fallback;
-}
-
-function normalizeCohesionCopy(value, fallback = '', locale = 'fr') {
-  const input = String(value || '').trim();
-  const source = input || fallback;
-  if (!source) return '';
-
-  const collapsed = source.replace(/\s+/g, ' ').trim();
-  if (locale === 'en') return collapsed;
-
-  const low = collapsed.toLowerCase();
-
-  if (low === 'créez des ateliers collaboratifs gamifiés en quelques minutes.') {
-    return 'Créez des ateliers de cohésion gamifiés en quelques minutes.';
-  }
-
-  return collapsed
-    .replace(/team\s*building/gi, 'ateliers de cohésion')
-    .replace(/animation(s)?\s+d[’']equipe/gi, 'rituels de cohésion');
 }
 
 const TRUST_TAG_ICON_BY_KEYWORD = [
@@ -934,19 +913,14 @@ export default function HomePage() {
   const heroKicker = heroSection.blocks.hero_kicker || {};
   const heroCtaPrimary = heroSection.blocks.hero_cta_primary || {};
   const heroCtaSecondary = heroSection.blocks.hero_cta_secondary || {};
-  const heroImageA = heroSection.blocks.hero_image_a || {};
   const heroImageB = heroSection.blocks.hero_image_b || {};
   const flowHeader = flowSection.blocks.flow_header || {};
   const finalCta = finalCtaSection.blocks.final_cta || {};
   const finalCtaSecondary = finalCtaSection.blocks.final_cta_secondary || {};
   const partnersHeader = partnersSection.blocks.partners_header || {};
   const testimonialsHeader = testimonialsSection.blocks.testimonials_header || {};
-  const heroTitle = normalizeCohesionCopy(heroMain.title, landingStatic.fallback.heroTitle, locale);
-  const heroDescription = normalizeCohesionCopy(
-    heroMain.description,
-    landingStatic.fallback.heroDescription,
-    locale
-  );
+  const heroTitle = 'Engage and connect your teams through interactive challenges.';
+  const heroDescription = 'TeamBlender transforme vos événements et programmes RH en défis d’équipe vivants, faciles à piloter et à déployer pour vos équipes hybrides.';
   const heroPrimaryLabel = hasCmsValue(heroCtaPrimary.cta_label) ? heroCtaPrimary.cta_label : landingStatic.fallback.heroPrimaryLabel;
   const heroPrimaryHref = withLocalePath(safeHref(heroCtaPrimary.cta_href, '/signup'));
   const heroSecondaryLabel = hasCmsValue(heroCtaSecondary.cta_label) ? heroCtaSecondary.cta_label : landingStatic.fallback.heroSecondaryLabel;
@@ -956,12 +930,7 @@ export default function HomePage() {
   const finalSecondaryLabel = hasCmsValue(finalCtaSecondary.cta_label) ? finalCtaSecondary.cta_label : landingStatic.fallback.finalSecondaryLabel;
   const finalSecondaryHref = withLocalePath(safeHref(finalCtaSecondary.cta_href, '/contact'));
 
-  const heroTrustItems = useMemo(
-    () => ['hero_trust_1', 'hero_trust_2', 'hero_trust_3']
-      .map((key) => (heroSection.blocks[key] || {}).title)
-      .filter(Boolean),
-    [heroSection]
-  );
+  const heroTrustItems = ['Team challenge', 'Live engagement', 'Team cohesion'];
 
   const heroTrustBadges = useMemo(
     () => heroTrustItems.slice(0, 3).map((title, index) => ({
@@ -971,9 +940,7 @@ export default function HomePage() {
     [heroTrustItems]
   );
 
-  const structuredHeroTitle = heroTitle === landingStatic.fallback.heroTitle
-    ? landingStatic.fallback.heroTitleStructured
-    : heroTitle;
+  const structuredHeroTitle = heroTitle;
 
   const impactItems = useMemo(
     () => ['impact_1', 'impact_2', 'impact_3'].map((key) => {
@@ -1173,9 +1140,7 @@ export default function HomePage() {
               <span className="block h-2" aria-hidden="true" />
 
               <p className="landing-hero-description mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-                {heroDescription === landingStatic.fallback.heroDescription
-                  ? 'TeamBlender transforme vos sessions en défis collaboratifs vivants, faciles à piloter et à déployer avec des équipes hybrides.'
-                  : heroDescription}
+                {heroDescription}
               </p>
 
               <p className="landing-hero-keyline mt-3 max-w-2xl text-sm font-semibold tracking-wide text-indigo-700 sm:text-base">
