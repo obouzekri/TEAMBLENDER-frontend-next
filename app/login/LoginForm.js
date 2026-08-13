@@ -466,7 +466,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         />
       </div>
 
-      <div className="auth-login-pane">
+      <div className={`auth-login-pane auth-login-pane--${activeTab}`}>
         <AuthCard
           title={isEn ? 'Access TeamBlender' : 'Acceder a TeamBlender'}
           footer={<span>{isEn ? 'No account yet? ' : 'Pas encore de compte ? '}<Link href={withLocalePath('/signup')}>{isEn ? 'Create account' : 'Créer un compte'}</Link></span>}

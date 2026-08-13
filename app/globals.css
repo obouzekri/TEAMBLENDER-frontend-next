@@ -7679,6 +7679,14 @@ a {
   .auth-page--split .auth-login-pane {
     transform: translateX(-2rem);
   }
+
+  .auth-page--split .auth-login-pane--join {
+    transform: translateX(calc(-2rem - 1cm));
+  }
+
+  .auth-page--split .auth-login-pane--login {
+    transform: translateX(calc(-2rem - 1.5cm));
+  }
 }
 
 .password-toggle svg {
