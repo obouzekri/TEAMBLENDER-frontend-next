@@ -7698,7 +7698,8 @@ a {
   }
 }
 
-.auth-page--login {
+.auth-page--login,
+.auth-page--signup {
   width: 100%;
   min-height: calc(100svh - var(--nav-shell-min-height, 64px));
   margin: 0;
@@ -7707,14 +7708,16 @@ a {
   place-items: center;
 }
 
-.auth-page--login .auth-login-pane {
+.auth-page--login .auth-login-pane,
+.auth-page--signup > .auth-shell {
   width: min(100%, 32rem);
   min-width: 0;
   margin: 0;
   transform: none;
 }
 
-.auth-page--login .auth-shell {
+.auth-page--login .auth-shell,
+.auth-page--signup > .auth-shell {
   width: 100%;
   margin: 0;
 }
@@ -7724,7 +7727,8 @@ a {
 }
 
 @media (max-width: 640px) {
-  .auth-page--login {
+  .auth-page--login,
+  .auth-page--signup {
     min-height: calc(100svh - var(--nav-shell-min-height, 64px));
     padding: 1.25rem 0.9rem 2rem;
   }

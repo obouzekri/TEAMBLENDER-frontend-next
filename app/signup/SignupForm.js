@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { CheckCircle, Circle, CheckCircle2, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, User } from 'lucide-react';
 import AuthCard from '@/components/AuthCard';
 import AuthField from '@/components/AuthField';
-import AuthShowcase from '@/components/AuthShowcase';
 import AuthSocialButtons from '@/components/AuthSocialButtons';
 import Logo from '@/components/Logo';
 import posthog from 'posthog-js';
@@ -171,20 +170,7 @@ export default function SignupForm() {
   }
 
   return (
-    <main className="shell auth-page auth-page--split">
-      <AuthShowcase
-        title={isEn ? 'Launch collaborative challenges in real time.' : 'Lancez des challenges collaboratifs en temps reel.'}
-        description={isEn
-          ? 'Create your TeamBlender workspace to facilitate collaborative experiences, track teams, and centralize operations.'
-          : 'Creez votre espace TeamBlender pour animer des experiences collaboratives, suivre les equipes et centraliser votre facilitation.'}
-        highlights={[
-          { title: isEn ? 'Fast setup' : 'Setup rapide', text: isEn ? 'Create your account, configure your sessions, and get started quickly.' : 'Créez votre compte, configurez vos sessions et commencez sans parcours lourd.' },
-          { title: 'Corporate ready', text: isEn ? 'A clear and credible experience for managers, HR, and facilitators.' : 'Une experience sobre, claire et credible pour managers, RH et facilitateurs.' },
-          { title: 'Realtime by design', text: isEn ? 'Interfaces designed for group facilitation and real-time collaboration.' : 'Des interfaces pensees pour l animation de groupes et la collaboration en direct.' },
-        ]}
-        stats={[]}
-      />
-
+    <main className="auth-page auth-page--signup">
       <AuthCard
         title={isEn ? 'Create your TeamBlender account' : 'Créer un compte TeamBlender'}
         brand={<Link href={withLocalePath('/')} className="auth-card-brand-link" aria-label={isEn ? 'Back to TeamBlender home' : 'Retour a l accueil TeamBlender'}><Logo size="compact" /></Link>}

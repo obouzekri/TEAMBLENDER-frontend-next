@@ -1,5 +1,6 @@
 import TopNav from '@/components/TopNav';
 import SignupForm from './SignupForm';
+import Footer from '@/components/Footer';
 import { cookies } from 'next/headers';
 
 export async function generateMetadata() {
@@ -15,6 +16,7 @@ export default function SignupPage() {
     <>
       <TopNav compact />
       <SignupForm />
+      <Footer />
     </>
   );
 }
