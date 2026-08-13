@@ -87,10 +87,10 @@ export default function TopNav({ compact = false }) {
             </Link>
 
             <div className="nav-auth-actions" aria-label={t('nav.accountAria')}>
-              <LanguageSwitcher />
               <Link href={mobileSignupHref} className="nav-cta-btn nav-auth-signup-btn">
                 {t('nav.signup')}
               </Link>
+              <LanguageSwitcher />
             </div>
           </div>
         ) : (
@@ -129,13 +129,10 @@ export default function TopNav({ compact = false }) {
               <NavItem href={withLocalePath('/')} active={isActive('/')} onClick={() => setIsMenuOpen(false)}>{t('nav.product')}</NavItem>
               <NavItem href={withLocalePath('/pricing')} active={isActive('/pricing')} onClick={() => setIsMenuOpen(false)}>{t('nav.pricing')}</NavItem>
               <NavItem href={withLocalePath('/contact')} active={isActive('/contact')} onClick={() => setIsMenuOpen(false)}>{t('nav.contact')}</NavItem>
-              <NavItem href={withLocalePath('/cgu')} active={isActive('/cgu')} onClick={() => setIsMenuOpen(false)}>{t('nav.terms')}</NavItem>
-              <NavItem href={withLocalePath('/confidentialite')} active={isActive('/confidentialite') || isActive('/politique-confidentialite')} onClick={() => setIsMenuOpen(false)}>{t('nav.privacy')}</NavItem>
             </nav>
           </div>
 
           <div className="nav-mobile-menu-actions topnav-public-mobile-actions" aria-label={t('nav.accountAria')}>
-            <LanguageSwitcher />
             {sessionUser ? (
               <AvatarMenu
                 userLabel={avatarLabel}
@@ -177,10 +174,10 @@ export default function TopNav({ compact = false }) {
                 </Link>
               </>
             )}
+            <LanguageSwitcher />
           </div>
 
           <div className="nav-actions topnav-public-desktop-actions" aria-label={t('nav.accountAria')}>
-            <LanguageSwitcher />
             {sessionUser ? (
               <AvatarMenu
                 userLabel={avatarLabel}
@@ -216,6 +213,9 @@ export default function TopNav({ compact = false }) {
                 <NavItem href={withLocalePath('/signup')} active={isActive('/signup')} onClick={() => setIsMenuOpen(false)}>{t('nav.signup')}</NavItem>
               </>
             )}
+          </div>
+          <div className="topnav-public-desktop-language">
+            <LanguageSwitcher />
           </div>
           </div>
         ) : null}

@@ -1533,6 +1533,13 @@ a {
   margin-left: auto;
 }
 
+.topnav-public-desktop-language {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: 0.1rem;
+}
+
 .nav-mobile-cta {
   display: none;
   flex: 0 0 auto;
@@ -7666,6 +7673,12 @@ a {
 .auth-shell {
   display: grid;
   place-items: center;
+}
+
+@media (min-width: 1024px) {
+  .auth-page--split .auth-login-pane {
+    transform: translateX(-2rem);
+  }
 }
 
 .password-toggle svg {
