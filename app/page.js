@@ -1018,6 +1018,7 @@ export default function HomePage() {
         duration: '15–20 min',
         title: 'CoPuzzle',
         description: 'Solve a live collaborative puzzle through shared coordination and collective decision-making.',
+        tags: ['Collaboration', 'Coordination'],
         Icon: Sparkles,
       },
       {
@@ -1025,6 +1026,7 @@ export default function HomePage() {
         duration: '25–35 min',
         title: 'Lab d’Innovation',
         description: 'Move through four collaborative phases to generate, prioritize, and defend an innovative idea.',
+        tags: ['Ideation', 'Prioritization', 'Collective vote'],
         Icon: Users,
       },
       {
@@ -1032,14 +1034,8 @@ export default function HomePage() {
         duration: '20–30 min',
         title: 'Mission Critique',
         description: 'Organize a project timeline, manage dependencies, and optimize the team’s final score.',
+        tags: ['Prioritization', 'Dependencies', 'Collaboration'],
         Icon: Target,
-      },
-      {
-        category: 'Collective engagement',
-        duration: '18–28 min',
-        title: 'Pari sur Moi',
-        description: 'Build active listening and group energy through rounds, votes, reveals, and a final ranking.',
-        Icon: Handshake,
       },
     ]
     : [
@@ -1048,6 +1044,7 @@ export default function HomePage() {
         duration: '15–20 min',
         title: 'CoPuzzle',
         description: 'Résolvez un puzzle collaboratif en temps réel grâce à la coordination et aux décisions collectives.',
+        tags: ['Collaboration', 'Coordination'],
         Icon: Sparkles,
       },
       {
@@ -1055,6 +1052,7 @@ export default function HomePage() {
         duration: '25–35 min',
         title: 'Lab d’Innovation',
         description: 'Faites émerger, priorisez et défendez une idée innovante à travers quatre phases collaboratives.',
+        tags: ['Idéation', 'Priorisation', 'Vote collectif'],
         Icon: Users,
       },
       {
@@ -1062,14 +1060,8 @@ export default function HomePage() {
         duration: '20–30 min',
         title: 'Mission Critique',
         description: 'Ordonnez une timeline de projet, gérez les dépendances et optimisez le score final de l’équipe.',
+        tags: ['Priorisation', 'Dépendances', 'Collaboration'],
         Icon: Target,
-      },
-      {
-        category: 'Engagement collectif',
-        duration: '18–28 min',
-        title: 'Pari sur Moi',
-        description: 'Développez l’écoute active et la dynamique du groupe grâce aux tours, votes, révélations et au classement final.',
-        Icon: Handshake,
       },
     ];
 
@@ -1456,7 +1448,7 @@ export default function HomePage() {
             </div>
 
             <div className="landing-challenges-grid" role="list" aria-label={locale === 'en' ? 'Challenge examples' : 'Exemples de défis'}>
-              {challengeExamples.map(({ category, duration, title, description, Icon }) => (
+              {challengeExamples.map(({ category, duration, title, description, tags, Icon }) => (
                 <article key={title} className="landing-challenge-card" role="listitem">
                   <div className="landing-challenge-card__topline">
                     <span className="landing-challenge-card__icon" aria-hidden="true">
@@ -1466,6 +1458,9 @@ export default function HomePage() {
                   </div>
                   <h3>{title}</h3>
                   <p>{description}</p>
+                  <div className="landing-challenge-card__tags" aria-label={locale === 'en' ? 'Challenge objectives' : 'Objectifs du challenge'}>
+                    {tags.map((tag) => <span key={tag}>{tag}</span>)}
+                  </div>
                 </article>
               ))}
             </div>

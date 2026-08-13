@@ -5801,6 +5801,25 @@ a {
   line-height: 1.6;
 }
 
+.landing-challenge-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 1.15rem;
+}
+
+.landing-challenge-card__tags span {
+  max-width: 100%;
+  padding: 0.3rem 0.58rem;
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  border-radius: 999px;
+  color: #bae6fd;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 900px) {
   .landing-challenges-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
