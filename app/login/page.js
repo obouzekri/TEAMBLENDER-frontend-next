@@ -1,5 +1,6 @@
 import LoginForm from './LoginForm';
 import TopNav from '@/components/TopNav';
+import Footer from '@/components/Footer';
 import { cookies } from 'next/headers';
 
 export async function generateMetadata() {
@@ -26,6 +27,7 @@ export default async function LoginPage({ searchParams }) {
         requestedMode={requestedMode}
         requestedJoinCode={requestedJoinCode}
       />
+      <Footer />
     </>
   );
 }

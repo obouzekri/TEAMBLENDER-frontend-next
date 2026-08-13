@@ -6,7 +6,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail } from 'lucide-react';
 import AuthCard from '@/components/AuthCard';
 import AuthField from '@/components/AuthField';
-import AuthShowcase from '@/components/AuthShowcase';
 import AuthSocialButtons from '@/components/AuthSocialButtons';
 import posthog from 'posthog-js';
 import { trackGtmEvent, trackProductUserEvent } from '@/lib/analytics';
@@ -451,21 +450,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
   }
 
   return (
-    <main className="shell auth-page auth-page--split">
-      <div className="auth-showcase-pane hidden lg:block">
-        <AuthShowcase
-          title={isEn ? 'Launch collaborative challenges in real time.' : 'Lancez des challenges collaboratifs en temps reel.'}
-          description={isEn
-              ? 'Access your sessions, run your team activities, and keep clear real-time visibility from a focused professional interface.'
-              : 'Retrouvez vos sessions, animez vos equipes et gardez une vision claire du realtime depuis une interface professionnelle et concentree.'}
-          highlights={[
-            { title: isEn ? 'Realtime orchestration' : 'Realtime orchestration', text: isEn ? 'Start a session, track connections, and run challenges without friction.' : 'Lancez une session, suivez les connexions et pilotez vos challenges sans friction.' },
-            { title: isEn ? 'Aligned facilitation' : 'Aligned facilitation', text: isEn ? 'Managers, HR, and facilitators share one clear premium product experience.' : 'Managers, RH et facilitateurs accedent a la meme experience produit, claire et premium.' },
-            { title: isEn ? 'Reliable access' : 'Reliable access', text: isEn ? 'Fast sign-in, clear states, and flows designed for hybrid teams.' : 'Connexion rapide, etats lisibles et parcours pensés pour des equipes hybrides.' },
-          ]}
-        />
-      </div>
-
+    <main className="auth-page auth-page--login">
       <div className={`auth-login-pane auth-login-pane--${activeTab}`}>
         <AuthCard
           title={isEn ? 'Access TeamBlender' : 'Acceder a TeamBlender'}

@@ -7698,6 +7698,42 @@ a {
   }
 }
 
+.auth-page--login {
+  width: 100%;
+  min-height: calc(100svh - var(--nav-shell-min-height, 64px));
+  margin: 0;
+  padding: 2rem 1rem 3rem;
+  display: grid;
+  place-items: center;
+}
+
+.auth-page--login .auth-login-pane {
+  width: min(100%, 32rem);
+  min-width: 0;
+  margin: 0;
+  transform: none;
+}
+
+.auth-page--login .auth-shell {
+  width: 100%;
+  margin: 0;
+}
+
+.auth-page--login .auth-card {
+  min-height: 38rem;
+}
+
+@media (max-width: 640px) {
+  .auth-page--login {
+    min-height: calc(100svh - var(--nav-shell-min-height, 64px));
+    padding: 1.25rem 0.9rem 2rem;
+  }
+
+  .auth-page--login .auth-card {
+    min-height: 0;
+  }
+}
+
 .password-toggle svg {
   width: 1.1rem;
   height: 1.1rem;
