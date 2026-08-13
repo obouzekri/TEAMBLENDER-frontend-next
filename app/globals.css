@@ -6796,28 +6796,21 @@ a {
 .landing-trusted-marquee {
   margin: clamp(1.72rem, 2.9vw, 2.35rem) 0 0;
   width: 100%;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
-  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  overflow: visible;
 }
 
 .landing-trusted-marquee-track {
-  display: flex;
-  width: max-content;
-  animation: trustedLogoMarquee 28s linear infinite;
-  will-change: transform;
-}
-
-.landing-trusted-marquee:hover .landing-trusted-marquee-track {
-  animation-play-state: paused;
+  width: 100%;
 }
 
 .landing-trusted-logos {
-  flex: none;
+  width: 100%;
   padding: 0;
   list-style: none;
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: clamp(2.75rem, 6vw, 6rem);
   padding-inline: clamp(1.125rem, 2.5vw, 2.375rem);
 }
@@ -6854,38 +6847,6 @@ a {
   letter-spacing: 0;
   color: currentColor;
 }
-
-@keyframes trustedLogoMarquee {
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-trusted-marquee {
-    -webkit-mask-image: none;
-    mask-image: none;
-    overflow: visible;
-  }
-
-  .landing-trusted-marquee-track {
-    width: 100%;
-    animation: none;
-  }
-
-  .landing-trusted-logos {
-    width: 100%;
-    flex-wrap: wrap;
-    justify-content: center;
-    row-gap: 1.5rem;
-  }
-
-  .landing-trusted-logos[aria-hidden='true'] {
-    display: none;
-  }
-}
-
-
 
 .landing-testimonials-head .landing-section-eyebrow {
   color: #7dd3fc;
@@ -7149,7 +7110,7 @@ a {
   }
 
   .landing-trusted-logos {
-    gap: 2.25rem;
+    gap: 1rem;
     padding-inline: 1.125rem;
   }
 

@@ -1536,28 +1536,24 @@ export default function HomePage() {
             </p>
             <div className="landing-trusted-marquee">
               <div className="landing-trusted-marquee-track">
-                {[false, true].map((isDuplicate) => (
-                  <ul
-                    key={isDuplicate ? 'duplicate' : 'primary'}
-                    className="landing-trusted-logos"
-                    aria-label={isDuplicate ? undefined : locale === 'en' ? 'Trusted company logos' : 'Logos des entreprises'}
-                    aria-hidden={isDuplicate || undefined}
-                  >
-                    {TRUSTED_COMPANIES.logos.map((company) => (
-                      <li
-                        key={company.name}
-                        className="landing-trusted-logo-item opacity-60 grayscale transition-opacity duration-200 hover:opacity-100"
-                        title={company.name}
-                        style={{ '--trusted-accent': company.accent || '#35507b' }}
-                      >
-                        <span className="landing-trusted-logo-mark" aria-hidden="true">
-                          <TrustedCompanyLogo company={company} />
-                        </span>
-                        <span className="landing-trusted-logo-name">{company.name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ))}
+                <ul
+                  className="landing-trusted-logos"
+                  aria-label={locale === 'en' ? 'Trusted company logos' : 'Logos des entreprises'}
+                >
+                  {TRUSTED_COMPANIES.logos.map((company) => (
+                    <li
+                      key={company.name}
+                      className="landing-trusted-logo-item opacity-60 grayscale transition-opacity duration-200 hover:opacity-100"
+                      title={company.name}
+                      style={{ '--trusted-accent': company.accent || '#35507b' }}
+                    >
+                      <span className="landing-trusted-logo-mark" aria-hidden="true">
+                        <TrustedCompanyLogo company={company} />
+                      </span>
+                      <span className="landing-trusted-logo-name">{company.name}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
