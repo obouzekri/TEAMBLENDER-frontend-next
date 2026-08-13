@@ -270,10 +270,6 @@ const LANDING_STATIC_BY_LOCALE = {
       ],
     },
     fallback: {
-      heroTitle: 'Engage and connect your teams through interactive challenges.',
-      heroTitleStructured: 'Engage and connect your teams through interactive challenges.',
-      heroDescription: 'TeamBlender transforme vos événements et programmes RH en défis d’équipe vivants, faciles à piloter et à déployer pour vos équipes hybrides.',
-      heroDescriptionStructured: 'TeamBlender transforme vos événements et programmes RH en défis d’équipe vivants, faciles à piloter et à déployer pour vos équipes hybrides.',
       heroPrimaryLabel: 'Démarrer gratuitement',
       heroSecondaryLabel: 'Voir les offres',
       finalPrimaryLabel: 'Démarrer gratuitement',
@@ -393,10 +389,6 @@ const LANDING_STATIC_BY_LOCALE = {
       ],
     },
     fallback: {
-      heroTitle: 'Engage and connect your teams through interactive challenges.',
-      heroTitleStructured: 'Engage and connect your teams through interactive challenges.',
-      heroDescription: 'TeamBlender transforme vos événements et programmes RH en défis d’équipe vivants, faciles à piloter et à déployer pour vos équipes hybrides.',
-      heroDescriptionStructured: 'TeamBlender transforme vos événements et programmes RH en défis d’équipe vivants, faciles à piloter et à déployer pour vos équipes hybrides.',
       heroPrimaryLabel: 'Get started free',
       heroSecondaryLabel: 'View plans',
       finalPrimaryLabel: 'Get started free',
@@ -795,7 +787,7 @@ function TrustProofCard({ value, label, detail, Icon, index = 0 }) {
 }
 
 export default function HomePage() {
-  const { locale, withLocalePath } = useI18n();
+  const { locale, t, withLocalePath } = useI18n();
   const defaultBlocks = useMemo(() => getLocaleDefaultBlocks(locale), [locale]);
   const landingStatic = useMemo(() => getLandingStatic(locale), [locale]);
   const [dynamicBlocks, setDynamicBlocks] = useState({});
@@ -920,8 +912,8 @@ export default function HomePage() {
   const finalCtaSecondary = finalCtaSection.blocks.final_cta_secondary || {};
   const partnersHeader = partnersSection.blocks.partners_header || {};
   const testimonialsHeader = testimonialsSection.blocks.testimonials_header || {};
-  const heroTitle = 'Engage and connect your teams through interactive challenges.';
-  const heroDescription = 'TeamBlender transforme vos événements et programmes RH en défis d’équipe vivants, faciles à piloter et à déployer pour vos équipes hybrides.';
+  const heroTitle = t('landing.heroTitle');
+  const heroDescription = t('landing.heroDescription');
   const heroPrimaryLabel = hasCmsValue(heroCtaPrimary.cta_label) ? heroCtaPrimary.cta_label : landingStatic.fallback.heroPrimaryLabel;
   const heroPrimaryHref = withLocalePath(safeHref(heroCtaPrimary.cta_href, '/signup'));
   const heroSecondaryLabel = hasCmsValue(heroCtaSecondary.cta_label) ? heroCtaSecondary.cta_label : landingStatic.fallback.heroSecondaryLabel;
@@ -1022,54 +1014,62 @@ export default function HomePage() {
   const challengeExamples = locale === 'en'
     ? [
       {
-        category: 'Onboarding',
-        duration: '15 min',
-        title: 'Icebreaker Express',
-        description: 'Build trust quickly with short prompts that get every participant involved from the start.',
-        formats: ['Hybrid', 'Remote', 'In-person'],
+        category: 'Collaboration',
+        duration: '15–20 min',
+        title: 'CoPuzzle',
+        description: 'Solve a live collaborative puzzle through shared coordination and collective decision-making.',
         Icon: Sparkles,
       },
       {
-        category: 'Cohesion',
-        duration: '45 min',
-        title: 'Cross-Team Quest',
-        description: 'Create shared momentum through a sequence of collaborative challenges across teams and locations.',
-        formats: ['Hybrid', 'Remote'],
+        category: 'Ideation',
+        duration: '25–35 min',
+        title: 'Lab d’Innovation',
+        description: 'Move through four collaborative phases to generate, prioritize, and defend an innovative idea.',
         Icon: Users,
       },
       {
-        category: 'Strategy',
-        duration: '30 min',
-        title: 'Culture Alignment',
-        description: 'Turn team values into concrete decisions, behaviors, and priorities everyone can act on.',
-        formats: ['Hybrid', 'In-person'],
+        category: 'Project management',
+        duration: '20–30 min',
+        title: 'Mission Critique',
+        description: 'Organize a project timeline, manage dependencies, and optimize the team’s final score.',
         Icon: Target,
+      },
+      {
+        category: 'Collective engagement',
+        duration: '18–28 min',
+        title: 'Pari sur Moi',
+        description: 'Build active listening and group energy through rounds, votes, reveals, and a final ranking.',
+        Icon: Handshake,
       },
     ]
     : [
       {
-        category: 'Onboarding',
-        duration: '15 min',
-        title: 'Icebreaker Express',
-        description: 'Créez rapidement de la confiance avec des questions courtes qui impliquent chaque participant.',
-        formats: ['Hybride', 'À distance', 'Présentiel'],
+        category: 'Collaboration',
+        duration: '15–20 min',
+        title: 'CoPuzzle',
+        description: 'Résolvez un puzzle collaboratif en temps réel grâce à la coordination et aux décisions collectives.',
         Icon: Sparkles,
       },
       {
-        category: 'Cohésion',
-        duration: '45 min',
-        title: 'Cross-Team Quest',
-        description: 'Créez une dynamique commune grâce à une série de défis collaboratifs entre équipes et sites.',
-        formats: ['Hybride', 'À distance'],
+        category: 'Idéation',
+        duration: '25–35 min',
+        title: 'Lab d’Innovation',
+        description: 'Faites émerger, priorisez et défendez une idée innovante à travers quatre phases collaboratives.',
         Icon: Users,
       },
       {
-        category: 'Stratégie',
-        duration: '30 min',
-        title: 'Culture Alignment',
-        description: 'Transformez les valeurs d’équipe en décisions, comportements et priorités concrètes.',
-        formats: ['Hybride', 'Présentiel'],
+        category: 'Gestion de projet',
+        duration: '20–30 min',
+        title: 'Mission Critique',
+        description: 'Ordonnez une timeline de projet, gérez les dépendances et optimisez le score final de l’équipe.',
         Icon: Target,
+      },
+      {
+        category: 'Engagement collectif',
+        duration: '18–28 min',
+        title: 'Pari sur Moi',
+        description: 'Développez l’écoute active et la dynamique du groupe grâce aux tours, votes, révélations et au classement final.',
+        Icon: Handshake,
       },
     ];
 
@@ -1198,7 +1198,7 @@ export default function HomePage() {
               </p>
 
               <p className="landing-hero-keyline mt-3 max-w-2xl text-sm font-semibold tracking-wide text-indigo-700 sm:text-base">
-                Lancez des défis engageants, suivez la dynamique en direct et faites émerger des résultats concrets.
+                {t('landing.heroKeyline')}
               </p>
 
               <span className="block h-6" aria-hidden="true" />
@@ -1455,8 +1455,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="landing-challenges-grid" role="list" aria-label={locale === 'en' ? 'Available challenge formats' : 'Formats de défis disponibles'}>
-              {challengeExamples.map(({ category, duration, title, description, formats, Icon }) => (
+            <div className="landing-challenges-grid" role="list" aria-label={locale === 'en' ? 'Challenge examples' : 'Exemples de défis'}>
+              {challengeExamples.map(({ category, duration, title, description, Icon }) => (
                 <article key={title} className="landing-challenge-card" role="listitem">
                   <div className="landing-challenge-card__topline">
                     <span className="landing-challenge-card__icon" aria-hidden="true">
@@ -1466,13 +1466,6 @@ export default function HomePage() {
                   </div>
                   <h3>{title}</h3>
                   <p>{description}</p>
-                  <div className="landing-challenge-card__formats" aria-label={locale === 'en' ? 'Supported formats' : 'Formats supportés'}>
-                    {formats.map((format) => <span key={format}>{format}</span>)}
-                  </div>
-                  <Link href={withLocalePath('/pricing')} className="landing-challenge-card__link">
-                    {locale === 'en' ? 'View format' : 'Voir le format'}
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
                 </article>
               ))}
             </div>
