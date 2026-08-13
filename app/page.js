@@ -1018,6 +1018,59 @@ export default function HomePage() {
   const glassCardClass = 'rounded-3xl border border-white/60 bg-white/75 shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl';
   const pillClass = 'inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition-all duration-200 ease-in-out';
   const chipClass = 'inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-md transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-md';
+  const challengeExamples = locale === 'en'
+    ? [
+      {
+        category: 'Onboarding',
+        duration: '15 min',
+        title: 'Icebreaker Express',
+        description: 'Build trust quickly with short prompts that get every participant involved from the start.',
+        formats: ['Hybrid', 'Remote', 'In-person'],
+        Icon: Sparkles,
+      },
+      {
+        category: 'Cohesion',
+        duration: '45 min',
+        title: 'Cross-Team Quest',
+        description: 'Create shared momentum through a sequence of collaborative challenges across teams and locations.',
+        formats: ['Hybrid', 'Remote'],
+        Icon: Users,
+      },
+      {
+        category: 'Strategy',
+        duration: '30 min',
+        title: 'Culture Alignment',
+        description: 'Turn team values into concrete decisions, behaviors, and priorities everyone can act on.',
+        formats: ['Hybrid', 'In-person'],
+        Icon: Target,
+      },
+    ]
+    : [
+      {
+        category: 'Onboarding',
+        duration: '15 min',
+        title: 'Icebreaker Express',
+        description: 'Créez rapidement de la confiance avec des questions courtes qui impliquent chaque participant.',
+        formats: ['Hybride', 'À distance', 'Présentiel'],
+        Icon: Sparkles,
+      },
+      {
+        category: 'Cohésion',
+        duration: '45 min',
+        title: 'Cross-Team Quest',
+        description: 'Créez une dynamique commune grâce à une série de défis collaboratifs entre équipes et sites.',
+        formats: ['Hybride', 'À distance'],
+        Icon: Users,
+      },
+      {
+        category: 'Stratégie',
+        duration: '30 min',
+        title: 'Culture Alignment',
+        description: 'Transformez les valeurs d’équipe en décisions, comportements et priorités concrètes.',
+        formats: ['Hybride', 'Présentiel'],
+        Icon: Target,
+      },
+    ];
 
   useEffect(() => {
     if (!isLandingCmsStrict || !landingLoaded) return;
@@ -1377,6 +1430,51 @@ export default function HomePage() {
                 );
               })}
             </ul>
+          </div>
+        </section>
+
+        <section
+          className="landing-challenges-section landing-section-full relative overflow-hidden p-6 sm:p-10"
+          style={{ '--reveal-delay': '150ms' }}
+          aria-label={locale === 'en' ? 'Challenge examples' : 'Exemples de défis'}
+        >
+          <div className="landing-section-rupture landing-section-rupture--accent" />
+          <div className="landing-section-inner relative">
+            <div className="landing-challenges-head">
+              <div>
+                <p className="eyebrow landing-section-eyebrow">{locale === 'en' ? 'Challenge library' : 'Bibliothèque de défis'}</p>
+                <h2 className="landing-section-title text-white">
+                  {locale === 'en' ? 'Explore interactive challenge formats' : 'Exemples de défis prêts à l’emploi'}
+                </h2>
+                <p className="landing-challenges-subtitle">
+                  {locale === 'en'
+                    ? 'Short, structured formats designed for every team objective.'
+                    : 'Des formats courts, structurés et adaptés à tous vos enjeux d’équipe.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="landing-challenges-grid" role="list" aria-label={locale === 'en' ? 'Available challenge formats' : 'Formats de défis disponibles'}>
+              {challengeExamples.map(({ category, duration, title, description, formats, Icon }) => (
+                <article key={title} className="landing-challenge-card" role="listitem">
+                  <div className="landing-challenge-card__topline">
+                    <span className="landing-challenge-card__icon" aria-hidden="true">
+                      <Icon className="h-5 w-5" strokeWidth={2.2} />
+                    </span>
+                    <span className="landing-challenge-card__meta">{category} · {duration}</span>
+                  </div>
+                  <h3>{title}</h3>
+                  <p>{description}</p>
+                  <div className="landing-challenge-card__formats" aria-label={locale === 'en' ? 'Supported formats' : 'Formats supportés'}>
+                    {formats.map((format) => <span key={format}>{format}</span>)}
+                  </div>
+                  <Link href={withLocalePath('/pricing')} className="landing-challenge-card__link">
+                    {locale === 'en' ? 'View format' : 'Voir le format'}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
