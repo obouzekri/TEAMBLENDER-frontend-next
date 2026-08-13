@@ -26,6 +26,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
+import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import { trackGaEvent } from '@/lib/analytics';
 import { getApiUrl } from '@/lib/config';
