@@ -453,7 +453,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     <main className="auth-page auth-page--login">
       <div className={`auth-login-pane auth-login-pane--${activeTab}`}>
         <AuthCard
-          title={isEn ? 'Access TeamBlender' : 'Acceder a TeamBlender'}
+          title={isEn ? 'Access TeamBlender' : 'Accéder à TeamBlender'}
           footer={<span>{isEn ? 'No account yet? ' : 'Pas encore de compte ? '}<Link href={withLocalePath('/signup')}>{isEn ? 'Create account' : 'Créer un compte'}</Link></span>}
         >
           <div className="auth-tabs" role="tablist" aria-label={isEn ? 'Select connection mode' : 'Selectionner le mode de connexion'}>
@@ -495,7 +495,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
             className="auth-tab-panel"
           >
             <form onSubmit={onJoinInstant} className="auth-form auth-form--join" autoComplete="off">
-              <AuthField id="join-session-code" label={isEn ? 'Session code' : 'Code de session'}>
+              <AuthField id="join-session-code" label={isEn ? 'Session code *' : 'Code de session *'}>
                 <input
                   id="join-session-code"
                   type="text"
@@ -526,7 +526,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                 </button>
               ) : null}
               <div className="auth-field-grid auth-field-grid--join">
-                <AuthField id="join-first-name" label={isEn ? 'First name' : 'Prenom'}>
+                <AuthField id="join-first-name" label={isEn ? 'First name *' : 'Prénom *'}>
                   <input
                     id="join-first-name"
                     type="text"
@@ -538,7 +538,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                     required
                   />
                 </AuthField>
-                <AuthField id="join-last-name" label={isEn ? 'Last name' : 'Nom'}>
+                <AuthField id="join-last-name" label={isEn ? 'Last name *' : 'Nom *'}>
                   <input
                     id="join-last-name"
                     type="text"
@@ -568,10 +568,11 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                 disabled={joinLoading || !canSubmitJoin}
                 aria-busy={joinLoading}
               >
-                {joinLoading ? (isEn ? 'Joining...' : 'Connexion...') : (isEn ? 'Join session' : 'Rejoindre la session')}
+                {joinLoading ? (isEn ? 'Joining...' : 'Connexion...') : <>{isEn ? 'Join session' : 'Rejoindre la session'} <span aria-hidden="true">→</span></>}
               </button>
               {joinMessage ? <p className="form-error">{joinMessage}</p> : null}
             </form>
+            <p className="auth-required-note">* {isEn ? 'Required fields' : 'Champs obligatoires'}</p>
           </div>
 
           <div
