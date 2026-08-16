@@ -1394,33 +1394,27 @@ export default function SessionBuilder() {
   }
 
   const invitePanel = sessionId ? (
-    <div className={styles.inviteCard}>
-      <div className={styles.inviteCardHeader}>
-        <div>
-          <p className={styles.inviteEyebrow}>{t('sessionBuilder.inviteEyebrow')}</p>
-          <strong>{t('sessionBuilder.inviteTitle')}</strong>
-        </div>
-        <span className={styles.inviteBadge}>{t('sessionBuilder.inviteAssignedCount', { count: Number(sessionInvite?.assigned_participant_count || sessionParticipantCount || 0) })}</span>
-      </div>
-      <p className={styles.inviteBody}>{t('sessionBuilder.inviteBody')}</p>
-      <div className={styles.inviteFieldRow}>
-        <div className={styles.inviteFieldBlock}>
-          <span>{t('sessionBuilder.inviteLinkLabel')}</span>
-          <div className={styles.inviteFieldValue}>{inviteLink || '...'}</div>
-        </div>
-        <button type="button" className="btn-secondary" onClick={() => handleCopyInviteValue(inviteLink, 'link')}>
-          {inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
-        </button>
-      </div>
-      <div className={styles.inviteFieldRow}>
-        <div className={styles.inviteFieldBlock}>
-          <span>{t('sessionBuilder.inviteCodeLabel')}</span>
-          <div className={styles.inviteCodeValue}>{String(sessionInvite?.code || '').trim() || '...'}</div>
-        </div>
-        <button type="button" className="btn-secondary" onClick={() => handleCopyInviteValue(sessionInvite?.code, 'code')}>
-          {inviteCopyState === 'code' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteCode')}
-        </button>
-      </div>
+    <div className={styles.inviteInline}>
+      <span className={styles.inviteInlineLabel}>{t('sessionBuilder.inviteEyebrow')}</span>
+      <span className={styles.inviteLinkValue} title={inviteLink || t('sessionBuilder.inviteLinkLabel')}>
+        {inviteLink || '...'}
+      </span>
+      <button
+        type="button"
+        className={styles.inviteCodeValue}
+        onClick={() => handleCopyInviteValue(sessionInvite?.code, 'code')}
+        title={inviteCopyState === 'code' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteCode')}
+      >
+        {String(sessionInvite?.code || '').trim() || '...'}
+      </button>
+      <button
+        type="button"
+        className={styles.inviteCopyButton}
+        onClick={() => handleCopyInviteValue(inviteLink, 'link')}
+        title={inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
+      >
+        {inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
+      </button>
     </div>
   ) : null;
 

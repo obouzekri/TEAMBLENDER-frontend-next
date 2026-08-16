@@ -2,6 +2,7 @@
 
 import styles from './SessionBuilderHeader.module.css';
 import useI18n from '@/lib/i18n/useI18n';
+import { Settings } from 'lucide-react';
 
 export default function SessionBuilderHeader({
   sessionName,
@@ -24,11 +25,11 @@ export default function SessionBuilderHeader({
     <section className={styles.summaryBar} aria-label={t('sessionBuilder.sessionSummaryAria')}>
       <header className={styles.summaryContent}>
         <div className={styles.summaryLeft}>
-          <p className={styles.summaryEyebrow}>{t('sessionBuilder.headerEyebrow')}</p>
-          <h1 className={styles.summaryTitle}>{t('sessionBuilder.headerTitle')}</h1>
+          <div className={styles.summaryTitleRow}>
+            <h1 className={styles.summaryTitle}>{resolvedSessionName}</h1>
+            <span className={styles.statusBadge}>{t('sessionBuilder.statusDraft')}</span>
+          </div>
           <p className={styles.summaryMeta}>
-            <span className={styles.summaryName}>{resolvedSessionName}</span>
-            <span aria-hidden="true" className={styles.dot}>•</span>
             <span>{t('sessionBuilder.headerParticipants', { count: participantCount })}</span>
             <span aria-hidden="true" className={styles.dot}>•</span>
             <span>{selectedCount} {selectedCount === 1 ? t('sessionBuilder.activitySingular') : t('sessionBuilder.activityPlural')}</span>
@@ -37,18 +38,19 @@ export default function SessionBuilderHeader({
           </p>
         </div>
 
-        <div className={styles.actions}>
+        <div className={styles.invitePanel}>
           {invitePanel ? (
-            <div className={styles.invitePanel}>
-              {invitePanel}
-            </div>
+            invitePanel
           ) : null}
+        </div>
+
+        <div className={styles.actions}>
           <button
             type="button"
-            className={`btn-secondary ${styles.actionBtn}`}
+            className={`${styles.actionBtn} ${styles.detailsAction}`}
             onClick={onEditSessionInfo}
           >
-            {t('sessionBuilder.editSessionDetails')}
+            <Settings size={14} strokeWidth={2} aria-hidden="true" /> {t('sessionBuilder.editSessionDetails')}
           </button>
           <button
             type="button"
