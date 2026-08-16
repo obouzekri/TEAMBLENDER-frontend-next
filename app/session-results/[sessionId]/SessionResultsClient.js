@@ -220,8 +220,8 @@ export default function SessionResultsClient() {
               )}
               <div className="session-results-rows">
                 {rows.map((r) => {
-                  const name = [r.participant?.firstname, r.participant?.last_name]
-                    .filter(Boolean).join(' ') || r.participant?.email || `${isEn ? 'Participant' : 'Participant'} ${r.participant_id}`;
+                  const name = String(r.participant_name || r.participant_name_snapshot || '').trim()
+                    || `${isEn ? 'Participant' : 'Participant'} ${r.participant_id}`;
                   const duration = r.completed_at && r.created_at
                     ? formatDuration(new Date(r.completed_at) - new Date(r.created_at))
                     : '—';

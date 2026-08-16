@@ -832,9 +832,30 @@ export default function ManagerHome() {
     if (!member?.id || deletingMemberId) return;
 
     const label = member.email || `${getParticipantFirstName(member)} ${getParticipantLastName(member)}`.trim() || `Participant #${member.id}`;
-    const accepted = window.confirm(isEn
-      ? `Delete ${label}? This action is irreversible.`
-      : `Supprimer ${label} ? Cette action est irreversible.`);
+
+    let hasParticipations = false;
+    try {
+      const summaryResponse = await fetch(getApiUrl(`/participants/${encodeURIComponent(member.id)}/participation-summary`), {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
+      if (summaryResponse.ok) {
+        const summary = await summaryResponse.json();
+        hasParticipations = Boolean(summary?.has_participations);
+      }
+    } catch {
+      hasParticipations = false;
+    }
+
+    const participationWarning = isEn
+      ? `This participant has already taken part in games.\nTheir record will be permanently deleted.\nTheir name will remain visible in historical reports to preserve the consistency of results.\nThis action is irreversible.`
+      : `Ce participant a déjà participé à des jeux.\nSa fiche sera supprimée définitivement.\nSon nom restera visible dans les rapports historiques afin de préserver la cohérence des résultats.\nCette action est irréversible.`;
+
+    const accepted = window.confirm(hasParticipations
+      ? `${label}\n\n${participationWarning}`
+      : (isEn
+        ? `Delete ${label}? This action is irreversible.`
+        : `Supprimer ${label} ? Cette action est irreversible.`));
     if (!accepted) return;
 
     setDeletingMemberId(member.id);
