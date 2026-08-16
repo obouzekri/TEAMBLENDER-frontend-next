@@ -8357,9 +8357,9 @@ a {
 .home-hero-summary {
   align-self: stretch;
   display: grid;
-  gap: 0.8rem;
-  padding: 1.1rem 1.15rem;
-  border-radius: 22px;
+  gap: 0.45rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 16px;
   border: 1px solid rgba(53, 160, 255, 0.2);
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.88) 0%, rgba(231, 238, 255, 0.72) 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.66), 0 14px 28px rgba(20, 31, 25, 0.08);
@@ -8376,7 +8376,7 @@ a {
 
 .home-hero-summary__title {
   color: var(--ink);
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   line-height: 1.35;
 }
 
@@ -13583,7 +13583,10 @@ a {
 .home-quickview-guide-cta {
   width: 100%;
   justify-content: center;
-  margin-top: 0.2rem;
+  min-height: 2.25rem;
+  margin-top: 0.1rem;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.82rem;
   border-color: rgba(53, 160, 255, 0.28);
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.94) 0%, rgba(235, 244, 255, 0.9) 100%);
 }

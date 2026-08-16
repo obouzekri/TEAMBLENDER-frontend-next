@@ -224,12 +224,6 @@ function getStartupGuideSteps(isEn) {
   ]);
 }
 
-function getManagerBenefits(isEn) {
-  return Object.freeze(isEn
-    ? ['Guided preparation', 'Structured live facilitation', 'Actionable outcomes']
-    : ['Preparation guidee', 'Animation live structuree', 'Resultats actionnables']);
-}
-
 function MobileActionMenu({ triggerLabel, menuLabel, items, closeSignal }) {
   const [isOpen, setIsOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
@@ -353,8 +347,6 @@ export default function ManagerHome() {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
   const startupGuideSteps = useMemo(() => getStartupGuideSteps(isEn), [isEn]);
-  const managerBenefits = useMemo(() => getManagerBenefits(isEn), [isEn]);
-  const [activeTrustIndex, setActiveTrustIndex] = useState(0);
   const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
   const guard = useManagerGuard();
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
@@ -601,29 +593,6 @@ export default function ManagerHome() {
 
   function closeStartupGuide() {
     setIsStartupGuideOpen(false);
-  }
-
-  function handleTrustScroll(event) {
-    const container = event.currentTarget;
-    if (!container) return;
-
-    const items = Array.from(container.querySelectorAll('[data-benefit-index]'));
-    if (!items.length) return;
-
-    const containerLeft = container.getBoundingClientRect().left;
-    let closestIndex = 0;
-    let closestDistance = Number.POSITIVE_INFINITY;
-
-    items.forEach((item) => {
-      const index = Number(item.getAttribute('data-benefit-index'));
-      const distance = Math.abs(item.getBoundingClientRect().left - containerLeft);
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestIndex = Number.isFinite(index) ? index : 0;
-      }
-    });
-
-    setActiveTrustIndex(closestIndex);
   }
 
   function logout() {
@@ -915,24 +884,8 @@ export default function ManagerHome() {
               <h1 className="home-hero-greeting">{isEn ? `Hello ${userLabel}` : `Bonjour ${userLabel}`}</h1>
               <p>{isEn
                 ? 'Plan, launch, and analyze your gamified team workshops in one clear, actionable workspace.'
-                : 'Planifiez, lancez et analysez vos ateliers gamifies dans un espace clair et actionnable.'}</p>
+                : 'Planifiez, lancez et analysez vos ateliers gamifiés dans un espace clair et actionnable.'}</p>
               <div className="hero-actions home-hero-actions">
-                <Link
-                  className={`btn-primary home-create-cta ${canCreateSession ? '' : 'is-disabled'}`}
-                  href={withLocalePath('/session-builder')}
-                  onClick={handleCreateSessionClick}
-                  aria-disabled={!canCreateSession}
-                  title={canCreateSession ? (isEn ? 'Create session' : 'Créer une session') : createSessionBlockedReason}
-                >
-                  {isEn ? 'Create session' : 'Créer une session'}
-                </Link>
-                <button
-                  type="button"
-                  className="btn-secondary home-create-participants-cta"
-                  onClick={openNewMemberForm}
-                >
-                  {isEn ? 'Create participants' : 'Créer des participants'}
-                </button>
                 {guard.user?.role === 'admin' && (
                   <Link className="btn-secondary" href={withLocalePath('/admin')}>
                     {isEn ? 'Admin console' : 'Console admin'}
@@ -942,24 +895,6 @@ export default function ManagerHome() {
               {!canCreateSession ? (
                 <p className="home-prerequisite-hint" role="status">{createSessionBlockedReason}</p>
               ) : null}
-              <div className="home-hero-trust-wrap">
-                <div className="home-hero-trust" aria-label={isEn ? 'Manager benefits' : 'Benefices manager'} onScroll={handleTrustScroll}>
-                  {managerBenefits.map((benefit, index) => (
-                    <span
-                      key={benefit}
-                      data-benefit-index={index}
-                      className={activeTrustIndex === index ? 'is-active' : ''}
-                    >
-                      {benefit}
-                    </span>
-                  ))}
-                </div>
-                <div className="home-hero-trust-dots" aria-hidden="true">
-                  {managerBenefits.map((benefit, index) => (
-                    <span key={benefit} className={activeTrustIndex === index ? 'is-active' : ''} />
-                  ))}
-                </div>
-              </div>
             </div>
 
             <aside className="home-hero-summary" aria-label={isEn ? 'Manager summary' : 'Resume manager'}>
@@ -967,11 +902,6 @@ export default function ManagerHome() {
               <strong className="home-hero-summary__title">
                 {isEn ? 'A simple cockpit to run your sessions.' : 'Un cockpit simple pour piloter vos sessions.'}
               </strong>
-              <ul className="home-hero-summary__list">
-                <li>{isEn ? 'Create and configure sessions without friction' : 'Creer et configurer des sessions sans friction'}</li>
-                <li>{isEn ? 'Track active and upcoming sessions in one place' : 'Suivre les sessions actives et a venir au meme endroit'}</li>
-                <li>{isEn ? 'Keep a ready-to-use participant base for future rituals' : 'Maintenir une base participants prete pour les prochains rituels'}</li>
-              </ul>
               <button
                 type="button"
                 className="btn-secondary home-quickview-guide-cta"
@@ -993,21 +923,21 @@ export default function ManagerHome() {
             </p>
           </article>
           <article className="feature-card stat-card stat-card-ready">
-            <p className="eyebrow">{isEn ? 'TO CONFIGURE' : 'A CONFIGURER'}</p>
+            <p className="eyebrow">{isEn ? 'TO CONFIGURE' : 'À CONFIGURER'}</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.preparee}</h2>
             <p>
               {isEn
                 ? `preparing session${sessionStats.preparee !== 1 ? 's' : ''}`
-                : `session${sessionStats.preparee !== 1 ? 's' : ''} en preparation`}
+                : `session${sessionStats.preparee !== 1 ? 's' : ''} en préparation`}
             </p>
           </article>
           <article className="feature-card stat-card stat-card-done">
-            <p className="eyebrow">{isEn ? 'COMPLETED' : 'TERMINEES'}</p>
+            <p className="eyebrow">{isEn ? 'COMPLETED' : 'TERMINÉES'}</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.terminee}</h2>
             <p>
               {isEn
                 ? `completed session${sessionStats.terminee !== 1 ? 's' : ''}`
-                : `session${sessionStats.terminee !== 1 ? 's' : ''} terminee${sessionStats.terminee !== 1 ? 's' : ''}`}
+                : `session${sessionStats.terminee !== 1 ? 's' : ''} terminée${sessionStats.terminee !== 1 ? 's' : ''}`}
             </p>
 
           </article>
@@ -1018,7 +948,7 @@ export default function ManagerHome() {
             <div>
               <p className="eyebrow">{isEn ? 'YOUR SESSIONS' : 'VOS SESSIONS'}</p>
               <h2>{isEn ? 'My sessions' : 'Mes sessions'}</h2>
-              <p>{isEn ? 'Track preparing, active, and completed sessions from one panel.' : 'Suivez les sessions en preparation, actives et terminees depuis un seul panneau.'}</p>
+              <p>{isEn ? 'Track preparing, active, and completed sessions from one panel.' : 'Suivez les sessions en préparation, actives et terminées depuis un seul panneau.'}</p>
             </div>
             <Link
               className={`btn-primary ${canCreateSession ? '' : 'is-disabled'}`}
@@ -1076,7 +1006,7 @@ export default function ManagerHome() {
                       <p className="session-title">{session.name || `Session #${sessionIdentifier}`}</p>
                       <p className="session-meta">
                         <span className={`status-pill ${statusClass}`}>
-                          {STATUS_LABEL[session.status] || session.status || (isEn ? 'Preparing' : 'En preparation')}
+                          {STATUS_LABEL[session.status] || session.status || (isEn ? 'Preparing' : 'En préparation')}
                         </span>
                         {session.session_date ? (
                           <span className="session-date">{formatSessionDate(session.session_date, locale)}</span>
