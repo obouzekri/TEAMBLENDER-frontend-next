@@ -87,6 +87,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const [transientQuestionResult, setTransientQuestionResult] = useState(null);
   const previousRanksRef = useRef({});
   const lastQuestionIdRef = useRef('');
+  const submittedAnswersByQuestionIdRef = useRef({});
   const lastChatMessageIdRef = useRef('');
   const localTransitionTimerRef = useRef(null);
   const phaseFadeTimerRef = useRef(null);
@@ -346,11 +347,19 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
   function handleSubmitAnswer() {
     if (!Number.isInteger(Number(selectedAnswerIndex)) || answerLocked) return;
+    submittedAnswersByQuestionIdRef.current[getQuestionId(quiz)] = Number(selectedAnswerIndex);
     emitEvent('quiz.answer.submit', {
       selected_option: Number(selectedAnswerIndex),
     });
     setAnswerLocked(true);
   }
+
+  const myResultQuestionId = String(
+    transientQuestionResult?.question_id
+    ?? quiz?.latest_question_result?.question_id
+    ?? ''
+  ) || getQuestionId(quiz);
+  const mySelectedAnswerForResult = submittedAnswersByQuestionIdRef.current[myResultQuestionId];
 
   useEffect(() => {
     if (activePhase !== 'question_live' || isFacilitator) return;
@@ -393,7 +402,14 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
       return <QuizLeaderboardScreen isEn={isEn} quiz={phaseQuizView} rankMovementByParticipantId={rankMovementByParticipantId} />;
     }
     if (renderedPhase === 'question_result') {
-      return <QuizQuestionResultScreen isEn={isEn} quiz={phaseQuizView} />;
+      return (
+        <QuizQuestionResultScreen
+          isEn={isEn}
+          quiz={phaseQuizView}
+          mySelectedAnswerIndex={mySelectedAnswerForResult}
+          isFacilitator={isFacilitator}
+        />
+      );
     }
     if (renderedPhase === 'final_score') {
       return <QuizFinalScreen isEn={isEn} quiz={phaseQuizView} />;

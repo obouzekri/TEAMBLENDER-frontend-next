@@ -190,7 +190,7 @@ export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByPartic
   );
 }
 
-export function QuizQuestionResultScreen({ isEn = false, quiz }) {
+export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerIndex = null, isFacilitator = false }) {
   const result = quiz.latest_question_result || {};
   const currentQuestion = normalizeQuestion(quiz, isEn);
   const serverAnswerIndex = Number(result.correct_choice_index);
@@ -202,6 +202,19 @@ export function QuizQuestionResultScreen({ isEn = false, quiz }) {
     ? currentQuestion.options[answerIndex].label
     : (isEn ? 'Answer unavailable' : 'Réponse non disponible');
 
+  const hasMyAnswer = Number.isInteger(Number(mySelectedAnswerIndex));
+  const myAnswerIsCorrect = hasMyAnswer && Number.isInteger(answerIndex) && Number(mySelectedAnswerIndex) === answerIndex;
+  const myAnswerBadgeClass = !hasMyAnswer
+    ? styles.myAnswerBadgeNone
+    : myAnswerIsCorrect
+      ? styles.myAnswerBadgeCorrect
+      : styles.myAnswerBadgeIncorrect;
+  const myAnswerBadgeLabel = !hasMyAnswer
+    ? (isEn ? 'No answer submitted' : 'Aucune réponse envoyée')
+    : myAnswerIsCorrect
+      ? (isEn ? 'Your answer was correct' : 'Votre réponse est correcte')
+      : (isEn ? 'Your answer was incorrect' : 'Votre réponse est incorrecte');
+
   return (
     <section className={styles.screenCard}>
       <div className={styles.screenHeader}>
@@ -211,6 +224,10 @@ export function QuizQuestionResultScreen({ isEn = false, quiz }) {
         </div>
         <span className={styles.phaseBadge}>Reveal</span>
       </div>
+
+      {!isFacilitator ? (
+        <p className={`${styles.myAnswerBadge} ${myAnswerBadgeClass}`}>{myAnswerBadgeLabel}</p>
+      ) : null}
 
       <div className={styles.highlightPanel}>
         <p className={styles.highlightValue}>
