@@ -463,12 +463,28 @@ function mergeChallengeConfig(baseConfig, overrideConfig) {
   };
 }
 
+function getInitialChallengeConfig(challenge) {
+  const merged = mergeChallengeConfig(challenge?.engine_config, challenge?.config);
+  if (String(challenge?.engine_key || '').toLowerCase() !== 'labyrinthe_live_v1') return merged;
+
+  return {
+    ...merged,
+    rows: 10,
+    cols: 10,
+    grid: {
+      ...(merged.grid || {}),
+      rows: 10,
+      cols: 10,
+    },
+  };
+}
+
 export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   const { locale } = useI18n();
   useBodyScrollLock(true);
   const isEn = locale === 'en';
   const txt = (frText, enText) => (isEn ? enText : frText);
-  const [config, setConfig] = useState(() => mergeChallengeConfig(challenge?.engine_config, challenge?.config));
+  const [config, setConfig] = useState(() => getInitialChallengeConfig(challenge));
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const copuzzleDefaultImages = normalizeCopuzzleDefaultImages(
@@ -478,7 +494,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   );
 
   useEffect(() => {
-    setConfig(mergeChallengeConfig(challenge?.engine_config, challenge?.config));
+    setConfig(getInitialChallengeConfig(challenge));
   }, [challenge]);
 
   function getChallengeKind(current) {

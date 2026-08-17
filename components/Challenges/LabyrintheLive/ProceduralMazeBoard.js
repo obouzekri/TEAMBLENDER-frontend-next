@@ -181,11 +181,15 @@ function chooseBoundaryStarts(rows, cols) {
   ];
 }
 
-function pickFarthestExit(entries, exits) {
+function pickFarthestExit(cells, entries, exits) {
   if (exits.length === 0) return 0;
   return exits
     .map((candidate) => {
-      const minDistance = entries.reduce((min, entry) => Math.min(min, Math.abs(candidate - entry)), Number.POSITIVE_INFINITY);
+      const end = [cells.length - 1, candidate];
+      const minDistance = entries.reduce((min, entry) => {
+        const path = shortestPath(cells, [0, entry], end);
+        return path.length > 0 ? Math.min(min, path.length - 1) : Number.NEGATIVE_INFINITY;
+      }, Number.POSITIVE_INFINITY);
       return { candidate, minDistance };
     })
     .sort((a, b) => b.minDistance - a.minDistance)[0].candidate;
@@ -249,10 +253,9 @@ function generateLayout(options) {
 
   const cells = buildPerfectMaze(rows, cols, random);
   const entries = chooseBoundaryStarts(rows, cols);
-  const topEntries = entries.filter((entry) => entry[0] === 0);
   const exits = [Math.max(1, Math.floor(cols * 0.18)), Math.max(2, Math.floor(cols * 0.5)), Math.min(cols - 2, Math.floor(cols * 0.82))];
   const correctEntry = entries[0];
-  const correctExitCol = pickFarthestExit(topEntries.map((entry) => entry[1]), exits);
+  const correctExitCol = pickFarthestExit(cells, entries, exits);
 
   entries.forEach(([row, col]) => {
     if (row === 0) cells[row][col].N = true;
