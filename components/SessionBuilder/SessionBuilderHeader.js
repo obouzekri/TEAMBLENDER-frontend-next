@@ -2,7 +2,7 @@
 
 import styles from './SessionBuilderHeader.module.css';
 import useI18n from '@/lib/i18n/useI18n';
-import { Settings } from 'lucide-react';
+import { Clock3, ListChecks, Settings, Users } from 'lucide-react';
 
 export default function SessionBuilderHeader({
   sessionName,
@@ -29,13 +29,23 @@ export default function SessionBuilderHeader({
             <h1 className={styles.summaryTitle}>{resolvedSessionName}</h1>
             <span className={styles.statusBadge}>{t('sessionBuilder.statusDraft')}</span>
           </div>
-          <p className={styles.summaryMeta}>
-            <span>{t('sessionBuilder.headerParticipants', { count: participantCount })}</span>
-            <span aria-hidden="true" className={styles.dot}>•</span>
-            <span>{selectedCount} {selectedCount === 1 ? t('sessionBuilder.activitySingular') : t('sessionBuilder.activityPlural')}</span>
-            <span aria-hidden="true" className={styles.dot}>•</span>
-            <span>{minutes} min</span>
-          </p>
+          <div className={styles.summaryStats} aria-label={t('sessionBuilder.sessionSummaryAria')}>
+            <span className={styles.summaryStat}>
+              <Users size={15} strokeWidth={2.2} aria-hidden="true" />
+              <strong>{participantCount}</strong>
+              <span>{t('sessionBuilder.headerParticipants', { count: '' }).replace(/^\s*/, '')}</span>
+            </span>
+            <span className={styles.summaryStat}>
+              <ListChecks size={15} strokeWidth={2.2} aria-hidden="true" />
+              <strong>{selectedCount}</strong>
+              <span>{selectedCount === 1 ? t('sessionBuilder.activitySingular') : t('sessionBuilder.activityPlural')}</span>
+            </span>
+            <span className={styles.summaryStat}>
+              <Clock3 size={15} strokeWidth={2.2} aria-hidden="true" />
+              <strong>{minutes}</strong>
+              <span>min</span>
+            </span>
+          </div>
         </div>
 
         <div className={styles.invitePanel}>
