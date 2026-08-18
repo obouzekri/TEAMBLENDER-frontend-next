@@ -2,7 +2,7 @@
 
 import styles from './SessionBuilderHeader.module.css';
 import useI18n from '@/lib/i18n/useI18n';
-import { Clock3, ListChecks, Settings, Users } from 'lucide-react';
+import { Clock3, ListChecks, Pencil, Save, Users } from 'lucide-react';
 
 export default function SessionBuilderHeader({
   sessionName,
@@ -24,8 +24,8 @@ export default function SessionBuilderHeader({
   return (
     <section className={styles.summaryBar} aria-label={t('sessionBuilder.sessionSummaryAria')}>
       <header className={styles.summaryContent}>
-        <div className={styles.summaryLeft}>
-          <div className={styles.summaryTitleRow}>
+        <div className={styles.summaryTop}>
+          <div className={styles.summaryLeft}>
             <h1 className={styles.summaryTitle}>{resolvedSessionName}</h1>
             <span className={styles.statusBadge}>{t('sessionBuilder.statusDraft')}</span>
           </div>
@@ -48,28 +48,28 @@ export default function SessionBuilderHeader({
           </div>
         </div>
 
-        <div className={styles.invitePanel}>
-          {invitePanel ? (
-            invitePanel
-          ) : null}
-        </div>
+        {invitePanel ? <div className={styles.invitePanel}>{invitePanel}</div> : null}
 
         <div className={styles.actions}>
           <button
             type="button"
-            className={`${styles.actionBtn} ${styles.detailsAction}`}
+            className={`${styles.iconAction}`}
             onClick={onEditSessionInfo}
+            aria-label={t('sessionBuilder.editSessionDetails')}
+            title={t('sessionBuilder.editSessionDetails')}
           >
-            <Settings size={14} strokeWidth={2} aria-hidden="true" /> {t('sessionBuilder.editSessionDetails')}
+            <Pencil size={16} strokeWidth={2} aria-hidden="true" />
           </button>
           <button
             type="button"
-            className={`btn-secondary ${styles.actionBtn}`}
+            className={`${styles.iconAction}`}
             onClick={onSaveConfig}
             disabled={isSavingDraft || selectedCount === 0}
+            aria-label={t('sessionBuilder.saveConfiguration')}
+            aria-busy={isSavingDraft ? 'true' : 'false'}
             title={selectedCount === 0 ? t('sessionBuilder.addAtLeastOneActivity') : t('sessionBuilder.saveSessionSettings')}
           >
-            {isSavingDraft ? t('sessionBuilder.saving') : t('sessionBuilder.saveConfiguration')}
+            <Save size={16} strokeWidth={2} aria-hidden="true" />
           </button>
           <button
             type="button"

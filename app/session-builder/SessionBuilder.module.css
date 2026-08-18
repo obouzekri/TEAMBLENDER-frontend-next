@@ -154,15 +154,22 @@
   color: var(--ink, #1e293b);
 }
 
-.summaryInviteInline {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+.summaryInvite {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.summaryInviteRow {
+  display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .summaryInviteLabel {
+  min-width: 8.5rem;
   color: #36506f;
   font-size: 0.72rem;
   font-weight: 800;
@@ -172,59 +179,84 @@
 }
 
 .summaryInviteLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   min-width: 0;
   overflow: hidden;
-  padding: 0.42rem 0.58rem;
-  border: 1px solid #d8e4f2;
-  border-radius: 8px;
-  color: #385474;
-  background: #ffffff;
-  font-size: 0.78rem;
+  color: #1d4ed8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.summaryInviteCode {
-  min-height: 2rem;
-  padding: 0.35rem 0.62rem;
-  border: 1px solid #cbd9e8;
+.summaryInviteLink:hover,
+.summaryInviteLink:focus-visible {
+  text-decoration: underline;
+}
+
+.summaryInviteIconCopy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0;
   border-radius: 8px;
   cursor: pointer;
+  color: #64748b;
+  background: transparent;
+}
+
+.summaryInviteIconCopy:hover:not(:disabled),
+.summaryInviteIconCopy:focus-visible {
+  color: #1d4ed8;
+  background: #e8f1ff;
+}
+
+.summaryInviteIconCopy:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.summaryInviteCode {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.6rem;
+  border: 1px solid #cbd9e8;
+  border-radius: 8px;
   color: #0f172a;
   background: #ffffff;
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   white-space: nowrap;
 }
 
-.summaryInviteCode:hover,
-.summaryInviteCode:focus-visible {
-  border-color: #7aaef2;
-  background: #eff6ff;
-  outline: 2px solid rgba(59, 130, 246, 0.18);
-  outline-offset: 1px;
-}
-
 .summaryInviteCopy {
-  min-height: 2rem;
-  padding: 0.35rem 0.58rem;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.5rem;
   border: 0;
   border-radius: 8px;
   cursor: pointer;
   color: #1d4ed8;
   background: transparent;
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-size: 0.76rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
-.summaryInviteCopy:hover,
+.summaryInviteCopy:hover:not(:disabled),
 .summaryInviteCopy:focus-visible {
   background: #e8f1ff;
-  outline: 2px solid rgba(59, 130, 246, 0.18);
-  outline-offset: 1px;
+}
+
+.summaryInviteCopy:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .mainLayout {
@@ -1308,17 +1340,14 @@
     border-radius: 16px;
   }
 
-  .summaryInviteInline {
-    grid-template-columns: minmax(0, 1fr) auto;
+  .summaryInviteRow {
+    flex-wrap: wrap;
+    gap: 0.35rem;
   }
 
-  .summaryInviteLabel,
-  .summaryInviteLink {
-    grid-column: 1 / -1;
-  }
-
-  .summaryInviteCopy {
-    justify-self: end;
+  .summaryInviteLabel {
+    min-width: 0;
+    flex: 1 0 100%;
   }
 
   .sessionInfoEditBody {
