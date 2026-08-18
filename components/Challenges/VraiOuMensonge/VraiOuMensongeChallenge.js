@@ -715,27 +715,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
         {phase === 'selecting_statement' ? (
           <section className={styles.card}>
-            <div className={styles.turnCompactCard}>
-              <p className={styles.turnCompactEyebrow}>{isEn ? 'Current turn' : 'Tour en cours'}</p>
-              <h2 className={styles.turnCompactTitle}>{participantName(poserId) || '-'} {isEn ? 'is choosing a statement' : 'choisit une affirmation'}</h2>
-              <p className={styles.turnCompactBody}>{isEn ? 'The poser selects their statement.' : 'Le poseur selectionne son affirmation.'}</p>
-              <div className={styles.turnCompactBadges}>
-                <span className={styles.turnCompactBadge}>{isEn ? `Passage ${currentCycle}/${totalCycles}` : `Passage ${currentCycle}/${totalCycles}`}</span>
-                <span className={styles.turnCompactBadge}>{isEn ? `Current poser: ${participantName(poserId) || '-'}` : `Poseur actuel: ${participantName(poserId) || '-'}`}</span>
-              </div>
-            </div>
-
-            <h3 className={styles.selectionTitle}>{isEn ? 'Choose a statement' : 'Choisissez une affirmation'}</h3>
-            <div className={styles.participantsRow}>
-              {orderedParticipantIds.map((id) => (
-                <span
-                  key={id}
-                  className={`${styles.participantChip}${id === poserId ? ` ${styles.participantChipPoser}` : ''}${id === me ? ` ${styles.participantChipMe}` : ''}`}
-                >
-                  <span className={styles.participantChipAvatar}>{getInitials(participantName(id))}</span>
-                  <span>{participantName(id)}</span>
-                </span>
-              ))}
+            <div className={styles.selectionHeader}>
+              <h2 className={styles.selectionTitle}>{isEn ? 'Choose a statement' : 'Choisissez une affirmation'}</h2>
+              <span className={styles.selectionProgress}>{`Passage ${currentCycle}/${totalCycles}`}</span>
             </div>
             {isPoser ? (
               <>
@@ -978,7 +960,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           </section>
         ) : null}
 
-        {hasChallengeStarted && !(phase === 'finished' && isFacilitator) ? (
+        {hasChallengeStarted && phase !== 'finished' ? (
           <section className={`${styles.card} ${styles.postStartSecondaryCard}`}>
             {renderRankingCard('poststart-main')}
           </section>
