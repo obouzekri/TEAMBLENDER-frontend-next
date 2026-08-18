@@ -9,9 +9,9 @@
 
 .summaryContent {
   display: grid;
-  grid-template-columns: minmax(230px, 1.05fr) minmax(280px, 1.2fr) auto;
-  align-items: flex-start;
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem 1rem;
 }
 
 .summaryLeft {
@@ -79,6 +79,8 @@
 }
 
 .actions {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -90,11 +92,11 @@
 }
 
 .invitePanel {
+  grid-column: 1 / -1;
   min-width: 0;
-  align-self: center;
-  padding: 0.55rem 0.7rem;
+  padding: 0.65rem 0.8rem;
   border: 1px solid #dce8f7;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #f5f9ff;
 }
 
@@ -188,6 +190,8 @@
   }
 
   .actions {
+    grid-column: 1;
+    grid-row: auto;
     min-width: 0;
     justify-content: flex-start;
     padding-left: 0;

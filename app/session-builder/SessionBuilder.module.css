@@ -154,6 +154,79 @@
   color: var(--ink, #1e293b);
 }
 
+.summaryInviteInline {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.summaryInviteLabel {
+  color: #36506f;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.summaryInviteLink {
+  min-width: 0;
+  overflow: hidden;
+  padding: 0.42rem 0.58rem;
+  border: 1px solid #d8e4f2;
+  border-radius: 8px;
+  color: #385474;
+  background: #ffffff;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summaryInviteCode {
+  min-height: 2rem;
+  padding: 0.35rem 0.62rem;
+  border: 1px solid #cbd9e8;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #0f172a;
+  background: #ffffff;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.summaryInviteCode:hover,
+.summaryInviteCode:focus-visible {
+  border-color: #7aaef2;
+  background: #eff6ff;
+  outline: 2px solid rgba(59, 130, 246, 0.18);
+  outline-offset: 1px;
+}
+
+.summaryInviteCopy {
+  min-height: 2rem;
+  padding: 0.35rem 0.58rem;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #1d4ed8;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.summaryInviteCopy:hover,
+.summaryInviteCopy:focus-visible {
+  background: #e8f1ff;
+  outline: 2px solid rgba(59, 130, 246, 0.18);
+  outline-offset: 1px;
+}
+
 .mainLayout {
   display: grid;
   grid-template-columns: minmax(300px, 350px) minmax(0, 1fr);
@@ -1233,6 +1306,19 @@
   .sessionInfoEditDialog {
     width: min(96vw, 560px);
     border-radius: 16px;
+  }
+
+  .summaryInviteInline {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .summaryInviteLabel,
+  .summaryInviteLink {
+    grid-column: 1 / -1;
+  }
+
+  .summaryInviteCopy {
+    justify-self: end;
   }
 
   .sessionInfoEditBody {

@@ -1394,23 +1394,25 @@ export default function SessionBuilder() {
   }
 
   const invitePanel = sessionId ? (
-    <div className={styles.inviteInline}>
-      <span className={styles.inviteInlineLabel}>{t('sessionBuilder.inviteEyebrow')}</span>
-      <span className={styles.inviteLinkValue} title={inviteLink || t('sessionBuilder.inviteLinkLabel')}>
+    <div className={styles.summaryInviteInline} aria-label={t('sessionBuilder.inviteTitle')}>
+      <span className={styles.summaryInviteLabel}>{t('sessionBuilder.inviteEyebrow')}</span>
+      <span className={styles.summaryInviteLink} title={inviteLink || t('sessionBuilder.inviteLinkLabel')}>
         {inviteLink || '...'}
       </span>
       <button
         type="button"
-        className={styles.inviteCodeValue}
+        className={styles.summaryInviteCode}
         onClick={() => handleCopyInviteValue(sessionInvite?.code, 'code')}
+        aria-label={t('sessionBuilder.copyInviteCode')}
         title={inviteCopyState === 'code' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteCode')}
       >
         {String(sessionInvite?.code || '').trim() || '...'}
       </button>
       <button
         type="button"
-        className={styles.inviteCopyButton}
+        className={styles.summaryInviteCopy}
         onClick={() => handleCopyInviteValue(inviteLink, 'link')}
+        aria-label={inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
         title={inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
       >
         {inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
