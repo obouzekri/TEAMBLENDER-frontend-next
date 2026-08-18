@@ -2320,6 +2320,53 @@ a {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
+.auth-tabs-subtitle {
+  margin: 0.55rem 0 0;
+  color: #526079;
+  font-size: 0.79rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.auth-form-row--options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: -0.15rem;
+}
+
+.auth-remember-me {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  color: #3d4f6a;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.auth-remember-me input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent-violet, #7c3aed);
+  cursor: pointer;
+}
+
+.auth-inline-help-link {
+  color: #2f4fd8;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-inline-help-link:hover {
+  text-decoration: underline;
+}
+
 .join-session-code-input {
   text-align: center;
   font-size: 1.3rem !important;
@@ -2604,6 +2651,14 @@ a {
 
 .nav-link--participant-cta::after {
   display: none;
+}
+
+.nav-login-cta {
+  min-height: var(--nav-control-height);
+  padding: 0.36rem 0.95rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  box-shadow: 0 8px 18px rgba(53, 160, 255, 0.2);
 }
 
 .social-auth-separator {
@@ -15521,4 +15576,141 @@ a {
       padding: 0.65rem;
     }
   }
+
+/* ================================================================
+   DARK MODE — CONTRAST FIXES (session cards + top navigation)
+   Placed last so it wins over the earlier `!important` light rules.
+   ================================================================ */
+@media (prefers-color-scheme: dark) {
+  /* ── Session cards ── */
+  .session-card {
+    border-color: rgba(122, 140, 255, 0.22) !important;
+    background: linear-gradient(180deg, rgba(17, 26, 46, 0.98) 0%, rgba(12, 18, 34, 0.98) 100%) !important;
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.42) !important;
+    color: var(--ink);
+  }
+
+  .session-card:hover {
+    border-color: rgba(148, 163, 255, 0.48) !important;
+    box-shadow: 0 18px 38px rgba(2, 6, 23, 0.55) !important;
+  }
+
+  .session-card::before {
+    background: rgba(122, 140, 255, 0.3);
+  }
+
+  .session-card-body .session-title {
+    color: #f2f6ff;
+  }
+
+  .session-card-body .session-meta,
+  .session-card .session-meta {
+    color: var(--ink-soft);
+  }
+
+  .session-card-actions {
+    border-top-color: rgba(226, 232, 255, 0.1);
+    background: rgba(11, 17, 32, 0.92) !important;
+  }
+
+  .session-tag {
+    border-color: rgba(226, 232, 255, 0.16);
+    background: rgba(30, 41, 66, 0.86);
+    color: #d7e1f7;
+  }
+
+  .session-tag--modality {
+    border-color: rgba(96, 165, 250, 0.36);
+    background: rgba(30, 58, 138, 0.4);
+    color: #bfdbfe;
+  }
+
+  .session-tag--format {
+    border-color: rgba(45, 212, 191, 0.34);
+    background: rgba(19, 78, 74, 0.42);
+    color: #99f6e4;
+  }
+
+  .session-tag--duration {
+    border-color: rgba(148, 163, 184, 0.32);
+    background: rgba(51, 65, 85, 0.5);
+    color: #dbe4f2;
+  }
+
+  /* ── Secondary buttons (ex: "Créer un participant") ── */
+  .btn-secondary {
+    background: linear-gradient(180deg, rgba(30, 41, 66, 0.96) 0%, rgba(21, 30, 51, 0.96) 100%);
+    border-color: rgba(122, 140, 255, 0.28);
+    color: #e8efff;
+    box-shadow: 0 8px 18px rgba(2, 6, 23, 0.4);
+  }
+
+  .btn-secondary:hover {
+    border-color: rgba(148, 163, 255, 0.5);
+    color: #ffffff;
+    box-shadow: 0 14px 28px rgba(2, 6, 23, 0.52);
+  }
+
+  /* ── Top navigation ── */
+  .top-nav {
+    background: linear-gradient(180deg, rgba(12, 18, 34, 0.94) 0%, rgba(17, 26, 46, 0.88) 100%);
+    border-bottom-color: rgba(122, 140, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.5);
+  }
+
+  .top-nav .nav-panel.is-open {
+    background: linear-gradient(180deg, rgba(12, 18, 34, 0.98) 0%, rgba(17, 26, 46, 0.98) 100%);
+  }
+
+  .nav-link,
+  .btn-mini,
+  .nav-toggle,
+  .nav-context {
+    color: #dbe4f8;
+  }
+
+  .nav-link:hover {
+    color: #ffffff;
+    background: rgba(148, 163, 255, 0.12);
+  }
+
+  .nav-link.is-active {
+    border-color: rgba(148, 163, 255, 0.32);
+    background: rgba(148, 163, 255, 0.16);
+    color: #ffffff;
+  }
+
+  .btn-mini:hover {
+    color: #ffffff;
+  }
+
+  /* ── Login card — nouveaux éléments ── */
+  .auth-tabs {
+    border-color: rgba(226, 232, 255, 0.12);
+    background: rgba(12, 18, 34, 0.7);
+  }
+
+  .auth-tab-btn {
+    color: #b9c7e4;
+  }
+
+  .auth-tab-btn:hover {
+    color: #ffffff;
+  }
+
+  .auth-tab-btn.is-active {
+    color: #ffffff;
+    border-color: rgba(122, 140, 255, 0.34);
+    background: rgba(30, 41, 66, 0.96);
+  }
+
+  .auth-tabs-subtitle,
+  .auth-remember-me {
+    color: #b9c7e4;
+  }
+
+  .auth-inline-help-link {
+    color: #8fd7ff;
+  }
+}
 

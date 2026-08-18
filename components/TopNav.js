@@ -50,7 +50,6 @@ export default function TopNav({ compact = false }) {
   const roleLabel = sessionUser?.role === 'participant' ? t('nav.participant') : sessionUser?.role === 'admin' ? t('nav.admin') : t('nav.manager');
   const mobileLoginHref = withLocalePath('/login');
   const mobileJoinHref = withLocalePath('/login?mode=join');
-  const mobileSignupHref = withLocalePath('/signup');
 
   useEffect(() => {
     if (!isMenuOpen) return undefined;
@@ -87,9 +86,6 @@ export default function TopNav({ compact = false }) {
             </Link>
 
             <div className="nav-auth-actions" aria-label={t('nav.accountAria')}>
-              <Link href={mobileSignupHref} className="nav-cta-btn nav-auth-signup-btn">
-                {t('nav.signup')}
-              </Link>
               <LanguageSwitcher />
             </div>
           </div>
@@ -166,11 +162,8 @@ export default function TopNav({ compact = false }) {
                 <Link href={mobileJoinHref} className="btn-mini nav-mobile-login-btn">
                   {t('nav.participant')}
                 </Link>
-                <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn">
+                <Link href={mobileLoginHref} className="nav-cta-btn nav-mobile-signup-btn">
                   {t('nav.login')}
-                </Link>
-                <Link href={mobileSignupHref} className="nav-cta-btn nav-mobile-signup-btn">
-                  {t('nav.signup')}
                 </Link>
               </>
             )}
@@ -209,8 +202,7 @@ export default function TopNav({ compact = false }) {
             ) : (
               <>
                 <NavItem href={withLocalePath('/login?mode=join')} className="nav-link--participant-cta" active={isActive('/login')} onClick={() => setIsMenuOpen(false)}>{t('nav.participant')}</NavItem>
-                <NavItem href={withLocalePath('/login')} active={isActive('/login')} onClick={() => setIsMenuOpen(false)}>{t('nav.login')}</NavItem>
-                <NavItem href={withLocalePath('/signup')} active={isActive('/signup')} onClick={() => setIsMenuOpen(false)}>{t('nav.signup')}</NavItem>
+                <Link href={withLocalePath('/login')} className="nav-cta-btn nav-login-cta" onClick={() => setIsMenuOpen(false)}>{t('nav.login')}</Link>
               </>
             )}
           </div>

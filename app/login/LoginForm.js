@@ -40,6 +40,7 @@ function errorMessage(resStatus, data, isEn) {
 
 const TAB_JOIN = 'join';
 const TAB_LOGIN = 'login';
+const REMEMBER_IDENTIFIER_STORAGE_KEY = 'tb_remembered_identifier';
 
 function normalizeJoinCode(rawCode) {
   return String(rawCode || '').trim().toUpperCase();
@@ -80,6 +81,8 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
   const [oauthLoadingProvider, setOauthLoadingProvider] = useState('');
   const [needsVerificationResend, setNeedsVerificationResend] = useState(false);
   const [identifierTouched, setIdentifierTouched] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [joinCodeInvalid, setJoinCodeInvalid] = useState(false);
   const [joinSessionCode, setJoinSessionCode] = useState('');
   const [joinFirstName, setJoinFirstName] = useState('');
   const [joinLastName, setJoinLastName] = useState('');
@@ -103,6 +106,18 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
 
   useEffect(() => {
     ensureCsrfToken().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    try {
+      const remembered = String(localStorage.getItem(REMEMBER_IDENTIFIER_STORAGE_KEY) || '').trim();
+      if (remembered) {
+        setIdentifier(remembered);
+        setRememberMe(true);
+      }
+    } catch {
+      // storage unavailable
+    }
   }, []);
 
   useEffect(() => {
@@ -282,6 +297,16 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
           targetSessionId: shouldStoreParticipantTargetSession(user.role, normalizedRequestedSessionId),
         });
 
+        try {
+          if (rememberMe) {
+            localStorage.setItem(REMEMBER_IDENTIFIER_STORAGE_KEY, normalizedIdentifier);
+          } else {
+            localStorage.removeItem(REMEMBER_IDENTIFIER_STORAGE_KEY);
+          }
+        } catch {
+          // storage unavailable
+        }
+
         const redirect = withLocalePath(getRedirectPath(user.role, normalizedRequestedSessionId, connectedUserId));
         trackProductUserEvent('login_success', {
           authMethod: 'password',
@@ -335,6 +360,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
   async function onJoinInstant(event) {
     event.preventDefault();
     setJoinMessage('');
+    setJoinCodeInvalid(false);
 
     const sessionCode = String(joinSessionCode || '').trim();
     const firstName = String(joinFirstName || '').trim();
@@ -363,7 +389,11 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         nickname: firstName,
       });
       if (!res.ok) {
-        setJoinMessage(data?.error || (isEn ? 'Unable to join session right now.' : 'Impossible de rejoindre la session pour le moment.'));
+        const codeRejected = res.status === 404 || data?.code === 'SESSION_NOT_FOUND';
+        setJoinCodeInvalid(codeRejected);
+        setJoinMessage(codeRejected
+          ? (isEn ? 'Invalid code.' : 'Code invalide.')
+          : (data?.error || (isEn ? 'Unable to join session right now.' : 'Impossible de rejoindre la session pour le moment.')));
         return;
       }
 
@@ -454,7 +484,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       <div className={`auth-login-pane auth-login-pane--${activeTab}`}>
         <AuthCard
           title={isEn ? 'Access TeamBlender' : 'Accéder à TeamBlender'}
-          footer={<span>{isEn ? 'No account yet? ' : 'Pas encore de compte ? '}<Link href={withLocalePath('/signup')}>{isEn ? 'Create account' : 'Créer un compte'}</Link></span>}
+          footer={<span>{isEn ? 'New to TeamBlender? ' : 'Nouveau sur TeamBlender ? '}<Link href={withLocalePath('/signup')}>{isEn ? 'Create an account' : 'Créer un compte'}</Link></span>}
         >
           <div className="auth-tabs" role="tablist" aria-label={isEn ? 'Select connection mode' : 'Selectionner le mode de connexion'}>
             <button
@@ -469,7 +499,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
               onClick={() => changeTab(TAB_JOIN)}
               onKeyDown={onTabKeyDown}
             >
-              {isEn ? 'Join a session' : 'Rejoindre une session'}
+              {isEn ? 'Join with a code' : 'Rejoindre avec un code'}
             </button>
             <button
               ref={loginTabRef}
@@ -483,9 +513,19 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
               onClick={() => changeTab(TAB_LOGIN)}
               onKeyDown={onTabKeyDown}
             >
-              {isEn ? 'Organizer login' : 'Connexion Organisateur'}
+              {isEn ? 'Member area login' : 'Connexion Espace Membre'}
             </button>
           </div>
+
+          <p className="auth-tabs-subtitle" aria-live="polite">
+            {activeTab === TAB_JOIN
+              ? (isEn
+                ? 'Quick guest access with the code shared by your organizer.'
+                : 'Accès rapide invité avec le code transmis par votre organisateur.')
+              : (isEn
+                ? 'For organizers and participants registered by their manager.'
+                : 'Pour les organisateurs et les participants inscrits par leur manager.')}
+          </p>
 
           <div
             id="login-panel-join"
@@ -570,7 +610,20 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
               >
                 {joinLoading ? (isEn ? 'Joining...' : 'Connexion...') : <>{isEn ? 'Join session' : 'Rejoindre la session'} <span aria-hidden="true">→</span></>}
               </button>
-              {joinMessage ? <p className="form-error">{joinMessage}</p> : null}
+              {joinMessage ? (
+                <p className="form-error">
+                  {joinMessage}
+                  {joinCodeInvalid ? (
+                    <>
+                      {' '}
+                      {isEn ? 'No code yet? ' : 'Vous n’avez pas de code ? '}
+                      <Link href={withLocalePath('/contact')} className="auth-inline-help-link">
+                        {isEn ? 'Contact your organizer.' : 'Contactez votre organisateur.'}
+                      </Link>
+                    </>
+                  ) : null}
+                </p>
+              ) : null}
             </form>
             <p className="auth-required-note">* {isEn ? 'Required fields' : 'Champs obligatoires'}</p>
           </div>
@@ -645,6 +698,21 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                 </div>
               </AuthField>
 
+              <div className="auth-form-row auth-form-row--options">
+                <label className="auth-remember-me" htmlFor="login-remember-me">
+                  <input
+                    id="login-remember-me"
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <span>{isEn ? 'Remember me' : 'Se souvenir de moi'}</span>
+                </label>
+                <Link href={withLocalePath('/forgot-password')} className="auth-inline-help-link">
+                  {isEn ? 'Forgot password?' : 'Mot de passe oublié ?'}
+                </Link>
+              </div>
+
               <button type="submit" className="btn-primary wide login-submit-btn" disabled={loading} aria-busy={loading}>
                 {loading ? (
                   <>
@@ -673,10 +741,6 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                   ) : null}
                 </>
               ) : null}
-
-              <p style={{ textAlign: 'center', marginTop: '0.5rem' }}>
-                <Link href={withLocalePath('/forgot-password')} className="form-help">{isEn ? 'Forgot password?' : 'Mot de passe oublié ?'}</Link>
-              </p>
             </form>
           </div>
         </AuthCard>
