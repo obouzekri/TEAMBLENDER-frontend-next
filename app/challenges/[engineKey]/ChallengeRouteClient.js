@@ -212,9 +212,7 @@ export default function ChallengeRouteClient() {
           <p style={{ margin: 0, fontSize: '0.86rem', lineHeight: 1.4 }}>
             <strong>Challenge terminé</strong>
             {' · '}
-            {completionOverlay.mode === 'auto'
-              ? `Passage automatique en cours. Prochain challenge dans ${completionOverlay.countdown}s.`
-              : 'En attente du facilitateur pour lancer le prochain challenge après le débrief.'}
+            En attente du facilitateur pour lancer le prochain challenge après le débrief.
           </p>
         </section>
       ) : null}

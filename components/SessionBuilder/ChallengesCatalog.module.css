@@ -257,6 +257,16 @@
   cursor: pointer;
 }
 
+.rulesLabel {
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.rulesButton:hover .rulesLabel {
+  text-decoration: underline;
+}
+
 .rulesButton:hover {
   border-color: var(--accent);
   box-shadow: 0 10px 20px rgba(53, 160, 255, 0.1);
@@ -525,6 +535,10 @@
 
   .cardTitle {
     font-size: 0.93rem;
+  }
+
+  .rulesLabel {
+    display: none;
   }
 
   .cardDescription {

@@ -433,6 +433,7 @@ export default function ChallengesCatalog({
                       aria-label={t('sessionBuilder.catalogViewRulesFor', { name: challengeName })}
                     >
                       <span aria-hidden="true">📜</span>
+                      <span className={styles.rulesLabel}>{t('challengeRulesPanel.showRules')}</span>
                     </button>
                     <span className={styles.cardDuration}>{challengeDuration > 0 ? `${challengeDuration} min` : '—'}</span>
                   </div>
