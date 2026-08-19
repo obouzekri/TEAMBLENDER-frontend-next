@@ -7927,6 +7927,184 @@ a {
   font-size: 0.95rem;
 }
 
+@media (prefers-color-scheme: dark) {
+  .pricing-page {
+    background:
+      radial-gradient(ellipse 70% 50% at 10% -5%, rgba(123, 97, 255, 0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 55% 45% at 90% 105%, rgba(91, 140, 255, 0.1) 0%, transparent 60%),
+      #0b0f19;
+  }
+
+  .pricing-hero,
+  .pricing-controls,
+  .pricing-card,
+  .pricing-footer-cta,
+  .pricing-empty {
+    background: rgba(17, 26, 46, 0.92);
+    border-color: rgba(148, 163, 184, 0.18);
+    box-shadow: 0 14px 34px rgba(2, 6, 23, 0.38);
+  }
+
+  .pricing-hero .eyebrow,
+  .pricing-card .eyebrow,
+  .control-section label,
+  .pricing-footer-cta p,
+  .pricing-empty p,
+  .pricing-description,
+  .pricing-original,
+  .pricing-feature-list li,
+  .pricing-meta-row span,
+  .toggle-btn:not(.active),
+  .currency-select,
+  .paddle-checkout-secure-label {
+    color: #cbd5e1;
+  }
+
+  .pricing-hero h1,
+  .pricing-card h2,
+  .pricing-card h2 span,
+  .pricing-page .btn-secondary,
+  .pricing-page .btn-secondary:hover:not(:disabled) {
+    color: #e2e8f0;
+  }
+
+  .pricing-hero p,
+  .pricing-description,
+  .pricing-empty p,
+  .pricing-footer-cta p,
+  .pricing-original,
+  .pricing-feature-list li,
+  .pricing-meta-row span {
+    color: #94a3b8;
+  }
+
+  .toggle-group,
+  .currency-select,
+  .pricing-page select {
+    border-color: rgba(148, 163, 184, 0.24);
+    background: rgba(15, 23, 42, 0.78);
+  }
+
+  .toggle-btn:not(.active):hover {
+    background: rgba(148, 163, 184, 0.12);
+    color: #ffffff;
+  }
+
+  .currency-select:focus,
+  .pricing-page select:focus {
+    border-color: rgba(125, 211, 252, 0.7);
+    box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.14);
+  }
+
+  .pricing-card-featured {
+    border-top-color: transparent;
+    border-image: linear-gradient(90deg, #a78bfa, #60a5fa) 1;
+  }
+
+  .pricing-card-featured::before {
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.16) 0%, rgba(96, 165, 250, 0.14) 100%);
+  }
+
+  .pricing-badge,
+  .pricing-discount-badge {
+    color: #ffffff;
+  }
+
+  .pricing-meta-row span {
+    background: rgba(148, 163, 184, 0.08);
+    border-color: rgba(148, 163, 184, 0.18);
+  }
+
+  .pricing-page .btn-primary {
+    box-shadow: 0 10px 24px rgba(53, 160, 255, 0.18);
+  }
+
+  .pricing-page .btn-secondary {
+    border-color: rgba(148, 163, 184, 0.28);
+    background: rgba(15, 23, 42, 0.5);
+  }
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page {
+  background:
+    radial-gradient(ellipse 70% 50% at 10% -5%, rgba(123, 97, 255, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 90% 105%, rgba(91, 140, 255, 0.1) 0%, transparent 60%),
+    #0b0f19;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-hero,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-empty {
+  background: rgba(17, 26, 46, 0.92);
+  border-color: rgba(148, 163, 184, 0.18);
+  box-shadow: 0 14px 34px rgba(2, 6, 23, 0.38);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-hero .eyebrow,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card .eyebrow,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .control-section label,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-empty p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-description,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-original,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-feature-list li,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-meta-row span,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .toggle-btn:not(.active),
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .currency-select,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .paddle-checkout-secure-label {
+  color: #94a3b8;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-hero h1,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card h2,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card h2 span {
+  color: #e2e8f0;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .toggle-group,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .currency-select,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-page select {
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.78);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .toggle-btn:not(.active):hover {
+  background: rgba(148, 163, 184, 0.12);
+  color: #ffffff;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .currency-select:focus,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-page select:focus {
+  border-color: rgba(125, 211, 252, 0.7);
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.14);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card-featured {
+  border-top-color: transparent;
+  border-image: linear-gradient(90deg, #a78bfa, #60a5fa) 1;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card-featured::before {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.16) 0%, rgba(96, 165, 250, 0.14) 100%);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-badge,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-discount-badge {
+  color: #ffffff;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-meta-row span {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .btn-secondary {
+  border-color: rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.5);
+}
+
 .auth-page {
   padding: 2rem 0 3.5rem;
   min-height: 100svh;
