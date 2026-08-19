@@ -6,7 +6,7 @@
   place-items: start center;
   overflow-y: auto;
   padding: calc(var(--nav-shell-min-height, 56px) + 1rem) var(--space-4, 1rem) var(--space-4, 1rem);
-  background: rgba(15, 23, 42, 0.62);
+  background: var(--modal-scrim);
   backdrop-filter: blur(4px);
 }
 
@@ -14,7 +14,7 @@
   width: min(680px, 100%);
   border-radius: 22px;
   border: 1px solid color-mix(in srgb, var(--line) 64%, transparent);
-  background: #fff;
+  background: var(--modal-panel);
   box-shadow: 0 16px 36px rgba(28, 39, 68, 0.16);
   padding: 1.02rem 1.02rem 0.86rem;
   animation: ui-fade-in-up var(--motion-medium) var(--ease-standard) both;
@@ -38,7 +38,7 @@
 
 .close {
   border: 1px solid color-mix(in srgb, var(--line) 56%, transparent);
-  background: rgba(245, 248, 255, 0.82);
+  background: var(--modal-panel-alt);
   color: color-mix(in srgb, var(--ink-soft) 88%, #687386);
   border-radius: 999px;
   width: 1.8rem;
@@ -51,6 +51,6 @@
 
 .close:hover {
   border-color: color-mix(in srgb, var(--line) 74%, #8ea2c7);
-  background: rgba(236, 242, 252, 0.92);
+  background: var(--surface-panel-soft);
   color: color-mix(in srgb, var(--ink) 86%, #506287);
 }

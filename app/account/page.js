@@ -1474,6 +1474,13 @@ export default function AccountPage() {
             --account-primary-light: #ece9ff;
             --account-border-soft: #e2e8f0;
             --account-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+            --account-surface: var(--surface-elevated, #ffffff);
+            --account-surface-soft: var(--surface-panel-soft, #f8fbff);
+            --account-surface-muted: var(--surface-muted, #f1f5fb);
+            --account-text: var(--text-strong, #24324f);
+            --account-text-soft: var(--text-muted, #526180);
+            --account-border-strong: var(--control-border, #d6d0ff);
+            --account-overlay: var(--modal-scrim, rgba(15, 23, 42, 0.62));
           }
 
           .account-page-header {
@@ -1488,7 +1495,7 @@ export default function AccountPage() {
 
           .account-page-header p {
             margin: 0;
-            color: #526180;
+            color: var(--account-text-soft);
             max-width: 62ch;
           }
 
@@ -1502,7 +1509,7 @@ export default function AccountPage() {
           .account-identity-card {
             border: 1px solid var(--account-border-soft);
             border-radius: 14px;
-            background: #f8fbff;
+            background: var(--account-surface-soft);
             padding: 1rem;
             display: grid;
             gap: 0.85rem;
@@ -1523,9 +1530,9 @@ export default function AccountPage() {
             width: 3rem;
             height: 3rem;
             border-radius: 999px;
-            background: #ebe8ff;
-            border: 1px solid #d6d0ff;
-            color: #4c34cc;
+            background: var(--account-primary-light);
+            border: 1px solid var(--account-border-strong);
+            color: var(--account-primary-dark);
             font-weight: 800;
             letter-spacing: 0.02em;
           }
@@ -1535,8 +1542,8 @@ export default function AccountPage() {
             height: 3rem;
             border-radius: 999px;
             object-fit: cover;
-            border: 1px solid #d6d0ff;
-            background: #ffffff;
+            border: 1px solid var(--account-border-strong);
+            background: var(--account-surface);
           }
 
           .account-identity-avatar-edit {
@@ -1546,8 +1553,8 @@ export default function AccountPage() {
             width: 1.45rem;
             height: 1.45rem;
             border-radius: 999px;
-            border: 1px solid #d9e1ef;
-            background: #ffffff;
+            border: 1px solid var(--account-border-soft);
+            background: var(--account-surface);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -1563,7 +1570,7 @@ export default function AccountPage() {
 
           .account-identity-email {
             margin: 0;
-            color: #334155;
+            color: var(--account-text);
             font-weight: 700;
             overflow: hidden;
             white-space: nowrap;
@@ -1576,9 +1583,9 @@ export default function AccountPage() {
             justify-self: start;
             padding: 0.2rem 0.6rem;
             border-radius: 999px;
-            border: 1px solid #d6d0ff;
-            background: #ebe8ff;
-            color: #4c34cc;
+            border: 1px solid var(--account-border-strong);
+            background: var(--account-primary-light);
+            color: var(--account-primary-dark);
             font-weight: 700;
             font-size: 0.8rem;
           }
@@ -1593,7 +1600,7 @@ export default function AccountPage() {
           .account-profile-group {
             border: 1px solid var(--account-border-soft);
             border-radius: 14px;
-            background: #ffffff;
+            background: var(--account-surface);
             padding: 1rem;
             box-shadow: var(--account-card-shadow);
           }
@@ -1601,22 +1608,22 @@ export default function AccountPage() {
           .account-profile-group__title {
             margin: 0 0 0.75rem;
             font-size: 1rem;
-            color: #24324f;
+            color: var(--account-text);
           }
 
           .account-group-caption {
             margin: -0.25rem 0 0.75rem;
-            color: #5b6a87;
+            color: var(--account-text-soft);
             font-size: 0.82rem;
           }
 
           .account-field-required {
-            color: #b42318;
+            color: var(--error-ink);
             font-weight: 800;
           }
 
           .account-field-optional {
-            color: #64748b;
+            color: var(--text-subtle, #64748b);
             font-weight: 600;
             font-size: 0.82rem;
           }
@@ -1635,7 +1642,7 @@ export default function AccountPage() {
           .account-security-card {
             border: 1px solid var(--account-border-soft);
             border-radius: 14px;
-            background: #ffffff;
+            background: var(--account-surface);
             padding: 1rem;
             display: grid;
             gap: 0.85rem;
@@ -1645,17 +1652,17 @@ export default function AccountPage() {
           .account-security-card__head h3 {
             margin: 0;
             font-size: 1rem;
-            color: #24324f;
+            color: var(--account-text);
           }
 
           .account-security-card__text {
             margin: 0;
-            color: #526180;
+            color: var(--account-text-soft);
           }
 
           .account-security-card__hint {
             margin: -0.15rem 0 0;
-            color: #64748b;
+            color: var(--text-subtle, #64748b);
             font-size: 0.84rem;
           }
 
@@ -1682,7 +1689,7 @@ export default function AccountPage() {
             cursor: pointer;
             font-size: 0.95rem;
             line-height: 1;
-            color: #425273;
+            color: var(--account-text-soft);
             padding: 0.3rem;
             border-radius: 8px;
             transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
@@ -1690,9 +1697,9 @@ export default function AccountPage() {
 
           .account-password-toggle:hover,
           .account-password-toggle:focus-visible {
-            background: #f3f4f6;
-            border-color: #cbd5e1;
-            color: #1f2937;
+            background: var(--account-surface-muted);
+            border-color: var(--account-border-soft);
+            color: var(--account-text);
           }
 
           .account-forgot-inline {
@@ -1700,7 +1707,7 @@ export default function AccountPage() {
             border: none;
             padding: 0;
             background: transparent;
-            color: #365fd7;
+            color: var(--account-primary);
             font-weight: 700;
             font-size: 0.82rem;
             cursor: pointer;
@@ -1717,7 +1724,7 @@ export default function AccountPage() {
           .account-inline-link {
             border: none;
             background: transparent;
-            color: #365fd7;
+            color: var(--account-primary);
             font-weight: 700;
             font-size: 0.8rem;
             padding: 0;
@@ -1726,7 +1733,7 @@ export default function AccountPage() {
 
           .account-inline-link:hover,
           .account-inline-link:focus-visible {
-            color: #2a47a8;
+            color: var(--account-primary-dark);
             text-decoration: underline;
           }
 
@@ -1746,19 +1753,19 @@ export default function AccountPage() {
             justify-content: space-between;
             align-items: center;
             gap: 0.75rem;
-            color: #526180;
+            color: var(--account-text-soft);
             font-size: 0.82rem;
           }
 
           .account-password-strength strong {
-            color: #24324f;
+            color: var(--account-text);
           }
 
           .account-password-strength-bar {
             width: 100%;
             height: 0.45rem;
             border-radius: 999px;
-            background: #edf2fb;
+            background: var(--account-surface-muted);
             overflow: hidden;
           }
 
@@ -1787,7 +1794,7 @@ export default function AccountPage() {
             list-style: none;
             display: grid;
             gap: 0.3rem;
-            color: #667996;
+            color: var(--text-subtle, #667996);
             font-size: 0.82rem;
           }
 
@@ -1797,7 +1804,7 @@ export default function AccountPage() {
           }
 
           .account-password-checklist li.is-met {
-            color: #19734a;
+            color: var(--success-ink);
             font-weight: 600;
           }
 
@@ -1816,15 +1823,15 @@ export default function AccountPage() {
             align-items: center;
             justify-content: space-between;
             gap: 0.75rem;
-            color: #526180;
+            color: var(--account-text-soft);
           }
 
           .account-2fa-status strong.is-enabled {
-            color: #19734a;
+            color: var(--success-ink);
           }
 
           .account-2fa-status strong.is-disabled {
-            color: #a0303b;
+            color: var(--error-ink);
           }
 
           .account-session-list {
@@ -1837,18 +1844,18 @@ export default function AccountPage() {
             grid-template-columns: auto minmax(0, 1fr) auto;
             align-items: center;
             gap: 0.75rem;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--account-border-soft);
             border-radius: 12px;
             padding: 0.72rem 0.78rem;
-            background: #ffffff;
+            background: var(--account-surface);
           }
 
           .account-session-item__icon {
             width: 2rem;
             height: 2rem;
             border-radius: 999px;
-            border: 1px solid #dbe2ea;
-            background: #f8fbff;
+            border: 1px solid var(--account-border-soft);
+            background: var(--account-surface-soft);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -1860,14 +1867,14 @@ export default function AccountPage() {
 
           .account-session-item__device {
             margin: 0;
-            color: #1e293b;
+            color: var(--account-text);
             font-weight: 700;
             font-size: 0.9rem;
           }
 
           .account-session-item__details {
             margin: 0.16rem 0 0;
-            color: #64748b;
+            color: var(--text-subtle, #64748b);
             font-size: 0.82rem;
             line-height: 1.35;
           }
@@ -1877,17 +1884,17 @@ export default function AccountPage() {
             align-items: center;
             padding: 0.15rem 0.5rem;
             border-radius: 999px;
-            border: 1px solid #d9e1ef;
-            color: #425273;
-            background: #f8fbff;
+            border: 1px solid var(--account-border-soft);
+            color: var(--account-text-soft);
+            background: var(--account-surface-soft);
             font-weight: 700;
             font-size: 0.74rem;
           }
 
           .account-session-badge.is-current {
-            border-color: #d6d0ff;
-            background: #ebe8ff;
-            color: #4c34cc;
+            border-color: var(--account-border-strong);
+            background: var(--account-primary-light);
+            color: var(--account-primary-dark);
           }
 
           .account-tabs--modern {
@@ -1897,7 +1904,7 @@ export default function AccountPage() {
             gap: 0.35rem;
             margin: 0 0 1rem;
             padding: 0;
-            border-bottom: 1px solid #e6edf8;
+            border-bottom: 1px solid var(--account-border-soft);
             background: transparent;
             border-radius: 0;
           }
@@ -1909,8 +1916,8 @@ export default function AccountPage() {
             min-width: 0;
             border: 1px solid transparent;
             border-bottom: 2px solid transparent;
-            background: #f8fafc;
-            color: #3b4d6b;
+            background: var(--account-surface-soft);
+            color: var(--account-text-soft);
             border-radius: 10px 10px 0 0;
             height: 2.5rem;
             padding: 0 1rem;
@@ -1921,17 +1928,17 @@ export default function AccountPage() {
 
           .account-tab--modern:hover,
           .account-tab--modern:focus-visible {
-            border-color: #e4dcff;
-            border-bottom-color: #c7d3ea;
+            border-color: var(--account-border-strong);
+            border-bottom-color: var(--account-border-soft);
             color: var(--account-primary);
-            background: #f5f3ff;
+            background: var(--account-primary-light);
           }
 
           .account-tab--modern.is-active {
-            border-color: #ddd6fe;
+            border-color: var(--account-border-strong);
             border-bottom-color: var(--account-primary);
             color: var(--account-primary-dark);
-            background: #ffffff;
+            background: var(--account-surface);
           }
 
           .account-saas-card__header {
@@ -1947,20 +1954,20 @@ export default function AccountPage() {
           }
 
           .account-form-input {
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--account-border-soft);
           }
 
           .account-form-input::placeholder {
-            color: #64748b;
+            color: var(--text-subtle, #64748b);
             opacity: 1;
           }
 
           .account-form-input--disabled,
           .account-form-input:disabled {
-            border-color: #cbd5e1;
-            background: #f1f5f9;
-            color: #4b5563;
-            -webkit-text-fill-color: #4b5563;
+            border-color: var(--account-border-soft);
+            background: var(--account-surface-muted);
+            color: var(--account-text-soft);
+            -webkit-text-fill-color: var(--account-text-soft);
             opacity: 1;
           }
 
@@ -1981,8 +1988,8 @@ export default function AccountPage() {
             max-width: 220px;
             padding: 0.45rem 0.55rem;
             border-radius: 8px;
-            background: #24324f;
-            color: #f8fbff;
+            background: var(--account-text);
+            color: var(--account-surface);
             font-size: 0.72rem;
             line-height: 1.35;
             white-space: normal;
@@ -1998,8 +2005,8 @@ export default function AccountPage() {
           }
 
           .account-save-profile-btn:disabled {
-            background: #cbd5e1 !important;
-            color: #f8fafc !important;
+            background: var(--account-border-soft) !important;
+            color: var(--account-surface) !important;
             box-shadow: none !important;
             cursor: not-allowed;
           }
@@ -2010,9 +2017,9 @@ export default function AccountPage() {
             margin-left: 0.45rem;
             padding: 0.15rem 0.62rem;
             border-radius: 999px;
-            background: #ebe8ff;
-            border: 1px solid #d6d0ff;
-            color: #4c34cc;
+            background: var(--account-primary-light);
+            border: 1px solid var(--account-border-strong);
+            color: var(--account-primary-dark);
             font-weight: 700;
             font-size: 0.78rem;
           }
@@ -2022,7 +2029,7 @@ export default function AccountPage() {
             padding: 0;
             border: none;
             background: transparent;
-            color: #365fd7;
+            color: var(--account-primary);
             font-weight: 700;
             font-size: 0.84rem;
             cursor: pointer;
@@ -2030,14 +2037,14 @@ export default function AccountPage() {
 
           .account-change-plan-link:hover,
           .account-change-plan-link:focus-visible {
-            color: #2a47a8;
+            color: var(--account-primary-dark);
             text-decoration: underline;
           }
 
           .account-usage-banner {
             border: 1px solid var(--account-border-soft);
             border-radius: 16px;
-            background: #f8faff;
+            background: var(--account-surface-soft);
             padding: 1rem 1.1rem;
             display: grid;
             gap: 0.8rem;
@@ -2056,7 +2063,7 @@ export default function AccountPage() {
           .account-usage-banner__plan,
           .account-usage-banner__quota {
             margin: 0;
-            color: #445371;
+            color: var(--account-text-soft);
             font-size: 0.9rem;
           }
 

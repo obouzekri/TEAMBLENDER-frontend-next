@@ -1,11 +1,11 @@
 .rulesCard {
-  background: #0c1726;
-  border: 1px solid #6f88a3;
+  background: linear-gradient(145deg, var(--ch-surface-1) 0%, var(--ch-surface-2) 100%);
+  border: 1px solid var(--ch-line-soft);
   border-radius: 14px;
   padding: clamp(14px, 1.4vw, 22px);
   display: grid;
   gap: clamp(10px, 1vw, 16px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--ch-shadow-card);
   width: 100%;
   max-width: 100%;
   overflow-wrap: anywhere;
@@ -34,9 +34,9 @@
 }
 
 .playerTag {
-  border: 1px solid rgba(125, 211, 252, 0.32);
-  background: rgba(8, 21, 36, 0.72);
-  color: #dbeafe;
+  border: 1px solid var(--ch-line-strong);
+  background: color-mix(in srgb, var(--ch-surface-1) 88%, black);
+  color: var(--ch-text-main);
   border-radius: 999px;
   padding: 2px 8px;
   font-size: 0.74rem;
@@ -46,14 +46,14 @@
 }
 
 .playerTagRecommended {
-  border-color: rgba(250, 204, 21, 0.5);
-  background: rgba(120, 98, 20, 0.32);
-  color: #fef3c7;
+  border-color: color-mix(in srgb, var(--ch-warn) 72%, white);
+  background: color-mix(in srgb, var(--ch-warn) 20%, var(--ch-surface-1));
+  color: color-mix(in srgb, var(--ch-warn) 30%, var(--ch-text-main));
 }
 
 .rulesKicker {
   margin: 0;
-  color: #7dd3fc;
+  color: var(--ch-accent);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -62,7 +62,7 @@
 
 .rulesBriefTitle {
   margin: 0;
-  color: #f8fbff;
+  color: var(--ch-text-main);
   font-size: 1.08rem;
   font-weight: 800;
   letter-spacing: 0.01em;
@@ -71,13 +71,13 @@
 
 .rulesHeader h2 {
   margin: 0;
-  color: #8fd0ff;
+  color: var(--ch-accent);
   font-size: 1.06rem;
 }
 
 .rulesHeader p {
   margin: 0;
-  color: #e5eef8;
+  color: var(--ch-text-main);
   font-size: 0.88rem;
   line-height: 1.55;
   overflow-wrap: anywhere;
@@ -86,8 +86,8 @@
 .rulesSection {
   display: grid;
   gap: clamp(7px, 0.7vw, 10px);
-  border: 1px solid #4f6781;
-  background: #0f2136;
+  border: 1px solid var(--ch-line-soft);
+  background: var(--ch-surface-1);
   border-radius: 10px;
   padding: clamp(10px, 0.9vw, 14px) clamp(11px, 1vw, 16px);
 }
@@ -98,10 +98,10 @@
 }
 
 .rulesGroup {
-  border: 1px solid #4b6280;
+  border: 1px solid var(--ch-line-soft);
   border-radius: 10px;
   padding: clamp(9px, 0.8vw, 13px) clamp(10px, 0.9vw, 15px);
-  background: #13273f;
+  background: var(--ch-surface-2);
 }
 
 .rulesGroup h4 {
@@ -120,7 +120,7 @@
 }
 
 .rulesSection li {
-  color: #edf4fb;
+  color: var(--ch-text-main);
   font-size: 0.88rem;
   line-height: 1.55;
 }
@@ -136,7 +136,7 @@
 .rulesSection ul {
   margin: 0;
   padding-left: clamp(16px, 1.2vw, 22px);
-  color: #e3edf7;
+  color: var(--ch-text-main);
   font-size: 0.85rem;
   display: grid;
   gap: clamp(5px, 0.6vw, 8px);
@@ -182,7 +182,7 @@
 
 .rulesFootnote {
   margin: 0;
-  color: #d9e6f3;
+  color: var(--ch-text-soft);
   font-size: 0.78rem;
   line-height: 1.6;
 }
@@ -201,9 +201,9 @@
 }
 
 .startButton {
-  border: 1px solid rgba(56, 189, 248, 0.42);
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.28), rgba(14, 116, 144, 0.32));
-  color: #eff8ff;
+  border: 1px solid var(--ch-accent);
+  background: linear-gradient(135deg, var(--ch-accent-soft), color-mix(in srgb, var(--ch-accent-strong) 40%, var(--ch-surface-2)));
+  color: var(--text-on-accent, #eff8ff);
   border-radius: 12px;
   min-height: 44px;
   padding: 0.78rem 1.15rem;
@@ -229,7 +229,7 @@
 
 .startButtonStatus {
   margin: 0;
-  color: #a9c0d1;
+  color: var(--ch-text-soft);
   font-size: 0.78rem;
   font-weight: 700;
   line-height: 1.4;
@@ -248,9 +248,9 @@
 
 .rulesButton {
   width: 100%;
-  border: 1px solid rgba(56, 189, 248, 0.62);
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.5), rgba(2, 132, 199, 0.56));
-  color: #eff6ff;
+  border: 1px solid var(--ch-accent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--ch-accent) 52%, transparent), color-mix(in srgb, var(--ch-accent-strong) 58%, transparent));
+  color: var(--text-on-accent, #eff6ff);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 0.88rem;
@@ -275,10 +275,10 @@
   width: auto;
   height: auto;
   padding: 6px 12px;
-  border: 1px solid rgba(51, 65, 85, 0.6);
+  border: 1px solid var(--ch-line-soft);
   border-radius: 8px;
-  background: rgba(30, 41, 59, 0.8);
-  color: #e2e8f0;
+  background: var(--ch-surface-2);
+  color: var(--ch-text-main);
   font-size: 0.75rem;
   line-height: 1rem;
   font-weight: 500;
@@ -293,14 +293,14 @@
 }
 
 .desktopHeaderRulesButton:hover {
-  background: #334155;
+  background: color-mix(in srgb, var(--ch-surface-2) 88%, white);
   filter: none;
 }
 
 .modalBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.82);
+  background: var(--surface-overlay-strong, rgba(0, 0, 0, 0.82));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -314,10 +314,10 @@
   max-height: min(88vh, 860px);
   overflow-x: hidden;
   overflow-y: auto;
-  background: #0c1726;
-  border: 1px solid #6f88a3;
+  background: linear-gradient(145deg, var(--ch-surface-1) 0%, var(--ch-surface-2) 100%);
+  border: 1px solid var(--ch-line-soft);
   border-radius: 18px;
-  box-shadow: 0 24px 46px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--ch-shadow-card);
   padding: clamp(18px, 2.6vw, 28px);
   display: grid;
   gap: clamp(14px, 1.8vw, 18px);
@@ -334,14 +334,14 @@
 
 .modalHead h2 {
   margin: 0;
-  color: #e7eff6;
+  color: var(--ch-text-main);
   font-size: 0.98rem;
 }
 
 .closeBtn {
-  border: 1px solid #6b7f96;
-  background: #1a2b42;
-  color: #edf4fb;
+  border: 1px solid var(--ch-line-soft);
+  background: var(--ch-surface-2);
+  color: var(--ch-text-main);
   border-radius: 8px;
   padding: 6px 10px;
   font-size: 0.8rem;
