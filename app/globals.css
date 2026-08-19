@@ -3837,6 +3837,57 @@ a {
     max-width: calc(100vw - 24px);
   }
 
+  .home-sessions-panel {
+    max-height: none;
+    overflow: visible;
+    overflow-x: visible;
+    padding-inline: clamp(0.85rem, 2vw, 1rem);
+  }
+
+  .home-sessions-panel .session-cards-grid {
+    overflow: visible;
+  }
+
+  .home-sessions-panel .session-card {
+    min-width: 0;
+    overflow: visible;
+    padding-right: clamp(0.9rem, 2vw, 1rem);
+  }
+
+  .home-sessions-panel .session-card-body {
+    min-width: 0;
+  }
+
+  .home-sessions-panel .session-title,
+  .home-sessions-panel .session-meta,
+  .home-sessions-panel .session-tags {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .home-sessions-panel .session-card-mobile-actions {
+    position: relative;
+    z-index: 2;
+    align-self: flex-start;
+  }
+
+  .home-sessions-panel .manager-mobile-menu {
+    position: relative;
+    z-index: 2;
+  }
+
+  .home-sessions-panel .manager-mobile-menu__trigger {
+    position: relative;
+    z-index: 3;
+    margin-right: 0;
+    flex-shrink: 0;
+  }
+
+  .home-sessions-panel .manager-mobile-menu__dropdown {
+    z-index: 50;
+    min-width: min(200px, calc(100vw - 2rem));
+  }
+
   .footer-inner,
   .footer-columns,
   .footer-col {
