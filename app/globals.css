@@ -8397,12 +8397,12 @@ a {
   margin: 0;
   font-size: 1rem;
   font-weight: 800;
-  color: var(--ink);
+  color: var(--text-strong);
 }
 
 .footer-copy {
   margin: 0.45rem 0 0;
-  color: var(--ink-soft);
+  color: var(--text-muted);
   max-width: 34ch;
 }
 
@@ -8421,16 +8421,16 @@ a {
 .footer-col p {
   margin: 0 0 0.3rem;
   font-weight: 700;
-  color: var(--accent-strong);
+  color: var(--text-strong);
 }
 
 .footer-col a {
-  color: var(--ink-soft);
+  color: var(--text-muted);
   transition: color 0.16s ease;
 }
 
 .footer-col a:hover {
-  color: var(--accent);
+  color: var(--text-strong);
 }
 
 .footer-columns--mobile {
@@ -8450,7 +8450,7 @@ a {
   margin: 0;
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--ink-soft);
+  color: var(--text-subtle);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -8459,7 +8459,7 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.42rem;
-  color: var(--accent);
+  color: var(--text-muted);
   font-weight: 700;
   font-size: 0.88rem;
   text-decoration: none;
@@ -8467,7 +8467,41 @@ a {
 }
 
 .footer-social__link:hover {
-  color: var(--accent-strong);
+  color: var(--text-strong);
+}
+
+.footer-social__link svg {
+  color: currentColor;
+  fill: currentColor;
+}
+
+@media (prefers-color-scheme: dark) {
+  .site-footer {
+    border-top-color: rgba(148, 163, 184, 0.22);
+    background: linear-gradient(180deg, #0b0f19 0%, var(--surface-muted) 58%, var(--surface-elevated) 100%);
+  }
+
+  .footer-brand,
+  .footer-col p,
+  .footer-social__link:hover {
+    color: #e2e8f0;
+  }
+
+  .footer-copy,
+  .footer-col a,
+  .footer-social__label,
+  .footer-social__link {
+    color: #94a3b8;
+  }
+
+  .footer-col a:hover,
+  .footer-social__link:hover {
+    color: #ffffff;
+  }
+
+  .footer-social {
+    border-top-color: rgba(148, 163, 184, 0.18);
+  }
 }
 
 .app-home {
