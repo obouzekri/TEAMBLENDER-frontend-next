@@ -2711,6 +2711,69 @@ a {
   box-shadow: var(--button-primary-shadow);
 }
 
+.home-sessions-panel,
+.participants-panel,
+.session-card,
+.participant-card,
+.manager-onboarding-step--premium {
+  border-color: var(--surface-soft-border);
+  background: linear-gradient(180deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+  box-shadow: var(--surface-shadow-soft);
+}
+
+.home-sessions-panel:hover,
+.participants-panel:hover,
+.session-card:hover,
+.participant-card:hover,
+.manager-onboarding-step--premium:hover {
+  border-color: var(--surface-soft-border-strong);
+  box-shadow: var(--surface-shadow-hover);
+}
+
+.session-card {
+  color: var(--text-strong);
+}
+
+.session-card .session-title,
+.participant-card__name,
+.participants-panel h2,
+.home-sessions-head h2 {
+  color: var(--text-strong);
+}
+
+.session-card .session-meta,
+.session-card .session-date,
+.session-card .session-tag,
+.participant-card__meta,
+.participants-panel p,
+.home-sessions-panel p {
+  color: var(--text-muted);
+}
+
+.participant-card {
+  border: 1px solid var(--surface-soft-border);
+}
+
+.participant-card__avatar {
+  color: var(--text-on-accent);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
+}
+
+.manager-onboarding-grid--modal .manager-onboarding-step--premium {
+  border: 1px solid var(--surface-soft-border);
+  color: var(--text-strong);
+}
+
+.manager-onboarding-grid--modal .manager-onboarding-step--premium h3,
+.manager-onboarding-grid--modal .manager-onboarding-step--premium p {
+  color: var(--text-muted);
+}
+
+.manager-onboarding-grid--modal .manager-onboarding-step__badge,
+.manager-onboarding-grid--modal .manager-onboarding-step__index {
+  color: var(--accent-strong);
+}
+
 .social-auth-separator {
   display: flex;
   align-items: center;
