@@ -5242,16 +5242,16 @@ export default function AdminClient() {
 
                 {editingPricingPlan ? (
                   <div
-                    style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 16px' }}
+                    style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'var(--modal-scrim, rgba(0,0,0,0.45))', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 16px' }}
                     onClick={(e) => { if (e.target === e.currentTarget) setEditingPricingPlan(null); }}
                   >
-                    <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '12px', width: '100%', maxWidth: '760px', maxHeight: 'calc(100vh - 80px)', overflowY: 'auto', padding: '22px 24px' }}>
+                    <div style={{ background: 'var(--surface-elevated, #fff)', border: '1px solid var(--accent, var(--color-primary, #4f46e5))', borderRadius: '12px', width: '100%', maxWidth: '760px', maxHeight: 'calc(100vh - 80px)', overflowY: 'auto', padding: '22px 24px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                         <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{isEn ? 'Edit pricing plan' : 'Modifier une formule'}</h2>
                         <button
                           type="button"
                           onClick={() => setEditingPricingPlan(null)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--color-muted, #6b7280)', padding: '2px 8px', lineHeight: 1 }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--ink-soft, #6b7280)', padding: '2px 8px', lineHeight: 1 }}
                           aria-label={isEn ? 'Close window' : 'Fermer la fenetre'}
                         >
                           ✕
@@ -5306,10 +5306,10 @@ export default function AdminClient() {
                   </div>
                 ) : null}
 
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
+                <div style={{ background: 'var(--surface-elevated, #fff)', border: '1px solid var(--line, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {isEn ? 'List' : 'Liste'} {pricingPlans.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredPricingPlans.length}/{pricingPlans.length})</span> : null}
+                      {isEn ? 'List' : 'Liste'} {pricingPlans.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--ink-soft, #6b7280)', fontSize: '13px' }}>({filteredPricingPlans.length}/{pricingPlans.length})</span> : null}
                     </h2>
                     <input
                       type="search"

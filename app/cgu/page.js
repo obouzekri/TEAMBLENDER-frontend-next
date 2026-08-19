@@ -130,8 +130,8 @@ export default async function CguPage() {
         <section style={{ marginBottom: '2rem' }}>
           <p className="eyebrow">{copy.eyebrow}</p>
           <h1>{copy.title}</h1>
-          <p style={{ color: 'var(--muted)', marginTop: '0.5rem' }}>{copy.intro}</p>
-          <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '1rem' }}>{copy.updated}</p>
+          <p style={{ color: 'var(--ink-soft)', marginTop: '0.5rem' }}>{copy.intro}</p>
+          <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)', marginTop: '1rem' }}>{copy.updated}</p>
         </section>
 
         <div className="card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -139,13 +139,13 @@ export default async function CguPage() {
             <section key={section.title}>
               <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{section.title}</h2>
               {section.paragraphs.map((paragraph) => (
-                <p key={paragraph} style={{ lineHeight: 1.7, color: 'var(--muted)', marginTop: '0.75rem' }}>{paragraph}</p>
+                <p key={paragraph} style={{ lineHeight: 1.7, color: 'var(--ink-soft)', marginTop: '0.75rem' }}>{paragraph}</p>
               ))}
             </section>
           ))}
         </div>
 
-        <p style={{ marginTop: '2rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
+        <p style={{ marginTop: '2rem', fontSize: '0.85rem', color: 'var(--ink-soft)' }}>
           {copy.linksLabel}{' '}
           <Link href={`/${locale}/mentions-legales`}>{copy.legalNotice}</Link>
           {' · '}
