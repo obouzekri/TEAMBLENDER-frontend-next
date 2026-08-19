@@ -8518,6 +8518,86 @@ a {
   color: var(--ink-soft);
 }
 
+@media (prefers-color-scheme: dark) {
+  .contact-page {
+    background:
+      radial-gradient(ellipse 60% 45% at 8% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 55% 45% at 92% 100%, rgba(124, 58, 237, 0.1) 0%, transparent 55%),
+      var(--bg);
+  }
+
+  .contact-hero,
+  .contact-layout .feature-card,
+  .contact-info-item {
+    background: rgba(17, 26, 46, 0.94);
+    border-color: rgba(148, 163, 184, 0.18);
+    box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
+  }
+
+  .contact-hero h1,
+  .contact-info-text strong {
+    color: #e2e8f0;
+  }
+
+  .contact-info-text span,
+  .contact-info-text a,
+  .contact-hero p,
+  .contact-trust-box p,
+  .contact-hero .eyebrow {
+    color: #94a3b8;
+  }
+
+  .contact-info-icon,
+  .contact-trust-box {
+    background: rgba(15, 23, 42, 0.75);
+    color: #cbd5e1;
+  }
+
+  .contact-layout .btn-secondary {
+    border-color: rgba(148, 163, 184, 0.28);
+    background: rgba(15, 23, 42, 0.5);
+  }
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page {
+  background:
+    radial-gradient(ellipse 60% 45% at 8% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 45% at 92% 100%, rgba(124, 58, 237, 0.1) 0%, transparent 55%),
+    var(--bg);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-hero,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-layout .feature-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-item {
+  background: rgba(17, 26, 46, 0.94);
+  border-color: rgba(148, 163, 184, 0.18);
+  box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-hero h1,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-text strong {
+  color: #e2e8f0;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-text span,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-text a,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-hero p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-trust-box p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-hero .eyebrow {
+  color: #94a3b8;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-icon,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-trust-box {
+  background: rgba(15, 23, 42, 0.75);
+  color: #cbd5e1;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .btn-secondary {
+  border-color: rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.5);
+}
+
 .contact-trust-box {
   margin-top: 1.2rem;
   padding: 0.85rem 1rem;
@@ -15413,6 +15493,167 @@ a {
   border-radius: 20px;
   box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
   padding: 1.5rem 1.75rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .account-page {
+    background:
+      radial-gradient(ellipse 60% 50% at 5% 0%, rgba(123, 97, 255, 0.11) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 95% 100%, rgba(91, 140, 255, 0.08) 0%, transparent 55%),
+      #0b0f19;
+  }
+
+  .account-saas-card,
+  .account-pricing-surface,
+  .account-section-surface,
+  .account-plan-history .session-item,
+  .account-page-header {
+    background: rgba(17, 26, 46, 0.94);
+    border-color: rgba(148, 163, 184, 0.18);
+    box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
+  }
+
+  .account-saas-card__title,
+  .account-pricing-head h2,
+  .account-page-header h1 {
+    color: #e2e8f0;
+  }
+
+  .account-saas-card__subtitle,
+  .account-pricing-head p,
+  .account-plan-history,
+  .account-form-hint,
+  .account-page .eyebrow {
+    color: #94a3b8;
+  }
+
+  .account-saas-card__header,
+  .account-plan-history {
+    border-color: rgba(148, 163, 184, 0.14);
+  }
+
+  .account-form-label {
+    color: #cbd5e1;
+  }
+
+  .account-form-input {
+    border-color: rgba(148, 163, 184, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    color: #e2e8f0;
+  }
+
+  .account-form-input::placeholder,
+  .account-form-input:disabled,
+  .account-form-input--disabled {
+    color: #94a3b8;
+  }
+
+  .account-form-input:focus {
+    border-color: rgba(125, 211, 252, 0.7);
+    background: rgba(15, 23, 42, 0.85);
+    box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.14);
+  }
+
+  .account-plan-pill {
+    background: rgba(167, 139, 250, 0.12);
+    border-color: rgba(167, 139, 250, 0.22);
+    color: #c4b5fd;
+  }
+
+  .account-change-plan-link,
+  .account-change-plan-link:hover,
+  .account-change-plan-link:focus-visible {
+    color: #93c5fd;
+  }
+
+  .account-page .btn-secondary {
+    border-color: rgba(148, 163, 184, 0.28);
+    background: rgba(15, 23, 42, 0.5);
+  }
+
+  .account-page .btn-primary,
+  .account-page .eyebrow {
+    color: #ffffff;
+  }
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page {
+  background:
+    radial-gradient(ellipse 60% 50% at 5% 0%, rgba(123, 97, 255, 0.11) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 95% 100%, rgba(91, 140, 255, 0.08) 0%, transparent 55%),
+    #0b0f19;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-saas-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-pricing-surface,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-section-surface,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-plan-history .session-item,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-page-header {
+  background: rgba(17, 26, 46, 0.94);
+  border-color: rgba(148, 163, 184, 0.18);
+  box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-saas-card__title,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-pricing-head h2,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-page-header h1 {
+  color: #e2e8f0;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-saas-card__subtitle,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-pricing-head p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-form-hint,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-page .eyebrow {
+  color: #94a3b8;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-saas-card__header,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-plan-history {
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-form-label {
+  color: #cbd5e1;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-form-input {
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.72);
+  color: #e2e8f0;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-form-input::placeholder,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-form-input:disabled,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-form-input--disabled {
+  color: #94a3b8;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-form-input:focus {
+  border-color: rgba(125, 211, 252, 0.7);
+  background: rgba(15, 23, 42, 0.85);
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.14);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-plan-pill {
+  background: rgba(167, 139, 250, 0.12);
+  border-color: rgba(167, 139, 250, 0.22);
+  color: #c4b5fd;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-change-plan-link,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-change-plan-link:hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-change-plan-link:focus-visible {
+  color: #93c5fd;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .btn-secondary {
+  border-color: rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.5);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .btn-primary,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .eyebrow {
+  color: #ffffff;
 }
 
 /* ── Responsive tweaks ── */
