@@ -1,0 +1,218 @@
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--control-border-strong);
+  border-radius: 20px;
+  background: linear-gradient(180deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.16);
+}
+
+.details {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.sessionName {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.infoWrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.infoButton {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--control-border-strong);
+  background: var(--surface-panel);
+  color: var(--accent-strong);
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
+}
+
+.infoButton:hover {
+  background: var(--surface-panel-soft);
+  color: var(--accent-strong);
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  width: min(360px, calc(100vw - 1.5rem));
+  padding: 0.95rem;
+  border-radius: 18px;
+  border: 1px solid var(--control-border-strong);
+  background: var(--surface-panel);
+  box-shadow: 0 28px 50px rgba(15, 23, 42, 0.24);
+  z-index: 40;
+}
+
+.popoverSection + .popoverSection {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--surface-soft-border);
+}
+
+.popoverLabel {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.codeRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-content: space-between;
+}
+
+.codeValue {
+  min-width: 0;
+  font-size: 0.96rem;
+  color: var(--text-strong);
+  word-break: break-word;
+}
+
+.copyButton {
+  flex: 0 0 auto;
+}
+
+.countValue {
+  font-size: 1rem;
+  color: var(--text-strong);
+}
+
+.challengeList {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.challengeItem {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 14px;
+  background: var(--surface-panel-soft);
+  color: var(--text-strong);
+}
+
+.challengeItemCurrent {
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.challengeIndex {
+  width: 1.55rem;
+  height: 1.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--surface-soft-border);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.challengeLabel {
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 0.92rem;
+}
+
+.challengeBadge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.14);
+  color: var(--accent-strong);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.challengeItemEmpty {
+  margin: 0;
+  padding: 0.4rem 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.participantBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--surface-soft-border);
+  background: var(--surface-panel-soft);
+  color: var(--text-strong);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+}
+
+.actionButton {
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .header {
+    flex-direction: column;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actionButton {
+    width: 100%;
+  }
+
+  .popover {
+    right: auto;
+    left: 0;
+  }
+}

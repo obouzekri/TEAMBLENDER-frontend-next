@@ -4,16 +4,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { Users } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
-import { Button } from '@/components/ui';
 import { clearSessionAuth, getAuthHeaders, getStoredAuthToken, getStoredCurrentUser } from '@/lib/auth';
 import { getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
+import SessionLiveHeader from '@/components/SessionLiveHeader';
 
 const ChallengeWrapper = dynamic(
   () => import('@/components/Challenges/ChallengeWrapper'),
@@ -45,8 +44,6 @@ export default function SessionLiveClient() {
   const [error, setError] = useState('');
   const [actionPending, setActionPending] = useState(false);
   const [actionError, setActionError] = useState('');
-  const [advancePopupOpen, setAdvancePopupOpen] = useState(false);
-  useBodyScrollLock(advancePopupOpen);
 
   const autoAdvanceTimerRef = useRef(null);
   const completedChallengeKeyRef = useRef('');
@@ -138,11 +135,6 @@ export default function SessionLiveClient() {
       setActionPending(false);
     }
   }, [canManageFlow, loadSession, refetchSessionState, t]);
-
-  const handleNextChallenge = useCallback(() => {
-    clearAutoAdvanceTimer();
-    setAdvancePopupOpen(true);
-  }, [clearAutoAdvanceTimer]);
 
   const flowMode = String(
     sessionState?.flowMode
@@ -254,70 +246,19 @@ export default function SessionLiveClient() {
         {asyncStatusMessage ? (
           <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
         ) : null}
-        <section className="session-live-header session-live-surface">
-          <div className="session-live-header__details">
-            <strong className="session-live-header__sessionName">
-              {t('sessionLive.sessionLabel', {
-                name: session?.name || `${t('sessionLive.sessionFallbackName')} ${sessionId}`,
-              })}
-            </strong>
-            <span className="session-live-header__separator" aria-hidden="true">•</span>
-            <span className="session-live-header__challengeBadge" title={activeChallengeName}>
-              {activeChallengeName}
-            </span>
-            <span className="session-live-header__participantBadge">
-              <Users aria-hidden="true" size={14} strokeWidth={2} />
-              {t('sessionLive.participantCount', { count: memberCount })}
-            </span>
-          </div>
-          <div className="session-live-header__actions">
-            <Button
-              variant="primary"
-              size="sm"
-              className="session-live-header__actionButton"
-              onClick={handleNextChallenge}
-              disabled={actionPending || !canManageFlow}
-            >
-              {actionPending ? t('sessionLive.inProgress') : t('sessionLive.moveToNextChallenge')}
-            </Button>
-          </div>
-        </section>
-
-        {advancePopupOpen ? (
-          <div className="session-live-popup-backdrop" role="presentation" onClick={() => setAdvancePopupOpen(false)}>
-            <section
-              className="session-live-popup"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="session-live-popup-title"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="session-live-popup__header">
-                <h3 id="session-live-popup-title">{t('sessionLive.confirmNextChallengeTitle')}</h3>
-                <button
-                  type="button"
-                  className="session-live-popup__close"
-                  aria-label={t('sessionLive.closeConfirmationModal')}
-                  onClick={() => setAdvancePopupOpen(false)}
-                >
-                  ×
-                </button>
-              </div>
-              <p>{t('sessionLive.confirmNextChallengeBody')}</p>
-              <div className="session-live-popup__actions">
-                <Button variant="secondary" size="sm" onClick={() => setAdvancePopupOpen(false)}>
-                  {t('sessionLive.cancel')}
-                </Button>
-                <Button variant="primary" size="sm" onClick={async () => {
-                  setAdvancePopupOpen(false);
-                  await advanceToNextChallenge();
-                }}>
-                  {t('sessionLive.confirm')}
-                </Button>
-              </div>
-            </section>
-          </div>
-        ) : null}
+        <SessionLiveHeader
+          sessionId={sessionId}
+          sessionName={session?.name || `${t('sessionLive.sessionFallbackName')} ${sessionId}`}
+          sessionCode={session?.code || session?.session_code || session?.sessionCode || sessionId}
+          participantCount={memberCount}
+          expectedParticipantCount={session?.expected_participants || session?.expectedParticipants || memberCount}
+          challenges={challenges}
+          activeChallengeId={activeChallengeId}
+          activeChallengeName={activeChallengeName}
+          onAdvance={advanceToNextChallenge}
+          advancing={actionPending}
+          showAdvanceButton={canManageFlow}
+        />
 
         {activeEngineKey ? (
           <section className="session-live-challenge-frame">

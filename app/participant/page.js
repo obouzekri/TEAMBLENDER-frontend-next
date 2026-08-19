@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
+import SessionLiveHeader from '@/components/SessionLiveHeader';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
 import { clearStoredAuth, getAuthHeaders, getStoredCurrentUser } from '@/lib/auth';
@@ -17,6 +18,7 @@ export default function ParticipantPage() {
   const [user, setUser] = useState(null);
   const [runtime, setRuntime] = useState(null);
   const [runtimeError, setRuntimeError] = useState('');
+  const [sessionDetails, setSessionDetails] = useState(null);
   const [joining, setJoining] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
   const [assignedSessions, setAssignedSessions] = useState([]);
@@ -35,6 +37,13 @@ export default function ParticipantPage() {
     () => String(sessionState?.current_challenge?.engine_key || '').trim(),
     [sessionState?.current_challenge?.engine_key]
   );
+  const sessionChallenges = useMemo(() => {
+    const currentChallenge = sessionState?.current_challenge || null;
+    if (Array.isArray(sessionState?.challenges) && sessionState.challenges.length > 0) {
+      return sessionState.challenges;
+    }
+    return currentChallenge ? [currentChallenge] : [];
+  }, [sessionState?.challenges, sessionState?.current_challenge]);
 
   useEffect(() => {
     if (authInitRef.current) {
@@ -159,10 +168,34 @@ export default function ParticipantPage() {
   useEffect(() => {
     if (!ready || !sessionId) return;
 
+    let cancelled = false;
+
+    async function loadSessionDetails() {
+      try {
+        const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), {
+          headers: getAuthHeaders(),
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const payload = await res.json();
+        if (!cancelled) {
+          setSessionDetails(payload || null);
+        }
+      } catch {
+        if (!cancelled) {
+          setSessionDetails(null);
+        }
+      }
+    }
+
+    loadSessionDetails();
+
     if (stateEngineKey) {
       setJoining(false);
       setRuntimeError('');
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     const hasActiveChallenge = Boolean(sessionState?.active_challenge_id);
@@ -266,6 +299,13 @@ export default function ParticipantPage() {
     return withLocalePath(`/challenges/${encodeURIComponent(engine)}?sessionId=${encodeURIComponent(sessionId)}`);
   }, [stateEngineKey, runtime, sessionId, withLocalePath]);
 
+  const participantSessionName = String(sessionDetails?.name || '').trim() || sessionId;
+  const participantExpectedCount = Array.isArray(sessionDetails?.assigned_participants)
+    ? sessionDetails.assigned_participants.length
+    : Array.isArray(sessionDetails?.participants)
+      ? sessionDetails.participants.length
+      : teamMembers.length || 1;
+
   // Auto-redirect to challenge as soon as it is available (removes the manual second click)
   useEffect(() => {
     if (!challengeLink || hasRedirected.current) return;
@@ -366,6 +406,22 @@ export default function ParticipantPage() {
             <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
           ) : null}
         </section>
+
+        {sessionId ? (
+          <section className="participant-live-header-shell">
+            <SessionLiveHeader
+              sessionId={sessionId}
+              sessionName={participantSessionName}
+              sessionCode={sessionDetails?.code || sessionDetails?.session_code || sessionDetails?.sessionCode || sessionId}
+              participantCount={teamMembers.length || sessionExpectedCount}
+              expectedParticipantCount={participantExpectedCount}
+              challenges={sessionChallenges}
+              activeChallengeId={sessionState?.active_challenge_id || sessionState?.current_challenge?.id || null}
+              activeChallengeName={runtime?.challenge_name || sessionState?.current_challenge?.name || sessionState?.current_challenge?.engine_key || ''}
+              showAdvanceButton={false}
+            />
+          </section>
+        ) : null}
 
         <div className="participant-grid">
           {/* Loading skeleton while sessions are being fetched */}

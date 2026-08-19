@@ -26,9 +26,9 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
   const isCompact = role === 'participant-live' || isParticipantChallengeLive;
   const isManager = !isParticipant && !isAdmin && !isCompact;
   const isParticipantArea = isParticipant && !isCompact;
-  const brandHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
+  const brandHref = isParticipant && !isCompact ? '/participant' : isAdmin ? '/admin' : '/home';
   const compactReturnHref = isParticipant ? '/participant' : '/home';
-  const compactReturnLabel = isParticipant ? t('appNav.backToSessions') : t('appNav.backToDashboard');
+  const compactReturnLabel = isParticipant ? t('appNav.backToSessions') : 'Tableau de bord';
   const headerClassName = isCompact ? 'top-nav top-nav--live-inline' : 'top-nav';
   const isManagerHome = isManager && plainPathname === '/home';
   const isActive = (href) => plainPathname?.startsWith(href);
@@ -221,14 +221,6 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
               </div>
             )}
 
-            {isCompact && (
-              <div className="nav-main-block nav-main-block--compact">
-                <nav className="nav-links" aria-label="Navigation session live">
-                  <Link href={withLocalePath(compactReturnHref)} className="nav-link">{compactReturnLabel}</Link>
-                </nav>
-              </div>
-            )}
-
             {!isCompact ? (
               <div className="nav-mobile-menu-actions appnav-mobile-actions" aria-label={t('nav.accountAria')}>
                 <LanguageSwitcher />
@@ -263,6 +255,11 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
                 menuLabel={t('appNav.userMenu')}
                 closeSignal={menuSignal}
                 items={[
+                  ...(isCompact ? [{
+                    key: 'dashboard',
+                    label: compactReturnLabel,
+                    href: withLocalePath(compactReturnHref),
+                  }] : []),
                   {
                     key: 'account',
                     label: t('nav.myAccount'),
