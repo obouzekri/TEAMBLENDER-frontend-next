@@ -49,6 +49,7 @@ export default function TopNav({ compact = false }) {
   const accountHref = sessionUser?.role === 'participant' ? '/participant' : '/account';
   const roleLabel = sessionUser?.role === 'participant' ? t('nav.participant') : sessionUser?.role === 'admin' ? t('nav.admin') : t('nav.manager');
   const mobileLoginHref = withLocalePath('/login');
+  const mobileJoinHref = withLocalePath('/login?mode=join');
 
   useEffect(() => {
     if (!isMenuOpen) return undefined;
@@ -158,6 +159,9 @@ export default function TopNav({ compact = false }) {
               />
             ) : (
               <>
+                <Link href={mobileJoinHref} className="btn-mini nav-mobile-login-btn">
+                  {t('nav.participant')}
+                </Link>
                 <Link href={mobileLoginHref} className="nav-cta-btn nav-mobile-signup-btn">
                   {t('nav.login')}
                 </Link>

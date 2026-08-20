@@ -16179,6 +16179,7 @@ a {
     }
 
     .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .lang-switch,
+    .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .nav-mobile-login-btn,
     .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .nav-mobile-signup-btn {
       width: 100% !important;
       min-height: 44px !important;
@@ -16198,7 +16199,7 @@ a {
 
   @media (max-width: 480px) {
     .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions {
-    grid-template-columns: 1fr !important;
+      grid-template-columns: 1fr !important;
     }
   }
 

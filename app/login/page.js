@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }) {
 
   return (
     <>
-      <TopNav compact />
+      <TopNav />
       <LoginForm
         requestedSessionId={requestedSessionId}
         requestedInviteToken={requestedInviteToken}

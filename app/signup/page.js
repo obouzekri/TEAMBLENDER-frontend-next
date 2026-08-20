@@ -14,7 +14,7 @@ export async function generateMetadata() {
 export default function SignupPage() {
   return (
     <>
-      <TopNav compact />
+      <TopNav />
       <SignupForm />
       <Footer />
     </>
