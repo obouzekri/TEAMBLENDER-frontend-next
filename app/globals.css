@@ -3426,6 +3426,45 @@ a {
   box-shadow: 0 14px 30px rgba(99, 102, 241, 0.18);
 }
 
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-hero p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls label,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-description,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-original,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-meta-row,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-feature-list,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-empty p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-hero p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-card p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-text span,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-trust-box p {
+  color: var(--text-muted);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-empty,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-trust-box,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-item {
+  border-color: rgba(148, 163, 184, 0.2);
+  background-clip: padding-box;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-card {
+  position: relative;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card > * + *,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-card > * + * {
+  margin-top: 0.85rem;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls {
+  box-shadow: 0 18px 38px rgba(2, 6, 23, 0.32);
+}
+
 .contact-page .btn-secondary,
 .pricing-page .btn-secondary,
 .auth-page .btn-secondary {
