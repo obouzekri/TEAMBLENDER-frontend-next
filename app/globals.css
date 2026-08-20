@@ -2079,6 +2079,7 @@ a {
   min-height: 100svh;
   display: flex;
   align-items: flex-start;
+  overflow-x: clip;
   background:
     radial-gradient(circle at 12% 14%, rgba(53, 160, 255, 0.15), transparent 28%),
     radial-gradient(circle at 88% 18%, rgba(124, 58, 237, 0.12), transparent 24%),
@@ -2949,6 +2950,69 @@ a {
     border-radius: 24px;
   }
 
+  .auth-card h1 {
+    font-size: clamp(1.28rem, 4.8vw, 1.55rem);
+    line-height: 1.12;
+  }
+
+  .auth-card-description {
+    font-size: 0.92rem;
+    line-height: 1.48;
+  }
+
+  .auth-tabs {
+    gap: 0.35rem;
+    padding: 0.2rem;
+  }
+
+  .auth-tab-btn {
+    min-height: 42px;
+    font-size: 0.82rem;
+  }
+
+  .auth-tabs-subtitle {
+    font-size: 0.76rem;
+    line-height: 1.45;
+  }
+
+  .auth-field-label {
+    font-size: 0.79rem;
+  }
+
+  .auth-input-shell {
+    min-height: 50px;
+    gap: 0.65rem;
+    padding: 0 0.85rem;
+    border-radius: 16px;
+  }
+
+  .auth-form .auth-input-shell input,
+  .auth-form .auth-input-shell select,
+  .auth-form .auth-input-shell textarea {
+    font-size: 0.95rem;
+  }
+
+  .password-toggle {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 10px;
+  }
+
+  .auth-form-row--options {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .auth-inline-help-link {
+    align-self: flex-start;
+  }
+
+  .auth-required-note,
+  .form-help,
+  .form-error {
+    font-size: 0.8rem;
+  }
+
   .nav-auth-row {
     min-height: 56px;
     gap: 0.55rem;
@@ -2966,6 +3030,10 @@ a {
   .social-auth-row,
   .auth-field-grid {
     grid-template-columns: 1fr;
+  }
+
+  .auth-field-grid--join {
+    gap: 0.8rem;
   }
 
   .social-auth-btn,
@@ -9078,7 +9146,7 @@ a {
   margin-top: 6px;
 }
 
-  color: var(--ink-soft);
+.status-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -16296,6 +16364,17 @@ a {
     .auth-card,
     .auth-showcase-card {
       border-radius: 16px;
+    }
+
+    .auth-page--login .auth-login-pane {
+      width: 100%;
+      margin-inline: auto;
+    }
+
+    .auth-page--login .auth-shell,
+    .auth-page--signup > .auth-shell {
+      width: 100%;
+      max-width: none;
     }
 
     .session-live-popup-backdrop,

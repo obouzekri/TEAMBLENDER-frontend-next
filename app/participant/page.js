@@ -206,8 +206,6 @@ export default function ParticipantPage() {
       return;
     }
 
-    let cancelled = false;
-
     async function fetchRuntime() {
       try {
         const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/runtime-challenge`), {
