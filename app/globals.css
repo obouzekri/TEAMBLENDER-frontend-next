@@ -16102,7 +16102,7 @@ a {
 
     .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions {
       display: grid !important;
-      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      grid-template-columns: 1fr !important;
       gap: 0.6rem !important;
       align-items: stretch !important;
       width: 100% !important;
@@ -16111,7 +16111,6 @@ a {
     }
 
     .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .lang-switch,
-    .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .nav-mobile-login-btn,
     .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .nav-mobile-signup-btn {
       width: 100% !important;
       min-height: 44px !important;
@@ -16131,7 +16130,7 @@ a {
 
   @media (max-width: 480px) {
     .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions {
-      grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr !important;
     }
   }
 
