@@ -459,7 +459,7 @@ export default function PricingPage() {
         ) : null}
 
         {!loading && !error && sortedPlans.length > 0 ? (
-          <section className="pricing-footer-cta reveal-up" aria-label="Assistance commerciale">
+          <section className="pricing-footer-cta reveal-up pricing-footer-cta--flat" aria-label="Assistance commerciale">
             <div className="pricing-footer-cta__inner">
               <div className="pricing-footer-cta__copy">
                 <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Need support?' : 'Besoin d\'un accompagnement ?'}</p>

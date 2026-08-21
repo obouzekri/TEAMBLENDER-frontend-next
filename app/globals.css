@@ -1263,11 +1263,16 @@ body {
 .pricing-page .pricing-footer-cta {
   position: relative;
   overflow: hidden;
-  padding: 1.25rem;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 24px;
-  background: rgba(17, 26, 46, 0.92);
-  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.32);
+  margin-top: 1rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pricing-page .pricing-footer-cta--flat {
+  padding-top: 1rem;
 }
 
 .pricing-page .pricing-footer-cta::before {
@@ -1289,6 +1294,11 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1.25rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 22px;
+  background: rgba(17, 26, 46, 0.9);
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.18);
 }
 
 .pricing-page .pricing-footer-cta__copy h2 {
