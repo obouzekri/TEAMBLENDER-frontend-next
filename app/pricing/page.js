@@ -296,8 +296,8 @@ export default function PricingPage() {
           color: 'var(--text-strong, #e2e8f0)',
         }}
       >
-        <section className="pricing-hero reveal-up text-center mb-16" aria-label="Tarification TeamBlender">
-          <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
+        <section className="pricing-hero reveal-up text-center mb-10" aria-label="Tarification TeamBlender">
+          <div className="mx-auto flex max-w-4xl flex-col items-center gap-3 text-center">
             <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Pricing' : 'Tarification'}</p>
             <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
             <p style={getDarkModeTextStyle()}>
@@ -315,8 +315,8 @@ export default function PricingPage() {
 
         {/* Billing Cycle & Currency Selector */}
         {!loading && sortedPlans.length > 0 ? (
-          <section className="pricing-controls reveal-up mb-12" aria-label="Options d'affichage">
-            <div className="pricing-controls__row mx-auto flex w-full max-w-5xl flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <section className="pricing-controls reveal-up mb-8" aria-label="Options d'affichage">
+            <div className="pricing-controls__row mx-auto flex w-full max-w-6xl flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div className="control-section pricing-controls__toggle">
                 <label className="pricing-controls__label" style={getDarkModeTextStyle()}>{isEn ? 'Billing cycle' : 'Fréquence de facturation'}</label>
                 <div className="toggle-group toggle-group--compact">
@@ -386,8 +386,8 @@ export default function PricingPage() {
         ) : null}
 
         {!loading && !error && sortedPlans.length > 0 ? (
-          <div className="mx-auto w-full max-w-7xl px-4">
-            <section className="pricing-grid reveal-up grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8" aria-label="Formules disponibles" style={{ background: 'transparent' }}>
+          <div className="mx-auto w-full max-w-8xl px-4 sm:px-6 lg:px-8">
+            <section className="pricing-grid reveal-up grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-6" aria-label="Formules disponibles" style={{ background: 'transparent' }}>
             {displayedPlans.map((plan) => {
               const isEnterprise = plan.cardVariant === 'enterprise';
               const ctaLabel = isEnterprise ? (isEn ? 'Contact the team' : 'Contacter l’équipe') : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
@@ -470,6 +470,304 @@ export default function PricingPage() {
           </section>
         ) : null}
       </main>
+      <style jsx global>{`
+        .pricing-page {
+          padding-top: 1rem;
+          padding-bottom: 2.25rem;
+        }
+
+        .pricing-page .pricing-hero {
+          margin-bottom: 2.25rem;
+        }
+
+        .pricing-page .pricing-hero h1 {
+          max-width: 13ch;
+          margin: 0;
+          font-size: clamp(2.25rem, 4vw, 3.6rem);
+          line-height: 0.98;
+          letter-spacing: -0.04em;
+        }
+
+        .pricing-page .pricing-hero p {
+          margin: 0;
+          max-width: 60ch;
+          font-size: 1.02rem;
+          line-height: 1.6;
+        }
+
+        .pricing-page .pricing-controls {
+          margin-bottom: 1.75rem;
+        }
+
+        .pricing-page .pricing-controls__row {
+          padding: 1rem 1.15rem;
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+          border-radius: 20px;
+          background: rgba(17, 26, 46, 0.72);
+          backdrop-filter: blur(14px);
+          box-shadow: 0 12px 28px rgba(2, 6, 23, 0.22);
+        }
+
+        .pricing-page .pricing-controls__label,
+        .pricing-page .pricing-controls__currency label {
+          display: block;
+          margin-bottom: 0.45rem;
+          font-size: 0.82rem;
+          letter-spacing: 0.02em;
+          text-transform: uppercase;
+        }
+
+        .pricing-page .toggle-group--compact {
+          gap: 0.5rem;
+        }
+
+        .pricing-page .toggle-btn,
+        .pricing-page .currency-select {
+          min-height: 2.9rem;
+          font-size: 0.9rem;
+        }
+
+        .pricing-page .pricing-grid {
+          align-items: stretch;
+        }
+
+        .pricing-page .pricing-card {
+          min-height: 100%;
+          padding: 1.45rem 1.4rem 1.3rem;
+          border-radius: 22px;
+          gap: 0.95rem;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .pricing-page .pricing-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 22%);
+        }
+
+        .pricing-page .pricing-card-top {
+          min-height: 4.3rem;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: flex-start;
+          gap: 0.45rem;
+        }
+
+        .pricing-page .pricing-card-top .eyebrow {
+          margin-top: auto;
+          margin-bottom: 0;
+          font-size: 0.84rem;
+          letter-spacing: 0.05em;
+        }
+
+        .pricing-page .pricing-badge,
+        .pricing-page .pricing-discount-badge {
+          font-size: 0.72rem;
+          line-height: 1;
+          padding: 0.36rem 0.65rem;
+          border-radius: 999px;
+          align-self: flex-start;
+        }
+
+        .pricing-page .pricing-badge--featured {
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 26px rgba(90, 75, 218, 0.18);
+        }
+
+        .pricing-page .pricing-price {
+          margin: 0;
+          display: flex;
+          align-items: baseline;
+          gap: 0.45rem;
+          flex-wrap: wrap;
+          font-size: clamp(2rem, 2.6vw, 2.5rem);
+          line-height: 1;
+        }
+
+        .pricing-page .pricing-price span {
+          font-size: 0.92rem;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+        }
+
+        .pricing-page .pricing-original {
+          margin: -0.35rem 0 0;
+          font-size: 0.86rem;
+        }
+
+        .pricing-page .pricing-description {
+          margin: 0.1rem 0 0;
+          color: var(--text-muted, #cbd5e1);
+          font-size: 0.94rem;
+          line-height: 1.55;
+        }
+
+        .pricing-page .pricing-feature-list {
+          margin: 0;
+          padding: 0;
+          list-style: none;
+          display: grid;
+          gap: 0.6rem;
+          flex: 1;
+        }
+
+        .pricing-page .pricing-feature-list li {
+          position: relative;
+          padding-left: 1.25rem;
+          font-size: 0.92rem;
+          line-height: 1.5;
+          color: var(--text-muted, #cbd5e1);
+        }
+
+        .pricing-page .pricing-feature-list li::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0.56rem;
+          width: 0.45rem;
+          height: 0.45rem;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #35a0ff 0%, #7c3aed 100%);
+          box-shadow: 0 0 0 4px rgba(53, 160, 255, 0.12);
+        }
+
+        .pricing-page .pricing-meta-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem 0.75rem;
+          min-height: 1.7rem;
+          margin-top: 0.1rem;
+          padding-top: 0.35rem;
+          border-top: 1px solid rgba(148, 163, 184, 0.14);
+          color: var(--text-subtle, #94a3b8);
+          font-size: 0.8rem;
+        }
+
+        .pricing-page .pricing-actions {
+          display: flex;
+          align-items: stretch;
+          margin-top: 0.25rem;
+        }
+
+        .pricing-page .pricing-cta,
+        .pricing-page .pricing-footer-cta__button {
+          width: 100%;
+          justify-content: center;
+          min-height: 3rem;
+          padding: 0.78rem 1rem;
+          border-radius: 12px;
+          font-size: 0.92rem;
+          font-weight: 700;
+          letter-spacing: 0.01em;
+          white-space: normal;
+          text-align: center;
+        }
+
+        .pricing-page .pricing-cta--featured {
+          box-shadow: 0 16px 30px rgba(53, 160, 255, 0.24);
+        }
+
+        .pricing-page .pricing-card-featured {
+          border-color: rgba(53, 160, 255, 0.38);
+          box-shadow: 0 22px 48px rgba(53, 160, 255, 0.16), 0 18px 40px rgba(2, 6, 23, 0.34);
+          transform: translateY(-2px);
+        }
+
+        .pricing-page .pricing-card-featured .pricing-badge--featured {
+          background: linear-gradient(135deg, rgba(53, 160, 255, 0.22), rgba(124, 58, 237, 0.22));
+          color: #e8f1ff;
+          border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .pricing-page .pricing-footer-cta {
+          margin-top: 1.6rem;
+          padding: 0;
+        }
+
+        .pricing-page .pricing-footer-cta__inner {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem 1.5rem;
+          width: min(100%, 72rem);
+          margin: 0 auto;
+          padding: 1.35rem 1.5rem;
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+          border-radius: 24px;
+          background: rgba(17, 26, 46, 0.74);
+          backdrop-filter: blur(14px);
+          box-shadow: 0 16px 36px rgba(2, 6, 23, 0.24);
+        }
+
+        .pricing-page .pricing-footer-cta__copy {
+          display: grid;
+          gap: 0.45rem;
+          max-width: 52ch;
+        }
+
+        .pricing-page .pricing-footer-cta__copy h2 {
+          margin: 0;
+          font-size: clamp(1.2rem, 2vw, 1.65rem);
+          line-height: 1.2;
+          letter-spacing: -0.02em;
+        }
+
+        .pricing-page .pricing-footer-cta__copy .eyebrow {
+          margin: 0;
+        }
+
+        .pricing-page .pricing-footer-cta__button {
+          width: auto;
+          min-width: 13rem;
+          flex-shrink: 0;
+        }
+
+        @media (min-width: 1280px) {
+          .pricing-page .pricing-card {
+            min-height: 31rem;
+          }
+        }
+
+        @media (max-width: 1024px) {
+          .pricing-page .pricing-footer-cta__inner {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .pricing-page .pricing-footer-cta__button {
+            width: 100%;
+            min-width: 0;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .pricing-page {
+            padding-top: 0.5rem;
+            padding-bottom: 1.5rem;
+          }
+
+          .pricing-page .pricing-hero h1 {
+            max-width: 100%;
+          }
+
+          .pricing-page .pricing-controls__row,
+          .pricing-page .pricing-footer-cta__inner {
+            padding: 1rem;
+            border-radius: 18px;
+          }
+
+          .pricing-page .pricing-card {
+            padding: 1.2rem 1rem 1.05rem;
+            border-radius: 18px;
+          }
+
+          .pricing-page .pricing-price {
+            font-size: 2rem;
+          }
+        }
+      `}</style>
       <Footer />
     </>
   );
