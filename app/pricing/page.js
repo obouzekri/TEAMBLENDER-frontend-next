@@ -292,24 +292,36 @@ export default function PricingPage() {
       <main
         className="shell pricing-page"
         style={{
-          background: 'radial-gradient(circle at top left, rgba(53, 160, 255, 0.08), transparent 34%), radial-gradient(circle at right 10%, rgba(124, 58, 237, 0.08), transparent 28%), linear-gradient(180deg, rgba(8, 15, 30, 0.98) 0%, rgba(12, 18, 34, 0.98) 100%)',
-          color: 'var(--text-strong, #e2e8f0)',
+          background: 'radial-gradient(circle at top left, rgba(53, 160, 255, 0.1), transparent 34%), radial-gradient(circle at right 10%, rgba(124, 58, 237, 0.08), transparent 28%), linear-gradient(180deg, rgba(245, 249, 255, 0.98) 0%, rgba(239, 245, 255, 0.98) 100%)',
+          color: 'var(--text-strong, #0f172a)',
         }}
       >
-        <section className="pricing-hero reveal-up text-center mb-10" aria-label="Tarification TeamBlender">
-          <div className="mx-auto flex max-w-4xl flex-col items-center gap-3 text-center">
-            <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Pricing' : 'Tarification'}</p>
-            <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
-            <p style={getDarkModeTextStyle()}>
-              {isEn
-                ? 'Start light, then scale with more capabilities, support, and customization.'
-                : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
-            </p>
-            <p style={getDarkModeTextStyle()}>
-              {isEn
-                ? '14-day free trial, no credit card required.'
-                : 'Essai gratuit 14 jours, sans carte bancaire.'}
-            </p>
+        <section className="pricing-hero reveal-up" aria-label="Tarification TeamBlender">
+          <div className="pricing-hero__inner">
+            <div className="pricing-hero__copy">
+              <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Pricing' : 'Tarification'}</p>
+              <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
+              <p className="pricing-hero__lede" style={getDarkModeTextStyle()}>
+                {isEn
+                  ? 'Start light, then scale with more capabilities, support, and customization.'
+                  : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
+              </p>
+              <div className="pricing-proof-row">
+                <span className="pricing-proof-pill">{isEn ? '14-day free trial' : 'Essai gratuit 14 jours'}</span>
+                <span className="pricing-proof-pill">{isEn ? 'No credit card required' : 'Sans carte bancaire'}</span>
+                <span className="pricing-proof-pill">{isEn ? 'Built for HR and managers' : 'Pensé pour RH et managers'}</span>
+              </div>
+            </div>
+
+            <aside className="pricing-hero__panel" aria-label={isEn ? 'Pricing summary' : 'Résumé tarification'}>
+              <p className="pricing-hero__panel-eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Plan guidance' : 'Orientation des formules'}</p>
+              <strong style={getDarkModeHeadingStyle()}>{isEn ? 'Choose the plan that matches your team size, cadence, and support needs.' : 'Choisissez la formule adaptée à la taille de l’équipe, au rythme et au niveau de support.'}</strong>
+              <div className="pricing-hero__panel-points">
+                <span style={getDarkModeTextStyle()}>{isEn ? 'Clear pricing with visible upgrades' : 'Tarification claire et montées en gamme lisibles'}</span>
+                <span style={getDarkModeTextStyle()}>{isEn ? 'Annual savings highlighted upfront' : 'Économies annuelles mises en avant'}</span>
+                <span style={getDarkModeTextStyle()}>{isEn ? 'Direct contact for custom needs' : 'Contact direct pour les besoins sur mesure'}</span>
+              </div>
+            </aside>
           </div>
         </section>
 
@@ -386,7 +398,7 @@ export default function PricingPage() {
         ) : null}
 
         {!loading && !error && sortedPlans.length > 0 ? (
-          <div className="mx-auto w-full max-w-8xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
             <section className="pricing-grid reveal-up grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-6" aria-label="Formules disponibles" style={{ background: 'transparent' }}>
             {displayedPlans.map((plan) => {
               const isEnterprise = plan.cardVariant === 'enterprise';
@@ -394,7 +406,7 @@ export default function PricingPage() {
               const ctaHref = isEnterprise ? withLocalePath('/contact') : plan.planCopy.ctaHref;
 
               return (
-              <article key={String(plan.id)} className={`feature-card pricing-card flex h-full flex-col${plan.isFeatured ? ' pricing-card-featured' : ''}`} style={getDarkModeSectionStyle()}>
+              <article key={String(plan.id)} className={`feature-card pricing-card flex h-full flex-col${plan.isFeatured ? ' pricing-card-featured' : ''}`}>
                 <div className="pricing-card-top">
                   {plan.isFeatured ? <span className="pricing-badge pricing-badge--featured">{isEn ? 'Most popular' : 'Plus populaire'}</span> : null}
                   {!plan.isFeatured && plan.highlighted ? <span className="pricing-badge">{isEnterprise ? (isEn ? 'Custom' : 'Sur mesure') : (isEn ? 'Recommended' : 'Recommandé')}</span> : null}
@@ -472,40 +484,124 @@ export default function PricingPage() {
       </main>
       <style jsx global>{`
         .pricing-page {
-          padding-top: 1rem;
-          padding-bottom: 2.25rem;
+          width: min(100%, 80rem);
+          margin: 0 auto;
+          padding: 1rem 1rem 2.5rem;
+          color: var(--text-strong, #0f172a);
         }
 
         .pricing-page .pricing-hero {
-          margin-bottom: 2.25rem;
+          margin-bottom: 1.4rem;
+        }
+
+        .pricing-page .pricing-hero__inner {
+          display: grid;
+          grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+          gap: 1rem;
+          align-items: stretch;
+          padding: 1.6rem;
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+          border-radius: 28px;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 250, 255, 0.94) 100%);
+          box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+          backdrop-filter: blur(12px);
+        }
+
+        .pricing-page .pricing-hero__copy {
+          display: grid;
+          gap: 0.9rem;
+          align-content: start;
         }
 
         .pricing-page .pricing-hero h1 {
           max-width: 13ch;
           margin: 0;
-          font-size: clamp(2.25rem, 4vw, 3.6rem);
-          line-height: 0.98;
-          letter-spacing: -0.04em;
+          font-size: clamp(2.3rem, 4vw, 4rem);
+          line-height: 0.96;
+          letter-spacing: -0.045em;
         }
 
-        .pricing-page .pricing-hero p {
+        .pricing-page .pricing-hero__lede {
           margin: 0;
-          max-width: 60ch;
+          max-width: 58ch;
+          font-size: 1.03rem;
+          line-height: 1.68;
+          color: var(--text-muted, #3f4f6a);
+        }
+
+        .pricing-page .pricing-proof-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.65rem;
+        }
+
+        .pricing-page .pricing-proof-pill {
+          min-height: 2.75rem;
+          display: inline-flex;
+          align-items: center;
+          padding: 0.65rem 0.95rem;
+          border-radius: 999px;
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+          background: rgba(255, 255, 255, 0.82);
+          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+          font-size: 0.88rem;
+          font-weight: 600;
+          color: var(--text-muted, #3f4f6a);
+        }
+
+        .pricing-page .pricing-hero__panel {
+          display: grid;
+          gap: 0.85rem;
+          align-content: start;
+          padding: 1.15rem;
+          border-radius: 24px;
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(241, 246, 255, 0.96) 100%);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 14px 28px rgba(15, 23, 42, 0.06);
+        }
+
+        .pricing-page .pricing-hero__panel-eyebrow {
+          margin: 0;
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.16em;
+        }
+
+        .pricing-page .pricing-hero__panel strong {
           font-size: 1.02rem;
-          line-height: 1.6;
+          line-height: 1.45;
+        }
+
+        .pricing-page .pricing-hero__panel-points {
+          display: grid;
+          gap: 0.55rem;
+          margin-top: 0.25rem;
+        }
+
+        .pricing-page .pricing-hero__panel-points span {
+          display: flex;
+          align-items: center;
+          gap: 0.55rem;
+          padding: 0.7rem 0.8rem;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.72);
+          color: var(--text-muted, #3f4f6a);
+          font-size: 0.9rem;
+          line-height: 1.45;
+          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
         }
 
         .pricing-page .pricing-controls {
-          margin-bottom: 1.75rem;
+          margin-bottom: 1.4rem;
         }
 
         .pricing-page .pricing-controls__row {
-          padding: 1rem 1.15rem;
+          padding: 1rem 1.1rem;
           border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          border-radius: 20px;
-          background: rgba(17, 26, 46, 0.72);
+          border-radius: 24px;
+          background: rgba(255, 255, 255, 0.84);
           backdrop-filter: blur(14px);
-          box-shadow: 0 12px 28px rgba(2, 6, 23, 0.22);
+          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
         }
 
         .pricing-page .pricing-controls__label,
@@ -523,7 +619,7 @@ export default function PricingPage() {
 
         .pricing-page .toggle-btn,
         .pricing-page .currency-select {
-          min-height: 2.9rem;
+          min-height: 3rem;
           font-size: 0.9rem;
         }
 
@@ -533,11 +629,14 @@ export default function PricingPage() {
 
         .pricing-page .pricing-card {
           min-height: 100%;
-          padding: 1.45rem 1.4rem 1.3rem;
-          border-radius: 22px;
-          gap: 0.95rem;
+          padding: 1.35rem 1.3rem 1.25rem;
+          border-radius: 24px;
+          gap: 0.92rem;
           position: relative;
           overflow: hidden;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(247, 250, 255, 0.98) 100%);
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+          box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
         }
 
         .pricing-page .pricing-card::before {
@@ -670,8 +769,8 @@ export default function PricingPage() {
         }
 
         .pricing-page .pricing-card-featured {
-          border-color: rgba(53, 160, 255, 0.38);
-          box-shadow: 0 22px 48px rgba(53, 160, 255, 0.16), 0 18px 40px rgba(2, 6, 23, 0.34);
+          border-color: rgba(53, 160, 255, 0.34);
+          box-shadow: 0 22px 48px rgba(53, 160, 255, 0.14), 0 18px 40px rgba(15, 23, 42, 0.12);
           transform: translateY(-2px);
         }
 
@@ -695,10 +794,10 @@ export default function PricingPage() {
           margin: 0 auto;
           padding: 1.35rem 1.5rem;
           border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          border-radius: 24px;
-          background: rgba(17, 26, 46, 0.74);
+          border-radius: 26px;
+          background: rgba(255, 255, 255, 0.9);
           backdrop-filter: blur(14px);
-          box-shadow: 0 16px 36px rgba(2, 6, 23, 0.24);
+          box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
         }
 
         .pricing-page .pricing-footer-cta__copy {
@@ -731,6 +830,20 @@ export default function PricingPage() {
         }
 
         @media (max-width: 1024px) {
+          .pricing-page .pricing-hero__inner,
+          .pricing-page .pricing-controls__row,
+          .pricing-page .pricing-footer-cta__inner {
+            border-radius: 22px;
+          }
+
+          .pricing-page .pricing-hero__inner {
+            grid-template-columns: 1fr;
+          }
+
+          .pricing-page .pricing-hero__panel {
+            order: -1;
+          }
+
           .pricing-page .pricing-footer-cta__inner {
             align-items: flex-start;
             flex-direction: column;
@@ -744,23 +857,28 @@ export default function PricingPage() {
 
         @media (max-width: 640px) {
           .pricing-page {
-            padding-top: 0.5rem;
-            padding-bottom: 1.5rem;
+            padding: 0.5rem 0.75rem 1.8rem;
           }
 
           .pricing-page .pricing-hero h1 {
             max-width: 100%;
           }
 
+          .pricing-page .pricing-hero__inner,
           .pricing-page .pricing-controls__row,
           .pricing-page .pricing-footer-cta__inner {
             padding: 1rem;
-            border-radius: 18px;
+            border-radius: 20px;
+          }
+
+          .pricing-page .pricing-proof-pill {
+            width: 100%;
+            justify-content: center;
           }
 
           .pricing-page .pricing-card {
             padding: 1.2rem 1rem 1.05rem;
-            border-radius: 18px;
+            border-radius: 20px;
           }
 
           .pricing-page .pricing-price {
