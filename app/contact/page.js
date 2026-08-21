@@ -44,7 +44,7 @@ export default function ContactPage() {
     <>
       <TopNav />
       <main className="shell contact-page">
-        <section className="contact-hero feature-card reveal-up" aria-label="Contactez TeamBlender">
+        <section className="contact-hero reveal-up" aria-label="Contactez TeamBlender">
           <p className="eyebrow">TeamBlender</p>
           <h1>{isEn ? 'Let us talk about your next team session' : 'Parlons de votre prochain team building'}</h1>
           <p>{isEn ? 'This step helps frame your need and see how to launch a useful challenge for your team.' : 'Cette étape sert à cadrer votre besoin et voir comment lancer un challenge utile pour votre équipe.'}</p>

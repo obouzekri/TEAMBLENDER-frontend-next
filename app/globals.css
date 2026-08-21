@@ -1323,7 +1323,11 @@ body {
 }
 
 .contact-page .contact-hero {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .contact-page .contact-layout {
