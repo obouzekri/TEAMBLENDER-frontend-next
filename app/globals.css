@@ -1497,11 +1497,58 @@ body {
 }
 
 .contact-page .contact-hero {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   padding: 0;
   border: 0;
   background: transparent;
   box-shadow: none;
+}
+
+.contact-page .contact-hero h1 {
+  max-width: 18ch;
+  margin-bottom: 0.65rem;
+  letter-spacing: -0.035em;
+}
+
+.contact-page .contact-hero p {
+  max-width: 62ch;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.contact-page .contact-proof-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.contact-page .contact-proof-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(70, 79, 235, 0.18);
+  background: rgba(70, 79, 235, 0.08);
+  color: var(--text-strong);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.contact-page .contact-section-intro {
+  margin-top: -0.25rem;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+.contact-page .contact-proof-card {
+  margin-top: 1rem;
+}
+
+.contact-page .contact-proof-card p {
+  margin: 0;
 }
 
 .contact-page .contact-layout {
@@ -1533,6 +1580,11 @@ body {
 
 .contact-page .contact-info-card {
   padding: 1.5rem;
+}
+
+.contact-page .contact-info-card > h2,
+.contact-page .contact-layout > .feature-card:last-child > h2 {
+  margin-bottom: 0.6rem;
 }
 
 .contact-page .contact-info-items {
@@ -1585,9 +1637,58 @@ body {
   border-radius: 12px;
 }
 
+.contact-page .auth-form input:focus,
+.contact-page .auth-form select:focus,
+.contact-page .auth-form textarea:focus {
+  border-color: rgba(53, 160, 255, 0.62);
+  box-shadow: 0 0 0 4px rgba(53, 160, 255, 0.14);
+}
+
+.contact-page .btn-primary.wide {
+  background: linear-gradient(135deg, #35a0ff 0%, #2f62ff 100%);
+  box-shadow: 0 16px 34px rgba(47, 98, 255, 0.24);
+}
+
+.contact-page .btn-primary.wide:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 38px rgba(47, 98, 255, 0.3);
+}
+
 @media (max-width: 960px) {
   .contact-page .contact-layout {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .contact-page .contact-hero h1 {
+    max-width: none;
+  }
+
+  .contact-page .contact-layout {
+    padding: 1.1rem;
+    border-radius: 22px;
+  }
+
+  .contact-page .contact-layout--separated {
+    padding: 1.1rem;
+  }
+
+  .contact-page .contact-info-card,
+  .contact-page .contact-layout > .feature-card:last-child {
+    padding: 1.15rem;
+  }
+
+  .contact-page .contact-info-item {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .contact-page .contact-proof-box {
+    gap: 0.6rem;
+  }
+
+  .contact-page .contact-proof-pill {
+    width: 100%;
   }
 }
 

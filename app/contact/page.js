@@ -5,14 +5,27 @@ import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import useI18n from '@/lib/i18n/useI18n';
 
+const COMPANY_SIZES = {
+  fr: ['1 à 10 personnes', '11 à 50 personnes', '51 à 200 personnes', '201 à 500 personnes', '500+ personnes'],
+  en: ['1 to 10 people', '11 to 50 people', '51 to 200 people', '201 to 500 people', '500+ people'],
+};
+
+const OBJECTIVES = {
+  fr: ['Renforcer la cohésion', 'Accueillir de nouveaux collaborateurs', 'Lancer un séminaire', 'Fédérer une équipe hybride', 'Autre objectif RH'],
+  en: ['Strengthen cohesion', 'Onboard new employees', 'Launch a seminar', 'Unify a hybrid team', 'Other HR goal'],
+};
+
 export default function ContactPage() {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
   const [form, setForm] = useState({
     name: '',
     company: '',
+    companySize: '',
     email: '',
+    phone: '',
     need: '',
+    objective: '',
     message: '',
   });
 
@@ -32,8 +45,11 @@ export default function ContactPage() {
     const body = encodeURIComponent(
       `${isEn ? 'Name' : 'Nom'}: ${form.name}\n` +
       `${isEn ? 'Company' : 'Entreprise'}: ${form.company || (isEn ? 'Not provided' : 'Non renseignée')}\n` +
+      `${isEn ? 'Company size' : 'Effectif'}: ${form.companySize || (isEn ? 'Not provided' : 'Non renseigné')}\n` +
       `Email: ${form.email}\n` +
+      `${isEn ? 'Phone' : 'Téléphone'}: ${form.phone || (isEn ? 'Not provided' : 'Non renseigné')}\n` +
       `${isEn ? 'Need' : 'Besoin'}: ${form.need}\n\n` +
+      `${isEn ? 'Objective' : 'Objectif'}: ${form.objective || (isEn ? 'Not provided' : 'Non renseigné')}\n\n` +
       `${isEn ? 'Message' : 'Message'}:\n${form.message}`
     );
 
@@ -44,16 +60,31 @@ export default function ContactPage() {
     <>
       <TopNav />
       <main className="shell contact-page">
-        <section className="contact-hero reveal-up" aria-label="Contactez TeamBlender">
+        <section className="contact-hero reveal-up" aria-label={isEn ? 'Contact TeamBlender' : 'Contactez TeamBlender'}>
           <p className="eyebrow">TeamBlender</p>
-          <h1>{isEn ? 'Let us talk about your next team session' : 'Parlons de votre prochain team building'}</h1>
-          <p>{isEn ? 'This step helps frame your need and see how to launch a useful challenge for your team.' : 'Cette étape sert à cadrer votre besoin et voir comment lancer un challenge utile pour votre équipe.'}</p>
+          <h1>{isEn ? 'Create a team building that truly strengthens your team' : 'Créez un team building qui renforce réellement la cohésion de votre équipe'}</h1>
+          <p>{isEn ? 'Talk with a TeamBlender expert and identify the challenge best aligned with your HR goals.' : 'Échangez avec un expert TeamBlender et découvrez le challenge le plus adapté à vos objectifs RH.'}</p>
+          <div className="contact-proof-box">
+            <span className="contact-proof-pill">
+              {isEn ? 'Response within 24 business hours' : 'Réponse sous 24h ouvrées'}
+            </span>
+            <span className="contact-proof-pill">
+              {isEn ? 'Designed for HR and leadership teams' : 'Pensé pour les équipes RH et les managers'}
+            </span>
+          </div>
         </section>
 
         <section className="contact-layout contact-layout--separated">
           <article className="feature-card contact-info-card">
             <h2>{isEn ? 'How to reach us' : 'Comment nous joindre'}</h2>
-            <p>{isEn ? 'For scoping, a demo, or an HR question, write to us.' : 'Pour un cadrage, une démonstration ou une question RH, écrivez-nous.'}</p>
+            <p className="contact-section-intro">{isEn ? 'For scoping, a demo, or an HR question, write to us.' : 'Pour un cadrage, une démonstration ou une question RH, écrivez-nous.'}</p>
+
+            <div className="contact-trust-box highlight-violet contact-trust-box--soft contact-proof-card">
+              <p>
+                <strong>{isEn ? 'Proof point:' : 'Repère :'}</strong>{' '}
+                {isEn ? 'More than 5,000 employees engaged through our challenges.' : 'Plus de 5 000 collaborateurs engagés à travers nos challenges.'}
+              </p>
+            </div>
 
             <div className="contact-info-items">
               <div className="contact-info-item">
@@ -67,7 +98,7 @@ export default function ContactPage() {
                 <div className="contact-info-icon">⏱</div>
                 <div className="contact-info-text">
                   <strong>{isEn ? 'Response time' : 'Délai de réponse'}</strong>
-                  <span>{isEn ? 'Within 24 to 48 business hours' : 'Sous 24 à 48h ouvrées'}</span>
+                  <span>{isEn ? 'Within 24 business hours' : 'Sous 24h ouvrées'}</span>
                 </div>
               </div>
               <div className="contact-info-item">
@@ -91,7 +122,8 @@ export default function ContactPage() {
           </article>
 
           <article className="feature-card">
-            <h2>{isEn ? 'Send a message' : 'Envoyer un message'}</h2>
+            <h2>{isEn ? 'Book a demo' : 'Demander une démonstration'}</h2>
+            <p className="contact-section-intro">{isEn ? 'Tell us a little more about your team so we can prepare a useful first exchange.' : 'Donnez-nous quelques repères pour préparer un premier échange utile.'}</p>
             <form className="auth-form" onSubmit={openEmail}>
               <label>
                 {isEn ? 'Full name *' : 'Nom complet *'}
@@ -104,8 +136,23 @@ export default function ContactPage() {
               </label>
 
               <label>
+                {isEn ? 'Company size *' : 'Effectif de l’entreprise *'}
+                <select required value={form.companySize} onChange={(e) => updateField('companySize', e.target.value)}>
+                  <option value="">{isEn ? 'Select a company size' : 'Sélectionnez un effectif'}</option>
+                  {COMPANY_SIZES[locale].map((size) => (
+                    <option key={size} value={size}>{size}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
                 {isEn ? 'Work email *' : 'Email professionnel *'}
                 <input type="email" required value={form.email} onChange={(e) => updateField('email', e.target.value)} placeholder="vous@entreprise.com" />
+              </label>
+
+              <label>
+                {isEn ? 'Phone' : 'Téléphone'}
+                <input type="tel" value={form.phone} onChange={(e) => updateField('phone', e.target.value)} placeholder={isEn ? '+33 6 12 34 56 78' : '+33 6 12 34 56 78'} />
               </label>
 
               <label>
@@ -120,11 +167,21 @@ export default function ContactPage() {
               </label>
 
               <label>
+                {isEn ? 'Team building objective *' : 'Objectif du team building *'}
+                <select required value={form.objective} onChange={(e) => updateField('objective', e.target.value)}>
+                  <option value="">{isEn ? 'Select an objective' : 'Sélectionnez un objectif'}</option>
+                  {OBJECTIVES[locale].map((objective) => (
+                    <option key={objective} value={objective}>{objective}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
                 {isEn ? 'Message *' : 'Message *'}
                 <textarea rows={6} required value={form.message} onChange={(e) => updateField('message', e.target.value)} placeholder={isEn ? 'Context, team objective, and expected format.' : 'Contexte, objectif équipe et format envisagé.'} />
               </label>
 
-              <button type="submit" className="btn-primary wide">{isEn ? 'Open my email app' : 'Ouvrir mon email'}</button>
+              <button type="submit" className="btn-primary wide">{isEn ? 'Request a demo' : 'Demander une démonstration'}</button>
             </form>
           </article>
         </section>
