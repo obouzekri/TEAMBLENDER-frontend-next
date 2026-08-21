@@ -61,7 +61,7 @@ export default function ContactPage() {
       <TopNav />
       <main className="shell contact-page">
         <section className="contact-hero reveal-up" aria-label={isEn ? 'Contact TeamBlender' : 'Contactez TeamBlender'}>
-          <div className="contact-hero__inner">
+          <div className="contact-hero__grid">
             <div className="contact-hero__copy">
               <p className="eyebrow">TeamBlender</p>
               <h1>{isEn ? 'Create a team building that truly strengthens your team' : 'Créez un team building qui renforce réellement la cohésion de votre équipe'}</h1>
@@ -212,134 +212,108 @@ export default function ContactPage() {
         }
 
         .contact-page .contact-hero {
-          margin-bottom: 1.5rem;
+          margin-bottom: 2rem;
         }
 
-        .contact-page .contact-hero__inner {
+        .contact-page .contact-hero__grid {
           display: grid;
-          grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
-          gap: 1rem;
-          align-items: stretch;
-          padding: 1.6rem;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          border-radius: 28px;
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 250, 255, 0.92) 100%);
-          box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
-          backdrop-filter: blur(12px);
+          grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+          gap: 1.75rem;
+          align-items: start;
         }
 
         .contact-page .contact-hero__copy {
           display: grid;
-          gap: 0.9rem;
-          align-content: start;
+          gap: 0.95rem;
+          max-width: 46rem;
         }
 
         .contact-page .contact-hero__copy h1 {
-          max-width: 14ch;
+          max-width: none;
           margin: 0;
-          font-size: clamp(2.3rem, 4vw, 4rem);
-          line-height: 0.96;
-          letter-spacing: -0.045em;
+          font-size: clamp(2rem, 3.4vw, 3.2rem);
+          line-height: 1.08;
+          letter-spacing: -0.03em;
+          text-wrap: balance;
         }
 
         .contact-page .contact-hero__lede {
           margin: 0;
           max-width: 58ch;
-          font-size: 1.03rem;
-          line-height: 1.68;
-          color: var(--text-muted, #3f4f6a);
-        }
-
-        .contact-page .contact-proof-box {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.65rem;
-        }
-
-        .contact-page .contact-proof-pill {
-          min-height: 2.75rem;
-          display: inline-flex;
-          align-items: center;
-          padding: 0.65rem 0.95rem;
-          border-radius: 999px;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          background: rgba(255, 255, 255, 0.82);
-          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
-          font-size: 0.88rem;
-          font-weight: 600;
-          color: var(--text-muted, #3f4f6a);
+          font-size: 1.02rem;
+          line-height: 1.7;
+          color: var(--text-muted, #cbd5e1);
         }
 
         .contact-page .contact-hero__panel {
           display: grid;
           gap: 0.85rem;
           align-content: start;
-          padding: 1.15rem;
-          border-radius: 24px;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(241, 246, 255, 0.96) 100%);
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 14px 28px rgba(15, 23, 42, 0.06);
+          padding: 1.25rem;
+          border-radius: 22px;
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.16));
+          background: rgba(255, 255, 255, 0.03);
+          box-shadow: 0 14px 30px rgba(2, 6, 23, 0.2);
         }
 
         .contact-page .contact-hero__panel-eyebrow {
           margin: 0;
-          font-size: 0.75rem;
+          font-size: 0.74rem;
+          font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: 0.16em;
-          color: var(--text-subtle, #64748b);
+          letter-spacing: 0.14em;
+          color: var(--text-subtle, #94a3b8);
         }
 
         .contact-page .contact-hero__panel strong {
           font-size: 1.02rem;
           line-height: 1.45;
-          color: var(--text-strong, #0f172a);
+          color: var(--text-strong, #e2e8f0);
         }
 
         .contact-page .contact-hero__panel-points {
           display: grid;
           gap: 0.55rem;
-          margin-top: 0.25rem;
+          margin-top: 0.2rem;
         }
 
         .contact-page .contact-hero__panel-points span {
           display: flex;
           align-items: center;
-          gap: 0.55rem;
-          padding: 0.7rem 0.8rem;
-          border-radius: 16px;
-          background: rgba(255, 255, 255, 0.72);
-          color: var(--text-muted, #3f4f6a);
-          font-size: 0.9rem;
+          gap: 0.5rem;
+          padding: 0.65rem 0.8rem;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(148, 163, 184, 0.12);
+          color: var(--text-muted, #cbd5e1);
+          font-size: 0.88rem;
           line-height: 1.45;
-          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
         }
 
         .contact-page .contact-layout {
           display: grid;
           grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-          gap: 1rem;
+          gap: 1.5rem;
           align-items: start;
         }
 
         .contact-page .contact-info-card,
         .contact-page .contact-form-card {
-          padding: 1.35rem 1.3rem 1.25rem;
-          border-radius: 26px;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          background: rgba(255, 255, 255, 0.94);
-          box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+          padding: 1.5rem 1.4rem 1.3rem;
+          border-radius: 24px;
         }
 
         .contact-page .contact-form-card {
-          padding-bottom: 1.1rem;
+          padding-bottom: 1.15rem;
         }
 
         .contact-page .contact-info-card h2,
         .contact-page .contact-form-card h2 {
           margin: 0;
-          font-size: clamp(1.35rem, 2.1vw, 1.8rem);
-          line-height: 1.15;
-          letter-spacing: -0.03em;
+          font-size: clamp(1.3rem, 2vw, 1.7rem);
+          line-height: 1.2;
+          letter-spacing: -0.025em;
+          text-wrap: balance;
         }
 
         .contact-page .contact-section-intro {
@@ -347,7 +321,7 @@ export default function ContactPage() {
           max-width: 56ch;
           font-size: 0.98rem;
           line-height: 1.6;
-          color: var(--text-muted, #3f4f6a);
+          color: var(--text-muted, #cbd5e1);
         }
 
         .contact-page .contact-proof-card {
@@ -366,20 +340,19 @@ export default function ContactPage() {
           gap: 0.85rem;
           align-items: start;
           padding: 0.95rem;
-          border-radius: 18px;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.16));
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(250, 252, 255, 0.96) 100%);
+          border-radius: 16px;
+          border: 1px solid rgba(148, 163, 184, 0.14);
+          background: rgba(255, 255, 255, 0.03);
         }
 
         .contact-page .contact-info-icon {
-          width: 2.5rem;
-          height: 2.5rem;
+          width: 2.4rem;
+          height: 2.4rem;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          border-radius: 14px;
-          background: linear-gradient(135deg, rgba(53, 160, 255, 0.14), rgba(124, 58, 237, 0.14));
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+          border-radius: 12px;
+          background: linear-gradient(135deg, rgba(53, 160, 255, 0.18), rgba(124, 58, 237, 0.18));
           font-size: 1.05rem;
         }
 
@@ -391,11 +364,12 @@ export default function ContactPage() {
         .contact-page .contact-info-text strong {
           font-size: 0.95rem;
           line-height: 1.35;
+          color: var(--text-strong, #e2e8f0);
         }
 
         .contact-page .contact-info-text a,
         .contact-page .contact-info-text span {
-          color: var(--text-muted, #3f4f6a);
+          color: var(--text-muted, #cbd5e1);
           font-size: 0.92rem;
           line-height: 1.5;
         }
@@ -403,7 +377,7 @@ export default function ContactPage() {
         .contact-page .contact-trust-box {
           margin-top: 1rem;
           padding: 0.95rem 1rem;
-          border-radius: 18px;
+          border-radius: 16px;
         }
 
         .contact-page .contact-trust-box p {
@@ -413,16 +387,16 @@ export default function ContactPage() {
 
         .contact-page .contact-form {
           display: grid;
-          gap: 0.9rem;
+          gap: 0.95rem;
           margin-top: 0.9rem;
         }
 
         .contact-page .contact-form label {
           display: grid;
           gap: 0.45rem;
-          font-size: 0.92rem;
+          font-size: 0.9rem;
           font-weight: 600;
-          color: var(--text-strong, #0f172a);
+          color: var(--text-strong, #e2e8f0);
         }
 
         .contact-page .contact-form input,
@@ -432,12 +406,11 @@ export default function ContactPage() {
           min-height: 3rem;
           padding: 0.8rem 0.95rem;
           border-radius: 14px;
-          border: 1px solid var(--control-border, rgba(148, 163, 184, 0.28));
-          background: var(--surface-control, rgba(255, 255, 255, 0.88));
-          color: var(--text-strong, #0f172a);
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+          border: 1px solid var(--control-border, rgba(148, 163, 184, 0.24));
+          background: rgba(255, 255, 255, 0.04);
+          color: var(--text-strong, #e2e8f0);
           font: inherit;
-          transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background-color 160ms ease;
+          transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
         }
 
         .contact-page .contact-form textarea {
@@ -447,28 +420,34 @@ export default function ContactPage() {
 
         .contact-page .contact-form input::placeholder,
         .contact-page .contact-form textarea::placeholder {
-          color: var(--text-subtle, #64748b);
+          color: var(--text-subtle, #94a3b8);
         }
 
         .contact-page .contact-form input:focus,
         .contact-page .contact-form select:focus,
         .contact-page .contact-form textarea:focus {
           outline: none;
-          border-color: var(--control-border-strong, rgba(53, 160, 255, 0.48));
-          box-shadow: 0 0 0 4px rgba(53, 160, 255, 0.12);
-          background: var(--surface-control-hover, rgba(255, 255, 255, 0.96));
+          border-color: rgba(53, 160, 255, 0.5);
+          box-shadow: 0 0 0 4px rgba(53, 160, 255, 0.14);
+          background: rgba(255, 255, 255, 0.06);
         }
 
         .contact-page .contact-form .wide {
           width: 100%;
-          min-height: 3.1rem;
+          min-height: 3.15rem;
           justify-content: center;
-          margin-top: 0.15rem;
+          margin-top: 0.2rem;
           border-radius: 14px;
+          font-weight: 700;
+          transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .contact-page .contact-form .wide:hover {
+          transform: translateY(-1px);
         }
 
         @media (max-width: 1024px) {
-          .contact-page .contact-hero__inner,
+          .contact-page .contact-hero__grid,
           .contact-page .contact-layout {
             grid-template-columns: 1fr;
           }
@@ -483,19 +462,10 @@ export default function ContactPage() {
             padding: 0.5rem 0.75rem 2rem;
           }
 
-          .contact-page .contact-hero__inner,
           .contact-page .contact-info-card,
           .contact-page .contact-form-card {
-            padding: 1rem;
+            padding: 1.1rem;
             border-radius: 20px;
-          }
-
-          .contact-page .contact-hero__copy h1 {
-            max-width: 100%;
-          }
-
-          .contact-page .contact-proof-box {
-            gap: 0.5rem;
           }
 
           .contact-page .contact-proof-pill {

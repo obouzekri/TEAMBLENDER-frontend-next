@@ -289,39 +289,21 @@ export default function PricingPage() {
   return (
     <>
       <TopNav />
-      <main
-        className="shell pricing-page"
-        style={{
-          background: 'radial-gradient(circle at top left, rgba(53, 160, 255, 0.1), transparent 34%), radial-gradient(circle at right 10%, rgba(124, 58, 237, 0.08), transparent 28%), linear-gradient(180deg, rgba(245, 249, 255, 0.98) 0%, rgba(239, 245, 255, 0.98) 100%)',
-          color: 'var(--text-strong, #0f172a)',
-        }}
-      >
+      <main className="shell pricing-page">
         <section className="pricing-hero reveal-up" aria-label="Tarification TeamBlender">
-          <div className="pricing-hero__inner">
-            <div className="pricing-hero__copy">
-              <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Pricing' : 'Tarification'}</p>
-              <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
-              <p className="pricing-hero__lede" style={getDarkModeTextStyle()}>
-                {isEn
-                  ? 'Start light, then scale with more capabilities, support, and customization.'
-                  : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
-              </p>
-              <div className="pricing-proof-row">
-                <span className="pricing-proof-pill">{isEn ? '14-day free trial' : 'Essai gratuit 14 jours'}</span>
-                <span className="pricing-proof-pill">{isEn ? 'No credit card required' : 'Sans carte bancaire'}</span>
-                <span className="pricing-proof-pill">{isEn ? 'Built for HR and managers' : 'Pensé pour RH et managers'}</span>
-              </div>
+          <div className="pricing-hero__copy">
+            <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Pricing' : 'Tarification'}</p>
+            <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
+            <p className="pricing-hero__lede" style={getDarkModeTextStyle()}>
+              {isEn
+                ? 'Start light, then scale with more capabilities, support, and customization.'
+                : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
+            </p>
+            <div className="pricing-proof-row">
+              <span className="pricing-proof-pill">{isEn ? '14-day free trial' : 'Essai gratuit 14 jours'}</span>
+              <span className="pricing-proof-pill">{isEn ? 'No credit card required' : 'Sans carte bancaire'}</span>
+              <span className="pricing-proof-pill">{isEn ? 'Built for HR and managers' : 'Pensé pour RH et managers'}</span>
             </div>
-
-            <aside className="pricing-hero__panel" aria-label={isEn ? 'Pricing summary' : 'Résumé tarification'}>
-              <p className="pricing-hero__panel-eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Plan guidance' : 'Orientation des formules'}</p>
-              <strong style={getDarkModeHeadingStyle()}>{isEn ? 'Choose the plan that matches your team size, cadence, and support needs.' : 'Choisissez la formule adaptée à la taille de l’équipe, au rythme et au niveau de support.'}</strong>
-              <div className="pricing-hero__panel-points">
-                <span style={getDarkModeTextStyle()}>{isEn ? 'Clear pricing with visible upgrades' : 'Tarification claire et montées en gamme lisibles'}</span>
-                <span style={getDarkModeTextStyle()}>{isEn ? 'Annual savings highlighted upfront' : 'Économies annuelles mises en avant'}</span>
-                <span style={getDarkModeTextStyle()}>{isEn ? 'Direct contact for custom needs' : 'Contact direct pour les besoins sur mesure'}</span>
-              </div>
-            </aside>
           </div>
         </section>
 
@@ -487,140 +469,146 @@ export default function PricingPage() {
           width: min(100%, 80rem);
           margin: 0 auto;
           padding: 1rem 1rem 2.5rem;
-          color: var(--text-strong, #0f172a);
         }
 
         .pricing-page .pricing-hero {
-          margin-bottom: 1.4rem;
-        }
-
-        .pricing-page .pricing-hero__inner {
-          display: grid;
-          grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
-          gap: 1rem;
-          align-items: stretch;
-          padding: 1.6rem;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          border-radius: 28px;
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 250, 255, 0.94) 100%);
-          box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
-          backdrop-filter: blur(12px);
+          margin-bottom: 2.25rem;
         }
 
         .pricing-page .pricing-hero__copy {
           display: grid;
-          gap: 0.9rem;
-          align-content: start;
+          gap: 0.95rem;
+          max-width: 46rem;
         }
 
         .pricing-page .pricing-hero h1 {
-          max-width: 13ch;
+          max-width: none;
           margin: 0;
-          font-size: clamp(2.3rem, 4vw, 4rem);
-          line-height: 0.96;
-          letter-spacing: -0.045em;
+          font-size: clamp(2.1rem, 3.6vw, 3.4rem);
+          line-height: 1.08;
+          letter-spacing: -0.03em;
+          text-wrap: balance;
         }
 
         .pricing-page .pricing-hero__lede {
           margin: 0;
           max-width: 58ch;
-          font-size: 1.03rem;
-          line-height: 1.68;
-          color: var(--text-muted, #3f4f6a);
+          font-size: 1.04rem;
+          line-height: 1.7;
+          color: var(--text-muted, #cbd5e1);
         }
 
         .pricing-page .pricing-proof-row {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.65rem;
+          gap: 0.6rem;
+          margin-top: 0.15rem;
         }
 
         .pricing-page .pricing-proof-pill {
-          min-height: 2.75rem;
+          min-height: 2.6rem;
           display: inline-flex;
           align-items: center;
-          padding: 0.65rem 0.95rem;
+          padding: 0.55rem 0.95rem;
           border-radius: 999px;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          background: rgba(255, 255, 255, 0.82);
-          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
-          font-size: 0.88rem;
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.2));
+          background: rgba(255, 255, 255, 0.04);
+          font-size: 0.86rem;
           font-weight: 600;
-          color: var(--text-muted, #3f4f6a);
-        }
-
-        .pricing-page .pricing-hero__panel {
-          display: grid;
-          gap: 0.85rem;
-          align-content: start;
-          padding: 1.15rem;
-          border-radius: 24px;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(241, 246, 255, 0.96) 100%);
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 14px 28px rgba(15, 23, 42, 0.06);
-        }
-
-        .pricing-page .pricing-hero__panel-eyebrow {
-          margin: 0;
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          letter-spacing: 0.16em;
-        }
-
-        .pricing-page .pricing-hero__panel strong {
-          font-size: 1.02rem;
-          line-height: 1.45;
-        }
-
-        .pricing-page .pricing-hero__panel-points {
-          display: grid;
-          gap: 0.55rem;
-          margin-top: 0.25rem;
-        }
-
-        .pricing-page .pricing-hero__panel-points span {
-          display: flex;
-          align-items: center;
-          gap: 0.55rem;
-          padding: 0.7rem 0.8rem;
-          border-radius: 16px;
-          background: rgba(255, 255, 255, 0.72);
-          color: var(--text-muted, #3f4f6a);
-          font-size: 0.9rem;
-          line-height: 1.45;
-          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+          color: var(--text-muted, #cbd5e1);
         }
 
         .pricing-page .pricing-controls {
-          margin-bottom: 1.4rem;
+          margin-bottom: 1.75rem;
         }
 
         .pricing-page .pricing-controls__row {
-          padding: 1rem 1.1rem;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          border-radius: 24px;
-          background: rgba(255, 255, 255, 0.84);
-          backdrop-filter: blur(14px);
-          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+          padding: 1.15rem 1.3rem;
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.16));
+          border-radius: 22px;
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 14px 30px rgba(2, 6, 23, 0.22);
         }
 
         .pricing-page .pricing-controls__label,
         .pricing-page .pricing-controls__currency label {
           display: block;
-          margin-bottom: 0.45rem;
-          font-size: 0.82rem;
-          letter-spacing: 0.02em;
+          margin-bottom: 0.5rem;
+          font-size: 0.74rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
+          color: var(--text-subtle, #94a3b8);
         }
 
         .pricing-page .toggle-group--compact {
-          gap: 0.5rem;
+          display: inline-flex;
+          gap: 0.3rem;
+          padding: 0.3rem;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.14));
         }
 
-        .pricing-page .toggle-btn,
-        .pricing-page .currency-select {
-          min-height: 3rem;
+        .pricing-page .toggle-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          min-height: 2.85rem;
+          padding: 0 1.15rem;
+          border-radius: 999px;
+          border: 1px solid transparent;
+          background: transparent;
+          color: var(--text-muted, #cbd5e1);
           font-size: 0.9rem;
+          font-weight: 600;
+          transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+        }
+
+        .pricing-page .toggle-btn.active {
+          background: linear-gradient(135deg, #35a0ff 0%, #7c3aed 100%);
+          color: #fff;
+          box-shadow: 0 10px 22px rgba(53, 160, 255, 0.28);
+        }
+
+        .pricing-page .toggle-btn:not(.active):hover {
+          background: rgba(255, 255, 255, 0.07);
+          color: var(--text-strong, #e2e8f0);
+        }
+
+        .pricing-page .toggle-savings-badge {
+          padding: 0.16rem 0.5rem;
+          border-radius: 999px;
+          font-size: 0.68rem;
+          font-weight: 700;
+          background: rgba(52, 211, 153, 0.16);
+          color: #34d399;
+          border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .pricing-page .toggle-btn.active .toggle-savings-badge {
+          background: rgba(255, 255, 255, 0.24);
+          color: #fff;
+          border-color: rgba(255, 255, 255, 0.32);
+        }
+
+        .pricing-page .currency-select {
+          min-height: 2.85rem;
+          padding: 0 1rem;
+          border-radius: 14px;
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.2));
+          background: rgba(255, 255, 255, 0.04);
+          color: var(--text-strong, #e2e8f0);
+          font-size: 0.9rem;
+          font-weight: 600;
+        }
+
+        .pricing-page .currency-select:hover,
+        .pricing-page .currency-select:focus {
+          outline: none;
+          border-color: rgba(53, 160, 255, 0.42);
+          box-shadow: 0 0 0 4px rgba(53, 160, 255, 0.14);
         }
 
         .pricing-page .pricing-grid {
@@ -629,14 +617,14 @@ export default function PricingPage() {
 
         .pricing-page .pricing-card {
           min-height: 100%;
-          padding: 1.35rem 1.3rem 1.25rem;
+          padding: 1.5rem 1.4rem 1.3rem;
           border-radius: 24px;
-          gap: 0.92rem;
+          gap: 0.95rem;
           position: relative;
           overflow: hidden;
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(247, 250, 255, 0.98) 100%);
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+          background: rgba(17, 26, 46, 0.94);
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.16));
+          box-shadow: 0 16px 34px rgba(2, 6, 23, 0.3);
         }
 
         .pricing-page .pricing-card::before {
@@ -644,7 +632,7 @@ export default function PricingPage() {
           position: absolute;
           inset: 0;
           pointer-events: none;
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 22%);
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 22%);
         }
 
         .pricing-page .pricing-card-top {
@@ -672,7 +660,7 @@ export default function PricingPage() {
         }
 
         .pricing-page .pricing-badge--featured {
-          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 26px rgba(90, 75, 218, 0.18);
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 26px rgba(90, 75, 218, 0.24);
         }
 
         .pricing-page .pricing-price {
@@ -754,30 +742,45 @@ export default function PricingPage() {
         .pricing-page .pricing-footer-cta__button {
           width: 100%;
           justify-content: center;
-          min-height: 3rem;
-          padding: 0.78rem 1rem;
-          border-radius: 12px;
-          font-size: 0.92rem;
+          min-height: 3.15rem;
+          padding: 0.8rem 1.1rem;
+          border-radius: 14px;
+          font-size: 0.94rem;
           font-weight: 700;
           letter-spacing: 0.01em;
           white-space: normal;
           text-align: center;
+          transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, border-color 160ms ease;
+        }
+
+        .pricing-page .pricing-cta:hover {
+          transform: translateY(-1px);
         }
 
         .pricing-page .pricing-cta--featured {
-          box-shadow: 0 16px 30px rgba(53, 160, 255, 0.24);
+          box-shadow: 0 16px 30px rgba(53, 160, 255, 0.26);
+        }
+
+        .pricing-page .pricing-cta--enterprise {
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.28));
+          background: rgba(255, 255, 255, 0.03);
+        }
+
+        .pricing-page .pricing-cta--enterprise:hover {
+          background: rgba(255, 255, 255, 0.07);
+          border-color: rgba(125, 211, 252, 0.4);
         }
 
         .pricing-page .pricing-card-featured {
-          border-color: rgba(53, 160, 255, 0.34);
-          box-shadow: 0 22px 48px rgba(53, 160, 255, 0.14), 0 18px 40px rgba(15, 23, 42, 0.12);
+          border-color: rgba(53, 160, 255, 0.36);
+          box-shadow: 0 22px 48px rgba(53, 160, 255, 0.16), 0 18px 40px rgba(2, 6, 23, 0.36);
           transform: translateY(-2px);
         }
 
         .pricing-page .pricing-card-featured .pricing-badge--featured {
-          background: linear-gradient(135deg, rgba(53, 160, 255, 0.22), rgba(124, 58, 237, 0.22));
+          background: linear-gradient(135deg, rgba(53, 160, 255, 0.24), rgba(124, 58, 237, 0.24));
           color: #e8f1ff;
-          border-color: rgba(255, 255, 255, 0.12);
+          border-color: rgba(255, 255, 255, 0.14);
         }
 
         .pricing-page .pricing-footer-cta {
@@ -793,11 +796,10 @@ export default function PricingPage() {
           width: min(100%, 72rem);
           margin: 0 auto;
           padding: 1.35rem 1.5rem;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-          border-radius: 26px;
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(14px);
-          box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.16));
+          border-radius: 24px;
+          background: rgba(17, 26, 46, 0.92);
+          box-shadow: 0 18px 40px rgba(2, 6, 23, 0.3);
         }
 
         .pricing-page .pricing-footer-cta__copy {
@@ -808,9 +810,10 @@ export default function PricingPage() {
 
         .pricing-page .pricing-footer-cta__copy h2 {
           margin: 0;
-          font-size: clamp(1.2rem, 2vw, 1.65rem);
-          line-height: 1.2;
+          font-size: clamp(1.2rem, 2vw, 1.55rem);
+          line-height: 1.25;
           letter-spacing: -0.02em;
+          text-wrap: balance;
         }
 
         .pricing-page .pricing-footer-cta__copy .eyebrow {
@@ -830,20 +833,6 @@ export default function PricingPage() {
         }
 
         @media (max-width: 1024px) {
-          .pricing-page .pricing-hero__inner,
-          .pricing-page .pricing-controls__row,
-          .pricing-page .pricing-footer-cta__inner {
-            border-radius: 22px;
-          }
-
-          .pricing-page .pricing-hero__inner {
-            grid-template-columns: 1fr;
-          }
-
-          .pricing-page .pricing-hero__panel {
-            order: -1;
-          }
-
           .pricing-page .pricing-footer-cta__inner {
             align-items: flex-start;
             flex-direction: column;
@@ -860,15 +849,10 @@ export default function PricingPage() {
             padding: 0.5rem 0.75rem 1.8rem;
           }
 
-          .pricing-page .pricing-hero h1 {
-            max-width: 100%;
-          }
-
-          .pricing-page .pricing-hero__inner,
           .pricing-page .pricing-controls__row,
           .pricing-page .pricing-footer-cta__inner {
             padding: 1rem;
-            border-radius: 20px;
+            border-radius: 18px;
           }
 
           .pricing-page .pricing-proof-pill {
@@ -878,7 +862,7 @@ export default function PricingPage() {
 
           .pricing-page .pricing-card {
             padding: 1.2rem 1rem 1.05rem;
-            border-radius: 20px;
+            border-radius: 18px;
           }
 
           .pricing-page .pricing-price {

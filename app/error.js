@@ -18,23 +18,23 @@ export default function GlobalError({ error, reset }) {
   return (
     <>
       <TopNav />
-      <main className="shell landing">
-        <section className="hero">
-          <p className="eyebrow">{isEn ? 'APPLICATION ERROR' : 'ERREUR APPLICATION'}</p>
-          <h1>{isEn ? 'An unexpected error occurred.' : 'Une erreur inattendue est survenue.'}</h1>
-          <p>
+      <main className="shell error-page">
+        <section className="error-panel">
+          <p className="eyebrow error-page__eyebrow">{isEn ? 'APPLICATION ERROR' : 'ERREUR APPLICATION'}</p>
+          <h1 className="error-page__title">{isEn ? 'An unexpected error occurred.' : 'Une erreur inattendue est survenue.'}</h1>
+          <p className="error-page__text">
             {isEn
               ? 'You can retry immediately. If the problem persists, return to manager home and restart your flow.'
               : 'Vous pouvez réessayer immédiatement. Si le problème persiste, revenez à l’accueil manager puis relancez votre parcours.'}
           </p>
-          <div className="hero-actions">
-            <button type="button" className="btn-primary" onClick={reset}>
+          <div className="error-page__actions">
+            <button type="button" className="btn-primary error-page__primary" onClick={reset}>
               {isEn ? 'Retry' : 'Réessayer'}
             </button>
-            <Link href={withLocalePath('/home')} className="btn-secondary">
+            <Link href={withLocalePath('/home')} className="btn-secondary error-page__secondary">
               {isEn ? 'Manager space' : 'Espace manager'}
             </Link>
-            <Link href={withLocalePath('/login')} className="btn-secondary">
+            <Link href={withLocalePath('/login')} className="btn-secondary error-page__secondary">
               {isEn ? 'Log in' : 'Connexion'}
             </Link>
           </div>
