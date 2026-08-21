@@ -15134,6 +15134,7 @@ a {
 .pricing-hero {
   border: 1px solid rgba(123, 97, 255, 0.14);
   border-radius: 24px;
+  overflow: hidden;
   background: linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(245,242,255,0.94) 100%);
   box-shadow: 0 8px 32px rgba(123, 97, 255, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
   padding: clamp(1.75rem, 3vw, 2.5rem);
@@ -15223,6 +15224,7 @@ a {
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(229, 231, 235, 0.9);
   border-radius: 22px;
+  overflow: hidden;
   padding: 1.6rem 1.4rem;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   display: flex;
@@ -15269,6 +15271,8 @@ a {
   border-image: linear-gradient(90deg, #7B61FF, #5B8CFF) 1;
   border-top-left-radius: 22px;
   border-top-right-radius: 22px;
+  border-bottom-left-radius: 22px;
+  border-bottom-right-radius: 22px;
 }
 
 /* Badge "Recommandé" */
@@ -15298,6 +15302,18 @@ a {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.pricing-card .pricing-actions {
+  margin-top: auto;
+  padding-top: 0.1rem;
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+
+.pricing-card .pricing-actions .btn-primary,
+.pricing-card .pricing-actions .btn-secondary {
+  width: 100%;
 }
 
 /* Price number */
@@ -15407,6 +15423,33 @@ a {
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
   padding: 1.4rem 2rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .pricing-hero,
+  .pricing-controls,
+  .pricing-card,
+  .pricing-footer-cta,
+  .pricing-empty {
+    overflow: hidden;
+  }
+
+  .pricing-card-featured,
+  .pricing-footer-cta,
+  .pricing-empty {
+    border-bottom-left-radius: 22px;
+    border-bottom-right-radius: 22px;
+  }
+
+  .pricing-card .pricing-actions {
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+  }
+
+  .pricing-card .pricing-actions .btn-primary,
+  .pricing-card .pricing-actions .btn-secondary {
+    width: 100%;
+  }
 }
 
 /* ── ACCOUNT PAGE — Premium SaaS Dashboard ── */
