@@ -165,7 +165,6 @@ function buildPricingCards(plans, selectedBilling) {
     let discountPercentage = 0;
     const billingCycle = String(plan.billing_cycle || '').trim().toLowerCase();
     const useAnnualDisplay = selectedBilling === 'annual' || selectedBilling === 'yearly';
-    const normalizedName = normalizePricingPlanName(plan).toLowerCase();
 
     if (useAnnualDisplay && billingCycle !== 'one_time') {
       discountPercentage = Number(plan.annual_discount_percentage || (normalizedName === 'pro' ? 20 : 0));
