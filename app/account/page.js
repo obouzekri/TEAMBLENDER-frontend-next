@@ -296,6 +296,82 @@ function normalizePlanDisplayName(planName) {
   return name;
 }
 
+function normalizeAccountPlanName(plan) {
+  const slug = String(plan?.slug || '').trim().toLowerCase();
+  const name = String(plan?.name || '').trim().toLowerCase();
+  const raw = slug || name;
+
+  if (raw.includes('free') || Number(plan?.price_cents || 0) === 0) return 'Free';
+  if (raw.includes('pay') && raw.includes('session')) return 'Pay-per-session';
+  if (raw.includes('pro+') || raw.includes('proplus') || raw.includes('pro plus')) return 'Pro+';
+  if (raw.includes('pro')) return 'Pro';
+  return normalizePlanDisplayName(plan?.name);
+}
+
+function getAccountPlanCopy(plan) {
+  const normalizedName = normalizeAccountPlanName(plan);
+  const planKey = normalizedName.toLowerCase();
+
+  if (planKey === 'free') {
+    return {
+      displayName: 'Free',
+      features: [
+        '2 sessions / mois',
+        'max 3 participants',
+        'accès catalogue limité (3 challenges)',
+        'pas d’export',
+        'pas d’insights avancés',
+      ],
+      meta: ['3 utilisateurs max', '2 sessions / mois'],
+    };
+  }
+
+  if (planKey === 'pay-per-session') {
+    return {
+      displayName: 'Pay-per-session',
+      features: [],
+      meta: ['20 utilisateurs max', '1 sessions / mois'],
+    };
+  }
+
+  if (planKey === 'pro') {
+    return {
+      displayName: 'Pro',
+      features: [
+        'Sessions illimitées',
+        'Jusqu’à 50 participants',
+        'Accès catalogue complet',
+        'Résultats & scoring',
+        'Dashboard manager',
+        'Live facilitation',
+        'Insights',
+      ],
+      meta: ['50 utilisateurs max'],
+    };
+  }
+
+  if (planKey === 'pro+') {
+    return {
+      displayName: 'Pro+',
+      features: [
+        'Tout Pro',
+        'Multi-managers',
+        'Historique sessions',
+        'Export CSV/PDF',
+        'Insights avancés',
+        'Support prioritaire',
+      ],
+      meta: [],
+    };
+  }
+
+  return {
+    displayName: normalizePlanDisplayName(plan?.name),
+    features: Array.isArray(plan?.features) ? plan.features : [],
+    meta: [],
+  };
+}
+
 export default function AccountPage() {
   const { toasts, removeToast, success: showSuccess, error: showError } = useToast();
   const { t, locale, withLocalePath } = useI18n();
@@ -1338,6 +1414,7 @@ export default function AccountPage() {
             {plans.length > 0 ? (
               <div className="account-plan-cards-grid">
                 {plans.map((plan) => {
+                  const planCopy = getAccountPlanCopy(plan);
                   const planId = String(plan.id);
                   const isCurrent = planId === String(currentPlanId || '');
                   const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
@@ -1361,7 +1438,7 @@ export default function AccountPage() {
                       <div className="pricing-card-top">
                         {isRecommended ? <span className="pricing-badge account-pricing-badge">MOST POPULAR</span> : null}
                         {isCurrent ? <span className="account-current-badge">{t('account.yourPlan')}</span> : null}
-                        <p className="eyebrow">{isRecommended ? `${normalizePlanDisplayName(plan.name).toUpperCase()} (RECOMMENDED)` : normalizePlanDisplayName(plan.name)}</p>
+                        <p className="eyebrow">{isRecommended ? `${planCopy.displayName.toUpperCase()} (RECOMMENDED)` : planCopy.displayName}</p>
                       </div>
                       <h3 className="pricing-price">
                         {priceFmt}
@@ -1369,16 +1446,15 @@ export default function AccountPage() {
                       </h3>
                       <p className="pricing-tax-note">Excl. taxes</p>
                       {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
-                      {Array.isArray(plan.features) && plan.features.length > 0 ? (
+                      {Array.isArray(planCopy.features) && planCopy.features.length > 0 ? (
                         <ul className="pricing-feature-list">
-                          {plan.features.map((item, i) => (
+                          {planCopy.features.map((item, i) => (
                             <li key={i}>{normalizeFeatureLabel(item)}</li>
                           ))}
                         </ul>
                       ) : null}
                       <div className="pricing-meta-row">
-                        {plan.max_users ? <span>{formatCount(plan.max_users, 'en')} participants max</span> : null}
-                        {plan.max_sessions_per_month ? <span>{formatCount(plan.max_sessions_per_month, 'en')} sessions / month</span> : null}
+                        {planCopy.meta.map((item, index) => <span key={`${planId}-meta-${index}`}>{item}</span>)}
                       </div>
                       {isCurrent ? (
                         <div className="pricing-actions account-plan-card-actions">
