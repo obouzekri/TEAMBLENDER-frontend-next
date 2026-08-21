@@ -1199,7 +1199,7 @@ export default function HomePage() {
                 <Link
                   href={heroPrimaryHref}
                   onClick={handlePrimaryCtaClick}
-                  className={`${pillClass} landing-cta-primary landing-hero-primary-btn group text-white`}
+                  className={`${pillClass} landing-cta-primary landing-hero-primary-btn cta-surface group text-white`}
                 >
                   <span>{heroPrimaryLabel}</span>
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -1207,7 +1207,7 @@ export default function HomePage() {
                 <Link
                   href={heroSecondaryHref}
                   onClick={handleHeroSecondaryCtaClick}
-                  className={`${pillClass} landing-cta-secondary landing-hero-secondary-btn`}
+                  className={`${pillClass} landing-cta-secondary landing-hero-secondary-btn cta-surface`}
                 >
                   <span>{heroSecondaryLabel}</span>
                 </Link>
@@ -1278,7 +1278,7 @@ export default function HomePage() {
                 <Link
                   href={heroPrimaryHref}
                   onClick={handlePrimaryCtaClick}
-                  className={`${pillClass} landing-cta-primary landing-hero-primary-btn group text-white`}
+                  className={`${pillClass} landing-cta-primary landing-hero-primary-btn cta-surface group text-white`}
                 >
                   <span>{heroPrimaryLabel}</span>
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -1663,7 +1663,7 @@ export default function HomePage() {
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{finalCta.title || landingStatic.fallback.finalCtaTitle}</h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">{finalCta.description || landingStatic.fallback.finalCtaDescription}</p>
             <div className="hero-actions home-hero-actions landing-cta-actions mt-7 flex flex-wrap justify-center gap-3">
-              <Link href={finalPrimaryHref} className={`${pillClass} landing-cta-primary landing-hero-primary-btn !text-white`}>
+              <Link href={finalPrimaryHref} className={`${pillClass} landing-cta-primary landing-hero-primary-btn cta-surface !text-white`}>
                 <span>{finalPrimaryLabel}</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>

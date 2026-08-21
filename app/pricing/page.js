@@ -437,13 +437,13 @@ export default function PricingPage() {
 
                 <div className="hero-actions pricing-actions mt-auto">
                   {isEnterprise ? (
-                    <Link href={ctaHref || withLocalePath('/contact')} className="btn-outline pricing-cta pricing-cta--enterprise">
+                    <Link href={ctaHref || withLocalePath('/contact')} className="btn-outline pricing-cta pricing-cta--enterprise cta-surface">
                       {ctaLabel}
                     </Link>
                   ) : (
                     <button
                       type="button"
-                      className={`btn-primary pricing-cta pricing-cta--main${plan.isFeatured ? ' pricing-cta--featured' : ''}`}
+                      className={`btn-primary pricing-cta pricing-cta--main cta-surface${plan.isFeatured ? ' pricing-cta--featured' : ''}`}
                       onClick={() => handleProviderCheckout(plan, 'payoneer')}
                       disabled={checkoutPlanId === String(plan.id)}
                     >
@@ -465,7 +465,7 @@ export default function PricingPage() {
                 <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Need support?' : 'Besoin d\'un accompagnement ?'}</p>
                 <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Need support? Our team replies within a few hours.' : 'Besoin d\'un accompagnement ? Notre équipe vous répond sous quelques heures'}</h2>
               </div>
-              <Link href={withLocalePath('/contact')} className="btn-primary pricing-footer-cta__button">{isEn ? 'Contact the team' : 'Contacter l\'équipe'}</Link>
+              <Link href={withLocalePath('/contact')} className="btn-primary pricing-footer-cta__button cta-surface">{isEn ? 'Contact the team' : 'Contacter l\'équipe'}</Link>
             </div>
           </section>
         ) : null}

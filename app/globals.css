@@ -4004,6 +4004,60 @@ a {
   transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
+.landing-v2 .cta-surface,
+.pricing-page .cta-surface {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.9rem 1.05rem;
+  border-radius: 12px;
+  border: 1px solid rgba(122, 92, 255, 0.28);
+  background: var(--accent-gradient);
+  color: #fff;
+  font-size: clamp(0.86rem, 0.22vw + 0.8rem, 0.94rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0;
+  text-align: center;
+  text-wrap: balance;
+  white-space: normal;
+  box-shadow: var(--button-primary-shadow);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.landing-v2 .cta-surface::after,
+.pricing-page .cta-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 46%, rgba(255, 255, 255, 0) 100%);
+  transform: translateX(-110%);
+  transition: transform 0.32s ease;
+  pointer-events: none;
+}
+
+.landing-v2 .cta-surface:hover,
+.pricing-page .cta-surface:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--button-primary-shadow-hover);
+}
+
+.landing-v2 .cta-surface:hover::after,
+.pricing-page .cta-surface:hover::after {
+  transform: translateX(110%);
+}
+
+.landing-v2 .cta-surface:focus-visible,
+.pricing-page .cta-surface:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 64%, #ffffff);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
 :where(
   button,
   [role="button"],
@@ -7798,6 +7852,15 @@ a {
 .landing-hero-primary-btn {
   width: min(100%, 17rem);
   justify-content: center;
+}
+
+.landing-v2 .landing-hero-primary-btn.cta-surface,
+.landing-v2 .landing-hero-secondary-btn.cta-surface,
+.landing-v2 .landing-cta-primary.cta-surface,
+.pricing-page .pricing-cta.cta-surface,
+.pricing-page .pricing-footer-cta__button.cta-surface {
+  min-width: 0;
+  width: auto;
 }
 
 .landing-cta-block .pillClass,
