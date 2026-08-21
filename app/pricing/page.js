@@ -79,6 +79,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
     return {
       displayName: 'Free',
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
+      meta: [],
       features: [
         '2 sessions / mois · max 3 participants',
         'Accès catalogue limité (3 challenges)',
