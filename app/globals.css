@@ -1041,6 +1041,20 @@ body {
   background-color: rgba(17, 26, 46, 0.98);
 }
 
+.pricing-page .pricing-hero {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.pricing-page .pricing-controls {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
 .pricing-page .pricing-grid {
   background: transparent;
 }
@@ -1075,6 +1089,85 @@ body {
 .pricing-page .pricing-empty h2,
 .pricing-page .pricing-footer-cta p {
   color: var(--text-strong);
+}
+
+.pricing-page .pricing-card {
+  min-height: 100%;
+}
+
+.pricing-page .pricing-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pricing-page .pricing-card-featured {
+  border: 1px solid rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.24), 0 24px 56px rgba(2, 6, 23, 0.48);
+}
+
+.pricing-page .pricing-badge--featured {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.96), rgba(79, 70, 229, 0.94));
+  color: #fff;
+}
+
+.pricing-page .toggle-group {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pricing-page .toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.pricing-page .toggle-savings-badge {
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.14);
+  color: var(--text-strong);
+  border: 1px solid rgba(129, 140, 248, 0.34);
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.pricing-page .pricing-actions {
+  margin-top: auto;
+}
+
+.pricing-page .pricing-cta {
+  width: 100%;
+  justify-content: center;
+}
+
+.pricing-page .pricing-cta--featured {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #fff;
+  border-color: rgba(129, 140, 248, 0.52);
+  box-shadow: 0 16px 30px rgba(79, 70, 229, 0.28);
+}
+
+.pricing-page .pricing-cta--featured:hover {
+  background: linear-gradient(135deg, #7073ff 0%, #5b55ff 100%);
+}
+
+.pricing-page .pricing-cta--enterprise {
+  background: rgba(17, 26, 46, 0.98);
+}
+
+.pricing-page .pricing-feature-list {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0;
+  margin: 0;
+}
+
+.pricing-page .pricing-feature-list li {
+  list-style: none;
 }
 
 .pricing-page .btn-primary,

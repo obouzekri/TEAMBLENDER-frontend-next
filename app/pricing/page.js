@@ -79,12 +79,13 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
     return {
       displayName: 'Free',
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
-      meta: ['2 sessions / mois', 'max 3 participants'],
       features: [
-        'accès catalogue limité (3 challenges)',
-        'pas d’export',
-        'pas d’insights avancés',
+        '2 sessions / mois · max 3 participants',
+        'Accès catalogue limité (3 challenges)',
+        'Pas d’export',
+        'Pas d’insights avancés',
       ],
+      ctaLabel: 'Commencer gratuitement',
     };
   }
 
@@ -96,6 +97,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
         ? ['20 utilisateurs max', '1 session incluse']
         : ['20 utilisateurs max', '1 session incluse / mois'],
       features: [],
+      ctaLabel: 'Acheter une session',
     };
   }
 
@@ -114,7 +116,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
         'Insights',
       ],
       highlightedLabel: cardVariant === 'enterprise' ? 'Sur mesure' : 'Recommandé',
-      ctaLabel: cardVariant === 'enterprise' ? 'Contacter l’équipe' : null,
+      ctaLabel: cardVariant === 'enterprise' ? 'Contacter l’équipe' : 'Démarrer l’essai gratuit',
       ctaHref: cardVariant === 'enterprise' ? '/contact' : null,
     };
   }
@@ -163,9 +165,10 @@ function buildPricingCards(plans, selectedBilling) {
     let discountPercentage = 0;
     const billingCycle = String(plan.billing_cycle || '').trim().toLowerCase();
     const useAnnualDisplay = selectedBilling === 'annual' || selectedBilling === 'yearly';
+    const normalizedName = normalizePricingPlanName(plan).toLowerCase();
 
     if (useAnnualDisplay && billingCycle !== 'one_time') {
-      discountPercentage = Number(plan.annual_discount_percentage || 0);
+      discountPercentage = Number(plan.annual_discount_percentage || (normalizedName === 'pro' ? 20 : 0));
       if (discountPercentage > 0) {
         originalPriceCents = basePriceCents;
         displayPriceCents = Math.round(basePriceCents * (1 - discountPercentage / 100));
@@ -175,6 +178,7 @@ function buildPricingCards(plans, selectedBilling) {
     return {
       ...plan,
       cardVariant,
+      isFeatured: normalizedName === 'pro' && cardVariant === 'standard',
       displayPriceCents,
       originalPriceCents,
       discountPercentage,
@@ -292,29 +296,27 @@ export default function PricingPage() {
           color: 'var(--text-strong, #e2e8f0)',
         }}
       >
-        <section className="pricing-hero feature-card reveal-up" aria-label="Tarification TeamBlender" style={getDarkModeSectionStyle()}>
-          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-            <div>
-              <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Pricing' : 'Tarification'}</p>
-              <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
-              <p style={getDarkModeTextStyle()}>
-                {isEn
-                  ? 'Start light, then scale with more capabilities, support, and customization.'
-                  : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
-              </p>
-              <p style={getDarkModeTextStyle()}>
-                {isEn
-                  ? '14-day free trial, no credit card required.'
-                  : 'Essai gratuit 14 jours, sans carte bancaire.'}
-              </p>
-            </div>
+        <section className="pricing-hero reveal-up text-center mb-16" aria-label="Tarification TeamBlender">
+          <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
+            <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Pricing' : 'Tarification'}</p>
+            <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
+            <p style={getDarkModeTextStyle()}>
+              {isEn
+                ? 'Start light, then scale with more capabilities, support, and customization.'
+                : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
+            </p>
+            <p style={getDarkModeTextStyle()}>
+              {isEn
+                ? '14-day free trial, no credit card required.'
+                : 'Essai gratuit 14 jours, sans carte bancaire.'}
+            </p>
           </div>
         </section>
 
         {/* Billing Cycle & Currency Selector */}
         {!loading && sortedPlans.length > 0 ? (
-          <section className="pricing-controls feature-card reveal-up" aria-label="Options d'affichage" style={{ ...getDarkModeSectionStyle(), backgroundColor: 'rgba(17, 26, 46, 0.98)' }}>
-            <div className="controls-group">
+          <section className="pricing-controls reveal-up mb-12" aria-label="Options d'affichage">
+            <div className="controls-group mx-auto flex w-full max-w-3xl flex-col items-center gap-6 md:flex-row md:justify-center">
               <div className="control-section">
                 <label style={getDarkModeTextStyle()}>{isEn ? 'Billing cycle' : 'Fréquence de facturation'}</label>
                 <div className="toggle-group">
@@ -328,7 +330,8 @@ export default function PricingPage() {
                     className={`toggle-btn ${selectedBilling === 'annual' ? 'active' : ''}`}
                     onClick={() => setSelectedBilling('annual')}
                   >
-                    {isEn ? 'Yearly' : 'Annuel'}
+                    <span>{isEn ? 'Yearly' : 'Annuel'}</span>
+                    <span className="toggle-savings-badge">Économisez 20%</span>
                   </button>
                 </div>
               </div>
@@ -381,16 +384,18 @@ export default function PricingPage() {
         ) : null}
 
         {!loading && !error && sortedPlans.length > 0 ? (
-          <section className="pricing-grid reveal-up" aria-label="Formules disponibles" style={{ background: 'transparent' }}>
+          <div className="mx-auto w-full max-w-7xl px-4">
+            <section className="pricing-grid reveal-up grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8" aria-label="Formules disponibles" style={{ background: 'transparent' }}>
             {displayedPlans.map((plan) => {
               const isEnterprise = plan.cardVariant === 'enterprise';
               const ctaLabel = isEnterprise ? (isEn ? 'Contact the team' : 'Contacter l’équipe') : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
               const ctaHref = isEnterprise ? withLocalePath('/contact') : plan.planCopy.ctaHref;
 
               return (
-              <article key={String(plan.id)} className={`feature-card pricing-card${plan.highlighted ? ' pricing-card-featured' : ''}`} style={getDarkModeSectionStyle()}>
+              <article key={String(plan.id)} className={`feature-card pricing-card flex h-full flex-col${plan.isFeatured ? ' pricing-card-featured' : ''}`} style={getDarkModeSectionStyle()}>
                 <div className="pricing-card-top">
-                  {plan.highlighted ? <span className="pricing-badge">{isEnterprise ? (isEn ? 'Custom' : 'Sur mesure') : (isEn ? 'Recommended' : 'Recommandé')}</span> : null}
+                  {plan.isFeatured ? <span className="pricing-badge pricing-badge--featured">{isEn ? 'Most popular' : 'Plus populaire'}</span> : null}
+                  {!plan.isFeatured && plan.highlighted ? <span className="pricing-badge">{isEnterprise ? (isEn ? 'Custom' : 'Sur mesure') : (isEn ? 'Recommended' : 'Recommandé')}</span> : null}
                   {plan.discountPercentage > 0 && (selectedBilling === 'annual' || selectedBilling === 'yearly') ? (
                     <span className="pricing-discount-badge">{isEn ? `Save ${plan.discountPercentage}%` : `Économisez ${plan.discountPercentage}%`}</span>
                   ) : null}
@@ -428,15 +433,15 @@ export default function PricingPage() {
                   {plan.support_level ? <span>{isEn ? 'Support' : 'Support'} {plan.support_level}</span> : null}
                 </div>
 
-                <div className="hero-actions pricing-actions">
+                <div className="hero-actions pricing-actions mt-auto">
                   {isEnterprise ? (
-                    <Link href={ctaHref || withLocalePath('/contact')} className="btn-secondary">
+                    <Link href={ctaHref || withLocalePath('/contact')} className="btn-secondary pricing-cta pricing-cta--enterprise">
                       {ctaLabel}
                     </Link>
                   ) : (
                     <button
                       type="button"
-                      className="btn-primary"
+                      className={`btn-primary pricing-cta${plan.isFeatured ? ' pricing-cta--featured' : ''}`}
                       onClick={() => handleProviderCheckout(plan, 'payoneer')}
                       disabled={checkoutPlanId === String(plan.id)}
                     >
@@ -447,7 +452,8 @@ export default function PricingPage() {
               </article>
             );
             })}
-          </section>
+            </section>
+          </div>
         ) : null}
 
         {!loading && !error && sortedPlans.length > 0 ? (
