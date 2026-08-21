@@ -44,6 +44,86 @@ function formatPriceCents(priceCents, currency, locale = 'fr') {
   }
 }
 
+function normalizePricingPlanName(plan) {
+  const slug = String(plan?.slug || '').trim().toLowerCase();
+  const name = String(plan?.name || '').trim().toLowerCase();
+  const raw = slug || name;
+
+  if (raw.includes('free') || Number(plan?.price_cents || 0) === 0) return 'Free';
+  if (raw.includes('pay') && raw.includes('session')) return 'Pay-per-session';
+  if (raw.includes('pro+') || raw.includes('proplus') || raw.includes('pro plus')) return 'Pro+';
+  if (raw.includes('pro')) return 'Pro';
+  return String(plan?.name || 'Plan').trim() || 'Plan';
+}
+
+function getPricingPlanCopy(plan) {
+  const normalizedName = normalizePricingPlanName(plan);
+  const planKey = normalizedName.toLowerCase();
+
+  if (planKey === 'free') {
+    return {
+      displayName: 'Free',
+      priceSuffix: '/mois',
+      meta: ['2 sessions / mois', 'max 3 participants'],
+      features: [
+        'accès catalogue limité (3 challenges)',
+        'pas d’export',
+        'pas d’insights avancés',
+      ],
+    };
+  }
+
+  if (planKey === 'pay-per-session') {
+    return {
+      displayName: 'Pay-per-session',
+      priceSuffix: '/mois',
+      meta: ['20 utilisateurs max', '1 sessions / mois'],
+      features: [],
+    };
+  }
+
+  if (planKey === 'pro') {
+    return {
+      displayName: 'Pro',
+      priceSuffix: '/mois',
+      meta: ['50 utilisateurs max'],
+      features: [
+        'Sessions illimitées',
+        'Jusqu’à 50 participants',
+        'Accès catalogue complet',
+        'Résultats & scoring',
+        'Dashboard manager',
+        'Live facilitation',
+        'Insights',
+      ],
+      highlightedLabel: 'Recommandé',
+    };
+  }
+
+  if (planKey === 'pro+') {
+    return {
+      displayName: 'Pro+',
+      priceSuffix: '/mois',
+      meta: [],
+      features: [
+        'Tout Pro',
+        'Multi-managers',
+        'Historique sessions',
+        'Export CSV/PDF',
+        'Insights avancés',
+        'Support prioritaire',
+      ],
+    };
+  }
+
+  return {
+    displayName: String(plan?.name || 'Plan').trim() || 'Plan',
+    priceSuffix: selectedBilling === 'annual' ? '/an' : '/mois',
+    meta: [],
+    features: Array.isArray(plan?.features) ? plan.features : [],
+  };
+}
+
 export default function PricingPage() {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
@@ -254,17 +334,21 @@ export default function PricingPage() {
           <section className="pricing-grid reveal-up" aria-label="Formules disponibles">
             {displayedPlans.map((plan) => (
               <article key={String(plan.id)} className={`feature-card pricing-card${plan.highlighted ? ' pricing-card-featured' : ''}`}>
+                {(() => {
+                  const planCopy = getPricingPlanCopy(plan);
+                  return (
+                    <>
                 <div className="pricing-card-top">
                   {plan.highlighted ? <span className="pricing-badge">{isEn ? 'Recommended' : 'Recommandé'}</span> : null}
                   {plan.discountPercentage > 0 && (selectedBilling === 'annual' || selectedBilling === 'yearly') ? (
                     <span className="pricing-discount-badge">{isEn ? `Save ${plan.discountPercentage}%` : `Économisez ${plan.discountPercentage}%`}</span>
                   ) : null}
-                  <p className="eyebrow">{plan.name}</p>
+                  <p className="eyebrow">{planCopy.displayName}{plan.highlighted ? (isEn ? ' (Recommended)' : ' (Recommandé)') : ''}</p>
                 </div>
 
                 <h2 className="pricing-price">
                   {formatPriceCents(plan.displayPriceCents, selectedCurrency, locale)}
-                  <span>{selectedBilling === 'annual' ? (isEn ? '/year' : '/an') : (isEn ? '/month' : '/mois')}</span>
+                  <span>{planCopy.priceSuffix}</span>
                 </h2>
                 {plan.originalPriceCents ? (
                   <p className="pricing-original">
@@ -273,17 +357,18 @@ export default function PricingPage() {
                 ) : null}
                 {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
 
-                {Array.isArray(plan.features) && plan.features.length > 0 ? (
+                {Array.isArray(planCopy.features) && planCopy.features.length > 0 ? (
                   <ul className="pricing-feature-list">
-                    {plan.features.map((item, index) => (
+                    {planCopy.features.map((item, index) => (
                       <li key={`${plan.id}-${index}`}>{item}</li>
                     ))}
                   </ul>
                 ) : null}
 
                 <div className="pricing-meta-row">
-                  {plan.max_users ? <span>{plan.max_users} {isEn ? 'max users' : 'utilisateurs max'}</span> : null}
-                  {plan.max_sessions_per_month ? <span>{plan.max_sessions_per_month} {isEn ? 'sessions / month' : 'sessions / mois'}</span> : null}
+                  {planCopy.meta.map((item, index) => (
+                    <span key={`${plan.id}-meta-${index}`}>{item}</span>
+                  ))}
                   {plan.trial_days ? <span>{plan.trial_days} {isEn ? 'trial days' : 'jours d\'essai'}</span> : null}
                   {plan.support_level ? <span>{isEn ? 'Support' : 'Support'} {plan.support_level}</span> : null}
                 </div>
@@ -298,6 +383,9 @@ export default function PricingPage() {
                     {checkoutPlanId === String(plan.id) ? (isEn ? 'Opening checkout...' : 'Ouverture du paiement...') : (isEn ? 'Pay now' : 'Payer maintenant')}
                   </button>
                 </div>
+                    </>
+                  );
+                })()}
               </article>
             ))}
           </section>
