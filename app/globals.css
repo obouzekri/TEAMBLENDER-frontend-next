@@ -15128,7 +15128,7 @@ a {
     radial-gradient(ellipse 55% 45% at 90% 105%, rgba(91, 140, 255, 0.06) 0%, transparent 60%),
     #F5F7FF;
   padding: 3rem 0 4rem;
-  gap: 1.5rem;
+  gap: 1.75rem;
 }
 
 .pricing-hero {
@@ -15140,6 +15140,7 @@ a {
   padding: clamp(1.75rem, 3vw, 2.5rem);
   text-align: center;
   backdrop-filter: blur(8px);
+  margin-bottom: 0.35rem;
 }
 
 .pricing-hero > .grid {
@@ -15151,12 +15152,20 @@ a {
   overflow: hidden;
   border-bottom-left-radius: 24px;
   border-bottom-right-radius: 24px;
+  max-height: 100%;
 }
 
 .pricing-hero > .grid > :last-child > * {
   display: block;
   border-bottom-left-radius: inherit;
   border-bottom-right-radius: inherit;
+}
+
+.pricing-hero > .grid > :last-child img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
 }
 .pricing-hero .eyebrow {
   color: #7B61FF;
@@ -15227,6 +15236,9 @@ a {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.15rem;
   align-items: start;
+  position: relative;
+  z-index: 2;
+  margin-top: 0.15rem;
 }
 @media (max-width: 1100px) {
   .pricing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -15238,6 +15250,7 @@ a {
 /* Pricing card base */
 .pricing-card {
   position: relative;
+  z-index: 2;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(229, 231, 235, 0.9);
   border-radius: 22px;
@@ -15332,6 +15345,8 @@ a {
   border-bottom-left-radius: inherit;
   border-bottom-right-radius: inherit;
   overflow: hidden;
+  position: relative;
+  z-index: 2;
 }
 
 .pricing-card .pricing-actions .btn-primary,
@@ -15454,6 +15469,8 @@ a {
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
   padding: 1.4rem 2rem;
   overflow: hidden;
+  position: relative;
+  z-index: 2;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15481,6 +15498,18 @@ a {
   .pricing-card .pricing-actions .btn-primary,
   .pricing-card .pricing-actions .btn-secondary {
     width: 100%;
+  }
+
+  .pricing-grid {
+    z-index: 3;
+  }
+
+  .pricing-hero {
+    margin-bottom: 0.5rem;
+  }
+
+  .pricing-hero > .grid > :last-child {
+    max-height: 100%;
   }
 }
 
