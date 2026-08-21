@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
@@ -56,14 +55,30 @@ function normalizePricingPlanName(plan) {
   return String(plan?.name || 'Plan').trim() || 'Plan';
 }
 
-function getPricingPlanCopy(plan) {
+function getPricingPeriodSuffix(plan, selectedBilling) {
+  const billingCycle = String(plan?.billing_cycle || '').trim().toLowerCase();
+
+  if (billingCycle === 'one_time') {
+    return '/session';
+  }
+
+  if (selectedBilling === 'annual' || selectedBilling === 'yearly') {
+    return '/an';
+  }
+
+  return '/mois';
+}
+
+function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
   const normalizedName = normalizePricingPlanName(plan);
   const planKey = normalizedName.toLowerCase();
+  const billingCycle = String(plan?.billing_cycle || '').trim().toLowerCase();
+  const isOneTimeSession = billingCycle === 'one_time';
 
   if (planKey === 'free') {
     return {
       displayName: 'Free',
-      priceSuffix: '/mois',
+      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
       meta: ['2 sessions / mois', 'max 3 participants'],
       features: [
         'accès catalogue limité (3 challenges)',
@@ -75,17 +90,19 @@ function getPricingPlanCopy(plan) {
 
   if (planKey === 'pay-per-session') {
     return {
-      displayName: 'Pay-per-session',
-      priceSuffix: '/mois',
-      meta: ['20 utilisateurs max', '1 sessions / mois'],
+      displayName: isOneTimeSession ? 'Pay-per-session' : 'Forfait session',
+      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
+      meta: isOneTimeSession
+        ? ['20 utilisateurs max', '1 session incluse']
+        : ['20 utilisateurs max', '1 session incluse / mois'],
       features: [],
     };
   }
 
   if (planKey === 'pro') {
     return {
-      displayName: 'Pro',
-      priceSuffix: '/mois',
+      displayName: cardVariant === 'enterprise' ? 'Enterprise' : 'Pro',
+      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
       meta: ['50 utilisateurs max'],
       features: [
         'Sessions illimitées',
@@ -96,14 +113,16 @@ function getPricingPlanCopy(plan) {
         'Live facilitation',
         'Insights',
       ],
-      highlightedLabel: 'Recommandé',
+      highlightedLabel: cardVariant === 'enterprise' ? 'Sur mesure' : 'Recommandé',
+      ctaLabel: cardVariant === 'enterprise' ? 'Contacter l’équipe' : null,
+      ctaHref: cardVariant === 'enterprise' ? '/contact' : null,
     };
   }
 
   if (planKey === 'pro+') {
     return {
       displayName: 'Pro+',
-      priceSuffix: '/mois',
+      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
       meta: [],
       features: [
         'Tout Pro',
@@ -118,10 +137,50 @@ function getPricingPlanCopy(plan) {
 
   return {
     displayName: String(plan?.name || 'Plan').trim() || 'Plan',
-    priceSuffix: selectedBilling === 'annual' ? '/an' : '/mois',
+    priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
     meta: [],
     features: Array.isArray(plan?.features) ? plan.features : [],
   };
+}
+
+function buildPricingCards(plans, selectedBilling) {
+  let proVariantIndex = 0;
+
+  return plans.map((plan) => {
+    const normalizedName = normalizePricingPlanName(plan).toLowerCase();
+    let cardVariant = 'standard';
+
+    if (normalizedName === 'pro') {
+      proVariantIndex += 1;
+      if (proVariantIndex > 1) {
+        cardVariant = 'enterprise';
+      }
+    }
+
+    const basePriceCents = Number(plan.price_cents || 0);
+    let displayPriceCents = basePriceCents;
+    let originalPriceCents = null;
+    let discountPercentage = 0;
+    const billingCycle = String(plan.billing_cycle || '').trim().toLowerCase();
+    const useAnnualDisplay = selectedBilling === 'annual' || selectedBilling === 'yearly';
+
+    if (useAnnualDisplay && billingCycle !== 'one_time') {
+      discountPercentage = Number(plan.annual_discount_percentage || 0);
+      if (discountPercentage > 0) {
+        originalPriceCents = basePriceCents;
+        displayPriceCents = Math.round(basePriceCents * (1 - discountPercentage / 100));
+      }
+    }
+
+    return {
+      ...plan,
+      cardVariant,
+      displayPriceCents,
+      originalPriceCents,
+      discountPercentage,
+      planCopy: getPricingPlanCopy(plan, selectedBilling, cardVariant),
+    };
+  });
 }
 
 function getDarkModeSectionStyle() {
@@ -180,29 +239,7 @@ export default function PricingPage() {
     });
   }, [plans]);
 
-  const displayedPlans = useMemo(() => {
-    return sortedPlans.map((plan) => {
-      const basePriceCents = Number(plan.price_cents || 0);
-      let displayPriceCents = basePriceCents;
-      let originalPriceCents = null;
-      let discountPercentage = 0;
-
-      if (selectedBilling === 'annual' || selectedBilling === 'yearly') {
-        discountPercentage = Number(plan.annual_discount_percentage || 0);
-        if (discountPercentage > 0) {
-          originalPriceCents = basePriceCents;
-          displayPriceCents = Math.round(basePriceCents * (1 - discountPercentage / 100));
-        }
-      }
-
-      return {
-        ...plan,
-        displayPriceCents,
-        originalPriceCents,
-        discountPercentage,
-      };
-    });
-  }, [sortedPlans, selectedBilling]);
+  const displayedPlans = useMemo(() => buildPricingCards(sortedPlans, selectedBilling), [sortedPlans, selectedBilling]);
 
   async function handleProviderCheckout(plan, provider) {
     const currentUser = getStoredCurrentUser();
@@ -248,7 +285,13 @@ export default function PricingPage() {
   return (
     <>
       <TopNav />
-      <main className="shell pricing-page">
+      <main
+        className="shell pricing-page"
+        style={{
+          background: 'radial-gradient(circle at top left, rgba(53, 160, 255, 0.08), transparent 34%), radial-gradient(circle at right 10%, rgba(124, 58, 237, 0.08), transparent 28%), linear-gradient(180deg, rgba(8, 15, 30, 0.98) 0%, rgba(12, 18, 34, 0.98) 100%)',
+          color: 'var(--text-strong, #e2e8f0)',
+        }}
+      >
         <section className="pricing-hero feature-card reveal-up" aria-label="Tarification TeamBlender" style={getDarkModeSectionStyle()}>
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
@@ -265,21 +308,12 @@ export default function PricingPage() {
                   : 'Essai gratuit 14 jours, sans carte bancaire.'}
               </p>
             </div>
-            <div className="rounded-3xl border p-3 shadow-sm" style={{ borderColor: 'var(--surface-soft-border, rgba(148, 163, 184, 0.22))', background: 'linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(245,242,255,0.94) 100%)' }}>
-              <Image
-                src="/images/teamblender-pricing-illustration.svg"
-                alt="Illustration TeamBlender pricing"
-                width={960}
-                height={720}
-                className="w-full rounded-2xl"
-              />
-            </div>
           </div>
         </section>
 
         {/* Billing Cycle & Currency Selector */}
         {!loading && sortedPlans.length > 0 ? (
-          <section className="pricing-controls feature-card reveal-up" aria-label="Options d'affichage" style={getDarkModeSectionStyle()}>
+          <section className="pricing-controls feature-card reveal-up" aria-label="Options d'affichage" style={{ ...getDarkModeSectionStyle(), backgroundColor: 'rgba(17, 26, 46, 0.98)' }}>
             <div className="controls-group">
               <div className="control-section">
                 <label style={getDarkModeTextStyle()}>{isEn ? 'Billing cycle' : 'Fréquence de facturation'}</label>
@@ -319,19 +353,19 @@ export default function PricingPage() {
         ) : null}
 
         {loading ? (
-          <section className="feature-card" aria-label="Chargement des formules" style={getDarkModeSectionStyle()}>
+          <section className="feature-card" aria-label="Chargement des formules" style={{ ...getDarkModeSectionStyle(), backgroundColor: 'rgba(17, 26, 46, 0.98)' }}>
             <p>{isEn ? 'Loading plans...' : 'Chargement des formules en cours...'}</p>
           </section>
         ) : null}
 
         {error ? (
-          <section className="feature-card" aria-label="Erreur tarification" style={getDarkModeSectionStyle()}>
+          <section className="feature-card" aria-label="Erreur tarification" style={{ ...getDarkModeSectionStyle(), backgroundColor: 'rgba(17, 26, 46, 0.98)' }}>
             <p className="form-error">{error}</p>
           </section>
         ) : null}
 
         {!loading && !error && sortedPlans.length === 0 ? (
-          <section className="pricing-empty reveal-up" aria-label="Aucune formule" style={getDarkModeSectionStyle()}>
+          <section className="pricing-empty reveal-up" aria-label="Aucune formule" style={{ ...getDarkModeSectionStyle(), backgroundColor: 'rgba(17, 26, 46, 0.98)' }}>
             <div className="pricing-empty-icon">💬</div>
             <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Plans are being finalized' : 'Formules en cours de finalisation'}</h2>
             <p style={getDarkModeTextStyle()}>
@@ -347,24 +381,29 @@ export default function PricingPage() {
         ) : null}
 
         {!loading && !error && sortedPlans.length > 0 ? (
-          <section className="pricing-grid reveal-up" aria-label="Formules disponibles">
-            {displayedPlans.map((plan) => (
+          <section className="pricing-grid reveal-up" aria-label="Formules disponibles" style={{ background: 'transparent' }}>
+            {displayedPlans.map((plan) => {
+              const isEnterprise = plan.cardVariant === 'enterprise';
+              const ctaLabel = isEnterprise ? (isEn ? 'Contact the team' : 'Contacter l’équipe') : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
+              const ctaHref = isEnterprise ? withLocalePath('/contact') : plan.planCopy.ctaHref;
+
+              return (
               <article key={String(plan.id)} className={`feature-card pricing-card${plan.highlighted ? ' pricing-card-featured' : ''}`} style={getDarkModeSectionStyle()}>
-                {(() => {
-                  const planCopy = getPricingPlanCopy(plan);
-                  return (
-                    <>
                 <div className="pricing-card-top">
-                  {plan.highlighted ? <span className="pricing-badge">{isEn ? 'Recommended' : 'Recommandé'}</span> : null}
+                  {plan.highlighted ? <span className="pricing-badge">{isEnterprise ? (isEn ? 'Custom' : 'Sur mesure') : (isEn ? 'Recommended' : 'Recommandé')}</span> : null}
                   {plan.discountPercentage > 0 && (selectedBilling === 'annual' || selectedBilling === 'yearly') ? (
                     <span className="pricing-discount-badge">{isEn ? `Save ${plan.discountPercentage}%` : `Économisez ${plan.discountPercentage}%`}</span>
                   ) : null}
-                  <p className="eyebrow" style={getDarkModeTextStyle()}>{planCopy.displayName}{plan.highlighted ? (isEn ? ' (Recommended)' : ' (Recommandé)') : ''}</p>
+                  <p className="eyebrow" style={getDarkModeTextStyle()}>
+                    {plan.planCopy.displayName}
+                    {plan.highlighted && !isEnterprise ? (isEn ? ' (Recommended)' : ' (Recommandé)') : null}
+                    {isEnterprise ? (isEn ? ' (Custom)' : ' (Sur mesure)') : null}
+                  </p>
                 </div>
 
                 <h2 className="pricing-price" style={getDarkModeHeadingStyle()}>
                   {formatPriceCents(plan.displayPriceCents, selectedCurrency, locale)}
-                  <span style={getDarkModeTextStyle()}>{planCopy.priceSuffix}</span>
+                  <span style={getDarkModeTextStyle()}>{plan.planCopy.priceSuffix}</span>
                 </h2>
                 {plan.originalPriceCents ? (
                   <p className="pricing-original" style={getDarkModeTextStyle()}>
@@ -373,16 +412,16 @@ export default function PricingPage() {
                 ) : null}
                 {plan.description ? <p className="pricing-description" style={getDarkModeTextStyle()}>{plan.description}</p> : null}
 
-                {Array.isArray(planCopy.features) && planCopy.features.length > 0 ? (
+                {Array.isArray(plan.planCopy.features) && plan.planCopy.features.length > 0 ? (
                   <ul className="pricing-feature-list">
-                    {planCopy.features.map((item, index) => (
+                    {plan.planCopy.features.map((item, index) => (
                       <li key={`${plan.id}-${index}`} style={getDarkModeTextStyle()}>{item}</li>
                     ))}
                   </ul>
                 ) : null}
 
                 <div className="pricing-meta-row">
-                  {planCopy.meta.map((item, index) => (
+                  {plan.planCopy.meta.map((item, index) => (
                     <span key={`${plan.id}-meta-${index}`} style={getDarkModeTextStyle()}>{item}</span>
                   ))}
                   {plan.trial_days ? <span>{plan.trial_days} {isEn ? 'trial days' : 'jours d\'essai'}</span> : null}
@@ -390,20 +429,24 @@ export default function PricingPage() {
                 </div>
 
                 <div className="hero-actions pricing-actions">
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    onClick={() => handleProviderCheckout(plan, 'payoneer')}
-                    disabled={checkoutPlanId === String(plan.id)}
-                  >
-                    {checkoutPlanId === String(plan.id) ? (isEn ? 'Opening checkout...' : 'Ouverture du paiement...') : (isEn ? 'Pay now' : 'Payer maintenant')}
-                  </button>
+                  {isEnterprise ? (
+                    <Link href={ctaHref || withLocalePath('/contact')} className="btn-secondary">
+                      {ctaLabel}
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => handleProviderCheckout(plan, 'payoneer')}
+                      disabled={checkoutPlanId === String(plan.id)}
+                    >
+                      {checkoutPlanId === String(plan.id) ? (isEn ? 'Opening checkout...' : 'Ouverture du paiement...') : ctaLabel}
+                    </button>
+                  )}
                 </div>
-                    </>
-                  );
-                })()}
               </article>
-            ))}
+            );
+            })}
           </section>
         ) : null}
 
