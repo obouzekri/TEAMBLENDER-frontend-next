@@ -1028,6 +1028,68 @@ body {
   color: var(--ink);
 }
 
+.pricing-page {
+  background: radial-gradient(circle at top left, rgba(53, 160, 255, 0.08), transparent 34%), radial-gradient(circle at right 10%, rgba(124, 58, 237, 0.08), transparent 28%), linear-gradient(180deg, rgba(8, 15, 30, 0.98) 0%, rgba(12, 18, 34, 0.98) 100%);
+  color: var(--text-strong);
+}
+
+.pricing-page .pricing-hero,
+.pricing-page .pricing-controls,
+.pricing-page .pricing-empty,
+.pricing-page .pricing-footer-cta,
+.pricing-page .pricing-card {
+  background-color: rgba(17, 26, 46, 0.98);
+}
+
+.pricing-page .pricing-grid {
+  background: transparent;
+}
+
+.pricing-page .toggle-btn,
+.pricing-page .currency-select {
+  background: rgba(17, 26, 46, 0.98);
+  color: var(--text-strong);
+  border-color: var(--surface-soft-border);
+}
+
+.pricing-page .toggle-btn.active,
+.pricing-page .toggle-btn:hover,
+.pricing-page .currency-select:hover,
+.pricing-page .currency-select:focus {
+  background: rgba(22, 32, 56, 1);
+  border-color: var(--surface-soft-border-strong);
+}
+
+.pricing-page .pricing-feature-list li,
+.pricing-page .pricing-meta-row span,
+.pricing-page .pricing-description,
+.pricing-page .pricing-original,
+.pricing-page .eyebrow,
+.pricing-page .pricing-price span,
+.pricing-page .form-error,
+.pricing-page p {
+  color: var(--text-muted);
+}
+
+.pricing-page .pricing-price,
+.pricing-page .pricing-empty h2,
+.pricing-page .pricing-footer-cta p {
+  color: var(--text-strong);
+}
+
+.pricing-page .btn-primary,
+.pricing-page .btn-secondary {
+  background: rgba(47, 98, 255, 0.14);
+  color: var(--text-strong);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.pricing-page .btn-primary:hover,
+.pricing-page .btn-secondary:hover {
+  background: rgba(47, 98, 255, 0.22);
+  border-color: rgba(125, 211, 252, 0.44);
+}
+
 img,
 video,
 canvas,
