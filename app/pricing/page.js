@@ -124,6 +124,22 @@ function getPricingPlanCopy(plan) {
   };
 }
 
+function getDarkModeSectionStyle() {
+  return {
+    backgroundColor: 'var(--surface-panel, rgba(17, 26, 46, 0.96))',
+    borderColor: 'var(--surface-soft-border, rgba(148, 163, 184, 0.22))',
+    boxShadow: '0 18px 40px rgba(2, 6, 23, 0.42)',
+  };
+}
+
+function getDarkModeTextStyle() {
+  return { color: 'var(--text-muted, #cbd5e1)' };
+}
+
+function getDarkModeHeadingStyle() {
+  return { color: 'var(--text-strong, #e2e8f0)' };
+}
+
 export default function PricingPage() {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
@@ -233,23 +249,23 @@ export default function PricingPage() {
     <>
       <TopNav />
       <main className="shell pricing-page">
-        <section className="pricing-hero feature-card reveal-up" aria-label="Tarification TeamBlender">
+        <section className="pricing-hero feature-card reveal-up" aria-label="Tarification TeamBlender" style={getDarkModeSectionStyle()}>
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
-              <p className="eyebrow">{isEn ? 'Pricing' : 'Tarification'}</p>
-              <h1>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
-              <p>
+              <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Pricing' : 'Tarification'}</p>
+              <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
+              <p style={getDarkModeTextStyle()}>
                 {isEn
                   ? 'Start light, then scale with more capabilities, support, and customization.'
                   : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
               </p>
-              <p>
+              <p style={getDarkModeTextStyle()}>
                 {isEn
                   ? '14-day free trial, no credit card required.'
                   : 'Essai gratuit 14 jours, sans carte bancaire.'}
               </p>
             </div>
-            <div className="rounded-3xl border border-white/60 bg-gradient-to-br from-slate-50 to-indigo-50 p-3 shadow-sm">
+            <div className="rounded-3xl border p-3 shadow-sm" style={{ borderColor: 'var(--surface-soft-border, rgba(148, 163, 184, 0.22))', background: 'linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(245,242,255,0.94) 100%)' }}>
               <Image
                 src="/images/teamblender-pricing-illustration.svg"
                 alt="Illustration TeamBlender pricing"
@@ -263,10 +279,10 @@ export default function PricingPage() {
 
         {/* Billing Cycle & Currency Selector */}
         {!loading && sortedPlans.length > 0 ? (
-          <section className="pricing-controls feature-card reveal-up" aria-label="Options d'affichage">
+          <section className="pricing-controls feature-card reveal-up" aria-label="Options d'affichage" style={getDarkModeSectionStyle()}>
             <div className="controls-group">
               <div className="control-section">
-                <label>{isEn ? 'Billing cycle' : 'Fréquence de facturation'}</label>
+                <label style={getDarkModeTextStyle()}>{isEn ? 'Billing cycle' : 'Fréquence de facturation'}</label>
                 <div className="toggle-group">
                   <button
                     className={`toggle-btn ${selectedBilling === 'monthly' ? 'active' : ''}`}
@@ -284,7 +300,7 @@ export default function PricingPage() {
               </div>
 
               <div className="control-section">
-                <label htmlFor="currency-select">{isEn ? 'Currency' : 'Devise'}</label>
+                <label htmlFor="currency-select" style={getDarkModeTextStyle()}>{isEn ? 'Currency' : 'Devise'}</label>
                 <select
                   id="currency-select"
                   value={selectedCurrency}
@@ -303,22 +319,22 @@ export default function PricingPage() {
         ) : null}
 
         {loading ? (
-          <section className="feature-card" aria-label="Chargement des formules">
+          <section className="feature-card" aria-label="Chargement des formules" style={getDarkModeSectionStyle()}>
             <p>{isEn ? 'Loading plans...' : 'Chargement des formules en cours...'}</p>
           </section>
         ) : null}
 
         {error ? (
-          <section className="feature-card" aria-label="Erreur tarification">
+          <section className="feature-card" aria-label="Erreur tarification" style={getDarkModeSectionStyle()}>
             <p className="form-error">{error}</p>
           </section>
         ) : null}
 
         {!loading && !error && sortedPlans.length === 0 ? (
-          <section className="pricing-empty reveal-up" aria-label="Aucune formule">
+          <section className="pricing-empty reveal-up" aria-label="Aucune formule" style={getDarkModeSectionStyle()}>
             <div className="pricing-empty-icon">💬</div>
-            <h2>{isEn ? 'Plans are being finalized' : 'Formules en cours de finalisation'}</h2>
-            <p>
+            <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Plans are being finalized' : 'Formules en cours de finalisation'}</h2>
+            <p style={getDarkModeTextStyle()}>
               {isEn
                 ? 'Our team is preparing the offers. Contact us for a proposal adapted to your context.'
                 : 'Notre équipe prépare les offres. Contactez-nous pour recevoir une proposition adaptée à votre contexte.'}
@@ -333,7 +349,7 @@ export default function PricingPage() {
         {!loading && !error && sortedPlans.length > 0 ? (
           <section className="pricing-grid reveal-up" aria-label="Formules disponibles">
             {displayedPlans.map((plan) => (
-              <article key={String(plan.id)} className={`feature-card pricing-card${plan.highlighted ? ' pricing-card-featured' : ''}`}>
+              <article key={String(plan.id)} className={`feature-card pricing-card${plan.highlighted ? ' pricing-card-featured' : ''}`} style={getDarkModeSectionStyle()}>
                 {(() => {
                   const planCopy = getPricingPlanCopy(plan);
                   return (
@@ -343,31 +359,31 @@ export default function PricingPage() {
                   {plan.discountPercentage > 0 && (selectedBilling === 'annual' || selectedBilling === 'yearly') ? (
                     <span className="pricing-discount-badge">{isEn ? `Save ${plan.discountPercentage}%` : `Économisez ${plan.discountPercentage}%`}</span>
                   ) : null}
-                  <p className="eyebrow">{planCopy.displayName}{plan.highlighted ? (isEn ? ' (Recommended)' : ' (Recommandé)') : ''}</p>
+                  <p className="eyebrow" style={getDarkModeTextStyle()}>{planCopy.displayName}{plan.highlighted ? (isEn ? ' (Recommended)' : ' (Recommandé)') : ''}</p>
                 </div>
 
-                <h2 className="pricing-price">
+                <h2 className="pricing-price" style={getDarkModeHeadingStyle()}>
                   {formatPriceCents(plan.displayPriceCents, selectedCurrency, locale)}
-                  <span>{planCopy.priceSuffix}</span>
+                  <span style={getDarkModeTextStyle()}>{planCopy.priceSuffix}</span>
                 </h2>
                 {plan.originalPriceCents ? (
-                  <p className="pricing-original">
+                  <p className="pricing-original" style={getDarkModeTextStyle()}>
                     <s>{formatPriceCents(plan.originalPriceCents, selectedCurrency, locale)}</s>
                   </p>
                 ) : null}
-                {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
+                {plan.description ? <p className="pricing-description" style={getDarkModeTextStyle()}>{plan.description}</p> : null}
 
                 {Array.isArray(planCopy.features) && planCopy.features.length > 0 ? (
                   <ul className="pricing-feature-list">
                     {planCopy.features.map((item, index) => (
-                      <li key={`${plan.id}-${index}`}>{item}</li>
+                      <li key={`${plan.id}-${index}`} style={getDarkModeTextStyle()}>{item}</li>
                     ))}
                   </ul>
                 ) : null}
 
                 <div className="pricing-meta-row">
                   {planCopy.meta.map((item, index) => (
-                    <span key={`${plan.id}-meta-${index}`}>{item}</span>
+                    <span key={`${plan.id}-meta-${index}`} style={getDarkModeTextStyle()}>{item}</span>
                   ))}
                   {plan.trial_days ? <span>{plan.trial_days} {isEn ? 'trial days' : 'jours d\'essai'}</span> : null}
                   {plan.support_level ? <span>{isEn ? 'Support' : 'Support'} {plan.support_level}</span> : null}
@@ -392,8 +408,8 @@ export default function PricingPage() {
         ) : null}
 
         {!loading && !error && sortedPlans.length > 0 ? (
-          <section className="pricing-footer-cta feature-card reveal-up">
-            <p>{isEn ? 'Any question about plans?' : 'Une question sur les formules ?'}</p>
+          <section className="pricing-footer-cta feature-card reveal-up" style={getDarkModeSectionStyle()}>
+            <p style={getDarkModeTextStyle()}>{isEn ? 'Any question about plans?' : 'Une question sur les formules ?'}</p>
             <Link href={withLocalePath('/contact')} className="btn-secondary">{isEn ? 'Contact the team' : 'Contacter l\'équipe'}</Link>
           </section>
         ) : null}
