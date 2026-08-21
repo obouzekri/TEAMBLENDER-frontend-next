@@ -50,7 +50,7 @@ export default function ContactPage() {
           <p>{isEn ? 'This step helps frame your need and see how to launch a useful challenge for your team.' : 'Cette étape sert à cadrer votre besoin et voir comment lancer un challenge utile pour votre équipe.'}</p>
         </section>
 
-        <section className="contact-layout">
+        <section className="contact-layout contact-layout--separated">
           <article className="feature-card contact-info-card">
             <h2>{isEn ? 'How to reach us' : 'Comment nous joindre'}</h2>
             <p>{isEn ? 'For scoping, a demo, or an HR question, write to us.' : 'Pour un cadrage, une démonstration ou une question RH, écrivez-nous.'}</p>
@@ -79,7 +79,7 @@ export default function ContactPage() {
               </div>
             </div>
 
-            <div className="contact-trust-box highlight-violet">
+            <div className="contact-trust-box highlight-violet contact-trust-box--soft">
               <p>
                 {isEn ? 'Not ready yet? ' : 'Pas encore prêt ? '}
                 <a href={withLocalePath('/pricing')}>{isEn ? 'See our plans' : 'Consultez nos formules'}</a>

@@ -1318,6 +1318,101 @@ body {
   }
 }
 
+.contact-page {
+  padding-bottom: 2rem;
+}
+
+.contact-page .contact-hero {
+  margin-bottom: 1.5rem;
+}
+
+.contact-page .contact-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 1.75rem;
+  padding: 1.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 28px;
+  background: rgba(17, 26, 46, 0.9);
+  box-shadow: 0 24px 54px rgba(2, 6, 23, 0.34);
+}
+
+.contact-page .contact-layout--separated {
+  padding: 1.85rem;
+}
+
+.contact-page .contact-layout > .feature-card {
+  margin: 0;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.contact-page .contact-info-card,
+.contact-page .contact-layout > .feature-card:last-child {
+  background: rgba(17, 26, 46, 0.98);
+}
+
+.contact-page .contact-info-card {
+  padding: 1.5rem;
+}
+
+.contact-page .contact-info-items {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1.1rem 0 0;
+}
+
+.contact-page .contact-info-item {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.contact-page .contact-info-icon {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--text-strong);
+}
+
+.contact-page .contact-trust-box--soft {
+  margin-top: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: none;
+}
+
+.contact-page .auth-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.contact-page .auth-form label {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.contact-page .auth-form input,
+.contact-page .auth-form select,
+.contact-page .auth-form textarea {
+  border-radius: 12px;
+}
+
+@media (max-width: 960px) {
+  .contact-page .contact-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 .error-page {
   min-height: calc(100vh - 6rem);
   display: grid;
