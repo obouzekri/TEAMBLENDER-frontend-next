@@ -316,33 +316,35 @@ export default function PricingPage() {
         {/* Billing Cycle & Currency Selector */}
         {!loading && sortedPlans.length > 0 ? (
           <section className="pricing-controls reveal-up mb-12" aria-label="Options d'affichage">
-            <div className="controls-group mx-auto flex w-full max-w-3xl flex-col items-center gap-6 md:flex-row md:justify-center">
-              <div className="control-section">
-                <label style={getDarkModeTextStyle()}>{isEn ? 'Billing cycle' : 'Fréquence de facturation'}</label>
-                <div className="toggle-group">
+            <div className="pricing-controls__row mx-auto flex w-full max-w-5xl flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div className="control-section pricing-controls__toggle">
+                <label className="pricing-controls__label" style={getDarkModeTextStyle()}>{isEn ? 'Billing cycle' : 'Fréquence de facturation'}</label>
+                <div className="toggle-group toggle-group--compact">
                   <button
-                    className={`toggle-btn ${selectedBilling === 'monthly' ? 'active' : ''}`}
+                    type="button"
+                    className={`toggle-btn toggle-btn--soft ${selectedBilling === 'monthly' ? 'active' : ''}`}
                     onClick={() => setSelectedBilling('monthly')}
                   >
                     {isEn ? 'Monthly' : 'Mensuel'}
                   </button>
                   <button
-                    className={`toggle-btn ${selectedBilling === 'annual' ? 'active' : ''}`}
+                    type="button"
+                    className={`toggle-btn toggle-btn--soft ${selectedBilling === 'annual' ? 'active' : ''}`}
                     onClick={() => setSelectedBilling('annual')}
                   >
                     <span>{isEn ? 'Yearly' : 'Annuel'}</span>
-                    <span className="toggle-savings-badge">Économisez 20%</span>
+                    <span className="toggle-savings-badge">-20%</span>
                   </button>
                 </div>
               </div>
 
-              <div className="control-section">
+              <div className="control-section pricing-controls__currency">
                 <label htmlFor="currency-select" style={getDarkModeTextStyle()}>{isEn ? 'Currency' : 'Devise'}</label>
                 <select
                   id="currency-select"
                   value={selectedCurrency}
                   onChange={(e) => setSelectedCurrency(e.target.value)}
-                  className="currency-select"
+                  className="currency-select currency-select--compact"
                 >
                   {SUPPORTED_CURRENCIES.map((curr) => (
                     <option key={curr} value={curr}>
@@ -435,13 +437,13 @@ export default function PricingPage() {
 
                 <div className="hero-actions pricing-actions mt-auto">
                   {isEnterprise ? (
-                    <Link href={ctaHref || withLocalePath('/contact')} className="btn-secondary pricing-cta pricing-cta--enterprise">
+                    <Link href={ctaHref || withLocalePath('/contact')} className="btn-outline pricing-cta pricing-cta--enterprise">
                       {ctaLabel}
                     </Link>
                   ) : (
                     <button
                       type="button"
-                      className={`btn-primary pricing-cta${plan.isFeatured ? ' pricing-cta--featured' : ''}`}
+                      className={`btn-primary pricing-cta pricing-cta--main${plan.isFeatured ? ' pricing-cta--featured' : ''}`}
                       onClick={() => handleProviderCheckout(plan, 'payoneer')}
                       disabled={checkoutPlanId === String(plan.id)}
                     >
@@ -457,9 +459,14 @@ export default function PricingPage() {
         ) : null}
 
         {!loading && !error && sortedPlans.length > 0 ? (
-          <section className="pricing-footer-cta feature-card reveal-up" style={getDarkModeSectionStyle()}>
-            <p style={getDarkModeTextStyle()}>{isEn ? 'Any question about plans?' : 'Une question sur les formules ?'}</p>
-            <Link href={withLocalePath('/contact')} className="btn-secondary">{isEn ? 'Contact the team' : 'Contacter l\'équipe'}</Link>
+          <section className="pricing-footer-cta reveal-up" aria-label="Assistance commerciale">
+            <div className="pricing-footer-cta__inner">
+              <div className="pricing-footer-cta__copy">
+                <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Need support?' : 'Besoin d\'un accompagnement ?'}</p>
+                <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Need support? Our team replies within a few hours.' : 'Besoin d\'un accompagnement ? Notre équipe vous répond sous quelques heures'}</h2>
+              </div>
+              <Link href={withLocalePath('/contact')} className="btn-primary pricing-footer-cta__button">{isEn ? 'Contact the team' : 'Contacter l\'équipe'}</Link>
+            </div>
           </section>
         ) : null}
       </main>
