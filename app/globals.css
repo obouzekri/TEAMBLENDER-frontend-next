@@ -8681,6 +8681,67 @@ a {
   box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
 }
 
+/* Pricing page: enforce readable contrast and separate nested borders in dark mode */
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-hero,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-empty,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta {
+  background: rgba(17, 26, 46, 0.96) !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.42) !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-hero h1,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-hero p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls label,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-price,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-description,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-original,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-feature-list li,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-meta-row span,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-empty h2,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-empty p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .toggle-btn:not(.active),
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .currency-select {
+  color: #e2e8f0 !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-hero p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-description,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-original,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-feature-list li,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-meta-row span,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-empty p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta p {
+  color: #cbd5e1 !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card > * + *,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls > * + * {
+  margin-top: 0.9rem !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-meta-row,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-feature-list {
+  gap: 0.6rem !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-meta-row span {
+  background: rgba(148, 163, 184, 0.1) !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-empty,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-hero,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card .feature-card {
+  background-clip: padding-box;
+}
+
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-hero h1,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-text strong {
   color: #e2e8f0;
