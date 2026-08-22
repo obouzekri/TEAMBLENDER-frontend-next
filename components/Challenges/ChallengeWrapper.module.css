@@ -4,10 +4,6 @@
   min-height: 0;
   height: auto;
   gap: 12px;
-  --challenge-text-primary: #e5edf7;
-  --challenge-text-secondary: #bfd3e8;
-  --challenge-text-muted: #9cb2c7;
-  --challenge-text-accent: #7dd3fc;
   font-family: var(--font-ui);
   color: var(--challenge-text-secondary);
 }
@@ -60,30 +56,27 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background:
-    radial-gradient(1200px 560px at 8% -10%, rgba(40, 179, 208, 0.16), transparent 60%),
-    radial-gradient(900px 440px at 90% 0%, rgba(55, 183, 118, 0.1), transparent 55%),
-    linear-gradient(145deg, #071520 0%, #0d2331 60%, #112938 100%);
+  background: var(--bg);
 }
 
 .statusCard {
   width: 100%;
   max-width: 640px;
-  background: linear-gradient(165deg, rgba(16, 33, 49, 0.92), rgba(10, 24, 36, 0.92));
-  border: 1px solid rgba(160, 187, 208, 0.3);
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: 14px;
-  box-shadow: 0 16px 34px rgba(2, 9, 16, 0.28);
+  box-shadow: var(--card-shadow);
   padding: 24px;
 }
 
 .statusCard h1 {
   margin: 0 0 8px;
-  color: #e7eff6;
+  color: var(--challenge-text-primary);
 }
 
 .statusCard p {
   margin: 0;
-  color: #9cb2c7;
+  color: var(--challenge-text-muted);
 }
 
 @keyframes challengeSpinnerRotate {
@@ -95,15 +88,15 @@
 .spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(125, 211, 252, 0.22);
-  border-top-color: #7dd3fc;
+  border: 3px solid color-mix(in srgb, var(--challenge-text-accent) 22%, transparent);
+  border-top-color: var(--challenge-text-accent);
   border-radius: 50%;
   animation: challengeSpinnerRotate 0.75s linear infinite;
   margin: 0 auto 16px;
 }
 
 .errorDetail {
-  color: #9cb2c7;
+  color: var(--challenge-text-muted);
   font-size: 0.78rem;
   margin-top: 6px;
   opacity: 0.8;
@@ -116,7 +109,7 @@
 }
 
 .error {
-  color: #ef6b6b;
+  color: var(--error-line);
   font-size: 0.875rem;
   margin-top: 0.5rem;
 }

@@ -1,12 +1,12 @@
 .chatCard {
   font-family: var(--font-ui);
-  border: 1px solid rgba(14, 165, 233, 0.32);
+  border: 1px solid var(--control-border-strong);
   border-radius: 14px;
   padding: 0.95rem;
-  background: linear-gradient(168deg, rgba(2, 6, 23, 0.92), rgba(7, 23, 46, 0.9));
+  background: var(--card);
   display: grid;
   gap: 0.72rem;
-  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.3), inset 0 0 0 1px rgba(14, 165, 233, 0.12);
+  box-shadow: var(--ch-shadow-card);
 }
 
 .chatCardCollapsed {
@@ -36,15 +36,15 @@
 }
 
 .chatToggleBtn {
-  border: 1px solid rgba(125, 211, 252, 0.45);
+  border: 1px solid var(--control-border-strong);
   border-radius: 999px;
   width: 1.4rem;
   height: 1.4rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(14, 165, 233, 0.16);
-  color: #e0f2fe;
+  background: var(--surface-control);
+  color: var(--challenge-text-accent);
   cursor: pointer;
   font-size: 0.72rem;
   font-weight: 700;
@@ -52,11 +52,11 @@
 }
 
 .chatToggleBtn:hover {
-  background: rgba(14, 165, 233, 0.26);
+  background: var(--surface-control-hover);
 }
 
 .chatToggleBtn:focus-visible {
-  outline: 2px solid rgba(125, 211, 252, 0.55);
+  outline: 2px solid var(--control-border-strong);
   outline-offset: 2px;
 }
 
@@ -67,9 +67,9 @@
 }
 
 .quickButton {
-  border: 1px solid rgba(125, 211, 252, 0.32);
-  background: linear-gradient(145deg, rgba(14, 165, 233, 0.14), rgba(3, 105, 161, 0.1));
-  color: #d9ecf8;
+  border: 1px solid var(--control-border-strong);
+  background: var(--surface-control);
+  color: var(--challenge-text-secondary);
   border-radius: 999px;
   padding: 0.28rem 0.62rem;
   font-size: 0.74rem;
@@ -82,14 +82,14 @@
 }
 
 .chatLog {
-  border: 1px solid rgba(125, 211, 252, 0.2);
+  border: 1px solid var(--line);
   border-radius: 12px;
   padding: 0.8rem;
   max-height: 230px;
   overflow: auto;
   display: grid;
   gap: 0.55rem;
-  background: rgba(4, 13, 22, 0.6);
+  background: var(--bg);
   scroll-behavior: smooth;
 }
 
@@ -100,25 +100,25 @@
 }
 
 .chatRowMine .chatText {
-  color: #a7def3;
+  color: var(--challenge-text-accent);
 }
 
 .chatAuthor {
-  color: #8fb0c4;
+  color: var(--challenge-text-muted);
   font-size: 0.73rem;
   font-weight: 700;
 }
 
 .chatText {
   margin: 0;
-  color: #e2edf6;
+  color: var(--challenge-text-secondary);
   font-size: 0.84rem;
   line-height: 1.42;
 }
 
 .chatEmpty {
   margin: 0;
-  color: #90a5b8;
+  color: var(--challenge-text-muted);
   font-size: 0.82rem;
 }
 
@@ -129,64 +129,64 @@
 
 .chatInput {
   flex: 1;
-  border: 1px solid rgba(125, 211, 252, 0.28);
+  border: 1px solid var(--control-border);
   border-radius: 9px;
   padding: 0.5rem 0.65rem;
-  background: rgba(12, 25, 38, 0.94);
-  color: #ffffff;
+  background: var(--field-bg);
+  color: var(--field-text);
   font-size: 0.9rem;
   line-height: 1.35;
-  -webkit-text-fill-color: #ffffff;
-  caret-color: #ffffff;
+  -webkit-text-fill-color: var(--field-text);
+  caret-color: var(--field-text);
 }
 
 .chatInput:focus-visible,
 .chatSubmit:focus-visible,
 .quickButton:focus-visible {
-  outline: 2px solid rgba(125, 211, 252, 0.72);
+  outline: 2px solid var(--control-border-strong);
   outline-offset: 2px;
 }
 
 .chatInput:focus,
 .chatInput:active {
-  color: #ffffff;
-  -webkit-text-fill-color: #ffffff;
-  border-color: rgba(125, 211, 252, 0.6);
-  background: rgba(15, 32, 49, 0.98);
+  color: var(--field-text);
+  -webkit-text-fill-color: var(--field-text);
+  border-color: var(--field-line-focus);
+  background: var(--field-bg-focus);
 }
 
 .chatInput:disabled {
-  color: rgba(255, 255, 255, 0.72);
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.72);
-  background: rgba(8, 18, 28, 0.78);
-  border-color: rgba(125, 211, 252, 0.18);
+  color: var(--field-placeholder);
+  -webkit-text-fill-color: var(--field-placeholder);
+  background: var(--field-bg);
+  border-color: var(--line);
   cursor: not-allowed;
 }
 
 .chatInput::placeholder {
-  color: rgba(191, 211, 232, 0.8);
+  color: var(--field-placeholder);
   font-size: 0.9rem;
 }
 
 .chatInput:disabled::placeholder {
-  color: rgba(156, 178, 199, 0.56);
+  color: var(--text-subtle);
 }
 
 .chatInput:-webkit-autofill,
 .chatInput:-webkit-autofill:hover,
 .chatInput:-webkit-autofill:focus {
-  -webkit-text-fill-color: #ffffff;
-  box-shadow: 0 0 0 1000px rgba(12, 25, 38, 0.94) inset;
+  -webkit-text-fill-color: var(--field-text);
+  box-shadow: 0 0 0 1000px var(--field-autofill-bg) inset;
   transition: background-color 9999s ease-in-out 0s;
 }
 
 .chatSubmit {
-  border: 1px solid rgba(72, 194, 219, 0.66);
+  border: 1px solid var(--control-border-strong);
   border-radius: 9px;
   padding: 0.5rem 0.8rem;
   min-width: 44px;
-  background: linear-gradient(145deg, rgba(22, 104, 124, 0.95), rgba(20, 86, 102, 0.92));
-  color: #eff8fc;
+  background: var(--accent);
+  color: var(--text-on-accent);
   cursor: pointer;
   font-weight: 700;
   display: inline-flex;

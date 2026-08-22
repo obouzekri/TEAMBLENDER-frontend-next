@@ -17,7 +17,7 @@
   padding: 1rem 1.25rem;
   border-radius: 0.9rem;
   font-size: 0.95rem;
-  box-shadow: 0 12px 24px rgba(30, 42, 35, 0.12);
+  box-shadow: var(--shadow-md);
   animation: slideIn 0.3s ease-out;
   pointer-events: auto;
   gap: 1rem;
@@ -55,31 +55,31 @@
 }
 
 .success {
-  background-color: rgba(238, 251, 246, 0.96);
-  color: #065f46;
-  border-color: rgba(16, 185, 129, 0.22);
-  border-left: 4px solid #10b981;
+  background-color: var(--toast-success-bg);
+  color: var(--toast-success-text);
+  border-color: var(--toast-success-border);
+  border-left: 4px solid var(--toast-success-accent);
 }
 
 .error {
-  background-color: rgba(255, 241, 241, 0.96);
-  color: #7f1d1d;
-  border-color: rgba(239, 68, 68, 0.22);
-  border-left: 4px solid #ef4444;
+  background-color: var(--toast-error-bg);
+  color: var(--toast-error-text);
+  border-color: var(--toast-error-border);
+  border-left: 4px solid var(--toast-error-accent);
 }
 
 .info {
-  background-color: rgba(237, 245, 255, 0.96);
-  color: #1f46d2;
-  border-color: rgba(53, 160, 255, 0.22);
-  border-left: 4px solid #2f62ff;
+  background-color: var(--toast-info-bg);
+  color: var(--toast-info-text);
+  border-color: var(--toast-info-border);
+  border-left: 4px solid var(--toast-info-accent);
 }
 
 .loading {
-  background-color: rgba(248, 250, 247, 0.96);
-  color: #334155;
-  border-color: rgba(148, 163, 184, 0.22);
-  border-left: 4px solid #64748b;
+  background-color: var(--toast-loading-bg);
+  color: var(--toast-loading-text);
+  border-color: var(--toast-loading-border);
+  border-left: 4px solid var(--toast-loading-accent);
 }
 
 .spinner {

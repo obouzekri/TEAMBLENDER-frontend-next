@@ -1,9 +1,9 @@
 .summaryBar {
   position: relative;
-  border: 1px solid #dbe5f0;
+  border: 1px solid var(--line);
   border-radius: 16px;
-  background: linear-gradient(120deg, #ffffff 0%, #f8fbff 100%);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  background: linear-gradient(120deg, var(--card) 0%, var(--bg-soft) 100%);
+  box-shadow: var(--shadow-sm);
   padding: 0.9rem 1rem;
 }
 
@@ -54,30 +54,30 @@
   gap: 0.3rem;
   min-height: 1.85rem;
   padding: 0.28rem 0.55rem;
-  border: 1px solid #e2eaf3;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  color: #617089;
-  background: rgba(255, 255, 255, 0.76);
+  color: var(--ink-soft);
+  background: var(--surface-glass);
   font-size: 0.78rem;
   white-space: nowrap;
 }
 
 .summaryStat svg {
-  color: #3874db;
+  color: var(--accent);
 }
 
 .summaryStat strong {
-  color: #17243a;
+  color: var(--ink);
   font-size: 0.86rem;
 }
 
 .statusBadge {
   flex: 0 0 auto;
   padding: 0.2rem 0.52rem;
-  border: 1px solid #b8decf;
+  border: 1px solid color-mix(in srgb, var(--success-line) 50%, transparent);
   border-radius: 999px;
-  color: #176044;
-  background: #effaf4;
+  color: var(--success-ink);
+  background: var(--success-bg);
   font-size: 0.68rem;
   font-weight: 700;
 }
@@ -93,9 +93,9 @@
 .invitePanel {
   min-width: 0;
   padding: 0.6rem 0.75rem;
-  border: 1px solid #dce8f7;
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: #f5f9ff;
+  background: var(--bg-soft);
 }
 
 .inviteInline {
@@ -103,7 +103,7 @@
   align-items: center;
   gap: 0.45rem;
   min-width: 0;
-  color: #536985;
+  color: var(--ink-soft);
   font-size: 0.76rem;
 }
 
@@ -114,18 +114,18 @@
 .inviteLinkValue {
   min-width: 0;
   overflow: hidden;
-  color: #385474;
+  color: var(--ink);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .inviteCodeValue {
   padding: 0.25rem 0.5rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--line);
   border-radius: 6px;
   cursor: pointer;
-  color: #0f172a;
-  background: #f8fafc;
+  color: var(--ink);
+  background: var(--surface-muted);
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -133,15 +133,15 @@
 }
 
 .inviteCodeValue:hover {
-  border-color: #93c5fd;
-  background: #eff6ff;
+  border-color: var(--accent-soft);
+  background: var(--accent-soft);
 }
 
 .inviteCopyButton {
   border: 0;
   padding: 0.28rem 0.45rem;
   border-radius: 6px;
-  color: #1d4ed8;
+  color: var(--accent-strong);
   background: transparent;
   font-size: 0.76rem;
   font-weight: 700;
@@ -150,7 +150,7 @@
 }
 
 .inviteCopyButton:hover {
-  background: #eff6ff;
+  background: var(--accent-soft);
 }
 
 .actionBtn {
@@ -172,19 +172,19 @@
   justify-content: center;
   width: 2.15rem;
   height: 2.15rem;
-  border: 1px solid #e2eaf3;
+  border: 1px solid var(--line);
   border-radius: 999px;
-  color: #64748b;
-  background: #ffffff;
+  color: var(--text-subtle);
+  background: var(--card);
   cursor: pointer;
   box-shadow: none;
   transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
 .iconAction:hover:not(:disabled) {
-  color: #0f172a;
-  border-color: #c7d8ec;
-  background: #f1f6fd;
+  color: var(--ink);
+  border-color: var(--line);
+  background: var(--bg-soft);
 }
 
 .iconAction:disabled {
@@ -195,7 +195,7 @@
 .primaryAction {
   min-width: 9rem;
   padding: 0.45rem 1.6rem;
-  box-shadow: 0 12px 24px rgba(53, 160, 255, 0.24);
+  box-shadow: var(--button-primary-shadow);
 }
 
 @media (max-width: 680px) {

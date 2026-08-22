@@ -20,20 +20,20 @@
 
 .info {
   border-color: color-mix(in srgb, var(--accent) 38%, transparent);
-  background: color-mix(in srgb, var(--accent-soft) 76%, #fff);
+  background: color-mix(in srgb, var(--accent-soft) 76%, var(--card));
 }
 
 .success {
   border-color: color-mix(in srgb, var(--success-line) 38%, transparent);
-  background: color-mix(in srgb, var(--success-bg) 82%, #fff);
+  background: color-mix(in srgb, var(--success-bg) 82%, var(--card));
 }
 
 .warning {
-  border-color: rgba(251, 191, 36, 0.5);
-  background: rgba(251, 191, 36, 0.1);
+  border-color: color-mix(in srgb, var(--ch-warn) 50%, transparent);
+  background: color-mix(in srgb, var(--ch-warn) 10%, var(--card));
 }
 
 .danger {
   border-color: color-mix(in srgb, var(--error-line) 38%, transparent);
-  background: color-mix(in srgb, var(--error-bg) 82%, #fff);
+  background: color-mix(in srgb, var(--error-bg) 82%, var(--card));
 }
