@@ -421,7 +421,7 @@ body {
   border: none;
   border-left: 3px solid transparent;
   background: transparent;
-  color: var(--ink-soft);
+  color: var(--text-muted);
   font-size: 14px;
   font-weight: 500;
   text-align: left;
@@ -430,12 +430,12 @@ body {
 }
 
 .admin-nav-button:hover {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  background: color-mix(in srgb, var(--accent-soft) 64%, transparent);
   color: var(--accent-strong);
 }
 
 .admin-nav-button.is-active {
-  background: color-mix(in srgb, var(--accent-soft) 40%, transparent);
+  background: color-mix(in srgb, var(--accent-soft) 68%, transparent);
   color: var(--accent-strong);
   border-left-color: var(--accent);
   font-weight: 600;
@@ -493,7 +493,7 @@ body {
   padding: 20px 22px;
   border: 1px solid var(--surface-border-strong);
   border-radius: 20px;
-  background: color-mix(in srgb, var(--accent-soft) 30%, transparent);
+  background: linear-gradient(135deg, var(--surface-panel) 0%, color-mix(in srgb, var(--accent-soft) 32%, transparent) 100%);
   box-shadow: var(--surface-shadow-soft);
 }
 
@@ -11437,8 +11437,8 @@ a {
   width: 30px;
   height: 30px;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(53, 160, 255, 0.16) 0%, rgba(47, 98, 255, 0.28) 100%);
-  color: #1f46d2;
+  background: var(--accent-gradient);
+  color: var(--text-on-accent);
   font-weight: 800;
   font-size: 0.82rem;
   flex-shrink: 0;
@@ -11453,7 +11453,7 @@ a {
 
 .nav-user-trigger:hover .nav-user-avatar {
   transform: scale(1.06);
-  box-shadow: 0 0 0 3px rgba(53, 160, 255, 0.14);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 /* Dropdown */
@@ -11539,6 +11539,11 @@ a {
   transform: translateX(1px);
 }
 
+.nav-user-dropdown__item:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  outline-offset: 2px;
+}
+
 .nav-user-dropdown__item svg {
   opacity: 0.72;
   flex-shrink: 0;
@@ -11550,12 +11555,12 @@ a {
 }
 
 .nav-user-dropdown__item--danger {
-  color: #ef4444;
+  color: var(--error-line);
 }
 
 .nav-user-dropdown__item--danger:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #f87171;
+  background: color-mix(in srgb, var(--error-bg) 68%, transparent);
+  color: color-mix(in srgb, var(--error-line) 72%, #ffffff);
   transform: translateX(1px);
 }
 
@@ -11602,11 +11607,11 @@ a {
   }
 
   .nav-user-dropdown__item--danger {
-    color: #fb7185;
+    color: color-mix(in srgb, var(--error-line) 74%, #fda4af);
   }
 
   .nav-user-dropdown__item--danger:hover {
-    background: rgba(244, 63, 94, 0.14);
+    background: color-mix(in srgb, var(--error-bg) 68%, transparent);
     color: #fda4af;
   }
 }
@@ -11623,9 +11628,9 @@ a {
   position: fixed;
   inset: 0;
   z-index: 500;
-  background: rgba(15, 23, 42, 0.44);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  background: var(--modal-scrim);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11639,11 +11644,10 @@ a {
 }
 
 .nav-settings-modal {
-  background: #ffffff;
+  background: var(--modal-panel);
   border-radius: 20px;
-  box-shadow:
-    0 8px 32px rgba(15, 23, 42, 0.12),
-    0 32px 80px rgba(15, 23, 42, 0.2);
+  border: 1px solid var(--surface-soft-border);
+  box-shadow: var(--shadow-lg);
   width: min(440px, 100%);
   overflow: hidden;
   animation: settingsModalIn 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.05) both;
@@ -11665,7 +11669,7 @@ a {
   align-items: center;
   justify-content: space-between;
   padding: 1.2rem 1.4rem 1rem;
-  border-bottom: 1px solid rgba(53, 160, 255, 0.1);
+  border-bottom: 1px solid var(--surface-soft-border);
 }
 
 .nav-settings-modal__title {
@@ -11683,15 +11687,21 @@ a {
   height: 32px;
   border-radius: 8px;
   border: 0;
-  background: rgba(15, 23, 42, 0.05);
-  color: var(--ink-soft);
+  background: var(--surface-control);
+  color: var(--text-muted);
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease;
 }
 
 .nav-settings-modal__close:hover {
-  background: rgba(220, 38, 38, 0.09);
-  color: #dc2626;
+  background: var(--surface-control-hover);
+  color: var(--accent-strong);
+}
+
+.nav-settings-modal__close:focus-visible,
+.nav-settings-toggle:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  outline-offset: 2px;
 }
 
 .nav-settings-modal__body {
@@ -11720,17 +11730,17 @@ a {
   gap: 1rem;
   padding: 0.58rem 0.8rem;
   border-radius: 10px;
-  border: 1px solid rgba(53, 160, 255, 0.1);
-  background: rgba(248, 250, 255, 0.8);
+  border: 1px solid var(--surface-soft-border);
+  background: var(--surface-panel-soft);
   font-size: 0.87rem;
-  color: var(--ink);
+  color: var(--text-strong);
   cursor: pointer;
   transition: background 0.13s ease, border-color 0.13s ease;
 }
 
 .nav-settings-toggle:hover {
-  background: rgba(240, 245, 255, 0.95);
-  border-color: rgba(53, 160, 255, 0.18);
+  background: var(--surface-control-hover);
+  border-color: var(--control-border-strong);
 }
 
 .nav-settings-toggle__switch {
@@ -11750,7 +11760,7 @@ a {
   width: 36px;
   height: 20px;
   border-radius: 999px;
-  background: rgba(200, 210, 225, 0.7);
+  background: color-mix(in srgb, var(--text-subtle) 24%, transparent);
   transition: background 0.2s ease;
   position: relative;
 }
@@ -11763,13 +11773,13 @@ a {
   width: 14px;
   height: 14px;
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--surface-panel);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-settings-toggle__switch input:checked + .nav-settings-toggle__track {
-  background: #3a90ff;
+  background: var(--accent);
 }
 
 .nav-settings-toggle__switch input:checked + .nav-settings-toggle__track::after {
@@ -11780,7 +11790,7 @@ a {
   padding: 1rem 1.4rem 1.3rem;
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid rgba(53, 160, 255, 0.1);
+  border-top: 1px solid var(--surface-soft-border);
 }
 
 .sessions-panel {
@@ -14866,14 +14876,14 @@ a {
 .manager-onboarding-panel {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(47, 123, 255, 0.2);
+  border: 1px solid var(--surface-border-strong);
   border-radius: 24px;
   background:
-    radial-gradient(120% 120% at 100% 0%, rgba(61, 184, 255, 0.2) 0%, rgba(61, 184, 255, 0) 54%),
-    radial-gradient(120% 100% at 0% 100%, rgba(122, 92, 255, 0.16) 0%, rgba(122, 92, 255, 0) 58%),
-    linear-gradient(165deg, rgba(255, 255, 255, 0.99) 0%, rgba(242, 248, 255, 0.96) 100%);
-  box-shadow: 0 22px 48px rgba(30, 41, 78, 0.14), inset 0 0 0 1px rgba(255, 255, 255, 0.42);
-  color: #152545;
+    radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 54%),
+    radial-gradient(120% 100% at 0% 100%, color-mix(in srgb, var(--accent-violet) 12%, transparent) 0%, transparent 58%),
+    linear-gradient(165deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+  box-shadow: var(--shadow-lg), inset 0 0 0 1px color-mix(in srgb, var(--card) 42%, transparent);
+  color: var(--ink);
 }
 
 .manager-onboarding-shell {
@@ -14886,8 +14896,10 @@ a {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1.1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(47, 123, 255, 0.18);
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid var(--surface-border);
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--surface-panel-soft), var(--surface-panel));
 }
 
 .manager-onboarding-actions {
@@ -14907,9 +14919,9 @@ a {
   position: relative;
   padding: 1.2rem 1.05rem;
   border-radius: 18px;
-  border: 1px solid rgba(70, 133, 255, 0.18);
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.98) 0%, rgba(239, 246, 255, 0.95) 100%);
-  box-shadow: 0 12px 26px rgba(30, 41, 78, 0.12);
+  border: 1px solid var(--surface-border);
+  background: linear-gradient(160deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+  box-shadow: var(--shadow-sm);
   display: grid;
   gap: 0.8rem;
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
@@ -14917,8 +14929,13 @@ a {
 
 .manager-onboarding-step:hover {
   transform: translateY(-3px);
-  border-color: rgba(47, 123, 255, 0.42);
-  box-shadow: 0 16px 32px rgba(30, 41, 78, 0.16), 0 0 0 1px rgba(47, 123, 255, 0.12);
+  border-color: var(--surface-border-strong);
+  box-shadow: var(--shadow-md), 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.manager-onboarding-step:focus-within {
+  border-color: var(--surface-border-strong);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent), var(--shadow-md);
 }
 
 .admin-edit-modal-body {
@@ -14975,7 +14992,7 @@ a {
 
 .manager-onboarding-step h3 {
   margin: 0;
-  color: #172b56;
+  color: var(--ink);
 }
 
 .manager-onboarding-step__head {
@@ -14987,7 +15004,7 @@ a {
 
 .manager-onboarding-step p {
   margin: 0;
-  color: #4b628d;
+  color: var(--ink-soft);
   line-height: 1.5;
 }
 
@@ -14997,9 +15014,9 @@ a {
   width: fit-content;
   border-radius: 999px;
   padding: 0.3rem 0.62rem;
-  background: rgba(47, 123, 255, 0.12);
-  border: 1px solid rgba(47, 123, 255, 0.28);
-  color: #2a5cf6;
+  background: color-mix(in srgb, var(--accent-soft) 58%, transparent);
+  border: 1px solid var(--surface-border-strong);
+  color: var(--accent-strong);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.03em;
@@ -15009,7 +15026,7 @@ a {
   font-size: 1.35rem;
   line-height: 1;
   font-weight: 800;
-  color: rgba(47, 98, 255, 0.22);
+  color: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .manager-onboarding-step__icon {
@@ -15019,9 +15036,9 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(53, 160, 255, 0.16) 0%, rgba(47, 98, 255, 0.18) 100%);
-  border: 1px solid rgba(53, 160, 255, 0.22);
-  color: #1f46d2;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 52%, transparent) 0%, color-mix(in srgb, var(--accent) 12%, transparent) 100%);
+  border: 1px solid var(--surface-border-strong);
+  color: var(--accent-strong);
   font-weight: 800;
   letter-spacing: 0.06em;
 }
@@ -15031,9 +15048,57 @@ a {
   margin-top: 0.2rem;
 }
 
+.home-quickview-guide-cta {
+  width: 100%;
+  justify-content: center;
+  min-height: 2.25rem;
+  margin-top: 0.1rem;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.82rem;
+  border: 1px solid var(--surface-border-strong);
+  background: var(--surface-control);
+  color: var(--accent-strong);
+}
+
+.home-quickview-guide-cta:hover,
+.home-quickview-guide-cta:focus-visible {
+  border-color: var(--control-border-strong);
+  background: var(--surface-control-hover);
+}
+
+.manager-onboarding-step__cta {
+  border: 1px solid var(--surface-border-strong);
+  background: var(--surface-control);
+  color: var(--accent-strong);
+}
+
+.manager-onboarding-step__cta:hover,
+.manager-onboarding-step__cta:focus-visible {
+  border-color: var(--control-border-strong);
+  background: var(--surface-control-hover);
+}
+
+.manager-onboarding-close {
+  flex-shrink: 0;
+  min-width: 2rem;
+  min-height: 2rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface-control);
+  color: var(--ink-soft);
+}
+
+.manager-onboarding-close:hover,
+.manager-onboarding-close:focus-visible {
+  border-color: var(--control-border-strong);
+  background: var(--surface-control-hover);
+  color: var(--ink);
+}
+
 .manager-onboarding-modalOverlay {
-  background: rgba(9, 20, 44, 0.28);
-  backdrop-filter: blur(10px);
+  background: var(--modal-scrim);
+  backdrop-filter: blur(8px);
+  z-index: 1450;
 }
 
 .manager-onboarding-modalDialog {
@@ -15049,16 +15114,21 @@ a {
 }
 
 .manager-onboarding-panel--modal {
-  padding: 1.35rem;
+  width: min(100%, 940px);
+  padding: 1.1rem;
+  background: var(--modal-panel);
+  border: 1px solid var(--surface-border-strong);
+  box-shadow: var(--shadow-lg);
 }
 
 .manager-onboarding-hero--modal {
   align-items: flex-start;
+  border-bottom: 1px solid var(--surface-border);
 }
 
 .manager-onboarding-copy h2 {
   margin: 0;
-  color: #1f46d2;
+  color: var(--accent-strong);
   font-family: var(--font-ui);
   font-size: clamp(1.35rem, 2.2vw, 2rem);
   line-height: 1.08;
@@ -15066,16 +15136,12 @@ a {
 
 .manager-onboarding-copy p:last-child {
   margin: 0.65rem 0 0;
-  color: #4f6691;
+  color: var(--ink-soft);
   line-height: 1.6;
 }
 
 .manager-onboarding-eyebrow {
-  color: #2f62ff;
-}
-
-.manager-onboarding-close {
-  flex-shrink: 0;
+  color: var(--accent-strong);
 }
 
 .manager-onboarding-grid--modal .manager-onboarding-step {
@@ -15104,77 +15170,77 @@ a {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 34%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--card) 42%, transparent) 0%, transparent 34%);
 }
 
 @media (prefers-color-scheme: dark) {
   .manager-onboarding-panel {
-    border-color: rgba(61, 184, 255, 0.26);
+    border-color: var(--surface-border-strong);
     background:
-      radial-gradient(120% 120% at 100% 0%, rgba(61, 184, 255, 0.18) 0%, rgba(61, 184, 255, 0) 50%),
-      radial-gradient(120% 100% at 0% 100%, rgba(47, 123, 255, 0.14) 0%, rgba(47, 123, 255, 0) 56%),
-      linear-gradient(165deg, rgba(9, 20, 38, 0.98) 0%, rgba(13, 28, 49, 0.98) 100%);
-    box-shadow: 0 24px 54px rgba(7, 14, 28, 0.44), inset 0 0 0 1px rgba(61, 184, 255, 0.1);
-    color: #e8efff;
+      radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 50%),
+      radial-gradient(120% 100% at 0% 100%, color-mix(in srgb, var(--accent-violet) 12%, transparent) 0%, transparent 56%),
+      linear-gradient(165deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+    box-shadow: var(--shadow-lg), inset 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
+    color: var(--ink);
   }
 
   .manager-onboarding-hero {
-    border-bottom-color: rgba(61, 184, 255, 0.16);
+    border-bottom-color: var(--surface-border);
   }
 
   .manager-onboarding-step {
-    border-color: rgba(61, 184, 255, 0.18);
-    background: linear-gradient(160deg, rgba(14, 27, 48, 0.94) 0%, rgba(10, 21, 39, 0.96) 100%);
-    box-shadow: 0 16px 30px rgba(4, 10, 23, 0.32);
+    border-color: var(--surface-border);
+    background: linear-gradient(160deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+    box-shadow: var(--shadow-sm);
   }
 
   .manager-onboarding-step:hover {
-    border-color: rgba(66, 198, 255, 0.4);
-    box-shadow: 0 18px 34px rgba(3, 11, 28, 0.42), 0 0 0 1px rgba(66, 198, 255, 0.1);
+    border-color: var(--surface-border-strong);
+    box-shadow: var(--shadow-md), 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
   }
 
   .manager-onboarding-step h3 {
-    color: #f4f8ff;
+    color: var(--ink);
   }
 
   .manager-onboarding-step p {
-    color: #bdd0ea;
+    color: var(--ink-soft);
   }
 
   .manager-onboarding-step__badge {
-    background: rgba(61, 184, 255, 0.16);
-    border-color: rgba(61, 184, 255, 0.32);
-    color: #d6f1ff;
+    background: color-mix(in srgb, var(--accent-soft) 58%, transparent);
+    border-color: var(--surface-border-strong);
+    color: var(--accent-strong);
   }
 
   .manager-onboarding-step__index {
-    color: rgba(191, 231, 255, 0.22);
+    color: color-mix(in srgb, var(--accent) 22%, transparent);
   }
 
   .manager-onboarding-step__icon {
-    background: linear-gradient(135deg, rgba(66, 198, 255, 0.18) 0%, rgba(47, 123, 255, 0.2) 100%);
-    border-color: rgba(66, 198, 255, 0.24);
-    color: #dff4ff;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 52%, transparent) 0%, color-mix(in srgb, var(--accent) 12%, transparent) 100%);
+    border-color: var(--surface-border-strong);
+    color: var(--accent-strong);
   }
 
   .manager-onboarding-modalOverlay {
-    background: rgba(3, 8, 18, 0.72);
+    background: var(--modal-scrim);
   }
 
   .manager-onboarding-copy h2 {
-    color: #61d4ff;
+    color: var(--accent-strong);
   }
 
   .manager-onboarding-copy p:last-child {
-    color: #d2def2;
+    color: var(--ink-soft);
   }
 
   .manager-onboarding-eyebrow {
-    color: #90ddff;
+    color: var(--accent-strong);
   }
 
   .manager-onboarding-step--premium::after {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 32%);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--card) 8%, transparent) 0%, transparent 32%);
   }
 }
 
@@ -15242,21 +15308,6 @@ a {
 
 .home-hero-summary {
   gap: 0.8rem;
-}
-
-.home-quickview-guide-cta {
-  width: 100%;
-  justify-content: center;
-  min-height: 2.25rem;
-  margin-top: 0.1rem;
-  padding: 0.45rem 0.7rem;
-  font-size: 0.82rem;
-  border-color: rgba(53, 160, 255, 0.28);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94) 0%, rgba(235, 244, 255, 0.9) 100%);
-}
-
-.home-quickview-guide-cta:hover {
-  border-color: rgba(53, 160, 255, 0.5);
 }
 
 .nav-user-trigger-wrap {
@@ -15378,6 +15429,16 @@ a {
     justify-content: flex-start;
   }
 
+  .manager-onboarding-grid--modal {
+    flex-direction: column;
+    overflow-x: visible;
+  }
+
+  .manager-onboarding-grid--modal .manager-onboarding-step {
+    min-width: 0;
+    width: 100%;
+  }
+
 
 @media (max-width: 600px) {
   .top-nav:not(.top-nav--live-inline) .nav-top-row {
@@ -15497,6 +15558,10 @@ a {
     padding: 1rem;
   }
 
+  .manager-onboarding-hero {
+    padding: 0.9rem;
+  }
+
   .site-footer {
     margin-top: 1.6rem;
   }
@@ -15608,12 +15673,12 @@ a {
 
 .participant-form,
 .participant-inline-form {
-  border: 1px solid rgba(53, 160, 255, 0.22);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.99) 0%, rgba(241, 247, 255, 0.95) 100%);
+  border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+  background: linear-gradient(145deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
 }
 
 .participant-inline-form-head {
-  border-bottom: 1px solid rgba(53, 160, 255, 0.2);
+  border-bottom: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
 }
 
 .participant-modal-body {
@@ -15650,7 +15715,7 @@ a {
 
 .participant-inline-form--modal .participant-inline-form-head {
   padding: 0.2rem 0.2rem 1rem;
-  border-bottom: 1px solid rgba(126, 151, 194, 0.26);
+  border-bottom: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
 }
 
 .participant-inline-form--modal .participant-inline-form-head h3 {
@@ -15658,12 +15723,12 @@ a {
   font-size: 1.08rem;
   font-weight: 640;
   letter-spacing: -0.01em;
-  color: #1f2b45;
+  color: var(--ink);
 }
 
 .participant-inline-form--modal .participant-inline-form-head p {
   margin: 0.42rem 0 0;
-  color: #62708b;
+  color: var(--ink-soft);
   font-size: 0.88rem;
   line-height: 1.52;
 }
@@ -15687,30 +15752,31 @@ a {
   gap: 0.42rem;
   font-weight: 540;
   font-size: 0.86rem;
-  color: #41506a;
+  color: var(--ink);
 }
 
 .participant-inline-form--modal .participant-form input {
   min-height: 40px;
   border-width: 1px;
-  border-color: rgba(126, 151, 194, 0.42);
+  border-color: var(--control-border, rgba(148, 163, 184, 0.28));
   border-radius: 12px;
   padding: 0.54rem 0.72rem;
-  background: #fff;
+  background: var(--surface-control);
+  color: var(--ink);
 }
 
 .participant-inline-form--modal .participant-form input::placeholder {
-  color: #9aa6ba;
+  color: var(--text-subtle, #64748b);
   font-weight: 400;
 }
 
 .participant-inline-form--modal .participant-form input:focus {
-  border-color: rgba(88, 125, 204, 0.72);
-  box-shadow: 0 0 0 3px rgba(117, 143, 195, 0.16);
+  border-color: var(--control-border-strong);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .participant-inline-form--modal .field-help {
-  color: #7b879b;
+  color: var(--text-subtle, #64748b);
   font-size: 0.75rem;
 }
 
@@ -15729,9 +15795,9 @@ a {
   bottom: 0;
   margin-top: 0.2rem;
   padding: 0.95rem 0.2rem 0.16rem;
-  border-top: 1px solid rgba(126, 151, 194, 0.24);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.97) 24%, #ffffff 100%);
-  backdrop-filter: blur(1px);
+  border-top: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 78%, transparent) 0%, var(--surface-panel) 24%, var(--surface-panel) 100%);
+  backdrop-filter: blur(8px);
 }
 
 .participant-modal-title {
@@ -15741,32 +15807,79 @@ a {
 
 .participant-form input,
 .team-toolbar input {
-  border: 1.5px solid rgba(53, 160, 255, 0.3);
-  background: rgba(255, 255, 255, 0.95);
+  border: 1.5px solid var(--control-border, rgba(148, 163, 184, 0.28));
+  background: var(--surface-control);
+  color: var(--ink);
 }
 
 .participant-form input:focus,
 .team-toolbar input:focus {
-  border-color: #2f62ff;
-  box-shadow: 0 0 0 4px rgba(53, 160, 255, 0.14);
+  border-color: var(--control-border-strong);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .icon-action-btn {
-  border: 1px solid rgba(53, 160, 255, 0.22);
-  color: #3e5178;
-  background: linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
+  border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+  color: var(--ink-soft);
+  background: linear-gradient(180deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
 }
 
 .icon-action-btn:hover {
-  border-color: rgba(122, 92, 255, 0.42);
-  color: #2d45c9;
-  background: rgba(231, 238, 255, 0.88);
-  box-shadow: 0 8px 16px rgba(30, 41, 78, 0.14);
+  border-color: var(--surface-soft-border-strong, rgba(53, 160, 255, 0.24));
+  color: var(--accent-strong);
+  background: var(--surface-control-hover);
+  box-shadow: var(--control-shadow);
+}
+
+.participant-form .btn-secondary,
+.participant-form .btn-primary {
+  min-height: 2.8rem;
+}
+
+.participant-form .btn-secondary {
+  border-color: var(--control-border);
+  background: var(--surface-control);
+  color: var(--ink);
+}
+
+.participant-form .btn-secondary:hover,
+.participant-form .btn-secondary:focus-visible {
+  border-color: var(--control-border-strong);
+  background: var(--surface-control-hover);
+}
+
+.participant-form .btn-primary {
+  box-shadow: var(--button-primary-shadow);
+}
+
+.participant-form .btn-primary:hover,
+.participant-form .btn-primary:focus-visible {
+  box-shadow: var(--button-primary-shadow-hover);
+}
+
+.participant-inline-form--modal .participant-form label:focus-within,
+.participant-inline-form--modal .participant-form .participant-field-full:focus-within {
+  color: var(--accent-strong);
+}
+
+.participant-inline-form--modal .participant-form .input-invalid {
+  border-color: var(--error-line, #ef4444);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--error-line, #ef4444) 16%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  .participant-inline-form--modal .participant-form input::placeholder {
+    color: var(--text-subtle, #94a3b8);
+  }
+
+  .participant-inline-form--modal .participant-form-actions {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 70%, transparent) 0%, var(--surface-panel) 24%, var(--surface-panel) 100%);
+  }
 }
 
 .manager-member-list .team-member-item {
-  border: 1px solid rgba(53, 160, 255, 0.2);
-  box-shadow: 0 8px 18px rgba(30, 41, 78, 0.07);
+  border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+  box-shadow: var(--surface-shadow-soft);
 }
 
 .auth-page,

@@ -27,7 +27,7 @@
 
 .count {
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: white;
+  color: var(--text-on-accent);
   padding: 0.2rem 0.5rem;
   border-radius: 999px;
   font-size: 0.8rem;
@@ -112,7 +112,7 @@
 }
 
 .actionBtn {
-  background: var(--card);
+  background: var(--surface-control);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 0.4rem;
@@ -128,9 +128,14 @@
 }
 
 .actionBtn:hover {
-  background: var(--card);
+  background: var(--surface-control-hover);
   border-color: var(--surface-soft-border-strong);
   box-shadow: var(--control-shadow);
+}
+
+.actionBtn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  outline-offset: 2px;
 }
 
 .moveBtn {
@@ -142,7 +147,7 @@
 }
 
 .removeBtn {
-  color: #dc2626;
+  color: var(--error-ink);
 }
 
 .footer {

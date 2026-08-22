@@ -189,9 +189,9 @@ function buildPricingCards(plans, selectedBilling) {
 
 function getDarkModeSectionStyle() {
   return {
-    backgroundColor: 'var(--surface-panel, rgba(17, 26, 46, 0.96))',
+    backgroundColor: 'var(--surface-panel, #ffffff)',
     borderColor: 'var(--surface-soft-border, rgba(148, 163, 184, 0.22))',
-    boxShadow: '0 18px 40px rgba(2, 6, 23, 0.42)',
+    boxShadow: 'var(--shadow-lg, 0 18px 40px rgba(2, 6, 23, 0.18))',
   };
 }
 
@@ -352,19 +352,19 @@ export default function PricingPage() {
         ) : null}
 
         {loading ? (
-          <section className="feature-card" aria-label="Chargement des formules" style={{ ...getDarkModeSectionStyle(), backgroundColor: 'rgba(17, 26, 46, 0.98)' }}>
+          <section className="feature-card" aria-label="Chargement des formules" style={getDarkModeSectionStyle()}>
             <p>{isEn ? 'Loading plans...' : 'Chargement des formules en cours...'}</p>
           </section>
         ) : null}
 
         {error ? (
-          <section className="feature-card" aria-label="Erreur tarification" style={{ ...getDarkModeSectionStyle(), backgroundColor: 'rgba(17, 26, 46, 0.98)' }}>
+          <section className="feature-card" aria-label="Erreur tarification" style={getDarkModeSectionStyle()}>
             <p className="form-error">{error}</p>
           </section>
         ) : null}
 
         {!loading && !error && sortedPlans.length === 0 ? (
-          <section className="pricing-empty reveal-up" aria-label="Aucune formule" style={{ ...getDarkModeSectionStyle(), backgroundColor: 'rgba(17, 26, 46, 0.98)' }}>
+          <section className="pricing-empty reveal-up" aria-label="Aucune formule" style={getDarkModeSectionStyle()}>
             <div className="pricing-empty-icon">💬</div>
             <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Plans are being finalized' : 'Formules en cours de finalisation'}</h2>
             <p style={getDarkModeTextStyle()}>
@@ -457,7 +457,7 @@ export default function PricingPage() {
             <div className="pricing-footer-cta__inner">
               <div className="pricing-footer-cta__copy">
                 <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Need support?' : 'Besoin d\'un accompagnement ?'}</p>
-                <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Need support? Our team replies within a few hours.' : 'Besoin d\'un accompagnement ? Notre équipe vous répond sous quelques heures'}</h2>
+                <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Need support? Our team replies within a few hours.' : 'Notre équipe vous répond sous quelques heures'}</h2>
               </div>
               <Link href={withLocalePath('/contact')} className="btn-primary pricing-footer-cta__button cta-surface">{isEn ? 'Contact the team' : 'Contacter l\'équipe'}</Link>
             </div>
@@ -469,6 +469,9 @@ export default function PricingPage() {
           width: min(100%, 80rem);
           margin: 0 auto;
           padding: 1rem 1rem 2.5rem;
+          background:
+            radial-gradient(60rem 18rem at 50% 0%, color-mix(in srgb, var(--accent-soft) 42%, transparent) 0%, transparent 72%),
+            linear-gradient(180deg, color-mix(in srgb, var(--surface-muted) 86%, transparent) 0%, transparent 18%);
         }
 
         .pricing-page .pricing-hero {
@@ -478,7 +481,8 @@ export default function PricingPage() {
         .pricing-page .pricing-hero__copy {
           display: grid;
           gap: 0.95rem;
-          max-width: 46rem;
+          width: min(100%, 72rem);
+          max-width: none;
         }
 
         .pricing-page .pricing-hero h1 {
@@ -492,7 +496,7 @@ export default function PricingPage() {
 
         .pricing-page .pricing-hero__lede {
           margin: 0;
-          max-width: 58ch;
+          max-width: none;
           font-size: 1.04rem;
           line-height: 1.7;
           color: var(--text-muted, #cbd5e1);
@@ -512,10 +516,10 @@ export default function PricingPage() {
           padding: 0.55rem 0.95rem;
           border-radius: 999px;
           border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.2));
-          background: rgba(255, 255, 255, 0.04);
+          background: var(--surface-control);
           font-size: 0.86rem;
           font-weight: 600;
-          color: var(--text-muted, #cbd5e1);
+          color: var(--text-strong, #e2e8f0);
         }
 
         .pricing-page .pricing-controls {
@@ -526,9 +530,9 @@ export default function PricingPage() {
           padding: 1.15rem 1.3rem;
           border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.16));
           border-radius: 22px;
-          background: rgba(255, 255, 255, 0.03);
+          background: var(--surface-panel);
           backdrop-filter: blur(10px);
-          box-shadow: 0 14px 30px rgba(2, 6, 23, 0.22);
+          box-shadow: var(--shadow-md);
         }
 
         .pricing-page .pricing-controls__label,
@@ -547,7 +551,7 @@ export default function PricingPage() {
           gap: 0.3rem;
           padding: 0.3rem;
           border-radius: 999px;
-          background: rgba(255, 255, 255, 0.04);
+          background: var(--surface-control);
           border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.14));
         }
 
@@ -567,13 +571,13 @@ export default function PricingPage() {
         }
 
         .pricing-page .toggle-btn.active {
-          background: linear-gradient(135deg, #35a0ff 0%, #7c3aed 100%);
-          color: #fff;
-          box-shadow: 0 10px 22px rgba(53, 160, 255, 0.28);
+          background: var(--accent-gradient);
+          color: var(--text-on-accent, #fff);
+          box-shadow: var(--button-primary-shadow);
         }
 
         .pricing-page .toggle-btn:not(.active):hover {
-          background: rgba(255, 255, 255, 0.07);
+          background: var(--surface-control-hover);
           color: var(--text-strong, #e2e8f0);
         }
 
@@ -582,15 +586,15 @@ export default function PricingPage() {
           border-radius: 999px;
           font-size: 0.68rem;
           font-weight: 700;
-          background: rgba(52, 211, 153, 0.16);
+          background: color-mix(in srgb, #34d399 16%, transparent);
           color: #34d399;
-          border: 1px solid rgba(52, 211, 153, 0.3);
+          border: 1px solid color-mix(in srgb, #34d399 30%, transparent);
         }
 
         .pricing-page .toggle-btn.active .toggle-savings-badge {
-          background: rgba(255, 255, 255, 0.24);
-          color: #fff;
-          border-color: rgba(255, 255, 255, 0.32);
+          background: color-mix(in srgb, var(--text-on-accent) 24%, transparent);
+          color: var(--text-on-accent, #fff);
+          border-color: color-mix(in srgb, var(--text-on-accent) 32%, transparent);
         }
 
         .pricing-page .currency-select {
@@ -598,7 +602,7 @@ export default function PricingPage() {
           padding: 0 1rem;
           border-radius: 14px;
           border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.2));
-          background: rgba(255, 255, 255, 0.04);
+          background: var(--surface-control);
           color: var(--text-strong, #e2e8f0);
           font-size: 0.9rem;
           font-weight: 600;
@@ -607,8 +611,8 @@ export default function PricingPage() {
         .pricing-page .currency-select:hover,
         .pricing-page .currency-select:focus {
           outline: none;
-          border-color: rgba(53, 160, 255, 0.42);
-          box-shadow: 0 0 0 4px rgba(53, 160, 255, 0.14);
+          border-color: var(--control-border-strong);
+          box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent);
         }
 
         .pricing-page .pricing-grid {
@@ -622,9 +626,9 @@ export default function PricingPage() {
           gap: 0.95rem;
           position: relative;
           overflow: hidden;
-          background: rgba(17, 26, 46, 0.94);
+          background: var(--surface-panel);
           border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.16));
-          box-shadow: 0 16px 34px rgba(2, 6, 23, 0.3);
+          box-shadow: var(--shadow-md);
         }
 
         .pricing-page .pricing-card::before {
@@ -632,7 +636,7 @@ export default function PricingPage() {
           position: absolute;
           inset: 0;
           pointer-events: none;
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 22%);
+          background: linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 10%, transparent), transparent 22%);
         }
 
         .pricing-page .pricing-card-top {
@@ -660,7 +664,7 @@ export default function PricingPage() {
         }
 
         .pricing-page .pricing-badge--featured {
-          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 26px rgba(90, 75, 218, 0.24);
+          box-shadow: 0 0 0 1px color-mix(in srgb, var(--text-on-accent) 8%, transparent), 0 12px 26px color-mix(in srgb, var(--accent-violet) 24%, transparent);
         }
 
         .pricing-page .pricing-price {
@@ -716,8 +720,8 @@ export default function PricingPage() {
           width: 0.45rem;
           height: 0.45rem;
           border-radius: 999px;
-          background: linear-gradient(135deg, #35a0ff 0%, #7c3aed 100%);
-          box-shadow: 0 0 0 4px rgba(53, 160, 255, 0.12);
+          background: var(--accent-gradient);
+          box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
         }
 
         .pricing-page .pricing-meta-row {
@@ -727,7 +731,7 @@ export default function PricingPage() {
           min-height: 1.7rem;
           margin-top: 0.1rem;
           padding-top: 0.35rem;
-          border-top: 1px solid rgba(148, 163, 184, 0.14);
+          border-top: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.14));
           color: var(--text-subtle, #94a3b8);
           font-size: 0.8rem;
         }
@@ -758,29 +762,29 @@ export default function PricingPage() {
         }
 
         .pricing-page .pricing-cta--featured {
-          box-shadow: 0 16px 30px rgba(53, 160, 255, 0.26);
+          box-shadow: var(--button-primary-shadow);
         }
 
         .pricing-page .pricing-cta--enterprise {
           border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.28));
-          background: rgba(255, 255, 255, 0.03);
+          background: var(--surface-control);
         }
 
         .pricing-page .pricing-cta--enterprise:hover {
-          background: rgba(255, 255, 255, 0.07);
-          border-color: rgba(125, 211, 252, 0.4);
+          background: var(--surface-control-hover);
+          border-color: var(--control-border-strong);
         }
 
         .pricing-page .pricing-card-featured {
-          border-color: rgba(53, 160, 255, 0.36);
-          box-shadow: 0 22px 48px rgba(53, 160, 255, 0.16), 0 18px 40px rgba(2, 6, 23, 0.36);
+          border-color: var(--surface-soft-border-strong);
+          box-shadow: var(--shadow-lg), 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
           transform: translateY(-2px);
         }
 
         .pricing-page .pricing-card-featured .pricing-badge--featured {
-          background: linear-gradient(135deg, rgba(53, 160, 255, 0.24), rgba(124, 58, 237, 0.24));
-          color: #e8f1ff;
-          border-color: rgba(255, 255, 255, 0.14);
+          background: var(--accent-gradient);
+          color: var(--text-on-accent, #fff);
+          border-color: color-mix(in srgb, var(--text-on-accent) 14%, transparent);
         }
 
         .pricing-page .pricing-footer-cta {
@@ -798,14 +802,15 @@ export default function PricingPage() {
           padding: 1.35rem 1.5rem;
           border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.16));
           border-radius: 24px;
-          background: rgba(17, 26, 46, 0.92);
-          box-shadow: 0 18px 40px rgba(2, 6, 23, 0.3);
+          background: var(--surface-panel);
+          box-shadow: var(--shadow-md);
         }
 
         .pricing-page .pricing-footer-cta__copy {
           display: grid;
           gap: 0.45rem;
-          max-width: 52ch;
+          width: min(100%, 58rem);
+          max-width: none;
         }
 
         .pricing-page .pricing-footer-cta__copy h2 {
@@ -829,6 +834,12 @@ export default function PricingPage() {
         @media (min-width: 1280px) {
           .pricing-page .pricing-card {
             min-height: 31rem;
+          }
+
+          .pricing-page .pricing-hero h1,
+          .pricing-page .pricing-hero__lede,
+          .pricing-page .pricing-footer-cta__copy h2 {
+            white-space: nowrap;
           }
         }
 

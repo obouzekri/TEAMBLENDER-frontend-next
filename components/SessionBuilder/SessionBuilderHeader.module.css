@@ -95,7 +95,7 @@
   padding: 0.6rem 0.75rem;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--bg-soft);
+  background: var(--surface-glass);
 }
 
 .inviteInline {
@@ -137,6 +137,14 @@
   background: var(--accent-soft);
 }
 
+.inviteCodeValue:focus-visible,
+.inviteCopyButton:focus-visible,
+.iconAction:focus-visible,
+.actionBtn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 2px;
+}
+
 .inviteCopyButton {
   border: 0;
   padding: 0.28rem 0.45rem;
@@ -151,6 +159,13 @@
 
 .inviteCopyButton:hover {
   background: var(--accent-soft);
+}
+
+.inviteCopyButton:disabled,
+.iconAction:disabled,
+.actionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .actionBtn {
@@ -175,7 +190,7 @@
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--text-subtle);
-  background: var(--card);
+  background: var(--surface-control);
   cursor: pointer;
   box-shadow: none;
   transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
@@ -183,13 +198,8 @@
 
 .iconAction:hover:not(:disabled) {
   color: var(--ink);
-  border-color: var(--line);
-  background: var(--bg-soft);
-}
-
-.iconAction:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  border-color: var(--control-border-strong);
+  background: var(--surface-control-hover);
 }
 
 .primaryAction {
@@ -208,6 +218,10 @@
     align-items: stretch;
   }
 
+  .summaryLeft {
+    width: 100%;
+  }
+
   .summaryStats {
     justify-content: flex-start;
     gap: 0.35rem;
@@ -220,10 +234,15 @@
   .actions {
     justify-content: space-between;
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .primaryAction {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  .iconAction {
+    flex: 0 0 auto;
   }
 }
