@@ -28,6 +28,7 @@ import {
   resolveUserAvatar,
   updateUserAvatarProfile,
 } from '@/lib/avatar-profile';
+import { getPricingPlanBadgeLabel, getPricingPlanVariantLabel, normalizePricingPlanName } from '@/lib/pricing-labels';
 
 const PLAN_HISTORY_STORAGE_KEY = 'accountPlanChangeHistory';
 const FIXED_DH_BY_INDEX = [0, 70, 390, 690];
@@ -296,20 +297,8 @@ function normalizePlanDisplayName(planName) {
   return name;
 }
 
-function normalizeAccountPlanName(plan) {
-  const slug = String(plan?.slug || '').trim().toLowerCase();
-  const name = String(plan?.name || '').trim().toLowerCase();
-  const raw = slug || name;
-
-  if (raw.includes('free') || Number(plan?.price_cents || 0) === 0) return 'Free';
-  if (raw.includes('pay') && raw.includes('session')) return 'Pay-per-session';
-  if (raw.includes('pro+') || raw.includes('proplus') || raw.includes('pro plus')) return 'Pro+';
-  if (raw.includes('pro')) return 'Pro';
-  return normalizePlanDisplayName(plan?.name);
-}
-
 function getAccountPlanCopy(plan) {
-  const normalizedName = normalizeAccountPlanName(plan);
+  const normalizedName = normalizePricingPlanName(plan);
   const planKey = normalizedName.toLowerCase();
 
   if (planKey === 'free') {
@@ -336,7 +325,7 @@ function getAccountPlanCopy(plan) {
 
   if (planKey === 'pro') {
     return {
-      displayName: 'Pro',
+      displayName: getPricingPlanVariantLabel(plan),
       features: [
         'Sessions illimitées',
         'Jusqu’à 50 participants',
@@ -352,7 +341,7 @@ function getAccountPlanCopy(plan) {
 
   if (planKey === 'pro+') {
     return {
-      displayName: 'Pro+',
+      displayName: 'Pro +',
       features: [
         'Tout Pro',
         'Multi-managers',
@@ -1436,9 +1425,9 @@ export default function AccountPage() {
                       ].filter(Boolean).join(' ')}
                     >
                       <div className="pricing-card-top">
-                        {isRecommended ? <span className="pricing-badge account-pricing-badge">MOST POPULAR</span> : null}
+                        {isRecommended ? <span className="pricing-badge account-pricing-badge">{getPricingPlanBadgeLabel(plan) || 'Plus populaire'}</span> : null}
                         {isCurrent ? <span className="account-current-badge">{t('account.yourPlan')}</span> : null}
-                        <p className="eyebrow">{isRecommended ? `${planCopy.displayName.toUpperCase()} (RECOMMENDED)` : planCopy.displayName}</p>
+                        <p className="eyebrow">{planCopy.displayName}</p>
                       </div>
                       <h3 className="pricing-price">
                         {priceFmt}

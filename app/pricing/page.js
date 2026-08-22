@@ -8,6 +8,7 @@ import { getApiUrl } from '@/lib/config';
 import { startBillingCheckout } from '@/lib/account';
 import useI18n from '@/lib/i18n/useI18n';
 import { getCheckoutRedirectUrl } from '@/lib/billing-utils';
+import { getPricingPlanBadgeLabel, getPricingPlanVariantLabel, normalizePricingPlanName } from '@/lib/pricing-labels';
 
 function getStoredCurrentUser() {
   if (typeof window === 'undefined') return null;
@@ -41,18 +42,6 @@ function formatPriceCents(priceCents, currency, locale = 'fr') {
   } catch {
     return `${amount.toFixed(2)} ${currencyCode}`;
   }
-}
-
-function normalizePricingPlanName(plan) {
-  const slug = String(plan?.slug || '').trim().toLowerCase();
-  const name = String(plan?.name || '').trim().toLowerCase();
-  const raw = slug || name;
-
-  if (raw.includes('free') || Number(plan?.price_cents || 0) === 0) return 'Free';
-  if (raw.includes('pay') && raw.includes('session')) return 'Pay-per-session';
-  if (raw.includes('pro+') || raw.includes('proplus') || raw.includes('pro plus')) return 'Pro+';
-  if (raw.includes('pro')) return 'Pro';
-  return String(plan?.name || 'Plan').trim() || 'Plan';
 }
 
 function getPricingPeriodSuffix(plan, selectedBilling) {
@@ -104,7 +93,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
 
   if (planKey === 'pro') {
     return {
-      displayName: cardVariant === 'enterprise' ? 'Enterprise' : 'Pro',
+      displayName: getPricingPlanVariantLabel(plan, cardVariant),
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
       meta: ['50 utilisateurs max'],
       features: [
@@ -116,7 +105,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
         'Live facilitation',
         'Insights',
       ],
-      highlightedLabel: cardVariant === 'enterprise' ? 'Sur mesure' : 'Recommandé',
+      highlightedLabel: getPricingPlanBadgeLabel(plan, cardVariant) || 'Plus populaire',
       ctaLabel: cardVariant === 'enterprise' ? 'Contacter l’équipe' : 'Démarrer l’essai gratuit',
       ctaHref: cardVariant === 'enterprise' ? '/contact' : null,
     };
@@ -124,7 +113,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
 
   if (planKey === 'pro+') {
     return {
-      displayName: 'Pro+',
+      displayName: 'Pro +',
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
       meta: [],
       features: [
@@ -386,19 +375,17 @@ export default function PricingPage() {
               const isEnterprise = plan.cardVariant === 'enterprise';
               const ctaLabel = isEnterprise ? (isEn ? 'Contact the team' : 'Contacter l’équipe') : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
               const ctaHref = isEnterprise ? withLocalePath('/contact') : plan.planCopy.ctaHref;
+                  const badgeLabel = plan.planCopy.highlightedLabel || (plan.isFeatured ? (isEn ? 'Most popular' : 'Plus populaire') : '');
 
               return (
               <article key={String(plan.id)} className={`feature-card pricing-card flex h-full flex-col${plan.isFeatured ? ' pricing-card-featured' : ''}`}>
                 <div className="pricing-card-top">
-                  {plan.isFeatured ? <span className="pricing-badge pricing-badge--featured">{isEn ? 'Most popular' : 'Plus populaire'}</span> : null}
-                  {!plan.isFeatured && plan.highlighted ? <span className="pricing-badge">{isEnterprise ? (isEn ? 'Custom' : 'Sur mesure') : (isEn ? 'Recommended' : 'Recommandé')}</span> : null}
+                      {badgeLabel ? <span className={`pricing-badge${plan.isFeatured ? ' pricing-badge--featured' : ''}`}>{badgeLabel}</span> : null}
                   {plan.discountPercentage > 0 && (selectedBilling === 'annual' || selectedBilling === 'yearly') ? (
                     <span className="pricing-discount-badge">{isEn ? `Save ${plan.discountPercentage}%` : `Économisez ${plan.discountPercentage}%`}</span>
                   ) : null}
                   <p className="eyebrow" style={getDarkModeTextStyle()}>
-                    {plan.planCopy.displayName}
-                    {plan.highlighted && !isEnterprise ? (isEn ? ' (Recommended)' : ' (Recommandé)') : null}
-                    {isEnterprise ? (isEn ? ' (Custom)' : ' (Sur mesure)') : null}
+                        {plan.planCopy.displayName}
                   </p>
                 </div>
 
@@ -429,7 +416,7 @@ export default function PricingPage() {
                   {plan.support_level ? <span>{isEn ? 'Support' : 'Support'} {plan.support_level}</span> : null}
                 </div>
 
-                <div className="hero-actions pricing-actions mt-auto">
+                <div className="pricing-actions pricing-actions--card mt-auto">
                   {isEnterprise ? (
                     <Link href={ctaHref || withLocalePath('/contact')} className="btn-outline pricing-cta pricing-cta--enterprise cta-surface">
                       {ctaLabel}
@@ -476,6 +463,8 @@ export default function PricingPage() {
 
         .pricing-page .pricing-hero {
           margin-bottom: 2.25rem;
+          padding-inline: 1cm;
+          background: transparent;
         }
 
         .pricing-page .pricing-hero__copy {
@@ -483,12 +472,14 @@ export default function PricingPage() {
           gap: 0.95rem;
           width: min(100%, 72rem);
           max-width: none;
+          justify-items: start;
+          text-align: left;
         }
 
         .pricing-page .pricing-hero h1 {
           max-width: none;
           margin: 0;
-          font-size: clamp(2.1rem, 3.6vw, 3.4rem);
+          font-size: clamp(1.9rem, 3.1vw, 3rem);
           line-height: 1.08;
           letter-spacing: -0.03em;
           text-wrap: balance;
@@ -528,11 +519,29 @@ export default function PricingPage() {
 
         .pricing-page .pricing-controls__row {
           padding: 1.15rem 1.3rem;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.16));
-          border-radius: 22px;
-          background: var(--surface-panel);
-          backdrop-filter: blur(10px);
-          box-shadow: var(--shadow-md);
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          backdrop-filter: none;
+          box-shadow: none;
+        }
+
+        .pricing-page .control-section {
+          display: flex;
+          align-items: center;
+          gap: 0.9rem;
+          flex-wrap: wrap;
+        }
+
+        .pricing-page .pricing-controls__toggle,
+        .pricing-page .pricing-controls__currency {
+          justify-content: flex-start;
+        }
+
+        .pricing-page .pricing-controls__label,
+        .pricing-page .pricing-controls__currency label {
+          margin-bottom: 0;
+          min-width: max-content;
         }
 
         .pricing-page .pricing-controls__label,
@@ -663,6 +672,20 @@ export default function PricingPage() {
           align-self: flex-start;
         }
 
+        .pricing-page .pricing-card .pricing-cta {
+          margin-top: auto;
+        }
+
+        .pricing-page .pricing-actions {
+          width: 100%;
+          display: flex;
+          align-items: stretch;
+          margin-top: auto;
+          background: transparent;
+          border: 0;
+          padding: 0;
+        }
+
         .pricing-page .pricing-badge--featured {
           box-shadow: 0 0 0 1px color-mix(in srgb, var(--text-on-accent) 8%, transparent), 0 12px 26px color-mix(in srgb, var(--accent-violet) 24%, transparent);
         }
@@ -740,6 +763,20 @@ export default function PricingPage() {
           display: flex;
           align-items: stretch;
           margin-top: 0.25rem;
+        }
+
+        .pricing-page .pricing-actions--card {
+          width: 100%;
+          padding: 0;
+          margin-top: auto;
+          background: transparent;
+          border: 0;
+          box-shadow: none;
+          border-radius: 0;
+        }
+
+        .pricing-page .pricing-actions--card > * {
+          width: 100%;
         }
 
         .pricing-page .pricing-cta,
