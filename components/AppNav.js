@@ -141,30 +141,6 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
     },
   ];
 
-  const mobileAvatarItems = [
-    ...(isCompact ? [{
-      key: 'dashboard',
-      label: compactReturnLabel,
-      href: withLocalePath(compactReturnHref),
-    }] : []),
-    {
-      key: 'account',
-      label: t('nav.myAccount'),
-      href: withLocalePath(accountHref),
-    },
-    {
-      key: 'settings',
-      label: t('appNav.settings'),
-      onClick: () => setSettingsOpen(true),
-    },
-    {
-      key: 'logout',
-      label: t('appNav.logout'),
-      danger: true,
-      onClick: onLogout,
-    },
-  ];
-
   return (
     <>
       <header className={headerClassName}>
@@ -260,13 +236,6 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
 
             {!isCompact ? (
               <div className="nav-mobile-menu-actions appnav-mobile-actions" aria-label={t('nav.accountAria')}>
-                <Link
-                  href={withLocalePath(accountHref)}
-                  className="btn-mini nav-mobile-login-btn appnav-mobile-account-btn"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {t('nav.myAccount')}
-                </Link>
                 <button
                   type="button"
                   className="btn-mini appnav-mobile-logout-btn"
@@ -277,16 +246,6 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
                 >
                   {t('appNav.logout')}
                 </button>
-                <AvatarMenu
-                  userLabel={resolvedUserLabel}
-                  roleLabel={roleLabel}
-                  avatarUrl={computedAvatarUrl}
-                  avatarInitials={computedAvatarInitials}
-                  triggerLabel={t('appNav.userMenuOf', { name: resolvedUserLabel })}
-                  menuLabel={t('appNav.userMenu')}
-                  closeSignal={menuSignal}
-                  items={mobileAvatarItems}
-                />
                 <LanguageSwitcher />
               </div>
             ) : null}
