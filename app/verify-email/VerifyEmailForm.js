@@ -96,7 +96,7 @@ export default function VerifyEmailForm({ token, userType = 'user' }) {
                 {resendMessage}
               </p>
             )}
-            <Link href={withLocalePath('/signup')} className="btn-secondary wide" style={{ marginTop: '1rem', display: 'block', textAlign: 'center' }}>{isEn ? 'Create a new account' : 'Créer un nouveau compte'}</Link>
+            <Link href={withLocalePath('/signup')} className="btn-outline-dark wide" style={{ marginTop: '1rem', display: 'block', textAlign: 'center' }}>{isEn ? 'Create a new account' : 'Créer un nouveau compte'}</Link>
           </div>
         )}
       </AuthCard>

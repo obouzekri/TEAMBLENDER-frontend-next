@@ -208,10 +208,118 @@
   animation: ui-fade-in-up var(--motion-medium) var(--ease-standard) both;
 }
 
+@media (prefers-color-scheme: dark) {
+  .filterBar,
+  .filterDropdownPanel,
+  .card,
+  .card.selected {
+    background: var(--surface-panel, #111827);
+    border-color: var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+    color: var(--text-strong, #e2e8f0);
+  }
+
+  .filterDropdownButton,
+  .filterOption,
+  .resetIconButton {
+    background: var(--surface-control, #1f2937);
+    color: var(--text-strong, #e2e8f0);
+    border-color: var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+  }
+
+  .cardDescription,
+  .cardDuration,
+  .rulesLabel,
+  .filtersLabel,
+  .filterHintInline,
+  .filterTriggerPrefix,
+  .filterTriggerValue {
+    color: var(--text-muted, #cbd5e1);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .filterBar,
+  .filterDropdownPanel,
+  .card,
+  .card.selected {
+    background: var(--surface-panel);
+    border-color: var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+    color: var(--text-strong, #e2e8f0);
+  }
+
+  .filterDropdownButton,
+  .filterOption,
+  .resetIconButton {
+    background: var(--surface-control);
+    color: var(--text-strong, #e2e8f0);
+    border-color: var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+  }
+
+  .cardDescription,
+  .cardDuration,
+  .rulesLabel,
+  .filtersLabel,
+  .filterHintInline,
+  .filterTriggerPrefix,
+  .filterTriggerValue {
+    color: var(--text-muted, #cbd5e1);
+  }
+}
+
 .card:hover {
   border-color: var(--surface-soft-border-strong);
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+}
+
+:global(html[data-theme='dark']) .filterBar,
+:global(body[data-theme='dark']) .filterBar,
+:global(.dark) .filterBar,
+:global(html[data-theme='dark']) .filterDropdownPanel,
+:global(body[data-theme='dark']) .filterDropdownPanel,
+:global(.dark) .filterDropdownPanel,
+:global(html[data-theme='dark']) .card,
+:global(body[data-theme='dark']) .card,
+:global(.dark) .card,
+:global(html[data-theme='dark']) .card.selected,
+:global(body[data-theme='dark']) .card.selected,
+:global(.dark) .card.selected {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.96) 0%, rgba(17, 24, 39, 0.94) 100%);
+  border-color: rgba(148, 163, 184, 0.18);
+  box-shadow: 0 16px 36px rgba(2, 6, 23, 0.34);
+}
+
+:global(html[data-theme='dark']) .filterDropdownButton,
+:global(body[data-theme='dark']) .filterDropdownButton,
+:global(.dark) .filterDropdownButton,
+:global(html[data-theme='dark']) .filterOption,
+:global(body[data-theme='dark']) .filterOption,
+:global(.dark) .filterOption,
+:global(html[data-theme='dark']) .resetIconButton,
+:global(body[data-theme='dark']) .resetIconButton,
+:global(.dark) .resetIconButton,
+:global(html[data-theme='dark']) .rulesButton,
+:global(body[data-theme='dark']) .rulesButton,
+:global(.dark) .rulesButton {
+  background: rgba(15, 23, 42, 0.86);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #e2e8f0;
+}
+
+:global(html[data-theme='dark']) .filterDropdownButton:hover,
+:global(body[data-theme='dark']) .filterDropdownButton:hover,
+:global(.dark) .filterDropdownButton:hover,
+:global(html[data-theme='dark']) .filterOption:hover,
+:global(body[data-theme='dark']) .filterOption:hover,
+:global(.dark) .filterOption:hover,
+:global(html[data-theme='dark']) .resetIconButton:hover,
+:global(body[data-theme='dark']) .resetIconButton:hover,
+:global(.dark) .resetIconButton:hover,
+:global(html[data-theme='dark']) .rulesButton:hover,
+:global(body[data-theme='dark']) .rulesButton:hover,
+:global(.dark) .rulesButton:hover {
+  border-color: rgba(96, 165, 250, 0.36);
+  background: rgba(30, 41, 59, 0.94);
 }
 
 .card.selected {

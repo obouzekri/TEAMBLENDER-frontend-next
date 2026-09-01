@@ -54,3 +54,76 @@
   background: var(--surface-panel-soft);
   color: color-mix(in srgb, var(--ink) 86%, #506287);
 }
+
+:global(html[data-theme='dark']) .overlay,
+:global(body[data-theme='dark']) .overlay,
+:global(.dark) .overlay {
+  background: rgba(2, 6, 23, 0.72);
+}
+
+:global(html[data-theme='dark']) .dialog,
+:global(body[data-theme='dark']) .dialog,
+:global(.dark) .dialog {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(17, 24, 39, 0.96) 100%);
+  border-color: rgba(148, 163, 184, 0.2);
+  box-shadow: 0 22px 50px rgba(2, 6, 23, 0.5);
+}
+
+:global(html[data-theme='dark']) .title,
+:global(body[data-theme='dark']) .title,
+:global(.dark) .title,
+:global(html[data-theme='dark']) .header h2,
+:global(body[data-theme='dark']) .header h2,
+:global(.dark) .header h2,
+:global(html[data-theme='dark']) .label,
+:global(body[data-theme='dark']) .label,
+:global(.dark) .label,
+:global(html[data-theme='dark']) .input,
+:global(body[data-theme='dark']) .input,
+:global(.dark) .input,
+:global(html[data-theme='dark']) .helpText,
+:global(body[data-theme='dark']) .helpText,
+:global(.dark) .helpText,
+:global(html[data-theme='dark']) .infoText,
+:global(body[data-theme='dark']) .infoText,
+:global(.dark) .infoText,
+:global(html[data-theme='dark']) .challengeDescription,
+:global(body[data-theme='dark']) .challengeDescription,
+:global(.dark) .challengeDescription,
+:global(html[data-theme='dark']) .placeholderText,
+:global(body[data-theme='dark']) .placeholderText,
+:global(.dark) .placeholderText,
+:global(html[data-theme='dark']) .playersInfo,
+:global(body[data-theme='dark']) .playersInfo,
+:global(.dark) .playersInfo {
+  color: #e2e8f0;
+}
+
+:global(html[data-theme='dark']) .header,
+:global(body[data-theme='dark']) .header,
+:global(.dark) .header,
+:global(html[data-theme='dark']) .footer,
+:global(body[data-theme='dark']) .footer,
+:global(.dark) .footer {
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+:global(html[data-theme='dark']) .close,
+:global(body[data-theme='dark']) .close,
+:global(.dark) .close,
+:global(html[data-theme='dark']) .input,
+:global(body[data-theme='dark']) .input,
+:global(.dark) .input {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #e2e8f0;
+}
+
+:global(html[data-theme='dark']) .close:hover,
+:global(body[data-theme='dark']) .close:hover,
+:global(.dark) .close:hover,
+:global(html[data-theme='dark']) .input:focus,
+:global(body[data-theme='dark']) .input:focus,
+:global(.dark) .input:focus {
+  border-color: rgba(96, 165, 250, 0.4);
+}

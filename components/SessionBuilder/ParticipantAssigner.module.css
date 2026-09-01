@@ -25,6 +25,33 @@
   min-width: 0;
 }
 
+@media (prefers-color-scheme: dark) {
+  .card {
+    background: var(--surface-panel, #111827);
+    border: 1px solid var(--line, rgba(148, 163, 184, 0.18));
+    color: var(--text-strong, #e2e8f0);
+  }
+
+  .containerEmbedded .card {
+    background: transparent;
+    border: none;
+  }
+
+  .header h2,
+  .subtitle,
+  .label,
+  .helpText {
+    color: var(--text-muted, #cbd5e1);
+  }
+
+  .containerEmbedded .summary,
+  .item,
+  .list {
+    background: var(--surface-panel, #111827);
+    border-color: var(--line, rgba(148, 163, 184, 0.18));
+  }
+}
+
 .containerEmbedded .header {
   margin-bottom: 1rem;
 }
@@ -259,6 +286,73 @@
 
 .item:hover {
   background-color: var(--surface-control-hover);
+}
+
+:global(html[data-theme='dark']) .card,
+:global(body[data-theme='dark']) .card,
+:global(.dark) .card,
+:global(html[data-theme='dark']) .containerEmbedded .card,
+:global(body[data-theme='dark']) .containerEmbedded .card,
+:global(.dark) .containerEmbedded .card,
+:global(html[data-theme='dark']) .list,
+:global(body[data-theme='dark']) .list,
+:global(.dark) .list,
+:global(html[data-theme='dark']) .item,
+:global(body[data-theme='dark']) .item,
+:global(.dark) .item,
+:global(html[data-theme='dark']) .summary,
+:global(body[data-theme='dark']) .summary,
+:global(.dark) .summary {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(148, 163, 184, 0.18);
+  color: #e2e8f0;
+}
+
+:global(html[data-theme='dark']) .input,
+:global(body[data-theme='dark']) .input,
+:global(.dark) .input,
+:global(html[data-theme='dark']) .btnSecondaryMini,
+:global(body[data-theme='dark']) .btnSecondaryMini,
+:global(.dark) .btnSecondaryMini,
+:global(html[data-theme='dark']) .btnLink,
+:global(body[data-theme='dark']) .btnLink,
+:global(.dark) .btnLink {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #e2e8f0;
+}
+
+:global(html[data-theme='dark']) .btnSecondaryMini:hover:not(:disabled),
+:global(body[data-theme='dark']) .btnSecondaryMini:hover:not(:disabled),
+:global(.dark) .btnSecondaryMini:hover:not(:disabled),
+:global(html[data-theme='dark']) .btnLink:hover,
+:global(body[data-theme='dark']) .btnLink:hover,
+:global(.dark) .btnLink:hover,
+:global(html[data-theme='dark']) .item:hover,
+:global(body[data-theme='dark']) .item:hover,
+:global(.dark) .item:hover {
+  background: rgba(30, 41, 59, 0.96);
+}
+
+:global(html[data-theme='dark']) .info strong,
+:global(body[data-theme='dark']) .info strong,
+:global(.dark) .info strong,
+:global(html[data-theme='dark']) .identityInline,
+:global(body[data-theme='dark']) .identityInline,
+:global(.dark) .identityInline,
+:global(html[data-theme='dark']) .email,
+:global(body[data-theme='dark']) .email,
+:global(.dark) .email,
+:global(html[data-theme='dark']) .subtitle,
+:global(body[data-theme='dark']) .subtitle,
+:global(.dark) .subtitle,
+:global(html[data-theme='dark']) .label,
+:global(body[data-theme='dark']) .label,
+:global(.dark) .label,
+:global(html[data-theme='dark']) .helpText,
+:global(body[data-theme='dark']) .helpText,
+:global(.dark) .helpText {
+  color: #cbd5e1;
 }
 
 .item:focus-within {

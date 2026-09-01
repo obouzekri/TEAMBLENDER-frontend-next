@@ -49,7 +49,7 @@ export default function ForgotPasswordForm() {
           <div className="success-box">
             <p>{isEn ? 'If an account exists with this email, you will receive a reset link shortly.' : 'Si un compte existe avec cette adresse, vous recevrez un email avec un lien pour réinitialiser votre mot de passe.'}</p>
             <p className="form-help">{isEn ? 'Also check your spam folder if you do not see the email.' : 'Vérifiez également vos spams si vous ne voyez pas l\'email.'}</p>
-            <Link href={withLocalePath('/login')} className="btn-secondary wide" style={{ marginTop: '1rem', display: 'block', textAlign: 'center' }}>{isEn ? 'Back to login' : 'Retour à la connexion'}</Link>
+            <Link href={withLocalePath('/login')} className="btn-outline-dark wide" style={{ marginTop: '1rem', display: 'block', textAlign: 'center' }}>{isEn ? 'Back to login' : 'Retour à la connexion'}</Link>
           </div>
         ) : (
           <form onSubmit={onSubmit} className="auth-form" autoComplete="off">

@@ -1119,6 +1119,206 @@
   font-weight: 700;
 }
 
+:global(html[data-theme='dark']) .creationPageBackground,
+:global(body[data-theme='dark']) .creationPageBackground,
+:global(.dark) .creationPageBackground {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 32%),
+    radial-gradient(circle at 100% 0%, rgba(124, 58, 237, 0.1) 0%, transparent 34%),
+    linear-gradient(180deg, #0b1220 0%, #10192e 48%, #0f172a 100%);
+}
+
+:global(html[data-theme='dark']) .creationHero,
+:global(body[data-theme='dark']) .creationHero,
+:global(.dark) .creationHero,
+:global(html[data-theme='dark']) .creationForm,
+:global(body[data-theme='dark']) .creationForm,
+:global(.dark) .creationForm,
+:global(html[data-theme='dark']) .creationParticipantsPane,
+:global(body[data-theme='dark']) .creationParticipantsPane,
+:global(.dark) .creationParticipantsPane,
+:global(html[data-theme='dark']) .creationOverviewCard,
+:global(body[data-theme='dark']) .creationOverviewCard,
+:global(.dark) .creationOverviewCard {
+  border-color: rgba(148, 163, 184, 0.2);
+  box-shadow: 0 22px 48px rgba(2, 6, 23, 0.42);
+}
+
+:global(html[data-theme='dark']) .creationHero,
+:global(body[data-theme='dark']) .creationHero,
+:global(.dark) .creationHero {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(53, 160, 255, 0.12), rgba(53, 160, 255, 0) 34%),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.96) 0%, rgba(17, 24, 39, 0.94) 100%);
+}
+
+:global(html[data-theme='dark']) .creationHero::after,
+:global(body[data-theme='dark']) .creationHero::after,
+:global(.dark) .creationHero::after {
+  background: radial-gradient(circle, rgba(99, 179, 237, 0.14) 0%, rgba(99, 179, 237, 0) 72%);
+}
+
+:global(html[data-theme='dark']) .creationTitle,
+:global(body[data-theme='dark']) .creationTitle,
+:global(.dark) .creationTitle,
+:global(html[data-theme='dark']) .creationSectionHeader h2,
+:global(body[data-theme='dark']) .creationSectionHeader h2,
+:global(.dark) .creationSectionHeader h2,
+:global(html[data-theme='dark']) .creationField,
+:global(body[data-theme='dark']) .creationField,
+:global(.dark) .creationField,
+:global(html[data-theme='dark']) .creationFieldHeading span,
+:global(body[data-theme='dark']) .creationFieldHeading span,
+:global(.dark) .creationFieldHeading span,
+:global(html[data-theme='dark']) .creationStatCard strong,
+:global(body[data-theme='dark']) .creationStatCard strong,
+:global(.dark) .creationStatCard strong,
+:global(html[data-theme='dark']) .launchConfirmTitle,
+:global(body[data-theme='dark']) .launchConfirmTitle,
+:global(.dark) .launchConfirmTitle {
+  color: #e2e8f0;
+}
+
+:global(html[data-theme='dark']) .creationLead,
+:global(body[data-theme='dark']) .creationLead,
+:global(.dark) .creationLead,
+:global(html[data-theme='dark']) .creationSectionHeader p,
+:global(body[data-theme='dark']) .creationSectionHeader p,
+:global(.dark) .creationSectionHeader p,
+:global(html[data-theme='dark']) .creationHint,
+:global(body[data-theme='dark']) .creationHint,
+:global(.dark) .creationHint,
+:global(html[data-theme='dark']) .creationStatCard small,
+:global(body[data-theme='dark']) .creationStatCard small,
+:global(.dark) .creationStatCard small,
+:global(html[data-theme='dark']) .launchConfirmText,
+:global(body[data-theme='dark']) .launchConfirmText,
+:global(.dark) .launchConfirmText {
+  color: #cbd5e1;
+}
+
+:global(html[data-theme='dark']) .creationStepper,
+:global(body[data-theme='dark']) .creationStepper,
+:global(.dark) .creationStepper,
+:global(html[data-theme='dark']) .creationStatCard,
+:global(body[data-theme='dark']) .creationStatCard,
+:global(.dark) .creationStatCard,
+:global(html[data-theme='dark']) .creationChecklistItem,
+:global(body[data-theme='dark']) .creationChecklistItem,
+:global(.dark) .creationChecklistItem,
+:global(html[data-theme='dark']) .creationActionHint,
+:global(body[data-theme='dark']) .creationActionHint,
+:global(.dark) .creationActionHint,
+:global(html[data-theme='dark']) .inviteCard,
+:global(body[data-theme='dark']) .inviteCard,
+:global(.dark) .inviteCard,
+:global(html[data-theme='dark']) .sessionInfoBar,
+:global(body[data-theme='dark']) .sessionInfoBar,
+:global(.dark) .sessionInfoBar,
+:global(html[data-theme='dark']) .sessionInfoParticipantsBlock,
+:global(body[data-theme='dark']) .sessionInfoParticipantsBlock,
+:global(.dark) .sessionInfoParticipantsBlock {
+  background: rgba(15, 23, 42, 0.74);
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+:global(html[data-theme='dark']) .creationHeroBadge,
+:global(body[data-theme='dark']) .creationHeroBadge,
+:global(.dark) .creationHeroBadge,
+:global(html[data-theme='dark']) .creationStatLabel,
+:global(body[data-theme='dark']) .creationStatLabel,
+:global(.dark) .creationStatLabel,
+:global(html[data-theme='dark']) .inviteEyebrow,
+:global(body[data-theme='dark']) .inviteEyebrow,
+:global(.dark) .inviteEyebrow,
+:global(html[data-theme='dark']) .sessionInfoBadge,
+:global(body[data-theme='dark']) .sessionInfoBadge,
+:global(.dark) .sessionInfoBadge,
+:global(html[data-theme='dark']) .sessionInfoLocalSave,
+:global(body[data-theme='dark']) .sessionInfoLocalSave,
+:global(.dark) .sessionInfoLocalSave,
+:global(html[data-theme='dark']) .sessionInfoBackendSave,
+:global(body[data-theme='dark']) .sessionInfoBackendSave,
+:global(.dark) .sessionInfoBackendSave,
+:global(html[data-theme='dark']) .sessionInfoDraftRestored,
+:global(body[data-theme='dark']) .sessionInfoDraftRestored,
+:global(.dark) .sessionInfoDraftRestored,
+:global(html[data-theme='dark']) .creationParticipantsCount,
+:global(body[data-theme='dark']) .creationParticipantsCount,
+:global(.dark) .creationParticipantsCount,
+:global(html[data-theme='dark']) .modeSelectedBadge,
+:global(body[data-theme='dark']) .modeSelectedBadge,
+:global(.dark) .modeSelectedBadge {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #bfdbfe;
+}
+
+:global(html[data-theme='dark']) .creationField input,
+:global(body[data-theme='dark']) .creationField input,
+:global(.dark) .creationField input,
+:global(html[data-theme='dark']) .sessionInfoInput,
+:global(body[data-theme='dark']) .sessionInfoInput,
+:global(.dark) .sessionInfoInput {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #e2e8f0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+:global(html[data-theme='dark']) .creationField input::placeholder,
+:global(body[data-theme='dark']) .creationField input::placeholder,
+:global(.dark) .creationField input::placeholder,
+:global(html[data-theme='dark']) .sessionInfoInput::placeholder,
+:global(body[data-theme='dark']) .sessionInfoInput::placeholder,
+:global(.dark) .sessionInfoInput::placeholder {
+  color: #94a3b8;
+}
+
+:global(html[data-theme='dark']) .flowModeCard,
+:global(body[data-theme='dark']) .flowModeCard,
+:global(.dark) .flowModeCard,
+:global(html[data-theme='dark']) .launchConfirmDialog,
+:global(body[data-theme='dark']) .launchConfirmDialog,
+:global(.dark) .launchConfirmDialog {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+:global(html[data-theme='dark']) .flowModeCardActive,
+:global(body[data-theme='dark']) .flowModeCardActive,
+:global(.dark) .flowModeCardActive {
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.28) 0%, rgba(15, 23, 42, 0.92) 100%);
+  border-color: rgba(96, 165, 250, 0.36);
+}
+
+:global(html[data-theme='dark']) .flowModeContent strong,
+:global(body[data-theme='dark']) .flowModeContent strong,
+:global(.dark) .flowModeContent strong,
+:global(html[data-theme='dark']) .summaryInviteCode,
+:global(body[data-theme='dark']) .summaryInviteCode,
+:global(.dark) .summaryInviteCode {
+  color: #e2e8f0;
+}
+
+:global(html[data-theme='dark']) .flowModeContent small,
+:global(body[data-theme='dark']) .flowModeContent small,
+:global(.dark) .flowModeContent small,
+:global(html[data-theme='dark']) .creationDraftStatus,
+:global(body[data-theme='dark']) .creationDraftStatus,
+:global(.dark) .creationDraftStatus,
+:global(html[data-theme='dark']) .summaryInviteLabel,
+:global(body[data-theme='dark']) .summaryInviteLabel,
+:global(.dark) .summaryInviteLabel,
+:global(html[data-theme='dark']) .summaryInviteCopy,
+:global(body[data-theme='dark']) .summaryInviteCopy,
+:global(.dark) .summaryInviteCopy,
+:global(html[data-theme='dark']) .summaryInviteIconCopy,
+:global(body[data-theme='dark']) .summaryInviteIconCopy,
+:global(.dark) .summaryInviteIconCopy {
+  color: #cbd5e1;
+}
+
 .inviteFieldRow {
   display: flex;
   align-items: flex-end;

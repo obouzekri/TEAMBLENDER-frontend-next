@@ -25,6 +25,114 @@
   min-width: 0;
 }
 
+@media (prefers-color-scheme: dark) {
+  .modal {
+    background: var(--surface-panel, #111827);
+    border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+    color: var(--text-strong, #e2e8f0);
+  }
+
+  .header {
+    border-bottom-color: var(--surface-soft-border, rgba(148, 163, 184, 0.18));
+  }
+
+  .challengeDescription,
+  .infoText,
+  .placeholderText {
+    background: color-mix(in srgb, var(--surface-panel-soft) 84%, transparent);
+  }
+
+  .playersInfo {
+    background: color-mix(in srgb, var(--surface-panel-soft) 84%, transparent);
+  }
+}
+
+:global(html[data-theme='dark']) .overlay,
+:global(body[data-theme='dark']) .overlay,
+:global(.dark) .overlay {
+  background: rgba(2, 6, 23, 0.72);
+}
+
+:global(html[data-theme='dark']) .modal,
+:global(body[data-theme='dark']) .modal,
+:global(.dark) .modal {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(17, 24, 39, 0.96) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
+  box-shadow: 0 22px 50px rgba(2, 6, 23, 0.5);
+}
+
+:global(html[data-theme='dark']) .header,
+:global(body[data-theme='dark']) .header,
+:global(.dark) .header,
+:global(html[data-theme='dark']) .footer,
+:global(body[data-theme='dark']) .footer,
+:global(.dark) .footer {
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+:global(html[data-theme='dark']) .header h2,
+:global(body[data-theme='dark']) .header h2,
+:global(.dark) .header h2,
+:global(html[data-theme='dark']) .label,
+:global(body[data-theme='dark']) .label,
+:global(.dark) .label,
+:global(html[data-theme='dark']) .input,
+:global(body[data-theme='dark']) .input,
+:global(.dark) .input,
+:global(html[data-theme='dark']) .helpText,
+:global(body[data-theme='dark']) .helpText,
+:global(.dark) .helpText,
+:global(html[data-theme='dark']) .infoText,
+:global(body[data-theme='dark']) .infoText,
+:global(.dark) .infoText,
+:global(html[data-theme='dark']) .challengeDescription,
+:global(body[data-theme='dark']) .challengeDescription,
+:global(.dark) .challengeDescription,
+:global(html[data-theme='dark']) .placeholderText,
+:global(body[data-theme='dark']) .placeholderText,
+:global(.dark) .placeholderText,
+:global(html[data-theme='dark']) .playersInfo,
+:global(body[data-theme='dark']) .playersInfo,
+:global(.dark) .playersInfo {
+  color: #e2e8f0;
+}
+
+:global(html[data-theme='dark']) .challengeDescription,
+:global(body[data-theme='dark']) .challengeDescription,
+:global(.dark) .challengeDescription,
+:global(html[data-theme='dark']) .infoText,
+:global(body[data-theme='dark']) .infoText,
+:global(.dark) .infoText,
+:global(html[data-theme='dark']) .placeholderText,
+:global(body[data-theme='dark']) .placeholderText,
+:global(.dark) .placeholderText,
+:global(html[data-theme='dark']) .playersInfo,
+:global(body[data-theme='dark']) .playersInfo,
+:global(.dark) .playersInfo,
+:global(html[data-theme='dark']) .phrasePreviewTrigger,
+:global(body[data-theme='dark']) .phrasePreviewTrigger,
+:global(.dark) .phrasePreviewTrigger {
+  background: rgba(15, 23, 42, 0.86);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+:global(html[data-theme='dark']) .closeBtn,
+:global(body[data-theme='dark']) .closeBtn,
+:global(.dark) .closeBtn {
+  color: #cbd5e1;
+}
+
+:global(html[data-theme='dark']) .closeBtn:hover,
+:global(body[data-theme='dark']) .closeBtn:hover,
+:global(.dark) .closeBtn:hover,
+:global(html[data-theme='dark']) .input:focus,
+:global(body[data-theme='dark']) .input:focus,
+:global(.dark) .input:focus {
+  color: #f8fafc;
+  border-color: rgba(96, 165, 250, 0.4);
+}
+
 .header {
   display: flex;
   justify-content: space-between;

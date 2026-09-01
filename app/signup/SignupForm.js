@@ -179,7 +179,7 @@ export default function SignupForm() {
         {done ? (
           <div className="success-box">
             <p>{message}</p>
-            <Link href={withLocalePath('/login')} className="btn-secondary wide">{isEn ? 'Back to login' : 'Retour à la connexion'}</Link>
+            <Link href={withLocalePath('/login')} className="btn-outline-dark wide">{isEn ? 'Back to login' : 'Retour à la connexion'}</Link>
           </div>
         ) : (
           <>
