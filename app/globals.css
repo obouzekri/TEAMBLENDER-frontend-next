@@ -3679,6 +3679,36 @@ html, body, .shell {
   overflow-x: hidden;
 }
 
+/* Align 'Remember me' checkbox and label inline */
+.auth-remember-me {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.auth-remember-me input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex: 0 0 18px;
+}
+
+/* Ensure the remember-me stays on one line on small screens */
+.auth-form-row--options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .auth-form-row--options {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
 .auth-page .btn-primary {
   min-height: 52px;
   border-radius: 18px;
