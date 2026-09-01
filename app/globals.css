@@ -3971,6 +3971,28 @@ html, body, .shell {
   padding: 1rem 1rem 1.25rem 1rem;
 }
 
+.appnav-desktop-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-left: auto;
+}
+
+.appnav-desktop-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--nav-control-height, 42px);
+}
+
+.appnav-desktop-link--button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
 .nav-mobile-menu-actions .lang-switch {
   display: inline-flex;
   align-items: center;
@@ -5407,6 +5429,10 @@ html, body, .shell {
     min-width: 0;
     text-align: center;
     justify-content: center;
+  }
+
+  .appnav-desktop-actions {
+    display: none !important;
   }
 
   .nav-user-trigger-wrap {
@@ -14447,6 +14473,15 @@ html, body, .shell {
   .nav-top-row {
     width: auto;
     flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .nav-brand-block {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
   }
 
   .nav-toggle {
@@ -14461,6 +14496,7 @@ html, body, .shell {
     flex: 1 1 auto;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
     gap: 0.55rem;
     padding: 0.42rem 0.48rem;
     border-radius: 0;
@@ -14518,8 +14554,10 @@ html, body, .shell {
     width: auto;
     display: inline-flex;
     align-items: center;
+    justify-content: flex-end;
     flex-wrap: nowrap;
     white-space: nowrap;
+    gap: 0.7rem;
   }
 
   .nav-actions > * {
@@ -14528,6 +14566,10 @@ html, body, .shell {
 
   .lang-switch {
     flex: 0 0 auto;
+  }
+
+  .appnav-mobile-actions {
+    display: none;
   }
 
   .nav-link {
