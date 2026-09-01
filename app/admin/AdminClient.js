@@ -4752,7 +4752,7 @@ export default function AdminClient() {
                               <p className="session-meta" style={{ margin: 0, color: '#b91c1c', fontWeight: 600 }}>{challengeImageUploadError}</p>
                             ) : null}
                             {getEscapeRoomE5ImageSrc(editingChallenge.engine_config) ? (
-                              <div style={{ border: '1px solid #dbe4f0', borderRadius: '12px', padding: '8px', background: '#f8fafc' }}>
+                              <div style={{ border: '1px solid var(--color-border, #dbe4f0)', borderRadius: '12px', padding: '8px', background: 'var(--color-surface, #f8fafc)' }}>
                                 <Image
                                   src={getEscapeRoomE5ImageSrc(editingChallenge.engine_config)}
                                   alt={isEn ? 'Puzzle 5 preview' : 'Apercu enigme 5'}
@@ -4867,7 +4867,7 @@ export default function AdminClient() {
                                   </label>
 
                                   {String(imageItem.src || '').trim() ? (
-                                    <div style={{ border: '1px solid #dbe4f0', borderRadius: '10px', padding: '7px', background: '#f8fafc' }}>
+                                    <div style={{ border: '1px solid var(--color-border, #dbe4f0)', borderRadius: '10px', padding: '7px', background: 'var(--color-surface, #f8fafc)' }}>
                                       <Image
                                         src={String(imageItem.src || '').trim()}
                                         alt={isEn ? `Image preview ${slotIndex}` : `Apercu image ${slotIndex}`}
