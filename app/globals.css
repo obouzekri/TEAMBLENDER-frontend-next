@@ -137,6 +137,61 @@
   color-scheme: light;
 }
 
+/* Ensure manager home blocks render correctly in explicit dark theme toggle */
+:root[data-theme="dark"] {
+  /* reinforce same token overrides when using explicit theme attribute */
+  --bg: #0c1222;
+  --bg-soft: #111a2e;
+  --ink: #e8efff;
+  --ink-soft: #c7d3ed;
+  --card: #111a2e;
+  --surface-border: rgba(226, 232, 255, 0.06);
+  --surface-overlay: rgba(2, 6, 23, 0.62);
+  --home-hero-accent-gradient: linear-gradient(135deg, rgba(53,160,255,0.08) 0%, rgba(124,58,237,0.06) 100%);
+}
+
+/* Specific adjustments for Manager Home blocks in dark theme */
+:root[data-theme="dark"] .manager-home .home-hero,
+:root[data-theme="dark"] .home-hero {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00)), var(--home-hero-accent-gradient);
+  color: var(--text-strong);
+}
+
+:root[data-theme="dark"] .manager-home .feature-card,
+:root[data-theme="dark"] .manager-home .sessions-panel,
+:root[data-theme="dark"] .manager-home .participants-panel,
+:root[data-theme="dark"] .manager-home .home-hero-summary,
+:root[data-theme="dark"] .manager-home .participant-card,
+:root[data-theme="dark"] .manager-home .session-card {
+  background: var(--card);
+  border: 1px solid var(--surface-soft-border);
+  box-shadow: var(--card-shadow);
+  color: var(--text-strong);
+}
+
+:root[data-theme="dark"] .manager-home .eyebrow,
+:root[data-theme="dark"] .manager-home .home-hero-summary__eyebrow,
+:root[data-theme="dark"] .manager-home .home-hero-summary__title {
+  color: var(--text-muted);
+}
+
+:root[data-theme="dark"] .manager-home .home-hero-greeting {
+  color: var(--text-strong);
+}
+
+:root[data-theme="dark"] .manager-home .btn-primary {
+  background: var(--accent);
+  color: var(--text-on-accent);
+  box-shadow: var(--button-primary-shadow);
+}
+
+:root[data-theme="dark"] .manager-home .btn-secondary {
+  background: transparent;
+  color: var(--text-strong);
+  border: 1px solid var(--surface-soft-border);
+}
+
+
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0c1222;
@@ -4494,6 +4549,46 @@ html, body, .shell {
 
 .hero p {
   margin: 1rem 0 0;
+  /* Mobile: ensure session cards show the action menu in top-right and dropdown is visible */
+  .session-card .session-card-mobile-actions,
+  .participant-card .team-member-mobile-actions {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .manager-mobile-menu__dropdown,
+  .team-member-mobile-actions .manager-mobile-menu__dropdown {
+    position: absolute;
+    right: 0;
+    top: 2.25rem;
+    min-width: 10.5rem;
+    background: var(--card);
+    border: 1px solid var(--surface-soft-border);
+    box-shadow: var(--dropdown-shadow);
+    border-radius: 8px;
+    padding: 0.25rem 0;
+    z-index: 40;
+  }
+
+  /* If dropdown would be cut off at the bottom, use dropup variant */
+  .manager-mobile-menu__dropdown.is-dropup {
+    top: auto;
+    bottom: 2.25rem;
+  }
+
+  /* Make sure icon-action buttons remain visible and match participant cards */
+  .icon-action-btn--mobile-friendly {
+    background: transparent;
+    border: 0;
+    padding: 0.4rem 0.45rem;
+    border-radius: 8px;
+    color: var(--text-strong);
+  }
   max-width: 70ch;
   color: var(--ink-soft);
 }
