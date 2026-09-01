@@ -355,6 +355,46 @@
   color: #cbd5e1;
 }
 
+@media (prefers-color-scheme: dark) {
+  .card,
+  .containerEmbedded .card,
+  .list,
+  .item,
+  .summary {
+    background: rgba(15, 23, 42, 0.92);
+    border-color: rgba(148, 163, 184, 0.18);
+    color: #e2e8f0;
+  }
+
+  .input,
+  .btnSecondaryMini,
+  .btnLink {
+    background: rgba(15, 23, 42, 0.88);
+    border-color: rgba(148, 163, 184, 0.22);
+    color: #e2e8f0;
+  }
+
+  .btnSecondaryMini:hover:not(:disabled),
+  .btnLink:hover,
+  .item:hover {
+    background: rgba(30, 41, 59, 0.96);
+  }
+
+  .info strong,
+  .identityInline,
+  .email,
+  .subtitle,
+  .label,
+  .helpText,
+  .resultsCount,
+  .count,
+  .summaryNames,
+  .empty,
+  .empty small {
+    color: #cbd5e1;
+  }
+}
+
 .item:focus-within {
   outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
   outline-offset: -2px;
