@@ -1045,7 +1045,7 @@ export default function ManagerHome() {
                         ) : null}
                       </div>
                     </div>
-                    <div className="session-card-mobile-actions">
+                    <div className="session-card-mobile-actions" style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', left: 'auto' }}>
                       <MobileActionMenu
                         triggerLabel={isEn ? 'Open session actions' : 'Ouvrir les actions session'}
                         menuLabel={isEn ? 'Session actions' : 'Actions session'}
