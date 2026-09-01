@@ -181,6 +181,51 @@
   --color-muted: #94a3b8;
 }
 
+/* TopNav dark mode for explicit theme toggle */
+:root[data-theme="dark"] .top-nav {
+  background: var(--card);
+  border-bottom: 1px solid var(--surface-soft-border);
+}
+
+:root[data-theme="dark"] .top-nav .nav-panel {
+  background: var(--surface-panel);
+  border: 1px solid var(--surface-soft-border);
+  box-shadow: var(--dropdown-shadow);
+}
+
+:root[data-theme="dark"] .top-nav .nav-link,
+:root[data-theme="dark"] .top-nav .nav-item {
+  color: var(--text-strong);
+}
+
+:root[data-theme="dark"] .top-nav .nav-link:hover,
+:root[data-theme="dark"] .top-nav .nav-item:hover {
+  color: var(--accent-strong);
+  background: var(--surface-panel-soft);
+}
+
+:root[data-theme="dark"] .top-nav .nav-cta-btn,
+:root[data-theme="dark"] .top-nav .btn-mini {
+  background: var(--surface-control);
+  color: var(--text-strong);
+  border-color: var(--control-border);
+}
+
+:root[data-theme="dark"] .top-nav .nav-cta-btn:hover,
+:root[data-theme="dark"] .top-nav .btn-mini:hover {
+  background: var(--surface-control-hover);
+  border-color: var(--control-border-strong);
+}
+
+:root[data-theme="dark"] .top-nav .nav-toggle__line {
+  background: var(--text-strong);
+}
+
+:root[data-theme="dark"] .top-nav .brand,
+:root[data-theme="dark"] .top-nav .brand svg {
+  color: var(--text-strong);
+}
+
 /* Specific adjustments for Manager Home blocks in dark theme */
 :root[data-theme="dark"] .manager-home .home-hero,
 :root[data-theme="dark"] .home-hero {
@@ -12108,6 +12153,51 @@ html, body, .shell {
   .nav-user-dropdown__item--danger:hover {
     background: color-mix(in srgb, var(--error-bg) 68%, transparent);
     color: #fda4af;
+  }
+
+  /* TopNav dark mode fixes */
+  .top-nav {
+    background: var(--card);
+    border-bottom: 1px solid var(--surface-soft-border);
+  }
+
+  .top-nav .nav-panel {
+    background: var(--surface-panel);
+    border: 1px solid var(--surface-soft-border);
+    box-shadow: var(--dropdown-shadow);
+  }
+
+  .top-nav .nav-link,
+  .top-nav .nav-item {
+    color: var(--text-strong);
+  }
+
+  .top-nav .nav-link:hover,
+  .top-nav .nav-item:hover {
+    color: var(--accent-strong);
+    background: var(--surface-panel-soft);
+  }
+
+  .top-nav .nav-cta-btn,
+  .top-nav .btn-mini {
+    background: var(--surface-control);
+    color: var(--text-strong);
+    border-color: var(--control-border);
+  }
+
+  .top-nav .nav-cta-btn:hover,
+  .top-nav .btn-mini:hover {
+    background: var(--surface-control-hover);
+    border-color: var(--control-border-strong);
+  }
+
+  .top-nav .nav-toggle__line {
+    background: var(--text-strong);
+  }
+
+  .top-nav .brand,
+  .top-nav .brand svg {
+    color: var(--text-strong);
   }
 }
 
