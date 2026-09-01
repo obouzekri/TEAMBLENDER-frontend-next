@@ -1138,8 +1138,8 @@ export default function HomePage() {
       <TopNav />
       <main className="landing-v2">
         {isLandingCmsStrict && landingLoaded && (cmsAudit.missingKeys.length > 0 || cmsAudit.missingFields.length > 0) ? (
-          <section className="feature-card" aria-label="Audit Landing CMS" style={{ borderColor: '#f59e0b', background: 'linear-gradient(180deg, #fff7ed 0%, #fff 100%)' }}>
-            <p className="eyebrow" style={{ color: '#9a3412' }}>Audit CMS Strict</p>
+          <section className="feature-card" aria-label="Audit Landing CMS" style={{ borderColor: 'var(--color-warning, #f59e0b)', background: 'var(--color-surface, #fff)' }}>
+            <p className="eyebrow" style={{ color: 'var(--color-warning-dark, #9a3412)' }}>Audit CMS Strict</p>
             <h2 style={{ marginTop: 0 }}>{locale === 'en' ? 'Incomplete CMS coverage' : 'Couverture CMS incomplete'}</h2>
             <p style={{ marginBottom: '0.4rem' }}>
               {locale === 'en'
@@ -1320,7 +1320,7 @@ export default function HomePage() {
 
         <section
           className="landing-section-full landing-section-full--statement relative overflow-hidden p-8 sm:p-10"
-          style={{ '--reveal-delay': '100ms', background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)' }}
+          style={{ '--reveal-delay': '100ms', background: 'var(--color-surface, #fff)' }}
           aria-label={locale === 'en' ? 'Platform positioning' : 'Positionnement plateforme'}
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(99,102,241,0.08),transparent_45%)]" />

@@ -2213,8 +2213,8 @@ export default function AccountPage() {
           }
 
           .account-pricing-card--current {
-            background: #f8fafc;
-            border-color: #cbd5e1;
+            background: var(--color-surface, #f8fafc);
+            border-color: var(--color-border, #cbd5e1);
             opacity: 0.98;
           }
 
@@ -2286,10 +2286,10 @@ export default function AccountPage() {
           }
 
           .account-history-link {
-            border: 1px solid #d9e1ef;
+            border: 1px solid var(--color-border, #d9e1ef);
             border-radius: 10px;
-            background: #ffffff;
-            color: #2f3f5f;
+            background: var(--color-surface, #ffffff);
+            color: var(--text-strong, #2f3f5f);
             font-weight: 700;
             font-size: 0.8rem;
             padding: 0.35rem 0.6rem;
@@ -2299,8 +2299,8 @@ export default function AccountPage() {
 
           .account-history-link:hover,
           .account-history-link:focus-visible {
-            border-color: #c2cde1;
-            background: #f8fbff;
+            border-color: var(--control-border, #c2cde1);
+            background: var(--surface-control-hover, #f8fbff);
           }
 
           .account-history-empty {
