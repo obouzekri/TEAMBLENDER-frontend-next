@@ -913,9 +913,9 @@ function renderUploadInputLabel({ isEn, busy }) {
         minHeight: '40px',
         padding: '0 14px',
         borderRadius: '999px',
-        border: '1px solid #cbd5e1',
-        background: busy ? '#f8fafc' : 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
-        color: '#0f172a',
+        border: '1px solid var(--color-border, #cbd5e1)',
+        background: busy ? 'var(--color-surface, #f8fafc)' : 'var(--color-surface, #fff)',
+        color: 'var(--text-strong, #0f172a)',
         fontWeight: 600,
         fontSize: '13px',
         cursor: busy ? 'not-allowed' : 'pointer',
@@ -3730,22 +3730,22 @@ export default function AdminClient() {
 
               <div className="admin-panel-card" style={{ marginBottom: '16px' }}>
                 {analyticsSnapshot.configured ? (
-                  <p style={{ margin: 0, fontSize: '13px', color: '#15803d', fontWeight: 600 }}>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-success, #15803d)', fontWeight: 600 }}>
                     {isEn ? '✓ PostHog connected' : '✓ PostHog connecte'}
-                    {analyticsSnapshot.degraded ? <span style={{ color: '#b45309', fontWeight: 400 }}>{isEn ? ' (degraded mode)' : ' (mode degrade)'}</span> : null}
+                    {analyticsSnapshot.degraded ? <span style={{ color: 'var(--color-warning, #b45309)', fontWeight: 400 }}>{isEn ? ' (degraded mode)' : ' (mode degrade)'}</span> : null}
                   </p>
                 ) : (
                   <>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#b45309', fontWeight: 600 }}>{isEn ? '⚠ Analytics not configured' : '⚠ Analytics non configure'}</p>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-warning, #b45309)', fontWeight: 600 }}>{isEn ? '⚠ Analytics not configured' : '⚠ Analytics non configure'}</p>
                     <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-muted, #6b7280)', lineHeight: 1.55 }}>
-                      {isEn ? 'Add ' : 'Ajoutez '}<code style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PROJECT_ID</code>{isEn ? ' and ' : ' et '}
-                      <code style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PERSONAL_API_KEY</code>{' '}
-                      {isEn ? 'to the backend ' : 'dans le fichier '}<code style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '1px 4px', borderRadius: '3px' }}>.env</code>{isEn ? ' file, then restart the server.' : ' du backend puis redemarrez le serveur.'}
+                      {isEn ? 'Add ' : 'Ajoutez '}<code style={{ fontFamily: 'monospace', background: 'var(--color-code-bg, #f3f4f6)', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PROJECT_ID</code>{isEn ? ' and ' : ' et '}
+                      <code style={{ fontFamily: 'monospace', background: 'var(--color-code-bg, #f3f4f6)', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PERSONAL_API_KEY</code>{' '}
+                      {isEn ? 'to the backend ' : 'dans le fichier '}<code style={{ fontFamily: 'monospace', background: 'var(--color-code-bg, #f3f4f6)', padding: '1px 4px', borderRadius: '3px' }}>.env</code>{isEn ? ' file, then restart the server.' : ' du backend puis redemarrez le serveur.'}
                     </p>
                   </>
                 )}
                 {analyticsSnapshot.configured && analyticsSnapshot.degraded && analyticsSnapshot.reason ? (
-                  <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#92400e', lineHeight: 1.5 }}>
+                  <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-warning-dark, #92400e)', lineHeight: 1.5 }}>
                     {isEn ? 'Reason' : 'Raison'}: {analyticsSnapshot.reason}
                   </p>
                 ) : null}
@@ -4724,18 +4724,18 @@ export default function AdminClient() {
                         {(editingChallenge.engine_key || '').toLowerCase() === 'escape_room_v1' ? (
                           <div
                             style={{
-                              border: '1px solid #cbd5e1',
+                              border: '1px solid var(--color-border, #cbd5e1)',
                               borderRadius: '14px',
                               padding: '14px',
                               display: 'grid',
                               gap: '10px',
-                              background: 'linear-gradient(165deg, #ffffff 0%, #f8fafc 100%)',
+                              background: 'var(--color-surface, #fff)',
                               boxShadow: '0 10px 24px -20px rgba(15, 23, 42, 0.55)',
                             }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-                              <p style={{ margin: 0, fontWeight: 700, color: '#0f172a' }}>{isEn ? 'Puzzle 5 image (secret room)' : 'Image enigme 5 (Salle secrete)'}</p>
-                              <span style={{ fontSize: '12px', color: '#334155', fontWeight: 600 }}>{isEn ? 'Persistent storage enabled' : 'Stockage persistant active'}</span>
+                              <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-strong, #0f172a)' }}>{isEn ? 'Puzzle 5 image (secret room)' : 'Image enigme 5 (Salle secrete)'}</p>
+                              <span style={{ fontSize: '12px', color: 'var(--color-muted, #334155)', fontWeight: 600 }}>{isEn ? 'Persistent storage enabled' : 'Stockage persistant active'}</span>
                             </div>
                             <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'This image is used in the final puzzle and saved with challenge settings.' : 'Cette image est utilisee pour la derniere enigme et sauvegardee avec la configuration du challenge.'}</p>
                             <label style={{ display: 'inline-flex', width: 'fit-content' }}>
@@ -4781,12 +4781,12 @@ export default function AdminClient() {
                                 <div
                                   key={imageItem.id || `copuzzle-default-${slotIndex}`}
                                   style={{
-                                    border: '1px solid #dbe4f0',
+                                    border: '1px solid var(--color-border, #dbe4f0)',
                                     borderRadius: '12px',
                                     padding: '12px',
                                     display: 'grid',
                                     gap: '9px',
-                                    background: 'linear-gradient(170deg, #ffffff 0%, #f8fafc 100%)',
+                                    background: 'var(--color-surface, #fff)',
                                   }}
                                 >
                                   <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? `Reference image ${slotIndex}` : `Image de reference ${slotIndex}`}</p>
