@@ -15232,13 +15232,13 @@ html, body, .shell {
 
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-hero-greeting,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-hero p:not(.eyebrow) {
-  color: #e2e8f0;
+  color: var(--text-strong);
   text-shadow: none;
 }
 
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-hero .eyebrow,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-hero-summary__eyebrow {
-  color: #93c5fd;
+  color: var(--text-muted);
 }
 
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-hero-summary {
