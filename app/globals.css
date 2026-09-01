@@ -357,6 +357,9 @@
     --status-upcoming-bg: rgba(245, 158, 11, 0.15);
     --status-upcoming-text: #fcd34d;
     --status-upcoming-border: rgba(245, 158, 11, 0.38);
+    --color-surface: #111a2e;
+    --color-border: rgba(148, 163, 184, 0.2);
+    --color-muted: #94a3b8;
     color-scheme: dark;
   }
 }
