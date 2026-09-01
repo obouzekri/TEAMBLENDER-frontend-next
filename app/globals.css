@@ -4593,6 +4593,54 @@ html, body, .shell {
   color: var(--ink-soft);
 }
 
+  /* Fix: session card mobile actions — placed at file end to avoid nested rule issue */
+  @media (max-width: 860px) {
+    .session-card {
+      position: relative !important;
+      overflow: visible !important;
+    }
+
+    .session-card .session-card-mobile-actions,
+    .participant-card .team-member-mobile-actions {
+      position: absolute !important;
+      top: 0.5rem !important;
+      right: 0.5rem !important;
+      left: auto !important;
+      bottom: auto !important;
+      z-index: 9999 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.25rem !important;
+    }
+
+    .manager-mobile-menu__dropdown,
+    .team-member-mobile-actions .manager-mobile-menu__dropdown {
+      position: absolute !important;
+      right: 0 !important;
+      top: 2.25rem !important;
+      min-width: 10.5rem !important;
+      background: var(--card) !important;
+      border: 1px solid var(--surface-soft-border) !important;
+      box-shadow: var(--dropdown-shadow) !important;
+      border-radius: 8px !important;
+      padding: 0.25rem 0 !important;
+      z-index: 10000 !important;
+    }
+
+    .manager-mobile-menu__dropdown.is-dropup {
+      top: auto !important;
+      bottom: 2.25rem !important;
+    }
+
+    .icon-action-btn--mobile-friendly {
+      background: transparent !important;
+      border: 0 !important;
+      padding: 0.4rem 0.45rem !important;
+      border-radius: 8px !important;
+      color: var(--text-strong) !important;
+    }
+  }
+
 .hero-actions {
   margin-top: 1.5rem;
   display: flex;
