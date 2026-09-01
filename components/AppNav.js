@@ -223,7 +223,6 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
 
             {!isCompact ? (
               <div className="nav-mobile-menu-actions appnav-mobile-actions" aria-label={t('nav.accountAria')}>
-                <LanguageSwitcher />
                 <Link
                   href={withLocalePath(accountHref)}
                   className="btn-mini nav-mobile-login-btn appnav-mobile-account-btn"
@@ -241,6 +240,8 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
                 >
                   {t('appNav.logout')}
                 </button>
+                {/* LanguageSwitcher intentionally rendered last so CSS can push it to the bottom */}
+                <LanguageSwitcher />
               </div>
             ) : null}
 
