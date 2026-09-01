@@ -2699,6 +2699,14 @@ a {
   display: none;
 }
 
+@media (min-width: 861px) {
+  .top-nav:not(.top-nav--live-inline) .nav-toggle,
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-cta,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions {
+    display: none !important;
+  }
+}
+
 .nav-mobile-cta-btn {
   white-space: nowrap;
 }
