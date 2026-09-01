@@ -584,7 +584,7 @@
    - Hide desktop-specific actions under 1024px (lg)
    - Ensure header rows do not wrap and internal overflow is clipped
 */
-@media (max-width: 1024px) {
+@media (max-width: 860px) {
   .top-nav .nav-inner {
     display: flex !important;
     align-items: center !important;
