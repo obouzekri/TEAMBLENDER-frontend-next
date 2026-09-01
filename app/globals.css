@@ -11136,6 +11136,11 @@ html, body, .shell {
   .nav-panel--manager .app-user-box {
     margin-left: auto;
   }
+
+  .appnav-mobile-main-links,
+  .appnav-mobile-actions {
+    display: none !important;
+  }
 }
 
 @media (max-width: 900px) {
