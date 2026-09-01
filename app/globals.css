@@ -108,6 +108,19 @@
   --challenge-text-accent: #7dd3fc;
   --skeleton-bg: #e5e7eb;
   --skeleton-base: #ffffff;
+  /* Added semantic shortcuts for component patches */
+  --color-success: #15803d;
+  --color-success-rgb: 53,183,118;
+  --color-warning: #b45309;
+  --color-warning-dark: #92400e;
+  --color-danger: #ef4444;
+  --color-code-bg: #f3f4f6;
+  --chip-border-rgb: 125,164,188;
+  --chip-bg-from-rgb: 9,23,36;
+  --chip-bg-to-rgb: 8,20,31;
+  --chip-avatar-bg-rgb: 22,62,92;
+  --chip-avatar-text: #e8f5ff;
+  --chip-focus-rgb: 125,211,252;
   --toast-success-bg: rgba(238, 251, 246, 0.96);
   --toast-success-text: #065f46;
   --toast-success-border: rgba(16, 185, 129, 0.22);
@@ -134,6 +147,9 @@
   --status-upcoming-bg: rgba(245, 158, 11, 0.10);
   --status-upcoming-text: #92400e;
   --status-upcoming-border: rgba(245, 158, 11, 0.28);
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-muted: #6b7280;
   color-scheme: light;
 }
 
@@ -141,6 +157,18 @@
 :root[data-theme="dark"] {
   /* reinforce same token overrides when using explicit theme attribute */
   --bg: #0c1222;
+  --color-success: #35b776;
+  --color-success-rgb: 53,183,118;
+  --color-warning: #f59e0b;
+  --color-warning-dark: #92400e;
+  --color-danger: #ef4444;
+  --color-code-bg: #0f172a;
+  --chip-border-rgb: 148,163,184;
+  --chip-bg-from-rgb: 15,23,42;
+  --chip-bg-to-rgb: 17,24,39;
+  --chip-avatar-bg-rgb: 22,32,56;
+  --chip-avatar-text: #e8efff;
+  --chip-focus-rgb: 125,211,252;
   --bg-soft: #111a2e;
   --ink: #e8efff;
   --ink-soft: #c7d3ed;
@@ -148,6 +176,9 @@
   --surface-border: rgba(226, 232, 255, 0.06);
   --surface-overlay: rgba(2, 6, 23, 0.62);
   --home-hero-accent-gradient: linear-gradient(135deg, rgba(53,160,255,0.08) 0%, rgba(124,58,237,0.06) 100%);
+  --color-surface: #111a2e;
+  --color-border: rgba(148, 163, 184, 0.2);
+  --color-muted: #94a3b8;
 }
 
 /* Specific adjustments for Manager Home blocks in dark theme */
@@ -439,6 +470,67 @@
     z-index: 170 !important;
   }
 }
+
+/* Header layout fixes: force flexbox for consistent alignment and gaps */
+.top-nav .nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.top-nav .nav-top-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1rem !important;
+}
+
+/* Left group: logo, burger, back-to-admin button spacing */
+.nav-brand-block {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Ensure mobile toggle has breathing room from adjacent CTAs */
+.nav-toggle {
+  margin-left: 0.25rem;
+}
+
+/* Right group: user actions alignment */
+.nav-actions,
+.appnav-desktop-actions,
+.nav-mobile-menu-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Only show desktop language switcher in desktop actions; hide duplicate on larger viewports */
+.nav-mobile-menu-actions .lang-switch {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  /* On small screens, hide desktop language and show mobile language inside mobile menu */
+  .nav-actions .lang-switch {
+    display: none !important;
+  }
+  .nav-mobile-menu-actions .lang-switch {
+    display: flex !important;
+    justify-content: center;
+  }
+}
+
+/* Align avatar/menu and account links on same baseline */
+.nav-mobile-menu-actions .btn-mini,
+.nav-mobile-menu-actions .btn-mini + .btn-mini,
+.nav-actions .nav-user-trigger-wrap,
+.nav-actions .btn-mini {
+  align-items: center;
+  display: inline-flex;
+}
+
 
 /* Enforce breakpoint-based hiding of desktop nav and prevent header overflow
    - Hide desktop-specific actions under 1024px (lg)
