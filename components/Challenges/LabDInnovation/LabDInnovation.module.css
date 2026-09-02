@@ -42,6 +42,22 @@
   background: linear-gradient(145deg, var(--bg-1), var(--bg-2) 60%, #dcecff 100%);
 }
 
+:global(html[data-theme='light']) .textArea,
+:global(html[data-theme='light']) .select {
+  background: var(--surface-1);
+  border-color: var(--line-soft);
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .textArea::placeholder {
+  color: var(--text-soft);
+}
+
+:global(html[data-theme='light']) .select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
 .mainColumn,
 .sideColumn {
   display: grid;

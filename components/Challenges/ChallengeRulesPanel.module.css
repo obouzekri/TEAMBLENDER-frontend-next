@@ -35,7 +35,7 @@
 
 .playerTag {
   border: 1px solid var(--ch-line-strong);
-  background: color-mix(in srgb, var(--ch-surface-1) 88%, black);
+  background: color-mix(in srgb, var(--ch-surface-1) 88%, var(--ch-surface-2));
   color: var(--ch-text-main);
   border-radius: 999px;
   padding: 2px 8px;
