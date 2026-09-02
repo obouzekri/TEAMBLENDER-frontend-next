@@ -1485,7 +1485,6 @@ export default function HomePage() {
                     className={`landing-benefits-orbit-item landing-benefits-orbit-item--${index + 1}`}
                     tabIndex={0}
                   >
-                    <div className="landing-benefits-orbit-item__line" aria-hidden="true" />
                     <span className="landing-benefits-orbit-icon" aria-hidden="true">
                       <GamifiedIcon Icon={Icon} index={index} size="sm" />
                     </span>

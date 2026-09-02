@@ -252,8 +252,8 @@ export default function ContactPage() {
           padding: 1.25rem;
           border-radius: 22px;
           border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.22));
-          background: var(--surface-panel, #ffffff);
-          box-shadow: var(--shadow-lg, 0 14px 30px rgba(15, 23, 42, 0.14));
+          background: linear-gradient(145deg, var(--surface-panel, #ffffff), var(--surface-panel-soft, #f3f8ff));
+          box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
         }
 
         .contact-page .contact-hero__panel-eyebrow {
@@ -283,7 +283,7 @@ export default function ContactPage() {
           gap: 0.5rem;
           padding: 0.65rem 0.8rem;
           border-radius: 14px;
-          background: var(--surface-soft, #f8fafc);
+          background: var(--surface-panel-soft, #f3f8ff);
           border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.22));
           color: var(--text-muted, #cbd5e1);
           font-size: 0.88rem;
