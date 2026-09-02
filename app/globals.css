@@ -4027,14 +4027,13 @@ html, body, .shell {
   overflow: hidden;
 }
 
-/* Burger button: dark, minimal background and white bars */
+/* Burger button: dark, minimal background and white bars (mobile only, see base .nav-toggle for display) */
 .nav-toggle {
   background: rgba(15,23,42,0.48);
   border: 1px solid rgba(148,163,184,0.12);
   padding: 0.375rem;
   border-radius: 8px;
   color: #fff;
-  display: inline-flex;
   align-items: center;
   justify-content: center;
 }
@@ -18448,5 +18447,54 @@ html, body, .shell {
   .auth-inline-help-link {
     color: #8fd7ff;
   }
+}
+
+/* ================================================================
+   FINAL OVERRIDE — DESKTOP HEADER CLEANUP
+   An earlier unguarded `.nav-toggle { display: inline-flex; }` rule
+   (auth dark-mode section) made the mobile hamburger button, mobile
+   CTA and mobile action drawers appear on desktop alongside the
+   normal desktop nav, causing visual duplication. Force the
+   mobile-only controls hidden and the desktop nav panel/actions
+   visible above 860px, for both the public (TopNav) and
+   authenticated (AppNav) headers.
+   ================================================================ */
+@media (min-width: 861px) {
+  .top-nav:not(.top-nav--live-inline) .nav-toggle,
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-cta,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-cta,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions,
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions,
+  .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions {
+    display: none !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-panel {
+    position: static !important;
+    display: flex !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-actions,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-desktop-actions,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-desktop-language,
+  .top-nav:not(.top-nav--live-inline) .appnav-desktop-actions {
+    display: inline-flex !important;
+  }
+}
+
+.top-nav .brand {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
 }
 
