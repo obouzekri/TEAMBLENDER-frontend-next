@@ -114,7 +114,7 @@ export default function SelectedChallengesList({
       </ul>
 
       <div className={styles.footer}>
-        <Button variant="secondary" size="sm" block onClick={onClearAll}>
+        <Button className={styles.clearSelectionButton} variant="secondary" size="sm" block onClick={onClearAll}>
           {t('sessionBuilder.clearSelection')}
         </Button>
       </div>

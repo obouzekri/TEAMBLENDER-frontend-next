@@ -472,6 +472,7 @@ export default function ChallengesCatalog({
                   </button>
                   {isSelected && (
                     <Button
+                      className={styles.configureAction}
                       variant="secondary"
                       size="sm"
                       onClick={() => onConfigure(challenge.id)}

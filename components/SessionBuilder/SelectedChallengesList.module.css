@@ -155,6 +155,23 @@
   padding-top: 1rem;
 }
 
+:global(html[data-theme='dark']) .clearSelectionButton,
+:global(body[data-theme='dark']) .clearSelectionButton,
+:global(.dark) .clearSelectionButton {
+  color: #dbeafe;
+  background: linear-gradient(135deg, rgba(30, 64, 175, 0.92) 0%, rgba(29, 78, 216, 0.92) 100%);
+  border-color: rgba(147, 197, 253, 0.5);
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.3);
+}
+
+:global(html[data-theme='dark']) .clearSelectionButton:hover:not(:disabled),
+:global(body[data-theme='dark']) .clearSelectionButton:hover:not(:disabled),
+:global(.dark) .clearSelectionButton:hover:not(:disabled) {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.98) 0%, rgba(30, 64, 175, 0.98) 100%);
+  border-color: rgba(191, 219, 254, 0.7);
+}
+
 @media (max-width: 860px) {
   .sidebar {
     position: static;

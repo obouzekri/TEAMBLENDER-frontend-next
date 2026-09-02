@@ -322,6 +322,81 @@
   background: rgba(30, 41, 59, 0.94);
 }
 
+:global(html[data-theme='dark']) .cardTitle,
+:global(body[data-theme='dark']) .cardTitle,
+:global(.dark) .cardTitle {
+  color: #f8fafc;
+}
+
+:global(html[data-theme='dark']) .playerHint,
+:global(body[data-theme='dark']) .playerHint,
+:global(.dark) .playerHint {
+  color: #dbeafe;
+  background: rgba(30, 64, 175, 0.34);
+  border-color: rgba(147, 197, 253, 0.48);
+}
+
+:global(html[data-theme='dark']) .badge,
+:global(body[data-theme='dark']) .badge,
+:global(.dark) .badge {
+  color: #dbeafe;
+  background: rgba(30, 41, 59, 0.94);
+  border-top-color: rgba(148, 163, 184, 0.38);
+  border-right-color: rgba(148, 163, 184, 0.38);
+  border-bottom-color: rgba(148, 163, 184, 0.38);
+}
+
+:global(html[data-theme='dark']) .objectiveBadge,
+:global(body[data-theme='dark']) .objectiveBadge,
+:global(.dark) .objectiveBadge {
+  color: #e9d5ff;
+  background: rgba(91, 33, 182, 0.34);
+  border-top-color: rgba(196, 181, 253, 0.42);
+  border-right-color: rgba(196, 181, 253, 0.42);
+  border-bottom-color: rgba(196, 181, 253, 0.42);
+}
+
+:global(html[data-theme='dark']) .toggleAction,
+:global(body[data-theme='dark']) .toggleAction,
+:global(.dark) .toggleAction {
+  color: #eff6ff;
+  background: linear-gradient(135deg, rgba(30, 64, 175, 0.94) 0%, rgba(37, 99, 235, 0.9) 100%);
+  border-color: rgba(147, 197, 253, 0.58);
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.28);
+}
+
+:global(html[data-theme='dark']) .toggleActionKnob,
+:global(body[data-theme='dark']) .toggleActionKnob,
+:global(.dark) .toggleActionKnob {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+:global(html[data-theme='dark']) .toggleActionSelected,
+:global(body[data-theme='dark']) .toggleActionSelected,
+:global(.dark) .toggleActionSelected {
+  color: #fecaca;
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.92) 0%, rgba(185, 28, 28, 0.86) 100%);
+  border-color: rgba(252, 165, 165, 0.52);
+}
+
+:global(html[data-theme='dark']) .configureAction,
+:global(body[data-theme='dark']) .configureAction,
+:global(.dark) .configureAction {
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-color: rgba(191, 219, 254, 0.6);
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.3);
+}
+
+:global(html[data-theme='dark']) .configureAction:hover:not(:disabled),
+:global(body[data-theme='dark']) .configureAction:hover:not(:disabled),
+:global(.dark) .configureAction:hover:not(:disabled) {
+  color: #ffffff;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-color: rgba(219, 234, 254, 0.75);
+}
+
 .card.selected {
   background: linear-gradient(165deg, rgba(238, 242, 255, 0.96) 0%, var(--surface-panel) 100%);
   border-color: var(--surface-soft-border-strong);
