@@ -229,7 +229,7 @@ export default function PreferencesPage() {
         }
 
         .preferences-panel__body {
-          padding: 1.25rem clamp(2rem, 5vw, 4rem) 1.75rem;
+          padding: 1.25rem clamp(1.25rem, 2.5vw, 2rem) 1.75rem;
           display: grid;
           gap: 1rem;
         }
