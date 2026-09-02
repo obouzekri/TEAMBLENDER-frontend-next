@@ -17,7 +17,6 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
   const plainPathname = stripLocaleFromPath(pathname || '/');
   const [activeHomeBlock, setActiveHomeBlock] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const { t, withLocalePath } = useI18n();
 
   const isParticipant = role === 'participant';
@@ -42,12 +41,13 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
   const navPanelClassName = `nav-panel${(isManager || isParticipantArea) ? ' nav-panel--manager' : ''}${isMenuOpen ? ' is-open' : ''}`;
   const resolvedUserLabel = userLabel || (isParticipant ? t('appNav.participant') : t('appNav.manager'));
   const accountHref = isParticipant ? '/participant' : '/account';
+  const homeHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
   const roleLabel = isParticipant ? t('appNav.participant') : isAdmin ? t('appNav.admin') : t('appNav.manager');
   const [sessionUser, setSessionUser] = useState(null);
   const canUseMobileDrawer = !isCompact;
   const menuSignal = `${pathname}:${isMenuOpen ? 'open' : 'closed'}`;
 
-  useBodyScrollLock((isMenuOpen && canUseMobileDrawer) || settingsOpen);
+  useBodyScrollLock(isMenuOpen && canUseMobileDrawer);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -129,27 +129,33 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
   }
 
   const desktopAvatarItems = [
-    ...(isCompact ? [{
-      key: 'dashboard',
-      label: compactReturnLabel,
-      href: withLocalePath(compactReturnHref),
-    }] : []),
-    ...(!isCompact ? [{
-      key: 'account',
-      label: t('nav.myAccount'),
-      href: withLocalePath(accountHref),
-    }] : []),
     {
-      key: 'settings',
-      label: t('appNav.settings'),
-      onClick: () => setSettingsOpen(true),
+      key: 'home',
+      label: t('appNav.home'),
+      href: withLocalePath(isCompact ? compactReturnHref : homeHref),
     },
-    ...(!isCompact ? [{
-      key: 'logout',
-      label: t('appNav.logout'),
-      danger: true,
-      onClick: () => onLogout?.(),
-    }] : []),
+    ...(!isCompact ? [
+      {
+        key: 'account',
+        label: t('nav.myAccount'),
+        href: withLocalePath(accountHref),
+      },
+      {
+        key: 'preferences',
+        label: t('appNav.preferences'),
+        href: withLocalePath('/preferences'),
+      },
+      {
+        key: 'separator-logout',
+        type: 'separator',
+      },
+      {
+        key: 'logout',
+        label: t('appNav.logout'),
+        danger: true,
+        onClick: () => onLogout?.(),
+      },
+    ] : []),
   ];
 
   return (
@@ -286,65 +292,6 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
           onClick={() => setIsMenuOpen(false)}
         />
       ) : null}
-
-      {/* Settings modal */}
-      {settingsOpen && (
-        <div
-          className="nav-settings-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('appNav.settings')}
-          onClick={(e) => { if (e.target === e.currentTarget) setSettingsOpen(false); }}
-        >
-          <div className="nav-settings-modal">
-            <div className="nav-settings-modal__head">
-              <h2 className="nav-settings-modal__title">{t('appNav.settings')}</h2>
-              <button
-                type="button"
-                className="nav-settings-modal__close"
-                aria-label={t('appNav.closeSettings')}
-                onClick={() => setSettingsOpen(false)}
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M3 3l10 10M13 3 3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="nav-settings-modal__body">
-              <p className="nav-settings-modal__section-label">Notifications</p>
-              <label className="nav-settings-toggle">
-                <span>Receive session reminders</span>
-                <span className="nav-settings-toggle__switch">
-                  <input type="checkbox" defaultChecked />
-                  <span className="nav-settings-toggle__track" />
-                </span>
-              </label>
-              <label className="nav-settings-toggle">
-                <span>Receive activity summaries</span>
-                <span className="nav-settings-toggle__switch">
-                  <input type="checkbox" />
-                  <span className="nav-settings-toggle__track" />
-                </span>
-              </label>
-              <p className="nav-settings-modal__section-label nav-settings-modal__section-label--spaced">Display</p>
-              <label className="nav-settings-toggle">
-                <span>Compact mode (navbar)</span>
-                <span className="nav-settings-toggle__switch">
-                  <input type="checkbox" />
-                  <span className="nav-settings-toggle__track" />
-                </span>
-              </label>
-            </div>
-
-            <div className="nav-settings-modal__foot">
-              <button type="button" className="btn-primary" onClick={() => setSettingsOpen(false)}>
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

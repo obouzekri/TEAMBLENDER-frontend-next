@@ -47,6 +47,7 @@ export default function TopNav({ compact = false }) {
   const avatarUrl = String(resolvedAvatar.avatarUrl || '').trim();
   const avatarInitialsResolved = String(resolvedAvatar.avatarInitials || avatarInitials).trim() || avatarInitials;
   const accountHref = sessionUser?.role === 'participant' ? '/participant' : '/account';
+  const homeHref = sessionUser?.role === 'participant' ? '/participant' : sessionUser?.role === 'admin' ? '/admin' : '/home';
   const roleLabel = sessionUser?.role === 'participant' ? t('nav.participant') : sessionUser?.role === 'admin' ? t('nav.admin') : t('nav.manager');
   const mobileLoginHref = withLocalePath('/login');
   const mobileJoinHref = withLocalePath('/login?mode=join');
@@ -140,9 +141,23 @@ export default function TopNav({ compact = false }) {
                 closeSignal={pathname}
                 items={[
                   {
+                    key: 'home',
+                    label: t('nav.home'),
+                    href: withLocalePath(homeHref),
+                  },
+                  {
                     key: 'account',
                     label: t('nav.myAccount'),
                     href: withLocalePath(accountHref),
+                  },
+                  {
+                    key: 'preferences',
+                    label: t('nav.preferences'),
+                    href: withLocalePath('/preferences'),
+                  },
+                  {
+                    key: 'separator-logout',
+                    type: 'separator',
                   },
                   {
                     key: 'logout',
@@ -182,9 +197,23 @@ export default function TopNav({ compact = false }) {
                 closeSignal={pathname}
                 items={[
                   {
+                    key: 'home',
+                    label: t('nav.home'),
+                    href: withLocalePath(homeHref),
+                  },
+                  {
                     key: 'account',
                     label: t('nav.myAccount'),
                     href: withLocalePath(accountHref),
+                  },
+                  {
+                    key: 'preferences',
+                    label: t('nav.preferences'),
+                    href: withLocalePath('/preferences'),
+                  },
+                  {
+                    key: 'separator-logout',
+                    type: 'separator',
                   },
                   {
                     key: 'logout',

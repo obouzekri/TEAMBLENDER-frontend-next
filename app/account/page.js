@@ -94,52 +94,52 @@ function normalizeFeatureLabel(feature) {
     return `${isExcluded ? '❌' : '✓'} CSV/PDF export`;
   }
   if (normalized.includes('insights avances') || normalized.includes('advanced insights')) {
-    return `${isExcluded ? '❌' : '✓'} Advanced insights`;
+    return `${isExcluded ? '❌' : '✓'} Insights avances`;
   }
 
   if (normalized.includes('illimite') || normalized.includes('unlimited')) {
     if (normalized.includes('session')) {
-      return `${isExcluded ? '❌' : '✓'} Unlimited sessions`;
+      return `${isExcluded ? '❌' : '✓'} Sessions illimitees`;
     }
   }
 
   if (normalized.includes('participants max') || normalized.includes('utilisateurs max') || normalized.includes('participants/session')) {
     const numberMatch = raw.match(/\d+/);
-    return `${isExcluded ? '❌' : '✓'} ${numberMatch ? `${numberMatch[0]} participants per session` : 'Participants per session'}`;
+    return `${isExcluded ? '❌' : '✓'} ${numberMatch ? `${numberMatch[0]} participants par session` : 'Participants par session'}`;
   }
 
   if (normalized.includes('sessions') && (normalized.includes('mois') || normalized.includes('month'))) {
     const numberMatch = raw.match(/\d+/);
-    return `${isExcluded ? '❌' : '✓'} ${numberMatch ? `${numberMatch[0]} sessions / month` : 'Sessions / month'}`;
+    return `${isExcluded ? '❌' : '✓'} ${numberMatch ? `${numberMatch[0]} sessions / mois` : 'Sessions / mois'}`;
   }
 
   if (normalized.includes('catalogue limite') || normalized.includes('catalogue limite') || normalized.includes('limited catalog')) {
-    return `${isExcluded ? '❌' : '✓'} Limited catalog access`;
+    return `${isExcluded ? '❌' : '✓'} Acces catalogue limite`;
   }
 
   if (normalized.includes('jusqu') && normalized.includes('participant')) {
     const numberMatch = raw.match(/\d+/);
-    return `${isExcluded ? '❌' : '✓'} ${numberMatch ? `Up to ${numberMatch[0]} participants` : 'Up to participants limit'}`;
+    return `${isExcluded ? '❌' : '✓'} ${numberMatch ? `Jusqu'a ${numberMatch[0]} participants` : 'Limite de participants'}`;
   }
 
   if (normalized.includes('dh ht') || normalized.includes('hors taxe')) {
-    return `${isExcluded ? '❌' : '✓'} Excl. taxes`;
+    return `${isExcluded ? '❌' : '✓'} Hors taxes`;
   }
 
   if (normalized.includes('tout pro') || normalized.includes('all pro')) {
-    return `${isExcluded ? '❌' : '✓'} All Pro features included`;
+    return `${isExcluded ? '❌' : '✓'} Toutes les fonctionnalites Pro incluses`;
   }
 
   if (normalized.includes('support prioritaire') || normalized.includes('priority support')) {
-    return `${isExcluded ? '❌' : '✓'} Priority support`;
+    return `${isExcluded ? '❌' : '✓'} Support prioritaire`;
   }
 
   if (normalized.includes('automatisation') || normalized.includes('automation')) {
-    return `${isExcluded ? '❌' : '✓'} Advanced automation`;
+    return `${isExcluded ? '❌' : '✓'} Automatisation avancee`;
   }
 
   if (normalized.includes('personnalisation') || normalized.includes('branding')) {
-    return `${isExcluded ? '❌' : '✓'} Brand customization`;
+    return `${isExcluded ? '❌' : '✓'} Personnalisation de marque`;
   }
 
   if (normalized.includes('integration') || normalized.includes('integrations')) {
@@ -147,13 +147,13 @@ function normalizeFeatureLabel(feature) {
   }
 
   if (normalized.includes('analytics') || normalized.includes('reporting')) {
-    return `${isExcluded ? '❌' : '✓'} Analytics and reporting`;
+    return `${isExcluded ? '❌' : '✓'} Analyses et reporting`;
   }
 
   const fallback = raw
     .replace(/^\s*[✓✔❌]\s*/u, '')
-    .replace(/^\s*pas d[’']?\s*/iu, 'No ')
-    .replace(/\s*\/\s*mois/gi, ' / month')
+    .replace(/^\s*pas d[’']?\s*/iu, 'Pas de ')
+    .replace(/\s*\/\s*mois/gi, ' / mois')
     .trim();
   return `${isExcluded ? '❌' : '✓'} ${fallback}`;
 }
@@ -198,13 +198,13 @@ function resolveHistoryAmountLabel(entry, plans, dhPriceByPlanId) {
   const explicit = String(entry?.amount_label || '').trim();
   if (explicit) {
     return explicit
-      .replace(/\bDH\s*HT\b/gi, 'DH Excl. taxes')
-      .replace(/\bHT\b/gi, 'Excl. taxes');
+      .replace(/\bDH\s*HT\b/gi, 'DH HT')
+      .replace(/\bExcl\. taxes\b/gi, 'HT');
   }
 
   const byPlanId = String(entry?.to_plan_id || '').trim();
   if (byPlanId && Object.prototype.hasOwnProperty.call(dhPriceByPlanId, byPlanId)) {
-    return `${formatDhAmount(dhPriceByPlanId[byPlanId])} Excl. taxes`;
+    return `${formatDhAmount(dhPriceByPlanId[byPlanId])} HT`;
   }
 
   const planName = String(entry?.to || '').trim().toLowerCase();
@@ -212,11 +212,11 @@ function resolveHistoryAmountLabel(entry, plans, dhPriceByPlanId) {
     const match = plans.find((plan) => String(plan?.name || '').trim().toLowerCase() === planName);
     if (match) {
       const amountDh = Number(dhPriceByPlanId[String(match.id)] || 0);
-      return `${formatDhAmount(amountDh)} Excl. taxes`;
+      return `${formatDhAmount(amountDh)} HT`;
     }
   }
 
-  return '0 DH Excl. taxes';
+  return '0 DH HT';
 }
 
 function normalizeDisplayName(user) {
@@ -295,6 +295,12 @@ function normalizePlanDisplayName(planName) {
   if (!name) return 'Plan';
   if (name.toLowerCase() === 'gratuit') return 'Free';
   return name;
+}
+
+function normalizeDepartmentDisplay(value) {
+  const text = String(value || '').trim();
+  if (text.toLowerCase() === 'human ressource') return 'Ressources humaines';
+  return text;
 }
 
 function getAccountPlanCopy(plan) {
@@ -607,7 +613,7 @@ export default function AccountPage() {
           first_name: toNameTitleCase(mePayload?.first_name),
           last_name: toNameTitleCase(mePayload?.last_name),
           job_title: String(mePayload?.job_title || '').trim(),
-          department: String(mePayload?.department || '').trim(),
+          department: normalizeDepartmentDisplay(mePayload?.department),
         });
         setSelectedPlanId(mePayload?.pricing_plan_id ? String(mePayload.pricing_plan_id) : '');
 
@@ -647,14 +653,14 @@ export default function AccountPage() {
   }, [me?.mfa_enabled, me?.two_factor_enabled]);
 
   useEffect(() => {
-    const resolvedLocationRaw = String(me?.city || me?.country || '').trim() || 'Unknown location';
-    const nowLabel = 'Now';
-    const recentLabel = '5 min ago';
+    const resolvedLocationRaw = String(me?.city || me?.country || '').trim() || 'Emplacement non identifie';
+    const nowLabel = 'Maintenant';
+    const recentLabel = 'Il y a 5 min';
     const currentLocationLabel = normalizeUnknownLocationLabel(resolvedLocationRaw, true, locale);
     setSecuritySessions([
       {
         id: 'current',
-        device: 'Desktop browser',
+        device: 'Navigateur desktop',
         location: currentLocationLabel,
         lastActive: nowLabel,
         isCurrent: true,
@@ -712,8 +718,8 @@ export default function AccountPage() {
   const sessionsUsagePercent = sessionsQuota > 0 ? Math.min(100, Math.round((sessionsConsumed / sessionsQuota) * 100)) : 0;
   const isFreePlanActive = String(activePlan?.slug || activePlan?.name || '').toLowerCase().includes('free') || Number(activePlan?.price_cents || 0) === 0;
   const usageSubtitle = isFreePlanActive
-    ? 'Up to 3 participants per session - Limited catalog (3 challenges)'
-    : `Up to ${formatCount(planSeats, 'en')} participants per session - Full catalog access`;
+    ? 'Jusqu\'a 3 participants par session - Catalogue limite (3 challenges)'
+    : `Jusqu'a ${formatCount(planSeats, 'fr')} participants par session - Acces complet au catalogue`;
 
   const lastPaidHistory = useMemo(() => {
     if (!Array.isArray(planHistory) || planHistory.length === 0) return null;
@@ -726,11 +732,11 @@ export default function AccountPage() {
 
   const billingStatusHint = useMemo(() => {
     if (!isFreePlanActive || !lastPaidHistory) return '';
-    const dateLabel = formatDate(lastPaidHistory.at, 'en');
+    const dateLabel = formatDate(lastPaidHistory.at, 'fr');
     if (dateLabel) {
-      return `Previous Pro subscription ended on ${dateLabel}.`;
+      return `Votre precedent abonnement Pro s'est termine le ${dateLabel}.`;
     }
-    return 'Previous Pro subscription has ended.';
+    return 'Votre precedent abonnement Pro est termine.';
   }, [isFreePlanActive, lastPaidHistory]);
 
   const recommendedPlan = useMemo(() => {
@@ -764,7 +770,7 @@ export default function AccountPage() {
     setEnablingTwoFactor(true);
     try {
       setTwoFactorEnabled(true);
-      showSuccess('Two-factor authentication enabled.');
+      showSuccess('Authentification a deux facteurs activee.');
     } finally {
       setEnablingTwoFactor(false);
     }
@@ -775,7 +781,7 @@ export default function AccountPage() {
     setSigningOutOtherSessions(true);
     try {
       setSecuritySessions((prev) => prev.filter((entry) => entry.isCurrent));
-      showSuccess('Signed out from other devices.');
+      showSuccess('Les autres appareils ont ete deconnectes.');
     } finally {
       setSigningOutOtherSessions(false);
     }
@@ -789,7 +795,7 @@ export default function AccountPage() {
     try {
       const payload = {
         job_title: profileForm.job_title || null,
-        department: profileForm.department || null,
+        department: normalizeDepartmentDisplay(profileForm.department) || null,
       };
       const updated = await updateMe(payload);
       setMe((prev) => ({
@@ -898,8 +904,8 @@ export default function AccountPage() {
       const historyEntry = {
         id: Date.now(),
         at: new Date().toISOString(),
-        from: previousPlan ? previousPlan.name : 'No plan',
-        to: latestPlan ? latestPlan.name : 'No plan',
+        from: previousPlan ? previousPlan.name : 'Aucune formule',
+        to: latestPlan ? latestPlan.name : 'Aucune formule',
         to_plan_id: latestPlanId || null,
         amount_dh: amountDh,
         amount_label: `${formatDhAmount(amountDh)} HT`,
@@ -959,7 +965,7 @@ export default function AccountPage() {
 
     if (amountDh <= 0) {
       setSelectedPlanId(String(targetPlanId));
-      showSuccess(locale === 'en' ? 'Free plan selected.' : 'Formule Free sélectionnée.');
+      showSuccess('Formule Free selectionnee.');
       return;
     }
 
@@ -982,7 +988,7 @@ export default function AccountPage() {
       if (String(method).toLowerCase() === 'payoneer') {
         const result = await startPayoneerCheckout({ pricing_plan_id: targetPlanId });
         const url = getCheckoutRedirectUrl(result);
-        if (!url) throw new Error('Impossible de démarrer le checkout Payoneer.');
+        if (!url) throw new Error('Impossible de demarrer le paiement Payoneer.');
         window.location.assign(url);
         return;
       }
@@ -998,7 +1004,7 @@ export default function AccountPage() {
         `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}`
       );
     } catch (err) {
-      showError(err.message || (locale === 'en' ? 'Checkout unavailable.' : 'Checkout indisponible.'));
+      showError(err.message || 'Paiement indisponible.');
     } finally {
       setOpeningCheckout(false);
     }
@@ -1077,43 +1083,43 @@ export default function AccountPage() {
           </section>
         ) : null}
 
-        <section className="account-page-header" aria-label="Account settings header">
-          <p className="eyebrow">MANAGER SPACE</p>
-          <h1>Account Settings</h1>
-          <p>Manage your profile, security options, and subscription in one place.</p>
+        <section className="account-page-header" aria-label="En-tete des parametres du compte">
+          <p className="eyebrow">ESPACE MANAGER</p>
+          <h1>Parametres du compte</h1>
+          <p>Gerez votre profil, vos options de securite et votre abonnement depuis un seul espace.</p>
         </section>
 
         <div className="account-card-container">
-          <div className="account-tabs account-tabs--modern" role="tablist" aria-label="Account sections">
+          <div className="account-tabs account-tabs--modern" role="tablist" aria-label="Sections du compte">
             <button type="button" role="tab" aria-selected={activeTab === 'profile'} className={`account-tab account-tab--modern ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => setActiveTab('profile')}>
-              Profile
+              Profil
             </button>
             <button type="button" role="tab" aria-selected={activeTab === 'security'} className={`account-tab account-tab--modern ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => setActiveTab('security')}>
-              Security
+              Securite
             </button>
             <button type="button" role="tab" aria-selected={activeTab === 'pricing'} className={`account-tab account-tab--modern ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => setActiveTab('pricing')}>
-              Subscription & Billing
+              Abonnement et facturation
             </button>
           </div>
 
           <section id="account-profile" className={`account-saas-card account-panel ${activeTab === 'profile' ? 'is-active' : ''}`} hidden={activeTab !== 'profile'}>
             <header className="account-saas-card__header">
-              <p className="eyebrow">PROFILE</p>
-              <h2 className="account-saas-card__title">Profile Settings</h2>
+              <p className="eyebrow">PROFIL</p>
+              <h2 className="account-saas-card__title">Parametres du profil</h2>
               <p className="account-saas-card__subtitle">{t('account.profileSubtitle')}</p>
             </header>
             <div className="account-saas-card__body account-profile-layout">
-              <aside className="account-identity-card" aria-label="Identity summary">
+              <aside className="account-identity-card" aria-label="Resume de l'identite">
                 <div className="account-identity-avatar-wrap">
                   {resolvedAvatarUrl ? (
-                    <img src={resolvedAvatarUrl} alt="Selected avatar" className="account-identity-avatar-photo" />
+                    <img src={resolvedAvatarUrl} alt="Avatar selectionne" className="account-identity-avatar-photo" />
                   ) : (
                     <span className="account-identity-avatar" aria-hidden="true">{profileIdentityInitials}</span>
                   )}
                   <button
                     type="button"
                     className="account-identity-avatar-edit"
-                    aria-label="Change avatar"
+                    aria-label="Changer l'avatar"
                     title="JPG, PNG. Max 2MB"
                     aria-haspopup="dialog"
                     aria-expanded={avatarPickerOpen}
@@ -1123,22 +1129,23 @@ export default function AccountPage() {
                   </button>
                 </div>
                 <div className="account-identity-meta">
-                  <p className="account-identity-email">{String(me?.email || guard.user?.email || '').trim() || '-'}</p>
+                  <p className="account-identity-email" title={String(me?.email || guard.user?.email || '').trim() || '-'}>{String(me?.email || guard.user?.email || '').trim() || '-'}</p>
                   <span className="account-role-badge">Manager</span>
                 </div>
               </aside>
 
               <form className="account-profile-form" onSubmit={handleSaveProfile}>
                 <section className="account-profile-group" aria-labelledby="profile-personal-information-title">
-                  <h3 id="profile-personal-information-title" className="account-profile-group__title">Personal Details</h3>
+                  <h3 id="profile-personal-information-title" className="account-profile-group__title">Informations personnelles</h3>
                   <div className="account-form-grid">
                     <div className="account-form-field">
                       <label className="account-form-label" htmlFor="account-first-name">
                         {t('account.firstName')} <span className="account-field-required" aria-hidden="true">*</span>
                         <span
                           className="account-lock-indicator"
-                          aria-label="This field is locked"
-                          data-tooltip="First name can only be changed by an administrator."
+                          aria-label="Champ verrouille"
+                          title="Le prenom est verrouille et ne peut etre modifie que par un administrateur."
+                          data-tooltip="Le prenom est verrouille et ne peut etre modifie que par un administrateur."
                         >
                           🔒
                         </span>
@@ -1157,8 +1164,9 @@ export default function AccountPage() {
                         {t('account.lastName')} <span className="account-field-required" aria-hidden="true">*</span>
                         <span
                           className="account-lock-indicator"
-                          aria-label="This field is locked"
-                          data-tooltip="Last name can only be changed by an administrator."
+                          aria-label="Champ verrouille"
+                          title="Le nom est verrouille et ne peut etre modifie que par un administrateur."
+                          data-tooltip="Le nom est verrouille et ne peut etre modifie que par un administrateur."
                         >
                           🔒
                         </span>
@@ -1173,11 +1181,8 @@ export default function AccountPage() {
                       />
                     </div>
                     <div className="account-form-field account-form-field--full">
-                      <label className="account-form-label account-form-label--with-action" htmlFor="account-email">
+                      <label className="account-form-label" htmlFor="account-email">
                         <span>Email <span className="account-field-required" aria-hidden="true">*</span></span>
-                        <button type="button" className="account-inline-link" onClick={handleResetPassword} disabled={resettingPassword}>
-                          {resettingPassword ? 'Preparing...' : 'Request email change'}
-                        </button>
                       </label>
                       <input
                         id="account-email"
@@ -1187,16 +1192,19 @@ export default function AccountPage() {
                         disabled
                         readOnly
                       />
+                      <button type="button" className="account-inline-link account-email-change-link" onClick={handleResetPassword} disabled={resettingPassword}>
+                        {resettingPassword ? 'Preparation en cours...' : 'Demander un changement d\'email'}
+                      </button>
                     </div>
                   </div>
                 </section>
 
                 <section className="account-profile-group" aria-labelledby="profile-professional-details-title">
-                  <h3 id="profile-professional-details-title" className="account-profile-group__title">Professional Details</h3>
-                  <p className="account-group-caption">Fields marked with * are required. Other fields are optional.</p>
+                  <h3 id="profile-professional-details-title" className="account-profile-group__title">Informations professionnelles</h3>
+                  <p className="account-group-caption">Les champs marques d'un * sont obligatoires. Les autres champs sont facultatifs.</p>
                   <div className="account-form-grid">
                     <div className="account-form-field account-form-field--full">
-                      <label className="account-form-label" htmlFor="account-job-title">{t('account.jobTitle')} <span className="account-field-optional">(Optional)</span></label>
+                      <label className="account-form-label" htmlFor="account-job-title">{t('account.jobTitle')} <span className="account-field-optional">(Facultatif)</span></label>
                       <input
                         id="account-job-title"
                         className="account-form-input"
@@ -1207,7 +1215,7 @@ export default function AccountPage() {
                       />
                     </div>
                     <div className="account-form-field account-form-field--full">
-                      <label className="account-form-label" htmlFor="account-department">{t('account.department')} <span className="account-field-optional">(Optional)</span></label>
+                      <label className="account-form-label" htmlFor="account-department">{t('account.department')} <span className="account-field-optional">(Facultatif)</span></label>
                       <input
                         id="account-department"
                         className="account-form-input"
@@ -1222,7 +1230,7 @@ export default function AccountPage() {
 
                 <div className="account-profile-form-actions">
                   <button type="submit" className="btn-primary account-save-profile-btn" disabled={savingProfile || !isProfileDirty}>
-                    {savingProfile ? 'Saving...' : 'Save Changes'}
+                    {savingProfile ? 'Enregistrement...' : 'Enregistrer les modifications'}
                   </button>
                 </div>
               </form>
@@ -1231,14 +1239,14 @@ export default function AccountPage() {
 
           <section id="account-security" className={`account-saas-card account-panel ${activeTab === 'security' ? 'is-active' : ''}`} hidden={activeTab !== 'security'}>
             <header className="account-saas-card__header">
-              <p className="eyebrow">SECURITY</p>
-              <h2 className="account-saas-card__title">Security & Access</h2>
-              <p className="account-saas-card__subtitle">Manage credentials, two-factor authentication, and connected sessions.</p>
+              <p className="eyebrow">SECURITE</p>
+              <h2 className="account-saas-card__title">Securite et acces</h2>
+              <p className="account-saas-card__subtitle">Gerez vos identifiants, l'authentification a deux facteurs et les sessions connectees.</p>
             </header>
             <div className="account-saas-card__body account-security-grid">
               <article className="account-security-card">
                 <header className="account-security-card__head">
-                  <h3>Change Password</h3>
+                  <h3>Modifier le mot de passe</h3>
                 </header>
                 <form className="account-security-form" onSubmit={handleUpdatePassword}>
                   <div className="account-form-field account-form-field--full">
@@ -1257,7 +1265,7 @@ export default function AccountPage() {
                         onChange={(e) => setPasswordForm((prev) => ({ ...prev, current_password: e.target.value }))}
                         placeholder={t('account.currentPasswordPlaceholder')}
                       />
-                      <button type="button" className="account-password-toggle" onClick={() => setShowCurrentPassword((prev) => !prev)} aria-label="Toggle current password visibility">
+                      <button type="button" className="account-password-toggle" onClick={() => setShowCurrentPassword((prev) => !prev)} aria-label="Afficher ou masquer le mot de passe actuel">
                         👁️
                       </button>
                     </div>
@@ -1275,29 +1283,29 @@ export default function AccountPage() {
                         placeholder={t('account.newPasswordPlaceholder')}
                         minLength={8}
                       />
-                      <button type="button" className="account-password-toggle" onClick={() => setShowNewPassword((prev) => !prev)} aria-label="Toggle new password visibility">
+                      <button type="button" className="account-password-toggle" onClick={() => setShowNewPassword((prev) => !prev)} aria-label="Afficher ou masquer le nouveau mot de passe">
                         👁️
                       </button>
                     </div>
 
                     <div className="account-password-strength" role="status" aria-live="polite">
-                      <span>Password strength</span>
+                      <span>Niveau de securite du mot de passe</span>
                       <strong>
                         {passwordChecks.level === 'strong'
-                          ? 'Strong'
+                          ? 'Fort'
                           : passwordChecks.level === 'medium'
-                            ? 'Medium'
-                            : 'Weak'}
+                            ? 'Moyen'
+                            : 'Faible'}
                       </strong>
                     </div>
                     <div className="account-password-strength-bar" aria-hidden="true">
                       <span className={`account-password-strength-bar__fill is-${passwordChecks.level}`} style={{ width: `${passwordChecks.percent}%` }} />
                     </div>
 
-                    <ul className="account-password-checklist" aria-label="Password requirements">
-                      <li className={passwordChecks.hasLength ? 'is-met' : ''}>8+ characters</li>
-                      <li className={passwordChecks.hasNumber ? 'is-met' : ''}>At least one number</li>
-                      <li className={passwordChecks.hasSymbol ? 'is-met' : ''}>At least one symbol</li>
+                    <ul className="account-password-checklist" aria-label="Exigences du mot de passe">
+                      <li className={passwordChecks.hasLength ? 'is-met' : ''}>8 caracteres minimum</li>
+                      <li className={passwordChecks.hasNumber ? 'is-met' : ''}>Au moins un chiffre</li>
+                      <li className={passwordChecks.hasSymbol ? 'is-met' : ''}>Au moins un symbole</li>
                     </ul>
                   </div>
 
@@ -1312,7 +1320,7 @@ export default function AccountPage() {
                         onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirm_password: e.target.value }))}
                         placeholder={t('account.confirmPasswordPlaceholder')}
                       />
-                      <button type="button" className="account-password-toggle" onClick={() => setShowConfirmPassword((prev) => !prev)} aria-label="Toggle confirmation password visibility">
+                      <button type="button" className="account-password-toggle" onClick={() => setShowConfirmPassword((prev) => !prev)} aria-label="Afficher ou masquer la confirmation du mot de passe">
                         👁️
                       </button>
                     </div>
@@ -1328,34 +1336,38 @@ export default function AccountPage() {
 
               <article className="account-security-card">
                 <header className="account-security-card__head">
-                  <h3>Two-Factor Authentication (2FA)</h3>
+                  <h3>Authentification a deux facteurs (2FA)</h3>
                 </header>
-                <p className="account-security-card__text">Protect your account with an extra verification step at sign in.</p>
-                <p className="account-security-card__hint">Use an authenticator app such as Google Authenticator or Authy to generate one-time codes.</p>
+                <p className="account-security-card__text">Protegez votre compte avec une etape de verification supplementaire a la connexion.</p>
+                <p className="account-security-card__hint">Utilisez une application d'authentification comme Google Authenticator ou Authy pour generer des codes temporaires.</p>
                 <p className="account-2fa-status">
-                  <span>Status</span>
-                  <strong className={twoFactorEnabled ? 'is-enabled' : 'is-disabled'}>{twoFactorEnabled ? 'Enabled' : 'Not enabled'}</strong>
+                  <span>Statut</span>
+                  <strong className={twoFactorEnabled ? 'is-enabled' : 'is-disabled'}>{twoFactorEnabled ? 'Activee' : 'Non activee'}</strong>
                 </p>
                 <button type="button" className="btn-primary account-security-cta" onClick={handleEnable2FA} disabled={enablingTwoFactor || twoFactorEnabled}>
-                  {twoFactorEnabled ? '2FA Enabled' : (enablingTwoFactor ? 'Enabling...' : 'Enable 2FA')}
+                  {twoFactorEnabled ? '2FA activee' : (enablingTwoFactor ? 'Activation...' : 'Activer la 2FA')}
                 </button>
               </article>
 
               <article className="account-security-card">
                 <header className="account-security-card__head">
-                  <h3>Active Sessions</h3>
+                  <h3>Sessions actives</h3>
                 </header>
-                <div className="account-session-list" role="list" aria-label="Active sessions list">
+                <div className="account-session-list" role="list" aria-label="Liste des sessions actives">
                   {securitySessions.map((session) => (
                     <article key={session.id} role="listitem" className="account-session-item">
                       <div className="account-session-item__icon" aria-hidden="true">{session.deviceType === 'mobile' ? '📱' : '💻'}</div>
                       <div className="account-session-item__meta">
                         <p className="account-session-item__device">{session.device}</p>
-                        <p className="account-session-item__details">{session.location} • {session.lastActive}</p>
+                        <dl className="account-session-item__details">
+                          <div><dt>Appareil</dt><dd>{session.deviceType === 'mobile' ? 'Mobile' : 'Ordinateur'}</dd></div>
+                          <div><dt>Localisation</dt><dd>{session.location}</dd></div>
+                          <div><dt>Derniere activite</dt><dd>{session.lastActive}</dd></div>
+                        </dl>
                       </div>
                       <div className="account-session-item__status">
                         {session.isCurrent ? (
-                          <span className="account-session-badge is-current">Current session</span>
+                          <span className="account-session-badge is-current">Session actuelle</span>
                         ) : (
                           <span className="account-session-badge">Active</span>
                         )}
@@ -1365,7 +1377,7 @@ export default function AccountPage() {
                 </div>
                 <div className="account-security-actions">
                   <button type="button" className="btn-secondary" onClick={handleSignOutOtherDevices} disabled={signingOutOtherSessions || securitySessions.filter((entry) => !entry.isCurrent).length === 0}>
-                    {signingOutOtherSessions ? 'Signing out...' : 'Sign out all other devices'}
+                    {signingOutOtherSessions ? 'Deconnexion...' : 'Deconnecter les autres appareils'}
                   </button>
                 </div>
               </article>
@@ -1377,20 +1389,20 @@ export default function AccountPage() {
           <div className="account-pricing-surface">
             <header className="account-pricing-head">
               <div>
-                <p className="eyebrow">Subscription & Billing</p>
-                <h2>Plans and Invoices</h2>
-                <p>Review your current plan, usage limits, and billing history.</p>
+                <p className="eyebrow">ABONNEMENT ET FACTURATION</p>
+                <h2>Formules et factures</h2>
+                <p>Consultez votre formule actuelle, vos limites d'utilisation et votre historique de facturation.</p>
               </div>
             </header>
 
-            <div className="account-usage-banner" aria-label="Usage summary">
+            <div className="account-usage-banner" aria-label="Resume d'utilisation">
               <div className="account-usage-banner__head">
-                <p className="account-usage-banner__plan">Current Plan: <strong>{isFreePlanActive ? 'Free Plan' : (activePlan?.name || 'No Plan')}</strong></p>
+                <p className="account-usage-banner__plan">Formule actuelle : <strong>{isFreePlanActive ? 'Formule Free' : (activePlan?.name || 'Aucune formule')}</strong></p>
               </div>
 
               <div className="account-usage-progress">
                 <div className="account-usage-progress__meta">
-                  <span>{formatCount(sessionsConsumed, 'en')} / {formatCount(sessionsQuota, 'en')} sessions used this month</span>
+                  <span>{formatCount(sessionsConsumed, 'fr')} / {formatCount(sessionsQuota, 'fr')} sessions utilisees ce mois-ci</span>
                 </div>
                 <div className="account-usage-progress__track" aria-hidden="true">
                   <span className="account-usage-progress__fill" style={{ width: `${sessionsUsagePercent}%` }} />
@@ -1431,9 +1443,9 @@ export default function AccountPage() {
                       </div>
                       <h3 className="pricing-price">
                         {priceFmt}
-                        <span>/month</span>
+                        <span>/mois</span>
                       </h3>
-                      <p className="pricing-tax-note">Excl. taxes</p>
+                      <p className="pricing-tax-note">HT</p>
                       {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
                       {Array.isArray(planCopy.features) && planCopy.features.length > 0 ? (
                         <ul className="pricing-feature-list">
@@ -1448,13 +1460,13 @@ export default function AccountPage() {
                       {isCurrent ? (
                         <div className="pricing-actions account-plan-card-actions">
                           <button type="button" className="account-plan-card-actions__current" disabled>
-                            Current Plan
+                            Formule actuelle
                           </button>
                         </div>
                       ) : (
                         <div className="pricing-actions account-plan-card-actions">
                           <button type="button" className="btn-primary account-plan-card-actions__primary" onClick={() => handleChoosePlan(plan.id)}>
-                            {isUpgrade ? 'Upgrade to Pro' : 'Downgrade'}
+                            {isUpgrade ? 'Passer a Pro' : 'Changer de formule'}
                           </button>
                         </div>
                       )}
@@ -1468,27 +1480,27 @@ export default function AccountPage() {
 
             {planHistory.length > 0 ? (
               <div className="account-plan-history">
-                <p className="eyebrow">Billing History</p>
+                <p className="eyebrow">HISTORIQUE DE FACTURATION</p>
                 <div className="account-history-table-wrap">
                   <table className="account-history-table">
                     <thead>
                       <tr>
                         <th>Date</th>
-                        <th>Plan</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Invoice</th>
+                        <th>Formule</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Facture</th>
                       </tr>
                     </thead>
                     <tbody>
                       {planHistory.map((entry) => (
                         <tr key={String(entry.id)}>
-                          <td>{formatDate(entry.at, 'en')}</td>
+                          <td>{formatDate(entry.at, 'fr')}</td>
                           <td>{entry.to}</td>
                           <td>{resolveHistoryAmountLabel(entry, plans, dhPriceByPlanId)}</td>
-                          <td><span className="account-history-status account-history-status--paid">Paid</span></td>
+                          <td><span className="account-history-status account-history-status--paid">Payee</span></td>
                           <td>
-                            <button type="button" className="account-history-link" onClick={() => handleDownloadInvoice(entry)}>📥 Download PDF</button>
+                            <button type="button" className="account-history-link" onClick={() => handleDownloadInvoice(entry)}>📥 Telecharger le PDF</button>
                           </td>
                         </tr>
                       ))}
@@ -1498,27 +1510,27 @@ export default function AccountPage() {
               </div>
             ) : null}
             {planHistory.length === 0 ? (
-              <p className="account-history-empty">No invoices yet</p>
+              <p className="account-history-empty">Aucune facture pour le moment</p>
             ) : null}
           </div>
         </section>
 
         <Modal
           open={checkoutModalOpen}
-          title="Complete your payment"
+          title="Finaliser le paiement"
           onClose={closeCheckoutModal}
           bodyClassName="account-checkout-modal-body"
         >
           <div className="account-checkout-modal-content">
             <p>
-              {`You selected ${checkoutPlan?.name || 'your plan'} (${formatDhAmount(Number(dhPriceByPlanId[String(checkoutPlan?.id || '')] || 0))} HT).`}
+              {`Vous avez selectionne ${checkoutPlan?.name || 'votre formule'} (${formatDhAmount(Number(dhPriceByPlanId[String(checkoutPlan?.id || '')] || 0))} HT).`}
             </p>
             <div className="account-checkout-modal-actions">
               <button type="button" className="btn-primary" onClick={() => handleStartPlanCheckout('stripe')} disabled={openingCheckout}>
-                {openingCheckout ? 'Opening checkout...' : 'Pay with Stripe'}
+                {openingCheckout ? 'Ouverture du paiement...' : 'Payer avec Stripe'}
               </button>
               <button type="button" className="btn-secondary" onClick={() => handleStartPlanCheckout('payoneer')} disabled={openingCheckout}>
-                Pay with Payoneer
+                Payer avec Payoneer
               </button>
             </div>
           </div>
@@ -1543,9 +1555,15 @@ export default function AccountPage() {
             --account-surface-soft: var(--surface-panel-soft, #f8fbff);
             --account-surface-muted: var(--surface-muted, #f1f5fb);
             --account-text: var(--text-strong, #24324f);
-            --account-text-soft: var(--text-muted, #526180);
+            --account-text-soft: var(--text-muted, #3f4f6a);
             --account-border-strong: var(--control-border, #d6d0ff);
             --account-overlay: var(--modal-scrim, rgba(15, 23, 42, 0.62));
+          }
+
+          @media (prefers-color-scheme: dark) {
+            :root {
+              --account-text-soft: #cbd5e1;
+            }
           }
 
           .account-page-header {
@@ -1728,7 +1746,7 @@ export default function AccountPage() {
 
           .account-security-card__hint {
             margin: -0.15rem 0 0;
-            color: var(--text-subtle, #64748b);
+            color: var(--account-text-soft);
             font-size: 0.84rem;
           }
 
@@ -1808,6 +1826,13 @@ export default function AccountPage() {
             cursor: wait;
           }
 
+          .account-email-change-link {
+            justify-self: start;
+            margin-top: 0.45rem;
+            line-height: 1.35;
+            text-align: left;
+          }
+
           .account-forgot-inline:disabled {
             cursor: wait;
             opacity: 0.75;
@@ -1860,7 +1885,7 @@ export default function AccountPage() {
             list-style: none;
             display: grid;
             gap: 0.3rem;
-            color: var(--text-subtle, #667996);
+            color: var(--account-text-soft);
             font-size: 0.82rem;
           }
 
@@ -1939,10 +1964,26 @@ export default function AccountPage() {
           }
 
           .account-session-item__details {
-            margin: 0.16rem 0 0;
-            color: var(--text-subtle, #64748b);
+            margin: 0.35rem 0 0;
+            color: var(--account-text-soft);
             font-size: 0.82rem;
             line-height: 1.35;
+          }
+
+          .account-session-item__details div {
+            display: grid;
+            grid-template-columns: 7.4rem minmax(0, 1fr);
+            gap: 0.5rem;
+          }
+
+          .account-session-item__details dt,
+          .account-session-item__details dd {
+            margin: 0;
+          }
+
+          .account-session-item__details dt {
+            color: var(--account-text);
+            font-weight: 700;
           }
 
           .account-session-badge {
@@ -2135,13 +2176,13 @@ export default function AccountPage() {
 
           .account-usage-banner__details {
             margin: 0;
-            color: #5b6a87;
+            color: var(--account-text-soft);
             font-size: 0.84rem;
           }
 
           .account-usage-banner__hint {
             margin: -0.2rem 0 0;
-            color: #475569;
+            color: var(--account-text-soft);
             font-size: 0.82rem;
           }
 
@@ -2154,12 +2195,12 @@ export default function AccountPage() {
             display: flex;
             justify-content: flex-start;
             gap: 0.75rem;
-            color: #526180;
+            color: var(--account-text-soft);
             font-size: 0.84rem;
           }
 
           .account-usage-progress__meta strong {
-            color: #24324f;
+            color: var(--account-text);
           }
 
           .account-usage-progress__track {
@@ -2194,6 +2235,19 @@ export default function AccountPage() {
             box-shadow: var(--account-card-shadow);
           }
 
+          .account-pricing-card .pricing-price {
+            color: var(--account-text);
+            font-size: clamp(1.85rem, 2.4vw, 2.25rem);
+            line-height: 1;
+          }
+
+          .account-pricing-card .pricing-description,
+          .account-pricing-card .pricing-tax-note,
+          .account-pricing-card .pricing-feature-list,
+          .account-pricing-card .pricing-meta-row {
+            color: var(--account-text-soft);
+          }
+
           .account-pricing-card .pricing-card-top {
             min-height: 4.6rem;
             display: flex;
@@ -2203,14 +2257,16 @@ export default function AccountPage() {
 
           .account-pricing-card .pricing-feature-list {
             flex: 1;
+            min-height: 9.5rem;
           }
 
           .account-pricing-badge {
             align-self: flex-start;
             margin-bottom: 0.45rem;
-            background: var(--account-primary-light);
-            color: var(--account-primary-dark);
-            border: 1px solid #ddd6fe;
+            background: linear-gradient(135deg, #6d4aff 0%, #4338ca 100%);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            box-shadow: 0 8px 18px rgba(91, 76, 230, 0.3);
           }
 
           .account-pricing-card--current {
@@ -2223,6 +2279,7 @@ export default function AccountPage() {
             display: flex;
             flex-direction: column;
             margin-top: auto;
+            min-height: 2.75rem;
           }
 
           .account-plan-card-actions__primary {
@@ -2264,14 +2321,15 @@ export default function AccountPage() {
           .account-history-table th,
           .account-history-table td {
             padding: 0.8rem 0.9rem;
-            border-bottom: 1px solid #edf2fb;
+            border-bottom: 1px solid var(--account-border-soft);
+            color: var(--account-text-soft);
           }
 
           .account-history-table th {
             font-size: 0.76rem;
             text-transform: uppercase;
             letter-spacing: 0.03em;
-            color: #6b7b96;
+            color: var(--account-text);
           }
 
           .account-history-status--paid {
@@ -2306,7 +2364,7 @@ export default function AccountPage() {
 
           .account-history-empty {
             margin: 0.8rem 0 0;
-            color: #667996;
+            color: var(--account-text-soft);
             font-weight: 600;
           }
 
@@ -2321,7 +2379,7 @@ export default function AccountPage() {
 
           .account-checkout-modal-content p {
             margin: 0;
-            color: #334155;
+            color: var(--account-text);
           }
 
           .account-checkout-modal-actions {

@@ -109,6 +109,10 @@ export default function AvatarMenu({
       </div>
       <div className="nav-user-dropdown__divider" />
       {items.map((item) => {
+        if (item.type === 'separator') {
+          return <div key={item.key} className="nav-user-dropdown__divider" role="separator" />;
+        }
+
         const itemClassName = `nav-user-dropdown__item${item.danger ? ' nav-user-dropdown__item--danger' : ''}`;
         if (item.href) {
           return (
