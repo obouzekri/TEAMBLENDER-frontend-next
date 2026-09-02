@@ -1550,6 +1550,7 @@ export default function AccountPage() {
 
           .account-page-header {
             margin: 0 0 1.1rem;
+            padding: clamp(1rem, 2vw, 1.5rem) clamp(1rem, 2.4vw, 1.75rem);
             display: grid;
             gap: 0.35rem;
           }
