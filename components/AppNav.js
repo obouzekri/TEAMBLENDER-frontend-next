@@ -134,11 +134,22 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
       label: compactReturnLabel,
       href: withLocalePath(compactReturnHref),
     }] : []),
+    ...(!isCompact ? [{
+      key: 'account',
+      label: t('nav.myAccount'),
+      href: withLocalePath(accountHref),
+    }] : []),
     {
       key: 'settings',
       label: t('appNav.settings'),
       onClick: () => setSettingsOpen(true),
     },
+    ...(!isCompact ? [{
+      key: 'logout',
+      label: t('appNav.logout'),
+      danger: true,
+      onClick: () => onLogout?.(),
+    }] : []),
   ];
 
   return (
@@ -251,27 +262,6 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
             ) : null}
 
             <div className="nav-actions appnav-desktop-actions" aria-label={t('nav.accountAria')}>
-              {!isCompact ? (
-                <Link
-                  href={withLocalePath(accountHref)}
-                  className="nav-link appnav-desktop-link"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {t('nav.myAccount')}
-                </Link>
-              ) : null}
-              {!isCompact ? (
-                <button
-                  type="button"
-                  className="nav-link appnav-desktop-link appnav-desktop-link--button"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    onLogout?.();
-                  }}
-                >
-                  {t('appNav.logout')}
-                </button>
-              ) : null}
               <LanguageSwitcher />
               <AvatarMenu
                 userLabel={resolvedUserLabel}
