@@ -195,11 +195,6 @@ const LANDING_STATIC_BY_LOCALE = {
         detail: 'Une expérience fluide quel que soit le format d’organisation.',
       },
     ],
-    platformStatement: {
-      title: 'La plateforme B2B moderne pour concevoir, piloter et déployer vos initiatives d’équipe.',
-      description:
-        'Pensée pour les managers et les équipes RH, elle permet de déployer des expériences simples à organiser, engageantes pour les équipes et mesurables dans leurs résultats.',
-    },
     platformOfferItems: [
       {
         icon: Rocket,
@@ -270,7 +265,7 @@ const LANDING_STATIC_BY_LOCALE = {
       ],
     },
     fallback: {
-      heroPrimaryLabel: 'Démarrer gratuitement',
+      heroPrimaryLabel: 'Créer une session',
       heroSecondaryLabel: 'Voir les offres',
       finalPrimaryLabel: 'Démarrer gratuitement',
       finalSecondaryLabel: 'Demander une démo',
@@ -314,11 +309,6 @@ const LANDING_STATIC_BY_LOCALE = {
         detail: 'A smooth experience regardless of work format.',
       },
     ],
-    platformStatement: {
-      title: 'TeamBlender is the B2B platform to design, run and scale hybrid team-building experiences.',
-      description:
-        'Built for managers and HR teams, it delivers sessions that are easy to run, engaging for teams, and measurable in outcomes.',
-    },
     platformOfferItems: [
       {
         icon: Rocket,
@@ -389,7 +379,7 @@ const LANDING_STATIC_BY_LOCALE = {
       ],
     },
     fallback: {
-      heroPrimaryLabel: 'Get started free',
+      heroPrimaryLabel: 'Create a session',
       heroSecondaryLabel: 'View plans',
       finalPrimaryLabel: 'Get started free',
       finalSecondaryLabel: 'Request a demo',
@@ -914,7 +904,7 @@ export default function HomePage() {
   const testimonialsHeader = testimonialsSection.blocks.testimonials_header || {};
   const heroTitle = t('landing.heroTitle');
   const heroDescription = t('landing.heroDescription');
-  const heroPrimaryLabel = hasCmsValue(heroCtaPrimary.cta_label) ? heroCtaPrimary.cta_label : landingStatic.fallback.heroPrimaryLabel;
+  const heroPrimaryLabel = landingStatic.fallback.heroPrimaryLabel;
   const heroPrimaryHref = withLocalePath(safeHref(heroCtaPrimary.cta_href, '/signup'));
   const heroSecondaryLabel = hasCmsValue(heroCtaSecondary.cta_label) ? heroCtaSecondary.cta_label : landingStatic.fallback.heroSecondaryLabel;
   const heroSecondaryHref = withLocalePath(safeHref(heroCtaSecondary.cta_href, '/pricing'));
@@ -923,7 +913,9 @@ export default function HomePage() {
   const finalSecondaryLabel = hasCmsValue(finalCtaSecondary.cta_label) ? finalCtaSecondary.cta_label : landingStatic.fallback.finalSecondaryLabel;
   const finalSecondaryHref = withLocalePath(safeHref(finalCtaSecondary.cta_href, '/contact'));
 
-  const heroTrustItems = ['Team challenge', 'Live engagement', 'Team cohesion'];
+  const heroTrustItems = locale === 'en'
+    ? ['Zero installation', 'Real-time participation', 'Customizable experiences']
+    : ['Zéro installation', 'Participation en temps réel', 'Expériences personnalisables'];
 
   const heroTrustBadges = useMemo(
     () => heroTrustItems.slice(0, 3).map((title, index) => ({
@@ -989,7 +981,6 @@ export default function HomePage() {
 
   const cmsAudit = useMemo(() => buildLandingCmsAudit(dynamicBlocks), [dynamicBlocks]);
   const TRUST_PROOF_METRICS = landingStatic.trustProofMetrics;
-  const PLATFORM_STATEMENT = landingStatic.platformStatement;
   const PLATFORM_OFFER_ITEMS = landingStatic.platformOfferItems;
   const PLATFORM_BENEFITS_ITEMS = landingStatic.platformBenefitsItems;
   const USE_CASES = landingStatic.useCases;
@@ -1318,19 +1309,6 @@ export default function HomePage() {
             </div>
           </section>
         ) : null}
-
-        <section
-          className="landing-section-full landing-section-full--statement relative overflow-hidden p-8 sm:p-10"
-          style={{ '--reveal-delay': '100ms', background: 'var(--color-surface, #fff)' }}
-          aria-label={locale === 'en' ? 'Platform positioning' : 'Positionnement plateforme'}
-        >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(99,102,241,0.08),transparent_45%)]" />
-          <div className="landing-section-inner relative mx-auto max-w-4xl text-center">
-            <span className="landing-statement-break" aria-hidden="true" />
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{PLATFORM_STATEMENT.title}</h2>
-            <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">{PLATFORM_STATEMENT.description}</p>
-          </div>
-        </section>
 
         <section
           className="landing-partners landing-section-full landing-section-full--proof relative overflow-hidden p-8 sm:p-12"
