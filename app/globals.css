@@ -18340,6 +18340,18 @@ html, body, .shell {
    Placed last so it wins over the earlier `!important` light rules.
    ================================================================ */
 @media (prefers-color-scheme: dark) {
+  .home-sessions-panel .eyebrow {
+    color: #94a3b8;
+  }
+
+  .home-sessions-panel .home-sessions-head h2 {
+    color: #f2f6ff;
+  }
+
+  .home-sessions-panel .home-sessions-head > div > p:not(.eyebrow) {
+    color: #cbd5e1;
+  }
+
   /* ── Session cards ── */
   .session-card {
     border-color: rgba(122, 140, 255, 0.22) !important;
@@ -18369,6 +18381,12 @@ html, body, .shell {
   .session-card-actions {
     border-top-color: rgba(226, 232, 255, 0.1);
     background: rgba(11, 17, 32, 0.92) !important;
+  }
+
+  .session-card-actions .icon-action-btn {
+    box-sizing: border-box;
+    flex: 0 0 34px;
+    padding: 0;
   }
 
   .session-tag {
