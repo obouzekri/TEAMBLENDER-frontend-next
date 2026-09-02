@@ -567,6 +567,70 @@
   box-shadow: 0 18px 44px rgba(2, 6, 23, 0.36);
 }
 
+:global(html[data-theme='dark']) .creationHero,
+:global(body[data-theme='dark']) .creationHero,
+:global(.dark) .creationHero {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(53, 160, 255, 0.16), rgba(53, 160, 255, 0) 34%),
+    linear-gradient(145deg, var(--card) 0%, var(--bg-soft) 100%);
+  box-shadow: 0 26px 48px rgba(2, 6, 23, 0.4);
+}
+
+:global(html[data-theme='dark']) .creationTitle,
+:global(body[data-theme='dark']) .creationTitle,
+:global(.dark) .creationTitle,
+:global(html[data-theme='dark']) .creationStepperItemCurrent,
+:global(body[data-theme='dark']) .creationStepperItemCurrent,
+:global(.dark) .creationStepperItemCurrent,
+:global(html[data-theme='dark']) .creationPrerequisite,
+:global(body[data-theme='dark']) .creationPrerequisite,
+:global(.dark) .creationPrerequisite,
+:global(html[data-theme='dark']) .creationStatCard strong,
+:global(body[data-theme='dark']) .creationStatCard strong,
+:global(.dark) .creationStatCard strong {
+  color: var(--text-strong);
+}
+
+:global(html[data-theme='dark']) .creationStepper,
+:global(body[data-theme='dark']) .creationStepper,
+:global(.dark) .creationStepper,
+:global(html[data-theme='dark']) .creationHeroBadge,
+:global(body[data-theme='dark']) .creationHeroBadge,
+:global(.dark) .creationHeroBadge,
+:global(html[data-theme='dark']) .creationStatCard,
+:global(body[data-theme='dark']) .creationStatCard,
+:global(.dark) .creationStatCard {
+  background: var(--surface-glass);
+  border-color: var(--surface-soft-border);
+}
+
+:global(html[data-theme='dark']) .creationPrerequisite,
+:global(body[data-theme='dark']) .creationPrerequisite,
+:global(.dark) .creationPrerequisite {
+  background: linear-gradient(120deg, rgba(30, 64, 175, 0.34) 0%, var(--surface-glass) 100%);
+  border-color: rgba(147, 197, 253, 0.32);
+}
+
+:global(html[data-theme='dark']) .creationStepperNumber,
+:global(body[data-theme='dark']) .creationStepperNumber,
+:global(.dark) .creationStepperNumber {
+  color: var(--text-strong);
+  background: var(--surface-control);
+  border-color: var(--control-border);
+}
+
+:global(html[data-theme='dark']) .creationStepperItemUpcoming,
+:global(body[data-theme='dark']) .creationStepperItemUpcoming,
+:global(.dark) .creationStepperItemUpcoming,
+:global(html[data-theme='dark']) .creationStepperStateLabel,
+:global(body[data-theme='dark']) .creationStepperStateLabel,
+:global(.dark) .creationStepperStateLabel,
+:global(html[data-theme='dark']) .creationStatCard small,
+:global(body[data-theme='dark']) .creationStatCard small,
+:global(.dark) .creationStatCard small {
+  color: var(--text-muted);
+}
+
 .creationForm,
 .creationParticipantsPane {
   position: relative;
