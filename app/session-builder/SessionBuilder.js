@@ -1458,7 +1458,7 @@ export default function SessionBuilder() {
     return (
       <>
         <ToastContainer toasts={toasts} onRemove={removeToast} />
-        <AppNav userLabel={userLabel} onLogout={logout} />
+        <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
         <main className={`auth-page ${styles.creationPageBackground}`}>
           <section className={styles.creationExperience}>
             <div className={styles.creationHero}>
@@ -1624,7 +1624,7 @@ export default function SessionBuilder() {
   return (
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      <AppNav userLabel={userLabel} onLogout={logout} />
+      <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
       
       <main className={`shell ${styles.sessionBuilder}`}>
         {asyncStatusMessage ? (

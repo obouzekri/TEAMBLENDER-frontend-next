@@ -25,6 +25,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
   const isCompact = role === 'participant-live' || isParticipantChallengeLive;
   const isManager = !isParticipant && !isAdmin && !isCompact;
   const isParticipantArea = isParticipant && !isCompact;
+  const showHeaderLanguageSwitcher = !isManager && !isParticipantArea;
   const brandHref = isParticipant && !isCompact ? '/participant' : isAdmin ? '/admin' : '/home';
   const compactReturnHref = isParticipant ? '/participant' : '/home';
   const compactReturnLabel = isParticipant ? t('appNav.backToSessions') : 'Tableau de bord';
@@ -263,12 +264,12 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
                 >
                   {t('appNav.logout')}
                 </button>
-                <LanguageSwitcher />
+                {showHeaderLanguageSwitcher ? <LanguageSwitcher /> : null}
               </div>
             ) : null}
 
             <div className="nav-actions appnav-desktop-actions" aria-label={t('nav.accountAria')}>
-              <LanguageSwitcher />
+              {showHeaderLanguageSwitcher ? <LanguageSwitcher /> : null}
               <AvatarMenu
                 userLabel={resolvedUserLabel}
                 roleLabel={roleLabel}
