@@ -1253,6 +1253,7 @@ export default function HomePage() {
                       width={1200}
                       height={800}
                       priority
+                      sizes="(max-width: 1024px) 90vw, 45vw"
                       className="landing-hero-product-image"
                     />
                   </figure>

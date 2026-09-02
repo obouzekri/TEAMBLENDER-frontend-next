@@ -449,6 +449,7 @@
   line-height: 1.65;
 }
 
+.creationStats {
   background: linear-gradient(180deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 220px));
