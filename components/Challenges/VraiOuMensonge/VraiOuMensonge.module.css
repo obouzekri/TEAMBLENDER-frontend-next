@@ -1526,7 +1526,7 @@
   align-items: center;
   padding: 8px 10px;
   border-radius: 10px;
-  border: 1px solid rgba(125, 164, 188, 0.32);
+  border: 1px solid rgba(var(--chip-border-rgb, 125, 164, 188), 0.32);
   background: rgba(9, 22, 34, 0.8);
 }
 
@@ -1564,17 +1564,17 @@
   padding: 6px 11px;
   font-size: 0.8rem;
   font-weight: 700;
-  background: linear-gradient(160deg, rgba(9, 23, 36, 0.84), rgba(8, 20, 31, 0.92));
-  color: #deedf9;
+  background: linear-gradient(160deg, rgba(var(--chip-bg-from-rgb, 9, 23, 36), 0.84), rgba(var(--chip-bg-to-rgb, 8, 20, 31), 0.92));
+  color: var(--chip-text, #deedf9);
 }
 
 .participantChipAvatar {
   width: 24px;
   height: 24px;
   border-radius: 999px;
-  border: 1px solid rgba(125, 164, 188, 0.24);
-  background: rgba(22, 62, 92, 0.75);
-  color: #e8f5ff;
+  border: 1px solid rgba(var(--chip-border-rgb, 125, 164, 188), 0.24);
+  background: rgba(var(--chip-avatar-bg-rgb, 22, 62, 92), 0.75);
+  color: var(--chip-avatar-text, #e8f5ff);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1583,21 +1583,21 @@
 }
 
 .participantChipPoser {
-  border-color: rgba(53, 183, 118, 0.58);
-  background: linear-gradient(145deg, rgba(18, 61, 44, 0.8), rgba(13, 42, 33, 0.9));
-  color: #dbffe9;
-  box-shadow: 0 0 0 2px rgba(53, 183, 118, 0.14);
+  border-color: rgba(var(--color-success-rgb, 53, 183, 118), 0.58);
+  background: linear-gradient(145deg, rgba(var(--color-success-dark-rgb, 18, 61, 44), 0.8), rgba(var(--color-success-darker-rgb, 13, 42, 33), 0.9));
+  color: var(--color-success-text, #dbffe9);
+  box-shadow: 0 0 0 2px rgba(var(--color-success-rgb, 53, 183, 118), 0.14);
 }
 
 .participantChipMe {
-  box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.22);
+  box-shadow: 0 0 0 2px rgba(var(--chip-focus-rgb, 125, 211, 252), 0.22);
 }
 
 .timeUpFeedback {
   margin: 0;
-  border: 1px solid rgba(239, 107, 107, 0.52);
-  background: rgba(76, 22, 28, 0.52);
-  color: #ffd9d9;
+  border: 1px solid rgba(var(--color-danger-rgb, 239, 107, 107), 0.52);
+  background: rgba(var(--color-danger-bg-rgb, 76, 22, 28), 0.52);
+  color: var(--color-danger-text, #ffd9d9);
   border-radius: 10px;
   padding: 7px 10px;
   font-size: 0.82rem;
@@ -1605,10 +1605,10 @@
 }
 
 .wowResult {
-  border: 1px solid rgba(53, 183, 118, 0.56);
+  border: 1px solid rgba(var(--color-success-rgb, 53, 183, 118), 0.56);
   border-radius: 14px;
   padding: 12px;
-  background: linear-gradient(145deg, rgba(17, 64, 47, 0.72), rgba(11, 40, 31, 0.66));
+  background: linear-gradient(145deg, rgba(var(--color-success-dark-rgb, 17, 64, 47), 0.72), rgba(var(--color-success-darker-rgb, 11, 40, 31), 0.66));
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;

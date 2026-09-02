@@ -592,41 +592,41 @@
 }
 
 .wordCodeAnimalamber {
-  background: rgba(251, 191, 36, 0.15);
-  border-color: rgba(251, 191, 36, 0.34);
+  background: rgba(var(--color-amber-rgb, 251, 191, 36), 0.15);
+  border-color: rgba(var(--color-amber-rgb, 251, 191, 36), 0.34);
 }
 
 .wordCodeAnimalazure {
-  background: rgba(56, 189, 248, 0.16);
-  border-color: rgba(125, 211, 252, 0.34);
+  background: rgba(var(--color-azure-rgb, 56, 189, 248), 0.16);
+  border-color: rgba(var(--color-azure-rgb, 125, 211, 252), 0.34);
 }
 
 .wordCodeAnimalmint {
-  background: rgba(52, 211, 153, 0.14);
-  border-color: rgba(110, 231, 183, 0.34);
+  background: rgba(var(--color-mint-rgb, 52, 211, 153), 0.14);
+  border-color: rgba(var(--color-mint-rgb, 110, 231, 183), 0.34);
 }
 
 .wordCodeAnimalgold {
-  background: rgba(245, 158, 11, 0.16);
-  border-color: rgba(252, 211, 77, 0.34);
+  background: rgba(var(--color-gold-rgb, 245, 158, 11), 0.16);
+  border-color: rgba(var(--color-gold-rgb, 252, 211, 77), 0.34);
 }
 
 .wordCodeEquals {
-  color: #bfdbfe;
+  color: var(--color-word-equals, #bfdbfe);
   font-size: 1.14rem;
   font-weight: 900;
 }
 
 .wordCodeValue {
-  color: #ecf7ff;
+  color: var(--color-word-value, #ecf7ff);
   font-size: 1.06rem;
   font-weight: 900;
   letter-spacing: 0.02em;
 }
 
 .wordCodeValueQuestion {
-  color: #fde68a;
-  text-shadow: 0 0 12px rgba(251, 191, 36, 0.26);
+  color: var(--color-word-question, #fde68a);
+  text-shadow: 0 0 12px rgba(var(--color-amber-rgb, 251, 191, 36), 0.26);
 }
 
 .hintBox {

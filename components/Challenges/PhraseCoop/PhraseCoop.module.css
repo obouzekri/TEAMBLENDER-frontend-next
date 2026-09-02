@@ -29,8 +29,8 @@
 
 /* TIMER CARD STYLES */
 .timerCard {
-  background: linear-gradient(135deg, #f0f9ff 0%, #eff6ff 100%);
-  border: 1px solid #0284c7 !important;
+  background: linear-gradient(135deg, var(--color-timer-bg-start, #f0f9ff) 0%, var(--color-timer-bg-end, #eff6ff) 100%);
+  border: 1px solid var(--color-timer-border, #0284c7) !important;
   border-radius: 12px;
   padding: 10px;
   display: grid;
@@ -41,7 +41,7 @@
   margin: 0;
   font-size: 0.9rem;
   font-weight: 700;
-  color: #0c4a6e;
+  color: var(--color-timer-title, #0c4a6e);
 }
 
 .timerRingContainer {
