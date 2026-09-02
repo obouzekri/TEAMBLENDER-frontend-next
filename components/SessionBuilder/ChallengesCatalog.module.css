@@ -758,3 +758,58 @@
     min-height: 2.35rem;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .playerHint {
+    color: #dbeafe;
+    background: rgba(30, 64, 175, 0.34);
+    border-color: rgba(147, 197, 253, 0.48);
+  }
+
+  .badge.badge {
+    color: #dbeafe;
+    background: rgba(30, 41, 59, 0.94);
+    border-top-color: rgba(148, 163, 184, 0.38);
+    border-right-color: rgba(148, 163, 184, 0.38);
+    border-bottom-color: rgba(148, 163, 184, 0.38);
+  }
+
+  .objectiveBadge.objectiveBadge {
+    color: #e9d5ff;
+    background: rgba(91, 33, 182, 0.34);
+    border-top-color: rgba(196, 181, 253, 0.42);
+    border-right-color: rgba(196, 181, 253, 0.42);
+    border-bottom-color: rgba(196, 181, 253, 0.42);
+  }
+
+  .toggleAction {
+    color: #eff6ff;
+    background: linear-gradient(135deg, rgba(30, 64, 175, 0.94) 0%, rgba(37, 99, 235, 0.9) 100%);
+    border-color: rgba(147, 197, 253, 0.58);
+    box-shadow: 0 10px 22px rgba(2, 6, 23, 0.28);
+  }
+
+  .toggleActionKnob {
+    background: #dbeafe;
+    border-color: #93c5fd;
+  }
+
+  .toggleActionSelected {
+    color: #fecaca;
+    background: linear-gradient(135deg, rgba(127, 29, 29, 0.92) 0%, rgba(185, 28, 28, 0.86) 100%);
+    border-color: rgba(252, 165, 165, 0.52);
+  }
+
+  .configureAction.configureAction {
+    color: #ffffff;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border-color: rgba(191, 219, 254, 0.6);
+    box-shadow: 0 10px 22px rgba(2, 6, 23, 0.3);
+  }
+
+  .configureAction.configureAction:hover:not(:disabled) {
+    color: #ffffff;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-color: rgba(219, 234, 254, 0.75);
+  }
+}
