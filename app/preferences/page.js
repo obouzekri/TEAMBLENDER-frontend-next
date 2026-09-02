@@ -53,15 +53,15 @@ export default function PreferencesPage() {
   }
 
   function savePreferences() {
-    showSuccess('Préférences enregistrées.');
+    showSuccess(t('preferencesPage.saved'));
   }
 
   if (guard.loading) {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>Chargement des préférences</h1>
-          <p>Préparation de vos réglages personnels.</p>
+          <h1>{t('preferencesPage.loadingTitle')}</h1>
+          <p>{t('preferencesPage.loadingBody')}</p>
         </section>
       </main>
     );
@@ -78,23 +78,23 @@ export default function PreferencesPage() {
         avatarInitials={resolvedAvatar.avatarInitials}
       />
       <main className="shell app-home preferences-page">
-        <section className="preferences-page-header" aria-label="En-tête des préférences">
-          <p className="eyebrow">PRÉFÉRENCES</p>
-          <h1>Préférences</h1>
-          <p>Personnalisez les notifications, l’apparence et les réglages de votre expérience TeamBlender.</p>
+        <section className="preferences-page-header" aria-label={t('preferencesPage.headerAria')}>
+          <p className="eyebrow">{t('preferencesPage.eyebrow')}</p>
+          <h1>{t('preferencesPage.title')}</h1>
+          <p>{t('preferencesPage.intro')}</p>
         </section>
 
         <section className="preferences-panel" aria-labelledby="preferences-notifications-title">
           <header className="preferences-panel__header">
-            <p className="eyebrow">NOTIFICATIONS</p>
-            <h2 id="preferences-notifications-title">Notifications</h2>
-            <p>Choisissez les rappels et résumés que vous souhaitez recevoir.</p>
+            <p className="eyebrow">{t('preferencesPage.notificationsEyebrow')}</p>
+            <h2 id="preferences-notifications-title">{t('preferencesPage.notificationsTitle')}</h2>
+            <p>{t('preferencesPage.notificationsIntro')}</p>
           </header>
           <div className="preferences-panel__body">
             <label className="preferences-toggle">
               <span>
-                <strong>Rappels de session</strong>
-                <small>Recevoir un rappel avant les sessions planifiées.</small>
+                <strong>{t('preferencesPage.sessionRemindersTitle')}</strong>
+                <small>{t('preferencesPage.sessionRemindersBody')}</small>
               </span>
               <span className="preferences-toggle__switch">
                 <input type="checkbox" checked={prefs.sessionReminders} onChange={(event) => updatePref('sessionReminders', event.target.checked)} />
@@ -103,8 +103,8 @@ export default function PreferencesPage() {
             </label>
             <label className="preferences-toggle">
               <span>
-                <strong>Résumés d’activité</strong>
-                <small>Recevoir une synthèse des activités récentes.</small>
+                <strong>{t('preferencesPage.activitySummariesTitle')}</strong>
+                <small>{t('preferencesPage.activitySummariesBody')}</small>
               </span>
               <span className="preferences-toggle__switch">
                 <input type="checkbox" checked={prefs.activitySummaries} onChange={(event) => updatePref('activitySummaries', event.target.checked)} />
@@ -116,15 +116,15 @@ export default function PreferencesPage() {
 
         <section className="preferences-panel" aria-labelledby="preferences-appearance-title">
           <header className="preferences-panel__header">
-            <p className="eyebrow">APPARENCE</p>
-            <h2 id="preferences-appearance-title">Apparence</h2>
-            <p>Ajustez le confort visuel et la densité de l’interface.</p>
+            <p className="eyebrow">{t('preferencesPage.appearanceEyebrow')}</p>
+            <h2 id="preferences-appearance-title">{t('preferencesPage.appearanceTitle')}</h2>
+            <p>{t('preferencesPage.appearanceIntro')}</p>
           </header>
           <div className="preferences-panel__body">
             <label className="preferences-toggle">
               <span>
-                <strong>Navigation compacte</strong>
-                <small>Réduire l’espace occupé par la barre de navigation.</small>
+                <strong>{t('preferencesPage.compactNavigationTitle')}</strong>
+                <small>{t('preferencesPage.compactNavigationBody')}</small>
               </span>
               <span className="preferences-toggle__switch">
                 <input type="checkbox" checked={prefs.compactNavigation} onChange={(event) => updatePref('compactNavigation', event.target.checked)} />
@@ -133,8 +133,8 @@ export default function PreferencesPage() {
             </label>
             <label className="preferences-toggle">
               <span>
-                <strong>Contraste renforcé</strong>
-                <small>Augmenter la lisibilité des textes secondaires.</small>
+                <strong>{t('preferencesPage.highContrastTitle')}</strong>
+                <small>{t('preferencesPage.highContrastBody')}</small>
               </span>
               <span className="preferences-toggle__switch">
                 <input type="checkbox" checked={prefs.highContrast} onChange={(event) => updatePref('highContrast', event.target.checked)} />
@@ -146,15 +146,15 @@ export default function PreferencesPage() {
 
         <section className="preferences-panel" aria-labelledby="preferences-language-title">
           <header className="preferences-panel__header">
-            <p className="eyebrow">LANGUE</p>
-            <h2 id="preferences-language-title">Langue de l’interface</h2>
-            <p>Choisissez la langue utilisée dans votre espace.</p>
+            <p className="eyebrow">{t('preferencesPage.languageEyebrow')}</p>
+            <h2 id="preferences-language-title">{t('preferencesPage.languageTitle')}</h2>
+            <p>{t('preferencesPage.languageIntro')}</p>
           </header>
           <div className="preferences-panel__body">
             <div className="preferences-language-card">
               <div>
-                <strong>Langue d’affichage</strong>
-                <small>Ce réglage s’applique immédiatement à la navigation et aux pages de l’application.</small>
+                <strong>{t('preferencesPage.displayLanguageTitle')}</strong>
+                <small>{t('preferencesPage.displayLanguageBody')}</small>
               </div>
               <LanguageSwitcher />
             </div>
@@ -163,17 +163,17 @@ export default function PreferencesPage() {
 
         <section className="preferences-panel" aria-labelledby="preferences-personalization-title">
           <header className="preferences-panel__header">
-            <p className="eyebrow">PERSONNALISATION</p>
-            <h2 id="preferences-personalization-title">Personnalisation</h2>
-            <p>Cette section accueillera les futures préférences d’expérience et de facilitation.</p>
+            <p className="eyebrow">{t('preferencesPage.personalizationEyebrow')}</p>
+            <h2 id="preferences-personalization-title">{t('preferencesPage.personalizationTitle')}</h2>
+            <p>{t('preferencesPage.personalizationIntro')}</p>
           </header>
           <div className="preferences-panel__body preferences-panel__body--muted">
-            <p>Les préférences avancées seront ajoutées progressivement, sans mélanger les réglages d’expérience avec le profil, la sécurité ou la facturation.</p>
+            <p>{t('preferencesPage.personalizationBody')}</p>
           </div>
         </section>
 
         <div className="preferences-actions">
-          <button type="button" className="btn-primary" onClick={savePreferences}>Enregistrer les préférences</button>
+          <button type="button" className="btn-primary" onClick={savePreferences}>{t('preferencesPage.save')}</button>
         </div>
       </main>
       <Footer />
