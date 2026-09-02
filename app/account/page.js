@@ -1613,8 +1613,8 @@ export default function AccountPage() {
           }
 
           .account-identity-card {
-            border: 1px solid var(--account-border-soft);
-            border-radius: 14px;
+            border: 1px solid color-mix(in srgb, var(--account-border-soft) 68%, transparent);
+            border-radius: 10px;
             background: var(--account-surface-soft);
             padding: 1rem;
             display: grid;
@@ -1704,8 +1704,8 @@ export default function AccountPage() {
           }
 
           .account-profile-group {
-            border: 1px solid var(--account-border-soft);
-            border-radius: 14px;
+            border: 1px solid color-mix(in srgb, var(--account-border-soft) 68%, transparent);
+            border-radius: 10px;
             background: var(--account-surface);
             padding: 1rem;
             box-shadow: var(--account-card-shadow);
@@ -1746,8 +1746,8 @@ export default function AccountPage() {
           }
 
           .account-security-card {
-            border: 1px solid var(--account-border-soft);
-            border-radius: 14px;
+            border: 1px solid color-mix(in srgb, var(--account-border-soft) 68%, transparent);
+            border-radius: 10px;
             background: var(--account-surface);
             padding: 1rem;
             display: grid;
@@ -2079,7 +2079,7 @@ export default function AccountPage() {
           }
 
           .account-saas-card__body {
-            padding: 1.2rem 1.75rem 1.5rem;
+            padding: 1.35rem clamp(2rem, 5vw, 4rem) 1.75rem;
           }
 
           .account-form-input {
@@ -2171,8 +2171,8 @@ export default function AccountPage() {
           }
 
           .account-usage-banner {
-            border: 1px solid var(--account-border-soft);
-            border-radius: 16px;
+            border: 1px solid color-mix(in srgb, var(--account-border-soft) 68%, transparent);
+            border-radius: 10px;
             background: var(--account-surface-soft);
             padding: 1rem 1.1rem;
             display: grid;

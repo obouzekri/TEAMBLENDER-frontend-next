@@ -229,9 +229,9 @@ export default function PreferencesPage() {
         }
 
         .preferences-panel__body {
-          padding: 1.15rem clamp(1.5rem, 4vw, 3rem) 1.6rem;
+          padding: 1.25rem clamp(2rem, 5vw, 4rem) 1.75rem;
           display: grid;
-          gap: 0.9rem;
+          gap: 1rem;
         }
 
         .preferences-toggle {
@@ -336,6 +336,11 @@ export default function PreferencesPage() {
           .preferences-language-card {
             align-items: flex-start;
             flex-direction: column;
+          }
+
+          .preferences-panel__body {
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
           }
         }
       `}</style>
