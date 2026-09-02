@@ -3,6 +3,7 @@
   --pm-surface: #0a1625;
   --pm-wall: #f8fafc;
   --pm-accent: #38bdf8;
+.boardRoot {
   --pm-success: #22c55e;
   --pm-danger: #ef4444;
   --pm-muted: #93a6bf;
@@ -24,6 +25,16 @@
   justify-content: space-between;
   gap: 0.7rem;
   flex-wrap: wrap;
+}
+
+:global(html[data-theme='light']) .boardRoot {
+  --pm-bg: #eaf3ff;
+  --pm-surface: #f8fbff;
+  --pm-wall: #1e3a5f;
+  --pm-muted: #475569;
+  border-color: rgba(71, 85, 105, 0.24);
+  color: #0f172a;
+  background: linear-gradient(180deg, var(--pm-surface), var(--pm-bg));
 }
 
 .boardTitle {

@@ -70,6 +70,16 @@
   top: 12px;
 }
 
+:global(html[data-theme='light']) .labyrinthContainer {
+  --maze-bg-deep: #eaf3ff;
+  --maze-bg-surface: #f7fbff;
+  --maze-wall: #1e3a5f;
+  --maze-wall-soft: #3b82a9;
+  --maze-corridor: #dcecff;
+  --maze-corridor-light: #c5e1f7;
+  background: linear-gradient(145deg, #f5f9ff 0%, #eaf3ff 60%, #dcecff 100%);
+}
+
 .panel {
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.18);

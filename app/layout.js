@@ -36,6 +36,26 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang={locale}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+              try {
+                const storedTheme = localStorage.getItem('tb_theme');
+                const preference = ['light', 'dark', 'system'].includes(storedTheme) ? storedTheme : 'system';
+                const resolvedTheme = preference === 'system'
+                  ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                  : preference;
+                document.documentElement.dataset.theme = resolvedTheme;
+                document.documentElement.dataset.themePreference = preference;
+              } catch {
+                document.documentElement.dataset.theme = 'light';
+                document.documentElement.dataset.themePreference = 'system';
+              }
+            })();`,
+          }}
+        />
+      </head>
       <body>
         <ExternalNotificationGuard />
         <I18nProvider>

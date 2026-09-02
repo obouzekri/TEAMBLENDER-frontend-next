@@ -1,4 +1,4 @@
-:root {
+.pageShell {
   --quiz-bg-0: #030711;
   --quiz-bg-1: #081425;
   --quiz-bg-2: #0c1f35;
@@ -45,6 +45,18 @@
   gap: 6px;
   overflow: hidden;
   flex: 1 1 auto;
+}
+
+:global(html[data-theme='light']) .pageShell {
+  --quiz-bg-0: #f7fbff;
+  --quiz-bg-1: #eef6ff;
+  --quiz-bg-2: #e4f0ff;
+  --quiz-surface: rgba(255, 255, 255, 0.94);
+  --quiz-surface-elevated: rgba(248, 251, 255, 0.98);
+  --quiz-border: rgba(71, 85, 105, 0.22);
+  --quiz-text: #0f172a;
+  --quiz-text-muted: #475569;
+  --quiz-primary: #087f9a;
 }
 
 .pageShell :global(.challenge-header-action) {

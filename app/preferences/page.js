@@ -21,6 +21,7 @@ export default function PreferencesPage() {
     compactNavigation: false,
     highContrast: false,
   });
+  const [themePreference, setThemePreference] = useState('system');
 
   useEffect(() => {
     const current = getStoredCurrentUser();
@@ -30,6 +31,8 @@ export default function PreferencesPage() {
     }
 
     const normalizedCurrent = ensureUserAvatarProfile(current);
+    const storedTheme = localStorage.getItem('tb_theme');
+    setThemePreference(['light', 'dark', 'system'].includes(storedTheme) ? storedTheme : 'system');
     setGuard({ loading: false, user: normalizedCurrent });
   }, [withLocalePath]);
 
@@ -50,6 +53,16 @@ export default function PreferencesPage() {
 
   function updatePref(key, value) {
     setPrefs((current) => ({ ...current, [key]: value }));
+  }
+
+  function updateThemePreference(nextPreference) {
+    const resolvedTheme = nextPreference === 'system'
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : nextPreference;
+    localStorage.setItem('tb_theme', nextPreference);
+    document.documentElement.dataset.theme = resolvedTheme;
+    document.documentElement.dataset.themePreference = nextPreference;
+    setThemePreference(nextPreference);
   }
 
   function savePreferences() {
@@ -91,6 +104,25 @@ export default function PreferencesPage() {
             <p>{t('preferencesPage.notificationsIntro')}</p>
           </header>
           <div className="preferences-panel__body">
+            <div className="preferences-theme-control" role="group" aria-label={t('preferencesPage.themeTitle')}>
+              <div>
+                <strong>{t('preferencesPage.themeTitle')}</strong>
+                <small>{t('preferencesPage.themeBody')}</small>
+              </div>
+              <div className="preferences-theme-options">
+                {['light', 'dark', 'system'].map((theme) => (
+                  <button
+                    key={theme}
+                    type="button"
+                    className={themePreference === theme ? 'is-active' : ''}
+                    onClick={() => updateThemePreference(theme)}
+                    aria-pressed={themePreference === theme}
+                  >
+                    {t(`preferencesPage.theme${theme[0].toUpperCase()}${theme.slice(1)}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
             <label className="preferences-toggle">
               <span>
                 <strong>{t('preferencesPage.sessionRemindersTitle')}</strong>
@@ -269,6 +301,55 @@ export default function PreferencesPage() {
           box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
         }
 
+        .preferences-theme-control {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          padding: 0.9rem 1rem;
+          border: 1px solid color-mix(in srgb, var(--surface-soft-border) 68%, transparent);
+          border-radius: 10px;
+          background: var(--surface-panel-soft);
+          color: var(--text-strong);
+        }
+
+        .preferences-theme-control > div:first-child {
+          display: grid;
+          gap: 0.16rem;
+        }
+
+        .preferences-theme-control small {
+          color: var(--text-muted);
+          font-size: 0.84rem;
+          line-height: 1.4;
+        }
+
+        .preferences-theme-options {
+          display: inline-flex;
+          padding: 3px;
+          border: 1px solid var(--control-border);
+          border-radius: 8px;
+          background: var(--surface-control);
+        }
+
+        .preferences-theme-options button {
+          min-height: 2rem;
+          border: 0;
+          border-radius: 5px;
+          padding: 0.35rem 0.65rem;
+          background: transparent;
+          color: var(--text-muted);
+          cursor: pointer;
+          font: inherit;
+          font-size: 0.82rem;
+          font-weight: 700;
+        }
+
+        .preferences-theme-options button.is-active {
+          background: var(--accent);
+          color: var(--text-on-accent);
+        }
+
         .preferences-language-card > div {
           display: grid;
           gap: 0.16rem;
@@ -334,6 +415,11 @@ export default function PreferencesPage() {
           }
 
           .preferences-language-card {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .preferences-theme-control {
             align-items: flex-start;
             flex-direction: column;
           }
