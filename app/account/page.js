@@ -74,9 +74,9 @@ function normalizeUnknownLocationLabel(location, isCurrent, locale = 'en') {
   ];
   if (!unknownValues.includes(raw.toLowerCase())) return raw;
   if (isCurrent) {
-    return locale === 'en' ? 'Location unavailable - Current device' : 'Emplacement non identifie - appareil actuel';
+    return locale === 'en' ? 'Location unavailable - Current device' : 'Emplacement non identifié - appareil actuel';
   }
-  return locale === 'en' ? 'Location unavailable' : 'Emplacement non identifie';
+  return locale === 'en' ? 'Location unavailable' : 'Emplacement non identifié';
 }
 
 function normalizeFeatureLabel(feature) {
@@ -94,12 +94,12 @@ function normalizeFeatureLabel(feature) {
     return `${isExcluded ? '❌' : '✓'} CSV/PDF export`;
   }
   if (normalized.includes('insights avances') || normalized.includes('advanced insights')) {
-    return `${isExcluded ? '❌' : '✓'} Insights avances`;
+    return `${isExcluded ? '❌' : '✓'} Insights avancés`;
   }
 
   if (normalized.includes('illimite') || normalized.includes('unlimited')) {
     if (normalized.includes('session')) {
-      return `${isExcluded ? '❌' : '✓'} Sessions illimitees`;
+      return `${isExcluded ? '❌' : '✓'} Sessions illimitées`;
     }
   }
 
@@ -114,7 +114,7 @@ function normalizeFeatureLabel(feature) {
   }
 
   if (normalized.includes('catalogue limite') || normalized.includes('catalogue limite') || normalized.includes('limited catalog')) {
-    return `${isExcluded ? '❌' : '✓'} Acces catalogue limite`;
+    return `${isExcluded ? '❌' : '✓'} Accès au catalogue limité`;
   }
 
   if (normalized.includes('jusqu') && normalized.includes('participant')) {
@@ -718,8 +718,8 @@ export default function AccountPage() {
   const sessionsUsagePercent = sessionsQuota > 0 ? Math.min(100, Math.round((sessionsConsumed / sessionsQuota) * 100)) : 0;
   const isFreePlanActive = String(activePlan?.slug || activePlan?.name || '').toLowerCase().includes('free') || Number(activePlan?.price_cents || 0) === 0;
   const usageSubtitle = isFreePlanActive
-    ? 'Jusqu\'a 3 participants par session - Catalogue limite (3 challenges)'
-    : `Jusqu'a ${formatCount(planSeats, 'fr')} participants par session - Acces complet au catalogue`;
+    ? 'Jusqu’à 3 participants par session - Catalogue limité (3 challenges)'
+    : `Jusqu’à ${formatCount(planSeats, 'fr')} participants par session - Accès complet au catalogue`;
 
   const lastPaidHistory = useMemo(() => {
     if (!Array.isArray(planHistory) || planHistory.length === 0) return null;
@@ -734,9 +734,9 @@ export default function AccountPage() {
     if (!isFreePlanActive || !lastPaidHistory) return '';
     const dateLabel = formatDate(lastPaidHistory.at, 'fr');
     if (dateLabel) {
-      return `Votre precedent abonnement Pro s'est termine le ${dateLabel}.`;
+      return `Votre précédent abonnement Pro s’est terminé le ${dateLabel}.`;
     }
-    return 'Votre precedent abonnement Pro est termine.';
+    return 'Votre précédent abonnement Pro est terminé.';
   }, [isFreePlanActive, lastPaidHistory]);
 
   const recommendedPlan = useMemo(() => {
@@ -770,7 +770,7 @@ export default function AccountPage() {
     setEnablingTwoFactor(true);
     try {
       setTwoFactorEnabled(true);
-      showSuccess('Authentification a deux facteurs activee.');
+      showSuccess('Authentification à deux facteurs activée.');
     } finally {
       setEnablingTwoFactor(false);
     }
@@ -781,7 +781,7 @@ export default function AccountPage() {
     setSigningOutOtherSessions(true);
     try {
       setSecuritySessions((prev) => prev.filter((entry) => entry.isCurrent));
-      showSuccess('Les autres appareils ont ete deconnectes.');
+      showSuccess('Les autres appareils ont été déconnectés.');
     } finally {
       setSigningOutOtherSessions(false);
     }
@@ -965,7 +965,7 @@ export default function AccountPage() {
 
     if (amountDh <= 0) {
       setSelectedPlanId(String(targetPlanId));
-      showSuccess('Formule Free selectionnee.');
+      showSuccess('Formule Free sélectionnée.');
       return;
     }
 
@@ -1083,10 +1083,10 @@ export default function AccountPage() {
           </section>
         ) : null}
 
-        <section className="account-page-header" aria-label="En-tete des parametres du compte">
+        <section className="account-page-header" aria-label="En-tête des paramètres du compte">
           <p className="eyebrow">ESPACE MANAGER</p>
-          <h1>Parametres du compte</h1>
-          <p>Gerez votre profil, vos options de securite et votre abonnement depuis un seul espace.</p>
+          <h1>Paramètres du compte</h1>
+          <p>Gérez votre profil, vos options de sécurité et votre abonnement depuis un seul espace.</p>
         </section>
 
         <div className="account-card-container">
@@ -1095,7 +1095,7 @@ export default function AccountPage() {
               Profil
             </button>
             <button type="button" role="tab" aria-selected={activeTab === 'security'} className={`account-tab account-tab--modern ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => setActiveTab('security')}>
-              Securite
+              Sécurité
             </button>
             <button type="button" role="tab" aria-selected={activeTab === 'pricing'} className={`account-tab account-tab--modern ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => setActiveTab('pricing')}>
               Abonnement et facturation
@@ -1105,14 +1105,14 @@ export default function AccountPage() {
           <section id="account-profile" className={`account-saas-card account-panel ${activeTab === 'profile' ? 'is-active' : ''}`} hidden={activeTab !== 'profile'}>
             <header className="account-saas-card__header">
               <p className="eyebrow">PROFIL</p>
-              <h2 className="account-saas-card__title">Parametres du profil</h2>
+              <h2 className="account-saas-card__title">Paramètres du profil</h2>
               <p className="account-saas-card__subtitle">{t('account.profileSubtitle')}</p>
             </header>
             <div className="account-saas-card__body account-profile-layout">
-              <aside className="account-identity-card" aria-label="Resume de l'identite">
+              <aside className="account-identity-card" aria-label="Résumé de l’identité">
                 <div className="account-identity-avatar-wrap">
                   {resolvedAvatarUrl ? (
-                    <img src={resolvedAvatarUrl} alt="Avatar selectionne" className="account-identity-avatar-photo" />
+                    <img src={resolvedAvatarUrl} alt="Avatar sélectionné" className="account-identity-avatar-photo" />
                   ) : (
                     <span className="account-identity-avatar" aria-hidden="true">{profileIdentityInitials}</span>
                   )}
@@ -1143,9 +1143,9 @@ export default function AccountPage() {
                         {t('account.firstName')} <span className="account-field-required" aria-hidden="true">*</span>
                         <span
                           className="account-lock-indicator"
-                          aria-label="Champ verrouille"
-                          title="Le prenom est verrouille et ne peut etre modifie que par un administrateur."
-                          data-tooltip="Le prenom est verrouille et ne peut etre modifie que par un administrateur."
+                          aria-label="Champ verrouillé"
+                          title="Le prénom est verrouillé et ne peut être modifié que par un administrateur."
+                          data-tooltip="Le prénom est verrouillé et ne peut être modifié que par un administrateur."
                         >
                           🔒
                         </span>
@@ -1164,9 +1164,9 @@ export default function AccountPage() {
                         {t('account.lastName')} <span className="account-field-required" aria-hidden="true">*</span>
                         <span
                           className="account-lock-indicator"
-                          aria-label="Champ verrouille"
-                          title="Le nom est verrouille et ne peut etre modifie que par un administrateur."
-                          data-tooltip="Le nom est verrouille et ne peut etre modifie que par un administrateur."
+                          aria-label="Champ verrouillé"
+                          title="Le nom est verrouillé et ne peut être modifié que par un administrateur."
+                          data-tooltip="Le nom est verrouillé et ne peut être modifié que par un administrateur."
                         >
                           🔒
                         </span>
@@ -1193,7 +1193,7 @@ export default function AccountPage() {
                         readOnly
                       />
                       <button type="button" className="account-inline-link account-email-change-link" onClick={handleResetPassword} disabled={resettingPassword}>
-                        {resettingPassword ? 'Preparation en cours...' : 'Demander un changement d\'email'}
+                        {resettingPassword ? 'Préparation en cours...' : 'Demander un changement d’e-mail'}
                       </button>
                     </div>
                   </div>
@@ -1201,7 +1201,7 @@ export default function AccountPage() {
 
                 <section className="account-profile-group" aria-labelledby="profile-professional-details-title">
                   <h3 id="profile-professional-details-title" className="account-profile-group__title">Informations professionnelles</h3>
-                  <p className="account-group-caption">Les champs marques d'un * sont obligatoires. Les autres champs sont facultatifs.</p>
+                  <p className="account-group-caption">Les champs marqués d’un * sont obligatoires. Les autres champs sont facultatifs.</p>
                   <div className="account-form-grid">
                     <div className="account-form-field account-form-field--full">
                       <label className="account-form-label" htmlFor="account-job-title">{t('account.jobTitle')} <span className="account-field-optional">(Facultatif)</span></label>
@@ -1239,9 +1239,9 @@ export default function AccountPage() {
 
           <section id="account-security" className={`account-saas-card account-panel ${activeTab === 'security' ? 'is-active' : ''}`} hidden={activeTab !== 'security'}>
             <header className="account-saas-card__header">
-              <p className="eyebrow">SECURITE</p>
-              <h2 className="account-saas-card__title">Securite et acces</h2>
-              <p className="account-saas-card__subtitle">Gerez vos identifiants, l'authentification a deux facteurs et les sessions connectees.</p>
+              <p className="eyebrow">SÉCURITÉ</p>
+              <h2 className="account-saas-card__title">Sécurité et accès</h2>
+              <p className="account-saas-card__subtitle">Gérez vos identifiants, l’authentification à deux facteurs et les sessions connectées.</p>
             </header>
             <div className="account-saas-card__body account-security-grid">
               <article className="account-security-card">
@@ -1289,7 +1289,7 @@ export default function AccountPage() {
                     </div>
 
                     <div className="account-password-strength" role="status" aria-live="polite">
-                      <span>Niveau de securite du mot de passe</span>
+                      <span>Niveau de sécurité du mot de passe</span>
                       <strong>
                         {passwordChecks.level === 'strong'
                           ? 'Fort'
@@ -1303,7 +1303,7 @@ export default function AccountPage() {
                     </div>
 
                     <ul className="account-password-checklist" aria-label="Exigences du mot de passe">
-                      <li className={passwordChecks.hasLength ? 'is-met' : ''}>8 caracteres minimum</li>
+                      <li className={passwordChecks.hasLength ? 'is-met' : ''}>8 caractères minimum</li>
                       <li className={passwordChecks.hasNumber ? 'is-met' : ''}>Au moins un chiffre</li>
                       <li className={passwordChecks.hasSymbol ? 'is-met' : ''}>Au moins un symbole</li>
                     </ul>
@@ -1336,16 +1336,16 @@ export default function AccountPage() {
 
               <article className="account-security-card">
                 <header className="account-security-card__head">
-                  <h3>Authentification a deux facteurs (2FA)</h3>
+                  <h3>Authentification à deux facteurs (2FA)</h3>
                 </header>
-                <p className="account-security-card__text">Protegez votre compte avec une etape de verification supplementaire a la connexion.</p>
-                <p className="account-security-card__hint">Utilisez une application d'authentification comme Google Authenticator ou Authy pour generer des codes temporaires.</p>
+                <p className="account-security-card__text">Protégez votre compte avec une étape de vérification supplémentaire à la connexion.</p>
+                <p className="account-security-card__hint">Utilisez une application d’authentification comme Google Authenticator ou Authy pour générer des codes temporaires.</p>
                 <p className="account-2fa-status">
                   <span>Statut</span>
-                  <strong className={twoFactorEnabled ? 'is-enabled' : 'is-disabled'}>{twoFactorEnabled ? 'Activee' : 'Non activee'}</strong>
+                  <strong className={twoFactorEnabled ? 'is-enabled' : 'is-disabled'}>{twoFactorEnabled ? 'Activée' : 'Non activée'}</strong>
                 </p>
                 <button type="button" className="btn-primary account-security-cta" onClick={handleEnable2FA} disabled={enablingTwoFactor || twoFactorEnabled}>
-                  {twoFactorEnabled ? '2FA activee' : (enablingTwoFactor ? 'Activation...' : 'Activer la 2FA')}
+                  {twoFactorEnabled ? '2FA activée' : (enablingTwoFactor ? 'Activation...' : 'Activer la 2FA')}
                 </button>
               </article>
 
@@ -1362,7 +1362,7 @@ export default function AccountPage() {
                         <dl className="account-session-item__details">
                           <div><dt>Appareil</dt><dd>{session.deviceType === 'mobile' ? 'Mobile' : 'Ordinateur'}</dd></div>
                           <div><dt>Localisation</dt><dd>{session.location}</dd></div>
-                          <div><dt>Derniere activite</dt><dd>{session.lastActive}</dd></div>
+                          <div><dt>Dernière activité</dt><dd>{session.lastActive}</dd></div>
                         </dl>
                       </div>
                       <div className="account-session-item__status">
@@ -1377,7 +1377,7 @@ export default function AccountPage() {
                 </div>
                 <div className="account-security-actions">
                   <button type="button" className="btn-secondary" onClick={handleSignOutOtherDevices} disabled={signingOutOtherSessions || securitySessions.filter((entry) => !entry.isCurrent).length === 0}>
-                    {signingOutOtherSessions ? 'Deconnexion...' : 'Deconnecter les autres appareils'}
+                    {signingOutOtherSessions ? 'Déconnexion...' : 'Déconnecter les autres appareils'}
                   </button>
                 </div>
               </article>
@@ -1395,14 +1395,14 @@ export default function AccountPage() {
               </div>
             </header>
 
-            <div className="account-usage-banner" aria-label="Resume d'utilisation">
+            <div className="account-usage-banner" aria-label="Résumé d’utilisation">
               <div className="account-usage-banner__head">
                 <p className="account-usage-banner__plan">Formule actuelle : <strong>{isFreePlanActive ? 'Formule Free' : (activePlan?.name || 'Aucune formule')}</strong></p>
               </div>
 
               <div className="account-usage-progress">
                 <div className="account-usage-progress__meta">
-                  <span>{formatCount(sessionsConsumed, 'fr')} / {formatCount(sessionsQuota, 'fr')} sessions utilisees ce mois-ci</span>
+                  <span>{formatCount(sessionsConsumed, 'fr')} / {formatCount(sessionsQuota, 'fr')} sessions utilisées ce mois-ci</span>
                 </div>
                 <div className="account-usage-progress__track" aria-hidden="true">
                   <span className="account-usage-progress__fill" style={{ width: `${sessionsUsagePercent}%` }} />
@@ -1466,7 +1466,7 @@ export default function AccountPage() {
                       ) : (
                         <div className="pricing-actions account-plan-card-actions">
                           <button type="button" className="btn-primary account-plan-card-actions__primary" onClick={() => handleChoosePlan(plan.id)}>
-                            {isUpgrade ? 'Passer a Pro' : 'Changer de formule'}
+                            {isUpgrade ? 'Passer à Pro' : 'Changer de formule'}
                           </button>
                         </div>
                       )}
@@ -1498,9 +1498,9 @@ export default function AccountPage() {
                           <td>{formatDate(entry.at, 'fr')}</td>
                           <td>{entry.to}</td>
                           <td>{resolveHistoryAmountLabel(entry, plans, dhPriceByPlanId)}</td>
-                          <td><span className="account-history-status account-history-status--paid">Payee</span></td>
+                          <td><span className="account-history-status account-history-status--paid">Payée</span></td>
                           <td>
-                            <button type="button" className="account-history-link" onClick={() => handleDownloadInvoice(entry)}>📥 Telecharger le PDF</button>
+                            <button type="button" className="account-history-link" onClick={() => handleDownloadInvoice(entry)}>📥 Télécharger le PDF</button>
                           </td>
                         </tr>
                       ))}
@@ -1523,7 +1523,7 @@ export default function AccountPage() {
         >
           <div className="account-checkout-modal-content">
             <p>
-              {`Vous avez selectionne ${checkoutPlan?.name || 'votre formule'} (${formatDhAmount(Number(dhPriceByPlanId[String(checkoutPlan?.id || '')] || 0))} HT).`}
+              {`Vous avez sélectionné ${checkoutPlan?.name || 'votre formule'} (${formatDhAmount(Number(dhPriceByPlanId[String(checkoutPlan?.id || '')] || 0))} HT).`}
             </p>
             <div className="account-checkout-modal-actions">
               <button type="button" className="btn-primary" onClick={() => handleStartPlanCheckout('stripe')} disabled={openingCheckout}>
@@ -1562,8 +1562,30 @@ export default function AccountPage() {
 
           @media (prefers-color-scheme: dark) {
             :root {
+              --account-primary: #9eb5ff;
+              --account-primary-dark: #c7d5ff;
+              --account-primary-light: #1b2b55;
+              --account-border-soft: #33445f;
+              --account-surface: #111a2e;
+              --account-surface-soft: #17233d;
+              --account-surface-muted: #22314c;
+              --account-text: #f2f6ff;
               --account-text-soft: #cbd5e1;
+              --account-border-strong: #6275a0;
             }
+          }
+
+          :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page {
+            --account-primary: #9eb5ff;
+            --account-primary-dark: #c7d5ff;
+            --account-primary-light: #1b2b55;
+            --account-border-soft: #33445f;
+            --account-surface: #111a2e;
+            --account-surface-soft: #17233d;
+            --account-surface-muted: #22314c;
+            --account-text: #f2f6ff;
+            --account-text-soft: #cbd5e1;
+            --account-border-strong: #6275a0;
           }
 
           .account-page-header {
