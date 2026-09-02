@@ -1410,6 +1410,11 @@
     box-shadow: 0 22px 48px rgba(2, 6, 23, 0.42);
   }
 
+  .creationForm,
+  .creationParticipantsPane {
+    background: linear-gradient(180deg, var(--card) 0%, var(--bg-soft) 100%);
+  }
+
   .creationHero {
     background:
       radial-gradient(circle at 100% 0%, rgba(53, 160, 255, 0.12), rgba(53, 160, 255, 0) 34%),
