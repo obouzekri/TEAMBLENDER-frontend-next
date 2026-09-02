@@ -397,6 +397,14 @@
   border-color: rgba(219, 234, 254, 0.75);
 }
 
+:global(html[data-theme='dark']) .card.selected,
+:global(body[data-theme='dark']) .card.selected,
+:global(.dark) .card.selected {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.98) 0%, rgba(17, 24, 39, 0.96) 100%);
+  border-color: rgba(96, 165, 250, 0.62);
+  box-shadow: 0 16px 36px rgba(2, 6, 23, 0.38);
+}
+
 .card.selected {
   background: linear-gradient(165deg, rgba(238, 242, 255, 0.96) 0%, var(--surface-panel) 100%);
   border-color: var(--surface-soft-border-strong);
@@ -760,6 +768,12 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  .card.selected {
+    background: linear-gradient(160deg, rgba(15, 23, 42, 0.98) 0%, rgba(17, 24, 39, 0.96) 100%);
+    border-color: rgba(96, 165, 250, 0.62);
+    box-shadow: 0 16px 36px rgba(2, 6, 23, 0.38);
+  }
+
   .playerHint {
     color: #dbeafe;
     background: rgba(30, 64, 175, 0.34);
