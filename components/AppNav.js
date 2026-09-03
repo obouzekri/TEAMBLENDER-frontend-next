@@ -25,10 +25,8 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
   const isCompact = role === 'participant-live' || isParticipantChallengeLive;
   const isManager = !isParticipant && !isAdmin && !isCompact;
   const isParticipantArea = isParticipant && !isCompact;
-  const showHeaderLanguageSwitcher = !isManager && !isParticipantArea;
+  const showHeaderLanguageSwitcher = !isManager && !isParticipantArea && !isCompact;
   const brandHref = isParticipant && !isCompact ? '/participant' : isAdmin ? '/admin' : '/home';
-  const compactReturnHref = isParticipant ? '/participant' : '/home';
-  const compactReturnLabel = isParticipant ? t('appNav.backToSessions') : 'Tableau de bord';
   const headerClassName = isCompact ? 'top-nav top-nav--live-inline' : 'top-nav';
   const isManagerHome = isManager && plainPathname === '/home';
   const isActive = (href) => plainPathname?.startsWith(href);
@@ -133,30 +131,28 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
     {
       key: 'home',
       label: t('appNav.home'),
-      href: withLocalePath(isCompact ? compactReturnHref : homeHref),
+      href: withLocalePath(homeHref),
     },
-    ...(!isCompact ? [
-      {
-        key: 'account',
-        label: t('nav.myAccount'),
-        href: withLocalePath(accountHref),
-      },
-      {
-        key: 'preferences',
-        label: t('appNav.preferences'),
-        href: withLocalePath('/preferences'),
-      },
-      {
-        key: 'separator-logout',
-        type: 'separator',
-      },
-      {
-        key: 'logout',
-        label: t('appNav.logout'),
-        danger: true,
-        onClick: () => onLogout?.(),
-      },
-    ] : []),
+    {
+      key: 'account',
+      label: t('nav.myAccount'),
+      href: withLocalePath(accountHref),
+    },
+    {
+      key: 'preferences',
+      label: t('appNav.preferences'),
+      href: withLocalePath('/preferences'),
+    },
+    {
+      key: 'separator-logout',
+      type: 'separator',
+    },
+    {
+      key: 'logout',
+      label: t('appNav.logout'),
+      danger: true,
+      onClick: () => onLogout?.(),
+    },
   ];
 
   return (

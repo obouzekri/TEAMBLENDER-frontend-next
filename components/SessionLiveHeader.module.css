@@ -1,6 +1,6 @@
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   padding: 1rem 1.1rem;
@@ -12,22 +12,47 @@
 
 .details {
   min-width: 0;
+  flex: 1 1 auto;
   display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
+  align-items: center;
 }
 
 .titleRow {
+  min-width: 0;
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  flex-wrap: wrap;
+  gap: 0.6rem;
+  flex-wrap: nowrap;
 }
 
 .sessionName {
+  min-width: 0;
+  flex: 0 1 auto;
   font-size: 1.12rem;
   font-weight: 800;
   color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.headerChallengeName {
+  min-width: 0;
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.14);
+  color: var(--accent-strong);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .infoWrap {
@@ -54,16 +79,15 @@
 }
 
 .popover {
-  position: absolute;
-  top: calc(100% + 0.6rem);
-  right: 0;
-  width: min(360px, calc(100vw - 1.5rem));
+  position: fixed;
   padding: 0.95rem;
   border-radius: 18px;
   border: 1px solid var(--control-border-strong);
   background: var(--surface-panel);
   box-shadow: 0 28px 50px rgba(15, 23, 42, 0.24);
-  z-index: 40;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  z-index: 1500;
 }
 
 .popoverSection + .popoverSection {
@@ -168,14 +192,8 @@
   font-size: 0.92rem;
 }
 
-.metaRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
 .participantBadge {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -186,12 +204,13 @@
   color: var(--text-strong);
   font-size: 0.86rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .actions {
   flex: 0 0 auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .actionButton {
@@ -209,10 +228,5 @@
 
   .actionButton {
     width: 100%;
-  }
-
-  .popover {
-    right: auto;
-    left: 0;
   }
 }

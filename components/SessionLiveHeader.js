@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Check, Copy, Info, Users } from 'lucide-react';
 import { Button } from '@/components/ui';
 import useI18n from '@/lib/i18n/useI18n';
@@ -29,8 +30,10 @@ export default function SessionLiveHeader({
   const { locale, t } = useI18n();
   const isEn = locale === 'en';
   const [infoOpen, setInfoOpen] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState(null);
   const [copied, setCopied] = useState(false);
   const infoRef = useRef(null);
+  const popoverRef = useRef(null);
   const copyTimerRef = useRef(null);
 
   const resolvedSessionName = String(sessionName || '').trim() || sessionId || t('sessionLive.sessionFallbackName');
@@ -62,11 +65,28 @@ export default function SessionLiveHeader({
   }, [activeChallengeId, orderedChallenges, resolvedActiveChallengeName]);
 
   useEffect(() => {
+    if (!infoOpen) {
+      setPopoverPosition(null);
+      return undefined;
+    }
+
+    function updatePosition() {
+      const trigger = infoRef.current;
+      if (!trigger || typeof window === 'undefined') return;
+      const rect = trigger.getBoundingClientRect();
+      const viewportPadding = 12;
+      const width = Math.min(360, window.innerWidth - viewportPadding * 2);
+      const left = Math.min(
+        Math.max(viewportPadding, rect.left),
+        window.innerWidth - width - viewportPadding
+      );
+      setPopoverPosition({ top: rect.bottom + 10, left, width });
+    }
+
     function handlePointerDown(event) {
-      if (!infoRef.current) return;
-      if (!infoRef.current.contains(event.target)) {
-        setInfoOpen(false);
-      }
+      if (infoRef.current?.contains(event.target)) return;
+      if (popoverRef.current?.contains(event.target)) return;
+      setInfoOpen(false);
     }
 
     function handleKeyDown(event) {
@@ -75,14 +95,17 @@ export default function SessionLiveHeader({
       }
     }
 
-    if (infoOpen) {
-      document.addEventListener('mousedown', handlePointerDown);
-      document.addEventListener('keydown', handleKeyDown);
-    }
+    updatePosition();
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
 
     return () => {
       document.removeEventListener('mousedown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
     };
   }, [infoOpen]);
 
@@ -108,11 +131,57 @@ export default function SessionLiveHeader({
     }
   }
 
+  const infoPopover = infoOpen && popoverPosition ? (
+    <div
+      ref={popoverRef}
+      className={styles.popover}
+      role="dialog"
+      aria-label={sessionInfoLabel}
+      style={{ top: `${popoverPosition.top}px`, left: `${popoverPosition.left}px`, width: `${popoverPosition.width}px` }}
+    >
+      <div className={styles.popoverSection}>
+        <p className={styles.popoverLabel}>{sessionCodeLabel}</p>
+        <div className={styles.codeRow}>
+          <strong className={styles.codeValue}>{resolvedSessionCode}</strong>
+          <Button variant="secondary" size="sm" className={styles.copyButton} onClick={handleCopySessionCode}>
+            {copied ? <Check size={14} strokeWidth={2.4} aria-hidden="true" /> : <Copy size={14} strokeWidth={2.4} aria-hidden="true" />}
+            <span>{copied ? copiedLabel : copyLabel}</span>
+          </Button>
+        </div>
+      </div>
+      <div className={styles.popoverSection}>
+        <p className={styles.popoverLabel}>{participantSummaryLabel}</p>
+        <strong className={styles.countValue}>
+          {resolvedParticipantCount} / {resolvedExpectedCount}
+        </strong>
+      </div>
+      <div className={styles.popoverSection}>
+        <p className={styles.popoverLabel}>{challengeOrderLabel}</p>
+        <ol className={styles.challengeList}>
+          {challengeRows.length > 0 ? challengeRows.map((challenge) => (
+            <li key={challenge.key} className={`${styles.challengeItem}${challenge.isCurrent ? ` ${styles.challengeItemCurrent}` : ''}`}>
+              <span className={styles.challengeIndex}>{challenge.index}</span>
+              <span className={styles.challengeLabel}>{challenge.label || t('sessionLive.noActiveChallengeTitle')}</span>
+              {challenge.isCurrent ? <span className={styles.challengeBadge}>{currentChallengeLabel}</span> : null}
+            </li>
+          )) : (
+            <li className={styles.challengeItemEmpty}>{noChallengeLabel}</li>
+          )}
+        </ol>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <section className={styles.header}>
       <div className={styles.details}>
         <div className={styles.titleRow}>
-          <strong className={styles.sessionName}>{resolvedSessionName}</strong>
+          <strong className={styles.sessionName} title={resolvedSessionName}>{resolvedSessionName}</strong>
+          <span className={styles.headerChallengeName} title={resolvedActiveChallengeName}>{resolvedActiveChallengeName}</span>
+          <span className={styles.participantBadge}>
+            <Users aria-hidden="true" size={14} strokeWidth={2} />
+            {resolvedParticipantCount}
+          </span>
           <div ref={infoRef} className={styles.infoWrap}>
             <button
               type="button"
@@ -124,48 +193,8 @@ export default function SessionLiveHeader({
             >
               <Info size={16} strokeWidth={2.2} aria-hidden="true" />
             </button>
-            {infoOpen ? (
-              <div className={styles.popover} role="dialog" aria-label={sessionInfoLabel}>
-                <div className={styles.popoverSection}>
-                  <p className={styles.popoverLabel}>{sessionCodeLabel}</p>
-                  <div className={styles.codeRow}>
-                    <strong className={styles.codeValue}>{resolvedSessionCode}</strong>
-                    <Button variant="secondary" size="sm" className={styles.copyButton} onClick={handleCopySessionCode}>
-                      {copied ? <Check size={14} strokeWidth={2.4} aria-hidden="true" /> : <Copy size={14} strokeWidth={2.4} aria-hidden="true" />}
-                      <span>{copied ? copiedLabel : copyLabel}</span>
-                    </Button>
-                  </div>
-                </div>
-                <div className={styles.popoverSection}>
-                  <p className={styles.popoverLabel}>{participantSummaryLabel}</p>
-                  <strong className={styles.countValue}>
-                    {resolvedParticipantCount} / {resolvedExpectedCount}
-                  </strong>
-                </div>
-                <div className={styles.popoverSection}>
-                  <p className={styles.popoverLabel}>{challengeOrderLabel}</p>
-                  <ol className={styles.challengeList}>
-                    {challengeRows.length > 0 ? challengeRows.map((challenge) => (
-                      <li key={challenge.key} className={`${styles.challengeItem}${challenge.isCurrent ? ` ${styles.challengeItemCurrent}` : ''}`}>
-                        <span className={styles.challengeIndex}>{challenge.index}</span>
-                        <span className={styles.challengeLabel}>{challenge.label || t('sessionLive.noActiveChallengeTitle')}</span>
-                        {challenge.isCurrent ? <span className={styles.challengeBadge}>{currentChallengeLabel}</span> : null}
-                      </li>
-                    )) : (
-                      <li className={styles.challengeItemEmpty}>{noChallengeLabel}</li>
-                    )}
-                  </ol>
-                </div>
-              </div>
-            ) : null}
+            {infoPopover && typeof document !== 'undefined' ? createPortal(infoPopover, document.body) : null}
           </div>
-        </div>
-        <div className={styles.metaRow}>
-          <span className={styles.challengeBadge}>{resolvedActiveChallengeName}</span>
-          <span className={styles.participantBadge}>
-            <Users aria-hidden="true" size={14} strokeWidth={2} />
-            {resolvedParticipantCount}
-          </span>
         </div>
       </div>
 
