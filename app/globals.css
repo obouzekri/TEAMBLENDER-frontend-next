@@ -14848,6 +14848,42 @@ html[data-theme='light'] .site-footer .footer-social__link {
   box-shadow: 0 14px 24px rgba(30, 58, 138, 0.12);
 }
 
+@media (max-width: 640px) {
+  .landing-hero-copy {
+    padding-top: 1.15rem;
+    padding-bottom: 0.2rem;
+  }
+
+  .landing-hero-title {
+    margin-top: 0.85rem !important;
+  }
+
+  .landing-hero-description {
+    margin-top: 0.8rem;
+    font-size: 0.94rem;
+    line-height: 1.52;
+  }
+
+  .landing-hero-keyline {
+    margin-top: 0.7rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  .landing-hero-product-shell {
+    margin-top: 0.85rem;
+  }
+
+  .landing-hero-product-image {
+    height: 190px;
+  }
+
+  .landing-hero-trust-item {
+    font-size: 0.74rem;
+    padding: 0.38rem 0.58rem;
+  }
+}
+
 .landing-orb-icon {
   --orb-core-size: 2.15rem;
   --orb-inner-size: 1.7rem;

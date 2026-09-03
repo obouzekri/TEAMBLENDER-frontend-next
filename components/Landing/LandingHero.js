@@ -9,16 +9,12 @@ import { CHIP_CLASS, PILL_CLASS } from './landingStyles';
 export default function LandingHero({
   locale,
   t,
-  heroKicker,
   heroMain,
   structuredHeroTitle,
   heroDescription,
   heroPrimaryHref,
   onPrimaryCtaClick,
   heroPrimaryLabel,
-  heroSecondaryHref,
-  onHeroSecondaryCtaClick,
-  heroSecondaryLabel,
   heroTrustBadges,
   heroImageB,
   fallback,
@@ -33,17 +29,6 @@ export default function LandingHero({
       <div className="landing-hero-aurora pointer-events-none absolute inset-0" />
       <div className="landing-hero-inner relative grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
         <div className="landing-hero-copy max-w-3xl">
-          {(heroKicker.title || heroMain.label) ? (
-            <div className="mb-5 flex flex-wrap gap-3">
-              <span className={`${CHIP_CLASS} landing-hero-kicker-chip`}>
-                <Sparkles className="h-4 w-4 text-indigo-500" />
-                {heroKicker.title || heroMain.label}
-              </span>
-            </div>
-          ) : null}
-
-          <span className="block h-2" aria-hidden="true" />
-
           <h1 className="landing-hero-title max-w-2xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
             <span className="block">{structuredHeroTitle}</span>
             {heroMain.subtitle ? <span className="landing-hero-subtitle mt-2 block bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-700 bg-clip-text text-transparent">{heroMain.subtitle}</span> : null}
@@ -69,13 +54,6 @@ export default function LandingHero({
             >
               <span>{heroPrimaryLabel}</span>
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              href={heroSecondaryHref}
-              onClick={onHeroSecondaryCtaClick}
-              className={`${PILL_CLASS} landing-cta-secondary landing-hero-secondary-btn cta-surface`}
-            >
-              <span>{heroSecondaryLabel}</span>
             </Link>
           </div>
 

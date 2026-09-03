@@ -31,8 +31,6 @@ import LandingSocialProof from '@/components/Landing/LandingSocialProof';
 import LandingPlatformOffer from '@/components/Landing/LandingPlatformOffer';
 import LandingChallengesShowcase from '@/components/Landing/LandingChallengesShowcase';
 import LandingBenefitsOrbit from '@/components/Landing/LandingBenefitsOrbit';
-import LandingTrustedCompanies from '@/components/Landing/LandingTrustedCompanies';
-import LandingTestimonials from '@/components/Landing/LandingTestimonials';
 import LandingFlowSteps from '@/components/Landing/LandingFlowSteps';
 import LandingFinalCta from '@/components/Landing/LandingFinalCta';
 import LandingPreviewModal from '@/components/Landing/LandingPreviewModal';
@@ -242,30 +240,24 @@ export default function HomePage() {
   );
 
   const heroMain = heroSection.blocks.hero_main || {};
-  const heroKicker = heroSection.blocks.hero_kicker || {};
   const heroCtaPrimary = heroSection.blocks.hero_cta_primary || {};
-  const heroCtaSecondary = heroSection.blocks.hero_cta_secondary || {};
   const heroImageB = heroSection.blocks.hero_image_b || {};
   const flowHeader = flowSection.blocks.flow_header || {};
   const finalCta = finalCtaSection.blocks.final_cta || {};
   const finalCtaSecondary = finalCtaSection.blocks.final_cta_secondary || {};
   const partnersHeader = partnersSection.blocks.partners_header || {};
-  const testimonialsHeader = testimonialsSection.blocks.testimonials_header || {};
   const heroTitle = t('landing.heroTitle');
   const heroDescription = t('landing.heroDescription');
   const heroPrimaryLabel = landingStatic.fallback.heroPrimaryLabel;
   const heroPrimaryHref = withLocalePath(safeHref(heroCtaPrimary.cta_href, '/signup'));
-  const heroSecondaryLabel = hasCmsValue(heroCtaSecondary.cta_label) ? heroCtaSecondary.cta_label : landingStatic.fallback.heroSecondaryLabel;
-  const heroSecondaryHref = withLocalePath(safeHref(heroCtaSecondary.cta_href, '/pricing'));
   const finalPrimaryLabel = hasCmsValue(finalCta.cta_label) ? finalCta.cta_label : landingStatic.fallback.finalPrimaryLabel;
   const finalPrimaryHref = withLocalePath(safeHref(finalCta.cta_href, '/signup'));
   const finalSecondaryLabel = hasCmsValue(finalCtaSecondary.cta_label) ? finalCtaSecondary.cta_label : landingStatic.fallback.finalSecondaryLabel;
   const finalSecondaryHref = withLocalePath(safeHref(finalCtaSecondary.cta_href, '/contact'));
 
-  const { handlePrimaryCtaClick, handleHeroSecondaryCtaClick, handleFinalSecondaryCtaClick } = useLandingCtaTracking({
+  const { handlePrimaryCtaClick, handleFinalSecondaryCtaClick } = useLandingCtaTracking({
     landingStatic,
     heroCtaPrimary,
-    heroCtaSecondary,
     finalCtaSecondary,
   });
 
@@ -274,7 +266,7 @@ export default function HomePage() {
     : ['Zéro installation', 'Participation en temps réel', 'Expériences personnalisables'];
 
   const heroTrustBadges = useMemo(
-    () => heroTrustItems.slice(0, 3).map((title, index) => ({
+    () => heroTrustItems.slice(0, 2).map((title, index) => ({
       title,
       Icon: resolveHeroTrustIcon(title, index),
     })),
@@ -314,25 +306,6 @@ export default function HomePage() {
       };
     }).filter((item) => item.title),
     [partnersSection]
-  );
-
-  const testimonialItems = useMemo(
-    () => ['testimonial_1', 'testimonial_2', 'testimonial_3'].map((key) => {
-      const item = testimonialsSection.blocks[key] || {};
-      const initials = String(item.title || '')
-        .split(' ')
-        .map((part) => String(part || '').trim().slice(0, 1).toUpperCase())
-        .filter(Boolean)
-        .slice(0, 2)
-        .join('');
-      return {
-        title: item.title || '',
-        subtitle: item.subtitle || '',
-        description: item.description || '',
-        initials: initials || 'TB',
-      };
-    }).filter((item) => item.title || item.description),
-    [testimonialsSection]
   );
 
   const cmsAudit = useMemo(() => buildLandingCmsAudit(dynamicBlocks), [dynamicBlocks]);
@@ -404,16 +377,12 @@ export default function HomePage() {
         <LandingHero
           locale={locale}
           t={t}
-          heroKicker={heroKicker}
           heroMain={heroMain}
           structuredHeroTitle={structuredHeroTitle}
           heroDescription={heroDescription}
           heroPrimaryHref={heroPrimaryHref}
           onPrimaryCtaClick={handlePrimaryCtaClick}
           heroPrimaryLabel={heroPrimaryLabel}
-          heroSecondaryHref={heroSecondaryHref}
-          onHeroSecondaryCtaClick={handleHeroSecondaryCtaClick}
-          heroSecondaryLabel={heroSecondaryLabel}
           heroTrustBadges={heroTrustBadges}
           heroImageB={heroImageB}
           fallback={landingStatic.fallback}
@@ -436,10 +405,6 @@ export default function HomePage() {
         <LandingChallengesShowcase locale={locale} challengeExamples={challengeExamples} />
 
         <LandingBenefitsOrbit locale={locale} fallback={landingStatic.fallback} platformBenefitsItems={PLATFORM_BENEFITS_ITEMS} />
-
-        <LandingTrustedCompanies locale={locale} trustedCompanies={TRUSTED_COMPANIES} />
-
-        <LandingTestimonials locale={locale} testimonialsHeader={testimonialsHeader} testimonialItems={testimonialItems} />
 
         <LandingFlowSteps locale={locale} flowHeader={flowHeader} flowStepsWithIcons={flowStepsWithIcons} />
 

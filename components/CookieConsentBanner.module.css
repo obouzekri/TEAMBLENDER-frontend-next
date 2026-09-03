@@ -152,7 +152,7 @@
 
   .panel {
     border-radius: 18px;
-    padding: 16px;
+    padding: 12px 14px;
   }
 
   .header {
@@ -160,10 +160,28 @@
   }
 
   .actions {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
   }
 
   .button {
     width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .eyebrow,
+  .text,
+  .meta {
+    display: none;
+  }
+
+  .title {
+    font-size: 15px;
+    line-height: 1.35;
   }
 }

@@ -5,11 +5,11 @@ import GamifiedIcon from './GamifiedIcon';
 
 export default function LandingBenefitsOrbit({ locale, fallback, platformBenefitsItems }) {
   const metricByIndex = [
-    locale === 'en' ? '-60% prep time' : '-60% de temps de préparation',
-    locale === 'en' ? '95% participation' : '95% de participation',
-    locale === 'en' ? '3× faster onboarding' : 'Onboarding 3× plus rapide',
-    locale === 'en' ? 'Instant debrief' : 'Débrief immédiat',
-    locale === 'en' ? 'Premium employer brand' : 'Image employeur premium',
+    locale === 'en' ? 'For hybrid teams' : 'Pour les équipes hybrides',
+    locale === 'en' ? 'For everyday collaboration' : 'Pour la collaboration au quotidien',
+    locale === 'en' ? 'For managers and HR' : 'Pour les managers et les RH',
+    locale === 'en' ? 'For onboarding journeys' : 'Pour les parcours d’onboarding',
+    locale === 'en' ? 'For a consistent experience' : 'Pour une expérience cohérente',
   ];
 
   return (
