@@ -827,3 +827,59 @@
     border-color: rgba(219, 234, 254, 0.75);
   }
 }
+
+:global(html[data-theme='light']) .filterBar,
+:global(html[data-theme='light']) .filterDropdownPanel,
+:global(html[data-theme='light']) .card,
+:global(html[data-theme='light']) .card.selected {
+  background: linear-gradient(160deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+  border-color: var(--surface-soft-border);
+  color: var(--ink);
+}
+
+:global(html[data-theme='light']) .filterDropdownButton,
+:global(html[data-theme='light']) .filterOption,
+:global(html[data-theme='light']) .resetIconButton {
+  background: var(--surface-control);
+  color: var(--ink);
+  border-color: var(--control-border);
+}
+
+:global(html[data-theme='light']) .cardDescription,
+:global(html[data-theme='light']) .cardDuration,
+:global(html[data-theme='light']) .rulesLabel,
+:global(html[data-theme='light']) .filtersLabel,
+:global(html[data-theme='light']) .filterHintInline,
+:global(html[data-theme='light']) .filterTriggerPrefix,
+:global(html[data-theme='light']) .filterTriggerValue {
+  color: var(--ink-soft);
+}
+
+:global(html[data-theme='light']) .card.selected {
+  background: linear-gradient(160deg, var(--accent-soft) 0%, var(--surface-panel) 100%);
+  border-color: var(--control-border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+:global(html[data-theme='light']) .playerHint {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: var(--control-border-strong);
+}
+
+:global(html[data-theme='light']) .badge.badge {
+  color: var(--text-muted);
+  background: var(--surface-panel-soft);
+}
+
+:global(html[data-theme='light']) .toggleAction {
+  color: var(--text-on-accent);
+  background: var(--accent-gradient);
+  border-color: var(--control-border-strong);
+}
+
+:global(html[data-theme='light']) .toggleActionSelected {
+  color: var(--error-ink);
+  background: linear-gradient(145deg, var(--error-bg) 0%, var(--card) 100%);
+  border-color: color-mix(in srgb, var(--error-line) 45%, transparent);
+}

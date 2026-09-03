@@ -187,6 +187,13 @@
   }
 }
 
+:global(html[data-theme='light']) .clearSelectionButton.clearSelectionButton {
+  color: var(--text-on-accent);
+  background: var(--accent-gradient);
+  border-color: var(--control-border-strong);
+  box-shadow: var(--button-primary-shadow);
+}
+
 @media (max-width: 860px) {
   .sidebar {
     position: static;

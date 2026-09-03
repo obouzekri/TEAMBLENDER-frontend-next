@@ -17818,8 +17818,8 @@ html[data-theme='light'] .site-footer .footer-social__link {
 @media (prefers-color-scheme: dark) {
 
   /* Auth card — premium deep glass */
-  .auth-card,
-  .auth-showcase-card {
+  html:not([data-theme]) .auth-card,
+  html:not([data-theme]) .auth-showcase-card {
     background:
       radial-gradient(ellipse 70% 55% at 90% 0%, rgba(0, 180, 255, 0.09) 0%, transparent 55%),
       radial-gradient(ellipse 60% 50% at 10% 100%, rgba(99, 102, 241, 0.08) 0%, transparent 55%),
@@ -17833,18 +17833,18 @@ html[data-theme='light'] .site-footer .footer-social__link {
   }
 
   /* Auth card title */
-  .auth-card h1 {
+  html:not([data-theme]) .auth-card h1 {
     color: #f0f6ff;
   }
 
   /* Auth card header */
-  .auth-card-header {
+  html:not([data-theme]) .auth-card-header {
     gap: 0.3rem;
     margin-bottom: 1.35rem;
   }
 
   /* Input shell — dark glassmorphism */
-  .auth-input-shell {
+  html:not([data-theme]) .auth-input-shell {
     background: rgba(12, 20, 42, 0.75) !important;
     border-color: rgba(100, 140, 230, 0.18) !important;
     box-shadow:
@@ -17858,11 +17858,11 @@ html[data-theme='light'] .site-footer .footer-social__link {
       transform 160ms ease;
   }
 
-  .auth-input-shell:hover {
+  html:not([data-theme]) .auth-input-shell:hover {
     border-color: rgba(0, 195, 255, 0.28) !important;
   }
 
-  .auth-input-shell:focus-within {
+  html:not([data-theme]) .auth-input-shell:focus-within {
     border-color: rgba(0, 200, 255, 0.6) !important;
     box-shadow:
       0 0 0 4px rgba(0, 200, 255, 0.1),
@@ -17872,48 +17872,48 @@ html[data-theme='light'] .site-footer .footer-social__link {
   }
 
   /* Input icon — cyan tint */
-  .auth-input-icon {
+  html:not([data-theme]) .auth-input-icon {
     color: rgba(0, 195, 255, 0.55) !important;
   }
 
   /* Input text */
-  .auth-form .auth-input-shell input,
-  .auth-form .auth-input-shell select,
-  .auth-form .auth-input-shell textarea {
+  html:not([data-theme]) .auth-form .auth-input-shell input,
+  html:not([data-theme]) .auth-form .auth-input-shell select,
+  html:not([data-theme]) .auth-form .auth-input-shell textarea {
     color: #e8efff !important;
     caret-color: #00c8ff;
     -webkit-text-fill-color: #e8efff !important;
   }
 
-  .auth-form .auth-input-shell input::placeholder,
-  .auth-form .auth-input-shell textarea::placeholder {
+  html:not([data-theme]) .auth-form .auth-input-shell input::placeholder,
+  html:not([data-theme]) .auth-form .auth-input-shell textarea::placeholder {
     color: rgba(130, 160, 210, 0.5) !important;
     -webkit-text-fill-color: rgba(130, 160, 210, 0.5) !important;
   }
 
   /* Autofill override */
-  .auth-form .auth-input-shell input:-webkit-autofill,
-  .auth-form .auth-input-shell input:-webkit-autofill:hover,
-  .auth-form .auth-input-shell input:-webkit-autofill:focus {
+  html:not([data-theme]) .auth-form .auth-input-shell input:-webkit-autofill,
+  html:not([data-theme]) .auth-form .auth-input-shell input:-webkit-autofill:hover,
+  html:not([data-theme]) .auth-form .auth-input-shell input:-webkit-autofill:focus {
     -webkit-box-shadow: 0 0 0 100px rgba(16, 28, 58, 0.98) inset !important;
     -webkit-text-fill-color: #e8efff !important;
     caret-color: #00c8ff;
   }
 
   /* Field labels */
-  .auth-field-label {
+  html:not([data-theme]) .auth-field-label {
     color: rgba(170, 195, 240, 0.8) !important;
   }
 
   /* Social buttons — dark glass */
-  .social-auth-btn {
+  html:not([data-theme]) .social-auth-btn {
     background: linear-gradient(160deg, rgba(18, 28, 58, 0.92) 0%, rgba(13, 20, 42, 0.96) 100%) !important;
     border-color: rgba(100, 140, 230, 0.18) !important;
     color: #c8d8f5 !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
   }
 
-  .social-auth-btn:focus-visible {
+  html:not([data-theme]) .social-auth-btn:focus-visible {
     border-color: rgba(0, 195, 255, 0.42) !important;
     box-shadow:
       0 0 0 3px rgba(0, 195, 255, 0.16),
@@ -17921,19 +17921,19 @@ html[data-theme='light'] .site-footer .footer-social__link {
       0 2px 8px rgba(0, 0, 0, 0.2) !important;
   }
 
-  .social-auth-btn--google {
+  html:not([data-theme]) .social-auth-btn--google {
     border-color: rgba(234, 67, 53, 0.24) !important;
     background:
       linear-gradient(160deg, rgba(33, 21, 35, 0.9) 0%, rgba(20, 20, 36, 0.96) 100%) !important;
   }
 
-  .social-auth-btn--microsoft {
+  html:not([data-theme]) .social-auth-btn--microsoft {
     border-color: rgba(0, 164, 239, 0.26) !important;
     background:
       linear-gradient(160deg, rgba(15, 30, 44, 0.9) 0%, rgba(14, 24, 42, 0.96) 100%) !important;
   }
 
-  .social-auth-btn:hover:not(:disabled) {
+  html:not([data-theme]) .social-auth-btn:hover:not(:disabled) {
     background: linear-gradient(160deg, rgba(22, 36, 72, 0.96) 0%, rgba(17, 28, 56, 0.99) 100%) !important;
     border-color: rgba(0, 195, 255, 0.32) !important;
     box-shadow:
@@ -17943,37 +17943,37 @@ html[data-theme='light'] .site-footer .footer-social__link {
   }
 
   /* Social pill — "bientôt disponible" badge */
-  .social-auth-pill {
+  html:not([data-theme]) .social-auth-pill {
     background: rgba(124, 58, 237, 0.18) !important;
     border-color: rgba(124, 58, 237, 0.32) !important;
     color: #a78bfa !important;
   }
 
   /* Separator */
-  .social-auth-separator {
+  html:not([data-theme]) .social-auth-separator {
     color: rgba(140, 165, 210, 0.55) !important;
   }
-  .social-auth-separator::before,
-  .social-auth-separator::after {
+  html:not([data-theme]) .social-auth-separator::before,
+  html:not([data-theme]) .social-auth-separator::after {
     background: linear-gradient(90deg, transparent, rgba(0, 195, 255, 0.18), transparent) !important;
   }
 
   /* Password toggle — cyan accent */
-  .password-toggle {
+  html:not([data-theme]) .password-toggle {
     background: rgba(0, 200, 255, 0.07) !important;
     color: rgba(0, 200, 255, 0.6) !important;
     border-color: rgba(0, 200, 255, 0.12) !important;
   }
 
-  .password-toggle:hover,
-  .password-toggle:focus-visible {
+  html:not([data-theme]) .password-toggle:hover,
+  html:not([data-theme]) .password-toggle:focus-visible {
     background: rgba(0, 200, 255, 0.14) !important;
     color: rgba(0, 200, 255, 0.92) !important;
     border-color: rgba(0, 200, 255, 0.22) !important;
   }
 
   /* Primary button — premium cyan → blue gradient */
-  .auth-page .btn-primary {
+  html:not([data-theme]) .auth-page .btn-primary {
     background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #6366f1 100%) !important;
     border-color: rgba(6, 182, 212, 0.35) !important;
     box-shadow:
@@ -17984,11 +17984,11 @@ html[data-theme='light'] .site-footer .footer-social__link {
     text-shadow: none !important;
   }
 
-  .auth-page .btn-primary::after {
+  html:not([data-theme]) .auth-page .btn-primary::after {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 52%) !important;
   }
 
-  .auth-page .btn-primary:hover:not(:disabled) {
+  html:not([data-theme]) .auth-page .btn-primary:hover:not(:disabled) {
     box-shadow:
       0 20px 42px rgba(59, 130, 246, 0.42),
       0 6px 18px rgba(6, 182, 212, 0.25),
@@ -17998,65 +17998,151 @@ html[data-theme='light'] .site-footer .footer-social__link {
   }
 
   /* Auth footer */
-  .auth-footer {
+  html:not([data-theme]) .auth-footer {
     border-top-color: rgba(0, 200, 255, 0.08) !important;
     color: rgba(155, 180, 230, 0.75) !important;
   }
 
-  .auth-footer a {
+  html:not([data-theme]) .auth-footer a {
     color: #38bdf8;
   }
 
-  .auth-footer a:hover {
+  html:not([data-theme]) .auth-footer a:hover {
     color: #7dd3fc;
   }
 
   /* Showcase copy */
-  .auth-showcase-copy h1 {
+  html:not([data-theme]) .auth-showcase-copy h1 {
     color: #e8f0ff !important;
   }
 
-  .auth-showcase-copy p {
+  html:not([data-theme]) .auth-showcase-copy p {
     color: #7a90b8 !important;
   }
 
   /* Showcase mini cards */
-  .auth-mini-card,
-  .auth-stat-card {
+  html:not([data-theme]) .auth-mini-card,
+  html:not([data-theme]) .auth-stat-card {
     background: rgba(14, 22, 48, 0.65) !important;
     border-color: rgba(0, 195, 255, 0.1) !important;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
   }
 
-  .auth-mini-card strong,
-  .auth-stat-card strong {
+  html:not([data-theme]) .auth-mini-card strong,
+  html:not([data-theme]) .auth-stat-card strong {
     color: #c5d5f0 !important;
   }
 
-  .auth-mini-card span,
-  .auth-stat-card span {
+  html:not([data-theme]) .auth-mini-card span,
+  html:not([data-theme]) .auth-stat-card span {
     color: #6878a0 !important;
   }
 
   /* Showcase badge */
-  .auth-showcase-badge {
+  html:not([data-theme]) .auth-showcase-badge {
     background: rgba(0, 195, 255, 0.1) !important;
     border-color: rgba(0, 195, 255, 0.2) !important;
     color: #22d3ee !important;
   }
 
   /* Form error */
-  .form-error {
+  html:not([data-theme]) .form-error {
     color: #fca5a5 !important;
   }
 
   /* Password strength — dark palette */
-  .pc-met   { color: #34d399; }
-  .pc-unmet { color: rgba(100, 130, 180, 0.65); }
+  html:not([data-theme]) .pc-met   { color: #34d399; }
+  html:not([data-theme]) .pc-unmet { color: rgba(100, 130, 180, 0.65); }
 
-  .psb {
+  html:not([data-theme]) .psb {
     background: rgba(255, 255, 255, 0.08);
   }
+}
+
+html[data-theme='light'] .auth-card,
+html[data-theme='light'] .auth-showcase-card {
+  background:
+    radial-gradient(ellipse 70% 55% at 90% 0%, rgba(53, 160, 255, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 10% 100%, rgba(124, 58, 237, 0.06) 0%, transparent 55%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 248, 255, 0.98) 100%) !important;
+  border-color: var(--surface-soft-border) !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+html[data-theme='light'] .auth-card h1,
+html[data-theme='light'] .auth-showcase-copy h1 {
+  color: var(--text-strong) !important;
+}
+
+html[data-theme='light'] .auth-input-shell,
+html[data-theme='light'] .social-auth-btn {
+  background: var(--field-bg) !important;
+  border-color: var(--field-line) !important;
+  color: var(--field-text) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='light'] .auth-form .auth-input-shell input,
+html[data-theme='light'] .auth-form .auth-input-shell select,
+html[data-theme='light'] .auth-form .auth-input-shell textarea {
+  color: var(--field-text) !important;
+  caret-color: var(--accent) !important;
+  -webkit-text-fill-color: var(--field-text) !important;
+}
+
+html[data-theme='light'] .auth-form .auth-input-shell input::placeholder,
+html[data-theme='light'] .auth-form .auth-input-shell textarea::placeholder {
+  color: var(--field-placeholder) !important;
+  -webkit-text-fill-color: var(--field-placeholder) !important;
+}
+
+html[data-theme='light'] .auth-field-label,
+html[data-theme='light'] .auth-showcase-copy p,
+html[data-theme='light'] .auth-mini-card span,
+html[data-theme='light'] .auth-stat-card span,
+html[data-theme='light'] .auth-footer {
+  color: var(--text-muted) !important;
+}
+
+html[data-theme='light'] .auth-mini-card,
+html[data-theme='light'] .auth-stat-card {
+  background: var(--surface-panel-soft) !important;
+  border-color: var(--surface-soft-border) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='light'] .auth-mini-card strong,
+html[data-theme='light'] .auth-stat-card strong {
+  color: var(--text-strong) !important;
+}
+
+html[data-theme='light'] .auth-showcase-badge,
+html[data-theme='light'] .social-auth-pill,
+html[data-theme='light'] .password-toggle {
+  background: var(--accent-soft) !important;
+  border-color: var(--control-border) !important;
+  color: var(--accent-strong) !important;
+}
+
+html[data-theme='light'] .social-auth-separator {
+  color: var(--text-subtle) !important;
+}
+
+html[data-theme='light'] .social-auth-separator::before,
+html[data-theme='light'] .social-auth-separator::after {
+  background: linear-gradient(90deg, transparent, var(--surface-soft-border), transparent) !important;
+}
+
+html[data-theme='light'] .auth-footer {
+  border-top-color: var(--surface-soft-border) !important;
+}
+
+html[data-theme='light'] .form-error {
+  color: var(--error-ink) !important;
+}
+
+html[data-theme='light'] .psb {
+  background: var(--surface-muted-strong);
 }
 
   /* Desktop squeeze hardening (e.g. browser side panels like Gemini) */

@@ -47,6 +47,37 @@
   }
 }
 
+:global(html[data-theme='light']) .overlay {
+  background: var(--modal-scrim);
+}
+
+:global(html[data-theme='light']) .modal {
+  background: var(--modal-panel);
+  border: 1px solid var(--surface-soft-border);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+:global(html[data-theme='light']) .header,
+:global(html[data-theme='light']) .footer {
+  border-color: var(--surface-soft-border);
+}
+
+:global(html[data-theme='light']) .header h2,
+:global(html[data-theme='light']) .label,
+:global(html[data-theme='light']) .input {
+  color: var(--text-strong);
+}
+
+:global(html[data-theme='light']) .challengeDescription,
+:global(html[data-theme='light']) .infoText,
+:global(html[data-theme='light']) .placeholderText,
+:global(html[data-theme='light']) .playersInfo {
+  background: var(--surface-panel-soft);
+  border-color: var(--surface-soft-border);
+  color: var(--text-muted);
+}
+
 :global(html[data-theme='dark']) .overlay,
 :global(body[data-theme='dark']) .overlay,
 :global(.dark) .overlay {
