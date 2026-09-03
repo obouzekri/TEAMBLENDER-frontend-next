@@ -498,6 +498,7 @@
   display: grid;
   gap: 1rem;
   align-content: start;
+  align-items: stretch;
   min-height: 100%;
   background: linear-gradient(180deg, var(--surface-panel-soft) 0%, var(--surface-panel) 100%);
   width: 100%;
@@ -634,6 +635,7 @@
 .creationForm,
 .creationParticipantsPane {
   position: relative;
+  overflow: hidden;
 }
 
 .creationForm > *,
@@ -645,6 +647,7 @@
 .creationParticipantsPane::before {
   content: "";
   position: absolute;
+  inset-inline-start: 0;
   background: linear-gradient(180deg, var(--surface-panel-soft) 0%, var(--surface-panel) 100%);
   top: 0;
   bottom: 0;
