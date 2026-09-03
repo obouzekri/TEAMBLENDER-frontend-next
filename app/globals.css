@@ -275,7 +275,7 @@
   border-bottom: 1px solid var(--surface-soft-border);
 }
 
-:root[data-theme="dark"] .top-nav:not(.top-nav--live-inline) .nav-panel {
+:root[data-theme="dark"] .top-nav .nav-panel {
   background: var(--surface-panel);
   border: 1px solid var(--surface-soft-border);
   box-shadow: var(--dropdown-shadow);
@@ -12548,7 +12548,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
     border-bottom: 1px solid var(--surface-soft-border);
   }
 
-  :where(html:not([data-theme='light'])) .top-nav:not(.top-nav--live-inline) .nav-panel{
+  :where(html:not([data-theme='light'])) .top-nav .nav-panel{
     background: var(--surface-panel);
     border: 1px solid var(--surface-soft-border);
     box-shadow: var(--dropdown-shadow);
@@ -12636,7 +12636,7 @@ html[data-theme='dark'] .nav-user-dropdown__item{
     border-bottom: 1px solid var(--surface-soft-border);
   }
 
-  html[data-theme='dark'] .top-nav:not(.top-nav--live-inline) .nav-panel{
+  html[data-theme='dark'] .top-nav .nav-panel{
     background: var(--surface-panel);
     border: 1px solid var(--surface-soft-border);
     box-shadow: var(--dropdown-shadow);
