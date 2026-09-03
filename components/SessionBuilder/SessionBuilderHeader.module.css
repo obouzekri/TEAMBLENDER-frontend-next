@@ -71,17 +71,6 @@
   font-size: 0.86rem;
 }
 
-.statusBadge {
-  flex: 0 0 auto;
-  padding: 0.2rem 0.52rem;
-  border: 1px solid color-mix(in srgb, var(--success-line) 50%, transparent);
-  border-radius: 999px;
-  color: var(--success-ink);
-  background: var(--success-bg);
-  font-size: 0.68rem;
-  font-weight: 700;
-}
-
 .actions {
   display: flex;
   align-items: center;

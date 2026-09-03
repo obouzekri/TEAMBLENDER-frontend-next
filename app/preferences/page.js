@@ -34,7 +34,8 @@ export default function PreferencesPage() {
     const storedTheme = localStorage.getItem('tb_theme');
     setThemePreference(['light', 'dark', 'system'].includes(storedTheme) ? storedTheme : 'system');
     setGuard({ loading: false, user: normalizedCurrent });
-  }, [withLocalePath]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const userLabel = String(
     guard.user?.name ||

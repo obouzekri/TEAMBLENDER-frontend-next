@@ -27,7 +27,6 @@ export default function SessionBuilderHeader({
         <div className={styles.summaryTop}>
           <div className={styles.summaryLeft}>
             <h1 className={styles.summaryTitle}>{resolvedSessionName}</h1>
-            <span className={styles.statusBadge}>{t('sessionBuilder.statusDraft')}</span>
           </div>
           <div className={styles.summaryStats} aria-label={t('sessionBuilder.sessionSummaryAria')}>
             <span className={styles.summaryStat}>
