@@ -204,36 +204,42 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
 
             {!isParticipant && !isCompact && !isAdmin && (
               <div className="nav-main-block">
-                <nav className="nav-links appnav-mobile-main-links" aria-label="Navigation manager">
+                <nav className="nav-links appnav-mobile-main-links appnav-mobile-main-links--desktop-menu" aria-label="Navigation manager">
                   <NavItem
-                    href={withLocalePath('/home#sessions')}
-                    active={(isManagerHome && activeHomeBlock === 'sessions') || (!isActive('/account') && !isManagerHome)}
-                    className="nav-link--section"
-                    onClick={(event) => {
+                    href={withLocalePath('/home')}
+                    active={isManagerHome}
+                    onClick={() => {
                       setIsMenuOpen(false);
-                      scrollToHomeBlock(event, 'home-sessions-block', 'sessions');
                     }}
                   >
-                    {t('appNav.sessions')}
-                  </NavItem>
-                  <NavItem
-                    href={withLocalePath('/home#participants')}
-                    active={isManagerHome && activeHomeBlock === 'participants'}
-                    className="nav-link--section"
-                    onClick={(event) => {
-                      setIsMenuOpen(false);
-                      scrollToHomeBlock(event, 'home-participants-block', 'participants');
-                    }}
-                  >
-                    {t('appNav.participants')}
+                    {t('appNav.home')}
                   </NavItem>
                   <NavItem
                     href={withLocalePath('/account')}
                     active={isActive('/account')}
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    {t('nav.myAccount')}
+                  </NavItem>
+                  <NavItem
+                    href={withLocalePath('/preferences')}
+                    active={isActive('/preferences')}
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    {t('appNav.account')}
+                    {t('appNav.preferences')}
                   </NavItem>
+                  <button
+                    type="button"
+                    className="nav-link nav-link--logout"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onLogout?.();
+                    }}
+                  >
+                    {t('appNav.logout')}
+                  </button>
                 </nav>
               </div>
             )}
@@ -252,7 +258,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
               </div>
             )}
 
-            {!isCompact ? (
+            {!isCompact && !isManager ? (
               <div className="nav-mobile-menu-actions appnav-mobile-actions" aria-label={t('nav.accountAria')}>
                 <button
                   type="button"

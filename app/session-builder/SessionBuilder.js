@@ -1753,16 +1753,18 @@ export default function SessionBuilder() {
         titleClassName={styles.launchConfirmTitle}
         closeClassName={styles.launchConfirmClose}
       >
-        <p className={styles.launchConfirmText}>
-          {t('sessionBuilder.launchConfirmBody')}
-        </p>
+        <div className={styles.launchConfirmNotice}>
+          <p className={styles.launchConfirmText}>
+            {t('sessionBuilder.launchConfirmBody')}
+          </p>
+        </div>
         <div className={styles.launchConfirmActions}>
           <Button
             variant="secondary"
             onClick={() => setIsLaunchConfirmOpen(false)}
             disabled={isLaunching}
           >
-            Annuler
+            {t('sessionBuilder.cancel')}
           </Button>
           <Button
             onClick={async () => {
