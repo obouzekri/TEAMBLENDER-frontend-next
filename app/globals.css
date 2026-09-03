@@ -100,12 +100,14 @@
   --ch-text-main: var(--ink);
   --ch-text-soft: var(--ink-soft);
   --ch-accent: var(--accent);
+  --ch-accent-strong: var(--accent-strong);
+  --ch-accent-soft: var(--accent-soft);
   --ch-warn: #f59e0b;
   --ch-shadow-card: 0 12px 28px rgba(15, 23, 42, 0.08);
-  --challenge-text-primary: #e5edf7;
-  --challenge-text-secondary: #bfd3e8;
-  --challenge-text-muted: #9cb2c7;
-  --challenge-text-accent: #7dd3fc;
+  --challenge-text-primary: #0f172a;
+  --challenge-text-secondary: #3f4f6a;
+  --challenge-text-muted: #64748b;
+  --challenge-text-accent: #1d4ed8;
   --skeleton-bg: #e5e7eb;
   --skeleton-base: #ffffff;
   /* Added semantic shortcuts for component patches */
@@ -210,6 +212,8 @@
   --ch-text-main: #e8efff;
   --ch-text-soft: #c7d3ed;
   --ch-accent: #7dd3fc;
+  --ch-accent-strong: #38bdf8;
+  --ch-accent-soft: rgba(56, 189, 248, 0.18);
   --ch-warn: #fbbf24;
   --ch-shadow-card: 0 14px 32px rgba(2, 6, 23, 0.38);
   --challenge-text-primary: #e8efff;
@@ -407,6 +411,8 @@
     --ch-text-main: #e8efff;
     --ch-text-soft: #c7d3ed;
     --ch-accent: #7dd3fc;
+    --ch-accent-strong: #38bdf8;
+    --ch-accent-soft: rgba(56, 189, 248, 0.18);
     --ch-warn: #fbbf24;
     --ch-shadow-card: 0 14px 32px rgba(2, 6, 23, 0.38);
     --challenge-text-primary: #e8efff;
@@ -12670,6 +12676,48 @@ html[data-theme='dark'] .top-nav .brand svg{
 
 .nav-mobile-overlay {
   display: none;
+}
+
+/* Mobile menu surfaces must follow the active theme in both light and dark */
+@media (max-width: 860px) {
+  .top-nav:not(.top-nav--live-inline) .nav-panel.is-open {
+    background: linear-gradient(180deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+    border: 1px solid var(--surface-soft-border);
+    box-shadow: var(--dropdown-shadow);
+  }
+
+  .nav-mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--modal-scrim);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-panel .nav-link,
+  .top-nav:not(.top-nav--live-inline) .nav-panel .nav-item,
+  .top-nav:not(.top-nav--live-inline) .nav-panel .nav-context {
+    color: var(--text-strong);
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-panel .nav-link:hover,
+  .top-nav:not(.top-nav--live-inline) .nav-panel .nav-item:hover {
+    background: var(--surface-control-hover);
+    color: var(--accent-strong);
+  }
+}
+
+html[data-theme='dark'] .nav-toggle {
+  background: var(--surface-control);
+  border-color: var(--control-border);
+  color: var(--text-strong);
+}
+
+html[data-theme='light'] .nav-toggle {
+  background: var(--surface-control);
+  border-color: var(--control-border);
+  color: var(--text-strong);
 }
 
 /* ============================================

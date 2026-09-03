@@ -86,6 +86,52 @@
   box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.34), 0 10px 26px rgba(15, 23, 42, 0.12);
 }
 
+:global(html[data-theme='light']) .hero,
+:global(html[data-theme='light']) .panel {
+  background: var(--surface-panel);
+  border-color: var(--surface-soft-border);
+  box-shadow: var(--surface-shadow-soft);
+}
+
+:global(html[data-theme='light']) .headerDescription {
+  color: var(--ch-accent-strong);
+}
+
+:global(html[data-theme='light']) .miniGridCard {
+  border-color: var(--control-border-strong);
+  background:
+    radial-gradient(360px 150px at 12% 0%, rgba(56, 189, 248, 0.1), transparent 60%),
+    linear-gradient(180deg, var(--surface-panel), var(--surface-panel-soft));
+  box-shadow: var(--surface-shadow-soft);
+}
+
+:global(html[data-theme='light']) .miniGrid,
+:global(html[data-theme='light']) .debriefMiniGrid {
+  background: var(--maze-bg-surface);
+  border-color: rgba(14, 116, 144, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.3);
+}
+
+:global(html[data-theme='light']) .cellTrapResolved {
+  background: rgba(148, 163, 184, 0.25);
+}
+
+:global(html[data-theme='light']) .announcementOverlay {
+  background: var(--modal-scrim);
+}
+
+:global(html[data-theme='light']) .announcementCard {
+  background: var(--modal-panel);
+  border-color: var(--surface-soft-border);
+  box-shadow: var(--shadow-lg);
+}
+
+:global(html[data-theme='light']) .announcementCloseBtn {
+  background: var(--surface-control);
+  border-color: var(--control-border);
+  color: var(--text-strong);
+}
+
 .panel {
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.18);
