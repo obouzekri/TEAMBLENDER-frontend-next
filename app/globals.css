@@ -17006,9 +17006,9 @@ html[data-theme='dark'] .admin-console-layout .list-count{
   .footer-col {
     gap: 0.2rem;
     padding: 0.6rem 0.65rem;
-    border: 1px solid rgba(53, 160, 255, 0.16);
+    border: 1px solid var(--surface-soft-border);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.5);
+    background: var(--surface-control);
   }
 
   .footer-col p {
