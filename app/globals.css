@@ -275,7 +275,7 @@
   border-bottom: 1px solid var(--surface-soft-border);
 }
 
-:root[data-theme="dark"] .top-nav .nav-panel {
+:root[data-theme="dark"] .top-nav:not(.top-nav--live-inline) .nav-panel {
   background: var(--surface-panel);
   border: 1px solid var(--surface-soft-border);
   box-shadow: var(--dropdown-shadow);
@@ -3745,7 +3745,6 @@ a {
   transition:
     border-color var(--motion-fast) var(--ease-standard),
     box-shadow var(--motion-medium) var(--ease-standard),
-    transform var(--motion-fast) var(--ease-standard),
     background-color var(--motion-fast) var(--ease-standard);
 }
 
@@ -3778,7 +3777,6 @@ a {
     0 0 0 4px rgba(73, 124, 255, 0.12),
     0 10px 24px rgba(53, 160, 255, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.88);
-  transform: translateY(-1px);
 }
 
 .auth-input-icon {
@@ -4106,17 +4104,16 @@ a {
   }
 }
 
-/* Input icon spacing: add left padding so text doesn't overlap icon */
+/* Input icon spacing: the icon is a flex sibling, so spacing comes from the shell gap */
 .auth-input-shell {
   display: flex;
   align-items: center;
+  gap: 0.85rem;
 }
-.auth-input-shell input {
-  padding-left: 2.25rem; /* leave space for 18px icon + gap */
-}
+
 .auth-input-shell .auth-input-icon {
-  position: absolute;
-  left: 0.75rem;
+  position: static;
+  flex: 0 0 auto;
 }
 
 /* Ensure no horizontal overflow on small screens */
@@ -4216,12 +4213,18 @@ html, body, .shell {
   overflow: visible;
 }
 
-/* Align 'Remember me' checkbox and label inline */
+/* Align 'Remember me' checkbox and label inline (overrides `.auth-form label { display: grid }`) */
+.auth-form .auth-remember-me,
 .auth-remember-me {
   display: inline-flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+}
+
+.auth-form .auth-remember-me > span {
+  white-space: nowrap;
 }
 
 .auth-remember-me input[type="checkbox"] {
@@ -12548,7 +12551,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
     border-bottom: 1px solid var(--surface-soft-border);
   }
 
-  :where(html:not([data-theme='light'])) .top-nav .nav-panel{
+  :where(html:not([data-theme='light'])) .top-nav:not(.top-nav--live-inline) .nav-panel{
     background: var(--surface-panel);
     border: 1px solid var(--surface-soft-border);
     box-shadow: var(--dropdown-shadow);
@@ -12636,7 +12639,7 @@ html[data-theme='dark'] .nav-user-dropdown__item{
     border-bottom: 1px solid var(--surface-soft-border);
   }
 
-  html[data-theme='dark'] .top-nav .nav-panel{
+  html[data-theme='dark'] .top-nav:not(.top-nav--live-inline) .nav-panel{
     background: var(--surface-panel);
     border: 1px solid var(--surface-soft-border);
     box-shadow: var(--dropdown-shadow);
@@ -18589,7 +18592,6 @@ html[data-theme='dark'] .account-page .eyebrow{
       0 0 0 4px rgba(0, 200, 255, 0.1),
       0 8px 22px rgba(0, 200, 255, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
-    transform: translateY(-1px);
   }
 
   /* Input icon — cyan tint */
@@ -18833,7 +18835,6 @@ html[data-theme='dark'] .auth-showcase-card{
       0 0 0 4px rgba(0, 200, 255, 0.1),
       0 8px 22px rgba(0, 200, 255, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
-    transform: translateY(-1px);
   }
 
   html[data-theme='dark'] /* Input icon — cyan tint */
