@@ -1975,6 +1975,73 @@
   margin: 0;
 }
 
+:global(html[data-theme='light']) .stateRow,
+:global(html[data-theme='light']) .historyList li,
+:global(html[data-theme='light']) .finalSummaryItem,
+:global(html[data-theme='light']) .finalBlock {
+  background: var(--surface-1);
+  border-color: var(--line-soft);
+}
+
+:global(html[data-theme='light']) .stateRow strong,
+:global(html[data-theme='light']) .historyList li span:last-child,
+:global(html[data-theme='light']) .instruction,
+:global(html[data-theme='light']) .finalSummaryItem strong {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .resultHero {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(8, 127, 154, 0.12), transparent 36%),
+    radial-gradient(circle at 100% 100%, rgba(245, 158, 11, 0.1), transparent 34%),
+    linear-gradient(160deg, var(--surface-1), var(--surface-2));
+  border-color: var(--line-soft);
+  box-shadow: 0 20px 42px rgba(15, 23, 42, 0.12);
+}
+
+:global(html[data-theme='light']) .resultEyebrow,
+:global(html[data-theme='light']) .mainScoreLabel {
+  color: var(--accent);
+}
+
+:global(html[data-theme='light']) .resultStatusBadge,
+:global(html[data-theme='light']) .scoreDeltaChip,
+:global(html[data-theme='light']) .scoreRankChip,
+:global(html[data-theme='light']) .resultFactChip {
+  background: var(--surface-panel-soft);
+  border-color: var(--line-soft);
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .mainScoreCard {
+  background: linear-gradient(145deg, #fff9e9, var(--surface-1));
+  border-color: rgba(217, 119, 6, 0.32);
+}
+
+:global(html[data-theme='light']) .mainScoreValue {
+  color: #92400e;
+}
+
+:global(html[data-theme='light']) .mainScoreUnit,
+:global(html[data-theme='light']) .resultTransition,
+:global(html[data-theme='light']) .finalSummaryItem span {
+  color: var(--text-soft);
+}
+
+:global(html[data-theme='light']) .leaderboardCard,
+:global(html[data-theme='light']) .leaderboardCardTop {
+  background: var(--surface-1);
+  border-color: var(--line-soft);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+}
+
+:global(html[data-theme='light']) .rankPill,
+:global(html[data-theme='light']) .rankDeltaBadge {
+  background: var(--surface-panel-soft);
+  border-color: var(--line-soft);
+  color: var(--text-main);
+}
+
 .finalWow {
   position: relative;
   overflow: hidden;
