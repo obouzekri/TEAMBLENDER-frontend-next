@@ -5511,12 +5511,6 @@ html[data-theme='dark'] .icon-action-btn:hover{
   transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
-.manager-home .feature-card {
-  border: none;
-  background: transparent;
-  box-shadow: none;
-}
-
 .feature-card:hover {
   border-color: rgba(122, 92, 255, 0.3);
   box-shadow: var(--surface-shadow-hover);
@@ -10839,6 +10833,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
   --home-surface: var(--surface-panel);
   --home-line: color-mix(in srgb, var(--surface-soft-border) 64%, transparent);
   --home-muted: var(--text-muted);
+  background: transparent;
   position: relative;
   isolation: isolate;
   gap: 1.2rem;
@@ -11766,7 +11761,9 @@ html[data-theme='light'] .site-footer .footer-social__link {
   scrollbar-width: thin;
 }
 
-.manager-home .home-sessions-panel {
+.manager-home .home-sessions-panel,
+.manager-home .participants-panel {
+  border: none;
   background: transparent;
   box-shadow: none;
 }
@@ -11800,11 +11797,6 @@ html[data-theme='light'] .site-footer .footer-social__link {
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
-}
-
-.manager-home .participants-panel {
-  background: transparent;
-  box-shadow: none;
 }
 
 .participants-panel-head {

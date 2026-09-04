@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
@@ -137,6 +137,13 @@ function directionFromDelta(dr, dc) {
   if (dr === 0 && dc === 1) return 'E';
   return '';
 }
+
+const LABY_MOVE_DELTAS = Object.freeze({
+  N: { dr: -1, dc: 0 },
+  E: { dr: 0, dc: 1 },
+  S: { dr: 1, dc: 0 },
+  W: { dr: 0, dc: -1 },
+});
 
 function canMoveFromCell(maze, fromPos, dir) {
   const row = Number(Array.isArray(fromPos) ? fromPos[0] : Number.NaN);
@@ -343,6 +350,21 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     setOptimisticPos(serverPos && serverPos.length >= 2 ? [Number(serverPos[0]), Number(serverPos[1])] : null);
   }, [myParticipantState?.solo?.pos]);
 
+  // Predicts the resulting cell locally so movement feels instant; the effect above corrects/rolls back once the server confirms.
+  const attemptSoloMove = useCallback((dir) => {
+    if (!canMoveDir) return;
+    const currentPos = Array.isArray(optimisticPos)
+      ? optimisticPos
+      : Array.isArray(myParticipantState?.solo?.pos)
+        ? myParticipantState.solo.pos
+        : null;
+    const delta = LABY_MOVE_DELTAS[dir];
+    if (currentPos && delta && canMoveFromCell(maze, currentPos, dir)) {
+      setOptimisticPos([Number(currentPos[0]) + delta.dr, Number(currentPos[1]) + delta.dc]);
+    }
+    emitEvent('laby.solo.move', { dir });
+  }, [canMoveDir, optimisticPos, myParticipantState?.solo?.pos, maze, emitEvent]);
+
   useEffect(() => {
     if (!isFacilitator) return;
     if (!laby) return;
@@ -381,14 +403,14 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       const dir = map[String(event.key || '').toLowerCase()] || map[event.key];
       if (!dir) return;
       event.preventDefault();
-      emitEvent('laby.solo.move', { dir });
+      attemptSoloMove(dir);
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [canMoveDir, emitEvent]);
+  }, [canMoveDir, attemptSoloMove]);
 
   useEffect(() => {
     if (!canMoveDir || !gridRef.current) return () => {};
@@ -585,10 +607,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
 
     if (Math.abs(dx) > Math.abs(dy)) {
-      emitEvent('laby.solo.move', { dir: dx > 0 ? 'E' : 'W' });
+      attemptSoloMove(dx > 0 ? 'E' : 'W');
       return;
     }
-    emitEvent('laby.solo.move', { dir: dy > 0 ? 'S' : 'N' });
+    attemptSoloMove(dy > 0 ? 'S' : 'N');
   }
 
   function handleCellClick(row, col) {
@@ -630,7 +652,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
   function moveByDirection(dir) {
     if (!canMoveDir) return;
-    emitEvent('laby.solo.move', { dir });
+    attemptSoloMove(dir);
     if (gridRef.current && typeof gridRef.current.focus === 'function') {
       gridRef.current.focus();
     }
@@ -851,7 +873,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     const classes = [styles.cell];
                     const isVisited = myVisited.has(key);
                     if (Boolean(revealedCells[key])) classes.push(styles.cellRevealed);
-                    if (isVisited) classes.push(styles.cellVisited);
+                    // Only show the visited trail once the player has selected a start point (avoids a blue glow on the untouched grid).
+                    if (isVisited && hasSelectedStart) classes.push(styles.cellVisited);
                     if (allStartKeys.has(key)) classes.push(styles.cellStart);
                     if (key !== startCellKey && allStartKeys.has(key)) classes.push(styles.cellStartAlt);
                     if (key === endCellKey) classes.push(styles.cellExit);
