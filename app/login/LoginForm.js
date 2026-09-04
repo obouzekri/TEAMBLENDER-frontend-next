@@ -411,6 +411,13 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         targetSessionId: shouldStoreParticipantTargetSession('participant', resolvedSessionId),
       });
 
+      if (data?.temporaryPassword) {
+        sessionStorage.setItem('participantTemporaryCredentials', JSON.stringify({
+          identifier: user.email,
+          password: data.temporaryPassword,
+        }));
+      }
+
       const redirect = withLocalePath(getRedirectPath('participant', resolvedSessionId, resolveConnectedUserId(user)));
       window.location.href = redirect;
     } catch {

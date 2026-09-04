@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import SessionLiveHeader from '@/components/SessionLiveHeader';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
-import { clearStoredAuth, getAuthHeaders, getStoredCurrentUser } from '@/lib/auth';
+import { clearStoredAuth, getAuthHeaders, getStoredCurrentUser, joinParticipantAuthenticated } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
 export default function ParticipantPage() {
@@ -25,6 +25,13 @@ export default function ParticipantPage() {
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [sessionId, setSessionId] = useState('');
   const [joiningSessionId, setJoiningSessionId] = useState(null);
+  const [joinCode, setJoinCode] = useState('');
+  const [joinCodeMessage, setJoinCodeMessage] = useState('');
+  const [joinCodeInvalid, setJoinCodeInvalid] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [temporaryCredentials, setTemporaryCredentials] = useState(null);
   const hasRedirected = useRef(false);
   const authInitRef = useRef(false);
   const [ready, setReady] = useState(false);
@@ -61,6 +68,19 @@ export default function ParticipantPage() {
     setUser(currentUser);
     setReady(true);
   }, [withLocalePath]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = sessionStorage.getItem('participantTemporaryCredentials');
+      if (!stored) return;
+      const credentials = JSON.parse(stored);
+      if (credentials?.password) setTemporaryCredentials(credentials);
+      sessionStorage.removeItem('participantTemporaryCredentials');
+    } catch {
+      sessionStorage.removeItem('participantTemporaryCredentials');
+    }
+  }, []);
 
   useEffect(() => {
     if (!ready || !user) return;
@@ -342,6 +362,69 @@ export default function ParticipantPage() {
     router.push(withLocalePath(`/participant?sessionId=${encodeURIComponent(sessionIdentifier)}`));
   }
 
+  async function joinNewSession(event) {
+    event.preventDefault();
+    setJoinCodeMessage('');
+    setJoinCodeInvalid(false);
+    const normalizedCode = String(joinCode || '').trim().toUpperCase();
+    if (!normalizedCode) {
+      setJoinCodeMessage(isEn ? 'Enter a session code.' : 'Saisissez un code de session.');
+      return;
+    }
+
+    setJoiningSessionId('new');
+    try {
+      const { res, data } = await joinParticipantAuthenticated(normalizedCode);
+      if (!res.ok) {
+        const invalid = res.status === 404 || data?.code === 'SESSION_NOT_FOUND';
+        setJoinCodeInvalid(invalid);
+        setJoinCodeMessage(invalid
+          ? (isEn ? 'Invalid or unknown session code.' : 'Code de session invalide ou introuvable.')
+          : (data?.error || (isEn ? 'Unable to join this session.' : 'Impossible de rejoindre cette session.')));
+        return;
+      }
+      const resolvedSessionId = String(data?.sessionId || '').trim();
+      setJoinCode('');
+      if (resolvedSessionId) {
+        sessionStorage.setItem('targetSessionId', resolvedSessionId);
+        router.push(withLocalePath(`/participant?sessionId=${encodeURIComponent(resolvedSessionId)}`));
+      }
+    } catch {
+      setJoinCodeMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Vérifiez votre connexion.');
+    } finally {
+      setJoiningSessionId(null);
+    }
+  }
+
+  async function changePassword(event) {
+    event.preventDefault();
+    setPasswordMessage('');
+    if (!passwordForm.current || !passwordForm.next || passwordForm.next !== passwordForm.confirm) {
+      setPasswordMessage(isEn ? 'Check the current password and confirmation.' : 'Vérifiez le mot de passe actuel et sa confirmation.');
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      const res = await fetch(getApiUrl('/participants/me/password'), {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify({ current_password: passwordForm.current, new_password: passwordForm.next }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPasswordMessage(data?.error || (isEn ? 'Unable to update your password.' : 'Impossible de modifier votre mot de passe.'));
+        return;
+      }
+      setPasswordForm({ current: '', next: '', confirm: '' });
+      setPasswordMessage(isEn ? 'Password updated successfully.' : 'Mot de passe modifié avec succès.');
+    } catch {
+      setPasswordMessage(isEn ? 'Unable to reach the server.' : 'Impossible de contacter le serveur.');
+    } finally {
+      setPasswordSaving(false);
+    }
+  }
+
   function logout() {
     clearStoredAuth();
     sessionStorage.removeItem('targetSessionId');
@@ -403,6 +486,16 @@ export default function ParticipantPage() {
           {asyncStatusMessage ? (
             <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
           ) : null}
+          {temporaryCredentials ? (
+            <div className="participant-credentials-notice" role="status">
+              <strong>{isEn ? 'Your participant login is ready.' : 'Votre accès participant est prêt.'}</strong>
+              <span>{isEn ? 'Identifier:' : 'Identifiant :'} {temporaryCredentials.identifier || participantLabel}</span>
+              <span>{isEn ? 'Temporary password:' : 'Mot de passe temporaire :'} <code>{temporaryCredentials.password}</code></span>
+              <button type="button" className="btn-secondary" onClick={() => setTemporaryCredentials(null)}>
+                {isEn ? 'Hide credentials' : 'Masquer les identifiants'}
+              </button>
+            </div>
+          ) : null}
         </section>
 
         {sessionId ? (
@@ -422,6 +515,45 @@ export default function ParticipantPage() {
         ) : null}
 
         <div className="participant-grid">
+          <section className="feature-card participant-panel participant-panel--wide">
+            <div className="participant-panel__head">
+              <div>
+                <p className="eyebrow">{isEn ? 'JOIN ANOTHER SESSION' : 'REJOINDRE UNE AUTRE SESSION'}</p>
+                <h2>{isEn ? 'Use your session code' : 'Utilisez votre code de session'}</h2>
+              </div>
+            </div>
+            <form onSubmit={joinNewSession} className="participant-inline-form">
+              <input
+                type="text"
+                value={joinCode}
+                onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
+                placeholder={isEn ? 'Session code' : 'Code de session'}
+                aria-label={isEn ? 'Session code' : 'Code de session'}
+                autoComplete="off"
+                maxLength={32}
+              />
+              <button type="submit" className="btn-primary" disabled={joiningSessionId === 'new'}>
+                {joiningSessionId === 'new' ? (isEn ? 'Joining...' : 'Connexion...') : (isEn ? 'Join session' : 'Rejoindre')}
+              </button>
+            </form>
+            {joinCodeMessage ? <p className="participant-error-text" role="alert">{joinCodeMessage}</p> : null}
+          </section>
+
+          <section className="feature-card participant-panel">
+            <div className="participant-panel__head">
+              <div>
+                <p className="eyebrow">{isEn ? 'ACCOUNT SECURITY' : 'SÉCURITÉ DU COMPTE'}</p>
+                <h2>{isEn ? 'Change your password' : 'Modifier votre mot de passe'}</h2>
+              </div>
+            </div>
+            <form onSubmit={changePassword} className="participant-password-form">
+              <input type="password" value={passwordForm.current} onChange={(event) => setPasswordForm({ ...passwordForm, current: event.target.value })} placeholder={isEn ? 'Current password' : 'Mot de passe actuel'} autoComplete="current-password" required />
+              <input type="password" value={passwordForm.next} onChange={(event) => setPasswordForm({ ...passwordForm, next: event.target.value })} placeholder={isEn ? 'New password' : 'Nouveau mot de passe'} autoComplete="new-password" minLength={8} required />
+              <input type="password" value={passwordForm.confirm} onChange={(event) => setPasswordForm({ ...passwordForm, confirm: event.target.value })} placeholder={isEn ? 'Confirm new password' : 'Confirmer le nouveau mot de passe'} autoComplete="new-password" minLength={8} required />
+              <button type="submit" className="btn-secondary" disabled={passwordSaving}>{passwordSaving ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Update password' : 'Modifier le mot de passe')}</button>
+            </form>
+            {passwordMessage ? <p className="participant-help-text" role="status">{passwordMessage}</p> : null}
+          </section>
           {/* Loading skeleton while sessions are being fetched */}
           {loadingSessions && !sessionId && (
             <section className="feature-card participant-panel participant-panel--wide">

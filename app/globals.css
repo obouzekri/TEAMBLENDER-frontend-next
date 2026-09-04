@@ -13407,6 +13407,54 @@ html[data-theme='light'] .nav-toggle {
   margin-bottom: 1rem;
 }
 
+.participant-inline-form,
+.participant-password-form {
+  display: grid;
+  gap: 12px;
+}
+
+.participant-inline-form {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.participant-inline-form input,
+.participant-password-form input {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid var(--participant-line);
+  border-radius: 10px;
+  padding: 0 12px;
+  background: var(--participant-surface);
+  color: var(--participant-text-strong);
+}
+
+.participant-password-form .btn-secondary {
+  justify-content: center;
+}
+
+.participant-credentials-notice {
+  display: grid;
+  gap: 6px;
+  max-width: 560px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(5, 150, 105, 0.3);
+  border-radius: 12px;
+  background: rgba(236, 253, 245, 0.9);
+  color: var(--participant-text-strong);
+}
+
+.participant-credentials-notice code {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.participant-credentials-notice .btn-secondary {
+  justify-self: start;
+  margin-top: 4px;
+}
+
 .participant-panel__head h2 {
   margin: 0.2rem 0 0;
   color: var(--participant-text-strong);
