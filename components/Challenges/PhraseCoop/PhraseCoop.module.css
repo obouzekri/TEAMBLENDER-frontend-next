@@ -782,6 +782,33 @@
   outline-offset: 2px;
 }
 
+:global(html[data-theme='light']) .summary,
+:global(html[data-theme='light']) .playerWorkbench {
+  background: linear-gradient(155deg, var(--surface-1), var(--surface-2));
+  border-color: var(--line-soft);
+  color: var(--text-main);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+:global(html[data-theme='light']) .summaryHead p,
+:global(html[data-theme='light']) .summary p,
+:global(html[data-theme='light']) .summaryPanel li,
+:global(html[data-theme='light']) .summaryStatCard span,
+:global(html[data-theme='light']) .playerWorkbenchHead h3 {
+  color: var(--text-soft);
+}
+
+:global(html[data-theme='light']) .summary h3,
+:global(html[data-theme='light']) .summaryPanel h4 {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .summaryStatCard,
+:global(html[data-theme='light']) .summaryPanel {
+  background: rgba(248, 251, 255, 0.9);
+  border-color: var(--line-soft);
+}
+
 @media (max-width: 960px) and (orientation: landscape) and (max-height: 520px) {
   .phraseContainer {
     padding: 8px;

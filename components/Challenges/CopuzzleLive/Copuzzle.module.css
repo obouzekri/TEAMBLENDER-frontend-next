@@ -930,6 +930,48 @@
   outline-offset: 2px;
 }
 
+:global(html[data-theme='light']) .boardPanel,
+:global(html[data-theme='light']) .sideCard,
+:global(html[data-theme='light']) .chatCard,
+:global(html[data-theme='light']) .timerCard,
+:global(html[data-theme='light']) .summary,
+:global(html[data-theme='light']) .completionNotice {
+  background: linear-gradient(160deg, var(--surface-1), var(--surface-2));
+  border-color: var(--line-soft);
+  color: var(--text-main);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+:global(html[data-theme='light']) .tray,
+:global(html[data-theme='light']) .cell,
+:global(html[data-theme='light']) .trayPiece,
+:global(html[data-theme='light']) .summaryCard {
+  background: rgba(248, 251, 255, 0.92);
+  border-color: var(--line-soft);
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .timerTitle,
+:global(html[data-theme='light']) .timerDisplay,
+:global(html[data-theme='light']) .timerState,
+:global(html[data-theme='light']) .timerWaitingText,
+:global(html[data-theme='light']) .sideCard h2,
+:global(html[data-theme='light']) .sideCard h3,
+:global(html[data-theme='light']) .summaryTitle,
+:global(html[data-theme='light']) .completionNoticeTitle {
+  color: var(--accent-2);
+}
+
+:global(html[data-theme='light']) .metaLine,
+:global(html[data-theme='light']) .referenceToggle,
+:global(html[data-theme='light']) .pieceLabel,
+:global(html[data-theme='light']) .summaryLabel,
+:global(html[data-theme='light']) .summaryTime,
+:global(html[data-theme='light']) .completionNoticeBody,
+:global(html[data-theme='light']) .selectionBanner p {
+  color: var(--text-soft);
+}
+
 @media (max-width: 960px) and (orientation: landscape) and (max-height: 520px) {
   .copuzzleContainer {
     padding: 8px;
