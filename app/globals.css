@@ -4735,6 +4735,60 @@ html[data-theme='dark'] .icon-action-btn:hover{
     color: #fca5a5;
   }
 
+  /* Dark theme overrides for participant page */
+  html[data-theme='dark'] .participant-home {
+    --participant-line: rgba(148, 163, 184, 0.18);
+    --participant-line-strong: rgba(148, 163, 184, 0.3);
+    --participant-surface: rgba(17, 26, 46, 0.98);
+    --participant-surface-soft: rgba(20, 32, 56, 0.78);
+    --participant-text-strong: #e2e8f0;
+    --participant-text-soft: #cbd5e1;
+  }
+
+  html[data-theme='dark'] .participant-hero {
+    border-color: var(--participant-line);
+    background:
+      radial-gradient(circle at 100% 0%, rgba(53, 160, 255, 0.1), rgba(53, 160, 255, 0) 36%),
+      linear-gradient(135deg, rgba(12, 18, 34, 0.98) 0%, rgba(10, 16, 32, 0.96) 52%, rgba(8, 14, 30, 0.96) 100%);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+  }
+
+  html[data-theme='dark'] .participant-hero h1,
+  html[data-theme='dark'] .participant-hero > p {
+    color: var(--participant-text-strong);
+  }
+
+  html[data-theme='dark'] .participant-hero > p {
+    color: var(--participant-text-soft);
+  }
+
+  html[data-theme='dark'] .participant-hero-trust span {
+    border-color: var(--participant-line-strong);
+    background: linear-gradient(135deg, rgba(17, 26, 46, 0.94) 0%, rgba(20, 32, 56, 0.82) 100%);
+    color: var(--participant-text-strong);
+  }
+
+  html[data-theme='dark'] .participant-panel {
+    background:
+      radial-gradient(circle at 100% 0%, rgba(53, 160, 255, 0.08), transparent 48%),
+      linear-gradient(165deg, rgba(12, 18, 34, 0.98) 0%, rgba(8, 14, 30, 0.94) 100%);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
+  }
+
+  html[data-theme='dark'] .participant-session-card {
+    background: linear-gradient(180deg, rgba(12, 18, 34, 0.98) 0%, rgba(8, 14, 30, 0.94) 100%);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  html[data-theme='dark'] .participant-session-card:hover {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    border-color: rgba(53, 160, 255, 0.3);
+  }
+
+  html[data-theme='dark'] .participant-session-card__footer {
+    background: linear-gradient(0deg, var(--participant-surface-soft) 0%, var(--participant-surface) 100%);
+  }
+
 .contact-page,
 .pricing-page {
   display: grid;
