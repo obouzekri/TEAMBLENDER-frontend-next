@@ -2286,6 +2286,45 @@
   cursor: not-allowed;
 }
 
+:global(html[data-theme='light']) .header {
+  background: linear-gradient(165deg, var(--surface-2), var(--surface-1));
+  border-color: var(--line-soft);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+:global(html[data-theme='light']) .headerSeparator,
+:global(html[data-theme='light']) .headerMetaLine,
+:global(html[data-theme='light']) .leaderboardScore,
+:global(html[data-theme='light']) .resultStatusText {
+  color: var(--text-soft);
+}
+
+:global(html[data-theme='light']) .leaderboardScore {
+  font-weight: 800;
+}
+
+:global(html[data-theme='light']) .modalOverlay {
+  background: var(--modal-scrim);
+}
+
+:global(html[data-theme='light']) .modalCard,
+:global(html[data-theme='light']) .choiceRadioLabel,
+:global(html[data-theme='light']) .modalCancelBtn {
+  background: var(--surface-1);
+  border-color: var(--line-soft);
+  color: var(--text-main);
+  box-shadow: var(--shadow-md);
+}
+
+:global(html[data-theme='light']) .modalCard h3,
+:global(html[data-theme='light']) .choiceRadioValue {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .choiceRadioHelper {
+  color: var(--text-soft);
+}
+
 .desktopTimerCard {
   display: block;
 }
