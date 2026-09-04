@@ -51,19 +51,64 @@
 :global(html[data-theme='light']) .headerTitle,
 :global(html[data-theme='light']) .sectionHead h2,
 :global(html[data-theme='light']) .timelineHead h2,
-:global(html[data-theme='light']) .taskChip {
+:global(html[data-theme='light']) .taskChip,
+:global(html[data-theme='light']) .taskChipTitle,
+:global(html[data-theme='light']) .phaseLineHeader h3,
+:global(html[data-theme='light']) .score,
+:global(html[data-theme='light']) .order,
+:global(html[data-theme='light']) .meta,
+:global(html[data-theme='light']) .miniTitle,
+:global(html[data-theme='light']) .participantTimelineList,
+:global(html[data-theme='light']) .timelineLaneHint,
+:global(html[data-theme='light']) .emptyTimeline p,
+:global(html[data-theme='light']) .emptyTimeline ol,
+:global(html[data-theme='light']) .timelineCodeItem,
+:global(html[data-theme='light']) .ghostBtn,
+:global(html[data-theme='light']) .primaryBtn {
   color: var(--text-main);
 }
 
 :global(html[data-theme='light']) .headerDescription,
 :global(html[data-theme='light']) .sectionHead p,
-:global(html[data-theme='light']) .progressLabel {
+:global(html[data-theme='light']) .progressLabel,
+:global(html[data-theme='light']) .timelineHead p,
+:global(html[data-theme='light']) .empty {
   color: var(--text-soft);
 }
 
-:global(html[data-theme='light']) .taskChip {
+:global(html[data-theme='light']) .taskChip,
+:global(html[data-theme='light']) .phaseLine,
+:global(html[data-theme='light']) .timelineLane,
+:global(html[data-theme='light']) .timelineCodeItem,
+:global(html[data-theme='light']) .emptyTimeline,
+:global(html[data-theme='light']) .ghostBtn,
+:global(html[data-theme='light']) .primaryBtn {
   background: var(--surface-1);
   border-color: var(--line-soft);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+:global(html[data-theme='light']) .taskCode,
+:global(html[data-theme='light']) .timelineCode {
+  background: rgba(8, 127, 154, 0.1);
+  border-color: rgba(8, 127, 154, 0.3);
+  color: var(--accent);
+}
+
+:global(html[data-theme='light']) .phaseLineHeader span,
+:global(html[data-theme='light']) .timelineLaneActive {
+  background: rgba(8, 127, 154, 0.12);
+  border-color: rgba(8, 127, 154, 0.32);
+  color: var(--accent);
+}
+
+:global(html[data-theme='light']) .timelineLane {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+:global(html[data-theme='light']) .emptyTimeline {
+  color: var(--text-soft);
+  background: rgba(148, 163, 184, 0.06);
 }
 
 .participantView {
