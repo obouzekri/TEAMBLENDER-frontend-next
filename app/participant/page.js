@@ -32,6 +32,7 @@ export default function ParticipantPage() {
   const [passwordMessage, setPasswordMessage] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [temporaryCredentials, setTemporaryCredentials] = useState(null);
+  const [dismissedCredentials, setDismissedCredentials] = useState(false);
   const hasRedirected = useRef(false);
   const authInitRef = useRef(false);
   const [ready, setReady] = useState(false);
@@ -75,7 +76,10 @@ export default function ParticipantPage() {
       const stored = sessionStorage.getItem('participantTemporaryCredentials');
       if (!stored) return;
       const credentials = JSON.parse(stored);
-      if (credentials?.password) setTemporaryCredentials(credentials);
+      if (credentials?.password) {
+        setTemporaryCredentials(credentials);
+        setDismissedCredentials(false);
+      }
       sessionStorage.removeItem('participantTemporaryCredentials');
     } catch {
       sessionStorage.removeItem('participantTemporaryCredentials');
@@ -486,14 +490,20 @@ export default function ParticipantPage() {
           {asyncStatusMessage ? (
             <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
           ) : null}
-          {temporaryCredentials ? (
+          {temporaryCredentials && !dismissedCredentials ? (
             <div className="participant-credentials-notice" role="status">
               <strong>{isEn ? 'Your participant login is ready.' : 'Votre accès participant est prêt.'}</strong>
-              <span>{isEn ? 'Identifier:' : 'Identifiant :'} {temporaryCredentials.identifier || participantLabel}</span>
+              <span>{isEn ? 'Login:' : 'Identifiant :'} <code>{temporaryCredentials.identifier || participantLabel}</code></span>
               <span>{isEn ? 'Temporary password:' : 'Mot de passe temporaire :'} <code>{temporaryCredentials.password}</code></span>
-              <button type="button" className="btn-secondary" onClick={() => setTemporaryCredentials(null)}>
-                {isEn ? 'Hide credentials' : 'Masquer les identifiants'}
-              </button>
+              <p className="participant-credentials-hint">{isEn ? 'You must change your password in Security Settings before using sessions.' : 'Vous devez modifier votre mot de passe dans les parametres de securite avant d\'utiliser les sessions.'}</p>
+              <div className="participant-credentials-actions">
+                <a href={withLocalePath('/participant/security')} className="btn-primary">
+                  {isEn ? 'Go to Security' : 'Aller à la sécurité'}
+                </a>
+                <button type="button" className="btn-secondary" onClick={() => setDismissedCredentials(true)}>
+                  {isEn ? 'Dismiss' : 'Fermer'}
+                </button>
+              </div>
             </div>
           ) : null}
         </section>
