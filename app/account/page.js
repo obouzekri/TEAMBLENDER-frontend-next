@@ -1563,7 +1563,7 @@ export default function AccountPage() {
           }
 
           @media (prefers-color-scheme: dark) {
-            :root {
+            :root:not([data-theme='light']) {
               --account-primary: #9eb5ff;
               --account-primary-dark: #c7d5ff;
               --account-primary-light: #1b2b55;
@@ -2321,10 +2321,10 @@ export default function AccountPage() {
 
           .account-plan-card-actions__current {
             width: 100%;
-            border: 1px solid #dbe2ea;
+            border: 1px solid var(--account-border-soft);
             border-radius: 10px;
-            background: #f5f7fb;
-            color: #8a97ab;
+            background: var(--account-surface-muted);
+            color: var(--account-text-soft);
             font-weight: 700;
             font-size: 0.88rem;
             padding: 0.62rem 0.75rem;
@@ -2332,7 +2332,7 @@ export default function AccountPage() {
           }
 
           .account-pricing-card--recommended {
-            border: 1px solid #6c5ce7;
+            border: 1px solid var(--account-primary);
             box-shadow: 0 12px 26px rgba(90, 75, 218, 0.16);
           }
 
