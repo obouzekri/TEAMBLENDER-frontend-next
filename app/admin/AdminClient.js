@@ -1170,18 +1170,7 @@ function formatDurationSeconds(value) {
 
 function formatCurrency(value, currency = 'EUR') {
   const amount = Number(value || 0);
-  const safeCurrency = String(currency || 'EUR').trim().toUpperCase() || 'EUR';
-
-  try {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: safeCurrency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${safeCurrency}`;
-  }
+  return `${amount} DH`;
 }
 
 function csvEscape(value) {
@@ -5331,7 +5320,7 @@ export default function AdminClient() {
                             {plan.highlighted ? ` · ${isEn ? 'Popular' : 'Populaire'}` : ''}
                           </p>
                           <p className="session-meta">
-                            {typeof plan.price === 'number' ? `${plan.price.toFixed(2)} ${plan.currency || 'EUR'}` : (isEn ? 'Price not set' : 'Prix non defini')}
+                            {typeof plan.price === 'number' ? `${plan.price.toFixed(2)} DH` : (isEn ? 'Price not set' : 'Prix non defini')}
                             {' · '}
                             {getPricingBillingCycleLabel(plan.billing_cycle, isEn)}
                             {' · '}

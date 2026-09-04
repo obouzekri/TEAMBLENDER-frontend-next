@@ -31,8 +31,6 @@ import {
 import { getPricingPlanBadgeLabel, getPricingPlanVariantLabel, normalizePricingPlanName } from '@/lib/pricing-labels';
 
 const PLAN_HISTORY_STORAGE_KEY = 'accountPlanChangeHistory';
-const FIXED_DH_BY_INDEX = [0, 70, 390, 690];
-
 function formatPriceCents(priceCents, currency, locale = 'fr') {
   const amount = Number(priceCents || 0) / 100;
   const currencyCode = String(currency || 'EUR').toUpperCase();
@@ -50,9 +48,13 @@ function formatPriceCents(priceCents, currency, locale = 'fr') {
 
 function buildDhPriceByPlanId(plans) {
   const map = {};
-  normalizePlanList(plans).forEach((plan, index) => {
-    const fallback = Math.max(0, Math.round(Number(plan?.price_cents || 0) / 100));
-    map[String(plan.id)] = Number.isFinite(FIXED_DH_BY_INDEX[index]) ? FIXED_DH_BY_INDEX[index] : fallback;
+  normalizePlanList(plans).forEach((plan) => {
+    const slug = String(plan?.slug || '').toLowerCase();
+    const fallbackBySlug = slug.includes('free') ? 0 : slug.includes('session') ? 70 : slug.includes('pro+') || slug.includes('pro-plus') ? 690 : slug.includes('pro') ? 390 : null;
+    const cents = Number(plan?.price_mad_cents);
+    map[String(plan.id)] = Number.isFinite(cents) && cents >= 0
+      ? Math.round(cents / 100)
+      : (fallbackBySlug ?? Math.max(0, Math.round(Number(plan?.price_cents || 0) / 100)));
   });
   return map;
 }
@@ -525,7 +527,7 @@ export default function AccountPage() {
 
     (async () => {
       try {
-        const result = await capturePaypalOrder({ order_id: paypalToken, pricing_plan_id: planId });
+        const result = await capturePaypalOrder({ order_id: paypalToken, pricing_plan_id: planId, billing_cycle: params.get('billing_cycle') || 'monthly' });
         const planName = result?.plan?.name;
         showSuccess(
           planName

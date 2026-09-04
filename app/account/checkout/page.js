@@ -14,19 +14,13 @@ import {
 import { clearStoredAuth } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
-function formatPriceCents(priceCents, currency, locale = 'fr') {
-  const amount = Number(priceCents || 0) / 100;
-  const currencyCode = String(currency || 'EUR').toUpperCase();
-  try {
-    return new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
-      style: 'currency',
-      currency: currencyCode,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currencyCode}`;
-  }
+function formatPriceCents(priceCents) {
+  return `${Math.max(0, Math.round(Number(priceCents || 0) / 100))} DH`;
+}
+
+function formatPlanPrice(plan) {
+  const cents = Number(plan?.price_mad_cents);
+  return formatPriceCents(Number.isFinite(cents) && cents >= 0 ? cents : plan?.price_cents);
 }
 
 function normalizeDisplayName(user) {
@@ -100,7 +94,7 @@ export default function CheckoutPage() {
     if (processing) return;
     setProcessing(true);
     try {
-      const response = await startBillingCheckout({ pricing_plan_id: selectedPlan.id, method: 'paypal' });
+      const response = await startBillingCheckout({ pricing_plan_id: selectedPlan.id, method: 'paypal', billing_cycle: selectedPlan.billing_cycle || 'monthly' });
       const mode = String(response?.mode || '').trim().toLowerCase();
       const checkoutUrl = String(response?.url || response?.payment?.checkout_url || '').trim();
       if (mode === 'paypal_redirect' && checkoutUrl) {
@@ -189,7 +183,7 @@ export default function CheckoutPage() {
                 <div className="paypal-redirect-card__plan">
                   <span className="paypal-redirect-card__plan-name">{selectedPlan.name}</span>
                   <span className="paypal-redirect-card__plan-price">
-                    {formatPriceCents(selectedPlan.price_cents, selectedPlan.currency, locale)}<span>/mois</span>
+                    {formatPlanPrice(selectedPlan)}<span>/mois</span>
                   </span>
                 </div>
               ) : null}
@@ -229,7 +223,7 @@ export default function CheckoutPage() {
                   onClick={() => setSelectedPlan(plan)}
                 >
                   <span className="checkout-plan-tab__name">{plan.name}</span>
-                  <span className="checkout-plan-tab__price">{formatPriceCents(plan.price_cents, plan.currency, locale)}/mois</span>
+                  <span className="checkout-plan-tab__price">{formatPlanPrice(plan)}/mois</span>
                 </button>
               ))}
             </div>
@@ -244,7 +238,7 @@ export default function CheckoutPage() {
               {selectedPlan.description ? <p>{selectedPlan.description}</p> : null}
             </div>
             <div className="checkout-plan-summary__price">
-              {formatPriceCents(selectedPlan.price_cents, selectedPlan.currency, locale)}
+              {formatPlanPrice(selectedPlan)}
               <span>/mois</span>
             </div>
           </div>

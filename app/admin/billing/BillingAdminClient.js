@@ -22,16 +22,11 @@ function userLabel(user) {
   return full || user?.email || `User #${user?.id || '?'}`;
 }
 
-function money(amountCents, currency, isEn) {
-  const amount = Number(amountCents || 0) / 100;
-  try {
-    return new Intl.NumberFormat(isEn ? 'en-US' : 'fr-FR', {
-      style: 'currency',
-      currency: String(currency || 'EUR').toUpperCase(),
-    }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${String(currency || 'EUR').toUpperCase()}`;
-  }
+function money(amountCents, priceMadCents) {
+  const amount = Number.isFinite(Number(priceMadCents))
+    ? Math.max(0, Math.round(Number(priceMadCents) / 100))
+    : Math.max(0, Math.round(Number(amountCents || 0) / 100));
+  return `${amount} DH`;
 }
 
 function formatDate(value, isEn) {
@@ -326,7 +321,7 @@ export default function BillingAdminClient() {
                 <select value={selectedPlanId} onChange={(e) => setSelectedPlanId(e.target.value)}>
                   <option value="">{isEn ? 'Select a plan' : 'Selectionner un plan'}</option>
                   {plans.map((plan) => (
-                    <option key={plan.id} value={plan.id}>{plan.name} - {money(plan.price_cents, plan.currency, isEn)}</option>
+                    <option key={plan.id} value={plan.id}>{plan.name} - {money(plan.price_cents, plan.price_mad_cents)}</option>
                   ))}
                 </select>
                 <button type="button" className="btn-primary" onClick={handleApplyPlan} disabled={!selectedPlanId || loading}>{isEn ? 'Upgrade/Downgrade' : 'Upgrade/Downgrade'}</button>
@@ -338,7 +333,7 @@ export default function BillingAdminClient() {
                   <div key={invoice.id} className="invoice-row">
                     <div className="invoice-main">
                       <span className="invoice-number">{invoice.invoice_number}</span>
-                      <span>{money(invoice.amount_cents, invoice.currency, isEn)}</span>
+                      <span>{money(invoice.amount_cents, plans.find((plan) => String(plan.id) === String(invoice.pricing_plan_id))?.price_mad_cents)}</span>
                       <span className={`status-chip status-${normalizeStatus(invoice.status, 'pending')}`}>{buildStatusLabel(invoice.status, isEn)}</span>
                       <span className="invoice-date">{formatDate(invoice.createdAt, isEn)}</span>
                     </div>

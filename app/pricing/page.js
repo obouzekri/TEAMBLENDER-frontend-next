@@ -20,28 +20,28 @@ function getStoredCurrentUser() {
   }
 }
 
-const CURRENCY_SYMBOLS = {
-  EUR: '€',
-  USD: '$',
-  GBP: '£',
-  CHF: 'CHF',
-};
+function buildDhPriceByPlanId(plans) {
+  const map = {};
+  plans.forEach((plan) => {
+    const slug = String(plan?.slug || '').toLowerCase();
+    const fallbackBySlug = slug.includes('free') ? 0 : slug.includes('session') ? 70 : slug.includes('pro+') || slug.includes('pro-plus') ? 690 : slug.includes('pro') ? 390 : null;
+    const cents = Number(plan?.price_mad_cents);
+    map[String(plan.id)] = Number.isFinite(cents) && cents >= 0
+      ? Math.round(cents / 100)
+      : (fallbackBySlug ?? Math.max(0, Math.round(Number(plan?.price_cents || 0) / 100)));
+  });
+  return map;
+}
 
-const SUPPORTED_CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF'];
+function formatDhAmount(amountDh) {
+  return `${Number(amountDh || 0)} DH`;
+}
 
-function formatPriceCents(priceCents, currency, locale = 'fr') {
-  const amount = Number(priceCents || 0) / 100;
-  const currencyCode = String(currency || 'EUR').toUpperCase();
-  try {
-    return new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
-      style: 'currency',
-      currency: currencyCode,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currencyCode}`;
+function getPlanChargeCents(plan, selectedBilling) {
+  if ((selectedBilling === 'annual' || selectedBilling === 'yearly') && Number.isFinite(Number(plan?.annual_price_mad_cents))) {
+    return Number(plan.annual_price_mad_cents);
   }
+  return Number(plan?.price_mad_cents);
 }
 
 function getPricingPeriodSuffix(plan, selectedBilling) {
@@ -199,7 +199,6 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedBilling, setSelectedBilling] = useState('monthly');
-  const [selectedCurrency, setSelectedCurrency] = useState('EUR');
   const [checkoutPlanId, setCheckoutPlanId] = useState('');
 
   useEffect(() => {
@@ -233,6 +232,7 @@ export default function PricingPage() {
   }, [plans]);
 
   const displayedPlans = useMemo(() => buildPricingCards(sortedPlans, selectedBilling), [sortedPlans, selectedBilling]);
+  const dhPriceByPlanId = useMemo(() => buildDhPriceByPlanId(sortedPlans), [sortedPlans]);
 
   async function handleProviderCheckout(plan, provider) {
     const currentUser = getStoredCurrentUser();
@@ -322,19 +322,8 @@ export default function PricingPage() {
               </div>
 
               <div className="control-section pricing-controls__currency">
-                <label htmlFor="currency-select" style={getDarkModeTextStyle()}>{isEn ? 'Currency' : 'Devise'}</label>
-                <select
-                  id="currency-select"
-                  value={selectedCurrency}
-                  onChange={(e) => setSelectedCurrency(e.target.value)}
-                  className="currency-select currency-select--compact"
-                >
-                  {SUPPORTED_CURRENCIES.map((curr) => (
-                    <option key={curr} value={curr}>
-                      {curr} {CURRENCY_SYMBOLS[curr] || ''}
-                    </option>
-                  ))}
-                </select>
+                <label style={getDarkModeTextStyle()}>{isEn ? 'Currency' : 'Devise'}</label>
+                <span className="currency-select currency-select--compact">DH</span>
               </div>
             </div>
           </section>
@@ -390,12 +379,12 @@ export default function PricingPage() {
                 </div>
 
                 <h2 className="pricing-price" style={getDarkModeHeadingStyle()}>
-                  {formatPriceCents(plan.displayPriceCents, selectedCurrency, locale)}
+                  {formatDhAmount(getPlanChargeCents(plan, selectedBilling) / 100 || dhPriceByPlanId[String(plan.id)])}
                   <span style={getDarkModeTextStyle()}>{plan.planCopy.priceSuffix}</span>
                 </h2>
                 {plan.originalPriceCents ? (
                   <p className="pricing-original" style={getDarkModeTextStyle()}>
-                    <s>{formatPriceCents(plan.originalPriceCents, selectedCurrency, locale)}</s>
+                    <s>{formatDhAmount(Number(plan.price_mad_cents || 0) / 100 || dhPriceByPlanId[String(plan.id)])}</s>
                   </p>
                 ) : null}
                 {plan.description ? <p className="pricing-description" style={getDarkModeTextStyle()}>{plan.description}</p> : null}
