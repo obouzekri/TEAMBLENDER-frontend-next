@@ -8,6 +8,13 @@
   color: var(--challenge-text-secondary);
 }
 
+.headerSlot {
+  width: 100%;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: clamp(14px, 1.8vw, 26px) clamp(14px, 1.8vw, 26px) 0;
+}
+
 .challengeContainer :global(h1),
 .challengeContainer :global(h2),
 .challengeContainer :global(h3),

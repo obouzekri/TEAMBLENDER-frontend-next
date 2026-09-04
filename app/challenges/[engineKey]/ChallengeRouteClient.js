@@ -7,6 +7,9 @@ import { useSessionState } from '@/lib/useSessionState';
 import { trackProductChallengeEvent } from '@/lib/analytics';
 import { getApiUrl } from '@/lib/config';
 import { getStoredAuthToken } from '@/lib/auth-storage';
+import { getAuthHeaders } from '@/lib/auth';
+import SessionLiveHeader from '@/components/SessionLiveHeader';
+import { ChallengeHeaderPortalContext } from '@/lib/challengeHeaderPortal';
 
 const ChallengeWrapper = dynamic(
   () => import('@/components/Challenges/ChallengeWrapper'),
@@ -26,6 +29,9 @@ export default function ChallengeRouteClient() {
   const { sessionState } = useSessionState(sessionId || null);
   const [completionOverlay, setCompletionOverlay] = useState(null);
   const [authoritativeEngineKey, setAuthoritativeEngineKey] = useState('');
+  const [sessionDetails, setSessionDetails] = useState(null);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [challengeSlotNode, setChallengeSlotNode] = useState(null);
   const countdownTimerRef = useRef(null);
   const completedChallengeIdRef = useRef('');
 
@@ -40,6 +46,63 @@ export default function ChallengeRouteClient() {
     || engineKey
   ).trim();
   const hasAuthoritativeState = Boolean(sessionState && typeof sessionState === 'object');
+
+  const sessionChallenges = useMemo(() => {
+    const currentChallenge = sessionState?.current_challenge || null;
+    if (Array.isArray(sessionState?.challenges) && sessionState.challenges.length > 0) {
+      return sessionState.challenges;
+    }
+    return currentChallenge ? [currentChallenge] : [];
+  }, [sessionState?.challenges, sessionState?.current_challenge]);
+
+  const activeChallengeName = String(
+    sessionState?.current_challenge?.name
+    || sessionState?.active_challenge?.name
+    || activeEngineKey
+    || ''
+  ).trim();
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    let cancelled = false;
+
+    async function loadSessionDetails() {
+      try {
+        const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), {
+          headers: getAuthHeaders(),
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const payload = await res.json();
+        if (!cancelled) setSessionDetails(payload || null);
+      } catch {
+        if (!cancelled) setSessionDetails(null);
+      }
+    }
+
+    async function loadTeamMembers() {
+      try {
+        const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/participants`), {
+          headers: getAuthHeaders(),
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const members = Array.isArray(data) ? data : (data?.items || data?.data || data?.participants || []);
+        if (!cancelled) setTeamMembers(members);
+      } catch {
+        // Team members are nice to have but not critical.
+      }
+    }
+
+    loadSessionDetails();
+    loadTeamMembers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
 
   const clearCountdown = useCallback(() => {
     if (countdownTimerRef.current) {
@@ -183,12 +246,26 @@ export default function ChallengeRouteClient() {
   }, [clearCountdown]);
 
   return (
-    <>
+    <ChallengeHeaderPortalContext.Provider value={challengeSlotNode}>
       <ChallengeWrapper
         key={`${sessionId}:${activeChallengeId || 'none'}:${engineKey}`}
         sessionId={sessionId}
         engineKey={engineKey}
         onChallengeCompleted={handleChallengeCompleted}
+        headerContent={sessionId ? (
+          <SessionLiveHeader
+            sessionId={sessionId}
+            sessionName={sessionDetails?.name || sessionId}
+            sessionCode={sessionDetails?.code || sessionDetails?.session_code || sessionDetails?.sessionCode || sessionId}
+            participantCount={teamMembers.length}
+            expectedParticipantCount={Array.isArray(sessionDetails?.assigned_participants) ? sessionDetails.assigned_participants.length : teamMembers.length}
+            challenges={sessionChallenges}
+            activeChallengeId={activeChallengeId}
+            activeChallengeName={activeChallengeName}
+            showAdvanceButton={false}
+            challengeSlotRef={setChallengeSlotNode}
+          />
+        ) : null}
       />
       {completionOverlay ? (
         <section
@@ -216,6 +293,6 @@ export default function ChallengeRouteClient() {
           </p>
         </section>
       ) : null}
-    </>
+    </ChallengeHeaderPortalContext.Provider>
   );
 }

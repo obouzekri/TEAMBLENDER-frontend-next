@@ -32,7 +32,7 @@ const REALTIME_ENGINES = new Set([
  * - Handle errors and loading states
  * - Manage auth & ownership
  */
-export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, onChallengeCompleted = null }) {
+export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, onChallengeCompleted = null, headerContent = null }) {
   const normalizedEngineKey = String(engineKey || '').trim();
   const [activeEngineKey, setActiveEngineKey] = useState(normalizedEngineKey);
   const effectiveEngineKey = String(activeEngineKey || normalizedEngineKey || '').trim();
@@ -416,6 +416,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
           connectionState={connectionState}
         />
       )}
+      {headerContent ? <div className={styles.headerSlot}>{headerContent}</div> : null}
       <div className={styles.challengeContainer}>
         <EngineComponent {...props} />
       </div>
