@@ -49,6 +49,27 @@
   line-height: 1.45;
 }
 
+:global(html[data-theme='light']) .challengeContainer :global(h1) {
+  background: none;
+  -webkit-text-fill-color: var(--challenge-text-primary);
+  color: var(--challenge-text-primary);
+}
+
+:global(html[data-theme='light']) .challengeContainer :global(h2),
+:global(html[data-theme='light']) .challengeContainer :global(h3),
+:global(html[data-theme='light']) .challengeContainer :global(h4),
+:global(html[data-theme='light']) .challengeContainer :global(p),
+:global(html[data-theme='light']) .challengeContainer :global(li),
+:global(html[data-theme='light']) .challengeContainer :global(label),
+:global(html[data-theme='light']) .challengeContainer :global(strong),
+:global(html[data-theme='light']) .challengeContainer :global(small) {
+  color: var(--challenge-text-primary);
+}
+
+:global(html[data-theme='light']) .challengeContainer :global(small) {
+  color: var(--challenge-text-muted);
+}
+
 .challengeContainer :global(small) {
   color: var(--challenge-text-muted);
 }

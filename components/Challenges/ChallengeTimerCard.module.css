@@ -11,6 +11,38 @@
   padding: 1rem;
 }
 
+:global(html[data-theme='light']) .timerCard,
+:global(html[data-theme='light']) .timerCardStarted {
+  background: var(--card);
+  border-color: var(--control-border-strong);
+  box-shadow: var(--shadow-md);
+  color: var(--challenge-text-primary);
+}
+
+:global(html[data-theme='light']) .timerTitle,
+:global(html[data-theme='light']) .timerToggleBtn,
+:global(html[data-theme='light']) .timerTime,
+:global(html[data-theme='light']) .timerWaitingText,
+:global(html[data-theme='light']) .timerCompactTime,
+:global(html[data-theme='light']) .timerCompactState {
+  color: var(--challenge-text-primary);
+}
+
+:global(html[data-theme='light']) .timerToggleBtn {
+  background: var(--surface-control);
+  border-color: var(--control-border-strong);
+}
+
+:global(html[data-theme='light']) .timerRing {
+  border-color: var(--control-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+:global(html[data-theme='light']) .timerRing::after {
+  background: var(--bg);
+  box-shadow: inset 0 1px 0 var(--surface-border);
+}
+
 .timerCardStarted {
   position: sticky;
   top: calc(var(--header-height, 64px) + 8px);

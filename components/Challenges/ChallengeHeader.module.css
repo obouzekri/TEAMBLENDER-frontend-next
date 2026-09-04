@@ -34,6 +34,14 @@
   text-overflow: ellipsis;
 }
 
+:global(html[data-theme='light']) .title {
+  color: var(--text-strong);
+}
+
+:global(html[data-theme='light']) .subtitle {
+  color: var(--text-muted);
+}
+
 .action {
   flex: 0 0 auto;
   display: flex;
