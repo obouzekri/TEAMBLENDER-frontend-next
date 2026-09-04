@@ -151,9 +151,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const [clickedStatementId, setClickedStatementId] = useState('');
   const [resultPulse, setResultPulse] = useState(false);
   const [selectionModalOpen, setSelectionModalOpen] = useState(false);
-  const [voteIntroOpen, setVoteIntroOpen] = useState(false);
   const audioRef = useRef(null);
-  const voteIntroSeenTurnRef = useRef('');
 
 
   const {
@@ -617,22 +615,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       setSelectionModalOpen(false);
     }
   }, [phase]);
-
-  useEffect(() => {
-    if (phase !== 'voting_open') {
-      setVoteIntroOpen(false);
-      return;
-    }
-
-    const turnKey = `${currentTurn?.id || ''}:${currentTurn?.poser_id || ''}:${currentTurn?.statement_prompt || currentTurn?.statement_text || ''}`;
-    if (!turnKey || voteIntroSeenTurnRef.current === turnKey) return;
-
-    voteIntroSeenTurnRef.current = turnKey;
-    setVoteIntroOpen(true);
-
-    const autoClose = window.setTimeout(() => setVoteIntroOpen(false), 2600);
-    return () => window.clearTimeout(autoClose);
-  }, [phase, currentTurn?.id, currentTurn?.poser_id, currentTurn?.statement_prompt, currentTurn?.statement_text]);
 
   useEffect(() => {
     if (phase === 'round_result') {
@@ -1142,35 +1124,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 }}
               >
                 {t('vom.confirm')}
-              </button>
-            </div>
-          </section>
-        </div>
-      ) : null}
-
-      {voteIntroOpen && phase === 'voting_open' ? (
-        <div className={styles.modalOverlay} role="presentation" onClick={() => setVoteIntroOpen(false)}>
-          <section
-            className={styles.modalCard}
-            role="dialog"
-            aria-modal="true"
-            aria-label={t('vom.voteIntroTitle')}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <p className={styles.modalIntro}>{t('vom.voteIntroTitle')}</p>
-            <p className={styles.choicePanelTitle}>{currentTurn?.statement_prompt || currentTurn?.statement_text || '-'}</p>
-            {isChoiceVoting && votingChoices.length > 0 ? (
-              <div className={styles.choiceButtonsWrap}>
-                {votingChoices.map((option) => (
-                  <div key={option} className={styles.choiceOptionBtn} aria-hidden="true">
-                    <span className={styles.voteChoiceLabel}>{option}</span>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-            <div className={styles.modalActions}>
-              <button type="button" className={styles.primaryBtn} onClick={() => setVoteIntroOpen(false)}>
-                {t('vom.voteIntroCta')}
               </button>
             </div>
           </section>
