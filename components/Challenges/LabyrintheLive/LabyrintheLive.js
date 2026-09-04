@@ -211,6 +211,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
   const laby = state?.labyrinthe || null;
   const timer = state?.timer || null;
+  const labyLevel = safeInt(laby?.level, 1, 1, 6);
+  const labyLevelsTotal = safeInt(laby?.levels_total, 1, 1, 6);
   const didAutoSetupRef = useRef(false);
   const swipeStartRef = useRef(null);
   const gridRef = useRef(null);
@@ -219,6 +221,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const hasSelectedStart = Boolean(myParticipantState?.solo?.ss) || Boolean(myParticipantState?.solo?.rg);
 
   const labyPhase = String(laby?.phase || '').trim();
+  const isFogActive = Boolean(laby?.fog?.active);
+  const fogRadius = safeInt(laby?.fog?.radius, 2, 1, 4);
   const canMoveSolo = !isFacilitator
     && labyPhase !== 'done'
     && Boolean(laby?.maze)
@@ -463,6 +467,21 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       }
 
       const outcome = String(payload?.outcome || '').trim();
+      if (outcome === 'level_complete') {
+        const nextLevel = Number(payload?.level || 0);
+        const levelsTotal = Number(payload?.levels_total || 0);
+        setAnnouncement({
+          tone: 'success',
+          title: isEn ? 'Level cleared!' : 'Niveau franchi !',
+          body: levelsTotal
+            ? (isEn ? `New maze ahead: level ${nextLevel}/${levelsTotal}. Pick a new starting point.` : `Nouveau labyrinthe : niveau ${nextLevel}/${levelsTotal}. Choisissez un nouveau point de départ.`)
+            : (isEn ? 'A new maze was generated. Pick a new starting point.' : 'Nouveau labyrinthe généré. Choisissez un nouveau point de départ.'),
+        });
+        setMoveFeedback(isEn ? '🏁 Level cleared! Select your new start.' : '🏁 Niveau franchi ! Sélectionnez votre nouveau départ.');
+        setMoveFeedbackTone('success');
+        showMicroCue(impactedCellKey || playerPosKey, 'success', '🏁');
+        return;
+      }
       if (outcome === 'exit') {
         setAnnouncement({
           tone: 'success',
@@ -669,7 +688,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     <div className={styles.labyrinthContainer}>
       <ChallengeHeader
         title={challengeName}
-        subtitle={challengeSubtitle || (isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, évitez les pièges, ouvrez la sortie.')}
+        subtitle={(challengeSubtitle || (isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, évitez les pièges, ouvrez la sortie.'))
+          + (hasChallengeStarted && labyLevelsTotal > 1 ? ` · ${isEn ? 'Level' : 'Niveau'} ${labyLevel}/${labyLevelsTotal}` : '')}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader
@@ -834,6 +854,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                   <span className={styles.muted}>{isEn ? 'Lives' : 'Vies'}</span>
                   <strong>{'❤️'.repeat(Math.min(8, Math.max(0, Number(myParticipantState?.lives_remaining || 0)))) || '—'}</strong>
                 </div>
+                {isFogActive ? (
+                  <span className={styles.fogBadge}>{isEn ? '🌫️ Fog of War' : '🌫️ Brouillard actif'}</span>
+                ) : null}
               </div>
 
               {labyPhase === 'done' ? (
@@ -872,14 +895,20 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     const key = `${row},${col}`;
                     const classes = [styles.cell];
                     const isVisited = myVisited.has(key);
+                    const fogCenter = hasSelectedStart
+                      ? (Array.isArray(optimisticPos) ? optimisticPos : myParticipantState?.solo?.pos)
+                      : null;
+                    const isFoggedCell = isFogActive
+                      && Array.isArray(fogCenter)
+                      && Math.max(Math.abs(row - Number(fogCenter[0])), Math.abs(col - Number(fogCenter[1]))) > fogRadius;
                     if (Boolean(revealedCells[key])) classes.push(styles.cellRevealed);
                     // Only show the visited trail once the player has selected a start point (avoids a blue glow on the untouched grid).
-                    if (isVisited && hasSelectedStart) classes.push(styles.cellVisited);
+                    if (isVisited && hasSelectedStart && !isFoggedCell) classes.push(styles.cellVisited);
                     if (allStartKeys.has(key)) classes.push(styles.cellStart);
                     if (key !== startCellKey && allStartKeys.has(key)) classes.push(styles.cellStartAlt);
                     if (key === endCellKey) classes.push(styles.cellExit);
-                    if (revealedWalls[key]) classes.push(styles.cellTestedZone);
-                    if (Boolean(revealedTraps[key])) {
+                    if (revealedWalls[key] && !isFoggedCell) classes.push(styles.cellTestedZone);
+                    if (Boolean(revealedTraps[key]) && !isFoggedCell) {
                       const trapStatus = typeof revealedTraps[key] === 'object' ? String(revealedTraps[key]?.state || 'triggered') : 'triggered';
                       if (trapStatus === 'triggered') classes.push(styles.cellTrapTriggered);
                       if (trapStatus === 'resolved') classes.push(styles.cellTrapResolved);
@@ -889,6 +918,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     if (labyPhase === 'done' && safePathKeys.has(key)) classes.push(styles.cellSolution);
                     if (isRespawning && allStartKeys.has(key)) classes.push(styles.cellStartGlow);
                     if (flashCellKey === key) classes.push(flashCellTone === 'blocked' ? styles.cellBlockedFlash : styles.cellTrapFlash);
+                    if (isFoggedCell) classes.push(styles.cellFogged);
 
                     return (
                       <button
