@@ -2325,6 +2325,81 @@
   color: var(--text-soft);
 }
 
+:global(html[data-theme='light']) .turnCompactBadge,
+:global(html[data-theme='light']) .selectionProgress,
+:global(html[data-theme='light']) .categoryBadge,
+:global(html[data-theme='light']) .observerBadge,
+:global(html[data-theme='light']) .votePhaseChip,
+:global(html[data-theme='light']) .voteStatusBadgePending {
+  background: var(--surface-panel-soft);
+  border-color: var(--line-soft);
+  color: var(--accent-2);
+}
+
+:global(html[data-theme='light']) .voteCompactCard,
+:global(html[data-theme='light']) .poserVoteWaitingCard,
+:global(html[data-theme='light']) .voteTargetCard,
+:global(html[data-theme='light']) .votePhaseHeader,
+:global(html[data-theme='light']) .voteStatus,
+:global(html[data-theme='light']) .voteResponseCard,
+:global(html[data-theme='light']) .voteStatusRow {
+  background: var(--surface-1);
+  border-color: var(--line-soft);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+}
+
+:global(html[data-theme='light']) .voteCompactQuestion,
+:global(html[data-theme='light']) .voteQuestionBlock,
+:global(html[data-theme='light']) .votePhaseStatement {
+  background: var(--surface-panel-soft);
+  border-color: var(--line-soft);
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .voteCompactQuestionLabel,
+:global(html[data-theme='light']) .voteTargetEyebrow,
+:global(html[data-theme='light']) .voteQuestionBlock span,
+:global(html[data-theme='light']) .votePhaseTitle {
+  color: var(--accent);
+}
+
+:global(html[data-theme='light']) .voteCompactProgress,
+:global(html[data-theme='light']) .voteTargetName,
+:global(html[data-theme='light']) .voteQuestionBlock p,
+:global(html[data-theme='light']) .voteStatusIdentity strong,
+:global(html[data-theme='light']) .voteResponseCopy strong,
+:global(html[data-theme='light']) .voteChoiceLabel {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .voteResponseCopy span,
+:global(html[data-theme='light']) .voteResponseValue,
+:global(html[data-theme='light']) .voteChoiceHint {
+  color: var(--text-soft);
+}
+
+:global(html[data-theme='light']) .voteStatusRowDone,
+:global(html[data-theme='light']) .voteResponseCardAnswered {
+  background: var(--success-bg);
+  border-color: var(--success-line);
+}
+
+:global(html[data-theme='light']) .voteTrue {
+  color: var(--success-ink);
+  background: var(--success-bg);
+}
+
+:global(html[data-theme='light']) .voteFalse {
+  color: var(--error-ink);
+  background: var(--error-bg);
+}
+
+:global(html[data-theme='light']) .primaryBtn {
+  background: var(--accent);
+  border-color: var(--accent-strong);
+  color: var(--text-on-accent);
+}
+
 .desktopTimerCard {
   display: block;
 }
