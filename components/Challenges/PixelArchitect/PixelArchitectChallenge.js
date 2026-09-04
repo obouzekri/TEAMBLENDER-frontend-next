@@ -134,7 +134,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   const [activeLayer, setActiveLayer] = useState(0);
   const [selectedColor, setSelectedColor] = useState(FALLBACK_PALETTE[0]);
-  const [expandedLayers, setExpandedLayers] = useState({});
   const [webglUnavailable, setWebglUnavailable] = useState(false);
   const [isViewportReady, setIsViewportReady] = useState(false);
   const [viewportError, setViewportError] = useState('');
@@ -712,13 +711,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }, [hasChallengeStarted]);
 
   useEffect(() => {
-    setExpandedLayers((prev) => {
-      if (prev[String(safeLayer)]) return prev;
-      return { ...prev, [String(safeLayer)]: true };
-    });
-  }, [safeLayer]);
-
-  useEffect(() => {
     if (!modelPreviewRef.current || !canSeeTargetModel) return () => {};
 
     const container = modelPreviewRef.current;
@@ -868,13 +860,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     emitEvent('pixel.layer.claim', { layer });
   }
 
-  function toggleLayerSummary(layer) {
-    setExpandedLayers((prev) => ({
-      ...prev,
-      [String(layer)]: !prev[String(layer)],
-    }));
-  }
-
   const summary = state?.summary || null;
   const summaryPixelMetrics = summary?.pixel_metrics || null;
   const templateName = String(selectedTemplate?.name || 'Modele').trim();
@@ -961,13 +946,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       .sort((a, b) => b.cubeCount - a.cubeCount)
       .slice(0, 6);
   }, [serverCubes]);
-
-  const targetLayerBoards = useMemo(() => {
-    return layers.map((layer) => ({
-      layer,
-      rows: buildLayerBoard(grid, layer, targetSet, new Map()),
-    }));
-  }, [grid, layers, targetSet]);
 
   const liveLayerBoards = useMemo(() => {
     return layers.map((layer) => ({
@@ -1075,54 +1053,80 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               <section className={styles.panel}>
                 <div className={styles.panelHead}>
                   <h2>{isEn ? 'Layer build workspace' : 'Espace de build par couche'}</h2>
+                  <p>
+                    {isEn
+                      ? 'All layers are editable here. Click a layer title to set it active, then click cells to place or remove cubes.'
+                      : 'Toutes les couches sont editables ici. Cliquez le titre pour activer, puis les cellules pour poser ou retirer des cubes.'}
+                  </p>
                 </div>
 
-                <div className={styles.arenaControlRow}>
-                  <section className={styles.layerControlCard}>
-                    <p className={styles.layerControlTitle}>{isEn ? 'Build layers' : 'Couches de construction'}</p>
-                    <div className={styles.layerTabs}>
-                      {layers.map((layer) => {
-                        const claim = layerClaims[String(layer)] || null;
-                        const isReservedByMe = myLayerClaim && Number(myLayerClaim.layer) === layer;
-                        const isReservedByOther = claim && !isReservedByMe;
-                        return (
+                <div className={styles.layerQuickList}>
+                  {liveLayerBoards.map(({ layer, rows }) => {
+                    const stats = layerStats.find((item) => Number(item.layer) === Number(layer)) || null;
+                    const isActive = safeLayer === layer;
+                    const claim = layerClaims[String(layer)] || null;
+                    const isReservedByMe = Boolean(myLayerClaim && Number(myLayerClaim.layer) === layer);
+                    const isReservedByOther = Boolean(claim) && !isReservedByMe;
+                    return (
+                      <section
+                        key={`layer-mini-${layer}`}
+                        className={`${styles.layerQuickCard}${isActive ? ` ${styles.layerQuickCardActive}` : ''}`}
+                        aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}`}
+                      >
+                        <div className={styles.layerQuickHeadRow}>
                           <button
-                            key={`layer-${layer}`}
                             type="button"
-                            aria-pressed={safeLayer === layer}
-                            aria-label={`${isEn ? 'Show layer' : 'Afficher la couche'} ${layer + 1}`}
-                            title={claim ? `${isEn ? 'Reserved by' : 'Reservee par'} ${String(claim.display_name || '')}` : undefined}
-                            className={`${styles.layerBtn}${safeLayer === layer ? ` ${styles.layerBtnActive}` : ''}${isReservedByMe ? ` ${styles.layerBtnMine}` : ''}${isReservedByOther ? ` ${styles.layerBtnReserved}` : ''}`}
+                            className={styles.layerQuickActivateBtn}
                             onClick={() => setActiveLayer(layer)}
+                            aria-pressed={isActive}
+                            aria-label={`${isEn ? 'Activate layer' : 'Activer couche'} ${layer + 1}`}
                           >
                             {isEn ? 'Layer' : 'Couche'} {layer + 1}
-                            {isReservedByMe ? ' ✓' : isReservedByOther ? ' 🔒' : ''}
                           </button>
-                        );
-                      })}
-                      {!isFacilitator ? (
-                        <button
-                          type="button"
-                          className={`${styles.layerBtn} ${styles.layerBtnClaimAction}`}
-                          onClick={() => handleToggleLayerClaim(safeLayer)}
-                          aria-label={myLayerClaim && Number(myLayerClaim.layer) === safeLayer
-                            ? (isEn ? 'Release this layer' : 'Liberer cette couche')
-                            : (isEn ? 'Reserve this layer' : 'Reserver cette couche')}
+                          <button
+                            type="button"
+                            className={`${styles.layerQuickClaimBtn}${isReservedByMe ? ` ${styles.layerQuickClaimBtnMine}` : ''}${isReservedByOther ? ` ${styles.layerQuickClaimBtnReserved}` : ''}`}
+                            onClick={() => handleToggleLayerClaim(layer)}
+                            disabled={isFacilitator || isReservedByOther}
+                            title={isReservedByOther ? `${isEn ? 'Reserved by' : 'Reservee par'} ${String(claim?.display_name || '')}` : undefined}
+                          >
+                            {isReservedByMe
+                              ? (isEn ? 'Mine' : 'Ma couche')
+                              : isReservedByOther
+                                ? (isEn ? 'Reserved' : 'Reservee')
+                                : (isEn ? 'Open' : 'Libre')}
+                          </button>
+                        </div>
+                        <div
+                          className={styles.layerQuickGrid}
+                          style={{ gridTemplateColumns: `repeat(${grid.x}, minmax(0, 1fr))` }}
+                          role="grid"
+                          aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}`}
                         >
-                          {myLayerClaim && Number(myLayerClaim.layer) === safeLayer
-                            ? (isEn ? 'Release layer' : 'Liberer')
-                            : (isEn ? '+ Reserve' : '+ Reserver')}
-                        </button>
-                      ) : null}
-                    </div>
-                    {!isFacilitator ? (
-                      <p className={styles.claimTextCompact}>
-                        {myLayerClaim
-                          ? `${isEn ? 'Reserved' : 'Reservee'}: ${Number(myLayerClaim.layer) + 1}`
-                          : (isEn ? 'No layer reserved' : 'Aucune couche reservee')}
-                      </p>
-                    ) : null}
-                  </section>
+                          {rows.flatMap((row) => row).map((cell) => {
+                            const isPlacedCorrect = cell.isPlaced && cell.isTarget;
+                            const isPlacedWrong = cell.isPlaced && !cell.isTarget;
+                            const placedColor = String(cell.cube?.color || selectedColor || '#2D9CDB');
+                            return (
+                              <button
+                                key={`mini-${cell.key}`}
+                                type="button"
+                                className={`${styles.layerQuickCell} ${styles.layerQuickCellBtn}${cell.isTarget ? ` ${styles.layerQuickCellTarget}` : ''}${cell.isPlaced ? ` ${styles.layerQuickCellPlaced}` : ''}${isPlacedCorrect ? ` ${styles.layerQuickCellCorrect}` : ''}${isPlacedWrong ? ` ${styles.layerQuickCellWrong}` : ''}`}
+                                style={cell.isPlaced ? { '--pixel-cell-color': placedColor } : undefined}
+                                onClick={() => handleBoardCellToggle(cell.x, cell.z, layer)}
+                                disabled={!canBuild}
+                                aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}, ${isEn ? 'cell' : 'case'} x${cell.x + 1} z${cell.z + 1}${cell.isTarget ? `, ${isEn ? 'target' : 'cible'}` : ''}${cell.isPlaced ? `, ${isEn ? 'occupied' : 'occupee'}` : ''}`}
+                              />
+                            );
+                          })}
+                        </div>
+                        <div className={styles.layerQuickMetaRow}>
+                          <span>{stats ? `${stats.matchedCount}/${stats.targetCount}` : '-'}</span>
+                          <span>{stats ? `${stats.completion}%` : '0%'}</span>
+                        </div>
+                      </section>
+                    );
+                  })}
                 </div>
 
                 <div className={styles.paletteRow}>
@@ -1253,40 +1257,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 </div>
               ) : null}
               <div ref={mountRef} className={styles.viewport3dCompact} />
-            </div>
-
-            <div className={styles.modelLayerList}>
-              {targetLayerBoards.map(({ layer, rows }) => {
-                const stats = layerStats.find((item) => Number(item.layer) === Number(layer)) || null;
-                const expanded = Boolean(expandedLayers[String(layer)]);
-                return (
-                  <section key={`model-layer-${layer}`} className={styles.modelLayerCard}>
-                    <button
-                      type="button"
-                      className={styles.modelLayerToggle}
-                      onClick={() => toggleLayerSummary(layer)}
-                      aria-expanded={expanded}
-                    >
-                      <span>{isEn ? 'Layer' : 'Couche'} {layer + 1}</span>
-                      <span>{stats ? `${stats.matchedCount}/${stats.targetCount}` : '-'}</span>
-                    </button>
-                    {expanded ? (
-                      <div
-                        className={styles.modelLayerGrid}
-                        style={{ gridTemplateColumns: `repeat(${grid.x}, minmax(0, 1fr))` }}
-                      >
-                        {rows.flatMap((row) => row).map((cell) => (
-                          <div
-                            key={`model-${cell.key}`}
-                            className={`${styles.modelLayerCell}${cell.isTarget ? ` ${styles.modelLayerCellTarget}` : ''}`}
-                            aria-hidden="true"
-                          />
-                        ))}
-                      </div>
-                    ) : null}
-                  </section>
-                );
-              })}
             </div>
           </section>
 
