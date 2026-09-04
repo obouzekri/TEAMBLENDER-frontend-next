@@ -9903,6 +9903,12 @@ html[data-theme='dark'] .pricing-discount-badge{
   background: rgba(15, 23, 42, 0.5);
 }
 
+/* Light theme overrides for pricing page */
+html[data-theme='light'] .pricing-page .pricing-card,
+html[data-theme='light'] .pricing-page .feature-card {
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
 .auth-page {
   padding: 2rem 0 3.5rem;
   min-height: 100svh;
