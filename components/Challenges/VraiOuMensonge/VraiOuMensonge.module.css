@@ -2325,6 +2325,49 @@
   color: var(--text-soft);
 }
 
+:global(html[data-theme='light']) .category {
+  color: var(--accent);
+}
+
+:global(html[data-theme='light']) .categoryBadge {
+  background: var(--surface-panel-soft);
+  border-color: var(--line-soft);
+  color: var(--accent);
+}
+
+:global(html[data-theme='light']) .statementPrompt {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .statementOptionsPreview,
+:global(html[data-theme='light']) .statementMeta {
+  color: var(--text-soft);
+}
+
+:global(html[data-theme='light']) .turnCompactBadge {
+  background: var(--surface-panel-soft);
+  border-color: var(--line-soft);
+  color: var(--accent);
+}
+
+:global(html[data-theme='light']) .observerBadge {
+  background: var(--surface-panel-soft);
+  border-color: var(--line-soft);
+  color: var(--accent);
+}
+
+:global(html[data-theme='light']) .votePhaseChip {
+  background: var(--surface-panel-soft);
+  border-color: var(--line-soft);
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .roleSpotlightChip {
+  background: var(--surface-panel-soft);
+  border-color: var(--line-soft);
+  color: var(--text-main);
+}
+
 :global(html[data-theme='light']) .turnCompactBadge,
 :global(html[data-theme='light']) .selectionProgress,
 :global(html[data-theme='light']) .categoryBadge,
