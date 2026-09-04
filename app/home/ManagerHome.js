@@ -866,9 +866,15 @@ export default function ManagerHome() {
         credentials: 'include',
       });
 
-      if (!response.ok) {
-        const body = await response.text();
-        throw new Error(body || `Unable to delete participant (${response.status})`);
+      if (!response.ok && response.status !== 404) {
+        const text = await response.text();
+        let parsedError = '';
+        try {
+          parsedError = text ? JSON.parse(text)?.error || '' : '';
+        } catch {
+          parsedError = '';
+        }
+        throw new Error(parsedError || `Unable to delete participant (${response.status})`);
       }
       await refreshMembers();
       showSuccessToast(isEn ? 'Participant deleted.' : 'Participant supprime.');
