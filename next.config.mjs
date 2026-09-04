@@ -98,6 +98,41 @@ const cdnOrigin = normalizeCdnOrigin(process.env.NEXT_PUBLIC_CDN_ORIGIN);
 const remoteImageHosts = parseRemoteImageHosts(process.env.NEXT_PUBLIC_CDN_IMAGE_HOSTS);
 const posthogIngestDestinations = getPosthogIngestDestinations(process.env.NEXT_PUBLIC_POSTHOG_HOST);
 
+const backendCspOrigin = normalizeCdnOrigin(rewriteBackendOrigin);
+const cspConnectSources = [
+  "'self'",
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3100',
+  'https://*.teamblender.io',
+  'https://*.vercel.app',
+  'https://*.posthog.com',
+  'https://*.google.com',
+  'https://*.googleapis.com',
+  'https://*.microsoft.com',
+  'https://login.microsoftonline.com',
+  'ws:',
+  'wss:',
+];
+
+if (backendCspOrigin) {
+  cspConnectSources.push(backendCspOrigin);
+}
+
+const cspHeader = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.vercel.app https://*.teamblender.io https://*.posthog.com https://*.google.com https://*.googleapis.com https://*.microsoft.com https://login.microsoftonline.com",
+  "style-src 'self' 'unsafe-inline' https://*.googleapis.com https://*.gstatic.com",
+  "img-src 'self' data: blob: https://*.teamblender.io https://*.vercel.app https://*.posthog.com https://*.googleusercontent.com https://*.microsoft.com https://*.microsoftonline.com",
+  "font-src 'self' data: https://*.gstatic.com",
+  `connect-src ${cspConnectSources.join(' ')}`,
+  "form-action 'self' https://*.google.com https://*.microsoft.com",
+  "frame-src 'self' https://*.google.com https://*.microsoft.com https://*.posthog.com",
+].join('; ');
+
 const nextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ['127.0.0.1'],
@@ -108,6 +143,20 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react'],
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'Content-Security-Policy', value: cspHeader },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
+        ],
+      },
+    ];
   },
   async rewrites() {
     return [
