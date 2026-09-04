@@ -13,6 +13,7 @@ import { useSessionState } from '@/lib/useSessionState';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import SessionLiveHeader from '@/components/SessionLiveHeader';
+import { ChallengeHeaderPortalContext } from '@/lib/challengeHeaderPortal';
 
 const ChallengeWrapper = dynamic(
   () => import('@/components/Challenges/ChallengeWrapper'),
@@ -44,6 +45,7 @@ export default function SessionLiveClient() {
   const [error, setError] = useState('');
   const [actionPending, setActionPending] = useState(false);
   const [actionError, setActionError] = useState('');
+  const [challengeSlotNode, setChallengeSlotNode] = useState(null);
 
   const autoAdvanceTimerRef = useRef(null);
   const completedChallengeKeyRef = useRef('');
@@ -246,43 +248,45 @@ export default function SessionLiveClient() {
         {asyncStatusMessage ? (
           <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
         ) : null}
-        <SessionLiveHeader
-          sessionId={sessionId}
-          sessionName={session?.name || `${t('sessionLive.sessionFallbackName')} ${sessionId}`}
-          sessionCode={session?.code || session?.session_code || session?.sessionCode || sessionId}
-          participantCount={memberCount}
-          expectedParticipantCount={session?.expected_participants || session?.expectedParticipants || memberCount}
-          challenges={challenges}
-          activeChallengeId={activeChallengeId}
-          activeChallengeName={activeChallengeName}
-          onAdvance={advanceToNextChallenge}
-          advancing={actionPending}
-          showAdvanceButton={canManageFlow}
-        />
+        <ChallengeHeaderPortalContext.Provider value={challengeSlotNode}>
+          <SessionLiveHeader
+            sessionId={sessionId}
+            sessionName={session?.name || `${t('sessionLive.sessionFallbackName')} ${sessionId}`}
+            sessionCode={session?.code || session?.session_code || session?.sessionCode || sessionId}
+            participantCount={memberCount}
+            expectedParticipantCount={session?.expected_participants || session?.expectedParticipants || memberCount}
+            challenges={challenges}
+            activeChallengeId={activeChallengeId}
+            activeChallengeName={activeChallengeName}
+            onAdvance={advanceToNextChallenge}
+            advancing={actionPending}
+            showAdvanceButton={canManageFlow}
+            challengeSlotRef={setChallengeSlotNode}
+          />
 
-        {activeEngineKey ? (
-          <section className="session-live-challenge-frame">
-            <ChallengeWrapper
-              key={`${sessionId}:${activeChallengeId || 'none'}:${activeEngineKey}:${liveConfigVersion}`}
-              sessionId={sessionId}
-              engineKey={activeEngineKey}
-              noNav
-              onChallengeCompleted={handleChallengeCompleted}
-            />
-          </section>
-        ) : (
-          <section className="feature-card session-live-empty-state">
-            <h2>{isEn ? 'No active challenge' : 'Aucun challenge actif'}</h2>
-            <p>
-              {isEn ? 'Activate a challenge from the' : 'Activez un challenge depuis le'}{' '}
-              <Link href={withLocalePath(`/session-builder?sessionId=${encodeURIComponent(sessionId)}`)}>
-                session builder
-              </Link>
-              .
-            </p>
-          </section>
-        )}
-
+          {activeEngineKey ? (
+            <section className="session-live-challenge-frame">
+              <ChallengeWrapper
+                key={`${sessionId}:${activeChallengeId || 'none'}:${activeEngineKey}:${liveConfigVersion}`}
+                sessionId={sessionId}
+                engineKey={activeEngineKey}
+                noNav
+                onChallengeCompleted={handleChallengeCompleted}
+              />
+            </section>
+          ) : (
+            <section className="feature-card session-live-empty-state">
+              <h2>{isEn ? 'No active challenge' : 'Aucun challenge actif'}</h2>
+              <p>
+                {isEn ? 'Activate a challenge from the' : 'Activez un challenge depuis le'}{' '}
+                <Link href={withLocalePath(`/session-builder?sessionId=${encodeURIComponent(sessionId)}`)}>
+                  session builder
+                </Link>
+                .
+              </p>
+            </section>
+          )}
+        </ChallengeHeaderPortalContext.Provider>
       </main>
       {!isSessionLiveRoute ? <Footer /> : null}
     </>

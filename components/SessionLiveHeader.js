@@ -26,6 +26,7 @@ export default function SessionLiveHeader({
   advanceLabel,
   advancing = false,
   showAdvanceButton = true,
+  challengeSlotRef = null,
 }) {
   const { locale, t } = useI18n();
   const isEn = locale === 'en';
@@ -174,43 +175,47 @@ export default function SessionLiveHeader({
 
   return (
     <section className={styles.header}>
-      <div className={styles.details}>
-        <div className={styles.titleRow}>
-          <strong className={styles.sessionName} title={resolvedSessionName}>{resolvedSessionName}</strong>
-          <span className={styles.headerChallengeName} title={resolvedActiveChallengeName}>{resolvedActiveChallengeName}</span>
-          <span className={styles.participantBadge}>
-            <Users aria-hidden="true" size={14} strokeWidth={2} />
-            {resolvedParticipantCount}
-          </span>
-          <div ref={infoRef} className={styles.infoWrap}>
-            <button
-              type="button"
-              className={styles.infoButton}
-              aria-expanded={infoOpen}
-              aria-label={sessionInfoLabel}
-              title={sessionInfoLabel}
-              onClick={() => setInfoOpen((current) => !current)}
-            >
-              <Info size={16} strokeWidth={2.2} aria-hidden="true" />
-            </button>
-            {infoPopover && typeof document !== 'undefined' ? createPortal(infoPopover, document.body) : null}
+      <div className={styles.topRow}>
+        <div className={styles.details}>
+          <div className={styles.titleRow}>
+            <strong className={styles.sessionName} title={resolvedSessionName}>{resolvedSessionName}</strong>
+            <span className={styles.headerChallengeName} title={resolvedActiveChallengeName}>{resolvedActiveChallengeName}</span>
+            <span className={styles.participantBadge}>
+              <Users aria-hidden="true" size={14} strokeWidth={2} />
+              {resolvedParticipantCount}
+            </span>
+            <div ref={infoRef} className={styles.infoWrap}>
+              <button
+                type="button"
+                className={styles.infoButton}
+                aria-expanded={infoOpen}
+                aria-label={sessionInfoLabel}
+                title={sessionInfoLabel}
+                onClick={() => setInfoOpen((current) => !current)}
+              >
+                <Info size={16} strokeWidth={2.2} aria-hidden="true" />
+              </button>
+              {infoPopover && typeof document !== 'undefined' ? createPortal(infoPopover, document.body) : null}
+            </div>
           </div>
         </div>
+
+        {showAdvanceButton ? (
+          <div className={styles.actions}>
+            <Button
+              variant="primary"
+              size="sm"
+              className={styles.actionButton}
+              onClick={onAdvance}
+              disabled={advancing}
+            >
+              {advancing ? t('sessionLive.inProgress') : (advanceLabel || t('sessionLive.moveToNextChallenge'))}
+            </Button>
+          </div>
+        ) : null}
       </div>
 
-      {showAdvanceButton ? (
-        <div className={styles.actions}>
-          <Button
-            variant="primary"
-            size="sm"
-            className={styles.actionButton}
-            onClick={onAdvance}
-            disabled={advancing}
-          >
-            {advancing ? t('sessionLive.inProgress') : (advanceLabel || t('sessionLive.moveToNextChallenge'))}
-          </Button>
-        </div>
-      ) : null}
+      <div ref={challengeSlotRef} className={styles.challengeSlot} />
     </section>
   );
 }

@@ -1074,8 +1074,8 @@ body {
 
 .session-live-shell {
   display: grid;
-  gap: 0.9rem;
-  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  gap: 0.6rem;
+  padding: 0.85rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
 }
 
 .session-live-shell--fullscreen {

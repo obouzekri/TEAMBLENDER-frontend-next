@@ -1,13 +1,28 @@
 .header {
   display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--control-border-strong);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.16);
+}
+
+.topRow {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 1.1rem;
-  border: 1px solid var(--control-border-strong);
-  border-radius: 20px;
-  background: linear-gradient(180deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
-  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.16);
+}
+
+.challengeSlot:empty {
+  display: none;
+}
+
+.challengeSlot:not(:empty) {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--surface-soft-border);
 }
 
 .details {
@@ -218,8 +233,9 @@
 }
 
 @media (max-width: 760px) {
-  .header {
+  .topRow {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .actions {
