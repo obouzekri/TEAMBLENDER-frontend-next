@@ -48,6 +48,24 @@
   background: linear-gradient(145deg, var(--bg-1) 0%, var(--bg-2) 60%, #dcecff 100%);
 }
 
+:global(html[data-theme='light']) .headerTitle,
+:global(html[data-theme='light']) .sectionHead h2,
+:global(html[data-theme='light']) .timelineHead h2,
+:global(html[data-theme='light']) .taskChip {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .headerDescription,
+:global(html[data-theme='light']) .sectionHead p,
+:global(html[data-theme='light']) .progressLabel {
+  color: var(--text-soft);
+}
+
+:global(html[data-theme='light']) .taskChip {
+  background: var(--surface-1);
+  border-color: var(--line-soft);
+}
+
 .participantView {
   padding: 16px;
 }

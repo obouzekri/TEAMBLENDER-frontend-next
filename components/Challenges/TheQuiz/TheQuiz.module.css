@@ -59,6 +59,23 @@
   --quiz-primary: #087f9a;
 }
 
+:global(html[data-theme='light']) .challengeBoard,
+:global(html[data-theme='light']) .challengeHeader,
+:global(html[data-theme='light']) .finalDebriefBlock {
+  background: var(--quiz-surface);
+  border-color: var(--quiz-border);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
+}
+
+:global(html[data-theme='light']) .challengeTitle {
+  color: var(--quiz-text);
+}
+
+:global(html[data-theme='light']) .challengeDescription,
+:global(html[data-theme='light']) .kicker {
+  color: var(--quiz-primary);
+}
+
 .pageShell :global(.challenge-header-action) {
   margin-left: auto;
   flex: 0 0 auto;

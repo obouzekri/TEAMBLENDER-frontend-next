@@ -59,6 +59,27 @@
   background: linear-gradient(145deg, var(--bg-1) 0%, var(--bg-2) 60%, #dcecff 100%);
 }
 
+:global(html[data-theme='light']) .header,
+:global(html[data-theme='light']) .boardPanel {
+  background: var(--surface-1);
+  border-color: var(--line-soft);
+}
+
+:global(html[data-theme='light']) .headerTitle {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .headerDescription,
+:global(html[data-theme='light']) .badge {
+  color: var(--accent-2);
+}
+
+:global(html[data-theme='light']) .cell {
+  background: var(--surface-2);
+  color: var(--text-soft);
+  border-color: var(--line-soft);
+}
+
 .facilitatorView .sideCard,
 .facilitatorView .chatCard,
 .facilitatorView .timerCard {

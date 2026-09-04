@@ -58,6 +58,19 @@
   color: #0f172a;
 }
 
+:global(html[data-theme='light']) .sectionTitle,
+:global(html[data-theme='light']) .phaseTitle,
+:global(html[data-theme='light']) .phaseGuidance {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .phaseClockWrap,
+:global(html[data-theme='light']) .progressStep {
+  background: var(--surface-1);
+  border-color: var(--line-soft);
+  color: var(--text-soft);
+}
+
 .mainColumn,
 .sideColumn {
   display: grid;

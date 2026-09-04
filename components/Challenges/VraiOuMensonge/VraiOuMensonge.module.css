@@ -52,6 +52,43 @@
   background: linear-gradient(145deg, var(--bg-1) 0%, var(--bg-2) 60%, #dcecff 100%);
 }
 
+:global(html[data-theme='light']) .headerTitle,
+:global(html[data-theme='light']) .card h2,
+:global(html[data-theme='light']) .card h3,
+:global(html[data-theme='light']) .selectionTitle,
+:global(html[data-theme='light']) .card strong {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .headerDescription,
+:global(html[data-theme='light']) .sectionTitle {
+  color: var(--accent);
+}
+
+:global(html[data-theme='light']) .headerMetaLine,
+:global(html[data-theme='light']) .card p,
+:global(html[data-theme='light']) .card li {
+  color: var(--text-soft);
+}
+
+:global(html[data-theme='light']) .selectionProgress {
+  background: var(--surface-1);
+  border-color: var(--line-strong);
+  color: var(--accent-2);
+}
+
+:global(html[data-theme='light']) .statementBtn {
+  background: var(--surface-1);
+  border-color: var(--line-soft);
+  color: var(--text-main);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+}
+
+:global(html[data-theme='light']) .statementBtnSelected {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, var(--surface-1)), var(--surface-1));
+  border-color: var(--line-strong);
+}
+
 .headerLine {
   display: flex;
   align-items: baseline;
@@ -1456,6 +1493,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+}
+
+:global(html[data-theme='light']) .rankingCard {
+  background: var(--surface-1);
+  border-color: var(--line-soft);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+:global(html[data-theme='light']) .rankingMeta {
+  color: var(--text-soft);
 }
 
 .rankingCardTitle {

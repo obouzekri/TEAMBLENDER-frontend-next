@@ -65,6 +65,28 @@
   color: var(--text-main);
 }
 
+:global(html[data-theme='light']) .headerTitle,
+:global(html[data-theme='light']) .card h2,
+:global(html[data-theme='light']) .card h3,
+:global(html[data-theme='light']) .imageFallbackTitle {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .headerDescription,
+:global(html[data-theme='light']) .description,
+:global(html[data-theme='light']) .imageFallbackNote,
+:global(html[data-theme='light']) .imageFallbackBody {
+  color: var(--text-soft);
+}
+
+:global(html[data-theme='light']) .card,
+:global(html[data-theme='light']) .mainCard,
+:global(html[data-theme='light']) .imageFallbackCard {
+  background: var(--surface-1);
+  border-color: var(--line-soft);
+  box-shadow: var(--shadow-card);
+}
+
 .timerRingContainer {
   width: 100%;
   max-width: 124px;

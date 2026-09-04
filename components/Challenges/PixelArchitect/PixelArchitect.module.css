@@ -43,6 +43,46 @@
   background: linear-gradient(145deg, var(--ch-bg-1) 0%, var(--ch-bg-2) 60%, #dcecff 100%);
 }
 
+:global(html[data-theme='light']) .challengeHeader p,
+:global(html[data-theme='light']) .layerControlTitle,
+:global(html[data-theme='light']) .modelMiniTitle {
+  color: var(--ch-accent);
+}
+
+:global(html[data-theme='light']) .badge,
+:global(html[data-theme='light']) .modelMiniMeta,
+:global(html[data-theme='light']) .modelMiniStats,
+:global(html[data-theme='light']) .howToList {
+  color: var(--ch-text-main);
+}
+
+:global(html[data-theme='light']) .layerControlCard,
+:global(html[data-theme='light']) .modelMiniCard {
+  background: var(--ch-surface-1);
+  border-color: var(--ch-line-soft);
+}
+
+:global(html[data-theme='light']) .modelMiniViewport,
+:global(html[data-theme='light']) .modelSidebarViewport {
+  background: radial-gradient(circle at 32% 22%, rgba(8, 127, 154, 0.16), var(--surface-muted));
+  border-color: var(--ch-line-soft);
+}
+
+:global(html[data-theme='light']) .modelMiniHint,
+:global(html[data-theme='light']) .roleAlert {
+  background: var(--surface-panel-soft);
+  border-color: var(--ch-line-soft);
+  color: var(--ch-text-main);
+}
+
+:global(html[data-theme='light']) .levelBtn,
+:global(html[data-theme='light']) .layerBtn,
+:global(html[data-theme='light']) .btnSecondary {
+  background: var(--surface-control);
+  border-color: var(--control-border);
+  color: var(--ch-text-main);
+}
+
 .challengeHeaderLine {
   display: flex;
   align-items: baseline;
