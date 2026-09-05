@@ -2,7 +2,7 @@
   font-family: var(--font-ui);
   --maze-bg-deep: #04080f;
   --maze-bg-surface: #0a1824;
-  --maze-wall: #02060a;
+  --maze-wall: #f8fafc;
   --maze-wall-soft: #123448;
   --maze-corridor: #0c2433;
   --maze-corridor-light: #17415a;
@@ -73,7 +73,7 @@
 :global(html[data-theme='light']) .labyrinthContainer {
   --maze-bg-deep: #eaf3ff;
   --maze-bg-surface: #f7fbff;
-  --maze-wall: #1e3a5f;
+  --maze-wall: #000000;
   --maze-wall-soft: #3b82a9;
   --maze-corridor: #dcecff;
   --maze-corridor-light: #c5e1f7;
@@ -114,6 +114,43 @@
 
 :global(html[data-theme='light']) .cellTrapResolved {
   background: rgba(148, 163, 184, 0.25);
+}
+
+:global(html[data-theme='light']) .controlDock {
+  background: var(--surface-panel);
+  border-color: var(--surface-soft-border);
+  box-shadow: var(--surface-shadow-soft);
+}
+
+:global(html[data-theme='light']) .controlHead strong {
+  color: var(--text-strong);
+}
+
+:global(html[data-theme='light']) .dirBtn {
+  background: var(--surface-control);
+  border-color: var(--control-border-strong);
+  color: var(--text-strong);
+}
+
+:global(html[data-theme='light']) .dirBtn:not(:disabled):hover {
+  border-color: var(--ch-accent-strong);
+  box-shadow: 0 0 14px rgba(14, 116, 144, 0.18);
+}
+
+:global(html[data-theme='light']) .legendChip {
+  color: var(--text-strong);
+  background: var(--surface-panel-soft);
+  border-color: var(--control-border-strong);
+}
+
+:global(html[data-theme='light']) .moveFeedback {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .fogBadge {
+  color: var(--text-strong);
+  background: var(--surface-panel-soft);
+  border-color: var(--control-border-strong);
 }
 
 :global(html[data-theme='light']) .announcementOverlay {

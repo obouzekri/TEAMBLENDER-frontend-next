@@ -95,9 +95,9 @@ function getMazeCell(maze, row, col) {
   return cell && typeof cell === 'object' ? cell : null;
 }
 
-const WALL_THICK = '1.4px';
+const WALL_THICK = '1.8px';
 const OPEN_THICK = '0px';
-const WALL_COLOR = 'rgba(248, 250, 252, 0.95)';
+const WALL_COLOR = 'var(--maze-wall)';
 const OPEN_COLOR = 'transparent';
 const FLOOR_BG = 'transparent';
 
@@ -229,6 +229,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     && Number(laby?.parts?.[String(participantId)]?.lives_remaining || 0) > 0;
 
   const canMoveDir = canMoveSolo && !isRespawning;
+  // Covers both the very first spawn and every post-penalty respawn: in both cases the player must click a glowing START cell.
+  const needsStartSelection = canMoveSolo && !hasSelectedStart;
 
   const chatEnabled = state?.config?.chat?.enabled !== false && Boolean(socket);
 
@@ -916,7 +918,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     if (hasSelectedStart && key === playerPosKey) classes.push(styles.cellPlayerCursorCell);
                     if (hasSelectedStart && key === mySpawnKey) classes.push(styles.cellMySpawn);
                     if (labyPhase === 'done' && safePathKeys.has(key)) classes.push(styles.cellSolution);
-                    if (isRespawning && allStartKeys.has(key)) classes.push(styles.cellStartGlow);
+                    if (needsStartSelection && allStartKeys.has(key)) classes.push(styles.cellStartGlow);
                     if (flashCellKey === key) classes.push(flashCellTone === 'blocked' ? styles.cellBlockedFlash : styles.cellTrapFlash);
                     if (isFoggedCell) classes.push(styles.cellFogged);
 
@@ -1003,7 +1005,13 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveDir} aria-label={isEn ? 'Move right' : 'Aller à droite'}>→</button>
               </div>
               <p className={`${styles.moveFeedback} ${moveFeedbackTone === 'success' ? styles.feedbackSuccess : ''}${moveFeedbackTone === 'danger' ? ` ${styles.feedbackDanger}` : ''}${moveFeedbackTone === 'warning' ? ` ${styles.feedbackWarning}` : ''}`}>
-                {moveFeedback || (isRespawning ? (isEn ? 'Choose a start point to continue.' : 'Choisissez un point de départ pour reprendre.') : (labyPhase === 'setup' ? (isEn ? 'Waiting for round launch...' : 'En attente du lancement de la manche...') : (isEn ? 'Movement unavailable for now.' : 'Déplacement indisponible pour le moment.')))}
+                {moveFeedback || (isRespawning
+                  ? (isEn ? 'Choose a start point to continue.' : 'Choisissez un point de départ pour reprendre.')
+                  : (needsStartSelection
+                    ? (isEn ? 'Click a glowing START cell to begin.' : 'Cliquez sur une case START (elle clignote) pour commencer.')
+                    : (labyPhase === 'setup'
+                      ? (isEn ? 'Waiting for round launch...' : 'En attente du lancement de la manche...')
+                      : (isEn ? 'Movement unavailable for now.' : 'Déplacement indisponible pour le moment.'))))}
               </p>
             </div>
           ) : null}
