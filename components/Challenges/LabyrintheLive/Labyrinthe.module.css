@@ -147,12 +147,6 @@
   color: var(--text-main);
 }
 
-:global(html[data-theme='light']) .fogBadge {
-  color: var(--text-strong);
-  background: var(--surface-panel-soft);
-  border-color: var(--control-border-strong);
-}
-
 :global(html[data-theme='light']) .announcementOverlay {
   background: var(--modal-scrim);
 }
@@ -215,23 +209,6 @@
 
 .livesRow strong {
   letter-spacing: 0.04em;
-}
-
-.fogBadge {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: #cbd5e1;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  border-radius: 999px;
-  padding: 3px 9px;
-  background: rgba(15, 23, 42, 0.6);
-  animation: fogBadgePulse 1.6s ease-in-out infinite;
-}
-
-@keyframes fogBadgePulse {
-  0%, 100% { opacity: 0.75; }
-  50% { opacity: 1; }
 }
 
 .gameGrid,
@@ -403,16 +380,6 @@ button.cell:focus-visible {
 
 .cellTrapResolved {
   background: rgba(15, 23, 42, 0.35);
-}
-
-.cellFogged::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(3, 10, 18, 0.72);
-  backdrop-filter: blur(1px);
-  pointer-events: none;
-  z-index: 5;
 }
 
 .cellPlayer {
