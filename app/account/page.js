@@ -1467,6 +1467,7 @@ export default function AccountPage() {
                   const isProPlus = normalizePricingPlanName(plan).toLowerCase() === 'pro+';
                   const amountDh = isProPlus ? PRO_PLUS_PRICE_DH : Number(dhPriceByPlanId[planId] || 0);
                   const priceFmt = formatDhAmount(amountDh);
+                  const actionLabel = isProPlus ? 'Démarrer l’essai gratuit' : (isUpgrade ? 'Passer à Pro' : 'Changer de formule');
                   return (
                     <article
                       key={planId}
@@ -1509,7 +1510,7 @@ export default function AccountPage() {
                       ) : (
                         <div className="pricing-actions account-plan-card-actions">
                           <button type="button" className="btn-primary account-plan-card-actions__primary" onClick={() => handleChoosePlan(plan.id)}>
-                            {isUpgrade ? 'Passer à Pro' : 'Changer de formule'}
+                            {actionLabel}
                           </button>
                         </div>
                       )}

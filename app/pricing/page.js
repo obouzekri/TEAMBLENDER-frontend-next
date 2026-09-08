@@ -122,6 +122,22 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
   }
 
   if (planKey === 'pro') {
+    if (cardVariant === 'enterprise') {
+      return {
+        displayName: 'Pro +',
+        priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
+        meta: [],
+        features: [
+          '5 utilisateurs (admins/managers)',
+          'Jusqu’à 150 participants',
+          '60 sessions',
+          'Toutes les fonctionnalités incluses dans l’offre PRO',
+          'Gestion multi-comptes managers',
+        ],
+        ctaLabel: 'Démarrer l’essai gratuit',
+      };
+    }
+
     return {
       displayName: getPricingPlanVariantLabel(plan, cardVariant),
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
@@ -154,7 +170,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
         'Toutes les fonctionnalités incluses dans l’offre PRO',
         'Gestion multi-comptes managers',
       ],
-      ctaLabel: 'Choisir Pro +',
+      ctaLabel: 'Démarrer l’essai gratuit',
     };
   }
 
