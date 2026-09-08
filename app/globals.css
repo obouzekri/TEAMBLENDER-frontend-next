@@ -1078,6 +1078,11 @@ html[data-theme='dark'] .admin-panel-card b {
   color: #f8fafc;
 }
 
+.admin-pricing-inline-badge {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
 .admin-mobile-tabs {
   display: none;
   gap: 8px;

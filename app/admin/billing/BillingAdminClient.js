@@ -166,11 +166,12 @@ export default function BillingAdminClient() {
     setError('');
     setNotice('');
     const selectedPlan = plans.find((plan) => String(plan.id) === String(selectedPlanId));
+    const hasMadPrice = Number.isFinite(Number(selectedPlan?.price_mad_cents));
     try {
       await adminCreateManualPayment(selectedUserId, {
         pricing_plan_id: selectedPlanId,
-        amount_cents: Number(selectedPlan?.price_cents || 0),
-        currency: selectedPlan?.currency || 'EUR',
+        amount_cents: hasMadPrice ? Number(selectedPlan.price_mad_cents) : Number(selectedPlan?.price_cents || 0),
+        currency: hasMadPrice ? 'MAD' : (selectedPlan?.currency || 'EUR'),
         billing_cycle: selectedPlan?.billing_cycle || 'monthly',
         provider: 'manual',
       });

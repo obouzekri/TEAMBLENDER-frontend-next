@@ -39,11 +39,24 @@ const CURRENCY_OPTIONS = [
   { code: 'USD', label: '$', rate: 0.1 },
 ];
 
+const PRO_PLUS_PRICE_EUR = 64;
+const PRO_PLUS_PRICE_DH = Math.round(PRO_PLUS_PRICE_EUR / CURRENCY_OPTIONS.find((entry) => entry.code === 'EUR').rate);
+
 function formatDhAmount(amountDh, currencyCode = 'MAD') {
   const option = CURRENCY_OPTIONS.find((entry) => entry.code === currencyCode) || CURRENCY_OPTIONS[0];
   const converted = Number(amountDh || 0) * option.rate;
-  const rounded = option.code === 'MAD' ? Math.round(converted) : Math.round(converted * 10) / 10;
+  const rounded = option.code === 'EUR' || option.code === 'MAD' ? Math.round(converted) : Math.round(converted * 10) / 10;
   return `${rounded} ${option.label}`;
+}
+
+function getPlanDisplayAmountDh(plan, selectedBilling, dhPriceByPlanId) {
+  const normalizedName = normalizePricingPlanName(plan).toLowerCase();
+  if (normalizedName === 'pro+') {
+    return selectedBilling === 'annual' || selectedBilling === 'yearly'
+      ? Math.round(PRO_PLUS_PRICE_DH * 12 * 0.8)
+      : PRO_PLUS_PRICE_DH;
+  }
+  return getPlanChargeCents(plan, selectedBilling) / 100 || dhPriceByPlanId[String(plan.id)];
 }
 
 function getPlanChargeCents(plan, selectedBilling) {
@@ -132,17 +145,16 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
   if (planKey === 'pro+') {
     return {
       displayName: 'Pro +',
-      priceLabel: 'Sur devis',
-      priceSuffix: '',
+      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
       meta: [],
       features: [
         '5 utilisateurs (admins/managers)',
         'Jusqu’à 150 participants',
         '60 sessions',
-        'Tout Pro + gestion multi-comptes managers',
+        'Toutes les fonctionnalités incluses dans l’offre PRO',
+        'Gestion multi-comptes managers',
       ],
-      ctaLabel: 'Contacter l’équipe',
-      ctaHref: '/contact',
+      ctaLabel: 'Choisir Pro +',
     };
   }
 
@@ -392,22 +404,22 @@ export default function PricingPage() {
               const isEnterprise = plan.cardVariant === 'enterprise' || Boolean(plan.planCopy.ctaHref);
               const ctaLabel = isEnterprise ? (plan.planCopy.ctaLabel || (isEn ? 'Contact the team' : 'Contacter l’équipe')) : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
               const ctaHref = isEnterprise ? withLocalePath(plan.planCopy.ctaHref || '/contact') : null;
-                  const badgeLabel = plan.planCopy.highlightedLabel || (plan.isFeatured ? (isEn ? 'Most popular' : 'Plus populaire') : '');
+                  const badgeLabel = plan.isFeatured ? (isEn ? 'Most popular' : 'Plus populaire') : '';
 
               return (
               <article key={String(plan.id)} className={`feature-card pricing-card flex h-full flex-col${plan.isFeatured ? ' pricing-card-featured' : ''}`}>
                 <div className="pricing-card-top">
-                      {badgeLabel ? <span className={`pricing-badge${plan.isFeatured ? ' pricing-badge--featured' : ''}`}>{badgeLabel}</span> : null}
                   {plan.discountPercentage > 0 && (selectedBilling === 'annual' || selectedBilling === 'yearly') ? (
                     <span className="pricing-discount-badge">{isEn ? `Save ${plan.discountPercentage}%` : `Économisez ${plan.discountPercentage}%`}</span>
                   ) : null}
-                  <p className="eyebrow" style={getDarkModeTextStyle()}>
-                        {plan.planCopy.displayName}
-                  </p>
+                  <div className="pricing-plan-title-row">
+                    <p className="eyebrow" style={getDarkModeTextStyle()}>{plan.planCopy.displayName}</p>
+                    {badgeLabel ? <span className="pricing-badge pricing-badge--featured">{badgeLabel}</span> : null}
+                  </div>
                 </div>
 
                 <h2 className="pricing-price" style={getDarkModeHeadingStyle()}>
-                  {plan.planCopy.priceLabel || formatDhAmount(getPlanChargeCents(plan, selectedBilling) / 100 || dhPriceByPlanId[String(plan.id)], selectedCurrency)}
+                  {plan.planCopy.priceLabel || formatDhAmount(getPlanDisplayAmountDh(plan, selectedBilling, dhPriceByPlanId), selectedCurrency)}
                   <span style={getDarkModeTextStyle()}>{plan.planCopy.priceSuffix}</span>
                 </h2>
                 {!plan.planCopy.priceLabel && plan.originalPriceCents ? (
@@ -673,9 +685,17 @@ export default function PricingPage() {
           gap: 0.45rem;
         }
 
-        .pricing-page .pricing-card-top .eyebrow {
+        .pricing-page .pricing-plan-title-row {
+          width: 100%;
           margin-top: auto;
-          margin-bottom: 0;
+          display: flex;
+          align-items: center;
+          gap: 0.55rem;
+          flex-wrap: wrap;
+        }
+
+        .pricing-page .pricing-card-top .eyebrow {
+          margin: 0;
           font-size: 0.84rem;
           letter-spacing: 0.05em;
         }

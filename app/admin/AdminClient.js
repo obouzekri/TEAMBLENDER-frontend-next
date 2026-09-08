@@ -17,6 +17,7 @@ import { VRAI_OU_MENSONGE_RULES_PRESET_KEY, getVraiOuMensongeRulesPreset } from 
 import { MISSION_CRITIQUE_RULES_PRESET_KEY, getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueRules';
 import { getLabInnovationRulesPreset } from '@/lib/challenges/labInnovationRules';
 import useI18n from '@/lib/i18n/useI18n';
+import { normalizePricingPlanName } from '@/lib/pricing-labels';
 
 const USER_ROLES = new Set(['user', 'admin']);
 const SESSION_STATUSES = new Set(['preparee', 'en_cours', 'terminee']);
@@ -1171,6 +1172,19 @@ function formatDurationSeconds(value) {
 function formatCurrency(value, currency = 'EUR') {
   const amount = Number(value || 0);
   return `${amount} DH`;
+}
+
+function getAdminPricingBadgeLabel(plan, isEn) {
+  return normalizePricingPlanName(plan).toLowerCase() === 'pro' ? (isEn ? 'Most popular' : 'Plus populaire') : '';
+}
+
+function formatPricingPlanAmount(plan, isEn) {
+  const madCents = Number(plan?.price_mad_cents);
+  if (Number.isFinite(madCents)) {
+    return `${Math.round(madCents / 100)} DH`;
+  }
+
+  return typeof plan?.price === 'number' ? `${plan.price.toFixed(2)} DH` : (isEn ? 'Price not set' : 'Prix non defini');
 }
 
 function csvEscape(value) {
@@ -5317,10 +5331,10 @@ export default function AdminClient() {
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">
                             {plan.name}
-                            {plan.highlighted ? ` · ${isEn ? 'Popular' : 'Populaire'}` : ''}
+                            {getAdminPricingBadgeLabel(plan, isEn) ? <span className="pricing-badge admin-pricing-inline-badge">{getAdminPricingBadgeLabel(plan, isEn)}</span> : null}
                           </p>
                           <p className="session-meta">
-                            {typeof plan.price === 'number' ? `${plan.price.toFixed(2)} DH` : (isEn ? 'Price not set' : 'Prix non defini')}
+                            {formatPricingPlanAmount(plan, isEn)}
                             {' · '}
                             {getPricingBillingCycleLabel(plan.billing_cycle, isEn)}
                             {' · '}

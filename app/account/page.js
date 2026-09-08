@@ -33,6 +33,8 @@ import {
 import { getPricingPlanBadgeLabel, getPricingPlanVariantLabel, normalizePricingPlanName } from '@/lib/pricing-labels';
 
 const PLAN_HISTORY_STORAGE_KEY = 'accountPlanChangeHistory';
+const PRO_PLUS_PRICE_DH = 696;
+
 function formatPriceCents(priceCents, currency, locale = 'fr') {
   const amount = Number(priceCents || 0) / 100;
   const currencyCode = String(currency || 'EUR').toUpperCase();
@@ -362,12 +364,12 @@ function getAccountPlanCopy(plan) {
   if (planKey === 'pro+') {
     return {
       displayName: 'Pro +',
-      isQuote: true,
       features: [
         '5 utilisateurs (admins/managers)',
         'Jusqu’à 150 participants',
         '60 sessions',
-        'Tout Pro + gestion multi-comptes managers',
+        'Toutes les fonctionnalités incluses dans l’offre PRO',
+        'Gestion multi-comptes managers',
       ],
       meta: [],
     };
@@ -766,7 +768,7 @@ export default function AccountPage() {
   const recommendedPlan = useMemo(() => {
     const bySlug = plans.find((plan) => String(plan.slug || '').toLowerCase() === 'pro');
     if (bySlug) return bySlug;
-    const byName = plans.find((plan) => String(plan.name || '').toLowerCase().includes('pro'));
+    const byName = plans.find((plan) => normalizePricingPlanName(plan).toLowerCase() === 'pro');
     return byName || null;
   }, [plans]);
 
@@ -1462,7 +1464,8 @@ export default function AccountPage() {
                   const currentPriceCents = Number(activePlan?.price_cents || 0);
                   const planPriceCents = Number(plan?.price_cents || 0);
                   const isUpgrade = isFreePlanActive ? !isFreePlan : planPriceCents > currentPriceCents;
-                  const amountDh = Number(dhPriceByPlanId[planId] || 0);
+                  const isProPlus = normalizePricingPlanName(plan).toLowerCase() === 'pro+';
+                  const amountDh = isProPlus ? PRO_PLUS_PRICE_DH : Number(dhPriceByPlanId[planId] || 0);
                   const priceFmt = formatDhAmount(amountDh);
                   return (
                     <article
@@ -1475,15 +1478,17 @@ export default function AccountPage() {
                       ].filter(Boolean).join(' ')}
                     >
                       <div className="pricing-card-top">
-                        {isRecommended ? <span className="pricing-badge account-pricing-badge">{getPricingPlanBadgeLabel(plan) || 'Plus populaire'}</span> : null}
                         {isCurrent ? <span className="account-current-badge">{t('account.yourPlan')}</span> : null}
-                        <p className="eyebrow">{planCopy.displayName}</p>
+                        <div className="account-pricing-title-row">
+                          <p className="eyebrow">{planCopy.displayName}</p>
+                          {isRecommended ? <span className="pricing-badge account-pricing-badge">{getPricingPlanBadgeLabel(plan) || 'Plus populaire'}</span> : null}
+                        </div>
                       </div>
                       <h3 className="pricing-price">
-                        {planCopy.isQuote ? 'Sur devis' : priceFmt}
-                        {planCopy.isQuote ? null : <span>/mois</span>}
+                        {priceFmt}
+                        <span>/mois</span>
                       </h3>
-                      {planCopy.isQuote ? null : <p className="pricing-tax-note">HT</p>}
+                      <p className="pricing-tax-note">HT</p>
                       {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
                       {Array.isArray(planCopy.features) && planCopy.features.length > 0 ? (
                         <ul className="pricing-feature-list">
@@ -1495,13 +1500,7 @@ export default function AccountPage() {
                       <div className="pricing-meta-row">
                         {planCopy.meta.map((item, index) => <span key={`${planId}-meta-${index}`}>{item}</span>)}
                       </div>
-                      {planCopy.isQuote ? (
-                        <div className="pricing-actions account-plan-card-actions">
-                          <a href={withLocalePath('/contact')} className="btn-primary account-plan-card-actions__primary">
-                            Contacter l’équipe
-                          </a>
-                        </div>
-                      ) : isCurrent ? (
+                      {isCurrent ? (
                         <div className="pricing-actions account-plan-card-actions">
                           <button type="button" className="account-plan-card-actions__current" disabled>
                             Formule actuelle
@@ -2322,6 +2321,17 @@ export default function AccountPage() {
             justify-content: flex-start;
           }
 
+          .account-pricing-title-row {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+          }
+
+          .account-pricing-title-row .eyebrow {
+            margin: 0;
+          }
+
           .account-pricing-card .pricing-feature-list {
             flex: 1;
             min-height: 9.5rem;
@@ -2329,7 +2339,6 @@ export default function AccountPage() {
 
           .account-pricing-badge {
             align-self: flex-start;
-            margin-bottom: 0.45rem;
             background: linear-gradient(135deg, #6d4aff 0%, #4338ca 100%);
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.32);
