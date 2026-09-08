@@ -30,6 +30,21 @@ body[data-theme='dark'] .admin-billing-shell {
     radial-gradient(circle at 20% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 28%),
     radial-gradient(circle at 100% 100%, rgba(245, 158, 11, 0.08) 0%, transparent 24%),
     linear-gradient(140deg, #0c1222 0%, #111a2e 45%, #151c31 100%);
+  color: #e5edff;
+}
+
+html[data-theme='dark'] .admin-billing-header h1,
+body[data-theme='dark'] .admin-billing-header h1,
+html[data-theme='dark'] .admin-billing-card h2,
+body[data-theme='dark'] .admin-billing-card h2,
+html[data-theme='dark'] .admin-billing-card h3,
+body[data-theme='dark'] .admin-billing-card h3 {
+  color: #f8fafc;
+}
+
+html[data-theme='dark'] .admin-billing-header p,
+body[data-theme='dark'] .admin-billing-header p {
+  color: #b8c6df;
 }
 
 .admin-billing-filters {
@@ -47,6 +62,22 @@ body[data-theme='dark'] .admin-billing-shell {
   background: #fff;
   min-height: 42px;
   width: 100%;
+}
+
+html[data-theme='dark'] .admin-billing-filters input,
+html[data-theme='dark'] .admin-billing-filters select,
+html[data-theme='dark'] .admin-billing-actions select,
+body[data-theme='dark'] .admin-billing-filters input,
+body[data-theme='dark'] .admin-billing-filters select,
+body[data-theme='dark'] .admin-billing-actions select {
+  background: rgba(10, 18, 34, 0.88);
+  border-color: rgba(96, 165, 250, 0.28);
+  color: #e5edff;
+}
+
+html[data-theme='dark'] .admin-billing-filters input::placeholder,
+body[data-theme='dark'] .admin-billing-filters input::placeholder {
+  color: rgba(184, 198, 223, 0.6);
 }
 
 .admin-billing-kpis {
@@ -85,6 +116,35 @@ body[data-theme='dark'] .admin-billing-shell {
   border-color: #f0c7c7;
 }
 
+html[data-theme='dark'] .kpi-card,
+body[data-theme='dark'] .kpi-card {
+  background: linear-gradient(160deg, rgba(16, 24, 44, 0.96), rgba(22, 32, 55, 0.92));
+  border-color: rgba(96, 165, 250, 0.24);
+  box-shadow: 0 18px 42px rgba(2, 6, 23, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme='dark'] .kpi-card p,
+body[data-theme='dark'] .kpi-card p {
+  color: #b8c6df;
+}
+
+html[data-theme='dark'] .kpi-card strong,
+body[data-theme='dark'] .kpi-card strong {
+  color: #f8fafc;
+}
+
+html[data-theme='dark'] .kpi-card.is-warning,
+body[data-theme='dark'] .kpi-card.is-warning {
+  background: linear-gradient(160deg, rgba(46, 35, 17, 0.96), rgba(23, 31, 50, 0.92));
+  border-color: rgba(251, 191, 36, 0.34);
+}
+
+html[data-theme='dark'] .kpi-card.is-danger,
+body[data-theme='dark'] .kpi-card.is-danger {
+  background: linear-gradient(160deg, rgba(55, 21, 30, 0.94), rgba(24, 30, 49, 0.92));
+  border-color: rgba(248, 113, 113, 0.34);
+}
+
 .admin-billing-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -98,6 +158,13 @@ body[data-theme='dark'] .admin-billing-shell {
   padding: 1rem;
   box-shadow: 0 8px 24px -20px rgba(18, 31, 53, 0.4);
   min-width: 0;
+}
+
+html[data-theme='dark'] .admin-billing-card,
+body[data-theme='dark'] .admin-billing-card {
+  background: linear-gradient(160deg, rgba(16, 24, 44, 0.96), rgba(22, 32, 55, 0.92));
+  border-color: rgba(96, 165, 250, 0.24);
+  box-shadow: 0 20px 54px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .admin-billing-users {
@@ -139,6 +206,39 @@ body[data-theme='dark'] .admin-billing-shell {
 .user-row.active {
   border-color: #2457d6;
   background: #eef3ff;
+}
+
+html[data-theme='dark'] .user-row,
+html[data-theme='dark'] .selected-user-summary,
+html[data-theme='dark'] .invoice-row,
+html[data-theme='dark'] .timeline-row,
+body[data-theme='dark'] .user-row,
+body[data-theme='dark'] .selected-user-summary,
+body[data-theme='dark'] .invoice-row,
+body[data-theme='dark'] .timeline-row {
+  background: rgba(10, 18, 34, 0.72);
+  border-color: rgba(96, 165, 250, 0.18);
+  color: #e5edff;
+}
+
+html[data-theme='dark'] .user-row.active,
+body[data-theme='dark'] .user-row.active {
+  background: rgba(37, 99, 235, 0.18);
+  border-color: rgba(96, 165, 250, 0.58);
+}
+
+html[data-theme='dark'] .user-row-plan,
+html[data-theme='dark'] .invoice-number,
+body[data-theme='dark'] .user-row-plan,
+body[data-theme='dark'] .invoice-number {
+  color: #f8fafc;
+}
+
+html[data-theme='dark'] .invoice-date,
+html[data-theme='dark'] .empty-state,
+body[data-theme='dark'] .invoice-date,
+body[data-theme='dark'] .empty-state {
+  color: #b8c6df;
 }
 
 .status-chip {
