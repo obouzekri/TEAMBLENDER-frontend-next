@@ -52,7 +52,7 @@ function buildDhPriceByPlanId(plans) {
   const map = {};
   normalizePlanList(plans).forEach((plan) => {
     const slug = String(plan?.slug || '').toLowerCase();
-    const fallbackBySlug = slug.includes('free') ? 0 : slug.includes('session') ? 70 : slug.includes('pro+') || slug.includes('pro-plus') ? 690 : slug.includes('pro') ? 390 : null;
+    const fallbackBySlug = slug.includes('free') ? 0 : slug.includes('session') ? 49 : slug.includes('pro+') || slug.includes('pro-plus') ? 690 : slug.includes('pro') ? 390 : null;
     const cents = Number(plan?.price_mad_cents);
     map[String(plan.id)] = Number.isFinite(cents) && cents >= 0
       ? Math.round(cents / 100)
@@ -315,21 +315,30 @@ function getAccountPlanCopy(plan) {
     return {
       displayName: 'Free',
       features: [
-        '2 sessions / mois',
-        'max 3 participants',
-        'accès catalogue limité (3 challenges)',
+        '1 utilisateur (admin/manager)',
+        '1 sessions / mois · max 4 participants',
+        'accès catalogue limité (4 challenges)',
         'pas d’export',
         'pas d’insights avancés',
       ],
-      meta: ['3 utilisateurs max', '2 sessions / mois'],
+      meta: [],
     };
   }
 
   if (planKey === 'pay-per-session') {
     return {
       displayName: 'Pay-per-session',
-      features: [],
-      meta: ['20 utilisateurs max', '1 sessions / mois'],
+      features: [
+        '1 utilisateur max',
+        '20 participants max',
+        '1 session incluse',
+        'Accès catalogue complet',
+        'Résultats & scoring',
+        'Dashboard manager',
+        'Live facilitation',
+        'Insights',
+      ],
+      meta: [],
     };
   }
 
@@ -337,28 +346,28 @@ function getAccountPlanCopy(plan) {
     return {
       displayName: getPricingPlanVariantLabel(plan),
       features: [
-        'Sessions illimitées',
-        'Jusqu’à 50 participants',
+        '1 utilisateur (admin/manager)',
+        'Jusqu’à 30 participants',
+        '10 sessions',
         'Accès catalogue complet',
         'Résultats & scoring',
         'Dashboard manager',
         'Live facilitation',
         'Insights',
       ],
-      meta: ['50 utilisateurs max'],
+      meta: [],
     };
   }
 
   if (planKey === 'pro+') {
     return {
       displayName: 'Pro +',
+      isQuote: true,
       features: [
-        'Tout Pro',
-        'Multi-managers',
-        'Historique sessions',
-        'Export CSV/PDF',
-        'Insights avancés',
-        'Support prioritaire',
+        '5 utilisateurs (admins/managers)',
+        'Jusqu’à 150 participants',
+        '60 sessions',
+        'Tout Pro + gestion multi-comptes managers',
       ],
       meta: [],
     };
@@ -1471,10 +1480,10 @@ export default function AccountPage() {
                         <p className="eyebrow">{planCopy.displayName}</p>
                       </div>
                       <h3 className="pricing-price">
-                        {priceFmt}
-                        <span>/mois</span>
+                        {planCopy.isQuote ? 'Sur devis' : priceFmt}
+                        {planCopy.isQuote ? null : <span>/mois</span>}
                       </h3>
-                      <p className="pricing-tax-note">HT</p>
+                      {planCopy.isQuote ? null : <p className="pricing-tax-note">HT</p>}
                       {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
                       {Array.isArray(planCopy.features) && planCopy.features.length > 0 ? (
                         <ul className="pricing-feature-list">
@@ -1486,7 +1495,13 @@ export default function AccountPage() {
                       <div className="pricing-meta-row">
                         {planCopy.meta.map((item, index) => <span key={`${planId}-meta-${index}`}>{item}</span>)}
                       </div>
-                      {isCurrent ? (
+                      {planCopy.isQuote ? (
+                        <div className="pricing-actions account-plan-card-actions">
+                          <a href={withLocalePath('/contact')} className="btn-primary account-plan-card-actions__primary">
+                            Contacter l’équipe
+                          </a>
+                        </div>
+                      ) : isCurrent ? (
                         <div className="pricing-actions account-plan-card-actions">
                           <button type="button" className="account-plan-card-actions__current" disabled>
                             Formule actuelle

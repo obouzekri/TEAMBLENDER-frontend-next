@@ -24,7 +24,7 @@ function buildDhPriceByPlanId(plans) {
   const map = {};
   plans.forEach((plan) => {
     const slug = String(plan?.slug || '').toLowerCase();
-    const fallbackBySlug = slug.includes('free') ? 0 : slug.includes('session') ? 70 : slug.includes('pro+') || slug.includes('pro-plus') ? 690 : slug.includes('pro') ? 390 : null;
+    const fallbackBySlug = slug.includes('free') ? 0 : slug.includes('session') ? 49 : slug.includes('pro+') || slug.includes('pro-plus') ? 690 : slug.includes('pro') ? 390 : null;
     const cents = Number(plan?.price_mad_cents);
     map[String(plan.id)] = Number.isFinite(cents) && cents >= 0
       ? Math.round(cents / 100)
@@ -33,8 +33,17 @@ function buildDhPriceByPlanId(plans) {
   return map;
 }
 
-function formatDhAmount(amountDh) {
-  return `${Number(amountDh || 0)} DH`;
+const CURRENCY_OPTIONS = [
+  { code: 'MAD', label: 'DH', rate: 1 },
+  { code: 'EUR', label: '€', rate: 0.092 },
+  { code: 'USD', label: '$', rate: 0.1 },
+];
+
+function formatDhAmount(amountDh, currencyCode = 'MAD') {
+  const option = CURRENCY_OPTIONS.find((entry) => entry.code === currencyCode) || CURRENCY_OPTIONS[0];
+  const converted = Number(amountDh || 0) * option.rate;
+  const rounded = option.code === 'MAD' ? Math.round(converted) : Math.round(converted * 10) / 10;
+  return `${rounded} ${option.label}`;
 }
 
 function getPlanChargeCents(plan, selectedBilling) {
@@ -70,8 +79,9 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
       meta: [],
       features: [
-        '2 sessions / mois · max 3 participants',
-        'Accès catalogue limité (3 challenges)',
+        '1 utilisateur (admin/manager)',
+        '1 sessions / mois · max 4 participants',
+        'Accès catalogue limité (4 challenges)',
         'Pas d’export',
         'Pas d’insights avancés',
       ],
@@ -83,10 +93,17 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
     return {
       displayName: isOneTimeSession ? 'Pay-per-session' : 'Forfait session',
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
-      meta: isOneTimeSession
-        ? ['20 utilisateurs max', '1 session incluse']
-        : ['20 utilisateurs max', '1 session incluse / mois'],
-      features: [],
+      meta: [],
+      features: [
+        '1 utilisateur max',
+        '20 participants max',
+        '1 session incluse',
+        'Accès catalogue complet',
+        'Résultats & scoring',
+        'Dashboard manager',
+        'Live facilitation',
+        'Insights',
+      ],
       ctaLabel: 'Acheter une session',
     };
   }
@@ -95,10 +112,11 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
     return {
       displayName: getPricingPlanVariantLabel(plan, cardVariant),
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
-      meta: ['50 utilisateurs max'],
+      meta: [],
       features: [
-        'Sessions illimitées',
-        'Jusqu’à 50 participants',
+        '1 utilisateur (admin/manager)',
+        'Jusqu’à 30 participants',
+        '10 sessions',
         'Accès catalogue complet',
         'Résultats & scoring',
         'Dashboard manager',
@@ -114,16 +132,17 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
   if (planKey === 'pro+') {
     return {
       displayName: 'Pro +',
-      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
+      priceLabel: 'Sur devis',
+      priceSuffix: '',
       meta: [],
       features: [
-        'Tout Pro',
-        'Multi-managers',
-        'Historique sessions',
-        'Export CSV/PDF',
-        'Insights avancés',
-        'Support prioritaire',
+        '5 utilisateurs (admins/managers)',
+        'Jusqu’à 150 participants',
+        '60 sessions',
+        'Tout Pro + gestion multi-comptes managers',
       ],
+      ctaLabel: 'Contacter l’équipe',
+      ctaHref: '/contact',
     };
   }
 
@@ -199,6 +218,7 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedBilling, setSelectedBilling] = useState('monthly');
+  const [selectedCurrency, setSelectedCurrency] = useState('MAD');
   const [checkoutPlanId, setCheckoutPlanId] = useState('');
 
   useEffect(() => {
@@ -323,7 +343,15 @@ export default function PricingPage() {
 
               <div className="control-section pricing-controls__currency">
                 <label style={getDarkModeTextStyle()}>{isEn ? 'Currency' : 'Devise'}</label>
-                <span className="currency-select currency-select--compact">DH</span>
+                <select
+                  className="currency-select currency-select--compact"
+                  value={selectedCurrency}
+                  onChange={(event) => setSelectedCurrency(event.target.value)}
+                >
+                  {CURRENCY_OPTIONS.map((option) => (
+                    <option key={option.code} value={option.code}>{option.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </section>
@@ -361,9 +389,9 @@ export default function PricingPage() {
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
             <section className="pricing-grid reveal-up grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-6" aria-label="Formules disponibles" style={{ background: 'transparent' }}>
             {displayedPlans.map((plan) => {
-              const isEnterprise = plan.cardVariant === 'enterprise';
-              const ctaLabel = isEnterprise ? (isEn ? 'Contact the team' : 'Contacter l’équipe') : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
-              const ctaHref = isEnterprise ? withLocalePath('/contact') : plan.planCopy.ctaHref;
+              const isEnterprise = plan.cardVariant === 'enterprise' || Boolean(plan.planCopy.ctaHref);
+              const ctaLabel = isEnterprise ? (plan.planCopy.ctaLabel || (isEn ? 'Contact the team' : 'Contacter l’équipe')) : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
+              const ctaHref = isEnterprise ? withLocalePath(plan.planCopy.ctaHref || '/contact') : null;
                   const badgeLabel = plan.planCopy.highlightedLabel || (plan.isFeatured ? (isEn ? 'Most popular' : 'Plus populaire') : '');
 
               return (
@@ -379,12 +407,12 @@ export default function PricingPage() {
                 </div>
 
                 <h2 className="pricing-price" style={getDarkModeHeadingStyle()}>
-                  {formatDhAmount(getPlanChargeCents(plan, selectedBilling) / 100 || dhPriceByPlanId[String(plan.id)])}
+                  {plan.planCopy.priceLabel || formatDhAmount(getPlanChargeCents(plan, selectedBilling) / 100 || dhPriceByPlanId[String(plan.id)], selectedCurrency)}
                   <span style={getDarkModeTextStyle()}>{plan.planCopy.priceSuffix}</span>
                 </h2>
-                {plan.originalPriceCents ? (
+                {!plan.planCopy.priceLabel && plan.originalPriceCents ? (
                   <p className="pricing-original" style={getDarkModeTextStyle()}>
-                    <s>{formatDhAmount(Number(plan.price_mad_cents || 0) / 100 || dhPriceByPlanId[String(plan.id)])}</s>
+                    <s>{formatDhAmount(Number(plan.price_mad_cents || 0) / 100 || dhPriceByPlanId[String(plan.id)], selectedCurrency)}</s>
                   </p>
                 ) : null}
                 {plan.description ? <p className="pricing-description" style={getDarkModeTextStyle()}>{plan.description}</p> : null}
