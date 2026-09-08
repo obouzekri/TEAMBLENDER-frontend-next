@@ -66,21 +66,23 @@ function getPlanChargeCents(plan, selectedBilling) {
   return Number(plan?.price_mad_cents);
 }
 
-function getPricingPeriodSuffix(plan, selectedBilling) {
+function getPricingPeriodSuffix(plan, selectedBilling, locale = 'fr') {
   const billingCycle = String(plan?.billing_cycle || '').trim().toLowerCase();
+  const isEn = locale === 'en';
 
   if (billingCycle === 'one_time') {
     return '/session';
   }
 
   if (selectedBilling === 'annual' || selectedBilling === 'yearly') {
-    return '/an';
+    return isEn ? '/year' : '/an';
   }
 
-  return '/mois';
+  return isEn ? '/month' : '/mois';
 }
 
-function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
+function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', locale = 'fr') {
+  const isEn = locale === 'en';
   const normalizedName = normalizePricingPlanName(plan);
   const planKey = normalizedName.toLowerCase();
   const billingCycle = String(plan?.billing_cycle || '').trim().toLowerCase();
@@ -89,25 +91,40 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
   if (planKey === 'free') {
     return {
       displayName: 'Free',
-      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
+      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: [
+      features: isEn ? [
+        '1 user (admin/manager)',
+        '1 session / month - max 4 participants',
+        'Limited catalog access (4 challenges)',
+        'No export',
+        'No advanced insights',
+      ] : [
         '1 utilisateur (admin/manager)',
         '1 sessions / mois · max 4 participants',
         'Accès catalogue limité (4 challenges)',
         'Pas d’export',
         'Pas d’insights avancés',
       ],
-      ctaLabel: 'Commencer gratuitement',
+      ctaLabel: isEn ? 'Start for free' : 'Commencer gratuitement',
     };
   }
 
   if (planKey === 'pay-per-session') {
     return {
-      displayName: isOneTimeSession ? 'Pay-per-session' : 'Forfait session',
-      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
+      displayName: isOneTimeSession ? 'Pay-per-session' : (isEn ? 'Session package' : 'Forfait session'),
+      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: [
+      features: isEn ? [
+        '1 user max',
+        '20 participants max',
+        '1 session included',
+        'Full catalog access',
+        'Results & scoring',
+        'Manager dashboard',
+        'Live facilitation',
+        'Insights',
+      ] : [
         '1 utilisateur max',
         '20 participants max',
         '1 session incluse',
@@ -117,7 +134,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
         'Live facilitation',
         'Insights',
       ],
-      ctaLabel: 'Acheter une session',
+      ctaLabel: isEn ? 'Buy a session' : 'Acheter une session',
     };
   }
 
@@ -125,24 +142,39 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
     if (cardVariant === 'enterprise') {
       return {
         displayName: 'Pro +',
-        priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
+        priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
         meta: [],
-        features: [
+        features: isEn ? [
+          '5 users (admins/managers)',
+          'Up to 150 participants',
+          '60 sessions',
+          'All features included in the PRO plan',
+          'Multi-account manager management',
+        ] : [
           '5 utilisateurs (admins/managers)',
           'Jusqu’à 150 participants',
           '60 sessions',
           'Toutes les fonctionnalités incluses dans l’offre PRO',
           'Gestion multi-comptes managers',
         ],
-        ctaLabel: 'Démarrer l’essai gratuit',
+        ctaLabel: isEn ? 'Start free trial' : 'Démarrer l’essai gratuit',
       };
     }
 
     return {
       displayName: getPricingPlanVariantLabel(plan, cardVariant),
-      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
+      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: [
+      features: isEn ? [
+        '1 user (admin/manager)',
+        'Up to 30 participants',
+        '10 sessions',
+        'Full catalog access',
+        'Results & scoring',
+        'Manager dashboard',
+        'Live facilitation',
+        'Insights',
+      ] : [
         '1 utilisateur (admin/manager)',
         'Jusqu’à 30 participants',
         '10 sessions',
@@ -152,8 +184,8 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
         'Live facilitation',
         'Insights',
       ],
-      highlightedLabel: getPricingPlanBadgeLabel(plan, cardVariant) || 'Plus populaire',
-      ctaLabel: cardVariant === 'enterprise' ? 'Contacter l’équipe' : 'Démarrer l’essai gratuit',
+      highlightedLabel: getPricingPlanBadgeLabel(plan, cardVariant) || (isEn ? 'Most popular' : 'Plus populaire'),
+      ctaLabel: isEn ? 'Start free trial' : 'Démarrer l’essai gratuit',
       ctaHref: cardVariant === 'enterprise' ? '/contact' : null,
     };
   }
@@ -161,16 +193,22 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
   if (planKey === 'pro+') {
     return {
       displayName: 'Pro +',
-      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
+      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: [
+      features: isEn ? [
+        '5 users (admins/managers)',
+        'Up to 150 participants',
+        '60 sessions',
+        'All features included in the PRO plan',
+        'Multi-account manager management',
+      ] : [
         '5 utilisateurs (admins/managers)',
         'Jusqu’à 150 participants',
         '60 sessions',
         'Toutes les fonctionnalités incluses dans l’offre PRO',
         'Gestion multi-comptes managers',
       ],
-      ctaLabel: 'Démarrer l’essai gratuit',
+      ctaLabel: isEn ? 'Start free trial' : 'Démarrer l’essai gratuit',
     };
   }
 
@@ -182,7 +220,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard') {
   };
 }
 
-function buildPricingCards(plans, selectedBilling) {
+function buildPricingCards(plans, selectedBilling, locale = 'fr') {
   let proVariantIndex = 0;
 
   return plans.map((plan) => {
@@ -218,7 +256,7 @@ function buildPricingCards(plans, selectedBilling) {
       displayPriceCents,
       originalPriceCents,
       discountPercentage,
-      planCopy: getPricingPlanCopy(plan, selectedBilling, cardVariant),
+      planCopy: getPricingPlanCopy(plan, selectedBilling, cardVariant, locale),
     };
   });
 }
@@ -279,7 +317,7 @@ export default function PricingPage() {
     });
   }, [plans]);
 
-  const displayedPlans = useMemo(() => buildPricingCards(sortedPlans, selectedBilling), [sortedPlans, selectedBilling]);
+  const displayedPlans = useMemo(() => buildPricingCards(sortedPlans, selectedBilling, locale), [sortedPlans, selectedBilling, locale]);
   const dhPriceByPlanId = useMemo(() => buildDhPriceByPlanId(sortedPlans), [sortedPlans]);
 
   async function handleProviderCheckout(plan, provider) {
@@ -415,11 +453,11 @@ export default function PricingPage() {
 
         {!loading && !error && sortedPlans.length > 0 ? (
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-            <section className="pricing-grid reveal-up grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-6" aria-label="Formules disponibles" style={{ background: 'transparent' }}>
+            <section className="pricing-grid reveal-up grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-6" aria-label={isEn ? 'Available plans' : 'Formules disponibles'} style={{ background: 'transparent' }}>
             {displayedPlans.map((plan) => {
-              const isEnterprise = plan.cardVariant === 'enterprise' || Boolean(plan.planCopy.ctaHref);
-              const ctaLabel = isEnterprise ? (plan.planCopy.ctaLabel || (isEn ? 'Contact the team' : 'Contacter l’équipe')) : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
-              const ctaHref = isEnterprise ? withLocalePath(plan.planCopy.ctaHref || '/contact') : null;
+              const isContactPlan = Boolean(plan.planCopy.ctaHref);
+              const ctaLabel = isContactPlan ? (plan.planCopy.ctaLabel || (isEn ? 'Contact the team' : 'Contacter l’équipe')) : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
+              const ctaHref = isContactPlan ? withLocalePath(plan.planCopy.ctaHref || '/contact') : null;
                   const badgeLabel = plan.isFeatured ? (isEn ? 'Most popular' : 'Plus populaire') : '';
 
               return (
@@ -462,7 +500,7 @@ export default function PricingPage() {
                 </div>
 
                 <div className="pricing-actions pricing-actions--card mt-auto">
-                  {isEnterprise ? (
+                  {isContactPlan ? (
                     <Link href={ctaHref || withLocalePath('/contact')} className="btn-outline pricing-cta pricing-cta--enterprise cta-surface">
                       {ctaLabel}
                     </Link>
@@ -485,11 +523,11 @@ export default function PricingPage() {
         ) : null}
 
         {!loading && !error && sortedPlans.length > 0 ? (
-          <section className="pricing-footer-cta reveal-up pricing-footer-cta--flat" aria-label="Assistance commerciale">
+          <section className="pricing-footer-cta reveal-up pricing-footer-cta--flat" aria-label={isEn ? 'Sales support' : 'Assistance commerciale'}>
             <div className="pricing-footer-cta__inner">
               <div className="pricing-footer-cta__copy">
                 <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Need support?' : 'Besoin d\'un accompagnement ?'}</p>
-                <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Need support? Our team replies within a few hours.' : 'Notre équipe vous répond sous quelques heures'}</h2>
+                <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Our team replies within a few hours.' : 'Notre équipe vous répond sous quelques heures.'}</h2>
               </div>
               <Link href={withLocalePath('/contact')} className="btn-primary pricing-footer-cta__button cta-surface">{isEn ? 'Contact the team' : 'Contacter l\'équipe'}</Link>
             </div>
@@ -502,8 +540,9 @@ export default function PricingPage() {
           margin: 0 auto;
           padding: 1rem 1rem 2.5rem;
           background:
-            radial-gradient(60rem 18rem at 50% 0%, color-mix(in srgb, var(--accent-soft) 42%, transparent) 0%, transparent 72%),
-            linear-gradient(180deg, color-mix(in srgb, var(--surface-muted) 86%, transparent) 0%, transparent 18%);
+            radial-gradient(56rem 20rem at 18% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 72%),
+            radial-gradient(46rem 18rem at 92% 12%, rgba(124, 58, 237, 0.1) 0%, transparent 70%),
+            linear-gradient(180deg, #f8fbff 0%, #eef4ff 44%, #f9fbff 100%);
         }
 
         .pricing-page .pricing-hero {
@@ -551,11 +590,12 @@ export default function PricingPage() {
           align-items: center;
           padding: 0.55rem 0.95rem;
           border-radius: 999px;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.2));
-          background: var(--surface-control);
+          border: 1px solid rgba(47, 98, 255, 0.18);
+          background: rgba(255, 255, 255, 0.9);
           font-size: 0.86rem;
           font-weight: 600;
-          color: var(--text-strong, #e2e8f0);
+          color: #1e2f55;
+          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
         }
 
         .pricing-page .pricing-controls {
@@ -605,8 +645,9 @@ export default function PricingPage() {
           gap: 0.3rem;
           padding: 0.3rem;
           border-radius: 999px;
-          background: var(--surface-control);
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.14));
+          background: rgba(255, 255, 255, 0.92);
+          border: 1px solid rgba(47, 98, 255, 0.18);
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
         }
 
         .pricing-page .toggle-btn {
@@ -618,7 +659,7 @@ export default function PricingPage() {
           border-radius: 999px;
           border: 1px solid transparent;
           background: transparent;
-          color: var(--text-muted, #cbd5e1);
+          color: #334155;
           font-size: 0.9rem;
           font-weight: 600;
           transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
@@ -631,8 +672,8 @@ export default function PricingPage() {
         }
 
         .pricing-page .toggle-btn:not(.active):hover {
-          background: var(--surface-control-hover);
-          color: var(--text-strong, #e2e8f0);
+          background: rgba(47, 98, 255, 0.08);
+          color: #1f46d2;
         }
 
         .pricing-page .toggle-savings-badge {
@@ -655,9 +696,9 @@ export default function PricingPage() {
           min-height: 2.85rem;
           padding: 0 1rem;
           border-radius: 14px;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.2));
-          background: var(--surface-control);
-          color: var(--text-strong, #e2e8f0);
+          border: 1px solid rgba(47, 98, 255, 0.2);
+          background: rgba(255, 255, 255, 0.95);
+          color: #0f172a;
           font-size: 0.9rem;
           font-weight: 600;
         }
@@ -680,9 +721,9 @@ export default function PricingPage() {
           gap: 0.95rem;
           position: relative;
           overflow: hidden;
-          background: var(--surface-panel);
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.16));
-          box-shadow: var(--shadow-md);
+          background: rgba(255, 255, 255, 0.98);
+          border: 1px solid rgba(47, 98, 255, 0.18);
+          box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
         }
 
         .pricing-page .pricing-card::before {
@@ -690,7 +731,7 @@ export default function PricingPage() {
           position: absolute;
           inset: 0;
           pointer-events: none;
-          background: linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 10%, transparent), transparent 22%);
+          background: linear-gradient(180deg, rgba(47, 98, 255, 0.08), transparent 28%);
         }
 
         .pricing-page .pricing-card-top {
@@ -740,7 +781,7 @@ export default function PricingPage() {
         }
 
         .pricing-page .pricing-badge--featured {
-          box-shadow: 0 0 0 1px color-mix(in srgb, var(--text-on-accent) 8%, transparent), 0 12px 26px color-mix(in srgb, var(--accent-violet) 24%, transparent);
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18), 0 12px 26px rgba(47, 98, 255, 0.24);
         }
 
         .pricing-page .pricing-price {
@@ -866,8 +907,8 @@ export default function PricingPage() {
         }
 
         .pricing-page .pricing-card-featured {
-          border-color: var(--surface-soft-border-strong);
-          box-shadow: var(--shadow-lg), 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+          border-color: rgba(47, 98, 255, 0.42);
+          box-shadow: 0 24px 56px rgba(47, 98, 255, 0.14), 0 0 0 1px rgba(47, 98, 255, 0.14);
           transform: translateY(-2px);
         }
 
@@ -878,8 +919,12 @@ export default function PricingPage() {
         }
 
         .pricing-page .pricing-footer-cta {
-          margin-top: 1.6rem;
+          margin-top: 2.25rem;
           padding: 0;
+          border: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          overflow: visible;
         }
 
         .pricing-page .pricing-footer-cta__inner {
@@ -889,11 +934,13 @@ export default function PricingPage() {
           gap: 1rem 1.5rem;
           width: min(100%, 72rem);
           margin: 0 auto;
-          padding: 1.35rem 1.5rem;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.16));
-          border-radius: 24px;
-          background: var(--surface-panel);
-          box-shadow: var(--shadow-md);
+          padding: 1.55rem 1.65rem;
+          border: 1px solid rgba(47, 98, 255, 0.2);
+          border-radius: 20px;
+          background:
+            radial-gradient(circle at 92% 0%, rgba(53, 160, 255, 0.12), transparent 34%),
+            linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.96));
+          box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
         }
 
         .pricing-page .pricing-footer-cta__copy {
@@ -909,6 +956,27 @@ export default function PricingPage() {
           line-height: 1.25;
           letter-spacing: -0.02em;
           text-wrap: balance;
+        }
+
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page {
+          background:
+            radial-gradient(60rem 18rem at 50% 0%, color-mix(in srgb, var(--accent-soft) 42%, transparent) 0%, transparent 72%),
+            linear-gradient(180deg, color-mix(in srgb, var(--surface-muted) 86%, transparent) 0%, transparent 18%);
+        }
+
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-proof-pill,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .toggle-group--compact,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .currency-select,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta__inner {
+          border-color: var(--surface-soft-border, rgba(148, 163, 184, 0.16));
+          background: var(--surface-panel);
+        }
+
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-proof-pill,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .toggle-btn,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .currency-select {
+          color: var(--text-strong, #e2e8f0);
         }
 
         .pricing-page .pricing-footer-cta__copy .eyebrow {
