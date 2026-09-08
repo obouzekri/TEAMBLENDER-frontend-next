@@ -20074,3 +20074,181 @@ html[data-theme='dark'] .auth-remember-me{
   background: transparent !important;
 }
 
+/* ================================================================
+   FINAL OVERRIDE — ADMIN DARK SURFACES
+   AdminClient still uses a number of inline styles based on
+   --color-surface / --surface-elevated, while generic .session-item
+   rules are declared much later than the first admin block. Scope the
+   dark tokens to the admin shell and override the list/card surfaces
+   here so html, body and class-based dark toggles all behave the same.
+   ================================================================ */
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout {
+  --bg: #071124;
+  --ink: #eef5ff;
+  --ink-soft: #b8c6df;
+  --line: rgba(96, 165, 250, 0.2);
+  --card: #101a2f;
+  --color-surface: #101a2f;
+  --color-border: rgba(96, 165, 250, 0.22);
+  --color-muted: #b8c6df;
+  --color-text: #eef5ff;
+  --color-primary: #7dd3fc;
+  --surface-elevated: #101a2f;
+  --surface-elevated-soft: rgba(16, 26, 47, 0.88);
+  --surface-panel: rgba(16, 26, 47, 0.98);
+  --surface-panel-soft: rgba(21, 33, 57, 0.96);
+  --surface-glass: rgba(16, 26, 47, 0.82);
+  --surface-glass-strong: rgba(16, 26, 47, 0.96);
+  --surface-border: rgba(96, 165, 250, 0.18);
+  --surface-border-strong: rgba(125, 211, 252, 0.34);
+  --surface-soft-border: rgba(96, 165, 250, 0.18);
+  --surface-soft-border-strong: rgba(125, 211, 252, 0.34);
+  --surface-control: rgba(8, 16, 31, 0.9);
+  --surface-control-hover: rgba(15, 28, 50, 0.96);
+  background:
+    radial-gradient(circle at 78% 0%, rgba(59, 130, 246, 0.1), transparent 30%),
+    linear-gradient(180deg, #0b1427 0%, #071124 100%);
+  color: var(--ink);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-main-shell {
+  background: transparent;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-sidebar {
+  background: rgba(12, 20, 38, 0.98);
+  border-right-color: rgba(96, 165, 250, 0.18);
+  box-shadow: inset -1px 0 0 rgba(125, 211, 252, 0.08), 12px 0 42px rgba(2, 6, 23, 0.22);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-sidebar__brand {
+  border-bottom-color: rgba(96, 165, 250, 0.16);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-sidebar__title,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card h1,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card h2,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card h3,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .session-title,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card strong,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card b {
+  color: #f8fbff !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-sidebar__eyebrow,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .session-meta,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .session-meta,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .list-count,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .list-count,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .list-empty,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .list-empty {
+  color: #b8c6df !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-nav-button {
+  color: #cbd8f2;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-nav-button:hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-nav-button.is-active {
+  background: rgba(59, 130, 246, 0.16);
+  color: #dbeafe;
+  border-left-color: #60a5fa;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-page-hero,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-stat-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout [style*='--color-surface'],
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout [style*='--surface-elevated'] {
+  background:
+    radial-gradient(circle at 94% 0%, rgba(96, 165, 250, 0.14), transparent 34%),
+    linear-gradient(160deg, rgba(16, 26, 47, 0.98), rgba(10, 18, 34, 0.98)) !important;
+  border-color: rgba(96, 165, 250, 0.24) !important;
+  box-shadow: 0 18px 46px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  color: #eef5ff !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-stat-card--highlight,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card--accent {
+  background:
+    radial-gradient(circle at 78% 10%, rgba(125, 211, 252, 0.18), transparent 36%),
+    linear-gradient(160deg, rgba(22, 35, 61, 0.98), rgba(12, 20, 38, 0.98)) !important;
+  border-color: rgba(125, 211, 252, 0.36) !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-stat-card__value {
+  color: #ffffff !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-stat-card__label {
+  color: #cbd8f2 !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .session-list,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .session-list,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card ul {
+  background: transparent !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .session-item,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .session-item,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout li:not(.list-empty),
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card li:not(.list-empty),
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout [class*='row'],
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card [class*='row'] {
+  background:
+    linear-gradient(180deg, rgba(15, 26, 48, 0.94) 0%, rgba(10, 18, 34, 0.94) 100%) !important;
+  border-color: rgba(96, 165, 250, 0.22) !important;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22) !important;
+  color: #eef5ff !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .session-item:hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .session-item:hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout li:not(.list-empty):hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card li:not(.list-empty):hover {
+  border-color: rgba(125, 211, 252, 0.42) !important;
+  background:
+    linear-gradient(180deg, rgba(22, 36, 64, 0.96) 0%, rgba(14, 24, 44, 0.96) 100%) !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .inline-input,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .inline-input,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout input,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card input,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout select,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card select,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout textarea,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card textarea {
+  background: rgba(7, 15, 30, 0.92) !important;
+  border-color: rgba(96, 165, 250, 0.28) !important;
+  color: #eef5ff !important;
+  box-shadow: none !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .inline-input::placeholder,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .inline-input::placeholder,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout input::placeholder,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card input::placeholder,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout textarea::placeholder,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card textarea::placeholder {
+  color: rgba(184, 198, 223, 0.64) !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .icon-action-btn,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .icon-action-btn {
+  background: rgba(7, 15, 30, 0.9) !important;
+  border-color: rgba(96, 165, 250, 0.3) !important;
+  color: #dbeafe !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .icon-action-btn:hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .icon-action-btn:hover {
+  background: rgba(37, 99, 235, 0.24) !important;
+  border-color: rgba(125, 211, 252, 0.5) !important;
+  color: #ffffff !important;
+}
+
