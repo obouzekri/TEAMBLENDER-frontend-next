@@ -366,6 +366,7 @@ function getAccountPlanCopy(plan, locale = 'fr', cardVariant = 'standard') {
         'Pas d’insights avancés',
       ],
       meta: [],
+      ctaLabel: isEn ? 'Start for free' : 'Commencer gratuitement',
     };
   }
 
@@ -1520,9 +1521,9 @@ export default function AccountPage() {
                   const amountDh = getAccountPlanAmountDh(plan, selectedBilling, dhPriceByPlanId);
                   const priceFmt = formatAccountPrice(amountDh, selectedCurrency);
                   const priceSuffix = selectedBilling === 'annual' ? '/an' : '/mois';
-                  const actionLabel = isProPlus
+                  const actionLabel = planCopy.ctaLabel || (isProPlus
                     ? t('account.startFreeTrial')
-                    : (isUpgrade ? t('account.upgradeToPro') : t('account.changePlan'));
+                    : (isUpgrade ? t('account.upgradeToPro') : t('account.changePlan')));
                   return (
                     <article
                       key={planId}
