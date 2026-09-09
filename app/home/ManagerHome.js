@@ -923,8 +923,7 @@ export default function ManagerHome() {
         <section id="home-sessions-block" className="feature-card sessions-panel home-sessions-panel home-anchor-target">
           <div className="panel-head home-sessions-head">
             <div>
-              <p className="eyebrow">{isEn ? 'YOUR SESSIONS' : 'VOS SESSIONS'}</p>
-              <h2>{isEn ? 'My sessions' : 'Mes sessions'}</h2>
+              <h2>{isEn ? 'SESSIONS' : 'SESSIONS'}</h2>
               <p>{isEn ? 'Track preparing, active, and completed sessions from one panel.' : 'Suivez les sessions en préparation, actives et terminées depuis un seul panneau.'}</p>
             </div>
             <Link
@@ -1063,8 +1062,7 @@ export default function ManagerHome() {
         <section id="home-participants-block" className="feature-card participants-panel home-anchor-target" aria-label={isEn ? 'Team participants' : 'Participants de l equipe'}>
           <div className="participants-panel-head">
             <div>
-              <p className="eyebrow">{isEn ? 'PARTICIPANTS' : 'PARTICIPANTS'}</p>
-              <h2>{isEn ? 'Participant list' : 'Liste des participants'}</h2>
+              <h2>{isEn ? 'PARTICIPANTS' : 'PARTICIPANTS'}</h2>
             </div>
             <div className="participants-panel-actions">
               <button
