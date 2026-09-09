@@ -812,8 +812,8 @@ export default function AccountPage() {
   const sessionsUsagePercent = sessionsQuota > 0 ? Math.min(100, Math.round((sessionsConsumed / sessionsQuota) * 100)) : 0;
   const isFreePlanActive = String(activePlan?.slug || activePlan?.name || '').toLowerCase().includes('free') || Number(activePlan?.price_cents || 0) === 0;
   const usageSubtitle = isFreePlanActive
-    ? 'Jusqu’à 3 participants par session - Catalogue limité (3 challenges)'
-    : `Jusqu’à ${formatCount(planSeats, 'fr')} participants par session - Accès complet au catalogue`;
+    ? t('account.freeUsageSubtitle')
+    : t('account.fullCatalogUsageSubtitle', { count: formatCount(planSeats, locale) });
 
   const lastPaidHistory = useMemo(() => {
     if (!Array.isArray(planHistory) || planHistory.length === 0) return null;
@@ -826,12 +826,12 @@ export default function AccountPage() {
 
   const billingStatusHint = useMemo(() => {
     if (!isFreePlanActive || !lastPaidHistory) return '';
-    const dateLabel = formatDate(lastPaidHistory.at, 'fr');
+    const dateLabel = formatDate(lastPaidHistory.at, locale);
     if (dateLabel) {
-      return `Votre précédent abonnement Pro s’est terminé le ${dateLabel}.`;
+      return t('account.previousProEnded', { date: dateLabel });
     }
-    return 'Votre précédent abonnement Pro est terminé.';
-  }, [isFreePlanActive, lastPaidHistory]);
+    return t('account.previousProEndedGeneric');
+  }, [isFreePlanActive, lastPaidHistory, locale, t]);
 
   const recommendedPlan = useMemo(() => {
     const bySlug = plans.find((plan) => String(plan.slug || '').toLowerCase() === 'pro');
@@ -1192,15 +1192,15 @@ export default function AccountPage() {
           <div className="account-tabs account-tabs--modern" role="tablist" aria-label={t('account.accountSectionsAria')}>
             {!isParticipantAccount ? (
               <button type="button" role="tab" aria-selected={activeTab === 'profile'} className={`account-tab account-tab--modern ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => setActiveTab('profile')}>
-                Profil
+                {t('account.heroProfile')}
               </button>
             ) : null}
             <button type="button" role="tab" aria-selected={activeTab === 'security'} className={`account-tab account-tab--modern ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => setActiveTab('security')}>
-              Sécurité
+              {t('account.heroSecurity')}
             </button>
             {!isParticipantAccount ? (
               <button type="button" role="tab" aria-selected={activeTab === 'pricing'} className={`account-tab account-tab--modern ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => setActiveTab('pricing')}>
-                Abonnement et facturation
+                {t('account.pricingHeaderTitle')}
               </button>
             ) : null}
           </div>
@@ -1493,7 +1493,7 @@ export default function AccountPage() {
 
               <div className="account-usage-progress">
                 <div className="account-usage-progress__meta">
-                  <span>{formatCount(sessionsConsumed, 'fr')} / {formatCount(sessionsQuota, 'fr')} sessions utilisées ce mois-ci</span>
+                  <span>{t('account.sessionsUsedThisMonth', { used: formatCount(sessionsConsumed, locale), quota: formatCount(sessionsQuota, locale) })}</span>
                 </div>
                 <div className="account-usage-progress__track" aria-hidden="true">
                   <span className="account-usage-progress__fill" style={{ width: `${sessionsUsagePercent}%` }} />
@@ -1520,7 +1520,7 @@ export default function AccountPage() {
                   const isProPlus = normalizePricingPlanName(plan).toLowerCase() === 'pro+';
                   const amountDh = getAccountPlanAmountDh(plan, selectedBilling, dhPriceByPlanId);
                   const priceFmt = formatAccountPrice(amountDh, selectedCurrency);
-                  const priceSuffix = selectedBilling === 'annual' ? '/an' : '/mois';
+                  const priceSuffix = selectedBilling === 'annual' ? (locale === 'en' ? '/year' : '/an') : t('account.monthlySuffix');
                   const actionLabel = planCopy.ctaLabel || (isProPlus
                     ? t('account.startFreeTrial')
                     : (isUpgrade ? t('account.upgradeToPro') : t('account.changePlan')));
