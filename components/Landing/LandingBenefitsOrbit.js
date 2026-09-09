@@ -4,14 +4,6 @@ import { Sparkles } from 'lucide-react';
 import GamifiedIcon from './GamifiedIcon';
 
 export default function LandingBenefitsOrbit({ locale, fallback, platformBenefitsItems }) {
-  const metricByIndex = [
-    locale === 'en' ? 'For hybrid teams' : 'Pour les équipes hybrides',
-    locale === 'en' ? 'For everyday collaboration' : 'Pour la collaboration au quotidien',
-    locale === 'en' ? 'For managers and HR' : 'Pour les managers et les RH',
-    locale === 'en' ? 'For onboarding journeys' : 'Pour les parcours d’onboarding',
-    locale === 'en' ? 'For a consistent experience' : 'Pour une expérience cohérente',
-  ];
-
   return (
     <section
       className="landing-section-full landing-benefits-section relative overflow-hidden p-6 sm:p-10"
@@ -27,14 +19,17 @@ export default function LandingBenefitsOrbit({ locale, fallback, platformBenefit
           </div>
         </div>
         <div className="landing-benefits-orbit mt-6">
+          <div className="landing-benefits-orbit__connections" aria-hidden="true">
+            {[1, 2, 3, 4, 5].map((connection) => <span key={connection} className={`landing-benefits-orbit__connection landing-benefits-orbit__connection--${connection}`} />)}
+          </div>
           <div className="landing-benefits-orbit-center" aria-label={locale === 'en' ? 'Core platform value' : 'Valeur centrale'}>
             <span className="landing-benefits-orbit-center__eyebrow">{locale === 'en' ? 'Core value' : 'Valeur centrale'}</span>
             <div className="landing-benefits-orbit-center__halo" aria-hidden="true" />
             <div className="landing-benefits-orbit-center__badge" aria-hidden="true">
               <Sparkles className="h-5 w-5" strokeWidth={2.2} />
             </div>
-            <strong>{locale === 'en' ? 'One platform to run hybrid team experiences that feel clear, connected, and measurable.' : 'Une seule plateforme pour orchestrer des expériences d’équipe hybrides, claires, connectées et mesurables.'}</strong>
-            <p>{locale === 'en' ? 'Designed for managers and HR teams who need a simple system with real business impact.' : 'Pensée pour les managers et RH qui veulent un système simple avec un vrai impact business.'}</p>
+            <strong>{locale === 'en' ? 'One platform to create connected, measurable and engaging hybrid team experiences.' : 'Une plateforme pour créer des expériences d’équipe hybrides connectées, mesurables et engageantes.'}</strong>
+            <p>{locale === 'en' ? 'Designed for HR teams and managers looking for simplicity, adoption and measurable business impact.' : 'Conçue pour les RH et managers à la recherche de simplicité, d’adoption et d’impact business mesurable.'}</p>
           </div>
 
           {platformBenefitsItems.slice(0, 5).map((item, index) => {
@@ -50,7 +45,6 @@ export default function LandingBenefitsOrbit({ locale, fallback, platformBenefit
                 </span>
                 <h3>{item.label}</h3>
                 <p>{item.description}</p>
-                <strong className="landing-benefits-orbit-metric">{metricByIndex[index]}</strong>
               </article>
             );
           })}
