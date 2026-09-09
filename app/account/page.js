@@ -34,6 +34,11 @@ import { getPricingPlanBadgeLabel, getPricingPlanVariantLabel, normalizePricingP
 
 const PLAN_HISTORY_STORAGE_KEY = 'accountPlanChangeHistory';
 const PRO_PLUS_PRICE_DH = 696;
+const ACCOUNT_CURRENCY_OPTIONS = [
+  { code: 'MAD', label: 'DH', rate: 1 },
+  { code: 'EUR', label: '€', rate: 0.092 },
+  { code: 'USD', label: '$', rate: 0.1 },
+];
 
 function formatPriceCents(priceCents, currency, locale = 'fr') {
   const amount = Number(priceCents || 0) / 100;
@@ -66,6 +71,32 @@ function buildDhPriceByPlanId(plans) {
 function formatDhAmount(amountDh) {
   const value = Number(amountDh || 0);
   return `${value} DH`;
+}
+
+function formatAccountPrice(amountDh, currencyCode) {
+  const option = ACCOUNT_CURRENCY_OPTIONS.find((entry) => entry.code === currencyCode) || ACCOUNT_CURRENCY_OPTIONS[0];
+  const converted = Number(amountDh || 0) * option.rate;
+  const rounded = option.code === 'USD' ? Math.round(converted * 10) / 10 : Math.round(converted);
+  return `${rounded} ${option.label}`;
+}
+
+function getAccountPlanAmountDh(plan, billingCycle, dhPriceByPlanId) {
+  const slug = String(plan?.slug || plan?.name || '').toLowerCase();
+  if (slug.includes('pro+') || slug.includes('pro-plus')) {
+    return billingCycle === 'annual' ? Math.round(PRO_PLUS_PRICE_DH * 12 * 0.8) : PRO_PLUS_PRICE_DH;
+  }
+
+  const annualCents = Number(plan?.annual_price_mad_cents);
+  if (billingCycle === 'annual' && Number.isFinite(annualCents) && annualCents >= 0) {
+    return annualCents / 100;
+  }
+
+  const monthlyAmount = Number(dhPriceByPlanId[String(plan?.id)] || 0);
+  if (billingCycle === 'annual') {
+    const discount = Number(plan?.annual_discount_percentage || 20);
+    return Math.round(monthlyAmount * 12 * (1 - discount / 100));
+  }
+  return monthlyAmount;
 }
 
 function normalizeUnknownLocationLabel(location, isCurrent, locale = 'en') {
@@ -404,6 +435,8 @@ export default function AccountPage() {
     confirm_password: '',
   });
   const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [selectedBilling, setSelectedBilling] = useState('monthly');
+  const [selectedCurrency, setSelectedCurrency] = useState('MAD');
   const [planHistory, setPlanHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('profile');
   const [sessionsThisMonth, setSessionsThisMonth] = useState(0);
@@ -962,7 +995,7 @@ export default function AccountPage() {
 
     if (String(method).toLowerCase() === 'payoneer') {
       try {
-        const result = await startPayoneerCheckout({ pricing_plan_id: targetPlanId });
+        const result = await startPayoneerCheckout({ pricing_plan_id: targetPlanId, billing_cycle: selectedBilling });
         if (result?.url) {
           window.location.assign(result.url);
           return;
@@ -988,7 +1021,7 @@ export default function AccountPage() {
     }
 
     const targetPlan = plans.find((plan) => String(plan.id) === String(targetPlanId)) || null;
-    const amountDh = Number(dhPriceByPlanId[String(targetPlanId)] || 0);
+    const amountDh = getAccountPlanAmountDh(targetPlan, selectedBilling, dhPriceByPlanId);
 
     if (amountDh <= 0) {
       setSelectedPlanId(String(targetPlanId));
@@ -1020,7 +1053,7 @@ export default function AccountPage() {
         return;
       }
 
-      const response = await startStripeCheckout({ pricing_plan_id: targetPlanId, method: 'stripe' });
+      const response = await startStripeCheckout({ pricing_plan_id: targetPlanId, method: 'stripe', billing_cycle: selectedBilling });
       const checkoutUrl = getCheckoutRedirectUrl(response);
       if (checkoutUrl) {
         window.location.assign(checkoutUrl);
@@ -1028,7 +1061,7 @@ export default function AccountPage() {
       }
 
       window.location.assign(
-        `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}`
+        `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}&billing_cycle=${encodeURIComponent(selectedBilling)}`
       );
     } catch (err) {
       showError(err.message || 'Paiement indisponible.');
@@ -1112,16 +1145,16 @@ export default function AccountPage() {
 
         <section className="account-page-header" aria-label="En-tête des paramètres du compte">
           <p className="eyebrow">{isParticipantAccount ? 'ESPACE PARTICIPANT' : 'ESPACE MANAGER'}</p>
-          <h1>Paramètres du compte</h1>
-          <p>
+          <h1>{t('account.settingsTitle')}</h1>
+          <p className="account-page-header__description">
             {isParticipantAccount
               ? 'Consultez votre identifiant et modifiez votre mot de passe depuis cet espace sécurisé.'
-              : 'Gérez votre profil, vos options de sécurité et votre abonnement depuis un seul espace.'}
+              : t('account.managerHeaderDescription')}
           </p>
         </section>
 
         <div className="account-card-container">
-          <div className="account-tabs account-tabs--modern" role="tablist" aria-label="Sections du compte">
+          <div className="account-tabs account-tabs--modern" role="tablist" aria-label={t('account.accountSectionsAria')}>
             {!isParticipantAccount ? (
               <button type="button" role="tab" aria-selected={activeTab === 'profile'} className={`account-tab account-tab--modern ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => setActiveTab('profile')}>
                 Profil
@@ -1141,10 +1174,10 @@ export default function AccountPage() {
           <section id="account-profile" className={`account-saas-card account-panel ${activeTab === 'profile' ? 'is-active' : ''}`} hidden={activeTab !== 'profile'}>
             <header className="account-saas-card__header">
               <p className="eyebrow">PROFIL</p>
-              <h2 className="account-saas-card__title">Paramètres du profil</h2>
+              <h2 className="account-saas-card__title">{t('account.profileTitle')}</h2>
               <p className="account-saas-card__subtitle">{t('account.profileSubtitle')}</p>
             </header>
-            <div className="account-saas-card__body account-profile-layout">
+            <div className="account-saas-card__body account-profile-layout account-panel-body--balanced">
               <aside className="account-identity-card" aria-label="Résumé de l’identité">
                 <div className="account-identity-avatar-wrap">
                   {resolvedAvatarUrl ? (
@@ -1172,62 +1205,23 @@ export default function AccountPage() {
 
               <form className="account-profile-form" onSubmit={handleSaveProfile}>
                 <section className="account-profile-group" aria-labelledby="profile-personal-information-title">
-                  <h3 id="profile-personal-information-title" className="account-profile-group__title">Informations personnelles</h3>
+                  <h3 id="profile-personal-information-title" className="account-profile-group__title">{t('account.personalInformation')}</h3>
                   <div className="account-form-grid">
                     <div className="account-form-field">
                       <label className="account-form-label" htmlFor="account-first-name">
                         {t('account.firstName')} <span className="account-field-required" aria-hidden="true">*</span>
-                        <span
-                          className="account-lock-indicator"
-                          aria-label="Champ verrouillé"
-                          title="Le prénom est verrouillé et ne peut être modifié que par un administrateur."
-                          data-tooltip="Le prénom est verrouillé et ne peut être modifié que par un administrateur."
-                        >
-                          🔒
-                        </span>
                       </label>
-                      <input
-                        id="account-first-name"
-                        className="account-form-input account-form-input--disabled"
-                        type="text"
-                        value={profileForm.first_name}
-                        disabled
-                        readOnly
-                      />
+                      <input id="account-first-name" className="account-form-input account-form-input--disabled" type="text" value={profileForm.first_name} disabled readOnly />
                     </div>
                     <div className="account-form-field">
                       <label className="account-form-label" htmlFor="account-last-name">
                         {t('account.lastName')} <span className="account-field-required" aria-hidden="true">*</span>
-                        <span
-                          className="account-lock-indicator"
-                          aria-label="Champ verrouillé"
-                          title="Le nom est verrouillé et ne peut être modifié que par un administrateur."
-                          data-tooltip="Le nom est verrouillé et ne peut être modifié que par un administrateur."
-                        >
-                          🔒
-                        </span>
                       </label>
-                      <input
-                        id="account-last-name"
-                        className="account-form-input account-form-input--disabled"
-                        type="text"
-                        value={profileForm.last_name}
-                        disabled
-                        readOnly
-                      />
+                      <input id="account-last-name" className="account-form-input account-form-input--disabled" type="text" value={profileForm.last_name} disabled readOnly />
                     </div>
                     <div className="account-form-field account-form-field--full">
-                      <label className="account-form-label" htmlFor="account-email">
-                        <span>Email <span className="account-field-required" aria-hidden="true">*</span></span>
-                      </label>
-                      <input
-                        id="account-email"
-                        className="account-form-input account-form-input--disabled"
-                        type="email"
-                        value={String(me?.email || guard.user?.email || '').trim()}
-                        disabled
-                        readOnly
-                      />
+                      <label className="account-form-label" htmlFor="account-email">Email <span className="account-field-required" aria-hidden="true">*</span></label>
+                      <input id="account-email" className="account-form-input account-form-input--disabled" type="email" value={String(me?.email || guard.user?.email || '').trim()} disabled readOnly />
                       <button type="button" className="account-inline-link account-email-change-link" onClick={handleResetPassword} disabled={resettingPassword}>
                         {resettingPassword ? 'Préparation en cours...' : 'Demander un changement d’e-mail'}
                       </button>
@@ -1236,11 +1230,11 @@ export default function AccountPage() {
                 </section>
 
                 <section className="account-profile-group" aria-labelledby="profile-professional-details-title">
-                  <h3 id="profile-professional-details-title" className="account-profile-group__title">Informations professionnelles</h3>
-                  <p className="account-group-caption">Les champs marqués d’un * sont obligatoires. Les autres champs sont facultatifs.</p>
+                  <h3 id="profile-professional-details-title" className="account-profile-group__title">{t('account.professionalInformation')}</h3>
+                  <p className="account-group-caption">{t('account.requiredFieldsHint')}</p>
                   <div className="account-form-grid">
                     <div className="account-form-field account-form-field--full">
-                      <label className="account-form-label" htmlFor="account-job-title">{t('account.jobTitle')} <span className="account-field-optional">(Facultatif)</span></label>
+                      <label className="account-form-label" htmlFor="account-job-title">{t('account.jobTitle')} <span className="account-field-optional">{t('account.optional')}</span></label>
                       <input
                         id="account-job-title"
                         className="account-form-input"
@@ -1251,7 +1245,7 @@ export default function AccountPage() {
                       />
                     </div>
                     <div className="account-form-field account-form-field--full">
-                      <label className="account-form-label" htmlFor="account-department">{t('account.department')} <span className="account-field-optional">(Facultatif)</span></label>
+                      <label className="account-form-label" htmlFor="account-department">{t('account.department')} <span className="account-field-optional">{t('account.optional')}</span></label>
                       <input
                         id="account-department"
                         className="account-form-input"
@@ -1266,7 +1260,7 @@ export default function AccountPage() {
 
                 <div className="account-profile-form-actions">
                   <button type="submit" className="btn-primary account-save-profile-btn" disabled={savingProfile || !isProfileDirty}>
-                    {savingProfile ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                    {savingProfile ? t('account.savingProfile') : t('account.saveChanges')}
                   </button>
                 </div>
               </form>
@@ -1277,10 +1271,10 @@ export default function AccountPage() {
           <section id="account-security" className={`account-saas-card account-panel ${activeTab === 'security' ? 'is-active' : ''}`} hidden={activeTab !== 'security'}>
             <header className="account-saas-card__header">
               <p className="eyebrow">SÉCURITÉ</p>
-              <h2 className="account-saas-card__title">Sécurité et accès</h2>
-              <p className="account-saas-card__subtitle">Gérez vos identifiants, l’authentification à deux facteurs et les sessions connectées.</p>
+              <h2 className="account-saas-card__title">{t('account.securityAccessTitle')}</h2>
+              <p className="account-saas-card__subtitle">{t('account.securitySubtitle')}</p>
             </header>
-            <div className="account-saas-card__body account-security-grid">
+            <div className="account-saas-card__body account-security-grid account-panel-body--balanced">
               <article className="account-security-card">
                 <header className="account-security-card__head">
                   <h3>Modifier le mot de passe</h3>
@@ -1375,9 +1369,9 @@ export default function AccountPage() {
 
               <article className="account-security-card">
                 <header className="account-security-card__head">
-                  <h3>Authentification à deux facteurs (2FA)</h3>
+                  <h3>{t('account.twoFactorTitle')}</h3>
                 </header>
-                <p className="account-security-card__text">Protégez votre compte avec une étape de vérification supplémentaire à la connexion.</p>
+                <p className="account-security-card__text">{t('account.twoFactorDescription')}</p>
                 <p className="account-security-card__hint">Utilisez une application d’authentification comme Google Authenticator ou Authy pour générer des codes temporaires.</p>
                 <p className="account-2fa-status">
                   <span>Statut</span>
@@ -1390,7 +1384,7 @@ export default function AccountPage() {
 
               <article className="account-security-card">
                 <header className="account-security-card__head">
-                  <h3>Sessions actives</h3>
+                  <h3>{t('account.activeSessionsTitle')}</h3>
                 </header>
                 <div className="account-session-list" role="list" aria-label="Liste des sessions actives">
                   {securitySessions.map((session) => (
@@ -1429,15 +1423,37 @@ export default function AccountPage() {
           <div className="account-pricing-surface">
             <header className="account-pricing-head">
               <div>
-                <p className="eyebrow">ABONNEMENT ET FACTURATION</p>
-                <h2>Formules et factures</h2>
-                <p>Consultez votre formule actuelle, vos limites d'utilisation et votre historique de facturation.</p>
+                <p className="eyebrow">{t('account.pricingEyebrow')}</p>
+                <h2>{t('account.pricingHeaderTitle')}</h2>
+                <p>{t('account.pricingHeaderDescription')}</p>
               </div>
             </header>
 
+            <div className="account-pricing-controls" aria-label="Options de facturation et d'affichage">
+              <div className="account-pricing-control-group">
+                <span className="account-pricing-control-label">{t('account.billingFrequency')}</span>
+                <div className="account-pricing-toggle" role="group" aria-label={t('account.billingFrequency')}>
+                  <button type="button" className={selectedBilling === 'monthly' ? 'is-active' : ''} onClick={() => setSelectedBilling('monthly')}>
+                    {t('account.monthly')}
+                  </button>
+                  <button type="button" className={selectedBilling === 'annual' ? 'is-active' : ''} onClick={() => setSelectedBilling('annual')}>
+                    <span>{t('account.annual')}</span><span className="account-pricing-savings">{t('account.savings')}</span>
+                  </button>
+                </div>
+              </div>
+              <label className="account-pricing-control-group">
+                <span className="account-pricing-control-label">{t('account.currency')}</span>
+                <select value={selectedCurrency} onChange={(event) => setSelectedCurrency(event.target.value)}>
+                  {ACCOUNT_CURRENCY_OPTIONS.map((option) => (
+                    <option key={option.code} value={option.code}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
             <div className="account-usage-banner" aria-label="Résumé d’utilisation">
               <div className="account-usage-banner__head">
-                <p className="account-usage-banner__plan">Formule actuelle : <strong>{isFreePlanActive ? 'Formule Free' : (activePlan?.name || 'Aucune formule')}</strong></p>
+                <p className="account-usage-banner__plan">{t('account.currentPlanLabel')} <strong>{isFreePlanActive ? 'Free' : (activePlan?.name || t('account.noActivePlan'))}</strong></p>
               </div>
 
               <div className="account-usage-progress">
@@ -1453,7 +1469,7 @@ export default function AccountPage() {
             </div>
 
             {plans.length > 0 ? (
-              <div className="account-plan-cards-grid">
+              <div className="account-plan-cards-grid account-plan-cards-grid--aligned">
                 {plans.map((plan) => {
                   const planCopy = getAccountPlanCopy(plan);
                   const planId = String(plan.id);
@@ -1465,8 +1481,9 @@ export default function AccountPage() {
                   const planPriceCents = Number(plan?.price_cents || 0);
                   const isUpgrade = isFreePlanActive ? !isFreePlan : planPriceCents > currentPriceCents;
                   const isProPlus = normalizePricingPlanName(plan).toLowerCase() === 'pro+';
-                  const amountDh = isProPlus ? PRO_PLUS_PRICE_DH : Number(dhPriceByPlanId[planId] || 0);
-                  const priceFmt = formatDhAmount(amountDh);
+                  const amountDh = getAccountPlanAmountDh(plan, selectedBilling, dhPriceByPlanId);
+                  const priceFmt = formatAccountPrice(amountDh, selectedCurrency);
+                  const priceSuffix = selectedBilling === 'annual' ? '/an' : '/mois';
                   const actionLabel = isProPlus ? 'Démarrer l’essai gratuit' : (isUpgrade ? 'Passer à Pro' : 'Changer de formule');
                   return (
                     <article
@@ -1485,9 +1502,9 @@ export default function AccountPage() {
                           {isRecommended ? <span className="pricing-badge account-pricing-badge">{getPricingPlanBadgeLabel(plan) || 'Plus populaire'}</span> : null}
                         </div>
                       </div>
-                      <h3 className="pricing-price">
+                      <h3 className="pricing-price account-pricing-price">
                         {priceFmt}
-                        <span>/mois</span>
+                        <span>{priceSuffix}</span>
                       </h3>
                       <p className="pricing-tax-note">HT</p>
                       {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
@@ -1544,7 +1561,7 @@ export default function AccountPage() {
                           <td>{resolveHistoryAmountLabel(entry, plans, dhPriceByPlanId)}</td>
                           <td><span className="account-history-status account-history-status--paid">Payée</span></td>
                           <td>
-                            <button type="button" className="account-history-link" onClick={() => handleDownloadInvoice(entry)}>📥 Télécharger le PDF</button>
+                            <button type="button" className="account-history-link" onClick={() => handleDownloadInvoice(entry)}>📥 {t('account.downloadPdf')}</button>
                           </td>
                         </tr>
                       ))}
@@ -1554,7 +1571,7 @@ export default function AccountPage() {
               </div>
             ) : null}
             {planHistory.length === 0 ? (
-              <p className="account-history-empty">Aucune facture pour le moment</p>
+              <p className="account-history-empty">{t('account.noInvoices')}</p>
             ) : null}
           </div>
         </section>
@@ -1568,7 +1585,7 @@ export default function AccountPage() {
         >
           <div className="account-checkout-modal-content">
             <p>
-              {`Vous avez sélectionné ${checkoutPlan?.name || 'votre formule'} (${formatDhAmount(Number(dhPriceByPlanId[String(checkoutPlan?.id || '')] || 0))} HT).`}
+              {`Vous avez sélectionné ${checkoutPlan?.name || 'votre formule'} (${formatAccountPrice(getAccountPlanAmountDh(checkoutPlan, selectedBilling, dhPriceByPlanId), selectedCurrency)} HT).`}
             </p>
             <div className="account-checkout-modal-actions">
               <button type="button" className="btn-primary" onClick={() => handleStartPlanCheckout('stripe')} disabled={openingCheckout}>
@@ -1650,11 +1667,20 @@ export default function AccountPage() {
             max-width: 62ch;
           }
 
+          .account-page-header__description {
+            white-space: nowrap;
+          }
+
           .account-profile-layout {
             display: grid;
             grid-template-columns: 260px minmax(0, 1fr);
             gap: 1rem;
             align-items: stretch;
+          }
+
+          .account-panel-body--balanced {
+            min-height: 38rem;
+            align-content: start;
           }
 
           .account-identity-card {
@@ -2292,6 +2318,90 @@ export default function AccountPage() {
             gap: 1rem;
           }
 
+          .account-pricing-controls {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+            margin: 0 0 1.25rem;
+            padding: 1rem 1.1rem;
+            border: 1px solid var(--account-border-soft);
+            border-radius: 18px;
+            background: var(--account-surface-soft);
+          }
+
+          .account-pricing-control-group {
+            display: grid;
+            gap: 0.5rem;
+            min-width: 0;
+          }
+
+          .account-pricing-control-label {
+            color: var(--account-text-soft);
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+          }
+
+          .account-pricing-toggle {
+            display: inline-flex;
+            gap: 0.3rem;
+            padding: 0.3rem;
+            border: 1px solid var(--account-border-soft);
+            border-radius: 999px;
+            background: var(--account-surface);
+          }
+
+          .account-pricing-toggle button {
+            min-height: 2.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0 1rem;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--account-text-soft);
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+          }
+
+          .account-pricing-toggle button.is-active {
+            background: var(--account-primary);
+            color: #ffffff;
+            box-shadow: 0 8px 18px rgba(91, 76, 230, 0.22);
+          }
+
+          .account-pricing-savings {
+            padding: 0.16rem 0.5rem;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: 999px;
+            color: #059669;
+            background: rgba(52, 211, 153, 0.12);
+            font-size: 0.68rem;
+            font-weight: 700;
+          }
+
+          .account-pricing-toggle button.is-active .account-pricing-savings {
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.32);
+            background: rgba(255, 255, 255, 0.2);
+          }
+
+          .account-pricing-control-group select {
+            min-height: 2.85rem;
+            min-width: 7rem;
+            padding: 0 1rem;
+            border: 1px solid var(--account-border-soft);
+            border-radius: 14px;
+            background: var(--account-surface);
+            color: var(--account-text);
+            font: inherit;
+            font-weight: 600;
+          }
+
           .account-pricing-card {
             display: flex;
             flex-direction: column;
@@ -2316,7 +2426,7 @@ export default function AccountPage() {
           }
 
           .account-pricing-card .pricing-card-top {
-            min-height: 4.6rem;
+            min-height: 4.3rem;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
@@ -2331,6 +2441,21 @@ export default function AccountPage() {
 
           .account-pricing-title-row .eyebrow {
             margin: 0;
+            font-size: 0.84rem;
+            letter-spacing: 0.05em;
+          }
+
+          .account-pricing-price {
+            display: flex;
+            align-items: baseline;
+            gap: 0.45rem;
+            min-height: 2.5rem;
+          }
+
+          .account-pricing-price span {
+            color: var(--account-text-soft);
+            font-size: 0.92rem;
+            font-weight: 600;
           }
 
           .account-pricing-card .pricing-feature-list {
@@ -2471,6 +2596,19 @@ export default function AccountPage() {
           }
 
           @media (max-width: 640px) {
+            .account-page-header__description {
+              white-space: normal;
+            }
+
+            .account-panel-body--balanced {
+              min-height: 0;
+            }
+
+            .account-pricing-controls {
+              align-items: stretch;
+              flex-direction: column;
+            }
+
             .account-profile-layout {
               grid-template-columns: 1fr;
             }
