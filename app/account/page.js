@@ -344,7 +344,7 @@ function normalizeDepartmentDisplay(value) {
   return text;
 }
 
-function getAccountPlanCopy(plan, locale = 'fr') {
+function getAccountPlanCopy(plan, locale = 'fr', cardVariant = 'standard') {
   const isEn = locale === 'en';
   const normalizedName = normalizePricingPlanName(plan);
   const planKey = normalizedName.toLowerCase();
@@ -390,6 +390,20 @@ function getAccountPlanCopy(plan, locale = 'fr') {
   }
 
   if (planKey === 'pro') {
+    if (cardVariant === 'enterprise') {
+      return {
+        displayName: 'Pro +',
+        features: isEn ? [
+          '5 users (admins/managers)', 'Up to 150 participants', '60 sessions',
+          'All features included in the PRO plan', 'Multi-account manager management',
+        ] : [
+          '5 utilisateurs (admins/managers)', 'Jusqu’à 150 participants', '60 sessions',
+          'Toutes les fonctionnalités incluses dans l’offre PRO', 'Gestion multi-comptes managers',
+        ],
+        meta: [],
+      };
+    }
+
     return {
       displayName: getPricingPlanVariantLabel(plan),
       features: isEn ? [
@@ -1490,12 +1504,14 @@ export default function AccountPage() {
 
             {plans.length > 0 ? (
               <div className="account-plan-cards-grid account-plan-cards-grid--aligned">
-                {plans.map((plan) => {
-                  const planCopy = getAccountPlanCopy(plan, locale);
+                {plans.map((plan, planIndex) => {
                   const planId = String(plan.id);
+                  const isPro = String(plan.slug || plan.name || '').toLowerCase().includes('pro');
+                  const isLastProCard = isPro && !plans.slice(planIndex + 1).some((nextPlan) => String(nextPlan.slug || nextPlan.name || '').toLowerCase().includes('pro'));
+                  const cardVariant = isLastProCard ? 'enterprise' : 'standard';
+                  const planCopy = getAccountPlanCopy(plan, locale, cardVariant);
                   const isCurrent = planId === String(currentPlanId || '');
                   const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
-                  const isPro = String(plan.slug || plan.name || '').toLowerCase().includes('pro');
                   const isFreePlan = String(plan.slug || plan.name || '').toLowerCase().includes('free') || Number(plan?.price_cents || 0) === 0;
                   const currentPriceCents = Number(activePlan?.price_cents || 0);
                   const planPriceCents = Number(plan?.price_cents || 0);
