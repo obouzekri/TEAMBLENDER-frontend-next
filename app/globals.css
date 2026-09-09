@@ -20286,3 +20286,23 @@ html[data-theme='dark'] .auth-remember-me{
   color: #cbd8f2 !important;
 }
 
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .team-empty {
+  border-color: rgba(125, 211, 252, 0.38) !important;
+  background: rgba(15, 35, 62, 0.82) !important;
+  color: #dbeafe !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-sessions-head .btn-primary {
+  background: #38bdf8 !important;
+  border-color: #7dd3fc !important;
+  color: #082f49 !important;
+  box-shadow: 0 10px 22px rgba(56, 189, 248, 0.28) !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-sessions-head .btn-primary:hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-sessions-head .btn-primary:focus-visible {
+  background: #7dd3fc !important;
+  border-color: #bae6fd !important;
+  color: #082f49 !important;
+}
+
