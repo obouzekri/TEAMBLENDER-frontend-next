@@ -38,6 +38,7 @@ export default function CheckoutPage() {
   const [guard, setGuard] = useState({ loading: true, allowed: false, user: null });
   const [plans, setPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [billingCycle, setBillingCycle] = useState('monthly');
   const [activeMethod, setActiveMethod] = useState(null); // 'paypal' | 'bank_transfer'
   const [processing, setProcessing] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -61,6 +62,10 @@ export default function CheckoutPage() {
     const params = new URLSearchParams(window.location.search);
     const planId = String(params.get('plan_id') || '').trim();
     const method = String(params.get('method') || '').trim();
+    const requestedBilling = String(params.get('billing_cycle') || '').trim().toLowerCase();
+    if (requestedBilling === 'annual' || requestedBilling === 'monthly') {
+      setBillingCycle(requestedBilling);
+    }
     if (method === 'paypal' || method === 'bank_transfer') {
       setActiveMethod(method);
     }
@@ -94,7 +99,7 @@ export default function CheckoutPage() {
     if (processing) return;
     setProcessing(true);
     try {
-      const response = await startBillingCheckout({ pricing_plan_id: selectedPlan.id, method: 'paypal', billing_cycle: selectedPlan.billing_cycle || 'monthly' });
+      const response = await startBillingCheckout({ pricing_plan_id: selectedPlan.id, method: 'paypal', billing_cycle: billingCycle });
       const mode = String(response?.mode || '').trim().toLowerCase();
       const checkoutUrl = String(response?.url || response?.payment?.checkout_url || '').trim();
       if (mode === 'paypal_redirect' && checkoutUrl) {

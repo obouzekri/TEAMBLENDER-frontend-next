@@ -17,8 +17,6 @@ import {
   listPricingPlans,
   updateMyPlan,
   capturePaypalOrder,
-  startStripeCheckout,
-  startPayoneerCheckout,
   getStoredCurrentUser,
   setStoredCurrentUser,
 } from '@/lib/account';
@@ -1028,23 +1026,8 @@ export default function AccountPage() {
       return;
     }
 
-    if (String(method).toLowerCase() === 'payoneer') {
-      try {
-        const result = await startPayoneerCheckout({ pricing_plan_id: targetPlanId, billing_cycle: selectedBilling });
-        if (result?.url) {
-          window.location.assign(result.url);
-          return;
-        }
-        showError(result?.message || 'Impossible de démarrer le checkout Payoneer.');
-        return;
-      } catch (err) {
-        showError(err.message || 'Impossible de démarrer le checkout Payoneer.');
-        return;
-      }
-    }
-
     window.location.assign(
-      `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}&method=${encodeURIComponent(String(method))}`
+      `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}&method=${encodeURIComponent(String(method))}&billing_cycle=${encodeURIComponent(selectedBilling)}`
     );
   }
 
@@ -1080,23 +1063,8 @@ export default function AccountPage() {
 
     setOpeningCheckout(true);
     try {
-      if (String(method).toLowerCase() === 'payoneer') {
-        const result = await startPayoneerCheckout({ pricing_plan_id: targetPlanId });
-        const url = getCheckoutRedirectUrl(result);
-        if (!url) throw new Error('Impossible de demarrer le paiement Payoneer.');
-        window.location.assign(url);
-        return;
-      }
-
-      const response = await startStripeCheckout({ pricing_plan_id: targetPlanId, method: 'stripe', billing_cycle: selectedBilling });
-      const checkoutUrl = getCheckoutRedirectUrl(response);
-      if (checkoutUrl) {
-        window.location.assign(checkoutUrl);
-        return;
-      }
-
       window.location.assign(
-        `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}&billing_cycle=${encodeURIComponent(selectedBilling)}`
+        `${withLocalePath('/account/checkout')}?plan_id=${encodeURIComponent(String(targetPlanId))}&method=${encodeURIComponent(String(method))}&billing_cycle=${encodeURIComponent(selectedBilling)}`
       );
     } catch (err) {
       showError(err.message || 'Paiement indisponible.');
@@ -1167,9 +1135,6 @@ export default function AccountPage() {
             <div className="account-upgrade-banner__actions">
               <button type="button" className="btn-primary" onClick={() => handleGoToCheckout('paypal')}>
                 {t('account.checkoutPaypal')}
-              </button>
-              <button type="button" className="btn-secondary" onClick={() => handleGoToCheckout('payoneer')}>
-                Payer avec Payoneer
               </button>
               <button type="button" className="btn-secondary" onClick={() => handleGoToCheckout('bank_transfer')}>
                 {t('account.checkoutWire')}
@@ -1627,11 +1592,11 @@ export default function AccountPage() {
               {`Vous avez sélectionné ${checkoutPlan?.name || 'votre formule'} (${formatAccountPrice(getAccountPlanAmountDh(checkoutPlan, selectedBilling, dhPriceByPlanId), selectedCurrency)} HT).`}
             </p>
             <div className="account-checkout-modal-actions">
-              <button type="button" className="btn-primary" onClick={() => handleStartPlanCheckout('stripe')} disabled={openingCheckout}>
-                {openingCheckout ? 'Ouverture du paiement...' : 'Payer avec Stripe'}
+              <button type="button" className="btn-primary" onClick={() => handleStartPlanCheckout('paypal')} disabled={openingCheckout}>
+                {openingCheckout ? 'Ouverture du paiement...' : t('account.checkoutPaypal')}
               </button>
-              <button type="button" className="btn-secondary" onClick={() => handleStartPlanCheckout('payoneer')} disabled={openingCheckout}>
-                Payer avec Payoneer
+              <button type="button" className="btn-secondary" onClick={() => handleStartPlanCheckout('bank_transfer')} disabled={openingCheckout}>
+                {t('account.checkoutWire')}
               </button>
             </div>
           </div>
