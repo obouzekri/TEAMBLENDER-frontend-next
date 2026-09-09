@@ -53,7 +53,7 @@ export default function ContactPage() {
       `${isEn ? 'Message' : 'Message'}:\n${form.message}`
     );
 
-    window.location.href = `mailto:contact@teamblender.io?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:othmanebouzekri@gmail.com?subject=${subject}&body=${body}`;
   }
 
   return (
@@ -213,6 +213,28 @@ export default function ContactPage() {
 
         .contact-page .contact-hero {
           margin-bottom: 2rem;
+          padding: 2.5rem 2.5rem;
+        }
+
+        .contact-page .contact-proof-box {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 0.6rem;
+          margin-top: 0.2rem;
+        }
+
+        .contact-page .contact-proof-pill {
+          display: inline-flex;
+          align-items: center;
+          white-space: nowrap;
+          padding: 0.5rem 0.9rem;
+          border-radius: 999px;
+          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.22));
+          background: var(--surface-panel-soft, rgba(255, 255, 255, 0.06));
+          color: var(--text-muted, #cbd5e1);
+          font-size: 0.85rem;
+          line-height: 1.4;
         }
 
         .contact-page .contact-hero__grid {
@@ -462,6 +484,10 @@ export default function ContactPage() {
             padding: 0.5rem 0.75rem 2rem;
           }
 
+          .contact-page .contact-hero {
+            padding: 1.5rem 1.25rem;
+          }
+
           .contact-page .contact-info-card,
           .contact-page .contact-form-card {
             padding: 1.1rem;
@@ -471,6 +497,7 @@ export default function ContactPage() {
           .contact-page .contact-proof-pill {
             width: 100%;
             justify-content: center;
+            white-space: normal;
           }
 
           .contact-page .contact-info-item {
