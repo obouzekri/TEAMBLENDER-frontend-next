@@ -20306,3 +20306,183 @@ html[data-theme='dark'] .auth-remember-me{
   color: #082f49 !important;
 }
 
+/* Checkout responsive layout */
+.checkout-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.checkout-page .checkout-hero,
+.checkout-page .checkout-plan-selector,
+.checkout-page .checkout-plan-summary,
+.checkout-page .checkout-methods,
+.checkout-page .checkout-back-link {
+  width: min(100%, 72rem);
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.checkout-page .checkout-plan-tabs,
+.checkout-page .checkout-methods {
+  min-width: 0;
+}
+
+.checkout-page .checkout-plan-tab,
+.checkout-page .checkout-method-card,
+.checkout-page .checkout-plan-summary,
+.checkout-page .checkout-method-card__body,
+.checkout-page .checkout-method-card__header,
+.checkout-page .checkout-method-card__header > div:last-child {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 900px) {
+  .checkout-page {
+    padding-inline: 0.85rem;
+  }
+
+  .checkout-page .checkout-hero {
+    padding: 1.15rem 0.25rem 0.5rem;
+  }
+
+  .checkout-page .checkout-hero h1 {
+    font-size: clamp(1.75rem, 5vw, 2.35rem);
+    line-height: 1.12;
+  }
+
+  .checkout-page .checkout-hero > p:last-child {
+    max-width: 48rem;
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .checkout-page .checkout-plan-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .checkout-page .checkout-methods {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .checkout-page .checkout-plan-summary {
+    gap: 0.8rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .checkout-page {
+    padding-inline: 0.6rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .checkout-page .checkout-hero h1 {
+    font-size: 1.7rem;
+  }
+
+  .checkout-page .checkout-hero > p:last-child {
+    font-size: 0.88rem;
+  }
+
+  .checkout-page .checkout-plan-selector,
+  .checkout-page .checkout-plan-summary,
+  .checkout-page .checkout-method-card,
+  .checkout-page .checkout-confirmed {
+    border-radius: 16px;
+  }
+
+  .checkout-page .checkout-plan-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-page .checkout-plan-tab {
+    width: 100%;
+    min-height: 3.7rem;
+    padding: 0.75rem 0.85rem;
+    text-align: left;
+  }
+
+  .checkout-page .checkout-plan-tab__name,
+  .checkout-page .checkout-plan-tab__price {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .checkout-page .checkout-plan-summary {
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding: 1rem;
+  }
+
+  .checkout-page .checkout-plan-summary__price {
+    justify-self: start;
+    font-size: 1.45rem;
+  }
+
+  .checkout-page .checkout-method-card__header {
+    align-items: flex-start;
+    padding: 0.95rem;
+  }
+
+  .checkout-page .checkout-method-card__header strong {
+    font-size: 0.98rem;
+  }
+
+  .checkout-page .checkout-method-card__header p,
+  .checkout-page .checkout-secure-note {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .checkout-page .checkout-method-card__body {
+    padding: 0 0.95rem 0.95rem;
+  }
+
+  .checkout-page .checkout-paypal-btn,
+  .checkout-page .checkout-method-card .btn-primary,
+  .checkout-page .checkout-method-card .btn-secondary,
+  .checkout-page .checkout-confirmed .btn-primary,
+  .checkout-page .checkout-confirmed .btn-secondary,
+  .checkout-page .checkout-back-link a {
+    width: 100%;
+    min-height: 2.8rem;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .checkout-page .participant-form-actions {
+    flex-direction: column;
+  }
+
+  .checkout-page .participant-form-actions > * {
+    width: 100%;
+  }
+
+  .checkout-page .paypal-redirect-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 1.25rem 1rem;
+    box-sizing: border-box;
+  }
+
+  .checkout-page .paypal-redirect-card__title {
+    font-size: 1.25rem;
+  }
+
+  .checkout-page .paypal-redirect-card__desc,
+  .checkout-page .paypal-redirect-card__trust {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .checkout-page .paypal-redirect-card__btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
