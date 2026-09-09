@@ -390,13 +390,7 @@ export default function ManagerHome() {
     && memberFormChecks.emailOk
     && !creatingMember;
 
-  const canCreateSession = !loadingMembers && members.length > 0;
   const isParticipantModalOpen = showParticipantForm || Boolean(editingMemberId);
-  const createSessionBlockedReason = loadingMembers
-    ? (isEn ? 'Loading participants...' : 'Chargement des participants...')
-    : (isEn
-      ? 'Creation unavailable: add participants first in your manager space.'
-      : 'Création indisponible : ajoutez d\'abord des participants dans votre espace manager.');
   const asyncStatusMessage = creatingMember
     ? (editingMemberId
       ? (isEn ? 'Updating participant...' : 'Mise à jour du participant...')
@@ -412,20 +406,15 @@ export default function ManagerHome() {
             : '';
 
   function handleCreateSessionClick(event) {
-    if (canCreateSession) {
-      trackGaEvent('cta_click', {
-        cta_name: 'manager_create_session',
-        cta_label: 'Create session',
-        cta_destination: '/session-builder',
-        page_location: typeof window !== 'undefined' ? window.location.href : undefined,
-      });
-      trackProductSessionEvent('create_requested', {
-        surface: 'manager_home',
-      });
-      return;
-    }
-    event.preventDefault();
-    showErrorToast(createSessionBlockedReason);
+              trackGaEvent('cta_click', {
+                cta_name: 'manager_create_session',
+                cta_label: 'Create session',
+                cta_destination: '/session-builder',
+                page_location: typeof window !== 'undefined' ? window.location.href : undefined,
+              });
+              trackProductSessionEvent('create_requested', {
+                surface: 'manager_home',
+              });
   }
 
   function handleUnauthorizedAuth(message = isEn ? 'Session expired. Please sign in again.' : 'Session expiree. Veuillez vous reconnecter.') {
@@ -883,9 +872,6 @@ export default function ManagerHome() {
                   </Link>
                 )}
               </div>
-              {!canCreateSession ? (
-                <p className="home-prerequisite-hint" role="status">{createSessionBlockedReason}</p>
-              ) : null}
             </div>
 
             <aside className="home-hero-summary" aria-label={isEn ? 'Manager summary' : 'Resume manager'}>
@@ -942,18 +928,14 @@ export default function ManagerHome() {
               <p>{isEn ? 'Track preparing, active, and completed sessions from one panel.' : 'Suivez les sessions en préparation, actives et terminées depuis un seul panneau.'}</p>
             </div>
             <Link
-              className={`btn-primary ${canCreateSession ? '' : 'is-disabled'}`}
+              className="btn-primary"
               href={withLocalePath('/session-builder')}
               onClick={handleCreateSessionClick}
-              aria-disabled={!canCreateSession}
-              title={canCreateSession ? (isEn ? 'Create session' : 'Créer une session') : createSessionBlockedReason}
+              title={isEn ? 'Create session' : 'Créer une session'}
             >
               {isEn ? 'Create session' : 'Créer une session'}
             </Link>
           </div>
-          {!canCreateSession ? (
-            <p className="home-prerequisite-hint" role="status">{createSessionBlockedReason}</p>
-          ) : null}
 
           {loadingSessions ? (
             <div className="session-skeletons">
@@ -1106,7 +1088,7 @@ export default function ManagerHome() {
           {loadingMembers ? <p>{isEn ? 'Loading participants...' : 'Chargement des participants...'}</p> : null}
 
           {!loadingMembers && members.length === 0 ? (
-            <p className="team-empty">{isEn ? 'No participants yet. Start by creating your first profile.' : 'Aucun participant pour le moment. Commencez par créer votre premier profil.'}</p>
+            <p className="team-empty">{isEn ? 'No participants yet. You can add them here when you want to reuse them across sessions.' : 'Aucun participant pour le moment. Vous pourrez en ajouter ici pour les reutiliser dans vos sessions.'}</p>
           ) : null}
 
           {!loadingMembers && members.length > 0 ? (

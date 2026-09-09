@@ -12111,6 +12111,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
   border-radius: 12px;
   border: 1px dashed rgba(15, 118, 110, 0.28);
   background: rgba(246, 252, 249, 0.88);
+  color: var(--text-muted);
 }
 
 .team-member-item {
@@ -20234,5 +20235,12 @@ html[data-theme='dark'] .auth-remember-me{
   background: rgba(37, 99, 235, 0.24) !important;
   border-color: rgba(125, 211, 252, 0.5) !important;
   color: #ffffff !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .team-empty,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-prerequisite-hint,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .participants-panel p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-sessions-panel p {
+  color: #cbd8f2 !important;
 }
 
