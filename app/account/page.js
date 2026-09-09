@@ -195,6 +195,10 @@ function normalizeFeatureLabel(feature) {
   return `${isExcluded ? '❌' : '✓'} ${fallback}`;
 }
 
+function getAccountFeatureLabel(feature) {
+  return normalizeFeatureLabel(feature).replace(/^\s*[✓✔❌]\s*/u, '').trim();
+}
+
 function getCheckoutRedirectUrl(response) {
   const topLevelUrl = String(response?.url || '').trim();
   if (topLevelUrl) return topLevelUrl;
@@ -340,19 +344,26 @@ function normalizeDepartmentDisplay(value) {
   return text;
 }
 
-function getAccountPlanCopy(plan) {
+function getAccountPlanCopy(plan, locale = 'fr') {
+  const isEn = locale === 'en';
   const normalizedName = normalizePricingPlanName(plan);
   const planKey = normalizedName.toLowerCase();
 
   if (planKey === 'free') {
     return {
       displayName: 'Free',
-      features: [
+      features: isEn ? [
+        '1 user (admin/manager)',
+        '1 session / month - max 4 participants',
+        'Limited catalog access (4 challenges)',
+        'No export',
+        'No advanced insights',
+      ] : [
         '1 utilisateur (admin/manager)',
         '1 sessions / mois · max 4 participants',
-        'accès catalogue limité (4 challenges)',
-        'pas d’export',
-        'pas d’insights avancés',
+        'Accès catalogue limité (4 challenges)',
+        'Pas d’export',
+        'Pas d’insights avancés',
       ],
       meta: [],
     };
@@ -361,7 +372,10 @@ function getAccountPlanCopy(plan) {
   if (planKey === 'pay-per-session') {
     return {
       displayName: 'Pay-per-session',
-      features: [
+      features: isEn ? [
+        '1 user max', '20 participants max', '1 session included', 'Full catalog access',
+        'Results & scoring', 'Manager dashboard', 'Live facilitation', 'Insights',
+      ] : [
         '1 utilisateur max',
         '20 participants max',
         '1 session incluse',
@@ -378,7 +392,10 @@ function getAccountPlanCopy(plan) {
   if (planKey === 'pro') {
     return {
       displayName: getPricingPlanVariantLabel(plan),
-      features: [
+      features: isEn ? [
+        '1 user (admin/manager)', 'Up to 30 participants', '10 sessions', 'Full catalog access',
+        'Results & scoring', 'Manager dashboard', 'Live facilitation', 'Insights',
+      ] : [
         '1 utilisateur (admin/manager)',
         'Jusqu’à 30 participants',
         '10 sessions',
@@ -395,7 +412,10 @@ function getAccountPlanCopy(plan) {
   if (planKey === 'pro+') {
     return {
       displayName: 'Pro +',
-      features: [
+      features: isEn ? [
+        '5 users (admins/managers)', 'Up to 150 participants', '60 sessions',
+        'All features included in the PRO plan', 'Multi-account manager management',
+      ] : [
         '5 utilisateurs (admins/managers)',
         'Jusqu’à 150 participants',
         '60 sessions',
@@ -1471,7 +1491,7 @@ export default function AccountPage() {
             {plans.length > 0 ? (
               <div className="account-plan-cards-grid account-plan-cards-grid--aligned">
                 {plans.map((plan) => {
-                  const planCopy = getAccountPlanCopy(plan);
+                  const planCopy = getAccountPlanCopy(plan, locale);
                   const planId = String(plan.id);
                   const isCurrent = planId === String(currentPlanId || '');
                   const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
@@ -1484,7 +1504,9 @@ export default function AccountPage() {
                   const amountDh = getAccountPlanAmountDh(plan, selectedBilling, dhPriceByPlanId);
                   const priceFmt = formatAccountPrice(amountDh, selectedCurrency);
                   const priceSuffix = selectedBilling === 'annual' ? '/an' : '/mois';
-                  const actionLabel = isProPlus ? 'Démarrer l’essai gratuit' : (isUpgrade ? 'Passer à Pro' : 'Changer de formule');
+                  const actionLabel = isProPlus
+                    ? t('account.startFreeTrial')
+                    : (isUpgrade ? t('account.upgradeToPro') : t('account.changePlan'));
                   return (
                     <article
                       key={planId}
@@ -1511,7 +1533,7 @@ export default function AccountPage() {
                       {Array.isArray(planCopy.features) && planCopy.features.length > 0 ? (
                         <ul className="pricing-feature-list">
                           {planCopy.features.map((item, i) => (
-                            <li key={i}>{normalizeFeatureLabel(item)}</li>
+                            <li key={i}>{getAccountFeatureLabel(item)}</li>
                           ))}
                         </ul>
                       ) : null}
@@ -1520,13 +1542,13 @@ export default function AccountPage() {
                       </div>
                       {isCurrent ? (
                         <div className="pricing-actions account-plan-card-actions">
-                          <button type="button" className="account-plan-card-actions__current" disabled>
-                            Formule actuelle
+                          <button type="button" className="account-plan-card-actions__current pricing-cta" disabled>
+                            {t('account.currentPlanButton')}
                           </button>
                         </div>
                       ) : (
                         <div className="pricing-actions account-plan-card-actions">
-                          <button type="button" className="btn-primary account-plan-card-actions__primary" onClick={() => handleChoosePlan(plan.id)}>
+                          <button type="button" className="btn-primary pricing-cta pricing-cta--main cta-surface account-plan-card-actions__primary" onClick={() => handleChoosePlan(plan.id)}>
                             {actionLabel}
                           </button>
                         </div>
