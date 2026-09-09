@@ -923,7 +923,7 @@ export default function ManagerHome() {
         <section id="home-sessions-block" className="feature-card sessions-panel home-sessions-panel home-anchor-target">
           <div className="panel-head home-sessions-head">
             <div>
-              <h2>{isEn ? 'SESSIONS' : 'SESSIONS'}</h2>
+              <h2 className="home-section-title">{isEn ? 'Sessions' : 'Sessions'}</h2>
               <p>{isEn ? 'Track preparing, active, and completed sessions from one panel.' : 'Suivez les sessions en préparation, actives et terminées depuis un seul panneau.'}</p>
             </div>
             <Link
@@ -1062,7 +1062,7 @@ export default function ManagerHome() {
         <section id="home-participants-block" className="feature-card participants-panel home-anchor-target" aria-label={isEn ? 'Team participants' : 'Participants de l equipe'}>
           <div className="participants-panel-head">
             <div>
-              <h2>{isEn ? 'PARTICIPANTS' : 'PARTICIPANTS'}</h2>
+              <h2 className="home-section-title">{isEn ? 'Participants' : 'Participants'}</h2>
             </div>
             <div className="participants-panel-actions">
               <button
@@ -1208,18 +1208,16 @@ export default function ManagerHome() {
           ? (isEn ? 'Edit participant' : 'Modifier le participant')
           : (isEn ? 'Create participant' : 'Creer un participant')}
         titleClassName="participant-modal-title"
+        dialogClassName="participant-modal-dialog"
         onClose={closeParticipantModal}
       >
+        <p className="participant-modal-subtitle">
+          {editingMemberId
+            ? (isEn ? 'Update the selected participant information.' : 'Mettez a jour les informations du participant selectionne.')
+            : (isEn ? 'Add a participant to assign them to your sessions.' : 'Ajoutez un participant pour l assigner a vos sessions.')}
+        </p>
         <div className="participant-modal-body">
           <article className="participant-inline-form participant-inline-form--modal">
-            <div className="participant-inline-form-head">
-              <p>
-                {editingMemberId
-                  ? (isEn ? 'Update the selected participant information.' : 'Mettez a jour les informations du participant selectionne.')
-                  : (isEn ? 'Add a participant to assign them to your sessions.' : 'Ajoutez un participant pour l assigner a vos sessions.')}
-              </p>
-            </div>
-
             <form
               className="participant-form participant-form--embedded"
               onSubmit={handleSubmitMember}

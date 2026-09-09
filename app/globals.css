@@ -11865,6 +11865,15 @@ html[data-theme='light'] .site-footer .footer-social__link {
   max-width: 68ch;
 }
 
+.manager-home .home-section-title {
+  margin: 0.2rem 0 0;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  line-height: 1.2;
+  letter-spacing: 0;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
 .home-prerequisite-hint {
   margin: -0.2rem 0 0;
   padding: 0.55rem 0.8rem;
@@ -17354,6 +17363,19 @@ html[data-theme='dark'] .admin-console-layout .list-count{
   scrollbar-color: rgba(120, 138, 168, 0.34) transparent;
 }
 
+.participant-modal-dialog {
+  width: min(880px, calc(100vw - 2rem));
+}
+
+.participant-modal-subtitle {
+  margin: 0.2rem 0 0;
+  padding: 0 1.35rem 1rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: nowrap;
+}
+
 .participant-modal-body::-webkit-scrollbar {
   width: 7px;
 }
@@ -17556,6 +17578,15 @@ html[data-theme='dark'] .admin-console-layout .list-count{
   }
 
   @media (max-width: 640px) {
+    .participant-modal-dialog {
+      width: calc(100vw - 1rem);
+    }
+
+    .participant-modal-subtitle {
+      padding-inline: 1rem;
+      white-space: normal;
+    }
+
     .participant-inline-form--modal .participant-inline-form-head p {
       white-space: normal;
     }
