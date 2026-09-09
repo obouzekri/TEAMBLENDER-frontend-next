@@ -6,9 +6,12 @@ import AuthCard from '@/components/AuthCard';
 import { resetPassword } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
-export default function ResetPasswordForm({ token }) {
+export default function ResetPasswordForm({ token, userType = 'user' }) {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
+  const accountLabel = userType === 'participant'
+    ? (isEn ? 'participant' : 'participant')
+    : (isEn ? 'manager' : 'manager');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,7 +25,7 @@ export default function ResetPasswordForm({ token }) {
           title={isEn ? 'Reset password' : 'Réinitialiser le mot de passe'}
           footer={<span><Link href={withLocalePath('/login')}>{isEn ? 'Back to login' : 'Retour à la connexion'}</Link></span>}
         >
-          <p className="form-error">{isEn ? 'Invalid link. Please request a new reset link.' : 'Lien invalide. Veuillez refaire une demande de réinitialisation.'}</p>
+          <p className="form-error">{isEn ? `Invalid ${accountLabel} link. Please request a new reset link.` : `Lien ${accountLabel} invalide. Veuillez refaire une demande de réinitialisation.`}</p>
           <Link href={withLocalePath('/forgot-password')} className="btn-secondary wide" style={{ marginTop: '1rem', display: 'block', textAlign: 'center' }}>{isEn ? 'Forgot password' : 'Mot de passe oublié'}</Link>
         </AuthCard>
       </main>
@@ -45,7 +48,7 @@ export default function ResetPasswordForm({ token }) {
 
     setLoading(true);
     try {
-      const { res, data } = await resetPassword({ token, newPassword });
+      const { res, data } = await resetPassword({ token, newPassword, userType });
       if (res.ok && data?.success) {
         setDone(true);
       } else if (data?.code === 'RESET_TOKEN_EXPIRED') {
@@ -66,11 +69,11 @@ export default function ResetPasswordForm({ token }) {
     return (
       <main className="shell auth-page">
         <AuthCard
-          title={isEn ? 'Reset password' : 'Réinitialiser le mot de passe'}
+          title={isEn ? `Set ${accountLabel} password` : `Définir le mot de passe ${accountLabel}`}
           footer={<span><Link href={withLocalePath('/login')}>{isEn ? 'Back to login' : 'Retour à la connexion'}</Link></span>}
         >
           <div className="success-box">
-            <p>{isEn ? 'Your password has been reset successfully.' : 'Votre mot de passe a bien été réinitialisé.'}</p>
+            <p>{isEn ? 'Your password has been saved successfully.' : 'Votre mot de passe a bien été enregistré.'}</p>
             <Link href={withLocalePath('/login')} className="btn-primary wide">{isEn ? 'Log in' : 'Se connecter'}</Link>
           </div>
         </AuthCard>
@@ -81,7 +84,7 @@ export default function ResetPasswordForm({ token }) {
   return (
     <main className="shell auth-page">
       <AuthCard
-        title={isEn ? 'Reset password' : 'Réinitialiser le mot de passe'}
+        title={isEn ? `Set ${accountLabel} password` : `Définir le mot de passe ${accountLabel}`}
         footer={<span><Link href={withLocalePath('/login')}>{isEn ? 'Back to login' : 'Retour à la connexion'}</Link></span>}
       >
         <form onSubmit={onSubmit} className="auth-form" autoComplete="off">

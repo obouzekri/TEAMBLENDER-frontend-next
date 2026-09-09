@@ -16558,6 +16558,7 @@ html[data-theme='dark'] .manager-home .session-card{
 .manager-onboarding-step h3 {
   margin: 0;
   color: var(--ink);
+  font-weight: 800;
 }
 
 .manager-onboarding-step__head {
@@ -16585,27 +16586,6 @@ html[data-theme='dark'] .manager-home .session-card{
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.03em;
-}
-
-.manager-onboarding-step__index {
-  font-size: 1.35rem;
-  line-height: 1;
-  font-weight: 800;
-  color: color-mix(in srgb, var(--accent) 22%, transparent);
-}
-
-.manager-onboarding-step__icon {
-  width: 2.3rem;
-  height: 2.3rem;
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 52%, transparent) 0%, color-mix(in srgb, var(--accent) 12%, transparent) 100%);
-  border: 1px solid var(--surface-border-strong);
-  color: var(--accent-strong);
-  font-weight: 800;
-  letter-spacing: 0.06em;
 }
 
 .manager-onboarding-step__cta {
@@ -17383,17 +17363,19 @@ html[data-theme='dark'] .admin-console-layout .list-count{
 }
 
 .participant-inline-form--modal {
+  width: 100%;
+  box-sizing: border-box;
   margin: 0;
   border: 0;
   box-shadow: none;
   border-radius: 0;
-  padding: 0.65rem 0.75rem 0.45rem;
+  padding: 0.8rem 1rem 0.65rem;
   background: transparent;
   gap: 1.28rem;
 }
 
 .participant-inline-form--modal .participant-inline-form-head {
-  padding: 0.2rem 0.2rem 1rem;
+  padding: 0.2rem 0.15rem 1.05rem;
   border-bottom: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
 }
 
@@ -17413,7 +17395,9 @@ html[data-theme='dark'] .admin-console-layout .list-count{
 }
 
 .participant-inline-form--modal .participant-form {
-  padding: 0 0.2rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.15rem 0.15rem 0.2rem;
   gap: 1.08rem;
 }
 

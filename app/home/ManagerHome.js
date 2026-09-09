@@ -66,16 +66,6 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 }
 
-function isStrongPassword(value) {
-  const raw = String(value || '');
-  if (raw.length < 8 || raw.length > 128) return false;
-  const hasLower = /[a-z]/.test(raw);
-  const hasUpper = /[A-Z]/.test(raw);
-  const hasDigit = /\d/.test(raw);
-  const hasSpecial = /[^A-Za-z0-9]/.test(raw);
-  return hasLower && hasUpper && hasDigit && hasSpecial;
-}
-
 function formatPaywallMessage(payload, fallbackMessage) {
   const baseMessage = String(payload?.error || fallbackMessage || '').trim();
   if (payload?.code !== 'PLAN_LIMIT_REACHED') {
@@ -197,7 +187,6 @@ function getStartupGuideSteps(isEn) {
   return Object.freeze([
     {
       step: '1',
-      icon: 'P',
       title: isEn ? 'Add participants' : 'Ajouter des participants',
       text: isEn
         ? 'Create your participant base to organize workshops faster and more cleanly.'
@@ -207,7 +196,6 @@ function getStartupGuideSteps(isEn) {
     },
     {
       step: '2',
-      icon: 'S',
       title: isEn ? 'Configure the session' : 'Configurer la session',
       text: isEn
         ? 'Choose the challenge, format, and key settings before launch.'
@@ -215,7 +203,6 @@ function getStartupGuideSteps(isEn) {
     },
     {
       step: '3',
-      icon: 'L',
       title: isEn ? 'Launch the challenge' : 'Lancer le challenge',
       text: isEn
         ? 'Start the session, keep the pace, and finish with an actionable debrief.'
@@ -370,7 +357,6 @@ export default function ManagerHome() {
     first_name: '',
     last_name: '',
     email: '',
-    password: '',
     job_title: '',
     department: '',
   });
@@ -394,19 +380,14 @@ export default function ManagerHome() {
   const memberFormChecks = useMemo(() => {
     const firstName = String(memberForm.first_name || '').trim();
     const email = String(memberForm.email || '').trim();
-    const password = String(memberForm.password || '').trim();
-    const needsPassword = !editingMemberId;
     return {
       firstNameOk: firstName.length > 0,
-      emailOk: email.length === 0 || isValidEmail(email),
-      passwordOk: !needsPassword || password.length >= 8,
-      passwordLength: password.length,
+      emailOk: isValidEmail(email),
     };
   }, [memberForm, editingMemberId]);
 
   const canSubmitMember = memberFormChecks.firstNameOk
     && memberFormChecks.emailOk
-    && memberFormChecks.passwordOk
     && !creatingMember;
 
   const canCreateSession = !loadingMembers && members.length > 0;
@@ -658,7 +639,6 @@ export default function ManagerHome() {
       first_name: '',
       last_name: '',
       email: '',
-      password: '',
       job_title: '',
       department: '',
     });
@@ -670,7 +650,7 @@ export default function ManagerHome() {
     setShowParticipantForm(false);
     setEditingMemberId(null);
     setLastCreatedCredentials(null);
-    setMemberForm({ first_name: '', last_name: '', email: '', password: '', job_title: '', department: '' });
+    setMemberForm({ first_name: '', last_name: '', email: '', job_title: '', department: '' });
   }
 
   function closeParticipantModal() {
@@ -687,14 +667,13 @@ export default function ManagerHome() {
     const firstName = String(memberForm.first_name || '').trim();
     const lastName = String(memberForm.last_name || '').trim();
     const email = String(memberForm.email || '').trim().toLowerCase();
-    const password = String(memberForm.password || '').trim();
     const jobTitle = String(memberForm.job_title || '').trim();
     const department = String(memberForm.department || '').trim();
 
-    if (!firstName || (!editingMemberId && !password)) {
+    if (!firstName || !email) {
       const message = editingMemberId
-        ? (isEn ? 'First name is required.' : 'Le prenom est requis.')
-        : (isEn ? 'First name and password are required.' : 'Le prenom et le mot de passe sont requis.');
+        ? (isEn ? 'First name and email are required.' : 'Le prenom et l email sont requis.')
+        : (isEn ? 'First name and email are required.' : 'Le prenom et l email sont requis.');
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
@@ -702,15 +681,6 @@ export default function ManagerHome() {
 
     if (email && !isValidEmail(email)) {
       const message = isEn ? 'A valid email address is required.' : 'Une adresse email valide est requise.';
-      setMemberFormStatus(message);
-      showErrorToast(message);
-      return;
-    }
-
-    if (password && !isStrongPassword(password)) {
-      const message = isEn
-        ? 'Password must contain upper/lower case letters, a number, and a symbol (8+ characters).'
-        : 'Le mot de passe doit contenir majuscule, minuscule, chiffre et symbole (8+ caracteres).';
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
@@ -744,10 +714,6 @@ export default function ManagerHome() {
         job_title: jobTitle || null,
         department: department || null,
       };
-
-      if (!editingMemberId || password) {
-        body.password = password;
-      }
 
       const response = await fetch(targetUrl, {
         method,
@@ -797,7 +763,6 @@ export default function ManagerHome() {
       if (!editingMemberId) {
         setLastCreatedCredentials({
           loginIdentifier: String(payload?.login_identifier || '').trim(),
-          tempPassword: String(payload?.tempPassword || '').trim(),
           deliveredEmail: String(payload?.email || '').trim(),
         });
       }
@@ -811,7 +776,6 @@ export default function ManagerHome() {
         resetMemberForm();
       } else {
         setEditingMemberId(null);
-        setMemberForm((prev) => ({ ...prev, password: '' }));
         setFormAttempted(false);
         setMemberFormStatus('');
       }
@@ -1242,10 +1206,8 @@ export default function ManagerHome() {
                   style={{ '--onboarding-delay': `${index * 90}ms` }}
                 >
                   <div className="manager-onboarding-step__head">
-                    <span className="manager-onboarding-step__badge">{isEn ? `Step ${item.step}` : `Etape ${item.step}`}</span>
-                    <span className="manager-onboarding-step__index">0{item.step}</span>
+                    <span className="manager-onboarding-step__badge">{isEn ? `Step ${item.step}` : `Étape ${item.step}`}</span>
                   </div>
-                  <span className="manager-onboarding-step__icon" aria-hidden="true">{item.icon}</span>
                   <h3>{item.title}</h3>
                   <p>{item.text}</p>
                   {item.href ? (
@@ -1331,7 +1293,7 @@ export default function ManagerHome() {
                   />
                 </label>
                 <label className="participant-field-full">
-                  Email (optional)
+                  {isEn ? 'Email *' : 'Email *'}
                   <input
                     type="email"
                     name="participant_contact_email"
@@ -1342,33 +1304,10 @@ export default function ManagerHome() {
                     autoComplete="off"
                     autoCapitalize="none"
                     spellCheck={false}
+                    required
                   />
                   {formAttempted && !memberFormChecks.emailOk ? (
                     <span className="field-error">{isEn ? 'Email format is invalid.' : 'Le format de l email est invalide.'}</span>
-                  ) : null}
-                </label>
-                <label className="participant-field-full">
-                  {isEn ? 'Password' : 'Mot de passe'} {editingMemberId ? (isEn ? '(optional)' : '(optionnel)') : '*'}
-                  <input
-                    type="password"
-                    name="participant_access_password"
-                    value={memberForm.password}
-                    onChange={(e) => setMemberForm((prev) => ({ ...prev, password: e.target.value }))}
-                    placeholder={editingMemberId
-                      ? (isEn ? 'Leave blank to keep current password' : 'Laissez vide pour conserver le mot de passe actuel')
-                      : (isEn ? 'Minimum 8 characters' : 'Minimum 8 caracteres')}
-                    minLength={8}
-                    className={formAttempted && !memberFormChecks.passwordOk ? 'input-invalid' : ''}
-                    autoComplete="new-password"
-                    required={!editingMemberId}
-                  />
-                  {!editingMemberId ? (
-                    <span className="field-help">{memberFormChecks.passwordLength}/8 {isEn ? 'minimum characters' : 'caracteres minimum'}</span>
-                  ) : (
-                    <span className="field-help">{isEn ? 'Fill this field only to replace the current password.' : 'Renseignez ce champ seulement pour remplacer le mot de passe actuel.'}</span>
-                  )}
-                  {formAttempted && !memberFormChecks.passwordOk ? (
-                    <span className="field-error">{isEn ? 'Password must be at least 8 characters long.' : 'Le mot de passe doit contenir au moins 8 caracteres.'}</span>
                   ) : null}
                 </label>
                 <label>
@@ -1407,8 +1346,8 @@ export default function ManagerHome() {
               {lastCreatedCredentials && !editingMemberId ? (
                 <p className="participant-form-status" role="status" aria-live="polite">
                   {isEn
-                    ? `Participant created. Login: ${lastCreatedCredentials.loginIdentifier || 'n/a'} · Temporary PIN: ${lastCreatedCredentials.tempPassword || 'n/a'}${lastCreatedCredentials.deliveredEmail ? ` · Invitation sent to ${lastCreatedCredentials.deliveredEmail}` : ' · No email invitation sent.'}`
-                    : `Participant cree. Identifiant: ${lastCreatedCredentials.loginIdentifier || 'n/a'} · PIN temporaire: ${lastCreatedCredentials.tempPassword || 'n/a'}${lastCreatedCredentials.deliveredEmail ? ` · Invitation envoyee a ${lastCreatedCredentials.deliveredEmail}` : ' · Aucune invitation email envoyee.'}`}
+                    ? `Participant created. Login: ${lastCreatedCredentials.loginIdentifier || 'n/a'} · Set-up link sent to ${lastCreatedCredentials.deliveredEmail || 'the participant email'}.`
+                    : `Participant cree. Identifiant: ${lastCreatedCredentials.loginIdentifier || 'n/a'} · Lien de creation du mot de passe envoye a ${lastCreatedCredentials.deliveredEmail || 'l email du participant'}.`}
                 </p>
               ) : null}
               <div className="participant-form-actions">

@@ -13,6 +13,7 @@ export default function ForgotPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [message, setMessage] = useState('');
+  const [userType, setUserType] = useState('user');
 
   async function onSubmit(event) {
     event.preventDefault();
@@ -26,7 +27,7 @@ export default function ForgotPasswordForm() {
 
     setLoading(true);
     try {
-      const { res, data } = await forgotPassword({ email: normalizedEmail });
+      const { res, data } = await forgotPassword({ email: normalizedEmail, userType });
       if (res.ok) {
         setDone(true);
       } else {
@@ -53,7 +54,14 @@ export default function ForgotPasswordForm() {
           </div>
         ) : (
           <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
-            <p className="form-help">{isEn ? 'Enter your email to receive a password reset link.' : 'Saisissez votre adresse email pour recevoir un lien de réinitialisation.'}</p>
+            <p className="form-help">{isEn ? 'Choose your account type and enter your email to receive a password reset link.' : 'Choisissez votre type de compte et saisissez votre email pour recevoir un lien de réinitialisation.'}</p>
+            <label>
+              {isEn ? 'Account type' : 'Type de compte'}
+              <select value={userType} onChange={(e) => setUserType(e.target.value)}>
+                <option value="user">{isEn ? 'Manager' : 'Manager'}</option>
+                <option value="participant">{isEn ? 'Participant' : 'Participant'}</option>
+              </select>
+            </label>
             <label>
               {isEn ? 'Email' : 'Email'}
               <input

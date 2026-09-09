@@ -13,11 +13,13 @@ export async function generateMetadata() {
 export default async function ResetPasswordPage({ searchParams }) {
   const resolvedSearchParams = await searchParams;
   const token = String(resolvedSearchParams?.token || '').trim();
+  const rawUserType = String(resolvedSearchParams?.userType || '').trim().toLowerCase();
+  const userType = rawUserType === 'participant' ? 'participant' : 'user';
 
   return (
     <>
       <TopNav />
-      <ResetPasswordForm token={token} />
+      <ResetPasswordForm token={token} userType={userType} />
     </>
   );
 }
