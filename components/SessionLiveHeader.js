@@ -179,7 +179,6 @@ export default function SessionLiveHeader({
         <div className={styles.details}>
           <div className={styles.titleRow}>
             <strong className={styles.sessionName} title={resolvedSessionName}>{resolvedSessionName}</strong>
-            <span className={styles.headerChallengeName} title={resolvedActiveChallengeName}>{resolvedActiveChallengeName}</span>
             <span className={styles.participantBadge}>
               <Users aria-hidden="true" size={14} strokeWidth={2} />
               {resolvedParticipantCount}
