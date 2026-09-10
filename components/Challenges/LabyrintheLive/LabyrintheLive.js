@@ -293,7 +293,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const playerPosKey = hasSelectedStart ? posKey(myParticipantState?.solo?.pos) : '';
   const mySpawnKey = hasSelectedStart ? posKey(myParticipantState?.solo?.path?.[0]) : '';
   const mazeTrapKeys = useMemo(() => normalizeTrapKeys(maze?.traps), [maze?.traps]);
-  const revealMazeTraps = isFacilitator || labyPhase === 'done';
+  const revealMazeTraps = Boolean(maze);
   const allStartKeys = useMemo(() => {
     const starts = Array.isArray(maze?.start_points) && maze.start_points.length > 0
       ? maze.start_points
