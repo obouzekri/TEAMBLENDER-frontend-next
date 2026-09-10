@@ -287,14 +287,29 @@
 
 .sectionHead {
   display: grid;
-  gap: 4px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .sectionHead p {
   margin: 0;
-  color: #9cb2c7;
-  font-size: 0.86rem;
+  color: var(--text-main);
+  font-size: 0.94rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.sectionTitleGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sectionTitleIcon {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--accent);
 }
 
 .progressCard {
@@ -833,7 +848,16 @@
   .phaseLineHeader h3,
   .sectionHead h2,
   .timelineHead h2 {
-    font-size: 0.95rem;
+    font-size: 1.1rem;
+  }
+
+  .stepperHead h2 {
+    font-size: 1.16rem;
+  }
+
+  .stepperHead p,
+  .sectionHead p {
+    font-size: 0.9rem;
   }
 
   .phaseTimeline {
@@ -979,13 +1003,18 @@
 
 .stepperHead h2 {
   margin: 0;
-  font-size: 1rem;
+  color: var(--text-main);
+  font-size: 1.28rem;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .stepperHead p {
-  margin: 5px 0 0;
-  color: var(--text-soft);
-  font-size: 0.84rem;
+  margin: 6px 0 0;
+  color: var(--text-main);
+  font-size: 0.94rem;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .stepper {
@@ -1074,30 +1103,10 @@
   display: grid;
   gap: 6px;
   margin-top: 10px;
-}
-
-.backlogSelect {
-  width: 100%;
-  min-height: 44px;
-  margin-top: 10px;
-  padding: 10px 12px;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-item);
-  background: var(--surface-1);
-  color: var(--text-main);
-  font: inherit;
-  cursor: pointer;
-}
-
-.backlogSelect:hover:not(:disabled),
-.backlogSelect:focus-visible {
-  border-color: var(--line-strong);
-  outline: none;
-}
-
-.backlogSelect:disabled {
-  cursor: not-allowed;
-  opacity: 0.72;
+  max-height: 344px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
 }
 
 .taskRow {
@@ -1238,7 +1247,6 @@
 
 :global(html[data-theme='light']) .stepperStep,
 :global(html[data-theme='light']) .taskRow,
-:global(html[data-theme='light']) .backlogSelect,
 :global(html[data-theme='light']) .modalCard {
   background: var(--surface-1);
   border-color: var(--line-soft);

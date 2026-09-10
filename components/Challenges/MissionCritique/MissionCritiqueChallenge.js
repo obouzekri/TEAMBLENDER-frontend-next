@@ -11,6 +11,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import useI18n from '@/lib/i18n/useI18n';
+import { ClipboardList, ListTodo } from 'lucide-react';
 import styles from './MissionCritique.module.css';
 
 const PHASES = Object.freeze([
@@ -19,6 +20,7 @@ const PHASES = Object.freeze([
   { key: 'execution', label: 'Exécution', className: 'phaseExecution' },
   { key: 'cloture', label: 'Clôture', className: 'phaseCloture' },
 ]);
+const ROMAN_PHASE_NUMERALS = Object.freeze(['I', 'II', 'III', 'IV']);
 
 function inferPhaseKey(index, total) {
   const safeTotal = Math.max(1, Number(total || 1));
@@ -45,33 +47,55 @@ function isEmailLike(value) {
   return normalizeName(value).includes('@');
 }
 
-export default function MissionCritiqueChallenge({ engineKey, runtimePayload, socket, context, onChallengeCompleted }) {
+export default function MissionCritiqueChallenge({
+  engineKey,
+  runtimePayload,
+  socket,
+  context,
+  onChallengeCompleted,
+}) {
   const { locale } = useI18n();
   const isEn = locale === 'en';
   const [activePhase, setActivePhase] = useState('cadrage');
   const [modalTaskId, setModalTaskId] = useState('');
   const [submitResult, setSubmitResult] = useState(null);
 
-  const {
-    state,
-    error,
-    isFacilitator,
-    emitEvent,
-  } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
+  const { state, error, isFacilitator, emitEvent } = useRealtimeChallenge({
+    runtimePayload,
+    socket,
+    context,
+    onChallengeCompleted,
+  });
 
   const mission = state?.mission || {};
   const tasks = Array.isArray(mission.tasks) ? mission.tasks : [];
   const timeline = Array.isArray(mission.timeline) ? mission.timeline : [];
-  const facilitatorBoard = Array.isArray(mission.facilitator_board) ? mission.facilitator_board : [];
+  const facilitatorBoard = Array.isArray(mission.facilitator_board)
+    ? mission.facilitator_board
+    : [];
   const collectiveResult = mission.collective_result || null;
 
   const displayName = useMemo(() => {
-    const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
-    const lastName = String(runtimePayload?.context?.lastName || runtimePayload?.context?.last_name || context?.lastName || context?.last_name || '').trim();
+    const firstName = String(
+      runtimePayload?.context?.firstName ||
+        runtimePayload?.context?.first_name ||
+        context?.firstName ||
+        context?.first_name ||
+        ''
+    ).trim();
+    const lastName = String(
+      runtimePayload?.context?.lastName ||
+        runtimePayload?.context?.last_name ||
+        context?.lastName ||
+        context?.last_name ||
+        ''
+    ).trim();
     const fullName = `${firstName} ${lastName}`.trim();
     if (fullName) return fullName;
 
-    const fromPayload = String(runtimePayload?.context?.displayName || runtimePayload?.context?.name || '').trim();
+    const fromPayload = String(
+      runtimePayload?.context?.displayName || runtimePayload?.context?.name || ''
+    ).trim();
     if (fromPayload && !isEmailLike(fromPayload)) return fromPayload;
 
     const fallbackName = String(context?.displayName || context?.name || '').trim();
@@ -86,19 +110,15 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     const fullName = `${firstName} ${lastName}`.trim();
     if (fullName) return fullName;
 
-    const fromPayload = String(item?.display_name || item?.participant_name || item?.name || '').trim();
+    const fromPayload = String(
+      item?.display_name || item?.participant_name || item?.name || ''
+    ).trim();
     if (fromPayload && !isEmailLike(fromPayload)) return fromPayload;
     if (Number.isFinite(Number(item?.slot))) return `Participant ${item.slot}`;
     return 'Participant';
   }
 
-  const {
-    chatInput,
-    setChatInput,
-    chatMessages,
-    submitChat,
-    sendQuickChat,
-  } = useChallengeChat({
+  const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat } = useChallengeChat({
     socket,
     emitEvent,
     author: displayName,
@@ -116,34 +136,42 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const timelineSet = useMemo(() => new Set(timeline.map((taskId) => String(taskId))), [timeline]);
 
   // Keep the exact server order in backlog. No client-side sort.
-  const backlogTasks = useMemo(() => tasks.slice(0, 7), [tasks]);
+  const backlogTasks = useMemo(() => tasks, [tasks]);
 
   const timerState = String(state?.timer?.status || 'idle').trim();
   const normalizedTimerState = timerState.toLowerCase();
-  const hasChallengeStarted = state?.timer?.enabled === false
-    || normalizedTimerState === 'running'
-    || normalizedTimerState === 'paused'
-    || normalizedTimerState === 'completed'
-    || normalizedTimerState === 'stopped'
-    || normalizedTimerState === 'timeout';
-  const canEditTimeline = !isFacilitator && (state?.timer?.enabled === false || timerState === 'running');
+  const hasChallengeStarted =
+    state?.timer?.enabled === false ||
+    normalizedTimerState === 'running' ||
+    normalizedTimerState === 'paused' ||
+    normalizedTimerState === 'completed' ||
+    normalizedTimerState === 'stopped' ||
+    normalizedTimerState === 'timeout';
+  const canEditTimeline =
+    !isFacilitator && (state?.timer?.enabled === false || timerState === 'running');
 
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
   const timerDurationSeconds = Math.max(1, Number(state?.timer?.duration_seconds || 1));
   const rulesPreset = useMemo(() => getMissionCritiqueRulesPreset(locale), [locale]);
-  const rulesContent = useMemo(() => ({
-    objective: rulesPreset.objective,
-    facilitator: [...rulesPreset.facilitator],
-    participant: [...rulesPreset.participant, ...rulesPreset.scoring],
-    footnote: rulesPreset.footnote,
-  }), [rulesPreset]);
+  const rulesContent = useMemo(
+    () => ({
+      objective: rulesPreset.objective,
+      facilitator: [...rulesPreset.facilitator],
+      participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+      footnote: rulesPreset.footnote,
+    }),
+    [rulesPreset]
+  );
   const challengeName = String(rulesPreset?.challengeName || 'Mission Critique').trim();
   const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
-  const rulesParticipantsMeta = useMemo(() => ({
-    min: rulesPreset.participants.min,
-    recommended: rulesPreset.participants.recommended,
-    max: rulesPreset.participants.max,
-  }), [rulesPreset]);
+  const rulesParticipantsMeta = useMemo(
+    () => ({
+      min: rulesPreset.participants.min,
+      recommended: rulesPreset.participants.recommended,
+      max: rulesPreset.participants.max,
+    }),
+    [rulesPreset]
+  );
 
   const facilitatorRules = useMemo(() => {
     const baseRules = Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : [];
@@ -166,7 +194,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
         : 'Répartissez les tâches par phase (cadrage, préparation, exécution, clôture) pour équilibrer la charge.',
       isEn
         ? 'Assign a dependency owner to validate prerequisites before each major move.'
-        : 'Affectez un responsable dépendances pour valider les prérequis avant chaque déplacement majeur.'
+        : 'Affectez un responsable dépendances pour valider les prérequis avant chaque déplacement majeur.',
     ];
   }, [rulesContent?.facilitator, isEn]);
 
@@ -185,7 +213,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
         : 'Synchronisez-vous pour soumettre une timeline unique et cohérente pour toute l’équipe.',
       isEn
         ? 'Prioritize dependencies and critical tasks first, then complete the remaining backlog.'
-        : 'Priorisez d’abord les dépendances et les tâches critiques, puis complétez le reste du backlog.'
+        : 'Priorisez d’abord les dépendances et les tâches critiques, puis complétez le reste du backlog.',
     ];
   }, [rulesContent?.participant, isEn]);
 
@@ -196,11 +224,15 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     [mission.phases]
   );
 
-  const phaseOfTask = useMemo(() => (taskId, timelineIndex = 0) => {
-    const raw = String(serverPhases[String(taskId)] || '').trim();
-    if (PHASES.some((phase) => phase.key === raw)) return raw;
-    return inferPhaseKey(timelineIndex, timeline.length);
-  }, [serverPhases, timeline.length]);
+  const phaseOfTask = useMemo(
+    () =>
+      (taskId, timelineIndex = 0) => {
+        const raw = String(serverPhases[String(taskId)] || '').trim();
+        if (PHASES.some((phase) => phase.key === raw)) return raw;
+        return inferPhaseKey(timelineIndex, timeline.length);
+      },
+    [serverPhases, timeline.length]
+  );
 
   const phaseItems = useMemo(() => {
     const buckets = PHASES.reduce((acc, phase) => {
@@ -224,9 +256,10 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const activePhaseItems = phaseItems[activePhase] || [];
 
   const modalTask = modalTaskId ? taskMap.get(String(modalTaskId)) : null;
-  const modalAssignedPhase = modalTask && timelineSet.has(String(modalTask.id))
-    ? phaseOfTask(modalTask.id, timeline.indexOf(modalTask.id))
-    : '';
+  const modalAssignedPhase =
+    modalTask && timelineSet.has(String(modalTask.id))
+      ? phaseOfTask(modalTask.id, timeline.indexOf(modalTask.id))
+      : '';
 
   useEffect(() => {
     if (!modalTaskId) return () => {};
@@ -311,21 +344,30 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
     <div className={`${styles.container} ${roleViewClass}`}>
       <ChallengeHeader
         title={challengeName}
-        subtitle={challengeSubtitle || String(state?.config?.scenario || runtimePayload?.config?.scenario || 'Organiser un séminaire d’entreprise pour 80 personnes.')}
-        headerAction={hasChallengeStarted ? (
-          <ChallengeRulesPanel
-            inHeader
-            isStarted={hasChallengeStarted}
-            isFacilitator={isFacilitator}
-            showPrestartCard={false}
-            challengeName={challengeName}
-            objective={rulesContent.objective}
-            participantsMeta={rulesParticipantsMeta}
-            facilitatorRules={facilitatorRules}
-            participantRules={participantRules}
-            footnote={rulesContent.footnote}
-          />
-        ) : null}
+        subtitle={
+          challengeSubtitle ||
+          String(
+            state?.config?.scenario ||
+              runtimePayload?.config?.scenario ||
+              'Organiser un séminaire d’entreprise pour 80 personnes.'
+          )
+        }
+        headerAction={
+          hasChallengeStarted ? (
+            <ChallengeRulesPanel
+              inHeader
+              isStarted={hasChallengeStarted}
+              isFacilitator={isFacilitator}
+              showPrestartCard={false}
+              challengeName={challengeName}
+              objective={rulesContent.objective}
+              participantsMeta={rulesParticipantsMeta}
+              facilitatorRules={facilitatorRules}
+              participantRules={participantRules}
+              footnote={rulesContent.footnote}
+            />
+          ) : null
+        }
       />
 
       <div className="challenge-mobile-timer">
@@ -358,9 +400,21 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             <>
               <section className={styles.card}>
                 <div className={styles.stepperHead}>
-                  <div>
-                    <h2>{isEn ? 'My timeline' : 'Ma timeline'}</h2>
-                    <p>{isEn ? 'Assign tasks from the backlog, then order them inside each phase.' : 'Affectez les tâches depuis le backlog, puis ordonnez-les dans chaque phase.'}</p>
+                  <div className={styles.sectionTitleGroup}>
+                    <ClipboardList
+                      className={styles.sectionTitleIcon}
+                      size={22}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <h2>{isEn ? 'Timeline' : 'Timeline'}</h2>
+                      <p>
+                        {isEn
+                          ? 'Assign tasks from the backlog, then order them inside each phase.'
+                          : 'Affectez les tâches depuis le backlog, puis ordonnez-les dans chaque phase.'}
+                      </p>
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -372,7 +426,11 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                   </button>
                 </div>
 
-                <div className={styles.stepper} role="tablist" aria-label={isEn ? 'Timeline phases' : 'Phases de la timeline'}>
+                <div
+                  className={styles.stepper}
+                  role="tablist"
+                  aria-label={isEn ? 'Timeline phases' : 'Phases de la timeline'}
+                >
                   {PHASES.map((phase, phaseIdx) => {
                     const count = (phaseItems[phase.key] || []).length;
                     const isActive = activePhase === phase.key;
@@ -385,7 +443,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                         className={`${styles.stepperStep} ${styles[phase.className]}${isActive ? ` ${styles.stepperStepActive}` : ''}`}
                         onClick={() => setActivePhase(phase.key)}
                       >
-                        <span className={styles.stepDot}>{phaseIdx + 1}</span>
+                        <span className={styles.stepDot}>{ROMAN_PHASE_NUMERALS[phaseIdx]}</span>
                         <span className={styles.stepLabel}>{phaseLabel(phase, isEn)}</span>
                         <span className={styles.stepCount}>{count}</span>
                       </button>
@@ -395,14 +453,22 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
                 <div className={styles.phasePanel}>
                   {activePhaseItems.length === 0 ? (
-                    <p className={styles.empty}>{isEn ? 'No task in this phase yet. Assign one from the backlog below.' : 'Aucune tâche dans cette phase. Affectez-en une depuis le backlog ci-dessous.'}</p>
+                    <p className={styles.empty}>
+                      {isEn
+                        ? 'No task in this phase yet. Assign one from the backlog below.'
+                        : 'Aucune tâche dans cette phase. Affectez-en une depuis le backlog ci-dessous.'}
+                    </p>
                   ) : (
                     activePhaseItems.map((item, indexInPhase) => {
                       const task = taskMap.get(String(item.taskId));
                       const canMoveUp = indexInPhase > 0;
                       const canMoveDown = indexInPhase < activePhaseItems.length - 1;
-                      const upTarget = canMoveUp ? activePhaseItems[indexInPhase - 1].timelineIndex : item.timelineIndex;
-                      const downTarget = canMoveDown ? activePhaseItems[indexInPhase + 1].timelineIndex : item.timelineIndex;
+                      const upTarget = canMoveUp
+                        ? activePhaseItems[indexInPhase - 1].timelineIndex
+                        : item.timelineIndex;
+                      const downTarget = canMoveDown
+                        ? activePhaseItems[indexInPhase + 1].timelineIndex
+                        : item.timelineIndex;
                       return (
                         <article
                           key={`${item.taskId}-${item.timelineIndex}`}
@@ -435,7 +501,9 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                             <button
                               type="button"
                               className={styles.ghostBtn}
-                              onClick={() => emitEvent('mission.task.remove', { index: item.timelineIndex })}
+                              onClick={() =>
+                                emitEvent('mission.task.remove', { index: item.timelineIndex })
+                              }
                               disabled={!canEditTimeline}
                             >
                               {isEn ? 'Remove' : 'Retirer'}
@@ -450,32 +518,56 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
               <section className={styles.card}>
                 <div className={styles.sectionHead}>
-                  <h2>{isEn ? 'Mission backlog' : 'Backlog mission'}</h2>
-                  <p>{isEn ? 'Click a task to assign it to a phase.' : 'Cliquez sur une tâche pour l’affecter à une phase.'}</p>
+                  <div className={styles.sectionTitleGroup}>
+                    <ListTodo
+                      className={styles.sectionTitleIcon}
+                      size={22}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                    <h2>{isEn ? 'Mission backlog' : 'Backlog mission'}</h2>
+                  </div>
+                  <p>
+                    {isEn
+                      ? 'Click a task to assign it to a phase.'
+                      : 'Cliquez sur une tâche pour l’affecter à une phase.'}
+                  </p>
                 </div>
 
                 {backlogTasks.length === 0 ? (
-                  <p className={styles.empty}>{isEn ? 'No tasks available.' : 'Aucune tâche disponible.'}</p>
+                  <p className={styles.empty}>
+                    {isEn ? 'No tasks available.' : 'Aucune tâche disponible.'}
+                  </p>
                 ) : (
-                  <select
-                    className={styles.backlogSelect}
-                    defaultValue=""
-                    disabled={!canEditTimeline}
-                    onChange={(event) => {
-                      const taskId = String(event.target.value || '');
-                      if (!taskId) return;
-                      openTaskModal(taskId);
-                      event.target.value = '';
-                    }}
-                    aria-label={isEn ? 'Choose a mission from the backlog' : 'Choisir une mission du backlog'}
-                  >
-                    <option value="">{isEn ? 'Choose a mission' : 'Choisissez une mission'}</option>
-                    {backlogTasks.map((task) => (
-                      <option key={task.id} value={task.id}>
-                        {task.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className={styles.backlogList}>
+                    {backlogTasks.map((task) => {
+                      const id = String(task.id);
+                      const assigned = timelineSet.has(id);
+                      const assignedPhaseKey = assigned
+                        ? phaseOfTask(id, timeline.indexOf(task.id))
+                        : '';
+                      const assignedPhase = PHASES.find((phase) => phase.key === assignedPhaseKey);
+                      return (
+                        <button
+                          key={task.id}
+                          type="button"
+                          className={`${styles.taskRow}${assigned ? ` ${styles.taskRowAssigned}` : ''}`}
+                          onClick={() => openTaskModal(id)}
+                          disabled={!canEditTimeline}
+                          title={String(task.label || '').trim()}
+                        >
+                          <span className={styles.taskRowLabel}>{task.label}</span>
+                          {assignedPhase ? (
+                            <span
+                              className={`${styles.phaseTag} ${styles[assignedPhase.className]}`}
+                            >
+                              {phaseLabel(assignedPhase, isEn)}
+                            </span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </section>
 
@@ -489,7 +581,9 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                     onClick={(event) => event.stopPropagation()}
                   >
                     <h3 className={styles.modalTitle}>{modalTask.label}</h3>
-                    <p className={styles.modalHint}>{isEn ? 'Assign this task to a phase.' : 'Affectez cette tâche à une phase.'}</p>
+                    <p className={styles.modalHint}>
+                      {isEn ? 'Assign this task to a phase.' : 'Affectez cette tâche à une phase.'}
+                    </p>
                     <div className={styles.modalPhaseGrid}>
                       {PHASES.map((phase) => (
                         <button
@@ -522,12 +616,23 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                 </div>
               ) : null}
 
-              {(submitResult || mission.result) ? (
+              {submitResult || mission.result ? (
                 <section className={styles.card}>
                   <h2>{isEn ? 'Result' : 'Résultat'}</h2>
-                  <p className={styles.score}>{isEn ? 'Score' : 'Score'}: {Number((submitResult || mission.result)?.score || 0)}/100</p>
-                  <p className={styles.meta}>{isEn ? 'Strengths' : 'Points forts'}: {((submitResult || mission.result)?.strengths || []).join(' | ') || (isEn ? 'None' : 'Aucun')}</p>
-                  <p className={styles.meta}>{isEn ? 'Weaknesses' : 'Points faibles'}: {((submitResult || mission.result)?.weaknesses || []).join(' | ') || (isEn ? 'None' : 'Aucun')}</p>
+                  <p className={styles.score}>
+                    {isEn ? 'Score' : 'Score'}:{' '}
+                    {Number((submitResult || mission.result)?.score || 0)}/100
+                  </p>
+                  <p className={styles.meta}>
+                    {isEn ? 'Strengths' : 'Points forts'}:{' '}
+                    {((submitResult || mission.result)?.strengths || []).join(' | ') ||
+                      (isEn ? 'None' : 'Aucun')}
+                  </p>
+                  <p className={styles.meta}>
+                    {isEn ? 'Weaknesses' : 'Points faibles'}:{' '}
+                    {((submitResult || mission.result)?.weaknesses || []).join(' | ') ||
+                      (isEn ? 'None' : 'Aucun')}
+                  </p>
                   <ul className={styles.errorList}>
                     {((submitResult || mission.result)?.errors || []).map((errMsg, idx) => (
                       <li key={`${idx}-${errMsg}`}>{errMsg}</li>
@@ -540,29 +645,47 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
             <section className={styles.card}>
               <h2>{isEn ? 'Facilitator global view' : 'Vue globale facilitateur'}</h2>
               {collectiveResult ? (
-                <p className={styles.score}>{isEn ? 'Collective score' : 'Score collectif'}: {Number(collectiveResult.score || 0)}/100</p>
+                <p className={styles.score}>
+                  {isEn ? 'Collective score' : 'Score collectif'}:{' '}
+                  {Number(collectiveResult.score || 0)}/100
+                </p>
               ) : null}
               {facilitatorBoard.length === 0 ? (
-                <p className={styles.empty}>{isEn ? 'No active participants yet.' : 'Aucun participant actif pour le moment.'}</p>
+                <p className={styles.empty}>
+                  {isEn ? 'No active participants yet.' : 'Aucun participant actif pour le moment.'}
+                </p>
               ) : (
                 <div className={styles.boardGrid}>
                   {facilitatorBoard.map((item) => (
                     <article key={item.participant_id} className={styles.facilitatorCard}>
                       <p className={styles.order}>{isEn ? 'Participant' : 'Participant'}</p>
                       <h3>{resolveParticipantLabel(item)}</h3>
-                      <p className={styles.meta}>{isEn ? 'Timeline' : 'Timeline'}: {item.timeline_length} {isEn ? 'tasks' : 'tâches'}</p>
-                      <p className={styles.meta}>{isEn ? 'Submitted' : 'Soumis'}: {item.submitted ? (isEn ? 'Yes' : 'Oui') : (isEn ? 'No' : 'Non')}</p>
-                      <p className={styles.meta}>{isEn ? 'Errors' : 'Erreurs'}: {item.errors_count ?? 0}</p>
+                      <p className={styles.meta}>
+                        {isEn ? 'Timeline' : 'Timeline'}: {item.timeline_length}{' '}
+                        {isEn ? 'tasks' : 'tâches'}
+                      </p>
+                      <p className={styles.meta}>
+                        {isEn ? 'Submitted' : 'Soumis'}:{' '}
+                        {item.submitted ? (isEn ? 'Yes' : 'Oui') : isEn ? 'No' : 'Non'}
+                      </p>
+                      <p className={styles.meta}>
+                        {isEn ? 'Errors' : 'Erreurs'}: {item.errors_count ?? 0}
+                      </p>
                       <div className={styles.participantTimelineBlock}>
-                        <p className={styles.miniTitle}>{isEn ? 'Real-time timeline' : 'Timeline temps réel'}</p>
+                        <p className={styles.miniTitle}>
+                          {isEn ? 'Real-time timeline' : 'Timeline temps réel'}
+                        </p>
                         {Array.isArray(item.timeline) && item.timeline.length > 0 ? (
                           <div className={styles.phaseTimeline}>
                             {PHASES.map((phase) => {
-                              const itemPhases = item.phases && typeof item.phases === 'object' ? item.phases : {};
+                              const itemPhases =
+                                item.phases && typeof item.phases === 'object' ? item.phases : {};
                               const facPhaseItems = item.timeline
                                 .map((taskId, idx) => ({ taskId, idx }))
                                 .filter((entry) => {
-                                  const stored = String(itemPhases[String(entry.taskId)] || '').trim();
+                                  const stored = String(
+                                    itemPhases[String(entry.taskId)] || ''
+                                  ).trim();
                                   const phaseKey = PHASES.some((p) => p.key === stored)
                                     ? stored
                                     : inferPhaseKey(entry.idx, item.timeline.length);
@@ -571,7 +694,9 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
 
                               return (
                                 <React.Fragment key={`${item.participant_id}-${phase.key}`}>
-                                  <section className={`${styles.phaseLine} ${styles[phase.className]}`}>
+                                  <section
+                                    className={`${styles.phaseLine} ${styles[phase.className]}`}
+                                  >
                                     <div className={styles.phaseLineHeader}>
                                       <h3>{phaseLabel(phase, isEn)}</h3>
                                       <span>{facPhaseItems.length}</span>
@@ -579,7 +704,9 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                                   </section>
                                   <section className={styles.timelineLane}>
                                     {facPhaseItems.length === 0 ? (
-                                      <div className={styles.timelineLaneHint}>{isEn ? 'No action' : 'Aucune action'}</div>
+                                      <div className={styles.timelineLaneHint}>
+                                        {isEn ? 'No action' : 'Aucune action'}
+                                      </div>
                                     ) : (
                                       facPhaseItems.map((entry) => {
                                         const task = taskMap.get(String(entry.taskId));
@@ -589,7 +716,9 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                                             className={styles.timelineCodeItem}
                                           >
                                             <div className={styles.timelineItemBody}>
-                                              <p className={styles.meta}>{task?.label || String(entry.taskId)}</p>
+                                              <p className={styles.meta}>
+                                                {task?.label || String(entry.taskId)}
+                                              </p>
                                             </div>
                                           </article>
                                         );
@@ -601,7 +730,11 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                             })}
                           </div>
                         ) : (
-                          <p className={styles.meta}>{isEn ? 'No action placed yet.' : 'Aucune action placée pour le moment.'}</p>
+                          <p className={styles.meta}>
+                            {isEn
+                              ? 'No action placed yet.'
+                              : 'Aucune action placée pour le moment.'}
+                          </p>
                         )}
                       </div>
                     </article>
