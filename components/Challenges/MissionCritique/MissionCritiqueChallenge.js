@@ -116,7 +116,7 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
   const timelineSet = useMemo(() => new Set(timeline.map((taskId) => String(taskId))), [timeline]);
 
   // Keep the exact server order in backlog. No client-side sort.
-  const backlogTasks = useMemo(() => tasks, [tasks]);
+  const backlogTasks = useMemo(() => tasks.slice(0, 7), [tasks]);
 
   const timerState = String(state?.timer?.status || 'idle').trim();
   const normalizedTimerState = timerState.toLowerCase();
@@ -457,31 +457,25 @@ export default function MissionCritiqueChallenge({ engineKey, runtimePayload, so
                 {backlogTasks.length === 0 ? (
                   <p className={styles.empty}>{isEn ? 'No tasks available.' : 'Aucune tâche disponible.'}</p>
                 ) : (
-                  <div className={styles.backlogList}>
-                    {backlogTasks.map((task) => {
-                      const id = String(task.id);
-                      const assigned = timelineSet.has(id);
-                      const assignedPhaseKey = assigned ? phaseOfTask(id, timeline.indexOf(task.id)) : '';
-                      const assignedPhase = PHASES.find((phase) => phase.key === assignedPhaseKey);
-                      return (
-                        <button
-                          key={task.id}
-                          type="button"
-                          className={`${styles.taskRow}${assigned ? ` ${styles.taskRowAssigned}` : ''}`}
-                          onClick={() => openTaskModal(id)}
-                          disabled={!canEditTimeline}
-                          title={String(task.label || '').trim()}
-                        >
-                          <span className={styles.taskRowLabel}>{task.label}</span>
-                          {assignedPhase ? (
-                            <span className={`${styles.phaseTag} ${styles[assignedPhase.className]}`}>
-                              {phaseLabel(assignedPhase, isEn)}
-                            </span>
-                          ) : null}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <select
+                    className={styles.backlogSelect}
+                    defaultValue=""
+                    disabled={!canEditTimeline}
+                    onChange={(event) => {
+                      const taskId = String(event.target.value || '');
+                      if (!taskId) return;
+                      openTaskModal(taskId);
+                      event.target.value = '';
+                    }}
+                    aria-label={isEn ? 'Choose a mission from the backlog' : 'Choisir une mission du backlog'}
+                  >
+                    <option value="">{isEn ? 'Choose a mission' : 'Choisissez une mission'}</option>
+                    {backlogTasks.map((task) => (
+                      <option key={task.id} value={task.id}>
+                        {task.label}
+                      </option>
+                    ))}
+                  </select>
                 )}
               </section>
 

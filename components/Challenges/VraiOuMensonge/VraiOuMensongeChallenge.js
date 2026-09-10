@@ -750,7 +750,13 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         {phase === 'selecting_statement' ? (
           <section className={styles.card}>
             <div className={styles.selectionHeader}>
-              <h2 className={styles.selectionTitle}>{isEn ? 'Choose a statement' : 'Choisissez une affirmation'}</h2>
+              <h2 className={styles.selectionTitle}>
+                {isPoser
+                  ? (isEn ? 'Choose a statement' : 'Choisissez une affirmation')
+                  : (isEn
+                    ? `The participant ${poserName} is choosing a statement`
+                    : `${poserName} choisit une affirmation`)}
+              </h2>
               <span className={styles.selectionProgress}>{`Passage ${currentCycle}/${totalCycles}`}</span>
             </div>
             {isPoser ? (
@@ -798,8 +804,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   })}
                 </div>
               </>
-            ) : !isFacilitator ? (
-              <p className={styles.helper}>{isEn ? 'Waiting for the active poser.' : 'En attente du poseur actif.'}</p>
             ) : null}
           </section>
         ) : null}
