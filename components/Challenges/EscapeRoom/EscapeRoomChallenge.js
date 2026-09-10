@@ -489,6 +489,7 @@ export default function EscapeRoomChallenge({
     ? currentEnigme.ui_data
     : {};
   const currentEnigmeLabel = String(currentEnigme?.label || '').toLowerCase();
+  const isVisualSearchEnigme = currentUiType === 'visual_search';
   const isGridEnigme = currentUiType === 'grid_3x3' && Array.isArray(currentUiData?.grid);
   const isFirstGridEnigme = isGridEnigme && (String(currentEnigme?.id || '').toLowerCase() === 'e1' || currentEnigmeLabel.includes('code mural'));
   const anagramLetters = Array.isArray(currentUiData?.letters)
@@ -878,7 +879,7 @@ export default function EscapeRoomChallenge({
               {enigmeImageSrc && imageBroken ? (
                 <p className={styles.imageFallbackNote}>{copy.imageUnavailable}</p>
               ) : null}
-              {!enigmeImageSrc || imageBroken ? (
+              {isVisualSearchEnigme && (!enigmeImageSrc || imageBroken) ? (
                 <div className={styles.imageFallbackCard} role="img" aria-label={copy.imageFallbackTitle}>
                   <span className={styles.imageFallbackEmoji} aria-hidden="true">🖼️</span>
                   <p className={styles.imageFallbackTitle}>{copy.imageFallbackTitle}</p>
