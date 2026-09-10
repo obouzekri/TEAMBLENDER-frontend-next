@@ -461,7 +461,29 @@ export default function EscapeRoomChallenge({
     maxLength: 240,
   });
 
-  const currentEnigme = state?.current_enigme || null;
+  const serverCurrentEnigme = state?.current_enigme || null;
+  const configuredCurrentEnigme = useMemo(() => {
+    const configuredEnigmes = Array.isArray(runtimePayload?.config?.enigmes)
+      ? runtimePayload.config.enigmes
+      : [];
+
+    if (configuredEnigmes.length === 0) {
+      return null;
+    }
+
+    const currentIndex = Number(state?.current_enigme_index);
+    if (Number.isInteger(currentIndex) && currentIndex >= 0 && currentIndex < configuredEnigmes.length) {
+      return configuredEnigmes[currentIndex] || null;
+    }
+
+    const currentId = String(serverCurrentEnigme?.id || '').trim().toLowerCase();
+    if (!currentId) {
+      return null;
+    }
+
+    return configuredEnigmes.find((enigme) => String(enigme?.id || '').trim().toLowerCase() === currentId) || null;
+  }, [runtimePayload, state?.current_enigme_index, serverCurrentEnigme?.id]);
+  const currentEnigme = serverCurrentEnigme || configuredCurrentEnigme;
   const currentUiType = String(currentEnigme?.ui_type || '').toLowerCase();
   const currentUiData = currentEnigme?.ui_data && typeof currentEnigme.ui_data === 'object'
     ? currentEnigme.ui_data
@@ -597,27 +619,6 @@ export default function EscapeRoomChallenge({
   const hasCurrentParticipantResponded = currentParticipantId != null && respondedSet.has(currentParticipantId);
 
   const timerSeconds = Number(state?.timer?.duration_seconds || 0);
-  const configuredCurrentEnigme = useMemo(() => {
-    const configuredEnigmes = Array.isArray(runtimePayload?.config?.enigmes)
-      ? runtimePayload.config.enigmes
-      : [];
-
-    if (configuredEnigmes.length === 0) {
-      return null;
-    }
-
-    const currentIndex = Number(state?.current_enigme_index);
-    if (Number.isInteger(currentIndex) && currentIndex >= 0 && currentIndex < configuredEnigmes.length) {
-      return configuredEnigmes[currentIndex] || null;
-    }
-
-    const currentId = String(currentEnigme?.id || '').trim().toLowerCase();
-    if (!currentId) {
-      return null;
-    }
-
-    return configuredEnigmes.find((enigme) => String(enigme?.id || '').trim().toLowerCase() === currentId) || null;
-  }, [runtimePayload, state?.current_enigme_index, currentEnigme?.id]);
   const rawEnigmeImageSrc = String(
     currentEnigme?.image?.src
     || currentEnigme?.image?.url
