@@ -88,6 +88,8 @@
   max-height: 230px;
   overflow: auto;
   display: grid;
+  align-content: start;
+  grid-auto-rows: max-content;
   gap: 0.55rem;
   background: var(--bg);
   scroll-behavior: smooth;
