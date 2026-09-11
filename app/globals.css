@@ -11671,9 +11671,9 @@ html[data-theme='light'] .site-footer .footer-social__link {
 
 .manager-home .home-sessions-panel,
 .manager-home .participants-panel {
-  border: none;
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid rgba(53, 160, 255, 0.2);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 246, 255, 0.94) 100%);
+  box-shadow: 0 14px 32px rgba(30, 41, 78, 0.08);
 }
 
 .home-sessions-head {

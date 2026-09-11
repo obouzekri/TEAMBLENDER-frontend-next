@@ -945,7 +945,7 @@ export default function ManagerHome() {
           ) : null}
 
           {!loadingSessions && sessions.length === 0 ? (
-            <p>{isEn ? 'No sessions found yet.' : 'Aucune session pour le moment.'}</p>
+            <p className="team-empty">{isEn ? 'No sessions found yet.' : 'Aucune session pour le moment.'}</p>
           ) : null}
 
           {!loadingSessions && sessions.length > 0 ? (
