@@ -113,10 +113,28 @@ export default function ParticipantAssigner({
   });
 
   const selectedIdsSet = useMemo(() => new Set(selected), [selected]);
+  const availableIdsSet = useMemo(() => new Set(participants.map((participant) => participant.id)), [participants]);
   const selectedParticipants = useMemo(
     () => participants.filter((p) => selectedIdsSet.has(p.id)),
     [participants, selectedIdsSet]
   );
+
+  useEffect(() => {
+    if (loadingParticipants) return;
+
+    setSelected((prev) => {
+      const next = prev.filter((id) => availableIdsSet.has(id));
+      if (next.length === prev.length) return prev;
+
+      if (typeof onSelectionChange === 'function') {
+        onSelectionChange(next);
+      }
+      if (typeof onSelectionFeedback === 'function') {
+        onSelectionFeedback(next.length);
+      }
+      return next;
+    });
+  }, [availableIdsSet, loadingParticipants, onSelectionChange, onSelectionFeedback]);
 
   useEffect(() => {
     if (typeof onSelectionSummaryChange !== 'function') return;

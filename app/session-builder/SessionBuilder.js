@@ -1585,9 +1585,6 @@ export default function SessionBuilder() {
 
                       {availableParticipantsCount === 0 ? (
                         <div className={styles.creationInlineCtaRow}>
-                          <Alert variant="info" className={styles.creationActionHint} title={t('sessionBuilder.noParticipantsAvailable')}>
-                            {t('sessionBuilder.noParticipantsFoundBody')}
-                          </Alert>
                           <Button
                             type="button"
                             variant="secondary"
