@@ -113,10 +113,10 @@ export default function EscapeRoomChallenge({
             wordCodeInstruction: 'Find the logic and provide the correct value.',
             puzzleHint: 'Hint:',
             answerTitle: 'Your proposal',
-            answerVisibility: 'Visible only to you until collective validation',
+            answerPrivacyBadge: 'Private until collective validation',
             answerSent: 'Answer sent. You can edit and submit again.',
             answersReceived: '{responded}/{total} answers received',
-            answerPlaceholder: 'YOUR ANSWER',
+            answerPlaceholder: 'Enter your proposal...',
             submit: 'Submit',
             timerTitle: 'Timer',
             unlockHint: 'Unlock a hint',
@@ -224,10 +224,10 @@ export default function EscapeRoomChallenge({
             wordCodeInstruction: 'Identifiez la logique et donnez la valeur correcte.',
             puzzleHint: 'Indice:',
             answerTitle: 'Votre proposition',
-            answerVisibility: "Visible uniquement par vous jusqu'a validation collective",
+            answerPrivacyBadge: "Privé jusqu'à validation collective",
             answerSent: 'Reponse envoyee. Vous pouvez la modifier et soumettre de nouveau.',
             answersReceived: '{responded}/{total} reponses recues',
-            answerPlaceholder: 'VOTRE REPONSE',
+            answerPlaceholder: 'Saisissez votre proposition...',
             submit: 'Soumettre',
             timerTitle: 'Chrono',
             unlockHint: 'Débloquer un indice',
@@ -913,7 +913,7 @@ export default function EscapeRoomChallenge({
                   <p className={styles.enigmeContextLine}>
                     {state.total_enigmes > 0
                       ? applyTemplate(copy.riddleCounter, {
-                          current: (state.current_enigme_index ?? 0) + 1,
+                          current: Math.min((state.current_enigme_index ?? 0) + 1, state.total_enigmes),
                           total: state.total_enigmes,
                         })
                       : copy.riddleCounterFallback}
@@ -1090,7 +1090,7 @@ export default function EscapeRoomChallenge({
                 <div className={styles.answerPanel}>
                   <div className={styles.answerPanelHeader}>
                     <p className={styles.answerPanelTitle}>🔑 {copy.answerTitle}</p>
-                    <span className={styles.answerPanelHint}>{copy.answerVisibility}</span>
+                    <span className={styles.answerPanelHint}>🔒 {copy.answerPrivacyBadge}</span>
                   </div>
                   {hasCurrentParticipantResponded ? (
                     <div className={styles.answeredBanner}>
@@ -1113,9 +1113,7 @@ export default function EscapeRoomChallenge({
                     <input
                       value={answer}
                       onChange={(event) => setAnswer(event.target.value.toUpperCase())}
-                      placeholder={String(
-                        currentUiData?.placeholder || copy.answerPlaceholder
-                      ).toUpperCase()}
+                      placeholder={String(currentUiData?.placeholder || copy.answerPlaceholder)}
                       className={styles.input}
                       disabled={busyAction === 'submit' || !currentEnigme}
                       autoComplete="off"
