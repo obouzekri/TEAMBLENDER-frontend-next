@@ -6,6 +6,7 @@ import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import SessionLiveHeader from '@/components/SessionLiveHeader';
+import Modal from '@/components/ui/Modal';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
 import { clearStoredAuth, getAuthHeaders, getStoredCurrentUser, joinParticipantAuthenticated } from '@/lib/auth';
@@ -28,6 +29,7 @@ export default function ParticipantPage() {
   const [joinCode, setJoinCode] = useState('');
   const [joinCodeMessage, setJoinCodeMessage] = useState('');
   const [joinCodeInvalid, setJoinCodeInvalid] = useState(false);
+  const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [temporaryCredentials, setTemporaryCredentials] = useState(null);
   const [dismissedCredentials, setDismissedCredentials] = useState(false);
   const authInitRef = useRef(false);
@@ -376,6 +378,7 @@ export default function ParticipantPage() {
       const resolvedSessionId = String(data?.sessionId || '').trim();
       setJoinCode('');
       if (resolvedSessionId) {
+        setJoinModalOpen(false);
         setJoinCodeMessage(isEn ? 'Session added. Use Join when you are ready.' : 'Session ajoutée. Cliquez sur Rejoindre quand vous êtes prêt.');
         setSessionId('');
         setRuntime(null);
@@ -426,34 +429,49 @@ export default function ParticipantPage() {
       <AppNav userLabel={participantLabel} onLogout={logout} role="participant" connectionState={connectionState} />
       <main className="shell app-home participant-home">
         <section className="hero participant-hero">
-          <h1>{isEn ? `Welcome ${participantLabel}` : `Bienvenue ${participantLabel}`}</h1>
-          <p>
-            {assignedSessions.length > 0 && !sessionId
-              ? (isEn ? 'Select a session to get started.' : 'Sélectionnez une session pour commencer.')
-              : (isEn
-                ? 'Your session is running. The active challenge will appear here automatically.'
-                : 'Votre session est en cours. Le challenge actif s\'affichera ici automatiquement.')}
-          </p>
-          <div className="hero-actions">
-            {sessionId && challengeLink ? (
-              <button type="button" className="btn-primary" disabled>
-                {isEn ? 'Connecting to challenge...' : 'Connexion au challenge...'}
+          <div className="participant-hero__top">
+            <div className="participant-hero__copy">
+              <h1>{isEn ? `Welcome ${participantLabel}` : `Bienvenue ${participantLabel}`}</h1>
+              <p>
+                {assignedSessions.length > 0 && !sessionId
+                  ? (isEn ? 'Here are your sessions.' : 'Voici vos sessions.')
+                  : (isEn
+                    ? 'Your session is running. The active challenge will appear here automatically.'
+                    : 'Votre session est en cours. Le challenge actif s\'affichera ici automatiquement.')}
+              </p>
+            </div>
+            <div className="participant-hero__actions">
+              <button
+                type="button"
+                className="btn-secondary participant-join-trigger"
+                onClick={() => {
+                  setJoinCodeMessage('');
+                  setJoinCodeInvalid(false);
+                  setJoinModalOpen(true);
+                }}
+              >
+                {isEn ? '+ Join a session' : '+ Rejoindre une session'}
               </button>
-            ) : sessionId && !joining && !runtimeError ? (
-              <button type="button" className="btn-primary" disabled>
-                {flowMode === 'auto'
-                  ? (isEn ? 'Automatic progression is being prepared...' : 'Passage automatique en préparation...')
-                  : (isEn ? 'Waiting for facilitator...' : 'En attente du facilitateur...')}
-              </button>
-            ) : sessionId ? (
-              <button type="button" className="btn-primary" disabled>
-                {joining ? (isEn ? 'Loading...' : 'Chargement...') : (isEn ? 'Challenge unavailable' : 'Challenge indisponible')}
-              </button>
-            ) : assignedSessions.length === 0 ? (
-              <Link className="btn-primary" href={withLocalePath('/login')}>
-                {isEn ? 'Back to login' : 'Revenir à la connexion'}
-              </Link>
-            ) : null}
+              {sessionId && challengeLink ? (
+                <button type="button" className="btn-primary" disabled>
+                  {isEn ? 'Connecting to challenge...' : 'Connexion au challenge...'}
+                </button>
+              ) : sessionId && !joining && !runtimeError ? (
+                <button type="button" className="btn-primary" disabled>
+                  {flowMode === 'auto'
+                    ? (isEn ? 'Automatic progression is being prepared...' : 'Passage automatique en préparation...')
+                    : (isEn ? 'Waiting for facilitator...' : 'En attente du facilitateur...')}
+                </button>
+              ) : sessionId ? (
+                <button type="button" className="btn-primary" disabled>
+                  {joining ? (isEn ? 'Loading...' : 'Chargement...') : (isEn ? 'Challenge unavailable' : 'Challenge indisponible')}
+                </button>
+              ) : assignedSessions.length === 0 ? (
+                <Link className="btn-primary" href={withLocalePath('/login')}>
+                  {isEn ? 'Back to login' : 'Revenir à la connexion'}
+                </Link>
+              ) : null}
+            </div>
           </div>
           <div className="participant-hero-trust" aria-label={isEn ? 'Participant guideposts' : 'Repères participant'}>
             <span>{isEn ? 'Individual access' : 'Accès individuel'}</span>
@@ -481,47 +499,7 @@ export default function ParticipantPage() {
           ) : null}
         </section>
 
-        {sessionId ? (
-          <section className="participant-live-header-shell">
-            <SessionLiveHeader
-              sessionId={sessionId}
-              sessionName={participantSessionName}
-              sessionCode={sessionDetails?.code || sessionDetails?.session_code || sessionDetails?.sessionCode || sessionId}
-              participantCount={teamMembers.length || participantExpectedCount}
-              expectedParticipantCount={participantExpectedCount}
-              challenges={sessionChallenges}
-              activeChallengeId={sessionState?.active_challenge_id || sessionState?.current_challenge?.id || null}
-              activeChallengeName={runtime?.challenge_name || sessionState?.current_challenge?.name || sessionState?.current_challenge?.engine_key || ''}
-              showAdvanceButton={false}
-            />
-          </section>
-        ) : null}
-
         <div className="participant-grid">
-          <section className="feature-card participant-panel participant-panel--wide">
-            <div className="participant-panel__head">
-              <div>
-                <p className="eyebrow">{isEn ? 'JOIN ANOTHER SESSION' : 'REJOINDRE UNE AUTRE SESSION'}</p>
-                <h2>{isEn ? 'Use your session code' : 'Utilisez votre code de session'}</h2>
-              </div>
-            </div>
-            <form onSubmit={joinNewSession} className="participant-inline-form">
-              <input
-                type="text"
-                value={joinCode}
-                onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
-                placeholder={isEn ? 'Session code' : 'Code de session'}
-                aria-label={isEn ? 'Session code' : 'Code de session'}
-                autoComplete="off"
-                maxLength={32}
-              />
-              <button type="submit" className="btn-primary" disabled={joiningSessionId === 'new'}>
-                {joiningSessionId === 'new' ? (isEn ? 'Joining...' : 'Connexion...') : (isEn ? 'Join session' : 'Rejoindre')}
-              </button>
-            </form>
-            {joinCodeMessage ? <p className="participant-error-text" role="alert">{joinCodeMessage}</p> : null}
-          </section>
-
           {/* Loading skeleton while sessions are being fetched */}
           {loadingSessions && !sessionId && (
             <section className="feature-card participant-panel participant-panel--wide">
@@ -537,7 +515,7 @@ export default function ParticipantPage() {
 
           {/* Assigned sessions cards - displayed when no session is selected */}
           {assignedSessions.length > 0 && !sessionId && (
-            <section className="feature-card participant-panel participant-panel--wide">
+            <section className="feature-card participant-panel participant-panel--wide participant-sessions-panel">
               <div className="participant-panel__head">
                 <div>
                   <p className="eyebrow">{isEn ? 'ASSIGNED SESSIONS' : 'SESSIONS ASSIGNÉES'}</p>
@@ -559,33 +537,39 @@ export default function ParticipantPage() {
                   return (
                     <article key={sessionIdentifier} className="participant-session-card">
                       <div className="participant-session-card__body">
-                        <p className="participant-session-card__name">
-                          {session.name || `Session #${sessionIdentifier}`}
-                        </p>
-                        {statusLabel && (
-                          <span className={`status-pill status-${session.status || 'preparee'}`}>
-                            {statusLabel}
-                          </span>
-                        )}
+                        <div className="participant-session-card__headline">
+                          <p className="participant-session-card__name">
+                            {session.name || `Session #${sessionIdentifier}`}
+                          </p>
+                          {statusLabel && (
+                            <span className={`status-pill status-${session.status || 'preparee'}`}>
+                              {statusLabel}
+                            </span>
+                          )}
+                        </div>
                         {session.session_date && (
                           <p className="participant-session-card__date">
-                            📅 {new Date(session.session_date).toLocaleDateString(isEn ? 'en-US' : 'fr-FR', { dateStyle: 'medium' })}
+                            {new Date(session.session_date).toLocaleDateString(isEn ? 'en-US' : 'fr-FR', { dateStyle: 'medium' })}
                           </p>
                         )}
                       </div>
                       <div className="participant-session-card__footer">
-                        <button
-                          type="button"
-                          className="btn-primary participant-session-card__cta"
-                          disabled={joiningSessionId === sessionIdentifier || !isSessionLive}
-                          onClick={() => joinSession(sessionIdentifier)}
-                        >
-                          {joiningSessionId === sessionIdentifier
-                            ? (isEn ? 'Connecting...' : 'Connexion...')
-                            : isSessionLive
-                              ? (isEn ? 'Join' : 'Rejoindre')
-                              : (isEn ? 'Waiting for launch' : 'En attente du lancement')}
-                        </button>
+                        {isSessionLive ? (
+                          <button
+                            type="button"
+                            className="btn-primary participant-session-card__cta"
+                            disabled={joiningSessionId === sessionIdentifier}
+                            onClick={() => joinSession(sessionIdentifier)}
+                          >
+                            {joiningSessionId === sessionIdentifier
+                              ? (isEn ? 'Connecting...' : 'Connexion...')
+                              : (isEn ? 'Join' : 'Rejoindre')}
+                          </button>
+                        ) : (
+                          <span className="participant-session-card__waiting-status">
+                            {isEn ? 'Waiting for launch' : 'En attente du lancement'}
+                          </span>
+                        )}
                       </div>
                     </article>
                   );
@@ -594,8 +578,38 @@ export default function ParticipantPage() {
             </section>
           )}
 
-          {/* Session info card - displayed when a session is selected */}
-          {sessionId && (
+          {/* Empty state when no sessions and not loading */}
+          {!sessionId && assignedSessions.length === 0 && !loadingSessions && (
+            <section className="feature-card participant-panel participant-empty-panel">
+              <h2>{isEn ? 'No assigned session' : 'Aucune session assignée'}</h2>
+              <p className="participant-help-text">
+                {isEn
+                  ? 'You do not have any assigned session yet. Please contact your administrator.'
+                  : 'Vous n&apos;avez pas encore de session assignée. Contactez votre administrateur.'}
+              </p>
+            </section>
+          )}
+        </div>
+
+        {sessionId ? (
+          <section className="participant-live-header-shell">
+            <SessionLiveHeader
+              sessionId={sessionId}
+              sessionName={participantSessionName}
+              sessionCode={sessionDetails?.code || sessionDetails?.session_code || sessionDetails?.sessionCode || sessionId}
+              participantCount={teamMembers.length || participantExpectedCount}
+              expectedParticipantCount={participantExpectedCount}
+              challenges={sessionChallenges}
+              activeChallengeId={sessionState?.active_challenge_id || sessionState?.current_challenge?.id || null}
+              activeChallengeName={runtime?.challenge_name || sessionState?.current_challenge?.name || sessionState?.current_challenge?.engine_key || ''}
+              showAdvanceButton={false}
+            />
+          </section>
+        ) : null}
+
+        {sessionId ? (
+          <div className="participant-grid">
+            {/* Session info card - displayed when a session is selected */}
           <section className="feature-card participant-panel">
             <div className="participant-panel__head">
               <div>
@@ -624,11 +638,10 @@ export default function ParticipantPage() {
             {joining && !runtime ? <p className="participant-help-text">{isEn ? 'Loading active challenge...' : 'Chargement du challenge actif...'}</p> : null}
             {runtimeError ? <p className="participant-error-text">{isEn ? 'Error:' : 'Erreur :'} {runtimeError}</p> : null}
           </section>
-          )}
 
-          {/* Team members card - shown when session is active */}
-          {sessionId && teamMembers.length > 0 && (
-            <section className="feature-card participant-panel">
+            {/* Team members card - shown when session is active */}
+            {teamMembers.length > 0 && (
+              <section className="feature-card participant-panel">
               <div className="participant-panel__head">
                 <div>
                   <p className="eyebrow">{isEn ? 'TEAM' : 'ÉQUIPE'}</p>
@@ -660,21 +673,44 @@ export default function ParticipantPage() {
                 </p>
               )}
             </section>
-          )}
-
-          {/* Empty state when no sessions and not loading */}
-          {!sessionId && assignedSessions.length === 0 && !loadingSessions && (
-            <section className="feature-card participant-panel participant-empty-panel">
-              <h2>{isEn ? 'No assigned session' : 'Aucune session assignée'}</h2>
-              <p className="participant-help-text">
-                {isEn
-                  ? 'You do not have any assigned session yet. Please contact your administrator.'
-                  : 'Vous n&apos;avez pas encore de session assignée. Contactez votre administrateur.'}
-              </p>
-            </section>
-          )}
-        </div>
+            )}
+          </div>
+        ) : null}
       </main>
+      <Modal
+        open={joinModalOpen}
+        title={isEn ? 'Join a session' : 'Rejoindre une session'}
+        onClose={() => setJoinModalOpen(false)}
+        dialogClassName="participant-join-modal"
+        titleClassName="participant-join-modal__title"
+        bodyClassName="participant-join-modal__body"
+      >
+        <p className="participant-join-modal__intro">
+          {isEn ? 'Enter the code shared by your facilitator.' : 'Saisissez le code partagé par votre facilitateur.'}
+        </p>
+        <form onSubmit={joinNewSession} className="participant-inline-form participant-inline-form--join-modal">
+          <label className="participant-join-modal__field">
+            <span>{isEn ? 'Session code' : 'Code de session'}</span>
+            <input
+              type="text"
+              value={joinCode}
+              onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
+              placeholder={isEn ? 'Session code' : 'Code de session'}
+              aria-label={isEn ? 'Session code' : 'Code de session'}
+              aria-invalid={joinCodeInvalid}
+              autoComplete="off"
+              maxLength={32}
+            />
+          </label>
+          {joinCodeMessage ? <p className="participant-error-text" role="alert">{joinCodeMessage}</p> : null}
+          <p className="participant-join-modal__help">
+            {isEn ? 'Ask your facilitator for the session code.' : 'Demandez le code de session à votre facilitateur.'}
+          </p>
+          <button type="submit" className="btn-primary" disabled={joiningSessionId === 'new'}>
+            {joiningSessionId === 'new' ? (isEn ? 'Joining...' : 'Connexion...') : (isEn ? 'Join session' : 'Rejoindre')}
+          </button>
+        </form>
+      </Modal>
       <Footer />
     </>
   );
