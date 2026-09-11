@@ -271,6 +271,15 @@ export default function MissionCritiqueChallenge({
   }, [modalTaskId]);
 
   useEffect(() => {
+    if (!modalTaskId) return () => {};
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [modalTaskId]);
+
+  useEffect(() => {
     if (!socket) return () => {};
 
     const onEvent = (packet = {}) => {
