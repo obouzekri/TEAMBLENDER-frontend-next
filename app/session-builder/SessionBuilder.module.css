@@ -533,6 +533,10 @@
   padding-right: 1rem;
 }
 
+.creationDateHelp {
+  white-space: nowrap;
+}
+
 .creationOverviewCard {
   display: grid;
   gap: 1.25rem;
@@ -1674,6 +1678,10 @@
 }
 
 @media (max-width: 860px) {
+  .creationDateHelp {
+    white-space: normal;
+  }
+
   .mainLayout {
     grid-template-columns: 1fr;
     gap: 2rem;

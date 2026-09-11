@@ -9,13 +9,14 @@ export default function Input({
   error,
   className = '',
   inputClassName = '',
+  helpClassName = '',
   ...props
 }) {
   return (
     <label htmlFor={id} className={`${styles.field} ${className}`.trim()}>
       {label ? <span className={styles.label}>{label}</span> : null}
       <input id={id} className={`${styles.control} ${inputClassName}`.trim()} {...props} />
-      {error ? <p className={styles.error}>{error}</p> : hint ? <p className={styles.help}>{hint}</p> : null}
+      {error ? <p className={styles.error}>{error}</p> : hint ? <p className={`${styles.help} ${helpClassName}`.trim()}>{hint}</p> : null}
     </label>
   );
 }

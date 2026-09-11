@@ -1504,6 +1504,7 @@ export default function SessionBuilder() {
                           onBlur={() => setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }))}
                           step="60"
                           inputClassName={styles.creationDateInput}
+                          helpClassName={styles.creationDateHelp}
                           error={dateError}
                           hint={t('sessionBuilder.dateFormatHelp', { timezone: detectedTimezone })}
                           aria-invalid={Boolean(dateError)}
