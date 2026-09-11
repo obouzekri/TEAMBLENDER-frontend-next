@@ -1578,6 +1578,7 @@ export default function SessionBuilder() {
                         onSelectionFeedback={handleParticipantSelectionFeedback}
                         embedded
                         hideActions
+                        showSelectionLimitNotice={false}
                         title=""
                         subtitle=""
                       />

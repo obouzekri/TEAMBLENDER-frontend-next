@@ -17,6 +17,7 @@ export default function ParticipantAssigner({
   onParticipantsLoaded,
   embedded = false,
   hideActions = false,
+  showSelectionLimitNotice = true,
   title = 'Assign participants',
   subtitle = 'Select the participants who will join this session',
   onSelectionFeedback,
@@ -231,7 +232,7 @@ export default function ParticipantAssigner({
               ) : null}
             </div>
 
-            {selected.length >= MAX_PARTICIPANTS ? (
+            {showSelectionLimitNotice && selected.length >= MAX_PARTICIPANTS ? (
               <div className={styles.empty}>
                 <p>{t('sessionBuilder.maxParticipantsReached', { count: MAX_PARTICIPANTS })}</p>
                 <small>{t('sessionBuilder.maxParticipantsReachedBody')}</small>
