@@ -767,8 +767,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                               style={buildMazeCellStyle(maze, row, col)}
                               aria-hidden="true"
                             >
-                              {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>START</span> : null}
-                              {key === endCellKey ? <span className={styles.cellExitBadge}>EXIT</span> : null}
+                              {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
+                              {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
                               {safePathKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>●</span> : null}
                               {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                             </div>
@@ -830,8 +830,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                                   style={buildMazeCellStyle(maze, row, col)}
                                   aria-label={`Case ${row + 1}-${col + 1}`}
                                 >
-                                  {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>D</span> : null}
-                                  {key === endCellKey ? <span className={styles.cellExitBadge}>S</span> : null}
+                                  {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
+                                  {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
                                   {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                                   {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
                                   {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
@@ -920,8 +920,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                         aria-disabled={!canMoveSolo}
                         aria-label={`${isEn ? 'Cell' : 'Case'} ${row + 1}-${col + 1}`}
                       >
-                        {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>START</span> : null}
-                        {key === endCellKey ? <span className={styles.cellExitBadge}>EXIT</span> : null}
+                        {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
+                        {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
                         {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
                         {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                         {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
@@ -978,8 +978,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                   <strong>{isEn ? 'Arrows, ZQSD/WASD, or click' : 'Flèches, ZQSD/WASD, ou clic'}</strong>
                 </div>
                 <div className={styles.legendRow}>
-                  <span className={`${styles.legendChip} ${styles.legendStart}`}>START</span>
-                  <span className={`${styles.legendChip} ${styles.legendExit}`}>EXIT</span>
+                  <span className={`${styles.legendChip} ${styles.legendStart}`}>{isEn ? 'S = Start' : 'S = Départ'}</span>
+                  <span className={`${styles.legendChip} ${styles.legendExit}`}>{isEn ? 'E = Exit' : 'E = Sortie'}</span>
                   <span className={`${styles.legendChip} ${styles.legendTrap}`}>{isEn ? 'Trap' : 'Piège'}</span>
                   <span className={`${styles.legendChip} ${styles.legendTrail}`}>{isEn ? 'Player cursor' : 'Curseur joueur'}</span>
                 </div>
@@ -1026,8 +1026,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                         style={buildMazeCellStyle(maze, row, col)}
                         aria-hidden="true"
                       >
-                        {allStartKeys.has(key) ? <span className={styles.cellStartBadge}>START</span> : null}
-                        {key === endCellKey ? <span className={styles.cellExitBadge}>EXIT</span> : null}
+                        {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
+                        {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
                         {safePathKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>●</span> : null}
                         {revealMazeTraps && mazeTrapKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                       </div>
