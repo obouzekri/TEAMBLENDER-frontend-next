@@ -50,6 +50,7 @@ export default function ChallengeTimerCard({
   waitingText = '⏳ En attente du facilitateur',
   collapsible = true,
   defaultCollapsed = false,
+  showCompactBar = true,
 }) {
   const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
   const normalizedStatus = normalizeStatus(status);
@@ -92,11 +93,13 @@ export default function ChallengeTimerCard({
 
   return (
     <section className={`${styles.timerCard}${isStartedState ? ` ${styles.timerCardStarted}` : ''} ${className}`.trim()}>
-      <div className={styles.timerCompactBar} role="status" aria-live="polite">
-        <span className={styles.timerCompactIcon} aria-hidden="true">⏱</span>
-        <span className={styles.timerCompactTime}>{compactTime}</span>
-        <span className={styles.timerCompactState}>{compactStatus}</span>
-      </div>
+      {showCompactBar ? (
+        <div className={styles.timerCompactBar} role="status" aria-live="polite">
+          <span className={styles.timerCompactIcon} aria-hidden="true">⏱</span>
+          <span className={styles.timerCompactTime}>{compactTime}</span>
+          <span className={styles.timerCompactState}>{compactStatus}</span>
+        </div>
+      ) : null}
 
       <div className={styles.timerHeader}>
         <h3 className={`${styles.timerTitle} challenge-section-title`}>{title}</h3>

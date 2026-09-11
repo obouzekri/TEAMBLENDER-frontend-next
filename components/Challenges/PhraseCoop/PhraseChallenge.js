@@ -280,6 +280,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
           status={timerStatus}
           isFacilitator={isFacilitator}
           waitingText=""
+          showCompactBar={false}
         />
       </div>
 
@@ -457,6 +458,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
               status={timerStatus}
               isFacilitator={isFacilitator}
               waitingText=""
+              showCompactBar={false}
             />
           </div>
 

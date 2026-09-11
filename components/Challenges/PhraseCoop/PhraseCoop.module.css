@@ -809,6 +809,52 @@
   border-color: var(--line-soft);
 }
 
+:global(html[data-theme='light']) .boardPanel,
+:global(html[data-theme='light']) .sideCard {
+  background: var(--surface-1);
+  border-color: var(--line-soft) !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+:global(html[data-theme='light']) .slot,
+:global(html[data-theme='light']) .slotLocked,
+:global(html[data-theme='light']) .wordChip {
+  background: var(--surface-2);
+  border-color: var(--line-soft);
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .slotMine {
+  background: #e0f2fe;
+  border-color: var(--accent);
+}
+
+:global(html[data-theme='light']) .slotOk {
+  background: #f0fdf4;
+  border-color: #16a34a;
+}
+
+:global(html[data-theme='light']) .slotIndex,
+:global(html[data-theme='light']) .slotMeta,
+:global(html[data-theme='light']) .slotExpected,
+:global(html[data-theme='light']) .meta,
+:global(html[data-theme='light']) .helper,
+:global(html[data-theme='light']) .footerMeta,
+:global(html[data-theme='light']) .empty {
+  color: var(--text-soft);
+}
+
+:global(html[data-theme='light']) .playerWorkbenchHead h3,
+:global(html[data-theme='light']) .sideCard h2 {
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .btnSecondary {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--text-main);
+}
+
 @media (max-width: 960px) and (orientation: landscape) and (max-height: 520px) {
   .phraseContainer {
     padding: 8px;
