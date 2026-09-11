@@ -22,10 +22,8 @@
   margin: 0 auto;
   padding: clamp(14px, 1.8vw, 28px);
   color: var(--text-main);
-  background:
-    radial-gradient(1200px 560px at 8% -10%, rgba(40, 179, 208, 0.16), transparent 60%),
-    radial-gradient(900px 440px at 90% 0%, rgba(55, 183, 118, 0.1), transparent 55%),
-    linear-gradient(145deg, var(--bg-1) 0%, var(--bg-2) 60%, #112938 100%);
+  /* Fond herite du fond de page global (voir --ambient-bg-dark) */
+  background: transparent;
 }
 
 .container > :first-child {
@@ -45,7 +43,7 @@
   --accent: #087f9a;
   --accent-2: #0e7490;
   --shadow-card: 0 16px 34px rgba(15, 23, 42, 0.12);
-  background: linear-gradient(145deg, var(--bg-1) 0%, var(--bg-2) 60%, #dcecff 100%);
+  background: transparent;
 }
 
 :global(html[data-theme='light']) .headerTitle,
@@ -916,7 +914,8 @@
   }
 
   .timelineItemControls .ghostBtn {
-    flex: 1 1 calc(33.333% - 6px);
+    flex: 1 1 calc(50% - 6px);
+    min-height: 44px;
   }
 }
 
@@ -940,6 +939,16 @@
 
   .boardGrid {
     grid-template-columns: 1fr;
+  }
+
+  .backlogList {
+    max-height: min(42dvh, 300px);
+  }
+}
+
+@media (max-width: 400px) {
+  .timelineLane {
+    max-height: 220px;
   }
 }
 
@@ -1115,6 +1124,7 @@
   justify-content: space-between;
   gap: 10px;
   width: 100%;
+  min-height: 44px;
   padding: 10px 12px;
   border-radius: var(--radius-item);
   border: 1px solid var(--line-soft);
@@ -1316,6 +1326,8 @@
     width: 100%;
     border-radius: 18px 18px 0 0;
     border-bottom: none;
+    padding-left: max(14px, env(safe-area-inset-left, 0px));
+    padding-right: max(14px, env(safe-area-inset-right, 0px));
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
 

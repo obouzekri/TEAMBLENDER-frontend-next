@@ -15,10 +15,8 @@
   width: min(100%, 1320px);
   margin: 0 auto;
   padding: 14px;
-  background:
-    radial-gradient(1200px 560px at 8% -10%, rgba(40, 179, 208, 0.16), transparent 60%),
-    radial-gradient(900px 440px at 90% 0%, rgba(55, 183, 118, 0.1), transparent 55%),
-    linear-gradient(145deg, #071520 0%, #0d2331 60%, #112938 100%);
+  /* Fond herite du fond de page global (voir --ambient-bg-dark) */
+  background: transparent;
 }
 
 .hero {
@@ -77,7 +75,7 @@
   --maze-wall-soft: #3b82a9;
   --maze-corridor: #dcecff;
   --maze-corridor-light: #c5e1f7;
-  background: linear-gradient(145deg, #f5f9ff 0%, #eaf3ff 60%, #dcecff 100%);
+  background: transparent;
 }
 
 :global(html[data-theme='light']) .gameGrid {

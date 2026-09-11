@@ -23,8 +23,24 @@
   --shadow-sm: 0 8px 20px rgba(15, 23, 42, 0.08);
   --shadow-md: 0 14px 30px rgba(15, 23, 42, 0.1);
   --shadow-lg: 0 22px 44px rgba(15, 23, 42, 0.14);
-  --bg: #f4f8ff;
-  --bg-soft: #eaf1ff;
+  --bg: #f6f8fc;
+  --bg-soft: #eaf3ff;
+  /* Ambiance de fond sombre partagee (session live + challenges) */
+  --ambient-navy-deep: #081223;
+  --ambient-navy-soft: #0b1630;
+  --ambient-bg-dark:
+    radial-gradient(120% 90% at 32% 42%, rgba(30, 144, 255, 0.2) 0%, rgba(30, 144, 255, 0.07) 36%, rgba(30, 144, 255, 0) 68%),
+    radial-gradient(95% 75% at 96% -8%, rgba(124, 92, 255, 0.15) 0%, rgba(124, 92, 255, 0.05) 40%, rgba(124, 92, 255, 0) 72%),
+    radial-gradient(150% 125% at 50% 46%, rgba(16, 42, 86, 0.55) 0%, rgba(16, 42, 86, 0.18) 46%, rgba(16, 42, 86, 0) 80%),
+    linear-gradient(180deg, var(--ambient-navy-soft) 0%, var(--ambient-navy-deep) 100%);
+  /* Ambiance de fond claire : meme composition que --ambient-bg-dark, opacites reduites */
+  --ambient-paper-base: #f6f8fc;
+  --ambient-paper-soft: #eaf3ff;
+  --ambient-bg-light:
+    radial-gradient(120% 90% at 32% 42%, rgba(30, 144, 255, 0.1) 0%, rgba(30, 144, 255, 0.035) 36%, rgba(30, 144, 255, 0) 68%),
+    radial-gradient(95% 75% at 96% -8%, rgba(124, 92, 255, 0.06) 0%, rgba(124, 92, 255, 0.02) 40%, rgba(124, 92, 255, 0) 72%),
+    radial-gradient(150% 125% at 50% 46%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.16) 46%, rgba(255, 255, 255, 0) 80%),
+    linear-gradient(180deg, var(--ambient-paper-soft) 0%, var(--ambient-paper-base) 100%);
   --ink: #0f172a;
   --ink-soft: #3f4f6a;
   --accent: #2f62ff;
@@ -37,11 +53,11 @@
   --accent-violet-glow: rgba(124, 58, 237, 0.24);
   --line: #d7e3fb;
   --card: #ffffff;
-  --card-shadow: 0 12px 30px rgba(20, 31, 25, 0.08);
-  --card-shadow-hover: 0 18px 42px rgba(20, 31, 25, 0.14);
-  --field-bg: #f9fbf7;
-  --field-line: #cfe0d3;
-  --field-line-focus: rgba(15, 118, 110, 0.42);
+  --card-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
+  --card-shadow-hover: 0 18px 42px rgba(15, 23, 42, 0.12);
+  --field-bg: #f8fafd;
+  --field-line: #d4e0f2;
+  --field-line-focus: rgba(53, 160, 255, 0.42);
   --field-bg-focus: #ffffff;
   --field-text: #0f172a;
   --field-placeholder: #64748b;
@@ -60,7 +76,7 @@
   --focus-ring-violet: rgba(124, 58, 237, 0.24);
   --surface-radius: 16px;
   --surface-radius-lg: 20px;
-  --surface-border: rgba(15, 23, 42, 0.06);
+  --surface-border: rgba(15, 23, 42, 0.09);
   --surface-border-strong: rgba(99, 102, 241, 0.16);
   --surface-glass: rgba(255, 255, 255, 0.76);
   --surface-glass-strong: rgba(255, 255, 255, 0.92);
@@ -159,8 +175,8 @@
 
 /* Explicit dark theme toggle: full token set, aligned with the system block below */
 :root[data-theme="dark"] {
-  --bg: #0c1222;
-  --bg-soft: #111a2e;
+  --bg: #081223;
+  --bg-soft: #0b1630;
   --ink: #e8efff;
   --ink-soft: #c7d3ed;
   --line: #2b3859;
@@ -358,8 +374,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #0c1222;
-    --bg-soft: #111a2e;
+    --bg: #081223;
+    --bg-soft: #0b1630;
     --ink: #e8efff;
     --ink-soft: #c7d3ed;
     --line: #2b3859;
@@ -771,16 +787,21 @@ body {
   text-rendering: optimizeLegibility;
   font-kerning: normal;
   color: var(--ink);
-  background:
-    radial-gradient(circle at top left, rgba(53, 160, 255, 0.12), transparent 36%),
-    radial-gradient(circle at right 8%, rgba(124, 58, 237, 0.09), transparent 30%),
-    linear-gradient(160deg, #ffffff 0%, #f5f8ff 56%, #eef3ff 100%);
+}
+
+/* Fond clair par defaut, peint sur <html> pour couvrir tout le canvas sans rupture */
+html {
+  background-color: var(--ambient-paper-base);
+  background-image: var(--ambient-bg-light);
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 body {
   min-height: 100svh;
   min-height: 100dvh;
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: transparent;
 }
 
 .admin-console-layout {
@@ -2375,21 +2396,29 @@ button {
   font-family: inherit;
 }
 
+/* Fond sombre unique : peint sur <html> pour couvrir tout le canvas sans rupture */
 @media (prefers-color-scheme: dark) {
-  html:not([data-theme='light']),
+  html:not([data-theme='light']) {
+    background-color: var(--ambient-navy-deep);
+    background-image: var(--ambient-bg-dark);
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
   html:not([data-theme='light']) body {
-    background:
-      radial-gradient(circle at top left, rgba(53, 160, 255, 0.2), transparent 34%),
-      radial-gradient(circle at right 8%, rgba(124, 58, 237, 0.2), transparent 30%),
-      linear-gradient(160deg, #0b1223 0%, #0f1830 56%, #131a33 100%);
+    background: transparent;
   }
 }
 
+:root[data-theme="dark"] {
+  background-color: var(--ambient-navy-deep);
+  background-image: var(--ambient-bg-dark);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 :root[data-theme="dark"] body {
-  background:
-    radial-gradient(circle at top left, rgba(53, 160, 255, 0.2), transparent 34%),
-    radial-gradient(circle at right 8%, rgba(124, 58, 237, 0.2), transparent 30%),
-    linear-gradient(160deg, #0b1223 0%, #0f1830 56%, #131a33 100%);
+  background: transparent;
 }
 
 @keyframes ui-fade-in-up {
@@ -2480,6 +2509,16 @@ a {
   box-shadow: 0 16px 34px rgba(2, 9, 16, 0.28);
   overflow-x: auto;
   overflow-y: hidden;
+}
+
+html[data-theme='light'] .challenge-header {
+  border-color: var(--surface-border);
+  background: linear-gradient(165deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+  box-shadow: var(--surface-shadow-soft);
+}
+
+html[data-theme='light'] .challenge-subtitle {
+  color: var(--text-subtle);
 }
 
 .challenge-header-line {
@@ -7789,10 +7828,10 @@ html[data-theme='light'] .landing-hero-product-frame {
 }
 
 .challenge-showcase {
-  border: 1px solid rgba(15, 118, 110, 0.16);
+  border: 1px solid rgba(53, 160, 255, 0.16);
   border-radius: 18px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbfa 100%);
-  box-shadow: 0 12px 24px rgba(20, 31, 25, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbfd 100%);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
   padding: 1.05rem;
 }
 
@@ -7813,8 +7852,8 @@ html[data-theme='light'] .landing-hero-product-frame {
 
 .challenge-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(15, 118, 110, 0.28);
-  box-shadow: 0 14px 28px rgba(20, 31, 25, 0.12);
+  border-color: rgba(53, 160, 255, 0.28);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
 }
 
 .challenge-media img {
@@ -7846,7 +7885,7 @@ html[data-theme='light'] .landing-hero-product-frame {
 .landing-flow .panel-head,
 .challenge-showcase .panel-head {
   padding-bottom: 0.68rem;
-  border-bottom: 1px solid rgba(15, 118, 110, 0.12);
+  border-bottom: 1px solid rgba(53, 160, 255, 0.12);
 }
 
 .landing-flow .panel-head h2,
@@ -11267,10 +11306,10 @@ html[data-theme='light'] .site-footer .footer-social__link {
 
 .session-live-popup {
   width: min(92vw, 520px);
-  background: linear-gradient(145deg, #ffffff 0%, #f5faf7 100%);
-  border: 1px solid rgba(15, 118, 110, 0.2);
+  background: linear-gradient(145deg, #ffffff 0%, #f5f9fd 100%);
+  border: 1px solid rgba(53, 160, 255, 0.2);
   border-radius: 24px;
-  box-shadow: 0 16px 34px rgba(18, 50, 37, 0.18);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
   padding: 1.08rem 1.08rem 0.9rem;
   display: grid;
   gap: 0.9rem;
@@ -11331,8 +11370,8 @@ html[data-theme='light'] .site-footer .footer-social__link {
 
 .session-live-challenge-frame {
   overflow: hidden;
-  border-color: rgba(15, 118, 110, 0.22);
-  box-shadow: 0 14px 30px rgba(15, 118, 110, 0.1);
+  border-color: rgba(53, 160, 255, 0.22);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
 }
 
 .session-live-empty-state {
@@ -11341,18 +11380,18 @@ html[data-theme='light'] .site-footer .footer-social__link {
 }
 
 .session-live-track {
-  border-color: rgba(15, 118, 110, 0.18);
+  border-color: rgba(53, 160, 255, 0.18);
 }
 
 .session-live-track .challenge-list-item {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(244, 251, 248, 0.9) 100%);
-  border: 1px solid rgba(15, 118, 110, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(243, 248, 255, 0.9) 100%);
+  border: 1px solid rgba(53, 160, 255, 0.12);
   border-radius: 12px;
   padding: 0.58rem 0.72rem;
 }
 
 .session-live-track .challenge-label-active {
-  background: rgba(15, 118, 110, 0.14);
+  background: rgba(53, 160, 255, 0.14);
   border-radius: 999px;
   padding: 0.1rem 0.45rem;
 }
@@ -11551,11 +11590,11 @@ html[data-theme='light'] .site-footer .footer-social__link {
 
 .session-results-stat-card {
   padding: 1rem;
-  border: 1px solid rgba(15, 118, 110, 0.18);
+  border: 1px solid rgba(53, 160, 255, 0.18);
   border-radius: 14px;
   text-align: center;
-  background: linear-gradient(180deg, #ffffff 0%, #f7fbfa 100%);
-  box-shadow: 0 10px 22px rgba(15, 118, 110, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f7fafd 100%);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
 }
 
 .session-results-stat-card:nth-child(2n) {
@@ -11604,9 +11643,9 @@ html[data-theme='light'] .site-footer .footer-social__link {
   flex-wrap: wrap;
   gap: 0.6rem;
   padding: 0.85rem 1rem;
-  border: 1px solid rgba(15, 118, 110, 0.14);
+  border: 1px solid rgba(53, 160, 255, 0.14);
   border-radius: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(244, 251, 248, 0.92) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(243, 248, 255, 0.92) 100%);
 }
 
 .session-results-row-main {
