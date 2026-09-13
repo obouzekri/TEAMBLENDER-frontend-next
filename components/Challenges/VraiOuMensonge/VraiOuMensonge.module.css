@@ -1238,6 +1238,7 @@
   font-size: 0.96rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+  text-transform: capitalize;
 }
 
 .leaderboardSubline {
@@ -1878,7 +1879,6 @@
 .leaderboardRankWrap {
   display: grid;
   justify-items: center;
-  gap: 4px;
   flex-shrink: 0;
 }
 
@@ -1962,12 +1962,9 @@
 }
 
 .finalBlock {
-  border: 1px solid rgba(125, 164, 188, 0.36);
-  border-radius: 12px;
-  background: rgba(9, 22, 34, 0.84);
-  padding: 10px;
+  padding: 0;
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .finalBlock h3 {
@@ -1976,8 +1973,7 @@
 
 :global(html[data-theme='light']) .stateRow,
 :global(html[data-theme='light']) .historyList li,
-:global(html[data-theme='light']) .finalSummaryItem,
-:global(html[data-theme='light']) .finalBlock {
+:global(html[data-theme='light']) .finalSummaryItem {
   background: var(--surface-1);
   border-color: var(--line-soft);
 }

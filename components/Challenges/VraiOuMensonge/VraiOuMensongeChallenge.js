@@ -524,8 +524,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   function renderLeaderboardRow(entry, index, options = {}) {
     const participantKey = String(entry.participant_id);
     const movement = String(rankMovementByParticipantId[participantKey] || 'same');
-    const movementGlyph = movement === 'up' ? '↑' : movement === 'down' ? '↓' : '→';
-    const movementLabel = movement === 'up' ? 'En hausse' : movement === 'down' ? 'En baisse' : 'Stable';
     const medal = getRankMedal(Number(entry.rank));
     const progressWidth = `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%`;
     const compact = options.compact === true;
@@ -538,20 +536,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         <div className={styles.leaderboardIdentity}>
           <div className={styles.leaderboardRankWrap}>
             <span className={styles.rankPill}>{medal || `#${entry.rank}`}</span>
-            <span className={`${styles.rankDeltaBadge}${movement === 'up' ? ` ${styles.rankDeltaUp}` : movement === 'down' ? ` ${styles.rankDeltaDown}` : ''}`} aria-label={movementLabel}>{movementGlyph}</span>
           </div>
           <span className={styles.leaderAvatar}>{getInitials(participantName(participantKey))}</span>
           <div className={styles.leaderboardCopy}>
             <span className={styles.leaderboardLine}>{participantName(participantKey)}</span>
-            <span className={styles.leaderboardSubline}>
-              {participantKey === me ? 'Vous' : participantKey === poserId ? t('vom.poserLabel') : `Rang #${entry.rank}`}
-            </span>
           </div>
         </div>
         <div className={styles.leaderboardScoreWrap}>
           <div className={styles.leaderboardScoreTopline}>
             <span className={styles.leaderboardScore}>{entry.score} pts</span>
-            {medal ? <span className={styles.leaderboardReward}>{medal}</span> : null}
           </div>
           <span className={styles.leaderProgressTrack}>
             <span className={styles.leaderProgressFill} style={{ width: progressWidth }} />
