@@ -270,7 +270,7 @@
 
 .panelHead:has(.paletteRow) {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
@@ -475,8 +475,11 @@
 
 .swatchBtn {
   position: relative;
-  width: 30px;
-  height: 30px;
+  box-sizing: border-box;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
   border-radius: 50%;
   border: 2px solid rgba(205, 230, 247, 0.42);
   cursor: pointer;
@@ -1166,8 +1169,9 @@
   }
 
   .swatchBtn {
-    width: 28px;
-    height: 28px;
+    flex-basis: 20px;
+    width: 20px;
+    height: 20px;
   }
 
   .btnPrimary,
