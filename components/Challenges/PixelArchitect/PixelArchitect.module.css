@@ -475,12 +475,18 @@
 
 .swatchBtn {
   position: relative;
+  appearance: none;
   box-sizing: border-box;
   flex: 0 0 20px;
   width: 20px;
+  min-width: 20px;
+  max-width: 20px;
   height: 20px;
+  min-height: 20px;
+  max-height: 20px;
   padding: 0;
-  border-radius: 50%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50% !important;
   border: 2px solid rgba(205, 230, 247, 0.42);
   cursor: pointer;
   box-shadow: 0 5px 12px rgba(2, 9, 16, 0.24);
@@ -1171,7 +1177,11 @@
   .swatchBtn {
     flex-basis: 20px;
     width: 20px;
+    min-width: 20px;
+    max-width: 20px;
     height: 20px;
+    min-height: 20px;
+    max-height: 20px;
   }
 
   .btnPrimary,
