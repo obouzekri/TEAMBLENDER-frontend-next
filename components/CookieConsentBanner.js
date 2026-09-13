@@ -4,45 +4,54 @@ import Link from 'next/link';
 import styles from './CookieConsentBanner.module.css';
 import { getConsentPolicyVersion, recordConsentDecision } from '@/lib/consent';
 
-export default function CookieConsentBanner({ consentState }) {
+export default function CookieConsentBanner({ consentState, isReopened = false, onDismiss }) {
   const currentDecision = String(consentState?.decision || 'unset');
   const policyVersion = getConsentPolicyVersion();
-  const showBanner = currentDecision !== 'granted';
+  const hasDecision = currentDecision === 'granted' || currentDecision === 'denied';
 
-  if (!showBanner) {
+  // Une fois la decision prise (acceptee OU refusee), le bandeau disparait
+  // jusqu'au prochain changement de version de politique ou a une reouverture explicite.
+  if (hasDecision && !isReopened) {
     return null;
   }
 
-  const isRejected = currentDecision === 'denied';
-  const shouldCollapse = isRejected;
+  const handleDecision = (decision) => {
+    recordConsentDecision(decision, isReopened ? 'preferences' : 'banner');
+    if (typeof onDismiss === 'function') onDismiss();
+  };
 
   return (
-    <aside
-      className={`${styles.banner} ${shouldCollapse ? styles.bannerCollapsed : ''}`}
-      aria-label="Gestion des cookies et du consentement"
-    >
+    <aside className={styles.banner} aria-label="Gestion des cookies et du consentement">
       <div
-        className={`${styles.panel} ${shouldCollapse ? styles.panelCollapsed : ''}`}
+        className={styles.panel}
         role="dialog"
         aria-modal="false"
         aria-labelledby="cookie-consent-title"
+        aria-describedby="cookie-consent-text"
       >
         <div className={styles.header}>
           <div>
             <p className={styles.eyebrow}>Consentement cookies</p>
             <h2 id="cookie-consent-title" className={styles.title}>
-              {isRejected
-                ? 'Vous avez refusé les outils de mesure.'
+              {isReopened
+                ? 'Gérez vos cookies de mesure.'
                 : 'Nous utilisons des cookies pour mesurer l’usage de manière limitée.'}
             </h2>
-            <p className={styles.text}>
+            <p id="cookie-consent-text" className={styles.text}>
               TeamBlender n’active pas les outils d’analytics, de tracking produit ni les balises tierces
               avant votre accord. Vous pouvez accepter pour aider à améliorer la plateforme ou refuser
               pour garder uniquement le strict nécessaire.
             </p>
             <div className={styles.meta}>
               <span className={styles.badge}>Politique {policyVersion}</span>
-              <span className={styles.badge}>Journal local horodaté</span>
+              {hasDecision ? (
+                <span className={styles.badge}>
+                  Choix actuel :{' '}
+                  {currentDecision === 'granted' ? 'cookies autorisés' : 'cookies refusés'}
+                </span>
+              ) : (
+                <span className={styles.badge}>Journal local horodaté</span>
+              )}
               <Link href="/confidentialite" className={styles.link}>
                 Politique de confidentialité
               </Link>
@@ -54,17 +63,24 @@ export default function CookieConsentBanner({ consentState }) {
           <button
             type="button"
             className={`${styles.button} ${styles.buttonPrimary}`}
-            onClick={() => recordConsentDecision('granted', 'banner')}
+            onClick={() => handleDecision('granted')}
           >
             Autoriser les cookies de mesure
           </button>
-          {!isRejected ? (
+          <button
+            type="button"
+            className={`${styles.button} ${styles.buttonSecondary}`}
+            onClick={() => handleDecision('denied')}
+          >
+            Refuser les cookies de mesure
+          </button>
+          {isReopened ? (
             <button
               type="button"
-              className={`${styles.button} ${styles.buttonSecondary}`}
-              onClick={() => recordConsentDecision('denied', 'banner')}
+              className={`${styles.button} ${styles.buttonGhost}`}
+              onClick={() => onDismiss?.()}
             >
-              Refuser les cookies de mesure
+              Fermer
             </button>
           ) : null}
         </div>

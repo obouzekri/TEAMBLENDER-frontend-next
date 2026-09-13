@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Logo from './Logo';
 import useI18n from '@/lib/i18n/useI18n';
+import { openConsentPreferences } from '@/lib/consent';
 
 export default function Footer() {
   const { t, withLocalePath } = useI18n();
@@ -34,6 +35,7 @@ export default function Footer() {
         { href: withLocalePath('/mentions-legales'), label: t('footer.legalNotice') },
         { href: withLocalePath('/confidentialite'), label: t('footer.privacy') },
         { href: withLocalePath('/contact-rgpd'), label: t('footer.rgpdContact') },
+        { key: 'manage-cookies', label: t('footer.manageCookies'), onClick: openConsentPreferences },
       ],
     },
     {
@@ -58,9 +60,13 @@ export default function Footer() {
           {footerGroups.map((group) => (
             <nav key={group.key} className="footer-col" aria-label={group.label}>
               <p>{group.label}</p>
-              {group.links.map((link) => (
+              {group.links.map((link) => (link.onClick ? (
+                <button key={link.key} type="button" className="footer-link-button" onClick={link.onClick}>
+                  {link.label}
+                </button>
+              ) : (
                 <Link key={link.href} href={link.href}>{link.label}</Link>
-              ))}
+              )))}
             </nav>
           ))}
         </div>
@@ -69,9 +75,13 @@ export default function Footer() {
           {footerGroups.map((group) => (
             <nav key={group.key} className="footer-col" aria-label={group.label}>
               <p>{group.label}</p>
-              {group.links.map((link) => (
+              {group.links.map((link) => (link.onClick ? (
+                <button key={link.key} type="button" className="footer-link-button" onClick={link.onClick}>
+                  {link.label}
+                </button>
+              ) : (
                 <Link key={link.href} href={link.href}>{link.label}</Link>
-              ))}
+              )))}
             </nav>
           ))}
         </div>

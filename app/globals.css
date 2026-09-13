@@ -10597,6 +10597,40 @@ html[data-theme='dark'] .contact-trust-box{
   color: var(--text-strong);
 }
 
+.footer-col .footer-link-button {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.16s ease;
+}
+
+.footer-col .footer-link-button:hover {
+  color: var(--text-strong);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(html:not([data-theme='light'])) .site-footer .footer-link-button {
+    color: #94a3b8;
+  }
+
+  :where(html:not([data-theme='light'])) .site-footer .footer-link-button:hover {
+    color: #ffffff;
+  }
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .site-footer .footer-link-button {
+  color: #94a3b8;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .site-footer .footer-link-button:hover {
+  color: #ffffff;
+}
+
 .footer-columns--mobile {
   display: none;
 }
