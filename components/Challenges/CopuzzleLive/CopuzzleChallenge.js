@@ -366,6 +366,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
       <ChallengeHeader
         title={effectiveConfig.title}
         subtitle={challengeSubtitle || 'Puzzle collaboratif en temps réel'}
+        timer={{ remainingSeconds: timerRemainingSeconds }}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader

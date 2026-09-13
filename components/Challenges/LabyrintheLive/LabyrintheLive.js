@@ -690,6 +690,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         title={challengeName}
         subtitle={(challengeSubtitle || (isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, évitez les pièges, ouvrez la sortie.'))
           + (hasChallengeStarted && labyLevelsTotal > 1 ? ` · ${isEn ? 'Level' : 'Niveau'} ${labyLevel}/${labyLevelsTotal}` : '')}
+        timer={{ remainingSeconds: Number(timer?.remaining_seconds || 0) }}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader

@@ -361,6 +361,7 @@ export default function MissionCritiqueChallenge({
               'Organiser un séminaire d’entreprise pour 80 personnes.'
           )
         }
+        timer={{ remainingSeconds: timerRemainingSeconds }}
         headerAction={
           hasChallengeStarted ? (
             <ChallengeRulesPanel

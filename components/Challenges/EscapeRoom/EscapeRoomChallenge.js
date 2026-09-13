@@ -825,6 +825,7 @@ export default function EscapeRoomChallenge({
         title={challengeName}
         subtitle={challengeSubtitle || copy.subtitleFallback}
         className={styles.escapeHeader}
+        timer={{ remainingSeconds: timerSeconds }}
         headerAction={
           hasChallengeStarted ? (
             <ChallengeRulesPanel

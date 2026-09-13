@@ -351,6 +351,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
       <ChallengeHeader
         title={rulesPreset?.challengeName || 'Lab d\'Innovation'}
         subtitle={rulesPreset?.subtitle || 'Innovation collaborative'}
+        timer={{ remainingSeconds: timerRemainingSeconds }}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader

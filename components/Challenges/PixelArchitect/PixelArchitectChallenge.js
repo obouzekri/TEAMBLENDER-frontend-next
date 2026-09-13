@@ -997,6 +997,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || (isEn ? 'Replicate the model together in real time with grid and palette constraints.' : 'Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette.')}
+        timer={{ remainingSeconds: Number(timer?.remaining_seconds || 0) }}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader

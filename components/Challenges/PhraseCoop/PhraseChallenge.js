@@ -256,6 +256,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || 'Reconstituez la phrase en équipe, slot par slot'}
+        timer={{ remainingSeconds: Number(timer?.remaining_seconds || 0) }}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader

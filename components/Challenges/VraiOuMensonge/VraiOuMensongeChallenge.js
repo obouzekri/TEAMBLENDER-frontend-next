@@ -688,6 +688,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       <ChallengeHeader
         title={challengeName || 'QUI ME CONNAIT LE MIEUX ?'}
         subtitle={challengeSubtitle || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !'}
+        timer={{ remainingSeconds: remainingSecondsForCard }}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader

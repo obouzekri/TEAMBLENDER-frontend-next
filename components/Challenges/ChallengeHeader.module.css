@@ -46,4 +46,27 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+}
+
+.timer {
+  display: none;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 32px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--control-border-strong);
+  border-radius: 8px;
+  color: var(--text-strong);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.94rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .timer {
+    display: inline-flex;
+  }
 }

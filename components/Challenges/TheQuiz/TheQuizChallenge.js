@@ -437,6 +437,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
           title={challengeName}
           subtitle={challengeSubtitle || (isEn ? 'Real-time multiplayer general knowledge quiz' : 'Quiz multijoueur realtime de culture générale')}
           uppercaseSubtitle={false}
+          timer={{ remainingSeconds: timerRemainingSeconds }}
           headerAction={isStarted ? (
             <ChallengeRulesPanel
               inHeader
