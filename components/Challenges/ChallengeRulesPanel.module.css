@@ -86,10 +86,12 @@
 .rulesSection {
   display: grid;
   gap: clamp(7px, 0.7vw, 10px);
-  border: 1px solid var(--ch-line-soft);
-  background: var(--ch-surface-1);
-  border-radius: 10px;
-  padding: clamp(10px, 0.9vw, 14px) clamp(11px, 1vw, 16px);
+  padding: clamp(12px, 1vw, 16px) 0;
+}
+
+.rulesSection + .rulesSection,
+.rulesSection + .rulesFootnote {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .rulesGroupedList {
@@ -98,10 +100,11 @@
 }
 
 .rulesGroup {
-  border: 1px solid var(--ch-line-soft);
-  border-radius: 10px;
-  padding: clamp(9px, 0.8vw, 13px) clamp(10px, 0.9vw, 15px);
-  background: var(--ch-surface-2);
+  padding: clamp(10px, 0.9vw, 14px) 0;
+}
+
+.rulesGroup + .rulesGroup {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .rulesGroup h4 {
@@ -155,11 +158,11 @@
   }
 
   .rulesSection {
-    padding: 14px 16px;
+    padding: 16px 0;
   }
 
   .rulesGroup {
-    padding: 12px 14px;
+    padding: 14px 0;
   }
 }
 
