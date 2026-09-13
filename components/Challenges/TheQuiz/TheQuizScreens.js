@@ -44,12 +44,9 @@ function getRankMedal(rank) {
   return null;
 }
 
-function renderLeaderboardRows({ rows, maxScore, rankMovementByParticipantId = {}, isEn = false }) {
+function renderLeaderboardRows({ rows, maxScore, rankMovementByParticipantId = {} }) {
   return rows.map((entry, index) => {
-    const participantKey = String(entry.participant_id);
-    const movement = String(rankMovementByParticipantId[participantKey] || 'same');
-    const movementLabel = movement === 'up' ? (isEn ? 'Up' : 'En hausse') : movement === 'down' ? (isEn ? 'Down' : 'En baisse') : (isEn ? 'Stable' : 'Stable');
-    const movementGlyph = movement === 'up' ? '↑' : movement === 'down' ? '↓' : '→';
+    const movement = String(rankMovementByParticipantId[String(entry.participant_id)] || 'same');
     const progressWidth = `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%`;
     const medal = getRankMedal(Number(entry.rank));
 
@@ -61,19 +58,16 @@ function renderLeaderboardRows({ rows, maxScore, rankMovementByParticipantId = {
         <div className={styles.leaderboardIdentity}>
           <div className={styles.leaderboardRankWrap}>
             <span className={styles.rankPill}>{medal || `#${entry.rank}`}</span>
-            <span className={`${styles.rankDeltaBadge}${movement === 'up' ? ` ${styles.rankDeltaUp}` : movement === 'down' ? ` ${styles.rankDeltaDown}` : ''}`} aria-label={movementLabel}>{movementGlyph}</span>
           </div>
           <span className={styles.leaderAvatar}>{getInitials(entry.display_name)}</span>
           <div className={styles.leaderboardCopy}>
             <span className={styles.leaderboardLine}>{entry.display_name}</span>
-            <span className={styles.leaderboardSubline}>{isEn ? 'Live rank' : `Rang #${entry.rank}`}</span>
           </div>
         </div>
 
         <div className={styles.leaderboardScoreWrap}>
           <div className={styles.leaderboardScoreTopline}>
             <span className={styles.leaderboardScore}>{entry.score} pts</span>
-            {medal ? <span className={styles.leaderboardReward}>{medal}</span> : null}
           </div>
           <span className={styles.leaderProgressTrack}>
             <span className={styles.leaderProgressFill} style={{ width: progressWidth }} />
@@ -184,7 +178,7 @@ export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByPartic
         <span className={styles.rankingMeta}>{isEn ? 'Live update' : 'Mis à jour en direct'}</span>
       </div>
       <div className={styles.leaderboardList}>
-        {renderLeaderboardRows({ rows: topRows, maxScore, rankMovementByParticipantId, isEn })}
+        {renderLeaderboardRows({ rows: topRows, maxScore, rankMovementByParticipantId })}
       </div>
     </section>
   );
@@ -242,7 +236,6 @@ export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerI
           rows: (quiz.leaderboard || []).slice(0, 5),
           maxScore: Math.max(1, ...(quiz.leaderboard || []).slice(0, 5).map((entry) => Number(entry.score || 0))),
           rankMovementByParticipantId: {},
-          isEn,
         })}
       </div>
     </section>
@@ -271,14 +264,13 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
         <article className={styles.metricCard}><span>{isEn ? 'Winning score' : 'Score gagnant'}</span><strong>{winner?.score ?? 0} {isEn ? 'pts' : 'pts'}</strong></article>
       </div>
 
-      <div className={styles.finalDebriefBlock}>
+      <div className={styles.finalRankingBlock}>
         <p className={styles.kicker}>{isEn ? 'Detailed ranking' : 'Classement détaillé'}</p>
         <div className={styles.rankingList}>
           {renderLeaderboardRows({
             rows: standings,
             maxScore: Math.max(1, ...standings.map((entry) => Number(entry.score || 0))),
             rankMovementByParticipantId: {},
-            isEn,
           })}
         </div>
       </div>
