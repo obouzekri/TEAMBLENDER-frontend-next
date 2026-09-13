@@ -1291,22 +1291,37 @@
 
 @media (max-width: 860px) {
   .stepper {
-    display: flex;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    overflow: hidden;
   }
 
   .stepperStep {
-    flex: 0 0 auto;
-    min-width: 132px;
-    scroll-snap-align: start;
+    min-width: 0;
+    gap: 4px;
+    padding: 7px 5px;
+    justify-content: center;
   }
 
   .stepLabel {
-    max-width: 96px;
+    flex: 0 1 auto;
+    font-size: 0;
+  }
+
+  .stepLabel::after {
+    content: attr(data-mobile-label);
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .stepDot,
+  .stepCount {
+    width: 1.28rem;
+    min-width: 1.28rem;
+    height: 1.28rem;
+    padding: 0;
+    font-size: 0.68rem;
   }
 
   .taskRow,

@@ -15,10 +15,10 @@ import { ClipboardList, ListTodo } from 'lucide-react';
 import styles from './MissionCritique.module.css';
 
 const PHASES = Object.freeze([
-  { key: 'cadrage', label: 'Cadrage', className: 'phaseCadrage' },
-  { key: 'preparation', label: 'Préparation', className: 'phasePreparation' },
-  { key: 'execution', label: 'Exécution', className: 'phaseExecution' },
-  { key: 'cloture', label: 'Clôture', className: 'phaseCloture' },
+  { key: 'cadrage', label: 'Cadrage', mobileLabel: 'Cadre', className: 'phaseCadrage' },
+  { key: 'preparation', label: 'Préparation', mobileLabel: 'Prépa', className: 'phasePreparation' },
+  { key: 'execution', label: 'Exécution', mobileLabel: 'Exéc.', className: 'phaseExecution' },
+  { key: 'cloture', label: 'Clôture', mobileLabel: 'Clôt.', className: 'phaseCloture' },
 ]);
 const ROMAN_PHASE_NUMERALS = Object.freeze(['I', 'II', 'III', 'IV']);
 
@@ -37,6 +37,14 @@ function phaseLabel(phase, isEn) {
   if (phase.key === 'preparation') return 'Preparation';
   if (phase.key === 'execution') return 'Execution';
   return 'Closure';
+}
+
+function mobilePhaseLabel(phase, isEn) {
+  if (!isEn) return phase.mobileLabel;
+  if (phase.key === 'cadrage') return 'Scope';
+  if (phase.key === 'preparation') return 'Prep';
+  if (phase.key === 'execution') return 'Execute';
+  return 'Close';
 }
 
 function normalizeName(value) {
@@ -454,7 +462,7 @@ export default function MissionCritiqueChallenge({
                         onClick={() => setActivePhase(phase.key)}
                       >
                         <span className={styles.stepDot}>{ROMAN_PHASE_NUMERALS[phaseIdx]}</span>
-                        <span className={styles.stepLabel}>{phaseLabel(phase, isEn)}</span>
+                        <span className={styles.stepLabel} data-mobile-label={mobilePhaseLabel(phase, isEn)}>{phaseLabel(phase, isEn)}</span>
                         <span className={styles.stepCount}>{count}</span>
                       </button>
                     );
