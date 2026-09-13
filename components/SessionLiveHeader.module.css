@@ -76,27 +76,54 @@
 }
 
 .infoButton {
-  width: 34px;
-  height: 34px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid var(--surface-soft-border);
-  background: #f8fafc;
-  color: #475569;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-strong);
   transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
 .infoButton:hover {
   border-color: var(--accent-strong);
-  background: #eff6ff;
+  background: rgba(255, 255, 255, 0.16);
   color: var(--accent-strong);
 }
 
 .infoButton:focus-visible {
   outline: 2px solid var(--accent-strong);
   outline-offset: 2px;
+}
+
+.infoTooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  z-index: 10;
+  width: max-content;
+  max-width: min(220px, calc(100vw - 24px));
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--surface-soft-border);
+  border-radius: 6px;
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-md);
+  color: var(--text-strong);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -4px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.infoWrap:hover .infoTooltip,
+.infoWrap:focus-within .infoTooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .popover {

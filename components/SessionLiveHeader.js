@@ -179,23 +179,23 @@ export default function SessionLiveHeader({
         <div className={styles.details}>
           <div className={styles.titleRow}>
             <strong className={styles.sessionName} title={resolvedSessionName}>{resolvedSessionName}</strong>
-            <span className={styles.participantBadge}>
-              <Users aria-hidden="true" size={14} strokeWidth={2} />
-              {resolvedParticipantCount}
-            </span>
             <div ref={infoRef} className={styles.infoWrap}>
               <button
                 type="button"
                 className={styles.infoButton}
                 aria-expanded={infoOpen}
                 aria-label={sessionInfoLabel}
-                title={sessionInfoLabel}
                 onClick={() => setInfoOpen((current) => !current)}
               >
-                <Info size={16} strokeWidth={2.2} aria-hidden="true" />
+                <Info size={14} strokeWidth={2.2} aria-hidden="true" />
               </button>
+              <span className={styles.infoTooltip} role="tooltip">{sessionInfoLabel}</span>
               {infoPopover && typeof document !== 'undefined' ? createPortal(infoPopover, document.body) : null}
             </div>
+            <span className={styles.participantBadge}>
+              <Users aria-hidden="true" size={14} strokeWidth={2} />
+              {resolvedParticipantCount}
+            </span>
           </div>
         </div>
 
