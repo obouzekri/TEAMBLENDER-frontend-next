@@ -73,6 +73,22 @@
   color: var(--ch-text-main);
 }
 
+:global(html[data-theme='light']) .viewportHint {
+  background: var(--surface-panel-soft);
+  border-color: var(--ch-line-soft);
+  color: var(--ch-text-main);
+}
+
+:global(html[data-theme='light']) .rulesMetaSection {
+  background: var(--ch-surface-1);
+  border-color: var(--ch-line-soft);
+}
+
+:global(html[data-theme='light']) .rulesMetaSection h3,
+:global(html[data-theme='light']) .rulesInlineText {
+  color: var(--ch-text-main);
+}
+
 :global(html[data-theme='light']) .levelBtn,
 :global(html[data-theme='light']) .layerBtn,
 :global(html[data-theme='light']) .layerQuickActivateBtn,
