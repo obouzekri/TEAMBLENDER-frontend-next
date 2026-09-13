@@ -89,6 +89,32 @@
   color: var(--ch-text-main);
 }
 
+:global(html[data-theme='light']) .attemptCard,
+:global(html[data-theme='light']) .finalCard,
+:global(html[data-theme='light']) .panel {
+  background: var(--ch-surface-1);
+  border-color: var(--ch-line-soft);
+  color: var(--ch-text-main);
+}
+
+:global(html[data-theme='light']) .activityItem {
+  background: var(--ch-surface-2);
+  border-color: var(--ch-line-soft);
+  color: var(--ch-text-main);
+}
+
+:global(html[data-theme='light']) .activityItem strong {
+  color: var(--ch-text-main);
+}
+
+:global(html[data-theme='light']) .activityItem span {
+  color: var(--ch-text-soft);
+}
+
+:global(html[data-theme='light']) .progressTrack {
+  background: var(--surface-muted);
+}
+
 :global(html[data-theme='light']) .levelBtn,
 :global(html[data-theme='light']) .layerBtn,
 :global(html[data-theme='light']) .layerQuickActivateBtn,
