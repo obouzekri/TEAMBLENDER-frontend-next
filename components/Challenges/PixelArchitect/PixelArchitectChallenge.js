@@ -1053,12 +1053,34 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             <>
               <section className={styles.panel}>
                 <div className={styles.panelHead}>
-                  <h2>{isEn ? 'Layer build workspace' : 'Espace de build par couche'}</h2>
-                  <p>
-                    {isEn
-                      ? 'All layers are editable here. Click a layer title to set it active, then click cells to place or remove cubes.'
-                      : 'Toutes les couches sont editables ici. Cliquez le titre pour activer, puis les cellules pour poser ou retirer des cubes.'}
-                  </p>
+                  <div className={styles.workspaceCopy}>
+                    <h2>{isEn ? 'Layer build workspace' : 'Espace de build par couche'}</h2>
+                    <p>
+                      {isEn
+                        ? 'All layers are editable here. Click a layer title to set it active, then click cells to place or remove cubes.'
+                        : 'Toutes les couches sont editables ici. Cliquez le titre pour activer, puis les cellules pour poser ou retirer des cubes.'}
+                    </p>
+                  </div>
+                  {!isFacilitator ? (
+                    <div className={styles.paletteRow}>
+                      <p className={styles.paletteLabel}>{isEn ? 'Active palette' : 'Palette active'}</p>
+                      <div className={styles.paletteSwatches} role="radiogroup" aria-label={isEn ? 'Color palette' : 'Palette de couleurs'}>
+                        {palette.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            role="radio"
+                            aria-checked={selectedColor === color}
+                            aria-label={describeColor(color)}
+                            title={describeColor(color)}
+                            className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
+                            style={{ background: color }}
+                            onClick={() => selectColor(color)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className={styles.layerQuickList}>
@@ -1213,29 +1235,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 <p className={styles.modelMiniHidden}>{isEn ? 'Model hidden for this role' : 'Modele masque pour ce role'}</p>
               )}
             </div>
-
-            {!isFacilitator ? (
-              <div className={styles.paletteRow}>
-                <p className={styles.paletteLabel}>{isEn ? 'Active palette' : 'Palette active'}</p>
-                <div className={styles.paletteSwatches} role="radiogroup" aria-label={isEn ? 'Color palette' : 'Palette de couleurs'}>
-                  {palette.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      role="radio"
-                      aria-checked={selectedColor === color}
-                      aria-label={describeColor(color)}
-                      title={describeColor(color)}
-                      data-tooltip={describeColor(color)}
-                      className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
-                      style={{ background: color }}
-                      onClick={() => selectColor(color)}
-                    />
-                  ))}
-                </div>
-                <p className={styles.paletteValue}>{isEn ? 'Selection' : 'Selection'}: {selectedColor}</p>
-              </div>
-            ) : null}
 
             <div className={styles.viewportWrapCompact}>
               <p className={styles.viewportHint}>
