@@ -240,15 +240,16 @@
 
 @media (max-width: 760px) {
   .topRow {
-    flex-direction: column;
-    align-items: stretch;
+    gap: 0.5rem;
   }
 
-  .actions {
-    width: 100%;
+  .details {
+    min-width: 0;
   }
 
   .actionButton {
-    width: 100%;
+    min-height: 32px;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.72rem;
   }
 }
