@@ -136,7 +136,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
       }
       localTransitionTimerRef.current = window.setTimeout(() => {
         setForcedPhase('');
-      }, 1400);
+      }, 10000);
     }
 
     if (type === 'question_started' || type === 'session_finished') {
