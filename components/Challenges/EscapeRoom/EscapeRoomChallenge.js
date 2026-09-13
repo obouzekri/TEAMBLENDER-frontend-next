@@ -48,6 +48,14 @@ function formatValidationFeedback(validation = {}, outcomeUi = {}, copy = {}) {
     if (total > 0) {
       detail = applyTemplate(copy.teamProgressDetail, { responded, total });
     }
+
+    // Waiting is a neutral status already covered by the answered banner; no overlay needed.
+    return {
+      feedback: preset.feedback,
+      verdict: null,
+      holdBeforeRefreshMs: Number(preset.durationMs || 0),
+      blockProgression: Boolean(preset.blockProgression),
+    };
   }
   if (outcome === 'divergent' || outcome === 'wrong' || outcome === 'max_attempts') {
     const attempts = Number(validation?.attempts || 0);
@@ -225,7 +233,7 @@ export default function EscapeRoomChallenge({
             puzzleHint: 'Indice:',
             answerTitle: 'Votre proposition',
             answerPrivacyBadge: "Privé jusqu'à validation collective",
-            answerSent: 'Reponse envoyee. Vous pouvez la modifier et soumettre de nouveau.',
+            answerSent: 'Réponse envoyée. Vous pouvez la modifier et soumettre de nouveau.',
             answersReceived: '{responded}/{total} reponses recues',
             answerPlaceholder: 'Saisissez votre proposition...',
             submit: 'Soumettre',
