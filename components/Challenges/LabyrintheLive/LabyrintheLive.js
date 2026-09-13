@@ -923,7 +923,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                         {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
                         {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
                         {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
-                        {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
+                        {Boolean(revealedTraps[key]) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                         {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
                         {microCue?.cellKey === key ? (
                           <span className={`${styles.cellMicroCue} ${styles[`cellMicroCue--${microCue.tone}`] || ''}`}>
