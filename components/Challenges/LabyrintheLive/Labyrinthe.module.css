@@ -215,6 +215,7 @@
 }
 
 .gameGrid {
+  --maze-columns: 10;
   gap: 0;
   background: #020912;
   border-radius: 8px;
@@ -222,7 +223,7 @@
   outline: none;
   border: 1px solid rgba(56, 189, 248, 0.26);
   box-shadow: inset 0 0 0 1px rgba(7, 20, 34, 0.96), 0 10px 26px rgba(3, 10, 19, 0.45);
-  width: fit-content;
+  width: min(100%, calc((var(--maze-columns) * 35px) + 20px));
   margin: 0 auto;
   padding: 18px 10px;
 }
@@ -236,21 +237,21 @@
   border-radius: 8px;
 }
 
-.cols6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-.cols7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
-.cols8 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
-.cols9 { grid-template-columns: repeat(9, minmax(0, 1fr)); }
-.cols10 { grid-template-columns: repeat(10, minmax(0, 1fr)); }
-.cols11 { grid-template-columns: repeat(11, minmax(0, 1fr)); }
-.cols12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
-.cols13 { grid-template-columns: repeat(13, minmax(0, 1fr)); }
-.cols14 { grid-template-columns: repeat(14, minmax(0, 1fr)); }
-.cols15 { grid-template-columns: repeat(15, minmax(0, 1fr)); }
-.cols16 { grid-template-columns: repeat(16, minmax(0, 1fr)); }
-.cols17 { grid-template-columns: repeat(17, minmax(0, 1fr)); }
-.cols18 { grid-template-columns: repeat(18, minmax(0, 1fr)); }
-.cols19 { grid-template-columns: repeat(19, minmax(0, 1fr)); }
-.cols20 { grid-template-columns: repeat(20, minmax(0, 1fr)); }
+.cols6 { --maze-columns: 6; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.cols7 { --maze-columns: 7; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.cols8 { --maze-columns: 8; grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.cols9 { --maze-columns: 9; grid-template-columns: repeat(9, minmax(0, 1fr)); }
+.cols10 { --maze-columns: 10; grid-template-columns: repeat(10, minmax(0, 1fr)); }
+.cols11 { --maze-columns: 11; grid-template-columns: repeat(11, minmax(0, 1fr)); }
+.cols12 { --maze-columns: 12; grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.cols13 { --maze-columns: 13; grid-template-columns: repeat(13, minmax(0, 1fr)); }
+.cols14 { --maze-columns: 14; grid-template-columns: repeat(14, minmax(0, 1fr)); }
+.cols15 { --maze-columns: 15; grid-template-columns: repeat(15, minmax(0, 1fr)); }
+.cols16 { --maze-columns: 16; grid-template-columns: repeat(16, minmax(0, 1fr)); }
+.cols17 { --maze-columns: 17; grid-template-columns: repeat(17, minmax(0, 1fr)); }
+.cols18 { --maze-columns: 18; grid-template-columns: repeat(18, minmax(0, 1fr)); }
+.cols19 { --maze-columns: 19; grid-template-columns: repeat(19, minmax(0, 1fr)); }
+.cols20 { --maze-columns: 20; grid-template-columns: repeat(20, minmax(0, 1fr)); }
 
 .cell {
   box-sizing: border-box;
@@ -989,15 +990,47 @@ button.cell:focus-visible {
 }
 
 @media (max-width: 640px) {
+  .labyrinthContainer,
+  .hero,
+  .panel {
+    padding: 12px;
+  }
+
   .headerTitleLine {
     white-space: normal;
   }
 
-  .cell {
-    width: 24px;
-    height: 24px;
-    min-width: 24px;
-    min-height: 24px;
+  .headerTitle {
+    font-size: 0.96rem;
+  }
+
+  .headerDescription {
+    font-size: 0.76rem;
+  }
+
+  .gameGrid {
+    width: 100%;
+    padding: 8px;
+    aspect-ratio: 1 / 1;
+  }
+
+  .gameGrid .cell {
+    width: auto;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+  }
+
+  .cellStartBadge,
+  .cellExitBadge {
+    padding: 1px 2px;
+    min-height: 11px;
+    font-size: clamp(0.28rem, 1.6vw, 0.46rem);
+  }
+
+  .cellPlayerDot {
+    font-size: clamp(0.38rem, 2vw, 0.62rem);
   }
 
   .controlHeadLegendWrap {

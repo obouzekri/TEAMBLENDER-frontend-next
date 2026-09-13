@@ -145,8 +145,12 @@
 
 @media (max-width: 720px) {
   .challengeContainer {
-    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    padding-bottom: max(88px, calc(72px + env(safe-area-inset-bottom)));
     gap: 7px;
+  }
+
+  .headerSlot {
+    padding: 12px 12px 0;
   }
 
   .challengeContainer :global(.challenge-header) {
@@ -158,6 +162,16 @@
     gap: 6px;
   }
 
+
+@media (max-width: 380px) {
+  .challengeContainer :global(h1) {
+    font-size: 1.25rem;
+  }
+
+  .challengeContainer :global(.challenge-header) {
+    padding: 10px 12px;
+  }
+}
   .challengeContainer :global(.challenge-title) {
     font-size: 1.02rem;
   }
