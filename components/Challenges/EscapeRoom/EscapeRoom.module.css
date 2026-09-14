@@ -557,9 +557,10 @@
 }
 
 .description {
-  margin-top: 0;
+  margin: 0 0 16px;
   color: #d8e5f3;
-  line-height: 1.6;
+  font-size: 0.92rem;
+  line-height: 1.5;
 }
 
 .imageFallbackNote {
@@ -606,10 +607,18 @@
 }
 
 .enigmeTitleRow {
-  display: flex;
-  align-items: baseline;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+}
+
+.enigmeTitleRow h2 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 1.18rem;
+  font-weight: 800;
+  line-height: 1.25;
 }
 
 .enigmeEyebrow {
@@ -623,6 +632,7 @@
 
 .enigmeContextLine {
   margin: 0;
+  text-align: right;
   color: #9cb2c7;
   font-size: 0.76rem;
   font-weight: 700;
