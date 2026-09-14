@@ -170,8 +170,12 @@
   border: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(20, 30, 54, 0.82);
   padding: clamp(12px, 1vw, 18px);
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: clamp(10px, 1vw, 16px);
+  min-height: 100%;
 }
 
 @media (min-width: 1360px) {
@@ -181,17 +185,29 @@
   }
 }
 
+.arenaTitle {
+  margin: 0 0 4px;
+  text-align: center;
+  font-size: clamp(1.1rem, 1.6vw, 1.6rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #7dd3fc;
+  text-transform: uppercase;
+}
+
 .board {
   display: grid;
   gap: 5px;
-  width: 100%;
-  align-content: start;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  align-content: center;
+  justify-content: center;
 }
 
 .cell {
   width: 100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
+  height: 100%;
   border-radius: 7px;
   border: 1px dashed rgba(148, 163, 184, 0.35);
   background: rgba(15, 23, 42, 0.6);

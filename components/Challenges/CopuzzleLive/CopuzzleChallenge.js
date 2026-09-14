@@ -329,11 +329,12 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
       const vpH = window.innerHeight;
       // Board panel takes most of the viewport width for a larger workspace.
       const panelW = Math.floor(vpW * 0.74) - 64;
-      // Reserve more vertical room for facilitator side controls to keep the full view compact.
-      const panelH = vpH - (isFacilitator ? 240 : 180);
+      // Reserve room for the arena title plus facilitator side controls to keep the full view compact.
+      const panelH = vpH - (isFacilitator ? 280 : 220);
       const byWidth = Math.floor(panelW / colCount);
       const byHeight = Math.floor(panelH / rowCount);
-      const computed = Math.max(30, Math.min(118, Math.min(byWidth, byHeight)));
+      // Cards stay compact by default but still shrink to fit larger grids inside the frame.
+      const computed = Math.max(24, Math.min(64, Math.min(byWidth, byHeight)));
       setCellSize(computed);
     }
     computeCellSize();
@@ -411,10 +412,12 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
             />
           ) : (
             <>
+              <h2 className={styles.arenaTitle}>COPUZZLE ARENA</h2>
               <div
                 className={styles.board}
                 style={{
-                  gridTemplateColumns: `repeat(${colCount}, 1fr)`,
+                  gridTemplateColumns: `repeat(${colCount}, ${cellSize}px)`,
+                  gridAutoRows: `${cellSize}px`,
                 }}
               >
                 {boardCells.map((cell) => {
