@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
+import { KeyRound, LockKeyhole } from 'lucide-react';
 import { buildBackendAssetCandidates, getApiUrl } from '@/lib/config';
 import { getAuthHeaders } from '@/lib/auth';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
@@ -1098,8 +1099,14 @@ export default function EscapeRoomChallenge({
               {!isFacilitator ? (
                 <div className={styles.answerPanel}>
                   <div className={styles.answerPanelHeader}>
-                    <p className={styles.answerPanelTitle}>🔑 {copy.answerTitle}</p>
-                    <span className={styles.answerPanelHint}>🔒 {copy.answerPrivacyBadge}</span>
+                    <p className={styles.answerPanelTitle}>
+                      <KeyRound size={18} aria-hidden="true" />
+                      {copy.answerTitle}
+                    </p>
+                    <span className={styles.answerPanelHint}>
+                      <LockKeyhole size={13} aria-hidden="true" />
+                      {copy.answerPrivacyBadge}
+                    </span>
                   </div>
                   {hasCurrentParticipantResponded ? (
                     <div className={styles.answeredBanner}>
