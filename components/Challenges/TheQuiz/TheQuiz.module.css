@@ -495,6 +495,7 @@
   border: 1px solid rgba(66, 212, 248, 0.3);
   font-size: 0.78rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .ruleList,
@@ -694,8 +695,10 @@
   border: 1px solid rgba(148, 163, 184, 0.12);
   background: rgba(148, 163, 184, 0.05);
   padding: 15px;
-  display: grid;
-  gap: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   position: relative;
   overflow: hidden;
   animation: cardEnter 260ms ease;
@@ -714,10 +717,10 @@
 }
 
 .leaderboardIdentity {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
-  gap: 10px;
+  display: flex;
   align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .leaderboardRankWrap {
@@ -736,63 +739,21 @@
   font-size: 0.82rem;
 }
 
-.leaderAvatar {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: rgba(8, 20, 36, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  font-weight: 800;
-  color: #eef6fb;
-}
-
-.leaderboardCopy {
-  min-width: 0;
-  display: grid;
-  gap: 2px;
-}
-
 .leaderboardLine {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 800;
   color: #eaf3ff;
   text-transform: capitalize;
 }
 
-.leaderboardScoreWrap {
-  display: grid;
-  gap: 6px;
-  padding-left: 52px;
-}
-
-.leaderboardScoreTopline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
 .leaderboardScore {
+  flex: 0 0 auto;
   font-size: 1.02rem;
   font-weight: 800;
   color: #eef6fb;
-}
-
-.leaderProgressTrack {
-  display: block;
-  width: 100%;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(148, 163, 184, 0.2);
-  overflow: hidden;
-}
-
-.leaderProgressFill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #34d399, #22d3ee);
 }
 
 .highlightPanel {
@@ -895,6 +856,12 @@
   border-color: rgba(56, 189, 248, 0.42);
 }
 
+:global(html[data-theme='light']) .autoTransitionHint {
+  background: rgba(8, 127, 154, 0.08);
+  color: var(--quiz-text);
+  border-color: rgba(8, 127, 154, 0.3);
+}
+
 .chatWrap {
   position: relative;
 }
@@ -967,14 +934,6 @@
 
 .leaderboardCard {
     padding: 12px;
-  }
-
-  .leaderboardIdentity {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .leaderboardScoreWrap {
-    padding-left: 0;
   }
 }
 

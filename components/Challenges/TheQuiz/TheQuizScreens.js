@@ -30,13 +30,6 @@ function formatRelativeMs(value) {
   return `${Math.round((millis / 1000) * 10) / 10}s`;
 }
 
-function getInitials(name) {
-  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
-}
-
 function getRankMedal(rank) {
   if (rank === 1) return '🥇';
   if (rank === 2) return '🥈';
@@ -44,10 +37,9 @@ function getRankMedal(rank) {
   return null;
 }
 
-function renderLeaderboardRows({ rows, maxScore, rankMovementByParticipantId = {} }) {
+function renderLeaderboardRows({ rows, rankMovementByParticipantId = {} }) {
   return rows.map((entry, index) => {
     const movement = String(rankMovementByParticipantId[String(entry.participant_id)] || 'same');
-    const progressWidth = `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%`;
     const medal = getRankMedal(Number(entry.rank));
 
     return (
@@ -56,23 +48,10 @@ function renderLeaderboardRows({ rows, maxScore, rankMovementByParticipantId = {
         className={`${styles.leaderboardCard}${index < 3 ? ` ${styles.leaderboardCardTop}` : ''}${movement === 'up' ? ` ${styles.rankUp}` : ''}${movement === 'down' ? ` ${styles.rankDown}` : ''}`}
       >
         <div className={styles.leaderboardIdentity}>
-          <div className={styles.leaderboardRankWrap}>
-            <span className={styles.rankPill}>{medal || `#${entry.rank}`}</span>
-          </div>
-          <span className={styles.leaderAvatar}>{getInitials(entry.display_name)}</span>
-          <div className={styles.leaderboardCopy}>
-            <span className={styles.leaderboardLine}>{entry.display_name}</span>
-          </div>
+          <span className={styles.rankPill}>{medal || `#${entry.rank}`}</span>
+          <span className={styles.leaderboardLine}>{entry.display_name}</span>
         </div>
-
-        <div className={styles.leaderboardScoreWrap}>
-          <div className={styles.leaderboardScoreTopline}>
-            <span className={styles.leaderboardScore}>{entry.score} pts</span>
-          </div>
-          <span className={styles.leaderProgressTrack}>
-            <span className={styles.leaderProgressFill} style={{ width: progressWidth }} />
-          </span>
-        </div>
+        <span className={styles.leaderboardScore}>{entry.score} pts</span>
       </article>
     );
   });
@@ -169,7 +148,6 @@ export function QuizQuestionScreen({
 
 export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByParticipantId = {} }) {
   const topRows = (quiz.leaderboard || []).slice(0, 10);
-  const maxScore = Math.max(1, ...topRows.map((entry) => Number(entry.score || 0)));
 
   return (
     <section className={styles.rankingCardWrap}>
@@ -178,7 +156,7 @@ export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByPartic
         <span className={styles.rankingMeta}>{isEn ? 'Live update' : 'Mis à jour en direct'}</span>
       </div>
       <div className={styles.leaderboardList}>
-        {renderLeaderboardRows({ rows: topRows, maxScore, rankMovementByParticipantId })}
+        {renderLeaderboardRows({ rows: topRows, rankMovementByParticipantId })}
       </div>
     </section>
   );
@@ -234,7 +212,6 @@ export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerI
       <div className={styles.rankingList}>
         {renderLeaderboardRows({
           rows: (quiz.leaderboard || []).slice(0, 5),
-          maxScore: Math.max(1, ...(quiz.leaderboard || []).slice(0, 5).map((entry) => Number(entry.score || 0))),
           rankMovementByParticipantId: {},
         })}
       </div>
@@ -269,7 +246,6 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
         <div className={styles.rankingList}>
           {renderLeaderboardRows({
             rows: standings,
-            maxScore: Math.max(1, ...standings.map((entry) => Number(entry.score || 0))),
             rankMovementByParticipantId: {},
           })}
         </div>
