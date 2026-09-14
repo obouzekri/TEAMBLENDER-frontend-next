@@ -444,6 +444,11 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                   <p className={styles.helper}>
                     Sélectionnez ou glissez un mot vers une de vos cases pour le placer. L'équipe dispose de 2 actions “Découvrir un mot” au total.
                   </p>
+                  {selectedWord ? (
+                    <p className={styles.selectedWordStatus}>
+                      Mot sélectionné : <strong>{formatWord(selectedWord)}</strong>. Glissez-le ou choisissez une de vos cases.
+                    </p>
+                  ) : null}
                 </section>
               ) : null}
             </>
@@ -487,14 +492,6 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
           ) : null}
         </aside>
       </div>
-
-      {!isFacilitator && selectedWord ? (
-        <section className={styles.selectionBanner}>
-          <p>
-            Mot sélectionné: <strong>{formatWord(selectedWord)}</strong>. Glissez-le ou cliquez sur une de vos cases pour le placer.
-          </p>
-        </section>
-      ) : null}
 
     </div>
   );
