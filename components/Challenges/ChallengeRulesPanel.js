@@ -95,6 +95,8 @@ export default function ChallengeRulesPanel({
       : []),
     ...facilitatorRules,
   ];
+  const regularParticipantRules = participantRules.filter((rule) => !isScoringRule(rule));
+  const scoringRules = participantRules.filter((rule) => isScoringRule(rule));
 
   const cardContent = (
     <>
@@ -119,19 +121,21 @@ export default function ChallengeRulesPanel({
         <div className={styles.rulesGroupedList}>
           <div className={styles.rulesGroup}>
             <ul>
-              {participantRules.filter((rule) => !isScoringRule(rule)).map((rule) => (
+              {regularParticipantRules.map((rule) => (
                 <li key={`participant-${rule}`}>{rule}</li>
               ))}
             </ul>
           </div>
-          <div className={styles.rulesGroup}>
-            <h3 className="challenge-section-title">{isEn ? 'Scoring' : 'Barème des points'}</h3>
-            <ul>
-              {participantRules.filter((rule) => isScoringRule(rule)).map((rule) => (
-                <li key={`participant-score-${rule}`}>{rule}</li>
-              ))}
-            </ul>
-          </div>
+          {scoringRules.length > 0 ? (
+            <div className={styles.rulesGroup}>
+              <h3 className="challenge-section-title">{isEn ? 'Scoring' : 'Barème des points'}</h3>
+              <ul>
+                {scoringRules.map((rule) => (
+                  <li key={`participant-score-${rule}`}>{rule}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </section>
 
