@@ -30,7 +30,7 @@ function getFallbackRules(challenge, locale) {
     return {
       objective: preset.objective,
       facilitator: preset.facilitator,
-      participant: [...preset.participant, ...preset.scoring],
+      participant: preset.participant,
       footnote: preset.footnote,
     };
   }
@@ -40,7 +40,7 @@ function getFallbackRules(challenge, locale) {
     return {
       objective: preset.objective,
       facilitator: preset.facilitator,
-      participant: [...preset.participant, ...preset.scoring],
+      participant: preset.participant,
       footnote: preset.footnote,
     };
   }
@@ -50,7 +50,7 @@ function getFallbackRules(challenge, locale) {
     return {
       objective: preset.objective,
       facilitator: preset.facilitator,
-      participant: [...preset.participant, ...preset.scoring],
+      participant: preset.participant,
       footnote: preset.footnote,
     };
   }
@@ -60,7 +60,7 @@ function getFallbackRules(challenge, locale) {
     return {
       objective: preset.objective,
       facilitator: preset.facilitator,
-      participant: [...preset.participant, ...preset.scoring],
+      participant: preset.participant,
       footnote: preset.footnote,
     };
   }
@@ -70,7 +70,7 @@ function getFallbackRules(challenge, locale) {
     return {
       objective: preset.objective,
       facilitator: preset.facilitator,
-      participant: [...preset.participant, ...preset.scoring],
+      participant: preset.participant,
       footnote: preset.footnote,
     };
   }
@@ -80,7 +80,7 @@ function getFallbackRules(challenge, locale) {
     return {
       objective: preset.objective,
       facilitator: preset.facilitator,
-      participant: [...preset.participant, ...preset.scoring],
+      participant: preset.participant,
       footnote: preset.footnote,
     };
   }
@@ -90,7 +90,7 @@ function getFallbackRules(challenge, locale) {
     return {
       objective: preset.objective,
       facilitator: preset.facilitator,
-      participant: [...preset.participant, ...preset.hints, ...preset.scoring],
+      participant: [...preset.participant, ...preset.hints],
       footnote: preset.footnote,
     };
   }
@@ -100,7 +100,7 @@ function getFallbackRules(challenge, locale) {
     return {
       objective: preset.objective,
       facilitator: preset.facilitator,
-      participant: [...preset.participant, ...preset.scoring],
+      participant: preset.participant,
       footnote: preset.footnote,
     };
   }
@@ -110,7 +110,7 @@ function getFallbackRules(challenge, locale) {
     return {
       objective: preset.objective,
       facilitator: preset.facilitator,
-      participant: [...preset.participant, ...preset.scoring],
+      participant: preset.participant,
       footnote: preset.footnote,
     };
   }

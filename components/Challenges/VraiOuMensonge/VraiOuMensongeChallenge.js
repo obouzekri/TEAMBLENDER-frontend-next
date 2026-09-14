@@ -281,15 +281,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       isEn
         ? 'Game rules: listen, observe, and guess if the statement is true or a bluff.'
         : 'Règles du jeu : écoutez, observez et devinez si la déclaration est vraie ou bluff.',
-      isEn
-        ? 'Scoring system: 0 for no statement, 0 for no answer, 1 for correct answer.'
-        : 'Barème : 0 non posé, 0 non répondu, 1 bonne réponse.',
       ...(Array.isArray(rulesPreset.participant) ? rulesPreset.participant : []),
-      ...(Array.isArray(rulesPreset.scoring) ? rulesPreset.scoring : []),
     ],
-    footnote: rulesPreset.footnote || (isEn
-      ? 'Average duration: 20 min. Reflection time: 40 s to ask, 40 s to answer, 10 s for result.'
-      : 'Durée moyenne : 20 min. Temps de réflexion : 40 s pour poser, 40 s pour répondre, 10 s pour le résultat.'),
+    footnote: rulesPreset.footnote,
   }), [isEn, rulesPreset]);
   const challengeName = String(rulesPreset?.challengeName || 'QUI ME CONNAIT LE MIEUX ?').trim();
   const challengeSubtitle = String(rulesPreset?.subtitle || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !').trim();

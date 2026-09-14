@@ -230,7 +230,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const rulesContent = useMemo(() => ({
     objective: rulesPreset.objective,
     facilitator: [...rulesPreset.facilitator],
-    participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+    participant: [...rulesPreset.participant],
     footnote: rulesPreset.footnote,
   }), [rulesPreset]);
   const challengeName = String(rulesPreset?.challengeName || 'Pixel Architect').trim();

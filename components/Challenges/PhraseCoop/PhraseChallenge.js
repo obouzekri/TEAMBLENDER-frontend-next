@@ -165,7 +165,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
   const rulesContent = useMemo(() => ({
     objective: rulesPreset.objective,
     facilitator: [...rulesPreset.facilitator],
-    participant: [...rulesPreset.participant, ...rulesPreset.hints, ...rulesPreset.scoring],
+    participant: [...rulesPreset.participant, ...rulesPreset.hints],
     footnote: rulesPreset.footnote,
   }), [rulesPreset]);
   const challengeName = String(rulesPreset?.challengeName || 'Phrase Mystère').trim();

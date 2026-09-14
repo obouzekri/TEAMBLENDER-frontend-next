@@ -308,7 +308,6 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     objective: String(rulesPreset?.objective || '').trim(),
     facilitator: Array.isArray(rulesPreset?.facilitator) ? rulesPreset.facilitator : [],
     participant: Array.isArray(rulesPreset?.participant) ? rulesPreset.participant : [],
-    scoring: Array.isArray(rulesPreset?.scoring) ? rulesPreset.scoring : [],
     footnote: String(rulesPreset?.footnote || '').trim()
   }), [rulesPreset]);
 
@@ -319,7 +318,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   }), [rulesPreset]);
 
   const facilitatorRules = useMemo(() => [...rulesContent.facilitator], [rulesContent.facilitator]);
-  const participantRules = useMemo(() => [...rulesContent.participant, ...rulesContent.scoring], [rulesContent.participant, rulesContent.scoring]);
+  const participantRules = useMemo(() => [...rulesContent.participant], [rulesContent.participant]);
 
   const rankedParticipants = useMemo(() => {
     const list = participantRows.map((entry, index) => ({

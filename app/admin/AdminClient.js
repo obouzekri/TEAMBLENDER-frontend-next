@@ -218,8 +218,8 @@ const PIXEL_ARCHITECT_CATALOG_ENTRY = {
     en: [...getPixelArchitectRulesPreset('en').facilitator],
   },
   rules_participant: {
-    fr: [...getPixelArchitectRulesPreset('fr').participant, ...getPixelArchitectRulesPreset('fr').scoring],
-    en: [...getPixelArchitectRulesPreset('en').participant, ...getPixelArchitectRulesPreset('en').scoring],
+    fr: [...getPixelArchitectRulesPreset('fr').participant],
+    en: [...getPixelArchitectRulesPreset('en').participant],
   },
   rules_footnote: {
     fr: '',
@@ -271,8 +271,8 @@ const THE_QUIZ_CATALOG_ENTRY = {
     en: [...getTheQuizRulesPreset('en').facilitator],
   },
   rules_participant: {
-    fr: [...getTheQuizRulesPreset('fr').participant, ...getTheQuizRulesPreset('fr').scoring],
-    en: [...getTheQuizRulesPreset('en').participant, ...getTheQuizRulesPreset('en').scoring],
+    fr: [...getTheQuizRulesPreset('fr').participant],
+    en: [...getTheQuizRulesPreset('en').participant],
   },
   rules_footnote: {
     fr: '',
@@ -322,8 +322,8 @@ const PHRASE_MYSTERE_CATALOG_ENTRY = {
     en: [...getPhraseMystereRulesPreset('en').facilitator],
   },
   rules_participant: {
-    fr: [...getPhraseMystereRulesPreset('fr').participant, ...getPhraseMystereRulesPreset('fr').hints, ...getPhraseMystereRulesPreset('fr').scoring],
-    en: [...getPhraseMystereRulesPreset('en').participant, ...getPhraseMystereRulesPreset('en').hints, ...getPhraseMystereRulesPreset('en').scoring],
+    fr: [...getPhraseMystereRulesPreset('fr').participant, ...getPhraseMystereRulesPreset('fr').hints],
+    en: [...getPhraseMystereRulesPreset('en').participant, ...getPhraseMystereRulesPreset('en').hints],
   },
   rules_footnote: {
     fr: '',
@@ -367,8 +367,8 @@ const COPUZZLE_CATALOG_ENTRY = {
     en: [...getCopuzzleRulesPreset('en').facilitator],
   },
   rules_participant: {
-    fr: [...getCopuzzleRulesPreset('fr').participant, ...getCopuzzleRulesPreset('fr').scoring],
-    en: [...getCopuzzleRulesPreset('en').participant, ...getCopuzzleRulesPreset('en').scoring],
+    fr: [...getCopuzzleRulesPreset('fr').participant],
+    en: [...getCopuzzleRulesPreset('en').participant],
   },
   rules_footnote: {
     fr: '',
@@ -419,12 +419,12 @@ const LAB_INNOVATION_CATALOG_ENTRY = {
     en: [...getLabInnovationRulesPreset('en').facilitator],
   },
   rules_participant: {
-    fr: [...getLabInnovationRulesPreset('fr').participant, ...getLabInnovationRulesPreset('fr').scoring],
-    en: [...getLabInnovationRulesPreset('en').participant, ...getLabInnovationRulesPreset('en').scoring],
+    fr: [...getLabInnovationRulesPreset('fr').participant],
+    en: [...getLabInnovationRulesPreset('en').participant],
   },
   rules_footnote: {
-    fr: getLabInnovationRulesPreset('fr').footnote,
-    en: getLabInnovationRulesPreset('en').footnote,
+    fr: '',
+    en: '',
   },
   engine_config: {
     participants: {
@@ -461,12 +461,12 @@ function ensurePixelArchitectChallenge(challenges) {
       en: [...rulesPresetEn.facilitator],
     };
     list[existingIndex].rules_participant = {
-      fr: [...rulesPresetFr.participant, ...rulesPresetFr.scoring],
-      en: [...rulesPresetEn.participant, ...rulesPresetEn.scoring],
+      fr: [...rulesPresetFr.participant],
+      en: [...rulesPresetEn.participant],
     };
     list[existingIndex].rules_footnote = {
-      fr: rulesPresetFr.footnote,
-      en: rulesPresetEn.footnote,
+      fr: '',
+      en: '',
     };
     return list;
   }
@@ -500,12 +500,12 @@ function ensureTheQuizChallenge(challenges) {
       en: [...rulesPresetEn.facilitator],
     };
     list[existingIndex].rules_participant = {
-      fr: [...rulesPresetFr.participant, ...rulesPresetFr.scoring],
-      en: [...rulesPresetEn.participant, ...rulesPresetEn.scoring],
+      fr: [...rulesPresetFr.participant],
+      en: [...rulesPresetEn.participant],
     };
     list[existingIndex].rules_footnote = {
-      fr: rulesPresetFr.footnote,
-      en: rulesPresetEn.footnote,
+      fr: '',
+      en: '',
     };
     return list;
   }
@@ -539,12 +539,12 @@ function ensurePhraseMystereChallenge(challenges) {
       en: [...rulesPresetEn.facilitator],
     };
     list[existingIndex].rules_participant = {
-      fr: [...rulesPresetFr.participant, ...rulesPresetFr.hints, ...rulesPresetFr.scoring],
-      en: [...rulesPresetEn.participant, ...rulesPresetEn.hints, ...rulesPresetEn.scoring],
+      fr: [...rulesPresetFr.participant, ...rulesPresetFr.hints],
+      en: [...rulesPresetEn.participant, ...rulesPresetEn.hints],
     };
     list[existingIndex].rules_footnote = {
-      fr: rulesPresetFr.footnote,
-      en: rulesPresetEn.footnote,
+      fr: '',
+      en: '',
     };
     return list;
   }
@@ -578,12 +578,12 @@ function ensureCopuzzleChallenge(challenges) {
       en: [...rulesPresetEn.facilitator],
     };
     list[existingIndex].rules_participant = {
-      fr: [...rulesPresetFr.participant, ...rulesPresetFr.scoring],
-      en: [...rulesPresetEn.participant, ...rulesPresetEn.scoring],
+      fr: [...rulesPresetFr.participant],
+      en: [...rulesPresetEn.participant],
     };
     list[existingIndex].rules_footnote = {
-      fr: rulesPresetFr.footnote,
-      en: rulesPresetEn.footnote,
+      fr: '',
+      en: '',
     };
     return list;
   }
@@ -617,12 +617,12 @@ function ensureLabInnovationChallenge(challenges) {
       en: [...rulesPresetEn.facilitator],
     };
     list[existingIndex].rules_participant = {
-      fr: [...rulesPresetFr.participant, ...rulesPresetFr.scoring],
-      en: [...rulesPresetEn.participant, ...rulesPresetEn.scoring],
+      fr: [...rulesPresetFr.participant],
+      en: [...rulesPresetEn.participant],
     };
     list[existingIndex].rules_footnote = {
-      fr: rulesPresetFr.footnote,
-      en: rulesPresetEn.footnote,
+      fr: '',
+      en: '',
     };
     return list;
   }

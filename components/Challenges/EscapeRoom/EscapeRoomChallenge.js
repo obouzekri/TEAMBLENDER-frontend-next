@@ -697,7 +697,7 @@ export default function EscapeRoomChallenge({
     () => ({
       objective: rulesPreset.objective,
       facilitator: [...rulesPreset.facilitator],
-      participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+      participant: [...rulesPreset.participant],
       footnote: rulesPreset.footnote,
     }),
     [rulesPreset]

@@ -340,7 +340,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const rulesContent = useMemo(() => ({
     objective: rulesPreset.objective,
     facilitator: [...rulesPreset.facilitator],
-    participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+    participant: [...rulesPreset.participant],
     footnote: rulesPreset.footnote,
   }), [rulesPreset]);
   const rulesParticipantsMeta = useMemo(() => ({

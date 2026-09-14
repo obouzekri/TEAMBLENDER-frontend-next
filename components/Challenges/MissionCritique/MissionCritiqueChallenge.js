@@ -165,7 +165,7 @@ export default function MissionCritiqueChallenge({
     () => ({
       objective: rulesPreset.objective,
       facilitator: [...rulesPreset.facilitator],
-      participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+      participant: [...rulesPreset.participant],
       footnote: rulesPreset.footnote,
     }),
     [rulesPreset]
@@ -210,12 +210,6 @@ export default function MissionCritiqueChallenge({
     const baseRules = Array.isArray(rulesContent?.participant) ? rulesContent.participant : [];
     return [
       ...baseRules,
-      isEn
-        ? 'Final score is collective: your ordering directly impacts the whole team average.'
-        : 'Le score final est collectif: votre ordre impacte directement la moyenne de toute l’équipe.',
-      isEn
-        ? 'Scoring: 100 base points, then deductions for inconsistencies (dependencies, missing critical tasks, duplicates).'
-        : 'Calcul du score: 100 points de base puis retraits en cas d’incohérences (dépendances, tâches critiques manquantes, doublons, tâches inconnues).',
       isEn
         ? 'Coordinate to submit one unique and coherent timeline for the entire team.'
         : 'Synchronisez-vous pour soumettre une timeline unique et cohérente pour toute l’équipe.',

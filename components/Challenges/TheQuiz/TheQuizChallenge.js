@@ -209,7 +209,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const rules = useMemo(() => ({
     objective: rulesPreset.objective,
     facilitator: [...rulesPreset.facilitator],
-    participant: [...rulesPreset.participant, ...rulesPreset.scoring],
+    participant: [...rulesPreset.participant],
     footnote: rulesPreset.footnote,
   }), [rulesPreset]);
   const challengeName = String(rulesPreset?.challengeName || 'The Quiz').trim();
