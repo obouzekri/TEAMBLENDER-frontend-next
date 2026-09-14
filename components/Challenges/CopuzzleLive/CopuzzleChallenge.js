@@ -321,7 +321,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
   const rowCount = Number(effectiveConfig.grid.rows || 4);
   const colCount = Number(effectiveConfig.grid.cols || 4);
 
-  const [cellSize, setCellSize] = useState(54);
+  const [cellSize, setCellSize] = useState(108);
 
   useEffect(() => {
     function computeCellSize() {
@@ -334,7 +334,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
       const byWidth = Math.floor(panelW / colCount);
       const byHeight = Math.floor(panelH / rowCount);
       // Cards stay compact by default but still shrink to fit larger grids inside the frame.
-      const computed = Math.max(24, Math.min(64, Math.min(byWidth, byHeight)));
+      const computed = Math.max(48, Math.min(128, Math.min(byWidth, byHeight)));
       setCellSize(computed);
     }
     computeCellSize();
