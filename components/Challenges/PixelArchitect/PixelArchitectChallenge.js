@@ -120,12 +120,103 @@ function buildLayerBoard(grid, layer, targetSet, cubesByKey) {
   ));
 }
 
+function mountMiniModelScene(container, { gridSize, grid, palette, targetCells }) {
+  const width = Math.max(120, container.clientWidth || 168);
+  const height = Math.max(80, container.clientHeight || 96);
+
+  const scene = new THREE.Scene();
+  scene.background = null;
+
+  const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+  camera.position.set(gridSize + 1.5, Math.max(5, grid.y + 1), gridSize + 1.5);
+
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(width, height);
+  container.innerHTML = '';
+  container.appendChild(renderer.domElement);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enablePan = false;
+  controls.enableZoom = false;
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 1.4;
+  controls.target.set(0, Math.max(1.2, grid.y / 3), 0);
+  controls.update();
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
+  scene.add(ambientLight);
+
+  const keyLight = new THREE.DirectionalLight(0xffffff, 0.95);
+  keyLight.position.set(5, 8, 6);
+  scene.add(keyLight);
+
+  const fillLight = new THREE.DirectionalLight(0x7dd3fc, 0.35);
+  fillLight.position.set(-5, 5, -4);
+  scene.add(fillLight);
+
+  const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+  const group = new THREE.Group();
+  scene.add(group);
+
+  targetCells.forEach((cell, index) => {
+    const color = palette[index % Math.max(1, palette.length)] || '#7dd3fc';
+    const cube = new THREE.Mesh(
+      cubeGeometry,
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color(color),
+        emissive: new THREE.Color(color).multiplyScalar(0.25),
+        emissiveIntensity: 0.25,
+        roughness: 0.34,
+        metalness: 0.14,
+      })
+    );
+    cube.position.copy(getCellWorldPosition(cell.x, cell.y, cell.z, gridSize));
+    group.add(cube);
+  });
+
+  const animate = () => {
+    controls.update();
+    renderer.render(scene, camera);
+    return window.requestAnimationFrame(animate);
+  };
+
+  let frameId = animate();
+
+  const onResize = () => {
+    const nextWidth = Math.max(120, container.clientWidth || 168);
+    const nextHeight = Math.max(80, container.clientHeight || 96);
+    camera.aspect = nextWidth / nextHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nextWidth, nextHeight);
+  };
+
+  window.addEventListener('resize', onResize);
+
+  return () => {
+    window.removeEventListener('resize', onResize);
+    window.cancelAnimationFrame(frameId);
+    group.children.forEach((mesh) => {
+      if (mesh.material) mesh.material.dispose();
+    });
+    cubeGeometry.dispose();
+    controls.dispose();
+    renderer.dispose();
+    if (container.contains(renderer.domElement)) {
+      container.removeChild(renderer.domElement);
+    }
+  };
+}
+
 export default function PixelArchitectChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
   const isEn = locale === 'en';
   const rulesPreset = useMemo(() => getPixelArchitectRulesPreset(locale), [locale]);
   const mountRef = useRef(null);
   const modelPreviewRef = useRef(null);
+  const modelPreviewMobileRef = useRef(null);
   const audioContextRef = useRef(null);
   const sceneApiRef = useRef(null);
   const canInteractRef = useRef(false);
@@ -137,6 +228,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const [webglUnavailable, setWebglUnavailable] = useState(false);
   const [isViewportReady, setIsViewportReady] = useState(false);
   const [viewportError, setViewportError] = useState('');
+  const [isModelMapOpen, setIsModelMapOpen] = useState(false);
   const hasAutoSelectedStartLayerRef = useRef(false);
 
   function selectColor(color) {
@@ -712,96 +804,22 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   useEffect(() => {
     if (!modelPreviewRef.current || !canSeeTargetModel) return () => {};
+    return mountMiniModelScene(modelPreviewRef.current, { gridSize, grid, palette, targetCells });
+  }, [canSeeTargetModel, grid, gridSize, hasChallengeStarted, palette, targetCells]);
 
-    const container = modelPreviewRef.current;
-    const width = Math.max(120, container.clientWidth || 168);
-    const height = Math.max(80, container.clientHeight || 96);
+  useEffect(() => {
+    if (!isModelMapOpen || !modelPreviewMobileRef.current || !canSeeTargetModel) return () => {};
+    return mountMiniModelScene(modelPreviewMobileRef.current, { gridSize, grid, palette, targetCells });
+  }, [canSeeTargetModel, grid, gridSize, isModelMapOpen, palette, targetCells]);
 
-    const scene = new THREE.Scene();
-    scene.background = null;
-
-    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
-    camera.position.set(gridSize + 1.5, Math.max(5, grid.y + 1), gridSize + 1.5);
-
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(width, height);
-    container.innerHTML = '';
-    container.appendChild(renderer.domElement);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enablePan = false;
-    controls.enableZoom = false;
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 1.4;
-    controls.target.set(0, Math.max(1.2, grid.y / 3), 0);
-    controls.update();
-
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
-    scene.add(ambientLight);
-
-    const keyLight = new THREE.DirectionalLight(0xffffff, 0.95);
-    keyLight.position.set(5, 8, 6);
-    scene.add(keyLight);
-
-    const fillLight = new THREE.DirectionalLight(0x7dd3fc, 0.35);
-    fillLight.position.set(-5, 5, -4);
-    scene.add(fillLight);
-
-    const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const group = new THREE.Group();
-    scene.add(group);
-
-    targetCells.forEach((cell, index) => {
-      const color = palette[index % Math.max(1, palette.length)] || '#7dd3fc';
-      const cube = new THREE.Mesh(
-        cubeGeometry,
-        new THREE.MeshStandardMaterial({
-          color: new THREE.Color(color),
-          emissive: new THREE.Color(color).multiplyScalar(0.25),
-          emissiveIntensity: 0.25,
-          roughness: 0.34,
-          metalness: 0.14,
-        })
-      );
-      cube.position.copy(getCellWorldPosition(cell.x, cell.y, cell.z, gridSize));
-      group.add(cube);
-    });
-
-    const animate = () => {
-      controls.update();
-      renderer.render(scene, camera);
-      return window.requestAnimationFrame(animate);
-    };
-
-    let frameId = animate();
-
-    const onResize = () => {
-      const nextWidth = Math.max(120, container.clientWidth || 168);
-      const nextHeight = Math.max(80, container.clientHeight || 96);
-      camera.aspect = nextWidth / nextHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(nextWidth, nextHeight);
-    };
-
-    window.addEventListener('resize', onResize);
-
-    return () => {
-      window.removeEventListener('resize', onResize);
-      window.cancelAnimationFrame(frameId);
-      group.children.forEach((mesh) => {
-        if (mesh.material) mesh.material.dispose();
-      });
-      cubeGeometry.dispose();
-      controls.dispose();
-      renderer.dispose();
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
-      }
-    };
-  }, [canSeeTargetModel, grid.y, gridSize, hasChallengeStarted, palette, targetCells]);
+  useEffect(() => {
+    if (!isModelMapOpen) return () => {};
+    function onKeyDown(event) {
+      if (event.key === 'Escape') setIsModelMapOpen(false);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isModelMapOpen]);
 
   function handleResetBuild() {
     if (!canBuild) return;
@@ -1025,6 +1043,67 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           waitingText=""
         />
       </div>
+
+      {hasChallengeStarted && !isFacilitator ? (
+        <div className={styles.mobilePaletteBar} role="radiogroup" aria-label={isEn ? 'Color palette' : 'Palette de couleurs'}>
+          {palette.map((color) => (
+            <button
+              key={`mobile-swatch-${color}`}
+              type="button"
+              role="radio"
+              aria-checked={selectedColor === color}
+              aria-label={describeColor(color)}
+              title={describeColor(color)}
+              className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
+              style={{ background: color }}
+              onClick={() => selectColor(color)}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {canSeeTargetModel ? (
+        <button
+          type="button"
+          className={styles.modelMapFab}
+          onClick={() => setIsModelMapOpen(true)}
+          aria-expanded={isModelMapOpen}
+          aria-label={isEn ? 'Open model map' : 'Ouvrir la carte modele'}
+        >
+          🧩 {isEn ? 'Model' : 'Modele'}
+        </button>
+      ) : null}
+
+      {isModelMapOpen ? (
+        <div className={styles.modelMapSheetBackdrop} onClick={() => setIsModelMapOpen(false)}>
+          <div
+            className={styles.modelMapSheet}
+            role="dialog"
+            aria-modal="true"
+            aria-label={isEn ? 'Model map' : 'Carte modele'}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.modelMapSheetHead}>
+              <div>
+                <h2>{isEn ? 'Model map' : 'Carte modèle'}</h2>
+                <p>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z} · {targetCubeCount} {isEn ? 'cubes' : 'cubes cibles'}</p>
+              </div>
+              <button
+                type="button"
+                className={styles.modelMapSheetClose}
+                onClick={() => setIsModelMapOpen(false)}
+                aria-label={isEn ? 'Close' : 'Fermer'}
+              >
+                ✕
+              </button>
+            </div>
+            <div className={styles.modelSidebarViewport}>
+              <div ref={modelPreviewMobileRef} className={styles.modelMiniCanvas} />
+              <span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {webglUnavailable ? (
         <div className={styles.webglFallback}>
