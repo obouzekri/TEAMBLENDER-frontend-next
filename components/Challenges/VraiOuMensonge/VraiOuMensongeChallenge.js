@@ -101,6 +101,18 @@ function sanitizeChoiceText(value) {
     .trim();
 }
 
+function formatStatementCategory(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (!normalized) return '';
+  if (normalized.includes('préférence') || normalized.includes('preference')) return 'Préférences';
+  if (normalized.includes('compétence') || normalized.includes('competence')) return 'Compétences';
+  if (normalized.includes('anecdote') || normalized.includes('anectode')) return 'Anecdote';
+  return normalized
+    .split(/\s+/)
+    .map((word) => word ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : '')
+    .join(' ');
+}
+
 function parseStatementChoices(rawText) {
   const text = String(rawText || '').trim();
   if (!text.includes('/')) return null;
@@ -755,6 +767,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                     const selected = selectedStatementId === String(statement.id);
                     const parsedChoices = parseStatementChoices(statement.text);
                     const pickedChoice = String(selectedChoicesByStatementId[String(statement.id)] || '');
+                    const categoryLabel = formatStatementCategory(statement.category);
                     return (
                       <button
                         key={statement.id}
@@ -771,7 +784,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                         }}
                       >
                         <span className={styles.statementGlow} aria-hidden="true" />
-                        <span className={styles.categoryBadge}>{statement.category}</span>
+                        {categoryLabel ? <span className={styles.categoryBadge}>{categoryLabel}</span> : null}
                         {parsedChoices ? (
                           <>
                             <span className={styles.statementPrompt}>
