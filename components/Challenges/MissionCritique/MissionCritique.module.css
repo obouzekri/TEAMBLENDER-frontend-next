@@ -771,11 +771,13 @@
     grid-template-columns: 1fr;
   }
 
-  .facilitatorView .layout {
+  .facilitatorView .layout,
+  .participantView .layout {
     grid-template-columns: 1fr;
   }
 
-  .workspaceGrid {
+  .workspaceGrid,
+  .participantView .workspaceGrid {
     grid-template-columns: 1fr;
   }
 
