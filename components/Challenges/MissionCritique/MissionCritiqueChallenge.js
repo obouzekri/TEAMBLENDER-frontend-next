@@ -11,7 +11,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import useI18n from '@/lib/i18n/useI18n';
-import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2, ChevronRight } from 'lucide-react';
+import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
 import styles from './MissionCritique.module.css';
 
 const PHASES = Object.freeze([
@@ -66,24 +66,6 @@ export default function MissionCritiqueChallenge({
   const [activePhase, setActivePhase] = useState('cadrage');
   const [modalTaskId, setModalTaskId] = useState('');
   const [submitResult, setSubmitResult] = useState(null);
-  const [expandedTimelineItems, setExpandedTimelineItems] = useState(() => new Set());
-
-  // Collapse timeline items again whenever the visible phase changes.
-  useEffect(() => {
-    setExpandedTimelineItems(new Set());
-  }, [activePhase]);
-
-  function toggleTimelineItemExpanded(itemKey) {
-    setExpandedTimelineItems((previous) => {
-      const next = new Set(previous);
-      if (next.has(itemKey)) {
-        next.delete(itemKey);
-      } else {
-        next.add(itemKey);
-      }
-      return next;
-    });
-  }
 
   const { state, error, isFacilitator, emitEvent } = useRealtimeChallenge({
     runtimePayload,
@@ -490,69 +472,44 @@ export default function MissionCritiqueChallenge({
                         ? activePhaseItems[indexInPhase + 1].timelineIndex
                         : item.timelineIndex;
                       const itemKey = `${item.taskId}-${item.timelineIndex}`;
-                      const isExpanded = expandedTimelineItems.has(itemKey);
                       return (
                         <article key={itemKey} className={styles.timelineCodeItem}>
-                          <div
-                            className={styles.timelineItemRow}
-                            role="button"
-                            tabIndex={0}
-                            aria-expanded={isExpanded}
-                            onClick={() => toggleTimelineItemExpanded(itemKey)}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault();
-                                toggleTimelineItemExpanded(itemKey);
-                              }
-                            }}
-                          >
+                          <div className={styles.timelineItemRow}>
                             <span className={styles.timelineItemLabel}>{task?.label || item.taskId}</span>
-                            {isExpanded ? (
-                              <span
-                                className={styles.timelineItemInlineControls}
-                                onClick={(event) => event.stopPropagation()}
+                            <span className={styles.timelineItemInlineControls}>
+                              <button
+                                type="button"
+                                className={styles.iconBtn}
+                                onClick={() => moveTaskWithinPhase(item.timelineIndex, upTarget)}
+                                disabled={!canEditTimeline || !canMoveUp}
+                                title={isEn ? 'Move up' : 'Monter'}
+                                aria-label={isEn ? 'Move up in phase' : 'Monter dans la phase'}
                               >
-                                <button
-                                  type="button"
-                                  className={styles.iconBtn}
-                                  onClick={() => moveTaskWithinPhase(item.timelineIndex, upTarget)}
-                                  disabled={!canEditTimeline || !canMoveUp}
-                                  title={isEn ? 'Move up' : 'Monter'}
-                                  aria-label={isEn ? 'Move up in phase' : 'Monter dans la phase'}
-                                >
-                                  <ArrowUp size={16} strokeWidth={2.4} aria-hidden="true" />
-                                </button>
-                                <button
-                                  type="button"
-                                  className={styles.iconBtn}
-                                  onClick={() => moveTaskWithinPhase(item.timelineIndex, downTarget)}
-                                  disabled={!canEditTimeline || !canMoveDown}
-                                  title={isEn ? 'Move down' : 'Descendre'}
-                                  aria-label={isEn ? 'Move down in phase' : 'Descendre dans la phase'}
-                                >
-                                  <ArrowDown size={16} strokeWidth={2.4} aria-hidden="true" />
-                                </button>
-                                <button
-                                  type="button"
-                                  className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                                  onClick={() =>
-                                    emitEvent('mission.task.remove', { index: item.timelineIndex })
-                                  }
-                                  disabled={!canEditTimeline}
-                                  title={isEn ? 'Remove' : 'Retirer'}
-                                  aria-label={isEn ? 'Remove from timeline' : 'Retirer de la timeline'}
-                                >
-                                  <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
-                                </button>
-                              </span>
-                            ) : (
-                              <ChevronRight
-                                className={styles.timelineItemChevron}
-                                size={16}
-                                strokeWidth={2}
-                                aria-hidden="true"
-                              />
-                            )}
+                                <ArrowUp size={16} strokeWidth={2.4} aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                className={styles.iconBtn}
+                                onClick={() => moveTaskWithinPhase(item.timelineIndex, downTarget)}
+                                disabled={!canEditTimeline || !canMoveDown}
+                                title={isEn ? 'Move down' : 'Descendre'}
+                                aria-label={isEn ? 'Move down in phase' : 'Descendre dans la phase'}
+                              >
+                                <ArrowDown size={16} strokeWidth={2.4} aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                                onClick={() =>
+                                  emitEvent('mission.task.remove', { index: item.timelineIndex })
+                                }
+                                disabled={!canEditTimeline}
+                                title={isEn ? 'Remove' : 'Retirer'}
+                                aria-label={isEn ? 'Remove from timeline' : 'Retirer de la timeline'}
+                              >
+                                <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+                              </button>
+                            </span>
                           </div>
                         </article>
                       );

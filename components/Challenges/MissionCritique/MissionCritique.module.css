@@ -598,7 +598,6 @@
   justify-content: space-between;
   gap: 10px;
   width: 100%;
-  cursor: pointer;
 }
 
 .timelineItemLabel {
@@ -616,11 +615,6 @@
   align-items: center;
   gap: 6px;
   flex: 0 0 auto;
-}
-
-.timelineItemChevron {
-  flex: 0 0 auto;
-  color: #7a94a8;
 }
 
 .iconBtn {
