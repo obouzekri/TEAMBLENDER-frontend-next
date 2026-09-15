@@ -185,14 +185,14 @@ export default function MissionCritiqueChallenge({
     return [
       ...baseRules,
       isEn
-        ? 'Scoring (transparent): team score = average of individual scores (0 to 100).'
-        : 'Calcul du score (transparent): score collectif = moyenne des scores individuels (0 à 100).',
+        ? 'Scoring (transparent): all individual timelines are merged end-to-end, in participant order, into a single collective timeline, which is validated once (0 to 100).'
+        : 'Calcul du score (transparent) : les timelines individuelles sont mises bout à bout, dans l’ordre des participants, pour former une seule timeline collective, validée une seule fois (0 à 100).',
       isEn
         ? 'Penalties: unmet dependency (-8), missing critical task (-10), duplicate (-5), unknown task (-3).'
         : 'Pénalités: dépendance non respectée (-8), tâche critique manquante (-10), doublon (-5), tâche inconnue (-3).',
       isEn
-        ? 'Simplified formula: 100 - penalties + consistency bonus (clamped from 0 to 100).'
-        : 'Formule backend: 100 - pénalités (borné entre 0 et 100).',
+        ? 'Formula: 100 - penalties (clamped between 0 and 100).'
+        : 'Formule: 100 - pénalités (borné entre 0 et 100).',
       isEn
         ? 'The team must converge and submit one coherent collective timeline.'
         : 'L’équipe doit converger puis soumettre une seule timeline cohérente au niveau collectif.',
