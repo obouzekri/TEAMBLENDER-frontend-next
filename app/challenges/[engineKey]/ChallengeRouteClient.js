@@ -8,8 +8,10 @@ import { trackProductChallengeEvent } from '@/lib/analytics';
 import { getApiUrl } from '@/lib/config';
 import { getStoredAuthToken } from '@/lib/auth-storage';
 import { getAuthHeaders } from '@/lib/auth';
+import useI18n from '@/lib/i18n/useI18n';
 import SessionLiveHeader from '@/components/SessionLiveHeader';
 import { ChallengeHeaderPortalContext } from '@/lib/challengeHeaderPortal';
+import styles from './ChallengeRouteClient.module.css';
 
 const ChallengeWrapper = dynamic(
   () => import('@/components/Challenges/ChallengeWrapper'),
@@ -20,6 +22,7 @@ export default function ChallengeRouteClient() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useI18n();
 
   const engineKey = useMemo(() => String(params?.engineKey || 'escape_room_v1'), [params]);
   const sessionId = useMemo(
@@ -245,6 +248,19 @@ export default function ChallengeRouteClient() {
     };
   }, [clearCountdown]);
 
+  // Push the floating chat button up while the sticky completion banner is visible.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (completionOverlay) {
+      root.style.setProperty('--chat-fab-safe-offset', '56px');
+    } else {
+      root.style.removeProperty('--chat-fab-safe-offset');
+    }
+    return () => {
+      root.style.removeProperty('--chat-fab-safe-offset');
+    };
+  }, [completionOverlay]);
+
   return (
     <ChallengeHeaderPortalContext.Provider value={challengeSlotNode}>
       <ChallengeWrapper
@@ -268,28 +284,14 @@ export default function ChallengeRouteClient() {
         ) : null}
       />
       {completionOverlay ? (
-        <section
-          role="status"
-          aria-live="polite"
-          style={{
-            width: 'min(100%, 980px)',
-            margin: '8px auto 16px',
-            borderRadius: '8px',
-            border: '1px solid var(--accent-soft, #bae6fd)',
-            background: 'var(--color-surface, #f0f9ff)',
-            boxShadow: '0 2px 8px rgba(14, 116, 144, 0.08)',
-            padding: '8px 12px',
-            color: 'var(--text-strong, #0f172a)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <span aria-hidden="true" style={{ fontSize: '1rem', lineHeight: 1 }}>✅</span>
-          <p style={{ margin: 0, fontSize: '0.86rem', lineHeight: 1.4 }}>
-            <strong>Challenge terminé</strong>
+        <section className={styles.completionBanner} role="status" aria-live="polite">
+          <span className={styles.completionIcon} aria-hidden="true">✅</span>
+          <p className={styles.completionText}>
+            <strong>{t('sessionLive.challengeCompletedTitle')}</strong>
             {' · '}
-            En attente du facilitateur pour lancer le prochain challenge après le débrief.
+            {completionOverlay.mode === 'auto'
+              ? t('sessionLive.challengeCompletedAuto', { seconds: completionOverlay.countdown })
+              : t('sessionLive.challengeCompletedManual')}
           </p>
         </section>
       ) : null}
