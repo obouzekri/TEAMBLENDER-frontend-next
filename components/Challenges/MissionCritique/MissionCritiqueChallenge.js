@@ -11,7 +11,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import useI18n from '@/lib/i18n/useI18n';
-import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
+import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2, X } from 'lucide-react';
 import styles from './MissionCritique.module.css';
 
 const PHASES = Object.freeze([
@@ -593,7 +593,18 @@ export default function MissionCritiqueChallenge({
                     aria-label={String(modalTask.label || '')}
                     onClick={(event) => event.stopPropagation()}
                   >
-                    <h3 className={styles.modalTitle}>{modalTask.label}</h3>
+                    <div className={styles.modalHead}>
+                      <button
+                        type="button"
+                        className={styles.modalCloseBtn}
+                        onClick={closeTaskModal}
+                        aria-label={isEn ? 'Close' : 'Fermer'}
+                        title={isEn ? 'Close' : 'Fermer'}
+                      >
+                        <X size={18} strokeWidth={2.2} aria-hidden="true" />
+                      </button>
+                      <h3 className={styles.modalTitle}>{modalTask.label}</h3>
+                    </div>
                     <p className={styles.modalHint}>
                       {isEn ? 'Assign this task to a phase.' : 'Affectez cette tâche à une phase.'}
                     </p>
@@ -610,8 +621,8 @@ export default function MissionCritiqueChallenge({
                         </button>
                       ))}
                     </div>
-                    <div className={styles.modalActions}>
-                      {modalAssignedPhase ? (
+                    {modalAssignedPhase ? (
+                      <div className={styles.modalActions}>
                         <button
                           type="button"
                           className={styles.ghostBtn}
@@ -620,11 +631,8 @@ export default function MissionCritiqueChallenge({
                         >
                           {isEn ? 'Remove from timeline' : 'Retirer de la timeline'}
                         </button>
-                      ) : null}
-                      <button type="button" className={styles.primaryBtn} onClick={closeTaskModal}>
-                        {isEn ? 'Close' : 'Fermer'}
-                      </button>
-                    </div>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ) : null}

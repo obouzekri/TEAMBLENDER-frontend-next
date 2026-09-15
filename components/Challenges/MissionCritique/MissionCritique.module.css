@@ -1231,7 +1231,7 @@
 }
 
 .modalCard {
-  width: min(440px, 100%);
+  width: min(360px, 92vw);
   border-radius: var(--radius-card);
   border: 1px solid var(--line-soft);
   background: linear-gradient(165deg, var(--surface-2), var(--surface-1));
@@ -1239,6 +1239,34 @@
   padding: clamp(14px, 2vw, 22px);
   display: grid;
   gap: 12px;
+}
+
+.modalHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modalCloseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  border: 1px solid var(--line-soft);
+  background: rgba(15, 30, 43, 0.82);
+  color: #d0dde8;
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    border-color 160ms ease;
+}
+
+.modalCloseBtn:hover {
+  transform: translateY(-1px);
+  border-color: var(--line-strong);
 }
 
 .modalTitle {
@@ -1375,18 +1403,8 @@
 }
 
 @media (max-width: 640px) {
-  .modalOverlay {
-    align-items: flex-end;
-    padding: 0;
-  }
-
   .modalCard {
-    width: 100%;
-    border-radius: 18px 18px 0 0;
-    border-bottom: none;
-    padding-left: max(14px, env(safe-area-inset-left, 0px));
-    padding-right: max(14px, env(safe-area-inset-right, 0px));
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: min(320px, 90vw);
   }
 
   .modalPhaseGrid {
