@@ -11,7 +11,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import useI18n from '@/lib/i18n/useI18n';
-import { ClipboardList, ListTodo } from 'lucide-react';
+import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2, ChevronRight } from 'lucide-react';
 import styles from './MissionCritique.module.css';
 
 const PHASES = Object.freeze([
@@ -20,7 +20,6 @@ const PHASES = Object.freeze([
   { key: 'execution', label: 'Exécution', mobileLabel: 'Exéc.', className: 'phaseExecution' },
   { key: 'cloture', label: 'Clôture', mobileLabel: 'Clôt.', className: 'phaseCloture' },
 ]);
-const ROMAN_PHASE_NUMERALS = Object.freeze(['I', 'II', 'III', 'IV']);
 
 function inferPhaseKey(index, total) {
   const safeTotal = Math.max(1, Number(total || 1));
@@ -67,6 +66,24 @@ export default function MissionCritiqueChallenge({
   const [activePhase, setActivePhase] = useState('cadrage');
   const [modalTaskId, setModalTaskId] = useState('');
   const [submitResult, setSubmitResult] = useState(null);
+  const [expandedTimelineItems, setExpandedTimelineItems] = useState(() => new Set());
+
+  // Collapse timeline items again whenever the visible phase changes.
+  useEffect(() => {
+    setExpandedTimelineItems(new Set());
+  }, [activePhase]);
+
+  function toggleTimelineItemExpanded(itemKey) {
+    setExpandedTimelineItems((previous) => {
+      const next = new Set(previous);
+      if (next.has(itemKey)) {
+        next.delete(itemKey);
+      } else {
+        next.add(itemKey);
+      }
+      return next;
+    });
+  }
 
   const { state, error, isFacilitator, emitEvent } = useRealtimeChallenge({
     runtimePayload,
@@ -428,14 +445,6 @@ export default function MissionCritiqueChallenge({
                       </p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    className={`${styles.primaryBtn} ${styles.primaryBtnCompact}`}
-                    onClick={submitTimeline}
-                    disabled={!canEditTimeline || timeline.length === 0}
-                  >
-                    {isEn ? 'Submit my solution' : 'Valider ma solution'}
-                  </button>
                 </div>
 
                 <div
@@ -443,7 +452,7 @@ export default function MissionCritiqueChallenge({
                   role="tablist"
                   aria-label={isEn ? 'Timeline phases' : 'Phases de la timeline'}
                 >
-                  {PHASES.map((phase, phaseIdx) => {
+                  {PHASES.map((phase) => {
                     const count = (phaseItems[phase.key] || []).length;
                     const isActive = activePhase === phase.key;
                     return (
@@ -455,7 +464,6 @@ export default function MissionCritiqueChallenge({
                         className={`${styles.stepperStep} ${styles[phase.className]}${isActive ? ` ${styles.stepperStepActive}` : ''}`}
                         onClick={() => setActivePhase(phase.key)}
                       >
-                        <span className={styles.stepDot}>{ROMAN_PHASE_NUMERALS[phaseIdx]}</span>
                         <span className={styles.stepLabel} data-mobile-label={mobilePhaseLabel(phase, isEn)}>{phaseLabel(phase, isEn)}</span>
                         <span className={styles.stepCount}>{count}</span>
                       </button>
@@ -481,50 +489,86 @@ export default function MissionCritiqueChallenge({
                       const downTarget = canMoveDown
                         ? activePhaseItems[indexInPhase + 1].timelineIndex
                         : item.timelineIndex;
+                      const itemKey = `${item.taskId}-${item.timelineIndex}`;
+                      const isExpanded = expandedTimelineItems.has(itemKey);
                       return (
-                        <article
-                          key={`${item.taskId}-${item.timelineIndex}`}
-                          className={styles.timelineCodeItem}
-                        >
-                          <div className={styles.timelineItemBody}>
-                            <p className={styles.meta}>{task?.label || item.taskId}</p>
-                          </div>
-                          <div className={styles.timelineItemControls}>
-                            <button
-                              type="button"
-                              className={styles.ghostBtn}
-                              onClick={() => moveTaskWithinPhase(item.timelineIndex, upTarget)}
-                              disabled={!canEditTimeline || !canMoveUp}
-                              title={isEn ? 'Move up' : 'Monter'}
-                              aria-label={isEn ? 'Move up in phase' : 'Monter dans la phase'}
-                            >
-                              ↑
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.ghostBtn}
-                              onClick={() => moveTaskWithinPhase(item.timelineIndex, downTarget)}
-                              disabled={!canEditTimeline || !canMoveDown}
-                              title={isEn ? 'Move down' : 'Descendre'}
-                              aria-label={isEn ? 'Move down in phase' : 'Descendre dans la phase'}
-                            >
-                              ↓
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.ghostBtn}
-                              onClick={() =>
-                                emitEvent('mission.task.remove', { index: item.timelineIndex })
+                        <article key={itemKey} className={styles.timelineCodeItem}>
+                          <div
+                            className={styles.timelineItemRow}
+                            role="button"
+                            tabIndex={0}
+                            aria-expanded={isExpanded}
+                            onClick={() => toggleTimelineItemExpanded(itemKey)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                toggleTimelineItemExpanded(itemKey);
                               }
-                              disabled={!canEditTimeline}
-                            >
-                              {isEn ? 'Remove' : 'Retirer'}
-                            </button>
+                            }}
+                          >
+                            <span className={styles.timelineItemLabel}>{task?.label || item.taskId}</span>
+                            {isExpanded ? (
+                              <span
+                                className={styles.timelineItemInlineControls}
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                <button
+                                  type="button"
+                                  className={styles.iconBtn}
+                                  onClick={() => moveTaskWithinPhase(item.timelineIndex, upTarget)}
+                                  disabled={!canEditTimeline || !canMoveUp}
+                                  title={isEn ? 'Move up' : 'Monter'}
+                                  aria-label={isEn ? 'Move up in phase' : 'Monter dans la phase'}
+                                >
+                                  <ArrowUp size={16} strokeWidth={2.4} aria-hidden="true" />
+                                </button>
+                                <button
+                                  type="button"
+                                  className={styles.iconBtn}
+                                  onClick={() => moveTaskWithinPhase(item.timelineIndex, downTarget)}
+                                  disabled={!canEditTimeline || !canMoveDown}
+                                  title={isEn ? 'Move down' : 'Descendre'}
+                                  aria-label={isEn ? 'Move down in phase' : 'Descendre dans la phase'}
+                                >
+                                  <ArrowDown size={16} strokeWidth={2.4} aria-hidden="true" />
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                                  onClick={() =>
+                                    emitEvent('mission.task.remove', { index: item.timelineIndex })
+                                  }
+                                  disabled={!canEditTimeline}
+                                  title={isEn ? 'Remove' : 'Retirer'}
+                                  aria-label={isEn ? 'Remove from timeline' : 'Retirer de la timeline'}
+                                >
+                                  <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+                                </button>
+                              </span>
+                            ) : (
+                              <ChevronRight
+                                className={styles.timelineItemChevron}
+                                size={16}
+                                strokeWidth={2}
+                                aria-hidden="true"
+                              />
+                            )}
                           </div>
                         </article>
                       );
                     })
                   )}
+                </div>
+
+                <div className={styles.timelineSubmitRow}>
+                  <button
+                    type="button"
+                    className={`${styles.primaryBtn} ${styles.primaryBtnCompact}`}
+                    onClick={submitTimeline}
+                    disabled={!canEditTimeline || timeline.length === 0}
+                  >
+                    {isEn ? 'Submit my solution' : 'Valider ma solution'}
+                  </button>
                 </div>
               </section>
 

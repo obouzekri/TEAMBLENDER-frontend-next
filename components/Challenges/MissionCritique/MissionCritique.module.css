@@ -592,6 +592,79 @@
   padding: 6px 8px;
 }
 
+.timelineItemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.timelineItemLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #b4cadb;
+  font-size: 0.84rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timelineItemInlineControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.timelineItemChevron {
+  flex: 0 0 auto;
+  color: #7a94a8;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--line-soft);
+  background: rgba(15, 30, 43, 0.82);
+  color: #d0dde8;
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.iconBtn:hover {
+  transform: translateY(-1px);
+  border-color: var(--line-strong);
+}
+
+.iconBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.iconBtnDanger {
+  color: #fca5a5;
+  border-color: rgba(252, 165, 165, 0.4);
+}
+
+.iconBtnDanger:hover {
+  border-color: rgba(252, 165, 165, 0.7);
+}
+
+.timelineSubmitRow {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 14px;
+}
+
 .timelineItemDragging {
   opacity: 0.5;
   transform: scale(0.99);
@@ -909,16 +982,6 @@
     flex-wrap: wrap;
     justify-content: flex-start;
   }
-
-  .timelineCodeItem {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .timelineItemControls .ghostBtn {
-    flex: 1 1 calc(50% - 6px);
-    min-height: 44px;
-  }
 }
 
 @media (max-width: 520px) {
@@ -1061,21 +1124,6 @@
   border-color: var(--phase-accent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--phase-accent) 45%, transparent);
   background: color-mix(in srgb, var(--phase-accent) 10%, var(--surface-1));
-}
-
-.stepDot {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--phase-accent);
-  border: 1px solid color-mix(in srgb, var(--phase-accent) 50%, transparent);
-  background: color-mix(in srgb, var(--phase-accent) 12%, transparent);
-  flex: 0 0 auto;
 }
 
 .stepLabel {
@@ -1317,7 +1365,6 @@
     white-space: nowrap;
   }
 
-  .stepDot,
   .stepCount {
     width: 1.28rem;
     min-width: 1.28rem;
