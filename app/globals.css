@@ -15735,9 +15735,25 @@ html[data-theme='light'] .nav-toggle {
     height: 190px;
   }
 
+  /* Keep the first two trust badges (Zero installation / Real-time participation) on one row */
+  .landing-hero-trust {
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.1rem;
+  }
+
+  .landing-hero-trust::-webkit-scrollbar {
+    display: none;
+  }
+
   .landing-hero-trust-item {
-    font-size: 0.74rem;
-    padding: 0.38rem 0.58rem;
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+    padding: 0.34rem 0.52rem;
+    white-space: nowrap;
   }
 }
 
