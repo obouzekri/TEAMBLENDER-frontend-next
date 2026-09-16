@@ -174,10 +174,10 @@ export default function TopNav({ compact = false }) {
               />
             ) : (
               <>
-                <Link href={mobileJoinHref} className="btn-mini nav-mobile-login-btn">
+                <Link href={mobileJoinHref} className="nav-cta-btn nav-mobile-signup-btn">
                   {t('nav.participant')}
                 </Link>
-                <Link href={mobileLoginHref} className="nav-cta-btn nav-mobile-signup-btn">
+                <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn nav-mobile-login-btn--outline">
                   {t('nav.login')}
                 </Link>
               </>

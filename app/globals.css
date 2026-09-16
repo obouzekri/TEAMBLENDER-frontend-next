@@ -588,11 +588,13 @@ html[data-theme='dark'] .auth-page a.btn-outline-dark[aria-disabled="true"]{
     z-index: 250 !important;
   }
 
+  /* Quick action button sits directly beside the hamburger, on the right */
   .top-nav:not(.top-nav--live-inline) .nav-mobile-cta {
     display: inline-flex !important;
-    justify-self: center !important;
+    justify-self: end !important;
     align-items: center !important;
     gap: 0.45rem !important;
+    margin-right: 0.4rem !important;
   }
 
   .top-nav--landing .nav-mobile-cta--landing {
@@ -603,16 +605,25 @@ html[data-theme='dark'] .auth-page a.btn-outline-dark[aria-disabled="true"]{
     grid-template-columns: minmax(0, 1fr) auto !important;
   }
 
+  /* Drawer surface: detached card with soft shadow, rounded corners, smooth transition */
   .top-nav:not(.top-nav--live-inline) .nav-panel {
     position: absolute !important;
-    top: calc(100% + 8px) !important;
-    left: 0 !important;
-    right: 0 !important;
+    top: calc(100% + 10px) !important;
+    left: 0.65rem !important;
+    right: 0.65rem !important;
     display: grid !important;
     opacity: 0 !important;
     pointer-events: none !important;
-    transform: translateY(-8px) !important;
+    transform: translateY(-10px) !important;
     z-index: 180 !important;
+    background: var(--surface-panel, #ffffff) !important;
+    border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.22)) !important;
+    border-radius: var(--radius-lg, 20px) !important;
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18) !important;
+    padding: 1rem 1.1rem 1.15rem !important;
+    max-height: calc(100dvh - 96px) !important;
+    overflow-y: auto !important;
+    transition: opacity 0.22s var(--ease-standard, ease), transform 0.22s var(--ease-standard, ease) !important;
   }
 
   .top-nav:not(.top-nav--live-inline) .nav-panel.is-open {
@@ -627,10 +638,19 @@ html[data-theme='dark'] .auth-page a.btn-outline-dark[aria-disabled="true"]{
     width: 100% !important;
   }
 
+  /* Primary navigation: airy spacing, min. 16px readable labels */
   .top-nav:not(.top-nav--live-inline) .nav-links {
     display: grid !important;
     grid-template-columns: 1fr !important;
-    gap: 0.45rem !important;
+    gap: 0.3rem !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-link {
+    width: 100% !important;
+    min-height: 48px !important;
+    padding: 0.75rem 0.65rem !important;
+    font-size: 1rem !important;
+    justify-content: flex-start !important;
   }
 
   .top-nav:not(.top-nav--live-inline) .nav-actions {
@@ -639,12 +659,15 @@ html[data-theme='dark'] .auth-page a.btn-outline-dark[aria-disabled="true"]{
     gap: 0.55rem !important;
   }
 
+  /* Account/session actions: separated from nav links by a subtle divider */
   .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.55rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.65rem !important;
     width: 100% !important;
-    padding: 0.2rem 0 0.15rem !important;
+    margin-top: 0.7rem !important;
+    padding: 0.9rem 0 0.1rem !important;
+    border-top: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.24)) !important;
   }
 
   .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .lang-switch,
@@ -654,8 +677,12 @@ html[data-theme='dark'] .auth-page a.btn-outline-dark[aria-disabled="true"]{
     justify-content: center !important;
   }
 
+  /* Language switch stays last, with breathing room, never overlapping the buttons above */
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .lang-switch {
+    margin-top: 0.2rem !important;
+  }
+
   .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .nav-user-trigger-wrap {
-    grid-column: 1 / -1 !important;
     width: 100% !important;
   }
 
@@ -2997,6 +3024,21 @@ html[data-theme='light'] .challenge-subtitle {
   padding: 8px 14px;
   font-size: 0.79rem;
   font-weight: 700;
+}
+
+/* Secondary action in the drawer (Log in): outline style, distinct from the accent CTA */
+.nav-mobile-login-btn--outline {
+  min-height: 46px;
+  padding: 0.6rem 1rem;
+  font-size: 0.92rem;
+  border: 1px solid var(--control-border, rgba(148, 163, 184, 0.4));
+  border-radius: 999px;
+  background: transparent;
+}
+
+.nav-mobile-login-btn--outline:hover {
+  border-color: var(--control-border-strong, rgba(53, 160, 255, 0.48));
+  background: rgba(53, 160, 255, 0.06);
 }
 
 .lang-switch {
