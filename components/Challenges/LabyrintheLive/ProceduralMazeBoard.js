@@ -195,10 +195,6 @@ function pickFarthestExit(cells, entries, exits) {
     .sort((a, b) => b.minDistance - a.minDistance)[0].candidate;
 }
 
-function countBranches(cells, row, col) {
-  return neighborsFrom(cells, row, col).length;
-}
-
 function edgeCount(cells) {
   let total = 0;
   for (let row = 0; row < cells.length; row += 1) {
@@ -213,6 +209,57 @@ function edgeCount(cells) {
 function canStillReachExit(cells, entries, exitCol) {
   const end = [cells.length - 1, exitCol];
   return entries.some((entry) => shortestPath(cells, [0, entry], end).length > 0);
+}
+
+function selectTrapPositions(cells, mainPath, entries, exits, random, target) {
+  const rows = cells.length;
+  const cols = cells[0]?.length || 0;
+  const mainPathKeys = new Set(mainPath.map((pos) => keyOf(pos)));
+  const protectedKeys = new Set([
+    ...entries.map((pos) => keyOf(pos)),
+    ...exits.map((col) => keyOf([rows - 1, col])),
+  ]);
+  const candidates = [];
+
+  for (let row = 1; row < rows - 1; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      const key = keyOf([row, col]);
+      if (mainPathKeys.has(key) || protectedKeys.has(key)) continue;
+
+      const neighbors = neighborsFrom(cells, row, col);
+      const touchesMainPath = neighbors.some((pos) => mainPathKeys.has(keyOf(pos)));
+      candidates.push({
+        key,
+        row,
+        col,
+        score: (touchesMainPath ? 100 : 0) + (neighbors.length <= 1 ? 24 : 0),
+        tieBreaker: random(),
+      });
+    }
+  }
+
+  const traps = [];
+  while (candidates.length > 0 && traps.length < target) {
+    let bestIndex = 0;
+    let bestScore = Number.NEGATIVE_INFINITY;
+
+    candidates.forEach((candidate, index) => {
+      const minDistance = traps.length === 0
+        ? 6
+        : Math.min(...traps.map((trap) => Math.abs(candidate.row - trap.row) + Math.abs(candidate.col - trap.col)));
+      const spacingScore = Math.min(minDistance, 6) * 5;
+      const score = candidate.score + spacingScore + candidate.tieBreaker;
+      if (score > bestScore) {
+        bestScore = score;
+        bestIndex = index;
+      }
+    });
+
+    traps.push(candidates[bestIndex]);
+    candidates.splice(bestIndex, 1);
+  }
+
+  return traps.map((trap) => trap.key);
 }
 
 function hardenWalls(cells, entries, exitCol, random) {
@@ -269,50 +316,8 @@ function generateLayout(options) {
   hardenWalls(cells, entries, correctExitCol, random);
 
   const mainPath = shortestPath(cells, correctEntry, [rows - 1, correctExitCol]);
-  const mainPathKeys = new Set(mainPath.map((pos) => keyOf(pos)));
-
-  const traps = new Set();
-  const branchIndexes = [];
-  for (let i = 2; i < mainPath.length - 2; i += 1) {
-    branchIndexes.push(i);
-  }
-
   const trapTarget = Math.max(18, Math.floor((rows * cols) * 0.14));
-
-  while (branchIndexes.length > 0 && traps.size < trapTarget) {
-    const idx = Math.floor(random() * branchIndexes.length);
-    const pathIndex = branchIndexes[idx];
-    branchIndexes.splice(idx, 1);
-
-    const pivot = mainPath[pathIndex];
-    const prevKey = keyOf(mainPath[pathIndex - 1]);
-    const nextKey = keyOf(mainPath[pathIndex + 1]);
-
-    const wrongNeighbors = neighborsFrom(cells, pivot[0], pivot[1])
-      .map((pos) => ({ pos, key: keyOf(pos) }))
-      .filter((entry) => entry.key !== prevKey && entry.key !== nextKey)
-      .filter((entry) => !mainPathKeys.has(entry.key));
-
-    wrongNeighbors.forEach((entry) => {
-      if (traps.size < trapTarget) traps.add(entry.key);
-    });
-  }
-
-  for (let row = 1; row < rows - 1; row += 1) {
-    for (let col = 0; col < cols; col += 1) {
-      const key = `${row},${col}`;
-      if (mainPathKeys.has(key)) continue;
-      if (traps.has(key)) continue;
-
-      const branchCount = countBranches(cells, row, col);
-      if ((branchCount <= 1 && random() > 0.52) || (branchCount === 2 && random() > 0.86)) {
-        traps.add(key);
-      }
-
-      if (traps.size >= trapTarget) break;
-    }
-    if (traps.size >= trapTarget) break;
-  }
+  const traps = selectTrapPositions(cells, mainPath, entries, exits, random, trapTarget);
 
   return {
     rows,

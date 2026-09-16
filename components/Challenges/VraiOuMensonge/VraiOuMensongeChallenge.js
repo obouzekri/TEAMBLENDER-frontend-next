@@ -666,22 +666,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     return `${poserName} a répondu : ${truth}.`;
   }
 
-  const myRoundBadges = [];
-  if (phase === 'round_result') {
-    if (myRoundVote?.status === 'correct') {
-      myRoundBadges.push(t('vom.badges.good'));
-    }
-    if (myRoundVote?.status === 'incorrect') {
-      myRoundBadges.push(t('vom.badges.bad'));
-    }
-  }
-  if (myLiveEntry?.rank === 1) {
-    myRoundBadges.push(t('vom.badges.top'));
-  }
-  if (myCorrectStreak >= 2) {
-    myRoundBadges.push(t('vom.badges.streak', { count: myCorrectStreak }));
-  }
-
   return (
     <div className={`${styles.shell}${!hasChallengeStarted ? ` ${styles.shellPrestart}` : ''}`}>
       <ChallengeHeader
@@ -934,19 +918,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               </div>
             </div>
 
-            {myRoundBadges.length > 0 ? (
-              <div className={styles.badgesRow}>
-                {myRoundBadges.map((badge) => (
-                  <span key={badge} className={styles.badgeChip}>{badge}</span>
-                ))}
-              </div>
-            ) : null}
-
-            <div className={styles.resultMetaBar}>
-              <p className={styles.resultTransition}>{t('vom.transitionText', { clock: formatClock(formatSeconds(remainingMs)) })}</p>
-              <span className={styles.resultFactChip}>{liveRanking.length} joueurs classés</span>
-              <span className={styles.resultFactChip}>Top score {liveRanking[0]?.score ?? 0} pts</span>
-            </div>
             <div className={styles.resultListDense}>
               {(currentTurn?.result?.votes || []).map((item) => (
                 <div key={item.participant_id} className={styles.resultRow}>
@@ -1013,7 +984,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           </section>
         ) : null}
 
-        {hasChallengeStarted && phase !== 'finished' ? (
+        {hasChallengeStarted && phase !== 'finished' && phase !== 'round_result' ? (
           <section className={`${styles.card} ${styles.postStartSecondaryCard}`}>
             {renderRankingCard('poststart-main')}
           </section>
