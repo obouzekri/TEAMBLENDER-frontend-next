@@ -7953,9 +7953,20 @@ html[data-theme='light'] .landing-hero-product-frame {
 }
 
 .landing-offer-section {
-  background: linear-gradient(180deg, #f4f8ff 0%, #edf3ff 100%);
+  background:
+    radial-gradient(circle at 14% 10%, rgba(53, 160, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 88% 82%, rgba(122, 92, 255, 0.14), transparent 40%),
+    linear-gradient(145deg, #0a1830 0%, #0f213f 52%, #122548 100%);
   padding-top: clamp(1.8rem, 3.6vw, 2.7rem);
   padding-bottom: clamp(3.3rem, 6.3vw, 5rem);
+}
+
+.landing-offer-section .landing-section-eyebrow {
+  color: #93c5fd;
+}
+
+.landing-offer-section .landing-section-title {
+  color: #f8fafc;
 }
 
 .landing-values-section {
@@ -8195,7 +8206,7 @@ html[data-theme='light'] .landing-hero-product-frame {
 .landing-offer-subtitle {
   margin: 0.78rem auto 0;
   max-width: 54rem;
-  color: #52525b;
+  color: #cbd5e1;
   font-size: clamp(1rem, 1.2vw, 1.62rem);
   line-height: 1.48;
   font-weight: 620;
@@ -8262,12 +8273,12 @@ html[data-theme='light'] .landing-hero-product-frame {
   font-size: clamp(1.28rem, 1.45vw, 1.88rem);
   line-height: 1.18;
   letter-spacing: -0.02em;
-  color: #18181b;
+  color: #f8fafc;
 }
 
 .landing-core-feature-description {
   margin: 0.04rem 0 0;
-  color: #57534e;
+  color: #cbd5e1;
   font-family: var(--font-ui);
   font-size: 1rem;
   line-height: 1.56;
@@ -8560,7 +8571,7 @@ html[data-theme='light'] .landing-hero-product-frame {
   position: relative;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-template-rows: 150px 188px 150px;
+  grid-template-rows: 168px 206px 168px;
   gap: 0.9rem;
   align-items: stretch;
   max-width: 1160px;
@@ -8579,6 +8590,7 @@ html[data-theme='light'] .landing-hero-product-frame {
 .landing-benefits-orbit__connection--5 { transform: rotate(52deg); }
 
 .landing-benefits-orbit-item, .landing-benefits-orbit-center { position: relative; z-index: 1; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.16); background: linear-gradient(160deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 11px 22px rgba(2, 6, 23, 0.28), 0 0 16px rgba(96, 165, 250, 0.08); padding: 0.85rem 1rem; color: #f8fafc; display: flex; flex-direction: column; justify-content: center; transition: transform var(--motion-medium) var(--ease-standard), box-shadow var(--motion-medium) var(--ease-standard), border-color var(--motion-medium) var(--ease-standard); }
+.landing-benefits-orbit-item { padding: 1.1rem 1.25rem; }
 .landing-benefits-orbit-item h3, .landing-benefits-orbit-center strong { margin: 0; letter-spacing: -0.02em; }
 .landing-benefits-orbit-item h3 { font-family: var(--font-display); font-size: 1.02rem; line-height: 1.18; color: #f8fafc; }
 .landing-benefits-orbit-item p, .landing-benefits-orbit-center p { margin: 0.32rem 0 0; color: #cbd5e1; font-size: 0.83rem; line-height: 1.42; }
@@ -9202,11 +9214,13 @@ html[data-theme='light'] .landing-hero-product-frame {
 
   .landing-core-feature-title {
     font-size: 1.17rem;
+    color: #18181b;
   }
 
   .landing-core-feature-description {
     font-size: 0.93rem;
     line-height: 1.52;
+    color: #57534e;
   }
 
   .landing-testimonials-carousel {
