@@ -6897,7 +6897,7 @@ html[data-theme='dark'] .icon-action-btn:hover{
 }
 
 .landing-metrics-grid article {
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
 }
 
 .landing-hero-product-shell {
@@ -15259,6 +15259,23 @@ html[data-theme='light'] .nav-toggle {
     overflow-wrap: anywhere;
   }
 
+  /* Feature cards: compact vertical padding, tight icon/title spacing, room for the sticky CTA below */
+  .landing-section-full--proof {
+    padding-bottom: 4.5rem;
+  }
+
+  .landing-metrics-grid {
+    margin-bottom: 0.5rem;
+  }
+
+  .landing-metric-card {
+    padding: 16px 18px !important;
+  }
+
+  .landing-metric-card__head {
+    gap: 8px;
+  }
+
   .contact-hero,
   .pricing-hero {
     padding: 1.2rem;
@@ -15879,7 +15896,11 @@ html[data-theme='light'] .nav-toggle {
 .landing-metric-card__head {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.5rem;
+}
+
+.landing-metric-card__tagline {
+  color: #4f46e5;
 }
 
 .landing-metric-card__icon {
