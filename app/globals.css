@@ -6567,26 +6567,32 @@ html[data-theme='dark'] .icon-action-btn:hover{
   z-index: 900;
   display: none;
   justify-content: center;
-  padding: 0.5rem;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.84);
-  border: 1px solid rgba(139, 92, 246, 0.22);
-  box-shadow: 0 12px 30px rgba(124, 58, 237, 0.16);
-  backdrop-filter: blur(18px);
 }
 
 .landing-sticky-cta__button {
   width: 100%;
-  min-height: 46px;
+  max-width: 420px;
+  min-height: 50px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.55rem;
-  border-radius: 14px;
+  gap: 0.5rem;
+  border-radius: 999px;
   background: var(--accent-gradient);
+  border: 1.5px solid rgba(255, 255, 255, 0.24);
   color: #fff;
-  font-weight: 800;
-  box-shadow: 0 16px 34px rgba(53, 160, 255, 0.26);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  box-shadow: 0 10px 24px rgba(53, 160, 255, 0.24), 0 0 20px rgba(122, 92, 255, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.landing-sticky-cta__button:hover,
+.landing-sticky-cta__button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(53, 160, 255, 0.3), 0 0 26px rgba(122, 92, 255, 0.26);
 }
 
 .footer-accordion {
