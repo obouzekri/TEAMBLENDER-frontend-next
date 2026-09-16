@@ -98,12 +98,6 @@ export default function TopNav({ compact = false }) {
               </Link>
             </div>
 
-            <div className={`nav-mobile-cta topnav-public-mobile-cta${isLandingHome ? ' nav-mobile-cta--landing' : ''}`} aria-label={t('nav.accountAria')}>
-              <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn">
-                {t('nav.login')}
-              </Link>
-            </div>
-
             <button
               type="button"
               className={`nav-toggle ${isMenuOpen ? 'is-open' : ''}`}
@@ -130,59 +124,63 @@ export default function TopNav({ compact = false }) {
           </div>
 
           <div className="nav-mobile-menu-actions topnav-public-mobile-actions" aria-label={t('nav.accountAria')}>
-            {sessionUser ? (
-              <AvatarMenu
-                userLabel={avatarLabel}
-                roleLabel={roleLabel}
-                avatarUrl={avatarUrl}
-                avatarInitials={avatarInitialsResolved}
-                triggerLabel={t('nav.userMenuOf', { name: avatarLabel })}
-                menuLabel={t('nav.userMenu')}
-                closeSignal={pathname}
-                items={[
-                  {
-                    key: 'home',
-                    label: t('nav.home'),
-                    href: withLocalePath(homeHref),
-                  },
-                  {
-                    key: 'account',
-                    label: t('nav.myAccount'),
-                    href: withLocalePath(accountHref),
-                  },
-                  {
-                    key: 'preferences',
-                    label: t('nav.preferences'),
-                    href: withLocalePath('/preferences'),
-                  },
-                  {
-                    key: 'separator-logout',
-                    type: 'separator',
-                  },
-                  {
-                    key: 'logout',
-                    label: t('appNav.logout'),
-                    danger: true,
-                    onClick: () => {
-                      localStorage.removeItem('jwt');
-                      sessionStorage.removeItem('jwt');
-                      sessionStorage.removeItem('currentUser');
-                      router.push(withLocalePath('/login'));
+            <div className="nav-mobile-menu-actions__buttons">
+              {sessionUser ? (
+                <AvatarMenu
+                  userLabel={avatarLabel}
+                  roleLabel={roleLabel}
+                  avatarUrl={avatarUrl}
+                  avatarInitials={avatarInitialsResolved}
+                  triggerLabel={t('nav.userMenuOf', { name: avatarLabel })}
+                  menuLabel={t('nav.userMenu')}
+                  closeSignal={pathname}
+                  items={[
+                    {
+                      key: 'home',
+                      label: t('nav.home'),
+                      href: withLocalePath(homeHref),
                     },
-                  },
-                ]}
-              />
-            ) : (
-              <>
-                <Link href={mobileJoinHref} className="nav-cta-btn nav-mobile-signup-btn">
-                  {t('nav.participant')}
-                </Link>
-                <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn nav-mobile-login-btn--outline">
-                  {t('nav.login')}
-                </Link>
-              </>
-            )}
-            <LanguageSwitcher />
+                    {
+                      key: 'account',
+                      label: t('nav.myAccount'),
+                      href: withLocalePath(accountHref),
+                    },
+                    {
+                      key: 'preferences',
+                      label: t('nav.preferences'),
+                      href: withLocalePath('/preferences'),
+                    },
+                    {
+                      key: 'separator-logout',
+                      type: 'separator',
+                    },
+                    {
+                      key: 'logout',
+                      label: t('appNav.logout'),
+                      danger: true,
+                      onClick: () => {
+                        localStorage.removeItem('jwt');
+                        sessionStorage.removeItem('jwt');
+                        sessionStorage.removeItem('currentUser');
+                        router.push(withLocalePath('/login'));
+                      },
+                    },
+                  ]}
+                />
+              ) : (
+                <>
+                  <Link href={mobileJoinHref} className="nav-cta-btn nav-mobile-signup-btn">
+                    {t('nav.participant')}
+                  </Link>
+                  <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn nav-mobile-login-btn--outline">
+                    {t('nav.login')}
+                  </Link>
+                </>
+              )}
+            </div>
+            <div className="nav-mobile-menu-actions__footer">
+              <LanguageSwitcher />
+            </div>
           </div>
 
           <div className="nav-actions topnav-public-desktop-actions" aria-label={t('nav.accountAria')}>
