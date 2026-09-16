@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.teamblender.io').replace(/\/$/, '');
   const now = new Date();
 
   const routes = ['/', '/pricing', '/contact', '/login', '/signup', '/cgu', '/mentions-legales', '/politique-confidentialite'];

@@ -6,19 +6,21 @@ import ThemeController from '@/components/ThemeController';
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
 
 export const metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.teamblender.io'),
   title: {
     default: 'TeamBlender | Team building B2B pour managers et RH',
     template: '%s | TeamBlender',
   },
   description:
-    'Plateforme B2B de team building pour managers et RH: creez, animez et mesurez des sessions collaboratives hybrides.',
+    'Plateforme B2B de team building pour managers et RH\u00A0: créez, animez et mesurez des sessions collaboratives hybrides.',
   openGraph: {
     title: 'TeamBlender | Team building B2B pour managers et RH',
     description:
-      'Plateforme B2B de team building pour managers et RH: creez, animez et mesurez des sessions collaboratives hybrides.',
+      'Plateforme B2B de team building pour managers et RH\u00A0: créez, animez et mesurez des sessions collaboratives hybrides.',
     type: 'website',
-    images: ['/teamblender-nav-logo.png'],
+  },
+  twitter: {
+    card: 'summary_large_image',
   },
   icons: {
     icon: '/icon.svg'

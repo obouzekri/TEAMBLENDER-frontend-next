@@ -1,13 +1,12 @@
 export const metadata = {
-  title: 'Tarifs TeamBlender',
+  title: 'Tarifs',
   description:
-    'Decouvrez des offres TeamBlender adaptees aux managers et RH: essai gratuit 14 jours sans carte bancaire, puis evoluez selon vos besoins.',
+    'Découvrez des offres TeamBlender adaptées aux managers et RH\u00A0: essai gratuit 14 jours sans carte bancaire, puis évoluez selon vos besoins.',
   openGraph: {
     title: 'Tarifs TeamBlender',
     description:
-      'Decouvrez des offres TeamBlender adaptees aux managers et RH: essai gratuit 14 jours sans carte bancaire, puis evoluez selon vos besoins.',
+      'Découvrez des offres TeamBlender adaptées aux managers et RH\u00A0: essai gratuit 14 jours sans carte bancaire, puis évoluez selon vos besoins.',
     type: 'website',
-    images: ['/teamblender-nav-logo.png'],
   },
 };
 
