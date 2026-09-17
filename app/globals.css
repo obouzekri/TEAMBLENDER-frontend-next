@@ -3891,6 +3891,12 @@ html[data-theme='light'] .challenge-subtitle {
   font-family: var(--font-ui);
 }
 
+.auth-field-help {
+  color: #526079;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
 .auth-field-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

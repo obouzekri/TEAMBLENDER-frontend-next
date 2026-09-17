@@ -30,8 +30,7 @@ export default function ParticipantPage() {
   const [joinCodeMessage, setJoinCodeMessage] = useState('');
   const [joinCodeInvalid, setJoinCodeInvalid] = useState(false);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
-  const [temporaryCredentials, setTemporaryCredentials] = useState(null);
-  const [dismissedCredentials, setDismissedCredentials] = useState(false);
+  const [showAccountCreatedNotice, setShowAccountCreatedNotice] = useState(false);
   const authInitRef = useRef(false);
   const [ready, setReady] = useState(false);
   const router = useRouter();
@@ -70,18 +69,10 @@ export default function ParticipantPage() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try {
-      const stored = sessionStorage.getItem('participantTemporaryCredentials');
-      if (!stored) return;
-      const credentials = JSON.parse(stored);
-      if (credentials?.password) {
-        setTemporaryCredentials(credentials);
-        setDismissedCredentials(false);
-      }
-      sessionStorage.removeItem('participantTemporaryCredentials');
-    } catch {
-      sessionStorage.removeItem('participantTemporaryCredentials');
-    }
+    const accountCreated = sessionStorage.getItem('participantAccountCreated') === '1';
+    sessionStorage.removeItem('participantAccountCreated');
+    sessionStorage.removeItem('participantTemporaryCredentials');
+    setShowAccountCreatedNotice(accountCreated);
   }, []);
 
   useEffect(() => {
@@ -481,18 +472,22 @@ export default function ParticipantPage() {
           {asyncStatusMessage ? (
             <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
           ) : null}
-          {temporaryCredentials && !dismissedCredentials ? (
+          {showAccountCreatedNotice ? (
             <div className="participant-credentials-notice" role="status">
-              <strong>{isEn ? 'Your participant login is ready.' : 'Votre accès participant est prêt.'}</strong>
-              <span>{isEn ? 'Login:' : 'Identifiant :'} <code>{temporaryCredentials.identifier || participantLabel}</code></span>
-              <span>{isEn ? 'Temporary password:' : 'Mot de passe temporaire :'} <code>{temporaryCredentials.password}</code></span>
-              <p className="participant-credentials-hint">{isEn ? 'You must change your password from My account before using sessions.' : 'Vous devez modifier votre mot de passe dans Mon compte avant d\'utiliser les sessions.'}</p>
+              <strong>{isEn ? "You're all set!" : 'Tout est prêt !'}</strong>
+              <p className="participant-credentials-hint">
+                {isEn
+                  ? 'Your participant account has been created automatically.'
+                  : 'Votre compte participant a été créé automatiquement.'}
+              </p>
+              <p className="participant-credentials-hint">
+                {isEn
+                  ? 'You can set up your account later from My account.'
+                  : 'Vous pourrez configurer votre compte plus tard depuis Mon compte.'}
+              </p>
               <div className="participant-credentials-actions">
-                <a href={withLocalePath('/account?tab=security')} className="btn-primary">
-                  {isEn ? 'Open My account' : 'Ouvrir Mon compte'}
-                </a>
-                <button type="button" className="btn-secondary" onClick={() => setDismissedCredentials(true)}>
-                  {isEn ? 'Dismiss' : 'Fermer'}
+                <button type="button" className="btn-secondary" onClick={() => setShowAccountCreatedNotice(false)}>
+                  {isEn ? 'Continue' : 'Continuer'}
                 </button>
               </div>
             </div>

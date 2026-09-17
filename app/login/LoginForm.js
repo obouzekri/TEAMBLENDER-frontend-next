@@ -102,7 +102,8 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     : (isEn ? 'Participant alias login enabled' : 'Connexion participant par identifiant activee');
   const joinSessionCodeRequired = !normalizedRequestedInviteToken;
   const canSubmitJoin = (Boolean(normalizedRequestedInviteToken) || String(joinSessionCode || '').trim().length > 0)
-    && String(joinFirstName || '').trim().length > 0;
+    && String(joinFirstName || '').trim().length > 0
+    && String(joinLastName || '').trim().length > 0;
 
   useEffect(() => {
     ensureCsrfToken().catch(() => {});
@@ -136,7 +137,8 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
 
     const codeFromUrl = normalizeJoinCode(searchParams.get('code'));
     const codeFromServer = normalizeJoinCode(requestedJoinCode);
-    const resolvedCode = codeFromUrl || codeFromServer;
+    const codeFromInvite = normalizeJoinCode(normalizedRequestedInviteToken);
+    const resolvedCode = codeFromUrl || codeFromServer || codeFromInvite;
     if (resolvedCode) {
       setJoinSessionCode(resolvedCode);
     }
@@ -411,11 +413,8 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         targetSessionId: shouldStoreParticipantTargetSession('participant', resolvedSessionId),
       });
 
-      if (data?.temporaryPassword) {
-        sessionStorage.setItem('participantTemporaryCredentials', JSON.stringify({
-          identifier: user.email,
-          password: data.temporaryPassword,
-        }));
+      if (data?.accountCreated) {
+        sessionStorage.setItem('participantAccountCreated', '1');
       }
 
       const redirect = withLocalePath(getRedirectPath('participant', '', resolveConnectedUserId(user)));
@@ -490,7 +489,6 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     <main className="auth-page auth-page--login">
       <div className={`auth-login-pane auth-login-pane--${activeTab}`}>
         <AuthCard
-          title={isEn ? 'Access TeamBlender' : 'Accéder à TeamBlender'}
           footer={<span>{isEn ? 'New to TeamBlender? ' : 'Nouveau sur TeamBlender ? '}<Link href={withLocalePath('/signup')}>{isEn ? 'Create an account' : 'Créer un compte'}</Link></span>}
         >
           <div className="auth-tabs" role="tablist" aria-label={isEn ? 'Select connection mode' : 'Selectionner le mode de connexion'}>
@@ -520,15 +518,15 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
               onClick={() => changeTab(TAB_LOGIN)}
               onKeyDown={onTabKeyDown}
             >
-              {isEn ? 'Member area login' : 'Connexion Espace Membre'}
+              {isEn ? 'Sign in' : 'Se connecter'}
             </button>
           </div>
 
           <p className="auth-tabs-subtitle" aria-live="polite">
             {activeTab === TAB_JOIN
               ? (isEn
-                ? 'Quick guest access with the code shared by your organizer.'
-                : 'Accès rapide invité avec le code transmis par votre organisateur.')
+                ? 'Have a session code? Enter it below to join.'
+                : 'Vous avez un code de session ? Saisissez-le ci-dessous pour rejoindre la session.')
               : (isEn
                 ? 'For organizers and participants registered by their manager.'
                 : 'Pour les organisateurs et les participants inscrits par leur manager.')}
@@ -559,7 +557,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                   disabled={Boolean(normalizedRequestedInviteToken)}
                 />
               </AuthField>
-              {scannerSupported ? (
+              {scannerSupported && !normalizedRequestedInviteToken ? (
                 <button
                   type="button"
                   className="btn-secondary wide"
@@ -598,17 +596,30 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                   />
                 </AuthField>
               </div>
-              <AuthField id="join-email" label={isEn ? 'Email (optional)' : 'Adresse e-mail (optionnel)'}>
-                <input
+              {!normalizedRequestedInviteToken ? (
+                <AuthField
                   id="join-email"
-                  type="email"
-                  value={joinEmail}
-                  onChange={(e) => setJoinEmail(e.target.value)}
-                  placeholder={isEn ? 'sophie@company.com' : 'sophie@entreprise.com'}
-                  autoComplete="email"
-                  className="join-field-input"
-                />
-              </AuthField>
+                  label={isEn ? 'Email (optional)' : 'Adresse e-mail (optionnel)'}
+                  help={(
+                    <span id="join-email-help" className="auth-field-help">
+                      {isEn
+                        ? 'Add your email to access your account later.'
+                        : 'Ajoutez votre adresse e-mail pour accéder à votre compte plus tard.'}
+                    </span>
+                  )}
+                >
+                  <input
+                    id="join-email"
+                    type="email"
+                    value={joinEmail}
+                    onChange={(e) => setJoinEmail(e.target.value)}
+                    placeholder={isEn ? 'sophie@company.com' : 'sophie@entreprise.com'}
+                    autoComplete="email"
+                    className="join-field-input"
+                    aria-describedby="join-email-help"
+                  />
+                </AuthField>
+              ) : null}
               <button
                 type="submit"
                 className="btn-primary wide login-submit-btn join-submit-btn"

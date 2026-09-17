@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { Check, Copy, Link as LinkIcon } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
@@ -481,8 +480,14 @@ export default function SessionBuilder() {
   const inviteLink = useMemo(() => {
     const token = String(sessionInvite?.invite_token || '').trim();
     if (!token || typeof window === 'undefined') return '';
-    return `${window.location.origin}${withLocalePath(`/login?invite=${encodeURIComponent(token)}&sessionId=${encodeURIComponent(String(sessionId || ''))}`)}`;
-  }, [sessionId, sessionInvite?.invite_token, withLocalePath]);
+    const code = String(sessionInvite?.code || '').trim();
+    return `${window.location.origin}${withLocalePath(`/login?invite=${encodeURIComponent(token)}&code=${encodeURIComponent(code)}&sessionId=${encodeURIComponent(String(sessionId || ''))}`)}`;
+  }, [sessionId, sessionInvite?.code, sessionInvite?.invite_token, withLocalePath]);
+  const inviteMessage = useMemo(() => {
+    const code = String(sessionInvite?.code || '').trim();
+    if (!inviteLink || !code) return '';
+    return t('sessionBuilder.inviteMessage', { link: inviteLink, code });
+  }, [inviteLink, sessionInvite?.code, t]);
   const asyncStatusMessage = isCreatingSession
     ? t('sessionBuilder.creatingSession')
     : isSavingSessionInfo
@@ -902,8 +907,29 @@ export default function SessionBuilder() {
     });
 
     setSessionInvite(invite || null);
+    const participantCount = Number(invite?.assigned_participant_count);
+    if (Number.isInteger(participantCount) && participantCount >= 0) {
+      setSessionParticipantCount(participantCount);
+    }
     return invite;
   }, [apiRequest, getAuthToken]);
+
+  useEffect(() => {
+    if (!sessionId || guard.loading || !guard.user) return undefined;
+
+    const refreshParticipantCount = () => {
+      if (document.visibilityState !== 'visible') return;
+      loadSessionInvite(sessionId).catch(() => {});
+    };
+
+    const intervalId = window.setInterval(refreshParticipantCount, 5000);
+    document.addEventListener('visibilitychange', refreshParticipantCount);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', refreshParticipantCount);
+    };
+  }, [guard.loading, guard.user, loadSessionInvite, sessionId]);
 
   const handleCopyInviteValue = useCallback(async (value, feedbackKey) => {
     const text = String(value || '').trim();
@@ -1390,50 +1416,53 @@ export default function SessionBuilder() {
 
   const invitePanel = sessionId ? (
     <div className={styles.summaryInvite} aria-label={t('sessionBuilder.inviteTitle')}>
-      <div className={styles.summaryInviteRow}>
-        <span className={styles.summaryInviteLabel}>{t('sessionBuilder.inviteEyebrow')}</span>
-        {inviteLink ? (
-          <a
-            className={styles.summaryInviteLink}
-            href={inviteLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={t('sessionBuilder.inviteTitle')}
-          >
-            <LinkIcon size={14} strokeWidth={2.2} aria-hidden="true" />
-            {t('sessionBuilder.inviteJoinLinkText')}
-          </a>
-        ) : (
-          <span className={styles.summaryInviteLink}>...</span>
-        )}
+      <div className={styles.summaryInviteHeader}>
+        <strong>{t('sessionBuilder.inviteEyebrow')}</strong>
         <button
           type="button"
-          className={styles.summaryInviteIconCopy}
-          onClick={() => handleCopyInviteValue(inviteLink, 'link')}
-          disabled={!inviteLink}
-          aria-label={inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
-          title={inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
+          className={styles.summaryInviteSecondary}
+          onClick={() => handleCopyInviteValue(inviteMessage, 'invite')}
+          disabled={!inviteMessage}
         >
-          {inviteCopyState === 'link' ? (
-            <Check size={15} strokeWidth={2.4} aria-hidden="true" />
-          ) : (
-            <Copy size={15} strokeWidth={2.2} aria-hidden="true" />
-          )}
+          {inviteCopyState === 'invite' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInvite')}
         </button>
       </div>
-      <div className={styles.summaryInviteRow}>
-        <span className={styles.summaryInviteLabel}>{t('sessionBuilder.inviteCodeLabel')}</span>
-        <span className={styles.summaryInviteCode}>{String(sessionInvite?.code || '').trim() || '...'}</span>
-        <button
-          type="button"
-          className={styles.summaryInviteCopy}
-          onClick={() => handleCopyInviteValue(sessionInvite?.code, 'code')}
-          disabled={!String(sessionInvite?.code || '').trim()}
-          aria-label={t('sessionBuilder.copyInviteCode')}
-          title={inviteCopyState === 'code' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteCode')}
-        >
-          {inviteCopyState === 'code' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteCode')}
-        </button>
+      <div className={styles.summaryInviteOptions}>
+        <div className={styles.summaryInviteOption}>
+          <span className={styles.summaryInvitePrompt}>{t('sessionBuilder.inviteLinkPrompt')}</span>
+          <div className={styles.summaryInviteControl}>
+            {inviteLink ? (
+              <a className={styles.summaryInviteLink} href={inviteLink} target="_blank" rel="noopener noreferrer">
+                {inviteLink}
+              </a>
+            ) : (
+              <span className={styles.summaryInviteLink}>...</span>
+            )}
+            <button
+              type="button"
+              className={styles.summaryInviteCopy}
+              onClick={() => handleCopyInviteValue(inviteLink, 'link')}
+              disabled={!inviteLink}
+            >
+              {inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
+            </button>
+          </div>
+        </div>
+        <span className={styles.summaryInviteDivider}>{t('sessionBuilder.inviteCodePrompt')}</span>
+        <div className={`${styles.summaryInviteControl} ${styles.summaryInviteCodeControl}`}>
+          <div className={styles.summaryInviteCodeBlock}>
+            <span>{t('sessionBuilder.inviteCodeLabel')}</span>
+            <strong>{String(sessionInvite?.code || '').trim() || '...'}</strong>
+          </div>
+          <button
+            type="button"
+            className={styles.summaryInviteCopy}
+            onClick={() => handleCopyInviteValue(sessionInvite?.code, 'code')}
+            disabled={!String(sessionInvite?.code || '').trim()}
+          >
+            {inviteCopyState === 'code' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteCode')}
+          </button>
+        </div>
       </div>
     </div>
   ) : null;

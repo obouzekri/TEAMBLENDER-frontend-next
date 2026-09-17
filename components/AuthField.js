@@ -4,6 +4,7 @@ export default function AuthField({
   icon,
   className = '',
   after = null,
+  help = null,
   children,
 }) {
   return (
@@ -14,6 +15,7 @@ export default function AuthField({
         {children}
         {after ? <span className="auth-input-after">{after}</span> : null}
       </div>
+      {help}
     </label>
   );
 }

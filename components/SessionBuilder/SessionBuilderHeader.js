@@ -41,8 +41,7 @@ export default function SessionBuilderHeader({
             </span>
             <span className={styles.summaryStat}>
               <Clock3 size={15} strokeWidth={2.2} aria-hidden="true" />
-              <strong>{minutes}</strong>
-              <span>min</span>
+              <strong>~{minutes} min</strong>
             </span>
           </div>
         </div>

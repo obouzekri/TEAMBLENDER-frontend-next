@@ -41,7 +41,7 @@ async function run() {
   try {
     await page.goto(`${FRONTEND_URL}/login`, { waitUntil: 'domcontentloaded' });
 
-    const emailInput = page.getByLabel('Email');
+    const emailInput = page.locator('input#login-email');
     const passwordInput = page.locator('input#login-password');
     const submitButton = page.locator('form.auth-form button:has-text("Se connecter")');
 
