@@ -483,6 +483,7 @@ export default function SessionBuilder() {
   const [inviteCopyState, setInviteCopyState] = useState('');
   const hasHydratedSessionSelectionRef = useRef(false);
   const onboardingRedirectedRef = useRef(false);
+  const shouldResetScrollAfterCreationRef = useRef(false);
 
   const handleParticipantsLoaded = useCallback((count) => {
     setAvailableParticipantsCount(Number(count || 0));
@@ -555,6 +556,13 @@ export default function SessionBuilder() {
       hasHydratedSessionSelectionRef.current = false;
     }
   }, [clearAll, sessionId]);
+
+  useEffect(() => {
+    if (!sessionId || !shouldResetScrollAfterCreationRef.current) return;
+
+    shouldResetScrollAfterCreationRef.current = false;
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [sessionId]);
 
   const getAuthToken = useCallback(
     () => getStoredAuthToken(),
@@ -1307,6 +1315,7 @@ export default function SessionBuilder() {
       if (!newId) throw new Error(t('sessionBuilder.missingSessionId'));
 
       sessionStorage.setItem(SESSION_ID_STORAGE_KEY, newId);
+      shouldResetScrollAfterCreationRef.current = true;
       setSessionId(newId);
       setSessionParticipantCount(draftParticipantIds.length);
       localStorage.removeItem(CREATION_DRAFT_STORAGE_KEY);

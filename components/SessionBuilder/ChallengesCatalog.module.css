@@ -536,11 +536,11 @@
 
 .toggleAction {
   border: 1px solid var(--line);
-  background: var(--surface-control);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
   border-radius: 999px;
-  min-height: 2.2rem;
-  padding: 0.24rem 0.66rem 0.24rem 0.28rem;
-  color: #1e3a68;
+  min-height: 2.35rem;
+  padding: 0.24rem 0.82rem 0.24rem 0.3rem;
+  color: var(--text-on-accent);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -556,13 +556,13 @@
 }
 
 .toggleActionKnob {
-  width: 1.55rem;
-  height: 1.55rem;
+  width: 1.7rem;
+  height: 1.7rem;
   border-radius: 999px;
-  background: linear-gradient(145deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
-  border: 1px solid var(--line);
-  display: inline-block;
-  position: relative;
+  background: rgba(255, 255, 255, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
@@ -579,7 +579,7 @@
 
 .toggleActionSelected .toggleActionKnob {
   border-color: color-mix(in srgb, var(--error-line) 55%, transparent);
-  background: linear-gradient(145deg, var(--error-bg) 0%, var(--card) 100%);
+  background: color-mix(in srgb, var(--error-line) 14%, var(--card));
   transform: translateX(1px);
 }
 
@@ -733,8 +733,26 @@
     gap: 0.75rem;
   }
 
+  .cardHeader {
+    align-items: flex-start;
+    flex-direction: row;
+    gap: 0.65rem;
+  }
+
   .cardTitle {
     font-size: 0.93rem;
+    line-height: 1.3;
+  }
+
+  .rulesMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .rulesButton {
+    flex-shrink: 0;
+    padding: 0.42rem;
   }
 
   .rulesLabel {

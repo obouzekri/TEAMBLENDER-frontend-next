@@ -5951,24 +5951,24 @@ html[data-theme='dark'] .icon-action-btn:hover{
 
   .home-sessions-panel .session-card-mobile-actions {
     position: relative;
-    z-index: 2;
+    z-index: 9999;
     align-self: flex-start;
   }
 
   .home-sessions-panel .manager-mobile-menu {
     position: relative;
-    z-index: 2;
+    z-index: 9999;
   }
 
   .home-sessions-panel .manager-mobile-menu__trigger {
     position: relative;
-    z-index: 3;
+    z-index: 10000;
     margin-right: 0;
     flex-shrink: 0;
   }
 
   .home-sessions-panel .manager-mobile-menu__dropdown {
-    z-index: 50;
+    z-index: 10001;
     min-width: min(200px, calc(100vw - 2rem));
   }
 

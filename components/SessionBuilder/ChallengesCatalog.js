@@ -7,6 +7,7 @@ import styles from './ChallengesCatalog.module.css';
 import { Badge, Button, EmptyState } from '@/components/ui';
 import { formatIdealPlayersLabel } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
+import { Check, Plus } from 'lucide-react';
 
 const MAX_FILTER_OBJECTIVES = 3;
 
@@ -467,7 +468,9 @@ export default function ChallengesCatalog({
                       }
                     }}
                   >
-                    <span className={styles.toggleActionKnob} aria-hidden="true" />
+                    <span className={styles.toggleActionKnob} aria-hidden="true">
+                      {isSelected ? <Check size={14} strokeWidth={2.6} /> : <Plus size={15} strokeWidth={2.6} />}
+                    </span>
                     <span className={styles.toggleActionLabel}>{isSelected ? t('sessionBuilder.catalogRemoveAction') : t('sessionBuilder.catalogAddAction')}</span>
                   </button>
                   {isSelected && (
