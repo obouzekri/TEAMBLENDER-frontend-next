@@ -12551,7 +12551,9 @@ html[data-theme='light'] .site-footer .footer-social__link {
   position: absolute;
   top: calc(100% + 9px);
   right: 0;
-  min-width: 204px;
+  width: 220px;
+  min-width: 220px;
+  max-width: min(220px, calc(100vw - 24px));
   background: var(--surface-panel);
   border: 1px solid var(--surface-soft-border);
   border-radius: 16px;
@@ -12610,7 +12612,8 @@ html[data-theme='light'] .site-footer .footer-social__link {
   align-items: center;
   gap: 0.58rem;
   width: 100%;
-  padding: 0.5rem 0.72rem;
+  min-height: 38px;
+  padding: 0.4rem 0.68rem;
   border-radius: 10px;
   font-size: 0.86rem;
   font-weight: 500;
@@ -12645,17 +12648,17 @@ html[data-theme='light'] .site-footer .footer-social__link {
 }
 
 .nav-user-dropdown__item--danger {
-  color: var(--error-line);
+  color: var(--text-strong);
 }
 
 .nav-user-dropdown__item--danger:hover {
-  background: color-mix(in srgb, var(--error-bg) 68%, transparent);
-  color: color-mix(in srgb, var(--error-line) 72%, #ffffff);
+  background: var(--surface-panel-soft);
+  color: var(--text-strong);
   transform: translateX(1px);
 }
 
 .nav-user-dropdown__item--danger svg {
-  opacity: 0.65;
+  opacity: 0.72;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19788,7 +19791,7 @@ html[data-theme='light'] .psb {
     }
 
     .top-nav:not(.top-nav--live-inline) #app-nav-panel .appnav-mobile-main-links--desktop-menu .nav-link--logout {
-      color: var(--color-danger) !important;
+      color: var(--text-strong) !important;
     }
 
     .top-nav:not(.top-nav--live-inline) .appnav-desktop-actions {

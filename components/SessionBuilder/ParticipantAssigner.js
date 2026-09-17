@@ -224,6 +224,7 @@ export default function ParticipantAssigner({
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className={styles.input}
+                  disabled={participants.length === 0}
                   aria-label={t('sessionBuilder.searchParticipantsPlaceholder')}
                 />
               </div>

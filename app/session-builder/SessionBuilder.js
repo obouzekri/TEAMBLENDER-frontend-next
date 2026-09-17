@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { CalendarClock, Check, CircleGauge, Copy, Link as LinkIcon } from 'lucide-react';
+import { Check, Copy, Link as LinkIcon } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
@@ -263,19 +263,6 @@ const SELECTED_CHALLENGES_STORAGE_KEY = 'selectedChallenges';
 const DRAFT_STORAGE_PREFIX = 'sessionBuilderDraft:';
 const CREATION_DRAFT_STORAGE_KEY = 'sessionBuilderCreationDraft:v1';
 
-function getBrowserTimezone() {
-  if (typeof Intl === 'undefined' || typeof Intl.DateTimeFormat !== 'function') {
-    return 'UTC';
-  }
-
-  try {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return String(timezone || 'UTC').trim() || 'UTC';
-  } catch {
-    return 'UTC';
-  }
-}
-
 function getDraftStorageKey(sessionId) {
   const normalizedId = String(sessionId || '').trim();
   if (!normalizedId) return null;
@@ -513,7 +500,6 @@ export default function SessionBuilder() {
     () => JSON.stringify(selectedChallenges),
     [selectedChallenges]
   );
-  const detectedTimezone = useMemo(() => getBrowserTimezone(), []);
   const nameError = creationTouched.sessionName && !sessionName.trim() ? t('sessionBuilder.sessionNameRequired') : '';
   const dateError = useMemo(() => {
     if (!creationTouched.sessionDateTime || !sessionDateTime) return '';
@@ -1471,17 +1457,12 @@ export default function SessionBuilder() {
         <main className={`auth-page ${styles.creationPageBackground}`}>
           <section className={styles.creationExperience}>
             <div className={styles.creationHero}>
-              <p className={styles.creationPrerequisite}>
-                {t('sessionBuilder.prerequisite')}
-              </p>
-
               <div className={styles.creationContent}>
                 <form id="create-session-form" onSubmit={handleCreateSession} className={styles.creationPrimary}>
                   <div className={styles.creationForm}>
                       <div className={styles.creationSectionHeader}>
                         <div>
                           <h2>{t('sessionBuilder.frameTitle')}</h2>
-                          <p>{t('sessionBuilder.requiredHint')}</p>
                         </div>
                       </div>
 
@@ -1515,7 +1496,7 @@ export default function SessionBuilder() {
                           inputClassName={styles.creationDateInput}
                           helpClassName={styles.creationDateHelp}
                           error={dateError}
-                          hint={t('sessionBuilder.dateFormatHelp', { timezone: detectedTimezone })}
+                          hint={t('sessionBuilder.dateHint')}
                           aria-invalid={Boolean(dateError)}
                         />
                       </div>
@@ -1534,9 +1515,6 @@ export default function SessionBuilder() {
                               checked={flowMode === 'manual'}
                               onChange={() => setFlowMode('manual')}
                             />
-                            <span className={styles.flowModeIcon} aria-hidden="true">
-                              <CircleGauge className={styles.flowModeIconSvg} />
-                            </span>
                             <span className={styles.flowModeContent}>
                               <strong>{t('sessionBuilder.manual')}</strong>
                               <small>{t('sessionBuilder.manualHint')}</small>
@@ -1550,9 +1528,6 @@ export default function SessionBuilder() {
                               checked={flowMode === 'auto'}
                               onChange={() => setFlowMode('auto')}
                             />
-                            <span className={styles.flowModeIcon} aria-hidden="true">
-                              <CalendarClock className={styles.flowModeIconSvg} />
-                            </span>
                             <span className={styles.flowModeContent}>
                               <strong>{t('sessionBuilder.automatic')}</strong>
                               <small>{t('sessionBuilder.automaticHint')}</small>
@@ -1561,9 +1536,6 @@ export default function SessionBuilder() {
                         </div>
                       </div>
 
-                      <div className={styles.creationFooter}>
-                        <p className={styles.creationHint}>{t('sessionBuilder.dateHint')}</p>
-                      </div>
                   </div>
 
                   <div className={styles.creationParticipantsPane}>

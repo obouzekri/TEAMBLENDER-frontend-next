@@ -150,7 +150,6 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
     {
       key: 'logout',
       label: t('appNav.logout'),
-      danger: true,
       onClick: () => onLogout?.(),
     },
   ];
