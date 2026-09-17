@@ -5,6 +5,15 @@ import {
   sanitizeJwtFromStorage,
   shouldStoreParticipantTargetSession,
 } from '../lib/auth.js';
+import { getStoredAuthToken } from '../lib/auth-storage.js';
+
+function createStorage(values = {}) {
+  return {
+    getItem(key) {
+      return values[key] || null;
+    },
+  };
+}
 
 function run() {
   assert.equal(resolveConnectedUserId({ id: 42 }), '42');
@@ -18,9 +27,15 @@ function run() {
   assert.equal(shouldStoreParticipantTargetSession('participant', '15'), '15');
   assert.equal(shouldStoreParticipantTargetSession('manager', '15'), '');
 
-  assert.equal(sanitizeJwtFromStorage(' local-token ', 'session-token'), 'local-token');
+  assert.equal(sanitizeJwtFromStorage(' stale-local-token ', 'current-session-token'), 'current-session-token');
   assert.equal(sanitizeJwtFromStorage('', ' session-token '), 'session-token');
+  assert.equal(sanitizeJwtFromStorage(' local-token ', ''), 'local-token');
   assert.equal(sanitizeJwtFromStorage('', ''), '');
+
+  assert.equal(getStoredAuthToken({
+    local: createStorage({ jwt: 'stale-participant-token' }),
+    session: createStorage({ jwt: 'current-manager-token' }),
+  }), 'current-manager-token');
 
   console.log('TEST_AUTH_OK');
 }
