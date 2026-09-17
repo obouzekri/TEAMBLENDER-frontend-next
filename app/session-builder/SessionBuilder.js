@@ -1428,25 +1428,22 @@ export default function SessionBuilder() {
         </button>
       </div>
       <div className={styles.summaryInviteOptions}>
-        <div className={styles.summaryInviteOption}>
-          <span className={styles.summaryInvitePrompt}>{t('sessionBuilder.inviteLinkPrompt')}</span>
-          <div className={styles.summaryInviteControl}>
-            {inviteLink ? (
-              <a className={styles.summaryInviteLink} href={inviteLink} target="_blank" rel="noopener noreferrer">
-                {inviteLink}
-              </a>
-            ) : (
-              <span className={styles.summaryInviteLink}>...</span>
-            )}
-            <button
-              type="button"
-              className={styles.summaryInviteCopy}
-              onClick={() => handleCopyInviteValue(inviteLink, 'link')}
-              disabled={!inviteLink}
-            >
-              {inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
-            </button>
-          </div>
+        <div className={styles.summaryInviteControl}>
+          {inviteLink ? (
+            <a className={styles.summaryInviteLink} href={inviteLink} target="_blank" rel="noopener noreferrer">
+              {inviteLink}
+            </a>
+          ) : (
+            <span className={styles.summaryInviteLink}>...</span>
+          )}
+          <button
+            type="button"
+            className={styles.summaryInviteCopy}
+            onClick={() => handleCopyInviteValue(inviteLink, 'link')}
+            disabled={!inviteLink}
+          >
+            {inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
+          </button>
         </div>
         <span className={styles.summaryInviteDivider}>{t('sessionBuilder.inviteCodePrompt')}</span>
         <div className={`${styles.summaryInviteControl} ${styles.summaryInviteCodeControl}`}>
@@ -1525,7 +1522,6 @@ export default function SessionBuilder() {
                           inputClassName={styles.creationDateInput}
                           helpClassName={styles.creationDateHelp}
                           error={dateError}
-                          hint={t('sessionBuilder.dateHint')}
                           aria-invalid={Boolean(dateError)}
                         />
                       </div>
