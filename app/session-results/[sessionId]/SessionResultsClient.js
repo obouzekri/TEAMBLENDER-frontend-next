@@ -41,6 +41,7 @@ export default function SessionResultsClient() {
   const [session, setSession] = useState(null);
   const [results, setResults] = useState([]);
   const [participationRate, setParticipationRate] = useState(null);
+  const [kpis, setKpis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const authInitRef = useRef(false);
@@ -64,10 +65,11 @@ export default function SessionResultsClient() {
   const loadData = useCallback(async () => {
     if (!sessionId) return;
     try {
-      const [sessionRes, resultsRes, rateRes] = await Promise.all([
+      const [sessionRes, resultsRes, rateRes, kpisRes] = await Promise.all([
         fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), { headers: getAuthHeaders() }),
         fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/results`), { headers: getAuthHeaders() }),
         fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/participation-rate`), { headers: getAuthHeaders() }),
+        fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/kpis`), { headers: getAuthHeaders() }),
       ]);
 
       if (!sessionRes.ok) throw new Error(isEn ? `Session not found (${sessionRes.status})` : `Session introuvable (${sessionRes.status})`);
@@ -83,6 +85,11 @@ export default function SessionResultsClient() {
       if (rateRes.ok) {
         const ratePayload = await rateRes.json();
         setParticipationRate(ratePayload?.data ?? null);
+      }
+
+      if (kpisRes.ok) {
+        const kpisPayload = await kpisRes.json();
+        setKpis(kpisPayload?.data ?? null);
       }
     } catch (err) {
       setError(err.message || (isEn ? 'Unable to load results.' : 'Impossible de charger les résultats.'));
@@ -107,8 +114,17 @@ export default function SessionResultsClient() {
     const avgScore = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
     const uniqueParticipants = new Set(results.map((r) => r.participant_id)).size;
     const uniqueChallenges = new Set(results.map((r) => r.challenge_id)).size;
-    return { completed, avgScore, uniqueParticipants, uniqueChallenges, total: results.length };
-  }, [results]);
+    return {
+      completed: kpis?.completed_challenges ?? completed,
+      avgScore: kpis?.average_score ?? avgScore,
+      uniqueParticipants: kpis?.active_participants ?? uniqueParticipants,
+      uniqueChallenges: kpis?.challenges_played ?? uniqueChallenges,
+      total: results.length || kpis?.answer_submissions || 0,
+      answerSubmissions: kpis?.answer_submissions ?? 0,
+      participationRate: kpis?.participation_rate ?? participationRate?.rate ?? null,
+      totalInvited: kpis?.total_invited ?? participationRate?.total_invited ?? 0,
+    };
+  }, [kpis, participationRate, results]);
 
   // Group results by challenge
   const byChallenge = useMemo(() => {
@@ -120,6 +136,9 @@ export default function SessionResultsClient() {
     }
     return Array.from(map.values());
   }, [results]);
+
+  const challengeInsights = kpis?.challenge_insights || [];
+  const participantContributions = kpis?.participant_contributions || [];
 
   const userLabel = useMemo(() => {
     const first = String(user?.first_name || user?.firstName || '').trim();
@@ -197,9 +216,9 @@ export default function SessionResultsClient() {
           <div className="session-results-stats-grid">
             {[
               { label: isEn ? 'Active participants' : 'Participants actifs', value: stats.uniqueParticipants },
-              { label: isEn ? 'Participation rate' : 'Taux de participation', value: participationRate != null ? `${participationRate.rate}%` : '—' },
+              { label: isEn ? 'Participation rate' : 'Taux de participation', value: stats.participationRate != null ? `${stats.participationRate}%` : '—' },
               { label: isEn ? 'Played challenges' : 'Challenges joués', value: stats.uniqueChallenges },
-              { label: isEn ? 'Attempts' : 'Tentatives', value: stats.total },
+              { label: isEn ? 'Answer submissions' : 'Soumissions', value: stats.answerSubmissions },
               { label: isEn ? 'Completed' : 'Complétées', value: stats.completed },
               { label: isEn ? 'Average score' : 'Score moyen', value: stats.avgScore != null ? `${stats.avgScore} pts` : '—' },
             ].map(({ label, value }) => (
@@ -211,44 +230,104 @@ export default function SessionResultsClient() {
           </div>
         </section>
 
+        {challengeInsights.length > 0 && (
+          <section className="feature-card session-results-summary-card">
+            <h2>{isEn ? 'Challenge insights' : 'Analyses par challenge'}</h2>
+            <div className="session-results-insight-grid">
+              {challengeInsights.map((insight) => (
+                <div key={insight.challenge_id} className="session-results-insight-item">
+                  <div className="session-results-insight-title">{insight.challenge_name}</div>
+                  <div className="session-results-insight-metrics">
+                    <span>{insight.completed}/{insight.attempts} {isEn ? 'completed' : 'terminés'}</span>
+                    <span>{insight.completion_rate}% {isEn ? 'completion' : 'de complétion'}</span>
+                    <span>{insight.answer_submissions} {isEn ? 'responses' : 'réponses'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {participantContributions.length > 0 && (
+          <section className="feature-card session-results-summary-card">
+            <h2>{isEn ? 'Participation contribution' : 'Contribution des participants'}</h2>
+            <div className="session-results-insight-grid">
+              {participantContributions.map((participant) => (
+                <div key={participant.participant_id} className="session-results-insight-item">
+                  <div className="session-results-insight-title">{participant.participant_name}</div>
+                  <div className="session-results-insight-metrics">
+                    <span>{participant.attempts} {isEn ? 'attempts' : 'tentatives'}</span>
+                    <span>{participant.completed} {isEn ? 'completed' : 'terminées'}</span>
+                    <span>{participant.answer_submissions} {isEn ? 'responses' : 'réponses'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {byChallenge.length > 0 ? (
-          byChallenge.map(({ challenge, rows }) => (
-            <section key={challenge?.id || 'unknown'} className="feature-card session-results-challenge-card">
-              <h2>{challenge?.name || challenge?.engine_key || (isEn ? 'Challenge' : 'Challenge')}</h2>
-              {challenge?.engine_key && (
-                <p className="eyebrow session-results-engine-key">{challenge.engine_key}</p>
-              )}
-              <div className="session-results-rows">
-                {rows.map((r) => {
-                  const name = String(r.participant_name || r.participant_name_snapshot || '').trim()
-                    || `${isEn ? 'Participant' : 'Participant'} ${r.participant_id}`;
-                  const duration = r.completed_at && r.created_at
-                    ? formatDuration(new Date(r.completed_at) - new Date(r.created_at))
-                    : '—';
-                  return (
-                    <div key={r.id} className="session-results-row">
-                      <div className="session-results-row-main">
-                        <div className="session-results-row-name">{name}</div>
-                        <div className="session-results-row-duration">
-                          {isEn ? 'Duration:' : 'Durée :'} {duration}
+          byChallenge.map(({ challenge, rows }) => {
+            const challengeScores = rows.filter((row) => row.score != null).map((row) => Number(row.score));
+            const challengeAverage = challengeScores.length
+              ? Math.round(challengeScores.reduce((sum, value) => sum + value, 0) / challengeScores.length)
+              : null;
+            const challengeCompleted = rows.filter((row) => row.status === 'completed').length;
+
+            return (
+              <section key={challenge?.id || 'unknown'} className="feature-card session-results-challenge-card">
+                <div className="session-results-challenge-header">
+                  <div>
+                    <h2>{challenge?.name || challenge?.engine_key || (isEn ? 'Challenge' : 'Challenge')}</h2>
+                    {challenge?.engine_key && (
+                      <p className="eyebrow session-results-engine-key">{challenge.engine_key}</p>
+                    )}
+                  </div>
+                  <div className="session-results-challenge-summary">
+                    <span>{challengeCompleted} {isEn ? 'done' : 'terminés'}</span>
+                    <span>{challengeAverage != null ? `${challengeAverage} pts` : (isEn ? 'No score yet' : 'Pas de score')}</span>
+                  </div>
+                </div>
+                <div className="session-results-rows">
+                  {rows.map((r) => {
+                    const name = String(r.participant_name || r.participant_name_snapshot || '').trim()
+                      || `${isEn ? 'Participant' : 'Participant'} ${r.participant_id}`;
+                    const duration = r.completed_at && r.created_at
+                      ? formatDuration(new Date(r.completed_at) - new Date(r.created_at))
+                      : '—';
+                    return (
+                      <div key={r.id} className="session-results-row">
+                        <div className="session-results-row-main">
+                          <div className="session-results-row-name">{name}</div>
+                          <div className="session-results-row-duration">
+                            {isEn ? 'Duration:' : 'Durée :'} {duration}
+                          </div>
+                        </div>
+                        <div className="session-results-row-metrics">
+                          {r.score != null && (
+                            <span className="session-results-score">{r.score} {isEn ? 'pts' : 'pts'}</span>
+                          )}
+                          <StatusBadge status={r.status} isEn={isEn} />
                         </div>
                       </div>
-                      <div className="session-results-row-metrics">
-                        {r.score != null && (
-                          <span className="session-results-score">{r.score} {isEn ? 'pts' : 'pts'}</span>
-                        )}
-                        <StatusBadge status={r.status} isEn={isEn} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          ))
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })
         ) : (
-          <section className="feature-card">
+          <section className="feature-card session-results-empty">
             <h2>{isEn ? 'No results recorded' : 'Aucun résultat enregistré'}</h2>
-            <p>{isEn ? 'Results will appear here once participants have played.' : 'Les résultats apparaîtront ici une fois que les participants auront joué.'}</p>
+            <p>
+              {stats.totalInvited > 0
+                ? (isEn
+                  ? `The session has ${stats.totalInvited} assigned participant(s), but no challenge attempts have been captured yet.`
+                  : `La session compte ${stats.totalInvited} participant(s) assigné(s), mais aucune tentative de challenge n'a encore été enregistrée.`)
+                : (isEn
+                  ? 'Results will appear here once participants have played.'
+                  : 'Les résultats apparaîtront ici une fois que les participants auront joué.')}
+            </p>
           </section>
         )}
       </main>
