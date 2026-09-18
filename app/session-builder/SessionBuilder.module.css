@@ -1020,21 +1020,10 @@
 }
 
 .creationGlobalActions {
-  position: sticky;
-  bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
-  z-index: 5;
   display: flex;
   align-items: center;
-  gap: 0.9rem;
   justify-content: flex-end;
-  margin-top: 1rem;
-  padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
-  border-radius: 22px;
-  background: linear-gradient(180deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
-  border: 1px solid var(--builder-line-strong);
-  box-shadow: var(--shadow-md);
-  backdrop-filter: blur(16px);
-  flex-wrap: wrap;
+  margin-top: 0.5rem;
 }
 
 .creationActionHint {
@@ -1795,9 +1784,7 @@
   }
 
   .creationGlobalActions {
-    position: static;
-    flex-direction: column;
-    align-items: stretch;
+    justify-content: flex-end;
   }
 
   .creationSubmit {
@@ -1824,10 +1811,7 @@
   }
 
   .creationGlobalActions {
-    position: sticky;
-    bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
-    padding: 0.75rem;
-    border-radius: 16px;
+    margin-top: 0.5rem;
   }
 
   .creationSubmit {
