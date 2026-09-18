@@ -13635,8 +13635,9 @@ html[data-theme='light'] .nav-toggle {
 
 .participant-credentials-notice {
   display: flex;
-  align-items: center;
-  gap: 0.65rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
   max-width: none;
   margin-top: 0.2rem;
   padding: 0.62rem 0.72rem;
@@ -13644,7 +13645,6 @@ html[data-theme='light'] .nav-toggle {
   border-radius: 14px;
   background: rgba(236, 253, 245, 0.72);
   color: var(--participant-text-strong);
-  flex-wrap: wrap;
   font-size: 0.83rem;
 }
 
@@ -13666,8 +13666,7 @@ html[data-theme='light'] .nav-toggle {
 }
 
 .participant-credentials-hint {
-  flex-basis: 100%;
-  margin: -0.15rem 0 0;
+  margin: 0;
   color: var(--participant-text-soft);
   font-size: 0.78rem;
 }
@@ -13676,7 +13675,7 @@ html[data-theme='light'] .nav-toggle {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-left: auto;
+  margin-top: 0.2rem;
 }
 
 .participant-credentials-actions .btn-primary,
