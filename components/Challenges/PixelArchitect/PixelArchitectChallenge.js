@@ -229,6 +229,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const [isViewportReady, setIsViewportReady] = useState(false);
   const [viewportError, setViewportError] = useState('');
   const [isModelMapOpen, setIsModelMapOpen] = useState(false);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const hasAutoSelectedStartLayerRef = useRef(false);
 
   function selectColor(color) {
@@ -1044,34 +1045,53 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         />
       </div>
 
-      {hasChallengeStarted && !isFacilitator ? (
-        <div className={styles.mobilePaletteBar} role="radiogroup" aria-label={isEn ? 'Color palette' : 'Palette de couleurs'}>
-          {palette.map((color) => (
+      {canSeeTargetModel || (hasChallengeStarted && !isFacilitator) ? (
+        <div className={styles.mobileQuickActions}>
+          {canSeeTargetModel ? (
             <button
-              key={`mobile-swatch-${color}`}
               type="button"
-              role="radio"
-              aria-checked={selectedColor === color}
-              aria-label={describeColor(color)}
-              title={describeColor(color)}
-              className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
-              style={{ background: color }}
-              onClick={() => selectColor(color)}
-            />
-          ))}
+              className={styles.modelMapFab}
+              onClick={() => setIsModelMapOpen(true)}
+              aria-expanded={isModelMapOpen}
+              aria-label={isEn ? 'Open model map' : 'Ouvrir la carte modele'}
+            >
+              🧩 {isEn ? 'Model' : 'Modele'}
+            </button>
+          ) : null}
+          {hasChallengeStarted && !isFacilitator ? (
+            <div className={styles.mobilePaletteControl}>
+              <button
+                type="button"
+                className={styles.modelMapFab}
+                onClick={() => setIsPaletteOpen((isOpen) => !isOpen)}
+                aria-expanded={isPaletteOpen}
+                aria-controls="pixel-architect-mobile-palette"
+              >
+                {isEn ? 'Active palette' : 'Palette active'}
+              </button>
+              {isPaletteOpen ? (
+                <div id="pixel-architect-mobile-palette" className={styles.mobilePaletteMenu} role="radiogroup" aria-label={isEn ? 'Color palette' : 'Palette de couleurs'}>
+                  {palette.map((color) => (
+                    <button
+                      key={`mobile-swatch-${color}`}
+                      type="button"
+                      role="radio"
+                      aria-checked={selectedColor === color}
+                      aria-label={describeColor(color)}
+                      title={describeColor(color)}
+                      className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
+                      style={{ background: color }}
+                      onClick={() => {
+                        selectColor(color);
+                        setIsPaletteOpen(false);
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
-      ) : null}
-
-      {canSeeTargetModel ? (
-        <button
-          type="button"
-          className={styles.modelMapFab}
-          onClick={() => setIsModelMapOpen(true)}
-          aria-expanded={isModelMapOpen}
-          aria-label={isEn ? 'Open model map' : 'Ouvrir la carte modele'}
-        >
-          🧩 {isEn ? 'Model' : 'Modele'}
-        </button>
       ) : null}
 
       {isModelMapOpen ? (
