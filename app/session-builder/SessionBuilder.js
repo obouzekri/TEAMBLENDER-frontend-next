@@ -1448,7 +1448,6 @@ export default function SessionBuilder() {
         <span className={styles.summaryInviteDivider}>{t('sessionBuilder.inviteCodePrompt')}</span>
         <div className={`${styles.summaryInviteControl} ${styles.summaryInviteCodeControl}`}>
           <div className={styles.summaryInviteCodeBlock}>
-            <span>{t('sessionBuilder.inviteCodeLabel')}</span>
             <strong>{String(sessionInvite?.code || '').trim() || '...'}</strong>
           </div>
           <button
