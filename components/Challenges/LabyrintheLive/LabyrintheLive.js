@@ -973,6 +973,14 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
           {!isFacilitator && labyPhase !== 'done' ? (
             <div className={styles.controlDock}>
+              <div className={styles.directionPad}>
+                <span />
+                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('N')} disabled={!canMoveDir} aria-label={isEn ? 'Move up' : 'Monter'}>↑</button>
+                <span />
+                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('W')} disabled={!canMoveDir} aria-label={isEn ? 'Move left' : 'Aller à gauche'}>←</button>
+                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('S')} disabled={!canMoveDir} aria-label={isEn ? 'Move down' : 'Descendre'}>↓</button>
+                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveDir} aria-label={isEn ? 'Move right' : 'Aller à droite'}>→</button>
+              </div>
               <div className={styles.controlHeadLegendWrap}>
                 <div className={styles.controlHead}>
                   <span className={styles.muted}>Commandes</span>
@@ -984,14 +992,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                   <span className={`${styles.legendChip} ${styles.legendTrap}`}>{isEn ? 'Trap' : 'Piège'}</span>
                   <span className={`${styles.legendChip} ${styles.legendTrail}`}>{isEn ? 'Player cursor' : 'Curseur joueur'}</span>
                 </div>
-              </div>
-              <div className={styles.directionPad}>
-                <span />
-                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('N')} disabled={!canMoveDir} aria-label={isEn ? 'Move up' : 'Monter'}>↑</button>
-                <span />
-                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('W')} disabled={!canMoveDir} aria-label={isEn ? 'Move left' : 'Aller à gauche'}>←</button>
-                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('S')} disabled={!canMoveDir} aria-label={isEn ? 'Move down' : 'Descendre'}>↓</button>
-                <button type="button" className={styles.dirBtn} onClick={() => moveByDirection('E')} disabled={!canMoveDir} aria-label={isEn ? 'Move right' : 'Aller à droite'}>→</button>
               </div>
               <p className={`${styles.moveFeedback} ${moveFeedbackTone === 'success' ? styles.feedbackSuccess : ''}${moveFeedbackTone === 'danger' ? ` ${styles.feedbackDanger}` : ''}${moveFeedbackTone === 'warning' ? ` ${styles.feedbackWarning}` : ''}`}>
                 {moveFeedback || (isRespawning
