@@ -4,9 +4,12 @@ import TrackingConsentGate from '@/components/TrackingConsentGate';
 import ExternalNotificationGuard from '@/components/ExternalNotificationGuard';
 import ThemeController from '@/components/ThemeController';
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
+import { getPublicSiteOrigin, socialPreviewImage } from '@/lib/siteMetadata';
+
+const siteOrigin = getPublicSiteOrigin();
 
 export const metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.teamblender.io'),
+  metadataBase: new URL(siteOrigin),
   title: {
     default: 'TeamBlender | Team building B2B pour managers et RH',
     template: '%s | TeamBlender',
@@ -18,9 +21,12 @@ export const metadata = {
     description:
       'Plateforme B2B de team building pour managers et RH\u00A0: créez, animez et mesurez des sessions collaboratives hybrides.',
     type: 'website',
+    url: siteOrigin,
+    images: [socialPreviewImage],
   },
   twitter: {
     card: 'summary_large_image',
+    images: [socialPreviewImage.url],
   },
   icons: {
     icon: '/icon.svg'

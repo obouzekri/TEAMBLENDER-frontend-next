@@ -1,5 +1,7 @@
+import { getPublicSiteOrigin } from '@/lib/siteMetadata';
+
 export default function robots() {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.teamblender.io').replace(/\/$/, '');
+  const baseUrl = getPublicSiteOrigin();
 
   return {
     rules: {

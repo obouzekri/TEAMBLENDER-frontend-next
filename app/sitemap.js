@@ -1,5 +1,7 @@
+import { getPublicSiteOrigin } from '@/lib/siteMetadata';
+
 export default function sitemap() {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.teamblender.io').replace(/\/$/, '');
+  const baseUrl = getPublicSiteOrigin();
   const now = new Date();
 
   const routes = ['/', '/pricing', '/contact', '/login', '/signup', '/cgu', '/mentions-legales', '/politique-confidentialite'];

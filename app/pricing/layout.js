@@ -1,3 +1,5 @@
+import { socialPreviewImage } from '@/lib/siteMetadata';
+
 export const metadata = {
   title: 'Tarifs',
   description:
@@ -7,6 +9,15 @@ export const metadata = {
     description:
       'Découvrez des offres TeamBlender adaptées aux managers et RH\u00A0: essai gratuit 14 jours sans carte bancaire, puis évoluez selon vos besoins.',
     type: 'website',
+    url: '/pricing',
+    images: [socialPreviewImage],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Tarifs TeamBlender',
+    description:
+      'Découvrez des offres TeamBlender adaptées aux managers et RH\u00A0: essai gratuit 14 jours sans carte bancaire, puis évoluez selon vos besoins.',
+    images: [socialPreviewImage.url],
   },
 };
 
