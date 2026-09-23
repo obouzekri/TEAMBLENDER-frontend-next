@@ -101,12 +101,137 @@ function sanitizeChoiceText(value) {
     .trim();
 }
 
-function formatStatementCategory(value) {
+const STATEMENT_TRANSLATIONS = Object.freeze({
+  pr_01: {
+    fr: { prompt: 'Je préfère', options: ['Café', 'Thé', 'Jus'] },
+    en: { prompt: 'I prefer', options: ['Coffee', 'Tea', 'Juice'] },
+  },
+  pr_02: {
+    fr: { prompt: 'Je préfère', options: ['Montagne', 'Plage', 'Forêt'] },
+    en: { prompt: 'I prefer', options: ['Mountains', 'Beach', 'Forest'] },
+  },
+  pr_03: {
+    fr: { prompt: 'Je préfère', options: ['Ville', 'Campagne'] },
+    en: { prompt: 'I prefer', options: ['City', 'Countryside'] },
+  },
+  pr_04: {
+    fr: { prompt: 'Je préfère', options: ['Films', 'Sorties'] },
+    en: { prompt: 'I prefer', options: ['Movies', 'Going out'] },
+  },
+  ct_01: {
+    fr: { text: 'Je maîtrise plus de trois langues.' },
+    en: { text: 'I speak more than three languages.' },
+  },
+  ct_02: {
+    fr: { text: 'J’ai un talent caché.' },
+    en: { text: 'I have a hidden talent.' },
+  },
+  ht_01: {
+    fr: { prompt: 'Je me couche', options: ['Tard', 'Tôt'] },
+    en: { prompt: 'I go to bed', options: ['Late', 'Early'] },
+  },
+  ht_02: {
+    fr: { text: 'Je fais du sport régulièrement.' },
+    en: { text: 'I exercise regularly.' },
+  },
+  ht_03: {
+    fr: { text: 'Je commence ma journée avec mon téléphone.' },
+    en: { text: 'I start my day with my phone.' },
+  },
+  ht_04: {
+    fr: { text: 'Je grignote entre les repas.' },
+    en: { text: 'I snack between meals.' },
+  },
+  pa_01: {
+    fr: { text: 'J’ai déjà oublié de me présenter en réunion importante.' },
+    en: { text: 'I have forgotten to introduce myself in an important meeting.' },
+  },
+  pa_02: {
+    fr: { text: 'J’ai déjà répondu “oui” sans avoir compris.' },
+    en: { text: 'I have answered “yes” without understanding.' },
+  },
+  pa_03: {
+    fr: { prompt: 'J’ai déjà perdu', options: ['Téléphone', 'Portefeuille', 'Les deux'] },
+    en: { prompt: 'I have already lost', options: ['Phone', 'Wallet', 'Both'] },
+  },
+  pe_01: {
+    fr: { prompt: 'Je suis plutôt', options: ['Compétitif', 'Calme', 'Spontané'] },
+    en: { prompt: 'I am more', options: ['Competitive', 'Calm', 'Spontaneous'] },
+  },
+});
+
+function formatChoiceDisplay(value, locale) {
+  const normalized = String(value || '').trim();
+  return normalized ? normalized.toLocaleUpperCase(locale === 'en' ? 'en-US' : 'fr-FR') : '';
+}
+
+function getTranslatedStatementChoices(statement, locale) {
+  const id = String(statement?.id || '').trim();
+  const language = locale === 'en' ? 'en' : 'fr';
+  const translated = STATEMENT_TRANSLATIONS[id]?.[language];
+  if (translated) {
+    return {
+      prompt: translated.prompt,
+      options: translated.options,
+      hasColon: true,
+    };
+  }
+  return parseStatementChoices(statement?.text || '');
+}
+
+function getTranslatedStatementText(statement, locale) {
+  const id = String(statement?.id || '').trim();
+  const language = locale === 'en' ? 'en' : 'fr';
+  const translated = STATEMENT_TRANSLATIONS[id]?.[language];
+  return String(translated?.text || statement?.text || '').trim();
+}
+
+function getTranslatedCurrentQuestion(currentTurn, locale) {
+  const statement = {
+    id: currentTurn?.statement_id,
+    text: currentTurn?.statement_text || currentTurn?.statement_prompt,
+  };
+  const translatedChoices = getTranslatedStatementChoices(statement, locale);
+  if (translatedChoices?.prompt) {
+    return `${translatedChoices.prompt}${translatedChoices.hasColon ? ':' : ''}`;
+  }
+  return getTranslatedStatementText(statement, locale) || String(currentTurn?.statement_prompt || currentTurn?.statement_text || '-').trim();
+}
+
+function translateStatementOption(statement, option, locale) {
+  const rawOption = String(option || '').trim();
+  if (!rawOption) return '';
+
+  const parsed = parseStatementChoices(statement?.text || '');
+  const translated = getTranslatedStatementChoices(statement, locale);
+  const rawOptions = Array.isArray(parsed?.options) ? parsed.options : [];
+  const translatedOptions = Array.isArray(translated?.options) ? translated.options : [];
+  const optionIndex = rawOptions.findIndex((item) => item.toLowerCase() === rawOption.toLowerCase());
+  if (optionIndex >= 0 && translatedOptions[optionIndex]) {
+    return translatedOptions[optionIndex];
+  }
+
+  const translatedMatch = translatedOptions.find((item) => item.toLowerCase() === rawOption.toLowerCase());
+  return translatedMatch || rawOption;
+}
+
+function translateCurrentTurnOption(currentTurn, option, locale) {
+  const statement = {
+    id: currentTurn?.statement_id,
+    text: currentTurn?.statement_text || currentTurn?.statement_prompt,
+  };
+  return translateStatementOption(statement, option, locale);
+}
+
+function formatStatementCategory(value, locale = 'fr') {
   const normalized = String(value || '').trim().toLowerCase();
   if (!normalized) return '';
-  if (normalized.includes('préférence') || normalized.includes('preference')) return 'Préférences';
-  if (normalized.includes('compétence') || normalized.includes('competence')) return 'Compétences';
-  if (normalized.includes('anecdote') || normalized.includes('anectode')) return 'Anecdote';
+  const isEnglish = locale === 'en';
+  if (normalized.includes('préférence') || normalized.includes('preference')) return isEnglish ? 'Preferences' : 'Préférences';
+  if (normalized.includes('compétence') || normalized.includes('competence')) return isEnglish ? 'Skills' : 'Compétences';
+  if (normalized.includes('habitude') || normalized.includes('habit')) return isEnglish ? 'Habits' : 'Habitudes';
+  if (normalized.includes('personnalité') || normalized.includes('personality')) return isEnglish ? 'Personality' : 'Personnalité';
+  if (normalized.includes('anecdote')) return isEnglish ? 'Short stories' : 'Anecdotes';
   return normalized
     .split(/\s+/)
     .map((word) => word ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : '')
@@ -191,6 +316,10 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const poserId = String(currentTurn?.poser_id || '');
   const isPoser = me && poserId && me === poserId;
   const currentQuestionText = String(currentTurn?.statement_prompt || currentTurn?.statement_text || '-').trim();
+  const currentQuestionDisplayText = useMemo(
+    () => getTranslatedCurrentQuestion(currentTurn, locale),
+    [currentTurn, locale]
+  );
   const chatEnabled = Boolean(socket);
   const hasSelectionTimeout = String(currentTurn?.result?.reveal_reason || '') === 'selection_timeout';
 
@@ -277,8 +406,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   useBodyScrollLock(selectionModalOpen && isPoser && Boolean(selectedStatement));
 
   const selectedStatementChoices = useMemo(
-    () => parseStatementChoices(selectedStatement?.text || ''),
-    [selectedStatement]
+    () => getTranslatedStatementChoices(selectedStatement, locale),
+    [selectedStatement, locale]
   );
   const selectedStatementOption = String(selectedChoicesByStatementId[selectedStatementId] || '');
   const votingChoices = Array.isArray(currentTurn?.statement_options) ? currentTurn.statement_options : [];
@@ -641,10 +770,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   function confirmStatement() {
     if (!selectedStatementId) return;
     if (!selectedStatementOption) return;
+    const rawSelectedChoices = parseStatementChoices(selectedStatement?.text || '');
+    const selectedIndex = selectedStatementChoices?.options?.findIndex((option) => option.toLowerCase() === selectedStatementOption.toLowerCase());
+    const rawSelectedOption = selectedIndex >= 0 && rawSelectedChoices?.options?.[selectedIndex]
+      ? rawSelectedChoices.options[selectedIndex]
+      : selectedStatementOption;
     playLightTone('default');
     emitEvent('vom.select_statement', {
       statement_id: selectedStatementId,
-      selected_option: selectedStatementOption
+      selected_option: rawSelectedOption
     });
   }
 
@@ -654,13 +788,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }
 
   function renderChoiceLabel(option) {
-    const label = String(option || '').trim();
+    const label = formatChoiceDisplay(translateCurrentTurnOption(currentTurn, option, locale), locale);
     const glyph = getChoiceGlyph(label);
     return glyph ? `${glyph} ${label}` : label;
   }
 
   function buildRevealedTruthSentence() {
-    const truth = String(currentTurn?.revealed_truth || '-').trim();
+    const truth = isChoiceVoting
+      ? formatChoiceDisplay(translateCurrentTurnOption(currentTurn, currentTurn?.revealed_truth, locale), locale)
+      : String(currentTurn?.revealed_truth || '-').trim();
     if (isEn) return `${poserName} answered: ${truth}.`;
     if (/pr[eé]f[eè]re|prefers/i.test(currentQuestionText)) return `${poserName} préfère ${truth}.`;
     return `${poserName} a répondu : ${truth}.`;
@@ -749,9 +885,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   {catalog.map((statement, index) => {
                     const disabled = usedByPoser.has(String(statement.id));
                     const selected = selectedStatementId === String(statement.id);
-                    const parsedChoices = parseStatementChoices(statement.text);
+                    const parsedChoices = getTranslatedStatementChoices(statement, locale);
                     const pickedChoice = String(selectedChoicesByStatementId[String(statement.id)] || '');
-                    const categoryLabel = formatStatementCategory(statement.category);
+                    const categoryLabel = formatStatementCategory(statement.category, locale);
                     return (
                       <button
                         key={statement.id}
@@ -775,12 +911,12 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                               {parsedChoices.prompt}{parsedChoices.hasColon ? ':' : ''}
                             </span>
                             <span className={styles.statementOptionsPreview}>
-                              {parsedChoices.options.join(' / ')}
+                              {parsedChoices.options.map((option) => formatChoiceDisplay(option, locale)).join(' / ')}
                             </span>
-                            {selected && pickedChoice ? <small className={styles.statementMeta}>{t('vom.selectedOption', { option: pickedChoice })}</small> : null}
+                            {selected && pickedChoice ? <small className={styles.statementMeta}>{t('vom.selectedOption', { option: formatChoiceDisplay(pickedChoice, locale) })}</small> : null}
                           </>
                         ) : (
-                          <span>{statement.text}</span>
+                          <span>{getTranslatedStatementText(statement, locale)}</span>
                         )}
                         {selected ? <span className={styles.selectedMark}>{t('vom.selected')}</span> : null}
                         {disabled ? <small className={styles.statementMeta}>{t('vom.alreadyUsed')}</small> : null}
@@ -806,7 +942,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                     <h2 className={styles.sectionTitle}>{t('vom.votingTitle')}</h2>
                     <div className={styles.voteCompactCard}>
                       <p className={styles.voteCompactQuestionLabel}>{isEn ? 'Question' : 'Question'}</p>
-                      <p className={styles.voteCompactQuestion}>"{currentQuestionText}"</p>
+                      <p className={styles.voteCompactQuestion}>"{currentQuestionDisplayText}"</p>
                       <p className={styles.voteCompactProgress}>{isEn ? `Progress: ${voteProgressLabel}` : `Progression: ${voteProgressLabel}`}</p>
                       <span className={styles.observerBadge}>{isEn ? 'Observation only' : 'Observation uniquement'}</span>
                       <div className={styles.voteStatusList}>
@@ -833,7 +969,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                     </div>
                     <div className={styles.voteQuestionBlock}>
                       <span>{isEn ? 'Question:' : 'Question :'}</span>
-                      <p>{currentQuestionText}</p>
+                      <p>{currentQuestionDisplayText}</p>
                     </div>
                   </div>
                 )}
@@ -1052,7 +1188,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                             }));
                           }}
                         />
-                        <span>{option}</span>
+                        <span>{formatChoiceDisplay(option, locale)}</span>
                       </label>
                     );
                   })}
@@ -1060,7 +1196,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               </>
             ) : (
               <>
-                <p className={styles.choicePanelTitle}>{selectedStatement.text}</p>
+                <p className={styles.choicePanelTitle}>{getTranslatedStatementText(selectedStatement, locale)}</p>
                 <p className={styles.helper}>{t('vom.chooseTruth')}</p>
                 <div className={`${styles.choiceButtonsWrap} ${styles.answerHighlight}`}>
                   {poserSelectionOptions.map((option) => {
@@ -1078,7 +1214,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                             }));
                           }}
                         />
-                        <span>{option}</span>
+                        <span>{formatChoiceDisplay(option, locale)}</span>
                       </label>
                     );
                   })}
