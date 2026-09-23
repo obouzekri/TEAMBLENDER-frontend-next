@@ -145,6 +145,17 @@ const LABY_MOVE_DELTAS = Object.freeze({
   W: { dr: 0, dc: -1 },
 });
 
+const PLAYER_COLOR_COUNT = 10;
+
+function getPlayerColorStyle(index) {
+  const normalizedIndex = Math.abs(Number(index) || 0) % PLAYER_COLOR_COUNT;
+  return {
+    '--player-color': `var(--laby-player-${normalizedIndex})`,
+    '--player-soft': `var(--laby-player-${normalizedIndex}-soft)`,
+    '--player-glow': `var(--laby-player-${normalizedIndex}-glow)`,
+  };
+}
+
 function canMoveFromCell(maze, fromPos, dir) {
   const row = Number(Array.isArray(fromPos) ? fromPos[0] : Number.NaN);
   const col = Number(Array.isArray(fromPos) ? fromPos[1] : Number.NaN);
@@ -244,6 +255,33 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       return acc;
     }, {});
   }, [participantEntries]);
+  const participantColorById = useMemo(() => {
+    return participantEntries
+      .slice()
+      .sort(([, a], [, b]) => Number(a?.slot || 0) - Number(b?.slot || 0))
+      .reduce((acc, [id], index) => {
+        acc[String(id)] = getPlayerColorStyle(index);
+        return acc;
+      }, {});
+  }, [participantEntries]);
+  const participantTrailEntries = useMemo(() => {
+    return participantEntries.map(([id, participant]) => {
+      const selectedStart = Boolean(participant?.solo?.ss) || Boolean(participant?.solo?.rg);
+      return {
+        id: String(id),
+        name: participantNameById[String(id)] || `Participant ${id}`,
+        colorStyle: participantColorById[String(id)] || getPlayerColorStyle(0),
+        hasSelectedStart: selectedStart,
+        positionKey: selectedStart ? posKey(participant?.solo?.pos) : '',
+        visited: normalizeVisited(
+          participant?.solo?.path
+          || participant?.solo?.visited
+          || participant?.solo?.visited_cells
+          || participant?.visited_cells
+        ),
+      };
+    });
+  }, [participantEntries, participantNameById, participantColorById]);
   const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
   const hasChallengeStarted = timerStatus === 'running'
     || timerStatus === 'paused'
@@ -770,7 +808,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                             >
                               {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
                               {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
-                              {safePathKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>●</span> : null}
+                              {safePathKeys.has(key) ? <span className={styles.cellSolutionDot}>●</span> : null}
                               {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                             </div>
                           );
@@ -787,6 +825,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 <div className={styles.miniGridList}>
                   {participantEntries.map(([id, participant]) => {
                     const playerPosKey = posKey(participant?.solo?.pos);
+                    const playerColorStyle = participantColorById[String(id)] || getPlayerColorStyle(0);
                     const playerVisited = normalizeVisited(
                       participant?.solo?.path
                       || participant?.solo?.visited
@@ -797,9 +836,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     const lifeIcons = '❤️'.repeat(Math.min(8, lives));
 
                     return (
-                      <article key={id} className={styles.miniGridCard}>
+                      <article key={id} className={styles.miniGridCard} style={playerColorStyle}>
                         <div className={styles.panelHeader}>
-                          <strong>{participantNameById[String(id)] || `Participant ${id}`}</strong>
+                          <strong className={styles.playerName}><span className={styles.playerSwatch} aria-hidden="true" />{participantNameById[String(id)] || `Participant ${id}`}</strong>
                           <span className={styles.muted}>{isEn ? 'Lives' : 'Vies'}: {lifeIcons || '—'}</span>
                         </div>
 
@@ -910,13 +949,20 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     if (labyPhase === 'done' && safePathKeys.has(key)) classes.push(styles.cellSolution);
                     if (needsStartSelection && allStartKeys.has(key)) classes.push(styles.cellStartGlow);
                     if (flashCellKey === key) classes.push(flashCellTone === 'blocked' ? styles.cellBlockedFlash : styles.cellTrapFlash);
+                    const cellTrails = participantTrailEntries.filter((entry) => {
+                      return entry.hasSelectedStart && entry.id !== String(participantId || '') && entry.visited.has(key);
+                    });
+                    const cellPlayers = participantTrailEntries.filter((entry) => {
+                      return entry.hasSelectedStart && entry.positionKey === key;
+                    });
+                    const ownColorStyle = participantColorById[String(participantId || '')] || getPlayerColorStyle(0);
 
                     return (
                       <button
                         key={key}
                         type="button"
                         className={`${classes.join(' ')}${!canMoveSolo ? ` ${styles.cellDisabled}` : ''}`}
-                        style={buildMazeCellStyle(maze, row, col)}
+                        style={{ ...buildMazeCellStyle(maze, row, col), ...ownColorStyle }}
                         onClick={() => handleCellClick(row, col)}
                         aria-disabled={!canMoveSolo}
                         aria-label={`${isEn ? 'Cell' : 'Case'} ${row + 1}-${col + 1}`}
@@ -926,13 +972,34 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                         {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
                         {Boolean(revealedTraps[key]) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                         {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
+                        {cellTrails.map((entry, trailIndex) => (
+                          <span
+                            key={`trail-${entry.id}`}
+                            className={styles.cellPlayerTrailDot}
+                            style={{
+                              ...entry.colorStyle,
+                              '--trail-offset': `${(trailIndex - ((cellTrails.length - 1) / 2)) * 7}px`,
+                            }}
+                            aria-hidden="true"
+                          />
+                        ))}
                         {microCue?.cellKey === key ? (
                           <span className={`${styles.cellMicroCue} ${styles[`cellMicroCue--${microCue.tone}`] || ''}`}>
                             {microCue.text}
                             {microCue.lifeDelta ? <em className={styles.cellMicroCueLife}>{microCue.lifeDelta}</em> : null}
                           </span>
                         ) : null}
-                        {hasSelectedStart && key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
+                        {cellPlayers.map((entry, playerIndex) => (
+                          <span
+                            key={`player-${entry.id}`}
+                            className={styles.cellPlayerDot}
+                            style={{
+                              ...entry.colorStyle,
+                              '--marker-offset': `${(playerIndex - ((cellPlayers.length - 1) / 2)) * 8}px`,
+                            }}
+                            aria-label={entry.name}
+                          >●</span>
+                        ))}
                       </button>
                     );
                   })
@@ -1029,7 +1096,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                       >
                         {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
                         {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
-                        {safePathKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>●</span> : null}
+                        {safePathKeys.has(key) ? <span className={styles.cellSolutionDot}>●</span> : null}
                         {revealMazeTraps && mazeTrapKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
                       </div>
                     );

@@ -10,6 +10,36 @@
   --maze-risk: #ef4444;
   --maze-exit: #f4b942;
   --maze-start: #22c55e;
+  --laby-player-0: #22d3ee;
+  --laby-player-0-soft: rgba(34, 211, 238, 0.34);
+  --laby-player-0-glow: rgba(34, 211, 238, 0.62);
+  --laby-player-1: #facc15;
+  --laby-player-1-soft: rgba(250, 204, 21, 0.34);
+  --laby-player-1-glow: rgba(250, 204, 21, 0.56);
+  --laby-player-2: #34d399;
+  --laby-player-2-soft: rgba(52, 211, 153, 0.32);
+  --laby-player-2-glow: rgba(52, 211, 153, 0.58);
+  --laby-player-3: #fb7185;
+  --laby-player-3-soft: rgba(251, 113, 133, 0.32);
+  --laby-player-3-glow: rgba(251, 113, 133, 0.56);
+  --laby-player-4: #fb923c;
+  --laby-player-4-soft: rgba(251, 146, 60, 0.32);
+  --laby-player-4-glow: rgba(251, 146, 60, 0.56);
+  --laby-player-5: #60a5fa;
+  --laby-player-5-soft: rgba(96, 165, 250, 0.34);
+  --laby-player-5-glow: rgba(96, 165, 250, 0.58);
+  --laby-player-6: #a3e635;
+  --laby-player-6-soft: rgba(163, 230, 53, 0.32);
+  --laby-player-6-glow: rgba(163, 230, 53, 0.54);
+  --laby-player-7: #f472b6;
+  --laby-player-7-soft: rgba(244, 114, 182, 0.32);
+  --laby-player-7-glow: rgba(244, 114, 182, 0.56);
+  --laby-player-8: #2dd4bf;
+  --laby-player-8-soft: rgba(45, 212, 191, 0.32);
+  --laby-player-8-glow: rgba(45, 212, 191, 0.56);
+  --laby-player-9: #c084fc;
+  --laby-player-9-soft: rgba(192, 132, 252, 0.32);
+  --laby-player-9-glow: rgba(192, 132, 252, 0.56);
   display: grid;
   gap: 14px;
   width: min(100%, 1320px);
@@ -75,6 +105,36 @@
   --maze-wall-soft: #3b82a9;
   --maze-corridor: #dcecff;
   --maze-corridor-light: #c5e1f7;
+  --laby-player-0: #0369a1;
+  --laby-player-0-soft: rgba(3, 105, 161, 0.24);
+  --laby-player-0-glow: rgba(3, 105, 161, 0.34);
+  --laby-player-1: #a16207;
+  --laby-player-1-soft: rgba(161, 98, 7, 0.22);
+  --laby-player-1-glow: rgba(161, 98, 7, 0.34);
+  --laby-player-2: #047857;
+  --laby-player-2-soft: rgba(4, 120, 87, 0.22);
+  --laby-player-2-glow: rgba(4, 120, 87, 0.34);
+  --laby-player-3: #be123c;
+  --laby-player-3-soft: rgba(190, 18, 60, 0.2);
+  --laby-player-3-glow: rgba(190, 18, 60, 0.32);
+  --laby-player-4: #c2410c;
+  --laby-player-4-soft: rgba(194, 65, 12, 0.21);
+  --laby-player-4-glow: rgba(194, 65, 12, 0.32);
+  --laby-player-5: #1d4ed8;
+  --laby-player-5-soft: rgba(29, 78, 216, 0.21);
+  --laby-player-5-glow: rgba(29, 78, 216, 0.32);
+  --laby-player-6: #4d7c0f;
+  --laby-player-6-soft: rgba(77, 124, 15, 0.22);
+  --laby-player-6-glow: rgba(77, 124, 15, 0.32);
+  --laby-player-7: #be185d;
+  --laby-player-7-soft: rgba(190, 24, 93, 0.2);
+  --laby-player-7-glow: rgba(190, 24, 93, 0.32);
+  --laby-player-8: #0f766e;
+  --laby-player-8-soft: rgba(15, 118, 110, 0.22);
+  --laby-player-8-glow: rgba(15, 118, 110, 0.32);
+  --laby-player-9: #7e22ce;
+  --laby-player-9-soft: rgba(126, 34, 206, 0.2);
+  --laby-player-9-glow: rgba(126, 34, 206, 0.32);
   background: transparent;
 }
 
@@ -311,11 +371,11 @@ button.cell:focus-visible {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(34, 211, 238, 0.42);
+  background: var(--player-soft, rgba(34, 211, 238, 0.42));
   box-shadow:
-    inset 0 0 0 1px rgba(103, 232, 249, 0.72),
-    inset 0 0 10px rgba(34, 211, 238, 0.5),
-    0 0 8px rgba(34, 211, 238, 0.32);
+    inset 0 0 0 1px var(--player-color, rgba(103, 232, 249, 0.72)),
+    inset 0 0 10px var(--player-glow, rgba(34, 211, 238, 0.5)),
+    0 0 8px var(--player-glow, rgba(34, 211, 238, 0.32));
   pointer-events: none;
   z-index: 1;
 }
@@ -382,10 +442,10 @@ button.cell:focus-visible {
 }
 
 .cellPlayer {
-  outline: 2px solid rgba(125, 211, 252, 0.92);
+  outline: 2px solid var(--player-color, rgba(125, 211, 252, 0.92));
   outline-offset: -2px;
   z-index: 3;
-  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.7), 0 0 12px rgba(56, 189, 248, 0.52);
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.7), 0 0 12px var(--player-glow, rgba(56, 189, 248, 0.52));
 }
 
 .cellPlayerCursorCell {
@@ -399,10 +459,33 @@ button.cell:focus-visible {
 .cellTrapKnownIcon {
   position: absolute;
   z-index: 3;
-  color: #fb7185;
-  font-size: 0.46rem;
+  display: grid;
+  place-items: center;
+  width: 72%;
+  height: 72%;
+  min-width: 12px;
+  min-height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  background: rgba(69, 10, 10, 0.9);
+  color: #fff7ed;
+  font-size: clamp(0.58rem, 1.25vw, 0.9rem);
   line-height: 1;
-  filter: drop-shadow(0 0 3px rgba(251, 113, 133, 0.35));
+  text-shadow: 0 0 2px #000, 0 0 5px rgba(0, 0, 0, 0.9);
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.78),
+    0 0 12px rgba(248, 113, 113, 0.48),
+    inset 0 0 8px rgba(248, 113, 113, 0.3);
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.22));
+}
+
+.cellSolutionDot {
+  position: absolute;
+  z-index: 3;
+  color: #bbf7d0;
+  font-size: 0.5rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.45));
 }
 
 .cellTrapFlash,
@@ -474,13 +557,47 @@ button.cell:focus-visible {
 }
 
 .cellPlayerDot {
-  position: relative;
+  position: absolute;
   z-index: 5;
-  color: #67e8f9;
+  left: calc(50% + var(--marker-offset, 0px));
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--player-color, #67e8f9);
   font-size: 0.7rem;
   line-height: 1;
-  text-shadow: 0 0 8px rgba(34, 211, 238, 0.75);
+  text-shadow: 0 0 2px rgba(2, 6, 23, 0.95), 0 0 8px var(--player-glow, rgba(34, 211, 238, 0.75));
   animation: playerBreath 0.95s ease-in-out infinite;
+}
+
+.cellPlayerTrailDot {
+  position: absolute;
+  z-index: 4;
+  left: calc(50% + var(--trail-offset, 0px));
+  bottom: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--player-color, #67e8f9);
+  border: 1px solid rgba(2, 6, 23, 0.72);
+  box-shadow: 0 0 7px var(--player-glow, rgba(34, 211, 238, 0.5));
+  pointer-events: none;
+}
+
+.playerName {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  color: var(--challenge-text-primary);
+}
+
+.playerSwatch {
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 999px;
+  background: var(--player-color, #67e8f9);
+  box-shadow: 0 0 0 2px var(--player-soft, rgba(34, 211, 238, 0.34)), 0 0 10px var(--player-glow, rgba(34, 211, 238, 0.5));
+  flex: 0 0 auto;
 }
 
 .cellStartBadge,
