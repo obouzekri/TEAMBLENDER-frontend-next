@@ -309,6 +309,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     if (renderedPhase !== 'question_result' || !transientQuestionResult) return quiz;
     return {
       ...quiz,
+      current_question: transientQuestionResult?.question || quiz.current_question,
       latest_question_result: {
         ...(quiz.latest_question_result || {}),
         ...(transientQuestionResult || {}),

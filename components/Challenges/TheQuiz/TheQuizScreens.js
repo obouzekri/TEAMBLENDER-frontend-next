@@ -164,7 +164,7 @@ export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByPartic
 
 export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerIndex = null, isFacilitator = false }) {
   const result = quiz.latest_question_result || {};
-  const currentQuestion = normalizeQuestion(quiz, isEn);
+  const currentQuestion = normalizeQuestion({ current_question: result.question || quiz.current_question }, isEn);
   const serverAnswerIndex = Number(result.correct_choice_index);
   const questionAnswerIndex = Number(currentQuestion.correctAnswer);
   const answerIndex = Number.isInteger(serverAnswerIndex)
