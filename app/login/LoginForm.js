@@ -146,7 +146,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
 
   useEffect(() => {
     if (!normalizedRequestedInviteToken) return;
-    setJoinMessage(isEn ? 'Secure invitation detected. Complete your participant details to join.' : 'Invitation detectee. Completez vos informations pour rejoindre la session.');
+    setJoinMessage(isEn ? 'Secure invitation detected. Complete your participant details to join.' : 'Completez vos informations pour rejoindre la session.');
   }, [isEn, normalizedRequestedInviteToken]);
 
   useEffect(() => {
