@@ -128,7 +128,7 @@ export default function ChallengeRulesPanel({
           </div>
           {scoringRules.length > 0 ? (
             <div className={styles.rulesGroup}>
-              <h3 className="challenge-section-title">{isEn ? 'Scoring' : 'Barème des points'}</h3>
+              <h3 className="challenge-section-title">🏆 {isEn ? 'Scoring' : 'Barème des points'}</h3>
               <ul>
                 {scoringRules.map((rule) => (
                   <li key={`participant-score-${rule}`}>{rule}</li>
