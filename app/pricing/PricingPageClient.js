@@ -379,11 +379,6 @@ export default function PricingPageClient({ initialPlans = [] }) {
                 ? 'Challenges are optimized for groups of 4 to 6 people. For larger teams, create multiple sessions and run them in parallel.'
                 : 'Les challenges sont optimisés pour des groupes de 4 à 6 personnes. Pour une équipe plus grande, créez plusieurs sessions et lancez-les en parallèle.'}
             </p>
-            <div className="pricing-proof-row">
-              <span className="pricing-proof-pill">{isEn ? '14-day free trial' : 'Essai gratuit 14 jours'}</span>
-              <span className="pricing-proof-pill">{isEn ? 'No credit card required' : 'Sans carte bancaire'}</span>
-              <span className="pricing-proof-pill">{isEn ? 'Built for HR and managers' : 'Pensé pour RH et managers'}</span>
-            </div>
           </div>
         </section>
 
@@ -584,31 +579,10 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
         .pricing-page .pricing-hero__context {
           margin: -0.3rem 0 0;
-          max-width: 52rem;
-          font-size: 0.95rem;
+          max-width: none;
+          font-size: 1rem;
           line-height: 1.6;
           font-weight: 600;
-        }
-
-        .pricing-page .pricing-proof-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.6rem;
-          margin-top: 0.15rem;
-        }
-
-        .pricing-page .pricing-proof-pill {
-          min-height: 2.6rem;
-          display: inline-flex;
-          align-items: center;
-          padding: 0.55rem 0.95rem;
-          border-radius: 999px;
-          border: 1px solid rgba(47, 98, 255, 0.18);
-          background: rgba(255, 255, 255, 0.9);
-          font-size: 0.86rem;
-          font-weight: 600;
-          color: #1e2f55;
-          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
         }
 
         .pricing-page .pricing-controls {
@@ -1009,6 +983,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
           .pricing-page .pricing-hero h1,
           .pricing-page .pricing-hero__lede,
+          .pricing-page .pricing-hero__context,
           .pricing-page .pricing-footer-cta__copy h2 {
             white-space: nowrap;
           }
@@ -1035,11 +1010,6 @@ export default function PricingPageClient({ initialPlans = [] }) {
           .pricing-page .pricing-footer-cta__inner {
             padding: 1rem;
             border-radius: 18px;
-          }
-
-          .pricing-page .pricing-proof-pill {
-            width: 100%;
-            justify-content: center;
           }
 
           .pricing-page .pricing-card {
