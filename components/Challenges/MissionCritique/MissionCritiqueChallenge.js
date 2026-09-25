@@ -601,7 +601,7 @@ export default function MissionCritiqueChallenge({
                         aria-label={isEn ? 'Close' : 'Fermer'}
                         title={isEn ? 'Close' : 'Fermer'}
                       >
-                        <X size={18} strokeWidth={2.2} aria-hidden="true" />
+                        <X size={16} strokeWidth={2.1} aria-hidden="true" />
                       </button>
                       <h3 className={styles.modalTitle}>{modalTask.label}</h3>
                     </div>
@@ -625,7 +625,7 @@ export default function MissionCritiqueChallenge({
                       <div className={styles.modalActions}>
                         <button
                           type="button"
-                          className={styles.ghostBtn}
+                          className={`${styles.ghostBtn} ${styles.modalRemoveBtn}`}
                           onClick={() => removeTaskFromTimeline(modalTask.id)}
                           disabled={!canEditTimeline}
                         >
