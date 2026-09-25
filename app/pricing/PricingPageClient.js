@@ -95,13 +95,13 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       meta: [],
       features: isEn ? [
         '1 user (admin/manager)',
-        '1 session / month - max 4 participants',
+        '1 session / month - max 6 participants',
         'Limited catalog access (4 challenges)',
         'No export',
         'No advanced insights',
       ] : [
         '1 utilisateur (admin/manager)',
-        '1 sessions / mois · max 4 participants',
+        '1 session / mois · max 6 participants',
         'Accès catalogue limité (4 challenges)',
         'Pas d’export',
         'Pas d’insights avancés',
@@ -117,7 +117,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       meta: [],
       features: isEn ? [
         '1 user max',
-        '20 participants max',
+        '6 participants max',
         '1 session included',
         'Full catalog access',
         'Results & scoring',
@@ -126,7 +126,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Insights',
       ] : [
         '1 utilisateur max',
-        '20 participants max',
+        '6 participants max',
         '1 session incluse',
         'Accès catalogue complet',
         'Résultats & scoring',
