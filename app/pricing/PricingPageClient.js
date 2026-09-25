@@ -374,6 +374,11 @@ export default function PricingPageClient({ initialPlans = [] }) {
                 ? 'Start light, then scale with more capabilities, support, and customization.'
                 : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
             </p>
+            <p className="pricing-hero__context" style={getDarkModeTextStyle()}>
+              {isEn
+                ? 'Challenges are optimized for groups of 4 to 6 people. For larger teams, create multiple sessions and run them in parallel.'
+                : 'Les challenges sont optimisés pour des groupes de 4 à 6 personnes. Pour une équipe plus grande, créez plusieurs sessions et lancez-les en parallèle.'}
+            </p>
             <div className="pricing-proof-row">
               <span className="pricing-proof-pill">{isEn ? '14-day free trial' : 'Essai gratuit 14 jours'}</span>
               <span className="pricing-proof-pill">{isEn ? 'No credit card required' : 'Sans carte bancaire'}</span>
@@ -575,6 +580,14 @@ export default function PricingPageClient({ initialPlans = [] }) {
           font-size: 1.04rem;
           line-height: 1.7;
           color: var(--text-muted, #cbd5e1);
+        }
+
+        .pricing-page .pricing-hero__context {
+          margin: -0.3rem 0 0;
+          max-width: 52rem;
+          font-size: 0.95rem;
+          line-height: 1.6;
+          font-weight: 600;
         }
 
         .pricing-page .pricing-proof-row {

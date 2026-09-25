@@ -6,7 +6,7 @@ import { getApiUrl } from '@/lib/config';
 import { getAuthHeaders } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
-const MAX_PARTICIPANTS = 3;
+const MAX_PARTICIPANTS = 6;
 
 export default function ParticipantAssigner({
   isLoading,
