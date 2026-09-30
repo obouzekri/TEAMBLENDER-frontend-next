@@ -4,6 +4,8 @@ import { useState } from 'react';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import useI18n from '@/lib/i18n/useI18n';
+import { getApiUrl } from '@/lib/config';
+import { withCsrfHeaders } from '@/lib/csrf';
 
 const COMPANY_SIZES = {
   fr: ['1 à 10 personnes', '11 à 50 personnes', '51 à 200 personnes', '201 à 500 personnes', '500+ personnes'],
@@ -27,33 +29,47 @@ export default function ContactPage() {
     need: '',
     objective: '',
     message: '',
+    website: '',
   });
+  const [status, setStatus] = useState('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function openEmail(event) {
+  async function submitRequest(event) {
     event.preventDefault();
+    if (status === 'sending') return;
 
     if (!form.name.trim() || !form.email.trim() || !form.need.trim() || !form.message.trim()) {
-      alert(isEn ? 'Please fill in all required fields.' : 'Veuillez renseigner tous les champs obligatoires.');
+      setErrorMessage(isEn ? 'Please fill in all required fields.' : 'Veuillez renseigner tous les champs obligatoires.');
+      setStatus('error');
       return;
     }
 
-    const subject = encodeURIComponent(`[TeamBlender] ${form.need}`);
-    const body = encodeURIComponent(
-      `${isEn ? 'Name' : 'Nom'}: ${form.name}\n` +
-      `${isEn ? 'Company' : 'Entreprise'}: ${form.company || (isEn ? 'Not provided' : 'Non renseignée')}\n` +
-      `${isEn ? 'Company size' : 'Effectif'}: ${form.companySize || (isEn ? 'Not provided' : 'Non renseigné')}\n` +
-      `Email: ${form.email}\n` +
-      `${isEn ? 'Phone' : 'Téléphone'}: ${form.phone || (isEn ? 'Not provided' : 'Non renseigné')}\n` +
-      `${isEn ? 'Need' : 'Besoin'}: ${form.need}\n\n` +
-      `${isEn ? 'Objective' : 'Objectif'}: ${form.objective || (isEn ? 'Not provided' : 'Non renseigné')}\n\n` +
-      `${isEn ? 'Message' : 'Message'}:\n${form.message}`
-    );
+    setStatus('sending');
+    setErrorMessage('');
 
-    window.location.href = `mailto:othmanebouzekri@gmail.com?subject=${subject}&body=${body}`;
+    try {
+      const response = await fetch(getApiUrl('/contact'), {
+        method: 'POST',
+        headers: withCsrfHeaders({ 'Content-Type': 'application/json' }),
+        credentials: 'include',
+        body: JSON.stringify({ ...form, locale: isEn ? 'en' : 'fr' }),
+      });
+
+      if (!response.ok) {
+        throw new Error(response.status === 429 ? 'rate_limited' : 'failed');
+      }
+
+      setStatus('success');
+    } catch (err) {
+      setErrorMessage(err.message === 'rate_limited'
+        ? (isEn ? 'Too many requests sent. Please try again in an hour.' : 'Trop de demandes envoyées. Veuillez réessayer dans une heure.')
+        : (isEn ? 'Your request could not be sent. Please try again or write to us at contact@teamblender.io.' : 'L\'envoi a échoué. Réessayez ou écrivez-nous à contact@teamblender.io.'));
+      setStatus('error');
+    }
   }
 
   return (
@@ -139,9 +155,22 @@ export default function ContactPage() {
           </article>
 
           <article className="feature-card contact-form-card">
-            <h2>{isEn ? 'Book a demo' : 'Demander une démonstration'}</h2>
+            <h2>{isEn ? 'How can we help you?' : 'Demander une démonstration'}</h2>
             <p className="contact-section-intro">{isEn ? 'Tell us a little more about your team so we can prepare a useful first exchange.' : 'Donnez-nous quelques repères pour préparer un premier échange utile.'}</p>
-            <form className="auth-form contact-form" onSubmit={openEmail}>
+            {status === 'success' ? (
+              <div className="contact-success" role="status" aria-live="polite">
+                <div className="contact-success__icon" aria-hidden="true">✓</div>
+                <strong>{isEn ? 'Thank you! Your request has been sent.' : 'Merci ! Votre demande a bien été envoyée.'}</strong>
+                <p>{isEn ? 'A member of our team will get back to you within 24 business hours. A confirmation email is on its way.' : 'Un expert de l\'équipe vous répondra sous 24 heures ouvrées. Un email de confirmation vient de vous être envoyé.'}</p>
+              </div>
+            ) : (
+            <form className="auth-form contact-form" onSubmit={submitRequest}>
+              <div className="contact-form__hp" aria-hidden="true">
+                <label>
+                  Website
+                  <input type="text" tabIndex={-1} autoComplete="off" value={form.website} onChange={(e) => updateField('website', e.target.value)} />
+                </label>
+              </div>
               <label>
                 {isEn ? 'Full name *' : 'Nom complet *'}
                 <input type="text" required value={form.name} onChange={(e) => updateField('name', e.target.value)} placeholder={isEn ? 'Ex: Sarah Martin' : 'Ex : Sarah Martin'} />
@@ -198,8 +227,22 @@ export default function ContactPage() {
                 <textarea rows={6} required value={form.message} onChange={(e) => updateField('message', e.target.value)} placeholder={isEn ? 'Context, team objective, and expected format.' : 'Contexte, objectif équipe et format envisagé.'} />
               </label>
 
-              <button type="submit" className="btn-primary wide">{isEn ? 'Request a demo' : 'Demander une démonstration'}</button>
+              {status === 'error' && errorMessage ? (
+                <p className="form-error" role="alert">{errorMessage}</p>
+              ) : null}
+
+              <button type="submit" className="btn-primary wide" disabled={status === 'sending'} aria-busy={status === 'sending'}>
+                {status === 'sending'
+                  ? (isEn ? 'Sending...' : 'Envoi en cours...')
+                  : (isEn ? 'Send request' : 'Demander une démonstration')}
+              </button>
+
+              <p className="contact-privacy-note">
+                {isEn ? 'Your details are only used to answer your request. ' : 'Vos informations sont utilisées uniquement pour répondre à votre demande. '}
+                <a href={withLocalePath('/confidentialite')}>{isEn ? 'Privacy policy' : 'Politique de confidentialité'}</a>
+              </p>
             </form>
+            )}
           </article>
         </section>
       </main>
@@ -466,6 +509,69 @@ export default function ContactPage() {
 
         .contact-page .contact-form .wide:hover {
           transform: translateY(-1px);
+        }
+
+        .contact-page .contact-form .wide:disabled {
+          opacity: 0.7;
+          cursor: progress;
+          transform: none;
+        }
+
+        .contact-page .contact-form__hp {
+          position: absolute;
+          left: -10000px;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+        }
+
+        .contact-page .contact-privacy-note {
+          margin: 0;
+          font-size: 0.82rem;
+          line-height: 1.5;
+          color: var(--text-subtle, #94a3b8);
+        }
+
+        .contact-page .contact-privacy-note a {
+          color: inherit;
+          text-decoration: underline;
+        }
+
+        .contact-page .contact-success {
+          display: grid;
+          justify-items: center;
+          gap: 0.6rem;
+          margin-top: 1.2rem;
+          padding: 2rem 1.25rem;
+          border-radius: 18px;
+          border: 1px solid rgba(34, 197, 94, 0.3);
+          background: rgba(34, 197, 94, 0.08);
+          text-align: center;
+        }
+
+        .contact-page .contact-success__icon {
+          width: 3rem;
+          height: 3rem;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          background: rgba(34, 197, 94, 0.2);
+          color: #16a34a;
+          font-size: 1.4rem;
+          font-weight: 700;
+        }
+
+        .contact-page .contact-success strong {
+          font-size: 1.1rem;
+          color: var(--text-strong, #e2e8f0);
+        }
+
+        .contact-page .contact-success p {
+          margin: 0;
+          max-width: 46ch;
+          line-height: 1.6;
+          color: var(--text-muted, #cbd5e1);
         }
 
         @media (max-width: 1024px) {
