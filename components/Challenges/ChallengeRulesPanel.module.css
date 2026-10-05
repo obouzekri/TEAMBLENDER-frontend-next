@@ -107,6 +107,10 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.rulesGroup > h3 + ul {
+  margin-top: 1em;
+}
+
 .rulesGroup h4 {
   margin: 0 0 6px;
   color: var(--challenge-text-accent, #7dd3fc);

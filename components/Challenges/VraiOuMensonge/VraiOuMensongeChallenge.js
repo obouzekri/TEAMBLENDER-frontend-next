@@ -169,7 +169,7 @@ function getTranslatedStatementChoices(statement, locale) {
   const id = String(statement?.id || '').trim();
   const language = locale === 'en' ? 'en' : 'fr';
   const translated = STATEMENT_TRANSLATIONS[id]?.[language];
-  if (translated) {
+  if (translated?.prompt && Array.isArray(translated.options) && translated.options.length >= 2) {
     return {
       prompt: translated.prompt,
       options: translated.options,
