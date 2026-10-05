@@ -148,7 +148,7 @@ const STATEMENT_TRANSLATIONS = Object.freeze({
   },
   pa_02: {
     fr: { text: 'J’ai déjà répondu “oui” sans avoir compris.' },
-    en: { text: 'I have answered “yes” without understanding.' },
+    en: { text: 'I have answered "yes" without understanding.' },
   },
   pa_03: {
     fr: { prompt: 'J’ai déjà perdu', options: ['Téléphone', 'Portefeuille', 'Les deux'] },
@@ -161,8 +161,10 @@ const STATEMENT_TRANSLATIONS = Object.freeze({
 });
 
 function formatChoiceDisplay(value, locale) {
-  const normalized = String(value || '').trim();
-  return normalized ? normalized.toLocaleUpperCase(locale === 'en' ? 'en-US' : 'fr-FR') : '';
+  const language = locale === 'en' ? 'en-US' : 'fr-FR';
+  return sanitizeChoiceText(value)
+    .toLocaleLowerCase(language)
+    .replace(/\p{L}[\p{L}\p{M}]*/gu, (word) => word.charAt(0).toLocaleUpperCase(language) + word.slice(1));
 }
 
 function getTranslatedStatementChoices(statement, locale) {
@@ -183,7 +185,7 @@ function getTranslatedStatementText(statement, locale) {
   const id = String(statement?.id || '').trim();
   const language = locale === 'en' ? 'en' : 'fr';
   const translated = STATEMENT_TRANSLATIONS[id]?.[language];
-  return String(translated?.text || statement?.text || '').trim();
+  return String(translated?.text || statement?.text || '').trim().replace(/\.+$/g, '').trim();
 }
 
 function getTranslatedCurrentQuestion(currentTurn, locale) {
@@ -231,7 +233,7 @@ function formatStatementCategory(value, locale = 'fr') {
   if (normalized.includes('compétence') || normalized.includes('competence')) return isEnglish ? 'Skills' : 'Compétences';
   if (normalized.includes('habitude') || normalized.includes('habit')) return isEnglish ? 'Habits' : 'Habitudes';
   if (normalized.includes('personnalité') || normalized.includes('personality')) return isEnglish ? 'Personality' : 'Personnalité';
-  if (normalized.includes('anecdote')) return isEnglish ? 'Short stories' : 'Anecdotes';
+  if (normalized.includes('anecdote') || normalized.includes('short stor') || normalized.includes('experience') || normalized.includes('expérience')) return isEnglish ? 'Experiences' : 'Expériences';
   return normalized
     .split(/\s+/)
     .map((word) => word ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : '')
@@ -916,7 +918,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                             {selected && pickedChoice ? <small className={styles.statementMeta}>{t('vom.selectedOption', { option: formatChoiceDisplay(pickedChoice, locale) })}</small> : null}
                           </>
                         ) : (
-                          <span>{getTranslatedStatementText(statement, locale)}</span>
+                          <span className={styles.statementPrompt}>{getTranslatedStatementText(statement, locale)}</span>
                         )}
                         {selected ? <span className={styles.selectedMark}>{t('vom.selected')}</span> : null}
                         {disabled ? <small className={styles.statementMeta}>{t('vom.alreadyUsed')}</small> : null}
