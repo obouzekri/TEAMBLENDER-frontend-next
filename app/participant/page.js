@@ -254,29 +254,53 @@ export default function ParticipantPage() {
 
 // Load participant's assigned sessions
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || sessionId) return;
+
+    const controller = new AbortController();
+    let fetching = false;
 
     async function fetchAssignedSessions() {
-      setLoadingSessions(true);
+      if (fetching || controller.signal.aborted) return;
+      fetching = true;
       try {
         const res = await fetch(getApiUrl('/participants/me/sessions'), {
           headers: getAuthHeaders(),
           credentials: 'include',
+          cache: 'no-store',
+          signal: controller.signal,
         });
         if (res.ok) {
           const data = await res.json();
           const sessions = Array.isArray(data) ? data : (data?.data || data?.sessions || []);
-          setAssignedSessions(Array.isArray(sessions) ? sessions : []);
+          if (!controller.signal.aborted) {
+            setAssignedSessions(Array.isArray(sessions) ? sessions : []);
+          }
         }
       } catch (err) {
         // Silently fail - assigned sessions are nice to have
       } finally {
-        setLoadingSessions(false);
+        fetching = false;
+        if (!controller.signal.aborted) setLoadingSessions(false);
       }
     }
 
+    function refreshAssignedSessions() {
+      if (document.visibilityState === 'visible') fetchAssignedSessions();
+    }
+
+    setLoadingSessions(true);
     fetchAssignedSessions();
-  }, [ready]);
+    const intervalId = window.setInterval(refreshAssignedSessions, 5000);
+    window.addEventListener('focus', refreshAssignedSessions);
+    document.addEventListener('visibilitychange', refreshAssignedSessions);
+
+    return () => {
+      controller.abort();
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', refreshAssignedSessions);
+      document.removeEventListener('visibilitychange', refreshAssignedSessions);
+    };
+  }, [ready, sessionId]);
   // Load team members for the session
   useEffect(() => {
     if (!ready || !sessionId) return;

@@ -116,7 +116,82 @@ async function prepareData() {
   };
 }
 
+async function testAssignedSessionsRefresh() {
+  const browser = await chromium.launch({ headless: true, channel: BROWSER_CHANNEL });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  let status = 'preparee';
+  let failRefresh = false;
+  let requests = 0;
+
+  try {
+    await context.addInitScript(() => {
+      sessionStorage.setItem('currentUser', JSON.stringify({
+        id: 123,
+        role: 'participant',
+        name: 'Refresh Participant',
+        email: 'refresh@example.test',
+      }));
+    });
+    await context.route('**/api/**', async (route) => {
+      const pathname = new URL(route.request().url()).pathname;
+      if (pathname.endsWith('/participants/me/sessions')) {
+        requests += 1;
+        await route.fulfill({
+          status: failRefresh ? 503 : 200,
+          json: failRefresh ? { error: 'Unavailable' } : [{ id: 42, name: 'Refresh session', status }],
+        });
+        return;
+      }
+      await route.fulfill({ json: {} });
+    });
+    await page.clock.install();
+    await page.goto(`${FRONTEND_URL}/participant`, { waitUntil: 'domcontentloaded' });
+    const waiting = page.locator('.participant-session-card__waiting-status');
+    const join = page.locator('.participant-session-card__cta');
+    const loading = page.getByText(/Loading your sessions|Chargement de vos sessions/);
+    await waiting.waitFor();
+    assert(await join.count() === 0, 'Prepared session must not be joinable');
+    const initialRequests = requests;
+
+    status = 'en_cours';
+    await page.clock.fastForward(5000);
+    await join.waitFor();
+    assert(requests > initialRequests, 'Assigned sessions must refresh automatically');
+    assert(await waiting.count() === 0, 'Waiting label must disappear after launch');
+    assert(await loading.count() === 0, 'Background refresh must not show the loading skeleton');
+    assert(await join.isEnabled(), 'Launched session must be joinable without reloading');
+
+    failRefresh = true;
+    const failedResponse = page.waitForResponse((response) =>
+      response.url().includes('/participants/me/sessions') && response.status() === 503
+    );
+    await page.clock.fastForward(5000);
+    await failedResponse;
+    assert(await join.isVisible(), 'Failed refresh must preserve the previous session state');
+
+    failRefresh = false;
+    status = 'preparee';
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await waiting.waitFor();
+    assert(await join.count() === 0, 'Focus refresh must update session availability');
+
+    status = 'en_cours';
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await join.waitFor();
+    console.log('SMOKE_PARTICIPANT_ASSIGNED_SESSIONS_REFRESH_OK');
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+}
+
 async function run() {
+  if (process.argv.includes('--assigned-sessions-refresh')) {
+    await testAssignedSessionsRefresh();
+    return;
+  }
+
   const { sessionId, participantToken, participantUser } = await prepareData();
 
   let browser = null;
