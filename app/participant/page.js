@@ -449,7 +449,7 @@ export default function ParticipantPage() {
               <h1>{isEn ? `Welcome ${participantLabel}` : `Bienvenue ${participantLabel}`}</h1>
               <p>
                 {assignedSessions.length > 0 && !sessionId
-                  ? (isEn ? 'Here are your sessions.' : 'Voici vos sessions.')
+                  ? (isEn ? 'Find your sessions and join your ongoing experiences.' : 'Retrouvez vos sessions et rejoignez vos expériences en cours.')
                   : (isEn
                     ? 'Your session is running. The active challenge will appear here automatically.'
                     : 'Votre session est en cours. Le challenge actif s\'affichera ici automatiquement.')}
@@ -538,7 +538,6 @@ export default function ParticipantPage() {
               <div className="participant-panel__head">
                 <div>
                   <p className="eyebrow">{isEn ? 'ASSIGNED SESSIONS' : 'SESSIONS ASSIGNÉES'}</p>
-                  <h2>{isEn ? 'Your assigned sessions' : 'Vos sessions assignées'}</h2>
                 </div>
               </div>
               <div className="participant-sessions-grid">

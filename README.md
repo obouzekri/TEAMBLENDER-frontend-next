@@ -16,6 +16,24 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les trois actions de copie partagent un style neutre et confirment la copie; un echec du presse-papiers affiche une notification.
 - Validation: `npm run test:unit:builder` et `npm run test:ux:builder` (frontend lance sur le port 3100, Chrome disponible). Le test UX utilise des reponses API locales simulees, sans modifier de session reelle.
 
+### Labyrinthe des signaux
+
+Les bombes occupent moins de place dans la grille. Le passage de niveau affiche une felicitation et une action Continuer, sans annoncer prematurement une victoire collective. Le tableau de bord facilitateur met les vies restantes en evidence et harmonise la casse des noms. Les messages contextuels (impasse, piege, retour interdit, sortie) restent affiches, sans message Bien joue a chaque deplacement.
+
+Validation: `npm run test:ux:labyrinthe` avec le frontend sur le port 3100 et Chrome disponible. Les reponses API et Socket.IO sont simulees localement.
+
+### Pari sur moi
+
+Le bareme est presente en lignes courtes avec icones; les points du poseur restent explicites. Le resultat met la reponse du joueur et la bonne reponse avant le score total, avec un etat hors delai distinct. Les cartes de resultat ont des badges contrasts en modes clair et sombre et les noms sont harmonises. L'interface suit la langue choisie (FR/EN).
+
+Validation: `npm run test:ux:vom` (frontend sur le port 3100, Chrome disponible), avec API et Socket.IO simules. Le test couvre les votes corrects, incorrects, hors delai, les choix multiples, les vues facilitateur et participant, ainsi que les modes clair/sombre et le contraste des badges (minimum 4.5:1).
+
+### Mission Critique
+
+Le tableau de bord facilitateur affiche les participants, les taches distinctes placees dans l'equipe, les soumissions et leurs erreurs. La progression individuelle mesure le placement des taches du catalogue, pas leur validation ni leur execution. Les erreurs restent non evaluees avant soumission. Chaque carte propose une timeline repliable. La fenetre d'affectation place la fermeture en haut a droite et signale la phase deja affectee par une coche, un contour et un etat accessible.
+
+Validation: `npm run test:ux:mission` (frontend sur le port 3100, Chrome disponible), avec API et Socket.IO simules, pour les vues facilitateur/participant, les mises a jour temps reel, les affectations de phase et les formats desktop/mobile en clair/sombre.
+
 ## Quick links
 
 - Setup local: section `Setup local`

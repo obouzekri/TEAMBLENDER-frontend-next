@@ -11,7 +11,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import useI18n from '@/lib/i18n/useI18n';
-import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2, X } from 'lucide-react';
+import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2, X, Check, Users, CircleCheck, AlertTriangle } from 'lucide-react';
 import styles from './MissionCritique.module.css';
 
 const PHASES = Object.freeze([
@@ -50,6 +50,11 @@ function normalizeName(value) {
   return String(value || '').trim();
 }
 
+function formatParticipantName(value) {
+  return normalizeName(value).toLocaleLowerCase()
+    .replace(/\p{L}[\p{L}\p{M}]*/gu, (word) => word.charAt(0).toLocaleUpperCase() + word.slice(1));
+}
+
 function isEmailLike(value) {
   return normalizeName(value).includes('@');
 }
@@ -81,6 +86,17 @@ export default function MissionCritiqueChallenge({
     ? mission.facilitator_board
     : [];
   const collectiveResult = mission.collective_result || null;
+  const boardSummary = useMemo(() => {
+    const knownTaskIds = new Set(tasks.map((task) => String(task.id)));
+    const placedTaskIds = new Set(facilitatorBoard.flatMap((item) => (
+      Array.isArray(item.timeline) ? item.timeline.map(String).filter((id) => knownTaskIds.has(id)) : []
+    )));
+    return {
+      placed: placedTaskIds.size,
+      submitted: facilitatorBoard.filter((item) => item.submitted).length,
+      errors: facilitatorBoard.reduce((total, item) => total + (item.submitted ? Number(item.errors_count || 0) : 0), 0),
+    };
+  }, [tasks, facilitatorBoard]);
 
   const displayName = useMemo(() => {
     const firstName = String(
@@ -98,15 +114,15 @@ export default function MissionCritiqueChallenge({
         ''
     ).trim();
     const fullName = `${firstName} ${lastName}`.trim();
-    if (fullName) return fullName;
+    if (fullName) return formatParticipantName(fullName);
 
     const fromPayload = String(
       runtimePayload?.context?.displayName || runtimePayload?.context?.name || ''
     ).trim();
-    if (fromPayload && !isEmailLike(fromPayload)) return fromPayload;
+    if (fromPayload && !isEmailLike(fromPayload)) return formatParticipantName(fromPayload);
 
     const fallbackName = String(context?.displayName || context?.name || '').trim();
-    if (fallbackName && !isEmailLike(fallbackName)) return fallbackName;
+    if (fallbackName && !isEmailLike(fallbackName)) return formatParticipantName(fallbackName);
 
     return 'Participant';
   }, [runtimePayload, context]);
@@ -115,12 +131,12 @@ export default function MissionCritiqueChallenge({
     const firstName = String(item?.first_name || item?.firstName || '').trim();
     const lastName = String(item?.last_name || item?.lastName || '').trim();
     const fullName = `${firstName} ${lastName}`.trim();
-    if (fullName) return fullName;
+    if (fullName) return formatParticipantName(fullName);
 
     const fromPayload = String(
       item?.display_name || item?.participant_name || item?.name || ''
     ).trim();
-    if (fromPayload && !isEmailLike(fromPayload)) return fromPayload;
+    if (fromPayload && !isEmailLike(fromPayload)) return formatParticipantName(fromPayload);
     if (Number.isFinite(Number(item?.slot))) return `Participant ${item.slot}`;
     return 'Participant';
   }
@@ -594,6 +610,7 @@ export default function MissionCritiqueChallenge({
                     onClick={(event) => event.stopPropagation()}
                   >
                     <div className={styles.modalHead}>
+                      <h3 className={styles.modalTitle}>{modalTask.label}</h3>
                       <button
                         type="button"
                         className={styles.modalCloseBtn}
@@ -603,7 +620,6 @@ export default function MissionCritiqueChallenge({
                       >
                         <X size={16} strokeWidth={2.1} aria-hidden="true" />
                       </button>
-                      <h3 className={styles.modalTitle}>{modalTask.label}</h3>
                     </div>
                     <p className={styles.modalHint}>
                       {isEn ? 'Assign this task to a phase.' : 'Affectez cette tâche à une phase.'}
@@ -616,8 +632,10 @@ export default function MissionCritiqueChallenge({
                           className={`${styles.modalPhaseBtn} ${styles[phase.className]}${modalAssignedPhase === phase.key ? ` ${styles.modalPhaseBtnActive}` : ''}`}
                           onClick={() => assignTaskToPhase(modalTask.id, phase.key)}
                           disabled={!canEditTimeline}
+                          aria-pressed={modalAssignedPhase === phase.key}
                         >
-                          {phaseLabel(phase, isEn)}
+                          <span>{phaseLabel(phase, isEn)}</span>
+                          {modalAssignedPhase === phase.key ? <span className={styles.selectedPhaseMark}><Check size={16} aria-hidden="true" />{isEn ? 'Selected' : 'Sélectionnée'}</span> : null}
                         </button>
                       ))}
                     </div>
@@ -664,7 +682,19 @@ export default function MissionCritiqueChallenge({
             </>
           ) : (
             <section className={styles.card}>
-              <h2>{isEn ? 'Facilitator global view' : 'Vue globale facilitateur'}</h2>
+              <div className={styles.dashboardHeader}>
+                <div>
+                  <h2>{isEn ? 'Facilitator dashboard' : 'Tableau de bord facilitateur'}</h2>
+                  <p className={styles.meta}>{isEn ? 'Live task placement and submission tracking' : 'Suivi des tâches placées et des soumissions en temps réel'}</p>
+                </div>
+                <span className={styles.liveBadge}><span aria-hidden="true" />{isEn ? 'Live' : 'En direct'}</span>
+              </div>
+              <div className={styles.dashboardMetrics}>
+                <article><Users size={20} aria-hidden="true" /><strong>{facilitatorBoard.length}</strong><span>{isEn ? 'Participants' : 'Participants'}</span></article>
+                <article><ListTodo size={20} aria-hidden="true" /><strong>{boardSummary.placed}/{tasks.length}</strong><span>{isEn ? 'Unique tasks placed' : 'Tâches distinctes placées'}</span></article>
+                <article><CircleCheck size={20} aria-hidden="true" /><strong>{boardSummary.submitted}/{facilitatorBoard.length}</strong><span>{isEn ? 'Submissions' : 'Soumissions'}</span></article>
+                <article><AlertTriangle size={20} aria-hidden="true" /><strong>{boardSummary.submitted ? boardSummary.errors : '—'}</strong><span>{isEn ? 'Errors in submissions' : 'Erreurs des soumissions'}</span></article>
+              </div>
               {collectiveResult ? (
                 <p className={styles.score}>
                   {isEn ? 'Collective score' : 'Score collectif'}:{' '}
@@ -677,25 +707,35 @@ export default function MissionCritiqueChallenge({
                 </p>
               ) : (
                 <div className={styles.boardGrid}>
-                  {facilitatorBoard.map((item) => (
+                  {facilitatorBoard.map((item) => {
+                    const placed = new Set((Array.isArray(item.timeline) ? item.timeline : [])
+                      .map(String).filter((id) => taskMap.has(id))).size;
+                    const progress = tasks.length ? Math.round((placed / tasks.length) * 100) : 0;
+                    const participantLabel = resolveParticipantLabel(item);
+                    return (
                     <article key={item.participant_id} className={styles.facilitatorCard}>
-                      <p className={styles.order}>{isEn ? 'Participant' : 'Participant'}</p>
-                      <h3>{resolveParticipantLabel(item)}</h3>
-                      <p className={styles.meta}>
-                        {isEn ? 'Timeline' : 'Timeline'}: {item.timeline_length}{' '}
-                        {isEn ? 'tasks' : 'tâches'}
-                      </p>
-                      <p className={styles.meta}>
-                        {isEn ? 'Submitted' : 'Soumis'}:{' '}
-                        {item.submitted ? (isEn ? 'Yes' : 'Oui') : isEn ? 'No' : 'Non'}
-                      </p>
-                      <p className={styles.meta}>
-                        {isEn ? 'Errors' : 'Erreurs'}: {item.errors_count ?? 0}
-                      </p>
-                      <div className={styles.participantTimelineBlock}>
-                        <p className={styles.miniTitle}>
+                      <div className={styles.participantCardHeader}>
+                        <div className={styles.participantIdentity}>
+                          <span className={styles.participantAvatar} aria-hidden="true">{participantLabel.split(/\s+/).slice(0, 2).map((word) => word[0]).join('')}</span>
+                          <h3>{participantLabel}</h3>
+                        </div>
+                        <span className={`${styles.submissionBadge} ${item.submitted ? styles.submissionDone : styles.submissionPending}`}>
+                          {item.submitted ? <CircleCheck size={15} aria-hidden="true" /> : <ClipboardList size={15} aria-hidden="true" />}
+                          {item.submitted ? (isEn ? 'Submitted' : 'Soumis') : (isEn ? 'In progress' : 'En cours')}
+                        </span>
+                      </div>
+                      <div className={styles.participantMetrics}>
+                        <div><span>{isEn ? 'Tasks placed' : 'Tâches placées'}</span><strong>{placed}/{tasks.length}</strong></div>
+                        <div><span>{isEn ? 'Errors' : 'Erreurs'}</span><strong className={item.submitted && item.errors_count > 0 ? styles.metricError : ''}>{item.submitted ? (item.errors_count ?? 0) : '—'}</strong><small>{item.submitted ? (isEn ? 'Validated submission' : 'Soumission évaluée') : (isEn ? 'Not evaluated yet' : 'Non évalué')}</small></div>
+                      </div>
+                      <div className={styles.participantProgress}>
+                        <span>{isEn ? 'Task placement' : 'Placement des tâches'} <strong>{progress}%</strong></span>
+                        <progress value={placed} max={Math.max(1, tasks.length)} aria-label={`${participantLabel} — ${isEn ? 'task placement' : 'placement des tâches'}`} />
+                      </div>
+                      <details className={styles.participantTimelineBlock} open>
+                        <summary className={styles.miniTitle}>
                           {isEn ? 'Real-time timeline' : 'Timeline temps réel'}
-                        </p>
+                        </summary>
                         {Array.isArray(item.timeline) && item.timeline.length > 0 ? (
                           <div className={styles.phaseTimeline}>
                             {PHASES.map((phase) => {
@@ -757,9 +797,10 @@ export default function MissionCritiqueChallenge({
                               : 'Aucune action placée pour le moment.'}
                           </p>
                         )}
-                      </div>
+                      </details>
                     </article>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>

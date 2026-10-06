@@ -146,6 +146,16 @@ const LABY_MOVE_DELTAS = Object.freeze({
 });
 
 const PLAYER_COLOR_COUNT = 10;
+const CHALLENGE_FAILURE_MESSAGE = {
+  fr: {
+    title: 'Challenge non réussi',
+    body: "Votre équipe n'a pas réussi à atteindre l'objectif avant l'épuisement des vies ou du temps imparti.",
+  },
+  en: {
+    title: 'Challenge not completed',
+    body: 'Your team did not reach the objective before running out of lives or allotted time.',
+  },
+};
 
 function getPlayerColorStyle(index) {
   const normalizedIndex = Math.abs(Number(index) || 0) % PLAYER_COLOR_COUNT;
@@ -170,7 +180,9 @@ function canMoveFromCell(maze, fromPos, dir) {
 function toParticipantLabel(value, fallback = 'Participant') {
   const raw = String(value || '').trim();
   if (!raw) return fallback;
-  if (!raw.includes('@')) return raw;
+  if (!raw.includes('@')) {
+    return raw.toLocaleLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (_, separator, letter) => `${separator}${letter.toLocaleUpperCase()}`);
+  }
 
   const localPart = raw.split('@')[0] || '';
   const chunks = localPart
@@ -510,9 +522,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         const levelsTotal = Number(payload?.levels_total || 0);
         setAnnouncement({
           tone: 'success',
-          title: isEn ? 'Level cleared!' : 'Niveau franchi !',
+          kind: 'level',
+          title: isEn ? 'Congratulations, level cleared!' : 'Félicitations, niveau franchi !',
           body: levelsTotal
-            ? (isEn ? `New maze ahead: level ${nextLevel}/${levelsTotal}. Pick a new starting point.` : `Nouveau labyrinthe : niveau ${nextLevel}/${levelsTotal}. Choisissez un nouveau point de départ.`)
+            ? (isEn ? `You now advance to level ${nextLevel} of ${levelsTotal}. Choose your next starting point.` : `Vous accédez désormais au niveau ${nextLevel} sur ${levelsTotal}. Choisissez votre prochain point de départ.`)
             : (isEn ? 'A new maze was generated. Pick a new starting point.' : 'Nouveau labyrinthe généré. Choisissez un nouveau point de départ.'),
         });
         setMoveFeedback(isEn ? '🏁 Level cleared! Select your new start.' : '🏁 Niveau franchi ! Sélectionnez votre nouveau départ.');
@@ -545,8 +558,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         if (payload?.all_lost) {
           setAnnouncement({
             tone: 'failure',
-            title: 'Challenge perdu ! Toutes les vies ont été consommées ou le temps est écoulé.',
-            body: 'Le labyrinthe est terminé.',
+            ...CHALLENGE_FAILURE_MESSAGE[isEn ? 'en' : 'fr'],
           });
         }
         return;
@@ -578,7 +590,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       }
       setMoveFeedback('Déplacement validé. Continuez vers la sortie.');
       setMoveFeedbackTone('info');
-      showMicroCue(impactedCellKey || playerPosKey, 'info', '✨ Bien joué');
     };
 
     socket.on('challenge:event', onChallengeEvent);
@@ -586,7 +597,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       clearMicroCueTimer();
       socket.off('challenge:event', onChallengeEvent);
     };
-  }, [socket, participantId, playerPosKey]);
+  }, [socket, participantId, playerPosKey, isEn]);
 
   useEffect(() => {
     return () => {};
@@ -610,10 +621,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
     setAnnouncement({
       tone: 'failure',
-      title: 'Challenge perdu ! Toutes les vies ont été consommées ou le temps est écoulé.',
-      body: 'Le débrief collectif montre le statut final du challenge.',
+      ...CHALLENGE_FAILURE_MESSAGE[isEn ? 'en' : 'fr'],
     });
-  }, [labyFinalSummary, laby?.result, laby?.winner_participant_id]);
+  }, [labyFinalSummary, laby?.result, laby?.winner_participant_id, isEn]);
 
   const displayName = useMemo(() => {
     const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
@@ -776,7 +786,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
           ) : isFacilitator ? (
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
-                <h2>Vue Facilitateur</h2>
+                <h2>{isEn ? 'Facilitator dashboard' : 'Tableau de bord facilitateur'}</h2>
                 <p className={styles.muted}>{isEn ? 'Mini tracking grids per participant' : 'Mini-grilles de suivi par participant'}</p>
               </div>
               {labyFinalSummary ? (
@@ -839,7 +849,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                       <article key={id} className={styles.miniGridCard} style={playerColorStyle}>
                         <div className={styles.panelHeader}>
                           <strong className={styles.playerName}><span className={styles.playerSwatch} aria-hidden="true" />{participantNameById[String(id)] || `Participant ${id}`}</strong>
-                          <span className={styles.muted}>{isEn ? 'Lives' : 'Vies'}: {lifeIcons || '—'}</span>
+                          <span className={styles.playerLives} aria-label={`${isEn ? 'Remaining lives' : 'Vies restantes'}: ${lives}`}>
+                            <span className={styles.playerLivesLabel}>{isEn ? 'Lives' : 'Vies'}</span>
+                            <span className={styles.playerHearts} aria-hidden="true">{lifeIcons || '—'}{lives > 8 ? ` +${lives - 8}` : ''}</span>
+                          </span>
                         </div>
 
                         <div className={`${styles.miniGrid} ${colsClass}`}>
@@ -1116,11 +1129,11 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               aria-live="polite"
               onClick={(event) => event.stopPropagation()}
             >
-              <p className={styles.announcementKicker}>{announcement.tone === 'success' ? (isEn ? 'Collective victory' : 'Victoire collective') : (isEn ? 'End of challenge' : 'Fin de challenge')}</p>
+              <p className={styles.announcementKicker}>{announcement.kind === 'level' ? (isEn ? 'Next level' : 'Niveau suivant') : announcement.tone === 'success' ? (isEn ? 'Collective victory' : 'Victoire collective') : (isEn ? 'End of challenge' : 'Fin de challenge')}</p>
               <h3>{announcement.title}</h3>
               <p>{announcement.body}</p>
               <div className={styles.announcementActions}>
-                <button type="button" className={styles.announcementCloseBtn} onClick={() => setAnnouncement(null)}>{isEn ? 'Close' : 'Fermer'}</button>
+                <button type="button" className={styles.announcementCloseBtn} onClick={() => setAnnouncement(null)}>{announcement.kind === 'level' ? (isEn ? 'Continue' : 'Continuer') : (isEn ? 'Close' : 'Fermer')}</button>
               </div>
             </section>
           </div>

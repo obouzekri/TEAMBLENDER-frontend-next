@@ -762,10 +762,183 @@
 
 .boardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
   gap: clamp(16px, 1.4vw, 24px);
   margin-top: 18px;
-  align-items: start;
+  align-items: stretch;
+}
+
+.dashboardHeader,
+.participantCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dashboardHeader h2 {
+  margin: 0 0 8px;
+  font-size: clamp(1.3rem, 2vw, 1.8rem);
+}
+
+.liveBadge,
+.submissionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.liveBadge > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.dashboardMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.dashboardMetrics article {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--surface-1);
+}
+
+.dashboardMetrics svg {
+  color: var(--accent);
+}
+
+.dashboardMetrics strong {
+  font-size: 1.6rem;
+}
+
+.dashboardMetrics span,
+.participantMetrics span,
+.participantMetrics small {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+.participantIdentity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.participantIdentity h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.participantAvatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface-1));
+  color: var(--text-main);
+  font-weight: 800;
+}
+
+.submissionDone {
+  background: #14532d;
+  border-color: #4ade80;
+  color: #dcfce7;
+}
+
+.submissionPending {
+  background: var(--surface-2);
+  color: var(--text-main);
+}
+
+:global(html[data-theme='light']) .submissionDone {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.participantMetrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.participantMetrics > div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+
+.participantMetrics strong {
+  font-size: 1.3rem;
+}
+
+.participantMetrics .metricError {
+  color: #fca5a5;
+}
+
+:global(html[data-theme='light']) .participantMetrics .metricError {
+  color: #b91c1c;
+}
+
+.participantProgress > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.participantProgress progress {
+  width: 100%;
+  height: 10px;
+  margin-top: 8px;
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.participantProgress progress::-webkit-progress-bar {
+  background: var(--surface-2);
+}
+
+.participantProgress progress::-webkit-progress-value {
+  background: var(--accent);
+}
+
+.participantProgress progress::-moz-progress-bar {
+  background: var(--accent);
+}
+
+.participantTimelineBlock summary {
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .dashboardMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .facilitatorCard {
@@ -1231,7 +1404,9 @@
 }
 
 .modalCard {
-  width: min(360px, 92vw);
+  width: min(480px, 92vw);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   border-radius: var(--radius-card);
   border: 1px solid var(--line-soft);
   background: linear-gradient(165deg, var(--surface-2), var(--surface-1));
@@ -1246,19 +1421,20 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  justify-content: space-between;
 }
 
 .modalCloseBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   flex: 0 0 auto;
   border-radius: 8px;
   border: 1px solid var(--line-soft);
-  background: rgba(15, 30, 43, 0.82);
-  color: #d0dde8;
+  background: var(--surface-1);
+  color: var(--text-main);
   cursor: pointer;
   transition:
     transform 140ms ease,
@@ -1294,10 +1470,15 @@
 }
 
 .modalPhaseBtn {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 5px;
+  min-height: 64px;
   --phase-accent: var(--accent);
   padding: 11px 12px;
   border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--phase-accent) 40%, transparent);
+  border: 2px solid color-mix(in srgb, var(--phase-accent) 40%, transparent);
   background: color-mix(in srgb, var(--phase-accent) 8%, transparent);
   color: var(--text-main);
   font-weight: 700;
@@ -1320,9 +1501,22 @@
 }
 
 .modalPhaseBtnActive {
-  background: color-mix(in srgb, var(--phase-accent) 24%, transparent);
+  background: color-mix(in srgb, var(--phase-accent) 32%, var(--surface-1));
   border-color: var(--phase-accent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--phase-accent) 45%, transparent);
+}
+
+.selectedPhaseMark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+}
+
+.modalPhaseBtn:focus-visible,
+.modalCloseBtn:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .modalActions {

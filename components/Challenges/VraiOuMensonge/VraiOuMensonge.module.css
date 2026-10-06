@@ -1700,18 +1700,28 @@
 
 .wowTitle {
   display: block;
-  color: #e6fff1;
-  font-size: 1.02rem;
+  color: var(--challenge-text-primary);
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
 }
 
 .wowText {
   margin: 4px 0 0;
-  color: #c8f4dc;
+  color: var(--challenge-text-primary);
+}
+
+.answerComparison {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--challenge-text-primary);
+}
+
+.answerComparison p {
+  margin: 0;
 }
 
 .resultHero {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(220px, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   align-items: stretch;
   padding: 16px;
@@ -1770,11 +1780,11 @@
   border-radius: 18px;
   border: 1px solid rgba(245, 195, 77, 0.26);
   background: linear-gradient(145deg, rgba(23, 41, 61, 0.92), rgba(14, 26, 40, 0.98));
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: 4px;
-  padding: 16px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
 
@@ -1788,7 +1798,7 @@
 
 .mainScoreValue {
   color: #fff7df;
-  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-size: 1.2rem;
   line-height: 1;
   font-weight: 900;
   text-shadow: 0 8px 24px rgba(246, 199, 93, 0.18);
@@ -1809,7 +1819,35 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-  margin-top: 4px;
+  margin-left: auto;
+}
+
+.resultCorrect,
+.resultIncorrect,
+.resultTimeout {
+  display: inline-flex;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.resultCorrect {
+  color: #bbf7d0;
+  background: #14532d;
+  border-color: #4ade80;
+}
+
+.resultIncorrect {
+  color: #fecaca;
+  background: #7f1d1d;
+  border-color: #f87171;
+}
+
+.resultTimeout {
+  color: #fde68a;
+  background: #713f12;
+  border-color: #fbbf24;
 }
 
 .scoreDeltaChip,
@@ -2029,6 +2067,30 @@
 :global(html[data-theme='light']) .mainScoreCard {
   background: linear-gradient(145deg, #fff9e9, var(--surface-1));
   border-color: rgba(217, 119, 6, 0.32);
+}
+
+:global(html[data-theme='light']) .resultRow {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+:global(html[data-theme='light']) .resultStatusText.resultCorrect {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+:global(html[data-theme='light']) .resultStatusText.resultIncorrect {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+:global(html[data-theme='light']) .resultStatusText.resultTimeout {
+  color: #854d0e;
+  background: #fef9c3;
+  border-color: #fde047;
 }
 
 :global(html[data-theme='light']) .mainScoreValue {

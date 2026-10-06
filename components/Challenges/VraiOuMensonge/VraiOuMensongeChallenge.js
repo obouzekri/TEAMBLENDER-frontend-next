@@ -31,6 +31,11 @@ function normalizeName(value) {
   return String(value || '').trim();
 }
 
+function formatParticipantName(value) {
+  return normalizeName(value).toLocaleLowerCase()
+    .replace(/\p{L}[\p{L}\p{M}]*/gu, (word) => word.charAt(0).toLocaleUpperCase() + word.slice(1));
+}
+
 function getInitials(name) {
   const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '?';
@@ -317,7 +322,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const me = String(participantId || context?.userId || '');
   const poserId = String(currentTurn?.poser_id || '');
   const isPoser = me && poserId && me === poserId;
-  const currentQuestionText = String(currentTurn?.statement_prompt || currentTurn?.statement_text || '-').trim();
   const currentQuestionDisplayText = useMemo(
     () => getTranslatedCurrentQuestion(currentTurn, locale),
     [currentTurn, locale]
@@ -329,11 +333,11 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
     const lastName = String(runtimePayload?.context?.lastName || runtimePayload?.context?.last_name || context?.lastName || context?.last_name || '').trim();
     const fullName = `${firstName} ${lastName}`.trim();
-    if (fullName) return fullName;
+    if (fullName) return formatParticipantName(fullName);
     const fromPayload = String(runtimePayload?.context?.displayName || '').trim();
-    if (fromPayload && !isEmailLike(fromPayload)) return fromPayload;
+    if (fromPayload && !isEmailLike(fromPayload)) return formatParticipantName(fromPayload);
     const fromContext = String(context?.displayName || '').trim();
-    if (fromContext && !isEmailLike(fromContext)) return fromContext;
+    if (fromContext && !isEmailLike(fromContext)) return formatParticipantName(fromContext);
     return 'Participant';
   }, [runtimePayload, context, me]);
 
@@ -349,7 +353,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       const fullName = `${firstName} ${lastName}`.trim();
       const displayName = String(item?.display_name || '').trim();
       const safeDisplayName = displayName && !isEmailLike(displayName) ? displayName : '';
-      map.set(id, fullName || safeDisplayName || fallback);
+      map.set(id, formatParticipantName(fullName || safeDisplayName || fallback));
     });
 
     participantsOrder.forEach((id, index) => {
@@ -795,13 +799,19 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     return glyph ? `${glyph} ${label}` : label;
   }
 
-  function buildRevealedTruthSentence() {
-    const truth = isChoiceVoting
-      ? formatChoiceDisplay(translateCurrentTurnOption(currentTurn, currentTurn?.revealed_truth, locale), locale)
-      : String(currentTurn?.revealed_truth || '-').trim();
-    if (isEn) return `${poserName} answered: ${truth}.`;
-    if (/pr[eé]f[eè]re|prefers/i.test(currentQuestionText)) return `${poserName} préfère ${truth}.`;
-    return `${poserName} a répondu : ${truth}.`;
+  function formatAnswer(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return t('vom.noAnswer');
+    if (isChoiceVoting) return formatChoiceDisplay(translateCurrentTurnOption(currentTurn, raw, locale), locale);
+    if (['vrai', 'true'].includes(raw.toLowerCase())) return t('vom.answerTrue');
+    if (['mensonge', 'faux', 'false'].includes(raw.toLowerCase())) return t('vom.answerFalse');
+    return formatChoiceDisplay(raw, locale);
+  }
+
+  function resultStatusLabel(status) {
+    if (status === 'correct') return t('vom.resultCorrect');
+    if (status === 'incorrect') return t('vom.resultIncorrect');
+    return t('vom.resultTimeout');
   }
 
   return (
@@ -1029,31 +1039,36 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               <div className={styles.resultHeroFeedback}>
                 <div className={styles.resultEyebrowRow}>
                   <span className={styles.resultEyebrow}>{t('vom.instantFeedback')}</span>
-                  <span className={`${styles.resultStatusBadge}${myRoundPoints > 0 ? ` ${styles.resultStatusSuccess}` : ''}`}>
+                  {!isFacilitator ? <span className={`${styles.resultStatusBadge}${myRoundPoints > 0 ? ` ${styles.resultStatusSuccess}` : ''}`}>
                     {hasSelectionTimeout ? '⏳' : isPoser ? (poseurRoundPoints > 0 ? '🎯' : '•') : myRoundVote?.status === 'correct' ? '✅' : myRoundVote?.status === 'incorrect' ? '❌' : '•'}
                     {myRoundPoints > 0 ? ` +${myRoundPoints} pts` : ' 0 pt'}
-                  </span>
+                  </span> : null}
                 </div>
-                <strong className={styles.wowTitle}>{hasSelectionTimeout ? 'Tour interrompu' : isPoser ? 'Bluff révélé' : myRoundVote?.status === 'correct' ? (isEn ? '✅ Correct!' : '✅ Correct !') : myRoundVote?.status === 'incorrect' ? (isEn ? '❌ Incorrect' : '❌ Incorrect') : 'Réponse révélée'}</strong>
+                <strong className={styles.wowTitle}>{hasSelectionTimeout ? t('vom.roundInterrupted') : isFacilitator ? t('vom.answerRevealed') : isPoser ? t('vom.bluffRevealed') : myRoundVote?.status === 'correct' ? t('vom.feedbackCorrect') : myRoundVote?.status === 'incorrect' ? t('vom.feedbackIncorrect') : t('vom.resultTimeout')}</strong>
                 {hasSelectionTimeout ? (
-                  <p className={styles.wowText}>Temps ecoule: le poseur n a pas pose la question a temps. 0 point et passage au participant suivant.</p>
+                  <p className={styles.wowText}>{t('vom.selectionTimeoutBody')}</p>
+                ) : isFacilitator ? (
+                  <p className={styles.wowText}>{t('vom.correctAnswerLabel')}: <strong>{formatAnswer(currentTurn?.revealed_truth)}</strong> ✅</p>
                 ) : !isPoser ? (
-                  <p className={styles.wowText}>{buildRevealedTruthSentence()}</p>
+                  <div className={styles.answerComparison}>
+                    <p>{t('vom.yourAnswerLabel')}: <strong>{formatAnswer(myRoundVote?.vote)}</strong> {myRoundVote?.status === 'correct' ? '✅' : myRoundVote?.status === 'incorrect' ? '❌' : '⏱️'}</p>
+                    <p>{t('vom.correctAnswerLabel')}: <strong>{formatAnswer(currentTurn?.revealed_truth)}</strong> ✅</p>
+                  </div>
                 ) : (
                   <p className={styles.wowText}>
                     {t('vom.poserFeedback', { points: poseurRoundPoints })}
                   </p>
                 )}
               </div>
-              <div className={styles.mainScoreCard}>
+              {!isFacilitator ? <div className={styles.mainScoreCard}>
                 <span className={styles.mainScoreLabel}>{t('vom.myScore')}</span>
                 <span className={`${styles.mainScoreValue}${resultPulse ? ` ${styles.mainScoreValuePulse}` : ''}`}>{myScore}</span>
-                <span className={styles.mainScoreUnit}>{t('vom.points')}</span>
+                <span className={styles.mainScoreUnit}>{t(myScore === 1 ? 'vom.point' : 'vom.points')}</span>
                 <div className={styles.scoreDeltaRow}>
                   <span className={`${styles.scoreDeltaChip}${myRoundPoints > 0 ? ` ${styles.scoreDeltaChipPositive}` : ''}`}>{myRoundPoints > 0 ? `+${myRoundPoints}` : '0'} pt</span>
                   <span className={styles.scoreRankChip}>{myRankMedal || `#${myRank || '-'}`} {myRoundMovement === 'up' ? '↑' : myRoundMovement === 'down' ? '↓' : '→'}</span>
                 </div>
-              </div>
+              </div> : null}
             </div>
 
             <div className={styles.resultListDense}>
@@ -1063,7 +1078,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                     <span className={styles.inlineAvatar}>{getInitials(participantName(item.participant_id))}</span>
                     <span>{participantName(item.participant_id)}</span>
                   </span>
-                  <span className={styles.resultStatusText}>{item.status === 'correct' ? '✅ Correct' : item.status === 'incorrect' ? '❌ Incorrect' : item.status}</span>
+                  <span className={`${styles.resultStatusText} ${item.status === 'correct' ? styles.resultCorrect : item.status === 'incorrect' ? styles.resultIncorrect : styles.resultTimeout}`}>{resultStatusLabel(item.status)}</span>
                   <span>+{item.points}</span>
                 </div>
               ))}
@@ -1168,7 +1183,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             aria-label="Sélection de réponse"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>{t('vom.yourQuestion')}</h3>
             {selectedStatementChoices ? (
               <>
                 <p className={styles.choicePanelTitle}>
