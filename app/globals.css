@@ -11315,7 +11315,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
   background: transparent;
   box-shadow: none;
   padding: 0;
-  margin: 0;
+  margin-block: 0;
 }
 
 .session-live-surface {
