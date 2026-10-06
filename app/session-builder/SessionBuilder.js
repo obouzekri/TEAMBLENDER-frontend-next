@@ -426,6 +426,7 @@ export default function SessionBuilder() {
     updateChallengeConfig,
     moveChallengeUp,
     moveChallengeDown,
+    reorderChallenge,
     clearAll,
     updateFilters,
     resetFilters,
@@ -467,6 +468,8 @@ export default function SessionBuilder() {
   const [selectedChallengesSnapshot, setSelectedChallengesSnapshot] = useState('[]');
   const [sessionInvite, setSessionInvite] = useState(null);
   const [inviteCopyState, setInviteCopyState] = useState('');
+  const inviteCopyTimerRef = useRef(null);
+  useEffect(() => () => window.clearTimeout(inviteCopyTimerRef.current), []);
   const hasHydratedSessionSelectionRef = useRef(false);
   const onboardingRedirectedRef = useRef(false);
   const shouldResetScrollAfterCreationRef = useRef(false);
@@ -934,17 +937,21 @@ export default function SessionBuilder() {
   const handleCopyInviteValue = useCallback(async (value, feedbackKey) => {
     const text = String(value || '').trim();
     if (!text || typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+      showErrorToast(t('sessionBuilder.inviteCopyFailed'));
       return;
     }
 
     try {
       await navigator.clipboard.writeText(text);
+      window.clearTimeout(inviteCopyTimerRef.current);
       setInviteCopyState(feedbackKey);
-      window.setTimeout(() => setInviteCopyState(''), 1800);
+      showSuccessToast(t('sessionBuilder.inviteCopied'));
+      inviteCopyTimerRef.current = window.setTimeout(() => setInviteCopyState(''), 1800);
     } catch {
       setInviteCopyState('');
+      showErrorToast(t('sessionBuilder.inviteCopyFailed'));
     }
-  }, []);
+  }, [showErrorToast, showSuccessToast, t]);
 
   const handleLaunchSession = useCallback(async () => {
     if (!selectedChallenges.length || isLaunching) {
@@ -1420,7 +1427,7 @@ export default function SessionBuilder() {
         <strong>{t('sessionBuilder.inviteEyebrow')}</strong>
         <button
           type="button"
-          className={styles.summaryInviteSecondary}
+          className={styles.summaryInviteCopy}
           onClick={() => handleCopyInviteValue(inviteMessage, 'invite')}
           disabled={!inviteMessage}
         >
@@ -1661,6 +1668,7 @@ export default function SessionBuilder() {
             onRemove={deselectChallenge}
             onMoveUp={moveChallengeUp}
             onMoveDown={moveChallengeDown}
+            onReorder={reorderChallenge}
             onClearAll={clearAll}
           />
 

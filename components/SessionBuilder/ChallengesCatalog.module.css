@@ -159,6 +159,7 @@
 }
 
 .resetIconButton {
+  position: relative;
   width: 2.35rem;
   height: 2.35rem;
   border-radius: 999px;
@@ -178,8 +179,29 @@
 .resetIconButton:hover {
   border-color: var(--control-border-strong);
   color: var(--ink);
-  transform: translateY(-1px) rotate(-12deg);
+  transform: translateY(-1px);
   box-shadow: var(--control-shadow-strong);
+}
+
+.resetTooltip {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: max-content;
+  max-width: 220px;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 0.78rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.resetIconButton:hover .resetTooltip,
+.resetIconButton:focus-visible .resetTooltip {
+  opacity: 1;
 }
 
 .skeletonGrid {
@@ -190,6 +212,7 @@
 
 .grid {
   display: grid;
+  grid-auto-rows: 1fr;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
 }
@@ -375,9 +398,9 @@
 :global(html[data-theme='dark']) .toggleActionSelected,
 :global(body[data-theme='dark']) .toggleActionSelected,
 :global(.dark) .toggleActionSelected {
-  color: #fecaca;
-  background: linear-gradient(135deg, rgba(127, 29, 29, 0.92) 0%, rgba(185, 28, 28, 0.86) 100%);
-  border-color: rgba(252, 165, 165, 0.52);
+  color: #dbeafe;
+  background: var(--surface-control);
+  border-color: var(--control-border-strong);
 }
 
 :global(html[data-theme='dark']) .configureAction,
@@ -572,15 +595,21 @@
 }
 
 .toggleActionSelected {
-  border-color: color-mix(in srgb, var(--error-line) 45%, transparent);
-  background: linear-gradient(145deg, var(--error-bg) 0%, var(--card) 100%);
-  color: var(--error-ink);
+  border-color: var(--control-border-strong);
+  background: var(--surface-control);
+  color: var(--ink);
+  cursor: default;
 }
 
 .toggleActionSelected .toggleActionKnob {
-  border-color: color-mix(in srgb, var(--error-line) 55%, transparent);
-  background: color-mix(in srgb, var(--error-line) 14%, var(--card));
+  background: var(--accent-soft);
+  color: var(--accent-strong);
   transform: translateX(1px);
+}
+
+.toggleActionSelected:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .loadMoreSentinelWrap {

@@ -71,7 +71,6 @@ export default function ChallengesCatalog({
   filters,
   isLoading,
   onSelect,
-  onDeselect,
   onConfigure,
   onFilterChange,
   onToggleCategory,
@@ -393,6 +392,7 @@ export default function ChallengesCatalog({
               aria-label={t('sessionBuilder.catalogResetFilters')}
             >
               <span aria-hidden="true">⟳</span>
+              <span className={styles.resetTooltip} role="tooltip">{t('sessionBuilder.catalogResetFilters')}</span>
             </button>
           </div>
         </div>
@@ -416,7 +416,16 @@ export default function ChallengesCatalog({
         <div className={styles.grid}>
           {visibleChallenges.map((challenge) => {
             const isSelected = selectedIds.includes(challenge.id);
-            const challengeObjectives = toObjectiveList(challenge.objectives || challenge.objective).slice(0, 3);
+            const categoryLabel = localizeMappingLabel(CATEGORY_LABELS[localizePlainValue(challenge.category)], localizePlainValue(challenge.category));
+            const seenLabels = new Set([categoryLabel.toLocaleLowerCase(locale)]);
+            const challengeObjectives = toObjectiveList(challenge.objectives || challenge.objective)
+              .map((objective) => localizeMappingLabel(OBJECTIVE_LABELS[objective.toLowerCase()], objective))
+              .filter((label) => {
+                const key = label.toLocaleLowerCase(locale);
+                if (seenLabels.has(key)) return false;
+                seenLabels.add(key);
+                return true;
+              }).slice(0, 3);
             const idealPlayersLabel = formatIdealPlayersLabel(challenge);
             const challengeName = localizePlainValue(challenge.name) || (isEn ? 'Activity' : 'Activité');
             const challengeDescription = localizePlainValue(challenge.description);
@@ -446,12 +455,12 @@ export default function ChallengesCatalog({
                 <div className={styles.cardMeta}>
                   {challenge.category ? (
                     <Badge className={styles.badge}>
-                      {localizeMappingLabel(CATEGORY_LABELS[localizePlainValue(challenge.category)], localizePlainValue(challenge.category))}
+                      {categoryLabel}
                     </Badge>
                   ) : null}
                   {challengeObjectives.map((objective) => (
                     <Badge key={`${challenge.id}-${objective}`} variant="info" className={`${styles.badge} ${styles.objectiveBadge}`}>
-                      {localizeMappingLabel(OBJECTIVE_LABELS[objective], objective)}
+                      {objective}
                     </Badge>
                   ))}
                 </div>
@@ -460,18 +469,13 @@ export default function ChallengesCatalog({
                   <button
                     type="button"
                     className={`${styles.toggleAction} ${isSelected ? styles.toggleActionSelected : ''}`}
-                    onClick={() => {
-                      if (isSelected) {
-                        onDeselect?.(challenge.id);
-                      } else {
-                        onSelect(challenge.id);
-                      }
-                    }}
+                    disabled={isSelected}
+                    onClick={() => onSelect(challenge.id)}
                   >
                     <span className={styles.toggleActionKnob} aria-hidden="true">
                       {isSelected ? <Check size={14} strokeWidth={2.6} /> : <Plus size={15} strokeWidth={2.6} />}
                     </span>
-                    <span className={styles.toggleActionLabel}>{isSelected ? t('sessionBuilder.catalogRemoveAction') : t('sessionBuilder.catalogAddAction')}</span>
+                    <span className={styles.toggleActionLabel}>{isSelected ? t('sessionBuilder.catalogInList') : t('sessionBuilder.catalogAddAction')}</span>
                   </button>
                   {isSelected && (
                     <Button

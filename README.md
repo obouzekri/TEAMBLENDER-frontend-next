@@ -8,6 +8,14 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Le frontend legacy vanilla a ete retire du repository pour reduire la dette technique.
 - Les changements en cours doivent rester alignes avec la navigation produit actuelle et les checks de go-live du projet.
 
+### Session Builder
+
+- Le catalogue utilise des cartes de hauteur uniforme et des badges sans doublons.
+- Une activite deja ajoutee affiche un statut non destructif; sa suppression reste disponible dans la selection.
+- La poignee de la selection permet de reordonner a la souris, au tactile ou avec les fleches haut/bas du clavier. Les actions secondaires apparaissent au survol et au focus, et restent visibles sur ecran tactile.
+- Les trois actions de copie partagent un style neutre et confirment la copie; un echec du presse-papiers affiche une notification.
+- Validation: `npm run test:unit:builder` et `npm run test:ux:builder` (frontend lance sur le port 3100, Chrome disponible). Le test UX utilise des reponses API locales simulees, sans modifier de session reelle.
+
 ## Quick links
 
 - Setup local: section `Setup local`

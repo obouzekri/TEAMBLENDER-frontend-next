@@ -22,6 +22,7 @@
     "test:unit:vom": "node scripts/test-vom-utils.mjs",
     "test:unit:auth": "node scripts/test-auth.mjs",
     "test:unit:builder": "node scripts/test-session-builder-utils.mjs",
+    "test:ux:builder": "node scripts/test-session-builder-ux.mjs",
     "test:unit:runtime": "node scripts/test-runtime-dispatcher.mjs",
     "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime",
     "test:integration:manager-participant": "node scripts/test-integration-manager-participant.mjs"

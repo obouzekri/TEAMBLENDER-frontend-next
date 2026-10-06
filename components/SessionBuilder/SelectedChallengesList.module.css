@@ -138,8 +138,45 @@
   outline-offset: 2px;
 }
 
-.moveBtn {
-  color: var(--accent);
+.dragHandle {
+  cursor: grab;
+  touch-action: none;
+  flex-shrink: 0;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragging {
+  opacity: 0.65;
+}
+
+.dropTarget {
+  border-color: var(--accent);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .itemActions {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .item:hover .itemActions,
+  .item:focus-within .itemActions {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .configBtn {

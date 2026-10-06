@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { reorderChallenges } from '../lib/sessionBuilderOrder.mjs';
 
 function parseChallengeDuration(value) {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -36,6 +37,16 @@ function getTotalDuration(selectedChallenges) {
 }
 
 function run() {
+  const activities = [{ id: 1, config: { duration: 10 } }, { id: 2 }, { id: 3 }];
+  const reordered = reorderChallenges(activities, 1, 3);
+  assert.deepEqual(reordered.map((item) => item.id), [2, 3, 1]);
+  assert.equal(reordered[2], activities[0]);
+  assert.deepEqual(reorderChallenges(activities, 3, 1).map((item) => item.id), [3, 1, 2]);
+  assert.deepEqual(activities.map((item) => item.id), [1, 2, 3]);
+  assert.equal(reorderChallenges(activities, 1, 1), activities);
+  assert.equal(reorderChallenges(activities, 99, 1), activities);
+  assert.equal(reorderChallenges(activities, 1, 99), activities);
+  assert.deepEqual(reorderChallenges([], 1, 2), []);
   assert.equal(parseChallengeDuration('20-30 min'), 25);
   assert.equal(parseChallengeDuration('10 à 20 min'), 15);
   assert.equal(parseChallengeDuration('12,5 min'), 12.5);

@@ -3,6 +3,8 @@
 import styles from './SelectedChallengesList.module.css';
 import { Button, EmptyState } from '@/components/ui';
 import useI18n from '@/lib/i18n/useI18n';
+import { useRef, useState } from 'react';
+import { GripVertical } from 'lucide-react';
 
 export default function SelectedChallengesList({
   challenges,
@@ -10,9 +12,34 @@ export default function SelectedChallengesList({
   onRemove,
   onMoveUp,
   onMoveDown,
+  onReorder,
   onClearAll,
 }) {
   const { t, locale } = useI18n();
+  const listRef = useRef(null);
+  const dragRef = useRef(null);
+  const [dragState, setDragState] = useState(null);
+  const [announcement, setAnnouncement] = useState('');
+
+  function announceMove(challenge, position) {
+    setAnnouncement(t('sessionBuilder.activityMoved', {
+      name: localizePlainValue(challenge.name),
+      position: position + 1,
+      count: challenges.length,
+    }));
+  }
+
+  function finishDrag(event, cancelled = false) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (!cancelled && drag.targetId !== drag.sourceId) {
+      onReorder(drag.sourceId, drag.targetId);
+      announceMove(challenges.find((item) => item.id === drag.sourceId),
+        challenges.findIndex((item) => item.id === drag.targetId));
+    }
+    dragRef.current = null;
+    setDragState(null);
+  }
 
   function localizePlainValue(value) {
     if (value == null) return '';
@@ -61,36 +88,65 @@ export default function SelectedChallengesList({
         {t('sessionBuilder.selectedActivitiesHint')}
       </p>
 
-      <ul className={styles.list}>
+      <p className={styles.srOnly} role="status">{announcement}</p>
+      <ul className={styles.list} ref={listRef}>
         {challenges.map((challenge, index) => (
-          <li key={challenge.id} className={styles.item}>
+          <li
+            key={challenge.id}
+            data-activity-id={challenge.id}
+            className={`${styles.item} ${dragState?.sourceId === challenge.id ? styles.dragging : ''} ${dragState?.targetId === challenge.id ? styles.dropTarget : ''}`}
+          >
+            <button
+              type="button"
+              className={`${styles.actionBtn} ${styles.dragHandle}`}
+              aria-label={t('sessionBuilder.reorderActivity', { name: localizePlainValue(challenge.name) })}
+              title={t('sessionBuilder.reorderHint')}
+              onPointerDown={(event) => {
+                if (!event.isPrimary || event.button !== 0 || challenges.length < 2) return;
+                event.currentTarget.setPointerCapture(event.pointerId);
+                event.currentTarget.focus();
+                dragRef.current = { pointerId: event.pointerId, sourceId: challenge.id, targetId: challenge.id };
+                setDragState(dragRef.current);
+              }}
+              onPointerMove={(event) => {
+                const drag = dragRef.current;
+                if (!drag || drag.pointerId !== event.pointerId) return;
+                const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-activity-id]');
+                const targetId = target && listRef.current?.contains(target)
+                  ? challenges.find((item) => String(item.id) === target.dataset.activityId)?.id
+                  : drag.sourceId;
+                dragRef.current = { ...drag, targetId };
+                setDragState(dragRef.current);
+                const list = listRef.current;
+                const bounds = list?.getBoundingClientRect();
+                if (bounds && event.clientY < bounds.top + 32) list.scrollTop -= 12;
+                if (bounds && event.clientY > bounds.bottom - 32) list.scrollTop += 12;
+              }}
+              onPointerUp={(event) => finishDrag(event)}
+              onPointerCancel={(event) => finishDrag(event, true)}
+              onLostPointerCapture={(event) => finishDrag(event, true)}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  dragRef.current = null;
+                  setDragState(null);
+                }
+                if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                  event.preventDefault();
+                  const nextIndex = index + (event.key === 'ArrowUp' ? -1 : 1);
+                  if (nextIndex < 0 || nextIndex >= challenges.length) return;
+                  if (event.key === 'ArrowUp') onMoveUp(challenge.id);
+                  else onMoveDown(challenge.id);
+                  announceMove(challenge, nextIndex);
+                }
+              }}
+            >
+              <GripVertical size={18} aria-hidden="true" />
+            </button>
             <div className={styles.itemInfo}>
               <p className={styles.itemTitle}>{localizePlainValue(challenge.name) || t('sessionBuilder.activitySingular')}</p>
             </div>
 
             <div className={styles.itemActions}>
-              {index > 0 && (
-                <button
-                  className={`${styles.actionBtn} ${styles.moveBtn}`}
-                  onClick={() => onMoveUp(challenge.id)}
-                  title={t('sessionBuilder.moveUp')}
-                  aria-label={t('sessionBuilder.moveUpAria')}
-                >
-                  ▲
-                </button>
-              )}
-
-              {index < challenges.length - 1 && (
-                <button
-                  className={`${styles.actionBtn} ${styles.moveBtn}`}
-                  onClick={() => onMoveDown(challenge.id)}
-                  title={t('sessionBuilder.moveDown')}
-                  aria-label={t('sessionBuilder.moveDownAria')}
-                >
-                  ▼
-                </button>
-              )}
-
               <button
                 className={`${styles.actionBtn} ${styles.configBtn}`}
                 onClick={() => onConfigure(challenge.id)}

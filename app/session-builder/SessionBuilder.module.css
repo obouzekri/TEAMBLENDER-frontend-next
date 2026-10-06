@@ -245,13 +245,14 @@
 }
 
 .summaryInviteCopy {
-  align-self: stretch;
+  align-self: center;
+  margin: 0.25rem;
   padding: 0.4rem 0.7rem;
-  border: 0;
-  border-left: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   cursor: pointer;
-  color: var(--accent-strong);
-  background: var(--surface-muted);
+  color: var(--ink-soft);
+  background: transparent;
   font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;
@@ -260,6 +261,8 @@
 .summaryInviteCopy:hover:not(:disabled),
 .summaryInviteCopy:focus-visible {
   background: color-mix(in srgb, var(--accent-soft) 65%, transparent);
+  outline: 2px solid var(--control-border-strong);
+  outline-offset: 2px;
 }
 
 .summaryInviteCopy:disabled {
