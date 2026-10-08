@@ -410,6 +410,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         <QuizQuestionScreen
           isEn={isEn}
           quiz={phaseQuizView}
+          isFacilitator={isFacilitator}
           selectedAnswerIndex={selectedAnswerIndex}
           onSelectAnswer={setSelectedAnswerIndex}
           isAnswerLocked={answerLocked || answerAction.busy}

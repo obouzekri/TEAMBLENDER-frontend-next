@@ -56,6 +56,7 @@ function renderLeaderboardRows({ rows, rankMovementByParticipantId = {}, showMed
 
 export function QuizQuestionScreen({
   isEn = false,
+  isFacilitator = false,
   quiz,
   selectedAnswerIndex,
   onSelectAnswer,
@@ -104,16 +105,28 @@ export function QuizQuestionScreen({
         <span className={styles.phaseBadge}>{question.category}</span>
       </div>
 
-      <div className={styles.questionPromptPanel} aria-live="polite">
+      {isFacilitator ? (
+        <p className={styles.facilitatorNotice} role="status">
+          {isEn ? 'Only participants can answer' : 'Seuls les participants peuvent répondre'}
+        </p>
+      ) : <div className={styles.questionPromptPanel} aria-live="polite">
         <p className={styles.questionPromptState}>{isAnswerLocked
           ? (isEn ? 'Answer sent and locked' : 'Réponse validée, verrouillée')
           : !isConnected
             ? (isEn ? 'Connection unavailable. Waiting to reconnect.' : 'Connexion indisponible. En attente de reconnexion.')
             : (isEn ? 'Choose your answer' : 'Choisissez votre réponse')}</p>
-      </div>
+      </div>}
 
-      <div className={styles.answerGrid} role="radiogroup" aria-label={isEn ? 'Possible answers' : 'Réponses possibles'}>
+      <div className={styles.answerGrid} role={isFacilitator ? 'group' : 'radiogroup'} aria-label={isEn ? 'Possible answers' : 'Réponses possibles'}>
         {question.options.map((choice) => {
+          if (isFacilitator) {
+            return (
+              <div key={`${question.id}-${choice.index}`} className={`${styles.answerButton} ${styles.answerReadOnly}`}>
+                <span className={styles.answerKey}>{String.fromCharCode(65 + choice.index)}</span>
+                <span>{choice.label}</span>
+              </div>
+            );
+          }
           const active = selectedIndex === choice.index;
           const ariaLabel = `${isEn ? 'Answer' : 'Réponse'} ${String.fromCharCode(65 + choice.index)} ${choice.label}`;
           return (
@@ -136,7 +149,7 @@ export function QuizQuestionScreen({
         })}
       </div>
 
-      <div className={styles.answerSubmitRow}>
+      {!isFacilitator ? <div className={styles.answerSubmitRow}>
         <button
           type="button"
           className={styles.primaryButton}
@@ -145,7 +158,7 @@ export function QuizQuestionScreen({
         >
           {isAnswerPending ? (isEn ? 'Awaiting confirmation...' : 'En attente de confirmation...') : isAnswerLocked ? (isEn ? 'Answer confirmed' : 'Réponse confirmée') : (isEn ? 'Submit my answer' : 'Valider ma réponse')}
         </button>
-      </div>
+      </div> : null}
     </section>
   );
 }

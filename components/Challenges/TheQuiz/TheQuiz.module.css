@@ -628,6 +628,32 @@
   filter: saturate(0.8);
 }
 
+.answerReadOnly,
+.answerReadOnly:hover {
+  cursor: default;
+  opacity: 1;
+  transform: none;
+  box-shadow: none;
+  border-color: var(--quiz-border);
+}
+
+.facilitatorNotice {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(66, 212, 248, 0.4);
+  background: #102b42;
+  color: #e6eef9;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+:global(html[data-theme='light']) .facilitatorNotice {
+  background: #eaf4ff;
+  color: #163b63;
+  border-color: #9bbce0;
+}
+
 .answerKey {
   width: 30px;
   height: 30px;

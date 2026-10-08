@@ -113,6 +113,53 @@ try {
       }
     }
   }
+  for (const locale of ['fr', 'en']) {
+    for (const theme of ['light', 'dark']) {
+      for (const width of [1440, 390]) {
+        const fixture = await createRealtimeFixture(browser, {
+          baseUrl, locale, role: 'manager', engineKey, theme,
+          state: { quiz: baseQuiz, config: {} }, viewport: { width, height: 1000 },
+        });
+        try {
+          const page = await fixture.context.newPage();
+          const errors = [];
+          page.on('pageerror', (error) => errors.push(error.message));
+          await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
+          await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+          const notice = page.getByRole('status').filter({ hasText: locale === 'fr' ? 'Seuls les participants peuvent répondre' : 'Only participants can answer' });
+          await notice.waitFor();
+          const contrast = await notice.evaluate((node) => {
+            const luminance = (color) => {
+              const channels = color.match(/[\d.]+/g).slice(0, 3).map(Number).map((value) => {
+                const n = value / 255;
+                return n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+              });
+              return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+            };
+            const style = getComputedStyle(node);
+            const foreground = luminance(style.color);
+            const background = luminance(style.backgroundColor);
+            return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+          });
+          assert.ok(contrast >= 4.5, `Facilitator notice contrast: ${contrast}`);
+          assert.equal(await page.getByRole('radio').count(), 0, 'Facilitator must not get answer controls');
+          assert.equal(await page.locator('[class*="answerSubmitRow"], [class*="answerSelectedBadge"], [class*="questionPromptPanel"]').count(), 0);
+          const options = page.getByRole('group', { name: locale === 'fr' ? 'Réponses possibles' : 'Possible answers', exact: true });
+          assert.equal(await options.locator('[class*="answerReadOnly"]').count(), 4);
+          await options.getByText('Green', { exact: true }).click();
+          await page.keyboard.press('2');
+          await page.keyboard.press('Enter');
+          assert.equal(fixture.receivedEvents.filter((event) => event.type === 'quiz.answer.submit').length, 0);
+          const text = await page.locator('body').innerText();
+          for (const label of ['Selected', 'Answer sent', 'Answer sent and locked', 'Sélectionnée', 'Réponse validée, verrouillée']) assert.ok(!text.includes(label), label);
+          assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Facilitator horizontal overflow');
+          assert.deepEqual(errors, []);
+        } finally {
+          await fixture.close();
+        }
+      }
+    }
+  }
   console.log('TEST_QUIZ_UX_OK');
 } finally {
   await browser.close();

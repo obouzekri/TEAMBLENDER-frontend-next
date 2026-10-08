@@ -24,6 +24,8 @@ Validation: `npm run test:ux:account` avec le frontend sur le port 3100 et Chrom
 
 ### Quiz, preferences et resultats
 
+- La vue facilitateur du quiz presente les propositions en lecture seule, sans selection ni confirmation d'envoi. Un bandeau informatif FR/EN explique que seuls les participants repondent, avec un contraste teste a 4.5:1 minimum dans les deux themes. Les controles et confirmations des participants restent inchanges.
+
 - Le quiz ne selectionne aucune reponse par defaut. Les raccourcis 1-4 et Entree ne s'appliquent pas dans le chat, les champs de saisie, les boutons ni les dialogues. Une reponse doit etre explicitement choisie avant envoi.
 - Les questions, corrections et classements proviennent uniquement du serveur. Un classement vide en cours de partie est en attente; un classement final vide indique qu'aucun score n'est enregistre; une donnee absente ou une erreur est signalee comme indisponible. Aucun score ni gagnant de demonstration n'est injecte.
 - Navigation compacte et contraste renforce sont enregistres dans `localStorage` (`tb_display_preferences`), puis appliques sur toutes les pages dans ce navigateur. Ces reglages ne sont pas synchronises avec le compte ni avec d'autres appareils. Le contraste renforce augmente la lisibilite des textes secondaires utilisant les tokens de couleur partages; il ne remplace pas un audit d'accessibilite de chaque challenge. Theme et langue restent immediats. Les rappels et resumes configurables sont clairement desactives faute de support serveur.
