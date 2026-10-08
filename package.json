@@ -33,6 +33,7 @@
     "test:ux:challenges": "node scripts/test-challenge-diagnostics-ux.mjs",
     "test:ux:challenges:no-webgl": "node scripts/test-challenge-diagnostics-ux.mjs --no-webgl",
     "test:ux:shared": "node scripts/test-shared-platform-ux.mjs",
+    "test:ux:debrief": "node scripts/test-debrief-ux.mjs",
     "test:unit:runtime": "node scripts/test-runtime-dispatcher.mjs",
     "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime && npm run test:unit:truthfulness",
     "test:integration:manager-participant": "node scripts/test-integration-manager-participant.mjs"

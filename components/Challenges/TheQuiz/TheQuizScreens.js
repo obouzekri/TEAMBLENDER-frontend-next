@@ -34,10 +34,10 @@ function getRankMedal(rank) {
   return null;
 }
 
-function renderLeaderboardRows({ rows, rankMovementByParticipantId = {} }) {
+function renderLeaderboardRows({ rows, rankMovementByParticipantId = {}, showMedals = true }) {
   return rows.map((entry, index) => {
     const movement = String(rankMovementByParticipantId[String(entry.participant_id)] || 'same');
-    const medal = getRankMedal(Number(entry.rank));
+    const medal = showMedals ? getRankMedal(Number(entry.rank)) : null;
 
     return (
       <article
@@ -241,7 +241,7 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
   const totalPlayers = standings.length;
 
   return (
-    <section className={styles.screenCard}>
+    <section className={styles.screenCard} data-debrief-content>
       <div className={styles.screenHeader}>
         <div>
           <p className={styles.kicker}>{isEn ? 'Final score' : 'Score final'}</p>
@@ -250,24 +250,25 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
         <span className={styles.phaseBadge}>Final</span>
       </div>
 
-      <div className={styles.finalSummaryGrid}>
+      <div className={styles.finalSummaryGrid} data-debrief-metrics>
         <article className={styles.metricCard}><span>{isEn ? 'Participants' : 'Participants'}</span><strong>{status === 'ready' ? totalPlayers : '-'}</strong></article>
         <article className={styles.metricCard}><span>{isEn ? 'Winner' : 'Gagnant'}</span><strong>{winner?.display_name || '-'}</strong></article>
         <article className={styles.metricCard}><span>{isEn ? 'Winning score' : 'Score gagnant'}</span><strong>{winner ? `${winner.score} pts` : '-'}</strong></article>
       </div>
 
       <div className={styles.finalRankingBlock}>
-        <p className={styles.kicker}>{isEn ? 'Detailed ranking' : 'Classement détaillé'}</p>
+        <h3>{isEn ? 'Detailed ranking' : 'Classement détaillé'}</h3>
         <div className={styles.rankingList}>
           {status === 'ready' ? renderLeaderboardRows({
             rows: standings,
             rankMovementByParticipantId: {},
+            showMedals: false,
           }) : <QuizRankingNotice isEn={isEn} status={status} />}
         </div>
       </div>
 
       <div className={styles.finalDebriefBlock}>
-        <p className={styles.kicker}>{isEn ? 'Final debrief' : 'Débrief final'}</p>
+        <h3>{isEn ? 'Final debrief' : 'Débrief final'}</h3>
         <div className={styles.debriefList}>
           {questionHistory.length > 0 ? questionHistory.map((entry) => {
             const sourceQuestion = entry?.question || {};

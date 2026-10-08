@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
 import useModalFocus from '@/lib/useModalFocus';
@@ -12,6 +12,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import ChallengePresentation from '../ChallengePresentation';
 import styles from './VraiOuMensonge.module.css';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
@@ -692,7 +693,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   function renderLeaderboardRow(entry, index, options = {}) {
     const participantKey = String(entry.participant_id);
     const movement = String(rankMovementByParticipantId[participantKey] || 'same');
-    const medal = getRankMedal(Number(entry.rank));
+    const medal = phase === 'finished' ? null : getRankMedal(Number(entry.rank));
     const progressWidth = `${Math.min(100, Math.round((Number(entry.score || 0) / maxScore) * 100))}%`;
     const compact = options.compact === true;
 
@@ -844,7 +845,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }
 
   return (
-    <div className={`${styles.shell}${!hasChallengeStarted ? ` ${styles.shellPrestart}` : ''}`}>
+    <ChallengePresentation className={`${styles.shell}${!hasChallengeStarted ? ` ${styles.shellPrestart}` : ''}`} isDebrief={phase === 'finished'}>
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !'}
@@ -896,7 +897,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         </p>
       ) : null}
 
-      <div className={styles.layout}>
+      <div className={styles.layout} data-challenge-layout>
         <div className={styles.mainColumn}>
 
         {!hasChallengeStarted ? (
@@ -1152,9 +1153,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         ) : null}
 
         {phase === 'finished' ? (
-          <section className={styles.card} style={{ order: -1 }}>
+          <section className={styles.card} data-debrief-content>
             <h2 className={styles.sectionTitle}>{t('vom.finalDebrief')}</h2>
-            <div className={styles.finalSummaryGrid}>
+            <div className={styles.finalSummaryGrid} data-debrief-metrics>
               <article className={styles.finalSummaryItem}>
                 <strong>{ranking.length}</strong>
                 <span>{t('vom.rankedParticipants')}</span>
@@ -1310,6 +1311,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           </section>
         </div>
       ) : null}
-    </div>
+    </ChallengePresentation>
   );
 }

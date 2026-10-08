@@ -12,6 +12,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import ChallengePresentation from '../ChallengePresentation';
 import useI18n from '@/lib/i18n/useI18n';
 import styles from './PhraseCoop.module.css';
 
@@ -272,7 +273,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
   }
 
   return (
-    <div className={styles.phraseContainer}>
+    <ChallengePresentation className={styles.phraseContainer} isDebrief={Boolean(summary) || ['completed', 'timeout'].includes(normalizedTimerStatus)}>
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || (isEn ? 'Rebuild the phrase together, slot by slot' : 'Reconstituez la phrase en équipe, slot par slot')}
@@ -309,7 +310,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
         />
       </div>
 
-      <div className={styles.shell}>
+      <div className={styles.shell} data-challenge-layout>
         <section className={styles.boardPanel}>
           <ChallengeActionFeedback feedback={action.feedback} />
           {!hasChallengeStarted ? (
@@ -378,7 +379,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
               )}
 
               {summary ? (
-                <div className={styles.summary} style={{ order: -1 }}>
+                <div className={styles.summary} data-debrief-content>
                   <header className={styles.summaryHead}>
                     <h3>{isEn ? 'Team debrief — Mystery Phrase' : 'Débrief équipe — Phrase Mystère'}</h3>
                     <p>
@@ -390,7 +391,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                     </p>
                   </header>
 
-                  <div className={styles.summaryStats}>
+                  <div className={styles.summaryStats} data-debrief-metrics>
                     <article className={styles.summaryStatCard}>
                       <span>{isEn ? 'Collective score' : 'Score collectif'}</span>
                       <strong>{summaryScore}/100</strong>
@@ -411,7 +412,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
 
                   <div className={styles.summaryColumns}>
                     <section className={styles.summaryPanel}>
-                      <h4>✅ {isEn ? 'What worked well' : 'Ce qui a bien fonctionné'}</h4>
+                      <h4>{isEn ? 'What worked well' : 'Ce qui a bien fonctionné'}</h4>
                       <ul>
                         <li>{isEn ? 'Final completion' : 'Complétion finale'} : {summaryCompletion}%.</li>
                         <li>{summarySolvedWords} {isEn ? 'word(s) correctly placed.' : 'mot(s) correctement positionné(s).'}</li>
@@ -420,7 +421,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                     </section>
 
                     <section className={styles.summaryPanel}>
-                      <h4>🎯 {isEn ? 'Areas for improvement' : 'Pistes d’amélioration'}</h4>
+                      <h4>{isEn ? 'Areas for improvement' : 'Pistes d’amélioration'}</h4>
                       <ul>
                         <li>{isEn ? 'Reduce unsuccessful attempts' : 'Réduire les essais non concluants'} ({decoyRisk}).</li>
                         <li>{isEn ? 'Discuss ambiguous words and decoys together.' : 'Valider collectivement les mots ambigus (leurres).'}</li>
@@ -501,8 +502,8 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
             />
           </div>
 
-          <section className={styles.sideCard}>
-            {chatEnabled ? (
+          {chatEnabled ? (
+            <section className={styles.sideCard}>
               <ChallengeChatCard
                 title="Chat"
                 messages={chatMessages}
@@ -516,8 +517,8 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                 emptyText={isEn ? 'No messages yet.' : 'Aucun message pour le moment.'}
                 maxLength={240}
               />
-            ) : null}
-          </section>
+            </section>
+          ) : null}
 
           {error ? (
             <section className={styles.sideCard}>
@@ -527,6 +528,6 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
         </aside>
       </div>
 
-    </div>
+    </ChallengePresentation>
   );
 }

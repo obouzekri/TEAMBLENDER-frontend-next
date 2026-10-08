@@ -2,6 +2,7 @@
 
 import React, { useContext, useMemo, useState } from 'react';
 import { ChallengeConnectionContext } from '@/lib/challenges/connection-context';
+import { ChallengeDebriefContext } from '@/lib/challenges/debrief-context';
 import styles from './ChallengeTimerCard.module.css';
 import useI18n from '@/lib/i18n/useI18n';
 
@@ -50,6 +51,7 @@ export default function ChallengeTimerCard({
 }) {
   const { t } = useI18n();
   const connected = useContext(ChallengeConnectionContext);
+  const isDebrief = useContext(ChallengeDebriefContext);
   const resolvedTitle = title ?? t('challengeTimer.title');
   const resolvedWaitingText = waitingText ?? t('challengeTimer.waiting');
   const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
@@ -117,6 +119,8 @@ export default function ChallengeTimerCard({
       : null;
   const resolvedActions = actions || automaticControl;
   const feedbackMessage = controlFeedback?.status === 'failed' ? controlFeedback.message : '';
+
+  if (isDebrief) return null;
 
   return (
     <section className={`${styles.timerCard}${isStartedState ? ` ${styles.timerCardStarted}` : ''} ${className}`.trim()}>

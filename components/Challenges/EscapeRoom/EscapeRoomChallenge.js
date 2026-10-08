@@ -15,6 +15,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import ChallengePresentation from '../ChallengePresentation';
 import useI18n from '@/lib/i18n/useI18n';
 import styles from './EscapeRoom.module.css';
 
@@ -855,7 +856,7 @@ export default function EscapeRoomChallenge({
   }
 
   return (
-    <div className={styles.escapeRoomContainer}>
+    <ChallengePresentation className={styles.escapeRoomContainer} isDebrief={isFinished}>
       {syncError ? (
         <div className={styles.card} role="alert">
           <strong>{isEn ? 'Synchronization interrupted: displayed state may be outdated.' : 'Synchronisation interrompue : l’état affiché peut être obsolète.'}</strong>
@@ -927,8 +928,8 @@ export default function EscapeRoomChallenge({
         />
       </div>
 
-      <section className={styles.layout}>
-        <article className={`${styles.card} ${styles.mainCard}`}>
+      <section className={styles.layout} data-challenge-layout>
+        <article className={`${styles.card} ${styles.mainCard}`} data-debrief-content={isFinished || undefined}>
           {!hasChallengeStarted ? (
             <ChallengeRulesPanel
               isStarted={false}
@@ -1248,7 +1249,7 @@ export default function EscapeRoomChallenge({
             </>
           ) : null}
 
-          {participantRows.length > 0 ? (
+          {!isFinished && participantRows.length > 0 ? (
             <section className={styles.teamList}>
               {participantRows.map((row) => (
                 <div key={String(row.id || row.name)} className={styles.teamRow}>
@@ -1273,6 +1274,6 @@ export default function EscapeRoomChallenge({
           </div>
         </div>
       ) : null}
-    </div>
+    </ChallengePresentation>
   );
 }

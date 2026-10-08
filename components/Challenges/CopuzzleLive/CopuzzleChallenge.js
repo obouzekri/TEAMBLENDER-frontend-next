@@ -15,6 +15,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import ChallengePresentation from '../ChallengePresentation';
 import useI18n from '@/lib/i18n/useI18n';
 import styles from './Copuzzle.module.css';
 
@@ -376,7 +377,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
   }
 
   return (
-    <div className={`${styles.copuzzleContainer}${isFacilitator ? ` ${styles.facilitatorView}` : ''}`}>
+    <ChallengePresentation className={`${styles.copuzzleContainer}${isFacilitator ? ` ${styles.facilitatorView}` : ''}`} isDebrief={isChallengeCompleted}>
       <ChallengeHeader
         title={effectiveConfig.title}
         subtitle={challengeSubtitle || 'Puzzle collaboratif en temps réel'}
@@ -413,7 +414,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
         />
       </div>
 
-      <div className={styles.shell}>
+      <div className={styles.shell} data-challenge-layout>
         <section className={styles.boardPanel}>
           {!hasChallengeStarted ? (
             <ChallengeRulesPanel
@@ -503,37 +504,37 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
               </div>
 
               {state?.summary ? (
-                <div className={styles.summary} style={{ order: -1 }}>
-                  <h3 className={styles.summaryTitle}>🏆 Débrief collectif</h3>
-                  <div className={styles.summaryGrid}>
+                <div className={styles.summary} data-debrief-content>
+                  <h3 className={styles.summaryTitle}>{locale === 'en' ? 'Team debrief' : 'Débrief collectif'}</h3>
+                  <div className={styles.summaryGrid} data-debrief-metrics>
                     <div className={styles.summaryCard}>
-                      <div className={styles.summaryValue} style={{ color: '#34d399' }}>
+                      <strong className={styles.summaryValue}>
                         {Number(state.summary?.completion_percent || completion)}%
-                      </div>
-                      <div className={styles.summaryLabel}>Complétion</div>
+                      </strong>
+                      <span className={styles.summaryLabel}>Complétion</span>
                     </div>
                     <div className={styles.summaryCard}>
-                      <div className={styles.summaryValue} style={{ color: '#60a5fa' }}>
+                      <strong className={styles.summaryValue}>
                         {Number(state.summary?.collective_score || 0)}
-                      </div>
-                      <div className={styles.summaryLabel}>Score collectif</div>
+                      </strong>
+                      <span className={styles.summaryLabel}>Score collectif</span>
                     </div>
                     <div className={styles.summaryCard}>
-                      <div className={styles.summaryValue} style={{ color: '#fbbf24' }}>
+                      <strong className={styles.summaryValue}>
                         {Number(state.summary?.action_count || 0)}
-                      </div>
-                      <div className={styles.summaryLabel}>Actions</div>
+                      </strong>
+                      <span className={styles.summaryLabel}>Actions</span>
                     </div>
                     <div className={styles.summaryCard}>
-                      <div className={styles.summaryValue} style={{ color: '#a78bfa' }}>
+                      <strong className={styles.summaryValue}>
                         {Number(state.summary?.message_count || 0)}
-                      </div>
-                      <div className={styles.summaryLabel}>Messages</div>
+                      </strong>
+                      <span className={styles.summaryLabel}>Messages</span>
                     </div>
                   </div>
                   {state.summary?.total_time_seconds > 0 ? (
                     <div className={styles.summaryTime}>
-                      ⏱ Temps: {Math.floor(Number(state.summary.total_time_seconds) / 60)}m{' '}
+                      {locale === 'en' ? 'Total time' : 'Temps total'}: {Math.floor(Number(state.summary.total_time_seconds) / 60)}m{' '}
                       {Number(state.summary.total_time_seconds) % 60}s
                     </div>
                   ) : null}
@@ -683,6 +684,6 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
         </section>
       ) : null}
 
-    </div>
+    </ChallengePresentation>
   );
 }

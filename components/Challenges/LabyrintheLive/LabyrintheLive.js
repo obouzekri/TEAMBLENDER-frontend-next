@@ -1,5 +1,6 @@
 'use client';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Bomb } from 'lucide-react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
 import useModalFocus from '@/lib/useModalFocus';
@@ -11,6 +12,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import ChallengePresentation from '../ChallengePresentation';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './Labyrinthe.module.css';
@@ -740,7 +742,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const colsClass = styles[`cols${mazeCols}`] || styles.cols20;
 
   return (
-    <div className={styles.labyrinthContainer}>
+    <ChallengePresentation className={styles.labyrinthContainer} isDebrief={labyPhase === 'done'}>
       <ChallengeHeader
         title={challengeName}
         subtitle={(challengeSubtitle || (isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, évitez les pièges, ouvrez la sortie.'))
@@ -777,7 +779,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         />
       </div>
 
-      <div className={styles.layout}>
+      <div className={styles.layout} data-challenge-layout>
         <div className={styles.mainRail}>
           {!hasChallengeStarted ? (
             <section className={styles.panel}>
@@ -801,10 +803,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 <p className={styles.muted}>{isEn ? 'Mini tracking grids per participant' : 'Mini-grilles de suivi par participant'}</p>
               </div>
               {labyFinalSummary ? (
-                <div className={styles.debriefCard}>
+                <div className={styles.debriefCard} data-debrief-content>
                   <h3>{isEn ? 'Final debrief' : 'Débrief final'}</h3>
                   <p>{labyFinalSummary.summaryMessage}</p>
-                  <div className={styles.debriefMetrics}>
+                  <div className={styles.debriefMetrics} data-debrief-metrics>
                     <article className={styles.debriefMetric}><span>{isEn ? 'Remaining lives' : 'Vies restantes'}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
                     <article className={styles.debriefMetric}><span>{isEn ? 'Cells traversed' : 'Cases parcourues'}</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
                     <article className={styles.debriefMetric}><span>{isEn ? 'Final time' : 'Temps final'}</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>
@@ -830,7 +832,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                               {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
                               {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
                               {safePathKeys.has(key) ? <span className={styles.cellSolutionDot}>●</span> : null}
-                              {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
+                              {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}><Bomb size={14} aria-hidden="true" /></span> : null}
                             </div>
                           );
                         })
@@ -862,7 +864,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                           <strong className={styles.playerName}><span className={styles.playerSwatch} aria-hidden="true" />{participantNameById[String(id)] || `Participant ${id}`}</strong>
                           <span className={styles.playerLives} aria-label={`${isEn ? 'Remaining lives' : 'Vies restantes'}: ${lives}`}>
                             <span className={styles.playerLivesLabel}>{isEn ? 'Lives' : 'Vies'}</span>
-                            <span className={styles.playerHearts} aria-hidden="true">{lifeIcons || '—'}{lives > 8 ? ` +${lives - 8}` : ''}</span>
+                            <span className={styles.playerHearts} aria-hidden="true">{labyPhase === 'done' ? lives : <>{lifeIcons || '—'}{lives > 8 ? ` +${lives - 8}` : ''}</>}</span>
                           </span>
                         </div>
 
@@ -896,7 +898,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                                 >
                                   {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
                                   {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
-                                  {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
+                                  {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>{labyPhase === 'done' ? <Bomb size={14} aria-hidden="true" /> : '💣'}</span> : null}
                                   {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
                                   {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
                                   {hasSelectedStart && key === playerPosKey ? <span className={styles.cellPlayerDot}>●</span> : null}
@@ -916,17 +918,17 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               <div className={styles.panelHeader}>
                 <div className={styles.livesRow}>
                   <span className={styles.muted}>{isEn ? 'Lives' : 'Vies'}</span>
-                  <strong>{'❤️'.repeat(Math.min(8, Math.max(0, Number(myParticipantState?.lives_remaining || 0)))) || '—'}</strong>
+                  <strong>{labyPhase === 'done' ? Math.max(0, Number(myParticipantState?.lives_remaining || 0)) : ('❤️'.repeat(Math.min(8, Math.max(0, Number(myParticipantState?.lives_remaining || 0)))) || '—')}</strong>
                 </div>
               </div>
 
               {labyPhase === 'done' ? (
                 <>
                   {labyFinalSummary ? (
-                    <div className={styles.debriefCard}>
+                    <div className={styles.debriefCard} data-debrief-content>
                       <h3>{isEn ? 'Final debrief' : 'Débrief final'}</h3>
                       <p>{labyFinalSummary.summaryMessage}</p>
-                      <div className={styles.debriefMetrics}>
+                      <div className={styles.debriefMetrics} data-debrief-metrics>
                         <article className={styles.debriefMetric}><span>{isEn ? 'Remaining lives' : 'Vies restantes'}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
                         <article className={styles.debriefMetric}><span>{isEn ? 'Cells traversed' : 'Cases parcourues'}</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
                         <article className={styles.debriefMetric}><span>{isEn ? 'Final time' : 'Temps final'}</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>
@@ -1003,7 +1005,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                         {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
                         {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
                         {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
-                        {Boolean(revealedTraps[key]) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
+                        {Boolean(revealedTraps[key]) ? <span className={styles.cellTrapKnownIcon}>{labyPhase === 'done' ? <Bomb size={14} aria-hidden="true" /> : '💣'}</span> : null}
                         {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
                         {cellTrails.map((entry, trailIndex) => (
                           <span
@@ -1142,7 +1144,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                         {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
                         {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
                         {safePathKeys.has(key) ? <span className={styles.cellSolutionDot}>●</span> : null}
-                        {revealMazeTraps && mazeTrapKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>💣</span> : null}
+                        {revealMazeTraps && mazeTrapKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>{labyPhase === 'done' ? <Bomb size={14} aria-hidden="true" /> : '💣'}</span> : null}
                       </div>
                     );
                   })
@@ -1174,6 +1176,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
           </div>
         ) : null}
       </div>
-    </div>
+    </ChallengePresentation>
   );
 }

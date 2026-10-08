@@ -31,6 +31,13 @@ Validation: `npm run test:ux:account` avec le frontend sur le port 3100 et Chrom
 
 Validation: `npm run test:unit:truthfulness`, `npm run test:ux:quiz` et `npm run test:ux:preferences-results`. Les suites UX necessitent le frontend sur le port 3100 et Chrome; elles simulent localement les API et Socket.IO, sans modifier de compte ou de session reelle. Elles couvrent FR/EN et desktop/mobile, le chat, les classements vides/absents/reels, la persistance, les echecs de stockage, la reduction effective de la hauteur de navigation, le contraste (minimum 4.5:1 sur le texte teste), les erreurs 503 et les tentatives de rechargement.
 
+### Debriefs des challenges
+
+- Les neuf challenges chronometres retirent le panneau Chrono et l'horloge de l'en-tete en debrief, sans modifier le minuteur ni ses commandes pendant le jeu.
+- L'analyse occupe toute la largeur; les contenus secondaires utiles passent sous le bilan et les panneaux vides sont masques. Le temps total reste une donnee de resultat.
+- Les titres du bilan et des enseignements sont renforces, les indicateurs agrandis et les emoticones decoratives du debrief retirees. Les scores et conclusions restent issus des donnees existantes.
+- Validation: `npm run test:ux:debrief` avec le frontend sur le port 3100 et Chrome disponible. Les 72 transitions jeu/debrief simulees couvrent les neuf challenges, les roles facilitateur/participant, FR/EN et desktop/mobile en clair/sombre; elles verifient la disparition effective des horloges, la largeur du contenu, les titres, le contraste des indicateurs (minimum 4.5:1) et l'absence de debordement horizontal.
+
 ### Accessibilite et fiabilite partagees
 
 - Les fenetres de regles, le chat, les dialogues de jeu et les modales partagees deplacent le focus a l'ouverture, le confinent et le restituent a la fermeture. Echap ferme seulement la fenetre au premier plan. Les regles restent accessibles sur mobile; les principales fermetures, commandes de chat et commandes de minuteur mesurent au moins 44 x 44 px.

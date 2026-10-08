@@ -21,6 +21,10 @@ export async function createRealtimeFixture(browser, { baseUrl, locale, role, en
   const broadcastError = (message) => {
     for (const connection of sockets.values()) send(connection, `42${JSON.stringify(['challenge:error', { message }])}`);
   };
+  const replaceState = (nextState) => {
+    state = nextState;
+    for (const connection of sockets.values()) send(connection, `42${JSON.stringify(['challenge:state', { state, participantSlot }])}`);
+  };
   await context.addInitScript(({ language, userRole, colorTheme }) => {
     sessionStorage.setItem('jwt', 'local-realtime-fixture');
     sessionStorage.setItem('currentUser', JSON.stringify({ id: 1, role: userRole, first_name: 'sophie', last_name: 'bourger' }));
@@ -89,5 +93,5 @@ export async function createRealtimeFixture(browser, { baseUrl, locale, role, en
     online = value;
     if (!online) for (const connection of sockets.values()) send(connection, '1');
   };
-  return { context, broadcast, broadcastError, close, receivedEvents, setOnline };
+  return { context, broadcast, broadcastError, replaceState, close, receivedEvents, setOnline };
 }

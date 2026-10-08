@@ -14,6 +14,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import ChallengePresentation from '../ChallengePresentation';
 import useI18n from '@/lib/i18n/useI18n';
 import styles from './PixelArchitect.module.css';
 
@@ -899,6 +900,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }
 
   const summary = state?.summary || null;
+  const isDebrief = Boolean(summary) || isLockedByPhase || ['completed', 'timeout'].includes(timerStatus);
   const summaryPixelMetrics = summary?.pixel_metrics || null;
   const templateName = String(selectedTemplate?.name || 'Modele').trim();
   const templateDifficulty = String(selectedTemplate?.difficulty || state?.config?.difficulty || (isEn ? 'medium' : 'moyen')).trim();
@@ -1031,7 +1033,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }
 
   return (
-    <div className={styles.container}>
+    <ChallengePresentation className={styles.container} isDebrief={isDebrief}>
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || (isEn ? 'Replicate the model together in real time with grid and palette constraints.' : 'Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette.')}
@@ -1078,7 +1080,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               aria-expanded={isModelMapOpen}
               aria-label={isEn ? 'Open model map' : 'Ouvrir la carte modele'}
             >
-              🧩 {isEn ? 'Model' : 'Modele'}
+              {!isDebrief ? '🧩 ' : ''}{isEn ? 'Model' : 'Modele'}
             </button>
           ) : null}
           {hasChallengeStarted && !isFacilitator ? (
@@ -1158,7 +1160,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         </div>
       ) : null}
 
-      <div className={styles.layout}>
+      <div className={styles.layout} data-challenge-layout>
         <main className={styles.mainPane}>
           {!hasChallengeStarted ? (
             <ChallengeRulesPanel
@@ -1325,9 +1327,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               </section>
 
               {summary ? (
-                <section className={styles.panel}>
-                  <h2>{isEn ? 'Debrief' : 'Debrief'}</h2>
-                  <div className={styles.summaryGrid}>
+                <section className={styles.panel} data-debrief-content>
+                  <h2>{isEn ? 'Team debrief' : 'Débrief équipe'}</h2>
+                  <div className={styles.summaryGrid} data-debrief-metrics>
                     <p>{isEn ? 'Global score' : 'Score global'}: <strong>{Number(summary.collective_score || 0)}</strong></p>
                     <p>Completion: <strong>{Number(summary.completion_percent || 0)}%</strong></p>
                     <p>Actions: <strong>{Number(summary.action_count || 0)}</strong></p>
@@ -1448,6 +1450,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           {error ? <p className={styles.errorText}>{error}</p> : null}
         </aside>
       </div>
-    </div>
+    </ChallengePresentation>
   );
 }

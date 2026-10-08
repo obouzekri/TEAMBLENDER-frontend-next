@@ -1,0 +1,84 @@
+.debrief[data-challenge-debrief] [data-challenge-layout] {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.debrief [data-challenge-layout] > * {
+  min-width: 0;
+  width: 100%;
+}
+
+.debrief :global(.challenge-mobile-timer),
+.debrief :global(.challenge-desktop-timer),
+.debrief [data-challenge-layout] > aside:empty,
+.debrief [data-challenge-layout] > aside > section:empty,
+.debrief [data-challenge-layout] > aside:not(:has(> :not(:global(.challenge-desktop-timer)):not(:empty))) {
+  display: none;
+}
+
+.debrief [data-challenge-layout] > aside {
+  position: static;
+  height: auto;
+  min-height: 0;
+}
+
+.debrief [data-debrief-content] {
+  order: -1;
+  padding: clamp(18px, 2vw, 30px);
+  border-inline-start: 4px solid var(--accent, #38bdf8);
+  background: var(--surface-panel-soft);
+  color: var(--text-strong, var(--ink));
+}
+
+.debrief [data-debrief-content] :is(h2, h3, h4) {
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--text-strong, var(--ink));
+}
+
+.debrief [data-debrief-content] > :is(h2, h3),
+.debrief [data-debrief-content] > header > :is(h2, h3),
+.debrief [data-debrief-content] > div:first-child h2 {
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+  margin-block: 0 16px;
+}
+
+.debrief [data-debrief-content] h4 {
+  font-size: 1.08rem;
+  margin-block-end: 10px;
+}
+
+.debrief [data-debrief-content] h3 {
+  font-size: 1.15rem;
+}
+
+.debrief [data-debrief-content] > h3,
+.debrief [data-debrief-content] > header > h3 {
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+}
+
+.debrief [data-debrief-content] p,
+.debrief [data-debrief-content] li {
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.debrief [data-debrief-metrics] {
+  gap: 14px;
+}
+
+.debrief [data-debrief-metrics] > * {
+  background: var(--surface-panel);
+  border-color: var(--line);
+}
+
+.debrief [data-debrief-metrics] span {
+  color: var(--ink-soft);
+}
+
+.debrief [data-debrief-metrics] strong {
+  font-size: clamp(1.4rem, 2vw, 1.85rem);
+  line-height: 1.3;
+  color: var(--text-strong, var(--ink));
+}

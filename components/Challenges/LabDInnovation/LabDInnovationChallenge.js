@@ -8,6 +8,7 @@ import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getDictionary } from '@/lib/i18n';
 import ChallengeHeader from '../ChallengeHeader';
+import ChallengePresentation from '../ChallengePresentation';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
@@ -224,6 +225,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   });
 
   const normalizedTimerStatus = String(timer?.status || 'idle').trim().toLowerCase();
+  const isDebrief = Boolean(state?.summary) || ['completed', 'timeout'].includes(normalizedTimerStatus);
   const hasChallengeStarted = ['running', 'paused', 'completed', 'stopped', 'timeout'].includes(normalizedTimerStatus);
   const timerStatus = hasChallengeStarted ? normalizedTimerStatus : 'idle';
   const timerRemainingSeconds = useMemo(() => {
@@ -406,8 +408,23 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     emitEvent('timer.start');
   }
 
+  const statisticsCard = hasChallengeStarted ? (
+    <section className={styles.card} data-debrief-content={isDebrief || undefined}>
+      <h3 className={styles.sectionTitle}>{isEn ? 'Challenge stats' : 'Statistiques'}</h3>
+      <div className={styles.statGrid} data-debrief-metrics={isDebrief || undefined}>
+        <article className={styles.statTile}><strong>{Number(stats.problems_total || 0)}</strong><span>{isEn ? 'Problems' : 'Problématiques'}</span></article>
+        <article className={styles.statTile}><strong>{Number(stats.solutions_total || 0)}</strong><span>{isEn ? 'Solutions' : 'Solutions'}</span></article>
+        <article className={styles.statTile}><strong>{Number(stats.contributions_total || 0)}</strong><span>{isEn ? 'Contributions' : 'Contributions'}</span></article>
+        <article className={styles.statTile}><strong>{Number(stats.votes_total || 0)}</strong><span>{isEn ? 'Votes' : 'Votes'}</span></article>
+      </div>
+      <p className={styles.metaLine}>{isEn ? 'Participation rate' : 'Taux de participation'}: {Number(stats.participation_rate || 0)}%</p>
+      <p className={styles.metaLine}>{isEn ? 'Winning solution' : 'Solution gagnante'}: <strong>{clampText(stats.winner_solution_text || '-', 120)}</strong></p>
+      {topContributorNames.length > 0 ? <p className={styles.metaLine}>{isEn ? 'Top contributors' : 'Top contributeurs'}: {topContributorNames.slice(0, 3).join(' · ')}</p> : null}
+    </section>
+  ) : null;
+
   return (
-    <div className={styles.shell}>
+    <ChallengePresentation className={styles.shell} isDebrief={isDebrief}>
       <ChallengeHeader
         title={rulesPreset?.challengeName || 'Lab d\'Innovation'}
         subtitle={rulesPreset?.subtitle || 'Innovation collaborative'}
@@ -445,7 +462,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
 
       {error ? <p className={styles.errorBanner}>{error}</p> : null}
 
-      <div className={styles.layout}>
+      <div className={styles.layout} data-challenge-layout>
         <main className={styles.mainColumn}>
           {!hasChallengeStarted ? (
             <section className={styles.card}>
@@ -465,41 +482,43 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             </section>
           ) : (
             <>
-              <section className={styles.card}>
+              <section className={styles.card} data-debrief-content={isDebrief || undefined}>
                 <div className={styles.phaseHeader}>
                   <div>
                     <p className={styles.phaseKicker}>{getPhaseLabel(locale, currentPhase)}</p>
-                    <h2 className={styles.phaseTitle}>{isEn ? 'Live collaborative lab' : 'Lab collaboratif'}</h2>
+                    <h2 className={styles.phaseTitle}>{isDebrief ? (isEn ? 'Team debrief' : 'Débrief équipe') : (isEn ? 'Live collaborative lab' : 'Lab collaboratif')}</h2>
                     <p className={styles.phaseBody}>{rulesContent.objective}</p>
                     {isFacilitator ? <p className={styles.metaLine}>{isEn ? 'Facilitator mode: observation only.' : 'Mode facilitateur : observation uniquement.'}</p> : null}
                   </div>
-                  <div className={styles.phaseClockWrap}>
+                  {!isDebrief ? <div className={styles.phaseClockWrap}>
                     <span className={styles.phaseClock}>{formatClock(timerRemainingSeconds)}</span>
                     <span className={styles.phaseClockLabel}>{currentPhaseIndex + 1}/{PHASE_ORDER.length}</span>
-                  </div>
+                  </div> : null}
                 </div>
 
-                <div className={styles.progressBar} aria-hidden="true">
+                {!isDebrief ? <div className={styles.progressBar} aria-hidden="true">
                   {phaseProgress.map((item) => (
                     <span key={item.key} className={`${styles.progressStep}${item.active ? ` ${styles.progressStepActive}` : ''}${item.done ? ` ${styles.progressStepDone}` : ''}`}>
                       <span className={styles.progressStepDot}>{item.index + 1}</span>
                       <span className={styles.progressStepLabel}>{getPhaseLabel(locale, item.key)}</span>
                     </span>
                   ))}
-                </div>
-                <p className={styles.metaLine} role="status">
+                </div> : null}
+                {!isDebrief ? <p className={styles.metaLine} role="status">
                   {getPhaseGuidance(locale, currentPhase)}{' '}
                   {isEn ? 'Proposals' : 'Propositions'}: {problemList.length + solutionList.length + contributionList.length}.{' '}
                   {isEn ? 'Votes' : 'Votes'}: {phaseSummary.votes}.{' '}
                   {currentPhaseIndex < PHASE_ORDER.length - 1
                     ? `${isEn ? 'Next phase' : 'Phase suivante'}: ${getPhaseLabel(locale, PHASE_ORDER[currentPhaseIndex + 1])}. ${isEn ? 'Automatic transition when time expires.' : 'Transition automatique à la fin du temps.'}`
                     : (isEn ? 'Final phase: results follow when time expires.' : 'Dernière phase : résultats à la fin du temps.')}
-                </p>
+                </p> : null}
                 {pendingSubmission ? <p role="status">{isEn ? 'Waiting for server confirmation...' : 'En attente de confirmation du serveur...'}</p> : null}
                 {submissionFeedback ? <p role="status">{submissionFeedback}</p> : null}
                 {!socket?.connected ? <p role="alert">{isEn ? 'Connection interrupted. Your draft is kept.' : 'Connexion interrompue. Votre brouillon est conservé.'}</p> : null}
-                {timer.enabled !== false && normalizedTimerStatus !== 'running' ? <p role="status">{isEn ? 'Submissions are available only while the challenge is running.' : 'Les envois sont disponibles uniquement lorsque le challenge est en cours.'}</p> : null}
+                {!isDebrief && timer.enabled !== false && normalizedTimerStatus !== 'running' ? <p role="status">{isEn ? 'Submissions are available only while the challenge is running.' : 'Les envois sont disponibles uniquement lorsque le challenge est en cours.'}</p> : null}
               </section>
+
+          {isDebrief ? statisticsCard : null}
 
           {currentPhase === 'problem' ? (
             <section className={styles.card}>
@@ -703,7 +722,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
           ) : null}
 
           <section className={styles.card}>
-            <h2 className={styles.sectionTitle}>{isEn ? 'Live leaderboard' : 'Classement live'}</h2>
+            <h2 className={styles.sectionTitle}>{isDebrief ? (isEn ? 'Final ranking' : 'Classement final') : (isEn ? 'Live leaderboard' : 'Classement live')}</h2>
             <div className={styles.leaderboardGrid}>
               {rankedParticipants.map((entry, index) => (
                 <article key={entry.participant_id || entry.id || index} className={styles.leaderboardCard}>
@@ -744,20 +763,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             />
           </div>
 
-          {hasChallengeStarted ? (
-            <section className={styles.card}>
-              <h3 className={styles.sectionTitle}>{isEn ? 'Challenge stats' : 'Statistiques'}</h3>
-              <div className={styles.statGrid}>
-                <article className={styles.statTile}><strong>{Number(stats.problems_total || 0)}</strong><span>{isEn ? 'Problems' : 'Problématiques'}</span></article>
-                <article className={styles.statTile}><strong>{Number(stats.solutions_total || 0)}</strong><span>{isEn ? 'Solutions' : 'Solutions'}</span></article>
-                <article className={styles.statTile}><strong>{Number(stats.contributions_total || 0)}</strong><span>{isEn ? 'Contributions' : 'Contributions'}</span></article>
-                <article className={styles.statTile}><strong>{Number(stats.votes_total || 0)}</strong><span>{isEn ? 'Votes' : 'Votes'}</span></article>
-              </div>
-              <p className={styles.metaLine}>{isEn ? 'Participation rate' : 'Taux de participation'}: {Number(stats.participation_rate || 0)}%</p>
-              <p className={styles.metaLine}>{isEn ? 'Winning solution' : 'Solution gagnante'}: {clampText(stats.winner_solution_text || '-', 120)}</p>
-              {topContributorNames.length > 0 ? <p className={styles.metaLine}>{isEn ? 'Top contributors' : 'Top contributeurs'}: {topContributorNames.slice(0, 3).join(' · ')}</p> : null}
-            </section>
-          ) : null}
+          {!isDebrief ? statisticsCard : null}
 
           <ChallengeChatCard
             title={isEn ? 'Chat' : 'Chat'}
@@ -773,6 +779,6 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
           />
         </aside>
       </div>
-    </div>
+    </ChallengePresentation>
   );
 }

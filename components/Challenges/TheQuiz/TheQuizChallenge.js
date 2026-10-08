@@ -13,6 +13,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import ChallengePresentation from '../ChallengePresentation';
 import {
   QuizFinalScreen,
   QuizLeaderboardScreen,
@@ -455,7 +456,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   }
 
   return (
-    <main className={styles.pageShell}>
+    <ChallengePresentation as="main" className={styles.pageShell} isDebrief={renderedPhase === 'final_score'}>
       <section className={styles.challengeBoard}>
         <ChallengeHeader
           title={challengeName}
@@ -496,7 +497,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>{isEn ? 'Reconnecting, restoring active question...' : 'Reconnexion en cours, restauration de la question active...'}</div> : null}
         {reconnectState === 'reconnected' ? <div className={styles.reconnectBannerSuccess}>{isEn ? 'Connection restored' : 'Connexion restaurée'}</div> : null}
 
-        <section className={styles.mainGrid}>
+        <section className={styles.mainGrid} data-challenge-layout>
           <div className={styles.primaryColumn}>
             {!isStarted ? (
               <ChallengeRulesPanel
@@ -568,12 +569,12 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                   />
                 </div>
 
-                {leaderboardVisible ? (
+                {leaderboardVisible && renderedPhase !== 'final_score' ? (
                   <QuizLeaderboardScreen isEn={isEn} quiz={phaseQuizView} rankMovementByParticipantId={rankMovementByParticipantId} />
                 ) : null}
 
               </div>
-            ) : (
+            ) : renderedPhase !== 'final_score' ? (
               <section className={styles.screenCard}>
                 <div className={styles.screenHeader}>
                   <div>
@@ -583,10 +584,10 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 </div>
                 <p className={styles.helperText}>{isEn ? 'The challenge still keeps real-time leaderboard and round progression.' : 'Le challenge conserve néanmoins la structure temps réel pour le leaderboard et la progression de manche.'}</p>
               </section>
-            )}
+            ) : null}
           </aside>
         </section>
       </section>
-    </main>
+    </ChallengePresentation>
   );
 }

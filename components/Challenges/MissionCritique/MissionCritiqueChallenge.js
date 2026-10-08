@@ -11,6 +11,7 @@ import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
+import ChallengePresentation from '../ChallengePresentation';
 import useI18n from '@/lib/i18n/useI18n';
 import useModalFocus from '@/lib/useModalFocus';
 import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2, X, Check, Users, CircleCheck, AlertTriangle } from 'lucide-react';
@@ -166,6 +167,7 @@ export default function MissionCritiqueChallenge({
 
   const timerState = String(state?.timer?.status || 'idle').trim();
   const normalizedTimerState = timerState.toLowerCase();
+  const isDebrief = Boolean(state?.summary) || ['completed', 'timeout'].includes(normalizedTimerState);
   const hasChallengeStarted =
     state?.timer?.enabled === false ||
     normalizedTimerState === 'running' ||
@@ -362,7 +364,7 @@ export default function MissionCritiqueChallenge({
   }
 
   return (
-    <div className={`${styles.container} ${roleViewClass}`}>
+    <ChallengePresentation className={`${styles.container} ${roleViewClass}`} isDebrief={isDebrief}>
       <ChallengeHeader
         title={challengeName}
         subtitle={
@@ -406,7 +408,7 @@ export default function MissionCritiqueChallenge({
         />
       </div>
 
-      <div className={styles.layout}>
+      <div className={styles.layout} data-challenge-layout>
         <main className={styles.mainPane}>
           {!hasChallengeStarted ? (
             <section className={styles.card}>
@@ -672,19 +674,19 @@ export default function MissionCritiqueChallenge({
               ) : null}
 
               {submitResult || mission.result ? (
-                <section className={styles.card}>
-                  <h2>{isEn ? 'Result' : 'Résultat'}</h2>
+                <section className={styles.card} data-debrief-content={isDebrief || undefined}>
+                  <h2>{isDebrief ? (isEn ? 'Team debrief' : 'Débrief équipe') : (isEn ? 'Result' : 'Résultat')}</h2>
                   <p className={styles.score}>
                     {isEn ? 'Score' : 'Score'}:{' '}
                     {Number((submitResult || mission.result)?.score || 0)}/100
                   </p>
+                  <h3>{isEn ? 'Strengths' : 'Points forts'}</h3>
                   <p className={styles.meta}>
-                    {isEn ? 'Strengths' : 'Points forts'}:{' '}
                     {((submitResult || mission.result)?.strengths || []).join(' | ') ||
                       (isEn ? 'None' : 'Aucun')}
                   </p>
+                  <h3>{isEn ? 'Areas to review' : 'Points à améliorer'}</h3>
                   <p className={styles.meta}>
-                    {isEn ? 'Weaknesses' : 'Points faibles'}:{' '}
                     {((submitResult || mission.result)?.weaknesses || []).join(' | ') ||
                       (isEn ? 'None' : 'Aucun')}
                   </p>
@@ -697,15 +699,15 @@ export default function MissionCritiqueChallenge({
               ) : null}
             </>
           ) : (
-            <section className={styles.card}>
+            <section className={styles.card} data-debrief-content={isDebrief || undefined}>
               <div className={styles.dashboardHeader}>
                 <div>
-                  <h2>{isEn ? 'Facilitator dashboard' : 'Tableau de bord facilitateur'}</h2>
-                  <p className={styles.meta}>{isEn ? 'Live task placement and submission tracking' : 'Suivi des tâches placées et des soumissions en temps réel'}</p>
+                  <h2>{isDebrief ? (isEn ? 'Team debrief' : 'Débrief équipe') : (isEn ? 'Facilitator dashboard' : 'Tableau de bord facilitateur')}</h2>
+                  <p className={styles.meta}>{isDebrief ? (isEn ? 'Review task placement, submissions and collective results.' : 'Analysez le placement des tâches, les soumissions et les résultats collectifs.') : (isEn ? 'Live task placement and submission tracking' : 'Suivi des tâches placées et des soumissions en temps réel')}</p>
                 </div>
-                <span className={styles.liveBadge}><span aria-hidden="true" />{isEn ? 'Live' : 'En direct'}</span>
+                {!isDebrief ? <span className={styles.liveBadge}><span aria-hidden="true" />{isEn ? 'Live' : 'En direct'}</span> : null}
               </div>
-              <div className={styles.dashboardMetrics}>
+              <div className={styles.dashboardMetrics} data-debrief-metrics={isDebrief || undefined}>
                 <article><Users size={20} aria-hidden="true" /><strong>{facilitatorBoard.length}</strong><span>{isEn ? 'Participants' : 'Participants'}</span></article>
                 <article><ListTodo size={20} aria-hidden="true" /><strong>{boardSummary.placed}/{tasks.length}</strong><span>{isEn ? 'Unique tasks placed' : 'Tâches distinctes placées'}</span></article>
                 <article><CircleCheck size={20} aria-hidden="true" /><strong>{boardSummary.submitted}/{facilitatorBoard.length}</strong><span>{isEn ? 'Submissions' : 'Soumissions'}</span></article>
@@ -854,6 +856,6 @@ export default function MissionCritiqueChallenge({
           />
         </aside>
       </div>
-    </div>
+    </ChallengePresentation>
   );
 }

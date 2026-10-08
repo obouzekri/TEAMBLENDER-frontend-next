@@ -1,6 +1,8 @@
 'use client';
 
 import { createPortal } from 'react-dom';
+import { useContext } from 'react';
+import { ChallengeDebriefContext } from '@/lib/challenges/debrief-context';
 import { useChallengeHeaderPortalNode } from '@/lib/challengeHeaderPortal';
 import styles from './ChallengeHeader.module.css';
 
@@ -18,8 +20,9 @@ export default function ChallengeHeader({
   timer = null,
 }) {
   const portalNode = useChallengeHeaderPortalNode();
+  const isDebrief = useContext(ChallengeDebriefContext);
   const normalizedTitle = String(title || '').trim();
-  const hasTimer = timer && typeof timer === 'object';
+  const hasTimer = !isDebrief && timer && typeof timer === 'object';
   const timerContent = hasTimer ? (
     <div className={styles.timer} role="timer" aria-live="off">
       <span aria-hidden="true">⏱</span>
