@@ -1,0 +1,27 @@
+.status,
+.error {
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-panel);
+  color: var(--challenge-text-primary);
+}
+
+.status p,
+.error p {
+  margin: 0;
+  color: inherit;
+}
+
+.error {
+  background: var(--error-bg);
+  border-color: var(--error-line);
+  color: var(--error-ink);
+}
+
+.error button {
+  min-width: 44px;
+  min-height: 44px;
+  margin-top: 10px;
+}

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
 import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
@@ -11,6 +12,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import useI18n from '@/lib/i18n/useI18n';
+import useModalFocus from '@/lib/useModalFocus';
 import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2, X, Check, Users, CircleCheck, AlertTriangle } from 'lucide-react';
 import styles from './MissionCritique.module.css';
 
@@ -72,12 +74,13 @@ export default function MissionCritiqueChallenge({
   const [modalTaskId, setModalTaskId] = useState('');
   const [submitResult, setSubmitResult] = useState(null);
 
-  const { state, error, isFacilitator, emitEvent } = useRealtimeChallenge({
+  const { state, error, isFacilitator, emitEvent, connected } = useRealtimeChallenge({
     runtimePayload,
     socket,
     context,
     onChallengeCompleted,
   });
+  const timerControls = useFacilitatorTimerControls({ socket, emitEvent, state, isFacilitator });
 
   const mission = state?.mission || {};
   const tasks = Array.isArray(mission.tasks) ? mission.tasks : [];
@@ -141,7 +144,7 @@ export default function MissionCritiqueChallenge({
     return 'Participant';
   }
 
-  const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat } = useChallengeChat({
+  const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat, chatDelivery } = useChallengeChat({
     socket,
     emitEvent,
     author: displayName,
@@ -171,7 +174,7 @@ export default function MissionCritiqueChallenge({
     normalizedTimerState === 'stopped' ||
     normalizedTimerState === 'timeout';
   const canEditTimeline =
-    !isFacilitator && (state?.timer?.enabled === false || timerState === 'running');
+    connected && !isFacilitator && (state?.timer?.enabled === false || timerState === 'running');
 
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
   const timerDurationSeconds = Math.max(1, Number(state?.timer?.duration_seconds || 1));
@@ -273,19 +276,13 @@ export default function MissionCritiqueChallenge({
   const activePhaseItems = phaseItems[activePhase] || [];
 
   const modalTask = modalTaskId ? taskMap.get(String(modalTaskId)) : null;
+  const modalRef = useRef(null);
   const modalAssignedPhase =
     modalTask && timelineSet.has(String(modalTask.id))
       ? phaseOfTask(modalTask.id, timeline.indexOf(modalTask.id))
       : '';
 
-  useEffect(() => {
-    if (!modalTaskId) return () => {};
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') setModalTaskId('');
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [modalTaskId]);
+  useModalFocus(Boolean(modalTask), modalRef, () => setModalTaskId(''));
 
   useEffect(() => {
     if (!modalTaskId) return () => {};
@@ -333,16 +330,14 @@ export default function MissionCritiqueChallenge({
       return;
     }
     if (currentPhase) {
-      emitEvent('mission.task.remove', { taskId: id });
+      if (!emitEvent('mission.task.remove', { taskId: id })) return;
     }
-    emitEvent('mission.task.add', { taskId: id, phase: safePhase });
-    closeTaskModal();
+    if (emitEvent('mission.task.add', { taskId: id, phase: safePhase })) closeTaskModal();
   }
 
   function removeTaskFromTimeline(taskId) {
     if (!canEditTimeline) return;
-    emitEvent('mission.task.remove', { taskId: String(taskId) });
-    closeTaskModal();
+    if (emitEvent('mission.task.remove', { taskId: String(taskId) })) closeTaskModal();
   }
 
   function submitTimeline() {
@@ -404,6 +399,10 @@ export default function MissionCritiqueChallenge({
           durationSeconds={timerDurationSeconds}
           status={timerState}
           isFacilitator={isFacilitator}
+          onPause={timerControls.pause}
+          onResume={timerControls.resume}
+          controlPending={timerControls.busy}
+          controlFeedback={timerControls.feedback}
         />
       </div>
 
@@ -459,8 +458,23 @@ export default function MissionCritiqueChallenge({
                         type="button"
                         role="tab"
                         aria-selected={isActive}
+                        id={`mission-tab-${phase.key}`}
+                        aria-controls="mission-phase-panel"
+                        tabIndex={isActive ? 0 : -1}
                         className={`${styles.stepperStep} ${styles[phase.className]}${isActive ? ` ${styles.stepperStepActive}` : ''}`}
                         onClick={() => setActivePhase(phase.key)}
+                        onKeyDown={(event) => {
+                          const index = PHASES.findIndex((entry) => entry.key === phase.key);
+                          let nextIndex;
+                          if (event.key === 'ArrowRight') nextIndex = (index + 1) % PHASES.length;
+                          if (event.key === 'ArrowLeft') nextIndex = (index + PHASES.length - 1) % PHASES.length;
+                          if (event.key === 'Home') nextIndex = 0;
+                          if (event.key === 'End') nextIndex = PHASES.length - 1;
+                          if (nextIndex === undefined) return;
+                          event.preventDefault();
+                          setActivePhase(PHASES[nextIndex].key);
+                          event.currentTarget.parentElement.querySelectorAll('[role="tab"]')[nextIndex].focus();
+                        }}
                       >
                         <span className={styles.stepLabel} data-mobile-label={mobilePhaseLabel(phase, isEn)}>{phaseLabel(phase, isEn)}</span>
                         <span className={styles.stepCount}>{count}</span>
@@ -469,7 +483,7 @@ export default function MissionCritiqueChallenge({
                   })}
                 </div>
 
-                <div className={styles.phasePanel}>
+                <div id="mission-phase-panel" className={styles.phasePanel} role="tabpanel" aria-labelledby={`mission-tab-${activePhase}`}>
                   {activePhaseItems.length === 0 ? (
                     <p className={styles.empty}>
                       {isEn
@@ -604,6 +618,8 @@ export default function MissionCritiqueChallenge({
                 <div className={styles.modalOverlay} onClick={closeTaskModal} role="presentation">
                   <div
                     className={styles.modalCard}
+                    ref={modalRef}
+                    tabIndex={-1}
                     role="dialog"
                     aria-modal="true"
                     aria-label={String(modalTask.label || '')}
@@ -817,6 +833,10 @@ export default function MissionCritiqueChallenge({
               durationSeconds={timerDurationSeconds}
               status={timerState}
               isFacilitator={isFacilitator}
+              onPause={timerControls.pause}
+              onResume={timerControls.resume}
+              controlPending={timerControls.busy}
+              controlFeedback={timerControls.feedback}
             />
           </div>
 
@@ -827,6 +847,7 @@ export default function MissionCritiqueChallenge({
             inputValue={chatInput}
             onInputChange={setChatInput}
             onSubmit={submitChat}
+            delivery={chatDelivery}
             quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
             onQuickMessage={sendQuickChat}
             maxLength={240}

@@ -9,6 +9,22 @@
   box-shadow: var(--ch-shadow-card);
 }
 
+.deliveryStatus,
+.deliveryError {
+  margin: 8px 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-panel);
+  color: var(--challenge-text-primary);
+}
+
+.deliveryError {
+  border-color: var(--error-line);
+  background: var(--error-bg);
+  color: var(--error-ink);
+}
+
 .chatCardCollapsed {
   display: flex;
   align-items: center;
@@ -67,6 +83,8 @@
 }
 
 .quickButton {
+  min-width: 44px;
+  min-height: 44px;
   border: 1px solid var(--control-border-strong);
   background: var(--surface-control);
   color: var(--challenge-text-secondary);
@@ -302,8 +320,8 @@
 .mobileChatClose {
   border: 1px solid rgba(125, 211, 252, 0.42);
   border-radius: 999px;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   background: rgba(14, 165, 233, 0.14);
   color: #d7ecfb;
@@ -328,7 +346,8 @@
 }
 
 .mobileChatSheet .chatSubmit {
-  min-height: 0;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 :global(html[data-theme='light']) .mobileChatFab {

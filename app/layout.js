@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import TrackingConsentGate from '@/components/TrackingConsentGate';
 import ExternalNotificationGuard from '@/components/ExternalNotificationGuard';
 import ThemeController from '@/components/ThemeController';
+import DisplayPreferencesController from '@/components/DisplayPreferencesController';
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
 import { getPublicSiteOrigin, socialPreviewImage } from '@/lib/siteMetadata';
 
@@ -69,11 +70,11 @@ export default async function RootLayout({ children }) {
         <ThemeController />
         <ExternalNotificationGuard />
         <I18nProvider>
+          <DisplayPreferencesController />
           <TrackingConsentGate>{children}</TrackingConsentGate>
         </I18nProvider>
       </body>
     </html>
   );
 }
-
 

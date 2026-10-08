@@ -19,20 +19,6 @@ export const THE_QUIZ_HOST_TABS = Object.freeze([
   { id: 'host_live_answers', label: 'Live answers' },
 ]);
 
-export const THE_QUIZ_PLACEHOLDER_QUESTION = Object.freeze({
-  id: 'quiz_placeholder_001',
-  category: 'General knowledge',
-  difficulty: 'medium',
-  text: 'Which Paris monument was inaugurated for the 1889 World Fair?',
-  choices: [
-    { id: 'a', label: 'Eiffel Tower' },
-    { id: 'b', label: 'Arc de Triomphe' },
-    { id: 'c', label: 'Sacre-Coeur' },
-    { id: 'd', label: 'Louvre' },
-  ],
-  explanation: 'The Eiffel Tower was built for the 1889 World Fair.',
-});
-
 /**
  * @typedef {Object} TheQuizLeaderboardEntry
  * @property {string} participant_id
@@ -54,22 +40,4 @@ export const THE_QUIZ_PLACEHOLDER_QUESTION = Object.freeze({
 
 export function getPresetById(presetId) {
   return THE_QUIZ_PRESETS.find((preset) => preset.id === String(presetId || '').trim()) || THE_QUIZ_PRESETS[1];
-}
-
-export function buildPlaceholderLeaderboard(participants = []) {
-  if (Array.isArray(participants) && participants.length > 0) {
-    return participants.slice(0, 5).map((participant, index) => ({
-      participant_id: String(participant?.participant_id || `p-${index + 1}`),
-      display_name: String(participant?.display_name || `Participant ${index + 1}`),
-      score: Math.max(0, 4 - index),
-      rank: index + 1,
-    }));
-  }
-
-  return [
-    { participant_id: 'p-1', display_name: 'Camille', score: 4, rank: 1 },
-    { participant_id: 'p-2', display_name: 'Nora', score: 3, rank: 2 },
-    { participant_id: 'p-3', display_name: 'Lina', score: 2, rank: 3 },
-    { participant_id: 'p-4', display_name: 'Yanis', score: 1, rank: 4 },
-  ];
 }

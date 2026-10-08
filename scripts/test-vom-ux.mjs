@@ -54,11 +54,19 @@ try {
     assert.ok(await page.getByText(locale === 'fr' ? '⏱️ Hors délai : 0 point' : '⏱️ Time expired: 0 points', { exact: true }).count());
     assert.equal(await page.getByText('Un feedback et le score sont affichés à la fin de chaque manche.', { exact: true }).count(), 0);
     if (locale === 'fr') await page.getByRole('heading', { name: 'Pari sur moi', exact: true }).waitFor();
+    else await page.getByRole('heading', { name: 'Bet on me!', exact: true }).waitFor();
 
     let turn = { poser_id: '2', statement_id: 'ct_01', statement_text: catalog[0].text, answer_mode: 'boolean', votes: { '1': 'vrai' } };
     broadcast('vom.state', { vom: { ...baseVom, phase: 'voting_open', current_turn: turn } });
     await page.getByText(locale === 'fr' ? 'Je maîtrise plus de trois langues' : 'I speak more than three languages', { exact: false }).first().waitFor();
     assert.equal(await page.getByText(locale === 'fr' ? 'Votre question' : 'Your question', { exact: true }).count(), 0);
+    if (role === 'participant') {
+      await page.getByText(locale === 'fr' ? /En attente : suivez le joueur actif/ : /Waiting: follow the current player/).waitFor();
+      broadcast('vom.state', { vom: { ...baseVom, phase: 'voting_open', current_turn: { ...turn, votes: {} } } });
+      await page.getByText(locale === 'fr' ? /Votez : devinez/ : /Vote: guess/).waitFor();
+      broadcast('vom.state', { vom: { ...baseVom, phase: 'selecting_statement', current_turn: { ...turn, poser_id: '1', votes: {} } } });
+      await page.getByText(locale === 'fr' ? /C’est votre tour/ : /It is your turn/).waitFor();
+    }
 
     for (const status of ['incorrect', 'correct', 'absent']) {
       const vote = status === 'absent' ? null : status === 'correct' ? 'mensonge' : 'vrai';
@@ -67,6 +75,11 @@ try {
       } };
       broadcast('vom.state', { vom: { ...baseVom, phase: 'round_result', current_turn: turn } });
       await page.getByRole('heading', { name: locale === 'fr' ? 'Résultat de la manche' : 'Round result', exact: true }).waitFor();
+      const titleColors = await page.locator('[class*="wowTitle"]').evaluate((item) => ({
+        foreground: getComputedStyle(item).color,
+        background: getComputedStyle(item.closest('[class*="resultHeroFeedback"]').parentElement).backgroundColor,
+      }));
+      assert.ok(contrastRatio(titleColors.foreground, titleColors.background) >= 4.5, `Result title contrast below 4.5: ${JSON.stringify(titleColors)}`);
       const statusText = status === 'correct' ? '✅ Correct' : status === 'incorrect' ? '❌ Incorrect' : locale === 'fr' ? '⏱️ Hors délai' : '⏱️ Time expired';
       const row = page.locator('[class*="resultRow"]').filter({ hasText: 'Sophie Bourger' });
       await row.getByText(statusText, { exact: true }).waitFor();

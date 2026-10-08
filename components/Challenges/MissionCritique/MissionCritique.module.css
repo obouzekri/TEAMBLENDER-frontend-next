@@ -603,11 +603,10 @@
 .timelineItemLabel {
   flex: 1 1 auto;
   min-width: 0;
-  color: #b4cadb;
+  color: var(--text-main);
   font-size: 0.84rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .timelineItemInlineControls {
@@ -621,12 +620,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   border: 1px solid var(--line-soft);
-  background: rgba(15, 30, 43, 0.82);
-  color: #d0dde8;
+  background: var(--surface-1);
+  color: var(--text-main);
   cursor: pointer;
   transition:
     transform 140ms ease,
@@ -1428,8 +1427,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
   border-radius: 8px;
   border: 1px solid var(--line-soft);

@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
+import useModalFocus from '@/lib/useModalFocus';
 import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
@@ -120,7 +122,7 @@ function buildLayerBoard(grid, layer, targetSet, cubesByKey) {
   ));
 }
 
-function mountMiniModelScene(container, { gridSize, grid, palette, targetCells }) {
+function mountMiniModelScene(container, { gridSize, grid, palette, targetCells, onUnavailable }) {
   const width = Math.max(120, container.clientWidth || 168);
   const height = Math.max(80, container.clientHeight || 96);
 
@@ -130,7 +132,13 @@ function mountMiniModelScene(container, { gridSize, grid, palette, targetCells }
   const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
   camera.position.set(gridSize + 1.5, Math.max(5, grid.y + 1), gridSize + 1.5);
 
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  } catch (error) {
+    onUnavailable(error);
+    return () => {};
+  }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(width, height);
   container.innerHTML = '';
@@ -229,6 +237,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const [isViewportReady, setIsViewportReady] = useState(false);
   const [viewportError, setViewportError] = useState('');
   const [isModelMapOpen, setIsModelMapOpen] = useState(false);
+  const modelDialogRef = useRef(null);
+  useModalFocus(isModelMapOpen, modelDialogRef, () => setIsModelMapOpen(false));
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const hasAutoSelectedStartLayerRef = useRef(false);
 
@@ -239,12 +249,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     setSelectedColor(nextColor);
   }
 
-  const { state, error, isFacilitator, emitEvent } = useRealtimeChallenge({
+  const { state, error, isFacilitator, emitEvent, connected } = useRealtimeChallenge({
     runtimePayload,
     socket,
     context,
     onChallengeCompleted,
   });
+  const timerControls = useFacilitatorTimerControls({ socket, emitEvent, state, isFacilitator });
 
   const pixel = state?.pixel || null;
   const timer = state?.timer || null;
@@ -253,7 +264,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const hasChallengeStarted = timer?.enabled === false || ['running', 'paused', 'completed', 'stopped', 'timeout'].includes(timerStatus);
   const phase = String(pixel?.phase || '').trim().toLowerCase();
   const isLockedByPhase = ['debrief', 'fin'].includes(phase);
-  const canBuild = !isFacilitator && !isLockedByPhase && (!timerEnabled || timerStatus === 'running' || timerStatus === 'paused');
+  const canBuild = connected && !isFacilitator && !isLockedByPhase && (!timerEnabled || timerStatus === 'running' || timerStatus === 'paused');
 
   const selectedTemplate = useMemo(() => {
     if (pixel?.selected_template && typeof pixel.selected_template === 'object') {
@@ -334,7 +345,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     max: rulesPreset.participants.max,
   }), [rulesPreset]);
 
-  const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat } = useChallengeChat({
+  const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat, chatDelivery } = useChallengeChat({
     socket,
     emitEvent,
     author: displayName,
@@ -418,8 +429,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       event.preventDefault();
       setWebglUnavailable(true);
       setViewportError(isEn
-        ? 'WebGL context was lost. Please reload the page.'
-        : 'Le contexte WebGL a ete perdu. Rechargez la page.');
+        ? 'WebGL context was lost. Continue with the layer grids.'
+        : 'Le contexte WebGL a été perdu. Continuez avec les grilles par couche.');
     };
 
     renderer.domElement.addEventListener('webglcontextlost', onWebglContextLost);
@@ -804,14 +815,14 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }, [hasChallengeStarted]);
 
   useEffect(() => {
-    if (!modelPreviewRef.current || !canSeeTargetModel) return () => {};
-    return mountMiniModelScene(modelPreviewRef.current, { gridSize, grid, palette, targetCells });
-  }, [canSeeTargetModel, grid, gridSize, hasChallengeStarted, palette, targetCells]);
+    if (!modelPreviewRef.current || !canSeeTargetModel || webglUnavailable) return () => {};
+    return mountMiniModelScene(modelPreviewRef.current, { gridSize, grid, palette, targetCells, onUnavailable: () => setWebglUnavailable(true) });
+  }, [canSeeTargetModel, grid, gridSize, hasChallengeStarted, palette, targetCells, webglUnavailable]);
 
   useEffect(() => {
-    if (!isModelMapOpen || !modelPreviewMobileRef.current || !canSeeTargetModel) return () => {};
-    return mountMiniModelScene(modelPreviewMobileRef.current, { gridSize, grid, palette, targetCells });
-  }, [canSeeTargetModel, grid, gridSize, isModelMapOpen, palette, targetCells]);
+    if (!isModelMapOpen || !modelPreviewMobileRef.current || !canSeeTargetModel || webglUnavailable) return () => {};
+    return mountMiniModelScene(modelPreviewMobileRef.current, { gridSize, grid, palette, targetCells, onUnavailable: () => setWebglUnavailable(true) });
+  }, [canSeeTargetModel, grid, gridSize, isModelMapOpen, palette, targetCells, webglUnavailable]);
 
   useEffect(() => {
     if (!isModelMapOpen) return () => {};
@@ -824,6 +835,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   function handleResetBuild() {
     if (!canBuild) return;
+    if (!serverCubes.length) return;
+    if (!window.confirm(isEn
+      ? `Remove all ${serverCubes.length} cubes from the shared build? This affects the whole team and cannot be undone.`
+      : `Supprimer les ${serverCubes.length} cubes de la construction partagée ? Cette action affecte toute l’équipe et ne peut pas être annulée.`)) return;
     serverCubes.forEach((cube) => {
       emitEvent('pixel.cube.remove', { x: cube.x, y: cube.y, z: cube.z });
     });
@@ -831,15 +846,19 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   function handleResetLayer() {
     if (!canBuild) return;
-    serverCubes
-      .filter((cube) => Number(cube.y) === safeLayer)
+    const cubes = serverCubes.filter((cube) => Number(cube.y) === safeLayer);
+    if (!cubes.length) return;
+    if (!window.confirm(isEn
+      ? `Remove ${cubes.length} cube(s) from shared layer ${safeLayer + 1}? This cannot be undone.`
+      : `Supprimer ${cubes.length} cube(s) de la couche partagée ${safeLayer + 1} ? Cette action ne peut pas être annulée.`)) return;
+    cubes
       .forEach((cube) => {
         emitEvent('pixel.cube.remove', { x: cube.x, y: cube.y, z: cube.z });
       });
   }
 
   function handleSubmitFinal() {
-    if (isFacilitator) return;
+    if (isFacilitator || !connected) return;
     emitEvent('pixel.submit_final');
   }
 
@@ -856,7 +875,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }
 
   function handleToggleLayerClaim(layer) {
-    if (isFacilitator) return;
+    if (isFacilitator || !connected) return;
 
     const currentClaim = layerClaims[String(layer)] || null;
     const myClaim = Object.values(layerClaims).find(
@@ -1041,6 +1060,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
           status={String(timer?.status || 'idle')}
           isFacilitator={isFacilitator}
+          onPause={timerControls.pause}
+          onResume={timerControls.resume}
+          controlPending={timerControls.busy}
+          controlFeedback={timerControls.feedback}
           waitingText=""
         />
       </div>
@@ -1098,6 +1121,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         <div className={styles.modelMapSheetBackdrop} onClick={() => setIsModelMapOpen(false)}>
           <div
             className={styles.modelMapSheet}
+            ref={modelDialogRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-label={isEn ? 'Model map' : 'Carte modele'}
@@ -1118,8 +1143,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               </button>
             </div>
             <div className={styles.modelSidebarViewport}>
-              <div ref={modelPreviewMobileRef} className={styles.modelMiniCanvas} />
-              <span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span>
+              {webglUnavailable
+                ? <p role="status">{isEn ? '3D preview unavailable. Use the target layer grids on the game screen.' : 'Aperçu 3D indisponible. Utilisez les grilles des couches cibles sur l’écran de jeu.'}</p>
+                : <><div ref={modelPreviewMobileRef} className={styles.modelMiniCanvas} /><span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span></>}
             </div>
           </div>
         </div>
@@ -1128,7 +1154,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       {webglUnavailable ? (
         <div className={styles.webglFallback}>
           <p>{isEn ? 'Your browser or device does not support WebGL 3D rendering.' : 'Votre navigateur ou appareil ne supporte pas le rendu 3D WebGL.'}</p>
-          <p>{isEn ? 'Please try on a recent desktop browser (Chrome, Firefox, Edge).' : 'Essayez sur un navigateur de bureau récent (Chrome, Firefox, Edge).'}</p>
+          <p>{isEn ? 'You can keep playing with the layer grids below. Target cells and occupied cells remain available without 3D.' : 'Vous pouvez continuer à jouer avec les grilles par couche ci-dessous. Les cases cibles et occupées restent accessibles sans 3D.'}</p>
         </div>
       ) : null}
 
@@ -1156,8 +1182,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     <h2>{isEn ? 'Layer build workspace' : 'Espace de build par couche'}</h2>
                     <p>
                       {isEn
-                        ? 'All layers are editable here. Click a layer title to set it active, then click cells to place or remove cubes.'
-                        : 'Toutes les couches sont editables ici. Cliquez le titre pour activer, puis les cellules pour poser ou retirer des cubes.'}
+                        ? 'Choose a layer, then click cells to place or remove cubes. On mobile, only the active layer is displayed.'
+                        : 'Choisissez une couche, puis cliquez sur les cellules pour poser ou retirer des cubes. Sur mobile, seule la couche active est affichée.'}
                     </p>
                   </div>
                   {!isFacilitator ? (
@@ -1182,6 +1208,16 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   ) : null}
                 </div>
 
+                <div className={styles.layerNavigation} role="group" aria-label={isEn ? 'Layer navigation' : 'Navigation des couches'}>
+                  <button type="button" className={styles.btnSecondary} disabled={safeLayer === 0} onClick={() => setActiveLayer(safeLayer - 1)}>{isEn ? 'Previous layer' : 'Couche précédente'}</button>
+                  <label>
+                    {isEn ? 'Active layer' : 'Couche active'}{' '}
+                    <select value={safeLayer} onChange={(event) => setActiveLayer(Number(event.target.value))}>
+                      {layers.map((layer) => <option key={layer} value={layer}>{layer + 1} / {layers.length}</option>)}
+                    </select>
+                  </label>
+                  <button type="button" className={styles.btnSecondary} disabled={safeLayer === layers.length - 1} onClick={() => setActiveLayer(safeLayer + 1)}>{isEn ? 'Next layer' : 'Couche suivante'}</button>
+                </div>
                 <div className={styles.layerQuickList}>
                   {liveLayerBoards.map(({ layer, rows }) => {
                     const stats = layerStats.find((item) => Number(item.layer) === Number(layer)) || null;
@@ -1192,6 +1228,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     return (
                       <section
                         key={`layer-mini-${layer}`}
+                        data-active-layer={isActive}
                         className={`${styles.layerQuickCard}${isActive ? ` ${styles.layerQuickCardActive}` : ''}`}
                         aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}`}
                       >
@@ -1209,7 +1246,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                             type="button"
                             className={`${styles.layerQuickClaimBtn}${isReservedByMe ? ` ${styles.layerQuickClaimBtnMine}` : ''}${isReservedByOther ? ` ${styles.layerQuickClaimBtnReserved}` : ''}`}
                             onClick={() => handleToggleLayerClaim(layer)}
-                            disabled={isFacilitator || isReservedByOther}
+                            disabled={!connected || isFacilitator || isReservedByOther}
                             title={isReservedByOther ? `${isEn ? 'Reserved by' : 'Reservee par'} ${String(claim?.display_name || '')}` : undefined}
                           >
                             {isReservedByMe
@@ -1253,13 +1290,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
                 {!isFacilitator ? (
                   <div className={`${styles.actionsRow} ${styles.actionsRowSticky}`} aria-label="Actions de construction">
-                    <button type="button" className={styles.btnSecondary} onClick={handleResetLayer} disabled={!canBuild}>
+                    <button type="button" className={styles.btnSecondary} onClick={handleResetLayer} disabled={!canBuild || !serverCubes.some((cube) => Number(cube.y) === safeLayer)}>
                       {isEn ? 'Reset layer' : 'Reinitialiser la couche'}
                     </button>
-                    <button type="button" className={styles.btnSecondary} onClick={handleResetBuild} disabled={!canBuild}>
+                    <button type="button" className={styles.btnSecondary} onClick={handleResetBuild} disabled={!canBuild || serverCubes.length === 0}>
                       {isEn ? 'Reset cubes' : 'Reinitialiser les cubes'}
                     </button>
-                    <button type="button" className={styles.btnPrimary} onClick={handleSubmitFinal} disabled={isLockedByPhase}>
+                    <button type="button" className={styles.btnPrimary} onClick={handleSubmitFinal} disabled={!connected || isLockedByPhase}>
                       {isEn ? 'Submit final version' : 'Soumettre version finale'}
                     </button>
                   </div>
@@ -1315,6 +1352,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
               status={String(timer?.status || 'idle')}
               isFacilitator={isFacilitator}
+              onPause={timerControls.pause}
+              onResume={timerControls.resume}
+              controlPending={timerControls.busy}
+              controlFeedback={timerControls.feedback}
               waitingText=""
             />
           </div>
@@ -1325,13 +1366,15 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               <p>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z} · {targetCubeCount} {isEn ? 'cubes' : 'cubes cibles'}</p>
             </div>
             <div className={styles.modelSidebarViewport}>
-              {canSeeTargetModel ? (
+              {canSeeTargetModel && !webglUnavailable ? (
                 <>
                   <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
                   <span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span>
                 </>
               ) : (
-                <p className={styles.modelMiniHidden}>{isEn ? 'Model hidden for this role' : 'Modele masque pour ce role'}</p>
+                <p className={styles.modelMiniHidden}>{webglUnavailable && canSeeTargetModel
+                  ? (isEn ? '3D preview unavailable. Use the target layer grids.' : 'Aperçu 3D indisponible. Utilisez les grilles des couches cibles.')
+                  : (isEn ? 'Model hidden for this role' : 'Modele masque pour ce role')}</p>
               )}
             </div>
 
@@ -1395,6 +1438,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               inputValue={chatInput}
               onInputChange={setChatInput}
               onSubmit={submitChat}
+              delivery={chatDelivery}
               onQuickMessage={sendQuickChat}
               quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
               disabled={!hasChallengeStarted}

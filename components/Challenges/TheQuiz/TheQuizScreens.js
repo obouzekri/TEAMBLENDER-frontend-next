@@ -1,14 +1,11 @@
 'use client';
 
 import styles from './TheQuiz.module.css';
+import { getQuizOptions, getQuizRankingStatus, normalizeQuizAnswerIndex } from '@/lib/challenges/quiz-utils';
 
 function normalizeQuestion(quiz, isEn = false) {
   const source = quiz?.current_question || {};
-  const options = Array.isArray(source?.options)
-    ? source.options
-    : Array.isArray(source?.choices)
-      ? source.choices.map((choice) => String(choice?.label || ''))
-      : [];
+  const options = getQuizOptions(source);
 
   return {
     id: source?.id || 'question',
@@ -19,7 +16,7 @@ function normalizeQuestion(quiz, isEn = false) {
     })).slice(0, 4),
     category: String(source?.category || (isEn ? 'General knowledge' : 'Culture générale')),
     difficulty: String(source?.difficulty || (isEn ? 'medium' : 'moyen')),
-    correctAnswer: Number.isInteger(Number(source?.correctAnswer)) ? Number(source.correctAnswer) : null,
+    correctAnswer: normalizeQuizAnswerIndex(source?.correctAnswer, options.length),
   };
 }
 
@@ -63,6 +60,8 @@ export function QuizQuestionScreen({
   selectedAnswerIndex,
   onSelectAnswer,
   isAnswerLocked,
+  isAnswerPending = false,
+  isConnected = true,
   remainingSeconds,
   totalSeconds,
   participantsAnsweredCount,
@@ -71,7 +70,8 @@ export function QuizQuestionScreen({
 }) {
   const question = normalizeQuestion(quiz, isEn);
   const optionCount = question.options.length;
-  const hasSelectedAnswer = Number.isInteger(Number(selectedAnswerIndex));
+  const selectedIndex = normalizeQuizAnswerIndex(selectedAnswerIndex, optionCount);
+  const hasSelectedAnswer = selectedIndex !== null;
 
   function onAnswerKeyDown(event, answerIndex) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -82,14 +82,14 @@ export function QuizQuestionScreen({
 
     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
       event.preventDefault();
-      const currentIndex = Number.isInteger(Number(selectedAnswerIndex)) ? Number(selectedAnswerIndex) : answerIndex;
+      const currentIndex = selectedIndex ?? answerIndex;
       onSelectAnswer((currentIndex + 1) % Math.max(optionCount, 1));
       return;
     }
 
     if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
       event.preventDefault();
-      const currentIndex = Number.isInteger(Number(selectedAnswerIndex)) ? Number(selectedAnswerIndex) : answerIndex;
+      const currentIndex = selectedIndex ?? answerIndex;
       onSelectAnswer((currentIndex + Math.max(optionCount, 1) - 1) % Math.max(optionCount, 1));
     }
   }
@@ -105,12 +105,16 @@ export function QuizQuestionScreen({
       </div>
 
       <div className={styles.questionPromptPanel} aria-live="polite">
-        <p className={styles.questionPromptState}>{isAnswerLocked ? (isEn ? 'Answer sent and locked' : 'Réponse validée, verrouillée') : (isEn ? 'Choose your answer' : 'Choisissez votre réponse')}</p>
+        <p className={styles.questionPromptState}>{isAnswerLocked
+          ? (isEn ? 'Answer sent and locked' : 'Réponse validée, verrouillée')
+          : !isConnected
+            ? (isEn ? 'Connection unavailable. Waiting to reconnect.' : 'Connexion indisponible. En attente de reconnexion.')
+            : (isEn ? 'Choose your answer' : 'Choisissez votre réponse')}</p>
       </div>
 
       <div className={styles.answerGrid} role="radiogroup" aria-label={isEn ? 'Possible answers' : 'Réponses possibles'}>
         {question.options.map((choice) => {
-          const active = Number(selectedAnswerIndex) === Number(choice.index);
+          const active = selectedIndex === choice.index;
           const ariaLabel = `${isEn ? 'Answer' : 'Réponse'} ${String.fromCharCode(65 + choice.index)} ${choice.label}`;
           return (
             <button
@@ -119,7 +123,7 @@ export function QuizQuestionScreen({
               className={`${styles.answerButton} ${active ? styles.answerButtonActive : ''} ${isAnswerLocked ? styles.answerButtonLocked : ''}`}
               onClick={() => onSelectAnswer(choice.index)}
               onKeyDown={(event) => onAnswerKeyDown(event, choice.index)}
-              disabled={isAnswerLocked}
+              disabled={isAnswerLocked || !isConnected}
               role="radio"
               aria-checked={active}
               aria-label={ariaLabel}
@@ -137,9 +141,9 @@ export function QuizQuestionScreen({
           type="button"
           className={styles.primaryButton}
           onClick={onSubmitAnswer}
-          disabled={isAnswerLocked || !hasSelectedAnswer}
+          disabled={isAnswerLocked || !isConnected || !hasSelectedAnswer}
         >
-          {isAnswerLocked ? (isEn ? 'Answer sent' : 'Réponse envoyée') : (isEn ? 'Submit my answer' : 'Valider ma réponse')}
+          {isAnswerPending ? (isEn ? 'Awaiting confirmation...' : 'En attente de confirmation...') : isAnswerLocked ? (isEn ? 'Answer confirmed' : 'Réponse confirmée') : (isEn ? 'Submit my answer' : 'Valider ma réponse')}
         </button>
       </div>
     </section>
@@ -148,6 +152,7 @@ export function QuizQuestionScreen({
 
 export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByParticipantId = {} }) {
   const topRows = (quiz.leaderboard || []).slice(0, 10);
+  const status = quiz.leaderboard_status || getQuizRankingStatus(quiz.leaderboard, quiz.phase);
 
   return (
     <section className={styles.rankingCardWrap}>
@@ -156,36 +161,47 @@ export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByPartic
         <span className={styles.rankingMeta}>{isEn ? 'Live update' : 'Mis à jour en direct'}</span>
       </div>
       <div className={styles.leaderboardList}>
-        {renderLeaderboardRows({ rows: topRows, rankMovementByParticipantId })}
+        {status === 'ready' ? renderLeaderboardRows({ rows: topRows, rankMovementByParticipantId }) : <QuizRankingNotice isEn={isEn} status={status} />}
       </div>
     </section>
   );
 }
 
+function QuizRankingNotice({ isEn, status }) {
+  const messages = {
+    pending: isEn ? 'Leaderboard pending: no scores received yet.' : 'Classement en attente : aucun score reçu pour le moment.',
+    empty: isEn ? 'No scores recorded for this quiz.' : 'Aucun score enregistré pour ce quiz.',
+    unavailable: isEn ? 'Leaderboard data unavailable.' : 'Données du classement indisponibles.',
+  };
+  return <p className={styles.helperText} role="status">{messages[status]}</p>;
+}
+
 export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerIndex = null, isFacilitator = false }) {
   const result = quiz.latest_question_result || {};
   const currentQuestion = normalizeQuestion({ current_question: result.question || quiz.current_question }, isEn);
-  const serverAnswerIndex = Number(result.correct_choice_index);
-  const questionAnswerIndex = Number(currentQuestion.correctAnswer);
-  const answerIndex = Number.isInteger(serverAnswerIndex)
-    ? serverAnswerIndex
-    : (Number.isInteger(questionAnswerIndex) ? questionAnswerIndex : null);
+  const answerIndex = normalizeQuizAnswerIndex(result.correct_choice_index, currentQuestion.options.length)
+    ?? currentQuestion.correctAnswer;
   const answerLabel = Number.isInteger(answerIndex) && currentQuestion.options[answerIndex]
     ? currentQuestion.options[answerIndex].label
     : (isEn ? 'Answer unavailable' : 'Réponse non disponible');
 
-  const hasMyAnswer = Number.isInteger(Number(mySelectedAnswerIndex));
-  const myAnswerIsCorrect = hasMyAnswer && Number.isInteger(answerIndex) && Number(mySelectedAnswerIndex) === answerIndex;
-  const myAnswerBadgeClass = !hasMyAnswer
+  const myAnswerIndex = normalizeQuizAnswerIndex(mySelectedAnswerIndex, currentQuestion.options.length);
+  const hasMyAnswer = myAnswerIndex !== null;
+  const myAnswerIsCorrect = hasMyAnswer && answerIndex !== null && myAnswerIndex === answerIndex;
+  const myAnswerBadgeClass = !hasMyAnswer || answerIndex === null
     ? styles.myAnswerBadgeNone
     : myAnswerIsCorrect
       ? styles.myAnswerBadgeCorrect
       : styles.myAnswerBadgeIncorrect;
   const myAnswerBadgeLabel = !hasMyAnswer
     ? (isEn ? 'No answer submitted' : 'Aucune réponse envoyée')
+    : answerIndex === null
+      ? (isEn ? 'Your answer was submitted; result unavailable' : 'Votre réponse a été envoyée ; résultat indisponible')
     : myAnswerIsCorrect
       ? (isEn ? 'Your answer was correct' : 'Votre réponse est correcte')
       : (isEn ? 'Your answer was incorrect' : 'Votre réponse est incorrecte');
+  const explanationText = typeof result.explanation === 'string' ? result.explanation.trim() : '';
+  const shouldShowExplanation = Boolean(explanationText && !explanationText.toLowerCase().includes('zone réservée') && !explanationText.toLowerCase().includes('reserved area'));
 
   return (
     <section className={styles.screenCard}>
@@ -194,26 +210,24 @@ export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerI
           <p className={styles.kicker}>{isEn ? 'Question result' : 'Résultat question'}</p>
           <h2 className={styles.screenTitle}>{isEn ? 'Reveal of the correct answer and short debrief' : 'Reveal de la bonne réponse et micro-débrief'}</h2>
         </div>
-        <span className={styles.phaseBadge}>Reveal</span>
       </div>
 
       {!isFacilitator ? (
         <p className={`${styles.myAnswerBadge} ${myAnswerBadgeClass}`}>{myAnswerBadgeLabel}</p>
       ) : null}
 
-      <div className={styles.highlightPanel}>
-        <p className={styles.highlightValue}>
-          {isEn ? 'Correct answer' : 'Bonne réponse'}: {Number.isInteger(answerIndex) ? `${String.fromCharCode(65 + answerIndex)}. ${answerLabel}` : (isEn ? 'coming soon' : 'à venir')}
-        </p>
-        <p>{isEn ? 'Validated answers' : 'Réponses validées'}: {Number(result.answer_count || quiz.answer_count || 0)}</p>
-        <p>{result.explanation || (isEn ? 'Reserved area for a short explanation of the answer.' : 'Zone réservée à l explication courte de la réponse.')}</p>
-      </div>
+      <div className={styles.highlightPanel} role="status" aria-live="polite">
+        <div className={styles.answerRevealCard}>
+          <span className={styles.answerRevealLabel}>
+            <span className={styles.answerStatusIcon} aria-hidden="true">✓</span>
+            {isEn ? 'Correct answer' : 'Bonne réponse'}
+          </span>
+          <strong className={styles.correctAnswerValue}>
+            {Number.isInteger(answerIndex) ? `${String.fromCharCode(65 + answerIndex)}. ${answerLabel}` : (isEn ? 'coming soon' : 'à venir')}
+          </strong>
+        </div>
 
-      <div className={styles.rankingList}>
-        {renderLeaderboardRows({
-          rows: (quiz.leaderboard || []).slice(0, 5),
-          rankMovementByParticipantId: {},
-        })}
+        {shouldShowExplanation ? <p className={styles.highlightExplanation}>{explanationText}</p> : null}
       </div>
     </section>
   );
@@ -221,8 +235,9 @@ export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerI
 
 export function QuizFinalScreen({ isEn = false, quiz }) {
   const standings = Array.isArray(quiz.final_standings) ? quiz.final_standings : [];
+  const status = quiz.final_standings_status || getQuizRankingStatus(quiz.final_standings, 'final_score');
   const questionHistory = Array.isArray(quiz.question_history) ? quiz.question_history : [];
-  const winner = standings[0] || null;
+  const winner = status === 'ready' ? standings[0] : null;
   const totalPlayers = standings.length;
 
   return (
@@ -236,18 +251,18 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
       </div>
 
       <div className={styles.finalSummaryGrid}>
-        <article className={styles.metricCard}><span>{isEn ? 'Participants' : 'Participants'}</span><strong>{totalPlayers}</strong></article>
+        <article className={styles.metricCard}><span>{isEn ? 'Participants' : 'Participants'}</span><strong>{status === 'ready' ? totalPlayers : '-'}</strong></article>
         <article className={styles.metricCard}><span>{isEn ? 'Winner' : 'Gagnant'}</span><strong>{winner?.display_name || '-'}</strong></article>
-        <article className={styles.metricCard}><span>{isEn ? 'Winning score' : 'Score gagnant'}</span><strong>{winner?.score ?? 0} {isEn ? 'pts' : 'pts'}</strong></article>
+        <article className={styles.metricCard}><span>{isEn ? 'Winning score' : 'Score gagnant'}</span><strong>{winner ? `${winner.score} pts` : '-'}</strong></article>
       </div>
 
       <div className={styles.finalRankingBlock}>
         <p className={styles.kicker}>{isEn ? 'Detailed ranking' : 'Classement détaillé'}</p>
         <div className={styles.rankingList}>
-          {renderLeaderboardRows({
+          {status === 'ready' ? renderLeaderboardRows({
             rows: standings,
             rankMovementByParticipantId: {},
-          })}
+          }) : <QuizRankingNotice isEn={isEn} status={status} />}
         </div>
       </div>
 
@@ -262,9 +277,8 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
               : Array.isArray(sourceQuestion?.choices)
                 ? sourceQuestion.choices.map((choice) => String(choice?.label || ''))
                 : [];
-            const answerIndex = Number.isInteger(Number(entry?.correct_choice_index))
-              ? Number(entry.correct_choice_index)
-              : Number(sourceQuestion?.correctAnswer);
+            const answerIndex = normalizeQuizAnswerIndex(entry?.correct_choice_index, options.length)
+              ?? normalizeQuizAnswerIndex(sourceQuestion?.correctAnswer, options.length);
             const answerLabel = Number.isInteger(answerIndex) && options[answerIndex]
               ? `${String.fromCharCode(65 + answerIndex)}. ${String(options[answerIndex] || '')}`
               : (isEn ? 'Answer unavailable' : 'Réponse indisponible');

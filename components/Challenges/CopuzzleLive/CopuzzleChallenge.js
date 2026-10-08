@@ -3,6 +3,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
+import useConfirmedAction from '@/lib/challenges/useConfirmedAction';
+import ChallengeActionFeedback from '../ChallengeActionFeedback';
 import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
@@ -131,7 +134,10 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
     error,
     isFacilitator,
     emitEvent,
+    connected,
   } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
+  const action = useConfirmedAction({ socket, emitEvent, state });
+  const timerControls = useFacilitatorTimerControls({ socket, emitEvent, state, isFacilitator });
 
   const displayName = useMemo(() => {
     const firstName = String(runtimePayload?.context?.firstName || runtimePayload?.context?.first_name || context?.firstName || context?.first_name || '').trim();
@@ -160,7 +166,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
     || normalizedTimerState === 'stopped'
     || normalizedTimerState === 'timeout';
   const isChallengeCompleted = Boolean(state?.summary) || normalizedTimerState === 'completed' || normalizedTimerState === 'timeout';
-  const canPlay = state?.timer?.enabled === false || timerState === 'running';
+  const canPlay = connected && !action.busy && (state?.timer?.enabled === false || timerState === 'running');
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
   const timerDurationSeconds = Math.max(
     0,
@@ -194,6 +200,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
     chatMessages,
     submitChat,
     sendQuickChat,
+    chatDelivery,
   } = useChallengeChat({
     socket,
     emitEvent,
@@ -251,17 +258,23 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
 
   function placeOnCell(x, y, pieceId = selectedPiece?.id) {
     if (!pieceId || !canPlay) return;
-    emitEvent('puzzle.place', {
-      pieceId,
-      x,
-      y,
+    action.run({
+      type: 'puzzle.place',
+      payload: { pieceId, x, y },
+      isAvailable: (snapshot) => snapshot?.puzzle?.pieces?.some((piece) => String(piece.id) === String(pieceId) && Number(piece.assigned_slot) === Number(snapshot.participantSlot)),
+      isConfirmed: (snapshot) => snapshot?.puzzle?.pieces?.some((piece) => String(piece.id) === String(pieceId) && piece.current && Number(piece.current.x) === x && Number(piece.current.y) === y),
+      onConfirmed: () => setSelectedPieceId((prev) => String(prev) === String(pieceId) ? '' : prev),
     });
-    setSelectedPieceId((prev) => (String(prev) === String(pieceId) ? '' : prev));
   }
 
   function removePiece(pieceId) {
     if (!canPlay) return;
-    emitEvent('puzzle.unplace', { pieceId });
+    action.run({
+      type: 'puzzle.unplace',
+      payload: { pieceId },
+      isAvailable: (snapshot) => snapshot?.puzzle?.pieces?.some((piece) => String(piece.id) === String(pieceId) && Number(piece.assigned_slot) === Number(snapshot.participantSlot)),
+      isConfirmed: (snapshot) => snapshot?.puzzle?.pieces?.some((piece) => String(piece.id) === String(pieceId) && !piece.current),
+    });
   }
 
   function onTrayDragStart(event, piece) {
@@ -383,14 +396,19 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
           />
         ) : null}
       />
+      <ChallengeActionFeedback feedback={action.feedback} />
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
-          title="Minuteur"
+          title={locale === 'en' ? 'Timer' : 'Minuteur'}
           remainingSeconds={timerRemainingSeconds}
           durationSeconds={timerDurationSeconds}
           status={timerState}
           isFacilitator={isFacilitator}
+          onPause={timerControls.pause}
+          onResume={timerControls.resume}
+          controlPending={timerControls.busy}
+          controlFeedback={timerControls.feedback}
           waitingText=""
         />
       </div>
@@ -433,6 +451,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                       key={cell.key}
                       type="button"
                       className={cellClass}
+                      aria-label={`${locale === 'en' ? 'Cell' : 'Case'} ${cell.x + 1}, ${cell.y + 1}${occupant ? `, ${locale === 'en' ? 'piece' : 'pièce'} ${getPieceNumber(occupant)}${canRemoveBoardPiece ? `, ${locale === 'en' ? 'click to remove' : 'cliquer pour retirer'}` : ''}` : ''}`}
                       onClick={() => {
                         if (occupant && canRemoveBoardPiece) {
                           removePiece(occupant.id);
@@ -470,17 +489,9 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                           </div>
                           <span className={styles.pieceLabel}>{isMyPiece ? 'Votre pièce' : 'Pièce visible'}</span>
                           {isMyPiece && canPlay ? (
-                            <button
-                              type="button"
-                              className={styles.removeBtn}
-                              onClick={(event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                removePiece(occupant.id);
-                              }}
-                            >
-                              Retirer
-                            </button>
+                            <span className={styles.removeBtn}>
+                              {locale === 'en' ? 'Remove' : 'Retirer'}
+                            </span>
                           ) : null}
                         </div>
                       ) : (
@@ -536,11 +547,15 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
         <aside className={styles.sidePanel}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
-              title="Minuteur"
+              title={locale === 'en' ? 'Timer' : 'Minuteur'}
               remainingSeconds={timerRemainingSeconds}
               durationSeconds={timerDurationSeconds}
               status={timerState}
               isFacilitator={isFacilitator}
+              onPause={timerControls.pause}
+              onResume={timerControls.resume}
+              controlPending={timerControls.busy}
+              controlFeedback={timerControls.feedback}
               waitingText=""
             />
           </div>
@@ -581,6 +596,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                 <input
                   type="checkbox"
                   checked={effectiveConfig.participants.show_reference_image === true}
+                  disabled={!connected}
                   onChange={(event) => {
                     emitEvent('puzzle.reference_visibility.update', { visible: event.target.checked });
                   }}
@@ -648,9 +664,10 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                 inputValue={chatInput}
                 onInputChange={setChatInput}
                 onSubmit={submitChat}
+                delivery={chatDelivery}
                 quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
                 onQuickMessage={sendQuickChat}
-                emptyText="Aucun message pour le moment."
+                emptyText={locale === 'en' ? 'No messages yet.' : 'Aucun message pour le moment.'}
                 maxLength={240}
               />
             </div>

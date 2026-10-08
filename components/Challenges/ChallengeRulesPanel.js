@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useId, useRef, useState } from 'react';
+import { ChallengeConnectionContext } from '@/lib/challenges/connection-context';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
+import useModalFocus from '@/lib/useModalFocus';
 import styles from './ChallengeRulesPanel.module.css';
 
 function isScoringRule(rule) {
@@ -48,29 +50,18 @@ export default function ChallengeRulesPanel({
   const [isOpen, setIsOpen] = useState(false);
   const { locale, t } = useI18n();
   const isEn = locale === 'en';
+  const connected = useContext(ChallengeConnectionContext);
 
   useBodyScrollLock(isOpen);
+  const dialogRef = useRef(null);
+  const titleId = useId();
+  useModalFocus(isOpen, dialogRef, () => setIsOpen(false));
 
   useEffect(() => {
     if (!isStarted) {
       setIsOpen(false);
     }
   }, [isStarted]);
-
-  useEffect(() => {
-    if (!isOpen) return () => {};
-
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [isOpen]);
 
   const canStartFromRules = !isStarted && isFacilitator && typeof onStart === 'function';
   const resolvedBriefTitle = briefTitle || t('challengeRulesPanel.briefTitle');
@@ -149,7 +140,7 @@ export default function ChallengeRulesPanel({
             type="button"
             className={`${styles.startButton}${compactStartButton ? ` ${styles.startButtonCompact}` : ''}${startButtonFullWidth ? ` ${styles.startButtonFullWidth}` : ''}`}
             onClick={onStart}
-            disabled={startDisabled}
+            disabled={startDisabled || !connected}
           >
             {resolvedStartLabel}
           </button>
@@ -183,14 +174,16 @@ export default function ChallengeRulesPanel({
       {isOpen ? (
         <div className={styles.modalBackdrop} onClick={() => setIsOpen(false)} role="presentation">
           <section
+            ref={dialogRef}
+            tabIndex={-1}
             className={styles.modalCard}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="challenge-rules-modal-title"
+            aria-labelledby={titleId}
             onClick={(event) => event.stopPropagation()}
           >
             <header className={styles.modalHead}>
-              <h2 id="challenge-rules-modal-title">{t('challengeRulesPanel.modalTitle')}</h2>
+              <h2 id={titleId}>{t('challengeRulesPanel.modalTitle')}</h2>
               <button type="button" className={styles.closeBtn} onClick={() => setIsOpen(false)} aria-label={t('challengeRulesPanel.closeRules')}>
                 {t('challengeRulesPanel.closeRules')}
               </button>

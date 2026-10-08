@@ -67,12 +67,35 @@ try {
       assert.equal(await metrics.nth(3).locator('strong').textContent(), '3');
       assert.ok((await sophie.textContent()).includes(locale === 'fr' ? 'Soumis' : 'Submitted'));
     } else {
+      const tabs = page.getByRole('tab');
+      await tabs.first().focus();
+      await page.keyboard.press('ArrowRight');
+      assert.equal(await tabs.nth(1).getAttribute('aria-selected'), 'true');
+      assert.equal(await tabs.nth(1).getAttribute('tabindex'), '0');
+      assert.equal(await page.getByRole('tabpanel').getAttribute('aria-labelledby'), await tabs.nth(1).getAttribute('id'));
+      const controls = page.getByRole('tabpanel').locator('button');
+      for (const control of await controls.all()) {
+        const bounds = await control.boundingBox();
+        assert.ok(bounds.width >= 44 && bounds.height >= 44, `Touch target ${JSON.stringify(bounds)}`);
+      }
+      const taskLabel = page.getByRole('tabpanel').locator('[class*="timelineItemLabel"]');
+      assert.equal(await taskLabel.evaluate((item) => getComputedStyle(item).whiteSpace), 'normal');
+      await page.keyboard.press('End');
+      assert.equal(await tabs.last().getAttribute('aria-selected'), 'true');
+      await page.keyboard.press('Home');
+      assert.equal(await tabs.first().getAttribute('aria-selected'), 'true');
       const task = page.getByRole('button', { name: /Préparer les supports/ });
       await task.click();
       const modal = page.getByRole('dialog', { name: 'Préparer les supports' });
       await modal.waitFor();
       const closeButton = modal.getByRole('button', { name: 'Fermer', exact: true });
       const closeBounds = await closeButton.boundingBox();
+      assert.ok(closeBounds.width >= 44 && closeBounds.height >= 44);
+      await closeButton.focus();
+      await page.keyboard.press('Shift+Tab');
+      assert.equal(await modal.locator('button').last().evaluate((item) => document.activeElement === item), true);
+      await page.keyboard.press('Tab');
+      assert.equal(await closeButton.evaluate((item) => document.activeElement === item), true);
       const titleBounds = await modal.getByRole('heading', { name: 'Préparer les supports' }).boundingBox();
       assert.ok(closeBounds.x > titleBounds.x + titleBounds.width);
       assert.ok(Math.abs(closeBounds.y - titleBounds.y) < 5);
@@ -84,6 +107,7 @@ try {
       assert.notEqual(selectedColor, otherColor);
       await selected.click();
       await modal.waitFor({ state: 'hidden' });
+      assert.equal(await task.evaluate((item) => document.activeElement === item), true, 'Modal must restore focus');
       await task.click();
       await modal.getByRole('button', { name: 'Exécution', exact: true }).click();
       await modal.waitFor({ state: 'hidden' });

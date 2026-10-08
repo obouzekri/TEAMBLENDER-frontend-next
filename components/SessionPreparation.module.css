@@ -1,0 +1,45 @@
+.panel {
+  margin: 12px 0;
+  padding: 14px;
+  background: var(--surface-panel);
+  color: var(--challenge-text-primary);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.panel summary {
+  min-height: 44px;
+  align-content: center;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.panel ol {
+  list-style-position: inside;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 10px;
+}
+
+.panel li {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.panel li span {
+  display: block;
+  font-weight: 600;
+  color: var(--challenge-text-secondary);
+  margin-top: 6px;
+}
+
+.panel li p {
+  margin-bottom: 0;
+}
+
+.panel li[data-stage-status='active'] {
+  border-color: var(--accent);
+  border-width: 2px;
+}

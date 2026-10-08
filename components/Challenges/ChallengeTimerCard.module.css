@@ -74,8 +74,9 @@
 .timerToggleBtn {
   border: 1px solid var(--control-border-strong);
   border-radius: 999px;
-  width: 1.3rem;
-  height: 1.3rem;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -85,6 +86,17 @@
   font-size: 0.68rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.statusAnnouncement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .timerToggleBtn:hover {
@@ -168,9 +180,61 @@
 
 .timerFooter,
 .timerActions {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
+}
+
+.timerControlButton {
+  width: 100%;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(251, 191, 36, 0.42);
+  border-radius: 10px;
+  padding: 0.58rem 0.8rem;
+  background: rgba(120, 53, 15, 0.28);
+  color: #fde68a;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.timerControlButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(251, 191, 36, 0.72);
+  background: rgba(146, 64, 14, 0.38);
+}
+
+.timerResumeButton {
+  border-color: rgba(74, 222, 128, 0.44);
+  background: rgba(20, 83, 45, 0.34);
+  color: #bbf7d0;
+}
+
+.timerResumeButton:hover:not(:disabled) {
+  border-color: rgba(74, 222, 128, 0.74);
+  background: rgba(21, 128, 61, 0.38);
+}
+
+.timerControlButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.timerControlError {
+  margin: 0;
+  color: var(--error-line);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
@@ -192,6 +256,18 @@
 }
 
 @media (max-width: 900px) {
+  :global(.challenge-mobile-timer) .timerCard {
+    display: none;
+  }
+
+  :global(.challenge-mobile-timer) .timerCard:has(.timerActions) {
+    display: grid;
+  }
+
+  :global(.challenge-mobile-timer) .timerCompactBar {
+    display: none;
+  }
+
   .timerCard {
     position: static;
     top: auto;
@@ -250,8 +326,17 @@
   .timerHeader,
   .timerRingContainer,
   .timerWaitingText,
-  .timerFooter,
-  .timerActions {
+  .timerFooter {
     display: none;
+  }
+
+  .timerActions {
+    margin-top: 0.5rem;
+  }
+
+  .timerControlButton {
+    min-height: 36px;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.82rem;
   }
 }

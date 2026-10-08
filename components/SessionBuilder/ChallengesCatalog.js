@@ -450,7 +450,14 @@ export default function ChallengesCatalog({
                 </div>
 
                 <p className={styles.cardDescription}>{challengeDescription}</p>
-                {idealPlayersLabel ? <p className={styles.playerHint}>{idealPlayersLabel}</p> : null}
+                {idealPlayersLabel || challengeDuration > 0 ? (
+                  <div className={styles.cardHints}>
+                    {idealPlayersLabel ? <span className={styles.playerHint}>{idealPlayersLabel}</span> : null}
+                    {challengeDuration > 0 ? (
+                      <span className={`${styles.playerHint} ${styles.durationHint}`}>{`~${challengeDuration} min`}</span>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <div className={styles.cardMeta}>
                   {challenge.category ? (

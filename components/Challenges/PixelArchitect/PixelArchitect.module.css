@@ -684,6 +684,29 @@
   gap: 10px;
 }
 
+.layerNavigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.layerNavigation select {
+  min-height: 44px;
+  background: var(--ch-surface-1);
+  color: var(--ch-text-main);
+  border: 1px solid var(--ch-line-soft);
+  border-radius: 8px;
+}
+
+@media (max-width: 640px) {
+  .layerQuickCard[data-active-layer='false'] {
+    display: none;
+  }
+}
+
 .layerQuickCard {
   border: 1px solid rgba(133, 167, 190, 0.28);
   border-radius: 10px;

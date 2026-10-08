@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 
-export async function createRealtimeFixture(browser, { baseUrl, locale, role, engineKey, state, viewport = { width: 1440, height: 1000 }, theme = 'light' }) {
+export async function createRealtimeFixture(browser, { baseUrl, locale, role, engineKey, state, participantSlot = 1, viewport = { width: 1440, height: 1000 }, theme = 'light' }) {
   const context = await browser.newContext({ locale, viewport });
   const sockets = new Map();
   const receivedEvents = [];
+  let online = true;
   const challenge = { id: 7, name: engineKey, engine_key: engineKey };
   const send = (connection, packet) => {
     if (connection.pending) {
@@ -16,6 +17,9 @@ export async function createRealtimeFixture(browser, { baseUrl, locale, role, en
   };
   const broadcast = (type, payload) => {
     for (const connection of sockets.values()) send(connection, `42${JSON.stringify(['challenge:event', { type, payload }])}`);
+  };
+  const broadcastError = (message) => {
+    for (const connection of sockets.values()) send(connection, `42${JSON.stringify(['challenge:error', { message }])}`);
   };
   await context.addInitScript(({ language, userRole, colorTheme }) => {
     sessionStorage.setItem('jwt', 'local-realtime-fixture');
@@ -34,6 +38,10 @@ export async function createRealtimeFixture(browser, { baseUrl, locale, role, en
       }
       const sid = url.searchParams.get('sid');
       if (!sid) {
+        if (!online) {
+          await route.fulfill({ status: 503, headers, body: 'Fixture connection unavailable' });
+          return;
+        }
         const id = `fixture-${sockets.size}`;
         sockets.set(id, { queue: [], pending: null });
         await route.fulfill({ headers, body: `0${JSON.stringify({ sid: id, upgrades: [], pingInterval: 60000, pingTimeout: 60000, maxPayload: 1000000 })}` });
@@ -48,7 +56,7 @@ export async function createRealtimeFixture(browser, { baseUrl, locale, role, en
             const [event, payload] = JSON.parse(packet.slice(2));
             if (event === 'challenge:event') receivedEvents.push(payload);
             if (event === 'challenge:join' || (event === 'challenge:event' && ['laby.request_state', 'vom.request_state', 'mission.request_state'].includes(payload.type))) {
-              send(connection, `42${JSON.stringify(['challenge:state', { state }])}`);
+              send(connection, `42${JSON.stringify(['challenge:state', { state, participantSlot }])}`);
             }
           }
         }
@@ -77,5 +85,9 @@ export async function createRealtimeFixture(browser, { baseUrl, locale, role, en
     }
     await context.close();
   };
-  return { context, broadcast, close, receivedEvents };
+  const setOnline = (value) => {
+    online = value;
+    if (!online) for (const connection of sockets.values()) send(connection, '1');
+  };
+  return { context, broadcast, broadcastError, close, receivedEvents, setOnline };
 }

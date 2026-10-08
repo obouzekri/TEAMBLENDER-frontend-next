@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
 import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
@@ -180,7 +181,8 @@ function buildFallbackState(runtimePayload) {
 export default function LabDInnovationChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
   const isEn = locale === 'en';
-  const { state, error, isFacilitator, emitEvent, participantId } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
+  const { state, error, isFacilitator, emitEvent, participantId, connected } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
+  const timerControls = useFacilitatorTimerControls({ socket, emitEvent, state, isFacilitator });
   const timer = state?.timer || {};
   const challenge = state?.labInnovation || state?.lab_innovation || state?.innovation || buildFallbackState(runtimePayload);
   const [problemText, setProblemText] = useState('');
@@ -190,6 +192,8 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   const [contribution, setContribution] = useState({ advantage: '', improvement: '', impact: '' });
   const [finalVoteId, setFinalVoteId] = useState('');
   const [reactionMap, setReactionMap] = useState({});
+  const [pendingSubmission, setPendingSubmission] = useState(null);
+  const [submissionFeedback, setSubmissionFeedback] = useState('');
   const lastPhaseRef = useRef('');
 
   const rawParticipantsOrder = Array.isArray(challenge?.participants_order) ? challenge.participants_order : [];
@@ -210,7 +214,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   const rankings = Array.isArray(challenge?.rankings) ? challenge.rankings : [];
   const stats = challenge?.stats || buildFallbackState(runtimePayload).stats;
 
-  const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat } = useChallengeChat({
+  const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat, chatDelivery } = useChallengeChat({
     socket,
     emitEvent,
     author: myName,
@@ -248,8 +252,54 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
       : buildRank(Object.entries(scoreByParticipant).map(([id, score], index) => ({ id, participant_id: id, score, ts_index: index })), 'score');
   }, [rankings, scoreByParticipant]);
 
-  const visibleProblems = useMemo(() => sortByVotesAndAge(problemList).slice(0, 4), [problemList]);
+  const visibleProblems = useMemo(() => sortByVotesAndAge(topProblems).slice(0, 4), [topProblems]);
   const visibleSolutions = useMemo(() => sortByVotesAndAge(solutionList).slice(0, 3), [solutionList]);
+  const textLimit = Math.max(50, Math.min(500, Number(challenge.config?.limits?.text_max_length) || 200));
+  const canParticipate = !isFacilitator && connected && (timer.enabled === false || normalizedTimerStatus === 'running') && !pendingSubmission;
+  const problemValid = Boolean(clampText(problemText));
+  const solutionValid = Boolean(clampText(solutionText) && visibleProblems.some((item) => String(item.id) === selectedProblemId));
+  const contributionValid = Boolean(finalistSolutions.some((item) => String(item.id) === selectedSolutionId)
+    && clampText(contribution.advantage) && clampText(contribution.improvement) && clampText(contribution.impact));
+  const finalVoteValid = finalistSolutions.some((item) => String(item.id) === finalVoteId);
+  const hasFinalVote = Boolean(challenge.final_votes?.[me]);
+
+  useEffect(() => {
+    if (!pendingSubmission) return;
+    const { type, payload } = pendingSubmission;
+    const rows = type === 'problem' ? problemList : type === 'solution' ? solutionList : contributionList;
+    const acknowledged = type === 'final_vote'
+      ? String(challenge.final_votes?.[me] || '') === payload.solution_id
+      : rows.some((item) => !pendingSubmission.existingIds.includes(item.id) && String(item.participant_id) === me
+        && Object.entries(payload).every(([key, value]) => String(item[key] || '') === String(value)));
+    if (acknowledged) {
+      setPendingSubmission(null);
+      setSubmissionFeedback(isEn ? 'Confirmed by the server.' : 'Confirmé par le serveur.');
+      if (type === 'problem') setProblemText('');
+      if (type === 'solution') setSolutionText('');
+      if (type === 'contribution') setContribution({ advantage: '', improvement: '', impact: '' });
+      return;
+    }
+    if ((error && error !== pendingSubmission.previousError) || currentPhase !== pendingSubmission.phase) {
+      setPendingSubmission(null);
+      setSubmissionFeedback(error || (isEn ? 'Phase changed. Your draft has been kept.' : 'La phase a changé. Votre brouillon a été conservé.'));
+      return;
+    }
+    const timeout = window.setTimeout(() => {
+      setPendingSubmission(null);
+      setSubmissionFeedback(isEn ? 'No server confirmation received. Your draft has been kept; check the proposals before retrying.' : 'Aucune confirmation du serveur reçue. Votre brouillon est conservé ; vérifiez les propositions avant de réessayer.');
+    }, Math.max(0, pendingSubmission.sentAt + 15000 - Date.now()));
+    return () => window.clearTimeout(timeout);
+  }, [pendingSubmission, problemList, solutionList, contributionList, challenge.final_votes, me, error, currentPhase, isEn]);
+
+  function submit(type, eventType, payload) {
+    if (!canParticipate) {
+      setSubmissionFeedback(isEn ? 'Submission unavailable: check the connection and current phase.' : 'Envoi indisponible : vérifiez la connexion et la phase en cours.');
+      return;
+    }
+    setSubmissionFeedback('');
+    setPendingSubmission({ type, payload, phase: currentPhase, sentAt: Date.now(), previousError: error, existingIds: [...problemList, ...solutionList, ...contributionList].map((item) => item.id) });
+    emitEvent(eventType, payload);
+  }
 
   useEffect(() => {
     if (lastPhaseRef.current && lastPhaseRef.current !== currentPhase) {
@@ -261,33 +311,40 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   }, [currentPhase]);
 
   function emit(type, payload) {
-    emitEvent(type, payload || {});
+    if (!canParticipate) return false;
+    return emitEvent(type, payload || {});
   }
 
   function submitProblem() {
-    const text = clampText(problemText, 200);
-    if (!text) return;
-    emit('lab.problem.submit', { text });
-    setProblemText('');
+    const text = clampText(problemText, textLimit);
+    if (!problemValid) {
+      setSubmissionFeedback(isEn ? 'Describe a problem before submitting.' : 'Décrivez une problématique avant de soumettre.');
+      return;
+    }
+    submit('problem', 'lab.problem.submit', { text });
   }
 
   function submitSolution() {
-    const text = clampText(solutionText, 200);
-    if (!text || !selectedProblemId) return;
-    emit('lab.solution.submit', { text, problem_id: selectedProblemId });
-    setSolutionText('');
+    const text = clampText(solutionText, textLimit);
+    if (!solutionValid) {
+      setSubmissionFeedback(isEn ? 'Choose a problem and describe your solution.' : 'Choisissez une problématique et décrivez votre solution.');
+      return;
+    }
+    submit('solution', 'lab.solution.submit', { text, problem_id: selectedProblemId });
   }
 
   function submitContribution() {
     const payload = {
       solution_id: selectedSolutionId,
-      advantage: clampText(contribution.advantage, 200),
-      improvement: clampText(contribution.improvement, 200),
-      impact: clampText(contribution.impact, 200)
+      advantage: clampText(contribution.advantage, textLimit),
+      improvement: clampText(contribution.improvement, textLimit),
+      impact: clampText(contribution.impact, textLimit)
     };
-    if (!payload.solution_id || !payload.advantage || !payload.improvement || !payload.impact) return;
-    emit('lab.contribution.submit', payload);
-    setContribution({ advantage: '', improvement: '', impact: '' });
+    if (!contributionValid) {
+      setSubmissionFeedback(isEn ? 'Choose a solution and complete advantage, improvement and impact.' : 'Choisissez une solution et complétez avantage, amélioration et impact.');
+      return;
+    }
+    submit('contribution', 'lab.contribution.submit', payload);
   }
 
   function castProblemVote(problemId) {
@@ -299,8 +356,12 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   }
 
   function castFinalVote() {
-    if (!finalVoteId) return;
-    emit('lab.final.vote', { solution_id: finalVoteId });
+    if (hasFinalVote) return;
+    if (!finalVoteValid) {
+      setSubmissionFeedback(isEn ? 'Choose a solution before voting.' : 'Choisissez une solution avant de voter.');
+      return;
+    }
+    submit('final_vote', 'lab.final.vote', { solution_id: finalVoteId });
   }
 
   const rulesPreset = useMemo(() => getDictionary(locale)?.challengeRules?.labInnovation || getDictionary('fr')?.challengeRules?.labInnovation || {}, [locale]);
@@ -374,6 +435,10 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
           durationSeconds={timerDurationSeconds}
           status={timerStatus}
           isFacilitator={isFacilitator}
+          onPause={timerControls.pause}
+          onResume={timerControls.resume}
+          controlPending={timerControls.busy}
+          controlFeedback={timerControls.feedback}
           waitingText={isEn ? 'Waiting for facilitator to start' : 'En attente du facilitateur pour demarrer'}
         />
       </div>
@@ -422,6 +487,18 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                     </span>
                   ))}
                 </div>
+                <p className={styles.metaLine} role="status">
+                  {getPhaseGuidance(locale, currentPhase)}{' '}
+                  {isEn ? 'Proposals' : 'Propositions'}: {problemList.length + solutionList.length + contributionList.length}.{' '}
+                  {isEn ? 'Votes' : 'Votes'}: {phaseSummary.votes}.{' '}
+                  {currentPhaseIndex < PHASE_ORDER.length - 1
+                    ? `${isEn ? 'Next phase' : 'Phase suivante'}: ${getPhaseLabel(locale, PHASE_ORDER[currentPhaseIndex + 1])}. ${isEn ? 'Automatic transition when time expires.' : 'Transition automatique à la fin du temps.'}`
+                    : (isEn ? 'Final phase: results follow when time expires.' : 'Dernière phase : résultats à la fin du temps.')}
+                </p>
+                {pendingSubmission ? <p role="status">{isEn ? 'Waiting for server confirmation...' : 'En attente de confirmation du serveur...'}</p> : null}
+                {submissionFeedback ? <p role="status">{submissionFeedback}</p> : null}
+                {!socket?.connected ? <p role="alert">{isEn ? 'Connection interrupted. Your draft is kept.' : 'Connexion interrompue. Votre brouillon est conservé.'}</p> : null}
+                {timer.enabled !== false && normalizedTimerStatus !== 'running' ? <p role="status">{isEn ? 'Submissions are available only while the challenge is running.' : 'Les envois sont disponibles uniquement lorsque le challenge est en cours.'}</p> : null}
               </section>
 
           {currentPhase === 'problem' ? (
@@ -430,10 +507,11 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               {!isFacilitator ? (
                 <div className={styles.inputGrid}>
                   <div className={styles.textAreaWrap}>
-                    <textarea className={styles.textArea} value={problemText} onChange={(event) => setProblemText(event.target.value)} maxLength={200} placeholder={isEn ? 'Describe a problem (200 chars max)' : 'Décrivez une problématique (200 caractères max)'} />
-                    <span className={`${styles.charCount}${problemText.length >= 180 ? ` ${problemText.length >= 200 ? styles.charCountFull : styles.charCountNear}` : ''}`}>{problemText.length}/200</span>
+                    <textarea className={styles.textArea} value={problemText} onChange={(event) => setProblemText(event.target.value)} maxLength={textLimit} disabled={Boolean(pendingSubmission)} placeholder={isEn ? `Describe a problem (${textLimit} chars max)` : `Décrivez une problématique (${textLimit} caractères max)`} />
+                    <span className={`${styles.charCount}${problemText.length >= textLimit * 0.9 ? ` ${problemText.length >= textLimit ? styles.charCountFull : styles.charCountNear}` : ''}`}>{problemText.length}/{textLimit}</span>
                   </div>
-                  <button type="button" className={styles.primaryBtn} onClick={submitProblem}>{isEn ? 'Submit' : 'Soumettre'}</button>
+                  {!problemValid ? <p id="lab-problem-help">{isEn ? 'Describe a problem before submitting.' : 'Décrivez une problématique avant de soumettre.'}</p> : null}
+                  <button type="button" className={styles.primaryBtn} onClick={submitProblem} disabled={!canParticipate || !problemValid} aria-describedby={!problemValid ? 'lab-problem-help' : undefined}>{isEn ? 'Submit' : 'Soumettre'}</button>
                 </div>
               ) : null}
               <div className={styles.listGrid}>
@@ -448,7 +526,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                     </div>
                     <div className={styles.cardActions}>
                       <span className={styles.badge}>{Number(item.vote_count || 0)} {isEn ? 'votes' : 'votes'}</span>
-                      {!isFacilitator ? <button type="button" className={styles.ghostBtn} onClick={() => castProblemVote(String(item.id))}>{isEn ? 'Vote' : 'Voter'}</button> : null}
+                      {!isFacilitator ? <button type="button" className={styles.ghostBtn} disabled={!canParticipate} onClick={() => castProblemVote(String(item.id))}>{isEn ? 'Vote' : 'Voter'}</button> : null}
                     </div>
                   </article>
                 ))}
@@ -489,15 +567,16 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               </div>
               {!isFacilitator ? (
                 <div className={styles.inputGrid}>
-                  <select className={styles.select} value={selectedProblemId} onChange={(event) => setSelectedProblemId(event.target.value)}>
+                  <select className={styles.select} value={selectedProblemId} onChange={(event) => setSelectedProblemId(event.target.value)} disabled={Boolean(pendingSubmission)}>
                     <option value="">{isEn ? 'Choose a problem' : 'Choisir une problématique'}</option>
                     {visibleProblems.map((item) => <option key={item.id} value={item.id}>{clampText(item.text, 100)}</option>)}
                   </select>
                   <div className={styles.textAreaWrap}>
-                    <textarea className={styles.textArea} value={solutionText} onChange={(event) => setSolutionText(event.target.value)} maxLength={200} placeholder={isEn ? 'Describe a solution (200 chars max)' : 'Décrivez une solution (200 caractères max)'} />
-                    <span className={`${styles.charCount}${solutionText.length >= 180 ? ` ${solutionText.length >= 200 ? styles.charCountFull : styles.charCountNear}` : ''}`}>{solutionText.length}/200</span>
+                    <textarea className={styles.textArea} value={solutionText} onChange={(event) => setSolutionText(event.target.value)} maxLength={textLimit} disabled={Boolean(pendingSubmission)} placeholder={isEn ? `Describe a solution (${textLimit} chars max)` : `Décrivez une solution (${textLimit} caractères max)`} />
+                    <span className={`${styles.charCount}${solutionText.length >= textLimit * 0.9 ? ` ${solutionText.length >= textLimit ? styles.charCountFull : styles.charCountNear}` : ''}`}>{solutionText.length}/{textLimit}</span>
                   </div>
-                  <button type="button" className={styles.primaryBtn} onClick={submitSolution}>{isEn ? 'Submit' : 'Soumettre'}</button>
+                  {!solutionValid ? <p id="lab-solution-help">{isEn ? 'Choose a problem and describe your solution.' : 'Choisissez une problématique et décrivez votre solution.'}</p> : null}
+                  <button type="button" className={styles.primaryBtn} onClick={submitSolution} disabled={!canParticipate || !solutionValid} aria-describedby={!solutionValid ? 'lab-solution-help' : undefined}>{isEn ? 'Submit' : 'Soumettre'}</button>
                 </div>
               ) : null}
               <div className={styles.listGrid}>
@@ -512,7 +591,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                     </div>
                     <div className={styles.cardActions}>
                       <span className={styles.badge}>{Number(item.vote_count || 0)} {isEn ? 'votes' : 'votes'}</span>
-                      {!isFacilitator ? <button type="button" className={styles.ghostBtn} onClick={() => castSolutionVote(String(item.id))}>{isEn ? 'Vote' : 'Voter'}</button> : null}
+                      {!isFacilitator ? <button type="button" className={styles.ghostBtn} disabled={!canParticipate} onClick={() => castSolutionVote(String(item.id))}>{isEn ? 'Vote' : 'Voter'}</button> : null}
                     </div>
                   </article>
                 ))}
@@ -553,23 +632,24 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               </div>
               {!isFacilitator ? (
                 <div className={styles.inputGrid}>
-                  <select className={styles.select} value={selectedSolutionId} onChange={(event) => setSelectedSolutionId(event.target.value)}>
+                  <select className={styles.select} value={selectedSolutionId} onChange={(event) => setSelectedSolutionId(event.target.value)} disabled={Boolean(pendingSubmission)}>
                     <option value="">{isEn ? 'Choose a finalist solution' : 'Choisir une solution finaliste'}</option>
                     {finalistSolutions.map((item) => <option key={item.id} value={item.id}>{clampText(item.text, 100)}</option>)}
                   </select>
                   <div className={styles.textAreaWrap}>
-                    <textarea className={styles.textArea} value={contribution.advantage} onChange={(event) => setContribution((prev) => ({ ...prev, advantage: event.target.value }))} maxLength={200} placeholder={isEn ? 'Advantage (200 max)' : 'Avantage (200 max)'} />
-                    <span className={`${styles.charCount}${contribution.advantage.length >= 180 ? ` ${contribution.advantage.length >= 200 ? styles.charCountFull : styles.charCountNear}` : ''}`}>{contribution.advantage.length}/200</span>
+                    <textarea className={styles.textArea} value={contribution.advantage} onChange={(event) => setContribution((prev) => ({ ...prev, advantage: event.target.value }))} maxLength={textLimit} disabled={Boolean(pendingSubmission)} placeholder={isEn ? `Advantage (${textLimit} max)` : `Avantage (${textLimit} max)`} />
+                    <span className={`${styles.charCount}${contribution.advantage.length >= textLimit * 0.9 ? ` ${contribution.advantage.length >= textLimit ? styles.charCountFull : styles.charCountNear}` : ''}`}>{contribution.advantage.length}/{textLimit}</span>
                   </div>
                   <div className={styles.textAreaWrap}>
-                    <textarea className={styles.textArea} value={contribution.improvement} onChange={(event) => setContribution((prev) => ({ ...prev, improvement: event.target.value }))} maxLength={200} placeholder={isEn ? 'Improvement (200 max)' : 'Amélioration (200 max)'} />
-                    <span className={`${styles.charCount}${contribution.improvement.length >= 180 ? ` ${contribution.improvement.length >= 200 ? styles.charCountFull : styles.charCountNear}` : ''}`}>{contribution.improvement.length}/200</span>
+                    <textarea className={styles.textArea} value={contribution.improvement} onChange={(event) => setContribution((prev) => ({ ...prev, improvement: event.target.value }))} maxLength={textLimit} disabled={Boolean(pendingSubmission)} placeholder={isEn ? `Improvement (${textLimit} max)` : `Amélioration (${textLimit} max)`} />
+                    <span className={`${styles.charCount}${contribution.improvement.length >= textLimit * 0.9 ? ` ${contribution.improvement.length >= textLimit ? styles.charCountFull : styles.charCountNear}` : ''}`}>{contribution.improvement.length}/{textLimit}</span>
                   </div>
                   <div className={styles.textAreaWrap}>
-                    <textarea className={styles.textArea} value={contribution.impact} onChange={(event) => setContribution((prev) => ({ ...prev, impact: event.target.value }))} maxLength={200} placeholder={isEn ? 'Impact (200 max)' : 'Impact (200 max)'} />
-                    <span className={`${styles.charCount}${contribution.impact.length >= 180 ? ` ${contribution.impact.length >= 200 ? styles.charCountFull : styles.charCountNear}` : ''}`}>{contribution.impact.length}/200</span>
+                    <textarea className={styles.textArea} value={contribution.impact} onChange={(event) => setContribution((prev) => ({ ...prev, impact: event.target.value }))} maxLength={textLimit} disabled={Boolean(pendingSubmission)} placeholder={`Impact (${textLimit} max)`} />
+                    <span className={`${styles.charCount}${contribution.impact.length >= textLimit * 0.9 ? ` ${contribution.impact.length >= textLimit ? styles.charCountFull : styles.charCountNear}` : ''}`}>{contribution.impact.length}/{textLimit}</span>
                   </div>
-                  <button type="button" className={styles.primaryBtn} onClick={submitContribution}>{isEn ? 'Submit' : 'Soumettre'}</button>
+                  {!contributionValid ? <p id="lab-contribution-help">{isEn ? 'Choose a solution and complete advantage, improvement and impact.' : 'Choisissez une solution et complétez avantage, amélioration et impact.'}</p> : null}
+                  <button type="button" className={styles.primaryBtn} onClick={submitContribution} disabled={!canParticipate || !contributionValid} aria-describedby={!contributionValid ? 'lab-contribution-help' : undefined}>{isEn ? 'Submit' : 'Soumettre'}</button>
                 </div>
               ) : null}
               <div className={styles.listGrid}>
@@ -606,7 +686,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                         <strong>{clampText(item.text, 120)}</strong>
                         <p>{participantMap.get(String(item.participant_id || '')) || 'Participant'}</p>
                       </div>
-                      {!isFacilitator ? <button type="button" className={styles.ghostBtn} onClick={() => setFinalVoteId(String(item.id))}>{isEn ? 'Select' : 'Sélectionner'}</button> : null}
+                      {!isFacilitator ? <button type="button" className={styles.ghostBtn} onClick={() => setFinalVoteId(String(item.id))} aria-pressed={finalVoteId === String(item.id)}>{finalVoteId === String(item.id) ? (isEn ? 'Selected' : 'Sélectionnée') : (isEn ? 'Select' : 'Sélectionner')}</button> : null}
                     </article>
                   ))}
                 </div>
@@ -615,7 +695,8 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                 <div className={styles.voteHero}>
                   <span className={styles.voteHeroLabel}>{isEn ? 'Anonymous vote' : 'Vote anonyme'}</span>
                   <strong>{isEn ? 'Choose one solution' : 'Choisissez une solution'}</strong>
-                  <button type="button" className={styles.primaryBtn} onClick={castFinalVote}>{isEn ? 'Submit vote' : 'Valider le vote'}</button>
+                  {!finalVoteValid ? <p id="lab-vote-help">{isEn ? 'Choose a solution before voting.' : 'Choisissez une solution avant de voter.'}</p> : null}
+                  <button type="button" className={styles.primaryBtn} onClick={castFinalVote} disabled={!canParticipate || !finalVoteValid || hasFinalVote} aria-describedby={!finalVoteValid ? 'lab-vote-help' : undefined}>{hasFinalVote ? (isEn ? 'Vote recorded' : 'Vote enregistré') : (isEn ? 'Submit vote' : 'Valider le vote')}</button>
                 </div>
               ) : null}
             </section>
@@ -655,6 +736,10 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               durationSeconds={timerDurationSeconds}
               status={timerStatus}
               isFacilitator={isFacilitator}
+              onPause={timerControls.pause}
+              onResume={timerControls.resume}
+              controlPending={timerControls.busy}
+              controlFeedback={timerControls.feedback}
               waitingText={isEn ? 'Waiting for facilitator to start' : 'En attente du facilitateur pour demarrer'}
             />
           </div>
@@ -681,6 +766,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             inputValue={chatInput}
             onInputChange={setChatInput}
             onSubmit={submitChat}
+            delivery={chatDelivery}
             quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
             onQuickMessage={sendQuickChat}
             maxLength={240}

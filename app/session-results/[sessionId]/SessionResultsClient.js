@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { clearSessionAuth, getAuthHeaders, getStoredAuthToken, getStoredCurrentUser } from '@/lib/auth';
 import { getApiUrl } from '@/lib/config';
 import useI18n from '@/lib/i18n/useI18n';
+import { fetchSessionResults } from '@/lib/session-results';
 
 function formatDuration(ms) {
   if (!ms || ms <= 0) return '—';
@@ -45,6 +46,7 @@ export default function SessionResultsClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const authInitRef = useRef(false);
+  const loadControllerRef = useRef(null);
 
   // Auth guard
   useEffect(() => {
@@ -64,42 +66,31 @@ export default function SessionResultsClient() {
 
   const loadData = useCallback(async () => {
     if (!sessionId) return;
+    loadControllerRef.current?.abort();
+    const controller = new AbortController();
+    loadControllerRef.current = controller;
+    const { signal } = controller;
+    setLoading(true);
+    setError('');
     try {
-      const [sessionRes, resultsRes, rateRes, kpisRes] = await Promise.all([
-        fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), { headers: getAuthHeaders() }),
-        fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/results`), { headers: getAuthHeaders() }),
-        fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/participation-rate`), { headers: getAuthHeaders() }),
-        fetch(getApiUrl(`/challenge-results/sessions/${encodeURIComponent(sessionId)}/kpis`), { headers: getAuthHeaders() }),
-      ]);
-
-      if (!sessionRes.ok) throw new Error(isEn ? `Session not found (${sessionRes.status})` : `Session introuvable (${sessionRes.status})`);
-
-      const sessionData = await sessionRes.json();
-      setSession(sessionData);
-
-      if (resultsRes.ok) {
-        const resultsPayload = await resultsRes.json();
-        setResults(Array.isArray(resultsPayload?.data) ? resultsPayload.data : []);
-      }
-
-      if (rateRes.ok) {
-        const ratePayload = await rateRes.json();
-        setParticipationRate(ratePayload?.data ?? null);
-      }
-
-      if (kpisRes.ok) {
-        const kpisPayload = await kpisRes.json();
-        setKpis(kpisPayload?.data ?? null);
-      }
+      const data = await fetchSessionResults({ sessionId, getApiUrl, headers: getAuthHeaders(), signal, isEn });
+      if (signal?.aborted) return;
+      setSession(data.session);
+      setResults(data.results);
+      setParticipationRate(data.participationRate);
+      setKpis(data.kpis);
     } catch (err) {
+      if (signal?.aborted) return;
       setError(err.message || (isEn ? 'Unable to load results.' : 'Impossible de charger les résultats.'));
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, [isEn, sessionId]);
 
   useEffect(() => {
-    if (user) loadData();
+    if (!user) return;
+    loadData();
+    return () => loadControllerRef.current?.abort();
   }, [user, loadData]);
 
   function logout() {
@@ -160,9 +151,13 @@ export default function SessionResultsClient() {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>{isEn ? 'Error' : 'Erreur'}</h1>
-          <p>{error}</p>
-          <Link href={withLocalePath('/home')} className="btn-secondary">{isEn ? 'Back' : 'Retour'}</Link>
+          <h1>{isEn ? 'Unable to load results' : 'Impossible de charger les résultats'}</h1>
+          <p role="alert">{error}</p>
+          <p>{isEn ? 'The data could not be retrieved. This does not mean the session has no results.' : 'Les données n’ont pas pu être récupérées. Cela ne signifie pas que la session ne contient aucun résultat.'}</p>
+          <div className="hero-actions">
+            <button type="button" className="btn-primary" onClick={() => loadData()}>{isEn ? 'Retry' : 'Réessayer'}</button>
+            <Link href={withLocalePath(user?.role === 'participant' ? '/participant' : '/home')} className="btn-secondary">{isEn ? 'Back' : 'Retour'}</Link>
+          </div>
         </section>
       </main>
     );

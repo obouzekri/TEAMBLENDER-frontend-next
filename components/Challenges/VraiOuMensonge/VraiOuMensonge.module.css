@@ -36,6 +36,16 @@
   overflow-y: hidden;
 }
 
+.roleBanner {
+  margin: 0;
+  padding: 12px 16px;
+  color: var(--text-main);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  font-weight: 700;
+}
+
 :global(html[data-theme='light']) .shell {
   --bg-1: #f5f9ff;
   --bg-2: #eaf3ff;
@@ -1727,7 +1737,8 @@
   padding: 16px;
   border-radius: 20px;
   border: 1px solid rgba(125, 164, 188, 0.18);
-  background: radial-gradient(circle at 0% 0%, rgba(14, 165, 233, 0.14), transparent 36%), radial-gradient(circle at 100% 100%, rgba(245, 195, 77, 0.1), transparent 34%), linear-gradient(160deg, rgba(10, 23, 35, 0.92), rgba(9, 19, 29, 0.98));
+  background: var(--surface-panel);
+  color: var(--challenge-text-primary);
   box-shadow: 0 20px 42px rgba(2, 9, 16, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
 
@@ -2042,10 +2053,7 @@
 }
 
 :global(html[data-theme='light']) .resultHero {
-  background:
-    radial-gradient(circle at 0% 0%, rgba(8, 127, 154, 0.12), transparent 36%),
-    radial-gradient(circle at 100% 100%, rgba(245, 158, 11, 0.1), transparent 34%),
-    linear-gradient(160deg, var(--surface-1), var(--surface-2));
+  background: var(--surface-panel);
   border-color: var(--line-soft);
   box-shadow: 0 20px 42px rgba(15, 23, 42, 0.12);
 }

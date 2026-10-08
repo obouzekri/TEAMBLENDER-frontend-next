@@ -41,8 +41,9 @@
   background: var(--modal-panel-alt);
   color: color-mix(in srgb, var(--ink-soft) 88%, #687386);
   border-radius: 999px;
-  width: 1.8rem;
-  height: 1.8rem;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
   line-height: 1;
   font-size: 1.1rem;
   cursor: pointer;

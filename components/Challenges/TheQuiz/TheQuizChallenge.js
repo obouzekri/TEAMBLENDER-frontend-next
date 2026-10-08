@@ -3,7 +3,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
+import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
+import useConfirmedAction from '@/lib/challenges/useConfirmedAction';
+import ChallengeActionFeedback from '../ChallengeActionFeedback';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getTheQuizRulesPreset } from '@/lib/challenges/theQuizRules';
 import ChallengeChatCard from '../ChallengeChatCard';
@@ -16,7 +19,7 @@ import {
   QuizQuestionResultScreen,
   QuizQuestionScreen,
 } from './TheQuizScreens';
-import { THE_QUIZ_PLACEHOLDER_QUESTION, buildPlaceholderLeaderboard } from './theQuiz.schema';
+import { getQuizOptions, getQuizRankingStatus, normalizeQuizAnswerIndex, shouldIgnoreQuizShortcut } from '@/lib/challenges/quiz-utils';
 import styles from './TheQuiz.module.css';
 import useI18n from '@/lib/i18n/useI18n';
 
@@ -42,15 +45,12 @@ function buildFallbackQuiz(runtimePayload, state, isFacilitator) {
     leaderboard_enabled: config?.leaderboard?.enabled !== false,
     participants,
     question_index: 0,
-    current_question: state?.quiz?.current_question || THE_QUIZ_PLACEHOLDER_QUESTION,
-    latest_question_result: state?.quiz?.latest_question_result || {
-      correct_choice_index: 0,
-      explanation: THE_QUIZ_PLACEHOLDER_QUESTION.explanation,
-    },
+    current_question: null,
+    latest_question_result: null,
     question_history: Array.isArray(state?.quiz?.question_history) ? state.quiz.question_history : [],
-    leaderboard: buildPlaceholderLeaderboard(participants),
-    final_standings: buildPlaceholderLeaderboard(participants),
-    answer_count: Math.max(0, Math.floor((participants.length || 4) / 2)),
+    leaderboard: [],
+    final_standings: [],
+    answer_count: 0,
     can_control: Boolean(isFacilitator),
   };
 }
@@ -102,24 +102,28 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
 
   const rawQuiz = state?.quiz || null;
+  const answerAction = useConfirmedAction({ socket, emitEvent, state, resetKey: getQuestionId(rawQuiz), requiresRunningTimer: false });
+  const timerControls = useFacilitatorTimerControls({
+    socket,
+    emitEvent,
+    state,
+    isFacilitator,
+    pauseEvent: 'quiz.session.pause',
+    resumeEvent: 'quiz.session.resume',
+  });
   const quiz = useMemo(
     () => ({
       ...buildFallbackQuiz(runtimePayload, state, isFacilitator),
       ...(rawQuiz || {}),
-      leaderboard: Array.isArray(rawQuiz?.leaderboard) && rawQuiz.leaderboard.length > 0
-        ? rawQuiz.leaderboard
-        : buildPlaceholderLeaderboard(rawQuiz?.participants || []),
-      final_standings: Array.isArray(rawQuiz?.final_standings) && rawQuiz.final_standings.length > 0
-        ? rawQuiz.final_standings
-        : buildPlaceholderLeaderboard(rawQuiz?.participants || []),
-      current_question: rawQuiz?.current_question || THE_QUIZ_PLACEHOLDER_QUESTION,
-      latest_question_result: rawQuiz?.latest_question_result || {
-        correct_choice_index: 0,
-        explanation: THE_QUIZ_PLACEHOLDER_QUESTION.explanation,
-      },
+      leaderboard: Array.isArray(rawQuiz?.leaderboard) ? rawQuiz.leaderboard : [],
+      final_standings: Array.isArray(rawQuiz?.final_standings) ? rawQuiz.final_standings : [],
+      leaderboard_status: getQuizRankingStatus(rawQuiz?.leaderboard, rawQuiz?.phase, { waiting: !state, unavailable: Boolean(error) }),
+      final_standings_status: getQuizRankingStatus(rawQuiz?.final_standings, rawQuiz?.phase, { waiting: !state, unavailable: Boolean(error) }),
+      current_question: rawQuiz?.current_question || null,
+      latest_question_result: rawQuiz?.latest_question_result || null,
       question_history: Array.isArray(rawQuiz?.question_history) ? rawQuiz.question_history : [],
     }),
-    [runtimePayload, state, isFacilitator, rawQuiz]
+    [runtimePayload, state, isFacilitator, rawQuiz, error]
   );
 
   useEffect(() => {
@@ -169,6 +173,10 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
   useEffect(() => {
     const endsAtValue = quiz?.question_ends_at;
+    if (String(quiz?.status || '') === 'paused') {
+      setRemainingSeconds(Math.max(0, Math.ceil(Number(quiz?.paused_remaining_ms || 0) / 1000)));
+      return undefined;
+    }
     if (!endsAtValue || String(quiz?.phase || '') !== 'question_live') {
       setRemainingSeconds(Number(quiz?.question_duration_seconds || 0));
       return;
@@ -187,7 +195,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     refreshRemaining();
     const timer = window.setInterval(refreshRemaining, 250);
     return () => window.clearInterval(timer);
-  }, [quiz?.question_ends_at, quiz?.phase, quiz?.question_duration_seconds]);
+  }, [quiz?.paused_remaining_ms, quiz?.question_ends_at, quiz?.phase, quiz?.question_duration_seconds, quiz?.status]);
 
   useEffect(() => {
     if (!socket || !socket.connected) return;
@@ -231,6 +239,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     chatMessages,
     submitChat,
     sendQuickChat,
+    chatDelivery,
   } = useChallengeChat({
     socket,
     emitEvent,
@@ -327,10 +336,10 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const isStarted = renderedPhase !== 'lobby';
   const connectedCount = Number(quiz?.connected_count || 0);
   const canStartQuiz = connectedCount >= 2;
-  const timerStatus = activePhase === 'question_live'
-    ? 'running'
-    : String(quiz?.status || '').trim().toLowerCase() === 'paused'
-      ? 'paused'
+  const timerStatus = String(quiz?.status || '').trim().toLowerCase() === 'paused'
+    ? 'paused'
+    : activePhase === 'question_live'
+      ? 'running'
       : activePhase === 'final_score'
         ? 'completed'
         : 'idle';
@@ -347,12 +356,21 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   }
 
   function handleSubmitAnswer() {
-    if (!Number.isInteger(Number(selectedAnswerIndex)) || answerLocked) return;
-    submittedAnswersByQuestionIdRef.current[getQuestionId(quiz)] = Number(selectedAnswerIndex);
-    emitEvent('quiz.answer.submit', {
-      selected_option: Number(selectedAnswerIndex),
+    const index = normalizeQuizAnswerIndex(selectedAnswerIndex, getQuizOptions(quiz.current_question).length);
+    if (index === null || answerLocked || answerAction.busy || activePhase !== 'question_live' || quiz?.status === 'paused' || isFacilitator || !socket?.connected) return;
+    const questionId = getQuestionId(quiz);
+    const participantId = String(context?.userId || context?.participantId || runtimePayload?.context?.participantId || '');
+    answerAction.run({
+      type: 'quiz.answer.submit',
+      payload: { selected_option: index },
+      isAvailable: (snapshot) => snapshot?.quiz?.phase === 'question_live' && getQuestionId(snapshot.quiz) === questionId,
+      isConfirmed: () => false,
+      isConfirmedEvent: (packet) => packet?.type === 'answer_submitted' && packet.payload?.accepted === true && String(packet.payload.participant_id) === participantId && String(packet.payload.question_id) === questionId && Number(packet.payload.selected_option) === index,
+      onConfirmed: () => {
+        submittedAnswersByQuestionIdRef.current[questionId] = index;
+        setAnswerLocked(true);
+      },
     });
-    setAnswerLocked(true);
   }
 
   const myResultQuestionId = String(
@@ -366,13 +384,16 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     if (activePhase !== 'question_live' || isFacilitator) return;
 
     function onKeyDown(event) {
-      if (answerLocked) return;
+      if (answerLocked || answerAction.busy || !socket?.connected || shouldIgnoreQuizShortcut(event)) return;
       const key = String(event.key || '').trim();
       if (['1', '2', '3', '4'].includes(key)) {
-        event.preventDefault();
-        setSelectedAnswerIndex(Number(key) - 1);
+        const index = normalizeQuizAnswerIndex(Number(key) - 1, getQuizOptions(quiz.current_question).length);
+        if (index !== null) {
+          event.preventDefault();
+          setSelectedAnswerIndex(index);
+        }
       }
-      if (key === 'Enter' && Number.isInteger(Number(selectedAnswerIndex))) {
+      if (key === 'Enter' && normalizeQuizAnswerIndex(selectedAnswerIndex, getQuizOptions(quiz.current_question).length) !== null) {
         event.preventDefault();
         handleSubmitAnswer();
       }
@@ -380,7 +401,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [activePhase, isFacilitator, answerLocked, selectedAnswerIndex]);
+  }, [activePhase, isFacilitator, answerLocked, answerAction.busy, selectedAnswerIndex, quiz.current_question, socket]);
 
   function renderParticipantScreen() {
     if (renderedPhase === 'question_live') {
@@ -390,7 +411,9 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
           quiz={phaseQuizView}
           selectedAnswerIndex={selectedAnswerIndex}
           onSelectAnswer={setSelectedAnswerIndex}
-          isAnswerLocked={answerLocked}
+          isAnswerLocked={answerLocked || answerAction.busy}
+          isAnswerPending={answerAction.busy}
+          isConnected={Boolean(socket?.connected) && quiz?.status !== 'paused'}
           remainingSeconds={remainingSeconds}
           totalSeconds={Number(quiz.question_duration_seconds || 30)}
           participantsAnsweredCount={participantsAnsweredCount}
@@ -462,6 +485,10 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
             durationSeconds={timerDurationSeconds}
             status={timerStatus}
             isFacilitator={isFacilitator}
+            onPause={timerControls.pause}
+            onResume={timerControls.resume}
+            controlPending={timerControls.busy}
+            controlFeedback={timerControls.feedback}
             waitingText=""
           />
         </div>
@@ -492,6 +519,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
               </div>
             )}
 
+            {!isFacilitator && activePhase === 'question_live' ? <ChallengeActionFeedback feedback={answerAction.feedback} /> : null}
             {!isFacilitator && activePhase === 'question_live' && answerLocked ? (
               <div className={styles.autoTransitionHint} aria-live="polite">
                 {isEn ? 'Answer submitted. Next question will appear automatically.' : 'Réponse soumise. La question suivante s\'affichera automatiquement.'}
@@ -514,6 +542,10 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 durationSeconds={timerDurationSeconds}
                 status={timerStatus}
                 isFacilitator={isFacilitator}
+                onPause={timerControls.pause}
+                onResume={timerControls.resume}
+                controlPending={timerControls.busy}
+                controlFeedback={timerControls.feedback}
                 waitingText=""
               />
             </div>
@@ -529,6 +561,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                   inputValue={chatInput}
                   onInputChange={setChatInput}
                   onSubmit={submitChat}
+                  delivery={chatDelivery}
                   quickMessages={quiz.quick_reactions_enabled ? quickMessages : []}
                   onQuickMessage={sendQuickChat}
                   emptyText={isEn ? 'No messages yet.' : 'Aucun message pour le moment.'}

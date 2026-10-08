@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { ChallengeProgressContext } from '@/lib/challenges/connection-context';
 import Image from 'next/image';
 import { KeyRound, LockKeyhole } from 'lucide-react';
 import { buildBackendAssetCandidates, getApiUrl } from '@/lib/config';
@@ -324,6 +325,7 @@ export default function EscapeRoomChallenge({
   const rulesPreset = useMemo(() => getEscapeRoomRulesPreset(locale), [locale]);
   const [state, setState] = useState(null);
   const [participants, setParticipants] = useState([]);
+  const [participantsError, setParticipantsError] = useState('');
   const [answer, setAnswer] = useState('');
   const [busyAction, setBusyAction] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -334,6 +336,8 @@ export default function EscapeRoomChallenge({
   const stateRequestIdRef = useRef(0);
   const appliedStateRequestIdRef = useRef(0);
   const inFlightStateRef = useRef(null);
+  const [syncError, setSyncError] = useState('');
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
   const verdictTimeoutRef = useRef(null);
 
   const sessionId = String(context?.sessionId || runtimePayload?.session_id || '').trim();
@@ -370,7 +374,7 @@ export default function EscapeRoomChallenge({
       try {
         payload = body ? JSON.parse(body) : {};
       } catch {
-        payload = {};
+        throw new Error(locale === 'en' ? 'Invalid server response. Please retry.' : 'Réponse du serveur invalide. Veuillez réessayer.');
       }
 
       if (!response.ok) {
@@ -379,7 +383,7 @@ export default function EscapeRoomChallenge({
 
       return payload;
     },
-    [copy.apiError, endpointBase]
+    [copy.apiError, endpointBase, locale]
   );
 
   const loadState = useCallback(async () => {
@@ -394,12 +398,21 @@ export default function EscapeRoomChallenge({
 
     const requestPromise = apiCall('/state', { method: 'GET' })
       .then((payload) => {
+        if (!payload || typeof payload !== 'object' || Array.isArray(payload) || typeof payload.status !== 'string' || !payload.timer || typeof payload.timer !== 'object') {
+          throw new Error(locale === 'en' ? 'Incomplete game state received. Please retry.' : 'État de la partie incomplet reçu. Veuillez réessayer.');
+        }
         if (requestId < appliedStateRequestIdRef.current) {
           return payload;
         }
         appliedStateRequestIdRef.current = requestId;
         setState(payload);
+        setSyncError('');
+        setLastSyncedAt(Date.now());
         return payload;
+      })
+      .catch((error) => {
+        setSyncError(error.message || copy.actionUnavailable);
+        throw error;
       })
       .finally(() => {
         inFlightStateRef.current = null;
@@ -407,7 +420,7 @@ export default function EscapeRoomChallenge({
 
     inFlightStateRef.current = requestPromise;
     return requestPromise;
-  }, [apiCall, endpointBase]);
+  }, [apiCall, copy.actionUnavailable, endpointBase, locale]);
 
   const loadParticipants = useCallback(async () => {
     if (!endpointBase) return;
@@ -417,12 +430,14 @@ export default function EscapeRoomChallenge({
         ? payload.participants
         : Array.isArray(payload)
           ? payload
-          : [];
+          : null;
+      if (!rows) throw new Error(locale === 'en' ? 'Invalid participants list received.' : 'Liste des participants reçue invalide.');
       setParticipants(rows);
-    } catch {
-      setParticipants([]);
+      setParticipantsError('');
+    } catch (error) {
+      setParticipantsError(error.message || copy.actionUnavailable);
     }
-  }, [apiCall, endpointBase]);
+  }, [apiCall, endpointBase, locale, copy.actionUnavailable]);
 
   useEffect(() => {
     loadParticipants().catch(() => {});
@@ -439,9 +454,7 @@ export default function EscapeRoomChallenge({
   useEffect(() => {
     if (!endpointBase) return () => {};
     const poll = window.setInterval(() => {
-      loadState().catch(() => {
-        // Keep polling silent to avoid noisy UI.
-      });
+      loadState().catch(() => {});
     }, 3000);
 
     return () => {
@@ -453,7 +466,12 @@ export default function EscapeRoomChallenge({
     runtimePayload,
     socket,
     context,
+    reportState: false,
   });
+  const reportProgress = useContext(ChallengeProgressContext);
+  useEffect(() => {
+    if (state && reportProgress) reportProgress({ ...state, escapeStatus: state.status });
+  }, [state, reportProgress]);
 
   const displayName = useMemo(() => {
     const fromPayload = String(runtimePayload?.context?.displayName || '').trim();
@@ -473,7 +491,7 @@ export default function EscapeRoomChallenge({
 
   const chatEnabled = runtimePayload?.config?.chat?.enabled !== false && Boolean(socket);
 
-  const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat } = useChallengeChat({
+  const { chatInput, setChatInput, chatMessages, submitChat, sendQuickChat, chatDelivery } = useChallengeChat({
     socket,
     emitEvent,
     author: displayName,
@@ -602,7 +620,7 @@ export default function EscapeRoomChallenge({
   );
 
   const submitAnswer = useCallback(() => {
-    if (!currentEnigme || !answer.trim()) return;
+    if (!currentEnigme || !answer.trim() || state?.status === 'paused') return;
 
     runAction('submit', async () => {
       const payload = await apiCall('/submit', {
@@ -641,7 +659,7 @@ export default function EscapeRoomChallenge({
         setAnswer('');
       }
     });
-  }, [answer, apiCall, currentEnigme, runAction]);
+  }, [answer, apiCall, currentEnigme, runAction, state?.status]);
 
   const facilitatorAction = useCallback(
     (actionKey, path, body) => {
@@ -717,6 +735,8 @@ export default function EscapeRoomChallenge({
   );
   const canStartTimer = isFacilitator && challengeStatus === 'waiting_for_start' && !busyAction;
   const isTimerRunning = challengeStatus === 'in_progress';
+  const isTimerPaused = challengeStatus === 'paused';
+  const timerStatus = isTimerPaused ? 'paused' : isTimerRunning ? 'running' : 'idle';
 
   const participantRows = useMemo(() => {
     return participants.map((participant) => {
@@ -763,9 +783,7 @@ export default function EscapeRoomChallenge({
     }
 
     const fastPoll = window.setInterval(() => {
-      loadState().catch(() => {
-        // Silent refresh while this participant waits for collective completion.
-      });
+      loadState().catch(() => {});
     }, 700);
 
     return () => {
@@ -802,9 +820,13 @@ export default function EscapeRoomChallenge({
         });
         return;
       }
-      setFeedback(copy.timerUnsupported);
+      if (actionKey === 'pause' || actionKey === 'resume') {
+        runAction(actionKey, async () => {
+          await apiCall(`/${actionKey}`, { method: 'POST' });
+        });
+      }
     },
-    [apiCall, copy.timerUnsupported, emitEvent, runAction]
+    [apiCall, emitEvent, runAction]
   );
 
   if (!endpointBase) {
@@ -823,6 +845,10 @@ export default function EscapeRoomChallenge({
       <div className={styles.escapeRoomContainer}>
         <div className={styles.card}>
           <h2>{copy.loadingRoom}</h2>
+          {syncError ? <div role="alert">
+            <p>{syncError}</p>
+            <button type="button" className={styles.secondaryBtn} onClick={() => loadState().catch(() => {})}>{isEn ? 'Retry' : 'Réessayer'}</button>
+          </div> : null}
         </div>
       </div>
     );
@@ -830,6 +856,18 @@ export default function EscapeRoomChallenge({
 
   return (
     <div className={styles.escapeRoomContainer}>
+      {syncError ? (
+        <div className={styles.card} role="alert">
+          <strong>{isEn ? 'Synchronization interrupted: displayed state may be outdated.' : 'Synchronisation interrompue : l’état affiché peut être obsolète.'}</strong>
+          <p>{syncError}</p>
+          {lastSyncedAt ? <p>{isEn ? 'Last update:' : 'Dernière mise à jour :'} {new Date(lastSyncedAt).toLocaleTimeString(isEn ? 'en-US' : 'fr-FR')}</p> : null}
+          <button type="button" className={styles.secondaryBtn} onClick={() => loadState().catch(() => {})}>{isEn ? 'Retry' : 'Réessayer'}</button>
+        </div>
+      ) : null}
+      {participantsError ? <div role="alert">
+        <p>{participantsError}</p>
+        <button type="button" onClick={loadParticipants}>{locale === 'en' ? 'Retry participants' : 'Réessayer les participants'}</button>
+      </div> : null}
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || copy.subtitleFallback}
@@ -858,15 +896,18 @@ export default function EscapeRoomChallenge({
           title={copy.timerTitle}
           remainingSeconds={timerSeconds}
           durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
-          status={isTimerRunning ? 'running' : 'idle'}
+          status={timerStatus}
           isFacilitator={isFacilitator}
+          onPause={() => handleTimerAction('pause')}
+          onResume={() => handleTimerAction('resume')}
+          controlPending={busyAction === 'pause' || busyAction === 'resume'}
           waitingText=""
           footer={
             isFacilitator && !isFinished && currentEnigme ? (
               <div className={styles.timerQuickActions}>
                 <button
                   className={styles.secondaryBtn}
-                  disabled={!!busyAction}
+                  disabled={!!busyAction || isTimerPaused}
                   onClick={() =>
                     facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })
                   }
@@ -875,7 +916,7 @@ export default function EscapeRoomChallenge({
                 </button>
                 <button
                   className={styles.secondaryBtn}
-                  disabled={!!busyAction}
+                  disabled={!!busyAction || isTimerPaused}
                   onClick={() => facilitatorAction('skip', '/skip')}
                 >
                   {copy.skipRiddle}
@@ -1131,7 +1172,7 @@ export default function EscapeRoomChallenge({
                       onChange={(event) => setAnswer(event.target.value.toUpperCase())}
                       placeholder={String(currentUiData?.placeholder || copy.answerPlaceholder)}
                       className={styles.input}
-                      disabled={busyAction === 'submit' || !currentEnigme}
+                      disabled={busyAction === 'submit' || !currentEnigme || isTimerPaused}
                       autoComplete="off"
                       spellCheck={false}
                       onKeyDown={(e) => {
@@ -1140,7 +1181,7 @@ export default function EscapeRoomChallenge({
                     />
                     <button
                       onClick={submitAnswer}
-                      disabled={busyAction === 'submit' || !answer.trim() || !currentEnigme}
+                      disabled={busyAction === 'submit' || !answer.trim() || !currentEnigme || isTimerPaused}
                       className={styles.primaryBtn}
                       type="button"
                     >
@@ -1159,15 +1200,18 @@ export default function EscapeRoomChallenge({
               title={copy.timerTitle}
               remainingSeconds={timerSeconds}
               durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
-              status={isTimerRunning ? 'running' : 'idle'}
+              status={timerStatus}
               isFacilitator={isFacilitator}
+              onPause={() => handleTimerAction('pause')}
+              onResume={() => handleTimerAction('resume')}
+              controlPending={busyAction === 'pause' || busyAction === 'resume'}
               waitingText=""
               footer={
                 isFacilitator && !isFinished && currentEnigme ? (
                   <div className={styles.timerQuickActions}>
                     <button
                       className={styles.secondaryBtn}
-                      disabled={!!busyAction}
+                      disabled={!!busyAction || isTimerPaused}
                       onClick={() =>
                         facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })
                       }
@@ -1176,7 +1220,7 @@ export default function EscapeRoomChallenge({
                     </button>
                     <button
                       className={styles.secondaryBtn}
-                      disabled={!!busyAction}
+                      disabled={!!busyAction || isTimerPaused}
                       onClick={() => facilitatorAction('skip', '/skip')}
                     >
                       {copy.skipRiddle}
@@ -1195,6 +1239,7 @@ export default function EscapeRoomChallenge({
                 inputValue={chatInput}
                 onInputChange={setChatInput}
                 onSubmit={submitChat}
+                delivery={chatDelivery}
                 quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
                 onQuickMessage={sendQuickChat}
                 maxLength={240}

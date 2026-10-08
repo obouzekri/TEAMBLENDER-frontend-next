@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
+import { ChallengeConnectionContext } from '@/lib/challenges/connection-context';
 import styles from './ChallengeTimerCard.module.css';
+import useI18n from '@/lib/i18n/useI18n';
 
 function formatTimer(seconds) {
   const safe = Math.max(0, Number(seconds || 0));
@@ -21,16 +23,6 @@ function normalizeStatus(status) {
   return 'idle';
 }
 
-function statusLabel(status) {
-  if (status === 'running') return 'En cours';
-  if (status === 'paused') return 'Pause';
-  if (status === 'completed') return 'Termine';
-  if (status === 'stopped') return 'Arrete';
-  if (status === 'timeout') return 'Temps ecoule';
-  if (status === 'disabled') return 'Desactive';
-  return 'Attente';
-}
-
 function clampPercent(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return 0;
@@ -39,23 +31,31 @@ function clampPercent(value) {
 
 export default function ChallengeTimerCard({
   className = '',
-  title = 'Minuteur',
+  title,
   remainingSeconds = 0,
   durationSeconds = 0,
   status = 'idle',
   progressPercent,
   isFacilitator = false,
   actions = null,
+  onPause = null,
+  onResume = null,
+  controlPending = false,
+  controlFeedback = null,
   footer = null,
-  waitingText = '⏳ En attente du facilitateur',
+  waitingText,
   collapsible = true,
   defaultCollapsed = false,
   showCompactBar = true,
 }) {
+  const { t } = useI18n();
+  const connected = useContext(ChallengeConnectionContext);
+  const resolvedTitle = title ?? t('challengeTimer.title');
+  const resolvedWaitingText = waitingText ?? t('challengeTimer.waiting');
   const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
   const normalizedStatus = normalizeStatus(status);
   const shouldShowWaitingText = !isFacilitator
-    && Boolean(waitingText)
+    && Boolean(resolvedWaitingText)
     && (normalizedStatus === 'idle' || normalizedStatus === 'disabled');
 
   const computedProgress = useMemo(() => {
@@ -89,28 +89,56 @@ export default function ChallengeTimerCard({
   const ringColor = tone === 'danger' ? '#ef4444' : tone === 'warn' ? '#f59e0b' : tone === 'safe' ? '#22c55e' : '#38bdf8';
   const ringSweep = clampPercent(computedProgress);
   const compactTime = formatTimer(remainingSeconds);
-  const compactStatus = statusLabel(normalizedStatus);
+  const compactStatus = t(`challengeTimer.${normalizedStatus}`);
+  const automaticControl = isFacilitator && normalizedStatus === 'running' && typeof onPause === 'function'
+    ? (
+        <button
+          type="button"
+          className={styles.timerControlButton}
+          onClick={onPause}
+          disabled={controlPending || !connected}
+        >
+          <span aria-hidden="true">Ⅱ</span>
+          {controlPending ? t('challengeTimer.actionPending') : t('challengeTimer.pause')}
+        </button>
+      )
+    : isFacilitator && normalizedStatus === 'paused' && typeof onResume === 'function'
+      ? (
+          <button
+            type="button"
+            className={`${styles.timerControlButton} ${styles.timerResumeButton}`}
+            onClick={onResume}
+            disabled={controlPending || !connected}
+          >
+            <span aria-hidden="true">▶</span>
+            {controlPending ? t('challengeTimer.actionPending') : t('challengeTimer.resume')}
+          </button>
+        )
+      : null;
+  const resolvedActions = actions || automaticControl;
+  const feedbackMessage = controlFeedback?.status === 'failed' ? controlFeedback.message : '';
 
   return (
     <section className={`${styles.timerCard}${isStartedState ? ` ${styles.timerCardStarted}` : ''} ${className}`.trim()}>
       {showCompactBar ? (
-        <div className={styles.timerCompactBar} role="status" aria-live="polite">
+        <div className={styles.timerCompactBar}>
           <span className={styles.timerCompactIcon} aria-hidden="true">⏱</span>
-          <span className={styles.timerCompactTime}>{compactTime}</span>
+          <span className={styles.timerCompactTime} role="timer" aria-live="off" aria-label={resolvedTitle}>{compactTime}</span>
           <span className={styles.timerCompactState}>{compactStatus}</span>
         </div>
       ) : null}
+      <span className={styles.statusAnnouncement} role="status" aria-live="polite" aria-atomic="true">{resolvedTitle}: {compactStatus}</span>
 
       <div className={styles.timerHeader}>
-        <h3 className={`${styles.timerTitle} challenge-section-title`}>{title}</h3>
+        <h3 className={`${styles.timerTitle} challenge-section-title`}>{resolvedTitle}</h3>
         {collapsible ? (
           <button
             type="button"
             className={styles.timerToggleBtn}
             onClick={() => setCollapsed((prev) => !prev)}
             aria-expanded={!collapsed}
-            aria-label={collapsed ? 'Afficher le minuteur' : 'Réduire le minuteur'}
-            title={collapsed ? 'Afficher' : 'Réduire'}
+            aria-label={collapsed ? t('challengeTimer.expand') : t('challengeTimer.collapse')}
+            title={collapsed ? t('challengeTimer.expand') : t('challengeTimer.collapse')}
           >
             {collapsed ? '▾' : '▴'}
           </button>
@@ -127,14 +155,15 @@ export default function ChallengeTimerCard({
               }}
             >
               <div className={styles.timerDisplay}>
-                <div className={styles.timerTime}>{formatTimer(remainingSeconds)}</div>
+                <div className={styles.timerTime} role="timer" aria-label={resolvedTitle} aria-live="off">{formatTimer(remainingSeconds)}</div>
               </div>
             </div>
           </div>
 
-          {shouldShowWaitingText ? <p className={styles.timerWaitingText}>{waitingText}</p> : null}
+          {shouldShowWaitingText ? <p className={styles.timerWaitingText}>{resolvedWaitingText}</p> : null}
           {footer ? <div className={styles.timerFooter}>{footer}</div> : null}
-          {actions ? <div className={styles.timerActions}>{actions}</div> : null}
+          {resolvedActions ? <fieldset disabled={!connected} className={styles.timerActions}>{resolvedActions}</fieldset> : null}
+          {feedbackMessage ? <p className={styles.timerControlError} role="alert">{feedbackMessage}</p> : null}
         </>
       )}
     </section>

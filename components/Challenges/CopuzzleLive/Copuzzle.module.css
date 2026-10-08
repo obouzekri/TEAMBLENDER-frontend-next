@@ -816,7 +816,8 @@
 }
 
 @media (max-width: 980px) {
-  .shell {
+  .shell,
+  .facilitatorView .shell {
     grid-template-columns: 1fr;
   }
 
@@ -1011,4 +1012,3 @@
     scroll-behavior: auto !important;
   }
 }
-

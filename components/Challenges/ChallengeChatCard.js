@@ -5,6 +5,7 @@ import { MessageCircle, Send, X } from 'lucide-react';
 import styles from './ChallengeChatCard.module.css';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
+import useModalFocus from '@/lib/useModalFocus';
 
 export default function ChallengeChatCard({
   className = '',
@@ -20,34 +21,22 @@ export default function ChallengeChatCard({
   maxLength = 240,
   submitLabel,
   disabled = false,
+  delivery = null,
   showCounter = true,
 }) {
   const { t } = useI18n();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const previousMessageCountRef = useRef(Array.isArray(messages) ? messages.length : 0);
   const logRef = useRef(null);
+  const dialogRef = useRef(null);
+  useModalFocus(mobileOpen, dialogRef, () => setMobileOpen(false));
   const drawerTitle = t('chatCard.sessionTitle');
   const resolvedEmptyText = emptyText || t('chatCard.empty');
   const resolvedPlaceholder = placeholder || t('chatCard.placeholder');
   const closeChatLabel = t('chatCard.closeAria');
-  const isMobileMode = isMobileViewport;
 
-  useBodyScrollLock(mobileOpen && isMobileMode);
-
-  useEffect(() => {
-    const media = window.matchMedia('(max-width: 900px)');
-    const apply = () => {
-      setIsMobileViewport(media.matches);
-    };
-
-    apply();
-    media.addEventListener('change', apply);
-    return () => {
-      media.removeEventListener('change', apply);
-    };
-  }, []);
+  useBodyScrollLock(mobileOpen);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -75,21 +64,6 @@ export default function ChallengeChatCard({
   }, [currentAuthor, messages, mobileOpen]);
 
   useEffect(() => {
-    if (!mobileOpen) return () => {};
-
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        setMobileOpen(false);
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [mobileOpen]);
-
-  useEffect(() => {
     if (mobileOpen) {
       setUnreadCount(0);
     }
@@ -105,7 +79,7 @@ export default function ChallengeChatCard({
               type="button"
               className={styles.quickButton}
               onClick={() => onQuickMessage && onQuickMessage(message)}
-              disabled={disabled}
+              disabled={disabled || delivery?.pending || delivery?.connected === false}
             >
               {message}
             </button>
@@ -135,18 +109,21 @@ export default function ChallengeChatCard({
           className={styles.chatInput}
           placeholder={resolvedPlaceholder}
           maxLength={maxLength}
-          disabled={disabled}
+          disabled={disabled || delivery?.pending}
+          aria-label={resolvedPlaceholder}
         />
         <button
           type="submit"
           className={styles.chatSubmit}
-          disabled={disabled || !String(inputValue || '').trim()}
+          disabled={disabled || delivery?.pending || delivery?.connected === false || !String(inputValue || '').trim()}
           aria-label={t('chatCard.sendAria')}
           title={t('chatCard.sendAria')}
         >
           {submitLabel || <Send size={18} strokeWidth={2} aria-hidden="true" />}
         </button>
       </form>
+      {delivery?.message ? <p className={delivery.status === 'failed' || delivery.connected === false ? styles.deliveryError : styles.deliveryStatus} role={delivery.status === 'failed' ? 'alert' : 'status'}>{delivery.message}</p> : null}
+      {delivery?.status === 'failed' && delivery?.retry ? <button type="button" className={styles.quickButton} onClick={delivery.retry} disabled={delivery.connected === false}>{t('chatCard.retry')}</button> : null}
 
       {showCounter ? <p className={styles.chatHint}>{t('chatCard.counter', { count: String(inputValue || '').length, max: maxLength })}</p> : null}
     </>
@@ -168,6 +145,8 @@ export default function ChallengeChatCard({
       {mobileOpen ? (
         <div className={styles.mobileChatBackdrop} role="presentation" onClick={() => setMobileOpen(false)}>
           <section
+            ref={dialogRef}
+            tabIndex={-1}
             className={styles.mobileChatSheet}
             role="dialog"
             aria-modal="true"

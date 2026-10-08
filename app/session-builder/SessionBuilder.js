@@ -9,6 +9,7 @@ import SelectedChallengesList from '@/components/SessionBuilder/SelectedChalleng
 import ChallengeConfigModal from '@/components/SessionBuilder/ChallengeConfigModal';
 import ParticipantAssigner from '@/components/SessionBuilder/ParticipantAssigner';
 import SessionBuilderHeader from '@/components/SessionBuilder/SessionBuilderHeader';
+import SessionPreparation from '@/components/SessionPreparation';
 import Modal from '@/components/ui/Modal';
 import { Alert, Button, Input, LoadingState } from '@/components/ui';
 import { clearSessionAuth, getStoredAuthToken, getStoredCurrentUser } from '@/lib/auth';
@@ -1660,6 +1661,7 @@ export default function SessionBuilder() {
           onLaunch={handleRequestLaunch}
           invitePanel={invitePanel}
         />
+        <SessionPreparation participantCount={sessionParticipantCount} configuration={selectedChallenges.length ? 'loaded' : 'missing'} sessionAvailable={Boolean(sessionId)} busy={isSavingDraft || isLaunching} />
 
         <div className={styles.mainLayout}>
           <SelectedChallengesList

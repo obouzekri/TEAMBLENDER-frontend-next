@@ -97,23 +97,6 @@ function getAccountPlanAmountDh(plan, billingCycle, dhPriceByPlanId) {
   return monthlyAmount;
 }
 
-function normalizeUnknownLocationLabel(location, isCurrent, locale = 'en') {
-  const raw = String(location || '').trim();
-  const unknownValues = [
-    '',
-    'unknown',
-    'unknown location',
-    'n/a',
-    'na',
-    '-',
-  ];
-  if (!unknownValues.includes(raw.toLowerCase())) return raw;
-  if (isCurrent) {
-    return locale === 'en' ? 'Location unavailable - Current device' : 'Emplacement non identifié - appareil actuel';
-  }
-  return locale === 'en' ? 'Location unavailable' : 'Emplacement non identifié';
-}
-
 function normalizeFeatureLabel(feature) {
   const raw = String(feature || '').trim();
   if (!raw) return '';
@@ -485,10 +468,6 @@ export default function AccountPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [enablingTwoFactor, setEnablingTwoFactor] = useState(false);
-  const [signingOutOtherSessions, setSigningOutOtherSessions] = useState(false);
-  const [securitySessions, setSecuritySessions] = useState([]);
 
   useEffect(() => {
     if (!guard.allowed) return;
@@ -735,35 +714,6 @@ export default function AccountPage() {
     };
   }, [guard.allowed, guard.user?.role, showError, t]);
 
-  useEffect(() => {
-    setTwoFactorEnabled(Boolean(me?.two_factor_enabled || me?.mfa_enabled));
-  }, [me?.mfa_enabled, me?.two_factor_enabled]);
-
-  useEffect(() => {
-    const resolvedLocationRaw = String(me?.city || me?.country || '').trim() || 'Emplacement non identifie';
-    const nowLabel = 'Maintenant';
-    const recentLabel = 'Il y a 5 min';
-    const currentLocationLabel = normalizeUnknownLocationLabel(resolvedLocationRaw, true, locale);
-    setSecuritySessions([
-      {
-        id: 'current',
-        device: 'Navigateur desktop',
-        location: currentLocationLabel,
-        lastActive: nowLabel,
-        isCurrent: true,
-        deviceType: 'desktop',
-      },
-      {
-        id: 'recent-mobile',
-        device: 'iPhone Safari',
-        location: normalizeUnknownLocationLabel('Casablanca, MA', false, locale),
-        lastActive: recentLabel,
-        isCurrent: false,
-        deviceType: 'mobile',
-      },
-    ]);
-  }, [locale, me?.city, me?.country]);
-
   const userLabel = useMemo(() => normalizeDisplayName(guard.user), [guard.user]);
   const resolvedAvatar = useMemo(() => resolveUserAvatar(guard.user, userLabel), [guard.user, userLabel]);
   const resolvedAvatarUrl = String(resolvedAvatar?.avatarUrl || '').trim();
@@ -856,28 +806,6 @@ export default function AccountPage() {
     const level = score <= 1 ? 'weak' : score === 2 ? 'medium' : 'strong';
     return { hasLength, hasNumber, hasSymbol, score, percent, level };
   }, [passwordForm.new_password]);
-
-  async function handleEnable2FA() {
-    if (enablingTwoFactor || twoFactorEnabled) return;
-    setEnablingTwoFactor(true);
-    try {
-      setTwoFactorEnabled(true);
-      showSuccess('Authentification à deux facteurs activée.');
-    } finally {
-      setEnablingTwoFactor(false);
-    }
-  }
-
-  async function handleSignOutOtherDevices() {
-    if (signingOutOtherSessions) return;
-    setSigningOutOtherSessions(true);
-    try {
-      setSecuritySessions((prev) => prev.filter((entry) => entry.isCurrent));
-      showSuccess('Les autres appareils ont été déconnectés.');
-    } finally {
-      setSigningOutOtherSessions(false);
-    }
-  }
 
   async function handleSaveProfile(event) {
     event.preventDefault();
@@ -1372,13 +1300,13 @@ export default function AccountPage() {
                   <h3>{t('account.twoFactorTitle')}</h3>
                 </header>
                 <p className="account-security-card__text">{t('account.twoFactorDescription')}</p>
-                <p className="account-security-card__hint">Utilisez une application d’authentification comme Google Authenticator ou Authy pour générer des codes temporaires.</p>
+                <p id="account-two-factor-unavailable" className="account-security-card__hint">{t('account.twoFactorUnavailable')}</p>
                 <p className="account-2fa-status">
-                  <span>Statut</span>
-                  <strong className={twoFactorEnabled ? 'is-enabled' : 'is-disabled'}>{twoFactorEnabled ? 'Activée' : 'Non activée'}</strong>
+                  <span>{t('account.status')}</span>
+                  <strong className="is-disabled">{t('account.unavailable')}</strong>
                 </p>
-                <button type="button" className="btn-primary account-security-cta" onClick={handleEnable2FA} disabled={enablingTwoFactor || twoFactorEnabled}>
-                  {twoFactorEnabled ? '2FA activée' : (enablingTwoFactor ? 'Activation...' : 'Activer la 2FA')}
+                <button type="button" className="btn-primary account-security-cta" disabled aria-describedby="account-two-factor-unavailable">
+                  {t('account.enableTwoFactor')}
                 </button>
               </article>
 
@@ -1386,31 +1314,10 @@ export default function AccountPage() {
                 <header className="account-security-card__head">
                   <h3>{t('account.activeSessionsTitle')}</h3>
                 </header>
-                <div className="account-session-list" role="list" aria-label="Liste des sessions actives">
-                  {securitySessions.map((session) => (
-                    <article key={session.id} role="listitem" className="account-session-item">
-                      <div className="account-session-item__icon" aria-hidden="true">{session.deviceType === 'mobile' ? '📱' : '💻'}</div>
-                      <div className="account-session-item__meta">
-                        <p className="account-session-item__device">{session.device}</p>
-                        <dl className="account-session-item__details">
-                          <div><dt>Appareil</dt><dd>{session.deviceType === 'mobile' ? 'Mobile' : 'Ordinateur'}</dd></div>
-                          <div><dt>Localisation</dt><dd>{session.location}</dd></div>
-                          <div><dt>Dernière activité</dt><dd>{session.lastActive}</dd></div>
-                        </dl>
-                      </div>
-                      <div className="account-session-item__status">
-                        {session.isCurrent ? (
-                          <span className="account-session-badge is-current">Session actuelle</span>
-                        ) : (
-                          <span className="account-session-badge">Active</span>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                <p id="account-sessions-unavailable" className="account-security-card__text">{t('account.sessionsUnavailable')}</p>
                 <div className="account-security-actions">
-                  <button type="button" className="btn-secondary" onClick={handleSignOutOtherDevices} disabled={signingOutOtherSessions || securitySessions.filter((entry) => !entry.isCurrent).length === 0}>
-                    {signingOutOtherSessions ? 'Déconnexion...' : 'Déconnecter les autres appareils'}
+                  <button type="button" className="btn-secondary" disabled aria-describedby="account-sessions-unavailable">
+                    {t('account.signOutOtherDevices')}
                   </button>
                 </div>
               </article>

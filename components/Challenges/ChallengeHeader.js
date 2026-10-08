@@ -21,7 +21,7 @@ export default function ChallengeHeader({
   const normalizedTitle = String(title || '').trim();
   const hasTimer = timer && typeof timer === 'object';
   const timerContent = hasTimer ? (
-    <div className={styles.timer} role="status" aria-live="polite">
+    <div className={styles.timer} role="timer" aria-live="off">
       <span aria-hidden="true">⏱</span>
       <time>{formatTimer(timer.remainingSeconds)}</time>
     </div>

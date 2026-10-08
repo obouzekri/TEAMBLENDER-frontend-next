@@ -46,6 +46,12 @@ try {
       assert.ok(await bomb.evaluate((item) => item.getBoundingClientRect().width / item.parentElement.getBoundingClientRect().width) < 0.7);
     } else {
       await page.locator('[class*="gameGrid"]').waitFor();
+      const startCell = page.getByRole('button', { name: locale === 'fr' ? /Case 1-1, départ, votre position, visitée/ : /Cell 1-1, start, your position, visited/ });
+      await startCell.waitFor();
+      const hiddenTrap = page.getByRole('button', { name: locale === 'fr' ? /^Case 2-2$/ : /^Cell 2-2$/ });
+      assert.ok(await hiddenTrap.count(), 'Hidden trap must not be announced');
+      await page.getByText(locale === 'fr' ? 'Légende et commandes' : 'Legend and controls', { exact: true }).click();
+      await page.getByText(locale === 'fr' ? /Avancez d’une case voisine/ : /Move one adjacent cell/).waitFor();
       broadcast('laby.solo.resolved', { participant_id: '1', outcome: 'move', position: [0, 1] });
       await page.getByText('Déplacement validé. Continuez vers la sortie.', { exact: true }).waitFor();
       assert.equal(await page.getByText('✨ Bien joué', { exact: true }).count(), 0);

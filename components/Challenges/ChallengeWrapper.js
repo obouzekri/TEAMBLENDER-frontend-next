@@ -9,6 +9,9 @@ import ToastContainer from '@/components/ToastContainer';
 import useToast from '@/lib/useToast';
 import mountRuntimeChallenge from '@/lib/challenges/runtime';
 import styles from './ChallengeWrapper.module.css';
+import useI18n from '@/lib/i18n/useI18n';
+import { ChallengeConnectionContext, ChallengeProgressContext } from '@/lib/challenges/connection-context';
+import SessionPreparation from '@/components/SessionPreparation';
 
 const REALTIME_ENGINES = new Set([
   'escape_room_v1',
@@ -33,6 +36,8 @@ const REALTIME_ENGINES = new Set([
  * - Manage auth & ownership
  */
 export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, onChallengeCompleted = null, headerContent = null }) {
+  const { locale, withLocalePath } = useI18n();
+  const isEn = locale === 'en';
   const normalizedEngineKey = String(engineKey || '').trim();
   const [activeEngineKey, setActiveEngineKey] = useState(normalizedEngineKey);
   const effectiveEngineKey = String(activeEngineKey || normalizedEngineKey || '').trim();
@@ -46,6 +51,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
+  const [progressState, setProgressState] = useState(null);
   const requiresRealtime = REALTIME_ENGINES.has(effectiveEngineKey);
   const connectionState = !requiresRealtime
     ? ''
@@ -346,8 +352,8 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
       <main className={styles.statusShell}>
         <section className={styles.statusCard}>
           <div className={styles.spinner} aria-hidden="true" />
-          <h1>Chargement du challenge</h1>
-          <p>Préparation de votre expérience en cours...</p>
+          <h1>{isEn ? 'Loading challenge' : 'Chargement du challenge'}</h1>
+          <p>{isEn ? 'Preparing your experience...' : 'Préparation de votre expérience en cours...'}</p>
         </section>
       </main>
     );
@@ -357,17 +363,17 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
   if (error) {
     const isAuthError = /connect|session|authentif/i.test(error);
     const userMessage = isAuthError
-      ? 'Votre session a expiré ou vous n\'avez pas accès à ce challenge.'
-      : 'Le challenge n\'a pas pu être chargé. Vérifiez votre connexion et réessayez.';
+      ? (isEn ? 'Your session has expired or you do not have access to this challenge.' : 'Votre session a expiré ou vous n\'avez pas accès à ce challenge.')
+      : (isEn ? 'Unable to load the challenge. Check your connection and retry.' : 'Le challenge n\'a pas pu être chargé. Vérifiez votre connexion et réessayez.');
     return (
       <main className={styles.statusShell}>
         <section className={styles.statusCard}>
-          <h1>Impossible de charger le challenge</h1>
+          <h1>{isEn ? 'Unable to load challenge' : 'Impossible de charger le challenge'}</h1>
           <p className={styles.error}>{userMessage}</p>
           <p className={styles.errorDetail}>{error}</p>
           <div className={styles.statusActions}>
-            <button className="btn-primary" onClick={() => window.location.reload()}>Réessayer</button>
-            <a href="/home" className="btn-secondary">Retour à l'accueil</a>
+            <button className="btn-primary" onClick={() => window.location.reload()}>{isEn ? 'Retry' : 'Réessayer'}</button>
+            <a href={withLocalePath('/home')} className="btn-secondary">{isEn ? 'Back to home' : 'Retour à l’accueil'}</a>
           </div>
         </section>
       </main>
@@ -375,16 +381,16 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
   }
 
   // Render: Waiting for socket connection
-  if ((requiresRealtime && !connected) || !engineComponent) {
+  if (!engineComponent) {
     return (
       <main className={styles.statusShell}>
         <section className={styles.statusCard}>
           <div className={styles.spinner} aria-hidden="true" />
-          <h1>Connexion en cours</h1>
+          <h1>{isEn ? 'Connecting' : 'Connexion en cours'}</h1>
           <p>
-            {requiresRealtime && !connected ? 'Connexion au serveur temps réel...' : 'Initialisation du challenge...'}
+            {requiresRealtime && !connected ? (isEn ? 'Connecting to the realtime server...' : 'Connexion au serveur temps réel...') : (isEn ? 'Initializing challenge...' : 'Initialisation du challenge...')}
           </p>
-          {socketError ? <p className={styles.error}>Problème de connexion — vérifiez votre réseau.</p> : null}
+          {socketError ? <p className={styles.error}>{isEn ? 'Connection problem: check your network.' : 'Problème de connexion — vérifiez votre réseau.'}</p> : null}
         </section>
       </main>
     );
@@ -417,8 +423,25 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
         />
       )}
       {headerContent ? <div className={styles.headerSlot}>{headerContent}</div> : null}
+      <SessionPreparation
+        participantCount={progressState?.participants_status?.connected_count ?? progressState?.quiz?.connected_count ?? null}
+        readyCount={progressState?.quiz?.ready_count ?? null}
+        expectedCount={progressState?.quiz?.slot_count ?? null}
+        configuration={runtimePayload ? 'loaded' : 'unknown'}
+        sessionAvailable={Boolean(sessionId && runtimePayload)}
+        connected={!requiresRealtime || connected}
+        running={progressState?.timer?.status === 'running' || progressState?.timer?.status === 'paused' || Boolean(progressState?.vom && !['waiting_start', 'finished'].includes(progressState.vom.phase)) || progressState?.escapeStatus === 'running'}
+        completed={Boolean(progressState?.summary) || ['completed', 'timeout', 'stopped'].includes(progressState?.timer?.status) || ['finished', 'fin', 'debrief'].includes(progressState?.quiz?.phase) || progressState?.labyrinthe?.phase === 'done' || progressState?.vom?.phase === 'finished' || ['completed', 'success', 'succeeded', 'timeout', 'timed_out', 'failed'].includes(progressState?.escapeStatus)}
+      />
+      {requiresRealtime && !connected ? <p role="alert" className={styles.connectionError}>
+        {isEn ? 'Connection interrupted. Actions are unavailable; your drafts are kept.' : 'Connexion interrompue. Les actions sont indisponibles ; vos brouillons sont conservés.'}
+      </p> : null}
       <div className={styles.challengeContainer}>
-        <EngineComponent {...props} />
+        <ChallengeConnectionContext.Provider value={!requiresRealtime || connected}>
+          <ChallengeProgressContext.Provider value={setProgressState}>
+            <EngineComponent {...props} />
+          </ChallengeProgressContext.Provider>
+        </ChallengeConnectionContext.Provider>
       </div>
     </>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -10,20 +10,25 @@ import useI18n from '@/lib/i18n/useI18n';
 import useToast from '@/lib/useToast';
 import { getStoredCurrentUser } from '@/lib/account';
 import { ensureUserAvatarProfile, resolveUserAvatar } from '@/lib/avatar-profile';
+import {
+  applyDisplayPreferences,
+  DEFAULT_DISPLAY_PREFERENCES,
+  DISPLAY_PREFERENCES_EVENT,
+  readDisplayPreferences,
+  saveDisplayPreferences,
+} from '@/lib/display-preferences';
 
 export default function PreferencesPage() {
   const { t, withLocalePath } = useI18n();
-  const { toasts, removeToast, success: showSuccess } = useToast();
+  const { toasts, removeToast, success: showSuccess, error: showError } = useToast();
   const [guard, setGuard] = useState({ loading: true, user: null });
-  const [prefs, setPrefs] = useState({
-    sessionReminders: true,
-    activitySummaries: false,
-    compactNavigation: false,
-    highContrast: false,
-  });
+  const [prefs, setPrefs] = useState({ ...DEFAULT_DISPLAY_PREFERENCES });
   const [themePreference, setThemePreference] = useState('system');
+  const preferencesInitRef = useRef(false);
 
   useEffect(() => {
+    if (preferencesInitRef.current) return;
+    preferencesInitRef.current = true;
     const current = getStoredCurrentUser();
     if (!current) {
       window.location.replace(withLocalePath('/login'));
@@ -31,11 +36,16 @@ export default function PreferencesPage() {
     }
 
     const normalizedCurrent = ensureUserAvatarProfile(current);
-    const storedTheme = localStorage.getItem('tb_theme');
-    setThemePreference(['light', 'dark', 'system'].includes(storedTheme) ? storedTheme : 'system');
+    try {
+      const storedTheme = localStorage.getItem('tb_theme');
+      setThemePreference(['light', 'dark', 'system'].includes(storedTheme) ? storedTheme : 'system');
+      setPrefs(readDisplayPreferences(localStorage));
+    } catch (error) {
+      console.error('Unable to load preferences', error);
+      showError(t('preferencesPage.loadError'));
+    }
     setGuard({ loading: false, user: normalizedCurrent });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [showError, t, withLocalePath]);
 
   const userLabel = String(
     guard.user?.name ||
@@ -60,14 +70,28 @@ export default function PreferencesPage() {
     const resolvedTheme = nextPreference === 'system'
       ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
       : nextPreference;
-    localStorage.setItem('tb_theme', nextPreference);
+    try {
+      localStorage.setItem('tb_theme', nextPreference);
+    } catch (error) {
+      console.error('Unable to save theme preference', error);
+      showError(t('preferencesPage.saveError'));
+      return;
+    }
     document.documentElement.dataset.theme = resolvedTheme;
     document.documentElement.dataset.themePreference = nextPreference;
     setThemePreference(nextPreference);
   }
 
   function savePreferences() {
-    showSuccess(t('preferencesPage.saved'));
+    try {
+      const saved = saveDisplayPreferences(prefs, localStorage);
+      applyDisplayPreferences(saved, document.documentElement);
+      window.dispatchEvent(new Event(DISPLAY_PREFERENCES_EVENT));
+      showSuccess(t('preferencesPage.saved'));
+    } catch (error) {
+      console.error('Unable to save display preferences', error);
+      showError(t('preferencesPage.saveError'));
+    }
   }
 
   if (guard.loading) {
@@ -102,7 +126,7 @@ export default function PreferencesPage() {
           <header className="preferences-panel__header">
             <p className="eyebrow">{t('preferencesPage.notificationsEyebrow')}</p>
             <h2 id="preferences-notifications-title">{t('preferencesPage.notificationsTitle')}</h2>
-            <p>{t('preferencesPage.notificationsIntro')}</p>
+            <p id="preferences-notifications-unavailable">{t('preferencesPage.notificationsUnavailable')}</p>
           </header>
           <div className="preferences-panel__body">
             <div className="preferences-theme-control" role="group" aria-label={t('preferencesPage.themeTitle')}>
@@ -130,7 +154,7 @@ export default function PreferencesPage() {
                 <small>{t('preferencesPage.sessionRemindersBody')}</small>
               </span>
               <span className="preferences-toggle__switch">
-                <input type="checkbox" checked={prefs.sessionReminders} onChange={(event) => updatePref('sessionReminders', event.target.checked)} />
+                <input type="checkbox" checked={false} disabled aria-describedby="preferences-notifications-unavailable" />
                 <span className="preferences-toggle__track" />
               </span>
             </label>
@@ -140,7 +164,7 @@ export default function PreferencesPage() {
                 <small>{t('preferencesPage.activitySummariesBody')}</small>
               </span>
               <span className="preferences-toggle__switch">
-                <input type="checkbox" checked={prefs.activitySummaries} onChange={(event) => updatePref('activitySummaries', event.target.checked)} />
+                <input type="checkbox" checked={false} disabled aria-describedby="preferences-notifications-unavailable" />
                 <span className="preferences-toggle__track" />
               </span>
             </label>
@@ -152,6 +176,7 @@ export default function PreferencesPage() {
             <p className="eyebrow">{t('preferencesPage.appearanceEyebrow')}</p>
             <h2 id="preferences-appearance-title">{t('preferencesPage.appearanceTitle')}</h2>
             <p>{t('preferencesPage.appearanceIntro')}</p>
+            <p>{t('preferencesPage.browserStorage')}</p>
           </header>
           <div className="preferences-panel__body">
             <label className="preferences-toggle">
@@ -403,6 +428,16 @@ export default function PreferencesPage() {
 
         .preferences-toggle__switch input:checked + .preferences-toggle__track::after {
           transform: translateX(18px);
+        }
+
+        .preferences-toggle:has(input:disabled) {
+          opacity: 0.65;
+          cursor: not-allowed;
+        }
+
+        .preferences-toggle__switch input:focus-visible + .preferences-toggle__track {
+          outline: 2px solid var(--accent);
+          outline-offset: 3px;
         }
 
         .preferences-actions {

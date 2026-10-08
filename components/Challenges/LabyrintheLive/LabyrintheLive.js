@@ -1,6 +1,8 @@
 'use client';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
+import useModalFocus from '@/lib/useModalFocus';
 import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
@@ -220,6 +222,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const [flashCellTone, setFlashCellTone] = useState('');
   const [microCue, setMicroCue] = useState(null);
   const [announcement, setAnnouncement] = useState(null);
+  const announcementRef = useRef(null);
+  useModalFocus(Boolean(announcement), announcementRef, () => setAnnouncement(null));
   useBodyScrollLock(Boolean(announcement));
 
   const microCueTimerRef = useRef(null);
@@ -230,7 +234,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     isFacilitator,
     emitEvent,
     participantId,
+    connected,
   } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
+  const timerControls = useFacilitatorTimerControls({ socket, emitEvent, state, isFacilitator });
 
   const laby = state?.labyrinthe || null;
   const timer = state?.timer || null;
@@ -244,7 +250,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const hasSelectedStart = Boolean(myParticipantState?.solo?.ss) || Boolean(myParticipantState?.solo?.rg);
 
   const labyPhase = String(laby?.phase || '').trim();
-  const canMoveSolo = !isFacilitator
+  const canMoveSolo = connected && !isFacilitator
     && labyPhase !== 'done'
     && Boolean(laby?.maze)
     && Number(laby?.parts?.[String(participantId)]?.lives_remaining || 0) > 0;
@@ -644,6 +650,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     chatMessages,
     submitChat,
     sendQuickChat,
+    chatDelivery,
   } = useChallengeChat({
     socket,
     emitEvent,
@@ -762,6 +769,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
           durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || runtimePayload?.config?.timer_seconds || 300)}
           status={String(timer?.status || 'idle')}
           isFacilitator={isFacilitator}
+          onPause={timerControls.pause}
+          onResume={timerControls.resume}
+          controlPending={timerControls.busy}
+          controlFeedback={timerControls.feedback}
           waitingText=""
         />
       </div>
@@ -978,7 +989,16 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                         style={{ ...buildMazeCellStyle(maze, row, col), ...ownColorStyle }}
                         onClick={() => handleCellClick(row, col)}
                         aria-disabled={!canMoveSolo}
-                        aria-label={`${isEn ? 'Cell' : 'Case'} ${row + 1}-${col + 1}`}
+                        aria-label={[
+                          `${isEn ? 'Cell' : 'Case'} ${row + 1}-${col + 1}`,
+                          allStartKeys.has(key) ? (isEn ? 'start' : 'départ') : '',
+                          key === endCellKey ? (isEn ? 'exit' : 'sortie') : '',
+                          hasSelectedStart && key === playerPosKey ? (isEn ? 'your position' : 'votre position') : '',
+                          isVisited && hasSelectedStart ? (isEn ? 'visited' : 'visitée') : '',
+                          revealedWalls[key] ? (isEn ? 'blocked passage discovered' : 'passage bloqué découvert') : '',
+                          revealedTraps[key] ? (isEn ? 'revealed trap' : 'piège révélé') : '',
+                          cellPlayers.length ? `${isEn ? 'Players' : 'Joueurs'}: ${cellPlayers.map((entry) => entry.name).join(', ')}` : '',
+                        ].filter(Boolean).join(', ')}
                       >
                         {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={isEn ? 'Start' : 'Départ'}>S</span> : null}
                         {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={isEn ? 'Exit' : 'Sortie'}>E</span> : null}
@@ -1018,6 +1038,13 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                   })
                 ))}
               </div>
+              <details>
+                <summary>{isEn ? 'Legend and controls' : 'Légende et commandes'}</summary>
+                <p>{isEn ? 'S: start. E: exit. Your marker shows your current position; colored trails show visited cells. A bomb is shown only after a trap is revealed.' : 'S : départ. E : sortie. Votre repère indique votre position ; les traces colorées indiquent les cases visitées. Une bombe apparaît seulement lorsqu’un piège est révélé.'}</p>
+                <p>{needsStartSelection
+                  ? (isEn ? 'First choose a glowing start cell. Then move to an adjacent cell using the arrow keys, direction buttons or a swipe.' : 'Choisissez d’abord une case de départ lumineuse. Ensuite, déplacez-vous vers une case voisine avec les flèches du clavier, les boutons directionnels ou un balayage.')
+                  : (isEn ? 'Move one adjacent cell at a time. Observe the feedback after each move; blocked passages and traps become visible as you discover them.' : 'Avancez d’une case voisine à la fois. Observez le retour après chaque déplacement ; passages bloqués et pièges apparaissent à mesure de leur découverte.')}</p>
+              </details>
 
               {error ? <p className={styles.error}>{error}</p> : null}
             </section>
@@ -1033,6 +1060,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || runtimePayload?.config?.timer_seconds || 300)}
               status={String(timer?.status || 'idle')}
               isFacilitator={isFacilitator}
+              onPause={timerControls.pause}
+              onResume={timerControls.resume}
+              controlPending={timerControls.busy}
+              controlFeedback={timerControls.feedback}
               waitingText=""
             />
           </div>
@@ -1045,6 +1076,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               inputValue={chatInput}
               onInputChange={setChatInput}
               onSubmit={submitChat}
+              delivery={chatDelivery}
               quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
               onQuickMessage={sendQuickChat}
               maxLength={240}
@@ -1123,6 +1155,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         {announcement ? (
           <div className={styles.announcementOverlay} role="presentation" onClick={() => setAnnouncement(null)}>
             <section
+              ref={announcementRef}
+              tabIndex={-1}
+              aria-label={announcement.title}
               className={`${styles.announcementCard} ${announcement.tone === 'success' ? styles.announcementCardSuccess : styles.announcementCardFailure}`.trim()}
               role="dialog"
               aria-modal="true"

@@ -2,6 +2,8 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
+import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
+import useModalFocus from '@/lib/useModalFocus';
 import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
@@ -305,12 +307,30 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     isFacilitator,
     emitEvent,
     participantId,
+    connected,
   } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
   const { t, locale } = useI18n();
   const isEn = locale === 'en';
 
   const vom = state?.vom || {};
   const phase = String(vom?.phase || 'waiting_start');
+  const isFacilitatorPaused = Boolean(vom?.facilitator_pause);
+  const vomTimerStatus = useCallback((snapshot) => {
+    const value = snapshot?.vom || {};
+    if (value.facilitator_pause) return 'paused';
+    return ['selecting_statement', 'voting_open', 'round_result', 'next_turn'].includes(String(value.phase || ''))
+      ? 'running'
+      : 'idle';
+  }, []);
+  const timerControls = useFacilitatorTimerControls({
+    socket,
+    emitEvent,
+    state,
+    isFacilitator,
+    pauseEvent: 'vom.pause',
+    resumeEvent: 'vom.resume',
+    statusSelector: vomTimerStatus,
+  });
   const hasChallengeStarted = phase !== 'waiting_start';
   const currentTurn = vom?.current_turn || null;
   const scores = vom?.scores || {};
@@ -387,6 +407,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     chatMessages,
     submitChat,
     sendQuickChat,
+    chatDelivery,
   } = useChallengeChat({
     socket,
     emitEvent,
@@ -410,6 +431,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     [catalog, selectedStatementId]
   );
   useBodyScrollLock(selectionModalOpen && isPoser && Boolean(selectedStatement));
+  const selectionModalRef = useRef(null);
+  useModalFocus(selectionModalOpen && Boolean(isPoser) && Boolean(selectedStatement), selectionModalRef, () => setSelectionModalOpen(false));
 
   const selectedStatementChoices = useMemo(
     () => getTranslatedStatementChoices(selectedStatement, locale),
@@ -432,7 +455,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     ],
     footnote: rulesPreset.footnote,
   }), [isEn, rulesPreset]);
-  const challengeName = String(rulesPreset?.challengeName || 'QUI ME CONNAIT LE MIEUX ?').trim();
+  const challengeName = String(rulesPreset?.challengeName || t('vom.title')).trim();
   const challengeSubtitle = String(rulesPreset?.subtitle || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !').trim();
   const rulesParticipantsMeta = useMemo(() => ({
     min: rulesPreset.participants.min,
@@ -441,7 +464,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }), [rulesPreset]);
   const minParticipantsRequired = Number(String(rulesParticipantsMeta.min || '2').replace(/[^0-9]/g, '')) || 2;
   const participantCount = orderedParticipantIds.length;
-  const canStartChallenge = participantCount >= minParticipantsRequired;
+  const canStartChallenge = connected && participantCount >= minParticipantsRequired;
   const missingParticipants = Math.max(0, minParticipantsRequired - participantCount);
   const startStatusText = canStartChallenge
     ? ''
@@ -501,6 +524,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const voteProgressLabel = `${answeredVotesCount}/${totalExpectedVotes} ${isEn ? 'response received' : 'reponse recue'}${answeredVotesCount > 1 ? (isEn ? 's' : 's') : ''}`;
 
   const remainingMs = useMemo(() => {
+    if (isFacilitatorPaused) {
+      return Math.max(0, Number(vom?.facilitator_pause?.remaining_ms || 0));
+    }
     const deadline = Number(vom?.phase_deadline_ms || 0);
     const startedAt = Number(vom?.phase_started_at_ms || 0);
     const timing = vom?.timing || {};
@@ -523,7 +549,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       return Math.max(0, (startedAt + fallbackDuration) - nowMs);
     }
     return fallbackDuration;
-  }, [nowMs, phase, vom?.phase_deadline_ms, vom?.phase_started_at_ms, vom?.timing]);
+  }, [isFacilitatorPaused, nowMs, phase, vom?.facilitator_pause?.remaining_ms, vom?.phase_deadline_ms, vom?.phase_started_at_ms, vom?.timing]);
 
   const phaseDurationSeconds = useMemo(() => {
     const startedAt = Number(vom?.phase_started_at_ms || 0);
@@ -545,6 +571,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }, [phase, phaseDurationSeconds, remainingMs]);
 
   const timerStatus = useMemo(() => {
+    if (isFacilitatorPaused) return 'paused';
     if ((phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0) {
       return 'timeout';
     }
@@ -555,7 +582,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       return 'running';
     }
     return 'idle';
-  }, [hasSelectionTimeout, phase, remainingSecondsForCard]);
+  }, [hasSelectionTimeout, isFacilitatorPaused, phase, remainingSecondsForCard]);
 
   const myRoundVote = useMemo(() => {
     const votes = Array.isArray(currentTurn?.result?.votes) ? currentTurn.result.votes : [];
@@ -774,6 +801,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }
 
   function confirmStatement() {
+    if (!connected) return false;
     if (!selectedStatementId) return;
     if (!selectedStatementOption) return;
     const rawSelectedChoices = parseStatementChoices(selectedStatement?.text || '');
@@ -782,13 +810,14 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       ? rawSelectedChoices.options[selectedIndex]
       : selectedStatementOption;
     playLightTone('default');
-    emitEvent('vom.select_statement', {
+    return emitEvent('vom.select_statement', {
       statement_id: selectedStatementId,
       selected_option: rawSelectedOption
     });
   }
 
   function vote(v) {
+    if (!connected) return;
     playLightTone('default');
     emitEvent('vom.vote', { vote: v });
   }
@@ -817,7 +846,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   return (
     <div className={`${styles.shell}${!hasChallengeStarted ? ` ${styles.shellPrestart}` : ''}`}>
       <ChallengeHeader
-        title={challengeName || 'QUI ME CONNAIT LE MIEUX ?'}
+        title={challengeName}
         subtitle={challengeSubtitle || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !'}
         timer={{ remainingSeconds: remainingSecondsForCard }}
         headerAction={hasChallengeStarted ? (
@@ -839,11 +868,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
           className={styles.mobileTimerCard}
-          title="Minuteur"
+          title={isEn ? 'Timer' : 'Minuteur'}
           remainingSeconds={remainingSecondsForCard}
           durationSeconds={Math.max(1, phaseDurationSeconds)}
           status={timerStatus}
           isFacilitator={isFacilitator}
+          onPause={timerControls.pause}
+          onResume={timerControls.resume}
+          controlPending={timerControls.busy}
+          controlFeedback={timerControls.feedback}
           waitingText=""
           collapsible={false}
           footer={(phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
@@ -851,6 +884,17 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       </div>
 
       {error ? <p className={styles.errorBanner}>{error}</p> : null}
+      {hasChallengeStarted && !isFacilitator ? (
+        <p className={styles.roleBanner} role="status">
+          {phase === 'selecting_statement' && isPoser
+            ? (isEn ? 'It is your turn: choose a statement and your personal answer.' : 'C’est votre tour : choisissez une affirmation et votre réponse personnelle.')
+            : phase === 'voting_open' && !isPoser && !myVote
+              ? (isEn ? 'Vote: guess the answer of the player whose turn it is.' : 'Votez : devinez la réponse du joueur dont c’est le tour.')
+              : phase === 'round_result'
+                ? (isEn ? 'Collective reveal: compare your answer with the revealed answer.' : 'Révélation collective : comparez votre réponse à la réponse révélée.')
+                : (isEn ? 'Waiting: follow the current player and the team votes.' : 'En attente : suivez le joueur actif et les votes de l’équipe.')}
+        </p>
+      ) : null}
 
       <div className={styles.layout}>
         <div className={styles.mainColumn}>
@@ -895,7 +939,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               <>
                 <div className={styles.statementGrid}>
                   {catalog.map((statement, index) => {
-                    const disabled = usedByPoser.has(String(statement.id));
+                    const disabled = !connected || isFacilitatorPaused || usedByPoser.has(String(statement.id));
                     const selected = selectedStatementId === String(statement.id);
                     const parsedChoices = getTranslatedStatementChoices(statement, locale);
                     const pickedChoice = String(selectedChoicesByStatementId[String(statement.id)] || '');
@@ -999,6 +1043,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                         type="button"
                         className={`${styles.choiceOptionBtn}${active ? ` ${styles.choiceOptionBtnActive}` : ''}`}
                         onClick={() => vote(option)}
+                        disabled={!connected || isFacilitatorPaused}
                       >
                         <span className={styles.voteSelectionMark}>{active ? '✓' : ''}</span>
                         <span className={styles.voteChoiceLabel}>{renderChoiceLabel(option)}</span>
@@ -1011,6 +1056,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                       type="button"
                       className={`${styles.voteTrue}${myVote === 'vrai' ? ` ${styles.voteActive}` : ''}`}
                       onClick={() => vote('vrai')}
+                      disabled={!connected || isFacilitatorPaused}
                     >
                       <span className={styles.voteSelectionMark}>{myVote === 'vrai' ? '✓' : ''}</span>
                       <span className={styles.voteChoiceLabel}>{t('vom.voteTrue')}</span>
@@ -1019,6 +1065,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                       type="button"
                       className={`${styles.voteFalse}${myVote === 'mensonge' ? ` ${styles.voteActive}` : ''}`}
                       onClick={() => vote('mensonge')}
+                      disabled={!connected || isFacilitatorPaused}
                     >
                       <span className={styles.voteSelectionMark}>{myVote === 'mensonge' ? '✓' : ''}</span>
                       <span className={styles.voteChoiceLabel}>{t('vom.voteFalse')}</span>
@@ -1149,11 +1196,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
               className={styles.desktopTimerCard}
-              title="Minuteur"
+              title={isEn ? 'Timer' : 'Minuteur'}
               remainingSeconds={remainingSecondsForCard}
               durationSeconds={Math.max(1, phaseDurationSeconds)}
               status={timerStatus}
               isFacilitator={isFacilitator}
+              onPause={timerControls.pause}
+              onResume={timerControls.resume}
+              controlPending={timerControls.busy}
+              controlFeedback={timerControls.feedback}
               waitingText=""
               footer={(phase === 'selecting_statement' || phase === 'voting_open') && remainingSecondsForCard <= 0 ? <p className={styles.timeUpFeedback}>{t('vom.timeoutFeedback')}</p> : null}
             />
@@ -1166,6 +1217,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             inputValue={chatInput}
             onInputChange={setChatInput}
             onSubmit={submitChat}
+            delivery={chatDelivery}
             quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
             onQuickMessage={sendQuickChat}
             maxLength={240}
@@ -1177,10 +1229,12 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       {selectionModalOpen && isPoser && selectedStatement ? (
         <div className={styles.modalOverlay} role="presentation" onClick={() => setSelectionModalOpen(false)}>
           <section
+            ref={selectionModalRef}
+            tabIndex={-1}
             className={styles.modalCard}
             role="dialog"
             aria-modal="true"
-            aria-label="Sélection de réponse"
+            aria-label={isEn ? 'Answer selection' : 'Sélection de réponse'}
             onClick={(event) => event.stopPropagation()}
           >
             {selectedStatementChoices ? (
@@ -1245,10 +1299,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               <button
                 type="button"
                 className={styles.primaryBtn}
-                disabled={!selectedStatementOption}
+                disabled={!connected || isFacilitatorPaused || !selectedStatementOption}
                 onClick={() => {
-                  confirmStatement();
-                  setSelectionModalOpen(false);
+                  if (confirmStatement()) setSelectionModalOpen(false);
                 }}
               >
                 {t('vom.confirm')}
