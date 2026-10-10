@@ -281,6 +281,18 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
 
   // Load engine component once runtime is ready (and socket if required)
   useEffect(() => {
+    if (!socket) return undefined;
+    function handleRemoval(packet) {
+      if (packet?.type !== 'participant.removed' || String(packet.payload?.sessionId) !== String(sessionId)) return;
+      setEngineComponent(null);
+      setRuntimePayload(null);
+      setError(isEn ? 'The facilitator removed you from this session. Reconnecting will not restore your assignment.' : 'Le facilitateur vous a retiré de cette session. Une reconnexion ne rétablira pas votre attribution.');
+    }
+    socket.on('challenge:event', handleRemoval);
+    return () => socket.off('challenge:event', handleRemoval);
+  }, [socket, sessionId, isEn]);
+
+  useEffect(() => {
     if (!runtimePayload) return;
     if (requiresRealtime && (!socket || !connected)) return;
 

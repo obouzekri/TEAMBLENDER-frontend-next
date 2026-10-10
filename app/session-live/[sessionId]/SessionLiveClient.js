@@ -254,7 +254,9 @@ export default function SessionLiveClient() {
             sessionName={session?.name || `${t('sessionLive.sessionFallbackName')} ${sessionId}`}
             sessionCode={session?.code || session?.session_code || session?.sessionCode || sessionId}
             participantCount={memberCount}
-            expectedParticipantCount={session?.expected_participants || session?.expectedParticipants || memberCount}
+            expectedParticipantCount={session?.expected_participant_count}
+            sessionObjective={session?.objective}
+            canManageParticipants={['admin', 'user'].includes(user?.role) && (user?.role === 'admin' || Number(session?.owner_id) === Number(user?.id))}
             challenges={challenges}
             activeChallengeId={activeChallengeId}
             activeChallengeName={activeChallengeName}

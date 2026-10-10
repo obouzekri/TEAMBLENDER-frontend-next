@@ -2,11 +2,13 @@
 
 import styles from './SessionBuilderHeader.module.css';
 import useI18n from '@/lib/i18n/useI18n';
-import { Clock3, ListChecks, Pencil, Save, Users } from 'lucide-react';
+import { Clock3, Info, ListChecks, Save, Users } from 'lucide-react';
 
 export default function SessionBuilderHeader({
   sessionName,
   participantCount,
+  expectedParticipantCount,
+  objectiveLabel,
   selectedCount,
   totalDuration,
   isSavingDraft,
@@ -29,10 +31,12 @@ export default function SessionBuilderHeader({
             <h1 className={styles.summaryTitle}>{resolvedSessionName}</h1>
           </div>
           <div className={styles.summaryStats} aria-label={t('sessionBuilder.sessionSummaryAria')}>
+            {expectedParticipantCount != null ? <span className={styles.summaryStat}>{t('sessionBuilder.plannedCount', { count: expectedParticipantCount })}</span> : null}
+            {objectiveLabel ? <span className={styles.summaryStat}>{objectiveLabel}</span> : null}
             <span className={styles.summaryStat}>
               <Users size={15} strokeWidth={2.2} aria-hidden="true" />
               <strong>{participantCount}</strong>
-              <span>{t('sessionBuilder.headerParticipants', { count: '' }).replace(/^\s*/, '')}</span>
+              <span>{t('sessionBuilder.assignedCount', { count: '' }).trim()}</span>
             </span>
             <span className={styles.summaryStat}>
               <ListChecks size={15} strokeWidth={2.2} aria-hidden="true" />
@@ -56,7 +60,7 @@ export default function SessionBuilderHeader({
             aria-label={t('sessionBuilder.editSessionDetails')}
             title={t('sessionBuilder.editSessionDetails')}
           >
-            <Pencil size={16} strokeWidth={2} aria-hidden="true" />
+            <Info size={16} strokeWidth={2} aria-hidden="true" />
           </button>
           <button
             type="button"

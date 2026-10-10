@@ -616,7 +616,8 @@ export default function ParticipantPage() {
               sessionName={participantSessionName}
               sessionCode={sessionDetails?.code || sessionDetails?.session_code || sessionDetails?.sessionCode || sessionId}
               participantCount={teamMembers.length || participantExpectedCount}
-              expectedParticipantCount={participantExpectedCount}
+              expectedParticipantCount={sessionDetails?.expected_participant_count}
+              sessionObjective={sessionDetails?.objective}
               challenges={sessionChallenges}
               activeChallengeId={sessionState?.active_challenge_id || sessionState?.current_challenge?.id || null}
               activeChallengeName={runtime?.challenge_name || sessionState?.current_challenge?.name || sessionState?.current_challenge?.engine_key || ''}

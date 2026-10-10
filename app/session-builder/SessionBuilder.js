@@ -29,6 +29,9 @@ import { getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
 import { getLabInnovationRulesPreset } from '@/lib/challenges/labInnovationRules';
 import { getCrosswordRulesPreset } from '@/lib/challenges/crosswordRules';
 import { getSessionParticipantLimitError } from '@/lib/sessionLaunchValidation.mjs';
+import { SESSION_OBJECTIVES, isValidExpectedCount, proposeSessionProgram, replaceProgramChallenge } from '@/lib/sessionProgram.mjs';
+import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
+import { getAvailableEngines } from '@/lib/challenges/runtime';
 import styles from './SessionBuilder.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
 import useI18n from '@/lib/i18n/useI18n';
@@ -449,6 +452,14 @@ export default function SessionBuilder() {
   const [sessionName, setSessionName] = useState('');
   const [flowMode, setFlowMode] = useState('manual');
   const [sessionDateTime, setSessionDateTime] = useState('');
+  const [expectedCount, setExpectedCount] = useState('');
+  const [objective, setObjective] = useState('');
+  const [editExpectedCount, setEditExpectedCount] = useState('');
+  const [editObjective, setEditObjective] = useState('');
+  const [programOpen, setProgramOpen] = useState(false);
+  const [targetMinutes, setTargetMinutes] = useState('45');
+  const [programProposal, setProgramProposal] = useState(null);
+  const [programError, setProgramError] = useState('');
   const [creationTouched, setCreationTouched] = useState({
     sessionName: false,
     sessionDateTime: false,
@@ -521,12 +532,15 @@ export default function SessionBuilder() {
   const participantsError = '';
   const canCreateSessionNow = Boolean(sessionName.trim())
     && !dateError
+    && isValidExpectedCount(expectedCount)
     && !isCreatingSession;
   const hasUnsavedCreationChanges = Boolean(
     sessionName.trim()
     || sessionDateTime
     || flowMode !== 'manual'
     || draftParticipantIds.length > 0
+    || expectedCount !== ''
+    || objective !== ''
   );
 
   // On plain /session-builder, reset stale cached session id to start a new flow
@@ -884,6 +898,8 @@ export default function SessionBuilder() {
     });
 
     if (session?.name) setSessionName(session.name);
+    setExpectedCount(session?.expected_participant_count == null ? '' : String(session.expected_participant_count));
+    setObjective(session?.objective || '');
     setFlowMode(String(session?.flow_mode || session?.flowMode || 'manual').trim().toLowerCase() === 'auto' ? 'auto' : 'manual');
 
     if (session?.session_date) {
@@ -1066,6 +1082,10 @@ export default function SessionBuilder() {
       if (draft.flowMode === 'auto' || draft.flowMode === 'manual') {
         setFlowMode(draft.flowMode);
       }
+      if (typeof draft.expectedCount === 'string' && isValidExpectedCount(draft.expectedCount)) {
+        setExpectedCount(draft.expectedCount);
+      }
+      if (SESSION_OBJECTIVES.includes(draft.objective)) setObjective(draft.objective);
       if (Array.isArray(draft.participantIds)) {
         const validIds = draft.participantIds
           .map((value) => Number(value))
@@ -1084,12 +1104,14 @@ export default function SessionBuilder() {
       sessionName,
       sessionDateTime,
       flowMode,
+      expectedCount,
+      objective,
       participantIds: draftParticipantIds,
       savedAt: new Date().toISOString(),
     };
 
     localStorage.setItem(CREATION_DRAFT_STORAGE_KEY, JSON.stringify(payload));
-  }, [draftParticipantIds, flowMode, guard.allowed, hasRouteSessionId, sessionDateTime, sessionId, sessionName]);
+  }, [draftParticipantIds, expectedCount, objective, flowMode, guard.allowed, hasRouteSessionId, sessionDateTime, sessionId, sessionName]);
 
   useEffect(() => {
     if (!guard.allowed || sessionId || !hasUnsavedCreationChanges) return;
@@ -1325,6 +1347,10 @@ export default function SessionBuilder() {
       showErrorToast(t('sessionBuilder.sessionNameRequired'));
       return;
     }
+    if (!isValidExpectedCount(expectedCount)) {
+      showErrorToast(t('sessionBuilder.expectedCountInvalid'));
+      return;
+    }
 
     const name = sessionName.trim() || `Session ${new Date().toLocaleDateString('en-US')}`;
     const sessionDate = sessionDateTime ? new Date(sessionDateTime) : null;
@@ -1337,6 +1363,9 @@ export default function SessionBuilder() {
     const loadingId = showLoadingToast(t('sessionBuilder.creatingSession'));
     try {
       const payload = { name };
+      payload.expected_participant_count = expectedCount === '' ? null : Number(expectedCount);
+      payload.objective = objective || null;
+      payload.locale = locale;
       payload.flow_mode = flowMode;
       if (draftParticipantIds.length > 0) {
         payload.participant_ids = draftParticipantIds;
@@ -1372,6 +1401,10 @@ export default function SessionBuilder() {
   }, [
     apiRequest,
     draftParticipantIds,
+    expectedCount,
+    objective,
+    locale,
+    flowMode,
     getAuthToken,
     loadSessionInvite,
     removeToast,
@@ -1384,10 +1417,16 @@ export default function SessionBuilder() {
   ]);
 
   const handleSaveSessionInfo = useCallback(async () => {
+    if (!isValidExpectedCount(editExpectedCount)) {
+      showErrorToast(t('sessionBuilder.expectedCountInvalid'));
+      return;
+    }
     const token = getAuthToken();
     setIsSavingSessionInfo(true);
     try {
       const payload = {};
+      if (editExpectedCount !== expectedCount) payload.expected_participant_count = editExpectedCount === '' ? null : Number(editExpectedCount);
+      if (editObjective !== objective) payload.objective = editObjective || null;
       const trimmedName = editName.trim();
       if (trimmedName) payload.name = trimmedName;
       if (editFlowMode !== flowMode) payload.flow_mode = editFlowMode;
@@ -1424,6 +1463,11 @@ export default function SessionBuilder() {
   }, [
     apiRequest,
     editDateTime,
+    editExpectedCount,
+    editObjective,
+    expectedCount,
+    objective,
+    flowMode,
     editName,
     editParticipantIds,
     draftParticipantIds,
@@ -1433,7 +1477,49 @@ export default function SessionBuilder() {
     redirectToUpgrade,
     sessionId,
     showErrorToast,
+    t,
   ]);
+
+  function renderObjectiveField(value, onChange, id) {
+    return (
+      <label className={styles.contextField} htmlFor={id}>
+        <span>{t('sessionBuilder.objective')}</span>
+        <select id={id} className={styles.sessionInfoInput} value={value} onChange={(event) => onChange(event.target.value)}>
+          <option value="">{t('sessionBuilder.noPreference')}</option>
+          {SESSION_OBJECTIVES.map((key) => <option key={key} value={key}>{t(`sessionBuilder.objectiveLabels.${key}`)}</option>)}
+        </select>
+        <small>{t('sessionBuilder.objectiveHint')}</small>
+      </label>
+    );
+  }
+
+  function generateProgram() {
+    const minutes = Number(targetMinutes);
+    if (!Number.isInteger(minutes) || minutes < 1 || minutes > 240) {
+      setProgramError(t('sessionBuilder.invalidTargetDuration'));
+      return;
+    }
+
+    const proposal = proposeSessionProgram(allChallenges, {
+      objective, expectedCount, targetMinutes: minutes, resolveRange: resolveChallengePlayerRange,
+      availableEngineKeys: getAvailableEngines().map((engine) => engine.key),
+    });
+    setProgramProposal(proposal);
+    setProgramError(proposal.challenges.length ? '' : t('sessionBuilder.programEmpty'));
+  }
+
+  function replaceProposedChallenge(challengeId) {
+    const replacement = replaceProgramChallenge(programProposal, challengeId, allChallenges, {
+      objective, expectedCount, targetMinutes: Number(targetMinutes), resolveRange: resolveChallengePlayerRange,
+      availableEngineKeys: getAvailableEngines().map((engine) => engine.key),
+    });
+    if (!replacement) {
+      setProgramError(t('sessionBuilder.noReplacement'));
+      return;
+    }
+    setProgramError('');
+    setProgramProposal(replacement);
+  }
 
   function logout() {
     clearSessionAuth();
@@ -1552,6 +1638,22 @@ export default function SessionBuilder() {
                         />
                       </div>
 
+                      <div className={styles.creationGrid}>
+                        <Input
+                          id="expected-participants"
+                          type="number"
+                          min="1"
+                          max="2147483647"
+                          step="1"
+                          label={t('sessionBuilder.expectedCount')}
+                          value={expectedCount}
+                          onChange={(event) => setExpectedCount(event.target.value)}
+                          hint={t('sessionBuilder.expectedCountHint')}
+                          error={isValidExpectedCount(expectedCount) ? '' : t('sessionBuilder.expectedCountInvalid')}
+                        />
+                        {renderObjectiveField(objective, setObjective, 'session-objective')}
+                      </div>
+
                       <div className={styles.flowModeField}>
                         <div className={styles.creationFieldHeading}>
                           <span>{t('sessionBuilder.progressionMode')}</span>
@@ -1592,7 +1694,8 @@ export default function SessionBuilder() {
                   <div className={styles.creationParticipantsPane}>
                       <div className={styles.creationSectionHeader}>
                         <div>
-                          <h2>{t('sessionBuilder.assignParticipants')}</h2>
+                          <h2>{t('sessionBuilder.prepareGroup')}</h2>
+                          <p>{t('sessionBuilder.participationHint')}</p>
                           <p>{t('sessionBuilder.participantsAvailable', { count: availableParticipantsCount })}</p>
                         </div>
                         <span className={styles.creationParticipantsCount}>
@@ -1600,6 +1703,14 @@ export default function SessionBuilder() {
                         </span>
                       </div>
 
+                      <div className={styles.participationNotice}>
+                        <strong>{t('sessionBuilder.joinWithCode')}</strong>
+                        <p>{t('sessionBuilder.joinWithCodeHint')}</p>
+                        <p>{t('sessionBuilder.followUpHint')}</p>
+                      </div>
+                      <details className={styles.participantsDisclosure}>
+                        <summary>{t('sessionBuilder.prepareAhead')}</summary>
+                        <p>{t('sessionBuilder.prepareAheadHint')}</p>
                       <ParticipantAssigner
                         isLoading={isCreatingSession}
                         selectedIds={draftParticipantIds}
@@ -1627,6 +1738,7 @@ export default function SessionBuilder() {
                           </Button>
                         </div>
                       ) : null}
+                      </details>
                   </div>
                 </form>
               </div>
@@ -1664,6 +1776,8 @@ export default function SessionBuilder() {
         <SessionBuilderHeader
           sessionName={sessionName}
           participantCount={sessionParticipantCount}
+          expectedParticipantCount={expectedCount === '' ? null : Number(expectedCount)}
+          objectiveLabel={objective ? t(`sessionBuilder.objectiveLabels.${objective}`) : ''}
           selectedCount={selectedChallenges.length}
           totalDuration={getTotalDuration()}
           isSavingDraft={isSavingDraft}
@@ -1671,6 +1785,8 @@ export default function SessionBuilder() {
             setEditName(sessionName);
             setEditFlowMode(flowMode);
             setEditDateTime(sessionDateTime);
+            setEditExpectedCount(expectedCount);
+            setEditObjective(objective);
             setEditParticipantIds(draftParticipantIds);
             setIsEditingSessionInfo(true);
           }}
@@ -1682,6 +1798,21 @@ export default function SessionBuilder() {
         />
         <SessionPreparation participantCount={sessionParticipantCount} configuration={selectedChallenges.length ? 'loaded' : 'missing'} sessionAvailable={Boolean(sessionId)} busy={isSavingDraft || isLaunching} />
 
+        <section className={styles.programEntry}>
+          <div>
+            <strong>{t('sessionBuilder.proposeProgram')}</strong>
+            <p>{t('sessionBuilder.programHint')}</p>
+          </div>
+          <Button
+            variant="secondary"
+            disabled={isLoading || isSavingDraft || isLaunching}
+            onClick={() => {
+              setProgramProposal(null);
+              setProgramError('');
+              setProgramOpen(true);
+            }}
+          >{t('sessionBuilder.proposeProgram')}</Button>
+        </section>
         <div className={styles.mainLayout}>
           <SelectedChallengesList
             challenges={selectedChallenges}
@@ -1719,27 +1850,45 @@ export default function SessionBuilder() {
       >
         <section className={styles.sessionInfoEditContent} aria-label={t('sessionBuilder.editSessionAria')}>
           <div className={styles.sessionInfoEditGrid}>
-            <input
-              className={styles.sessionInfoInput}
+            <Input
+              id="edit-session-name"
+              label={t('sessionBuilder.sessionName')}
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               placeholder={t('sessionBuilder.sessionNamePlaceholderShort')}
             />
-            <input
-              className={styles.sessionInfoInput}
+            <Input
+              id="edit-session-date"
+              label={t('sessionBuilder.sessionDateTime')}
               type="datetime-local"
               value={editDateTime}
               onChange={(e) => setEditDateTime(e.target.value)}
               step="60"
             />
-            <select
-              className={styles.sessionInfoInput}
-              value={editFlowMode}
-              onChange={(e) => setEditFlowMode(e.target.value)}
-            >
-              <option value="manual">{t('sessionBuilder.manualModeOption')}</option>
-              <option value="auto">{t('sessionBuilder.autoModeOption')}</option>
-            </select>
+            <label className={styles.contextField} htmlFor="edit-flow-mode">
+              <span>{t('sessionBuilder.progressionMode')}</span>
+              <select
+                id="edit-flow-mode"
+                className={styles.sessionInfoInput}
+                value={editFlowMode}
+                onChange={(e) => setEditFlowMode(e.target.value)}
+              >
+                <option value="manual">{t('sessionBuilder.manualModeOption')}</option>
+                <option value="auto">{t('sessionBuilder.autoModeOption')}</option>
+              </select>
+            </label>
+          </div>
+          <div className={styles.creationGrid}>
+            <Input
+              id="edit-expected-participants"
+              type="number" min="1" max="2147483647" step="1"
+              label={t('sessionBuilder.expectedCount')}
+              value={editExpectedCount}
+              onChange={(event) => setEditExpectedCount(event.target.value)}
+              hint={t('sessionBuilder.expectedCountHint')}
+              error={isValidExpectedCount(editExpectedCount) ? '' : t('sessionBuilder.expectedCountInvalid')}
+            />
+            {renderObjectiveField(editObjective, setEditObjective, 'edit-session-objective')}
           </div>
 
           <div className={styles.sessionInfoParticipantsBlock}>
@@ -1775,6 +1924,42 @@ export default function SessionBuilder() {
             </Button>
           </div>
         </section>
+      </Modal>
+
+      <Modal open={programOpen} title={t('sessionBuilder.proposeProgram')} onClose={() => setProgramOpen(false)}>
+        <div className={styles.programForm}>
+          <p>{t('sessionBuilder.programHint')}</p>
+          <p>{objective ? t(`sessionBuilder.objectiveLabels.${objective}`) : t('sessionBuilder.noPreference')}
+            {' · '}{expectedCount ? t('sessionBuilder.plannedCount', { count: expectedCount }) : t('sessionBuilder.programUnknownCount')}</p>
+          <Input id="program-duration" type="number" min="1" max="240" step="1"
+            label={t('sessionBuilder.targetDuration')} value={targetMinutes}
+            onChange={(event) => { setTargetMinutes(event.target.value); setProgramProposal(null); setProgramError(''); }}
+          />
+          <Button variant="secondary" onClick={generateProgram}>
+            {t(programProposal ? 'sessionBuilder.regenerateProgram' : 'sessionBuilder.generateProgram')}
+          </Button>
+          {programError ? <p role="alert">{programError}</p> : null}
+          {programProposal?.challenges.length ? (
+            <>
+              <ol className={styles.programPreview}>
+                {programProposal.challenges.map((challenge) => <li key={challenge.id}>
+                  {challenge.name}
+                  {' '}
+                  <Button variant="secondary" size="sm" onClick={() => replaceProposedChallenge(challenge.id)}>
+                    {t('sessionBuilder.replaceChallenge')}
+                  </Button>
+                </li>)}
+              </ol>
+              <p>{t('sessionBuilder.programDuration', { count: programProposal.duration })}</p>
+              {selectedChallenges.length ? <p>{t('sessionBuilder.replaceProgramWarning')}</p> : null}
+              <Button onClick={() => {
+                clearAll();
+                programProposal.challenges.forEach((challenge) => selectChallenge(challenge.id));
+                setProgramOpen(false);
+              }}>{t('sessionBuilder.useProgram')}</Button>
+            </>
+          ) : null}
+        </div>
       </Modal>
 
       <Modal

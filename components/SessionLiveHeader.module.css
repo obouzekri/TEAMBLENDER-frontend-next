@@ -286,3 +286,24 @@
     font-size: 0.72rem;
   }
 }
+.managementDialog {
+  width: min(680px, calc(100vw - 32px));
+  max-height: 85vh;
+  overflow: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  padding: 24px;
+  color: #172033;
+  background: white;
+}
+
+.managementDialog::backdrop { background: rgb(15 23 42 / 55%); }
+.managementList { list-style: none; padding: 0; }
+.managementList li { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0; }
+.managementList span { display: block; font-size: 0.875rem; margin-top: 4px; }
+.managementActions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.contextForm { display: grid; gap: 16px; }
+.contextForm label { display: grid; gap: 6px; }
+.contextForm input, .contextForm select { border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; }
+.confirmRemoval { padding: 16px; margin-bottom: 16px; border: 1px solid #d97706; border-radius: 8px; }
+.confirmRemoval button { margin-right: 8px; }

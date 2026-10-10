@@ -274,7 +274,8 @@ export default function ChallengeRouteClient() {
             sessionName={sessionDetails?.name || sessionId}
             sessionCode={sessionDetails?.code || sessionDetails?.session_code || sessionDetails?.sessionCode || sessionId}
             participantCount={teamMembers.length}
-            expectedParticipantCount={Array.isArray(sessionDetails?.assigned_participants) ? sessionDetails.assigned_participants.length : teamMembers.length}
+            expectedParticipantCount={sessionDetails?.expected_participant_count}
+            sessionObjective={sessionDetails?.objective}
             challenges={sessionChallenges}
             activeChallengeId={activeChallengeId}
             activeChallengeName={activeChallengeName}
