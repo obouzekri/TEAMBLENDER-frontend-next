@@ -3,8 +3,9 @@
 import GamifiedIcon from './GamifiedIcon';
 import TrustProofCard from './TrustProofCard';
 import { resolveMetricIcon } from './landingIconResolvers';
+import LandingSocialProofEvidence from './LandingSocialProofEvidence';
 
-export default function LandingSocialProof({ locale, partnersHeader, useCaseChips, trustProofMetrics }) {
+export default function LandingSocialProof({ locale, partnersHeader, useCaseChips, trustProofMetrics, socialProof }) {
   return (
     <section
       className="landing-partners landing-section-full landing-section-full--proof relative overflow-hidden p-8 sm:p-12"
@@ -61,6 +62,8 @@ export default function LandingSocialProof({ locale, partnersHeader, useCaseChip
             />
           ))}
         </div>
+
+        <LandingSocialProofEvidence locale={locale} socialProof={socialProof} />
 
       </div>
     </section>

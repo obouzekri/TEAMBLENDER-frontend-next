@@ -9,6 +9,7 @@ import { startBillingCheckout } from '@/lib/account';
 import useI18n from '@/lib/i18n/useI18n';
 import { getCheckoutRedirectUrl } from '@/lib/billing-utils';
 import { getPricingPlanBadgeLabel, getPricingPlanVariantLabel, normalizePricingPlanName } from '@/lib/pricing-labels';
+import { getPricingPlansFallback } from '@/lib/pricingFallbackPlans';
 
 function getStoredCurrentUser() {
   if (typeof window === 'undefined') return null;
@@ -287,25 +288,41 @@ export default function PricingPageClient({ initialPlans = [] }) {
   const [selectedCurrency, setSelectedCurrency] = useState('MAD');
   const [checkoutPlanId, setCheckoutPlanId] = useState('');
 
+  const hasFallbackPlans = useMemo(() => plans.some((plan) => Boolean(plan?.is_fallback)), [plans]);
+
   useEffect(() => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 7000);
+
     async function loadPlans() {
       try {
         setError('');
-        const response = await fetch(getApiUrl('/pricing-plans'));
+        const response = await fetch(getApiUrl('/pricing-plans'), { signal: controller.signal });
         const payload = await response.json().catch(() => []);
         if (!response.ok) {
           throw new Error(isEn ? 'Unable to load pricing.' : 'Impossible de charger la tarification.');
         }
         const list = Array.isArray(payload) ? payload : [];
-        setPlans(list);
+        setPlans(list.length > 0 ? list : getPricingPlansFallback());
       } catch (err) {
-        setError(err.message || (isEn ? 'Pricing load error.' : 'Erreur de chargement de la tarification.'));
+        const fallbackPlans = getPricingPlansFallback();
+        setPlans((prev) => (Array.isArray(prev) && prev.length > 0 ? prev : fallbackPlans));
+        const timeoutError = err?.name === 'AbortError';
+        setError(
+          timeoutError
+            ? (isEn ? 'Pricing service is taking too long to respond.' : 'Le service de tarification met trop de temps à répondre.')
+            : (err.message || (isEn ? 'Pricing load error.' : 'Erreur de chargement de la tarification.'))
+        );
       } finally {
         setLoading(false);
       }
     }
 
     loadPlans();
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
   }, [isEn]);
 
   const sortedPlans = useMemo(() => {
@@ -432,6 +449,21 @@ export default function PricingPageClient({ initialPlans = [] }) {
         {error ? (
           <section className="feature-card" aria-label="Erreur tarification" style={getDarkModeSectionStyle()}>
             <p className="form-error">{error}</p>
+            <p style={getDarkModeTextStyle()}>
+              {isEn
+                ? (hasFallbackPlans
+                    ? 'Fallback plans are shown below while we reconnect to live pricing.'
+                    : 'Pricing could not be loaded at the moment.')
+                : (hasFallbackPlans
+                    ? 'Des formules de secours sont affichées ci-dessous pendant la reconnexion à la tarification en direct.'
+                    : 'La tarification ne peut pas être chargée pour le moment.')}
+            </p>
+            <div className="hero-actions">
+              <Link href={withLocalePath('/contact')} className="btn-primary">{isEn ? 'Talk to an expert' : 'Parler à un expert'}</Link>
+              <button type="button" className="btn-secondary" onClick={() => window.location.reload()}>
+                {isEn ? 'Retry' : 'Réessayer'}
+              </button>
+            </div>
           </section>
         ) : null}
 
@@ -451,12 +483,15 @@ export default function PricingPageClient({ initialPlans = [] }) {
           </section>
         ) : null}
 
-        {!loading && !error && sortedPlans.length > 0 ? (
+        {!loading && sortedPlans.length > 0 ? (
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
             <section className="pricing-grid reveal-up grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-6" aria-label={isEn ? 'Available plans' : 'Formules disponibles'} style={{ background: 'transparent' }}>
             {displayedPlans.map((plan) => {
-              const isContactPlan = Boolean(plan.planCopy.ctaHref);
-              const ctaLabel = isContactPlan ? (plan.planCopy.ctaLabel || (isEn ? 'Contact the team' : 'Contacter l’équipe')) : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
+              const isFallbackPlan = Boolean(plan?.is_fallback);
+              const isContactPlan = Boolean(plan.planCopy.ctaHref) || isFallbackPlan;
+              const ctaLabel = isFallbackPlan
+                ? (isEn ? 'Talk to an expert' : 'Parler à un expert')
+                : (isContactPlan ? (plan.planCopy.ctaLabel || (isEn ? 'Contact the team' : 'Contacter l’équipe')) : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant')));
               const ctaHref = isContactPlan ? withLocalePath(plan.planCopy.ctaHref || '/contact') : null;
                   const badgeLabel = plan.isFeatured ? (isEn ? 'Most popular' : 'Plus populaire') : '';
 
@@ -522,7 +557,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
           </div>
         ) : null}
 
-        {!loading && !error && sortedPlans.length > 0 ? (
+        {!loading && sortedPlans.length > 0 ? (
           <section className="pricing-footer-cta reveal-up pricing-footer-cta--flat" aria-label={isEn ? 'Sales support' : 'Assistance commerciale'}>
             <div className="pricing-footer-cta__inner">
               <div className="pricing-footer-cta__copy">
@@ -1026,4 +1061,3 @@ export default function PricingPageClient({ initialPlans = [] }) {
     </>
   );
 }
-

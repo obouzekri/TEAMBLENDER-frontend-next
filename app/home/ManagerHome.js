@@ -801,8 +801,8 @@ export default function ManagerHome() {
     }
 
     const participationWarning = isEn
-      ? `This participant has already taken part in games.\nTheir record will be permanently deleted.\nTheir name will remain visible in historical reports to preserve the consistency of results.\nThis action is irreversible.`
-      : `Ce participant a déjà participé à des jeux.\nSa fiche sera supprimée définitivement.\nSon nom restera visible dans les rapports historiques afin de préserver la cohérence des résultats.\nCette action est irréversible.`;
+      ? `This participant has already taken part in challenges.\nTheir record will be permanently deleted.\nTheir name will remain visible in historical reports to preserve the consistency of results.\nThis action is irreversible.`
+      : `Ce participant a déjà participé à des défis.\nSa fiche sera supprimée définitivement.\nSon nom restera visible dans les rapports historiques afin de préserver la cohérence des résultats.\nCette action est irréversible.`;
 
     const accepted = window.confirm(hasParticipations
       ? `${label}\n\n${participationWarning}`

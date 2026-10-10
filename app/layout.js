@@ -5,28 +5,32 @@ import ExternalNotificationGuard from '@/components/ExternalNotificationGuard';
 import ThemeController from '@/components/ThemeController';
 import DisplayPreferencesController from '@/components/DisplayPreferencesController';
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
-import { getPublicSiteOrigin, socialPreviewImage } from '@/lib/siteMetadata';
+import { getPublicSiteOrigin, getSocialPreviewImage } from '@/lib/siteMetadata';
 
 const siteOrigin = getPublicSiteOrigin();
+const socialPreviewImage = getSocialPreviewImage();
 
 export const metadata = {
   metadataBase: new URL(siteOrigin),
   title: {
-    default: 'TeamBlender | Team building B2B pour managers et RH',
+    default: 'TeamBlender | Défis d’équipe pour managers et RH',
     template: '%s | TeamBlender',
   },
   description:
-    'Plateforme B2B de team building pour managers et RH\u00A0: créez, animez et mesurez des sessions collaboratives hybrides.',
+    'Rapprochez vos équipes autour de défis à vivre en direct, sur site ou à distance, et repartez avec des résultats concrets pour le débrief.',
   openGraph: {
-    title: 'TeamBlender | Team building B2B pour managers et RH',
+    title: 'TeamBlender | Défis d’équipe pour managers et RH',
     description:
-      'Plateforme B2B de team building pour managers et RH\u00A0: créez, animez et mesurez des sessions collaboratives hybrides.',
+      'Rapprochez vos équipes autour de défis à vivre en direct, sur site ou à distance, et repartez avec des résultats concrets pour le débrief.',
     type: 'website',
     url: siteOrigin,
     images: [socialPreviewImage],
   },
   twitter: {
     card: 'summary_large_image',
+    title: 'TeamBlender | Défis d’équipe pour managers et RH',
+    description:
+      'Rapprochez vos équipes autour de défis à vivre en direct, sur site ou à distance, et repartez avec des résultats concrets pour le débrief.',
     images: [socialPreviewImage.url],
   },
   icons: {
@@ -77,4 +81,3 @@ export default async function RootLayout({ children }) {
     </html>
   );
 }
-

@@ -67,7 +67,7 @@ export default async function Image() {
             color: '#93c5fd',
           }}
         >
-          Créez, animez et mesurez des sessions collaboratives hybrides
+          Lancez des défis d’équipe et exploitez les résultats du débrief
         </p>
       </div>
     ),

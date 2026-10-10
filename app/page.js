@@ -31,6 +31,8 @@ import LandingSocialProof from '@/components/Landing/LandingSocialProof';
 import LandingPlatformOffer from '@/components/Landing/LandingPlatformOffer';
 import LandingChallengesShowcase from '@/components/Landing/LandingChallengesShowcase';
 import LandingBenefitsOrbit from '@/components/Landing/LandingBenefitsOrbit';
+import LandingSessionOutcomes from '@/components/Landing/LandingSessionOutcomes';
+import LandingWhyTeamBlender from '@/components/Landing/LandingWhyTeamBlender';
 import LandingFlowSteps from '@/components/Landing/LandingFlowSteps';
 import LandingFinalCta from '@/components/Landing/LandingFinalCta';
 import LandingPreviewModal from '@/components/Landing/LandingPreviewModal';
@@ -48,6 +50,7 @@ import {
   safeHref,
   getChallengeExamples,
 } from '@/lib/landing/landingContent';
+import { getSocialProofData } from '@/lib/landing/socialProofData';
 import useLandingCtaTracking from '@/lib/landing/useLandingCtaTracking';
 import useStickyCtaVisibility from '@/lib/landing/useStickyCtaVisibility';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
@@ -249,6 +252,9 @@ export default function HomePage() {
   const heroTitle = t('landing.heroTitle');
   const heroDescription = t('landing.heroDescription');
   const heroPrimaryLabel = landingStatic.fallback.heroPrimaryLabel;
+  // TODO: Replace this anchor with a dedicated demo/video URL once available.
+  const heroSecondaryHref = '#challenge-examples';
+  const heroSecondaryLabel = landingStatic.fallback.heroSecondaryLabel;
   const heroPrimaryHref = withLocalePath(safeHref(heroCtaPrimary.cta_href, '/signup'));
   const finalPrimaryLabel = hasCmsValue(finalCta.cta_label) ? finalCta.cta_label : landingStatic.fallback.finalPrimaryLabel;
   const finalPrimaryHref = withLocalePath(safeHref(finalCta.cta_href, '/signup'));
@@ -313,7 +319,19 @@ export default function HomePage() {
   const PLATFORM_OFFER_ITEMS = landingStatic.platformOfferItems;
   const PLATFORM_BENEFITS_ITEMS = landingStatic.platformBenefitsItems;
   const USE_CASES = landingStatic.useCases;
-  const TRUSTED_COMPANIES = landingStatic.trustedCompanies;
+  const socialProof = getSocialProofData(locale);
+  const postSessionOutcomes = {
+    eyebrow: landingStatic.fallback.outcomesEyebrow,
+    title: landingStatic.fallback.outcomesTitle,
+    description: landingStatic.fallback.outcomesDescription,
+    items: landingStatic.postSessionOutcomes || [],
+  };
+  const whyTeamBlenderSection = {
+    eyebrow: landingStatic.fallback.whyEyebrow,
+    title: landingStatic.fallback.whyTitle,
+    description: landingStatic.fallback.whyDescription,
+    points: landingStatic.whyTeamBlenderPoints || [],
+  };
   const useCaseChips = useMemo(
     () => USE_CASES.map((label, index) => ({
       label,
@@ -381,6 +399,8 @@ export default function HomePage() {
           structuredHeroTitle={structuredHeroTitle}
           heroDescription={heroDescription}
           heroPrimaryHref={heroPrimaryHref}
+          heroSecondaryHref={heroSecondaryHref}
+          heroSecondaryLabel={heroSecondaryLabel}
           onPrimaryCtaClick={handlePrimaryCtaClick}
           heroPrimaryLabel={heroPrimaryLabel}
           heroTrustBadges={heroTrustBadges}
@@ -398,6 +418,7 @@ export default function HomePage() {
           partnersHeader={partnersHeader}
           useCaseChips={useCaseChips}
           trustProofMetrics={TRUST_PROOF_METRICS}
+          socialProof={socialProof}
         />
 
         <LandingPlatformOffer fallback={landingStatic.fallback} platformOfferItems={PLATFORM_OFFER_ITEMS} />
@@ -405,6 +426,10 @@ export default function HomePage() {
         <LandingChallengesShowcase locale={locale} challengeExamples={challengeExamples} />
 
         <LandingBenefitsOrbit locale={locale} fallback={landingStatic.fallback} platformBenefitsItems={PLATFORM_BENEFITS_ITEMS} />
+
+        <LandingSessionOutcomes locale={locale} outcomesSection={postSessionOutcomes} />
+
+        <LandingWhyTeamBlender section={whyTeamBlenderSection} />
 
         <LandingFlowSteps locale={locale} flowHeader={flowHeader} flowStepsWithIcons={flowStepsWithIcons} />
 

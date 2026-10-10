@@ -1,4 +1,5 @@
 import PricingPageClient from './PricingPageClient';
+import { getPricingPlansFallback } from '@/lib/pricingFallbackPlans';
 
 export const revalidate = 3600;
 
@@ -18,14 +19,13 @@ async function fetchPricingPlans() {
       next: { revalidate: 3600 },
       signal: controller.signal,
     });
-    if (!response.ok) return [];
+    if (!response.ok) return getPricingPlansFallback();
     const payload = await response.json().catch(() => []);
-    return Array.isArray(payload) ? payload : [];
+    return Array.isArray(payload) && payload.length > 0 ? payload : getPricingPlansFallback();
   } catch {
-    // Backend unreachable/slow: fall back to an empty list, the client component
-    // re-fetches on mount so the page still recovers without holding the
-    // serverless function open indefinitely.
-    return [];
+    // Backend unreachable/slow: return a stable fallback so pricing remains
+    // visible/indexable and the client can refresh in background.
+    return getPricingPlansFallback();
   } finally {
     clearTimeout(timeout);
   }

@@ -3,6 +3,7 @@
 export default function LandingChallengesShowcase({ locale, challengeExamples }) {
   return (
     <section
+      id="challenge-examples"
       className="landing-challenges-section landing-section-full relative overflow-hidden p-6 sm:p-10"
       style={{ '--reveal-delay': '150ms' }}
       aria-label={locale === 'en' ? 'Challenge examples' : 'Exemples de défis'}
