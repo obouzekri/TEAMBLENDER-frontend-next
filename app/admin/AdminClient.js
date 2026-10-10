@@ -2444,6 +2444,7 @@ export default function AdminClient() {
         body: JSON.stringify({
           name: editingSession.name,
           status: editingSession.status,
+          ...(editingSession.status === 'en_cours' ? { locale } : {}),
           format: editingSession.format || null,
           modality: editingSession.modality || null,
           session_date: editingSession.session_date || null,
@@ -2505,6 +2506,7 @@ export default function AdminClient() {
         body: JSON.stringify({
           name: newSession.name.trim(),
           status: newSession.status,
+          ...(newSession.status === 'en_cours' ? { locale } : {}),
           format: newSession.format.trim() || null,
           modality: newSession.modality || null,
           session_date: newSession.session_date || null,
@@ -5530,4 +5532,3 @@ export default function AdminClient() {
     </>
   );
 }
-

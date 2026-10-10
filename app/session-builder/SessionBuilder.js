@@ -27,6 +27,8 @@ import { getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRul
 import { getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueRules';
 import { getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
 import { getLabInnovationRulesPreset } from '@/lib/challenges/labInnovationRules';
+import { getCrosswordRulesPreset } from '@/lib/challenges/crosswordRules';
+import { getSessionParticipantLimitError } from '@/lib/sessionLaunchValidation.mjs';
 import styles from './SessionBuilder.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
 import useI18n from '@/lib/i18n/useI18n';
@@ -206,6 +208,7 @@ function resolveLocalizedText(value, locale) {
 }
 
 function getBuilderRulesPreset(engineKey, locale) {
+  if (engineKey === 'crossword_live_v1') return getCrosswordRulesPreset(locale);
   switch (String(engineKey || '').trim()) {
     case 'pixel_architect_v1':
       return getPixelArchitectRulesPreset(locale);
@@ -685,6 +688,7 @@ export default function SessionBuilder() {
 
       if (markInProgress) {
         payload.status = 'en_cours';
+        payload.locale = locale;
       }
 
       await apiRequest(`/sessions/${sessionId}`, {
@@ -696,10 +700,12 @@ export default function SessionBuilder() {
         body: JSON.stringify(payload),
       });
     },
-    [apiRequest, sessionId]
+    [apiRequest, sessionId, locale]
   );
 
   const persistSelectionToBackend = useCallback(async (markInProgress = false) => {
+    const participantLimitError = getSessionParticipantLimitError(selectedChallenges, sessionParticipantCount, locale);
+    if (participantLimitError) throw new Error(participantLimitError);
     const token = getAuthToken();
     if (!sessionId || !token) return;
 
@@ -711,7 +717,7 @@ export default function SessionBuilder() {
       throw new Error('No valid API challenge to save for this session.');
     }
 
-    await ensureChallengesLinkedToSession(selectedChallengeIds, token, markInProgress);
+    await ensureChallengesLinkedToSession(selectedChallengeIds, token, false);
 
     const refreshedSession = await apiRequest(`/sessions/${sessionId}`, {
       headers: {
@@ -745,10 +751,16 @@ export default function SessionBuilder() {
       });
     }
 
+    if (markInProgress) {
+      await ensureChallengesLinkedToSession(selectedChallengeIds, token, true);
+    }
+
     setSelectedChallengesSnapshot(JSON.stringify(selectedChallenges));
     setLastBackendSaveAt(new Date().toISOString());
   }, [
     apiRequest,
+    locale,
+    sessionParticipantCount,
     ensureChallengesLinkedToSession,
     getAuthToken,
     resolveChallengeApiIdentifier,
@@ -958,6 +970,11 @@ export default function SessionBuilder() {
     if (!selectedChallenges.length || isLaunching) {
       return;
     }
+    const participantLimitError = getSessionParticipantLimitError(selectedChallenges, sessionParticipantCount, locale);
+    if (participantLimitError) {
+      showErrorToast(participantLimitError);
+      return;
+    }
 
     trackGaEvent('cta_click', {
       cta_name: 'session_builder_launch_challenge',
@@ -1000,6 +1017,8 @@ export default function SessionBuilder() {
     }
   }, [
     isLaunching,
+    locale,
+    sessionParticipantCount,
     persistSelectionToBackend,
     removeToast,
     redirectToUpgrade,

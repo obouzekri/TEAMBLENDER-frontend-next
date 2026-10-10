@@ -297,6 +297,15 @@ export default function SessionResultsClient() {
                           <div className="session-results-row-duration">
                             {isEn ? 'Duration:' : 'Durée :'} {duration}
                           </div>
+                          {r.engine_key === 'crossword_live_v1' && (
+                            <div className="session-results-row-duration">
+                              {isEn ? 'Words found: ' : 'Mots trouvés : '}
+                              {(r.data?.words_found || []).map((word) => word.answer).join(', ') || (isEn ? 'None' : 'Aucun')}
+                              {' · '}
+                              {isEn ? 'Shared completion: ' : 'Progression collective : '}
+                              {r.data?.completion_percent ?? 0}%
+                            </div>
+                          )}
                         </div>
                         <div className="session-results-row-metrics">
                           {r.score != null && (

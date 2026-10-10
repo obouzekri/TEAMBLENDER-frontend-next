@@ -479,6 +479,19 @@ function getInitialChallengeConfig(challenge) {
   };
 }
 
+export function getCrosswordTemplates(challenge, locale) {
+  const catalog = challenge?.engine_config || {};
+  const byLocale = catalog.templatesByLocale || challenge?.templatesByLocale;
+  const source = byLocale?.[locale] || catalog.templates || [];
+  return (Array.isArray(source) ? source : []).filter((template) => (
+    template?.id && (template.locale || (byLocale?.[locale] ? locale : catalog.locale || 'fr')) === locale
+  ));
+}
+
+export function normalizeCrosswordDifficulty(value) {
+  return ({ facile: 'easy', moyen: 'medium', difficile: 'hard' })[value] || value || 'medium';
+}
+
 export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   const { locale } = useI18n();
   useBodyScrollLock(true);
@@ -487,6 +500,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   const [config, setConfig] = useState(() => getInitialChallengeConfig(challenge));
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [crosswordDifficulty, setCrosswordDifficulty] = useState('');
   const copuzzleDefaultImages = normalizeCopuzzleDefaultImages(
     challenge?.engine_config?.default_images
       || challenge?.config?.default_images
@@ -495,9 +509,15 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
 
   useEffect(() => {
     setConfig(getInitialChallengeConfig(challenge));
+    setCrosswordDifficulty('');
   }, [challenge]);
 
+  useEffect(() => {
+    setCrosswordDifficulty('');
+  }, [locale]);
+
   function getChallengeKind(current) {
+    if ((current?.engine_key || '').toLowerCase() === 'crossword_live_v1') return 'crossword';
     const fingerprint = [
       current?.name,
       current?.type,
@@ -536,6 +556,14 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   }
 
   const kind = getChallengeKind(challenge);
+  const crosswordTemplates = getCrosswordTemplates(challenge, locale);
+  const configuredCrossword = (config.locale || 'fr') === locale
+    ? crosswordTemplates.find((template) => template.id === config.gridId)
+    : null;
+  const selectedCrosswordDifficulty = crosswordDifficulty
+    || normalizeCrosswordDifficulty(configuredCrossword?.difficulty || crosswordTemplates[0]?.difficulty);
+  const filteredCrosswordTemplates = crosswordTemplates.filter((template) => normalizeCrosswordDifficulty(template.difficulty) === selectedCrosswordDifficulty);
+  const selectedCrossword = filteredCrosswordTemplates.find((template) => template.id === configuredCrossword?.id) || filteredCrosswordTemplates[0];
   const playerRange = resolveChallengePlayerRange(challenge);
   const localizedPhraseTemplateLabels = {
     tpl_matchs_championnats: { fr: 'Le talent gagne des matchs... (moyen)', en: 'Talent wins games... (medium)' },
@@ -614,6 +642,16 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   }
 
   const handleSave = () => {
+    if (kind === 'crossword') {
+      if (!selectedCrossword) return;
+      onSave({
+        locale,
+        gridId: selectedCrossword.id,
+        timer: { enabled: true, duration_seconds: clampInt(config?.timer?.duration_seconds, 900, 300, 1800) },
+        participants: { min_count: 2, max_count: 5, recommended_count: 5 },
+      });
+      return;
+    }
     if (kind === 'copuzzle') {
       onSave(withCopuzzleDefaults(config, copuzzleDefaultImages));
       return;
@@ -731,6 +769,50 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               {txt('Min.', 'Min.')}: {playerRange.min || '-'} · {txt('Recommandé', 'Recommended')}: {playerRange.recommended || '-'} · {txt('Max.', 'Max.')}: {playerRange.max || '-'} {txt('joueurs', 'players')}
             </p>
           ) : null}
+
+          {kind === 'crossword' && (
+            <>
+              <p className={styles.helpText}>{txt('2 à 5 participants · 5 recommandés. Grilles sélectionnées, sans indices ni éditeur.', '2–5 participants · 5 recommended. Curated grids, without hints or an editor.')}</p>
+              <div className={styles.configField}>
+                <label htmlFor="crosswordDifficulty" className={styles.label}>{txt('Difficulté', 'Difficulty')}</label>
+                <select id="crosswordDifficulty" className={styles.input} value={selectedCrosswordDifficulty}
+                  disabled={!crosswordTemplates.length}
+                  onChange={(event) => { setCrosswordDifficulty(event.target.value); updateValue('gridId', ''); }}>
+                  {[...new Set(crosswordTemplates.map((template) => normalizeCrosswordDifficulty(template.difficulty)))].map((difficulty) => (
+                    <option key={difficulty} value={difficulty}>{({ easy: txt('Facile', 'Easy'), medium: txt('Moyen', 'Medium'), hard: txt('Difficile', 'Hard') })[difficulty] || difficulty}</option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.configField}>
+                <label htmlFor="crosswordGrid" className={styles.label}>{txt('Grille', 'Grid')}</label>
+                <select id="crosswordGrid" className={styles.input} value={selectedCrossword?.id || ''} disabled={!filteredCrosswordTemplates.length}
+                  onChange={(event) => setConfig((previous) => ({ ...previous, gridId: event.target.value, locale }))}>
+                  {filteredCrosswordTemplates.map((template) => <option key={template.id} value={template.id}>{template.title || template.name || template.id}{template.theme ? ` · ${template.theme}` : ''}</option>)}
+                </select>
+                {!selectedCrossword && <p role="status">{txt('Aucune grille disponible dans cette langue.', 'No grids available in this language.')}</p>}
+                {Array.isArray(selectedCrossword?.preview) && selectedCrossword.width > 0 && selectedCrossword.height > 0 && (() => {
+                  const width = clampInt(selectedCrossword.width, 15, 1, 30);
+                  const height = clampInt(selectedCrossword.height, 15, 1, 30);
+                  const occupied = new Set(selectedCrossword.preview.map((cell) => `${cell.row}:${cell.col}`));
+                  return (
+                    <div className={styles.crosswordPreview} role="img" aria-label={txt('Aperçu de la grille sans réponses', 'Grid preview without answers')}
+                      style={{ '--preview-columns': width, aspectRatio: `${width} / ${height}` }}>
+                      {Array.from({ length: width * height }, (_, index) => (
+                        <span key={index} aria-hidden="true" className={occupied.has(`${Math.floor(index / width)}:${index % width}`) ? styles.crosswordPreviewCell : styles.crosswordPreviewBlock} />
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+              <div className={styles.configField}>
+                <label htmlFor="crosswordDuration" className={styles.label}>{txt('Durée (minutes)', 'Duration (minutes)')}</label>
+                <input id="crosswordDuration" type="number" min="5" max="30" step="1" className={styles.input}
+                  value={Math.round(numberValue('timer.duration_seconds', 900) / 60)}
+                  onChange={(event) => updateValue('timer.duration_seconds', clampInt(event.target.value, 15, 5, 30) * 60)} />
+                <span className={styles.helpText}>{txt('15 minutes par défaut · de 5 à 30 minutes.', '15 minutes by default · from 5 to 30 minutes.')}</span>
+              </div>
+            </>
+          )}
 
           {kind === 'copuzzle' && (
             <>
@@ -1447,7 +1529,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
           <button className="btn-secondary" onClick={onClose}>
             {txt('Annuler', 'Cancel')}
           </button>
-          <button className="btn-primary" onClick={handleSave}>
+          <button className="btn-primary" onClick={handleSave} disabled={kind === 'crossword' && !selectedCrossword}>
             {txt('Enregistrer', 'Save')}
           </button>
         </div>

@@ -23,6 +23,8 @@
     "test:unit:auth": "node scripts/test-auth.mjs",
     "test:unit:truthfulness": "node scripts/test-platform-truthfulness.mjs",
     "test:ux:quiz": "node scripts/test-quiz-ux.mjs",
+    "test:ux:crossword": "node scripts/test-crossword-ux.mjs",
+    "test:unit:session-locale": "node scripts/test-session-locale.mjs",
     "test:ux:preferences-results": "node scripts/test-preferences-results-ux.mjs",
     "test:unit:builder": "node scripts/test-session-builder-utils.mjs",
     "test:ux:builder": "node scripts/test-session-builder-ux.mjs",

@@ -22,7 +22,8 @@ const REALTIME_ENGINES = new Set([
   'mission_critique_v1',
   'the_quiz_v1',
   'vrai_ou_mensonge_v1',
-  'pixel_architect_v1'
+  'pixel_architect_v1',
+  'crossword_live_v1'
 ]);
 
 /**
@@ -64,6 +65,8 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
   function shallowEqualContext(a, b) {
     if (!a || !b) return false;
     return a.role === b.role
+      && a.locale === b.locale
+      && a.sessionConfigLocked === b.sessionConfigLocked
       && String(a.userId || '') === String(b.userId || '')
       && Number(a.sessionId || 0) === Number(b.sessionId || 0)
       && Number(a.challengeId || 0) === Number(b.challengeId || 0)
@@ -153,6 +156,8 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
           const displayName = String(payload.context?.displayName || payload.context?.name || fullName || email || '').trim();
 
           const nextContext = {
+            locale: payload.context?.locale === 'en' ? 'en' : 'fr',
+            sessionConfigLocked: Boolean(payload.context?.sessionConfigLocked),
             role: payload.context?.role || 'participant',
             userId: resolvedUserId,
             sessionId: Number(sessionId),
@@ -233,6 +238,8 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
             const displayName = String(payload.context?.displayName || payload.context?.name || fullName || email || '').trim();
 
             const nextContext = {
+              locale: payload.context?.locale === 'en' ? 'en' : 'fr',
+              sessionConfigLocked: Boolean(payload.context?.sessionConfigLocked),
               role: payload.context?.role || prev?.role || 'participant',
               userId: prev?.userId || payload.context?.participantId || null,
               sessionId: Number(sessionId),

@@ -12,6 +12,28 @@
   animation: fadeIn 0.2s ease-out;
 }
 
+.crosswordPreview {
+  display: grid;
+  grid-template-columns: repeat(var(--preview-columns), minmax(0, 1fr));
+  gap: 2px;
+  width: min(100%, 240px);
+  margin: 14px auto 0;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-border);
+}
+
+.crosswordPreviewCell {
+  background: var(--color-surface);
+  border-radius: 1px;
+}
+
+.crosswordPreviewBlock {
+  background: var(--ink);
+  border-radius: 1px;
+}
+
 .modal {
   background: var(--modal-panel);
   border-radius: 0.75rem;

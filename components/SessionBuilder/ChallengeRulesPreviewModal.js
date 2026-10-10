@@ -11,11 +11,13 @@ import { getTheQuizRulesPreset } from '@/lib/challenges/theQuizRules';
 import { getPhraseMystereRulesPreset } from '@/lib/challenges/phraseMystereRules';
 import { getCopuzzleRulesPreset } from '@/lib/challenges/copuzzleRules';
 import { getLabInnovationRulesPreset } from '@/lib/challenges/labInnovationRules';
+import { getCrosswordRulesPreset } from '@/lib/challenges/crosswordRules';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './ChallengeRulesPreviewModal.module.css';
 
 function getFallbackRules(challenge, locale) {
+  if (challenge?.engine_key === 'crossword_live_v1') return getCrosswordRulesPreset(locale);
   const isLabyrinthe = String(challenge?.engine_key || '').trim() === 'labyrinthe_live_v1';
   const isVom = String(challenge?.engine_key || '').trim() === 'vrai_ou_mensonge_v1';
   const isMissionCritique = String(challenge?.engine_key || '').trim() === 'mission_critique_v1';

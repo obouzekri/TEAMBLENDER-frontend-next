@@ -10,6 +10,7 @@ function run() {
   assert.ok(keys.includes('phrase_collaborative_v1'));
   assert.ok(keys.includes('the_quiz_v1'));
   assert.ok(keys.includes('pixel_architect_v1'));
+  assert.ok(keys.includes('crossword_live_v1'));
 
   console.log('TEST_RUNTIME_DISPATCHER_OK');
 }
