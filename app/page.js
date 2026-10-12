@@ -32,7 +32,6 @@ import LandingPlatformOffer from '@/components/Landing/LandingPlatformOffer';
 import LandingChallengesShowcase from '@/components/Landing/LandingChallengesShowcase';
 import LandingBenefitsOrbit from '@/components/Landing/LandingBenefitsOrbit';
 import LandingSessionOutcomes from '@/components/Landing/LandingSessionOutcomes';
-import LandingWhyTeamBlender from '@/components/Landing/LandingWhyTeamBlender';
 import LandingFlowSteps from '@/components/Landing/LandingFlowSteps';
 import LandingFinalCta from '@/components/Landing/LandingFinalCta';
 import LandingPreviewModal from '@/components/Landing/LandingPreviewModal';
@@ -326,12 +325,6 @@ export default function HomePage() {
     description: landingStatic.fallback.outcomesDescription,
     items: landingStatic.postSessionOutcomes || [],
   };
-  const whyTeamBlenderSection = {
-    eyebrow: landingStatic.fallback.whyEyebrow,
-    title: landingStatic.fallback.whyTitle,
-    description: landingStatic.fallback.whyDescription,
-    points: landingStatic.whyTeamBlenderPoints || [],
-  };
   const useCaseChips = useMemo(
     () => USE_CASES.map((label, index) => ({
       label,
@@ -428,8 +421,6 @@ export default function HomePage() {
         <LandingBenefitsOrbit locale={locale} fallback={landingStatic.fallback} platformBenefitsItems={PLATFORM_BENEFITS_ITEMS} />
 
         <LandingSessionOutcomes locale={locale} outcomesSection={postSessionOutcomes} />
-
-        <LandingWhyTeamBlender section={whyTeamBlenderSection} />
 
         <LandingFlowSteps locale={locale} flowHeader={flowHeader} flowStepsWithIcons={flowStepsWithIcons} />
 

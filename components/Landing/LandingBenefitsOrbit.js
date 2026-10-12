@@ -23,8 +23,7 @@ export default function LandingBenefitsOrbit({ locale, fallback, platformBenefit
           </div>
           <div className="landing-benefits-orbit-center" aria-label={locale === 'en' ? 'Core platform value' : 'Valeur centrale'}>
             <div className="landing-benefits-orbit-center__halo" aria-hidden="true" />
-            <strong>{locale === 'en' ? 'A shared live challenge format for managers, teams, and HR.' : 'Un format de défis en direct partagé entre managers, équipes et RH.'}</strong>
-            <p>{locale === 'en' ? 'Your team gets a meaningful collective moment, and you get outcomes ready to use in debrief.' : 'Votre équipe vit un vrai moment collectif, et vous repartez avec des résultats directement utiles au débrief.'}</p>
+            <strong>{locale === 'en' ? 'One shared format to move teams forward.' : 'Un format commun pour faire avancer l’équipe.'}</strong>
           </div>
 
           {platformBenefitsItems.slice(0, 5).map((item, index) => {
