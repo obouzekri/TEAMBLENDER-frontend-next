@@ -224,7 +224,8 @@ async function testEscape(locale, width) {
   });
   const { page } = fixture;
   await page.getByText('Synchronization test', { exact: true }).first().waitFor();
-  await page.getByText(locale === 'en' ? /Pause\/reset are not available/ : /Pause\/Reinitialisation du chrono non disponibles/).waitFor();
+  await page.getByRole('timer').waitFor();
+  await page.getByRole('button', { name: locale === 'en' ? 'Pause' : 'Mettre en pause', exact: true }).waitFor();
   const baselineRequests = requests;
   responseMode = 'error';
   const alert = page.locator('[role="alert"]').filter({ hasText: locale === 'en' ? 'Synchronization interrupted' : 'Synchronisation interrompue' });

@@ -73,7 +73,7 @@ export async function createRealtimeFixture(browser, { baseUrl, locale, role, en
     }
     if (url.pathname.includes('/api/')) {
       let payload = [];
-      if (url.pathname.endsWith('/runtime-challenge')) payload = { engine_key: engineKey, challenge_id: 7, session_id: 42, config: state.config, context: { role, participantId: '1' } };
+      if (url.pathname.endsWith('/runtime-challenge')) payload = { engine_key: engineKey, challenge_id: 7, session_id: 42, config: state.config, context: { role, locale, participantId: '1' } };
       else if (url.pathname.endsWith('/state')) payload = { status: 'en_cours', active_challenge_id: 7, current_challenge: challenge, challenges: [challenge] };
       else if (/\/sessions\/42$/.test(url.pathname)) payload = { id: 42, name: 'Realtime UX', status: 'en_cours', challenges: [challenge], assigned_participants: [] };
       await route.fulfill({ json: payload });
