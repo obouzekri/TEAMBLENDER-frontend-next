@@ -7,7 +7,7 @@ import styles from './ChallengesCatalog.module.css';
 import { Badge, Button, EmptyState } from '@/components/ui';
 import { formatRecommendedPlayersLabel } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
-import { Check, Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 const MAX_FILTER_OBJECTIVES = 3;
 
@@ -99,6 +99,7 @@ export default function ChallengesCatalog({
   filters,
   isLoading,
   onSelect,
+  onDeselect,
   onConfigure,
   onFilterChange,
   onToggleCategory,
@@ -503,13 +504,21 @@ export default function ChallengesCatalog({
                   <button
                     type="button"
                     className={`${styles.toggleAction} ${isSelected ? styles.toggleActionSelected : ''}`}
-                    disabled={isSelected}
-                    onClick={() => onSelect(challenge.id)}
+                    onClick={() => {
+                      if (isSelected) {
+                        onDeselect?.(challenge.id);
+                      } else {
+                        onSelect?.(challenge.id);
+                      }
+                    }}
+                    title={isSelected ? t('sessionBuilder.catalogRemoveAction') : t('sessionBuilder.catalogAddAction')}
                   >
                     <span className={styles.toggleActionKnob} aria-hidden="true">
-                      {isSelected ? <Check size={14} strokeWidth={2.6} /> : <Plus size={15} strokeWidth={2.6} />}
+                      {isSelected ? <X size={14} strokeWidth={2.6} /> : <Plus size={15} strokeWidth={2.6} />}
                     </span>
-                    <span className={styles.toggleActionLabel}>{isSelected ? t('sessionBuilder.catalogInList') : t('sessionBuilder.catalogAddAction')}</span>
+                    <span className={styles.toggleActionLabel}>
+                      {isSelected ? t('sessionBuilder.catalogRemoveAction') : t('sessionBuilder.catalogAddAction')}
+                    </span>
                   </button>
                   {isSelected && (
                     <Button

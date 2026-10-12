@@ -72,7 +72,8 @@ try {
     assert.ok(Math.max(...heights) - Math.min(...heights) < 1, `Unequal card heights: ${heights}`);
     const alpha = cards.filter({ has: page.getByRole('heading', { name: 'Alpha', exact: true }) });
     assert.equal(await alpha.locator('[class*="badge"]').filter({ hasText: /^Collaboration$/ }).count(), 1);
-    await alpha.getByRole('button', { name: locale === 'en' ? 'In list' : 'Déjà ajouté', exact: true }).isDisabled().then((disabled) => assert.ok(disabled));
+    const toggleBtn = alpha.getByRole('button', { name: locale === 'en' ? 'Remove' : 'Retirer', exact: true });
+    assert.ok(!(await toggleBtn.isDisabled()));
 
     const reset = page.getByRole('button', { name: locale === 'en' ? 'Reset filters' : 'Réinitialiser les filtres', exact: true });
     await reset.focus();

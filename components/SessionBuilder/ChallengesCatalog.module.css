@@ -401,6 +401,20 @@
   border-color: var(--control-border-strong);
 }
 
+:global(html[data-theme='dark']) .toggleActionSelected:hover,
+:global(body[data-theme='dark']) .toggleActionSelected:hover,
+:global(.dark) .toggleActionSelected:hover {
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #fca5a5;
+}
+
+:global(html[data-theme='dark']) .toggleActionSelected:hover .toggleActionKnob,
+:global(body[data-theme='dark']) .toggleActionSelected:hover .toggleActionKnob,
+:global(.dark) .toggleActionSelected:hover .toggleActionKnob {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
 :global(html[data-theme='dark']) .configureAction,
 :global(body[data-theme='dark']) .configureAction,
 :global(.dark) .configureAction {
@@ -603,7 +617,7 @@
   border-color: var(--control-border-strong);
   background: var(--surface-control);
   color: var(--ink);
-  cursor: default;
+  cursor: pointer;
 }
 
 .toggleActionSelected .toggleActionKnob {
@@ -613,8 +627,15 @@
 }
 
 .toggleActionSelected:hover {
-  transform: none;
-  box-shadow: none;
+  border-color: var(--error-line, #ef4444);
+  color: var(--error-ink, #b91c1c);
+  transform: translateY(-1px);
+  box-shadow: var(--control-shadow);
+}
+
+.toggleActionSelected:hover .toggleActionKnob {
+  background: var(--error-bg, #fff1f1);
+  color: var(--error-line, #ef4444);
 }
 
 .loadMoreSentinelWrap {
