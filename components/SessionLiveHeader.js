@@ -79,13 +79,22 @@ export default function SessionLiveHeader({
     creativite: isEn ? 'Creativity' : 'Créativité',
     'intelligence-collective': isEn ? 'Collective intelligence' : 'Intelligence collective',
   };
+  const parseObjectiveKeys = (value) => (value == null || value === ''
+    ? []
+    : String(value).split(',').map((item) => item.trim()).filter(Boolean));
+  const objectiveKeys = Object.keys(objectiveLabels);
   const displayedObjective = savedContext?.objective ?? sessionObjective;
+  const displayedObjectiveKeys = parseObjectiveKeys(displayedObjective).filter((key) => objectiveKeys.includes(key));
+  const displayedObjectiveLabel = displayedObjectiveKeys.map((key) => objectiveLabels[key]).join(' · ');
   const displayedExpectedCount = savedContext ? savedContext.expected_participant_count : expectedParticipantCount;
 
   function openContextEditor() {
     setInfoOpen(false);
     if (onEditSessionInfo) { onEditSessionInfo(); return; }
-    setContextDraft({ expected_participant_count: displayedExpectedCount ?? '', objective: displayedObjective || '' });
+    setContextDraft({
+      expected_participant_count: displayedExpectedCount ?? '',
+      objective: displayedObjectiveKeys.join(','),
+    });
     setContextError('');
     setContextOpen(true);
   }
@@ -107,7 +116,10 @@ export default function SessionLiveHeader({
     setContextSaving(true);
     setContextError('');
     try {
-      const fields = { expected_participant_count: expected, objective: contextDraft.objective || null };
+      const normalizedObjective = objectiveKeys
+        .filter((key) => parseObjectiveKeys(contextDraft.objective).includes(key))
+        .join(',');
+      const fields = { expected_participant_count: expected, objective: normalizedObjective || null };
       const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), {
         method: 'PUT', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify(fields),
@@ -302,7 +314,7 @@ export default function SessionLiveHeader({
         {resolvedExpectedCount == null ? <p>{isEn ? 'Expected attendance not specified' : 'Nombre attendu non précisé'}</p> : null}
         {canManageParticipants ? <Button variant="secondary" size="sm" onClick={() => { setInfoOpen(false); setManagementOpen(true); }}>{manageLabel}</Button> : null}
       </div>
-      {displayedObjective ? <div className={styles.popoverSection}><p className={styles.popoverLabel}>{isEn ? 'Objective' : 'Objectif'}</p><p>{objectiveLabels[displayedObjective] || displayedObjective}</p></div> : null}
+      {displayedObjectiveLabel ? <div className={styles.popoverSection}><p className={styles.popoverLabel}>{isEn ? 'Objectives' : 'Objectifs'}</p><p>{displayedObjectiveLabel}</p></div> : null}
       {canManageParticipants ? <Button variant="secondary" size="sm" onClick={openContextEditor}>{isEn ? 'Edit session info' : 'Modifier les infos'}</Button> : null}
       <div className={styles.popoverSection}>
         <p className={styles.popoverLabel}>{challengeOrderLabel}</p>
@@ -410,12 +422,30 @@ export default function SessionLiveHeader({
             <input type="number" min="1" max="2147483647" step="1" value={contextDraft.expected_participant_count}
               onChange={(event) => setContextDraft((draft) => ({ ...draft, expected_participant_count: event.target.value }))} />
           </label>
-          <label>{isEn ? 'Objective' : 'Objectif'}
-            <select value={contextDraft.objective} onChange={(event) => setContextDraft((draft) => ({ ...draft, objective: event.target.value }))}>
-              <option value="">{isEn ? 'Not specified' : 'Non précisé'}</option>
-              {Object.entries(objectiveLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-            </select>
-          </label>
+          <fieldset className={styles.contextObjectives}>
+            <legend>{isEn ? 'Objectives' : 'Objectifs'}</legend>
+            <div className={styles.contextObjectiveOptions}>
+              {Object.entries(objectiveLabels).map(([key, label]) => {
+                const checked = parseObjectiveKeys(contextDraft.objective).includes(key);
+                return (
+                  <label key={key}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(event) => {
+                        const current = parseObjectiveKeys(contextDraft.objective);
+                        const next = event.target.checked
+                          ? [...current, key]
+                          : current.filter((item) => item !== key);
+                        setContextDraft((draft) => ({ ...draft, objective: objectiveKeys.filter((item) => next.includes(item)).join(',') }));
+                      }}
+                    />
+                    <span>{label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
           <p>{isEn ? 'Session context only: this does not change game assignments or restart the current challenge.' : 'Contexte de session uniquement : ceci ne modifie pas les attributions et ne redémarre pas le challenge actuel.'}</p>
           {contextError ? <p role="alert">{contextError}</p> : null}
           <div className={styles.managementActions}>

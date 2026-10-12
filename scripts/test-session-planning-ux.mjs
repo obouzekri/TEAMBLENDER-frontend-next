@@ -62,10 +62,21 @@ try {
     }
     await page.locator('#expected-participants').fill('6');
     await setObjectiveSelection(objectiveField, 'collaboration', true);
+    await setObjectiveSelection(objectiveField, 'communication', true);
+    const participantsDisclosure = page.locator('#create-session-form details');
+    await participantsDisclosure.locator('summary').click();
+    await page.getByText(
+      locale === 'fr' ? /Aucun profil disponible/ : /No profiles available/,
+    ).waitFor();
+    assert.equal(
+      await page.locator('button[form="create-session-form"]').isDisabled(),
+      false,
+      'Session creation stays available when no participant profiles exist',
+    );
     await page.getByRole('button', { name: locale === 'fr' ? 'Créer la session' : 'Create session', exact: true }).click();
     await page.getByRole('heading', { name: 'Session planning UX', exact: true }).waitFor();
     assert.equal(savedSession.expected_participant_count, 6);
-    assert.equal(savedSession.objective, 'collaboration');
+    assert.equal(savedSession.objective, 'communication,collaboration');
     assert.equal(savedSession.participant_ids, undefined);
     await page.getByRole('button', { name: locale === 'fr' ? 'Me proposer un programme' : 'Suggest a program', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: locale === 'fr' ? 'Me proposer un programme' : 'Suggest a program', exact: true });
@@ -95,7 +106,9 @@ try {
     assert.ok(await page.locator('[data-activity-id]').count() > 0);
     await page.getByRole('button', { name: locale === 'fr' ? 'Modifier les détails de session' : 'Edit session details', exact: true }).click();
     await page.locator('#edit-expected-participants').fill('');
-    await setObjectiveSelection(page.locator('#edit-session-objective'), 'collaboration', false);
+    const editObjectiveField = page.locator('#edit-session-objective');
+    await setObjectiveSelection(editObjectiveField, 'collaboration', false);
+    await setObjectiveSelection(editObjectiveField, 'communication', false);
     await page.getByRole('dialog').getByRole('button', { name: locale === 'fr' ? 'Sauvegarder' : 'Save', exact: true }).click();
     await page.getByRole('dialog').waitFor({ state: 'hidden' });
     assert.equal(savedSession.expected_participant_count, null);

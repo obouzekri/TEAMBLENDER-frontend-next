@@ -124,7 +124,7 @@ try {
       await page.getByRole('button', { name: en ? 'Edit session info' : 'Modifier les infos', exact: true }).click();
       const editor = page.getByRole('dialog', { name: en ? 'Edit session info' : 'Modifier les infos', exact: true });
       await editor.getByRole('spinbutton').fill('11');
-      await editor.getByRole('combobox').selectOption('leadership');
+      await editor.getByLabel('Leadership').check();
       denyContext = true;
       await editor.getByRole('button', { name: en ? 'Save' : 'Enregistrer', exact: true }).click();
       await editor.getByRole('alert').waitFor();
@@ -133,11 +133,11 @@ try {
       await editor.getByRole('button', { name: en ? 'Save' : 'Enregistrer', exact: true }).click();
       await editor.waitFor({ state: 'hidden' });
       assert.equal(session.expected_participant_count, 11);
-      assert.equal(session.objective, 'leadership');
+      assert.equal(session.objective, 'collaboration,leadership');
       await page.reload();
       await info().click();
       await page.getByText('1 / 11', { exact: true }).waitFor();
-      await page.getByRole('dialog', { name: en ? 'Session info' : 'Infos de session', exact: true }).getByText('Leadership', { exact: true }).waitFor();
+      await page.getByRole('dialog', { name: en ? 'Session info' : 'Infos de session', exact: true }).getByText(/Leadership/).waitFor();
       session.expected_participant_count = null;
       unavailable = true;
       await page.reload();

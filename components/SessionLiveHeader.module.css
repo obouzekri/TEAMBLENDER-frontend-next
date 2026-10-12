@@ -305,5 +305,37 @@
 .contextForm { display: grid; gap: 16px; }
 .contextForm label { display: grid; gap: 6px; }
 .contextForm input, .contextForm select { border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; }
+.contextObjectives {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 0;
+}
+
+.contextObjectives legend {
+  padding: 0 6px;
+  font-weight: 600;
+}
+
+.contextObjectiveOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contextObjectiveOptions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.875rem;
+}
+
+.contextObjectiveOptions input {
+  margin: 0;
+}
+
 .confirmRemoval { padding: 16px; margin-bottom: 16px; border: 1px solid #d97706; border-radius: 8px; }
 .confirmRemoval button { margin-right: 8px; }

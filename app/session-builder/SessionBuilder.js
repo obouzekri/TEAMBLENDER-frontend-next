@@ -30,6 +30,7 @@ import { getLabInnovationRulesPreset } from '@/lib/challenges/labInnovationRules
 import { getCrosswordRulesPreset } from '@/lib/challenges/crosswordRules';
 import {
   SESSION_OBJECTIVES,
+  parseSessionObjectives,
   isValidExpectedCount,
   proposeSessionProgram,
   replaceProgramChallenge,
@@ -417,6 +418,16 @@ function extractChallengeConfig(challenge) {
     : {};
 
   return mergeChallengeConfig(baseConfig, mergeChallengeConfig(directConfig, junctionConfig));
+}
+
+function normalizeSessionObjectiveValue(value) {
+  if (value == null || value === '') return '';
+  try {
+    const parsed = parseSessionObjectives(value);
+    return SESSION_OBJECTIVES.filter((objectiveKey) => parsed.includes(objectiveKey)).join(',');
+  } catch {
+    return '';
+  }
 }
 
 export default function SessionBuilder() {
@@ -902,7 +913,7 @@ export default function SessionBuilder() {
 
     if (session?.name) setSessionName(session.name);
     setExpectedCount(session?.expected_participant_count == null ? '' : String(session.expected_participant_count));
-    setObjective(session?.objective || '');
+    setObjective(normalizeSessionObjectiveValue(session?.objective));
     setFlowMode(String(session?.flow_mode || session?.flowMode || 'manual').trim().toLowerCase() === 'auto' ? 'auto' : 'manual');
 
     if (session?.session_date) {
@@ -1081,7 +1092,9 @@ export default function SessionBuilder() {
       if (typeof draft.expectedCount === 'string' && isValidExpectedCount(draft.expectedCount)) {
         setExpectedCount(draft.expectedCount);
       }
-      if (SESSION_OBJECTIVES.includes(draft.objective)) setObjective(draft.objective);
+      if (typeof draft.objective === 'string') {
+        setObjective(normalizeSessionObjectiveValue(draft.objective));
+      }
       if (Array.isArray(draft.participantIds)) {
         const validIds = draft.participantIds
           .map((value) => Number(value))
@@ -1477,19 +1490,37 @@ export default function SessionBuilder() {
   ]);
 
   function renderObjectiveField(value, onChange, id) {
+    const selectedObjectives = parseSessionObjectives(normalizeSessionObjectiveValue(value));
     return (
-      <label className={styles.contextField} htmlFor={id}>
-        <span>{t('sessionBuilder.objective')}</span>
-        <select id={id} className={styles.sessionInfoInput} value={value} onChange={(event) => onChange(event.target.value)}>
-          <option value="">{t('sessionBuilder.noPreference')}</option>
-          {SESSION_OBJECTIVES.map((key) => <option key={key} value={key}>{t(`sessionBuilder.objectiveLabels.${key}`)}</option>)}
-        </select>
-        <small>{t('sessionBuilder.objectiveHint')}</small>
-      </label>
+      <fieldset id={id} className={styles.objectiveField} aria-describedby={`${id}-hint`}>
+        <legend>{t('sessionBuilder.objective')}</legend>
+        <div className={styles.objectiveChoices}>
+          {SESSION_OBJECTIVES.map((key) => (
+            <label key={key} className={styles.objectiveChoice}>
+              <input
+                type="checkbox"
+                value={key}
+                checked={selectedObjectives.includes(key)}
+                onChange={(event) => {
+                  const next = event.target.checked
+                    ? [...selectedObjectives, key]
+                    : selectedObjectives.filter((item) => item !== key);
+                  onChange(SESSION_OBJECTIVES.filter((item) => next.includes(item)).join(','));
+                }}
+              />
+              <span>{t(`sessionBuilder.objectiveLabels.${key}`)}</span>
+            </label>
+          ))}
+        </div>
+        <small id={`${id}-hint`}>{t('sessionBuilder.objectiveHint')}</small>
+      </fieldset>
     );
   }
 
-  const objectiveLabel = objective ? t(`sessionBuilder.objectiveLabels.${objective}`) : '';
+  const objectiveLabel = String(objective || '').split(',')
+    .map((key) => key.trim())
+    .filter((key) => SESSION_OBJECTIVES.includes(key))
+    .map((key) => t(`sessionBuilder.objectiveLabels.${key}`)).join(' · ');
 
   function formatProgramParticipantRange(challenge) {
     const range = resolveChallengePlayerRange(challenge);
@@ -1521,7 +1552,10 @@ export default function SessionBuilder() {
     }
 
     const proposal = proposeSessionProgram(allChallenges, {
-      objective, expectedCount, targetMinutes: minutes, resolveRange: resolveChallengePlayerRange,
+      objective,
+      expectedCount,
+      targetMinutes: minutes,
+      resolveRange: resolveChallengePlayerRange,
       availableEngineKeys: getAvailableEngines().map((engine) => engine.key),
     });
     setProgramProposal(proposal);
@@ -1531,7 +1565,10 @@ export default function SessionBuilder() {
 
   function replaceProposedChallenge(challengeId) {
     const replacement = replaceProgramChallenge(programProposal, challengeId, allChallenges, {
-      objective, expectedCount, targetMinutes: Number(targetMinutes), resolveRange: resolveChallengePlayerRange,
+      objective,
+      expectedCount,
+      targetMinutes: Number(targetMinutes),
+      resolveRange: resolveChallengePlayerRange,
       availableEngineKeys: getAvailableEngines().map((engine) => engine.key),
     });
     if (!replacement) {
@@ -1674,8 +1711,9 @@ export default function SessionBuilder() {
                           hint={t('sessionBuilder.expectedCountHint')}
                           error={isValidExpectedCount(expectedCount) ? '' : t('sessionBuilder.expectedCountInvalid')}
                         />
-                        {renderObjectiveField(objective, setObjective, 'session-objective')}
                       </div>
+
+                      {renderObjectiveField(objective, setObjective, 'session-objective')}
 
                       <div className={styles.flowModeField}>
                         <div className={styles.creationFieldHeading}>
@@ -1719,11 +1757,7 @@ export default function SessionBuilder() {
                         <div>
                           <h2>{t('sessionBuilder.prepareGroup')}</h2>
                           <p>{t('sessionBuilder.participationHint')}</p>
-                          <p>{t('sessionBuilder.participantsAvailable', { count: availableParticipantsCount })}</p>
                         </div>
-                        <span className={styles.creationParticipantsCount}>
-                          {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
-                        </span>
                       </div>
 
                       <div className={styles.participationNotice}>
@@ -1732,8 +1766,16 @@ export default function SessionBuilder() {
                         <p>{t('sessionBuilder.followUpHint')}</p>
                       </div>
                       <details className={styles.participantsDisclosure}>
-                        <summary>{t('sessionBuilder.prepareAhead')}</summary>
+                        <summary>
+                          <span>{t('sessionBuilder.prepareAhead')}</span>
+                          <span className={styles.creationParticipantsCount}>
+                            {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
+                          </span>
+                        </summary>
                         <p>{t('sessionBuilder.prepareAheadHint')}</p>
+                        <p>{availableParticipantsCount === 0
+                          ? t('sessionBuilder.noAvailableProfiles')
+                          : t('sessionBuilder.participantsAvailable', { count: availableParticipantsCount })}</p>
                       <ParticipantAssigner
                         isLoading={isCreatingSession}
                         selectedIds={draftParticipantIds}
@@ -1800,7 +1842,7 @@ export default function SessionBuilder() {
           sessionName={sessionName}
           participantCount={sessionParticipantCount}
           expectedParticipantCount={expectedCount === '' ? null : Number(expectedCount)}
-          objectiveLabel={objective ? t(`sessionBuilder.objectiveLabels.${objective}`) : ''}
+          objectiveLabel={objectiveLabel}
           selectedCount={selectedChallenges.length}
           totalDuration={getTotalDuration()}
           isSavingDraft={isSavingDraft}

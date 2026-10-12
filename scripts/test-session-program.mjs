@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { isValidExpectedCount, proposeSessionProgram, parseChallengeDuration, replaceProgramChallenge } from '../lib/sessionProgram.mjs';
+import { SESSION_OBJECTIVES, parseSessionObjectives, isValidExpectedCount, proposeSessionProgram, parseChallengeDuration, replaceProgramChallenge } from '../lib/sessionProgram.mjs';
 
 const challenge = (id, duration, extra = {}) => ({
   id, engine_key: `engine_${id}`, duration, status: 'actif', objectives: 'collaboration, communication', ...extra,
@@ -23,6 +23,7 @@ assert.ok(replaced.duration <= 30);
 assert.ok(!replaced.challenges.some((item) => item.id === 2));
 assert.equal(replaceProgramChallenge(result, 2, result.challenges, options), null);
 assert.equal(proposeSessionProgram(catalog, { ...options, objective: 'leadership' }).challenges.length, 0);
+assert.ok(proposeSessionProgram(catalog, { ...options, objective: 'leadership,collaboration' }).challenges.length > 0);
 assert.equal(proposeSessionProgram([catalog[6]], { targetMinutes: 15, expectedCount: '2' }).challenges.length, 1);
 assert.equal(proposeSessionProgram([catalog[6]], { targetMinutes: 15, expectedCount: '6' }).challenges.length, 0);
 assert.equal(proposeSessionProgram([catalog[6]], { targetMinutes: 15 }).challenges.length, 1);
@@ -37,4 +38,11 @@ for (const value of ['', '1', '12']) assert.equal(isValidExpectedCount(value), t
 for (const value of ['0', '-1', '1.5', 'hello', '2147483648']) assert.equal(isValidExpectedCount(value), false);
 assert.throws(() => proposeSessionProgram(catalog, { targetMinutes: 0 }));
 assert.throws(() => proposeSessionProgram(catalog, { expectedCount: '-1' }));
+assert.deepEqual(parseSessionObjectives(SESSION_OBJECTIVES.join(',')), SESSION_OBJECTIVES);
+assert.deepEqual(parseSessionObjectives(' collaboration, communication '), ['collaboration', 'communication']);
+assert.deepEqual(parseSessionObjectives(null), []);
+assert.deepEqual(parseSessionObjectives(''), []);
+for (const objective of [',', ' ', 'collaboration,', ',communication', 'collaboration,,communication', 'unknown', 'collaboration,collaboration']) {
+  assert.throws(() => parseSessionObjectives(objective));
+}
 console.log('TEST_SESSION_PROGRAM_OK');

@@ -26,9 +26,79 @@
 }
 
 .participantsDisclosure summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  list-style: none;
   cursor: pointer;
   font-weight: 600;
   color: var(--ink);
+}
+
+.participantsDisclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.participantsDisclosure summary > span:first-child::before {
+  content: '▸';
+  margin-right: 0.45rem;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.participantsDisclosure[open] summary > span:first-child::before {
+  transform: rotate(90deg);
+}
+
+.objectiveField {
+  display: grid;
+  gap: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0.8rem 0.95rem;
+  margin: 0;
+  min-width: 0;
+  background: var(--surface-panel);
+}
+
+.objectiveField legend {
+  padding: 0 0.2rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.objectiveChoices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.objectiveChoice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.35rem 0.62rem;
+  background: var(--field-bg);
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.objectiveChoice input {
+  margin: 0;
+  width: 0.92rem;
+  height: 0.92rem;
+  accent-color: var(--accent, #2f62ff);
+}
+
+.objectiveChoice:has(input:checked) {
+  border-color: var(--builder-line-strong);
+  background: color-mix(in srgb, var(--accent-soft) 44%, var(--card));
+  color: var(--accent-strong);
 }
 
 .programEntry {
@@ -702,7 +772,7 @@
   border-radius: 28px;
   background: var(--card);
   border: 1px solid var(--builder-line-strong);
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
   backdrop-filter: blur(16px);
 }
 
@@ -727,7 +797,7 @@
   border-radius: 28px;
   background: linear-gradient(180deg, rgba(231, 238, 255, 0.92) 0%, rgba(255, 255, 255, 0.96) 100%);
   border: 1px solid rgba(53, 160, 255, 0.24);
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
 }
 
 .creationParticipantsPane {
@@ -752,7 +822,7 @@
 :global(body[data-theme='dark']) .creationParticipantsPane,
 :global(.dark) .creationParticipantsPane {
   background: linear-gradient(180deg, var(--card) 0%, var(--bg-soft) 100%);
-  box-shadow: 0 18px 44px rgba(2, 6, 23, 0.36);
+  box-shadow: 0 14px 36px rgba(2, 6, 23, 0.36);
 }
 
 :global(html[data-theme='dark']) .creationHero,
@@ -947,7 +1017,7 @@
 .creationSectionHeader h2 {
   margin: 0;
   font-size: 1.22rem;
-  color: var(--ink);
+  color: var(--accent-strong);
 }
 
 .creationSectionHeader p {
@@ -1391,7 +1461,7 @@
 :global(body[data-theme='dark']) .creationOverviewCard,
 :global(.dark) .creationOverviewCard {
   border-color: rgba(148, 163, 184, 0.2);
-  box-shadow: 0 22px 48px rgba(2, 6, 23, 0.42);
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.42);
 }
 
 :global(html[data-theme='dark']) .creationHero,
@@ -1414,6 +1484,24 @@
 :global(html[data-theme='dark']) .creationSectionHeader h2,
 :global(body[data-theme='dark']) .creationSectionHeader h2,
 :global(.dark) .creationSectionHeader h2,
+:global(html[data-theme='dark']) .creationField,
+:global(body[data-theme='dark']) .creationField,
+:global(.dark) .creationField,
+:global(html[data-theme='dark']) .creationFieldHeading span,
+:global(body[data-theme='dark']) .creationFieldHeading span,
+:global(.dark) .creationFieldHeading span,
+:global(html[data-theme='dark']) .creationStatCard strong,
+:global(body[data-theme='dark']) .creationStatCard strong,
+:global(.dark) .creationStatCard strong,
+:global(html[data-theme='dark']) .launchConfirmTitle,
+:global(body[data-theme='dark']) .launchConfirmTitle,
+:global(.dark) .launchConfirmTitle {
+  color: #93c5fd;
+}
+
+:global(html[data-theme='dark']) .creationTitle,
+:global(body[data-theme='dark']) .creationTitle,
+:global(.dark) .creationTitle,
 :global(html[data-theme='dark']) .creationField,
 :global(body[data-theme='dark']) .creationField,
 :global(.dark) .creationField,
@@ -1501,6 +1589,14 @@
 :global(.dark) .modeSelectedBadge {
   background: rgba(30, 41, 59, 0.9);
   border-color: rgba(148, 163, 184, 0.22);
+  color: #bfdbfe;
+}
+
+:global(html[data-theme='dark']) .objectiveChoice:has(input:checked),
+:global(body[data-theme='dark']) .objectiveChoice:has(input:checked),
+:global(.dark) .objectiveChoice:has(input:checked) {
+  background: rgba(37, 99, 235, 0.2);
+  border-color: rgba(96, 165, 250, 0.7);
   color: #bfdbfe;
 }
 
@@ -1601,7 +1697,6 @@
   }
 
   .creationTitle,
-  .creationSectionHeader h2,
   .creationField,
   .creationFieldHeading span,
   .creationStatCard strong,
@@ -1609,6 +1704,10 @@
   .flowModeContent strong,
   .summaryInviteCode {
     color: #e2e8f0;
+  }
+
+  .creationSectionHeader h2 {
+    color: #93c5fd;
   }
 
   .creationLead,
@@ -1687,11 +1786,21 @@
 :global(html[data-theme='light']) .creationOverviewCard {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 248, 255, 0.96) 100%);
   border-color: var(--builder-line-strong);
-  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
 }
 
 :global(html[data-theme='light']) .creationTitle,
 :global(html[data-theme='light']) .creationSectionHeader h2,
+:global(html[data-theme='light']) .creationField,
+:global(html[data-theme='light']) .creationFieldHeading span,
+:global(html[data-theme='light']) .creationStatCard strong,
+:global(html[data-theme='light']) .launchConfirmTitle,
+:global(html[data-theme='light']) .flowModeContent strong,
+:global(html[data-theme='light']) .summaryInviteCode {
+  color: var(--accent-strong);
+}
+
+:global(html[data-theme='light']) .creationTitle,
 :global(html[data-theme='light']) .creationField,
 :global(html[data-theme='light']) .creationFieldHeading span,
 :global(html[data-theme='light']) .creationStatCard strong,
@@ -1808,6 +1917,18 @@
 }
 
 @media (max-width: 1200px) {
+  .creationPrimary {
+    min-height: auto;
+    grid-auto-rows: auto;
+    align-items: start;
+  }
+
+  .creationForm,
+  .creationParticipantsPane {
+    height: auto;
+    min-height: auto;
+  }
+
   .mainLayout {
     grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
     gap: 2rem;
