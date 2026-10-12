@@ -170,11 +170,27 @@ function useManagerGuard() {
   return state;
 }
 
-async function fetchSessions() {
+async function fetchSessions(query = {}) {
   try {
-    const data = await fetchSessionsWithRetry();
-    const items = Array.isArray(data) ? data : (data.sessions || data.data || []);
-    return Array.isArray(items) ? items : [];
+    const data = await fetchSessionsWithRetry(undefined, query);
+    const items = Array.isArray(data)
+      ? data
+      : (data.items || data.sessions || data.data || []);
+    const fallbackTotal = Array.isArray(items) ? items.length : 0;
+    const pagination = data?.pagination && typeof data.pagination === 'object'
+      ? data.pagination
+      : {
+        total: fallbackTotal,
+        page: Number(query.page || 1),
+        limit: Number(query.limit || 12),
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+      };
+    return {
+      items: Array.isArray(items) ? items : [],
+      pagination,
+    };
   } catch (err) {
     const wrapped = new Error(err.message || 'Sessions API error');
     wrapped.status = err?.status;
@@ -345,7 +361,19 @@ export default function ManagerHome() {
   const [deletingMemberId, setDeletingMemberId] = useState(null);
   const [creatingMember, setCreatingMember] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState(null);
-  const [visibleCount, setVisibleCount] = useState(8);
+  const [sessionStatusFilter, setSessionStatusFilter] = useState('all');
+  const [sessionSearch, setSessionSearch] = useState('');
+  const [sessionFromDate, setSessionFromDate] = useState('');
+  const [sessionToDate, setSessionToDate] = useState('');
+  const [sessionsPage, setSessionsPage] = useState(1);
+  const [sessionsPagination, setSessionsPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 12,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
   const [formAttempted, setFormAttempted] = useState(false);
   const [memberFormStatus, setMemberFormStatus] = useState('');
   const [showParticipantForm, setShowParticipantForm] = useState(false);
@@ -353,6 +381,7 @@ export default function ManagerHome() {
   const [mobileMenuSignal, setMobileMenuSignal] = useState(0);
   const [lastCreatedCredentials, setLastCreatedCredentials] = useState(null);
   const onboardingHandledRef = useRef(false);
+  const sessionsToastShownRef = useRef(false);
   const [memberForm, setMemberForm] = useState({
     first_name: '',
     last_name: '',
@@ -375,7 +404,7 @@ export default function ManagerHome() {
     terminee: sessions.filter((s) => s.status === 'terminee').length,
   }), [sessions]);
 
-  const visibleSessions = useMemo(() => sessions.slice(0, visibleCount), [sessions, visibleCount]);
+  const visibleSessions = useMemo(() => sessions, [sessions]);
 
   const memberFormChecks = useMemo(() => {
     const firstName = String(memberForm.first_name || '').trim();
@@ -435,8 +464,17 @@ export default function ManagerHome() {
     }
 
     try {
-      const data = await fetchSessions();
-      setSessions(data);
+      const query = {
+        page: sessionsPage,
+        limit: 12,
+        status: sessionStatusFilter === 'all' ? '' : sessionStatusFilter,
+        q: sessionSearch.trim(),
+        from: sessionFromDate,
+        to: sessionToDate,
+      };
+      const data = await fetchSessions(query);
+      setSessions(data.items);
+      setSessionsPagination(data.pagination);
       if (loadingId) {
         removeToast(loadingId);
       }
@@ -452,7 +490,19 @@ export default function ManagerHome() {
     } finally {
       setLoadingSessions(false);
     }
-  }, [authInvalid, guard.allowed, isEn, removeToast, showErrorToast, showLoadingToast]);
+  }, [
+    authInvalid,
+    guard.allowed,
+    isEn,
+    removeToast,
+    sessionFromDate,
+    sessionSearch,
+    sessionStatusFilter,
+    sessionToDate,
+    sessionsPage,
+    showErrorToast,
+    showLoadingToast,
+  ]);
 
   const refreshMembers = useCallback(async () => {
     if (!guard.allowed || authInvalid) return;
@@ -502,7 +552,9 @@ export default function ManagerHome() {
 
 
   useEffect(() => {
-    refreshSessions({ withToast: true });
+    const withToast = !sessionsToastShownRef.current;
+    sessionsToastShownRef.current = true;
+    refreshSessions({ withToast });
   }, [refreshSessions]);
 
   useEffect(() => {
@@ -510,8 +562,12 @@ export default function ManagerHome() {
   }, [refreshMembers]);
 
   useEffect(() => {
+    setSessionsPage(1);
+  }, [sessionStatusFilter, sessionSearch, sessionFromDate, sessionToDate]);
+
+  useEffect(() => {
     setMobileMenuSignal((current) => current + 1);
-  }, [deletingMemberId, deletingSessionId, visibleCount]);
+  }, [deletingMemberId, deletingSessionId, sessionsPage]);
 
   useEffect(() => {
     if (!guard.allowed) return;
@@ -936,6 +992,45 @@ export default function ManagerHome() {
             </Link>
           </div>
 
+          <div style={{ display: 'grid', gap: '10px', marginBottom: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '8px' }}>
+              <input
+                type="search"
+                value={sessionSearch}
+                onChange={(event) => setSessionSearch(event.target.value)}
+                placeholder={isEn ? 'Search by session name…' : 'Rechercher par nom de session…'}
+                aria-label={isEn ? 'Search sessions' : 'Rechercher des sessions'}
+              />
+              <select
+                value={sessionStatusFilter}
+                onChange={(event) => setSessionStatusFilter(event.target.value)}
+                aria-label={isEn ? 'Filter by status' : 'Filtrer par statut'}
+              >
+                <option value="all">{isEn ? 'All statuses' : 'Tous les statuts'}</option>
+                <option value="preparee">{isEn ? 'Preparing' : 'En préparation'}</option>
+                <option value="en_cours">{isEn ? 'In progress' : 'En cours'}</option>
+                <option value="terminee">{isEn ? 'Completed' : 'Terminée'}</option>
+              </select>
+              <input
+                type="date"
+                value={sessionFromDate}
+                onChange={(event) => setSessionFromDate(event.target.value)}
+                aria-label={isEn ? 'From date' : 'Date de début'}
+              />
+              <input
+                type="date"
+                value={sessionToDate}
+                onChange={(event) => setSessionToDate(event.target.value)}
+                aria-label={isEn ? 'To date' : 'Date de fin'}
+              />
+            </div>
+            <p className="session-meta" style={{ margin: 0 }}>
+              {isEn
+                ? `Showing ${sessions.length} session(s) out of ${Number(sessionsPagination.total || 0)}`
+                : `${sessions.length} session(s) affichée(s) sur ${Number(sessionsPagination.total || 0)}`}
+            </p>
+          </div>
+
           {loadingSessions ? (
             <div className="session-skeletons">
               {[...Array(3)].map((_, i) => (
@@ -1038,24 +1133,28 @@ export default function ManagerHome() {
             </div>
           ) : null}
 
-          {!loadingSessions && sessions.length > visibleCount ? (
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => setVisibleCount((prev) => prev + 8)}
-            >
-              {isEn ? 'Show more' : 'Afficher plus'}
-            </button>
-          ) : null}
-
-          {!loadingSessions && sessions.length > 8 && visibleCount > 8 ? (
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => setVisibleCount(8)}
-            >
-              {isEn ? 'Collapse list' : 'Replier la liste'}
-            </button>
+          {!loadingSessions ? (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={!sessionsPagination.hasPrevPage}
+                onClick={() => setSessionsPage((prev) => Math.max(1, prev - 1))}
+              >
+                {isEn ? 'Previous' : 'Précédent'}
+              </button>
+              <span className="session-meta">
+                {isEn ? 'Page' : 'Page'} {Number(sessionsPagination.page || sessionsPage)} / {Number(sessionsPagination.totalPages || 1)}
+              </span>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={!sessionsPagination.hasNextPage}
+                onClick={() => setSessionsPage((prev) => prev + 1)}
+              >
+                {isEn ? 'Next' : 'Suivant'}
+              </button>
+            </div>
           ) : null}
         </section>
 

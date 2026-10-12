@@ -81,6 +81,21 @@ const CHALLENGE_OBJECTIVE_OPTIONS = [
 ];
 
 const MAX_CHALLENGE_OBJECTIVES = 3;
+const KNOWN_ENGINE_KEYS = Object.freeze([
+  'crossword_live_v1',
+  'copuzzle_live_v1',
+  'escape_room_v1',
+  'icebreaker_v1',
+  'labyrinthe_live_v1',
+  'local_page_v1',
+  'lab_d_innovation_v1',
+  'phrase_collaborative_v1',
+  'mission_critique_v1',
+  'the_quiz_v1',
+  'vrai_ou_mensonge_v1',
+  'pixel_architect_v1',
+]);
+const ADMIN_TAB_IDS = new Set(['dashboard', 'analytics', 'users', 'participants', 'sessions', 'challenges', 'pricing', 'landing']);
 
 const DEFAULT_NEW_PRICING_PLAN = {
   name: '',
@@ -1272,6 +1287,7 @@ export default function AdminClient() {
   const [landingBlocks, setLandingBlocks] = useState([]);
   const [analyticsOverview, setAnalyticsOverview] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState('');
   const [analyticsDays, setAnalyticsDays] = useState(30);
   const [adminActivityLoading, setAdminActivityLoading] = useState(false);
   const [adminVisits, setAdminVisits] = useState([]);
@@ -1498,18 +1514,39 @@ export default function AdminClient() {
   const loadAnalytics = useCallback(async (daysOverride = null) => {
     if (!token) return;
     setAnalyticsLoading(true);
+    setAnalyticsError('');
 
     try {
       const days = Number(daysOverride || analyticsDays || 30);
       const payload = await fetchAdminJson(`/admin-analytics/overview?days=${days}`, token);
       setAnalyticsOverview(payload && typeof payload === 'object' ? payload : null);
-    } catch {
+    } catch (err) {
       // Analytics is optional: keep dashboard functional even if provider is unavailable.
       setAnalyticsOverview(null);
+      setAnalyticsError(String(err?.message || 'Analytics provider unavailable.'));
     } finally {
       setAnalyticsLoading(false);
     }
   }, [analyticsDays, token]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const tab = String(params.get('tab') || '').trim().toLowerCase();
+    if (ADMIN_TAB_IDS.has(tab)) {
+      setActiveTab(tab);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!ADMIN_TAB_IDS.has(activeTab)) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === activeTab) return;
+    params.set('tab', activeTab);
+    const next = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', next);
+  }, [activeTab]);
 
   const recordAdminVisitEvent = useCallback(async (pagePath = null) => {
     if (!token) return;
@@ -3530,6 +3567,11 @@ export default function AdminClient() {
   return (
     <>
       <AppNav userLabel={pickUserLabel(user)} onLogout={logout} role="admin" />
+      <datalist id="known-engine-keys">
+        {KNOWN_ENGINE_KEYS.map((engineKey) => (
+          <option key={engineKey} value={engineKey} />
+        ))}
+      </datalist>
       <div className="admin-console-layout">
 
         {/* Sidebar - responsive via CSS media query */}
@@ -3757,6 +3799,11 @@ export default function AdminClient() {
                 {analyticsSnapshot.generatedAt ? (
                   <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--color-muted, #6b7280)' }}>
                     {isEn ? 'Generated at' : 'Genere le'} {new Date(analyticsSnapshot.generatedAt).toLocaleString(isEn ? 'en-US' : 'fr-FR')}
+                  </p>
+                ) : null}
+                {analyticsError ? (
+                  <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#b45309' }}>
+                    {isEn ? 'Data temporarily unavailable' : 'Données temporairement indisponibles'}: {analyticsError}
                   </p>
                 ) : null}
               </div>
@@ -4555,7 +4602,9 @@ export default function AdminClient() {
                         </div>
                       </label>
                       <label>{isEn ? 'Duration' : 'Duree'}<input value={newChallenge.duration} onChange={(e) => setNewChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
-                      <label>Engine key<input value={newChallenge.engine_key} onChange={(e) => setNewChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
+                      <label>Engine key
+                        <input list="known-engine-keys" value={newChallenge.engine_key} onChange={(e) => setNewChallenge((p) => ({ ...p, engine_key: e.target.value }))} />
+                      </label>
                       <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={newChallenge.description} onChange={(e) => setNewChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
                       <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
                         <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Challenge rules' : 'Règles du challenge'}</p>
@@ -4679,7 +4728,9 @@ export default function AdminClient() {
                           </div>
                         </label>
                         <label>{isEn ? 'Duration' : 'Duree'}<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
-                        <label>Engine key<input value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} /></label>
+                        <label>Engine key
+                          <input list="known-engine-keys" value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} />
+                        </label>
                         <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
                         <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
                           <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Challenge rules' : 'Règles du challenge'}</p>

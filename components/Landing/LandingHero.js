@@ -36,8 +36,6 @@ export default function LandingHero({
             {heroMain.subtitle ? <span className="landing-hero-subtitle mt-2 block bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-700 bg-clip-text text-transparent">{heroMain.subtitle}</span> : null}
           </h1>
 
-          <span className="block h-2" aria-hidden="true" />
-
           <p className="landing-hero-description mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
             {heroDescription}
           </p>
@@ -45,9 +43,6 @@ export default function LandingHero({
           <p className="landing-hero-keyline mt-3 max-w-2xl text-sm font-semibold tracking-wide text-indigo-700 sm:text-base">
             {t('landing.heroKeyline')}
           </p>
-
-          <span className="block h-6" aria-hidden="true" />
-
           <div className="landing-hero-actions mt-6 flex flex-wrap gap-3">
             <Link
               href={heroPrimaryHref}
@@ -128,16 +123,6 @@ export default function LandingHero({
             </div>
           </div>
 
-          <div className="landing-hero-mobile-cta mt-5">
-            <Link
-              href={heroPrimaryHref}
-              onClick={onPrimaryCtaClick}
-              className={`${PILL_CLASS} landing-cta-primary landing-hero-primary-btn cta-surface group text-white`}
-            >
-              <span>{heroPrimaryLabel}</span>
-              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </Link>
-          </div>
         </div>
       </div>
     </section>
