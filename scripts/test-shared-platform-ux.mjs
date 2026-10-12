@@ -50,12 +50,9 @@ try {
     await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
 
     const preparation = page.locator('details').filter({ has: page.getByText(locale === 'en' ? 'Session preparation and progress' : 'Préparation et déroulement de la session', { exact: true }) });
-    await preparation.locator('summary').click();
-    assert.equal(await preparation.locator('ol li').count(), 6);
-    assert.equal(await preparation.locator('li').first().getAttribute('data-stage-status'), 'unknown');
-    await preparation.getByText(locale === 'en' ? /Readiness is not reported/ : /La disponibilité n’est pas signalée/).waitFor();
-
     const rules = page.getByRole('button', { name: dictionary.challengeRulesPanel.showRules, exact: true });
+    await rules.waitFor();
+    assert.equal(await preparation.count(), 0, 'Participants must not see the session preparation guide');
     await rules.click();
     const rulesDialog = page.getByRole('dialog', { name: dictionary.challengeRulesPanel.modalTitle, exact: true });
     const close = rulesDialog.getByRole('button', { name: dictionary.challengeRulesPanel.closeRules, exact: true });
@@ -114,6 +111,8 @@ try {
     await waitChatEvent(page, fixture, 4);
     fixture.setOnline(false);
     await chatDialog.getByText(dictionary.chatCard.offline, { exact: true }).waitFor();
+    await page.getByRole('alert').filter({ hasText: locale === 'en' ? 'Connection interrupted. Actions are unavailable; your drafts are kept.' : 'Connexion interrompue. Les actions sont indisponibles ; vos brouillons sont conservés.' }).waitFor();
+    assert.equal(await preparation.count(), 0, 'Disconnect must not reveal the preparation guide');
     assert.equal(await input.inputValue(), 'Offline draft', 'Disconnect unmounted challenge or cleared draft');
     assert.ok(await send.isDisabled());
     assert.ok(await input.isEnabled());
@@ -134,6 +133,7 @@ try {
     fixture.broadcast('chat.message', { ...recovered, id: 'reconnected-confirmed' });
     await chatDialog.getByText(dictionary.chatCard.confirmed, { exact: true }).waitFor();
     assert.equal(await input.inputValue(), '');
+    assert.equal(await preparation.count(), 0, 'Reconnect must not reveal the preparation guide');
     assert.deepEqual(errors, []);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await fixture.close();
@@ -151,6 +151,12 @@ try {
       const facilitatorPage = await facilitatorFixture.context.newPage();
       await facilitatorPage.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
       await facilitatorPage.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+
+      const facilitatorPreparation = facilitatorPage.locator('details').filter({ has: facilitatorPage.getByText(locale === 'en' ? 'Session preparation and progress' : 'Préparation et déroulement de la session', { exact: true }) });
+      await facilitatorPreparation.locator('summary').click();
+      assert.equal(await facilitatorPreparation.locator('ol li').count(), 6);
+      assert.equal(await facilitatorPreparation.locator('li').first().getAttribute('data-stage-status'), 'unknown');
+      await facilitatorPreparation.getByText(locale === 'en' ? /Readiness is not reported/ : /La disponibilité n’est pas signalée/).waitFor();
 
       await facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.pause, exact: true }).click();
       assert.ok(facilitatorFixture.receivedEvents.some((event) => event.type === 'timer.pause'));

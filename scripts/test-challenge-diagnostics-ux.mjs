@@ -31,6 +31,10 @@ async function open(engineKey, state, { locale = 'en', role = 'participant', wid
   });
   await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
   await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+  if (role === 'participant') {
+    await page.locator('[class*="challengeContainer"]').waitFor();
+    assert.equal(await page.getByText(locale === 'en' ? 'Session preparation and progress' : 'Préparation et déroulement de la session', { exact: true }).count(), 0, `${engineKey}: participants must not see the preparation guide`);
+  }
   return { ...fixture, page, errors, nestingWarnings };
 }
 

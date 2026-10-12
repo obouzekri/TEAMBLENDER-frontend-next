@@ -12,6 +12,7 @@ import styles from './ChallengeWrapper.module.css';
 import useI18n from '@/lib/i18n/useI18n';
 import { ChallengeConnectionContext, ChallengeProgressContext } from '@/lib/challenges/connection-context';
 import SessionPreparation from '@/components/SessionPreparation';
+import { FACILITATOR_ROLES } from '@/lib/challenges/useRealtimeChallenge';
 
 const REALTIME_ENGINES = new Set([
   'escape_room_v1',
@@ -442,7 +443,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
         />
       )}
       {headerContent ? <div className={styles.headerSlot}>{headerContent}</div> : null}
-      <SessionPreparation
+      {FACILITATOR_ROLES.has(String(context?.role || 'participant').trim().toLowerCase()) ? <SessionPreparation
         participantCount={progressState?.participants_status?.connected_count ?? progressState?.quiz?.connected_count ?? null}
         readyCount={progressState?.quiz?.ready_count ?? null}
         expectedCount={progressState?.quiz?.slot_count ?? null}
@@ -451,7 +452,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
         connected={!requiresRealtime || connected}
         running={progressState?.timer?.status === 'running' || progressState?.timer?.status === 'paused' || Boolean(progressState?.vom && !['waiting_start', 'finished'].includes(progressState.vom.phase)) || progressState?.escapeStatus === 'running'}
         completed={Boolean(progressState?.summary) || ['completed', 'timeout', 'stopped'].includes(progressState?.timer?.status) || ['finished', 'fin', 'debrief'].includes(progressState?.quiz?.phase) || progressState?.labyrinthe?.phase === 'done' || progressState?.vom?.phase === 'finished' || ['completed', 'success', 'succeeded', 'timeout', 'timed_out', 'failed'].includes(progressState?.escapeStatus)}
-      />
+      /> : null}
       {requiresRealtime && !connected ? <p role="alert" className={styles.connectionError}>
         {isEn ? 'Connection interrupted. Actions are unavailable; your drafts are kept.' : 'Connexion interrompue. Les actions sont indisponibles ; vos brouillons sont conservés.'}
       </p> : null}
