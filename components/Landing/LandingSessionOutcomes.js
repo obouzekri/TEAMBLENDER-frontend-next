@@ -1,38 +1,48 @@
 "use client";
 
-export default function LandingSessionOutcomes({ locale, outcomesSection }) {
+import { BarChart3, Eye, Gauge, MessageCircle, Users } from 'lucide-react';
+
+const OUTCOME_ICONS = [Users, Gauge, MessageCircle, BarChart3, Eye];
+
+export default function LandingSessionOutcomes({ outcomesSection }) {
   const items = Array.isArray(outcomesSection?.items) ? outcomesSection.items : [];
   if (items.length === 0) return null;
 
   return (
     <section
-      className="landing-section-full landing-offer-section relative overflow-hidden p-6 sm:p-9"
+      className="landing-section-full landing-offer-section landing-outcomes-section relative overflow-hidden p-6 sm:p-9"
       style={{ '--reveal-delay': '170ms' }}
       aria-label={outcomesSection.title}
     >
       <div className="landing-section-inner relative">
-        <div className="panel-head landing-offer-head landing-offer-head--center">
+        <header className="landing-outcomes-heading">
           <div className="landing-offer-head-content">
             <p className="eyebrow landing-section-eyebrow">{outcomesSection.eyebrow}</p>
             <h2 className="landing-section-title">{outcomesSection.title}</h2>
             <p className="landing-offer-subtitle">{outcomesSection.description}</p>
           </div>
-        </div>
+        </header>
 
-        <ul className="landing-core-features-grid" aria-label={outcomesSection.title}>
-          {items.map((item, index) => (
-            <li key={`${item.label}-${index}`} className="landing-core-feature-card">
-              <h3 className="landing-core-feature-title">{item.label}</h3>
-              <p className="landing-core-feature-description">{item.description}</p>
-            </li>
-          ))}
+        <ul className="landing-outcomes-grid" aria-label={outcomesSection.title}>
+          {items.map((item, index) => {
+            const Icon = OUTCOME_ICONS[index % OUTCOME_ICONS.length];
+
+            return (
+              <li key={`${item.label}-${index}`} className="landing-outcome-card">
+                <div className="landing-outcome-card__meta">
+                  <span className="landing-outcome-card__icon" aria-hidden="true">
+                    <Icon size={20} strokeWidth={2} />
+                  </span>
+                  <span className="landing-outcome-card__number" aria-hidden="true">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                </div>
+                <h3>{item.label}</h3>
+                <p>{item.description}</p>
+              </li>
+            );
+          })}
         </ul>
-
-        <div className="mt-6 rounded-2xl border border-dashed border-slate-300/80 bg-slate-50/70 p-4 text-sm text-slate-600">
-          {locale === 'en'
-            ? 'TODO: Add a real screenshot of the session report (participation, challenge progression, and debrief metrics).'
-            : 'TODO\u00A0: Ajouter une vraie capture du rapport de session (participation, progression des défis et indicateurs de débrief).'}
-        </div>
       </div>
     </section>
   );

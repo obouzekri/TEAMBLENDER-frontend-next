@@ -20971,3 +20971,185 @@ html[data-theme='dark'] .auth-remember-me{
     animation: none;
   }
 }
+
+.landing-outcomes-section {
+  padding-block: clamp(3.5rem, 6vw, 5.5rem);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(56, 189, 248, 0.11), transparent 32%),
+    linear-gradient(145deg, #08172d 0%, #0c1d39 54%, #101d3a 100%);
+}
+
+.landing-outcomes-heading {
+  max-width: 58rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.landing-outcomes-heading .landing-section-eyebrow {
+  color: #93c5fd;
+}
+
+.landing-outcomes-heading .landing-section-title {
+  max-width: 24ch;
+  margin: 0.75rem auto 0;
+  color: #f8fafc;
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.landing-outcomes-heading .landing-offer-subtitle {
+  max-width: 46rem;
+  margin-top: 0.85rem;
+  color: #cbd5e1;
+  font-size: clamp(1rem, 1.25vw, 1.15rem);
+  font-weight: 450;
+  line-height: 1.65;
+}
+
+.landing-outcomes-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1rem;
+  max-width: 76rem;
+  margin: clamp(2rem, 4vw, 3rem) auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-outcome-card {
+  position: relative;
+  grid-column: span 2;
+  display: flex;
+  min-width: 0;
+  min-height: 14rem;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow: hidden;
+  padding: clamp(1.2rem, 2vw, 1.65rem);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 1.25rem;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.96));
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.18), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.landing-outcome-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, #38bdf8, #6366f1);
+  content: "";
+}
+
+.landing-outcome-card:nth-child(4):nth-last-child(2) {
+  grid-column: 2 / span 2;
+}
+
+.landing-outcome-card:nth-child(5):last-child {
+  grid-column: 4 / span 2;
+}
+
+.landing-outcome-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(125, 211, 252, 0.72);
+  box-shadow: 0 24px 48px rgba(2, 6, 23, 0.26), 0 0 0 1px rgba(125, 211, 252, 0.12);
+}
+
+.landing-outcome-card__meta {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.landing-outcome-card__icon {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  border-radius: 0.9rem;
+  background: linear-gradient(145deg, #eff6ff, #e0f2fe);
+  color: #1d4ed8;
+}
+
+.landing-outcome-card__number {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.landing-outcome-card h3 {
+  margin: 0;
+  color: #0f172a;
+  font-family: var(--font-display);
+  font-size: clamp(1.18rem, 1.5vw, 1.45rem);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.landing-outcome-card p {
+  margin: 0.65rem 0 0;
+  color: #475569;
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .landing-outcomes-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-outcome-card {
+    grid-column: auto;
+    min-height: 13rem;
+  }
+
+  .landing-outcome-card:nth-child(4):nth-last-child(2),
+  .landing-outcome-card:nth-child(5):last-child {
+    grid-column: auto;
+  }
+
+  .landing-outcome-card:nth-child(5):last-child {
+    width: min(100%, 32rem);
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .landing-outcomes-section {
+    padding-block: 3.25rem;
+  }
+
+  .landing-outcomes-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    margin-top: 1.75rem;
+  }
+
+  .landing-outcome-card,
+  .landing-outcome-card:nth-child(5):last-child {
+    width: 100%;
+    min-height: 0;
+    grid-column: auto;
+  }
+
+  .landing-outcome-card__meta {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-outcome-card {
+    transition: none;
+  }
+
+  .landing-outcome-card:hover {
+    transform: none;
+  }
+}
