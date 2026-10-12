@@ -250,7 +250,6 @@
   }
 
   .cardDescription,
-  .cardDuration,
   .rulesLabel,
   .filtersLabel,
   .filterHintInline,
@@ -279,7 +278,6 @@
   }
 
   .cardDescription,
-  .cardDuration,
   .rulesLabel,
   .filtersLabel,
   .filterHintInline,
@@ -493,13 +491,6 @@
 .resetIconButton:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 42%, transparent);
   outline-offset: 2px;
-}
-
-.cardDuration {
-  color: var(--ink-soft);
-  font-size: 0.78rem;
-  font-weight: 600;
-  white-space: nowrap;
 }
 
 .cardDescription {
@@ -807,7 +798,6 @@
     line-height: 1.4;
   }
 
-  .cardDuration,
   .playerHint {
     font-size: 0.74rem;
   }
@@ -907,7 +897,6 @@
 }
 
 :global(html[data-theme='light']) .cardDescription,
-:global(html[data-theme='light']) .cardDuration,
 :global(html[data-theme='light']) .rulesLabel,
 :global(html[data-theme='light']) .filtersLabel,
 :global(html[data-theme='light']) .filterHintInline,

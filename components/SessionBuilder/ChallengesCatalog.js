@@ -5,11 +5,39 @@ import ChallengeRulesPreviewModal from './ChallengeRulesPreviewModal';
 import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import styles from './ChallengesCatalog.module.css';
 import { Badge, Button, EmptyState } from '@/components/ui';
-import { formatIdealPlayersLabel } from '@/lib/challenges/playerRange';
+import { formatRecommendedPlayersLabel } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
 import { Check, Plus } from 'lucide-react';
 
 const MAX_FILTER_OBJECTIVES = 3;
+
+function getApproximateDurationMinutes(challenge) {
+  const rawDuration = challenge?.duration;
+  const numericDuration = Number(rawDuration);
+  if (Number.isFinite(numericDuration) && numericDuration > 0) {
+    return Math.round(numericDuration);
+  }
+
+  if (typeof rawDuration === 'string') {
+    const values = [...rawDuration.matchAll(/\d+(?:[.,]\d+)?/g)]
+      .slice(0, 2)
+      .map(([value]) => Number(value.replace(',', '.')));
+    if (values.length > 0 && values.every((value) => Number.isFinite(value) && value > 0)) {
+      return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+    }
+  }
+
+  const configuredMinutes = Number(challenge?.config?.duration_minutes);
+  if (Number.isFinite(configuredMinutes) && configuredMinutes > 0) {
+    return Math.round(configuredMinutes);
+  }
+
+  const timerSeconds = Number(
+    challenge?.engine_config?.timer?.duration_seconds
+      ?? challenge?.config?.timer?.duration_seconds
+  );
+  return Number.isFinite(timerSeconds) && timerSeconds > 0 ? Math.round(timerSeconds / 60) : 0;
+}
 
 // Mapping technical values to display labels
 const CATEGORY_LABELS = {
@@ -426,10 +454,10 @@ export default function ChallengesCatalog({
                 seenLabels.add(key);
                 return true;
               }).slice(0, 3);
-            const idealPlayersLabel = formatIdealPlayersLabel(challenge, isEn);
+            const recommendedPlayersLabel = formatRecommendedPlayersLabel(challenge, isEn);
             const challengeName = localizePlainValue(challenge.name) || (isEn ? 'Activity' : 'Activité');
             const challengeDescription = localizePlainValue(challenge.description);
-            const challengeDuration = Number(challenge?.duration || challenge?.config?.duration_minutes || 0);
+            const challengeDuration = getApproximateDurationMinutes(challenge);
             return (
               <div key={challenge.id} className={`${styles.card} ${isSelected ? styles.selected : ''}`}>
                 <div className={styles.cardHeader}>
@@ -445,14 +473,13 @@ export default function ChallengesCatalog({
                       <span aria-hidden="true">📜</span>
                       <span className={styles.rulesLabel}>{t('challengeRulesPanel.showRules')}</span>
                     </button>
-                    <span className={styles.cardDuration}>{challengeDuration > 0 ? `${challengeDuration} min` : '—'}</span>
                   </div>
                 </div>
 
                 <p className={styles.cardDescription}>{challengeDescription}</p>
-                {idealPlayersLabel || challengeDuration > 0 ? (
+                {recommendedPlayersLabel || challengeDuration > 0 ? (
                   <div className={styles.cardHints}>
-                    {idealPlayersLabel ? <span className={styles.playerHint}>{idealPlayersLabel}</span> : null}
+                    {recommendedPlayersLabel ? <span className={styles.playerHint}>{recommendedPlayersLabel}</span> : null}
                     {challengeDuration > 0 ? (
                       <span className={`${styles.playerHint} ${styles.durationHint}`}>{`~${challengeDuration} min`}</span>
                     ) : null}
