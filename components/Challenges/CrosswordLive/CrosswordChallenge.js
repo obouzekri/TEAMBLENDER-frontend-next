@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import useI18n from '@/lib/i18n/useI18n';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useConfirmedAction from '@/lib/challenges/useConfirmedAction';
+import { getCrosswordParticipantLimitError } from '@/lib/challenges/crosswordParticipantValidation.mjs';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeTimerCard from '../ChallengeTimerCard';
@@ -106,6 +107,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   const conflict = active ? hasCrosswordConflict(active, normalized, cells) : false;
   const cooldown = Math.max(0, Math.ceil((retryAt - now) / 1000));
   const controls = useConfirmedAction({ socket, emitEvent, state, resetKey: `${grid?.id}:${status}`, requiresRunningTimer: false });
+  const participantLimitError = getCrosswordParticipantLimitError(config.participants?.assigned_count, locale);
 
   useEffect(() => {
     setSelection(null);
@@ -288,7 +290,8 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
         participantRules={ruleArray(rules.participant)} footnote={rules.footnote || ''}
         participantsMeta={{ min: 2, max: 5, recommended: 5 }}
         startLabel={copy.start} onStart={() => control('timer.start')}
-        startDisabled={!connected || controls.busy || !grid} startStatusText={controls.busy ? copy.sending : ''}
+        startDisabled={!connected || controls.busy || !grid || Boolean(participantLimitError)}
+        startStatusText={participantLimitError || (controls.busy ? copy.sending : '')}
       />
       <ChallengeActionFeedback feedback={{ ...controls.feedback, retry: null }} />
       {!connected && <p className={styles.notice} role="status">{copy.offline}</p>}

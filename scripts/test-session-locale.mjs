@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import ts from 'typescript';
-import { getSessionParticipantLimitError } from '../lib/sessionLaunchValidation.mjs';
+import { getCrosswordParticipantLimitError } from '../lib/challenges/crosswordParticipantValidation.mjs';
 
 const require = createRequire(import.meta.url);
 const source = fs.readFileSync(new URL('../lib/i18n/I18nProvider.js', import.meta.url), 'utf8');
@@ -56,6 +56,9 @@ assert.match(builder, /payload\.status = 'en_cours';\s+payload\.locale = locale;
 assert.match(builder, /\[apiRequest, sessionId, locale\]/);
 const persistence = builder.slice(builder.indexOf('const persistSelectionToBackend'), builder.indexOf('const restoreSelectedChallenges'));
 assert.ok(persistence.indexOf('JSON.stringify({ config })') < persistence.indexOf('token, true'));
+assert.doesNotMatch(persistence, /ParticipantLimitError/);
+const launch = builder.slice(builder.indexOf('const handleLaunchSession'), builder.indexOf('const handleRequestLaunch'));
+assert.doesNotMatch(launch, /ParticipantLimitError/);
 const admin = fs.readFileSync(new URL('../app/admin/AdminClient.js', import.meta.url), 'utf8');
 assert.match(admin, /editingSession\.status === 'en_cours' \? \{ locale \}/);
 assert.match(admin, /newSession\.status === 'en_cours' \? \{ locale \}/);
@@ -65,12 +68,11 @@ assert.equal((wrapper.match(/locale: payload\.context\?\.locale === 'en' \? 'en'
 assert.match(wrapper, /a\.locale === b\.locale/);
 assert.match(wrapper, /a\.sessionConfigLocked === b\.sessionConfigLocked/);
 for (const count of [0, 1, 6]) {
-  assert.match(getSessionParticipantLimitError([{ engine_key: 'crossword_live_v1' }], count, 'en'), /2 to 5/);
-  assert.match(getSessionParticipantLimitError([{ engine_key: 'crossword_live_v1' }], count, 'fr'), /2 à 5/);
+  assert.match(getCrosswordParticipantLimitError(count, 'en'), /2 to 5/);
+  assert.match(getCrosswordParticipantLimitError(count, 'fr'), /2 à 5/);
 }
 for (const count of [2, 3, 5]) {
-  assert.equal(getSessionParticipantLimitError([{ engine_key: 'crossword_live_v1' }], count, 'en'), '');
+  assert.equal(getCrosswordParticipantLimitError(count, 'en'), '');
 }
-assert.equal(getSessionParticipantLimitError([{ engine_key: 'the_quiz_v1' }], 0, 'en'), '');
-assert.match(persistence, /getSessionParticipantLimitError/);
+assert.match(fs.readFileSync(new URL('../components/Challenges/CrosswordLive/CrosswordChallenge.js', import.meta.url), 'utf8'), /participantLimitError/);
 console.log('TEST_SESSION_LOCALE_OK');

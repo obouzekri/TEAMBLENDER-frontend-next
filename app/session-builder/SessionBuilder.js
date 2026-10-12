@@ -28,7 +28,6 @@ import { getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueR
 import { getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
 import { getLabInnovationRulesPreset } from '@/lib/challenges/labInnovationRules';
 import { getCrosswordRulesPreset } from '@/lib/challenges/crosswordRules';
-import { getSessionParticipantLimitError } from '@/lib/sessionLaunchValidation.mjs';
 import { SESSION_OBJECTIVES, isValidExpectedCount, proposeSessionProgram, replaceProgramChallenge } from '@/lib/sessionProgram.mjs';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import { getAvailableEngines } from '@/lib/challenges/runtime';
@@ -718,8 +717,6 @@ export default function SessionBuilder() {
   );
 
   const persistSelectionToBackend = useCallback(async (markInProgress = false) => {
-    const participantLimitError = getSessionParticipantLimitError(selectedChallenges, sessionParticipantCount, locale);
-    if (participantLimitError) throw new Error(participantLimitError);
     const token = getAuthToken();
     if (!sessionId || !token) return;
 
@@ -774,7 +771,6 @@ export default function SessionBuilder() {
   }, [
     apiRequest,
     locale,
-    sessionParticipantCount,
     ensureChallengesLinkedToSession,
     getAuthToken,
     resolveChallengeApiIdentifier,
@@ -986,11 +982,6 @@ export default function SessionBuilder() {
     if (!selectedChallenges.length || isLaunching) {
       return;
     }
-    const participantLimitError = getSessionParticipantLimitError(selectedChallenges, sessionParticipantCount, locale);
-    if (participantLimitError) {
-      showErrorToast(participantLimitError);
-      return;
-    }
 
     trackGaEvent('cta_click', {
       cta_name: 'session_builder_launch_challenge',
@@ -1033,8 +1024,6 @@ export default function SessionBuilder() {
     }
   }, [
     isLaunching,
-    locale,
-    sessionParticipantCount,
     persistSelectionToBackend,
     removeToast,
     redirectToUpgrade,

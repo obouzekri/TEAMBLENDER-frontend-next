@@ -30,6 +30,8 @@ try {
     const R = globalThis.React;
     const h = R.createElement;
     globalThis.locale = 'en';
+    globalThis.facilitator = false;
+    globalThis.runtimeConfig = {};
     globalThis.emitted = [];
     globalThis.completed = [];
     globalThis.listeners = {};
@@ -55,14 +57,31 @@ try {
     };
     const styles = new Proxy({}, { get: (_, key) => key });
     const i18n = () => ({ locale, t: (key) => key });
-    const mockRealtime = () => ({ state, error: globalThis.serverError || '', connected: socket.connected, isFacilitator: false, emitEvent });
+    const mockRealtime = () => ({ state, error: globalThis.serverError || '', connected: socket.connected, isFacilitator: facilitator, emitEvent });
     const shared = (props) => h('section', {}, props.title || props.objective || props.feedback?.message || '', props.actions);
+    const rulesPanel = (props) => h('section', {},
+      props.onStart && !props.isStarted && props.isFacilitator
+        ? h('div', {},
+          h('button', { type: 'button', disabled: props.startDisabled, onClick: props.onStart }, props.startLabel),
+          props.startStatusText ? h('p', {}, props.startStatusText) : null)
+        : null);
     const mocks = {
       react: R,
       '@/lib/i18n/useI18n': i18n,
+      '@/lib/challenges/crosswordParticipantValidation.mjs': {
+        getCrosswordParticipantLimitError: (count, currentLocale) => Number.isInteger(Number(count)) && Number(count) >= 2 && Number(count) <= 5
+          ? ''
+          : currentLocale === 'en'
+            ? 'Crossword requires 2 to 5 assigned participants. Update the session participants before starting the challenge.'
+            : 'Mots croisés nécessite 2 à 5 participants assignés. Modifiez les participants avant de démarrer le challenge.',
+      },
       '@/lib/challenges/useRealtimeChallenge': mockRealtime,
-      '@/lib/challenges/useConfirmedAction': () => ({ busy: false, feedback: null, run: () => {} }),
-      '../ChallengeHeader': shared, '../ChallengeRulesPanel': shared, '../ChallengeTimerCard': shared,
+      '@/lib/challenges/useConfirmedAction': () => ({
+        busy: false,
+        feedback: null,
+        run: (action) => { emitted.push({ type: action.type, payload: action.payload }); },
+      }),
+      '../ChallengeHeader': shared, '../ChallengeRulesPanel': rulesPanel, '../ChallengeTimerCard': shared,
       '../ChallengeActionFeedback': shared,
       './CrosswordChallenge.module.css': styles, './ChallengeConfigModal.module.css': styles,
       'next/image': shared,
@@ -84,13 +103,41 @@ try {
     globalThis.modal = load(modal);
     globalThis.hook = load(hook);
     globalThis.root = ReactDOM.createRoot(document.getElementById('root'));
-    globalThis.render = () => root.render(h(globalThis.ui.default, { socket, runtimePayload: { config: {} }, context: {} }));
+    globalThis.render = () => root.render(h(globalThis.ui.default, { socket, runtimePayload: { config: runtimeConfig }, context: {} }));
     render();
   }, { ui: transpile(uiSource), modal: transpile(modalSource), hook: transpile(hookSource) });
 
   assert.equal(await page.evaluate(() => ui.normalizeCrosswordAnswer(' é-qui pe ’')), 'EQUIPE');
   assert.equal(await page.evaluate(() => ui.buildCrosswordCells(state.crossword.grid).get('0:0').letter), 'C');
   assert.equal(await page.evaluate(() => ui.hasCrosswordConflict(state.crossword.grid.words[0], 'BAT', ui.buildCrosswordCells(state.crossword.grid))), true);
+  await page.evaluate(() => {
+    facilitator = true;
+    runtimeConfig = { participants: { assigned_count: 1 } };
+    state = { ...state, timer: { status: 'idle', remaining_seconds: 900 } };
+    render();
+  });
+  const startButton = page.getByRole('button', { name: 'Start game', exact: true });
+  await startButton.waitFor();
+  assert.equal(await startButton.isDisabled(), true);
+  await page.getByText('Crossword requires 2 to 5 assigned participants.', { exact: false }).waitFor();
+  await page.evaluate(() => {
+    runtimeConfig = { participants: { assigned_count: 2 } };
+    render();
+  });
+  assert.equal(await startButton.isDisabled(), false);
+  await startButton.click();
+  assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.start')));
+  await page.evaluate(() => {
+    runtimeConfig = { participants: { assigned_count: 6 } };
+    render();
+  });
+  assert.equal(await startButton.isDisabled(), true);
+  await page.evaluate(() => {
+    facilitator = false;
+    runtimeConfig = { participants: { assigned_count: 2 } };
+    state = { ...state, timer: { status: 'running', remaining_seconds: 900 } };
+    render();
+  });
   assert.deepEqual(await page.evaluate(() => {
     const catalog = { engine_config: { templatesByLocale: { fr: [{ id: 'fr', difficulty: 'facile' }], en: [{ id: 'en', difficulty: 'easy' }] } } };
     return [modal.getCrosswordTemplates(catalog, 'en').map((item) => item.id), modal.normalizeCrosswordDifficulty('difficile')];
