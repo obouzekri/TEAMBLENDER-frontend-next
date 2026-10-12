@@ -122,8 +122,8 @@ const PIXEL_ARCHITECT_TEMPLATES = Object.freeze([
     id: 'pont_croise',
     name: 'Cross Bridge',
     difficulty: 'moyen',
-    max_dims: { x: 8, y: 8, z: 4 },
-    target_cube_count: 32,
+    max_dims: { x: 8, y: 6, z: 8 },
+    target_cube_count: 48,
     palette: ['#2D9CDB', '#EB5757', '#F2C94C']
   },
   {
@@ -352,6 +352,7 @@ function withPixelArchitectDefaults(config = {}) {
   const collaborationMode = String(config?.collaborationMode || 'standard').toLowerCase() === 'avance' ? 'avance' : 'standard';
   const templateId = String(config?.replication?.templateId || PIXEL_ARCHITECT_TEMPLATES[0].id).trim();
   const selectedTemplate = PIXEL_ARCHITECT_TEMPLATES.find((item) => item.id === templateId) || PIXEL_ARCHITECT_TEMPLATES[0];
+  const minimumCubes = mode === 'replication' && selectedTemplate.id === 'pont_croise' ? 48 : 8;
 
   const maxColors = clampInt(config?.settings?.maxColors, 3, 1, 6);
   const palette = Array.isArray(config?.palette)
@@ -368,7 +369,7 @@ function withPixelArchitectDefaults(config = {}) {
     settings: {
       ...(config?.settings && typeof config.settings === 'object' ? config.settings : {}),
       timeLimitSeconds: clampInt(config?.settings?.timeLimitSeconds, 900, 120, 7200),
-      maxCubes: clampInt(config?.settings?.maxCubes, 50, 8, 400),
+      maxCubes: clampInt(config?.settings?.maxCubes, 50, minimumCubes, 400),
       maxColors,
       hintsEnabled: config?.settings?.hintsEnabled !== false,
       chatEnabled: config?.settings?.chatEnabled !== false,
@@ -1433,11 +1434,14 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   id="pixelMaxCubes"
                   className={styles.input}
                   type="number"
-                  min="8"
+                  min={stringValue('mode', 'replication') === 'replication' && stringValue('replication.templateId', '') === 'pont_croise' ? 48 : 8}
                   max="400"
                   value={numberValue('settings.maxCubes', 50)}
                   onChange={(e) => updateValue('settings.maxCubes', Number(e.target.value || 50))}
                 />
+                {stringValue('mode', 'replication') === 'replication' && stringValue('replication.templateId', '') === 'pont_croise' ? (
+                  <p>{txt('Ce modèle nécessite au moins 48 cubes.', 'This model requires at least 48 cubes.')}</p>
+                ) : null}
               </div>
 
               <div className={styles.configField}>

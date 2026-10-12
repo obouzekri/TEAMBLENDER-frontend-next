@@ -68,6 +68,27 @@ function buildTemplateCells(template) {
   const maxZ = clampInt(template?.max_dims?.z, 5, 2, 10);
   const targetCount = clampInt(template?.target_cube_count, 24, 8, 300);
 
+  // Preserve legacy/in-progress and custom targets; only the new preset uses this geometry.
+  if (String(template?.id || '').trim() === 'pont_croise'
+    && maxX === 8 && maxY === 6 && maxZ === 8 && targetCount === 48) {
+    const cells = [];
+    for (let position = 0; position < 8; position += 1) {
+      for (const center of [3, 4]) {
+        cells.push({ x: position, y: 2, z: center });
+        cells.push({ x: center, y: 4, z: position });
+      }
+    }
+    for (const x of [1, 6]) {
+      for (const z of [3, 4]) {
+        for (let y = 0; y < 2; y += 1) cells.push({ x, y, z });
+      }
+    }
+    for (const { x, z } of [{ x: 3, z: 1 }, { x: 4, z: 6 }]) {
+      for (let y = 0; y < 4; y += 1) cells.push({ x, y, z });
+    }
+    return cells;
+  }
+
   const cx = (maxX - 1) / 2;
   const cz = (maxZ - 1) / 2;
   const coords = [];
