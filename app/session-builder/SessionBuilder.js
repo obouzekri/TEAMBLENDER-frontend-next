@@ -28,7 +28,13 @@ import { getMissionCritiqueRulesPreset } from '@/lib/challenges/missionCritiqueR
 import { getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
 import { getLabInnovationRulesPreset } from '@/lib/challenges/labInnovationRules';
 import { getCrosswordRulesPreset } from '@/lib/challenges/crosswordRules';
-import { SESSION_OBJECTIVES, isValidExpectedCount, proposeSessionProgram, replaceProgramChallenge } from '@/lib/sessionProgram.mjs';
+import {
+  SESSION_OBJECTIVES,
+  isValidExpectedCount,
+  proposeSessionProgram,
+  replaceProgramChallenge,
+  getChallengeDuration,
+} from '@/lib/sessionProgram.mjs';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import { getAvailableEngines } from '@/lib/challenges/runtime';
 import styles from './SessionBuilder.module.css';
@@ -459,6 +465,7 @@ export default function SessionBuilder() {
   const [targetMinutes, setTargetMinutes] = useState('45');
   const [programProposal, setProgramProposal] = useState(null);
   const [programError, setProgramError] = useState('');
+  const [programNotice, setProgramNotice] = useState('');
   const [creationTouched, setCreationTouched] = useState({
     sessionName: false,
     sessionDateTime: false,
@@ -1482,10 +1489,34 @@ export default function SessionBuilder() {
     );
   }
 
-  function generateProgram() {
+  const objectiveLabel = objective ? t(`sessionBuilder.objectiveLabels.${objective}`) : '';
+
+  function formatProgramParticipantRange(challenge) {
+    const range = resolveChallengePlayerRange(challenge);
+    const min = challenge.engine_key === 'crossword_live_v1' ? 2 : Number(range.min);
+    const max = challenge.engine_key === 'crossword_live_v1' ? 5 : Number(range.max);
+    if (Number.isInteger(min) && Number.isInteger(max)) {
+      return min === max
+        ? t('sessionBuilder.programParticipantsExact', { count: min })
+        : t('sessionBuilder.programParticipantsRange', { min, max });
+    }
+    if (Number.isInteger(min)) return t('sessionBuilder.programParticipantsMinimum', { min });
+    if (Number.isInteger(max)) return t('sessionBuilder.programParticipantsMaximum', { max });
+    return t('sessionBuilder.programParticipantsUnknown');
+  }
+
+  function formatProgramDuration(challenge) {
+    const duration = getChallengeDuration(challenge);
+    if (duration <= 0) return t('sessionBuilder.programDurationUnknown');
+    const normalized = Number.isInteger(duration) ? duration : Number(duration.toFixed(1));
+    return t('sessionBuilder.programChallengeDuration', { count: normalized });
+  }
+
+  const generateProgram = useCallback(() => {
     const minutes = Number(targetMinutes);
     if (!Number.isInteger(minutes) || minutes < 1 || minutes > 240) {
       setProgramError(t('sessionBuilder.invalidTargetDuration'));
+      setProgramNotice('');
       return;
     }
 
@@ -1494,8 +1525,9 @@ export default function SessionBuilder() {
       availableEngineKeys: getAvailableEngines().map((engine) => engine.key),
     });
     setProgramProposal(proposal);
+    setProgramNotice('');
     setProgramError(proposal.challenges.length ? '' : t('sessionBuilder.programEmpty'));
-  }
+  }, [allChallenges, expectedCount, objective, t, targetMinutes]);
 
   function replaceProposedChallenge(challengeId) {
     const replacement = replaceProgramChallenge(programProposal, challengeId, allChallenges, {
@@ -1504,9 +1536,11 @@ export default function SessionBuilder() {
     });
     if (!replacement) {
       setProgramError(t('sessionBuilder.noReplacement'));
+      setProgramNotice('');
       return;
     }
     setProgramError('');
+    setProgramNotice(t('sessionBuilder.replacementApplied'));
     setProgramProposal(replacement);
   }
 
@@ -1798,6 +1832,8 @@ export default function SessionBuilder() {
             onClick={() => {
               setProgramProposal(null);
               setProgramError('');
+              setProgramNotice('');
+              generateProgram();
               setProgramOpen(true);
             }}
           >{t('sessionBuilder.proposeProgram')}</Button>
@@ -1915,37 +1951,79 @@ export default function SessionBuilder() {
         </section>
       </Modal>
 
-      <Modal open={programOpen} title={t('sessionBuilder.proposeProgram')} onClose={() => setProgramOpen(false)}>
+      <Modal
+        open={programOpen}
+        title={t('sessionBuilder.proposeProgram')}
+        onClose={() => setProgramOpen(false)}
+        dialogClassName={styles.programDialog}
+        bodyClassName={styles.programDialogBody}
+      >
         <div className={styles.programForm}>
           <p>{t('sessionBuilder.programHint')}</p>
-          <p>{objective ? t(`sessionBuilder.objectiveLabels.${objective}`) : t('sessionBuilder.noPreference')}
-            {' · '}{expectedCount ? t('sessionBuilder.plannedCount', { count: expectedCount }) : t('sessionBuilder.programUnknownCount')}</p>
-          <Input id="program-duration" type="number" min="1" max="240" step="1"
-            label={t('sessionBuilder.targetDuration')} value={targetMinutes}
-            onChange={(event) => { setTargetMinutes(event.target.value); setProgramProposal(null); setProgramError(''); }}
+          <div className={styles.programContext}>
+            <span>{objectiveLabel || t('sessionBuilder.noPreference')}</span>
+            <span>{expectedCount ? t('sessionBuilder.plannedCount', { count: expectedCount }) : t('sessionBuilder.programUnknownCount')}</span>
+          </div>
+          <Input
+            id="program-duration"
+            type="number"
+            min="1"
+            max="240"
+            step="1"
+            label={t('sessionBuilder.targetDuration')}
+            value={targetMinutes}
+            hint={t('sessionBuilder.targetDurationHint')}
+            onChange={(event) => {
+              setTargetMinutes(event.target.value);
+              setProgramProposal(null);
+              setProgramError('');
+              setProgramNotice('');
+            }}
           />
-          <Button variant="secondary" onClick={generateProgram}>
+          <Button variant="secondary" onClick={generateProgram} className={styles.programRegenerateButton}>
             {t(programProposal ? 'sessionBuilder.regenerateProgram' : 'sessionBuilder.generateProgram')}
           </Button>
-          {programError ? <p role="alert">{programError}</p> : null}
+          {programError ? <p className={styles.programFeedbackError} role="alert">{programError}</p> : null}
+          {programNotice ? <p className={styles.programFeedbackNotice} role="status">{programNotice}</p> : null}
           {programProposal?.challenges.length ? (
             <>
+              <div className={styles.programSummaryRow}>
+                <p>{t('sessionBuilder.programDuration', { count: programProposal.duration })}</p>
+                <p>{t('sessionBuilder.programEligibleCount', { count: programProposal.eligibleCount })}</p>
+              </div>
               <ol className={styles.programPreview}>
-                {programProposal.challenges.map((challenge) => <li key={challenge.id}>
-                  {challenge.name}
-                  {' '}
-                  <Button variant="secondary" size="sm" onClick={() => replaceProposedChallenge(challenge.id)}>
-                    {t('sessionBuilder.replaceChallenge')}
-                  </Button>
-                </li>)}
+                {programProposal.challenges.map((challenge) => (
+                  <li key={challenge.id} className={styles.programPreviewItem}>
+                    <div className={styles.programPreviewContent}>
+                      <strong>{challenge.name}</strong>
+                      <small>
+                        {formatProgramDuration(challenge)}
+                        {' · '}
+                        {formatProgramParticipantRange(challenge)}
+                      </small>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      aria-label={t('sessionBuilder.replaceChallengeAria', { name: challenge.name })}
+                      onClick={() => replaceProposedChallenge(challenge.id)}
+                    >
+                      {t('sessionBuilder.replaceChallenge')}
+                    </Button>
+                  </li>
+                ))}
               </ol>
-              <p>{t('sessionBuilder.programDuration', { count: programProposal.duration })}</p>
               {selectedChallenges.length ? <p>{t('sessionBuilder.replaceProgramWarning')}</p> : null}
-              <Button onClick={() => {
-                clearAll();
-                programProposal.challenges.forEach((challenge) => selectChallenge(challenge.id));
-                setProgramOpen(false);
-              }}>{t('sessionBuilder.useProgram')}</Button>
+              <Button
+                block
+                onClick={() => {
+                  clearAll();
+                  programProposal.challenges.forEach((challenge) => selectChallenge(challenge.id));
+                  setProgramOpen(false);
+                }}
+              >
+                {t('sessionBuilder.useProgram')}
+              </Button>
             </>
           ) : null}
         </div>

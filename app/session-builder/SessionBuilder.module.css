@@ -44,10 +44,101 @@
   gap: 1rem;
 }
 
+.programDialog {
+  max-width: min(52rem, 96vw);
+}
+
+.programDialogBody {
+  padding-top: 0.25rem;
+}
+
+.programContext {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.programContext > span {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-panel-soft);
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+}
+
+.programRegenerateButton {
+  justify-self: start;
+}
+
+.programFeedbackError {
+  margin: 0;
+  color: var(--danger-700, #b42318);
+  font-weight: 600;
+}
+
+.programFeedbackNotice {
+  margin: 0;
+  color: var(--success-700, #1f7a3d);
+  font-weight: 600;
+}
+
+.programSummaryRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+}
+
+.programSummaryRow p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
 .programPreview {
   display: grid;
-  gap: 0.6rem;
-  padding-left: 1.5rem;
+  gap: 0.75rem;
+  padding-left: 1.2rem;
+  margin: 0;
+}
+
+.programPreviewItem {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.65rem 0.8rem;
+  background: var(--surface-panel-soft);
+}
+
+.programPreviewContent {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.programPreviewContent small {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 560px) {
+  .programSummaryRow {
+    display: grid;
+  }
+
+  .programPreviewItem {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .programPreviewItem > button {
+    align-self: flex-start;
+  }
 }
 
 .sessionBuilder {

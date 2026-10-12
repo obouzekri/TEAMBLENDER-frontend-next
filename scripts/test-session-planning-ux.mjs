@@ -7,6 +7,15 @@ const catalog = [
   { id: 102, engine_key: 'labyrinthe_live_v1', name: 'Labyrinthe', duration: 15, objectives: 'collaboration', status: 'actif' },
   { id: 103, engine_key: 'crossword_live_v1', name: 'Mots croisés', duration: 15, objectives: 'collaboration', status: 'actif' },
 ];
+async function setObjectiveSelection(field, objective, selected) {
+  if (await field.evaluate((element) => element.tagName === 'SELECT')) {
+    await field.selectOption(selected ? objective : '');
+    return;
+  }
+  const checkbox = field.getByLabel(objective === 'collaboration' ? 'Collaboration' : 'Communication');
+  if (await checkbox.isChecked() !== selected) await checkbox.click();
+}
+
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
 try {
   for (const locale of ['fr', 'en']) {
@@ -45,23 +54,37 @@ try {
     await cookieButton.click();
     await page.locator('#session-name').fill('Session planning UX');
     assert.equal(await page.locator('#expected-participants').getAttribute('required'), null);
-    assert.equal(await page.locator('#session-objective').inputValue(), '');
+    const objectiveField = page.locator('#session-objective');
+    if (await objectiveField.evaluate((element) => element.tagName === 'SELECT')) {
+      assert.equal(await objectiveField.inputValue(), '');
+    } else {
+      assert.equal(await objectiveField.locator('input[type="checkbox"]:checked').count(), 0);
+    }
     await page.locator('#expected-participants').fill('6');
-    await page.locator('#session-objective').selectOption('collaboration');
+    await setObjectiveSelection(objectiveField, 'collaboration', true);
     await page.getByRole('button', { name: locale === 'fr' ? 'Créer la session' : 'Create session', exact: true }).click();
     await page.getByRole('heading', { name: 'Session planning UX', exact: true }).waitFor();
     assert.equal(savedSession.expected_participant_count, 6);
     assert.equal(savedSession.objective, 'collaboration');
     assert.equal(savedSession.participant_ids, undefined);
     await page.getByRole('button', { name: locale === 'fr' ? 'Me proposer un programme' : 'Suggest a program', exact: true }).click();
-    const dialog = page.getByRole('dialog');
-    await dialog.locator('#program-duration').fill('30');
-    await dialog.getByRole('button', { name: locale === 'fr' ? 'Générer une proposition' : 'Generate a proposal', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: locale === 'fr' ? 'Me proposer un programme' : 'Suggest a program', exact: true });
     const preview = dialog.locator('ol li');
+    assert.ok(await preview.count() > 0);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await dialog.locator('#program-duration').fill('30');
+    await dialog.getByRole('button', {
+      name: locale === 'fr' ? /Créer une proposition|Varier la proposition/ : /Create a proposal|Try another proposal/,
+    }).click();
     assert.ok(await preview.count() > 0);
     assert.ok(!(await preview.allTextContents()).some((name) => name.includes('croisés')));
     const initialPreview = await preview.allTextContents();
-    await dialog.getByRole('button', { name: locale === 'fr' ? 'Remplacer' : 'Replace', exact: true }).first().click();
+    const firstReplacementButton = preview.first().getByRole('button');
+    assert.match(
+      await firstReplacementButton.getAttribute('aria-label'),
+      locale === 'fr' ? /^Choisir une alternative à / : /^Choose an alternative to /,
+    );
+    await firstReplacementButton.click();
     await page.waitForFunction((before) => {
       const modal = document.querySelector('[role="dialog"][aria-modal="true"]');
       const current = [...modal.querySelectorAll('ol li')].map((item) => item.textContent);
@@ -72,7 +95,7 @@ try {
     assert.ok(await page.locator('[data-activity-id]').count() > 0);
     await page.getByRole('button', { name: locale === 'fr' ? 'Modifier les détails de session' : 'Edit session details', exact: true }).click();
     await page.locator('#edit-expected-participants').fill('');
-    await page.locator('#edit-session-objective').selectOption('');
+    await setObjectiveSelection(page.locator('#edit-session-objective'), 'collaboration', false);
     await page.getByRole('dialog').getByRole('button', { name: locale === 'fr' ? 'Sauvegarder' : 'Save', exact: true }).click();
     await page.getByRole('dialog').waitFor({ state: 'hidden' });
     assert.equal(savedSession.expected_participant_count, null);
