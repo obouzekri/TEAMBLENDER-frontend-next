@@ -1707,9 +1707,9 @@ export default function AdminClient() {
   }, [token, loadAll]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || activeTab !== 'analytics') return;
     loadAnalytics();
-  }, [analyticsDays, loadAnalytics, token]);
+  }, [activeTab, analyticsDays, loadAnalytics, token]);
 
   useEffect(() => {
     if (!token) return;
@@ -3765,6 +3765,15 @@ export default function AdminClient() {
                   ))}
                   <button
                     type="button"
+                    className="btn-secondary"
+                    onClick={() => loadAnalytics()}
+                    disabled={analyticsLoading}
+                    style={{ fontSize: '12px', padding: '6px 10px' }}
+                  >
+                    {analyticsLoading ? (isEn ? 'Refreshing...' : 'Actualisation...') : (isEn ? 'Refresh' : 'Actualiser')}
+                  </button>
+                  <button
+                    type="button"
                     className="btn-primary"
                     onClick={exportAnalyticsCsv}
                     disabled={analyticsLoading}
@@ -5179,7 +5188,7 @@ export default function AdminClient() {
                             if (!playerRange.hasRange) return null;
                             return (
                               <p className="session-meta" style={{ marginTop: '4px' }}>
-                                {isEn ? 'Ideal' : 'Ideal'}: ~{playerRange.recommended || '-'} {isEn ? 'players' : 'joueurs'} · Min {playerRange.min || '-'} · Max {playerRange.max || '-'}
+                                ~{playerRange.recommended || '-'} {isEn ? 'players' : 'joueurs'} · Min {playerRange.min || '-'} · Max {playerRange.max || '-'}
                               </p>
                             );
                           })()}

@@ -426,7 +426,7 @@ export default function ChallengesCatalog({
                 seenLabels.add(key);
                 return true;
               }).slice(0, 3);
-            const idealPlayersLabel = formatIdealPlayersLabel(challenge);
+            const idealPlayersLabel = formatIdealPlayersLabel(challenge, isEn);
             const challengeName = localizePlainValue(challenge.name) || (isEn ? 'Activity' : 'Activité');
             const challengeDescription = localizePlainValue(challenge.description);
             const challengeDuration = Number(challenge?.duration || challenge?.config?.duration_minutes || 0);
