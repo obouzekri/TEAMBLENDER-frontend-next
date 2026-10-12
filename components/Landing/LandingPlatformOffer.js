@@ -3,13 +3,13 @@
 export default function LandingPlatformOffer({ fallback, platformOfferItems }) {
   return (
     <section
-      className="landing-section-full landing-offer-section relative overflow-hidden p-6 sm:p-9"
+      className="landing-section-full landing-offer-section landing-platform-section relative overflow-hidden p-6 sm:p-9"
       style={{ '--reveal-delay': '140ms' }}
       aria-label={fallback.platformOfferTitle}
     >
       <div className="landing-section-rupture landing-section-rupture--accent" />
       <div className="landing-section-inner relative">
-        <div className="panel-head landing-offer-head landing-offer-head--center">
+        <div className="panel-head landing-offer-head landing-offer-head--center landing-section-heading">
           <div className="landing-offer-head-content">
             <p className="eyebrow landing-section-eyebrow">{fallback.platformEyebrow}</p>
             <h2 className="landing-section-title">{fallback.platformOfferTitle}</h2>

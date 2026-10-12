@@ -11,7 +11,7 @@ export default function LandingBenefitsOrbit({ locale, fallback, platformBenefit
     >
       <div className="landing-section-rupture landing-section-rupture--dark" />
       <div className="landing-section-inner relative">
-        <div className="panel-head landing-benefits-head">
+        <div className="panel-head landing-benefits-head landing-section-heading">
           <div>
             <p className="eyebrow landing-section-eyebrow">{fallback.benefitsEyebrow}</p>
             <h2 className="landing-section-title">{fallback.benefitsTitle}</h2>

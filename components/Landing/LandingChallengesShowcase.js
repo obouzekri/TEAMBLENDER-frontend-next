@@ -10,7 +10,7 @@ export default function LandingChallengesShowcase({ locale, challengeExamples })
     >
       <div className="landing-section-rupture landing-section-rupture--accent" />
       <div className="landing-section-inner relative">
-        <div className="landing-challenges-head">
+        <div className="landing-challenges-head landing-section-heading">
           <div>
             <p className="eyebrow landing-section-eyebrow">{locale === 'en' ? 'Challenge library' : 'Bibliothèque de défis'}</p>
             <h2 className="landing-section-title text-white">

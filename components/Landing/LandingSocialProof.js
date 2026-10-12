@@ -8,19 +8,16 @@ import LandingSocialProofEvidence from './LandingSocialProofEvidence';
 export default function LandingSocialProof({ locale, partnersHeader, useCaseChips, trustProofMetrics, socialProof }) {
   return (
     <section
-      className="landing-partners landing-section-full landing-section-full--proof relative overflow-hidden p-8 sm:p-12"
-      style={{
-        '--reveal-delay': '110ms',
-        background: 'linear-gradient(180deg, #07111f 0%, #0b1730 100%)',
-      }}
+      className="landing-partners landing-proof-section landing-section-full landing-section-full--proof relative overflow-hidden p-8 sm:p-12"
+      style={{ '--reveal-delay': '110ms' }}
       aria-label={locale === 'en' ? 'Social proof' : 'Preuve sociale'}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_84%_16%,rgba(96,165,250,0.18),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_84%_16%,rgba(96,165,250,0.10),transparent_42%)]" />
       <div className="landing-section-inner relative space-y-6">
         <div className="grid gap-5 lg:grid-cols-[1.3fr_0.7fr] lg:items-center">
-          <div>
+          <div className="landing-section-heading">
             {partnersHeader.label ? (
-              <p className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-200 ring-1 ring-white/10">
+              <p className="eyebrow landing-section-eyebrow inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-200 ring-1 ring-white/10">
                 {partnersHeader.label}
               </p>
             ) : null}

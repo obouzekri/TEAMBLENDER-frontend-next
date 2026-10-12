@@ -14,7 +14,7 @@ export default function LandingSocialProofEvidence({ locale, socialProof }) {
   }
 
   return (
-    <div className="mt-6 space-y-4 rounded-2xl bg-white/6 p-5 ring-1 ring-white/12">
+    <div className="landing-social-proof-evidence mt-6 space-y-4 rounded-2xl bg-white/6 p-5 ring-1 ring-white/12">
       {logos.length > 0 ? (
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">

@@ -6,12 +6,12 @@ export default function LandingWhyTeamBlender({ section }) {
 
   return (
     <section
-      className="landing-section-full landing-benefits-section relative overflow-hidden p-6 sm:p-10"
+      className="landing-section-full landing-benefits-section landing-why-section relative overflow-hidden p-6 sm:p-10"
       style={{ '--reveal-delay': '190ms' }}
       aria-label={section.title}
     >
       <div className="landing-section-inner relative">
-        <div className="panel-head landing-benefits-head">
+        <div className="panel-head landing-benefits-head landing-section-heading">
           <div>
             <p className="eyebrow landing-section-eyebrow">{section.eyebrow}</p>
             <h2 className="landing-section-title">{section.title}</h2>

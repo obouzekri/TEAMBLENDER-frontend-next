@@ -15,7 +15,7 @@ export default function LandingSessionOutcomes({ outcomesSection }) {
       aria-label={outcomesSection.title}
     >
       <div className="landing-section-inner relative">
-        <header className="landing-outcomes-heading">
+        <header className="landing-outcomes-heading landing-section-heading">
           <div className="landing-offer-head-content">
             <p className="eyebrow landing-section-eyebrow">{outcomesSection.eyebrow}</p>
             <h2 className="landing-section-title">{outcomesSection.title}</h2>

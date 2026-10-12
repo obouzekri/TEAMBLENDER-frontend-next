@@ -6,15 +6,12 @@ export default function LandingFlowSteps({ locale, flowHeader, flowStepsWithIcon
   return (
     <section
       className="landing-flow landing-section-full relative overflow-hidden p-6 sm:p-8"
-      style={{
-        '--reveal-delay': '190ms',
-        background: 'linear-gradient(180deg, #0b1223 0%, #111b36 100%)',
-      }}
+      style={{ '--reveal-delay': '190ms' }}
       aria-label={locale === 'en' ? 'Three-step journey' : 'Parcours en 3 étapes'}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(14,165,233,0.10),transparent_40%)]" />
       <div className="landing-section-inner relative">
-        <div className="panel-head">
+        <div className="panel-head landing-section-heading">
           <div>
             <p className="eyebrow landing-section-eyebrow">{flowHeader.label}</p>
             <h2 className="landing-section-title text-white">{flowHeader.title}</h2>
