@@ -2,7 +2,7 @@
   position: relative;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: linear-gradient(120deg, var(--card) 0%, var(--bg-soft) 100%);
+  background: var(--surface-panel);
   box-shadow: var(--shadow-sm);
   padding: 0.9rem 1rem;
 }

@@ -75,7 +75,12 @@ export default async function RootLayout({ children }) {
         <ExternalNotificationGuard />
         <I18nProvider>
           <DisplayPreferencesController />
-          <TrackingConsentGate>{children}</TrackingConsentGate>
+          <a className="skip-to-content" href="#main-content">
+            {locale === 'en' ? 'Skip to main content' : 'Aller au contenu principal'}
+          </a>
+          <div id="main-content" className="skip-to-content-target" tabIndex={-1}>
+            <TrackingConsentGate>{children}</TrackingConsentGate>
+          </div>
         </I18nProvider>
       </body>
     </html>

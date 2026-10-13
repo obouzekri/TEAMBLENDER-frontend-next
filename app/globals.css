@@ -25,22 +25,11 @@
   --shadow-lg: 0 22px 44px rgba(15, 23, 42, 0.14);
   --bg: #f6f8fc;
   --bg-soft: #eaf3ff;
-  /* Ambiance de fond sombre partagee (session live + challenges) */
+  /* Fonds unis partages : les accents colores restent reserves aux actions et statuts. */
   --ambient-navy-deep: #081223;
-  --ambient-navy-soft: #0b1630;
-  --ambient-bg-dark:
-    radial-gradient(120% 90% at 32% 42%, rgba(30, 144, 255, 0.2) 0%, rgba(30, 144, 255, 0.07) 36%, rgba(30, 144, 255, 0) 68%),
-    radial-gradient(95% 75% at 96% -8%, rgba(124, 92, 255, 0.15) 0%, rgba(124, 92, 255, 0.05) 40%, rgba(124, 92, 255, 0) 72%),
-    radial-gradient(150% 125% at 50% 46%, rgba(16, 42, 86, 0.55) 0%, rgba(16, 42, 86, 0.18) 46%, rgba(16, 42, 86, 0) 80%),
-    linear-gradient(180deg, var(--ambient-navy-soft) 0%, var(--ambient-navy-deep) 100%);
-  /* Ambiance de fond claire : meme composition que --ambient-bg-dark, opacites reduites */
+  --ambient-bg-dark: none;
   --ambient-paper-base: #f6f8fc;
-  --ambient-paper-soft: #eaf3ff;
-  --ambient-bg-light:
-    radial-gradient(120% 90% at 32% 42%, rgba(30, 144, 255, 0.1) 0%, rgba(30, 144, 255, 0.035) 36%, rgba(30, 144, 255, 0) 68%),
-    radial-gradient(95% 75% at 96% -8%, rgba(124, 92, 255, 0.06) 0%, rgba(124, 92, 255, 0.02) 40%, rgba(124, 92, 255, 0) 72%),
-    radial-gradient(150% 125% at 50% 46%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.16) 46%, rgba(255, 255, 255, 0) 80%),
-    linear-gradient(180deg, var(--ambient-paper-soft) 0%, var(--ambient-paper-base) 100%);
+  --ambient-bg-light: none;
   --ink: #0f172a;
   --ink-soft: #3f4f6a;
   --accent: #2f62ff;
@@ -50,7 +39,6 @@
   --accent-violet: #7c3aed;
   --accent-violet-strong: #6d28d9;
   --accent-violet-soft: #f1eaff;
-  --accent-violet-glow: rgba(124, 58, 237, 0.24);
   --line: #d7e3fb;
   --card: #ffffff;
   --card-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
@@ -68,10 +56,10 @@
   --success-bg: #eefbf6;
   --success-line: #10b981;
   --success-ink: #065f46;
-  --button-primary-shadow: 0 12px 28px rgba(53, 160, 255, 0.26);
-  --button-primary-shadow-hover: 0 16px 34px rgba(58, 99, 255, 0.34);
-  --button-insight-shadow: 0 12px 26px rgba(124, 58, 237, 0.24);
-  --button-insight-shadow-hover: 0 16px 34px rgba(109, 40, 217, 0.34);
+  --button-primary-shadow: 0 4px 12px rgba(53, 160, 255, 0.16);
+  --button-primary-shadow-hover: 0 6px 16px rgba(58, 99, 255, 0.2);
+  --button-insight-shadow: 0 4px 12px rgba(124, 58, 237, 0.16);
+  --button-insight-shadow-hover: 0 6px 16px rgba(109, 40, 217, 0.2);
   --focus-ring-teal: rgba(53, 160, 255, 0.24);
   --focus-ring-violet: rgba(124, 58, 237, 0.24);
   --surface-radius: 16px;
@@ -238,7 +226,6 @@
   --challenge-text-accent: #7dd3fc;
   --skeleton-bg: #2b3859;
   --skeleton-base: #111a2e;
-  --home-hero-accent-gradient: linear-gradient(135deg, rgba(53,160,255,0.08) 0%, rgba(124,58,237,0.06) 100%);
   --color-success: #35b776;
   --color-success-rgb: 53,183,118;
   --color-warning: #f59e0b;
@@ -333,7 +320,7 @@
 /* Specific adjustments for Manager Home blocks in dark theme */
 :root[data-theme="dark"] .manager-home .home-hero,
 :root[data-theme="dark"] .home-hero {
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00)), var(--home-hero-accent-gradient);
+  background: var(--surface-panel);
   color: var(--text-strong);
 }
 
@@ -6179,10 +6166,7 @@ html[data-theme='dark'] .icon-action-btn:hover{
 .home-hero {
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0) 30%),
-    radial-gradient(circle at 0% 100%, rgba(53, 160, 255, 0.08) 0%, rgba(53, 160, 255, 0) 32%),
-    linear-gradient(135deg, #fbfcf9 0%, #eff7f0 52%, #eef4f8 100%);
+  background: var(--surface-panel);
 }
 
 .home-hero::after {
@@ -6193,7 +6177,7 @@ html[data-theme='dark'] .icon-action-btn:hover{
   width: 260px;
   height: 260px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(53, 160, 255, 0.14) 0%, rgba(53, 160, 255, 0.03) 45%, rgba(53, 160, 255, 0) 70%);
+  background: none;
   pointer-events: none;
 }
 
@@ -10970,7 +10954,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
 .home-hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(130deg, #f7fbff 0%, #eef4ff 50%, #f1f3ff 100%);
+  background: var(--surface-panel);
   border-color: var(--home-line);
   border-radius: 28px;
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.1);
@@ -10984,7 +10968,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
   width: 220px;
   height: 220px;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(53, 160, 255, 0.18) 0%, rgba(53, 160, 255, 0) 72%);
+  background: none;
   pointer-events: none;
 }
 
@@ -16465,46 +16449,44 @@ html[data-theme='light'] .nav-toggle {
 }
 
 .manager-home::before {
-  background: radial-gradient(circle, rgba(53, 160, 255, 0.16) 0%, rgba(53, 160, 255, 0) 72%);
+  background: none;
 }
 
 .home-hero {
-  background: linear-gradient(130deg, var(--home-hero-bg-start, #f7faff) 0%, var(--home-hero-bg-mid, #eef4ff) 52%, var(--home-hero-bg-end, #f3f1ff) 100%);
+  background: var(--surface-panel);
   border-color: color-mix(in srgb, var(--home-line, rgba(53,160,255,0.22)) 60%, transparent);
   box-shadow: 0 24px 48px rgba(23, 37, 84, 0.12);
   color: var(--text-strong);
 }
 
 .home-hero::before {
-  background: radial-gradient(circle, rgba(122, 92, 255, 0.2) 0%, rgba(122, 92, 255, 0) 74%);
+  background: none;
 }
 
 .home-hero-trust span,
 .home-hero-trust a {
   border: 1px solid color-mix(in srgb, var(--home-line, rgba(53,160,255,0.24)) 48%, transparent);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--surface-panel, #ffffff) 92%, transparent) 0%, color-mix(in srgb, var(--surface-panel, #ffffff) 86%, transparent) 100%);
+  background: var(--surface-panel);
   color: var(--ch-text-main, var(--ink));
   box-shadow: 0 10px 18px rgba(23, 37, 84, 0.07);
 }
 
 .home-hero-summary {
   border: 1px solid color-mix(in srgb, var(--home-line, rgba(122,92,255,0.24)) 48%, transparent);
-  background: linear-gradient(145deg, color-mix(in srgb, var(--surface-panel, #ffffff) 92%, transparent) 0%, color-mix(in srgb, var(--surface-panel, #ffffff) 86%, transparent) 100%);
+  background: var(--surface-panel);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-panel, #ffffff) 70%, transparent), 0 14px 28px rgba(33, 53, 108, 0.1);
   color: var(--text-strong);
 }
 
 @media (prefers-color-scheme: dark) {
   :where(html:not([data-theme='light'])) .manager-home .home-hero{
-    background:
-      radial-gradient(circle at 8% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 42%),
-      linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(17, 24, 39, 0.94) 48%, rgba(30, 41, 59, 0.94) 100%);
+    background: var(--surface-panel);
     border-color: rgba(148, 163, 184, 0.2);
     box-shadow: 0 24px 48px rgba(2, 6, 23, 0.4);
   }
 
   :where(html:not([data-theme='light'])) .manager-home .home-hero::before{
-    background: radial-gradient(circle, rgba(99, 179, 237, 0.14) 0%, rgba(99, 179, 237, 0) 72%);
+    background: none;
   }
 
   :where(html:not([data-theme='light'])) .manager-home .home-hero-greeting,:where(html:not([data-theme='light'])) .manager-home .home-hero p:not(.eyebrow){
@@ -16518,7 +16500,7 @@ html[data-theme='light'] .nav-toggle {
 
   :where(html:not([data-theme='light'])) .manager-home .home-hero-summary{
     border-color: rgba(148, 163, 184, 0.2);
-    background: linear-gradient(145deg, rgba(15, 23, 42, 0.96) 0%, rgba(30, 41, 59, 0.9) 100%);
+    background: var(--surface-panel);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 28px rgba(2, 6, 23, 0.32);
   }
 
@@ -16536,15 +16518,13 @@ html[data-theme='light'] .nav-toggle {
 /* Explicit dark theme mirror of the block above */
 
   html[data-theme='dark'] .manager-home .home-hero{
-    background:
-      radial-gradient(circle at 8% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 42%),
-      linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(17, 24, 39, 0.94) 48%, rgba(30, 41, 59, 0.94) 100%);
+    background: var(--surface-panel);
     border-color: rgba(148, 163, 184, 0.2);
     box-shadow: 0 24px 48px rgba(2, 6, 23, 0.4);
   }
 
   html[data-theme='dark'] .manager-home .home-hero::before{
-    background: radial-gradient(circle, rgba(99, 179, 237, 0.14) 0%, rgba(99, 179, 237, 0) 72%);
+    background: none;
   }
 
   html[data-theme='dark'] .manager-home .home-hero-greeting,
@@ -16560,7 +16540,7 @@ html[data-theme='dark'] .manager-home .home-hero-summary__eyebrow{
 
   html[data-theme='dark'] .manager-home .home-hero-summary{
     border-color: rgba(148, 163, 184, 0.2);
-    background: linear-gradient(145deg, rgba(15, 23, 42, 0.96) 0%, rgba(30, 41, 59, 0.9) 100%);
+    background: var(--surface-panel);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 28px rgba(2, 6, 23, 0.32);
   }
 
@@ -16582,15 +16562,13 @@ html[data-theme='dark'] .manager-home .session-card{
   }
 
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-hero {
-  background:
-    radial-gradient(circle at 8% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 42%),
-    linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(17, 24, 39, 0.94) 48%, rgba(30, 41, 59, 0.94) 100%);
+  background: var(--surface-panel);
   border-color: rgba(148, 163, 184, 0.2);
   box-shadow: 0 24px 48px rgba(2, 6, 23, 0.4);
 }
 
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-hero::before {
-  background: radial-gradient(circle, rgba(99, 179, 237, 0.14) 0%, rgba(99, 179, 237, 0) 72%);
+  background: none;
 }
 
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-hero-greeting,
@@ -16606,7 +16584,7 @@ html[data-theme='dark'] .manager-home .session-card{
 
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-hero-summary {
   border-color: rgba(148, 163, 184, 0.2);
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.96) 0%, rgba(30, 41, 59, 0.9) 100%);
+  background: var(--surface-panel);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 28px rgba(2, 6, 23, 0.32);
 }
 
@@ -21680,4 +21658,90 @@ html[data-theme='dark'] .auth-remember-me{
   .landing-v2 .landing-section-heading > p:not(.eyebrow):not(.landing-section-eyebrow) {
     font-size: 0.95rem;
   }
+}
+
+.skip-to-content {
+  position: fixed;
+  z-index: 2000;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #fff;
+  border-radius: 0.5rem;
+  background: #0f172a;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  transform: translateY(calc(-100% - 2rem));
+}
+
+.skip-to-content:focus-visible {
+  transform: translateY(0);
+}
+
+.skip-to-content-target {
+  scroll-margin-top: 1rem;
+}
+
+:focus-visible {
+  outline: 2px solid #fff !important;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 5px #7c3aed !important;
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid Highlight !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .top-nav:not(.top-nav--live-inline) .nav-panel {
+    visibility: hidden !important;
+    transition:
+      opacity 0.22s var(--ease-standard, ease),
+      transform 0.22s var(--ease-standard, ease) !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-panel.is-open {
+    visibility: visible !important;
+    transition:
+      opacity 0.22s var(--ease-standard, ease),
+      transform 0.22s var(--ease-standard, ease) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 860px) {
+  .top-nav:not(.top-nav--live-inline) .nav-panel {
+    transition: none !important;
+  }
+}
+
+.auth-form label,
+.auth-field-label {
+  font-size: 1rem !important;
+  line-height: 1.4;
+}
+
+.auth-field-help {
+  font-size: 0.875rem !important;
+  line-height: 1.5;
+}
+
+:root[data-high-contrast="true"] .auth-form label,
+:root[data-high-contrast="true"] .auth-field-label,
+:root[data-high-contrast="true"] .auth-field-help {
+  color: var(--text-strong) !important;
 }

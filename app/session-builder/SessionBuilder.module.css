@@ -253,7 +253,7 @@
   flex-wrap: wrap;
   margin-top: 1rem;
   padding: 0.95rem 1.05rem;
-  background: linear-gradient(135deg, var(--builder-surface) 0%, var(--builder-surface-soft) 100%);
+  background: var(--builder-surface);
   border: 1px solid var(--builder-line);
   border-radius: 24px;
   box-shadow: var(--shadow-sm);
@@ -276,7 +276,7 @@
 .sessionInfoBadge {
   font-size: 0.875rem;
   color: var(--builder-accent-strong);
-  background: linear-gradient(135deg, var(--surface-panel-soft) 0%, var(--surface-panel) 100%);
+  background: var(--surface-panel);
   border: 1px solid var(--builder-line-strong);
   border-radius: 999px;
   padding: 0.28rem 0.72rem;
@@ -361,7 +361,7 @@
   padding: 0.9rem;
   border: 1px solid var(--builder-line);
   border-radius: 18px;
-  background: linear-gradient(180deg, var(--surface-panel-soft) 0%, var(--surface-panel) 100%);
+  background: var(--surface-panel-soft);
 }
 
 .sessionInfoParticipantsBlock label {
@@ -564,7 +564,7 @@
   width: 220px;
   height: 220px;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(53, 160, 255, 0.18) 0%, rgba(53, 160, 255, 0) 72%);
+  background: none;
   pointer-events: none;
 }
 
@@ -687,7 +687,7 @@
   padding: 0.7rem 0.95rem;
   border-radius: 14px;
   border: 1px solid rgba(53, 160, 255, 0.2);
-  background: linear-gradient(120deg, rgba(231, 238, 255, 0.92) 0%, rgba(255, 255, 255, 0.92) 100%);
+  background: var(--accent-soft);
   color: #0f172a;
   font-size: 0.9rem;
   line-height: 1.45;
@@ -703,7 +703,7 @@
 }
 
 .creationStats {
-  background: linear-gradient(180deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+  background: var(--surface-panel);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 220px));
   gap: 1rem;
@@ -753,7 +753,7 @@
   align-content: start;
   align-items: stretch;
   min-height: 100%;
-  background: linear-gradient(180deg, var(--surface-panel-soft) 0%, var(--surface-panel) 100%);
+  background: transparent;
   width: 100%;
 }
 
@@ -795,7 +795,7 @@
   gap: 1.25rem;
   padding: 1.5rem;
   border-radius: 28px;
-  background: linear-gradient(180deg, rgba(231, 238, 255, 0.92) 0%, rgba(255, 255, 255, 0.96) 100%);
+  background: var(--surface-panel);
   border: 1px solid rgba(53, 160, 255, 0.24);
   box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
 }
@@ -821,16 +821,14 @@
 :global(html[data-theme='dark']) .creationParticipantsPane,
 :global(body[data-theme='dark']) .creationParticipantsPane,
 :global(.dark) .creationParticipantsPane {
-  background: linear-gradient(180deg, var(--card) 0%, var(--bg-soft) 100%);
+  background: var(--card);
   box-shadow: 0 14px 36px rgba(2, 6, 23, 0.36);
 }
 
 :global(html[data-theme='dark']) .creationHero,
 :global(body[data-theme='dark']) .creationHero,
 :global(.dark) .creationHero {
-  background:
-    radial-gradient(circle at 100% 0%, rgba(53, 160, 255, 0.16), rgba(53, 160, 255, 0) 34%),
-    linear-gradient(145deg, var(--card) 0%, var(--bg-soft) 100%);
+  background: var(--card);
   box-shadow: 0 26px 48px rgba(2, 6, 23, 0.4);
 }
 
@@ -865,7 +863,7 @@
 :global(html[data-theme='dark']) .creationPrerequisite,
 :global(body[data-theme='dark']) .creationPrerequisite,
 :global(.dark) .creationPrerequisite {
-  background: linear-gradient(120deg, rgba(30, 64, 175, 0.34) 0%, var(--surface-glass) 100%);
+  background: var(--surface-glass);
   border-color: rgba(147, 197, 253, 0.32);
 }
 
@@ -905,7 +903,6 @@
   content: "";
   position: absolute;
   inset-inline-start: 0;
-  background: linear-gradient(180deg, var(--surface-panel-soft) 0%, var(--surface-panel) 100%);
   top: 0;
   bottom: 0;
   width: 4px;
@@ -1035,7 +1032,7 @@
   min-height: 2.3rem;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 50%, transparent) 0%, var(--card) 100%);
+  background: color-mix(in srgb, var(--accent-soft) 50%, var(--card));
   color: var(--accent-strong);
   font-size: 0.84rem;
   font-weight: 700;
@@ -1135,7 +1132,7 @@
   padding: 0.82rem 0.9rem;
   border-radius: 16px;
   border: 1px solid var(--control-border);
-  background: linear-gradient(145deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
+  background: var(--surface-panel);
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
   position: relative;
@@ -1171,7 +1168,7 @@
 
 .flowModeCardActive {
   border-color: var(--control-border-strong);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 40%, var(--card)) 0%, var(--surface-panel) 100%);
+  background: color-mix(in srgb, var(--accent-soft) 40%, var(--surface-panel));
   box-shadow: var(--shadow-md);
 }
 
@@ -1400,7 +1397,7 @@
   padding: 0.9rem 1rem;
   border-radius: 18px;
   border: 1px solid var(--line);
-  background: linear-gradient(180deg, var(--surface-panel-soft) 0%, var(--surface-panel) 100%);
+  background: var(--surface-panel);
 }
 
 .inviteCardHeader {
@@ -1442,10 +1439,7 @@
 :global(html[data-theme='dark']) .creationPageBackground,
 :global(body[data-theme='dark']) .creationPageBackground,
 :global(.dark) .creationPageBackground {
-  background:
-    radial-gradient(circle at 0% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 32%),
-    radial-gradient(circle at 100% 0%, rgba(124, 58, 237, 0.1) 0%, transparent 34%),
-    linear-gradient(180deg, #0b1220 0%, #10192e 48%, #0f172a 100%);
+  background: var(--ambient-navy-deep);
 }
 
 :global(html[data-theme='dark']) .creationHero,
@@ -1467,15 +1461,13 @@
 :global(html[data-theme='dark']) .creationHero,
 :global(body[data-theme='dark']) .creationHero,
 :global(.dark) .creationHero {
-  background:
-    radial-gradient(circle at 100% 0%, rgba(53, 160, 255, 0.12), rgba(53, 160, 255, 0) 34%),
-    linear-gradient(145deg, rgba(15, 23, 42, 0.96) 0%, rgba(17, 24, 39, 0.94) 100%);
+  background: var(--card);
 }
 
 :global(html[data-theme='dark']) .creationHero::after,
 :global(body[data-theme='dark']) .creationHero::after,
 :global(.dark) .creationHero::after {
-  background: radial-gradient(circle, rgba(99, 179, 237, 0.14) 0%, rgba(99, 179, 237, 0) 72%);
+  background: none;
 }
 
 :global(html[data-theme='dark']) .creationTitle,
@@ -1634,7 +1626,7 @@
 :global(html[data-theme='dark']) .flowModeCardActive,
 :global(body[data-theme='dark']) .flowModeCardActive,
 :global(.dark) .flowModeCardActive {
-  background: linear-gradient(180deg, rgba(37, 99, 235, 0.28) 0%, rgba(15, 23, 42, 0.92) 100%);
+  background: rgba(37, 99, 235, 0.18);
   border-color: rgba(96, 165, 250, 0.36);
 }
 
@@ -1667,10 +1659,7 @@
 
 @media (prefers-color-scheme: dark) {
   .creationPageBackground {
-    background:
-      radial-gradient(circle at 0% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 32%),
-      radial-gradient(circle at 100% 0%, rgba(124, 58, 237, 0.1) 0%, transparent 34%),
-      linear-gradient(180deg, #0b1220 0%, #10192e 48%, #0f172a 100%);
+    background: var(--ambient-navy-deep);
   }
 
   .creationHero,
@@ -1683,17 +1672,15 @@
 
   .creationForm,
   .creationParticipantsPane {
-    background: linear-gradient(180deg, var(--card) 0%, var(--bg-soft) 100%);
+    background: var(--card);
   }
 
   .creationHero {
-    background:
-      radial-gradient(circle at 100% 0%, rgba(53, 160, 255, 0.12), rgba(53, 160, 255, 0) 34%),
-      linear-gradient(145deg, rgba(15, 23, 42, 0.96) 0%, rgba(17, 24, 39, 0.94) 100%);
+    background: var(--card);
   }
 
   .creationHero::after {
-    background: radial-gradient(circle, rgba(99, 179, 237, 0.14) 0%, rgba(99, 179, 237, 0) 72%);
+    background: none;
   }
 
   .creationTitle,
@@ -1768,23 +1755,20 @@
   }
 
   .flowModeCardActive {
-    background: linear-gradient(180deg, rgba(37, 99, 235, 0.28) 0%, rgba(15, 23, 42, 0.92) 100%);
+    background: rgba(37, 99, 235, 0.18);
     border-color: rgba(96, 165, 250, 0.36);
   }
 }
 
 :global(html[data-theme='light']) .creationPageBackground {
-  background:
-    radial-gradient(circle at 0% 0%, rgba(53, 160, 255, 0.1) 0%, transparent 32%),
-    radial-gradient(circle at 100% 0%, rgba(124, 58, 237, 0.08) 0%, transparent 34%),
-    linear-gradient(180deg, #f7fbff 0%, #eef5ff 48%, #f8fbff 100%);
+  background: var(--ambient-paper-base);
 }
 
 :global(html[data-theme='light']) .creationHero,
 :global(html[data-theme='light']) .creationForm,
 :global(html[data-theme='light']) .creationParticipantsPane,
 :global(html[data-theme='light']) .creationOverviewCard {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 248, 255, 0.96) 100%);
+  background: var(--card);
   border-color: var(--builder-line-strong);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
 }
@@ -1868,7 +1852,7 @@
 }
 
 :global(html[data-theme='light']) .flowModeCardActive {
-  background: linear-gradient(180deg, var(--accent-soft) 0%, var(--surface-panel) 100%);
+  background: color-mix(in srgb, var(--accent-soft) 60%, var(--surface-panel));
   border-color: var(--control-border-strong);
 }
 

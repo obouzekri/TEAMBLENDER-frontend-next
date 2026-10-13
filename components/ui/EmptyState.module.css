@@ -6,7 +6,7 @@
   padding: var(--space-8, 2rem) var(--space-5, 1.25rem);
   border-radius: var(--radius-lg, 20px);
   border: 1px dashed color-mix(in srgb, var(--line) 84%, transparent);
-  background: linear-gradient(165deg, color-mix(in srgb, var(--card) 98%, #fff) 0%, color-mix(in srgb, var(--bg-soft) 42%, #fff) 100%);
+  background: var(--surface-panel);
   color: var(--ink-soft);
   animation: ui-fade-in-up var(--motion-medium) var(--ease-standard) both;
 }

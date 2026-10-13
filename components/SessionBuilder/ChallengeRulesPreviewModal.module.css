@@ -17,9 +17,7 @@
   padding: 1.4rem;
   border-radius: 16px;
   border: 1px solid rgba(160, 187, 208, 0.32);
-  background:
-    linear-gradient(165deg, rgba(16, 33, 49, 0.995), rgba(10, 24, 36, 0.995)),
-    radial-gradient(420px 180px at 8% -18%, rgba(56, 189, 248, 0.18), transparent 72%);
+  background: rgba(16, 33, 49, 0.995);
   box-shadow: 0 20px 46px rgba(2, 9, 16, 0.46);
   display: grid;
   gap: 1rem;

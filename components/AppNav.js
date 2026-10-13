@@ -185,7 +185,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
           <div id="app-nav-panel" className={`${navPanelClassName}${isCompact ? ' nav-panel--live-inline' : ''}`}>
             {isParticipant && !isCompact && (
               <div className="nav-main-block">
-                <nav className="nav-links appnav-mobile-main-links" aria-label="Navigation participant">
+                <nav className="nav-links appnav-mobile-main-links" aria-label={t('nav.mainAria')}>
                   <NavItem
                     href={withLocalePath('/participant')}
                     onClick={() => setIsMenuOpen(false)}
@@ -206,7 +206,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
 
             {!isParticipant && !isCompact && !isAdmin && (
               <div className="nav-main-block">
-                <nav className="nav-links appnav-mobile-main-links appnav-mobile-main-links--desktop-menu" aria-label="Navigation manager">
+                <nav className="nav-links appnav-mobile-main-links appnav-mobile-main-links--desktop-menu" aria-label={t('nav.mainAria')}>
                   <NavItem
                     href={withLocalePath('/home')}
                     active={isManagerHome}
@@ -248,7 +248,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
 
             {isAdmin && !isCompact && (
               <div className="nav-main-block">
-                <nav className="nav-links appnav-mobile-main-links" aria-label="Navigation admin">
+                <nav className="nav-links appnav-mobile-main-links" aria-label={t('nav.mainAria')}>
                   <NavItem
                     href={withLocalePath('/admin')}
                     active={isActive('/admin')}
@@ -304,4 +304,3 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
     </>
   );
 }
-

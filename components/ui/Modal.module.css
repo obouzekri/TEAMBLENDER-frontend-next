@@ -65,7 +65,7 @@
 :global(html[data-theme='dark']) .dialog,
 :global(body[data-theme='dark']) .dialog,
 :global(.dark) .dialog {
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(17, 24, 39, 0.96) 100%);
+  background: var(--modal-panel);
   border-color: rgba(148, 163, 184, 0.2);
   box-shadow: 0 22px 50px rgba(2, 6, 23, 0.5);
 }
