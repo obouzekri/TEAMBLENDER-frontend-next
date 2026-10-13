@@ -2,10 +2,19 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
   height: auto;
+  width: 100%;
+  max-width: 1680px;
+  margin-inline: auto;
   gap: 12px;
   font-family: var(--font-ui);
   color: var(--challenge-text-secondary);
+}
+
+.challengeContainer > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .headerSlot {
@@ -108,16 +117,6 @@
     gap: 6px;
   }
 
-
-@media (max-width: 380px) {
-  .challengeContainer :global(h1) {
-    font-size: 1.25rem;
-  }
-
-  .challengeContainer :global(.challenge-header) {
-    padding: 10px 12px;
-  }
-}
   .challengeContainer :global(.challenge-title) {
     font-size: 1.02rem;
   }
@@ -150,5 +149,15 @@
   .statusCard {
     padding: 18px;
     border-radius: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .challengeContainer :global(h1) {
+    font-size: 1.25rem;
+  }
+
+  .challengeContainer :global(.challenge-header) {
+    padding: 10px 12px;
   }
 }
