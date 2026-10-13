@@ -11877,11 +11877,27 @@ html[data-theme='light'] .site-footer .footer-social__link {
 
 .manager-home .home-section-title {
   margin: 0.2rem 0 0;
-  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  font-size: clamp(1.05rem, 1.55vw, 1.3rem);
   line-height: 1.2;
   letter-spacing: 0;
   font-weight: 800;
-  color: var(--text-strong);
+  color: var(--accent-strong);
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .manager-home .home-section-title {
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+@media (forced-colors: active) {
+  .manager-home .home-section-title {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
 }
 
 .home-prerequisite-hint {
