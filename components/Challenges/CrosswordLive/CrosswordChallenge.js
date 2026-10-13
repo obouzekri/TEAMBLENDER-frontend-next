@@ -15,7 +15,7 @@ import styles from './CrosswordChallenge.module.css';
 
 const COPY = {
   fr: {
-    title: 'Mots croisés en équipe', loading: 'Chargement de la grille…', across: 'Horizontal', down: 'Vertical',
+    title: 'Mots croisés Live', loading: 'Chargement de la grille…', across: 'Horizontal', down: 'Vertical',
     board: 'Grille de mots croisés', help: 'Choisissez une case ou une définition. Flèches : déplacer la sélection. Espace : changer de direction à une intersection. Début / Fin : première / dernière case du mot.',
     row: 'Ligne', col: 'colonne', empty: 'vide', found: 'Trouvé', letters: 'lettres', answer: 'Votre réponse', submit: 'Proposer le mot',
     progress: 'Progression collective', leaderboard: 'Classement', activity: 'Dernières découvertes', none: 'Aucune découverte pour le moment.',
@@ -31,7 +31,7 @@ const COPY = {
     solvedDraft: 'Mot déjà trouvé. Votre brouillon est conservé.', objective: 'Résolvez ensemble les définitions pour compléter la grille.',
   },
   en: {
-    title: 'Team crossword', loading: 'Loading the grid…', across: 'Across', down: 'Down',
+    title: 'Crossword Live', loading: 'Loading the grid…', across: 'Across', down: 'Down',
     board: 'Crossword board', help: 'Choose a cell or a clue. Arrow keys: move selection. Space: switch direction at an intersection. Home / End: first / last cell of the word.',
     row: 'Row', col: 'column', empty: 'empty', found: 'Found', letters: 'letters', answer: 'Your answer', submit: 'Submit word',
     progress: 'Team progress', leaderboard: 'Leaderboard', activity: 'Latest discoveries', none: 'No discoveries yet.',
@@ -312,7 +312,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
 
   return (
     <ChallengePresentation as="main" className={styles.root} isDebrief={finished}>
-      <ChallengeHeader title={grid?.title || config.title || copy.title} timer={{ remainingSeconds: remaining }} />
+      <ChallengeHeader title={copy.title} timer={{ remainingSeconds: remaining }} />
       <ChallengeRulesPanel
         isStarted={started} isFacilitator={isFacilitator} challengeName={copy.title}
         objective={rules.objective || copy.objective} facilitatorRules={ruleArray(rules.facilitator)}
@@ -337,6 +337,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
         <section className={styles.progressCard} aria-labelledby={`${id}-progress`}>
           <div className={styles.sectionHeading}><h2 id={`${id}-progress`}>{copy.progress}</h2><strong>{crossword.solvedCount || 0} / {crossword.totalWords || words.length} · {Math.round(percent)}%</strong></div>
           <progress max="100" value={percent} aria-label={copy.progress} />
+          {grid.title && <p><strong>{grid.title}</strong></p>}
           <p>{grid.theme} {grid.theme && '·'} {({ easy: locale === 'en' ? 'Easy' : 'Facile', medium: locale === 'en' ? 'Medium' : 'Moyen', hard: locale === 'en' ? 'Hard' : 'Difficile', facile: locale === 'en' ? 'Easy' : 'Facile', moyen: locale === 'en' ? 'Medium' : 'Moyen', difficile: locale === 'en' ? 'Hard' : 'Difficile' })[grid.difficulty] || grid.difficulty}</p>
         </section>
         {finished && <section className={styles.card} aria-labelledby={`${id}-final`}>

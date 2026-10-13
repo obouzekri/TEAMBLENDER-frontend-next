@@ -91,7 +91,8 @@ try {
         feedback: null,
         run: (action) => { emitted.push({ type: action.type, payload: action.payload }); },
       }),
-      '../ChallengeHeader': shared, '../ChallengeRulesPanel': rulesPanel, '../ChallengeTimerCard': shared,
+      '../ChallengeHeader': (props) => h('header', {}, h('h1', {}, props.title)),
+      '../ChallengeRulesPanel': rulesPanel, '../ChallengeTimerCard': shared,
       '../ChallengeActionFeedback': shared,
       '../ChallengePresentation': (props) => h(props.as || 'div', { className: props.className }, props.children),
       './CrosswordChallenge.module.css': styles, './ChallengeConfigModal.module.css': styles,
@@ -119,6 +120,8 @@ try {
   }, { ui: transpile(uiSource), modal: transpile(modalSource), hook: transpile(hookSource) });
 
   assert.equal(await page.evaluate(() => ui.normalizeCrosswordAnswer(' é-qui pe ’')), 'EQUIPE');
+  await page.getByRole('heading', { level: 1, name: 'Crossword Live', exact: true }).waitFor();
+  await page.getByText('Teamwork', { exact: true }).waitFor();
   assert.equal(await page.evaluate(() => ui.buildCrosswordCells(state.crossword.grid).get('0:0').letter), 'C');
   assert.equal(await page.evaluate(() => ui.hasCrosswordConflict(state.crossword.grid.words[0], 'BAT', ui.buildCrosswordCells(state.crossword.grid))), true);
   await page.evaluate(() => {
@@ -236,6 +239,7 @@ try {
     render();
   });
   await page.getByRole('heading', { name: 'Partie terminée' }).waitFor();
+  await page.getByRole('heading', { level: 1, name: 'Mots croisés Live', exact: true }).waitFor();
   await page.getByRole('heading', { name: 'Mots non résolus (2)' }).waitFor();
   await page.getByLabel('Votre réponse', { exact: true }).waitFor();
   await page.evaluate(() => document.documentElement.dataset.theme = 'dark');
