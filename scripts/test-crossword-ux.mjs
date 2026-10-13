@@ -49,6 +49,7 @@ try {
         grid: { id: 'en-1', title: 'Teamwork', theme: 'Together', difficulty: 'easy', width: 3, height: 3, words: [
           { id: 'a', number: 1, row: 0, col: 0, direction: 'across', length: 3, clue: 'A feline', answer: null, solvedBy: null },
           { id: 'd', number: 1, row: 0, col: 0, direction: 'down', length: 3, clue: 'A vehicle', answer: 'CAR', solvedBy: 'p2' },
+          { id: 'b', number: 2, row: 2, col: 0, direction: 'across', length: 3, clue: 'An organization', answer: null, solvedBy: null },
         ] },
         scores: [{ participantId: 'p2', displayName: 'Sam', score: 1, words: [{ id: 'd', answer: 'CAR' }] }],
         activity: [{ wordId: 'd', answer: 'CAR', participantId: 'p2', displayName: 'Sam', ts: 123 }],
@@ -58,7 +59,11 @@ try {
     const styles = new Proxy({}, { get: (_, key) => key });
     const i18n = () => ({ locale, t: (key) => key });
     const mockRealtime = () => ({ state, error: globalThis.serverError || '', connected: socket.connected, isFacilitator: facilitator, emitEvent });
-    const shared = (props) => h('section', {}, props.title || props.objective || props.feedback?.message || '', props.actions);
+    const shared = (props) => h('section', {},
+      props.title || props.objective || props.feedback?.message || '',
+      props.status === 'running' && props.onPause ? h('button', { type: 'button', onClick: props.onPause }, 'Pause timer') : null,
+      props.status === 'paused' && props.onResume ? h('button', { type: 'button', onClick: props.onResume }, 'Resume timer') : null,
+      props.actions);
     const rulesPanel = (props) => h('section', {},
       props.onStart && !props.isStarted && props.isFacilitator
         ? h('div', {},
@@ -76,6 +81,11 @@ try {
             : 'Mots croisés nécessite 2 à 5 participants assignés. Modifiez les participants avant de démarrer le challenge.',
       },
       '@/lib/challenges/useRealtimeChallenge': mockRealtime,
+      '@/lib/challenges/useFacilitatorTimerControls': () => ({
+        busy: false, feedback: null,
+        pause: facilitator ? () => emitEvent('timer.pause', {}) : null,
+        resume: facilitator ? () => emitEvent('timer.resume', {}) : null,
+      }),
       '@/lib/challenges/useConfirmedAction': () => ({
         busy: false,
         feedback: null,
@@ -83,6 +93,7 @@ try {
       }),
       '../ChallengeHeader': shared, '../ChallengeRulesPanel': rulesPanel, '../ChallengeTimerCard': shared,
       '../ChallengeActionFeedback': shared,
+      '../ChallengePresentation': (props) => h(props.as || 'div', { className: props.className }, props.children),
       './CrosswordChallenge.module.css': styles, './ChallengeConfigModal.module.css': styles,
       'next/image': shared,
       '@/lib/config': {}, '@/lib/csrf': {}, '@/lib/challenges/playerRange': { resolveChallengePlayerRange: () => ({}) },
@@ -132,6 +143,19 @@ try {
     render();
   });
   assert.equal(await startButton.isDisabled(), true);
+  await page.evaluate(() => {
+    facilitator = true;
+    state = { ...state, timer: { status: 'running', remaining_seconds: 900 } };
+    render();
+  });
+  await page.getByRole('button', { name: 'Pause timer' }).click();
+  assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.pause')));
+  await page.evaluate(() => {
+    state = { ...state, timer: { status: 'paused', remaining_seconds: 900 } };
+    render();
+  });
+  await page.getByRole('button', { name: 'Resume timer' }).click();
+  assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.resume')));
   await page.evaluate(() => {
     facilitator = false;
     runtimeConfig = { participants: { assigned_count: 2 } };
@@ -189,7 +213,8 @@ try {
     state = { ...state, crossword: { ...state.crossword, grid: { ...state.crossword.grid, words: state.crossword.grid.words.map((word) => word.id === 'a' ? { ...word, answer: 'CAT', solvedBy: 'p2' } : word) } } };
     render();
   });
-  await page.getByText('This word has already been found by Sam.', { exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'An organization' }).waitFor();
+  await page.getByRole('button', { name: '1 A feline (3)' }).click();
   assert.equal(await page.getByLabel('Your answer', { exact: true }).inputValue(), 'cât');
   const firstCell = page.locator('[data-cell="0:0"]');
   await firstCell.focus();
@@ -211,7 +236,7 @@ try {
     render();
   });
   await page.getByRole('heading', { name: 'Partie terminée' }).waitFor();
-  await page.getByRole('heading', { name: 'Mots non résolus (1)' }).waitFor();
+  await page.getByRole('heading', { name: 'Mots non résolus (2)' }).waitFor();
   await page.getByLabel('Votre réponse', { exact: true }).waitFor();
   await page.evaluate(() => document.documentElement.dataset.theme = 'dark');
   assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).backgroundImage), 'linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9))');
@@ -267,8 +292,11 @@ try {
         return Object.fromEntries(['.card', '.help', '.cell.revealed', '.wordCell', '.clueButton', '.primary', '.inputLine input'].map((selector) => [selector, contrast(selector)]));
       });
       for (const [selector, contrast] of Object.entries(contrasts)) assert.ok(contrast >= 4.5, `${theme}/${width} ${selector}: contrast ${contrast}`);
-      const missing = await page.locator('.root').evaluate((node, tokens) => tokens.filter((token) => !getComputedStyle(node).getPropertyValue(token).trim()), [...new Set(css.match(/--[a-z][\w-]+/g))].filter((token) => token !== '--columns'));
+      const missing = await page.locator('.root').evaluate((node, tokens) => tokens.filter((token) => !getComputedStyle(node).getPropertyValue(token).trim()), [...new Set(css.match(/--[a-z][\w-]+/g))].filter((token) => !['--columns', '--challenge-panel-bg'].includes(token)));
       assert.deepEqual(missing, [], `${theme}: every CSS token resolves from real globals`);
+      if (theme === 'light') {
+        assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).backgroundColor), 'rgba(255, 255, 255, 0.99)', `${width}: light panels use the shared fallback surface`);
+      }
     }
   }
 
@@ -337,7 +365,7 @@ try {
   await page.waitForFunction(() => hookValue.state?.timer?.status === 'completed');
   assert.equal(await page.evaluate(() => completed.length), 1);
   assert.deepEqual(errors, []);
-  console.log('PASS crossword normalization, revealed conflicts, correlated results/actionable errors, cooldown, saved drafts, keyboard/clue scrolling without focus jumps, 15x15 mobile/desktop light/dark contrast >=4.5 using real global tokens, no page overflow, FR/EN config and realtime completion');
+  console.log('PASS crossword normalization, revealed conflicts, correlated results/actionable errors, cooldown, saved drafts, auto-advance after discovery, facilitator pause/resume, keyboard/clue scrolling without focus jumps, 15x15 mobile/desktop light/dark contrast >=4.5 using real global tokens, no page overflow, FR/EN config and realtime completion');
 } finally {
   await browser.close();
 }

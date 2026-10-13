@@ -4,11 +4,13 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import useI18n from '@/lib/i18n/useI18n';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useConfirmedAction from '@/lib/challenges/useConfirmedAction';
+import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
 import { getCrosswordParticipantLimitError } from '@/lib/challenges/crosswordParticipantValidation.mjs';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeActionFeedback from '../ChallengeActionFeedback';
+import ChallengePresentation from '../ChallengePresentation';
 import styles from './CrosswordChallenge.module.css';
 
 const COPY = {
@@ -95,6 +97,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   const requestRef = useRef(null);
   const timeoutRef = useRef(null);
   const boardRef = useRef(null);
+  const previousSolvedRef = useRef({ gridId: '', wordIds: new Set() });
   const id = useId();
   const timer = state?.timer || {};
   const status = timer.status || 'idle';
@@ -107,6 +110,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   const conflict = active ? hasCrosswordConflict(active, normalized, cells) : false;
   const cooldown = Math.max(0, Math.ceil((retryAt - now) / 1000));
   const controls = useConfirmedAction({ socket, emitEvent, state, resetKey: `${grid?.id}:${status}`, requiresRunningTimer: false });
+  const timerControls = useFacilitatorTimerControls({ socket, emitEvent, state, isFacilitator });
   const participantLimitError = getCrosswordParticipantLimitError(config.participants?.assigned_count, locale);
 
   useEffect(() => {
@@ -115,6 +119,29 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
     setFeedback(null);
     setRetryAt(0);
   }, [grid?.id]);
+
+  useEffect(() => {
+    if (!grid) return;
+    const solvedWordIds = new Set(words.filter((word) => word.solvedBy != null).map((word) => word.id));
+    const previous = previousSolvedRef.current;
+    if (previous.gridId !== grid.id) {
+      previousSolvedRef.current = { gridId: grid.id, wordIds: solvedWordIds };
+      return;
+    }
+
+    const currentWordWasJustSolved = active
+      && solvedWordIds.has(active.id)
+      && !previous.wordIds.has(active.id);
+    previousSolvedRef.current = { gridId: grid.id, wordIds: solvedWordIds };
+    if (!currentWordWasJustSolved) return;
+
+    const currentIndex = words.findIndex((word) => word.id === active.id);
+    const nextWord = [...words.slice(currentIndex + 1), ...words.slice(0, currentIndex)]
+      .find((word) => word.solvedBy == null);
+    if (!nextWord) return;
+    setFeedback(null);
+    setSelection({ key: `${nextWord.row}:${nextWord.col}`, wordId: nextWord.id });
+  }, [active, grid, words]);
 
   useEffect(() => {
     if (!retryAt) return;
@@ -186,6 +213,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
       : toggle && current && cell.words.length > 1
         ? cell.words.find((item) => item.id !== current.id)
         : current || cell.words[0];
+    if (word.id !== active?.id) setFeedback(null);
     setSelection({ key: `${cell.row}:${cell.col}`, wordId: word.id });
   }
 
@@ -198,6 +226,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
 
   function selectClue(word) {
     const key = `${word.row}:${word.col}`;
+    if (word.id !== active?.id) setFeedback(null);
     setSelection({ wordId: word.id, key });
     const cell = boardRef.current?.querySelector(`[data-cell="${key}"]`);
     const viewport = boardRef.current?.parentElement;
@@ -282,7 +311,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   const remaining = timer.remaining_seconds ?? timer.remainingSeconds ?? config.timer?.duration_seconds ?? 900;
 
   return (
-    <div className={styles.root}>
+    <ChallengePresentation as="main" className={styles.root} isDebrief={finished}>
       <ChallengeHeader title={grid?.title || config.title || copy.title} timer={{ remainingSeconds: remaining }} />
       <ChallengeRulesPanel
         isStarted={started} isFacilitator={isFacilitator} challengeName={copy.title}
@@ -299,8 +328,10 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
       <ChallengeTimerCard
         remainingSeconds={remaining} durationSeconds={timer.duration_seconds || config.timer?.duration_seconds || 900}
         status={status} isFacilitator={isFacilitator} defaultCollapsed
+        onPause={timerControls.pause} onResume={timerControls.resume}
+        controlPending={timerControls.busy} controlFeedback={timerControls.feedback}
         waitingText={copy.waiting}
-        actions={isFacilitator && status === 'running' ? <button className={styles.secondary} type="button" disabled={!connected || controls.busy} onClick={() => control('timer.stop')}>{copy.stop}</button> : null}
+        actions={isFacilitator && status === 'running' ? <button className={styles.secondary} type="button" disabled={!connected || controls.busy || timerControls.busy} onClick={() => control('timer.stop')}>{copy.stop}</button> : null}
       />
       {!grid ? <p role="status">{copy.loading}</p> : <>
         <section className={styles.progressCard} aria-labelledby={`${id}-progress`}>
@@ -375,6 +406,6 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
           </section>
         </div>
       </>}
-    </div>
+    </ChallengePresentation>
   );
 }
