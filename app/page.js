@@ -30,7 +30,6 @@ import LandingImpactBand from '@/components/Landing/LandingImpactBand';
 import LandingSocialProof from '@/components/Landing/LandingSocialProof';
 import LandingPlatformOffer from '@/components/Landing/LandingPlatformOffer';
 import LandingChallengesShowcase from '@/components/Landing/LandingChallengesShowcase';
-import LandingBenefitsOrbit from '@/components/Landing/LandingBenefitsOrbit';
 import LandingSessionOutcomes from '@/components/Landing/LandingSessionOutcomes';
 import LandingFlowSteps from '@/components/Landing/LandingFlowSteps';
 import LandingFinalCta from '@/components/Landing/LandingFinalCta';
@@ -414,11 +413,14 @@ export default function HomePage() {
           socialProof={socialProof}
         />
 
-        <LandingPlatformOffer fallback={landingStatic.fallback} platformOfferItems={PLATFORM_OFFER_ITEMS} />
+        <LandingPlatformOffer
+          locale={locale}
+          fallback={landingStatic.fallback}
+          platformOfferItems={PLATFORM_OFFER_ITEMS}
+          platformBenefitsItems={PLATFORM_BENEFITS_ITEMS}
+        />
 
         <LandingChallengesShowcase locale={locale} challengeExamples={challengeExamples} />
-
-        <LandingBenefitsOrbit locale={locale} fallback={landingStatic.fallback} platformBenefitsItems={PLATFORM_BENEFITS_ITEMS} />
 
         <LandingSessionOutcomes locale={locale} outcomesSection={postSessionOutcomes} />
 

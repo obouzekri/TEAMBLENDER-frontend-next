@@ -21342,6 +21342,18 @@ html[data-theme='dark'] .auth-remember-me{
   line-height: 1.6;
 }
 
+.landing-platform-benefits {
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+}
+
+.landing-platform-section .landing-benefits-head .landing-section-eyebrow {
+  color: #2563a8;
+}
+
+.landing-platform-section .landing-benefits-head .landing-section-title {
+  color: #142b49;
+}
+
 .landing-challenges-section {
   background:
     radial-gradient(circle at 86% 0%, rgba(56, 189, 248, 0.14), transparent 32%),

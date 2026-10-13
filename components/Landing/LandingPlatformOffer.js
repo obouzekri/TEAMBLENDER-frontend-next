@@ -1,6 +1,8 @@
 "use client";
 
-export default function LandingPlatformOffer({ fallback, platformOfferItems }) {
+import LandingBenefitsOrbit from './LandingBenefitsOrbit';
+
+export default function LandingPlatformOffer({ locale, fallback, platformOfferItems, platformBenefitsItems }) {
   return (
     <section
       className="landing-section-full landing-offer-section landing-platform-section relative overflow-hidden p-6 sm:p-9"
@@ -35,6 +37,11 @@ export default function LandingPlatformOffer({ fallback, platformOfferItems }) {
             );
           })}
         </ul>
+        <LandingBenefitsOrbit
+          locale={locale}
+          fallback={fallback}
+          platformBenefitsItems={platformBenefitsItems}
+        />
       </div>
     </section>
   );
