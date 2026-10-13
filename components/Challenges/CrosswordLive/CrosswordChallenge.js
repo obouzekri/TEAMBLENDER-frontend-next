@@ -325,14 +325,14 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   return (
     <ChallengePresentation as="main" className={styles.root} isDebrief={finished}>
       <ChallengeHeader
-        title={copy.title} timer={{ remainingSeconds: remaining }}
+        title={copy.title} timer={!finished && started ? { remainingSeconds: remaining } : null}
         headerAction={started ? <ChallengeRulesPanel {...rulesProps} inHeader showPrestartCard={false} /> : null}
       />
       <ChallengeActionFeedback feedback={{ ...controls.feedback, retry: null }} />
       {!connected && <p className={styles.notice} role="status">{copy.offline}</p>}
       {error && <p className={styles.notice} role="alert">{error}</p>}
       <div className={`${styles.challengeLayout} ${finished ? styles.finishedLayout : ''}`} data-challenge-layout>
-        {!finished && <aside className={styles.timerColumn}>
+        {!finished && started && <aside className={styles.timerColumn}>
           <ChallengeTimerCard
             remainingSeconds={remaining} durationSeconds={timer.duration_seconds || config.timer?.duration_seconds || 900}
             status={status} isFacilitator={isFacilitator} collapsible={false}

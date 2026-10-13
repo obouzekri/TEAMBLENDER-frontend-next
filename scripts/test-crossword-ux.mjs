@@ -90,7 +90,7 @@ try {
         feedback: null,
         run: (action) => { emitted.push({ type: action.type, payload: action.payload }); },
       }),
-      '../ChallengeHeader': (props) => h('header', {}, h('h1', {}, props.title), props.headerAction),
+      '../ChallengeHeader': (props) => h('header', {}, h('h1', {}, props.title), props.timer ? h('span', { className: 'headerTimer' }, 'timer') : null, props.headerAction),
       '../ChallengeActionFeedback': shared,
       './CrosswordChallenge.module.css': styles, './ChallengeConfigModal.module.css': styles,
       './ChallengeRulesPanel.module.css': styles, './ChallengeTimerCard.module.css': styles,
@@ -149,6 +149,7 @@ try {
         await page.locator('.rulesCard').waitFor();
         assert.equal(await page.getByRole('grid').count(), 0, 'No arena before the server starts the timer');
         assert.equal(await page.locator('.answerForm, .progressCard, .socialLayout, .clueLists').count(), 0);
+        assert.equal(await page.locator('.timerColumn, .headerTimer, [role="timer"]').count(), 0, 'No timer before the server starts the challenge');
         assert.equal(await page.getByRole('button', { name: currentLocale === 'en' ? 'Start game' : 'Démarrer la partie', exact: true }).count(), currentFacilitator ? 1 : 0);
         await page.getByText(currentLocale === 'en'
           ? 'Select a word, read its clue and submit your answer.'
@@ -166,6 +167,9 @@ try {
         await page.getByRole('grid').waitFor();
         assert.equal(await page.locator('.rulesCard').count(), 0);
         assert.equal(await page.getByRole('button', { name: currentLocale === 'en' ? 'Start game' : 'Démarrer la partie', exact: true }).count(), 0);
+        assert.equal(await page.locator('.timerColumn').count(), 1, 'Timer column is shown after server confirmation');
+        assert.equal(await page.locator('.headerTimer').count(), 1, 'Header timer is shown after server confirmation');
+        assert.equal(await page.locator('[role="timer"]').count(), 2, 'Timer card is shown after server confirmation');
         const timerBounds = await page.locator('.timerColumn').boundingBox();
         const arenaBounds = await page.locator('.arenaColumn').boundingBox();
         if (width === 1440) {
