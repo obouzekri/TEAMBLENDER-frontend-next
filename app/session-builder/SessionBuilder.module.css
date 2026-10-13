@@ -553,7 +553,23 @@
   font-size: clamp(1.6rem, 2.3vw, 2rem);
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: #0f172a;
+  color: var(--accent-strong);
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .creationTitle {
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+@media (forced-colors: active) {
+  .creationTitle {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
 }
 
 .creationHero::after {
@@ -1012,9 +1028,22 @@
 }
 
 .creationSectionHeader h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   margin: 0;
   font-size: 1.22rem;
   color: var(--accent-strong);
+}
+
+.creationSectionHeader h2::before {
+  content: "";
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 4px;
+  min-height: 1.15em;
+  border-radius: 999px;
+  background: var(--accent-gradient);
 }
 
 .creationSectionHeader p {

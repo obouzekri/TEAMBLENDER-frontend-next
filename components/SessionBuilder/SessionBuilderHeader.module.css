@@ -34,10 +34,27 @@
   font-family: var(--font-ui);
   font-size: clamp(1.6rem, 2.5vw, 2.2rem);
   line-height: 1.2;
-  color: var(--ink);
+  color: var(--accent-strong);
   font-weight: 800;
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
+}
+
+/* Dégradé de marque appliqué au titre, avec repli sur la couleur unie si background-clip:text n'est pas supporté. */
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .summaryTitle {
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+@media (forced-colors: active) {
+  .summaryTitle {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
 }
 
 .summaryStats {
