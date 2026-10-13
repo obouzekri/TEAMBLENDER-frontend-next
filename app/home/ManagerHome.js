@@ -992,16 +992,18 @@ export default function ManagerHome() {
             </Link>
           </div>
 
-          <div style={{ display: 'grid', gap: '10px', marginBottom: '14px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '8px' }}>
+          <div className="home-sessions-controls">
+            <div className="home-sessions-filters">
               <input
                 type="search"
+                className="home-sessions-control"
                 value={sessionSearch}
                 onChange={(event) => setSessionSearch(event.target.value)}
                 placeholder={isEn ? 'Search by session name…' : 'Rechercher par nom de session…'}
                 aria-label={isEn ? 'Search sessions' : 'Rechercher des sessions'}
               />
               <select
+                className="home-sessions-control"
                 value={sessionStatusFilter}
                 onChange={(event) => setSessionStatusFilter(event.target.value)}
                 aria-label={isEn ? 'Filter by status' : 'Filtrer par statut'}
@@ -1013,18 +1015,20 @@ export default function ManagerHome() {
               </select>
               <input
                 type="date"
+                className="home-sessions-control"
                 value={sessionFromDate}
                 onChange={(event) => setSessionFromDate(event.target.value)}
                 aria-label={isEn ? 'From date' : 'Date de début'}
               />
               <input
                 type="date"
+                className="home-sessions-control"
                 value={sessionToDate}
                 onChange={(event) => setSessionToDate(event.target.value)}
                 aria-label={isEn ? 'To date' : 'Date de fin'}
               />
             </div>
-            <p className="session-meta" style={{ margin: 0 }}>
+            <p className="session-meta home-sessions-meta">
               {isEn
                 ? `Showing ${sessions.length} session(s) out of ${Number(sessionsPagination.total || 0)}`
                 : `${sessions.length} session(s) affichée(s) sur ${Number(sessionsPagination.total || 0)}`}
@@ -1053,6 +1057,7 @@ export default function ManagerHome() {
                 const isDone = session.status === 'terminee';
                 const statusVariant = isActive ? 'en-cours' : isDone ? 'terminee' : 'a-venir';
                 const statusClass = `status-pill--${statusVariant}`;
+                const statusAccent = isActive ? '#14b8a6' : isDone ? '#a78bfa' : '#3b82f6';
                 const modalityLabel = getSessionModalityLabel(session.modality, isEn);
                 const formatLabel = getSessionFormatLabel(session);
                 const durationLabel = getSessionDurationLabel(session, isEn);
@@ -1068,7 +1073,11 @@ export default function ManagerHome() {
                   { key: 'delete', label: isEn ? 'Delete session' : 'Supprimer la session', danger: true, onClick: () => handleDeleteSession(session), disabled: isDeleting },
                 ];
                 return (
-                  <article key={sessionIdentifier} className={`feature-card session-card ${isDeleting ? 'session-card--deleting' : ''}`}>
+                  <article
+                    key={sessionIdentifier}
+                    className={`feature-card session-card session-card--${statusVariant} ${isDeleting ? 'session-card--deleting' : ''}`}
+                    style={{ borderLeft: `4px solid ${statusAccent}` }}
+                  >
                     <div className="session-card-body">
                       <p className="session-title">{session.name || `Session #${sessionIdentifier}`}</p>
                       <p className="session-meta">
@@ -1091,7 +1100,7 @@ export default function ManagerHome() {
                         ) : null}
                       </div>
                     </div>
-                    <div className="session-card-mobile-actions" style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', left: 'auto' }}>
+                    <div className="session-card-mobile-actions session-card-mobile-actions--top">
                       <MobileActionMenu
                         triggerLabel={isEn ? 'Open session actions' : 'Ouvrir les actions session'}
                         menuLabel={isEn ? 'Session actions' : 'Actions session'}
@@ -1134,7 +1143,7 @@ export default function ManagerHome() {
           ) : null}
 
           {!loadingSessions ? (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
+            <div className="home-sessions-pagination">
               <button
                 type="button"
                 className="btn-secondary"
@@ -1445,6 +1454,74 @@ export default function ManagerHome() {
           </article>
         </div>
       </Modal>
+      <style jsx global>{`
+        .manager-home .home-sessions-controls {
+          display: grid;
+          gap: 0.72rem;
+          margin-bottom: 1rem;
+          padding: 0.72rem;
+          border-radius: 14px;
+          border: 1px solid rgba(148, 163, 184, 0.24);
+          background: linear-gradient(180deg, rgba(248, 250, 252, 0.84) 0%, rgba(255, 255, 255, 0.98) 100%);
+        }
+
+        .manager-home .home-sessions-filters {
+          display: grid;
+          grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(150px, 1fr));
+          gap: 0.6rem;
+        }
+
+        .manager-home .home-sessions-control {
+          min-height: 42px;
+          border-radius: 11px;
+          border-color: rgba(148, 163, 184, 0.45);
+          background: #ffffff;
+        }
+
+        .manager-home .home-sessions-meta {
+          margin: 0;
+        }
+
+        .manager-home .home-sessions-pagination {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 0.65rem;
+          margin-top: 0.85rem;
+        }
+
+        .manager-home .session-card {
+          border-left-width: 4px !important;
+        }
+
+        .manager-home .session-card-mobile-actions--top {
+          position: absolute;
+          top: 0.5rem;
+          right: 0.5rem;
+          left: auto;
+        }
+
+        @media (max-width: 960px) {
+          .manager-home .home-sessions-filters {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .manager-home .home-sessions-controls {
+            padding: 0.65rem;
+          }
+
+          .manager-home .home-sessions-filters {
+            grid-template-columns: 1fr;
+          }
+
+          .manager-home .home-sessions-pagination {
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+        }
+      `}</style>
       <Footer />
     </>
   );
