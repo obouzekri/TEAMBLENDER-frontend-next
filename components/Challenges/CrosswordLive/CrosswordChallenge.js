@@ -6,6 +6,7 @@ import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useConfirmedAction from '@/lib/challenges/useConfirmedAction';
 import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
 import { getCrosswordParticipantLimitError } from '@/lib/challenges/crosswordParticipantValidation.mjs';
+import { getCrosswordRulesPreset } from '@/lib/challenges/crosswordRules';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeTimerCard from '../ChallengeTimerCard';
@@ -102,7 +103,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   const timer = state?.timer || {};
   const status = timer.status || 'idle';
   const finished = ['completed', 'stopped', 'timeout'].includes(status);
-  const started = status === 'running' || finished;
+  const started = status === 'running' || status === 'paused' || finished;
   const active = words.find((word) => word.id === selection?.wordId) || words[0];
   const selectedKey = selection?.key || (active ? `${active.row}:${active.col}` : '');
   const draft = drafts[active?.id] || '';
@@ -305,108 +306,128 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
 
   const percent = Math.max(0, Math.min(100, Number(crossword?.completionPercent) || 0));
   const rules = config.rules || {};
+  const rulesPreset = getCrosswordRulesPreset(locale);
   const ruleArray = (value) => Array.isArray(value) ? value : value ? [value] : [];
+  const rulesProps = {
+    isStarted: started,
+    isFacilitator,
+    challengeName: copy.title,
+    objective: rules.objective || rulesPreset.objective,
+    facilitatorRules: ruleArray(rules.facilitator ?? rulesPreset.facilitator),
+    participantRules: ruleArray(rules.participant ?? rulesPreset.participant),
+    footnote: rules.footnote ?? rulesPreset.footnote,
+    participantsMeta: { min: 2, max: 5, recommended: 5 },
+  };
   const unresolved = words.filter((word) => word.solvedBy == null);
   const scores = [...(crossword?.scores || [])].sort((a, b) => b.score - a.score);
   const remaining = timer.remaining_seconds ?? timer.remainingSeconds ?? config.timer?.duration_seconds ?? 900;
 
   return (
     <ChallengePresentation as="main" className={styles.root} isDebrief={finished}>
-      <ChallengeHeader title={copy.title} timer={{ remainingSeconds: remaining }} />
-      <ChallengeRulesPanel
-        isStarted={started} isFacilitator={isFacilitator} challengeName={copy.title}
-        objective={rules.objective || copy.objective} facilitatorRules={ruleArray(rules.facilitator)}
-        participantRules={ruleArray(rules.participant)} footnote={rules.footnote || ''}
-        participantsMeta={{ min: 2, max: 5, recommended: 5 }}
-        startLabel={copy.start} onStart={() => control('timer.start')}
-        startDisabled={!connected || controls.busy || !grid || Boolean(participantLimitError)}
-        startStatusText={participantLimitError || (controls.busy ? copy.sending : '')}
+      <ChallengeHeader
+        title={copy.title} timer={{ remainingSeconds: remaining }}
+        headerAction={started ? <ChallengeRulesPanel {...rulesProps} inHeader showPrestartCard={false} /> : null}
       />
       <ChallengeActionFeedback feedback={{ ...controls.feedback, retry: null }} />
       {!connected && <p className={styles.notice} role="status">{copy.offline}</p>}
       {error && <p className={styles.notice} role="alert">{error}</p>}
-      <ChallengeTimerCard
-        remainingSeconds={remaining} durationSeconds={timer.duration_seconds || config.timer?.duration_seconds || 900}
-        status={status} isFacilitator={isFacilitator} defaultCollapsed
-        onPause={timerControls.pause} onResume={timerControls.resume}
-        controlPending={timerControls.busy} controlFeedback={timerControls.feedback}
-        waitingText={copy.waiting}
-        actions={isFacilitator && status === 'running' ? <button className={styles.secondary} type="button" disabled={!connected || controls.busy || timerControls.busy} onClick={() => control('timer.stop')}>{copy.stop}</button> : null}
-      />
-      {!grid ? <p role="status">{copy.loading}</p> : <>
-        <section className={styles.progressCard} aria-labelledby={`${id}-progress`}>
-          <div className={styles.sectionHeading}><h2 id={`${id}-progress`}>{copy.progress}</h2><strong>{crossword.solvedCount || 0} / {crossword.totalWords || words.length} · {Math.round(percent)}%</strong></div>
-          <progress max="100" value={percent} aria-label={copy.progress} />
-          {grid.title && <p><strong>{grid.title}</strong></p>}
-          <p>{grid.theme} {grid.theme && '·'} {({ easy: locale === 'en' ? 'Easy' : 'Facile', medium: locale === 'en' ? 'Medium' : 'Moyen', hard: locale === 'en' ? 'Hard' : 'Difficile', facile: locale === 'en' ? 'Easy' : 'Facile', moyen: locale === 'en' ? 'Medium' : 'Moyen', difficile: locale === 'en' ? 'Hard' : 'Difficile' })[grid.difficulty] || grid.difficulty}</p>
-        </section>
-        {finished && <section className={styles.card} aria-labelledby={`${id}-final`}>
-          <h2 id={`${id}-final`}>{copy.finished}</h2>
-          {unresolved.length ? <><h3>{copy.unresolved} ({unresolved.length})</h3><ul>{unresolved.map((word) => <li key={word.id}>{word.number} · {copy[word.direction]} — {word.clue} ({word.length} {copy.letters})</li>)}</ul></> : <p>{copy.perfect}</p>}
-        </section>}
-        <div className={styles.playLayout}>
-          <section className={styles.card} aria-label={copy.board}>
-            <p id={`${id}-help`} className={styles.help}>{copy.help}</p>
-            <div className={styles.boardScroll} tabIndex={0} role="region" aria-label={copy.board}>
-              <div ref={boardRef} className={styles.board} role="grid" aria-label={copy.board} aria-describedby={`${id}-help`} style={{ '--columns': grid.width }}>
-                {Array.from({ length: grid.height }, (_, row) => <div className={styles.row} role="row" key={row}>
-                  {Array.from({ length: grid.width }, (_, col) => {
-                    const key = `${row}:${col}`;
-                    const cell = cells.get(key);
-                    if (!cell) return <span key={key} role="gridcell" aria-label={`${copy.row} ${row + 1}, ${copy.col} ${col + 1}`} className={styles.block} />;
-                    const inWord = cell.words.some((word) => word.id === active?.id);
-                    return <div role="gridcell" key={key} aria-selected={inWord} className={styles.cellSlot}>
-                      <button type="button" data-cell={key} tabIndex={key === selectedKey ? 0 : -1}
-                        className={`${styles.cell} ${inWord ? styles.wordCell : ''} ${key === selectedKey ? styles.activeCell : ''} ${cell.letter ? styles.revealed : ''}`}
-                        aria-label={`${copy.row} ${row + 1}, ${copy.col} ${col + 1}, ${cell.letter || copy.empty}, ${cell.words.map((word) => `${word.number} ${copy[word.direction]}`).join(', ')}`}
-                        aria-describedby={`${id}-clue`} onClick={() => choose(cell, key === selectedKey)} onKeyDown={(event) => navigate(event, cell)}>
-                        {cell.number != null && <small aria-hidden="true">{cell.number}</small>}
-                        <span aria-hidden="true">{cell.letter}</span>
-                      </button>
-                    </div>;
-                  })}
-                </div>)}
-              </div>
+      <div className={`${styles.challengeLayout} ${finished ? styles.finishedLayout : ''}`} data-challenge-layout>
+        {!finished && <aside className={styles.timerColumn}>
+          <ChallengeTimerCard
+            remainingSeconds={remaining} durationSeconds={timer.duration_seconds || config.timer?.duration_seconds || 900}
+            status={status} isFacilitator={isFacilitator} collapsible={false}
+            onPause={timerControls.pause} onResume={timerControls.resume}
+            controlPending={timerControls.busy} controlFeedback={timerControls.feedback}
+            waitingText={copy.waiting}
+            actions={isFacilitator && status === 'running' ? <button className={styles.secondary} type="button" disabled={!connected || controls.busy || timerControls.busy} onClick={() => control('timer.stop')}>{copy.stop}</button> : null}
+          />
+        </aside>}
+        <div className={styles.arenaColumn}>
+          {!started ? <>
+            <ChallengeRulesPanel
+              {...rulesProps}
+              startLabel={copy.start} onStart={isFacilitator ? () => control('timer.start') : null}
+              startDisabled={!connected || controls.busy || !grid || Boolean(participantLimitError)}
+              startStatusText={participantLimitError || (controls.busy ? copy.sending : '')}
+              extraContent={!isFacilitator ? <p className={styles.notice} role="status">{copy.waiting}</p> : null}
+            />
+            {!grid && <p role="status">{copy.loading}</p>}
+          </> : !grid ? <p role="status">{copy.loading}</p> : <>
+            <section className={styles.progressCard} aria-labelledby={`${id}-progress`}>
+              <div className={styles.sectionHeading}><h2 id={`${id}-progress`}>{copy.progress}</h2><strong>{crossword.solvedCount || 0} / {crossword.totalWords || words.length} · {Math.round(percent)}%</strong></div>
+              <progress max="100" value={percent} aria-label={copy.progress} />
+              {grid.title && <p><strong>{grid.title}</strong></p>}
+              <p>{grid.theme} {grid.theme && '·'} {({ easy: locale === 'en' ? 'Easy' : 'Facile', medium: locale === 'en' ? 'Medium' : 'Moyen', hard: locale === 'en' ? 'Hard' : 'Difficile', facile: locale === 'en' ? 'Easy' : 'Facile', moyen: locale === 'en' ? 'Medium' : 'Moyen', difficile: locale === 'en' ? 'Hard' : 'Difficile' })[grid.difficulty] || grid.difficulty}</p>
+            </section>
+            {finished && <section className={styles.card} aria-labelledby={`${id}-final`}>
+              <h2 id={`${id}-final`}>{copy.finished}</h2>
+              {unresolved.length ? <><h3>{copy.unresolved} ({unresolved.length})</h3><ul>{unresolved.map((word) => <li key={word.id}>{word.number} · {copy[word.direction]} — {word.clue} ({word.length} {copy.letters})</li>)}</ul></> : <p>{copy.perfect}</p>}
+            </section>}
+            <div className={styles.playLayout}>
+              <section className={styles.card} aria-label={copy.board}>
+                <p id={`${id}-help`} className={styles.help}>{copy.help}</p>
+                <div className={styles.boardScroll} tabIndex={0} role="region" aria-label={copy.board}>
+                  <div ref={boardRef} className={styles.board} role="grid" aria-label={copy.board} aria-describedby={`${id}-help`} style={{ '--columns': grid.width }}>
+                    {Array.from({ length: grid.height }, (_, row) => <div className={styles.row} role="row" key={row}>
+                      {Array.from({ length: grid.width }, (_, col) => {
+                        const key = `${row}:${col}`;
+                        const cell = cells.get(key);
+                        if (!cell) return <span key={key} role="gridcell" aria-label={`${copy.row} ${row + 1}, ${copy.col} ${col + 1}`} className={styles.block} />;
+                        const inWord = cell.words.some((word) => word.id === active?.id);
+                        return <div role="gridcell" key={key} aria-selected={inWord} className={styles.cellSlot}>
+                          <button type="button" data-cell={key} tabIndex={key === selectedKey ? 0 : -1}
+                            className={`${styles.cell} ${inWord ? styles.wordCell : ''} ${key === selectedKey ? styles.activeCell : ''} ${cell.letter ? styles.revealed : ''}`}
+                            aria-label={`${copy.row} ${row + 1}, ${copy.col} ${col + 1}, ${cell.letter || copy.empty}, ${cell.words.map((word) => `${word.number} ${copy[word.direction]}`).join(', ')}`}
+                            aria-describedby={`${id}-clue`} onClick={() => choose(cell, key === selectedKey)} onKeyDown={(event) => navigate(event, cell)}>
+                            {cell.number != null && <small aria-hidden="true">{cell.number}</small>}
+                            <span aria-hidden="true">{cell.letter}</span>
+                          </button>
+                        </div>;
+                      })}
+                    </div>)}
+                  </div>
+                </div>
+                {active && <form className={styles.answerForm} onSubmit={submit}>
+                  <div id={`${id}-clue`} className={styles.activeClue}>
+                    <span>{active.number} · {copy[active.direction]} · {active.length} {copy.letters}</span>
+                    <h3>{active.clue}</h3>
+                    {active.solvedBy != null && <p>{copy.found}: <strong>{active.answer}</strong> · {copy.solvedDraft}</p>}
+                  </div>
+                  <label htmlFor={`${id}-answer`}>{copy.answer}</label>
+                  <div className={styles.inputLine}>
+                    <input id={`${id}-answer`} value={draft} autoComplete="off" autoCorrect="off" spellCheck={false}
+                      aria-invalid={Boolean(draft && conflict)} aria-describedby={`${id}-validation`}
+                      onChange={(event) => setDrafts((previous) => ({ ...previous, [active.id]: event.target.value }))}
+                      disabled={pending} placeholder={`${active.length} ${copy.letters}`} />
+                    <button className={styles.primary} disabled={!connected || pending || cooldown > 0 || status !== 'running' || active.solvedBy != null || normalized.length !== active.length || conflict}>{pending ? copy.sending : copy.submit}</button>
+                  </div>
+                  <p id={`${id}-validation`} className={styles.validation}>{conflict ? copy.conflict : cooldown > 0 ? `${copy.cooldown} ${cooldown} ${copy.seconds}` : !started ? copy.waiting : ''}</p>
+                  <ChallengeActionFeedback feedback={feedback} />
+                </form>}
+              </section>
+              <aside className={styles.clueLists}>
+                {['across', 'down'].map((direction) => <section className={styles.card} key={direction}>
+                  <h2>{copy[direction]}</h2>
+                  <ol className={styles.clues}>{words.filter((word) => word.direction === direction).map((word) => <li key={word.id}>
+                    <button type="button" aria-pressed={active?.id === word.id} className={`${styles.clueButton} ${active?.id === word.id ? styles.selectedClue : ''}`}
+                      onClick={() => selectClue(word)}>
+                      <strong>{word.number}</strong><span>{word.clue} <small>({word.length})</small>{word.solvedBy != null && <span className={styles.foundLabel}>✓ {copy.found} — {word.answer}</span>}</span>
+                    </button>
+                  </li>)}</ol>
+                </section>)}
+              </aside>
             </div>
-            {active && <form className={styles.answerForm} onSubmit={submit}>
-              <div id={`${id}-clue`} className={styles.activeClue}>
-                <span>{active.number} · {copy[active.direction]} · {active.length} {copy.letters}</span>
-                <h3>{active.clue}</h3>
-                {active.solvedBy != null && <p>{copy.found}: <strong>{active.answer}</strong> · {copy.solvedDraft}</p>}
-              </div>
-              <label htmlFor={`${id}-answer`}>{copy.answer}</label>
-              <div className={styles.inputLine}>
-                <input id={`${id}-answer`} value={draft} autoComplete="off" autoCorrect="off" spellCheck={false}
-                  aria-invalid={Boolean(draft && conflict)} aria-describedby={`${id}-validation`}
-                  onChange={(event) => setDrafts((previous) => ({ ...previous, [active.id]: event.target.value }))}
-                  disabled={pending} placeholder={`${active.length} ${copy.letters}`} />
-                <button className={styles.primary} disabled={!connected || pending || cooldown > 0 || status !== 'running' || active.solvedBy != null || normalized.length !== active.length || conflict}>{pending ? copy.sending : copy.submit}</button>
-              </div>
-              <p id={`${id}-validation`} className={styles.validation}>{conflict ? copy.conflict : cooldown > 0 ? `${copy.cooldown} ${cooldown} ${copy.seconds}` : !started ? copy.waiting : ''}</p>
-              <ChallengeActionFeedback feedback={feedback} />
-            </form>}
-          </section>
-          <aside className={styles.clueLists}>
-            {['across', 'down'].map((direction) => <section className={styles.card} key={direction}>
-              <h2>{copy[direction]}</h2>
-              <ol className={styles.clues}>{words.filter((word) => word.direction === direction).map((word) => <li key={word.id}>
-                <button type="button" aria-pressed={active?.id === word.id} className={`${styles.clueButton} ${active?.id === word.id ? styles.selectedClue : ''}`}
-                  onClick={() => selectClue(word)}>
-                  <strong>{word.number}</strong><span>{word.clue} <small>({word.length})</small>{word.solvedBy != null && <span className={styles.foundLabel}>✓ {copy.found} — {word.answer}</span>}</span>
-                </button>
-              </li>)}</ol>
-            </section>)}
-          </aside>
+            <div className={styles.socialLayout}>
+              <section className={styles.card}><h2>{copy.leaderboard}</h2>
+                {scores.length ? <ol className={styles.scores}>{scores.map((entry) => <li key={entry.participantId}><div><strong>{entry.displayName}</strong><small>{(entry.words || []).map((word) => word.answer).join(' · ')}</small></div><strong>{entry.score} <small>{copy.points}</small></strong></li>)}</ol> : <p>{copy.none}</p>}
+              </section>
+              <section className={styles.card}><h2>{copy.activity}</h2>
+                {crossword.activity?.length ? <ul className={styles.activity}>{[...crossword.activity].slice(-8).reverse().map((entry, index) => <li key={`${entry.wordId}-${entry.ts}-${index}`}><strong>{entry.answer}</strong><span>{copy.by} {entry.displayName}</span></li>)}</ul> : <p>{copy.none}</p>}
+              </section>
+            </div>
+          </>}
         </div>
-        <div className={styles.socialLayout}>
-          <section className={styles.card}><h2>{copy.leaderboard}</h2>
-            {scores.length ? <ol className={styles.scores}>{scores.map((entry) => <li key={entry.participantId}><div><strong>{entry.displayName}</strong><small>{(entry.words || []).map((word) => word.answer).join(' · ')}</small></div><strong>{entry.score} <small>{copy.points}</small></strong></li>)}</ol> : <p>{copy.none}</p>}
-          </section>
-          <section className={styles.card}><h2>{copy.activity}</h2>
-            {crossword.activity?.length ? <ul className={styles.activity}>{[...crossword.activity].slice(-8).reverse().map((entry, index) => <li key={`${entry.wordId}-${entry.ts}-${index}`}><strong>{entry.answer}</strong><span>{copy.by} {entry.displayName}</span></li>)}</ul> : <p>{copy.none}</p>}
-          </section>
-        </div>
-      </>}
+      </div>
     </ChallengePresentation>
   );
 }

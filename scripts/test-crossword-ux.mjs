@@ -15,6 +15,13 @@ const css = read('components/Challenges/CrosswordLive/CrosswordChallenge.module.
 const modalSource = read('components/SessionBuilder/ChallengeConfigModal.js');
 const modalCss = read('components/SessionBuilder/ChallengeConfigModal.module.css').replace(/:global\(([^)]+)\)/g, '$1');
 const hookSource = read('lib/challenges/useRealtimeChallenge.js');
+const rulesSource = read('components/Challenges/ChallengeRulesPanel.js');
+const timerSource = read('components/Challenges/ChallengeTimerCard.js');
+const presentationSource = read('components/Challenges/ChallengePresentation.js');
+const rulesPresetSource = read('lib/challenges/crosswordRules.js');
+const sharedCss = ['ChallengeRulesPanel', 'ChallengeTimerCard', 'ChallengePresentation']
+  .map((name) => read(`components/Challenges/${name}.module.css`).replace(/:global\(([^)]+)\)/g, '$1'))
+  .join('\n');
 const globalCss = read('app/globals.css').replace(/^@import.*$/gm, '');
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
 const page = await browser.newPage();
@@ -25,8 +32,8 @@ try {
   await page.setContent('<html><body><main id="root"></main></body></html>');
   await page.addScriptTag({ path: path.join(root, 'node_modules', 'react', 'umd', 'react.development.js') });
   await page.addScriptTag({ path: path.join(root, 'node_modules', 'react-dom', 'umd', 'react-dom.development.js') });
-  await page.addStyleTag({ content: `${globalCss}\nbody { margin: 0; padding: 12px; box-sizing: border-box; } ${css} ${modalCss}` });
-  await page.evaluate(({ ui, modal, hook }) => {
+  await page.addStyleTag({ content: `${globalCss}\nbody { margin: 0; padding: 12px; box-sizing: border-box; } ${sharedCss} ${css} ${modalCss}` });
+  await page.evaluate(({ ui, modal, hook, rules, timer, presentation, rulesPreset }) => {
     const R = globalThis.React;
     const h = R.createElement;
     globalThis.locale = 'en';
@@ -59,19 +66,11 @@ try {
     const styles = new Proxy({}, { get: (_, key) => key });
     const i18n = () => ({ locale, t: (key) => key });
     const mockRealtime = () => ({ state, error: globalThis.serverError || '', connected: socket.connected, isFacilitator: facilitator, emitEvent });
-    const shared = (props) => h('section', {},
-      props.title || props.objective || props.feedback?.message || '',
-      props.status === 'running' && props.onPause ? h('button', { type: 'button', onClick: props.onPause }, 'Pause timer') : null,
-      props.status === 'paused' && props.onResume ? h('button', { type: 'button', onClick: props.onResume }, 'Resume timer') : null,
-      props.actions);
-    const rulesPanel = (props) => h('section', {},
-      props.onStart && !props.isStarted && props.isFacilitator
-        ? h('div', {},
-          h('button', { type: 'button', disabled: props.startDisabled, onClick: props.onStart }, props.startLabel),
-          props.startStatusText ? h('p', {}, props.startStatusText) : null)
-        : null);
+    const shared = (props) => h('section', {}, props.title || props.feedback?.message || '', props.actions);
+    const connectionContext = R.createContext(true);
+    const debriefContext = R.createContext(false);
     const mocks = {
-      react: R,
+      react: { ...R, default: R },
       '@/lib/i18n/useI18n': i18n,
       '@/lib/challenges/crosswordParticipantValidation.mjs': {
         getCrosswordParticipantLimitError: (count, currentLocale) => Number.isInteger(Number(count)) && Number(count) >= 2 && Number(count) <= 5
@@ -91,14 +90,17 @@ try {
         feedback: null,
         run: (action) => { emitted.push({ type: action.type, payload: action.payload }); },
       }),
-      '../ChallengeHeader': (props) => h('header', {}, h('h1', {}, props.title)),
-      '../ChallengeRulesPanel': rulesPanel, '../ChallengeTimerCard': shared,
+      '../ChallengeHeader': (props) => h('header', {}, h('h1', {}, props.title), props.headerAction),
       '../ChallengeActionFeedback': shared,
-      '../ChallengePresentation': (props) => h(props.as || 'div', { className: props.className }, props.children),
       './CrosswordChallenge.module.css': styles, './ChallengeConfigModal.module.css': styles,
+      './ChallengeRulesPanel.module.css': styles, './ChallengeTimerCard.module.css': styles,
+      './ChallengePresentation.module.css': styles,
       'next/image': shared,
       '@/lib/config': {}, '@/lib/csrf': {}, '@/lib/challenges/playerRange': { resolveChallengePlayerRange: () => ({}) },
       '@/lib/useBodyScrollLock': () => {},
+      '@/lib/useModalFocus': () => {},
+      '@/lib/challenges/connection-context': { ChallengeConnectionContext: connectionContext },
+      '@/lib/challenges/debrief-context': { ChallengeDebriefContext: debriefContext },
       './connection-context': { ChallengeProgressContext: R.createContext(null) },
       './quiz-utils': { normalizeQuizAnswerIndex: (index) => index },
       './useSocketConnection': () => socket.connected,
@@ -111,20 +113,75 @@ try {
       }, module, module.exports);
       return module.exports;
     };
+    mocks['@/lib/challenges/crosswordRules'] = load(rulesPreset);
+    mocks['../ChallengeRulesPanel'] = load(rules).default;
+    mocks['../ChallengeTimerCard'] = load(timer).default;
+    mocks['../ChallengePresentation'] = load(presentation).default;
     globalThis.ui = load(ui);
     globalThis.modal = load(modal);
     globalThis.hook = load(hook);
     globalThis.root = ReactDOM.createRoot(document.getElementById('root'));
-    globalThis.render = () => root.render(h(globalThis.ui.default, { socket, runtimePayload: { config: runtimeConfig }, context: {} }));
+    globalThis.render = () => root.render(h(connectionContext.Provider, { value: socket.connected },
+      h(globalThis.ui.default, { socket, runtimePayload: { config: runtimeConfig }, context: {} })));
     render();
-  }, { ui: transpile(uiSource), modal: transpile(modalSource), hook: transpile(hookSource) });
+  }, {
+    ui: transpile(uiSource), modal: transpile(modalSource), hook: transpile(hookSource),
+    rules: transpile(rulesSource), timer: transpile(timerSource),
+    presentation: transpile(presentationSource), rulesPreset: transpile(rulesPresetSource),
+  });
 
   assert.equal(await page.evaluate(() => ui.normalizeCrosswordAnswer(' é-qui pe ’')), 'EQUIPE');
   await page.getByRole('heading', { level: 1, name: 'Crossword Live', exact: true }).waitFor();
   await page.getByText('Teamwork', { exact: true }).waitFor();
   assert.equal(await page.evaluate(() => ui.buildCrosswordCells(state.crossword.grid).get('0:0').letter), 'C');
   assert.equal(await page.evaluate(() => ui.hasCrosswordConflict(state.crossword.grid.words[0], 'BAT', ui.buildCrosswordCells(state.crossword.grid))), true);
+  for (const currentLocale of ['fr', 'en']) {
+    for (const currentFacilitator of [true, false]) {
+      for (const width of [375, 1440]) {
+        await page.setViewportSize({ width, height: 812 });
+        await page.evaluate(({ currentLocale, currentFacilitator }) => {
+          locale = currentLocale;
+          facilitator = currentFacilitator;
+          runtimeConfig = { participants: { assigned_count: 2 } };
+          state = { ...state, timer: { status: 'idle', remaining_seconds: 900 } };
+          render();
+        }, { currentLocale, currentFacilitator });
+        await page.locator('.rulesCard').waitFor();
+        assert.equal(await page.getByRole('grid').count(), 0, 'No arena before the server starts the timer');
+        assert.equal(await page.locator('.answerForm, .progressCard, .socialLayout, .clueLists').count(), 0);
+        assert.equal(await page.getByRole('button', { name: currentLocale === 'en' ? 'Start game' : 'Démarrer la partie', exact: true }).count(), currentFacilitator ? 1 : 0);
+        await page.getByText(currentLocale === 'en'
+          ? 'Select a word, read its clue and submit your answer.'
+          : 'Sélectionnez un mot, lisez sa définition et validez votre réponse.', { exact: true }).waitFor();
+        if (!currentFacilitator) {
+          await page.locator('.rulesCard').getByText(currentLocale === 'en'
+            ? 'Waiting for the facilitator to start.'
+            : 'En attente du démarrage par l’animateur.', { exact: true }).waitFor();
+        }
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+        await page.evaluate(() => {
+          state = { ...state, timer: { status: 'running', remaining_seconds: 900 } };
+          render();
+        });
+        await page.getByRole('grid').waitFor();
+        assert.equal(await page.locator('.rulesCard').count(), 0);
+        assert.equal(await page.getByRole('button', { name: currentLocale === 'en' ? 'Start game' : 'Démarrer la partie', exact: true }).count(), 0);
+        const timerBounds = await page.locator('.timerColumn').boundingBox();
+        const arenaBounds = await page.locator('.arenaColumn').boundingBox();
+        if (width === 1440) {
+          assert.ok(timerBounds.x + timerBounds.width <= arenaBounds.x, 'Timer is left of the arena on desktop');
+        } else {
+          assert.ok(timerBounds.y + timerBounds.height <= arenaBounds.y, 'Timer is above the arena on mobile');
+        }
+        await page.getByRole('button', { name: 'challengeRulesPanel.showRules', exact: true }).click();
+        await page.getByRole('dialog').waitFor();
+        await page.getByRole('button', { name: 'challengeRulesPanel.closeRules', exact: true }).click();
+        assert.equal(await page.getByRole('dialog').count(), 0);
+      }
+    }
+  }
   await page.evaluate(() => {
+    locale = 'en';
     facilitator = true;
     runtimeConfig = { participants: { assigned_count: 1 } };
     state = { ...state, timer: { status: 'idle', remaining_seconds: 900 } };
@@ -141,6 +198,10 @@ try {
   assert.equal(await startButton.isDisabled(), false);
   await startButton.click();
   assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.start')));
+  assert.equal(await page.getByRole('grid').count(), 0, 'Clicking Start does not reveal the arena before server confirmation');
+  await page.evaluate(() => { socket.connected = false; render(); });
+  assert.equal(await startButton.isDisabled(), true);
+  await page.evaluate(() => { socket.connected = true; render(); });
   await page.evaluate(() => {
     runtimeConfig = { participants: { assigned_count: 6 } };
     render();
@@ -151,13 +212,16 @@ try {
     state = { ...state, timer: { status: 'running', remaining_seconds: 900 } };
     render();
   });
-  await page.getByRole('button', { name: 'Pause timer' }).click();
-  assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.pause')));
+  await page.getByRole('grid').waitFor();
+  await page.getByRole('button', { name: 'End game', exact: true }).click();
+  assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.stop')));
   await page.evaluate(() => {
     state = { ...state, timer: { status: 'paused', remaining_seconds: 900 } };
     render();
   });
-  await page.getByRole('button', { name: 'Resume timer' }).click();
+  await page.getByRole('grid').waitFor();
+  assert.equal(await page.locator('.rulesCard').count(), 0, 'Paused games do not return to the prestart rules');
+  await page.getByRole('button', { name: 'challengeTimer.resume', exact: true }).click();
   assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.resume')));
   await page.evaluate(() => {
     facilitator = false;
@@ -239,6 +303,8 @@ try {
     render();
   });
   await page.getByRole('heading', { name: 'Partie terminée' }).waitFor();
+  assert.equal(await page.locator('.timerColumn, .timerCard').count(), 0, 'No timer in the final review');
+  assert.equal(await page.locator('.challengeLayout').evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(' ').length), 1);
   await page.getByRole('heading', { level: 1, name: 'Mots croisés Live', exact: true }).waitFor();
   await page.getByRole('heading', { name: 'Mots non résolus (2)' }).waitFor();
   await page.getByLabel('Votre réponse', { exact: true }).waitFor();
@@ -369,7 +435,7 @@ try {
   await page.waitForFunction(() => hookValue.state?.timer?.status === 'completed');
   assert.equal(await page.evaluate(() => completed.length), 1);
   assert.deepEqual(errors, []);
-  console.log('PASS crossword normalization, revealed conflicts, correlated results/actionable errors, cooldown, saved drafts, auto-advance after discovery, facilitator pause/resume, keyboard/clue scrolling without focus jumps, 15x15 mobile/desktop light/dark contrast >=4.5 using real global tokens, no page overflow, FR/EN config and realtime completion');
+  console.log('PASS crossword rules-first/server-confirmed arena, facilitator/participant FR/EN desktop/mobile, left desktop/stacked mobile timer, shared rules dialog and final review, normalization, correlated answers/errors, cooldown, saved drafts, auto-advance, keyboard/clue scrolling, 15x15 light/dark contrast >=4.5, no page overflow, config and realtime completion');
 } finally {
   await browser.close();
 }

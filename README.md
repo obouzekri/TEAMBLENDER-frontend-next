@@ -17,6 +17,13 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les trois actions de copie partagent un style neutre et confirment la copie; un echec du presse-papiers affiche une notification.
 - Validation: `npm run test:unit:builder` et `npm run test:ux:builder` (frontend lance sur le port 3100, Chrome disponible). Le test UX utilise des reponses API locales simulees, sans modifier de session reelle.
 
+### Mots croises Live
+
+- Avant le lancement, les regles et le bouton de demarrage du facilitateur remplacent l'arene. Les participants voient les regles et attendent le lancement confirme par le serveur.
+- Apres le lancement, la grille, les definitions et la progression apparaissent. Les regles restent consultables depuis l'en-tete.
+- Le chrono partage occupe la colonne gauche sur desktop et passe au-dessus du contenu sur mobile. Le bilan final retire le chrono et utilise toute la largeur.
+- Validation: `npm run test:ux:crossword` (Chrome disponible, sans serveur). La suite couvre le parcours regles/lancement/arene, les deux roles, FR/EN, les dispositions desktop/mobile et les interactions temps reel simulees.
+
 ### Securite du compte
 
 La 2FA et la gestion des appareils connectes ne sont pas encore disponibles cote serveur. La page compte explique ces limites en FR/EN et desactive les actions correspondantes, sans confirmation de succes ni liste d'appareils fictive. Le changement de mot de passe reste disponible pour les managers, admins et participants.
