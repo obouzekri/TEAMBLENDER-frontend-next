@@ -19,6 +19,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 ### Mots croises Live
 
+- Un refus de lancement affiche un seul bandeau, sans alerte rouge en doublon. Il faut au moins 2 personnes connectees pour lancer; la limite de 5 participants assignes reste inchangee.
 - Avant le lancement, les regles et le bouton de demarrage du facilitateur remplacent l'arene. Les participants voient les regles et attendent le lancement confirme par le serveur.
 - Apres le lancement, la grille, les definitions et la progression apparaissent. Les regles restent consultables depuis l'en-tete.
 - Le chrono partage occupe la colonne gauche sur desktop et passe au-dessus du contenu sur mobile. Le bilan final retire le chrono et utilise toute la largeur.
@@ -50,6 +51,7 @@ Validation: `npm run test:unit:truthfulness`, `npm run test:ux:quiz` et `npm run
 
 ### Accessibilite et fiabilite partagees
 
+- Le guide de preparation reste dans le Session Builder, mais n'apparait plus dans la vue facilitateur des challenges.
 - En mode sombre (explicite ou systeme), les panneaux de jeu des dix challenges et les cartes partagees de regles, chat et chrono reprennent le degrade bleu-vert de Timeline/Backlog de Mission critique. Le centre du chrono utilise aussi ce fond; les couleurs de progression et d'alerte restent inchangees. Le theme clair conserve ses fonds existants.
 - Validation des fonds: `npm run test:ux:challenge-theme` (Chrome disponible, sans serveur). La suite charge les CSS reels des dix challenges et des panneaux partages sur desktop/mobile, compare les fonds calcules en sombre explicite/systeme et verifie le retour au clair.
 

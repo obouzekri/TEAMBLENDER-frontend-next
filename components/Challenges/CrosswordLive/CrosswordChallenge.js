@@ -328,7 +328,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
         title={copy.title} timer={!finished && started ? { remainingSeconds: remaining } : null}
         headerAction={started ? <ChallengeRulesPanel {...rulesProps} inHeader showPrestartCard={false} /> : null}
       />
-      <ChallengeActionFeedback feedback={{ ...controls.feedback, retry: null }} />
+      <ChallengeActionFeedback feedback={error && error === controls.feedback?.message ? null : { ...controls.feedback, retry: null }} />
       {!connected && <p className={styles.notice} role="status">{copy.offline}</p>}
       {error && <p className={styles.notice} role="alert">{error}</p>}
       <div className={`${styles.challengeLayout} ${finished ? styles.finishedLayout : ''}`} data-challenge-layout>

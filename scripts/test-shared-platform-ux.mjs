@@ -153,11 +153,8 @@ try {
       await facilitatorPage.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
 
       const facilitatorPreparation = facilitatorPage.locator('details').filter({ has: facilitatorPage.getByText(locale === 'en' ? 'Session preparation and progress' : 'Préparation et déroulement de la session', { exact: true }) });
-      await facilitatorPreparation.locator('summary').click();
-      assert.equal(await facilitatorPreparation.locator('ol > li').count(), 3);
-      assert.equal(await facilitatorPreparation.locator('ol > li').first().getAttribute('data-stage-status'), 'unknown');
-      await facilitatorPreparation.getByText(locale === 'en' ? /Individual readiness is not tracked/ : /La disponibilité individuelle n’est pas suivie/).waitFor();
-
+      await facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.pause, exact: true }).waitFor();
+      assert.equal(await facilitatorPreparation.count(), 0, 'Facilitators must not see the session preparation guide during challenges');
       await facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.pause, exact: true }).click();
       assert.ok(facilitatorFixture.receivedEvents.some((event) => event.type === 'timer.pause'));
 

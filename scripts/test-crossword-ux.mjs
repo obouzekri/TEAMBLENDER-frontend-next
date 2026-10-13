@@ -18,6 +18,7 @@ const hookSource = read('lib/challenges/useRealtimeChallenge.js');
 const rulesSource = read('components/Challenges/ChallengeRulesPanel.js');
 const timerSource = read('components/Challenges/ChallengeTimerCard.js');
 const presentationSource = read('components/Challenges/ChallengePresentation.js');
+const actionFeedbackSource = read('components/Challenges/ChallengeActionFeedback.js');
 const rulesPresetSource = read('lib/challenges/crosswordRules.js');
 const sharedCss = ['ChallengeRulesPanel', 'ChallengeTimerCard', 'ChallengePresentation']
   .map((name) => read(`components/Challenges/${name}.module.css`).replace(/:global\(([^)]+)\)/g, '$1'))
@@ -33,7 +34,7 @@ try {
   await page.addScriptTag({ path: path.join(root, 'node_modules', 'react', 'umd', 'react.development.js') });
   await page.addScriptTag({ path: path.join(root, 'node_modules', 'react-dom', 'umd', 'react-dom.development.js') });
   await page.addStyleTag({ content: `${globalCss}\nbody { margin: 0; padding: 12px; box-sizing: border-box; } ${sharedCss} ${css} ${modalCss}` });
-  await page.evaluate(({ ui, modal, hook, rules, timer, presentation, rulesPreset }) => {
+  await page.evaluate(({ ui, modal, hook, rules, timer, presentation, actionFeedback, rulesPreset }) => {
     const R = globalThis.React;
     const h = R.createElement;
     globalThis.locale = 'en';
@@ -87,7 +88,7 @@ try {
       }),
       '@/lib/challenges/useConfirmedAction': () => ({
         busy: false,
-        feedback: null,
+        feedback: globalThis.controlFeedback || null,
         run: (action) => { emitted.push({ type: action.type, payload: action.payload }); },
       }),
       '../ChallengeHeader': (props) => h('header', {}, h('h1', {}, props.title), props.timer ? h('span', { className: 'headerTimer' }, 'timer') : null, props.headerAction),
@@ -95,6 +96,7 @@ try {
       './CrosswordChallenge.module.css': styles, './ChallengeConfigModal.module.css': styles,
       './ChallengeRulesPanel.module.css': styles, './ChallengeTimerCard.module.css': styles,
       './ChallengePresentation.module.css': styles,
+      './ChallengeActionFeedback.module.css': styles,
       'next/image': shared,
       '@/lib/config': {}, '@/lib/csrf': {}, '@/lib/challenges/playerRange': { resolveChallengePlayerRange: () => ({}) },
       '@/lib/useBodyScrollLock': () => {},
@@ -117,6 +119,7 @@ try {
     mocks['../ChallengeRulesPanel'] = load(rules).default;
     mocks['../ChallengeTimerCard'] = load(timer).default;
     mocks['../ChallengePresentation'] = load(presentation).default;
+    mocks['../ChallengeActionFeedback'] = load(actionFeedback).default;
     globalThis.ui = load(ui);
     globalThis.modal = load(modal);
     globalThis.hook = load(hook);
@@ -128,6 +131,7 @@ try {
     ui: transpile(uiSource), modal: transpile(modalSource), hook: transpile(hookSource),
     rules: transpile(rulesSource), timer: transpile(timerSource),
     presentation: transpile(presentationSource), rulesPreset: transpile(rulesPresetSource),
+    actionFeedback: transpile(actionFeedbackSource),
   });
 
   assert.equal(await page.evaluate(() => ui.normalizeCrosswordAnswer(' é-qui pe ’')), 'EQUIPE');
@@ -203,6 +207,27 @@ try {
   await startButton.click();
   assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.start')));
   assert.equal(await page.getByRole('grid').count(), 0, 'Clicking Start does not reveal the arena before server confirmation');
+  for (const currentLocale of ['fr', 'en']) {
+    const message = currentLocale === 'en' ? 'Connect at least 2 people before starting.' : 'Connectez au moins 2 personnes avant de lancer.';
+    await page.evaluate(({ currentLocale, message }) => {
+      locale = currentLocale;
+      serverError = message;
+      controlFeedback = { status: 'failed', message };
+      render();
+    }, { currentLocale, message });
+    await page.getByRole('alert').filter({ hasText: message }).waitFor();
+    assert.equal(await page.getByText(message, { exact: true }).count(), 1, 'Launch refusal must appear only once');
+    assert.equal(await page.locator('p.notice[role="alert"]').textContent(), message, 'Keep the lower notice');
+    assert.equal(await page.locator('div.error').count(), 0, 'Remove the duplicate red feedback');
+  }
+  await page.evaluate(() => {
+    locale = 'en';
+    controlFeedback = { status: 'failed', message: 'A different action failed.' };
+    render();
+  });
+  await page.getByRole('alert').filter({ hasText: 'A different action failed.' }).waitFor();
+  assert.equal(await page.getByRole('alert').count(), 2, 'Distinct errors must remain visible');
+  await page.evaluate(() => { serverError = ''; controlFeedback = null; render(); });
   await page.evaluate(() => { socket.connected = false; render(); });
   assert.equal(await startButton.isDisabled(), true);
   await page.evaluate(() => { socket.connected = true; render(); });
