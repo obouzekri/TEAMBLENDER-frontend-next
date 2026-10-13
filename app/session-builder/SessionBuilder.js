@@ -1710,11 +1710,17 @@ export default function SessionBuilder() {
                           min="1"
                           max="2147483647"
                           step="1"
-                          label={t('sessionBuilder.expectedCount')}
+                          label={(
+                            <span className={styles.expectedCountLabel}>
+                              <span>{t('sessionBuilder.expectedCount')}</span>
+                              <span className={styles.expectedCountOptional}>{t('sessionBuilder.optionalLabel')}</span>
+                            </span>
+                          )}
                           value={expectedCount}
                           onChange={(event) => setExpectedCount(event.target.value)}
                           hint={t('sessionBuilder.expectedCountHint')}
                           error={isValidExpectedCount(expectedCount) ? '' : t('sessionBuilder.expectedCountInvalid')}
+                          className={styles.expectedCountField}
                         />
                       </div>
 

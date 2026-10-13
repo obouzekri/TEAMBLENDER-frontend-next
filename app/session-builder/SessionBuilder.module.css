@@ -53,10 +53,10 @@
 
 .objectiveField {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.45rem;
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 0.8rem 0.95rem;
+  padding: 0.7rem 0.85rem;
   margin: 0;
   min-width: 0;
   background: var(--surface-panel);
@@ -64,7 +64,7 @@
 
 .objectiveField legend {
   padding: 0 0.2rem;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   font-weight: 700;
   color: var(--ink);
 }
@@ -72,7 +72,7 @@
 .objectiveChoices {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
+  gap: 0.42rem;
 }
 
 .objectiveChoice {
@@ -81,18 +81,44 @@
   gap: 0.4rem;
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 0.35rem 0.62rem;
+  padding: 0.28rem 0.52rem;
   background: var(--field-bg);
   color: var(--ink);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 600;
+  line-height: 1.3;
 }
 
 .objectiveChoice input {
   margin: 0;
-  width: 0.92rem;
-  height: 0.92rem;
+  width: 0.86rem;
+  height: 0.86rem;
   accent-color: var(--accent, #2f62ff);
+}
+
+.expectedCountField {
+  gap: 0.35rem;
+}
+
+.expectedCountLabel {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.expectedCountOptional {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-muted) 36%, var(--card));
+  color: var(--ink-soft);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .objectiveChoice:has(input:checked) {
