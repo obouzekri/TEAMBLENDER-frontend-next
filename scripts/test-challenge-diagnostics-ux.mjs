@@ -133,6 +133,8 @@ async function testLab(locale, width) {
   const { page } = fixture;
   const submit = page.getByRole('button', { name: locale === 'en' ? 'Submit' : 'Soumettre', exact: true });
   await submit.waitFor();
+  await page.getByRole('heading', { name: locale === 'en' ? 'Clarify the key issues' : 'Clarifions les enjeux prioritaires' }).waitFor();
+  assert.equal(await page.locator('[class*="phaseClock"]').count(), 0, 'Redundant phase clock should not be shown');
   assert.ok(await submit.isDisabled());
   const problemInput = page.getByPlaceholder(locale === 'en' ? 'Describe a problem (200 chars max)' : 'Décrivez une problématique (200 caractères max)');
   await problemInput.fill('   ');
@@ -150,6 +152,7 @@ async function testLab(locale, width) {
   const otherProblem = { id: 'p2', text: 'Other problem', participant_id: '2', vote_count: 1 };
   const solutionPhase = { ...lab, phase: 'solution', problems: [problem, otherProblem], top_problems: [otherProblem] };
   fixture.broadcast('lab.state', { labInnovation: solutionPhase });
+  await page.getByRole('heading', { name: locale === 'en' ? 'Shape practical solutions' : 'Imaginons des solutions concrètes' }).waitFor();
   const solutionInput = page.getByPlaceholder(locale === 'en' ? 'Describe a solution (200 chars max)' : 'Décrivez une solution (200 caractères max)');
   await solutionInput.waitFor();
   await solutionInput.fill('A team meeting');
@@ -162,6 +165,7 @@ async function testLab(locale, width) {
   const solution = { id: 's1', text: 'A team meeting', problem_id: 'p2', participant_id: '1', vote_count: 3 };
   const argumentPhase = { ...solutionPhase, phase: 'argument', solutions: [solution], finalist_solutions: [solution] };
   fixture.broadcast('lab.state', { labInnovation: argumentPhase });
+  await page.getByRole('heading', { name: locale === 'en' ? 'Strengthen promising solutions' : 'Renforçons les solutions prometteuses' }).waitFor();
   await page.getByPlaceholder(locale === 'en' ? 'Advantage (200 max)' : 'Avantage (200 max)').waitFor();
   await page.locator('select').selectOption('s1');
   await page.getByPlaceholder(locale === 'en' ? 'Advantage (200 max)' : 'Avantage (200 max)').fill('Shared context');
@@ -173,6 +177,7 @@ async function testLab(locale, width) {
   await eventCount(fixture, 'lab.contribution.submit', 1);
   const finalPhase = { ...argumentPhase, phase: 'final_vote', contributions: [{ id: 'c1', participant_id: '1', ...fixture.receivedEvents.find((item) => item.type === 'lab.contribution.submit').payload }] };
   fixture.broadcast('lab.state', { labInnovation: finalPhase });
+  await page.getByRole('heading', { name: locale === 'en' ? 'Choose the solution with the greatest impact' : 'Choisissons la solution à plus fort impact' }).waitFor();
   const vote = page.getByRole('button', { name: locale === 'en' ? 'Submit vote' : 'Valider le vote', exact: true });
   await vote.waitFor();
   assert.ok(await vote.isDisabled());

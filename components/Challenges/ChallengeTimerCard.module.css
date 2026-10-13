@@ -196,11 +196,11 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: 1px solid rgba(251, 191, 36, 0.42);
+  border: 1px solid #b45309;
   border-radius: 10px;
   padding: 0.58rem 0.8rem;
-  background: rgba(120, 53, 15, 0.28);
-  color: #fde68a;
+  background: #fde68a;
+  color: #422006;
   font: inherit;
   font-weight: 800;
   cursor: pointer;
@@ -209,24 +209,32 @@
 
 .timerControlButton:hover:not(:disabled) {
   transform: translateY(-1px);
-  border-color: rgba(251, 191, 36, 0.72);
-  background: rgba(146, 64, 14, 0.38);
+  border-color: #92400e;
+  background: #fcd34d;
+}
+
+.timerControlButton:focus-visible {
+  outline: 3px solid var(--control-border-strong);
+  outline-offset: 2px;
 }
 
 .timerResumeButton {
-  border-color: rgba(74, 222, 128, 0.44);
-  background: rgba(20, 83, 45, 0.34);
-  color: #bbf7d0;
+  border-color: #15803d;
+  background: #bbf7d0;
+  color: #14532d;
 }
 
 .timerResumeButton:hover:not(:disabled) {
-  border-color: rgba(74, 222, 128, 0.74);
-  background: rgba(21, 128, 61, 0.38);
+  border-color: #166534;
+  background: #86efac;
 }
 
 .timerControlButton:disabled {
+  border-color: #94a3b8;
+  background: #e2e8f0;
+  color: #334155;
   cursor: not-allowed;
-  opacity: 0.56;
+  opacity: 1;
 }
 
 .timerControlError {

@@ -62,7 +62,6 @@
   color: var(--text-main);
 }
 
-:global(html[data-theme='light']) .phaseClockWrap,
 :global(html[data-theme='light']) .progressStep {
   background: var(--surface-1);
   border-color: var(--line-soft);
@@ -109,6 +108,11 @@
   letter-spacing: 0.01em;
 }
 
+.phaseTitle {
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  line-height: 1.2;
+}
+
 .sectionTitle {
   font-size: 1.05rem;
   text-transform: uppercase;
@@ -117,7 +121,7 @@
 .phaseHeader {
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
 }
 
@@ -130,7 +134,6 @@
   font-weight: 800;
 }
 
-.phaseBody,
 .metaLine,
 .card p {
   color: var(--text-soft);
@@ -142,27 +145,6 @@
   font-weight: 700;
 }
 
-.phaseClockWrap {
-  min-width: 110px;
-  padding: 12px 14px;
-  border: 1px solid rgba(91, 200, 215, 0.18);
-  border-radius: 14px;
-  background: rgba(8, 18, 28, 0.6);
-  text-align: center;
-}
-
-.phaseClock {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 900;
-  letter-spacing: 0.03em;
-}
-
-.phaseClockLabel {
-  color: var(--text-soft);
-  font-size: 0.8rem;
-}
-
 .progressBar {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -171,8 +153,34 @@
 
 .phaseStatsRow {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.phaseStat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-1) 82%, transparent);
+  color: var(--text-soft);
+  font-size: 0.84rem;
+}
+
+.phaseStat strong {
+  color: var(--text-main);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.phaseTransition {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.84rem;
+  line-height: 1.45;
 }
 
 .progressStep {
@@ -432,7 +440,6 @@
 }
 
 :global(html[data-theme='light']) .card,
-:global(html[data-theme='light']) .phaseClockWrap,
 :global(html[data-theme='light']) .progressStep,
 :global(html[data-theme='light']) .voteCard,
 :global(html[data-theme='light']) .leaderboardCard,
@@ -493,15 +500,6 @@
 
   .phaseHeader {
     grid-template-columns: 1fr;
-  }
-
-  .phaseClockWrap {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .phaseClock {
-    font-size: 1.3rem;
   }
 
   .progressBar {

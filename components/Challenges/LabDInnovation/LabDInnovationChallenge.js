@@ -17,13 +17,6 @@ import useI18n from '@/lib/i18n/useI18n';
 
 const PHASE_ORDER = ['problem', 'solution', 'argument', 'final_vote'];
 
-function formatClock(seconds) {
-  const safe = Math.max(0, Number(seconds || 0));
-  const mm = String(Math.floor(safe / 60)).padStart(2, '0');
-  const ss = String(safe % 60).padStart(2, '0');
-  return `${mm}:${ss}`;
-}
-
 function clampText(value, maxLength = 200) {
   return String(value || '').trim().slice(0, maxLength);
 }
@@ -75,6 +68,16 @@ function getPhaseLabel(locale, phaseKey) {
     final_vote: locale === 'en' ? 'Final vote' : 'Vote final'
   };
   return labels[phaseKey] || phaseKey;
+}
+
+function getPhaseTitle(locale, phaseKey) {
+  const titles = {
+    problem: locale === 'en' ? 'Clarify the key issues' : 'Clarifions les enjeux prioritaires',
+    solution: locale === 'en' ? 'Shape practical solutions' : 'Imaginons des solutions concrètes',
+    argument: locale === 'en' ? 'Strengthen promising solutions' : 'Renforçons les solutions prometteuses',
+    final_vote: locale === 'en' ? 'Choose the solution with the greatest impact' : 'Choisissons la solution à plus fort impact'
+  };
+  return titles[phaseKey] || (locale === 'en' ? 'Collaborative innovation lab' : 'Lab d’innovation collaboratif');
 }
 
 function getPhaseIndex(phaseKey) {
@@ -428,7 +431,6 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
       <ChallengeHeader
         title={rulesPreset?.challengeName || 'Lab d\'Innovation'}
         subtitle={rulesPreset?.subtitle || 'Innovation collaborative'}
-        timer={{ remainingSeconds: timerRemainingSeconds }}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader
@@ -486,14 +488,10 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                 <div className={styles.phaseHeader}>
                   <div>
                     <p className={styles.phaseKicker}>{getPhaseLabel(locale, currentPhase)}</p>
-                    <h2 className={styles.phaseTitle}>{isDebrief ? (isEn ? 'Team debrief' : 'Débrief équipe') : (isEn ? 'Live collaborative lab' : 'Lab collaboratif')}</h2>
-                    <p className={styles.phaseBody}>{rulesContent.objective}</p>
+                    <h2 className={styles.phaseTitle}>{isDebrief ? (isEn ? 'Team debrief' : 'Débrief équipe') : getPhaseTitle(locale, currentPhase)}</h2>
+                    {!isDebrief ? <p className={styles.phaseGuidance}>{getPhaseGuidance(locale, currentPhase)}</p> : null}
                     {isFacilitator ? <p className={styles.metaLine}>{isEn ? 'Facilitator mode: observation only.' : 'Mode facilitateur : observation uniquement.'}</p> : null}
                   </div>
-                  {!isDebrief ? <div className={styles.phaseClockWrap}>
-                    <span className={styles.phaseClock}>{formatClock(timerRemainingSeconds)}</span>
-                    <span className={styles.phaseClockLabel}>{currentPhaseIndex + 1}/{PHASE_ORDER.length}</span>
-                  </div> : null}
                 </div>
 
                 {!isDebrief ? <div className={styles.progressBar} aria-hidden="true">
@@ -504,14 +502,23 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                     </span>
                   ))}
                 </div> : null}
-                {!isDebrief ? <p className={styles.metaLine} role="status">
-                  {getPhaseGuidance(locale, currentPhase)}{' '}
-                  {isEn ? 'Proposals' : 'Propositions'}: {problemList.length + solutionList.length + contributionList.length}.{' '}
-                  {isEn ? 'Votes' : 'Votes'}: {phaseSummary.votes}.{' '}
-                  {currentPhaseIndex < PHASE_ORDER.length - 1
-                    ? `${isEn ? 'Next phase' : 'Phase suivante'}: ${getPhaseLabel(locale, PHASE_ORDER[currentPhaseIndex + 1])}. ${isEn ? 'Automatic transition when time expires.' : 'Transition automatique à la fin du temps.'}`
-                    : (isEn ? 'Final phase: results follow when time expires.' : 'Dernière phase : résultats à la fin du temps.')}
-                </p> : null}
+                {!isDebrief ? <>
+                  <div className={styles.phaseStatsRow} role="group" aria-label={isEn ? 'Live challenge progress' : 'Progression du challenge'}>
+                    <span className={styles.phaseStat}>
+                      <strong>{problemList.length + solutionList.length + contributionList.length}</strong>
+                      <span>{isEn ? 'Shared contributions' : 'Contributions partagées'}</span>
+                    </span>
+                    <span className={styles.phaseStat}>
+                      <strong>{phaseSummary.votes}</strong>
+                      <span>{isEn ? 'Votes cast' : 'Votes exprimés'}</span>
+                    </span>
+                  </div>
+                  <p className={styles.phaseTransition} role="status">
+                    {currentPhaseIndex < PHASE_ORDER.length - 1
+                      ? `${isEn ? 'Next' : 'Ensuite'} : ${getPhaseLabel(locale, PHASE_ORDER[currentPhaseIndex + 1])} · ${isEn ? 'Starts automatically when time is up.' : 'Démarrage automatique à la fin du temps.'}`
+                      : (isEn ? 'Final phase: results appear when time is up.' : 'Phase finale : les résultats apparaissent à la fin du temps.')}
+                  </p>
+                </> : null}
                 {pendingSubmission ? <p role="status">{isEn ? 'Waiting for server confirmation...' : 'En attente de confirmation du serveur...'}</p> : null}
                 {submissionFeedback ? <p role="status">{submissionFeedback}</p> : null}
                 {!socket?.connected ? <p role="alert">{isEn ? 'Connection interrupted. Your draft is kept.' : 'Connexion interrompue. Votre brouillon est conservé.'}</p> : null}
