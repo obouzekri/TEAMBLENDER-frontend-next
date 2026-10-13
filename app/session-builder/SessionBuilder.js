@@ -1029,6 +1029,11 @@ export default function SessionBuilder() {
 
       // Redirect to Next.js live session view (replaces legacy facilitator-session)
       const targetId = sessionId || sessionStorage.getItem('sessionId') || '';
+      trackProductSessionEvent('launch_succeeded', {
+        sessionId: targetId,
+        challengeCount: selectedChallenges.length,
+        surface: 'session_builder',
+      });
       if (targetId) {
         window.location.replace(`/session-live/${encodeURIComponent(targetId)}`);
       } else {
@@ -1861,7 +1866,7 @@ export default function SessionBuilder() {
           onLaunch={handleRequestLaunch}
           invitePanel={invitePanel}
         />
-        <SessionPreparation participantCount={sessionParticipantCount} configuration={selectedChallenges.length ? 'loaded' : 'missing'} sessionAvailable={Boolean(sessionId)} busy={isSavingDraft || isLaunching} />
+        <SessionPreparation participantCount={sessionParticipantCount} participantCountLabel="assigned" selectedCount={selectedChallenges.length} configuration={selectedChallenges.length ? 'loaded' : 'missing'} sessionAvailable={Boolean(sessionId)} busy={isSavingDraft || isLaunching} />
 
         <section className={styles.programEntry}>
           <div>
@@ -2077,8 +2082,6 @@ export default function SessionBuilder() {
         onClose={() => setIsLaunchConfirmOpen(false)}
         dialogClassName={styles.launchConfirmDialog}
         bodyClassName={styles.launchConfirmBody}
-        titleClassName={styles.launchConfirmTitle}
-        closeClassName={styles.launchConfirmClose}
       >
         <div className={styles.launchConfirmNotice}>
           <p className={styles.launchConfirmText}>

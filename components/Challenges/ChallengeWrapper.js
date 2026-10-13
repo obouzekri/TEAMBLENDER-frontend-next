@@ -445,6 +445,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
       {headerContent ? <div className={styles.headerSlot}>{headerContent}</div> : null}
       {FACILITATOR_ROLES.has(String(context?.role || 'participant').trim().toLowerCase()) ? <SessionPreparation
         participantCount={progressState?.participants_status?.connected_count ?? progressState?.quiz?.connected_count ?? null}
+        participantCountLabel="connected"
         readyCount={progressState?.quiz?.ready_count ?? null}
         expectedCount={progressState?.quiz?.slot_count ?? null}
         configuration={runtimePayload ? 'loaded' : 'unknown'}

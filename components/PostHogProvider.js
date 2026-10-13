@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
-import { trackGaEvent } from '@/lib/analytics';
+import { identifyAnalyticsUser, trackGaEvent, trackPosthogEvent } from '@/lib/analytics';
+import { resolveConnectedUserId, getStoredCurrentUser } from '@/lib/auth';
 import { hasAnalyticsConsent } from '@/lib/consent';
 
 const POSTHOG_PROJECT_TOKEN = String(
@@ -21,7 +22,7 @@ function capturePerformanceEvent() {
 
     if (!Number.isFinite(pageLoadMs) || pageLoadMs <= 0) return;
 
-    posthog.capture('web_performance', {
+    trackPosthogEvent('web_performance', {
       page_load_ms: Math.round(pageLoadMs),
       route: window.location.pathname,
     });
@@ -57,6 +58,16 @@ export default function PostHogProvider() {
       });
       window.__TEAMBLENDER_POSTHOG_INIT__ = true;
     }
+    posthog.opt_in_capturing?.();
+    const resetPosthogIdentity = () => posthog.reset();
+    window.__TEAMBLENDER_POSTHOG_RESET__ = resetPosthogIdentity;
+
+    const currentUser = getStoredCurrentUser();
+    if (currentUser) {
+      identifyAnalyticsUser(resolveConnectedUserId(currentUser), {
+        role: String(currentUser.role || 'unknown').toLowerCase(),
+      });
+    }
 
     const onWindowError = (event) => {
       const payload = {
@@ -67,7 +78,7 @@ export default function PostHogProvider() {
         column: Number(event?.colno || 0),
       };
 
-      posthog.capture('frontend_error', {
+      trackPosthogEvent('frontend_error', {
         ...payload,
       });
 
@@ -81,7 +92,7 @@ export default function PostHogProvider() {
         message: String(reason?.message || reason || 'Unknown rejection'),
       };
 
-      posthog.capture('frontend_error', {
+      trackPosthogEvent('frontend_error', {
         ...payload,
       });
 
@@ -100,6 +111,9 @@ export default function PostHogProvider() {
         posthog.reset?.();
         posthog.opt_out_capturing?.();
       }
+      if (window.__TEAMBLENDER_POSTHOG_RESET__ === resetPosthogIdentity) {
+        delete window.__TEAMBLENDER_POSTHOG_RESET__;
+      }
     };
   }, []);
 
@@ -111,7 +125,7 @@ export default function PostHogProvider() {
       : '';
     const pathWithQuery = query ? `${pathname}?${query}` : pathname;
 
-    posthog.capture('$pageview', {
+    trackPosthogEvent('$pageview', {
       $current_url: window.location.href,
       path: pathWithQuery,
     });

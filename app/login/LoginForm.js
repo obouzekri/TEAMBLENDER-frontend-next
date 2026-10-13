@@ -7,8 +7,7 @@ import { CheckCircle2, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail } from 'luci
 import AuthCard from '@/components/AuthCard';
 import AuthField from '@/components/AuthField';
 import AuthSocialButtons from '@/components/AuthSocialButtons';
-import posthog from 'posthog-js';
-import { trackGtmEvent, trackProductUserEvent } from '@/lib/analytics';
+import { identifyAnalyticsUser, trackGtmEvent, trackPosthogEvent, trackProductUserEvent } from '@/lib/analytics';
 import {
   clearOAuthCallbackParamsFromUrl,
   ensureCsrfToken,
@@ -171,28 +170,29 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       targetSessionId: shouldStoreParticipantTargetSession(oauth.user?.role, normalizedRequestedSessionId),
     });
 
-    try {
-      posthog.capture('login_oauth', {
-        provider: oauth.provider || 'unknown',
-        source: 'frontend',
-      });
-    } catch {
-      // no-op
-    }
+    trackPosthogEvent('login_oauth', {
+      provider: oauth.provider || 'unknown',
+      source: 'frontend',
+    });
 
     trackGtmEvent('login_oauth', {
       provider: oauth.provider || 'unknown',
     });
 
+    const connectedUserId = resolveConnectedUserId(oauth.user);
+    identifyAnalyticsUser(connectedUserId, {
+      role: String(oauth.user?.role || 'unknown').toLowerCase(),
+      auth_method: 'oauth',
+    });
+
     trackProductUserEvent('oauth_login_success', {
       provider: oauth.provider || 'unknown',
       authMethod: 'oauth',
-      userId: resolveConnectedUserId(oauth.user),
+      userId: connectedUserId,
       sessionId: normalizedRequestedSessionId || undefined,
       surface: 'login',
     });
 
-    const connectedUserId = resolveConnectedUserId(oauth.user);
     const redirect = withLocalePath(getRedirectPath(oauth.user.role, normalizedRequestedSessionId, connectedUserId));
     window.location.href = redirect;
   }, [isEn, normalizedRequestedSessionId, withLocalePath]);
@@ -297,6 +297,10 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
           token,
           user,
           targetSessionId: shouldStoreParticipantTargetSession(user.role, normalizedRequestedSessionId),
+        });
+        identifyAnalyticsUser(connectedUserId, {
+          role: String(user.role || 'unknown').toLowerCase(),
+          auth_method: 'password',
         });
 
         try {
@@ -411,6 +415,10 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         token,
         user,
         targetSessionId: shouldStoreParticipantTargetSession('participant', resolvedSessionId),
+      });
+      identifyAnalyticsUser(resolveConnectedUserId(user), {
+        role: 'participant',
+        auth_method: 'instant_join',
       });
 
       if (data?.accountCreated) {
@@ -766,4 +774,3 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     </main>
   );
 }
-

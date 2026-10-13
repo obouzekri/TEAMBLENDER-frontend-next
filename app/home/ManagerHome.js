@@ -410,6 +410,20 @@ export default function ManagerHome() {
   }), [sessions]);
 
   const visibleSessions = useMemo(() => sessions, [sessions]);
+  const hasActiveSessionFilters = useMemo(() => (
+    sessionStatusFilter !== 'all'
+    || sessionSearch.trim().length > 0
+    || Boolean(sessionFromDate)
+    || Boolean(sessionToDate)
+  ), [sessionFromDate, sessionSearch, sessionStatusFilter, sessionToDate]);
+  const activeSessionFilterCount = useMemo(() => {
+    let count = 0;
+    if (sessionStatusFilter !== 'all') count += 1;
+    if (sessionSearch.trim().length > 0) count += 1;
+    if (sessionFromDate) count += 1;
+    if (sessionToDate) count += 1;
+    return count;
+  }, [sessionFromDate, sessionSearch, sessionStatusFilter, sessionToDate]);
 
   const memberFormChecks = useMemo(() => {
     const firstName = String(memberForm.first_name || '').trim();
@@ -449,6 +463,13 @@ export default function ManagerHome() {
               trackProductSessionEvent('create_requested', {
                 surface: 'manager_home',
               });
+  }
+
+  function clearSessionFilters() {
+    setSessionSearch('');
+    setSessionStatusFilter('all');
+    setSessionFromDate('');
+    setSessionToDate('');
   }
 
   function handleUnauthorizedAuth(message = isEn ? 'Session expired. Please sign in again.' : 'Session expiree. Veuillez vous reconnecter.') {
@@ -627,10 +648,7 @@ export default function ManagerHome() {
   }
 
   function logout() {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
-    sessionStorage.removeItem('selectedChallenges');
+    clearStoredAuth();
     window.location.replace(withLocalePath('/login'));
   }
 
@@ -998,40 +1016,73 @@ export default function ManagerHome() {
           </div>
 
           <div className="home-sessions-controls">
+            <div className="home-sessions-controls-head">
+              <p className="home-sessions-controls-title">
+                {isEn ? 'Filters' : 'Filtres'}
+                {hasActiveSessionFilters ? (
+                  <span className="home-sessions-controls-chip">
+                    {isEn
+                      ? `${activeSessionFilterCount} active`
+                      : `${activeSessionFilterCount} actif${activeSessionFilterCount > 1 ? 's' : ''}`}
+                  </span>
+                ) : null}
+              </p>
+              {hasActiveSessionFilters ? (
+                <button
+                  type="button"
+                  className="home-sessions-clear"
+                  onClick={clearSessionFilters}
+                >
+                  {isEn ? 'Reset filters' : 'Réinitialiser les filtres'}
+                </button>
+              ) : null}
+            </div>
             <div className="home-sessions-filters">
-              <input
-                type="search"
-                className="home-sessions-control"
-                value={sessionSearch}
-                onChange={(event) => setSessionSearch(event.target.value)}
-                placeholder={isEn ? 'Search by session name…' : 'Rechercher par nom de session…'}
-                aria-label={isEn ? 'Search sessions' : 'Rechercher des sessions'}
-              />
-              <select
-                className="home-sessions-control"
-                value={sessionStatusFilter}
-                onChange={(event) => setSessionStatusFilter(event.target.value)}
-                aria-label={isEn ? 'Filter by status' : 'Filtrer par statut'}
-              >
-                <option value="all">{isEn ? 'All statuses' : 'Tous les statuts'}</option>
-                <option value="preparee">{isEn ? 'Preparing' : 'En préparation'}</option>
-                <option value="en_cours">{isEn ? 'In progress' : 'En cours'}</option>
-                <option value="terminee">{isEn ? 'Completed' : 'Terminée'}</option>
-              </select>
-              <input
-                type="date"
-                className="home-sessions-control"
-                value={sessionFromDate}
-                onChange={(event) => setSessionFromDate(event.target.value)}
-                aria-label={isEn ? 'From date' : 'Date de début'}
-              />
-              <input
-                type="date"
-                className="home-sessions-control"
-                value={sessionToDate}
-                onChange={(event) => setSessionToDate(event.target.value)}
-                aria-label={isEn ? 'To date' : 'Date de fin'}
-              />
+              <label className="home-sessions-field">
+                <span className="home-sessions-field-label">{isEn ? 'Search' : 'Recherche'}</span>
+                <input
+                  type="search"
+                  className="home-sessions-control"
+                  value={sessionSearch}
+                  onChange={(event) => setSessionSearch(event.target.value)}
+                  placeholder={isEn ? 'Search by session name…' : 'Rechercher par nom de session…'}
+                  aria-label={isEn ? 'Search sessions' : 'Rechercher des sessions'}
+                />
+              </label>
+              <label className="home-sessions-field">
+                <span className="home-sessions-field-label">{isEn ? 'Status' : 'Statut'}</span>
+                <select
+                  className="home-sessions-control"
+                  value={sessionStatusFilter}
+                  onChange={(event) => setSessionStatusFilter(event.target.value)}
+                  aria-label={isEn ? 'Filter by status' : 'Filtrer par statut'}
+                >
+                  <option value="all">{isEn ? 'All statuses' : 'Tous les statuts'}</option>
+                  <option value="preparee">{isEn ? 'Preparing' : 'En préparation'}</option>
+                  <option value="en_cours">{isEn ? 'In progress' : 'En cours'}</option>
+                  <option value="terminee">{isEn ? 'Completed' : 'Terminée'}</option>
+                </select>
+              </label>
+              <label className="home-sessions-field">
+                <span className="home-sessions-field-label">{isEn ? 'From' : 'Du'}</span>
+                <input
+                  type="date"
+                  className="home-sessions-control"
+                  value={sessionFromDate}
+                  onChange={(event) => setSessionFromDate(event.target.value)}
+                  aria-label={isEn ? 'From date' : 'Date de début'}
+                />
+              </label>
+              <label className="home-sessions-field">
+                <span className="home-sessions-field-label">{isEn ? 'To' : 'Au'}</span>
+                <input
+                  type="date"
+                  className="home-sessions-control"
+                  value={sessionToDate}
+                  onChange={(event) => setSessionToDate(event.target.value)}
+                  aria-label={isEn ? 'To date' : 'Date de fin'}
+                />
+              </label>
             </div>
             <p className="session-meta home-sessions-meta">
               {isEn
@@ -1462,10 +1513,65 @@ export default function ManagerHome() {
           display: grid;
           gap: 0.72rem;
           margin-bottom: 1rem;
-          padding: 0.72rem;
+          padding: 0.85rem;
           border-radius: 14px;
-          border: 1px solid rgba(148, 163, 184, 0.24);
-          background: linear-gradient(180deg, rgba(248, 250, 252, 0.84) 0%, rgba(255, 255, 255, 0.98) 100%);
+          border: 1px solid rgba(59, 130, 246, 0.2);
+          background: linear-gradient(180deg, rgba(239, 246, 255, 0.7) 0%, rgba(255, 255, 255, 0.99) 100%);
+          box-shadow: 0 10px 26px -22px rgba(15, 23, 42, 0.6);
+        }
+
+        .manager-home .home-sessions-controls-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+        }
+
+        .manager-home .home-sessions-controls-title {
+          margin: 0;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-weight: 700;
+          color: #1e3a8a;
+        }
+
+        .manager-home .home-sessions-controls-chip {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 24px;
+          padding: 0 0.55rem;
+          border-radius: 999px;
+          font-size: 0.77rem;
+          font-weight: 700;
+          color: #1d4ed8;
+          background: rgba(59, 130, 246, 0.12);
+          border: 1px solid rgba(59, 130, 246, 0.28);
+        }
+
+        .manager-home .home-sessions-clear {
+          border: 1px solid rgba(59, 130, 246, 0.35);
+          background: #ffffff;
+          color: #1d4ed8;
+          border-radius: 999px;
+          min-height: 32px;
+          padding: 0.3rem 0.8rem;
+          font-size: 0.84rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+        }
+
+        .manager-home .home-sessions-clear:hover {
+          background: rgba(59, 130, 246, 0.08);
+          border-color: rgba(37, 99, 235, 0.55);
+        }
+
+        .manager-home .home-sessions-clear:focus-visible {
+          outline: 3px solid rgba(59, 130, 246, 0.25);
+          outline-offset: 2px;
         }
 
         .manager-home .home-sessions-filters {
@@ -1474,15 +1580,38 @@ export default function ManagerHome() {
           gap: 0.6rem;
         }
 
+        .manager-home .home-sessions-field {
+          display: grid;
+          gap: 0.32rem;
+        }
+
+        .manager-home .home-sessions-field-label {
+          font-size: 0.76rem;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          text-transform: uppercase;
+          color: #475569;
+        }
+
         .manager-home .home-sessions-control {
           min-height: 42px;
           border-radius: 11px;
-          border-color: rgba(148, 163, 184, 0.45);
+          border: 1px solid rgba(100, 116, 139, 0.5);
           background: #ffffff;
+          color: #0f172a;
+          box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+        }
+
+        .manager-home .home-sessions-control:focus-visible {
+          border-color: rgba(37, 99, 235, 0.75);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+          outline: none;
         }
 
         .manager-home .home-sessions-meta {
           margin: 0;
+          color: #334155;
+          font-weight: 500;
         }
 
         .manager-home .home-sessions-pagination {
@@ -1513,6 +1642,11 @@ export default function ManagerHome() {
         @media (max-width: 640px) {
           .manager-home .home-sessions-controls {
             padding: 0.65rem;
+          }
+
+          .manager-home .home-sessions-clear {
+            width: 100%;
+            justify-content: center;
           }
 
           .manager-home .home-sessions-filters {

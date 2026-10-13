@@ -9,6 +9,7 @@ import { clearSessionAuth, getAuthHeaders, getStoredAuthToken, getStoredCurrentU
 import { getApiUrl } from '@/lib/config';
 import useI18n from '@/lib/i18n/useI18n';
 import { fetchSessionResults } from '@/lib/session-results';
+import { trackProductSessionEvent } from '@/lib/analytics';
 
 function formatDuration(ms) {
   if (!ms || ms <= 0) return '—';
@@ -47,6 +48,7 @@ export default function SessionResultsClient() {
   const [error, setError] = useState('');
   const authInitRef = useRef(false);
   const loadControllerRef = useRef(null);
+  const resultsViewedSessionRef = useRef('');
 
   // Auth guard
   useEffect(() => {
@@ -79,6 +81,15 @@ export default function SessionResultsClient() {
       setResults(data.results);
       setParticipationRate(data.participationRate);
       setKpis(data.kpis);
+      if (resultsViewedSessionRef.current !== sessionId) {
+        resultsViewedSessionRef.current = sessionId;
+        trackProductSessionEvent('results_viewed', {
+          sessionId,
+          sessionStatus: data.session.status,
+          challengeCount: new Set(data.results.map((result) => result.challenge_id).filter(Boolean)).size,
+          surface: 'session_results',
+        });
+      }
     } catch (err) {
       if (signal?.aborted) return;
       setError(err.message || (isEn ? 'Unable to load results.' : 'Impossible de charger les résultats.'));

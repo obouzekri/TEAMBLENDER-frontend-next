@@ -7,8 +7,7 @@ import AuthCard from '@/components/AuthCard';
 import AuthField from '@/components/AuthField';
 import AuthSocialButtons from '@/components/AuthSocialButtons';
 import Logo from '@/components/Logo';
-import posthog from 'posthog-js';
-import { trackGtmEvent, trackProductUserEvent } from '@/lib/analytics';
+import { identifyAnalyticsUser, trackGtmEvent, trackPosthogEvent, trackProductUserEvent } from '@/lib/analytics';
 import {
   clearOAuthCallbackParamsFromUrl,
   ensureCsrfToken,
@@ -82,24 +81,25 @@ export default function SignupForm() {
 
     setStoredAuthSession({ token: oauth.token, user: oauth.user });
 
-    try {
-      posthog.capture('signup_oauth', {
-        provider: oauth.provider || 'unknown',
-        source: 'frontend',
-      });
-    } catch {
-      // no-op
-    }
+    trackPosthogEvent('signup_oauth', {
+      provider: oauth.provider || 'unknown',
+      source: 'frontend',
+    });
     trackGtmEvent('signup_oauth', { provider: oauth.provider || 'unknown' });
+
+    const connectedUserId = resolveConnectedUserId(oauth.user);
+    identifyAnalyticsUser(connectedUserId, {
+      role: String(oauth.user?.role || 'unknown').toLowerCase(),
+      auth_method: 'oauth',
+    });
 
     trackProductUserEvent('oauth_signup_success', {
       provider: oauth.provider || 'unknown',
       authMethod: 'oauth',
-      userId: resolveConnectedUserId(oauth.user),
+      userId: connectedUserId,
       surface: 'signup',
     });
 
-    const connectedUserId = resolveConnectedUserId(oauth.user);
     const redirect = withLocalePath(getRedirectPath(oauth.user.role, '', connectedUserId));
     window.location.href = redirect;
   }, [isEn, withLocalePath]);
@@ -303,4 +303,3 @@ export default function SignupForm() {
     </main>
   );
 }
-

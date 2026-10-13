@@ -573,64 +573,81 @@ export default function PricingPageClient({ initialPlans = [] }) {
         .pricing-page {
           width: min(100%, 80rem);
           margin: 0 auto;
-          padding: 1rem 1rem 2.5rem;
+          padding: 2rem 1.5rem 4rem;
           background:
-            radial-gradient(56rem 20rem at 18% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 72%),
-            radial-gradient(46rem 18rem at 92% 12%, rgba(124, 58, 237, 0.1) 0%, transparent 70%),
-            linear-gradient(180deg, #f8fbff 0%, #eef4ff 44%, #f9fbff 100%);
+            radial-gradient(54rem 22rem at 50% 0%, rgba(53, 130, 255, 0.15) 0%, transparent 72%),
+            radial-gradient(36rem 24rem at 100% 24%, rgba(124, 58, 237, 0.08) 0%, transparent 72%),
+            linear-gradient(180deg, #f7faff 0%, #f1f5ff 45%, #ffffff 100%);
         }
 
         .pricing-page .pricing-hero {
-          margin-bottom: 2.25rem;
-          padding-inline: 1cm;
+          margin-bottom: 2.5rem;
+          padding: clamp(1.5rem, 5vw, 3.75rem) 1rem 1.25rem;
           background: transparent;
         }
 
         .pricing-page .pricing-hero__copy {
           display: grid;
-          gap: 0.95rem;
-          width: min(100%, 72rem);
-          max-width: none;
-          justify-items: start;
-          text-align: left;
+          justify-items: center;
+          gap: 1.1rem;
+          width: min(100%, 60rem);
+          margin: 0 auto;
+          text-align: center;
+        }
+
+        .pricing-page .pricing-hero .eyebrow {
+          margin: 0;
+          padding: 0.42rem 0.8rem;
+          border: 1px solid rgba(47, 98, 255, 0.16);
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.72);
+          color: #3157c8 !important;
+          font-size: 0.76rem;
+          font-weight: 800;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
         }
 
         .pricing-page .pricing-hero h1 {
-          max-width: none;
+          max-width: 17ch;
           margin: 0;
-          font-size: clamp(1.9rem, 3.1vw, 3rem);
-          line-height: 1.08;
-          letter-spacing: -0.03em;
+          font-size: clamp(2.25rem, 5vw, 4rem);
+          line-height: 1.04;
+          letter-spacing: -0.055em;
           text-wrap: balance;
         }
 
         .pricing-page .pricing-hero__lede {
           margin: 0;
-          max-width: none;
-          font-size: 1.04rem;
-          line-height: 1.7;
+          max-width: 49rem;
+          font-size: clamp(1rem, 1.8vw, 1.15rem);
+          line-height: 1.75;
           color: var(--text-muted, #cbd5e1);
         }
 
         .pricing-page .pricing-hero__context {
-          margin: -0.3rem 0 0;
-          max-width: none;
-          font-size: 1rem;
-          line-height: 1.6;
-          font-weight: 600;
+          max-width: 48rem;
+          margin: 0.2rem 0 0;
+          padding: 0.7rem 1rem;
+          border: 1px solid rgba(47, 98, 255, 0.12);
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.58);
+          font-size: 0.88rem;
+          line-height: 1.55;
+          font-weight: 500;
         }
 
         .pricing-page .pricing-controls {
-          margin-bottom: 1.75rem;
+          margin-bottom: 1.5rem;
         }
 
         .pricing-page .pricing-controls__row {
-          padding: 1.15rem 1.3rem;
-          border: 0;
-          border-radius: 0;
-          background: transparent;
-          backdrop-filter: none;
-          box-shadow: none;
+          padding: 1.05rem 1.35rem;
+          border: 1px solid rgba(47, 98, 255, 0.13);
+          border-radius: 20px;
+          background: rgba(255, 255, 255, 0.82);
+          backdrop-filter: blur(16px);
+          box-shadow: 0 12px 32px rgba(31, 55, 112, 0.07);
         }
 
         .pricing-page .control-section {
@@ -734,30 +751,46 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
         .pricing-page .pricing-grid {
           align-items: stretch;
+          gap: 1.25rem;
         }
 
         .pricing-page .pricing-card {
           min-height: 100%;
-          padding: 1.5rem 1.4rem 1.3rem;
+          padding: 1.55rem 1.4rem 1.35rem;
           border-radius: 24px;
-          gap: 0.95rem;
+          gap: 1rem;
           position: relative;
           overflow: hidden;
           background: rgba(255, 255, 255, 0.98);
-          border: 1px solid rgba(47, 98, 255, 0.18);
-          box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+          border: 1px solid rgba(47, 70, 120, 0.12);
+          box-shadow: 0 14px 36px rgba(15, 23, 42, 0.07), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+          transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
         }
 
         .pricing-page .pricing-card::before {
           content: '';
           position: absolute;
-          inset: 0;
+          inset: 0 0 auto;
+          height: 5px;
           pointer-events: none;
-          background: linear-gradient(180deg, rgba(47, 98, 255, 0.08), transparent 28%);
+          background: linear-gradient(90deg, #3b6cff, #9b75ff);
+          opacity: 0;
+          transition: opacity 180ms ease;
+        }
+
+        .pricing-page .pricing-card:hover {
+          transform: translateY(-4px);
+          border-color: rgba(47, 98, 255, 0.28);
+          box-shadow: 0 22px 48px rgba(15, 23, 42, 0.11);
+        }
+
+        .pricing-page .pricing-card:hover::before,
+        .pricing-page .pricing-card-featured::before {
+          opacity: 1;
         }
 
         .pricing-page .pricing-card-top {
-          min-height: 4.3rem;
+          min-height: 3.25rem;
           display: flex;
           flex-wrap: wrap;
           align-items: flex-start;
@@ -766,7 +799,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
         .pricing-page .pricing-plan-title-row {
           width: 100%;
-          margin-top: auto;
+          margin-top: 0;
           display: flex;
           align-items: center;
           gap: 0.55rem;
@@ -775,8 +808,10 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
         .pricing-page .pricing-card-top .eyebrow {
           margin: 0;
-          font-size: 0.84rem;
-          letter-spacing: 0.05em;
+          color: #25324a !important;
+          font-size: 1rem;
+          font-weight: 800;
+          letter-spacing: -0.015em;
         }
 
         .pricing-page .pricing-badge,
@@ -812,8 +847,9 @@ export default function PricingPageClient({ initialPlans = [] }) {
           align-items: baseline;
           gap: 0.45rem;
           flex-wrap: wrap;
-          font-size: clamp(2rem, 2.6vw, 2.5rem);
+          font-size: clamp(2.15rem, 2.8vw, 2.7rem);
           line-height: 1;
+          letter-spacing: -0.055em;
         }
 
         .pricing-page .pricing-price span {
@@ -845,22 +881,26 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
         .pricing-page .pricing-feature-list li {
           position: relative;
-          padding-left: 1.25rem;
+          padding-left: 1.55rem;
           font-size: 0.92rem;
           line-height: 1.5;
           color: var(--text-muted, #cbd5e1);
         }
 
         .pricing-page .pricing-feature-list li::before {
-          content: '';
+          content: '✓';
           position: absolute;
           left: 0;
-          top: 0.56rem;
-          width: 0.45rem;
-          height: 0.45rem;
+          top: 0.08rem;
+          display: grid;
+          width: 1.05rem;
+          height: 1.05rem;
+          place-items: center;
           border-radius: 999px;
-          background: var(--accent-gradient);
-          box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+          background: #e8f8f1;
+          color: #11835b;
+          font-size: 0.68rem;
+          font-weight: 900;
         }
 
         .pricing-page .pricing-meta-row {
@@ -929,9 +969,10 @@ export default function PricingPageClient({ initialPlans = [] }) {
         }
 
         .pricing-page .pricing-card-featured {
-          border-color: rgba(47, 98, 255, 0.42);
-          box-shadow: 0 24px 56px rgba(47, 98, 255, 0.14), 0 0 0 1px rgba(47, 98, 255, 0.14);
-          transform: translateY(-2px);
+          border-color: rgba(47, 98, 255, 0.46);
+          background: linear-gradient(165deg, rgba(241, 246, 255, 0.98), #ffffff 42%);
+          box-shadow: 0 22px 50px rgba(47, 98, 255, 0.15), 0 0 0 1px rgba(47, 98, 255, 0.1);
+          transform: translateY(-5px);
         }
 
         .pricing-page .pricing-card-featured .pricing-badge--featured {
@@ -1001,6 +1042,25 @@ export default function PricingPageClient({ initialPlans = [] }) {
           color: var(--text-strong, #e2e8f0);
         }
 
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card-top .eyebrow {
+          color: var(--text-strong, #e2e8f0) !important;
+        }
+
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card-featured {
+          background: var(--surface-panel);
+        }
+
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-hero .eyebrow {
+          border-color: var(--surface-soft-border);
+          background: var(--surface-panel);
+          color: var(--text-strong, #e2e8f0) !important;
+        }
+
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-hero__context {
+          border-color: var(--surface-soft-border);
+          background: color-mix(in srgb, var(--surface-panel) 76%, transparent);
+        }
+
         .pricing-page .pricing-footer-cta__copy .eyebrow {
           margin: 0;
         }
@@ -1013,14 +1073,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
         @media (min-width: 1280px) {
           .pricing-page .pricing-card {
-            min-height: 31rem;
-          }
-
-          .pricing-page .pricing-hero h1,
-          .pricing-page .pricing-hero__lede,
-          .pricing-page .pricing-hero__context,
-          .pricing-page .pricing-footer-cta__copy h2 {
-            white-space: nowrap;
+            min-height: 32rem;
           }
         }
 
@@ -1038,13 +1091,46 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
         @media (max-width: 640px) {
           .pricing-page {
-            padding: 0.5rem 0.75rem 1.8rem;
+            padding: 0.5rem 0.75rem 2.5rem;
+          }
+
+          .pricing-page .pricing-hero {
+            margin-bottom: 1.25rem;
+            padding: 2rem 0.25rem 0.75rem;
+          }
+
+          .pricing-page .pricing-hero h1 {
+            font-size: clamp(2.1rem, 10vw, 2.8rem);
+          }
+
+          .pricing-page .pricing-hero__context {
+            font-size: 0.82rem;
           }
 
           .pricing-page .pricing-controls__row,
           .pricing-page .pricing-footer-cta__inner {
             padding: 1rem;
             border-radius: 18px;
+          }
+
+          .pricing-page .pricing-controls__row {
+            align-items: stretch;
+          }
+
+          .pricing-page .control-section {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 0.55rem;
+          }
+
+          .pricing-page .pricing-controls__label,
+          .pricing-page .pricing-controls__currency label {
+            font-size: 0.68rem;
+          }
+
+          .pricing-page .pricing-controls__currency,
+          .pricing-page .currency-select {
+            width: 100%;
           }
 
           .pricing-page .pricing-card {
@@ -1054,6 +1140,17 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
           .pricing-page .pricing-price {
             font-size: 2rem;
+          }
+
+          .pricing-page .pricing-card-featured {
+            transform: none;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .pricing-page .pricing-card,
+          .pricing-page .pricing-card::before {
+            transition: none;
           }
         }
       `}</style>
