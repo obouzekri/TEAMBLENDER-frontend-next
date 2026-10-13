@@ -13,6 +13,7 @@ import { fetchSessionsWithRetry } from '@/lib/api';
 import { clearStoredAuth, getAuthHeaders } from '@/lib/auth';
 import { trackGaEvent, trackProductSessionEvent } from '@/lib/analytics';
 import useI18n from '@/lib/i18n/useI18n';
+import guideStyles from './StartupGuide.module.css';
 
 function pickDisplayName(user) {
   if (!user || typeof user !== 'object') return 'Manager';
@@ -203,26 +204,30 @@ function getStartupGuideSteps(isEn) {
   return Object.freeze([
     {
       step: '1',
-      title: isEn ? 'Add participants' : 'Ajouter des participants',
+      title: isEn ? 'Add your team' : 'Ajoutez votre équipe',
       text: isEn
-        ? 'Create your participant base to organize workshops faster and more cleanly.'
-        : 'Constituez votre base participant pour organiser vos ateliers plus vite et plus clairement.',
+        ? 'Add the people who will take part in your workshops.'
+        : 'Ajoutez les personnes qui participeront à vos ateliers.',
       href: '/home#home-participants-block',
-      cta: isEn ? 'Go to this step' : 'Aller à cette étape',
+      cta: isEn ? 'Add participants' : 'Ajouter des participants',
     },
     {
       step: '2',
-      title: isEn ? 'Configure the session' : 'Configurer la session',
+      title: isEn ? 'Create a session' : 'Créez une session',
       text: isEn
-        ? 'Choose the challenge, format, and key settings before launch.'
-        : 'Choisissez le challenge, le format et les paramètres avant le lancement.',
+        ? 'Choose a challenge, add participants, and set the format.'
+        : 'Choisissez un challenge, ajoutez des participants et définissez le format.',
+      href: '/session-builder',
+      cta: isEn ? 'Create a session' : 'Créer une session',
     },
     {
       step: '3',
-      title: isEn ? 'Launch the challenge' : 'Lancer le challenge',
+      title: isEn ? 'Launch and debrief' : 'Lancez et débriefez',
       text: isEn
-        ? 'Start the session, keep the pace, and finish with an actionable debrief.'
-        : 'Démarrez la session, maintenez le rythme et concluez avec un debrief actionnable.',
+        ? 'Open your session to facilitate it, then review its results.'
+        : 'Ouvrez votre session pour l’animer, puis consultez ses résultats.',
+      href: '/home#home-sessions-block',
+      cta: isEn ? 'View sessions' : 'Voir mes sessions',
     }
   ]);
 }
@@ -1258,54 +1263,52 @@ export default function ManagerHome() {
       </main>
       <Modal
         open={isStartupGuideOpen}
-        title={isEn ? 'Getting started guide' : 'Guide de demarrage'}
+        title={isEn ? 'Getting started guide' : 'Guide de démarrage'}
         onClose={closeStartupGuide}
         hideHeader
         overlayClassName="manager-onboarding-modalOverlay"
         dialogClassName="manager-onboarding-modalDialog"
         bodyClassName="manager-onboarding-modalBody"
       >
-        <section className="manager-onboarding-panel manager-onboarding-panel--modal" aria-labelledby="onboarding-guide-title">
+        <section className={`manager-onboarding-panel manager-onboarding-panel--modal ${guideStyles.guidePanel}`} aria-labelledby="onboarding-guide-title">
           <div className="manager-onboarding-shell">
-            <div className="manager-onboarding-hero manager-onboarding-hero--modal">
+            <header className={`manager-onboarding-hero manager-onboarding-hero--modal ${guideStyles.guideHeader}`}>
               <div className="manager-onboarding-copy">
-                <p className="eyebrow manager-onboarding-eyebrow">{isEn ? 'GETTING STARTED GUIDE' : 'GUIDE DE DEMARRAGE'}</p>
-                <h2 id="onboarding-guide-title">{isEn ? 'Create your first session in 3 simple steps.' : 'Creez votre premiere session en 3 etapes simples.'}</h2>
+                <p className="eyebrow manager-onboarding-eyebrow">{isEn ? 'YOUR FIRST SESSION' : 'VOTRE PREMIÈRE SESSION'}</p>
+                <h2 id="onboarding-guide-title">{isEn ? 'From your team to your first session.' : 'De votre équipe à votre première session.'}</h2>
                 <p>
                   {isEn
-                    ? 'The flow is fast and intuitive: prepare participants, configure the session, then launch your challenge.'
-                    : 'Le flux est rapide et intuitif: preparez les participants, configurez la session, puis lancez votre challenge.'}
+                    ? 'Follow these three steps to get ready to run a workshop.'
+                    : 'Suivez ces trois étapes pour préparer votre atelier.'}
                 </p>
               </div>
               <button
                 type="button"
-                className="btn-secondary manager-onboarding-close"
+                className={`btn-secondary manager-onboarding-close ${guideStyles.guideClose}`}
                 onClick={closeStartupGuide}
+                aria-label={isEn ? 'Close the getting started guide' : 'Fermer le guide de démarrage'}
               >
                 {isEn ? 'Close' : 'Fermer'}
               </button>
-            </div>
+            </header>
 
-            <div className="manager-onboarding-grid manager-onboarding-grid--modal">
+            <ol className={`manager-onboarding-grid manager-onboarding-grid--modal ${guideStyles.guideGrid}`} aria-label={isEn ? 'Steps to create a session' : 'Étapes pour créer une session'}>
               {startupGuideSteps.map((item, index) => (
-                <article
-                  key={item.step}
-                  className="card manager-onboarding-step manager-onboarding-step--premium"
-                  style={{ '--onboarding-delay': `${index * 90}ms` }}
-                >
-                  <div className="manager-onboarding-step__head">
-                    <span className="manager-onboarding-step__badge">{isEn ? `Step ${item.step}` : `Étape ${item.step}`}</span>
-                  </div>
-                  <h3>{item.title}</h3>
-                  <p>{item.text}</p>
-                  {item.href ? (
-                    <Link className="btn-secondary manager-onboarding-step__cta" href={withLocalePath(item.href)} onClick={closeStartupGuide}>
+                <li key={item.step}>
+                  <article
+                    className={`card manager-onboarding-step manager-onboarding-step--premium ${guideStyles.guideStep}`}
+                    style={{ '--onboarding-delay': `${index * 90}ms` }}
+                  >
+                    <span className={guideStyles.guideNumber} aria-hidden="true">{item.step.padStart(2, '0')}</span>
+                    <h3>{item.title}</h3>
+                    <p>{item.text}</p>
+                    <Link className={`btn-secondary manager-onboarding-step__cta ${guideStyles.guideCta}`} href={withLocalePath(item.href)} onClick={closeStartupGuide}>
                       {item.cta}
                     </Link>
-                  ) : null}
-                </article>
+                  </article>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         </section>
       </Modal>
