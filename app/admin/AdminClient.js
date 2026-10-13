@@ -615,6 +615,7 @@ function ensureLabInnovationChallenge(challenges) {
     list[existingIndex] = {
       ...LAB_INNOVATION_CATALOG_ENTRY,
       ...current,
+      name: LAB_INNOVATION_CATALOG_ENTRY.name,
       engine_config: {
         ...LAB_INNOVATION_CATALOG_ENTRY.engine_config,
         ...(current.engine_config && typeof current.engine_config === 'object' ? current.engine_config : {}),

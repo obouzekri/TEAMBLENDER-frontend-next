@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, Copy, Info, Users } from 'lucide-react';
+import { Check, Copy, Info, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui';
 import useI18n from '@/lib/i18n/useI18n';
 import { getApiUrl } from '@/lib/config';
@@ -295,6 +295,17 @@ export default function SessionLiveHeader({
       aria-label={sessionInfoLabel}
       style={{ top: `${popoverPosition.top}px`, left: `${popoverPosition.left}px`, width: `${popoverPosition.width}px` }}
     >
+      <div className={styles.popoverHeader}>
+        <h2 className={styles.popoverTitle}>{sessionInfoLabel}</h2>
+        <button
+          type="button"
+          className={styles.popoverClose}
+          aria-label={closeLabel}
+          onClick={() => setInfoOpen(false)}
+        >
+          <X size={16} aria-hidden="true" />
+        </button>
+      </div>
       <div className={styles.popoverSection}>
         <p className={styles.popoverLabel}>{sessionCodeLabel}</p>
         <div className={styles.codeRow}>
@@ -307,15 +318,32 @@ export default function SessionLiveHeader({
       </div>
       <div className={styles.popoverSection}>
         <p className={styles.popoverLabel}>{participantSummaryLabel}</p>
-        <strong className={styles.countValue}>
-          {resolvedParticipantCount ?? '—'} / {resolvedExpectedCount ?? '—'}
-        </strong>
-        <p>{isEn ? 'Registered' : 'Inscrits'} : {Number.isFinite(Number(participantCount)) ? Number(participantCount) : '—'}</p>
-        {resolvedExpectedCount == null ? <p>{isEn ? 'Expected attendance not specified' : 'Nombre attendu non précisé'}</p> : null}
-        {canManageParticipants ? <Button variant="secondary" size="sm" onClick={() => { setInfoOpen(false); setManagementOpen(true); }}>{manageLabel}</Button> : null}
+        <div className={styles.participantSummary}>
+          <strong className={styles.countValue}>
+            {resolvedParticipantCount ?? '—'} <span>/ {resolvedExpectedCount ?? '—'}</span>
+          </strong>
+          <p className={styles.registeredCount}>
+            {isEn ? 'Registered' : 'Inscrits'} : {Number.isFinite(Number(participantCount)) ? Number(participantCount) : '—'}
+          </p>
+        </div>
+        {resolvedExpectedCount == null ? <p className={styles.popoverNote}>{isEn ? 'Expected attendance not specified' : 'Nombre attendu non précisé'}</p> : null}
+        {canManageParticipants ? (
+          <Button variant="secondary" size="sm" className={styles.sectionAction} onClick={() => { setInfoOpen(false); setManagementOpen(true); }}>
+            {manageLabel}
+          </Button>
+        ) : null}
       </div>
-      {displayedObjectiveLabel ? <div className={styles.popoverSection}><p className={styles.popoverLabel}>{isEn ? 'Objectives' : 'Objectifs'}</p><p>{displayedObjectiveLabel}</p></div> : null}
-      {canManageParticipants ? <Button variant="secondary" size="sm" onClick={openContextEditor}>{isEn ? 'Edit session info' : 'Modifier les infos'}</Button> : null}
+      {displayedObjectiveLabel || canManageParticipants ? (
+        <div className={styles.popoverSection}>
+          <p className={styles.popoverLabel}>{isEn ? 'Objectives' : 'Objectifs'}</p>
+          {displayedObjectiveLabel ? <p className={styles.objectiveValue}>{displayedObjectiveLabel}</p> : <p className={styles.popoverNote}>{isEn ? 'No objective specified' : 'Aucun objectif précisé'}</p>}
+          {canManageParticipants ? (
+            <Button variant="secondary" size="sm" className={styles.sectionAction} onClick={openContextEditor}>
+              {isEn ? 'Edit session info' : 'Modifier les infos'}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
       <div className={styles.popoverSection}>
         <p className={styles.popoverLabel}>{challengeOrderLabel}</p>
         <ol className={styles.challengeList}>

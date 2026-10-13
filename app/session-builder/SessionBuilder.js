@@ -196,6 +196,7 @@ function ensureLabInnovationChallenge(challenges) {
     list[existingIndex] = {
       ...LAB_INNOVATION_CATALOG_ENTRY,
       ...current,
+      name: LAB_INNOVATION_CATALOG_ENTRY.name,
       config: {
         ...LAB_INNOVATION_CATALOG_ENTRY.config,
         ...(current.config && typeof current.config === 'object' ? current.config : {}),

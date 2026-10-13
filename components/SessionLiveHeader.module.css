@@ -134,29 +134,76 @@
 
 .popover {
   position: fixed;
-  padding: 0.95rem;
-  border-radius: 18px;
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.85rem;
+  border-radius: 20px;
   border: 1px solid var(--control-border-strong);
   background: var(--surface-panel);
-  box-shadow: 0 28px 50px rgba(15, 23, 42, 0.24);
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(15, 23, 42, 0.08);
   max-height: calc(100dvh - 2rem);
   overflow-y: auto;
   z-index: 1500;
 }
 
-.popoverSection + .popoverSection {
-  margin-top: 0.9rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid var(--surface-soft-border);
+.popoverHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.05rem 0.05rem 0.65rem;
+  border-bottom: 1px solid var(--surface-soft-border);
+}
+
+.popoverTitle {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.popoverClose {
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--surface-soft-border);
+  border-radius: 999px;
+  background: var(--surface-panel-soft);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.popoverClose:hover {
+  border-color: var(--control-border-strong);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.popoverClose:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
 }
 
 .popoverLabel {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.5rem;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+.popoverSection {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--surface-soft-border);
+  border-radius: 15px;
+  background: var(--surface-panel-soft);
 }
 
 .codeRow {
@@ -168,7 +215,9 @@
 
 .codeValue {
   min-width: 0;
-  font-size: 0.96rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   color: var(--text-strong);
   word-break: break-word;
 }
@@ -177,9 +226,49 @@
   flex: 0 0 auto;
 }
 
+.participantSummary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .countValue {
-  font-size: 1rem;
+  font-size: 1.35rem;
+  line-height: 1.1;
+  font-weight: 800;
   color: var(--text-strong);
+}
+
+.countValue span {
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.registeredCount,
+.popoverNote {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.popoverNote {
+  margin-top: 0.45rem;
+}
+
+.objectiveValue {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 0.98rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.sectionAction {
+  width: 100%;
+  justify-content: center;
+  margin-top: 0.65rem;
 }
 
 .challengeList {
@@ -194,15 +283,16 @@
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  padding: 0.55rem 0.65rem;
-  border-radius: 14px;
-  background: var(--surface-panel-soft);
+  padding: 0.58rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: var(--surface-panel);
   color: var(--text-strong);
 }
 
 .challengeItemCurrent {
-  border: 1px solid rgba(59, 130, 246, 0.35);
-  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--surface-soft-border-strong);
+  background: var(--accent-soft);
 }
 
 .challengeIndex {
@@ -241,7 +331,7 @@
 
 .challengeItemEmpty {
   margin: 0;
-  padding: 0.4rem 0;
+  padding: 0.25rem 0;
   color: var(--text-muted);
   font-size: 0.92rem;
 }
@@ -299,6 +389,32 @@
     min-height: 44px;
     padding: 0.5rem 0.65rem;
     font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .popover {
+    gap: 0.55rem;
+    padding: 0.65rem;
+    border-radius: 17px;
+  }
+
+  .popoverSection {
+    padding: 0.65rem;
+  }
+
+  .challengeItem {
+    gap: 0.4rem;
+    padding-inline: 0.5rem;
+  }
+
+  .challengeLabel {
+    font-size: 0.86rem;
+  }
+
+  .challengeBadge {
+    padding-inline: 0.4rem;
+    font-size: 0.63rem;
   }
 }
 
