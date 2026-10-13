@@ -168,7 +168,7 @@
 .boardPanel {
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(20, 30, 54, 0.82);
+  background: var(--challenge-panel-bg, rgba(20, 30, 54, 0.82));
   padding: clamp(12px, 1vw, 18px);
   display: flex;
   flex-direction: column;
@@ -555,7 +555,7 @@
 .sideCard {
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.15);
-  background: rgba(20, 29, 52, 0.68);
+  background: var(--challenge-panel-bg, rgba(20, 29, 52, 0.68));
   padding: 14px;
   display: grid;
   gap: 10px;

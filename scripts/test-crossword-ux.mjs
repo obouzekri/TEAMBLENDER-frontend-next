@@ -214,7 +214,7 @@ try {
   await page.getByRole('heading', { name: 'Mots non résolus (1)' }).waitFor();
   await page.getByLabel('Votre réponse', { exact: true }).waitFor();
   await page.evaluate(() => document.documentElement.dataset.theme = 'dark');
-  assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).backgroundColor), 'rgb(17, 26, 46)');
+  assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).backgroundImage), 'linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9))');
   assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).color), 'rgb(232, 239, 255)');
 
   await page.evaluate(() => {

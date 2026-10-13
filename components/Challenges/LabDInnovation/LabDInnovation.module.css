@@ -78,7 +78,7 @@
 .card {
   border-radius: 18px;
   border: 1px solid var(--line-soft);
-  background: linear-gradient(165deg, var(--surface-2), var(--surface-1));
+  background: var(--challenge-panel-bg, linear-gradient(165deg, var(--surface-2), var(--surface-1)));
   box-shadow: 0 12px 28px rgba(2, 9, 16, 0.26);
   padding: clamp(12px, 1vw, 18px);
   display: grid;

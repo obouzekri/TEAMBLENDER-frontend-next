@@ -224,7 +224,7 @@
 .panel {
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.18);
-  background: rgba(20, 30, 54, 0.82);
+  background: var(--challenge-panel-bg, rgba(20, 30, 54, 0.82));
   padding: 14px;
   display: grid;
   gap: 10px;

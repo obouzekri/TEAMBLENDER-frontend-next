@@ -3,7 +3,7 @@
   border: 1px solid var(--control-border-strong);
   border-radius: 14px;
   padding: 0.95rem;
-  background: var(--card);
+  background: var(--challenge-panel-bg, var(--card));
   display: grid;
   gap: 0.72rem;
   box-shadow: var(--ch-shadow-card);

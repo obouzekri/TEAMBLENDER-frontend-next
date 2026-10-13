@@ -43,6 +43,9 @@ Validation: `npm run test:unit:truthfulness`, `npm run test:ux:quiz` et `npm run
 
 ### Accessibilite et fiabilite partagees
 
+- En mode sombre (explicite ou systeme), les panneaux de jeu des dix challenges et les cartes partagees de regles, chat et chrono reprennent le degrade bleu-vert de Timeline/Backlog de Mission critique. Le centre du chrono utilise aussi ce fond; les couleurs de progression et d'alerte restent inchangees. Le theme clair conserve ses fonds existants.
+- Validation des fonds: `npm run test:ux:challenge-theme` (Chrome disponible, sans serveur). La suite charge les CSS reels des dix challenges et des panneaux partages sur desktop/mobile, compare les fonds calcules en sombre explicite/systeme et verifie le retour au clair.
+
 - Les fenetres de regles, le chat, les dialogues de jeu et les modales partagees deplacent le focus a l'ouverture, le confinent et le restituent a la fermeture. Echap ferme seulement la fenetre au premier plan. Les regles restent accessibles sur mobile; les principales fermetures, commandes de chat et commandes de minuteur mesurent au moins 44 x 44 px.
 - Les chiffres des minuteurs restent consultables sans annonce a chaque seconde. Une zone distincte annonce les changements de statut. Les libelles partages suivent la langue FR/EN.
 - Une coupure Socket ne demonte plus le challenge ni ses brouillons. Les commandes temps reel concernees sont desactivees hors connexion. L'emetteur commun distingue un envoi effectue d'une commande non envoyee; cela ne constitue pas un accuse de reception serveur.

@@ -163,6 +163,7 @@
 
 /* Explicit dark theme toggle: full token set, aligned with the system block below */
 :root[data-theme="dark"] {
+  --challenge-panel-bg: linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9));
   --bg: #081223;
   --bg-soft: #0b1630;
   --ink: #e8efff;
@@ -361,6 +362,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
+    --challenge-panel-bg: linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9));
     --bg: #081223;
     --bg-soft: #0b1630;
     --ink: #e8efff;

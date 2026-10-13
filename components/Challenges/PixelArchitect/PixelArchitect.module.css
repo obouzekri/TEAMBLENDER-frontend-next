@@ -336,7 +336,7 @@
   border: 1px solid var(--ch-line-soft);
   border-radius: 14px;
   padding: 12px;
-  background: linear-gradient(165deg, var(--ch-surface-2), var(--ch-surface-1));
+  background: var(--challenge-panel-bg, linear-gradient(165deg, var(--ch-surface-2), var(--ch-surface-1)));
 }
 
 .panelHead {
