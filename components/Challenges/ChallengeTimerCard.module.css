@@ -56,6 +56,41 @@
   display: none;
 }
 
+.timerCard.compactCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-color: var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+}
+
+.compactCard .compactTitle, .compactStatus {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: .8rem;
+  font-weight: 500;
+}
+
+.compactCard .compactStatus,
+.compactCard .timerWaitingText,
+.compactCard .timerFooter,
+.compactCard .timerActions,
+.compactCard .timerControlError {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.compactTime {
+  color: var(--challenge-text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
 .timerTitle {
   margin: 0;
   color: var(--challenge-text-accent, #7dd3fc);

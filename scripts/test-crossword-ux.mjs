@@ -139,9 +139,23 @@ try {
   await page.getByText('Teamwork', { exact: true }).waitFor();
   assert.equal(await page.evaluate(() => ui.buildCrosswordCells(state.crossword.grid).get('0:0').letter), 'C');
   assert.equal(await page.evaluate(() => ui.hasCrosswordConflict(state.crossword.grid.words[0], 'BAT', ui.buildCrosswordCells(state.crossword.grid))), true);
+  await page.evaluate(() => {
+    state = { ...state, crossword: { ...state.crossword, solvedCount: 0, totalWords: 15 } };
+    render();
+  });
+  await page.getByRole('status').filter({ hasText: '0/15 words found' }).waitFor();
+  await page.evaluate(() => {
+    state = { ...state, crossword: { ...state.crossword, solvedCount: 1 } };
+    render();
+  });
+  await page.getByRole('status').filter({ hasText: '1/15 words found' }).waitFor();
+  await page.evaluate(() => {
+    state = { ...state, crossword: { ...state.crossword, totalWords: 2 } };
+    render();
+  });
   for (const currentLocale of ['fr', 'en']) {
     for (const currentFacilitator of [true, false]) {
-      for (const width of [375, 1440]) {
+      for (const width of [375, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: 812 });
         await page.evaluate(({ currentLocale, currentFacilitator }) => {
           locale = currentLocale;
@@ -156,7 +170,7 @@ try {
         assert.ok(Math.abs(rulesBounds.x - layoutBounds.x) <= 1, 'Prestart rules align with the layout');
         assert.ok(Math.abs(rulesBounds.width - layoutBounds.width) <= 1, 'Prestart rules fill the available width');
         assert.equal(await page.getByRole('grid').count(), 0, 'No arena before the server starts the timer');
-        assert.equal(await page.locator('.answerForm, .progressCard, .socialLayout, .clueLists').count(), 0);
+        assert.equal(await page.locator('.answerForm, .wordCount, .socialLayout, .clueLists').count(), 0);
         assert.equal(await page.locator('.timerColumn, .headerTimer, [role="timer"]').count(), 0, 'No timer before the server starts the challenge');
         assert.equal(await page.getByRole('button', { name: currentLocale === 'en' ? 'Start game' : 'Démarrer la partie', exact: true }).count(), currentFacilitator ? 1 : 0);
         await page.getByText(currentLocale === 'en'
@@ -176,15 +190,32 @@ try {
         assert.equal(await page.locator('.rulesCard').count(), 0);
         assert.equal(await page.getByRole('button', { name: currentLocale === 'en' ? 'Start game' : 'Démarrer la partie', exact: true }).count(), 0);
         assert.equal(await page.locator('.timerColumn').count(), 1, 'Timer column is shown after server confirmation');
-        assert.equal(await page.locator('.headerTimer').count(), 1, 'Header timer is shown after server confirmation');
-        assert.equal(await page.locator('[role="timer"]').count(), 2, 'Timer card is shown after server confirmation');
+        assert.equal(await page.locator('.headerTimer').count(), 0, 'No duplicate timer in the header');
+        assert.equal(await page.locator('[role="timer"]').count(), 1, 'Only one compact timer');
+        assert.equal(await page.locator('progress, [role="progressbar"], .progressCard, .timerRing').count(), 0, 'No progress bar or decorative timer ring');
+        await page.getByRole('status').filter({ hasText: currentLocale === 'en' ? '1/2 words found' : '1/2 mots trouvés' }).waitFor();
         const timerBounds = await page.locator('.timerColumn').boundingBox();
         const arenaBounds = await page.locator('.arenaColumn').boundingBox();
-        if (width === 1440) {
-          assert.ok(timerBounds.x + timerBounds.width <= arenaBounds.x, 'Timer is left of the arena on desktop');
+        if (width > 960) {
+          assert.ok(arenaBounds.x + arenaBounds.width <= timerBounds.x, 'Timer is right of the arena on desktop');
+          assert.equal(Math.round(timerBounds.width), 160, 'Timer column has a fixed compact width');
+          const boardBounds = await page.locator('.boardPanel').boundingBox();
+          const clueBounds = await page.locator('.clueLists').boundingBox();
+          const ratio = boardBounds.width / (boardBounds.width + clueBounds.width);
+          assert.ok(Math.abs(ratio - .7) < .01, 'Board/clues split is 70/30');
+          assert.ok(boardBounds.x + boardBounds.width <= clueBounds.x, 'Clues are beside the board');
+          assert.equal(await page.locator('.timerColumn').evaluate((node) => getComputedStyle(node).position), 'sticky');
+          assert.ok(await page.locator('.cell').first().evaluate((node) => node.getBoundingClientRect().width) > 44, 'Cells grow when board space allows');
         } else {
           assert.ok(timerBounds.y + timerBounds.height <= arenaBounds.y, 'Timer is above the arena on mobile');
+          assert.ok(Math.abs(timerBounds.x + timerBounds.width - arenaBounds.x - arenaBounds.width) <= 1, 'Mobile timer is right aligned');
         }
+        if (currentFacilitator) {
+          const stopBounds = await page.getByRole('button', { name: currentLocale === 'en' ? 'End game' : 'Terminer la partie', exact: true }).boundingBox();
+          const timeBounds = await page.getByRole('timer').boundingBox();
+          assert.ok(stopBounds.y >= timeBounds.y + timeBounds.height, 'End game stays below the timer');
+        }
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${width}: no page overflow during play`);
         await page.getByRole('button', { name: 'challengeRulesPanel.showRules', exact: true }).click();
         await page.getByRole('dialog').waitFor();
         await page.getByRole('button', { name: 'challengeRulesPanel.closeRules', exact: true }).click();
@@ -302,7 +333,7 @@ try {
     dispatch('disconnect');
     render();
   });
-  await page.getByLabel('Your answer', { exact: true }).waitFor();
+  await page.waitForFunction(() => !document.querySelector('.inputLine input').disabled);
   assert.equal(await page.getByLabel('Your answer', { exact: true }).isDisabled(), false);
   assert.equal(await page.getByLabel('Your answer', { exact: true }).inputValue(), 'cât');
   await page.evaluate(() => { socket.connected = true; render(); });
@@ -325,7 +356,7 @@ try {
   await page.keyboard.press('End');
   assert.equal(await page.evaluate(() => document.activeElement.dataset.cell), '2:0');
   await page.setViewportSize({ width: 375, height: 812 });
-  assert.equal(await firstCell.evaluate((cell) => cell.getBoundingClientRect().width), 44);
+  assert.ok(await firstCell.evaluate((cell) => cell.getBoundingClientRect().width) >= 44);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   await page.evaluate(() => {
     locale = 'fr';
@@ -395,7 +426,7 @@ try {
         return Object.fromEntries(['.card', '.help', '.cell.revealed', '.wordCell', '.clueButton', '.primary', '.inputLine input'].map((selector) => [selector, contrast(selector)]));
       });
       for (const [selector, contrast] of Object.entries(contrasts)) assert.ok(contrast >= 4.5, `${theme}/${width} ${selector}: contrast ${contrast}`);
-      const missing = await page.locator('.root').evaluate((node, tokens) => tokens.filter((token) => !getComputedStyle(node).getPropertyValue(token).trim()), [...new Set(css.match(/--[a-z][\w-]+/g))].filter((token) => !['--columns', '--challenge-panel-bg'].includes(token)));
+      const missing = await page.locator('.root').evaluate((node, tokens) => tokens.filter((token) => !getComputedStyle(node).getPropertyValue(token).trim()), [...new Set(css.match(/--[a-z][\w-]+/g))].filter((token) => !['--columns', '--cell-size', '--challenge-panel-bg'].includes(token)));
       assert.deepEqual(missing, [], `${theme}: every CSS token resolves from real globals`);
       if (theme === 'light') {
         assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).backgroundColor), 'rgba(255, 255, 255, 0.99)', `${width}: light panels use the shared fallback surface`);
@@ -468,7 +499,7 @@ try {
   await page.waitForFunction(() => hookValue.state?.timer?.status === 'completed');
   assert.equal(await page.evaluate(() => completed.length), 1);
   assert.deepEqual(errors, []);
-  console.log('PASS crossword rules-first/server-confirmed arena, facilitator/participant FR/EN desktop/mobile, left desktop/stacked mobile timer, shared rules dialog and final review, normalization, correlated answers/errors, cooldown, saved drafts, auto-advance, keyboard/clue scrolling, 15x15 light/dark contrast >=4.5, no page overflow, config and realtime completion');
+  console.log('PASS crossword rules-first/server-confirmed arena, facilitator/participant FR/EN mobile/tablet/desktop, compact right timer, 70/30 board/clues, word count without progress bars, shared rules dialog and final review, normalization, correlated answers/errors, cooldown, saved drafts, auto-advance, keyboard/clue scrolling, 15x15 light/dark contrast >=4.5, no page overflow, config and realtime completion');
 } finally {
   await browser.close();
 }

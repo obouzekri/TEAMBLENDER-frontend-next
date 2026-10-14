@@ -48,6 +48,7 @@ export default function ChallengeTimerCard({
   collapsible = true,
   defaultCollapsed = false,
   showCompactBar = true,
+  compact = false,
 }) {
   const { t } = useI18n();
   const connected = useContext(ChallengeConnectionContext);
@@ -121,6 +122,20 @@ export default function ChallengeTimerCard({
   const feedbackMessage = controlFeedback?.status === 'failed' ? controlFeedback.message : '';
 
   if (isDebrief) return null;
+
+  if (compact) {
+    return (
+      <section className={`${styles.timerCard} ${styles.compactCard} ${className}`.trim()}>
+        <h3 className={styles.compactTitle}>{resolvedTitle}</h3>
+        <span className={styles.compactTime} role="timer" aria-live="off" aria-label={resolvedTitle}>{compactTime}</span>
+        <span className={styles.compactStatus} role="status" aria-live="polite">{compactStatus}</span>
+        {shouldShowWaitingText ? <p className={styles.timerWaitingText}>{resolvedWaitingText}</p> : null}
+        {footer ? <div className={styles.timerFooter}>{footer}</div> : null}
+        {resolvedActions ? <fieldset disabled={!connected} className={styles.timerActions}>{resolvedActions}</fieldset> : null}
+        {feedbackMessage ? <p className={styles.timerControlError} role="alert">{feedbackMessage}</p> : null}
+      </section>
+    );
+  }
 
   return (
     <section className={`${styles.timerCard}${isStartedState ? ` ${styles.timerCardStarted}` : ''} ${className}`.trim()}>

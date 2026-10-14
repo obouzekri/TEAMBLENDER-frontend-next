@@ -19,7 +19,7 @@ const COPY = {
     title: 'Mots croisés Live', loading: 'Chargement de la grille…', across: 'Horizontal', down: 'Vertical',
     board: 'Grille de mots croisés', help: 'Choisissez une case ou une définition. Flèches : déplacer la sélection. Espace : changer de direction à une intersection. Début / Fin : première / dernière case du mot.',
     row: 'Ligne', col: 'colonne', empty: 'vide', found: 'Trouvé', letters: 'lettres', answer: 'Votre réponse', submit: 'Proposer le mot',
-    progress: 'Progression collective', leaderboard: 'Classement', activity: 'Dernières découvertes', none: 'Aucune découverte pour le moment.',
+    wordsFound: 'mots trouvés', leaderboard: 'Classement', activity: 'Dernières découvertes', none: 'Aucune découverte pour le moment.',
     points: 'points', finished: 'Partie terminée', unresolved: 'Mots non résolus', perfect: 'Bravo ! Toute la grille est résolue.',
     stop: 'Terminer la partie', start: 'Démarrer la partie', waiting: 'En attente du démarrage par l’animateur.',
     offline: 'Connexion interrompue. Votre brouillon est conservé.', sending: 'Vérification en cours…',
@@ -35,7 +35,7 @@ const COPY = {
     title: 'Crossword Live', loading: 'Loading the grid…', across: 'Across', down: 'Down',
     board: 'Crossword board', help: 'Choose a cell or a clue. Arrow keys: move selection. Space: switch direction at an intersection. Home / End: first / last cell of the word.',
     row: 'Row', col: 'column', empty: 'empty', found: 'Found', letters: 'letters', answer: 'Your answer', submit: 'Submit word',
-    progress: 'Team progress', leaderboard: 'Leaderboard', activity: 'Latest discoveries', none: 'No discoveries yet.',
+    wordsFound: 'words found', leaderboard: 'Leaderboard', activity: 'Latest discoveries', none: 'No discoveries yet.',
     points: 'points', finished: 'Game over', unresolved: 'Unresolved words', perfect: 'Well done! The whole grid is solved.',
     stop: 'End game', start: 'Start game', waiting: 'Waiting for the facilitator to start.',
     offline: 'Connection interrupted. Your draft is saved.', sending: 'Checking your answer…',
@@ -304,7 +304,6 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
     });
   }
 
-  const percent = Math.max(0, Math.min(100, Number(crossword?.completionPercent) || 0));
   const rules = config.rules || {};
   const rulesPreset = getCrosswordRulesPreset(locale);
   const ruleArray = (value) => Array.isArray(value) ? value : value ? [value] : [];
@@ -325,23 +324,13 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   return (
     <ChallengePresentation as="main" className={styles.root} isDebrief={finished}>
       <ChallengeHeader
-        title={copy.title} timer={!finished && started ? { remainingSeconds: remaining } : null}
+        title={copy.title}
         headerAction={started ? <ChallengeRulesPanel {...rulesProps} inHeader showPrestartCard={false} /> : null}
       />
       <ChallengeActionFeedback feedback={error && error === controls.feedback?.message ? null : { ...controls.feedback, retry: null }} />
       {!connected && <p className={styles.notice} role="status">{copy.offline}</p>}
       {error && <p className={styles.notice} role="alert">{error}</p>}
       <div className={`${styles.challengeLayout} ${!started || finished ? styles.singleColumnLayout : ''}`} data-challenge-layout>
-        {!finished && started && <aside className={styles.timerColumn}>
-          <ChallengeTimerCard
-            remainingSeconds={remaining} durationSeconds={timer.duration_seconds || config.timer?.duration_seconds || 900}
-            status={status} isFacilitator={isFacilitator} collapsible={false}
-            onPause={timerControls.pause} onResume={timerControls.resume}
-            controlPending={timerControls.busy} controlFeedback={timerControls.feedback}
-            waitingText={copy.waiting}
-            actions={isFacilitator && status === 'running' ? <button className={styles.secondary} type="button" disabled={!connected || controls.busy || timerControls.busy} onClick={() => control('timer.stop')}>{copy.stop}</button> : null}
-          />
-        </aside>}
         <div className={styles.arenaColumn}>
           {!started ? <>
             <ChallengeRulesPanel
@@ -353,19 +342,16 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
             />
             {!grid && <p role="status">{copy.loading}</p>}
           </> : !grid ? <p role="status">{copy.loading}</p> : <>
-            <section className={styles.progressCard} aria-labelledby={`${id}-progress`}>
-              <div className={styles.sectionHeading}><h2 id={`${id}-progress`}>{copy.progress}</h2><strong>{crossword.solvedCount || 0} / {crossword.totalWords || words.length} · {Math.round(percent)}%</strong></div>
-              <progress max="100" value={percent} aria-label={copy.progress} />
-              {grid.title && <p><strong>{grid.title}</strong></p>}
-              <p>{grid.theme} {grid.theme && '·'} {({ easy: locale === 'en' ? 'Easy' : 'Facile', medium: locale === 'en' ? 'Medium' : 'Moyen', hard: locale === 'en' ? 'Hard' : 'Difficile', facile: locale === 'en' ? 'Easy' : 'Facile', moyen: locale === 'en' ? 'Medium' : 'Moyen', difficile: locale === 'en' ? 'Hard' : 'Difficile' })[grid.difficulty] || grid.difficulty}</p>
-            </section>
             {finished && <section className={styles.card} aria-labelledby={`${id}-final`}>
               <h2 id={`${id}-final`}>{copy.finished}</h2>
               {unresolved.length ? <><h3>{copy.unresolved} ({unresolved.length})</h3><ul>{unresolved.map((word) => <li key={word.id}>{word.number} · {copy[word.direction]} — {word.clue} ({word.length} {copy.letters})</li>)}</ul></> : <p>{copy.perfect}</p>}
             </section>}
             <div className={styles.playLayout}>
-              <section className={styles.card} aria-label={copy.board}>
-                <p id={`${id}-help`} className={styles.help}>{copy.help}</p>
+              <section className={`${styles.card} ${styles.boardPanel}`} aria-label={copy.board}>
+                <div className={styles.sectionHeading}>
+                  <h2>{grid.title || copy.board}</h2>
+                  <span className={styles.wordCount} role="status">{crossword.solvedCount || 0}/{crossword.totalWords || words.length} {copy.wordsFound}</span>
+                </div>
                 <div className={styles.boardScroll} tabIndex={0} role="region" aria-label={copy.board}>
                   <div ref={boardRef} className={styles.board} role="grid" aria-label={copy.board} aria-describedby={`${id}-help`} style={{ '--columns': grid.width }}>
                     {Array.from({ length: grid.height }, (_, row) => <div className={styles.row} role="row" key={row}>
@@ -387,6 +373,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
                     </div>)}
                   </div>
                 </div>
+                <p id={`${id}-help`} className={styles.help}>{copy.help}</p>
                 {active && <form className={styles.answerForm} onSubmit={submit}>
                   <div id={`${id}-clue`} className={styles.activeClue}>
                     <span>{active.number} · {copy[active.direction]} · {active.length} {copy.letters}</span>
@@ -427,6 +414,16 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
             </div>
           </>}
         </div>
+        {!finished && started && <aside className={styles.timerColumn}>
+          <ChallengeTimerCard
+            remainingSeconds={remaining} durationSeconds={timer.duration_seconds || config.timer?.duration_seconds || 900}
+            status={status} isFacilitator={isFacilitator} compact
+            onPause={timerControls.pause} onResume={timerControls.resume}
+            controlPending={timerControls.busy} controlFeedback={timerControls.feedback}
+            waitingText={copy.waiting}
+            actions={isFacilitator && status === 'running' ? <button className={styles.secondary} type="button" disabled={!connected || controls.busy || timerControls.busy} onClick={() => control('timer.stop')}>{copy.stop}</button> : null}
+          />
+        </aside>}
       </div>
     </ChallengePresentation>
   );

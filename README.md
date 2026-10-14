@@ -30,8 +30,9 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 - Un refus de lancement affiche un seul bandeau, sans alerte rouge en doublon. Il faut au moins 2 personnes connectees pour lancer; la limite de 5 participants assignes reste inchangee.
 - Avant le lancement, les regles occupent toute la largeur disponible sur desktop et mobile, avec le bouton de demarrage du facilitateur a la place de l'arene. Les participants voient les regles et attendent le lancement confirme par le serveur.
-- Apres le lancement, la grille, les definitions et la progression apparaissent. Les regles restent consultables depuis l'en-tete.
-- Le chrono partage occupe la colonne gauche sur desktop et passe au-dessus du contenu sur mobile. Le bilan final retire le chrono et utilise toute la largeur.
+- Apres le lancement, la grille occupe environ 70 % de l'espace de jeu et les definitions 30 % sur desktop. Le compteur « 0/15 mots trouves » remplace la barre de progression et les pourcentages. Les regles restent consultables depuis l'en-tete.
+- Un seul chrono compact, sans anneau decoratif ni doublon dans l'en-tete, occupe une colonne fixe a droite sur desktop et passe en haut a droite sur mobile. Le bouton Terminer la partie reste sous le chrono pour le facilitateur; la reprise en pause est conservee. Le bilan final retire le chrono et utilise toute la largeur.
+- La grille utilise des cases adaptatives de 44 a 64 px et davantage de hauteur; les grandes grilles restent defilables sans debordement de la page.
 - Validation: `npm run test:ux:crossword` (Chrome disponible, sans serveur). La suite couvre le parcours regles/lancement/arene, les deux roles, FR/EN, les dispositions desktop/mobile et les interactions temps reel simulees.
 
 ### Securite du compte

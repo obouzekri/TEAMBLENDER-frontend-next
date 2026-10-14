@@ -11,7 +11,7 @@ const modules = [
   ['MissionCritique', 'MissionCritique', 'container', ['card taskCard', 'card timelineCard']],
   ['PhraseCoop', 'PhraseCoop', 'phraseContainer', ['boardPanel', 'sideCard']],
   ['CopuzzleLive', 'Copuzzle', 'copuzzleContainer', ['boardPanel', 'sideCard']],
-  ['CrosswordLive', 'CrosswordChallenge', 'root', ['card', 'progressCard']],
+  ['CrosswordLive', 'CrosswordChallenge', 'root', ['card', 'card boardPanel']],
   ['PixelArchitect', 'PixelArchitect', 'container', ['panel']],
   ['LabDInnovation', 'LabDInnovation', 'shell', ['card']],
   ['LabyrintheLive', 'Labyrinthe', 'labyrinthContainer', ['panel']],
