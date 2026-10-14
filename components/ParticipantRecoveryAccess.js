@@ -20,10 +20,7 @@ export default function ParticipantRecoveryAccess({ sessionId }) {
     if (!sessionId) return;
     try {
       setLink(readPersonalLink(sessionId));
-      if (sessionStorage.getItem('tb_recovery_notice') === '1') {
-        sessionStorage.removeItem('tb_recovery_notice');
-        setOpen(true);
-      }
+      sessionStorage.removeItem('tb_recovery_notice');
       const warning = sessionStorage.getItem('tb_recovery_warning');
       if (warning) setError(warning);
     } catch (err) { setError(err.message); }
@@ -50,8 +47,8 @@ export default function ParticipantRecoveryAccess({ sessionId }) {
       <button type="button" className="btn-mini" onClick={() => setOpen(true)}>{isEn ? 'Save my access' : 'Conserver mon acces'}</button>
       <Modal open={open} title={isEn ? 'Resume without losing your progress' : 'Reprendre sans perdre votre progression'} onClose={() => { if (!busy) setOpen(false); }}>
         <p>{isEn
-          ? 'On this device, the sign-in page can recognise your participation for up to 30 days. Save a personal link to recover it on another device. Explicit logout invalidates your saved access.'
-          : 'Sur cet appareil, la page de connexion peut retrouver votre participation pendant 30 jours maximum. Conservez un lien personnel pour la retrouver sur un autre appareil. Une deconnexion volontaire invalide vos acces memorises.'}</p>
+          ? 'Guests can return using the same session code and first and last names. You can also keep a personal link. Explicit logout invalidates your saved links.'
+          : 'Les invites peuvent revenir avec le meme code de session et les memes prenom et nom. Vous pouvez aussi conserver un lien personnel. Une deconnexion volontaire invalide vos liens memorises.'}</p>
         <p>{isEn ? 'Your team and saved results are retained. You will rejoin the current step, not restart a challenge.' : 'Votre equipe et vos resultats enregistres sont conserves. Vous rejoindrez l etape actuelle, sans relancer de challenge.'}</p>
         {link ? <RecoveryLinkDisplay {...link} /> : null}
         {error ? <p role="alert">{error}</p> : null}

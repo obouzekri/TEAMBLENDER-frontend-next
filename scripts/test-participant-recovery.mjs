@@ -13,6 +13,7 @@ function store() {
 const api = { local: store(), session: store() };
 const recovery = { deviceToken: 'a'.repeat(64), linkToken: 'b'.repeat(64), expiresAt: '2099-01-01T00:00:00.000Z' };
 saveRecovery({ sessionId: 12, user: { name: 'Alex Martin' }, recovery }, api);
+assert.equal(api.session.getItem('tb_recovery_notice'), null, 'Saving access must not request a popup');
 assert.equal(readRecoveries(api)[0].participantName, 'Alex Martin');
 assert.equal(readRecoveries({ local: api.local, session: store() })[0].deviceToken, recovery.deviceToken);
 assert.equal(readPersonalLink(12, api).linkToken, recovery.linkToken);

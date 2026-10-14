@@ -39,6 +39,11 @@ async function fixture({ locale, mobile, manager = false, remembered = false, in
         await route.fulfill(invalid
           ? { status: 401, json: { code: 'RECOVERY_INVALID', message: 'Lien invalide / Invalid link' } }
           : { json: { token: 'fixture-access', user: participant, sessionId: 12, recovery: { deviceToken, linkToken, expiresAt } } });
+      } else if (url.pathname.endsWith('/auth/join-participant')) {
+        await route.fulfill({ json: {
+          token: 'fixture-access', user: participant, sessionId: 12, accountCreated: false,
+          recovery: { deviceToken, linkToken, expiresAt },
+        } });
       } else if (url.pathname.endsWith('/participant-management/42/recovery') || url.pathname.endsWith('/recovery-link')) {
         await route.fulfill({ json: { linkToken, expiresAt } });
       } else if (url.pathname.endsWith('/participant-management')) {
@@ -76,19 +81,31 @@ try {
       const current = await fixture({ locale, mobile, remembered: true });
       try {
         const { page, writes, errors } = current;
-        await page.goto(`${baseUrl}/${locale}/login`);
-        await page.getByRole('button', { name: new RegExp(en ? 'Resume as Alex Martin' : 'Reprendre en tant que Alex Martin') }).click();
+        await page.goto(`${baseUrl}/${locale}/login?mode=join`);
+        await page.locator('#join-session-code').waitFor();
+        assert.equal(await page.getByRole('heading', { name: en ? 'Resume my participation' : 'Reprendre ma participation' }).count(), 0, 'No separate resume panel even with remembered browser data');
+        await page.locator('#join-session-code').fill('ABCDEF');
+        await page.locator('#join-first-name').fill('Alex');
+        await page.locator('#join-last-name').fill('Martin');
+        await page.locator('#login-panel-join button[type="submit"]').click();
         await page.waitForURL(/\/participant$/);
         const modal = page.getByRole('dialog', { name: en ? 'Resume without losing your progress' : 'Reprendre sans perdre votre progression' });
+        await page.locator('.participant-session-card__cta').waitFor();
+        assert.equal(await modal.count(), 0, 'No automatic recovery popup');
+        assert.equal(await page.locator('.participant-credentials-notice').count(), 0, 'A returning guest does not see an account-created notice');
+        const save = page.getByRole('button', { name: en ? 'Save my access' : 'Conserver mon acces' });
+        await save.click();
         await modal.waitFor();
         await modal.getByRole('img', { name: en ? 'Scan to resume participation' : 'Scanner pour reprendre la participation' }).waitFor();
         const url = new URL(await modal.getByRole('textbox').inputValue());
         assert.equal(url.hash, `#recovery=${linkToken}`);
-        assert.deepEqual(writes.filter((write) => write.path.endsWith('/resume-participant'))[0].body, { token: deviceToken, kind: 'device' });
+        assert.equal(writes.filter((write) => write.path.endsWith('/resume-participant')).length, 0, 'Ordinary return uses only the code form');
+        assert.deepEqual(writes.find((write) => write.path.endsWith('/join-participant')).body, {
+          sessionCode: 'ABCDEF', first_name: 'Alex', last_name: 'Martin', email: '', nickname: 'Alex',
+        });
         await modal.getByRole('button', { name: en ? 'Close' : 'Fermer', exact: true }).click();
         await page.locator('.participant-session-card__cta').waitFor();
         assert.equal(new URL(page.url()).search, '', 'Recovery must show the home page before joining the running session');
-        const save = page.getByRole('button', { name: en ? 'Save my access' : 'Conserver mon acces' });
         assert.ok(await save.isVisible(), 'Recovery access must be visible on mobile and desktop');
         // Remove local memory to verify logout still calls the server using the current JWT.
         await page.evaluate(() => localStorage.removeItem('tb_participant_recoveries'));
@@ -101,6 +118,16 @@ try {
         }
         await page.waitForURL(/\/login$/);
         assert.equal(writes.filter((write) => write.path.endsWith('/auth/logout')).length, 1);
+        await page.getByRole('tab', { name: en ? 'Join with a code' : 'Rejoindre avec un code' }).click();
+        await page.locator('#join-session-code').fill('ABCDEF');
+        await page.locator('#join-first-name').fill('Alex');
+        await page.locator('#join-last-name').fill('Martin');
+        await page.locator('#login-panel-join button[type="submit"]').click();
+        await page.waitForURL(/\/participant$/);
+        await page.locator('.participant-session-card__cta').waitFor();
+        assert.equal(await page.evaluate(() => JSON.parse(sessionStorage.getItem('currentUser')).id), 42);
+        assert.equal(await modal.count(), 0);
+        assert.equal(writes.filter((write) => write.path.endsWith('/join-participant')).length, 2);
         assert.deepEqual(errors, []);
         cases += 1;
       } finally { await current.context.close(); }

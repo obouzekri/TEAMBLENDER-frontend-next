@@ -22,7 +22,6 @@ import {
   shouldStoreParticipantTargetSession
 } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
-import ParticipantResume from '@/components/ParticipantResume';
 import { saveRecovery } from '@/lib/participant-recovery';
 
 function looksLikeEmail(value) {
@@ -404,8 +403,8 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
           ? (isEn ? 'Invalid code.' : 'Code invalide.')
           : loginRequired
             ? (isEn
-              ? 'This participant already exists. Use your recovery link or sign in to your participant account.'
-              : 'Ce participant existe deja. Utilisez votre lien de reprise ou connectez-vous a votre compte participant.')
+              ? 'This participant account is protected. Sign in to your account or contact your facilitator.'
+              : 'Ce compte participant est protege. Connectez-vous au compte ou contactez votre animateur.')
             : (data?.error || (isEn ? 'Unable to join session right now.' : 'Impossible de rejoindre la session pour le moment.')));
         return;
       }
@@ -513,7 +512,6 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         <AuthCard
           footer={<span>{isEn ? 'New to TeamBlender? ' : 'Nouveau sur TeamBlender ? '}<Link href={withLocalePath('/signup')}>{isEn ? 'Create an account' : 'Créer un compte'}</Link></span>}
         >
-          <ParticipantResume />
           <div className="auth-tabs" role="tablist" aria-label={isEn ? 'Select connection mode' : 'Selectionner le mode de connexion'}>
             <button
               ref={joinTabRef}
