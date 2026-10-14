@@ -13,6 +13,10 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les sessions assignees reprennent les styles partages des cartes de l'accueil: fond, bordure, ombre, titre, badges de statut et pied de carte, en clair comme en sombre.
 - Le titre de la session live et celui des cartes de l'accueil partagent le token `--session-title-color`, y compris avec le theme automatique. Validation: `node scripts/test-session-title-theme.mjs` (frontend sur 3100, Chrome disponible, API simulees; desktop/mobile et preferences clair/sombre/automatique).
 - Seules les sessions en cours proposent Rejoindre; l'attente du lancement et le rafraichissement automatique restent inchanges.
+- Les sessions assignees restent accessibles dans la salle d'attente, y compris apres une reprise d'acces. Rejoindre ouvre directement la session choisie; le challenge actif s'ouvre automatiquement, au retour comme au lancement par l'animateur. Les changements de session et l'historique du navigateur resynchronisent la salle d'attente.
+- L'accueil participant ne charge plus la liste nominative de tous les inscrits sous un faux bloc « Equipe ». Les equipes et interactions propres aux challenges ne changent pas.
+- Les erreurs de chargement des sessions sont affichees sans masquer les cartes deja chargees; le rafraichissement retente automatiquement. Un acces de reprise reste limite a sa session et ne propose pas l'ajout d'une autre session.
+- Validation de non-regression: `node scripts/test-participant-navigation.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, mobile/desktop, navigation, reprise, lancement, erreurs et ajout par code.
 - Validation: `node scripts/test-participant-session-cards.mjs` et `node scripts/smoke-participant.mjs --assigned-sessions-refresh` (frontend sur le port 3100, Chrome disponible). Les API sont simulees localement, sans modifier de session reelle.
 
 - Reprise participant:

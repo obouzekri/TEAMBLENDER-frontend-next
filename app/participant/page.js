@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
@@ -13,17 +13,23 @@ import { clearStoredAuth, getAuthHeaders, getStoredCurrentUser, joinParticipantA
 import useI18n from '@/lib/i18n/useI18n';
 
 export default function ParticipantPage() {
+  const searchParams = useSearchParams();
+  const requestedSessionId = String(searchParams.get('sessionId') || '').trim();
+  return <ParticipantHome key={requestedSessionId} requestedSessionId={requestedSessionId} />;
+}
+
+function ParticipantHome({ requestedSessionId }) {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
-  {/* Assigned sessions card */}
   const [user, setUser] = useState(null);
   const [runtime, setRuntime] = useState(null);
   const [runtimeError, setRuntimeError] = useState('');
   const [sessionDetails, setSessionDetails] = useState(null);
+  const [sessionDetailsError, setSessionDetailsError] = useState('');
   const [joining, setJoining] = useState(false);
-  const [teamMembers, setTeamMembers] = useState([]);
   const [assignedSessions, setAssignedSessions] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
+  const [sessionsError, setSessionsError] = useState('');
   const [sessionId, setSessionId] = useState('');
   const [joiningSessionId, setJoiningSessionId] = useState(null);
   const [joinCode, setJoinCode] = useState('');
@@ -34,7 +40,7 @@ export default function ParticipantPage() {
   const authInitRef = useRef(false);
   const [ready, setReady] = useState(false);
   const router = useRouter();
-  const { sessionState, connected, reconnecting, pollingActive } = useSessionState(sessionId || null);
+  const { sessionState, error: sessionError, connected, reconnecting, pollingActive } = useSessionState(sessionId || null);
   const flowMode = String(sessionState?.flowMode || sessionState?.flow_mode || 'manual').trim().toLowerCase() === 'auto'
     ? 'auto'
     : 'manual';
@@ -144,33 +150,19 @@ export default function ParticipantPage() {
     if (joiningSessionId) return isEn ? 'Connecting to session...' : 'Connexion a la session en cours...';
     if (joining) return isEn ? 'Loading active challenge...' : 'Chargement du challenge actif...';
     if (loadingSessions) return isEn ? 'Loading assigned sessions...' : 'Chargement des sessions assignées...';
-    if (sessionId && !runtime?.engine_key && (connected || reconnecting || pollingActive)) {
-      return isEn ? 'Synchronizing next challenge...' : 'Synchronisation du prochain challenge...';
-    }
     return '';
-  }, [isEn, joiningSessionId, joining, loadingSessions, sessionId, runtime?.engine_key, connected, reconnecting, pollingActive]);
+  }, [isEn, joiningSessionId, joining, loadingSessions]);
 
   useEffect(() => {
     if (!ready || typeof window === 'undefined') return;
 
-    function syncSessionFromLocation() {
-      const params = new URLSearchParams(window.location.search);
-      const fromQuery = String(params.get('sessionId') || '').trim();
-      if (fromQuery) {
-        // Explicit sessionId in URL: store it and use it
-        sessionStorage.setItem('targetSessionId', fromQuery);
-        setSessionId(fromQuery);
-      } else {
-        // No sessionId in URL: clear stored session so the list shows
-        sessionStorage.removeItem('targetSessionId');
-        setSessionId('');
-      }
+    if (requestedSessionId) {
+      sessionStorage.setItem('targetSessionId', requestedSessionId);
+    } else {
+      sessionStorage.removeItem('targetSessionId');
     }
-
-    syncSessionFromLocation();
-    window.addEventListener('popstate', syncSessionFromLocation);
-    return () => window.removeEventListener('popstate', syncSessionFromLocation);
-  }, [ready]);
+    setSessionId(requestedSessionId);
+  }, [ready, requestedSessionId]);
 
   const getSessionIdentifier = useCallback((session) => {
     const id = session?.id ?? session?.session_id ?? session?.sessionId;
@@ -188,20 +180,29 @@ export default function ParticipantPage() {
           headers: getAuthHeaders(),
           credentials: 'include',
         });
-        if (!res.ok) return;
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const payload = await res.json();
         if (!cancelled) {
           setSessionDetails(payload || null);
+          setSessionDetailsError('');
         }
-      } catch {
+      } catch (err) {
         if (!cancelled) {
           setSessionDetails(null);
+          setSessionDetailsError(`${isEn ? 'Unable to load session information.' : 'Impossible de charger les informations de session.'} ${err.message}`);
         }
       }
     }
 
     loadSessionDetails();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEn, ready, sessionId]);
 
+  useEffect(() => {
+    if (!ready || !sessionId) return;
+    let cancelled = false;
     if (stateEngineKey) {
       setJoining(false);
       setRuntimeError('');
@@ -252,9 +253,9 @@ export default function ParticipantPage() {
     };
   }, [isEn, ready, sessionId, sessionState?.active_challenge_id, stateEngineKey]);
 
-// Load participant's assigned sessions
+  // Keep assigned sessions accessible even when returning through a recovery link.
   useEffect(() => {
-    if (!ready || sessionId) return;
+    if (!ready) return;
 
     const controller = new AbortController();
     let fetching = false;
@@ -269,15 +270,18 @@ export default function ParticipantPage() {
           cache: 'no-store',
           signal: controller.signal,
         });
-        if (res.ok) {
-          const data = await res.json();
-          const sessions = Array.isArray(data) ? data : (data?.data || data?.sessions || []);
-          if (!controller.signal.aborted) {
-            setAssignedSessions(Array.isArray(sessions) ? sessions : []);
-          }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const sessions = Array.isArray(data) ? data : (data?.data || data?.sessions);
+        if (!Array.isArray(sessions)) throw new Error(isEn ? 'Invalid session list.' : 'Liste de sessions invalide.');
+        if (!controller.signal.aborted) {
+          setAssignedSessions(sessions);
+          setSessionsError('');
         }
       } catch (err) {
-        // Silently fail - assigned sessions are nice to have
+        if (!controller.signal.aborted) {
+          setSessionsError(`${isEn ? 'Unable to load your sessions. Retrying automatically.' : 'Impossible de charger vos sessions. Nouvelle tentative automatique.'} ${err.message}`);
+        }
       } finally {
         fetching = false;
         if (!controller.signal.aborted) setLoadingSessions(false);
@@ -300,32 +304,7 @@ export default function ParticipantPage() {
       window.removeEventListener('focus', refreshAssignedSessions);
       document.removeEventListener('visibilitychange', refreshAssignedSessions);
     };
-  }, [ready, sessionId]);
-  // Load team members for the session
-  useEffect(() => {
-    if (!ready || !sessionId) return;
-
-    async function fetchTeamMembers() {
-      try {
-        const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/participants`), {
-          headers: getAuthHeaders(),
-          credentials: 'include',
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const members = Array.isArray(data)
-            ? data
-            : (data?.items || data?.data || data?.participants || []);
-          setTeamMembers(members);
-        }
-      } catch (err) {
-        // Silently fail - team members are nice to have but not critical
-      }
-    }
-
-    fetchTeamMembers();
-  }, [ready, sessionId]);
-
+  }, [ready, isEn]);
 
   const challengeLink = useMemo(() => {
     const engine = String(stateEngineKey || runtime?.engine_key || '').trim();
@@ -333,38 +312,24 @@ export default function ParticipantPage() {
     return withLocalePath(`/challenges/${encodeURIComponent(engine)}?sessionId=${encodeURIComponent(sessionId)}`);
   }, [stateEngineKey, runtime, sessionId, withLocalePath]);
 
+  useEffect(() => {
+    if (challengeLink) router.replace(challengeLink);
+  }, [challengeLink, router]);
+
   const participantSessionName = String(sessionDetails?.name || '').trim() || sessionId;
   const participantExpectedCount = Array.isArray(sessionDetails?.assigned_participants)
     ? sessionDetails.assigned_participants.length
     : Array.isArray(sessionDetails?.participants)
       ? sessionDetails.participants.length
-      : teamMembers.length || 1;
+      : undefined;
 
-  async function joinSession(sessionIdentifier) {
+  function joinSession(sessionIdentifier) {
     if (!sessionIdentifier) return;
     const selectedSession = assignedSessions.find((session) => getSessionIdentifier(session) === String(sessionIdentifier));
     if (String(selectedSession?.status || '').trim().toLowerCase() !== 'en_cours') {
       return;
     }
-    setJoiningSessionId(sessionIdentifier);
-    try {
-      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionIdentifier)}/runtime-challenge`), {
-        headers: getAuthHeaders(),
-        credentials: 'include',
-      });
-      if (res.ok) {
-        const payload = await res.json();
-        const engine = String(payload?.engine_key || '').trim();
-        if (engine) {
-          sessionStorage.setItem('targetSessionId', sessionIdentifier);
-          router.push(withLocalePath(`/challenges/${encodeURIComponent(engine)}?sessionId=${encodeURIComponent(sessionIdentifier)}`));
-          return;
-        }
-      }
-    } catch {
-      // fall through to waiting room
-    }
-    // No active challenge yet — go to participant waiting room for this session
+    if (sessionIdentifier !== sessionId) setJoiningSessionId(sessionIdentifier);
     sessionStorage.setItem('targetSessionId', sessionIdentifier);
     router.push(withLocalePath(`/participant?sessionId=${encodeURIComponent(sessionIdentifier)}`));
   }
@@ -391,28 +356,14 @@ export default function ParticipantPage() {
         return;
       }
       const resolvedSessionId = String(data?.sessionId || '').trim();
-      setJoinCode('');
-      if (resolvedSessionId) {
-        setJoinModalOpen(false);
-        setJoinCodeMessage(isEn ? 'Session added. Use Join when you are ready.' : 'Session ajoutée. Cliquez sur Rejoindre quand vous êtes prêt.');
-        setSessionId('');
-        setRuntime(null);
-        setRuntimeError('');
-        try {
-          const sessionsRes = await fetch(getApiUrl('/participants/me/sessions'), {
-            headers: getAuthHeaders(),
-            credentials: 'include',
-          });
-          if (sessionsRes.ok) {
-            const sessionsPayload = await sessionsRes.json();
-            const sessions = Array.isArray(sessionsPayload) ? sessionsPayload : (sessionsPayload?.data || sessionsPayload?.sessions || []);
-            setAssignedSessions(Array.isArray(sessions) ? sessions : []);
-          }
-        } catch {
-          // Keep the participant on the home page even if the refresh fails.
-        }
-        router.push(withLocalePath('/participant'));
+      if (!resolvedSessionId) {
+        setJoinCodeMessage(isEn ? 'The server did not return a session. Please retry.' : 'Le serveur n’a pas renvoyé de session. Réessayez.');
+        return;
       }
+      setJoinCode('');
+      setJoinModalOpen(false);
+      sessionStorage.setItem('targetSessionId', resolvedSessionId);
+      router.push(withLocalePath(`/participant?sessionId=${encodeURIComponent(resolvedSessionId)}`));
     } catch {
       setJoinCodeMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Vérifiez votre connexion.');
     } finally {
@@ -448,7 +399,7 @@ export default function ParticipantPage() {
             <div className="participant-hero__copy">
               <h1>{isEn ? `Welcome ${participantLabel}` : `Bienvenue ${participantLabel}`}</h1>
               <p>
-                {assignedSessions.length > 0 && !sessionId
+                {!sessionId
                   ? (isEn ? 'Find your sessions and join your ongoing experiences.' : 'Retrouvez vos sessions et rejoignez vos expériences en cours.')
                   : (isEn
                     ? 'Your session is running. The active challenge will appear here automatically.'
@@ -456,7 +407,7 @@ export default function ParticipantPage() {
               </p>
             </div>
             <div className="participant-hero__actions">
-              <button
+              {!user.recovery_session_id ? <button
                 type="button"
                 className="btn-secondary participant-join-trigger"
                 onClick={() => {
@@ -466,12 +417,12 @@ export default function ParticipantPage() {
                 }}
               >
                 {isEn ? '+ Join a session' : '+ Rejoindre une session'}
-              </button>
+              </button> : null}
               {sessionId && challengeLink ? (
-                <button type="button" className="btn-primary" disabled>
-                  {isEn ? 'Connecting to challenge...' : 'Connexion au challenge...'}
-                </button>
-              ) : sessionId && !joining && !runtimeError ? (
+                <Link className="btn-primary" href={challengeLink}>
+                  {isEn ? 'Join challenge' : 'Rejoindre le challenge'}
+                </Link>
+              ) : sessionId && !joining && !runtimeError && !sessionError ? (
                 <button type="button" className="btn-primary" disabled>
                   {flowMode === 'auto'
                     ? (isEn ? 'Automatic progression is being prepared...' : 'Passage automatique en préparation...')
@@ -481,7 +432,7 @@ export default function ParticipantPage() {
                 <button type="button" className="btn-primary" disabled>
                   {joining ? (isEn ? 'Loading...' : 'Chargement...') : (isEn ? 'Challenge unavailable' : 'Challenge indisponible')}
                 </button>
-              ) : assignedSessions.length === 0 ? (
+              ) : assignedSessions.length === 0 && !loadingSessions && !sessionsError ? (
                 <Link className="btn-primary" href={withLocalePath('/login')}>
                   {isEn ? 'Back to login' : 'Revenir à la connexion'}
                 </Link>
@@ -520,7 +471,7 @@ export default function ParticipantPage() {
 
         <div className="participant-grid">
           {/* Loading skeleton while sessions are being fetched */}
-          {loadingSessions && !sessionId && (
+          {loadingSessions && (
             <section className="feature-card participant-panel participant-panel--wide">
               <div className="participant-panel__head">
                 <div>
@@ -532,8 +483,8 @@ export default function ParticipantPage() {
             </section>
           )}
 
-          {/* Assigned sessions cards - displayed when no session is selected */}
-          {assignedSessions.length > 0 && !sessionId && (
+          {sessionsError ? <p className="participant-error-text" role="alert">{sessionsError}</p> : null}
+          {assignedSessions.length > 0 && (
             <section className="feature-card participant-panel participant-panel--wide participant-sessions-panel">
               <div className="participant-panel__head">
                 <div>
@@ -598,13 +549,13 @@ export default function ParticipantPage() {
           )}
 
           {/* Empty state when no sessions and not loading */}
-          {!sessionId && assignedSessions.length === 0 && !loadingSessions && (
+          {!sessionId && assignedSessions.length === 0 && !loadingSessions && !sessionsError && (
             <section className="feature-card participant-panel participant-empty-panel">
               <h2>{isEn ? 'No assigned session' : 'Aucune session assignée'}</h2>
               <p className="participant-help-text">
                 {isEn
                   ? 'You do not have any assigned session yet. Please contact your administrator.'
-                  : 'Vous n&apos;avez pas encore de session assignée. Contactez votre administrateur.'}
+                  : "Vous n'avez pas encore de session assignée. Contactez votre administrateur."}
               </p>
             </section>
           )}
@@ -616,7 +567,7 @@ export default function ParticipantPage() {
               sessionId={sessionId}
               sessionName={participantSessionName}
               sessionCode={sessionDetails?.code || sessionDetails?.session_code || sessionDetails?.sessionCode || sessionId}
-              participantCount={teamMembers.length || participantExpectedCount}
+              participantCount={participantExpectedCount}
               expectedParticipantCount={sessionDetails?.expected_participant_count}
               sessionObjective={sessionDetails?.objective}
               challenges={sessionChallenges}
@@ -630,7 +581,7 @@ export default function ParticipantPage() {
         {sessionId ? (
           <div className="participant-grid">
             {/* Session info card - displayed when a session is selected */}
-          <section className="feature-card participant-panel">
+          <section className="feature-card participant-panel participant-panel--wide">
             <div className="participant-panel__head">
               <div>
                 <p className="eyebrow">{isEn ? 'ACTIVE SESSION' : 'SESSION ACTIVE'}</p>
@@ -640,11 +591,11 @@ export default function ParticipantPage() {
             <p className="participant-meta-line">
               {isEn ? 'Session ID:' : 'ID de session:'} <strong>{sessionId}</strong>
             </p>
-            {runtime?.engine_key ? (
+            {stateEngineKey || runtime?.engine_key ? (
               <p className="participant-meta-line participant-meta-line--strong">
-                {isEn ? 'Active challenge:' : 'Challenge actif:'} <strong>{runtime.challenge_name || runtime.engine_key}</strong>
+                {isEn ? 'Active challenge:' : 'Challenge actif:'} <strong>{sessionState?.current_challenge?.name || stateEngineKey || runtime?.challenge_name || runtime?.engine_key}</strong>
               </p>
-            ) : sessionId && !joining ? (
+            ) : sessionId && !joining && !sessionError && !runtimeError ? (
               <p className="participant-help-text">
                 {flowMode === 'auto'
                   ? (isEn
@@ -652,48 +603,14 @@ export default function ParticipantPage() {
                     : 'Aucun challenge actif pour le moment. Le passage se fera automatiquement dès que la session avancera.')
                   : (isEn
                     ? 'No challenge in progress yet. The facilitator has not started or moved to the next challenge.'
-                    : 'Aucun challenge en cours — le facilitateur n&apos;a pas encore lancé ou n&apos;a pas encore passé au challenge suivant.')}
+                    : "Aucun challenge en cours — le facilitateur n'a pas encore lancé ou n'a pas encore passé au challenge suivant.")}
               </p>
             ) : null}
             {joining && !runtime ? <p className="participant-help-text">{isEn ? 'Loading active challenge...' : 'Chargement du challenge actif...'}</p> : null}
             {runtimeError ? <p className="participant-error-text">{isEn ? 'Error:' : 'Erreur :'} {runtimeError}</p> : null}
+            {sessionError ? <p className="participant-error-text" role="alert">{sessionError}</p> : null}
+            {sessionDetailsError ? <p className="participant-error-text" role="alert">{sessionDetailsError}</p> : null}
           </section>
-
-            {/* Team members card - shown when session is active */}
-            {teamMembers.length > 0 && (
-              <section className="feature-card participant-panel">
-              <div className="participant-panel__head">
-                <div>
-                  <p className="eyebrow">{isEn ? 'TEAM' : 'ÉQUIPE'}</p>
-                  <h2>{isEn ? 'Team members' : 'Membres de l\'équipe'}</h2>
-                </div>
-              </div>
-              <ul className="participant-team-list">
-                {teamMembers.slice(0, 6).map((member) => (
-                  <li key={String(member.id)} className="participant-team-list__item">
-                    <div className="participant-team-list__info">
-                      <p className="participant-team-list__name">
-                        {String(member.first_name || member.firstname || '').trim() || 'Participant'} {String(member.last_name || member.lastname || '').trim()}
-                      </p>
-                      {member.email && (
-                        <p className="participant-team-list__email">{member.email}</p>
-                      )}
-                    </div>
-                    {member.disabled ? (
-                      <span className="participant-team-badge participant-team-badge--inactive">{isEn ? 'Inactive' : 'Inactif'}</span>
-                    ) : (
-                      <span className="participant-team-badge participant-team-badge--active">{isEn ? 'Active' : 'Actif'}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              {teamMembers.length > 6 && (
-                <p className="participant-team-more">
-                  +{teamMembers.length - 6} {isEn ? 'other' : 'autre'}{teamMembers.length - 6 > 1 ? 's' : ''}
-                </p>
-              )}
-            </section>
-            )}
           </div>
         ) : null}
       </main>
