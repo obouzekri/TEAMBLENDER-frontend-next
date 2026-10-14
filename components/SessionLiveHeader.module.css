@@ -58,6 +58,10 @@
   text-overflow: ellipsis;
 }
 
+:global(:where(html:not([data-theme='light']))) .sessionName {
+  color: #f2f6ff;
+}
+
 .headerChallengeName {
   min-width: 0;
   flex: 0 1 auto;
