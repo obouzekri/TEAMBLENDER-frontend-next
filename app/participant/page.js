@@ -540,11 +540,12 @@ export default function ParticipantPage() {
                   <p className="eyebrow">{isEn ? 'ASSIGNED SESSIONS' : 'SESSIONS ASSIGNÉES'}</p>
                 </div>
               </div>
-              <div className="participant-sessions-grid">
+              <div className="session-cards-grid participant-sessions-grid">
                 {assignedSessions.map((session) => {
                   const sessionIdentifier = getSessionIdentifier(session);
                   if (!sessionIdentifier) return null;
                   const isSessionLive = String(session.status || '').trim().toLowerCase() === 'en_cours';
+                  const statusVariant = isSessionLive ? 'en-cours' : session.status === 'terminee' ? 'terminee' : 'a-venir';
                   const statusLabel = session.status === 'en_cours'
                     ? (isEn ? 'In progress' : 'En cours')
                     : session.status === 'preparee'
@@ -553,25 +554,25 @@ export default function ParticipantPage() {
                         ? (isEn ? 'Completed' : 'Terminée')
                         : session.status || '';
                   return (
-                    <article key={sessionIdentifier} className="participant-session-card">
-                      <div className="participant-session-card__body">
-                        <div className="participant-session-card__headline">
-                          <p className="participant-session-card__name">
-                            {session.name || `Session #${sessionIdentifier}`}
-                          </p>
+                    <article key={sessionIdentifier} className={`session-card session-card--${statusVariant} participant-session-card`}>
+                      <div className="session-card-body participant-session-card__body">
+                        <p className="session-title participant-session-card__name">
+                          {session.name || `Session #${sessionIdentifier}`}
+                        </p>
+                        <p className="session-meta">
                           {statusLabel && (
-                            <span className={`status-pill status-${session.status || 'preparee'}`}>
+                            <span className={`status-pill status-pill--${statusVariant}`}>
                               {statusLabel}
                             </span>
                           )}
-                        </div>
-                        {session.session_date && (
-                          <p className="participant-session-card__date">
-                            {new Date(session.session_date).toLocaleDateString(isEn ? 'en-US' : 'fr-FR', { dateStyle: 'medium' })}
-                          </p>
-                        )}
+                          {session.session_date && (
+                            <span className="session-date">
+                              {new Date(session.session_date).toLocaleDateString(isEn ? 'en-US' : 'fr-FR', { dateStyle: 'medium' })}
+                            </span>
+                          )}
+                        </p>
                       </div>
-                      <div className="participant-session-card__footer">
+                      <div className="session-card-actions participant-session-card__footer">
                         {isSessionLive ? (
                           <button
                             type="button"
