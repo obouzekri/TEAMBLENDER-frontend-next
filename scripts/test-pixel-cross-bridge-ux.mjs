@@ -14,14 +14,15 @@ const browser = await chromium.launch({ headless: true, channel: process.env.SMO
 const artifactDir = process.env.PIXEL_UX_ARTIFACT_DIR;
 if (artifactDir) await mkdir(artifactDir, { recursive: true });
 
-async function testCrossBridge(locale, width, disableWebgl) {
-  const config = engine.buildRuntimeConfig({ engine_config: { replication: { templateId: 'pont_croise' } } });
+async function testCrossBridge(locale, width, disableWebgl, templateId = 'pont_croise') {
+  const config = engine.buildRuntimeConfig({ engine_config: { replication: { templateId } } });
   const pixel = buildInitialPixelState(config);
   pixel.phase = 'building';
   const timer = { enabled: true, status: 'running', duration_seconds: 900, remaining_seconds: 890 };
   const fixture = await createRealtimeFixture(browser, {
     baseUrl, locale, role: 'participant', engineKey: 'pixel_architect_v1',
-    state: { config, timer, pixel }, viewport: { width, height: 1000 }
+    state: { config, timer, pixel }, viewport: { width, height: 1000 },
+    theme: disableWebgl ? 'dark' : 'light'
   });
   const page = await fixture.context.newPage();
   const errors = [];
@@ -44,28 +45,41 @@ async function testCrossBridge(locale, width, disableWebgl) {
     const navigation = page.getByRole('group', { name: locale === 'en' ? 'Layer navigation' : 'Navigation des couches' });
     await navigation.waitFor();
     const layers = page.locator('[data-active-layer]');
-    assert.equal(await layers.count(), 6);
     const serverKeys = new Set(buildPixelTemplateCells(pixel.selected_template));
-    assert.equal(serverKeys.size, 48);
+    const expectedCount = templateId === 'pont_croise' ? 48 : 24;
+    const usedLayers = [...new Set([...serverKeys].map((key) => Number(key.split(':')[1])))].sort((a, b) => a - b);
+    assert.equal(await layers.count(), usedLayers.length);
+    assert.equal(await navigation.locator('option').count(), usedLayers.length);
+    assert.equal(await navigation.locator('option').last().getAttribute('value'), templateId === 'pont_croise' ? '4' : '3');
+    assert.equal(serverKeys.size, expectedCount);
     const renderedKeys = new Set();
+    const previous = navigation.getByRole('button', { name: locale === 'en' ? 'Previous layer' : 'Couche précédente' });
+    const next = navigation.getByRole('button', { name: locale === 'en' ? 'Next layer' : 'Couche suivante' });
+    assert.equal(await previous.isDisabled(), true);
+    await next.click();
+    assert.equal(await navigation.locator('select').inputValue(), String(usedLayers[1]));
+    await previous.click();
+    assert.equal(await navigation.locator('select').inputValue(), String(usedLayers[0]));
 
-    for (let y = 0; y < 6; y += 1) {
+    for (const [index, y] of usedLayers.entries()) {
       await navigation.locator('select').selectOption(String(y));
-      const card = layers.nth(y);
+      assert.equal(await navigation.locator('[aria-live="polite"]').innerText(), `${index + 1} / ${usedLayers.length}`);
+      const card = layers.nth(index);
       assert.ok(await card.isVisible(), `Layer ${y + 1} must be accessible`);
       const buttons = card.getByRole('grid').getByRole('button');
-      assert.equal(await buttons.count(), 64);
+      assert.equal(await buttons.count(), pixel.grid.x * pixel.grid.z);
       const labels = await buttons.evaluateAll((items) => items.map((item) => item.getAttribute('aria-label')));
       for (const label of labels.filter((item) => /, (target|cible)$/.test(item))) {
         const [, x, z] = label.match(/x(\d+) z(\d+)/);
         renderedKeys.add(`${Number(x) - 1}:${y}:${Number(z) - 1}`);
       }
       if (width < 640) {
-        for (let other = 0; other < 6; other += 1) {
-          assert.equal(await layers.nth(other).isVisible(), other === y);
+        for (let other = 0; other < usedLayers.length; other += 1) {
+          assert.equal(await layers.nth(other).isVisible(), other === index);
         }
       }
     }
+    assert.equal(await next.isDisabled(), true);
     assert.deepEqual(renderedKeys, serverKeys, 'Every frontend target must match server evaluation');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal overflow');
 
@@ -84,9 +98,9 @@ async function testCrossBridge(locale, width, disableWebgl) {
         await page.locator('[class*="modelSidebarViewport"]').screenshot({ path: path.join(artifactDir, `cross-bridge-${locale}-${width}-model.png`) });
       }
     }
-    if (artifactDir) await page.screenshot({ path: path.join(artifactDir, `cross-bridge-${locale}-${width}-${disableWebgl ? '2d' : '3d'}.png`), fullPage: true });
+    if (artifactDir) await page.screenshot({ path: path.join(artifactDir, `${templateId}-${locale}-${width}-${disableWebgl ? '2d' : '3d'}.png`), fullPage: true });
 
-    for (let y = 0; y < 6; y += 1) {
+    for (const [index, y] of usedLayers.entries()) {
       await navigation.locator('select').selectOption(String(y));
       for (const key of serverKeys) {
         const [x, layer, z] = key.split(':').map(Number);
@@ -94,10 +108,10 @@ async function testCrossBridge(locale, width, disableWebgl) {
         const label = locale === 'en'
           ? `Layer ${y + 1}, cell x${x + 1} z${z + 1}, target`
           : `Couche ${y + 1}, case x${x + 1} z${z + 1}, cible`;
-        await layers.nth(y).getByRole('button', { name: label, exact: true }).click();
+        await layers.nth(index).getByRole('button', { name: label, exact: true }).click();
       }
     }
-    const expectedPlacements = 48;
+    const expectedPlacements = expectedCount;
     const deadline = Date.now() + 5000;
     while (fixture.receivedEvents.filter((event) => event.type === 'pixel.cube.place').length < expectedPlacements && Date.now() < deadline) {
       await page.waitForTimeout(50);
@@ -107,12 +121,37 @@ async function testCrossBridge(locale, width, disableWebgl) {
     for (const { payload: cube } of placements) pixel.cubes[`${cube.x}:${cube.y}:${cube.z}`] = cube;
     rebuildPixelCounters(pixel);
     assert.equal(pixel.evaluation.perfect_match, true);
-    assert.equal(pixel.remaining_cubes, 2);
+    assert.equal(pixel.remaining_cubes, pixel.max_cubes - expectedCount);
     fixture.replaceState({ config, timer, pixel });
     await page.locator('[class*="layerQuickCellCorrect"]').first().waitFor({ state: 'attached' });
-    assert.equal(await page.locator('[class*="layerQuickCellCorrect"]').count(), 48);
+    assert.equal(await page.locator('[class*="layerQuickCellCorrect"]').count(), expectedCount);
+
+    // Existing mistakes on otherwise unused layers must remain removable.
+    const extraLayer = pixel.grid.y - 1;
+    pixel.cubes[`0:${extraLayer}:0`] = { x: 0, y: extraLayer, z: 0, color: pixel.palette[0] };
+    rebuildPixelCounters(pixel);
+    fixture.replaceState({ config, timer, pixel });
+    await navigation.locator(`option[value="${extraLayer}"]`).waitFor({ state: 'attached' });
+    await next.click();
+    assert.equal(await navigation.locator('select').inputValue(), String(extraLayer));
+    await layers.last().getByRole('button', { name: /x1 z1,/ }).click();
+    const removalDeadline = Date.now() + 5000;
+    while (!fixture.receivedEvents.some((event) => event.type === 'pixel.cube.remove') && Date.now() < removalDeadline) {
+      await page.waitForTimeout(50);
+    }
+    assert.ok(fixture.receivedEvents.some((event) => event.type === 'pixel.cube.remove' && event.payload.y === extraLayer));
+    delete pixel.cubes[`0:${extraLayer}:0`];
+    rebuildPixelCounters(pixel);
+    fixture.replaceState({ config, timer, pixel });
+    await navigation.locator(`option[value="${extraLayer}"]`).waitFor({ state: 'detached' });
+    assert.equal(await navigation.locator('select').inputValue(), String(usedLayers[0]));
+
+    pixel.mode = 'creatif';
+    fixture.replaceState({ config, timer, pixel });
+    await navigation.locator(`option[value="${extraLayer}"]`).waitFor({ state: 'attached' });
+    assert.equal(await layers.count(), pixel.grid.y);
     assert.deepEqual(errors, []);
-    console.log(`PASS Cross Bridge ${locale} ${width}px ${disableWebgl ? 'without WebGL' : '3D'}: 48 targets, placements and perfect evaluation`);
+    console.log(`PASS ${templateId} ${locale} ${width}px ${disableWebgl ? 'without WebGL' : '3D'}: ${expectedCount} targets, useful layers, navigation, cleanup and creative mode`);
   } catch (error) {
     console.error(`FAIL ${locale} ${width}px: ${page.url()}`, errors);
     console.error((await page.locator('body').innerText()).slice(0, 2500));
@@ -126,6 +165,7 @@ try {
   for (const [locale, width] of [['fr', 1440], ['en', 390]]) {
     await testCrossBridge(locale, width, false);
     await testCrossBridge(locale, width, true);
+    await testCrossBridge(locale, width, true, 'tour_signal');
   }
 } finally {
   await browser.close();

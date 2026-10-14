@@ -693,15 +693,65 @@
   margin: 12px 0;
 }
 
-.layerNavigation select {
+.activeLayerControl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--ch-accent);
+  border-radius: 14px;
+  background: var(--ch-surface-2);
+}
+
+.activeLayerLabel {
+  grid-column: 1 / -1;
+  color: var(--ch-text-soft);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.activeLayerCount {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--ch-accent);
+  color: var(--ch-bg-1);
+  font-size: 0.9rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.layerNavigation .activeLayerControl select {
   min-height: 44px;
+  padding: 6px 10px;
   background: var(--ch-surface-1);
   color: var(--ch-text-main);
   border: 1px solid var(--ch-line-soft);
   border-radius: 8px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.activeLayerControl select:focus-visible {
+  outline: 2px solid var(--ch-accent);
+  outline-offset: 3px;
 }
 
 @media (max-width: 640px) {
+  .layerNavigation {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .activeLayerControl {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: center;
+  }
+
   .layerQuickCard[data-active-layer='false'] {
     display: none;
   }

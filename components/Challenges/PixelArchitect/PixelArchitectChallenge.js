@@ -303,8 +303,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   const grid = useMemo(() => normalizeGrid(pixel, selectedTemplate), [pixel, selectedTemplate]);
   const gridSize = Math.max(grid.x, grid.z);
-  const layers = useMemo(() => Array.from({ length: grid.y }, (_, index) => index), [grid.y]);
-  const safeLayer = Math.max(0, Math.min(activeLayer, Math.max(0, grid.y - 1)));
 
   const palette = useMemo(() => {
     const fromPixel = Array.isArray(pixel?.palette) ? pixel.palette : [];
@@ -324,6 +322,14 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   );
 
   const serverCubes = useMemo(() => normalizeServerCubes(pixel?.cubes), [pixel?.cubes]);
+  const layers = useMemo(() => {
+    const allLayers = Array.from({ length: grid.y }, (_, index) => index);
+    if (pixel?.mode === 'creatif') return allLayers;
+    const usedLayers = new Set([...targetCells, ...serverCubes].map((cell) => cell.y));
+    return allLayers.filter((layer) => usedLayers.has(layer));
+  }, [grid.y, pixel?.mode, serverCubes, targetCells]);
+  const activeLayerIndex = Math.max(0, layers.indexOf(activeLayer));
+  const safeLayer = layers[activeLayerIndex] ?? 0;
   const cubesByKey = useMemo(() => {
     const map = new Map();
     serverCubes.forEach((cube) => {
@@ -393,10 +399,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }, [selectedColor]);
 
   useEffect(() => {
-    if (activeLayer > Math.max(0, grid.y - 1)) {
-      setActiveLayer(Math.max(0, grid.y - 1));
+    if (activeLayer !== safeLayer) {
+      setActiveLayer(safeLayer);
     }
-  }, [activeLayer, grid.y]);
+  }, [activeLayer, safeLayer]);
 
   useEffect(() => {
     canInteractRef.current = canBuild;
@@ -1232,14 +1238,17 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 </div>
 
                 <div className={styles.layerNavigation} role="group" aria-label={isEn ? 'Layer navigation' : 'Navigation des couches'}>
-                  <button type="button" className={styles.btnSecondary} disabled={safeLayer === 0} onClick={() => setActiveLayer(safeLayer - 1)}>{isEn ? 'Previous layer' : 'Couche précédente'}</button>
-                  <label>
-                    {isEn ? 'Active layer' : 'Couche active'}{' '}
+                  <button type="button" className={styles.btnSecondary} disabled={activeLayerIndex === 0} onClick={() => setActiveLayer(layers[activeLayerIndex - 1])}>{isEn ? 'Previous layer' : 'Couche précédente'}</button>
+                  <label className={styles.activeLayerControl}>
+                    <span className={styles.activeLayerLabel}>{isEn ? 'Active layer' : 'Couche active'}</span>
                     <select value={safeLayer} onChange={(event) => setActiveLayer(Number(event.target.value))}>
-                      {layers.map((layer) => <option key={layer} value={layer}>{layer + 1} / {layers.length}</option>)}
+                      {layers.map((layer) => <option key={layer} value={layer}>{isEn ? 'Layer' : 'Couche'} {layer + 1}</option>)}
                     </select>
+                    <span className={styles.activeLayerCount} aria-live="polite" aria-atomic="true">
+                      {activeLayerIndex + 1} / {layers.length}
+                    </span>
                   </label>
-                  <button type="button" className={styles.btnSecondary} disabled={safeLayer === layers.length - 1} onClick={() => setActiveLayer(safeLayer + 1)}>{isEn ? 'Next layer' : 'Couche suivante'}</button>
+                  <button type="button" className={styles.btnSecondary} disabled={activeLayerIndex === layers.length - 1} onClick={() => setActiveLayer(layers[activeLayerIndex + 1])}>{isEn ? 'Next layer' : 'Couche suivante'}</button>
                 </div>
                 <div className={styles.layerQuickList}>
                   {liveLayerBoards.map(({ layer, rows }) => {
