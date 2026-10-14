@@ -456,13 +456,6 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     return list.slice(0, 10);
   }, [participantRows, participantMap]);
 
-  const phaseSummary = useMemo(() => ({
-    problems: Number(stats.problems_total || problemList.length || 0),
-    solutions: Number(stats.solutions_total || solutionList.length || 0),
-    contributions: Number(stats.contributions_total || contributionList.length || 0),
-    votes: Number(stats.votes_total || 0),
-  }), [contributionList.length, problemList.length, solutionList.length, stats]);
-
   const topContributorNames = Array.isArray(stats.top_contributors) ? stats.top_contributors.map((item) => {
     const id = String(item?.participant_id || '').trim();
     return participantMap.get(id) || item?.participant_name || 'Participant';
@@ -578,10 +571,9 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               <section className={styles.card} data-debrief-content={isDebrief || undefined}>
                 <div className={styles.phaseHeader}>
                   <div>
-                    <p className={styles.phaseKicker}>{getPhaseLabel(locale, currentPhase)}</p>
                     <h2 className={styles.phaseTitle}>{isDebrief ? (isEn ? 'Team debrief' : 'Débrief équipe') : getPhaseTitle(locale, currentPhase)}</h2>
                     {!isDebrief ? <p className={styles.phaseGuidance}>{getPhaseGuidance(locale, currentPhase)}</p> : null}
-                    {isFacilitator ? <p className={styles.metaLine}>{isEn ? 'Facilitator mode: observation only.' : 'Mode facilitateur : observation uniquement.'}</p> : null}
+                    {isFacilitator ? <p className={styles.facilitatorNote}>{isEn ? 'Facilitator mode: observation only.' : 'Mode facilitateur : observation uniquement.'}</p> : null}
                   </div>
                 </div>
 
@@ -594,16 +586,6 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                   ))}
                 </div> : null}
                 {!isDebrief ? <>
-                  <div className={styles.phaseStatsRow} role="group" aria-label={isEn ? 'Live challenge progress' : 'Progression du challenge'}>
-                    <span className={styles.phaseStat}>
-                      <strong>{problemList.length + solutionList.length + contributionList.length}</strong>
-                      <span>{isEn ? 'Shared contributions' : 'Contributions partagées'}</span>
-                    </span>
-                    <span className={styles.phaseStat}>
-                      <strong>{phaseSummary.votes}</strong>
-                      <span>{isEn ? 'Votes cast' : 'Votes exprimés'}</span>
-                    </span>
-                  </div>
                   {currentPhase === 'problem' || currentPhase === 'solution' ? (
                     <p className={styles.voteGuidance}>
                       {currentPhase === 'problem'
@@ -832,7 +814,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
           ) : null}
 
           <section className={styles.card}>
-            <h2 className={styles.sectionTitle}>{isDebrief ? (isEn ? 'Final ranking' : 'Classement final') : (isEn ? 'Live leaderboard' : 'Classement live')}</h2>
+            <h2 className={styles.sectionTitle}>{isDebrief ? (isEn ? 'Final ranking' : 'Classement final') : (isEn ? 'Live leaderboard' : 'Classement en direct')}</h2>
             <div className={styles.leaderboardGrid}>
               {rankedParticipants.map((entry, index) => (
                 <article key={entry.participant_id || entry.id || index} className={styles.leaderboardCard}>
