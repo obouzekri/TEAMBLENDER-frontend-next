@@ -7,7 +7,11 @@ export async function generateMetadata() {
   const cookieStore = await cookies();
   const isEn = String(cookieStore.get('tb_locale')?.value || 'fr').toLowerCase() === 'en';
   return {
-    title: isEn ? 'Create account | TeamBlender' : 'Créer un compte | TeamBlender',
+    title: isEn ? 'Create account' : 'Créer un compte',
+    robots: {
+      index: false,
+      follow: true,
+    },
   };
 }
 
@@ -20,4 +24,3 @@ export default function SignupPage() {
     </>
   );
 }
-

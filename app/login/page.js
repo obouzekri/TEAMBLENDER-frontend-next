@@ -7,7 +7,11 @@ export async function generateMetadata() {
   const cookieStore = await cookies();
   const isEn = String(cookieStore.get('tb_locale')?.value || 'fr').toLowerCase() === 'en';
   return {
-    title: isEn ? 'Login | TeamBlender' : 'Connexion | TeamBlender',
+    title: isEn ? 'Login' : 'Connexion',
+    robots: {
+      index: false,
+      follow: true,
+    },
   };
 }
 
@@ -31,4 +35,3 @@ export default async function LoginPage({ searchParams }) {
     </>
   );
 }
-

@@ -4,12 +4,16 @@ export default function sitemap() {
   const baseUrl = getPublicSiteOrigin();
   const now = new Date();
 
-  const routes = ['/', '/pricing', '/contact', '/login', '/signup', '/cgu', '/mentions-legales', '/politique-confidentialite'];
+  const routes = [
+    { path: '/', changeFrequency: 'weekly', priority: 1.0 },
+    { path: '/pricing', changeFrequency: 'weekly', priority: 0.9 },
+    { path: '/contact', changeFrequency: 'monthly', priority: 0.7 },
+  ];
 
-  return routes.map((route) => ({
-    url: `${baseUrl}${route}`,
+  return routes.map(({ path, changeFrequency, priority }) => ({
+    url: `${baseUrl}${path}`,
     lastModified: now,
-    changeFrequency: route === '/' || route === '/pricing' ? 'weekly' : 'monthly',
-    priority: route === '/' ? 1.0 : route === '/pricing' ? 0.9 : 0.6,
+    changeFrequency,
+    priority,
   }));
 }

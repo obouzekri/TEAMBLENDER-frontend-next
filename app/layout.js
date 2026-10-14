@@ -18,6 +18,9 @@ export const metadata = {
   },
   description:
     'Rapprochez vos équipes autour de défis à vivre en direct, sur site ou à distance, et repartez avec des résultats concrets pour le débrief.',
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     title: 'TeamBlender | Défis d’équipe pour managers et RH',
     description:

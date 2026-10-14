@@ -6,7 +6,11 @@ export async function generateMetadata() {
   const cookieStore = await cookies();
   const isEn = String(cookieStore.get('tb_locale')?.value || 'fr').toLowerCase() === 'en';
   return {
-    title: isEn ? 'Verify your email | TeamBlender' : 'Vérifier votre email | TeamBlender',
+    title: isEn ? 'Verify your email' : 'Vérifier votre email',
+    robots: {
+      index: false,
+      follow: true,
+    },
   };
 }
 

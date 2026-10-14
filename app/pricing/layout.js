@@ -3,9 +3,12 @@ import { getSocialPreviewImage } from '@/lib/siteMetadata';
 const socialPreviewImage = getSocialPreviewImage();
 
 export const metadata = {
-  title: 'Tarifs des défis TeamBlender',
+  title: 'Tarifs des défis de team building',
   description:
     'Découvrez des offres TeamBlender adaptées aux managers et RH\u00A0: démarrez avec un essai gratuit de 14 jours, puis évoluez selon vos besoins.',
+  alternates: {
+    canonical: '/pricing',
+  },
   openGraph: {
     title: 'Tarifs TeamBlender',
     description:

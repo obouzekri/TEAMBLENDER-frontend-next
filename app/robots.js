@@ -7,6 +7,17 @@ export default function robots() {
     rules: {
       userAgent: '*',
       allow: '/',
+      disallow: [
+        '/account',
+        '/admin',
+        '/challenges',
+        '/home',
+        '/participant',
+        '/preferences',
+        '/session-builder',
+        '/session-live',
+        '/session-results',
+      ],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   };
