@@ -396,7 +396,7 @@ export default function MissionCritiqueChallenge({
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
-          title={isEn ? 'Timer' : 'Chrono'}
+          title={isEn ? 'Timer' : 'Minuteur'}
           remainingSeconds={timerRemainingSeconds}
           durationSeconds={timerDurationSeconds}
           status={timerState}
@@ -830,7 +830,7 @@ export default function MissionCritiqueChallenge({
         <aside className={styles.sidebar}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
-              title={isEn ? 'Timer' : 'Chrono'}
+              title={isEn ? 'Timer' : 'Minuteur'}
               remainingSeconds={timerRemainingSeconds}
               durationSeconds={timerDurationSeconds}
               status={timerState}

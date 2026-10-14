@@ -296,7 +296,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
-          title={isEn ? 'Timer' : 'Chrono'}
+          title={isEn ? 'Timer' : 'Minuteur'}
           remainingSeconds={Number(timer?.remaining_seconds || 0)}
           durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
           status={timerStatus}
@@ -488,7 +488,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
         <aside className={styles.sidePanel}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
-              title={isEn ? 'Timer' : 'Chrono'}
+              title={isEn ? 'Timer' : 'Minuteur'}
               remainingSeconds={Number(timer?.remaining_seconds || 0)}
               durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
               status={timerStatus}

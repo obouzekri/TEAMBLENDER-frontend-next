@@ -1078,7 +1078,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
-          title={isEn ? 'Timer' : 'Chrono'}
+          title={isEn ? 'Timer' : 'Minuteur'}
           remainingSeconds={Number(timer?.remaining_seconds || 0)}
           durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
           status={String(timer?.status || 'idle')}
@@ -1370,7 +1370,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         <aside className={styles.sidebar}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
-              title={isEn ? 'Timer' : 'Chrono'}
+              title={isEn ? 'Timer' : 'Minuteur'}
               remainingSeconds={Number(timer?.remaining_seconds || 0)}
               durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
               status={String(timer?.status || 'idle')}

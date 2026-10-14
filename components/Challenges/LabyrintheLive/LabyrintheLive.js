@@ -766,7 +766,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
-          title={isEn ? 'Timer' : 'Chrono'}
+          title={isEn ? 'Timer' : 'Minuteur'}
           remainingSeconds={Number(timer?.remaining_seconds || 0)}
           durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || runtimePayload?.config?.timer_seconds || 300)}
           status={String(timer?.status || 'idle')}
@@ -1057,7 +1057,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         <aside className={styles.sideStack}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
-              title={isEn ? 'Timer' : 'Chrono'}
+              title={isEn ? 'Timer' : 'Minuteur'}
               remainingSeconds={Number(timer?.remaining_seconds || 0)}
               durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || runtimePayload?.config?.timer_seconds || 300)}
               status={String(timer?.status || 'idle')}

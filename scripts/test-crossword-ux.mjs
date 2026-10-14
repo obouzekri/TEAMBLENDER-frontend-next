@@ -191,14 +191,14 @@ try {
         assert.equal(await page.getByRole('button', { name: currentLocale === 'en' ? 'Start game' : 'Démarrer la partie', exact: true }).count(), 0);
         assert.equal(await page.locator('.timerColumn').count(), 1, 'Timer column is shown after server confirmation');
         assert.equal(await page.locator('.headerTimer').count(), 0, 'No duplicate timer in the header');
-        assert.equal(await page.locator('[role="timer"]').count(), 1, 'Only one compact timer');
-        assert.equal(await page.locator('progress, [role="progressbar"], .progressCard, .timerRing').count(), 0, 'No progress bar or decorative timer ring');
+        assert.equal(await page.getByRole('timer').count(), 1, 'Only one visible timer');
+        assert.equal(await page.locator('.timerRing').count(), 1, 'Timer uses the shared circular display');
         await page.getByRole('status').filter({ hasText: currentLocale === 'en' ? '1/2 words found' : '1/2 mots trouvés' }).waitFor();
         const timerBounds = await page.locator('.timerColumn').boundingBox();
         const arenaBounds = await page.locator('.arenaColumn').boundingBox();
         if (width > 960) {
           assert.ok(arenaBounds.x + arenaBounds.width <= timerBounds.x, 'Timer is right of the arena on desktop');
-          assert.equal(Math.round(timerBounds.width), 160, 'Timer column has a fixed compact width');
+          assert.equal(Math.round(timerBounds.width), 240, 'Timer column has room for the shared timer card');
           const boardBounds = await page.locator('.boardPanel').boundingBox();
           const clueBounds = await page.locator('.clueLists').boundingBox();
           const ratio = boardBounds.width / (boardBounds.width + clueBounds.width);
@@ -499,7 +499,7 @@ try {
   await page.waitForFunction(() => hookValue.state?.timer?.status === 'completed');
   assert.equal(await page.evaluate(() => completed.length), 1);
   assert.deepEqual(errors, []);
-  console.log('PASS crossword rules-first/server-confirmed arena, facilitator/participant FR/EN mobile/tablet/desktop, compact right timer, 70/30 board/clues, word count without progress bars, shared rules dialog and final review, normalization, correlated answers/errors, cooldown, saved drafts, auto-advance, keyboard/clue scrolling, 15x15 light/dark contrast >=4.5, no page overflow, config and realtime completion');
+  console.log('PASS crossword rules-first/server-confirmed arena, facilitator/participant FR/EN mobile/tablet/desktop, shared circular right timer, 70/30 board/clues, word count without progress bars, shared rules dialog and final review, normalization, correlated answers/errors, cooldown, saved drafts, auto-advance, keyboard/clue scrolling, 15x15 light/dark contrast >=4.5, no page overflow, config and realtime completion');
 } finally {
   await browser.close();
 }

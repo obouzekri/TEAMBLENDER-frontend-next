@@ -240,7 +240,7 @@ export default function EscapeRoomChallenge({
             answersReceived: '{responded}/{total} reponses recues',
             answerPlaceholder: 'Saisissez votre proposition...',
             submit: 'Soumettre',
-            timerTitle: 'Chrono',
+            timerTitle: 'Minuteur',
             unlockHint: 'Débloquer un indice',
             skipRiddle: "Passer l'énigme",
             chatTitle: 'Chat',

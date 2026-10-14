@@ -31,7 +31,7 @@
 .sectionHeading { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
 .wordCount { color: var(--ink-soft); font-size: .875rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .help, .validation, .scores small, .activity span { color: var(--ink-soft); font-size: .875rem; }
-.challengeLayout { display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: var(--space-4); align-items: start; }
+.challengeLayout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: var(--space-4); align-items: start; }
 .timerColumn { min-width: 0; position: sticky; top: calc(var(--header-height, 64px) + 8px); }
 .arenaColumn { display: grid; gap: var(--space-4); min-width: 0; }
 .singleColumnLayout { grid-template-columns: minmax(0, 1fr); }
