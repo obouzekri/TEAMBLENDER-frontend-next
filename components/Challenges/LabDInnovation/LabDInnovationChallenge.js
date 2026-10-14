@@ -197,7 +197,9 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   const [finalVoteId, setFinalVoteId] = useState('');
   const [reactionMap, setReactionMap] = useState({});
   const [pendingSubmission, setPendingSubmission] = useState(null);
+  const [pendingVote, setPendingVote] = useState(null);
   const [submissionFeedback, setSubmissionFeedback] = useState('');
+  const [voteFeedback, setVoteFeedback] = useState('');
   const lastPhaseRef = useRef('');
 
   const rawParticipantsOrder = Array.isArray(challenge?.participants_order) ? challenge.participants_order : [];
@@ -260,7 +262,27 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   const visibleProblems = useMemo(() => sortByVotesAndAge(topProblems).slice(0, 4), [topProblems]);
   const visibleSolutions = useMemo(() => sortByVotesAndAge(solutionList).slice(0, 3), [solutionList]);
   const textLimit = Math.max(50, Math.min(500, Number(challenge.config?.limits?.text_max_length) || 200));
-  const canParticipate = !isFacilitator && connected && (timer.enabled === false || normalizedTimerStatus === 'running') && !pendingSubmission;
+  const problemVoteLimit = Math.max(1, Number(challenge.config?.limits?.max_problem_votes_per_participant) || 2);
+  const solutionVoteLimit = Math.max(1, Number(challenge.config?.limits?.max_solution_votes_per_participant) || 2);
+  const votedProblemIds = useMemo(() => {
+    const ids = Array.isArray(challenge.problem_votes_by_participant?.[me])
+      ? challenge.problem_votes_by_participant[me].map(String)
+      : [];
+    problemList.forEach((item) => {
+      if (Array.isArray(item.votes) && item.votes.map(String).includes(me)) ids.push(String(item.id));
+    });
+    return new Set(ids);
+  }, [challenge.problem_votes_by_participant, me, problemList]);
+  const votedSolutionIds = useMemo(() => {
+    const ids = Array.isArray(challenge.solution_votes_by_participant?.[me])
+      ? challenge.solution_votes_by_participant[me].map(String)
+      : [];
+    solutionList.forEach((item) => {
+      if (Array.isArray(item.votes) && item.votes.map(String).includes(me)) ids.push(String(item.id));
+    });
+    return new Set(ids);
+  }, [challenge.solution_votes_by_participant, me, solutionList]);
+  const canParticipate = !isFacilitator && connected && (timer.enabled === false || normalizedTimerStatus === 'running') && !pendingSubmission && !pendingVote;
   const problemValid = Boolean(clampText(problemText));
   const solutionValid = Boolean(clampText(solutionText) && visibleProblems.some((item) => String(item.id) === selectedProblemId));
   const contributionValid = Boolean(finalistSolutions.some((item) => String(item.id) === selectedSolutionId)
@@ -296,6 +318,34 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     return () => window.clearTimeout(timeout);
   }, [pendingSubmission, problemList, solutionList, contributionList, challenge.final_votes, me, error, currentPhase, isEn]);
 
+  useEffect(() => {
+    if (!pendingVote) return;
+    const rows = pendingVote.type === 'problem' ? problemList : solutionList;
+    const votesByParticipant = pendingVote.type === 'problem'
+      ? challenge.problem_votes_by_participant
+      : challenge.solution_votes_by_participant;
+    const participantVotes = votesByParticipant?.[me];
+    const acknowledged = rows.some((item) => String(item.id) === pendingVote.id
+      && Array.isArray(item.votes)
+      && item.votes.map(String).includes(me))
+      || (Array.isArray(participantVotes) && participantVotes.map(String).includes(pendingVote.id));
+    if (acknowledged) {
+      setPendingVote(null);
+      setVoteFeedback(isEn ? 'Vote confirmed by the server.' : 'Vote confirmé par le serveur.');
+      return;
+    }
+    if ((error && error !== pendingVote.previousError) || currentPhase !== pendingVote.phase) {
+      setPendingVote(null);
+      setVoteFeedback(error || (isEn ? 'The phase changed before your vote was confirmed.' : 'La phase a changé avant la confirmation de votre vote.'));
+      return;
+    }
+    const timeout = window.setTimeout(() => {
+      setPendingVote(null);
+      setVoteFeedback(isEn ? 'No confirmation received. Check the vote count before trying again.' : 'Aucune confirmation reçue. Vérifiez le nombre de votes avant de réessayer.');
+    }, Math.max(0, pendingVote.sentAt + 15000 - Date.now()));
+    return () => window.clearTimeout(timeout);
+  }, [pendingVote, problemList, solutionList, challenge.problem_votes_by_participant, challenge.solution_votes_by_participant, me, error, currentPhase, isEn]);
+
   function submit(type, eventType, payload) {
     if (!canParticipate) {
       setSubmissionFeedback(isEn ? 'Submission unavailable: check the connection and current phase.' : 'Envoi indisponible : vérifiez la connexion et la phase en cours.');
@@ -311,6 +361,8 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
       // Keep the automatic phase transition visible with a clean state change.
       setSelectedProblemId('');
       setSelectedSolutionId('');
+      setPendingVote(null);
+      setVoteFeedback('');
     }
     lastPhaseRef.current = currentPhase;
   }, [currentPhase]);
@@ -353,11 +405,21 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   }
 
   function castProblemVote(problemId) {
-    emit('lab.problem.vote', { problem_id: problemId });
+    castVote('problem', problemId, 'lab.problem.vote', { problem_id: problemId });
   }
 
   function castSolutionVote(solutionId) {
-    emit('lab.solution.vote', { solution_id: solutionId });
+    castVote('solution', solutionId, 'lab.solution.vote', { solution_id: solutionId });
+  }
+
+  function castVote(type, id, eventType, payload) {
+    if (!canParticipate) return;
+    setVoteFeedback('');
+    const sent = emitEvent(eventType, payload);
+    if (sent) {
+      setPendingVote({ type, id, phase: currentPhase, sentAt: Date.now(), previousError: error });
+      setVoteFeedback(isEn ? 'Vote sent. Waiting for confirmation...' : 'Vote envoyé. En attente de confirmation...');
+    }
   }
 
   function castFinalVote() {
@@ -409,6 +471,35 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   function startChallenge() {
     refreshChallengeStateBeforeStart(emitEvent);
     emitEvent('timer.start');
+  }
+
+  function renderVoteButton(type, item, votedIds, voteLimit) {
+    const isProblem = type === 'problem';
+    const ownProposal = String(item.participant_id || '') === me;
+    const hasVoted = votedIds.has(String(item.id));
+    const limitReached = votedIds.size >= voteLimit;
+    const waitingForThisVote = pendingVote?.type === type && pendingVote.id === String(item.id);
+    const label = ownProposal
+      ? (isEn ? (isProblem ? 'Your proposal' : 'Your solution') : (isProblem ? 'Votre proposition' : 'Votre solution'))
+      : hasVoted
+        ? (isEn ? 'Voted' : 'Déjà votée')
+        : waitingForThisVote
+          ? (isEn ? 'Sending...' : 'Envoi...')
+          : limitReached
+            ? (isEn ? 'Limit reached' : 'Limite atteinte')
+            : (isEn ? 'Vote' : 'Voter');
+    return (
+      <button
+        type="button"
+        className={`${styles.ghostBtn}${hasVoted ? ` ${styles.voteRecorded}` : ''}`}
+        disabled={!canParticipate || ownProposal || hasVoted || limitReached}
+        onClick={() => (isProblem ? castProblemVote(String(item.id)) : castSolutionVote(String(item.id)))}
+        aria-pressed={hasVoted}
+        aria-label={`${label} : ${clampText(item.text, 120)}`}
+      >
+        {label}
+      </button>
+    );
   }
 
   const statisticsCard = hasChallengeStarted ? (
@@ -513,6 +604,17 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                       <span>{isEn ? 'Votes cast' : 'Votes exprimés'}</span>
                     </span>
                   </div>
+                  {currentPhase === 'problem' || currentPhase === 'solution' ? (
+                    <p className={styles.voteGuidance}>
+                      {currentPhase === 'problem'
+                        ? (isEn
+                          ? `${Math.max(0, problemVoteLimit - votedProblemIds.size)} of ${problemVoteLimit} votes remaining.`
+                          : `Votes restants : ${Math.max(0, problemVoteLimit - votedProblemIds.size)} sur ${problemVoteLimit}.`)
+                        : (isEn
+                          ? `${Math.max(0, solutionVoteLimit - votedSolutionIds.size)} of ${solutionVoteLimit} votes remaining.`
+                          : `Votes restants : ${Math.max(0, solutionVoteLimit - votedSolutionIds.size)} sur ${solutionVoteLimit}.`)}
+                    </p>
+                  ) : null}
                   <p className={styles.phaseTransition} role="status">
                     {currentPhaseIndex < PHASE_ORDER.length - 1
                       ? `${isEn ? 'Next' : 'Ensuite'} : ${getPhaseLabel(locale, PHASE_ORDER[currentPhaseIndex + 1])} · ${isEn ? 'Starts automatically when time is up.' : 'Démarrage automatique à la fin du temps.'}`
@@ -521,6 +623,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                 </> : null}
                 {pendingSubmission ? <p role="status">{isEn ? 'Waiting for server confirmation...' : 'En attente de confirmation du serveur...'}</p> : null}
                 {submissionFeedback ? <p role="status">{submissionFeedback}</p> : null}
+                {voteFeedback ? <p className={styles.voteFeedback} role="status">{voteFeedback}</p> : null}
                 {!socket?.connected ? <p role="alert">{isEn ? 'Connection interrupted. Your draft is kept.' : 'Connexion interrompue. Votre brouillon est conservé.'}</p> : null}
                 {!isDebrief && timer.enabled !== false && normalizedTimerStatus !== 'running' ? <p role="status">{isEn ? 'Submissions are available only while the challenge is running.' : 'Les envois sont disponibles uniquement lorsque le challenge est en cours.'}</p> : null}
               </section>
@@ -552,7 +655,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                     </div>
                     <div className={styles.cardActions}>
                       <span className={styles.badge}>{Number(item.vote_count || 0)} {isEn ? 'votes' : 'votes'}</span>
-                      {!isFacilitator ? <button type="button" className={styles.ghostBtn} disabled={!canParticipate} onClick={() => castProblemVote(String(item.id))}>{isEn ? 'Vote' : 'Voter'}</button> : null}
+                      {!isFacilitator ? renderVoteButton('problem', item, votedProblemIds, problemVoteLimit) : null}
                     </div>
                   </article>
                 ))}
@@ -617,7 +720,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                     </div>
                     <div className={styles.cardActions}>
                       <span className={styles.badge}>{Number(item.vote_count || 0)} {isEn ? 'votes' : 'votes'}</span>
-                      {!isFacilitator ? <button type="button" className={styles.ghostBtn} disabled={!canParticipate} onClick={() => castSolutionVote(String(item.id))}>{isEn ? 'Vote' : 'Voter'}</button> : null}
+                      {!isFacilitator ? renderVoteButton('solution', item, votedSolutionIds, solutionVoteLimit) : null}
                     </div>
                   </article>
                 ))}
