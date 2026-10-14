@@ -1498,8 +1498,12 @@ export default function SessionBuilder() {
   function renderObjectiveField(value, onChange, id) {
     const selectedObjectives = parseSessionObjectives(normalizeSessionObjectiveValue(value));
     return (
-      <fieldset id={id} className={styles.objectiveField} aria-describedby={`${id}-hint`}>
-        <legend>{t('sessionBuilder.objective')}</legend>
+      <div className={styles.objectiveSection}>
+        <div className={styles.fieldTitleBlock}>
+          <span className={styles.fieldTitle}>{t('sessionBuilder.objective')}</span>
+          <small id={`${id}-hint`}>{t('sessionBuilder.objectiveHint')}</small>
+        </div>
+        <fieldset id={id} className={styles.objectiveField} aria-describedby={`${id}-hint`} aria-label={t('sessionBuilder.objective')}>
         <div className={styles.objectiveChoices}>
           {SESSION_OBJECTIVES.map((key) => (
             <label key={key} className={styles.objectiveChoice}>
@@ -1518,8 +1522,8 @@ export default function SessionBuilder() {
             </label>
           ))}
         </div>
-        <small id={`${id}-hint`}>{t('sessionBuilder.objectiveHint')}</small>
-      </fieldset>
+        </fieldset>
+      </div>
     );
   }
 
@@ -1712,10 +1716,7 @@ export default function SessionBuilder() {
                           max="2147483647"
                           step="1"
                           label={(
-                            <span className={styles.expectedCountLabel}>
-                              <span>{t('sessionBuilder.expectedCount')}</span>
-                              <span className={styles.expectedCountOptional}>{t('sessionBuilder.optionalLabel')}</span>
-                            </span>
+                            <span className={styles.fieldTitle}>{t('sessionBuilder.expectedCount')}</span>
                           )}
                           value={expectedCount}
                           onChange={(event) => setExpectedCount(event.target.value)}
