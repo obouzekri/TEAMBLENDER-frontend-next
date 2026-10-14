@@ -13,7 +13,7 @@ export default function LandingBenefitsOrbit({ locale, fallback, platformBenefit
           </h3>
         </div>
       </div>
-      <div className="landing-benefits-orbit mt-6">
+      <div className="landing-benefits-orbit">
         <div className="landing-benefits-orbit__connections" aria-hidden="true">
           {[1, 2, 3, 4, 5].map((connection) => (
             <span
@@ -26,8 +26,8 @@ export default function LandingBenefitsOrbit({ locale, fallback, platformBenefit
           <div className="landing-benefits-orbit-center__halo" aria-hidden="true" />
           <strong>
             {locale === 'en'
-              ? 'One shared format to move teams forward.'
-              : 'Un format commun pour faire avancer l’équipe.'}
+              ? 'Move forward together.'
+              : 'Avancez ensemble.'}
           </strong>
         </div>
 
