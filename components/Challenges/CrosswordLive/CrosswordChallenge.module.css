@@ -35,7 +35,7 @@
 .challengeLayout { display: grid; grid-template-columns: minmax(200px, 240px) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
 .timerColumn { min-width: 0; position: sticky; top: calc(var(--header-height, 64px) + 8px); }
 .arenaColumn { display: grid; gap: var(--space-4); min-width: 0; }
-.finishedLayout { grid-template-columns: minmax(0, 1fr); }
+.singleColumnLayout { grid-template-columns: minmax(0, 1fr); }
 .playLayout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr); gap: var(--space-4); align-items: start; }
 .clueLists { display: grid; gap: var(--space-4); }
 .boardScroll { overflow: auto; max-height: 560px; padding: 6px; border-radius: var(--radius-sm); overscroll-behavior: contain; }

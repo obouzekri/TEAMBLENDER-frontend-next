@@ -29,7 +29,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 ### Mots croises Live
 
 - Un refus de lancement affiche un seul bandeau, sans alerte rouge en doublon. Il faut au moins 2 personnes connectees pour lancer; la limite de 5 participants assignes reste inchangee.
-- Avant le lancement, les regles et le bouton de demarrage du facilitateur remplacent l'arene. Les participants voient les regles et attendent le lancement confirme par le serveur.
+- Avant le lancement, les regles occupent toute la largeur disponible sur desktop et mobile, avec le bouton de demarrage du facilitateur a la place de l'arene. Les participants voient les regles et attendent le lancement confirme par le serveur.
 - Apres le lancement, la grille, les definitions et la progression apparaissent. Les regles restent consultables depuis l'en-tete.
 - Le chrono partage occupe la colonne gauche sur desktop et passe au-dessus du contenu sur mobile. Le bilan final retire le chrono et utilise toute la largeur.
 - Validation: `npm run test:ux:crossword` (Chrome disponible, sans serveur). La suite couvre le parcours regles/lancement/arene, les deux roles, FR/EN, les dispositions desktop/mobile et les interactions temps reel simulees.

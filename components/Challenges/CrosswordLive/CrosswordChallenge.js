@@ -331,7 +331,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
       <ChallengeActionFeedback feedback={error && error === controls.feedback?.message ? null : { ...controls.feedback, retry: null }} />
       {!connected && <p className={styles.notice} role="status">{copy.offline}</p>}
       {error && <p className={styles.notice} role="alert">{error}</p>}
-      <div className={`${styles.challengeLayout} ${finished ? styles.finishedLayout : ''}`} data-challenge-layout>
+      <div className={`${styles.challengeLayout} ${!started || finished ? styles.singleColumnLayout : ''}`} data-challenge-layout>
         {!finished && started && <aside className={styles.timerColumn}>
           <ChallengeTimerCard
             remainingSeconds={remaining} durationSeconds={timer.duration_seconds || config.timer?.duration_seconds || 900}
