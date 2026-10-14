@@ -96,10 +96,10 @@ export default function LandingHero({
             >
               <figure className="landing-hero-product-frame landing-hero-product-frame--interactive">
                 <Image
-                  src="/images/teamblender-collab-challenges-illustration.svg"
-                  alt="Illustration de défis collaboratifs engageants sur TeamBlender"
-                  width={1200}
-                  height={800}
+                  src="/images/teamblender-live-session.png"
+                  alt="Aperçu d’une session TeamBlender avec le défi CoPuzzle"
+                  width={1227}
+                  height={768}
                   priority
                   sizes="(max-width: 1024px) 90vw, 45vw"
                   className="landing-hero-product-image"

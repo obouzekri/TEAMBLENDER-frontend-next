@@ -31,14 +31,14 @@ export default function LandingPreviewModal({ locale, isOpen, onClose, fallback 
         </div>
         <p className="landing-preview-modal__copy">
           {locale === 'en'
-            ? 'A short looping preview keeps the interface readable on mobile, with a fullscreen tap when users want details.'
-            : 'Un aperçu animé court garde l’interface lisible sur mobile, avec un tap plein écran pour les détails.'}
+            ? 'Explore a TeamBlender session, from team instructions and timer to the reference image.'
+            : 'Découvrez une session TeamBlender, de la consigne d’équipe au minuteur et à l’image de référence.'}
         </p>
         <Image
-          src="/images/labyrinthe-hero.jpg"
-          alt="Interface TeamBlender Labyrinthe en session live collaborative"
-          width={1600}
-          height={1067}
+          src="/images/teamblender-live-session.png"
+          alt={locale === 'en' ? 'TeamBlender CoPuzzle team session' : 'Session d’équipe TeamBlender CoPuzzle'}
+          width={1227}
+          height={768}
           className="landing-preview-modal__image"
         />
       </div>
