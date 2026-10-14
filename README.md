@@ -11,8 +11,18 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 ### Sessions des participants
 
 - Les sessions assignees reprennent les styles partages des cartes de l'accueil: fond, bordure, ombre, titre, badges de statut et pied de carte, en clair comme en sombre.
+- Le titre de la session live et celui des cartes de l'accueil partagent le token `--session-title-color`, y compris avec le theme automatique. Validation: `node scripts/test-session-title-theme.mjs` (frontend sur 3100, Chrome disponible, API simulees; desktop/mobile et preferences clair/sombre/automatique).
 - Seules les sessions en cours proposent Rejoindre; l'attente du lancement et le rafraichissement automatique restent inchanges.
 - Validation: `node scripts/test-participant-session-cards.mjs` et `node scripts/smoke-participant.mjs --assigned-sessions-refresh` (frontend sur le port 3100, Chrome disponible). Les API sont simulees localement, sans modifier de session reelle.
+
+### Disposition des sessions en direct
+
+- Les vues animateur et challenge participant sont centrees et limitees a 1360 px. Le zoom du navigateur reste libre; une grande fenetre ou un dezoom laisse davantage d'espace autour du contenu.
+- L'en-tete de session et la grille CoPuzzle restent ancres en haut, sans repartir la hauteur libre dans les panneaux. Sur mobile, les controles et le jeu se reorganisent avec defilement vertical.
+- Validation: `npm run test:ux:session-layout` (frontend sur le port 3100, Chrome disponible). Les API et le temps reel sont simules localement. La suite couvre les deux roles, FR/EN, clair/sombre et des fenetres CSS de 320 a 2560 px de large et de 900 a 1800 px de haut pour reproduire l'espace disponible au dezoom.
+
+### Reprise participant
+
 - Reprise participant:
   - Apres un premier acces par code, la page de connexion peut proposer une reprise automatique sur le meme navigateur (acces memorise limite dans le temps).
   - Le participant peut generer un lien personnel de reprise depuis la navigation (`Conserver mon acces`) pour changer d appareil sans recreer de participation.

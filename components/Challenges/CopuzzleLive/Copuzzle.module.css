@@ -18,6 +18,7 @@
   --warn: #f2a640;
   font-family: var(--font-ui);
   display: grid;
+  align-content: start;
   gap: 14px;
   min-height: 100dvh;
   width: 100%;

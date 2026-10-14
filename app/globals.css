@@ -31,6 +31,7 @@
   --ambient-paper-base: #f6f8fc;
   --ambient-bg-light: none;
   --ink: #0f172a;
+  --session-title-color: var(--ink);
   --ink-soft: #3f4f6a;
   --accent: #2f62ff;
   --accent-strong: #1f46d2;
@@ -163,6 +164,7 @@
 
 /* Explicit dark theme toggle: full token set, aligned with the system block below */
 :root[data-theme="dark"] {
+  --session-title-color: #cbd8f2;
   --challenge-panel-bg: linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9));
   --bg: #081223;
   --bg-soft: #0b1630;
@@ -361,6 +363,10 @@
 
 
 @media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --session-title-color: #f2f6ff;
+  }
+
   :root:not([data-theme='light']) {
     --challenge-panel-bg: linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9));
     --bg: #081223;
@@ -1193,6 +1199,7 @@ html[data-theme='dark'] .admin-panel-card b {
 
 .session-live-shell {
   display: grid;
+  align-content: start;
   gap: 0.6rem;
   padding: 0.85rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
 }
@@ -11298,8 +11305,8 @@ html[data-theme='light'] .site-footer .footer-social__link {
 
 .session-live-shell--fullscreen {
   width: 100%;
-  max-width: none;
-  margin: 0;
+  max-width: 1360px;
+  margin-inline: auto;
   padding-inline: 8px;
   gap: 8px;
 }
@@ -13340,7 +13347,7 @@ html[data-theme='light'] .nav-toggle {
   font-size: 0.97rem;
   font-weight: 700;
   margin: 0 0 10px;
-  color: var(--ink);
+  color: var(--session-title-color);
   line-height: 1.35;
   letter-spacing: -0.01em;
 }
@@ -19904,7 +19911,7 @@ html[data-theme='light'] .psb {
   }
 
   :where(html:not([data-theme='light'])) .session-card-body .session-title{
-    color: #f2f6ff;
+    color: var(--session-title-color);
   }
 
   :where(html:not([data-theme='light'])) .session-card-body .session-meta,:where(html:not([data-theme='light'])) .session-card .session-meta{
@@ -20050,7 +20057,7 @@ html[data-theme='light'] .psb {
   }
 
   html[data-theme='dark'] .session-card-body .session-title{
-    color: #f2f6ff;
+    color: var(--session-title-color);
   }
 
   html[data-theme='dark'] .session-card-body .session-meta,
@@ -20399,7 +20406,7 @@ html[data-theme='dark'] .auth-remember-me{
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .team-empty,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-prerequisite-hint,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .participants-panel p,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-sessions-panel p {
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-sessions-panel p:not(.session-title) {
   color: #cbd8f2 !important;
 }
 

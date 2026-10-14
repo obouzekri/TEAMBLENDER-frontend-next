@@ -52,14 +52,10 @@
   flex: 0 1 auto;
   font-size: 1.12rem;
   font-weight: 800;
-  color: var(--text-strong);
+  color: var(--session-title-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-:global(:where(html:not([data-theme='light']))) .sessionName {
-  color: #f2f6ff;
 }
 
 .headerChallengeName {
