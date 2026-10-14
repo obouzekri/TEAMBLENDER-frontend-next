@@ -9,27 +9,35 @@ const sessions = [
   { id: 44, name: 'Not launched', status: 'preparee' },
 ];
 
-async function fixture(locale, width, recovery = false) {
+async function fixture(locale, width, recovery = false, authenticated = true) {
   const context = await browser.newContext({ viewport: { width, height: 900 } });
   const requests = [];
   const errors = [];
   const control = { active: false, runtimeFallback: false, listStatus: 200, malformed: false };
-  await context.addInitScript(({ locale, recovery }) => {
-    sessionStorage.setItem('jwt', 'navigation-fixture');
-    sessionStorage.setItem('currentUser', JSON.stringify({
-      id: 123, role: 'participant', name: 'Navigation Participant',
-      ...(recovery ? { recovery_session_id: 42 } : {}),
-    }));
+  await context.addInitScript(({ locale, recovery, authenticated }) => {
+    if (authenticated) {
+      sessionStorage.setItem('jwt', 'navigation-fixture');
+      sessionStorage.setItem('currentUser', JSON.stringify({
+        id: 123, role: 'participant', name: 'Navigation Participant',
+        ...(recovery ? { recovery_session_id: 42 } : {}),
+      }));
+    }
     localStorage.setItem('tb_locale_preference', locale);
     localStorage.setItem('teamblender-consent-state', JSON.stringify({
       decision: 'denied', policyVersion: '2026-06-07', updatedAt: new Date().toISOString(),
     }));
-  }, { locale, recovery });
+  }, { locale, recovery, authenticated });
   await context.route('**/*', async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname.includes('/api/')) {
       requests.push(url.pathname);
-      if (url.pathname.endsWith('/participants/me/sessions')) {
+      if (/\/auth\/(?:login|login-participant|join-participant)$/.test(url.pathname)) {
+        await route.fulfill({ json: {
+          token: 'navigation-fixture',
+          user: { id: 123, role: 'participant', name: 'Navigation Participant' },
+          sessionId: 42,
+        } });
+      } else if (url.pathname.endsWith('/participants/me/sessions')) {
         await route.fulfill({
           status: control.listStatus,
           json: control.malformed ? {} : recovery ? [sessions[0]] : sessions,
@@ -67,6 +75,35 @@ async function fixture(locale, width, recovery = false) {
 try {
   for (const locale of ['fr', 'en']) {
     for (const width of [390, 1440]) {
+      for (const mode of ['login', 'join']) {
+        const login = await fixture(locale, width, false, false);
+        try {
+          const { page, control, requests, errors } = login;
+          control.active = true;
+          await page.clock.install();
+          await page.goto(`${baseUrl}/${locale}/login?mode=${mode}&sessionId=42`);
+          if (mode === 'login') {
+            await page.locator('#login-email').fill('participant@example.test');
+            await page.locator('#login-password').fill('Fixture123!');
+            await page.locator('#login-panel-login button[type="submit"]').click();
+          } else {
+            await page.locator('#join-session-code').fill('ALPHA');
+            await page.locator('#join-first-name').fill('Navigation');
+            await page.locator('#join-last-name').fill('Participant');
+            await page.locator('#login-panel-join button[type="submit"]').click();
+          }
+          await page.waitForURL(new RegExp(`/${locale}/participant$`));
+          const join = page.locator('.participant-session-card').filter({ hasText: 'Assigned Alpha' }).getByRole('button');
+          await join.waitFor();
+          await page.clock.fastForward(15000);
+          assert.equal(new URL(page.url()).pathname, `/${locale}/participant`, 'A running session must not bypass the participant home');
+          assert.equal(requests.some((path) => /\/sessions\/\d+\/(?:state|runtime-challenge)$/.test(path)), false, 'Do not enter the live session before Join');
+          await join.click();
+          await page.waitForURL(new RegExp(`/${locale}/challenges/the_quiz\\?sessionId=42$`));
+          assert.deepEqual(errors, []);
+          console.log(`PASS new ${mode} connection requires Join for running session: ${locale}/${width}`);
+        } finally { await login.context.close(); }
+      }
       const current = await fixture(locale, width);
       try {
         const { page, requests, errors, control } = current;

@@ -25,7 +25,10 @@ function run() {
 
   assert.equal(getRedirectPath('admin', '', ''), '/admin');
   assert.equal(getRedirectPath('manager', '12', 'u1'), '/home?sessionId=12&userId=u1');
-  assert.equal(getRedirectPath('participant', '22', ''), '/participant?sessionId=22');
+  assert.equal(getRedirectPath('participant', '22', ''), '/participant');
+  assert.equal(getRedirectPath('participant', '22', '123'), '/participant');
+  assert.equal(getRedirectPath('participant', '', '123'), '/participant');
+  assert.equal(getRedirectPath('participant', '', ''), '/participant');
 
   assert.equal(shouldStoreParticipantTargetSession('participant', '15'), '15');
   assert.equal(shouldStoreParticipantTargetSession('manager', '15'), '');

@@ -43,6 +43,10 @@ async function fixture({ locale, mobile, manager = false, remembered = false, in
         await route.fulfill({ json: { linkToken, expiresAt } });
       } else if (url.pathname.endsWith('/participant-management')) {
         await route.fulfill({ json: { can_remove_current: false, participants: [{ id: 42, name: 'Alex Martin', presence: 'offline' }] } });
+      } else if (url.pathname.endsWith('/participants/me/sessions')) {
+        await route.fulfill({ json: [session] });
+      } else if (url.pathname.endsWith('/sessions/12/state') && !manager) {
+        await route.fulfill({ json: { ...session, active_challenge_id: 7, current_challenge: { id: 7, engine_key: 'the_quiz' } } });
       } else if (url.pathname.endsWith('/sessions/12') || url.pathname.endsWith('/sessions/12/state')) {
         await route.fulfill({ json: session });
       } else if (url.pathname.endsWith('/runtime-challenge')) {
@@ -74,7 +78,7 @@ try {
         const { page, writes, errors } = current;
         await page.goto(`${baseUrl}/${locale}/login`);
         await page.getByRole('button', { name: new RegExp(en ? 'Resume as Alex Martin' : 'Reprendre en tant que Alex Martin') }).click();
-        await page.waitForURL(/\/participant\?sessionId=12/);
+        await page.waitForURL(/\/participant$/);
         const modal = page.getByRole('dialog', { name: en ? 'Resume without losing your progress' : 'Reprendre sans perdre votre progression' });
         await modal.waitFor();
         await modal.getByRole('img', { name: en ? 'Scan to resume participation' : 'Scanner pour reprendre la participation' }).waitFor();
@@ -82,6 +86,8 @@ try {
         assert.equal(url.hash, `#recovery=${linkToken}`);
         assert.deepEqual(writes.filter((write) => write.path.endsWith('/resume-participant'))[0].body, { token: deviceToken, kind: 'device' });
         await modal.getByRole('button', { name: en ? 'Close' : 'Fermer', exact: true }).click();
+        await page.locator('.participant-session-card__cta').waitFor();
+        assert.equal(new URL(page.url()).search, '', 'Recovery must show the home page before joining the running session');
         const save = page.getByRole('button', { name: en ? 'Save my access' : 'Conserver mon acces' });
         assert.ok(await save.isVisible(), 'Recovery access must be visible on mobile and desktop');
         // Remove local memory to verify logout still calls the server using the current JWT.
@@ -135,7 +141,8 @@ try {
         await page.getByRole('alert').filter({ hasText: 'Lien invalide' }).waitFor();
         assert.ok(page.url().endsWith('/resume'));
       } else {
-        await page.waitForURL(/\/participant\?sessionId=12/);
+        await page.waitForURL(/\/participant$/);
+        await page.locator('.participant-session-card__cta').waitFor();
         assert.equal(writes[0].body.kind, 'link');
       }
       assert.deepEqual(errors, []);
