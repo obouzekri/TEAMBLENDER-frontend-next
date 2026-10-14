@@ -8,6 +8,7 @@ import useI18n from '@/lib/i18n/useI18n';
 import { getApiUrl } from '@/lib/config';
 import { getAuthHeaders } from '@/lib/auth';
 import styles from './SessionLiveHeader.module.css';
+import RecoveryLinkDisplay from './RecoveryLinkDisplay';
 
 function resolveChallengeLabel(challenge, isCurrent, currentLabel) {
   const name = String(challenge?.name || challenge?.title || challenge?.engine_key || '').trim();
@@ -62,6 +63,9 @@ export default function SessionLiveHeader({
   const [managementError, setManagementError] = useState('');
   const [removing, setRemoving] = useState(false);
   const [removal, setRemoval] = useState(null);
+  const [recoveryParticipant, setRecoveryParticipant] = useState(null);
+  const [recoveryLink, setRecoveryLink] = useState(null);
+  const [recovering, setRecovering] = useState(false);
   const contextRef = useRef(null);
   const [contextOpen, setContextOpen] = useState(false);
   const [contextDraft, setContextDraft] = useState({ expected_participant_count: '', objective: '' });
@@ -141,6 +145,21 @@ export default function SessionLiveHeader({
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `${isEn ? 'Error' : 'Erreur'} ${res.status}`);
     setManagement(data);
+  }
+
+  async function restoreAccess() {
+    if (!recoveryParticipant || recovering) return;
+    setRecovering(true);
+    setManagementError('');
+    try {
+      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/participant-management/${encodeURIComponent(recoveryParticipant.id)}/recovery`), {
+        method: 'POST', headers: getAuthHeaders(), credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || `Erreur ${res.status}`);
+      setRecoveryLink(data);
+    } catch (error) { setManagementError(error.message); }
+    finally { setRecovering(false); }
   }
 
   useEffect(() => {
@@ -406,8 +425,8 @@ export default function SessionLiveHeader({
       {canManageParticipants ? (
         <dialog ref={managementRef} className={styles.managementDialog} aria-labelledby="participant-management-title"
           onKeyDown={trapDialogFocus}
-          onCancel={(event) => { if (removing) event.preventDefault(); }}
-          onClose={() => { setManagementOpen(false); setRemoval(null); infoRef.current?.querySelector('button')?.focus(); }}>
+          onCancel={(event) => { if (removing || recovering) event.preventDefault(); }}
+          onClose={() => { setManagementOpen(false); setRemoval(null); setRecoveryParticipant(null); setRecoveryLink(null); infoRef.current?.querySelector('button')?.focus(); }}>
           <h2 id="participant-management-title">{manageLabel}</h2>
           <p>{isEn
             ? 'Going offline does not remove a participant. Current removal redistributes unfinished puzzle pieces or words, preserving placed work. Other engines support future challenges only: finish the current challenge or use its own explicit reset controls.'
@@ -423,6 +442,9 @@ export default function SessionLiveHeader({
                     removed: isEn ? 'Removed' : 'Retiré', unavailable: isEn ? 'Presence unavailable' : 'Présence indisponible',
                   })[participant.presence]}{participant.removed_from_future && participant.presence !== 'removed' ? (isEn ? ' · Removed from future challenges' : ' · Retiré des prochains challenges') : ''}</span></div>
                   {participant.presence !== 'removed' ? <div className={styles.managementActions}>
+                    <Button size="sm" variant="secondary" disabled={removing || recovering} onClick={() => {
+                      setRecoveryParticipant(participant); setRecoveryLink(null); setRemoval(null); setManagementError('');
+                    }}>{isEn ? 'Restore access' : 'Retablir l acces'}</Button>
                     {management.can_remove_current ? <Button size="sm" variant="secondary" disabled={removing} onClick={() => setRemoval({ participant, scope: 'current_and_future' })}>{isEn ? 'Remove and reassign' : 'Retirer et redistribuer'}</Button> : null}
                     {!participant.removed_from_future ? <Button size="sm" variant="secondary" disabled={removing} onClick={() => setRemoval({ participant, scope: 'future' })}>{isEn ? 'Future challenges only' : 'Prochains challenges uniquement'}</Button> : null}
                   </div> : null}
@@ -430,6 +452,15 @@ export default function SessionLiveHeader({
               ))}
             </ul>
           )}
+          {recoveryParticipant ? <div className={styles.confirmRemoval} role="group" aria-label={isEn ? 'Restore participant access' : 'Retablir l acces du participant'}>
+            <h3>{recoveryParticipant.name} — #{recoveryParticipant.id}</h3>
+            <p>{isEn
+              ? 'Verify this participant’s identity in person or through a known channel before generating a link. It is valid for 10 minutes and one use. Using it replaces previous access to this participation, preserving the team and saved results.'
+              : 'Verifiez l identite de ce participant sur place ou par un canal connu avant de generer un lien. Il est valable 10 minutes et une seule fois. Son utilisation remplace les anciens acces a cette participation, sans modifier l equipe ni les resultats enregistres.'}</p>
+            {recoveryLink ? <RecoveryLinkDisplay {...recoveryLink} /> : null}
+            <Button variant="primary" size="sm" disabled={recovering} onClick={restoreAccess}>{recovering ? (isEn ? 'Generating...' : 'Generation...') : recoveryLink ? (isEn ? 'Replace link' : 'Remplacer le lien') : (isEn ? 'Identity verified: generate link' : 'Identite verifiee : generer le lien')}</Button>
+            <Button variant="secondary" size="sm" disabled={recovering} onClick={() => { setRecoveryParticipant(null); setRecoveryLink(null); }}>{isEn ? 'Close recovery' : 'Fermer la reprise'}</Button>
+          </div> : null}
           {removal ? <div className={styles.confirmRemoval} role="group" aria-label={isEn ? 'Confirm removal' : 'Confirmer le retrait'}>
             <p>{removal.scope === 'future'
               ? (isEn ? `Remove ${removal.participant.name} from future challenges? Their current assignment stays unchanged.` : `Retirer ${removal.participant.name} des prochains challenges ? Son attribution actuelle reste inchangée.`)
@@ -437,7 +468,7 @@ export default function SessionLiveHeader({
             <Button variant="primary" size="sm" disabled={removing} onClick={confirmRemoval}>{removing ? (isEn ? 'Removing…' : 'Retrait…') : (isEn ? 'Confirm removal' : 'Confirmer le retrait')}</Button>
             <Button variant="secondary" size="sm" disabled={removing} onClick={() => setRemoval(null)}>{isEn ? 'Cancel' : 'Annuler'}</Button>
           </div> : null}
-          <Button variant="secondary" size="sm" disabled={removing} onClick={() => setManagementOpen(false)}>{closeLabel}</Button>
+          <Button variant="secondary" size="sm" disabled={removing || recovering} onClick={() => setManagementOpen(false)}>{closeLabel}</Button>
         </dialog>
       ) : null}
       {canManageParticipants ? <dialog ref={contextRef} className={styles.managementDialog} aria-labelledby="session-context-title"

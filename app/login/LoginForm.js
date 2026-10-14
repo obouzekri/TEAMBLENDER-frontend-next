@@ -22,6 +22,8 @@ import {
   shouldStoreParticipantTargetSession
 } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
+import ParticipantResume from '@/components/ParticipantResume';
+import { saveRecovery } from '@/lib/participant-recovery';
 
 function looksLikeEmail(value) {
   const normalized = String(value || '').trim().toLowerCase();
@@ -396,10 +398,15 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       });
       if (!res.ok) {
         const codeRejected = res.status === 404 || data?.code === 'SESSION_NOT_FOUND';
+        const loginRequired = data?.code === 'JOIN_LOGIN_REQUIRED';
         setJoinCodeInvalid(codeRejected);
         setJoinMessage(codeRejected
           ? (isEn ? 'Invalid code.' : 'Code invalide.')
-          : (data?.error || (isEn ? 'Unable to join session right now.' : 'Impossible de rejoindre la session pour le moment.')));
+          : loginRequired
+            ? (isEn
+              ? 'This participant already exists. Use your recovery link or sign in to your participant account.'
+              : 'Ce participant existe deja. Utilisez votre lien de reprise ou connectez-vous a votre compte participant.')
+            : (data?.error || (isEn ? 'Unable to join session right now.' : 'Impossible de rejoindre la session pour le moment.')));
         return;
       }
 
@@ -416,6 +423,13 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         user,
         targetSessionId: shouldStoreParticipantTargetSession('participant', resolvedSessionId),
       });
+      try {
+        saveRecovery({ ...data, user });
+      } catch {
+        sessionStorage.setItem('tb_recovery_warning', isEn
+          ? 'Automatic recognition could not be saved. Keep a personal recovery link.'
+          : 'La reconnaissance automatique n a pas pu etre memorisee. Conservez un lien personnel de reprise.');
+      }
       identifyAnalyticsUser(resolveConnectedUserId(user), {
         role: 'participant',
         auth_method: 'instant_join',
@@ -425,7 +439,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         sessionStorage.setItem('participantAccountCreated', '1');
       }
 
-      const redirect = withLocalePath(getRedirectPath('participant', '', resolveConnectedUserId(user)));
+      const redirect = withLocalePath(getRedirectPath('participant', resolvedSessionId, resolveConnectedUserId(user)));
       window.location.href = redirect;
     } catch {
       setJoinMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Verifiez votre connexion.');
@@ -499,6 +513,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         <AuthCard
           footer={<span>{isEn ? 'New to TeamBlender? ' : 'Nouveau sur TeamBlender ? '}<Link href={withLocalePath('/signup')}>{isEn ? 'Create an account' : 'Créer un compte'}</Link></span>}
         >
+          <ParticipantResume />
           <div className="auth-tabs" role="tablist" aria-label={isEn ? 'Select connection mode' : 'Selectionner le mode de connexion'}>
             <button
               ref={joinTabRef}

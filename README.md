@@ -13,6 +13,16 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les sessions assignees reprennent les styles partages des cartes de l'accueil: fond, bordure, ombre, titre, badges de statut et pied de carte, en clair comme en sombre.
 - Seules les sessions en cours proposent Rejoindre; l'attente du lancement et le rafraichissement automatique restent inchanges.
 - Validation: `node scripts/test-participant-session-cards.mjs` et `node scripts/smoke-participant.mjs --assigned-sessions-refresh` (frontend sur le port 3100, Chrome disponible). Les API sont simulees localement, sans modifier de session reelle.
+- Reprise participant:
+  - Apres un premier acces par code, la page de connexion peut proposer une reprise automatique sur le meme navigateur (acces memorise limite dans le temps).
+  - Le participant peut generer un lien personnel de reprise depuis la navigation (`Conserver mon acces`) pour changer d appareil sans recreer de participation.
+  - Une deconnexion volontaire invalide l acces memorise du navigateur courant.
+  - La reconnaissance du navigateur est valable 30 jours au maximum. Les liens personnels sont a usage unique; leur utilisation conserve l identifiant participant, l equipe et les resultats enregistres, et revient a l etape actuelle.
+  - Le bouton `Conserver mon acces` et son QR code fonctionnent sur desktop et mobile. Le QR code est genere dans le navigateur, sans service externe.
+  - L animateur retrouve `Retablir l acces` dans `Infos de session` > `Gerer les participants`, verifie l identite, puis genere un lien personnel valable 10 minutes.
+  - La page `/resume` retire le secret du fragment URL et n initialise pas les outils analytiques. Ouvrir le lien ne le consomme pas: une confirmation est requise.
+  - Un acces de reprise est limite a la session; les actions de compte et l ajout d autres sessions necessitent une connexion au compte participant.
+  - Validation: `node scripts/test-participant-recovery.mjs` et `node scripts/test-participant-recovery-ux.mjs` (frontend sur 3100 et Chrome disponible). La suite UX couvre FR/EN, desktop/mobile, reprise navigateur, QR code, secours animateur, lien invalide, absence de collecte analytique sur la page de reprise et deconnexion sans stockage local. Les API sont simulees; aucun participant reel n est modifie.
 
 ### Session Builder
 

@@ -11,13 +11,18 @@ import useI18n from '@/lib/i18n/useI18n';
 import { stripLocaleFromPath } from '@/lib/i18n/routing';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import { resolveUserAvatar } from '@/lib/avatar-profile';
+import ParticipantRecoveryAccess from './ParticipantRecoveryAccess';
+import { getStoredCurrentUser } from '@/lib/auth';
+import { revokeRememberedParticipation } from '@/lib/participant-recovery';
 
 export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrlProp = '', avatarInitials: avatarInitialsProp = '' }) {
   const pathname = usePathname();
   const plainPathname = stripLocaleFromPath(pathname || '/');
   const [activeHomeBlock, setActiveHomeBlock] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { t, withLocalePath } = useI18n();
+  const { t, locale, withLocalePath } = useI18n();
+  const [logoutError, setLogoutError] = useState('');
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const isParticipant = role === 'participant';
   const isAdmin = role === 'admin';
@@ -43,6 +48,24 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
   const homeHref = isParticipant ? '/participant' : isAdmin ? '/admin' : '/home';
   const roleLabel = isParticipant ? t('appNav.participant') : isAdmin ? t('appNav.admin') : t('appNav.manager');
   const [sessionUser, setSessionUser] = useState(null);
+  const recoverySessionId = sessionUser?.role === 'participant'
+    ? sessionUser.recovery_session_id || (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('sessionId') : '')
+    : '';
+
+  async function handleLogout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    setLogoutError('');
+    try {
+      const current = getStoredCurrentUser();
+      if (current?.role === 'participant') {
+        await revokeRememberedParticipation(current.recovery_session_id || recoverySessionId);
+      }
+      onLogout?.();
+    } catch (err) {
+      setLogoutError(`${locale === 'en' ? 'Logout failed. Please retry online.' : 'Deconnexion impossible. Reessayez avec une connexion reseau.'} ${err.message}`);
+    } finally { setLoggingOut(false); }
+  }
   const canUseMobileDrawer = !isCompact;
   const menuSignal = `${pathname}:${isMenuOpen ? 'open' : 'closed'}`;
 
@@ -150,7 +173,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
     {
       key: 'logout',
       label: t('appNav.logout'),
-      onClick: () => onLogout?.(),
+      onClick: handleLogout,
     },
   ];
 
@@ -165,6 +188,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
               </Link>
               {!isManager && !isCompact && contextLabel ? <span className="nav-context">{contextLabel}</span> : null}
             </div>
+            <ParticipantRecoveryAccess sessionId={recoverySessionId} />
 
             {!isCompact ? (
               <button
@@ -237,7 +261,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
                     className="nav-link nav-link--logout"
                     onClick={() => {
                       setIsMenuOpen(false);
-                      onLogout?.();
+                      handleLogout();
                     }}
                   >
                     {t('appNav.logout')}
@@ -267,7 +291,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
                   className="btn-mini appnav-mobile-logout-btn"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    onLogout?.();
+                    handleLogout();
                   }}
                 >
                   {t('appNav.logout')}
@@ -292,6 +316,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
           </div>
         </div>
       </header>
+      {logoutError ? <p className="shell" role="alert">{logoutError}</p> : null}
 
       {isMenuOpen && canUseMobileDrawer ? (
         <button
