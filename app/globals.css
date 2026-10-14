@@ -11859,8 +11859,9 @@ html[data-theme='light'] .site-footer .footer-social__link {
   align-items: flex-start;
 }
 
-.home-sessions-head p {
+.manager-home .home-sessions-head > div > p {
   max-width: 68ch;
+  margin-inline-start: 0.5rem;
 }
 
 .manager-home .home-section-title {
