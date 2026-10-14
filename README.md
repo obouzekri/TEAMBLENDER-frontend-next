@@ -15,14 +15,6 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Seules les sessions en cours proposent Rejoindre; l'attente du lancement et le rafraichissement automatique restent inchanges.
 - Validation: `node scripts/test-participant-session-cards.mjs` et `node scripts/smoke-participant.mjs --assigned-sessions-refresh` (frontend sur le port 3100, Chrome disponible). Les API sont simulees localement, sans modifier de session reelle.
 
-### Disposition des sessions en direct
-
-- Les vues animateur et challenge participant sont centrees et limitees a 1360 px. Le zoom du navigateur reste libre; une grande fenetre ou un dezoom laisse davantage d'espace autour du contenu.
-- L'en-tete de session et la grille CoPuzzle restent ancres en haut, sans repartir la hauteur libre dans les panneaux. Sur mobile, les controles et le jeu se reorganisent avec defilement vertical.
-- Validation: `npm run test:ux:session-layout` (frontend sur le port 3100, Chrome disponible). Les API et le temps reel sont simules localement. La suite couvre les deux roles, FR/EN, clair/sombre et des fenetres CSS de 320 a 2560 px de large et de 900 a 1800 px de haut pour reproduire l'espace disponible au dezoom.
-
-### Reprise participant
-
 - Reprise participant:
   - Apres un premier acces par code, la page de connexion peut proposer une reprise automatique sur le meme navigateur (acces memorise limite dans le temps).
   - Le participant peut generer un lien personnel de reprise depuis la navigation (`Conserver mon acces`) pour changer d appareil sans recreer de participation.
@@ -33,6 +25,12 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
   - La page `/resume` retire le secret du fragment URL et n initialise pas les outils analytiques. Ouvrir le lien ne le consomme pas: une confirmation est requise.
   - Un acces de reprise est limite a la session; les actions de compte et l ajout d autres sessions necessitent une connexion au compte participant.
   - Validation: `node scripts/test-participant-recovery.mjs` et `node scripts/test-participant-recovery-ux.mjs` (frontend sur 3100 et Chrome disponible). La suite UX couvre FR/EN, desktop/mobile, reprise navigateur, QR code, secours animateur, lien invalide, absence de collecte analytique sur la page de reprise et deconnexion sans stockage local. Les API sont simulees; aucun participant reel n est modifie.
+
+### Disposition des sessions en direct
+
+- Les vues animateur et challenge participant sont centrees et limitees a 1360 px. Le zoom du navigateur reste libre; une grande fenetre ou un dezoom laisse davantage d'espace autour du contenu.
+- L'en-tete de session et la grille CoPuzzle restent ancres en haut, sans repartir la hauteur libre dans les panneaux. Sur mobile, les controles et le jeu se reorganisent avec defilement vertical.
+- Validation: `npm run test:ux:session-layout` (frontend sur le port 3100, Chrome disponible). La suite applique les feuilles de style source a l'interface, meme si le serveur local utilise un build anterieur; les API et le temps reel sont simules localement. Elle couvre les deux roles, FR/EN, clair/sombre et des fenetres CSS de 320 a 2560 px de large et de 900 a 1800 px de haut pour reproduire l'espace disponible au dezoom.
 
 ### Session Builder
 

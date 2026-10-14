@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
@@ -18,6 +19,11 @@ const state = {
   timer: { enabled: true, status: 'running', duration_seconds: 1200, remaining_seconds: 1130 },
   puzzle: { pieces: buildPieces(config) },
 };
+const cssSources = [
+  ['../app/globals.css', null],
+  ['../components/Challenges/ChallengeWrapper.module.css', 'ChallengeWrapper'],
+  ['../components/Challenges/CopuzzleLive/Copuzzle.module.css', 'Copuzzle'],
+].map(([file, module]) => ({ module, css: fs.readFileSync(new URL(file, import.meta.url), 'utf8') }));
 const browser = await chromium.launch({
   headless: true,
   channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome',
@@ -39,11 +45,30 @@ try {
         await arena.waitFor();
         await header.waitFor();
 
+        // Exercise the current styles even when the local server serves an older production build.
+        const classNames = await page.locator('[class]').evaluateAll((nodes) => [...new Set(nodes.flatMap((node) => [...node.classList]))]);
+        for (const { module, css } of cssSources) {
+          let mappedSelectors = 0;
+          const content = module
+            ? css.replace(/:global\(([^)]+)\)/g, '$1').replace(/\.([a-zA-Z_][\w-]*)/g, (selector, name) => {
+              const compiled = classNames.find((token) => token.startsWith(module) && (token.endsWith(`__${name}`) || token.includes(`_${name}__`)));
+              if (compiled) mappedSelectors += 1;
+              return compiled ? `.${compiled}` : selector;
+            })
+            : css.replace(/^@import.*$/gm, '');
+          if (module) assert.ok(mappedSelectors > 0, `${module}: CSS module selectors must match the rendered interface`);
+          await page.addStyleTag({ content });
+        }
+
         // Larger CSS viewports reproduce the space available after browser zoom-out.
         for (const width of [1440, 2560, 720, 320]) {
           let previousHeaderHeight;
           for (const height of [900, 1800]) {
             await page.setViewportSize({ width, height });
+            await page.evaluate(async () => {
+              await document.fonts.ready;
+              await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            });
             const label = `${role}, ${locale}, ${theme}, ${width}x${height}`;
             const headerBox = await header.boundingBox();
             const arenaBox = await arena.boundingBox();
@@ -71,7 +96,7 @@ try {
           }
         }
         assert.deepEqual(errors, [], `${role}, ${locale}: browser errors`);
-        console.log(`PASS: session layout, ${role}, ${locale}, ${theme}, mobile/desktop/zoom-out viewports`);
+        process.stdout.write(`PASS: session layout, ${role}, ${locale}, ${theme}, mobile/desktop/zoom-out viewports\n`);
       } finally {
         await fixture.close();
       }
