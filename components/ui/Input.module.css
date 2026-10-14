@@ -18,7 +18,29 @@
   color: var(--ink);
   font: inherit;
   padding: 0.65rem 0.85rem;
-  transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
+  transition:
+    border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard);
+}
+
+.controlWithSuffix {
+  position: relative;
+  display: block;
+}
+
+.controlWithSuffixInput {
+  padding-right: 5.25rem;
+}
+
+.suffix {
+  position: absolute;
+  top: 50%;
+  right: 0.85rem;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  pointer-events: none;
+  transform: translateY(-50%);
 }
 
 .control:hover {

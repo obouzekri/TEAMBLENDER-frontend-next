@@ -7,6 +7,7 @@ export default function Input({
   label,
   hint,
   error,
+  suffix,
   className = '',
   inputClassName = '',
   helpClassName = '',
@@ -15,8 +16,25 @@ export default function Input({
   return (
     <label htmlFor={id} className={`${styles.field} ${className}`.trim()}>
       {label ? <span className={styles.label}>{label}</span> : null}
-      <input id={id} className={`${styles.control} ${inputClassName}`.trim()} {...props} />
-      {error ? <p className={styles.error}>{error}</p> : hint ? <p className={`${styles.help} ${helpClassName}`.trim()}>{hint}</p> : null}
+      {suffix ? (
+        <span className={styles.controlWithSuffix}>
+          <input
+            id={id}
+            className={`${styles.control} ${styles.controlWithSuffixInput} ${inputClassName}`.trim()}
+            {...props}
+          />
+          <span className={styles.suffix} aria-hidden="true">
+            {suffix}
+          </span>
+        </span>
+      ) : (
+        <input id={id} className={`${styles.control} ${inputClassName}`.trim()} {...props} />
+      )}
+      {error ? (
+        <p className={styles.error}>{error}</p>
+      ) : hint ? (
+        <p className={`${styles.help} ${helpClassName}`.trim()}>{hint}</p>
+      ) : null}
     </label>
   );
 }

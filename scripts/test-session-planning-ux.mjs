@@ -19,7 +19,7 @@ async function setObjectiveSelection(field, objective, selected) {
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
 try {
   for (const locale of ['fr', 'en']) {
-    const context = await browser.newContext({ viewport: { width: locale === 'fr' ? 390 : 1440, height: 900 } });
+    const context = await browser.newContext({ viewport: { width: locale === 'fr' ? 390 : 1440, height: 420 } });
     let savedSession = null;
     await context.addInitScript((language) => {
       sessionStorage.setItem('jwt', 'local-ux-fixture');
@@ -81,12 +81,47 @@ try {
     await page.getByRole('button', { name: locale === 'fr' ? 'Me proposer un programme' : 'Suggest a program', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: locale === 'fr' ? 'Me proposer un programme' : 'Suggest a program', exact: true });
     const preview = dialog.locator('ol li');
-    assert.ok(await preview.count() > 0);
+    await preview.first().waitFor();
+    assert.equal(await page.evaluate(() => document.documentElement.style.overflow), 'hidden');
+    const lockedScrollY = await page.evaluate(() => window.scrollY);
+    await page.mouse.move(5, 5);
+    await page.mouse.wheel(0, 500);
+    assert.equal(await page.evaluate(() => window.scrollY), lockedScrollY);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await dialog.getByRole('heading', {
+      name: locale === 'fr' ? 'Votre programme suggéré' : 'Your suggested program',
+    }).waitFor();
+    assert.ok(await dialog.getByText('minutes', { exact: true }).count());
+    const scrollRegion = dialog.locator(':scope > div').nth(1);
+    assert.equal(await scrollRegion.evaluate((element) => getComputedStyle(element).overflowY), 'auto');
+    assert.ok(await scrollRegion.evaluate((element) => element.scrollHeight > element.clientHeight));
+    const header = dialog.locator(':scope > div').first();
+    const headerTop = await header.evaluate((element) => element.getBoundingClientRect().top);
+    await scrollRegion.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+    assert.equal(await header.evaluate((element) => element.getBoundingClientRect().top), headerTop);
     await dialog.locator('#program-duration').fill('30');
+    const generateButton = dialog.getByRole('button', {
+      name: locale === 'fr' ? /Créer une proposition|Générer une autre proposition/ : /Create a proposal|Generate another proposal/,
+    });
+    await generateButton.evaluate((button, loadingText) => {
+      button.dataset.loadingSeen = 'false';
+      const observer = new MutationObserver(() => {
+        if (button.disabled && button.textContent.includes(loadingText)) {
+          button.dataset.loadingSeen = 'true';
+          button.dataset.proposalPreserved = String(
+            button.closest('[role="dialog"]').querySelectorAll('ol li').length > 0,
+          );
+          observer.disconnect();
+        }
+      });
+      observer.observe(button, { attributes: true, childList: true, subtree: true });
+    }, locale === 'fr' ? 'Génération de la proposition' : 'Generating proposal');
+    await generateButton.click();
     await dialog.getByRole('button', {
-      name: locale === 'fr' ? /Créer une proposition|Varier la proposition/ : /Create a proposal|Try another proposal/,
-    }).click();
+      name: locale === 'fr' ? 'Générer une autre proposition' : 'Generate another proposal',
+    }).waitFor();
+    assert.equal(await generateButton.getAttribute('data-loading-seen'), 'true');
+    assert.equal(await generateButton.getAttribute('data-proposal-preserved'), 'true');
     assert.ok(await preview.count() > 0);
     assert.ok(!(await preview.allTextContents()).some((name) => name.includes('croisés')));
     const initialPreview = await preview.allTextContents();
@@ -103,6 +138,8 @@ try {
     }, initialPreview);
     await dialog.getByRole('button', { name: locale === 'fr' ? 'Utiliser ce programme' : 'Use this program', exact: true }).click();
     await page.getByRole('dialog').waitFor({ state: 'hidden' });
+    assert.equal(await page.evaluate(() => document.documentElement.style.overflow), '');
+    assert.equal(await page.evaluate(() => window.scrollY), lockedScrollY);
     assert.ok(await page.locator('[data-activity-id]').count() > 0);
     await page.getByRole('button', { name: locale === 'fr' ? 'Modifier les détails de session' : 'Edit session details', exact: true }).click();
     await page.locator('#edit-expected-participants').fill('');
