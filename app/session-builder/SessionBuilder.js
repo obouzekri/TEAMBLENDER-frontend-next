@@ -89,7 +89,8 @@ const THE_QUIZ_CATALOG_ENTRY = {
   duration: 20,
   type: 'Quiz multijoueur realtime',
   tags: ['Quiz', 'General knowledge', 'Realtime', 'Leaderboard'],
-  description: 'Competitive general-knowledge quiz synchronized in real time for the whole session.',
+  description:
+    'Competitive general-knowledge quiz synchronized in real time for the whole session.',
   engine_key: 'the_quiz_v1',
   engine_config: {
     participants: {
@@ -119,7 +120,7 @@ const THE_QUIZ_CATALOG_ENTRY = {
 
 const LAB_INNOVATION_CATALOG_ENTRY = {
   id: 'lab_innovation_001',
-  name: 'Lab d\'Innovation',
+  name: "Lab d'Innovation",
   category: 'creativite-innovation',
   objective: 'intelligence-collective',
   objectives: 'intelligence-collective, communication, collaboration',
@@ -149,7 +150,9 @@ const LAB_INNOVATION_CATALOG_ENTRY = {
 
 function ensurePixelArchitectChallenge(challenges) {
   const list = Array.isArray(challenges) ? [...challenges] : [];
-  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'pixel_architect_v1');
+  const existingIndex = list.findIndex(
+    (challenge) => String(challenge?.engine_key || '').trim() === 'pixel_architect_v1'
+  );
 
   if (existingIndex >= 0) {
     const current = list[existingIndex] || {};
@@ -169,7 +172,9 @@ function ensurePixelArchitectChallenge(challenges) {
 
 function ensureTheQuizChallenge(challenges) {
   const list = Array.isArray(challenges) ? [...challenges] : [];
-  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'the_quiz_v1');
+  const existingIndex = list.findIndex(
+    (challenge) => String(challenge?.engine_key || '').trim() === 'the_quiz_v1'
+  );
 
   if (existingIndex >= 0) {
     const current = list[existingIndex] || {};
@@ -189,7 +194,9 @@ function ensureTheQuizChallenge(challenges) {
 
 function ensureLabInnovationChallenge(challenges) {
   const list = Array.isArray(challenges) ? [...challenges] : [];
-  const existingIndex = list.findIndex((challenge) => String(challenge?.engine_key || '').trim() === 'lab_d_innovation_v1');
+  const existingIndex = list.findIndex(
+    (challenge) => String(challenge?.engine_key || '').trim() === 'lab_d_innovation_v1'
+  );
 
   if (existingIndex >= 0) {
     const current = list[existingIndex] || {};
@@ -256,8 +263,9 @@ function localizeBuilderChallenge(challenge, locale) {
   }
 
   const localizedName = resolveLocalizedText(current.name, locale);
-  const localizedDescription = resolveLocalizedText(current.description, locale)
-    || resolveLocalizedText(current.rules_objective, locale);
+  const localizedDescription =
+    resolveLocalizedText(current.description, locale) ||
+    resolveLocalizedText(current.rules_objective, locale);
 
   return {
     ...current,
@@ -267,8 +275,9 @@ function localizeBuilderChallenge(challenge, locale) {
 }
 
 function ensureBuilderCatalogChallenges(challenges, locale = 'fr') {
-  return ensureLabInnovationChallenge(ensureTheQuizChallenge(ensurePixelArchitectChallenge(challenges)))
-    .map((challenge) => localizeBuilderChallenge(challenge, locale));
+  return ensureLabInnovationChallenge(
+    ensureTheQuizChallenge(ensurePixelArchitectChallenge(challenges))
+  ).map((challenge) => localizeBuilderChallenge(challenge, locale));
 }
 
 const SESSION_ID_STORAGE_KEY = 'sessionId';
@@ -406,17 +415,18 @@ function mergeChallengeConfig(baseConfig, overrideConfig) {
 }
 
 function extractChallengeConfig(challenge) {
-  const baseConfig = challenge?.engine_config && typeof challenge.engine_config === 'object'
-    ? challenge.engine_config
-    : {};
+  const baseConfig =
+    challenge?.engine_config && typeof challenge.engine_config === 'object'
+      ? challenge.engine_config
+      : {};
 
-  const directConfig = challenge?.config && typeof challenge.config === 'object'
-    ? challenge.config
-    : {};
+  const directConfig =
+    challenge?.config && typeof challenge.config === 'object' ? challenge.config : {};
 
-  const junctionConfig = challenge?.SessionChallenge?.config && typeof challenge.SessionChallenge.config === 'object'
-    ? challenge.SessionChallenge.config
-    : {};
+  const junctionConfig =
+    challenge?.SessionChallenge?.config && typeof challenge.SessionChallenge.config === 'object'
+      ? challenge.SessionChallenge.config
+      : {};
 
   return mergeChallengeConfig(baseConfig, mergeChallengeConfig(directConfig, junctionConfig));
 }
@@ -434,7 +444,13 @@ function normalizeSessionObjectiveValue(value) {
 export default function SessionBuilder() {
   const { locale, t, withLocalePath } = useI18n();
   const guard = useManagerGuard();
-  const { toasts, removeToast, success: showSuccessToast, error: showErrorToast, loading: showLoadingToast } = useToast();
+  const {
+    toasts,
+    removeToast,
+    success: showSuccessToast,
+    error: showErrorToast,
+    loading: showLoadingToast,
+  } = useToast();
   const {
     allChallenges,
     selectedChallenges,
@@ -541,24 +557,28 @@ export default function SessionBuilder() {
     () => JSON.stringify(selectedChallenges),
     [selectedChallenges]
   );
-  const nameError = creationTouched.sessionName && !sessionName.trim() ? t('sessionBuilder.sessionNameRequired') : '';
+  const nameError =
+    creationTouched.sessionName && !sessionName.trim()
+      ? t('sessionBuilder.sessionNameRequired')
+      : '';
   const dateError = useMemo(() => {
     if (!creationTouched.sessionDateTime || !sessionDateTime) return '';
     const parsed = new Date(sessionDateTime);
     return Number.isNaN(parsed.getTime()) ? t('sessionBuilder.invalidDateTimeDetailed') : '';
   }, [creationTouched.sessionDateTime, sessionDateTime, t]);
   const participantsError = '';
-  const canCreateSessionNow = Boolean(sessionName.trim())
-    && !dateError
-    && isValidExpectedCount(expectedCount)
-    && !isCreatingSession;
+  const canCreateSessionNow =
+    Boolean(sessionName.trim()) &&
+    !dateError &&
+    isValidExpectedCount(expectedCount) &&
+    !isCreatingSession;
   const hasUnsavedCreationChanges = Boolean(
-    sessionName.trim()
-    || sessionDateTime
-    || flowMode !== 'manual'
-    || draftParticipantIds.length > 0
-    || expectedCount !== ''
-    || objective !== ''
+    sessionName.trim() ||
+    sessionDateTime ||
+    flowMode !== 'manual' ||
+    draftParticipantIds.length > 0 ||
+    expectedCount !== '' ||
+    objective !== ''
   );
 
   // On plain /session-builder, reset stale cached session id to start a new flow
@@ -594,10 +614,7 @@ export default function SessionBuilder() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [sessionId]);
 
-  const getAuthToken = useCallback(
-    () => getStoredAuthToken(),
-    []
-  );
+  const getAuthToken = useCallback(() => getStoredAuthToken(), []);
 
   const toIntegerId = useCallback((value) => {
     const parsed = Number(value);
@@ -616,18 +633,22 @@ export default function SessionBuilder() {
     return fallbackPath;
   }, []);
 
-  const redirectToUpgrade = useCallback((error) => {
-    if (typeof window === 'undefined') return false;
-    if (!error || error.code !== 'PLAN_LIMIT_REACHED') return false;
+  const redirectToUpgrade = useCallback(
+    (error) => {
+      if (typeof window === 'undefined') return false;
+      if (!error || error.code !== 'PLAN_LIMIT_REACHED') return false;
 
-    const ctaPath = normalizePaywallTarget(error?.details?.conversion?.cta_path);
-    window.location.assign(ctaPath);
-    return true;
-  }, [normalizePaywallTarget]);
+      const ctaPath = normalizePaywallTarget(error?.details?.conversion?.cta_path);
+      window.location.assign(ctaPath);
+      return true;
+    },
+    [normalizePaywallTarget]
+  );
 
   const apiRequest = useCallback(async (path, options = {}) => {
     const method = String(options.method || 'GET').toUpperCase();
-    const cacheBust = method === 'GET' ? `${String(path).includes('?') ? '&' : '?'}_t=${Date.now()}` : '';
+    const cacheBust =
+      method === 'GET' ? `${String(path).includes('?') ? '&' : '?'}_t=${Date.now()}` : '';
     const response = await fetch(getApiUrl(`${path}${cacheBust}`), options);
 
     if (response.status === 401) {
@@ -649,8 +670,7 @@ export default function SessionBuilder() {
       const method = String(options.method || 'GET').toUpperCase();
       const normalizedPath = String(path || '');
       const isChallengeConfigPatch =
-        method === 'PATCH' &&
-        /\/sessions\/[^/]+\/challenges\/[^/]+\/config$/.test(normalizedPath);
+        method === 'PATCH' && /\/sessions\/[^/]+\/challenges\/[^/]+\/config$/.test(normalizedPath);
 
       if (response.status === 404 && isChallengeConfigPatch) {
         throw new Error(
@@ -661,7 +681,8 @@ export default function SessionBuilder() {
       let errorMessage = payload.error || `API error (${response.status})`;
 
       if (response.status === 502) {
-        errorMessage = 'Session service is temporarily unavailable (502). Try again in a few seconds.';
+        errorMessage =
+          'Session service is temporarily unavailable (502). Try again in a few seconds.';
       } else if (response.status >= 500) {
         errorMessage = 'The server encountered a temporary error. Try again in a few seconds.';
       }
@@ -692,7 +713,9 @@ export default function SessionBuilder() {
         return null;
       }
 
-      const catalogMatch = allChallenges.find((item) => String(item?.engine_key || '').trim() === challengeEngineKey);
+      const catalogMatch = allChallenges.find(
+        (item) => String(item?.engine_key || '').trim() === challengeEngineKey
+      );
       return catalogMatch ? toIntegerId(catalogMatch.id) : null;
     },
     [allChallenges, toIntegerId]
@@ -735,69 +758,77 @@ export default function SessionBuilder() {
     [apiRequest, sessionId, locale]
   );
 
-  const persistSelectionToBackend = useCallback(async (markInProgress = false) => {
-    const token = getAuthToken();
-    if (!sessionId || !token) return;
+  const persistSelectionToBackend = useCallback(
+    async (markInProgress = false) => {
+      const token = getAuthToken();
+      if (!sessionId || !token) return;
 
-    const selectedChallengeIds = selectedChallenges
-      .map((item) => resolveChallengeApiIdentifier(item))
-      .filter((id) => id !== null);
+      const selectedChallengeIds = selectedChallenges
+        .map((item) => resolveChallengeApiIdentifier(item))
+        .filter((id) => id !== null);
 
-    if (!selectedChallengeIds.length) {
-      throw new Error('No valid API challenge to save for this session.');
-    }
-
-    await ensureChallengesLinkedToSession(selectedChallengeIds, token, false);
-
-    const refreshedSession = await apiRequest(`/sessions/${sessionId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const persistedChallenges = Array.isArray(refreshedSession?.challenges) ? refreshedSession.challenges : [];
-
-    for (const challenge of selectedChallenges) {
-      let challengeId = resolveChallengeApiId(challenge);
-      if (!challengeId) {
-        const challengeEngineKey = String(challenge?.engine_key || '').trim();
-        if (challengeEngineKey) {
-          const persisted = persistedChallenges.find((item) => String(item?.engine_key || '').trim() === challengeEngineKey);
-          challengeId = persisted ? toIntegerId(persisted.id) : null;
-        }
+      if (!selectedChallengeIds.length) {
+        throw new Error('No valid API challenge to save for this session.');
       }
-      if (!challengeId) continue;
 
-      const config = challenge.config && typeof challenge.config === 'object' ? challenge.config : {};
-      if (!Object.keys(config).length) continue;
+      await ensureChallengesLinkedToSession(selectedChallengeIds, token, false);
 
-      await apiRequest(`/sessions/${sessionId}/challenges/${challengeId}/config`, {
-        method: 'PATCH',
+      const refreshedSession = await apiRequest(`/sessions/${sessionId}`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ config }),
       });
-    }
+      const persistedChallenges = Array.isArray(refreshedSession?.challenges)
+        ? refreshedSession.challenges
+        : [];
 
-    if (markInProgress) {
-      await ensureChallengesLinkedToSession(selectedChallengeIds, token, true);
-    }
+      for (const challenge of selectedChallenges) {
+        let challengeId = resolveChallengeApiId(challenge);
+        if (!challengeId) {
+          const challengeEngineKey = String(challenge?.engine_key || '').trim();
+          if (challengeEngineKey) {
+            const persisted = persistedChallenges.find(
+              (item) => String(item?.engine_key || '').trim() === challengeEngineKey
+            );
+            challengeId = persisted ? toIntegerId(persisted.id) : null;
+          }
+        }
+        if (!challengeId) continue;
 
-    setSelectedChallengesSnapshot(JSON.stringify(selectedChallenges));
-    setLastBackendSaveAt(new Date().toISOString());
-  }, [
-    apiRequest,
-    locale,
-    ensureChallengesLinkedToSession,
-    getAuthToken,
-    resolveChallengeApiIdentifier,
-    resolveChallengeApiId,
-    selectedChallenges,
-    sessionId,
-    toIntegerId,
-  ]);
+        const config =
+          challenge.config && typeof challenge.config === 'object' ? challenge.config : {};
+        if (!Object.keys(config).length) continue;
+
+        await apiRequest(`/sessions/${sessionId}/challenges/${challengeId}/config`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ config }),
+        });
+      }
+
+      if (markInProgress) {
+        await ensureChallengesLinkedToSession(selectedChallengeIds, token, true);
+      }
+
+      setSelectedChallengesSnapshot(JSON.stringify(selectedChallenges));
+      setLastBackendSaveAt(new Date().toISOString());
+    },
+    [
+      apiRequest,
+      locale,
+      ensureChallengesLinkedToSession,
+      getAuthToken,
+      resolveChallengeApiIdentifier,
+      resolveChallengeApiId,
+      selectedChallenges,
+      sessionId,
+      toIntegerId,
+    ]
+  );
 
   const restoreSelectedChallenges = useCallback(
     (challenges) => {
@@ -817,149 +848,172 @@ export default function SessionBuilder() {
     [clearAll, resolveChallengeApiId, selectChallenge, updateChallengeConfig]
   );
 
-  const handleChallengeConfigSave = useCallback(async (challengeId, config) => {
-    updateChallengeConfig(challengeId, config);
+  const handleChallengeConfigSave = useCallback(
+    async (challengeId, config) => {
+      updateChallengeConfig(challengeId, config);
 
-    if (!sessionId) {
-      return;
-    }
+      if (!sessionId) {
+        return;
+      }
 
-    const token = getAuthToken();
-    if (!token) {
-      return;
-    }
+      const token = getAuthToken();
+      if (!token) {
+        return;
+      }
 
-    const mergedSelectedChallenges = selectedChallenges.map((item) => (
-      item.id === challengeId ? { ...item, config } : item
-    ));
-
-    const selectedChallengeIds = mergedSelectedChallenges
-      .map((item) => resolveChallengeApiIdentifier(item))
-      .filter((id) => id !== null);
-
-    if (!selectedChallengeIds.length) {
-      return;
-    }
-
-    try {
-      await ensureChallengesLinkedToSession(selectedChallengeIds, token, false);
-
-      let challengeApiId = resolveChallengeApiId(
-        mergedSelectedChallenges.find((item) => item.id === challengeId) || null
+      const mergedSelectedChallenges = selectedChallenges.map((item) =>
+        item.id === challengeId ? { ...item, config } : item
       );
 
-      if (challengeApiId === null) {
-        const refreshedSession = await apiRequest(`/sessions/${sessionId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        const challengeEngineKey = String(
-          mergedSelectedChallenges.find((item) => item.id === challengeId)?.engine_key || ''
-        ).trim();
-        const persistedByEngine = Array.isArray(refreshedSession?.challenges)
-          ? refreshedSession.challenges.find((item) => String(item?.engine_key || '').trim() === challengeEngineKey)
-          : null;
-        challengeApiId = persistedByEngine ? toIntegerId(persistedByEngine.id) : null;
+      const selectedChallengeIds = mergedSelectedChallenges
+        .map((item) => resolveChallengeApiIdentifier(item))
+        .filter((id) => id !== null);
+
+      if (!selectedChallengeIds.length) {
+        return;
       }
 
-      if (challengeApiId !== null) {
-        await apiRequest(`/sessions/${sessionId}/challenges/${challengeApiId}/config`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ config }),
-        });
+      try {
+        await ensureChallengesLinkedToSession(selectedChallengeIds, token, false);
+
+        let challengeApiId = resolveChallengeApiId(
+          mergedSelectedChallenges.find((item) => item.id === challengeId) || null
+        );
+
+        if (challengeApiId === null) {
+          const refreshedSession = await apiRequest(`/sessions/${sessionId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          const challengeEngineKey = String(
+            mergedSelectedChallenges.find((item) => item.id === challengeId)?.engine_key || ''
+          ).trim();
+          const persistedByEngine = Array.isArray(refreshedSession?.challenges)
+            ? refreshedSession.challenges.find(
+                (item) => String(item?.engine_key || '').trim() === challengeEngineKey
+              )
+            : null;
+          challengeApiId = persistedByEngine ? toIntegerId(persistedByEngine.id) : null;
+        }
+
+        if (challengeApiId !== null) {
+          await apiRequest(`/sessions/${sessionId}/challenges/${challengeApiId}/config`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ config }),
+          });
+        }
+
+        setSelectedChallengesSnapshot(JSON.stringify(mergedSelectedChallenges));
+        setLastBackendSaveAt(new Date().toISOString());
+        showSuccessToast(t('sessionBuilder.challengeConfigApplied'));
+      } catch (err) {
+        if (redirectToUpgrade(err)) return;
+        showErrorToast(err.message || t('sessionBuilder.configurationSyncFailed'));
+      }
+    },
+    [
+      apiRequest,
+      ensureChallengesLinkedToSession,
+      getAuthToken,
+      redirectToUpgrade,
+      resolveChallengeApiIdentifier,
+      resolveChallengeApiId,
+      selectedChallenges,
+      sessionId,
+      showErrorToast,
+      showSuccessToast,
+      t,
+      toIntegerId,
+      updateChallengeConfig,
+    ]
+  );
+
+  const loadSessionDetails = useCallback(
+    async (targetSessionId, tokenOverride) => {
+      const targetId = String(targetSessionId || '').trim();
+      if (!targetId) return null;
+
+      const token = tokenOverride || getAuthToken();
+      if (!token) return null;
+
+      const session = await apiRequest(`/sessions/${targetId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (session?.name) setSessionName(session.name);
+      setExpectedCount(
+        session?.expected_participant_count == null
+          ? ''
+          : String(session.expected_participant_count)
+      );
+      setObjective(normalizeSessionObjectiveValue(session?.objective));
+      setFlowMode(
+        String(session?.flow_mode || session?.flowMode || 'manual')
+          .trim()
+          .toLowerCase() === 'auto'
+          ? 'auto'
+          : 'manual'
+      );
+
+      if (session?.session_date) {
+        const raw = String(session.session_date);
+        setSessionDateTime(raw.length === 10 ? `${raw}T00:00` : '');
       }
 
-      setSelectedChallengesSnapshot(JSON.stringify(mergedSelectedChallenges));
-      setLastBackendSaveAt(new Date().toISOString());
-      showSuccessToast(t('sessionBuilder.challengeConfigApplied'));
-    } catch (err) {
-      if (redirectToUpgrade(err)) return;
-      showErrorToast(err.message || t('sessionBuilder.configurationSyncFailed'));
-    }
-  }, [
-    apiRequest,
-    ensureChallengesLinkedToSession,
-    getAuthToken,
-    redirectToUpgrade,
-    resolveChallengeApiIdentifier,
-    resolveChallengeApiId,
-    selectedChallenges,
-    sessionId,
-    showErrorToast,
-    showSuccessToast,
-    t,
-    toIntegerId,
-    updateChallengeConfig,
-  ]);
+      const assigned = Array.isArray(session?.assigned_participants)
+        ? session.assigned_participants
+        : [];
+      const assignedIds = assigned
+        .map((participant) => (typeof participant === 'object' ? participant?.id : participant))
+        .map((value) => Number(value))
+        .filter((value) => Number.isInteger(value));
 
-  const loadSessionDetails = useCallback(async (targetSessionId, tokenOverride) => {
-    const targetId = String(targetSessionId || '').trim();
-    if (!targetId) return null;
+      setSessionParticipantCount(assigned.length);
+      setDraftParticipantIds(assignedIds);
+      setSessionInvite({
+        invite_token: session?.invite_token || '',
+        code: session?.code || '',
+        name: session?.name || '',
+        assigned_participant_count: assigned.length,
+      });
+      return session;
+    },
+    [apiRequest, getAuthToken]
+  );
 
-    const token = tokenOverride || getAuthToken();
-    if (!token) return null;
+  const loadSessionInvite = useCallback(
+    async (targetSessionId, tokenOverride) => {
+      const targetId = String(targetSessionId || '').trim();
+      if (!targetId) return null;
 
-    const session = await apiRequest(`/sessions/${targetId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+      const token = tokenOverride || getAuthToken();
+      if (!token) return null;
 
-    if (session?.name) setSessionName(session.name);
-    setExpectedCount(session?.expected_participant_count == null ? '' : String(session.expected_participant_count));
-    setObjective(normalizeSessionObjectiveValue(session?.objective));
-    setFlowMode(String(session?.flow_mode || session?.flowMode || 'manual').trim().toLowerCase() === 'auto' ? 'auto' : 'manual');
+      const invite = await apiRequest(`/sessions/${targetId}/invite`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-    if (session?.session_date) {
-      const raw = String(session.session_date);
-      setSessionDateTime(raw.length === 10 ? `${raw}T00:00` : '');
-    }
-
-    const assigned = Array.isArray(session?.assigned_participants) ? session.assigned_participants : [];
-    const assignedIds = assigned
-      .map((participant) => (typeof participant === 'object' ? participant?.id : participant))
-      .map((value) => Number(value))
-      .filter((value) => Number.isInteger(value));
-
-    setSessionParticipantCount(assigned.length);
-    setDraftParticipantIds(assignedIds);
-    setSessionInvite({
-      invite_token: session?.invite_token || '',
-      code: session?.code || '',
-      name: session?.name || '',
-      assigned_participant_count: assigned.length,
-    });
-    return session;
-  }, [apiRequest, getAuthToken]);
-
-  const loadSessionInvite = useCallback(async (targetSessionId, tokenOverride) => {
-    const targetId = String(targetSessionId || '').trim();
-    if (!targetId) return null;
-
-    const token = tokenOverride || getAuthToken();
-    if (!token) return null;
-
-    const invite = await apiRequest(`/sessions/${targetId}/invite`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    setSessionInvite(invite || null);
-    const participantCount = Number(invite?.assigned_participant_count);
-    if (Number.isInteger(participantCount) && participantCount >= 0) {
-      setSessionParticipantCount(participantCount);
-    }
-    return invite;
-  }, [apiRequest, getAuthToken]);
+      setSessionInvite(invite || null);
+      const participantCount = Number(invite?.assigned_participant_count);
+      if (Number.isInteger(participantCount) && participantCount >= 0) {
+        setSessionParticipantCount(participantCount);
+      }
+      return invite;
+    },
+    [apiRequest, getAuthToken]
+  );
 
   useEffect(() => {
     if (!sessionId || guard.loading || !guard.user) return undefined;
@@ -978,24 +1032,27 @@ export default function SessionBuilder() {
     };
   }, [guard.loading, guard.user, loadSessionInvite, sessionId]);
 
-  const handleCopyInviteValue = useCallback(async (value, feedbackKey) => {
-    const text = String(value || '').trim();
-    if (!text || typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
-      showErrorToast(t('sessionBuilder.inviteCopyFailed'));
-      return;
-    }
+  const handleCopyInviteValue = useCallback(
+    async (value, feedbackKey) => {
+      const text = String(value || '').trim();
+      if (!text || typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+        showErrorToast(t('sessionBuilder.inviteCopyFailed'));
+        return;
+      }
 
-    try {
-      await navigator.clipboard.writeText(text);
-      window.clearTimeout(inviteCopyTimerRef.current);
-      setInviteCopyState(feedbackKey);
-      showSuccessToast(t('sessionBuilder.inviteCopied'));
-      inviteCopyTimerRef.current = window.setTimeout(() => setInviteCopyState(''), 1800);
-    } catch {
-      setInviteCopyState('');
-      showErrorToast(t('sessionBuilder.inviteCopyFailed'));
-    }
-  }, [showErrorToast, showSuccessToast, t]);
+      try {
+        await navigator.clipboard.writeText(text);
+        window.clearTimeout(inviteCopyTimerRef.current);
+        setInviteCopyState(feedbackKey);
+        showSuccessToast(t('sessionBuilder.inviteCopied'), 2500);
+        inviteCopyTimerRef.current = window.setTimeout(() => setInviteCopyState(''), 1800);
+      } catch {
+        setInviteCopyState('');
+        showErrorToast(t('sessionBuilder.inviteCopyFailed'));
+      }
+    },
+    [showErrorToast, showSuccessToast, t]
+  );
 
   const handleLaunchSession = useCallback(async () => {
     if (!selectedChallenges.length || isLaunching) {
@@ -1075,7 +1132,14 @@ export default function SessionBuilder() {
   useEffect(() => {
     if (!guard.allowed) return;
     if (sessionId || hasRouteSessionId) return;
-  }, [availableParticipantsCount, guard.allowed, hasRouteSessionId, participantsInventoryLoaded, sessionId, withLocalePath]);
+  }, [
+    availableParticipantsCount,
+    guard.allowed,
+    hasRouteSessionId,
+    participantsInventoryLoaded,
+    sessionId,
+    withLocalePath,
+  ]);
 
   useEffect(() => {
     if (!guard.allowed || sessionId || hasRouteSessionId) return;
@@ -1126,7 +1190,17 @@ export default function SessionBuilder() {
     };
 
     localStorage.setItem(CREATION_DRAFT_STORAGE_KEY, JSON.stringify(payload));
-  }, [draftParticipantIds, expectedCount, objective, flowMode, guard.allowed, hasRouteSessionId, sessionDateTime, sessionId, sessionName]);
+  }, [
+    draftParticipantIds,
+    expectedCount,
+    objective,
+    flowMode,
+    guard.allowed,
+    hasRouteSessionId,
+    sessionDateTime,
+    sessionId,
+    sessionName,
+  ]);
 
   useEffect(() => {
     if (!guard.allowed || sessionId || !hasUnsavedCreationChanges) return;
@@ -1157,7 +1231,7 @@ export default function SessionBuilder() {
     try {
       await persistSelectionToBackend(false);
       removeToast(loadingId);
-      showSuccessToast(t('sessionBuilder.save'));
+      showSuccessToast(t('sessionBuilder.configurationSaved'), 2500);
     } catch (error) {
       removeToast(loadingId);
       if (redirectToUpgrade(error)) return;
@@ -1177,13 +1251,21 @@ export default function SessionBuilder() {
     showLoadingToast,
   ]);
 
-  const handleParticipantSelectionFeedback = useCallback((count) => {
-    showSuccessToast(t('sessionBuilder.participantSelectionUpdated', { count }));
-  }, [showSuccessToast, t]);
+  const handleParticipantSelectionFeedback = useCallback(
+    (count) => {
+      showSuccessToast(t('sessionBuilder.participantSelectionUpdated', { count }));
+    },
+    [showSuccessToast, t]
+  );
 
   // Load existing session if sessionId is provided and challenge catalog is available
   useEffect(() => {
-    if (!sessionId || !guard.allowed || filteredChallenges.length === 0 || sessionChallengesLoaded) {
+    if (
+      !sessionId ||
+      !guard.allowed ||
+      filteredChallenges.length === 0 ||
+      sessionChallengesLoaded
+    ) {
       return;
     }
 
@@ -1227,9 +1309,9 @@ export default function SessionBuilder() {
           setLoadedFromLocalDraft(false);
           const savedDraft = readDraftFromStorage(sessionId);
           if (
-            savedDraft
-            && Array.isArray(savedDraft.selectedChallenges)
-            && shouldApplyLocalDraftOverSession(savedDraft, session)
+            savedDraft &&
+            Array.isArray(savedDraft.selectedChallenges) &&
+            shouldApplyLocalDraftOverSession(savedDraft, session)
           ) {
             restoreSelectedChallenges(savedDraft.selectedChallenges);
             setLoadedFromLocalDraft(true);
@@ -1350,86 +1432,89 @@ export default function SessionBuilder() {
     setAllChallenges(ensureBuilderCatalogChallenges(allChallenges, locale));
   }, [locale]);
 
-  const handleCreateSession = useCallback(async (e) => {
-    e.preventDefault();
-    setCreationTouched({
-      sessionName: true,
-      sessionDateTime: true,
-      participants: true,
-    });
-
-    if (!sessionName.trim()) {
-      showErrorToast(t('sessionBuilder.sessionNameRequired'));
-      return;
-    }
-    if (!isValidExpectedCount(expectedCount)) {
-      showErrorToast(t('sessionBuilder.expectedCountInvalid'));
-      return;
-    }
-
-    const name = sessionName.trim() || `Session ${new Date().toLocaleDateString('en-US')}`;
-    const sessionDate = sessionDateTime ? new Date(sessionDateTime) : null;
-    if (sessionDateTime && Number.isNaN(sessionDate?.getTime())) {
-      showErrorToast(t('sessionBuilder.invalidDateTimeDetailed'));
-      return;
-    }
-    const token = getAuthToken();
-    setIsCreatingSession(true);
-    const loadingId = showLoadingToast(t('sessionBuilder.creatingSession'));
-    try {
-      const payload = { name };
-      payload.expected_participant_count = expectedCount === '' ? null : Number(expectedCount);
-      payload.objective = objective || null;
-      payload.locale = locale;
-      payload.flow_mode = flowMode;
-      if (draftParticipantIds.length > 0) {
-        payload.participant_ids = draftParticipantIds;
-        payload.participantIds = draftParticipantIds;
-      }
-      if (sessionDate) {
-        payload.session_date = sessionDate.toISOString();
-      }
-      const created = await apiRequest('/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload),
+  const handleCreateSession = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setCreationTouched({
+        sessionName: true,
+        sessionDateTime: true,
+        participants: true,
       });
-      const newId = String(created.id || created.session?.id || '');
-      if (!newId) throw new Error(t('sessionBuilder.missingSessionId'));
 
-      sessionStorage.setItem(SESSION_ID_STORAGE_KEY, newId);
-      shouldResetScrollAfterCreationRef.current = true;
-      setSessionId(newId);
-      setSessionParticipantCount(draftParticipantIds.length);
-      localStorage.removeItem(CREATION_DRAFT_STORAGE_KEY);
-      await loadSessionDetails(newId, token);
-      await loadSessionInvite(newId, token);
-      removeToast(loadingId);
-      // Participants are already assigned in the creation pane; continue directly to challenge selection.
-    } catch (err) {
-      removeToast(loadingId);
-      if (redirectToUpgrade(err)) return;
-      showErrorToast(err.message || t('sessionBuilder.createSessionError'));
-    } finally {
-      setIsCreatingSession(false);
-    }
-  }, [
-    apiRequest,
-    draftParticipantIds,
-    expectedCount,
-    objective,
-    locale,
-    flowMode,
-    getAuthToken,
-    loadSessionInvite,
-    removeToast,
-    redirectToUpgrade,
-    sessionDateTime,
-    sessionName,
-    showErrorToast,
-    showLoadingToast,
-    t,
-  ]);
+      if (!sessionName.trim()) {
+        showErrorToast(t('sessionBuilder.sessionNameRequired'));
+        return;
+      }
+      if (!isValidExpectedCount(expectedCount)) {
+        showErrorToast(t('sessionBuilder.expectedCountInvalid'));
+        return;
+      }
+
+      const name = sessionName.trim() || `Session ${new Date().toLocaleDateString('en-US')}`;
+      const sessionDate = sessionDateTime ? new Date(sessionDateTime) : null;
+      if (sessionDateTime && Number.isNaN(sessionDate?.getTime())) {
+        showErrorToast(t('sessionBuilder.invalidDateTimeDetailed'));
+        return;
+      }
+      const token = getAuthToken();
+      setIsCreatingSession(true);
+      const loadingId = showLoadingToast(t('sessionBuilder.creatingSession'));
+      try {
+        const payload = { name };
+        payload.expected_participant_count = expectedCount === '' ? null : Number(expectedCount);
+        payload.objective = objective || null;
+        payload.locale = locale;
+        payload.flow_mode = flowMode;
+        if (draftParticipantIds.length > 0) {
+          payload.participant_ids = draftParticipantIds;
+          payload.participantIds = draftParticipantIds;
+        }
+        if (sessionDate) {
+          payload.session_date = sessionDate.toISOString();
+        }
+        const created = await apiRequest('/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        });
+        const newId = String(created.id || created.session?.id || '');
+        if (!newId) throw new Error(t('sessionBuilder.missingSessionId'));
+
+        sessionStorage.setItem(SESSION_ID_STORAGE_KEY, newId);
+        shouldResetScrollAfterCreationRef.current = true;
+        setSessionId(newId);
+        setSessionParticipantCount(draftParticipantIds.length);
+        localStorage.removeItem(CREATION_DRAFT_STORAGE_KEY);
+        await loadSessionDetails(newId, token);
+        await loadSessionInvite(newId, token);
+        removeToast(loadingId);
+        // Participants are already assigned in the creation pane; continue directly to challenge selection.
+      } catch (err) {
+        removeToast(loadingId);
+        if (redirectToUpgrade(err)) return;
+        showErrorToast(err.message || t('sessionBuilder.createSessionError'));
+      } finally {
+        setIsCreatingSession(false);
+      }
+    },
+    [
+      apiRequest,
+      draftParticipantIds,
+      expectedCount,
+      objective,
+      locale,
+      flowMode,
+      getAuthToken,
+      loadSessionInvite,
+      removeToast,
+      redirectToUpgrade,
+      sessionDateTime,
+      sessionName,
+      showErrorToast,
+      showLoadingToast,
+      t,
+    ]
+  );
 
   const handleSaveSessionInfo = useCallback(async () => {
     if (!isValidExpectedCount(editExpectedCount)) {
@@ -1440,7 +1525,9 @@ export default function SessionBuilder() {
     setIsSavingSessionInfo(true);
     try {
       const payload = {};
-      if (editExpectedCount !== expectedCount) payload.expected_participant_count = editExpectedCount === '' ? null : Number(editExpectedCount);
+      if (editExpectedCount !== expectedCount)
+        payload.expected_participant_count =
+          editExpectedCount === '' ? null : Number(editExpectedCount);
       if (editObjective !== objective) payload.objective = editObjective || null;
       const trimmedName = editName.trim();
       if (trimmedName) payload.name = trimmedName;
@@ -1503,34 +1590,41 @@ export default function SessionBuilder() {
           <span className={styles.fieldTitle}>{t('sessionBuilder.objective')}</span>
           <small id={`${id}-hint`}>{t('sessionBuilder.objectiveHint')}</small>
         </div>
-        <fieldset id={id} className={styles.objectiveField} aria-describedby={`${id}-hint`} aria-label={t('sessionBuilder.objective')}>
-        <div className={styles.objectiveChoices}>
-          {SESSION_OBJECTIVES.map((key) => (
-            <label key={key} className={styles.objectiveChoice}>
-              <input
-                type="checkbox"
-                value={key}
-                checked={selectedObjectives.includes(key)}
-                onChange={(event) => {
-                  const next = event.target.checked
-                    ? [...selectedObjectives, key]
-                    : selectedObjectives.filter((item) => item !== key);
-                  onChange(SESSION_OBJECTIVES.filter((item) => next.includes(item)).join(','));
-                }}
-              />
-              <span>{t(`sessionBuilder.objectiveLabels.${key}`)}</span>
-            </label>
-          ))}
-        </div>
+        <fieldset
+          id={id}
+          className={styles.objectiveField}
+          aria-describedby={`${id}-hint`}
+          aria-label={t('sessionBuilder.objective')}
+        >
+          <div className={styles.objectiveChoices}>
+            {SESSION_OBJECTIVES.map((key) => (
+              <label key={key} className={styles.objectiveChoice}>
+                <input
+                  type="checkbox"
+                  value={key}
+                  checked={selectedObjectives.includes(key)}
+                  onChange={(event) => {
+                    const next = event.target.checked
+                      ? [...selectedObjectives, key]
+                      : selectedObjectives.filter((item) => item !== key);
+                    onChange(SESSION_OBJECTIVES.filter((item) => next.includes(item)).join(','));
+                  }}
+                />
+                <span>{t(`sessionBuilder.objectiveLabels.${key}`)}</span>
+              </label>
+            ))}
+          </div>
         </fieldset>
       </div>
     );
   }
 
-  const objectiveLabel = String(objective || '').split(',')
+  const objectiveLabel = String(objective || '')
+    .split(',')
     .map((key) => key.trim())
     .filter((key) => SESSION_OBJECTIVES.includes(key))
-    .map((key) => t(`sessionBuilder.objectiveLabels.${key}`)).join(' · ');
+    .map((key) => t(`sessionBuilder.objectiveLabels.${key}`))
+    .join(' · ');
 
   function formatProgramParticipantRange(challenge) {
     const range = resolveChallengePlayerRange(challenge);
@@ -1607,13 +1701,20 @@ export default function SessionBuilder() {
           onClick={() => handleCopyInviteValue(inviteMessage, 'invite')}
           disabled={!inviteMessage}
         >
-          {inviteCopyState === 'invite' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInvite')}
+          {inviteCopyState === 'invite'
+            ? t('sessionBuilder.inviteCopied')
+            : t('sessionBuilder.copyInvite')}
         </button>
       </div>
       <div className={styles.summaryInviteOptions}>
         <div className={styles.summaryInviteControl}>
           {inviteLink ? (
-            <a className={styles.summaryInviteLink} href={inviteLink} target="_blank" rel="noopener noreferrer">
+            <a
+              className={styles.summaryInviteLink}
+              href={inviteLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {inviteLink}
             </a>
           ) : (
@@ -1625,7 +1726,9 @@ export default function SessionBuilder() {
             onClick={() => handleCopyInviteValue(inviteLink, 'link')}
             disabled={!inviteLink}
           >
-            {inviteCopyState === 'link' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteLink')}
+            {inviteCopyState === 'link'
+              ? t('sessionBuilder.inviteCopied')
+              : t('sessionBuilder.copyInviteLink')}
           </button>
         </div>
         <span className={styles.summaryInviteDivider}>{t('sessionBuilder.inviteCodePrompt')}</span>
@@ -1639,7 +1742,9 @@ export default function SessionBuilder() {
             onClick={() => handleCopyInviteValue(sessionInvite?.code, 'code')}
             disabled={!String(sessionInvite?.code || '').trim()}
           >
-            {inviteCopyState === 'code' ? t('sessionBuilder.inviteCopied') : t('sessionBuilder.copyInviteCode')}
+            {inviteCopyState === 'code'
+              ? t('sessionBuilder.inviteCopied')
+              : t('sessionBuilder.copyInviteCode')}
           </button>
         </div>
       </div>
@@ -1666,129 +1771,150 @@ export default function SessionBuilder() {
           <section className={styles.creationExperience}>
             <div className={styles.creationHero}>
               <div className={styles.creationContent}>
-                <form id="create-session-form" onSubmit={handleCreateSession} className={styles.creationPrimary}>
+                <form
+                  id="create-session-form"
+                  onSubmit={handleCreateSession}
+                  className={styles.creationPrimary}
+                >
                   <div className={styles.creationForm}>
-                      <div className={styles.creationSectionHeader}>
-                        <div>
-                          <h2>{t('sessionBuilder.frameTitle')}</h2>
-                        </div>
+                    <div className={styles.creationSectionHeader}>
+                      <div>
+                        <h2>{t('sessionBuilder.frameTitle')}</h2>
                       </div>
+                    </div>
 
-                      <div className={styles.creationGrid}>
-                        <Input
-                          id="session-name"
-                          label={`${t('sessionBuilder.sessionName')} ${t('sessionBuilder.requiredAsterisk')}`}
-                          value={sessionName}
-                          onChange={(e) => {
-                            setSessionName(e.target.value);
-                            setCreationTouched((prev) => ({ ...prev, sessionName: true }));
-                          }}
-                          onBlur={() => setCreationTouched((prev) => ({ ...prev, sessionName: true }))}
-                          placeholder={t('sessionBuilder.sessionNamePlaceholder')}
-                          autoFocus
-                          required
-                          error={nameError}
-                          aria-invalid={Boolean(nameError)}
-                        />
-                        <Input
-                          id="session-datetime"
-                          label={t('sessionBuilder.sessionDateTime')}
-                          type="datetime-local"
-                          value={sessionDateTime}
-                          onChange={(e) => {
-                            setSessionDateTime(e.target.value);
-                            setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }));
-                          }}
-                          onBlur={() => setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }))}
-                          step="60"
-                          inputClassName={styles.creationDateInput}
-                          helpClassName={styles.creationDateHelp}
-                          error={dateError}
-                          aria-invalid={Boolean(dateError)}
-                        />
+                    <div className={styles.creationGrid}>
+                      <Input
+                        id="session-name"
+                        label={`${t('sessionBuilder.sessionName')} ${t('sessionBuilder.requiredAsterisk')}`}
+                        value={sessionName}
+                        onChange={(e) => {
+                          setSessionName(e.target.value);
+                          setCreationTouched((prev) => ({ ...prev, sessionName: true }));
+                        }}
+                        onBlur={() =>
+                          setCreationTouched((prev) => ({ ...prev, sessionName: true }))
+                        }
+                        placeholder={t('sessionBuilder.sessionNamePlaceholder')}
+                        autoFocus
+                        required
+                        error={nameError}
+                        aria-invalid={Boolean(nameError)}
+                      />
+                      <Input
+                        id="session-datetime"
+                        label={t('sessionBuilder.sessionDateTime')}
+                        type="datetime-local"
+                        value={sessionDateTime}
+                        onChange={(e) => {
+                          setSessionDateTime(e.target.value);
+                          setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }));
+                        }}
+                        onBlur={() =>
+                          setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }))
+                        }
+                        step="60"
+                        inputClassName={styles.creationDateInput}
+                        helpClassName={styles.creationDateHelp}
+                        error={dateError}
+                        aria-invalid={Boolean(dateError)}
+                      />
+                    </div>
+
+                    <div className={styles.creationGrid}>
+                      <Input
+                        id="expected-participants"
+                        type="number"
+                        min="1"
+                        max="2147483647"
+                        step="1"
+                        label={
+                          <span className={styles.fieldTitle}>
+                            {t('sessionBuilder.expectedCount')}
+                          </span>
+                        }
+                        value={expectedCount}
+                        onChange={(event) => setExpectedCount(event.target.value)}
+                        hint={t('sessionBuilder.expectedCountHint')}
+                        error={
+                          isValidExpectedCount(expectedCount)
+                            ? ''
+                            : t('sessionBuilder.expectedCountInvalid')
+                        }
+                        className={styles.expectedCountField}
+                      />
+                    </div>
+
+                    {renderObjectiveField(objective, setObjective, 'session-objective')}
+
+                    <div className={styles.flowModeField}>
+                      <div className={styles.creationFieldHeading}>
+                        <span>{t('sessionBuilder.progressionMode')}</span>
+                        <p>{t('sessionBuilder.progressionHint')}</p>
                       </div>
-
-                      <div className={styles.creationGrid}>
-                        <Input
-                          id="expected-participants"
-                          type="number"
-                          min="1"
-                          max="2147483647"
-                          step="1"
-                          label={(
-                            <span className={styles.fieldTitle}>{t('sessionBuilder.expectedCount')}</span>
-                          )}
-                          value={expectedCount}
-                          onChange={(event) => setExpectedCount(event.target.value)}
-                          hint={t('sessionBuilder.expectedCountHint')}
-                          error={isValidExpectedCount(expectedCount) ? '' : t('sessionBuilder.expectedCountInvalid')}
-                          className={styles.expectedCountField}
-                        />
+                      <div className={styles.flowModeGrid}>
+                        <label
+                          className={`${styles.flowModeCard} ${flowMode === 'manual' ? styles.flowModeCardActive : ''}`}
+                        >
+                          <input
+                            type="radio"
+                            name="flowMode"
+                            value="manual"
+                            checked={flowMode === 'manual'}
+                            onChange={() => setFlowMode('manual')}
+                          />
+                          <span className={styles.flowModeContent}>
+                            <strong>{t('sessionBuilder.manual')}</strong>
+                            <small>{t('sessionBuilder.manualHint')}</small>
+                          </span>
+                        </label>
+                        <label
+                          className={`${styles.flowModeCard} ${flowMode === 'auto' ? styles.flowModeCardActive : ''}`}
+                        >
+                          <input
+                            type="radio"
+                            name="flowMode"
+                            value="auto"
+                            checked={flowMode === 'auto'}
+                            onChange={() => setFlowMode('auto')}
+                          />
+                          <span className={styles.flowModeContent}>
+                            <strong>{t('sessionBuilder.automatic')}</strong>
+                            <small>{t('sessionBuilder.automaticHint')}</small>
+                          </span>
+                        </label>
                       </div>
-
-                      {renderObjectiveField(objective, setObjective, 'session-objective')}
-
-                      <div className={styles.flowModeField}>
-                        <div className={styles.creationFieldHeading}>
-                          <span>{t('sessionBuilder.progressionMode')}</span>
-                          <p>{t('sessionBuilder.progressionHint')}</p>
-                        </div>
-                        <div className={styles.flowModeGrid}>
-                          <label className={`${styles.flowModeCard} ${flowMode === 'manual' ? styles.flowModeCardActive : ''}`}>
-                            <input
-                              type="radio"
-                              name="flowMode"
-                              value="manual"
-                              checked={flowMode === 'manual'}
-                              onChange={() => setFlowMode('manual')}
-                            />
-                            <span className={styles.flowModeContent}>
-                              <strong>{t('sessionBuilder.manual')}</strong>
-                              <small>{t('sessionBuilder.manualHint')}</small>
-                            </span>
-                          </label>
-                          <label className={`${styles.flowModeCard} ${flowMode === 'auto' ? styles.flowModeCardActive : ''}`}>
-                            <input
-                              type="radio"
-                              name="flowMode"
-                              value="auto"
-                              checked={flowMode === 'auto'}
-                              onChange={() => setFlowMode('auto')}
-                            />
-                            <span className={styles.flowModeContent}>
-                              <strong>{t('sessionBuilder.automatic')}</strong>
-                              <small>{t('sessionBuilder.automaticHint')}</small>
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-
+                    </div>
                   </div>
 
                   <div className={styles.creationParticipantsPane}>
-                      <div className={styles.creationSectionHeader}>
-                        <div>
-                          <h2>{t('sessionBuilder.prepareGroup')}</h2>
-                          <p>{t('sessionBuilder.participationHint')}</p>
-                        </div>
+                    <div className={styles.creationSectionHeader}>
+                      <div>
+                        <h2>{t('sessionBuilder.prepareGroup')}</h2>
+                        <p>{t('sessionBuilder.participationHint')}</p>
                       </div>
+                    </div>
 
-                      <div className={styles.participationNotice}>
-                        <strong>{t('sessionBuilder.joinWithCode')}</strong>
-                        <p>{t('sessionBuilder.joinWithCodeHint')}</p>
-                        <p>{t('sessionBuilder.followUpHint')}</p>
-                      </div>
-                      <details className={styles.participantsDisclosure}>
-                        <summary>
-                          <span>{t('sessionBuilder.prepareAhead')}</span>
-                          <span className={styles.creationParticipantsCount}>
-                            {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
-                          </span>
-                        </summary>
-                        <p>{t('sessionBuilder.prepareAheadHint')}</p>
-                        <p>{availableParticipantsCount === 0
+                    <div className={styles.participationNotice}>
+                      <strong>{t('sessionBuilder.joinWithCode')}</strong>
+                      <p>{t('sessionBuilder.joinWithCodeHint')}</p>
+                      <p>{t('sessionBuilder.followUpHint')}</p>
+                    </div>
+                    <details className={styles.participantsDisclosure}>
+                      <summary>
+                        <span>{t('sessionBuilder.prepareAhead')}</span>
+                        <span className={styles.creationParticipantsCount}>
+                          {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
+                        </span>
+                      </summary>
+                      <p>{t('sessionBuilder.prepareAheadHint')}</p>
+                      <p>
+                        {availableParticipantsCount === 0
                           ? t('sessionBuilder.noAvailableProfiles')
-                          : t('sessionBuilder.participantsAvailable', { count: availableParticipantsCount })}</p>
+                          : t('sessionBuilder.participantsAvailable', {
+                              count: availableParticipantsCount,
+                            })}
+                      </p>
                       <ParticipantAssigner
                         isLoading={isCreatingSession}
                         selectedIds={draftParticipantIds}
@@ -1810,13 +1936,15 @@ export default function SessionBuilder() {
                           <Button
                             type="button"
                             variant="secondary"
-                            onClick={() => window.location.assign(withLocalePath('/home#participants'))}
+                            onClick={() =>
+                              window.location.assign(withLocalePath('/home#participants'))
+                            }
                           >
                             {t('sessionBuilder.createParticipantCta')}
                           </Button>
                         </div>
                       ) : null}
-                      </details>
+                    </details>
                   </div>
                 </form>
               </div>
@@ -1827,9 +1955,15 @@ export default function SessionBuilder() {
                   form="create-session-form"
                   className={styles.creationSubmit}
                   disabled={!canCreateSessionNow}
-                  title={!canCreateSessionNow ? t('sessionBuilder.sessionNameRequired') : t('sessionBuilder.createSession')}
+                  title={
+                    !canCreateSessionNow
+                      ? t('sessionBuilder.sessionNameRequired')
+                      : t('sessionBuilder.createSession')
+                  }
                 >
-                  {isCreatingSession ? t('sessionBuilder.creating') : t('sessionBuilder.createSession')}
+                  {isCreatingSession
+                    ? t('sessionBuilder.creating')
+                    : t('sessionBuilder.createSession')}
                 </Button>
               </div>
             </div>
@@ -1846,10 +1980,12 @@ export default function SessionBuilder() {
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
-      
+
       <main className={`shell ${styles.sessionBuilder}`}>
         {asyncStatusMessage ? (
-          <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
+          <p className="ui-async-status" role="status" aria-live="polite">
+            {asyncStatusMessage}
+          </p>
         ) : null}
         <SessionBuilderHeader
           sessionName={sessionName}
@@ -1874,7 +2010,14 @@ export default function SessionBuilder() {
           onLaunch={handleRequestLaunch}
           invitePanel={invitePanel}
         />
-        <SessionPreparation participantCount={sessionParticipantCount} participantCountLabel="assigned" selectedCount={selectedChallenges.length} configuration={selectedChallenges.length ? 'loaded' : 'missing'} sessionAvailable={Boolean(sessionId)} busy={isSavingDraft || isLaunching} />
+        <SessionPreparation
+          participantCount={sessionParticipantCount}
+          participantCountLabel="assigned"
+          selectedCount={selectedChallenges.length}
+          configuration={selectedChallenges.length ? 'loaded' : 'missing'}
+          sessionAvailable={Boolean(sessionId)}
+          busy={isSavingDraft || isLaunching}
+        />
 
         <section className={styles.programEntry}>
           <div>
@@ -1891,7 +2034,9 @@ export default function SessionBuilder() {
               generateProgram();
               setProgramOpen(true);
             }}
-          >{t('sessionBuilder.proposeProgram')}</Button>
+          >
+            {t('sessionBuilder.proposeProgram')}
+          </Button>
         </section>
         <div className={styles.mainLayout}>
           <SelectedChallengesList
@@ -1928,7 +2073,10 @@ export default function SessionBuilder() {
         dialogClassName={styles.sessionInfoEditDialog}
         bodyClassName={styles.sessionInfoEditBody}
       >
-        <section className={styles.sessionInfoEditContent} aria-label={t('sessionBuilder.editSessionAria')}>
+        <section
+          className={styles.sessionInfoEditContent}
+          aria-label={t('sessionBuilder.editSessionAria')}
+        >
           <div className={styles.sessionInfoEditGrid}>
             <Input
               id="edit-session-name"
@@ -1961,12 +2109,19 @@ export default function SessionBuilder() {
           <div className={styles.creationGrid}>
             <Input
               id="edit-expected-participants"
-              type="number" min="1" max="2147483647" step="1"
+              type="number"
+              min="1"
+              max="2147483647"
+              step="1"
               label={t('sessionBuilder.expectedCount')}
               value={editExpectedCount}
               onChange={(event) => setEditExpectedCount(event.target.value)}
               hint={t('sessionBuilder.expectedCountHint')}
-              error={isValidExpectedCount(editExpectedCount) ? '' : t('sessionBuilder.expectedCountInvalid')}
+              error={
+                isValidExpectedCount(editExpectedCount)
+                  ? ''
+                  : t('sessionBuilder.expectedCountInvalid')
+              }
             />
             {renderObjectiveField(editObjective, setEditObjective, 'edit-session-objective')}
           </div>
@@ -1993,10 +2148,7 @@ export default function SessionBuilder() {
           </div>
 
           <div className={styles.sessionInfoEditActions}>
-            <Button
-              onClick={handleSaveSessionInfo}
-              disabled={isSavingSessionInfo}
-            >
+            <Button onClick={handleSaveSessionInfo} disabled={isSavingSessionInfo}>
               {isSavingSessionInfo ? t('sessionBuilder.saving') : t('sessionBuilder.save')}
             </Button>
             <Button variant="secondary" onClick={() => setIsEditingSessionInfo(false)}>
@@ -2017,7 +2169,11 @@ export default function SessionBuilder() {
           <p>{t('sessionBuilder.programHint')}</p>
           <div className={styles.programContext}>
             <span>{objectiveLabel || t('sessionBuilder.noPreference')}</span>
-            <span>{expectedCount ? t('sessionBuilder.plannedCount', { count: expectedCount }) : t('sessionBuilder.programUnknownCount')}</span>
+            <span>
+              {expectedCount
+                ? t('sessionBuilder.plannedCount', { count: expectedCount })
+                : t('sessionBuilder.programUnknownCount')}
+            </span>
           </div>
           <Input
             id="program-duration"
@@ -2035,16 +2191,36 @@ export default function SessionBuilder() {
               setProgramNotice('');
             }}
           />
-          <Button variant="secondary" onClick={generateProgram} className={styles.programRegenerateButton}>
-            {t(programProposal ? 'sessionBuilder.regenerateProgram' : 'sessionBuilder.generateProgram')}
+          <Button
+            variant="secondary"
+            onClick={generateProgram}
+            className={styles.programRegenerateButton}
+          >
+            {t(
+              programProposal
+                ? 'sessionBuilder.regenerateProgram'
+                : 'sessionBuilder.generateProgram'
+            )}
           </Button>
-          {programError ? <p className={styles.programFeedbackError} role="alert">{programError}</p> : null}
-          {programNotice ? <p className={styles.programFeedbackNotice} role="status">{programNotice}</p> : null}
+          {programError ? (
+            <p className={styles.programFeedbackError} role="alert">
+              {programError}
+            </p>
+          ) : null}
+          {programNotice ? (
+            <p className={styles.programFeedbackNotice} role="status">
+              {programNotice}
+            </p>
+          ) : null}
           {programProposal?.challenges.length ? (
             <>
               <div className={styles.programSummaryRow}>
                 <p>{t('sessionBuilder.programDuration', { count: programProposal.duration })}</p>
-                <p>{t('sessionBuilder.programEligibleCount', { count: programProposal.eligibleCount })}</p>
+                <p>
+                  {t('sessionBuilder.programEligibleCount', {
+                    count: programProposal.eligibleCount,
+                  })}
+                </p>
               </div>
               <ol className={styles.programPreview}>
                 {programProposal.challenges.map((challenge) => (
@@ -2060,7 +2236,9 @@ export default function SessionBuilder() {
                     <Button
                       variant="secondary"
                       size="sm"
-                      aria-label={t('sessionBuilder.replaceChallengeAria', { name: challenge.name })}
+                      aria-label={t('sessionBuilder.replaceChallengeAria', {
+                        name: challenge.name,
+                      })}
                       onClick={() => replaceProposedChallenge(challenge.id)}
                     >
                       {t('sessionBuilder.replaceChallenge')}
@@ -2068,7 +2246,9 @@ export default function SessionBuilder() {
                   </li>
                 ))}
               </ol>
-              {selectedChallenges.length ? <p>{t('sessionBuilder.replaceProgramWarning')}</p> : null}
+              {selectedChallenges.length ? (
+                <p>{t('sessionBuilder.replaceProgramWarning')}</p>
+              ) : null}
               <Button
                 block
                 onClick={() => {
@@ -2092,9 +2272,7 @@ export default function SessionBuilder() {
         bodyClassName={styles.launchConfirmBody}
       >
         <div className={styles.launchConfirmNotice}>
-          <p className={styles.launchConfirmText}>
-            {t('sessionBuilder.launchConfirmBody')}
-          </p>
+          <p className={styles.launchConfirmText}>{t('sessionBuilder.launchConfirmBody')}</p>
         </div>
         <div className={styles.launchConfirmActions}>
           <Button

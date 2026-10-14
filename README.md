@@ -21,6 +21,9 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les objectifs de session acceptent une multiselection. Les suggestions de programme retiennent les challenges correspondant a au moins un objectif choisi, sans bloquer la selection manuelle.
 - La poignee de la selection permet de reordonner a la souris, au tactile ou avec les fleches haut/bas du clavier. Les actions secondaires apparaissent au survol et au focus, et restent visibles sur ecran tactile.
 - Les trois actions de copie partagent un style neutre et confirment la copie; un echec du presse-papiers affiche une notification.
+- La carte de session conserve trois partages distincts : message d'invitation complet (lien et code), lien seul et code seul. Le lien revient a la ligne sur mobile et le code reste selectionnable.
+- Les icones d'information et de sauvegarde ont des infobulles au survol et au clavier (Echap pour masquer). Une sauvegarde reussie confirme explicitement l'enregistrement via les notifications existantes.
+- Le lancement reste conditionne a la presence d'au moins une activite, sans minimum d'inscrits ajoute. Une explication visible accompagne l'etat desactive; le bouton actif conserve sa forme et son degrade avec un contraste renforce.
 - Validation: `npm run test:unit:builder` et `npm run test:ux:builder` (frontend lance sur le port 3100, Chrome disponible). Le test UX utilise des reponses API locales simulees, sans modifier de session reelle.
 
 ### Mots croises Live
@@ -117,6 +120,7 @@ Validation: `npm run test:ux:challenges` et `npm run test:ux:challenges:no-webgl
 ## 1) Portee couverte
 
 Routes principales migrees:
+
 - `/`
 - `/login`
 - `/signup`
@@ -142,6 +146,7 @@ npm run dev
 - URL locale: `http://localhost:3100`
 
 Variables importantes:
+
 - `NEXT_PUBLIC_API_BASE`
 - `NEXT_PUBLIC_API_URL` (alias accepte, normalise vers la meme logique que `NEXT_PUBLIC_API_BASE`)
 - `BACKEND_ORIGIN` (obligatoire hors dev, cible rewrite Next.js vers backend actif)
