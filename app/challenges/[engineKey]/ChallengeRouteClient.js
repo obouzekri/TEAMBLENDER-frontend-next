@@ -263,39 +263,41 @@ export default function ChallengeRouteClient() {
 
   return (
     <ChallengeHeaderPortalContext.Provider value={challengeSlotNode}>
-      <ChallengeWrapper
-        key={`${sessionId}:${activeChallengeId || 'none'}:${engineKey}`}
-        sessionId={sessionId}
-        engineKey={engineKey}
-        onChallengeCompleted={handleChallengeCompleted}
-        headerContent={sessionId ? (
-          <SessionLiveHeader
-            sessionId={sessionId}
-            sessionName={sessionDetails?.name || sessionId}
-            sessionCode={sessionDetails?.code || sessionDetails?.session_code || sessionDetails?.sessionCode || sessionId}
-            participantCount={teamMembers.length}
-            expectedParticipantCount={sessionDetails?.expected_participant_count}
-            sessionObjective={sessionDetails?.objective}
-            challenges={sessionChallenges}
-            activeChallengeId={activeChallengeId}
-            activeChallengeName={activeChallengeName}
-            showAdvanceButton={false}
-            challengeSlotRef={setChallengeSlotNode}
-          />
+      <div className={styles.challengeRoute} data-completion-visible={completionOverlay ? 'true' : undefined}>
+        <ChallengeWrapper
+          key={`${sessionId}:${activeChallengeId || 'none'}:${engineKey}`}
+          sessionId={sessionId}
+          engineKey={engineKey}
+          onChallengeCompleted={handleChallengeCompleted}
+          headerContent={sessionId ? (
+            <SessionLiveHeader
+              sessionId={sessionId}
+              sessionName={sessionDetails?.name || sessionId}
+              sessionCode={sessionDetails?.code || sessionDetails?.session_code || sessionDetails?.sessionCode || sessionId}
+              participantCount={teamMembers.length}
+              expectedParticipantCount={sessionDetails?.expected_participant_count}
+              sessionObjective={sessionDetails?.objective}
+              challenges={sessionChallenges}
+              activeChallengeId={activeChallengeId}
+              activeChallengeName={activeChallengeName}
+              showAdvanceButton={false}
+              challengeSlotRef={setChallengeSlotNode}
+            />
+          ) : null}
+        />
+        {completionOverlay ? (
+          <section className={styles.completionBanner} role="status" aria-live="polite">
+            <span className={styles.completionIcon} aria-hidden="true">✅</span>
+            <p className={styles.completionText}>
+              <strong>{t('sessionLive.challengeCompletedTitle')}</strong>
+              {' · '}
+              {completionOverlay.mode === 'auto'
+                ? t('sessionLive.challengeCompletedAuto', { seconds: completionOverlay.countdown })
+                : t('sessionLive.challengeCompletedManual')}
+            </p>
+          </section>
         ) : null}
-      />
-      {completionOverlay ? (
-        <section className={styles.completionBanner} role="status" aria-live="polite">
-          <span className={styles.completionIcon} aria-hidden="true">✅</span>
-          <p className={styles.completionText}>
-            <strong>{t('sessionLive.challengeCompletedTitle')}</strong>
-            {' · '}
-            {completionOverlay.mode === 'auto'
-              ? t('sessionLive.challengeCompletedAuto', { seconds: completionOverlay.countdown })
-              : t('sessionLive.challengeCompletedManual')}
-          </p>
-        </section>
-      ) : null}
+      </div>
     </ChallengeHeaderPortalContext.Provider>
   );
 }

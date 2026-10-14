@@ -41,6 +41,26 @@ async function open(engineKey, state, { locale = 'en', role = 'participant', wid
 async function finish(fixture) {
   assert.deepEqual(fixture.errors, []);
   assert.deepEqual(fixture.nestingWarnings, []);
+  const completionClearance = await fixture.page.evaluate(() => {
+    const route = document.querySelector('[class*="challengeRoute"]');
+    const challenge = document.querySelector('[class*="challengeContainer"]');
+    if (!route || !challenge) return null;
+
+    route.dataset.completionVisible = 'true';
+    const clearance = {
+      route: Number.parseFloat(getComputedStyle(route).paddingBottom),
+      challenge: Number.parseFloat(getComputedStyle(challenge).paddingBottom),
+      width: innerWidth,
+    };
+    delete route.dataset.completionVisible;
+    return clearance;
+  });
+  assert.ok(completionClearance, 'Challenge route should reserve space for the completion banner');
+  if (completionClearance.width > 720) {
+    assert.ok(completionClearance.route >= 72, 'Desktop content should not sit beneath the completion banner');
+  } else {
+    assert.ok(completionClearance.challenge >= 88, 'Mobile content should not sit beneath the completion banner');
+  }
   assert.ok(await fixture.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Horizontal overflow');
   await fixture.close();
 }

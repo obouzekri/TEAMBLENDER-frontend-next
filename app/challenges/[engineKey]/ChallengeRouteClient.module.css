@@ -1,5 +1,9 @@
 /* Rendered outside any engine's themed container, so colors are hardcoded to match the
    shared challenge dark palette (bg-1/#071520, surface-1/#0a1824, accent/#5bc8ff family). */
+.challengeRoute {
+  min-width: 0;
+}
+
 .completionBanner {
   position: fixed;
   left: 0;
@@ -51,5 +55,11 @@
 @media (max-width: 520px) {
   .completionText {
     font-size: 0.8rem;
+  }
+}
+
+@media (min-width: 721px) {
+  .challengeRoute[data-completion-visible='true'] {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
 }
