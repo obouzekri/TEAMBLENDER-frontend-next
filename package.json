@@ -29,7 +29,7 @@
     "test:unit:builder": "node scripts/test-session-builder-utils.mjs && node scripts/test-session-program.mjs",
     "test:ux:builder": "node scripts/test-session-builder-ux.mjs",
     "test:ux:planning": "node scripts/test-session-planning-ux.mjs",
-    "test:ux:account": "node scripts/test-account-security-ux.mjs",
+    "test:ux:account": "node scripts/test-account-navigation-ux.mjs && node scripts/test-account-security-ux.mjs",
     "test:ux:labyrinthe": "node scripts/test-labyrinthe-ux.mjs",
     "test:ux:vom": "node scripts/test-vom-ux.mjs",
     "test:ux:mission": "node scripts/test-mission-ux.mjs",

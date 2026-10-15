@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { CreditCard, ShieldCheck, UserRound } from 'lucide-react';
+import { CreditCard, Download, Eye, EyeOff, Pencil, ReceiptText, ShieldCheck, UserRound } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import AvatarPickerModal from '@/components/AvatarPickerModal';
 import Footer from '@/components/Footer';
@@ -501,14 +501,22 @@ export default function AccountPage() {
   }, [guard.allowed]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const source = String(params.get('source') || '').trim().toLowerCase();
-    const tab = String(params.get('tab') || '').trim().toLowerCase();
-    setEntrySource(source);
-    if (['profile', 'security', 'pricing'].includes(tab)) {
-      setActiveTab(tab);
+    function readAccountLocation() {
+      const params = new URLSearchParams(window.location.search);
+      const tab = String(params.get('tab') || '').trim().toLowerCase();
+      const participant = String(getStoredCurrentUser()?.role || '').toLowerCase() === 'participant';
+      const nextTab = participant ? 'security' : ['profile', 'security', 'pricing', 'invoices'].includes(tab) ? tab : 'profile';
+      setEntrySource(String(params.get('source') || '').trim().toLowerCase());
+      setActiveTab(nextTab);
+      if (params.has('tab') && params.get('tab') !== nextTab) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', nextTab);
+        window.history.replaceState(null, '', url);
+      }
     }
+    readAccountLocation();
+    window.addEventListener('popstate', readAccountLocation);
+    return () => window.removeEventListener('popstate', readAccountLocation);
   }, []);
 
   useEffect(() => {
@@ -1032,8 +1040,17 @@ export default function AccountPage() {
     showSuccess(t('account.avatarUpdated'));
   }
 
+  function selectAccountTab(tab) {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('tab') !== tab) {
+      url.searchParams.set('tab', tab);
+      window.history.pushState(null, '', url);
+    }
+  }
+
   function handleAccountTabKeyDown(event) {
-    const tabs = isParticipantAccount ? ['security'] : ['profile', 'security', 'pricing'];
+    const tabs = isParticipantAccount ? ['security'] : ['profile', 'security', 'pricing', 'invoices'];
     const currentIndex = tabs.indexOf(activeTab);
     let nextIndex = currentIndex;
 
@@ -1045,7 +1062,7 @@ export default function AccountPage() {
 
     event.preventDefault();
     const nextTab = tabs[nextIndex];
-    setActiveTab(nextTab);
+    selectAccountTab(nextTab);
     document.getElementById(`account-tab-${nextTab}`)?.focus();
   }
 
@@ -1091,7 +1108,6 @@ export default function AccountPage() {
 
         <section className="account-page-header" aria-label={t('account.accountHeaderAria')}>
           <div className="account-page-header__copy">
-            <p className="eyebrow">{isParticipantAccount ? t('participantSpace') : t('account.heroEyebrow')}</p>
             <h1>{t('account.settingsTitle')}</h1>
             <p className="account-page-header__description">
               {isParticipantAccount
@@ -1123,32 +1139,38 @@ export default function AccountPage() {
             onKeyDown={handleAccountTabKeyDown}
           >
             {!isParticipantAccount ? (
-              <button type="button" id="account-tab-profile" role="tab" aria-controls="account-profile" aria-selected={activeTab === 'profile'} tabIndex={activeTab === 'profile' ? 0 : -1} className={`account-tab account-tab--modern ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => setActiveTab('profile')}>
+              <button type="button" id="account-tab-profile" role="tab" aria-controls="account-profile" aria-selected={activeTab === 'profile'} tabIndex={activeTab === 'profile' ? 0 : -1} className={`account-tab account-tab--modern ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => selectAccountTab('profile')}>
                 <UserRound size={17} aria-hidden="true" />
                 {t('account.heroProfile')}
               </button>
             ) : null}
-            <button type="button" id="account-tab-security" role="tab" aria-controls="account-security" aria-selected={activeTab === 'security'} tabIndex={activeTab === 'security' ? 0 : -1} className={`account-tab account-tab--modern ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => setActiveTab('security')}>
+            <button type="button" id="account-tab-security" role="tab" aria-controls="account-security" aria-selected={activeTab === 'security'} tabIndex={activeTab === 'security' ? 0 : -1} className={`account-tab account-tab--modern ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => selectAccountTab('security')}>
               <ShieldCheck size={17} aria-hidden="true" />
               {t('account.heroSecurity')}
             </button>
             {!isParticipantAccount ? (
-              <button type="button" id="account-tab-pricing" role="tab" aria-controls="account-pricing" aria-selected={activeTab === 'pricing'} tabIndex={activeTab === 'pricing' ? 0 : -1} className={`account-tab account-tab--modern ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => setActiveTab('pricing')}>
+              <button type="button" id="account-tab-pricing" role="tab" aria-controls="account-pricing" aria-selected={activeTab === 'pricing'} tabIndex={activeTab === 'pricing' ? 0 : -1} className={`account-tab account-tab--modern ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => selectAccountTab('pricing')}>
                 <CreditCard size={17} aria-hidden="true" />
                 {t('account.pricingHeaderTitle')}
               </button>
             ) : null}
+            {!isParticipantAccount ? (
+              <button type="button" id="account-tab-invoices" role="tab" aria-controls="account-invoices" aria-selected={activeTab === 'invoices'} tabIndex={activeTab === 'invoices' ? 0 : -1} className={`account-tab account-tab--modern ${activeTab === 'invoices' ? 'is-active' : ''}`} onClick={() => selectAccountTab('invoices')}>
+                <ReceiptText size={17} aria-hidden="true" />
+                {t('account.invoicesTitle')}
+              </button>
+            ) : null}
           </div>
 
+          <div className="account-panels">
           {!isParticipantAccount ? (
-          <section id="account-profile" role="tabpanel" aria-labelledby="account-tab-profile" className={`account-saas-card account-panel ${activeTab === 'profile' ? 'is-active' : ''}`} hidden={activeTab !== 'profile'}>
+          <section id="account-profile" role="tabpanel" aria-labelledby="account-tab-profile" tabIndex={0} className={`account-saas-card account-panel ${activeTab === 'profile' ? 'is-active' : ''}`} hidden={activeTab !== 'profile'}>
             <header className="account-saas-card__header">
-              <p className="eyebrow">PROFIL</p>
               <h2 className="account-saas-card__title">{t('account.profileTitle')}</h2>
               <p className="account-saas-card__subtitle">{t('account.profileSubtitle')}</p>
             </header>
             <div className="account-saas-card__body account-profile-layout account-panel-body--balanced">
-              <aside className="account-identity-card" aria-label="Résumé de l’identité">
+              <aside className="account-identity-card" aria-label={t('account.changeAvatar')}>
                 <div className="account-identity-avatar-wrap">
                   {resolvedAvatarUrl ? (
                     <img src={resolvedAvatarUrl} alt="Avatar sélectionné" className="account-identity-avatar-photo" />
@@ -1158,19 +1180,16 @@ export default function AccountPage() {
                   <button
                     type="button"
                     className="account-identity-avatar-edit"
-                    aria-label="Changer l'avatar"
+                    aria-label={t('account.changeAvatar')}
                     title="JPG, PNG. Max 2MB"
                     aria-haspopup="dialog"
                     aria-expanded={avatarPickerOpen}
                     onClick={() => setAvatarPickerOpen(true)}
                   >
-                    ✏️
+                    <Pencil size={13} aria-hidden="true" />
                   </button>
                 </div>
-                <div className="account-identity-meta">
-                  <p className="account-identity-email" title={String(me?.email || guard.user?.email || '').trim() || '-'}>{String(me?.email || guard.user?.email || '').trim() || '-'}</p>
-                  <span className="account-role-badge">Manager</span>
-                </div>
+                <span className="account-form-hint">{t('account.changeAvatar')}</span>
               </aside>
 
               <form className="account-profile-form" onSubmit={handleSaveProfile}>
@@ -1179,18 +1198,18 @@ export default function AccountPage() {
                   <div className="account-form-grid">
                     <div className="account-form-field">
                       <label className="account-form-label" htmlFor="account-first-name">
-                        {t('account.firstName')} <span className="account-field-required" aria-hidden="true">*</span>
+                        {t('account.firstName')}
                       </label>
                       <input id="account-first-name" className="account-form-input account-form-input--disabled" type="text" value={profileForm.first_name} disabled readOnly />
                     </div>
                     <div className="account-form-field">
                       <label className="account-form-label" htmlFor="account-last-name">
-                        {t('account.lastName')} <span className="account-field-required" aria-hidden="true">*</span>
+                        {t('account.lastName')}
                       </label>
                       <input id="account-last-name" className="account-form-input account-form-input--disabled" type="text" value={profileForm.last_name} disabled readOnly />
                     </div>
                     <div className="account-form-field account-form-field--full">
-                      <label className="account-form-label" htmlFor="account-email">{t('account.email')} <span className="account-field-required" aria-hidden="true">*</span></label>
+                      <label className="account-form-label" htmlFor="account-email">{t('account.email')}</label>
                       <input id="account-email" className="account-form-input account-form-input--disabled" type="email" value={String(me?.email || guard.user?.email || '').trim()} disabled readOnly />
                       <p className="account-form-hint">{t('account.emailChangeUnavailable')}</p>
                     </div>
@@ -1199,7 +1218,6 @@ export default function AccountPage() {
 
                 <section className="account-profile-group" aria-labelledby="profile-professional-details-title">
                   <h3 id="profile-professional-details-title" className="account-profile-group__title">{t('account.professionalInformation')}</h3>
-                  <p className="account-group-caption">{t('account.requiredFieldsHint')}</p>
                   <div className="account-form-grid">
                     <div className="account-form-field account-form-field--full">
                       <label className="account-form-label" htmlFor="account-job-title">{t('account.jobTitle')} <span className="account-field-optional">{t('account.optional')}</span></label>
@@ -1236,9 +1254,8 @@ export default function AccountPage() {
           </section>
           ) : null}
 
-          <section id="account-security" role="tabpanel" aria-labelledby="account-tab-security" className={`account-saas-card account-panel ${activeTab === 'security' ? 'is-active' : ''}`} hidden={activeTab !== 'security'}>
+          <section id="account-security" role="tabpanel" aria-labelledby="account-tab-security" tabIndex={0} className={`account-saas-card account-panel ${activeTab === 'security' ? 'is-active' : ''}`} hidden={activeTab !== 'security'}>
             <header className="account-saas-card__header">
-              <p className="eyebrow">{t('account.securityEyebrow')}</p>
               <h2 className="account-saas-card__title">{t('account.securityAccessTitle')}</h2>
               <p className="account-saas-card__subtitle">{t('account.securitySubtitle')}</p>
             </header>
@@ -1267,7 +1284,7 @@ export default function AccountPage() {
                         placeholder={t('account.currentPasswordPlaceholder')}
                       />
                       <button type="button" className="account-password-toggle" onClick={() => setShowCurrentPassword((prev) => !prev)} aria-label={t('account.showCurrentPassword')}>
-                        👁️
+                        {showCurrentPassword ? <EyeOff size={17} aria-hidden="true" /> : <Eye size={17} aria-hidden="true" />}
                       </button>
                     </div>
                   </div>
@@ -1285,7 +1302,7 @@ export default function AccountPage() {
                         minLength={8}
                       />
                       <button type="button" className="account-password-toggle" onClick={() => setShowNewPassword((prev) => !prev)} aria-label={t('account.showNewPassword')}>
-                        👁️
+                        {showNewPassword ? <EyeOff size={17} aria-hidden="true" /> : <Eye size={17} aria-hidden="true" />}
                       </button>
                     </div>
 
@@ -1322,7 +1339,7 @@ export default function AccountPage() {
                         placeholder={t('account.confirmPasswordPlaceholder')}
                       />
                       <button type="button" className="account-password-toggle" onClick={() => setShowConfirmPassword((prev) => !prev)} aria-label={t('account.showConfirmPassword')}>
-                        👁️
+                        {showConfirmPassword ? <EyeOff size={17} aria-hidden="true" /> : <Eye size={17} aria-hidden="true" />}
                       </button>
                     </div>
                   </div>
@@ -1363,18 +1380,13 @@ export default function AccountPage() {
               </article>
             </div>
           </section>
-        </div>
-
         {!isParticipantAccount ? (
-        <section id="account-pricing" role="tabpanel" aria-labelledby="account-tab-pricing" className={`account-pricing-section account-panel ${activeTab === 'pricing' ? 'is-active' : ''}`} hidden={activeTab !== 'pricing'}>
-          <div className="account-pricing-surface">
-            <header className="account-pricing-head">
-              <div>
-                <p className="eyebrow">{t('account.pricingEyebrow')}</p>
-                <h2>{t('account.pricingHeaderTitle')}</h2>
-                <p>{t('account.pricingHeaderDescription')}</p>
-              </div>
+        <section id="account-pricing" role="tabpanel" aria-labelledby="account-tab-pricing" tabIndex={0} className={`account-saas-card account-panel ${activeTab === 'pricing' ? 'is-active' : ''}`} hidden={activeTab !== 'pricing'}>
+            <header className="account-saas-card__header">
+                <h2 className="account-saas-card__title">{t('account.pricingHeaderTitle')}</h2>
+                <p className="account-saas-card__subtitle">{t('account.pricingHeaderDescription')}</p>
             </header>
+          <div className="account-saas-card__body">
 
             <div className="account-pricing-controls" aria-label="Options de facturation et d'affichage">
               <div className="account-pricing-control-group">
@@ -1490,43 +1502,59 @@ export default function AccountPage() {
               <p className="field-help">{t('account.noPlans')}</p>
             )}
 
-            {planHistory.length > 0 ? (
-              <div className="account-plan-history">
-                <p className="eyebrow">HISTORIQUE DE FACTURATION</p>
+          </div>
+        </section>
+        ) : null}
+
+        {!isParticipantAccount ? (
+          <section id="account-invoices" role="tabpanel" aria-labelledby="account-tab-invoices" tabIndex={0} className={`account-saas-card account-panel ${activeTab === 'invoices' ? 'is-active' : ''}`} hidden={activeTab !== 'invoices'}>
+            <header className="account-saas-card__header">
+              <h2 className="account-saas-card__title">{t('account.invoicesTitle')}</h2>
+              <p className="account-saas-card__subtitle">{t('account.invoicesDescription')}</p>
+            </header>
+            <div className="account-saas-card__body">
+              {planHistory.length > 0 ? (
                 <div className="account-history-table-wrap">
                   <table className="account-history-table">
+                    <caption className="sr-only">{t('account.billingHistory')}</caption>
                     <thead>
                       <tr>
-                        <th>Date</th>
-                        <th>Formule</th>
-                        <th>Montant</th>
-                        <th>Statut</th>
-                        <th>Facture</th>
+                        <th scope="col">{t('account.invoiceDate')}</th>
+                        <th scope="col">{t('account.invoicePlan')}</th>
+                        <th scope="col">{t('account.invoiceAmount')}</th>
+                        <th scope="col">{t('account.status')}</th>
+                        <th scope="col">{t('account.invoiceDocument')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {planHistory.map((entry) => (
                         <tr key={String(entry.id)}>
-                          <td>{formatDate(entry.at, 'fr')}</td>
+                          <td>{formatDate(entry.at, locale)}</td>
                           <td>{entry.to}</td>
                           <td>{resolveHistoryAmountLabel(entry, plans, dhPriceByPlanId)}</td>
-                          <td><span className="account-history-status account-history-status--paid">Payée</span></td>
+                          <td><span className="account-history-status account-history-status--paid">{t('account.paid')}</span></td>
                           <td>
-                            <button type="button" className="account-history-link" onClick={() => handleDownloadInvoice(entry)}>📥 {t('account.downloadPdf')}</button>
+                            <button type="button" className="account-history-link" onClick={() => handleDownloadInvoice(entry)}>
+                              <Download size={15} aria-hidden="true" /> {t('account.downloadPdf')}
+                            </button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-              </div>
-            ) : null}
-            {planHistory.length === 0 ? (
-              <p className="account-history-empty">{t('account.noInvoices')}</p>
-            ) : null}
-          </div>
-        </section>
+              ) : (
+                <div className="account-invoices-empty">
+                  <ReceiptText size={32} aria-hidden="true" />
+                  <h3>{t('account.noInvoices')}</h3>
+                  <p>{t('account.noInvoicesDescription')}</p>
+                </div>
+              )}
+            </div>
+          </section>
         ) : null}
+          </div>
+        </div>
 
         <Modal
           open={checkoutModalOpen}
@@ -1589,6 +1617,7 @@ export default function AccountPage() {
           }
 
           :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page {
+            background: none;
             --account-primary: #9eb5ff;
             --account-primary-dark: #c7d5ff;
             --account-primary-light: #1b2b55;
@@ -1601,11 +1630,25 @@ export default function AccountPage() {
             --account-border-strong: #6275a0;
           }
 
-          .account-page-header {
-            margin: 0 0 1.1rem;
-            padding: clamp(1rem, 2vw, 1.5rem) clamp(1rem, 2.4vw, 1.75rem);
-            display: grid;
-            gap: 0.35rem;
+          .account-page.shell {
+            background: none;
+            gap: 1rem;
+          }
+
+          .account-page .account-page-header {
+            margin: 0;
+            padding: 1rem 0;
+            display: flex;
+            gap: 2rem;
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+          }
+
+          .account-page .account-page-header__identity {
+            border: 0;
+            padding: 0;
+            background: transparent;
           }
 
           .account-page-header h1 {
@@ -1619,31 +1662,64 @@ export default function AccountPage() {
           }
 
           .account-page-header__description {
-            white-space: nowrap;
+            white-space: normal;
+          }
+
+          .account-page .account-card-container {
+            gap: 0;
+            min-width: 0;
+            width: 100%;
+            max-width: none;
+          }
+
+          .account-panels {
+            height: clamp(34rem, 70dvh, 48rem);
+            min-width: 0;
+          }
+
+          .account-page .account-panels .account-panel {
+            height: 100%;
+            margin: 0;
+            overflow: auto;
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: var(--account-border-strong) transparent;
+            overscroll-behavior: contain;
+            border: 1px solid var(--account-border-soft);
+            border-radius: 16px;
+            background: var(--account-surface);
+            box-shadow: none;
+          }
+
+          .account-panel:focus-visible {
+            outline: 2px solid var(--account-primary);
+            outline-offset: 3px;
           }
 
           .account-profile-layout {
             display: grid;
-            grid-template-columns: 260px minmax(0, 1fr);
-            gap: 1rem;
-            align-items: stretch;
+            grid-template-columns: 130px minmax(0, 1fr);
+            gap: 2rem;
+            align-items: start;
           }
 
           .account-panel-body--balanced {
-            min-height: 38rem;
             align-content: start;
           }
 
-          .account-identity-card {
-            border: 1px solid color-mix(in srgb, var(--account-border-soft) 68%, transparent);
-            border-radius: 10px;
-            background: var(--account-surface-soft);
-            padding: 1rem;
+          .account-page .account-panels .account-identity-card {
+            border: 0;
+            background: transparent;
+            padding: 0;
             display: grid;
             gap: 0.85rem;
             align-content: start;
             height: fit-content;
-            box-shadow: var(--account-card-shadow);
+            box-shadow: none;
+          }
+
+          .account-identity-card .account-form-hint {
+            margin: 0;
           }
 
           .account-identity-avatar-wrap {
@@ -1674,12 +1750,14 @@ export default function AccountPage() {
             background: var(--account-surface);
           }
 
-          .account-identity-avatar-edit {
+          .account-page .account-identity-avatar-edit {
             position: absolute;
             right: -0.35rem;
             bottom: -0.35rem;
-            width: 1.45rem;
-            height: 1.45rem;
+            width: 2rem;
+            height: 2rem;
+            min-height: 2rem;
+            padding: 0;
             border-radius: 999px;
             border: 1px solid var(--account-border-soft);
             background: var(--account-surface);
@@ -1725,12 +1803,17 @@ export default function AccountPage() {
             gap: 1rem;
           }
 
-          .account-profile-group {
-            border: 1px solid color-mix(in srgb, var(--account-border-soft) 68%, transparent);
-            border-radius: 10px;
-            background: var(--account-surface);
-            padding: 1rem;
-            box-shadow: var(--account-card-shadow);
+          .account-page .account-panels .account-profile-group {
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            padding: 0;
+            box-shadow: none;
+          }
+
+          .account-page .account-panels .account-profile-group + .account-profile-group {
+            border-top: 1px solid var(--account-border-soft);
+            padding-top: 1.25rem;
           }
 
           .account-profile-group__title {
@@ -1762,19 +1845,25 @@ export default function AccountPage() {
             justify-content: flex-end;
           }
 
-          .account-security-grid {
+          .account-page .account-security-grid {
             display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
             gap: 1rem;
+            align-items: start;
           }
 
-          .account-security-card {
-            border: 1px solid color-mix(in srgb, var(--account-border-soft) 68%, transparent);
-            border-radius: 10px;
-            background: var(--account-surface);
+          .account-page .account-security-card:first-child {
+            grid-row: span 2;
+          }
+
+          .account-page .account-panels .account-security-card {
+            border: 0;
+            border-radius: 0;
+            background: transparent;
             padding: 1rem;
             display: grid;
             gap: 0.85rem;
-            box-shadow: var(--account-card-shadow);
+            box-shadow: none;
           }
 
           .account-security-card__head h3 {
@@ -2048,60 +2137,112 @@ export default function AccountPage() {
             color: var(--account-primary-dark);
           }
 
-          .account-tabs--modern {
+          .account-page .account-tabs--modern {
             display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            gap: 0.35rem;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 0.25rem;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            scrollbar-width: thin;
             margin: 0 0 1rem;
-            padding: 0;
-            border-bottom: 1px solid var(--account-border-soft);
+            padding: 0.25rem;
+            border: 0;
             background: transparent;
             border-radius: 0;
           }
 
-          .account-tab--modern {
+          .account-page .account-tabs--modern .account-tab--modern {
             display: inline-flex;
             align-items: center;
             justify-content: flex-start;
             min-width: 0;
+            flex: 0 0 auto;
+            gap: 0.5rem;
             border: 1px solid transparent;
             border-bottom: 2px solid transparent;
-            background: var(--account-surface-soft);
+            background: transparent;
             color: var(--account-text-soft);
-            border-radius: 10px 10px 0 0;
-            height: 2.5rem;
-            padding: 0 1rem;
-            margin-bottom: -1px;
-            font-weight: 700;
+            border-radius: 8px;
+            min-height: 2.75rem;
+            height: auto;
+            padding: 0.65rem 1rem;
+            margin: 0;
+            white-space: nowrap;
+            font-weight: 600;
             transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
           }
 
-          .account-tab--modern:hover,
-          .account-tab--modern:focus-visible {
-            border-color: var(--account-border-strong);
-            border-bottom-color: var(--account-border-soft);
+          .account-page .account-tabs--modern .account-tab--modern:hover {
+            border-color: transparent;
             color: var(--account-primary);
+            background: var(--account-surface-soft);
+          }
+
+          .account-page .account-tabs--modern .account-tab--modern.is-active {
+            border-color: transparent;
+            border-bottom-color: var(--account-primary);
+            color: var(--account-primary-dark);
             background: var(--account-primary-light);
           }
 
-          .account-tab--modern.is-active {
-            border-color: var(--account-border-strong);
-            border-bottom-color: var(--account-primary);
-            color: var(--account-primary-dark);
-            background: var(--account-surface);
-          }
-
-          .account-saas-card__header {
-            padding: 1.4rem 1.75rem 0.8rem;
+          .account-page .account-panels .account-panel .account-saas-card__header {
+            padding: 1.5rem clamp(1rem, 3vw, 2rem) 0;
+            border: 0;
+            background: transparent;
           }
 
           .account-saas-card__subtitle {
             margin: 0.28rem 0 0;
           }
 
-          .account-saas-card__body {
-            padding: 1.35rem clamp(2rem, 5vw, 4rem) 1.75rem;
+          .account-page .account-panels .account-saas-card__body {
+            padding: 1.5rem clamp(1rem, 3vw, 2rem) 2rem;
+          }
+
+          .account-page .account-panels .account-form-label {
+            text-transform: none;
+            letter-spacing: normal;
+          }
+
+          .account-page .account-panels .account-form-hint {
+            color: var(--account-text-soft);
+            margin: 0.25rem 0 0;
+          }
+
+          .account-invoices-empty {
+            display: grid;
+            justify-items: center;
+            gap: 0.75rem;
+            padding: 4rem 1rem;
+            text-align: center;
+            color: var(--account-text-soft);
+          }
+
+          .account-invoices-empty h3,
+          .account-invoices-empty p {
+            margin: 0;
+          }
+
+          .account-invoices-empty h3 {
+            font-size: 1rem;
+            color: var(--account-text);
+          }
+
+          .account-history-table-wrap {
+            overflow-x: auto;
+          }
+
+          .account-history-table {
+            text-align: left;
+          }
+
+          .account-history-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
           }
 
           .account-form-input {
@@ -2200,7 +2341,7 @@ export default function AccountPage() {
             display: grid;
             gap: 0.8rem;
             margin-bottom: 1rem;
-            box-shadow: var(--account-card-shadow);
+            box-shadow: none;
           }
 
           .account-usage-banner__head {
@@ -2275,10 +2416,9 @@ export default function AccountPage() {
             justify-content: space-between;
             gap: 1rem;
             margin: 0 0 1.25rem;
-            padding: 1rem 1.1rem;
-            border: 1px solid var(--account-border-soft);
-            border-radius: 18px;
-            background: var(--account-surface-soft);
+            padding: 0;
+            border: 0;
+            background: transparent;
           }
 
           .account-pricing-control-group {
@@ -2546,13 +2686,27 @@ export default function AccountPage() {
             }
           }
 
-          @media (max-width: 640px) {
-            .account-page-header__description {
-              white-space: normal;
+          @media (max-width: 900px) {
+            .account-page .account-security-grid {
+              grid-template-columns: minmax(0, 1fr);
             }
 
-            .account-panel-body--balanced {
-              min-height: 0;
+            .account-page .account-security-card:first-child {
+              grid-column: auto;
+              grid-row: auto;
+            }
+          }
+
+          @media (max-width: 640px) {
+            .account-page .account-page-header {
+              flex-direction: column;
+              align-items: stretch;
+              gap: 1rem;
+              padding: 1rem 0;
+            }
+
+            .account-page .account-tabs--modern .account-tab--modern {
+              padding-inline: 0.75rem;
             }
 
             .account-pricing-controls {

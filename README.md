@@ -95,6 +95,12 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 ### Securite du compte
 
+- Les managers et admins disposent de quatre onglets distincts: Profil, Securite, Formules et Factures. Les participants conservent uniquement Securite.
+- Tous les onglets partagent une zone de meme largeur et de meme hauteur (`clamp(34rem, 70dvh, 48rem)`). Le contenu long defile a l'interieur sans deplacer les onglets ou le pied de page; la gouttiere de defilement reste reservee.
+- La barre reste sur une ligne et defile horizontalement sur les petits ecrans. Navigation au clavier: fleches gauche/droite, Home et End. L'URL `?tab=profile|security|pricing|invoices`, les liens directs et precedent/suivant du navigateur restent synchronises sans rechargement. Les brouillons et choix de formule sont conserves entre les onglets.
+- Les factures utilisent l'historique et le telechargement existants, desormais dans leur propre onglet, avec un etat vide explicite. Aucun nouveau service de facturation n'est ajoute.
+- Validation: `npm run test:ux:account` (frontend sur 3100, Chrome disponible, API simulees): geometrie stable a 1 px pres, absence de debordement de 320 a 1440 px, FR/EN, clair/sombre/automatique, liens directs et historique, clavier, conservation des valeurs, enregistrement du profil, selection d'une formule et telechargement.
+
 La 2FA et la gestion des appareils connectes ne sont pas encore disponibles cote serveur. La page compte explique ces limites en FR/EN et desactive les actions correspondantes, sans confirmation de succes ni liste d'appareils fictive. Le changement de mot de passe reste disponible pour les managers, admins et participants.
 
 Validation: `npm run test:ux:account` avec le frontend sur le port 3100 et Chrome disponible. Le test utilise des reponses API locales simulees, couvre les roles manager/admin/participant en FR/EN sur desktop/mobile et verifie ces limites apres rechargement.
