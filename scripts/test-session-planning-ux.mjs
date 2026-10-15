@@ -68,6 +68,17 @@ try {
     await page.getByText(
       locale === 'fr' ? /Aucun profil disponible/ : /No profiles available/,
     ).waitFor();
+    const participantInstructions = participantsDisclosure.locator('> p').nth(1);
+    const participantSearch = participantsDisclosure.getByRole('textbox', {
+      name: locale === 'fr' ? 'Rechercher par nom ou email' : 'Search by name or email',
+    });
+    const instructionsBox = await participantInstructions.boundingBox();
+    const searchBox = await participantSearch.boundingBox();
+    assert.ok(instructionsBox && searchBox);
+    assert.ok(
+      searchBox.y - (instructionsBox.y + instructionsBox.height) >= 16,
+      'Participant search has clear spacing after the creation guidance',
+    );
     assert.equal(
       await page.locator('button[form="create-session-form"]').isDisabled(),
       false,

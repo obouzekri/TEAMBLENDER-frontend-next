@@ -40,6 +40,10 @@
   display: none;
 }
 
+.participantsDisclosure > p + p {
+  margin-bottom: 1.25rem;
+}
+
 .participantsDisclosure summary > span:first-child::before {
   content: '▸';
   margin-right: 0.45rem;
