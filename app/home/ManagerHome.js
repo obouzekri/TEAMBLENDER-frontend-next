@@ -96,9 +96,9 @@ function formatSessionDate(value, locale = 'en') {
 function getSessionModalityLabel(value, isEn) {
   const normalized = String(value || '').trim().toLowerCase();
   if (!normalized) return '';
-  if (normalized === 'remote') return isEn ? 'Remote' : 'A distance';
+  if (normalized === 'remote') return isEn ? 'Remote' : 'À distance';
   if (normalized === 'hybrid') return isEn ? 'Hybrid' : 'Hybride';
-  if (normalized === 'in-person' || normalized === 'in_person') return isEn ? 'In person' : 'Presentiel';
+  if (normalized === 'in-person' || normalized === 'in_person') return isEn ? 'In person' : 'Présentiel';
   return normalized;
 }
 
@@ -385,6 +385,8 @@ export default function ManagerHome() {
   const [authInvalid, setAuthInvalid] = useState(false);
   const [mobileMenuSignal, setMobileMenuSignal] = useState(0);
   const [lastCreatedCredentials, setLastCreatedCredentials] = useState(null);
+  const [sendingPasswordReset, setSendingPasswordReset] = useState(false);
+  const [passwordResetMessage, setPasswordResetMessage] = useState('');
   const onboardingHandledRef = useRef(false);
   const sessionsToastShownRef = useRef(false);
   const [memberForm, setMemberForm] = useState({
@@ -436,8 +438,10 @@ export default function ManagerHome() {
 
   const canSubmitMember = memberFormChecks.firstNameOk
     && memberFormChecks.emailOk
-    && !creatingMember;
+    && !creatingMember
+    && !sendingPasswordReset;
 
+  const editingMember = members.find((member) => String(member.id) === String(editingMemberId));
   const isParticipantModalOpen = showParticipantForm || Boolean(editingMemberId);
   const asyncStatusMessage = creatingMember
     ? (editingMemberId
@@ -472,7 +476,7 @@ export default function ManagerHome() {
     setSessionToDate('');
   }
 
-  function handleUnauthorizedAuth(message = isEn ? 'Session expired. Please sign in again.' : 'Session expiree. Veuillez vous reconnecter.') {
+  function handleUnauthorizedAuth(message = isEn ? 'Session expired. Please sign in again.' : 'Session expirée. Veuillez vous reconnecter.') {
     if (authInvalid) return;
     setAuthInvalid(true);
     showErrorToast(message);
@@ -617,7 +621,7 @@ export default function ManagerHome() {
       setShowParticipantForm(true);
       setMemberFormStatus(isEn
         ? 'Add your first participant to create sessions faster.'
-        : 'Ajoutez votre premier participant pour creer des sessions plus rapidement.');
+        : 'Ajoutez votre premier participant pour créer des sessions plus rapidement.');
     }
 
     params.delete('onboarding');
@@ -658,7 +662,7 @@ export default function ManagerHome() {
     const label = session.name || `Session #${sessionIdentifier}`;
     const accepted = window.confirm(isEn
       ? `Delete ${label}? This action is irreversible.`
-      : `Supprimer ${label} ? Cette action est irreversible.`);
+      : `Supprimer ${label} ? Cette action est irréversible.`);
     if (!accepted) return;
 
     setDeletingSessionId(sessionIdentifier);
@@ -674,15 +678,16 @@ export default function ManagerHome() {
         throw new Error(body || `Error ${response.status}`);
       }
       await refreshSessions();
-      showSuccessToast(isEn ? 'Session deleted.' : 'Session supprimee.');
+      showSuccessToast(isEn ? 'Session deleted.' : 'Session supprimée.');
     } catch (err) {
-      showErrorToast(err.message || (isEn ? 'Delete failed.' : 'La suppression a echoue.'));
+      showErrorToast(err.message || (isEn ? 'Delete failed.' : 'La suppression a échoué.'));
     } finally {
       setDeletingSessionId(null);
     }
   }
 
   function beginEditMember(member) {
+    setPasswordResetMessage('');
     setFormAttempted(false);
     setMemberFormStatus('');
     setShowParticipantForm(true);
@@ -713,6 +718,7 @@ export default function ManagerHome() {
   }
 
   function resetMemberForm() {
+    setPasswordResetMessage('');
     setFormAttempted(false);
     setMemberFormStatus('');
     setShowParticipantForm(false);
@@ -722,15 +728,46 @@ export default function ManagerHome() {
   }
 
   function closeParticipantModal() {
-    if (creatingMember) return;
+    if (creatingMember || sendingPasswordReset) return;
     resetMemberForm();
+  }
+
+  async function handleSendPasswordReset() {
+    if (!editingMember?.email || sendingPasswordReset || creatingMember) return;
+    setSendingPasswordReset(true);
+    setPasswordResetMessage('');
+    setMemberFormStatus('');
+    try {
+      const response = await fetch(getApiUrl(`/participants/${encodeURIComponent(editingMember.id)}/password-reset-email`), {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
+      const payload = await response.json();
+      if (response.status === 401) {
+        handleUnauthorizedAuth();
+        return;
+      }
+      if (!response.ok || payload.success !== true) {
+        throw new Error(payload.error || (isEn ? 'Unable to send the password reset link.' : 'Impossible d’envoyer le lien de réinitialisation.'));
+      }
+      setPasswordResetMessage(isEn
+        ? `Password reset link sent to ${payload.email}.`
+        : `Lien de réinitialisation du mot de passe envoyé à ${payload.email}.`);
+    } catch (err) {
+      const message = err.message || (isEn ? 'Unable to send the password reset link.' : 'Impossible d’envoyer le lien de réinitialisation.');
+      setMemberFormStatus(message);
+      showErrorToast(message);
+    } finally {
+      setSendingPasswordReset(false);
+    }
   }
 
   async function handleSubmitMember(event) {
     event.preventDefault();
     setFormAttempted(true);
     setMemberFormStatus('');
-    if (!guard.user?.id || creatingMember) return;
+    if (!guard.user?.id || creatingMember || sendingPasswordReset) return;
 
     const firstName = String(memberForm.first_name || '').trim();
     const lastName = String(memberForm.last_name || '').trim();
@@ -739,16 +776,14 @@ export default function ManagerHome() {
     const department = String(memberForm.department || '').trim();
 
     if (!firstName || !email) {
-      const message = editingMemberId
-        ? (isEn ? 'First name and email are required.' : 'Le prenom et l email sont requis.')
-        : (isEn ? 'First name and email are required.' : 'Le prenom et l email sont requis.');
+      const message = isEn ? 'First name and email are required.' : 'Le prénom et l’adresse e-mail sont requis.';
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
     }
 
     if (email && !isValidEmail(email)) {
-      const message = isEn ? 'A valid email address is required.' : 'Une adresse email valide est requise.';
+      const message = isEn ? 'A valid email address is required.' : 'Une adresse e-mail valide est requise.';
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
@@ -763,7 +798,7 @@ export default function ManagerHome() {
     if (hasDuplicateEmail) {
       const message = isEn
         ? 'This email is already used by another participant.'
-        : 'Cet email est deja utilise par un autre participant.';
+        : 'Cette adresse e-mail est déjà utilisée par un autre participant.';
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
@@ -804,7 +839,7 @@ export default function ManagerHome() {
             payload,
             isEn
               ? `${editingMemberId ? 'Participant update' : 'Participant creation'} failed (${response.status})`
-              : `${editingMemberId ? 'Echec de mise a jour du participant' : 'Echec de creation du participant'} (${response.status})`
+              : `${editingMemberId ? 'Échec de la mise à jour du participant' : 'Échec de la création du participant'} (${response.status})`
           )
         );
       }
@@ -835,24 +870,23 @@ export default function ManagerHome() {
         });
       }
 
-      showSuccessToast(editingMemberId
-        ? (isEn ? 'Participant updated successfully.' : 'Participant mis a jour avec succes.')
-        : (isEn ? 'Participant added successfully.' : 'Participant ajoute avec succes.'));
-
       if (editingMemberId) {
+        showSuccessToast(isEn ? 'Participant updated successfully.' : 'Participant mis à jour avec succès.');
         setShowParticipantForm(false);
         resetMemberForm();
       } else {
         setEditingMemberId(null);
+        setShowParticipantForm(false);
         setFormAttempted(false);
         setMemberFormStatus('');
+        setMemberForm({ first_name: '', last_name: '', email: '', job_title: '', department: '' });
       }
 
       await refreshMembers();
     } catch (err) {
       const message = err.message || (isEn
         ? `Unable to ${editingMemberId ? 'update' : 'create'} participant.`
-        : `Impossible de ${editingMemberId ? 'mettre a jour' : 'creer'} le participant.`);
+        : `Impossible de ${editingMemberId ? 'mettre à jour' : 'créer'} le participant.`);
       setMemberFormStatus(message);
       showErrorToast(message);
     } finally {
@@ -887,7 +921,7 @@ export default function ManagerHome() {
       ? `${label}\n\n${participationWarning}`
       : (isEn
         ? `Delete ${label}? This action is irreversible.`
-        : `Supprimer ${label} ? Cette action est irreversible.`));
+        : `Supprimer ${label} ? Cette action est irréversible.`));
     if (!accepted) return;
 
     setDeletingMemberId(member.id);
@@ -909,7 +943,7 @@ export default function ManagerHome() {
         throw new Error(parsedError || `Unable to delete participant (${response.status})`);
       }
       await refreshMembers();
-      showSuccessToast(isEn ? 'Participant deleted.' : 'Participant supprime.');
+      showSuccessToast(isEn ? 'Participant deleted.' : 'Participant supprimé.');
     } catch (err) {
       showErrorToast(err.message || (isEn ? 'Unable to delete participant.' : 'Impossible de supprimer le participant.'));
     } finally {
@@ -921,7 +955,7 @@ export default function ManagerHome() {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>{isEn ? 'Checking session...' : 'Verification de la session...'}</h1>
+          <h1>{isEn ? 'Checking session...' : 'Vérification de la session...'}</h1>
           <p>{isEn ? 'Loading...' : 'Chargement...'}</p>
         </section>
       </main>
@@ -953,7 +987,7 @@ export default function ManagerHome() {
               </div>
             </div>
 
-            <aside className="home-hero-summary" aria-label={isEn ? 'Manager summary' : 'Resume manager'}>
+            <aside className="home-hero-summary" aria-label={isEn ? 'Manager summary' : 'Résumé manager'}>
               <p className="home-hero-summary__eyebrow">{isEn ? 'Quick view' : 'Vue rapide'}</p>
               <strong className="home-hero-summary__title">
                 {isEn ? 'A simple cockpit to run your sessions.' : 'Un cockpit simple pour piloter vos sessions.'}
@@ -1223,7 +1257,7 @@ export default function ManagerHome() {
           ) : null}
         </section>
 
-        <section id="home-participants-block" className="feature-card participants-panel home-anchor-target" aria-label={isEn ? 'Team participants' : 'Participants de l equipe'}>
+        <section id="home-participants-block" className="feature-card participants-panel home-anchor-target" aria-label={isEn ? 'Team participants' : 'Participants de l’équipe'}>
           <div className="participants-panel-head">
             <div>
               <h2 className="home-section-title">{isEn ? 'Participants' : 'Participants'}</h2>
@@ -1239,7 +1273,7 @@ export default function ManagerHome() {
             </div>
           </div>
 
-          <div className="participants-panel-kpis" aria-label={isEn ? 'Participant summary' : 'Resume participants'}>
+          <div className="participants-panel-kpis" aria-label={isEn ? 'Participant summary' : 'Résumé des participants'}>
             <span>
               {isEn
                 ? `${members.length} participant${members.length > 1 ? 's' : ''} total`
@@ -1250,7 +1284,7 @@ export default function ManagerHome() {
           {loadingMembers ? <p>{isEn ? 'Loading participants...' : 'Chargement des participants...'}</p> : null}
 
           {!loadingMembers && members.length === 0 ? (
-            <p className="team-empty">{isEn ? 'No participants yet. You can add them here when you want to reuse them across sessions.' : 'Aucun participant pour le moment. Vous pourrez en ajouter ici pour les reutiliser dans vos sessions.'}</p>
+            <p className="team-empty">{isEn ? 'No participants yet. You can add them here when you want to reuse them across sessions.' : 'Aucun participant pour le moment. Vous pourrez en ajouter ici pour les réutiliser dans vos sessions.'}</p>
           ) : null}
 
           {!loadingMembers && members.length > 0 ? (
@@ -1271,7 +1305,7 @@ export default function ManagerHome() {
                     <div className="participant-card__content">
                       <p className="participant-card__name">{title}</p>
                       <p className="participant-card__meta">
-                        {member.email || (isEn ? 'Email not provided' : 'Email non renseigne')}
+                        {member.email || (isEn ? 'Email not provided' : 'E-mail non renseigné')}
                         {details ? ` · ${details}` : ''}
                       </p>
                     </div>
@@ -1368,15 +1402,15 @@ export default function ManagerHome() {
         open={isParticipantModalOpen}
         title={editingMemberId
           ? (isEn ? 'Edit participant' : 'Modifier le participant')
-          : (isEn ? 'Create participant' : 'Creer un participant')}
+          : (isEn ? 'Create participant' : 'Créer un participant')}
         titleClassName="participant-modal-title"
         dialogClassName="participant-modal-dialog"
         onClose={closeParticipantModal}
       >
         <p className="participant-modal-subtitle">
           {editingMemberId
-            ? (isEn ? 'Update the selected participant information.' : 'Mettez a jour les informations du participant selectionne.')
-            : (isEn ? 'Add a participant to assign them to your sessions.' : 'Ajoutez un participant pour l assigner a vos sessions.')}
+            ? (isEn ? 'Update the selected participant information.' : 'Mettez à jour les informations du participant sélectionné.')
+            : (isEn ? 'Add a participant to assign them to your sessions.' : 'Ajoutez un participant pour l’assigner à vos sessions.')}
         </p>
         <div className="participant-modal-body">
           <article className="participant-inline-form participant-inline-form--modal">
@@ -1406,7 +1440,7 @@ export default function ManagerHome() {
               />
               <div className="participant-form-grid">
                 <label>
-                  {isEn ? 'First name *' : 'Prenom *'}
+                  {isEn ? 'First name *' : 'Prénom *'}
                   <input
                     type="text"
                     name="participant_first_name"
@@ -1418,7 +1452,7 @@ export default function ManagerHome() {
                     required
                   />
                   {formAttempted && !memberFormChecks.firstNameOk ? (
-                    <span className="field-error">{isEn ? 'First name is required.' : 'Le prenom est requis.'}</span>
+                    <span className="field-error">{isEn ? 'First name is required.' : 'Le prénom est requis.'}</span>
                   ) : null}
                 </label>
                 <label>
@@ -1433,7 +1467,7 @@ export default function ManagerHome() {
                   />
                 </label>
                 <label className="participant-field-full">
-                  {isEn ? 'Email *' : 'Email *'}
+                  {isEn ? 'Email *' : 'E-mail *'}
                   <input
                     type="email"
                     name="participant_contact_email"
@@ -1447,7 +1481,7 @@ export default function ManagerHome() {
                     required
                   />
                   {formAttempted && !memberFormChecks.emailOk ? (
-                    <span className="field-error">{isEn ? 'Email format is invalid.' : 'Le format de l email est invalide.'}</span>
+                    <span className="field-error">{isEn ? 'Email format is invalid.' : 'Le format de l’adresse e-mail est invalide.'}</span>
                   ) : null}
                 </label>
                 <label>
@@ -1462,7 +1496,7 @@ export default function ManagerHome() {
                   />
                 </label>
                 <label>
-                  {isEn ? 'Department' : 'Departement'}
+                  {isEn ? 'Department' : 'Département'}
                   <input
                     type="text"
                     name="participant_department"
@@ -1475,38 +1509,78 @@ export default function ManagerHome() {
               </div>
               <p className="participant-form-hint">
                 {isEn
-                  ? 'Fields marked with * are required to create a usable participant profile.'
-                  : 'Les champs marques d un * sont requis pour creer un profil participant utilisable.'}
+                  ? 'Fields marked with * are required.'
+                  : 'Les champs marqués d’un * sont obligatoires.'}
               </p>
+              {editingMemberId ? (
+                <section aria-label={isEn ? 'Password reset' : 'Réinitialisation du mot de passe'}>
+                  <p className="participant-form-hint">
+                    {editingMember?.email
+                      ? (isEn
+                        ? `Send a new link to the saved email address: ${editingMember.email}. Save any email changes first.`
+                        : `Envoyez un nouveau lien à l’adresse enregistrée : ${editingMember.email}. Enregistrez d’abord toute modification de l’adresse e-mail.`)
+                      : (isEn ? 'Save an email address first to send a reset link.' : 'Enregistrez d’abord une adresse e-mail pour envoyer un lien de réinitialisation.')}
+                  </p>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={handleSendPasswordReset}
+                    disabled={sendingPasswordReset || creatingMember || !editingMember?.email || editingMember?.disabled}
+                    aria-busy={sendingPasswordReset}
+                    style={{ marginTop: '0.75rem' }}
+                  >
+                    {sendingPasswordReset
+                      ? (isEn ? 'Sending...' : 'Envoi en cours...')
+                      : (isEn ? 'Resend password reset link' : 'Renvoyer le lien de réinitialisation')}
+                  </button>
+                  {passwordResetMessage ? (
+                    <p className="participant-form-status participant-form-status--ok" role="status">{passwordResetMessage}</p>
+                  ) : null}
+                </section>
+              ) : null}
               {memberFormStatus ? (
                 <p className="participant-form-status participant-form-status--warn" role="alert" aria-live="polite">
                   {memberFormStatus}
                 </p>
               ) : null}
-              {lastCreatedCredentials && !editingMemberId ? (
-                <p className="participant-form-status" role="status" aria-live="polite">
-                  {isEn
-                    ? `Participant created. Login: ${lastCreatedCredentials.loginIdentifier || 'n/a'} · Set-up link sent to ${lastCreatedCredentials.deliveredEmail || 'the participant email'}.`
-                    : `Participant cree. Identifiant: ${lastCreatedCredentials.loginIdentifier || 'n/a'} · Lien de creation du mot de passe envoye a ${lastCreatedCredentials.deliveredEmail || 'l email du participant'}.`}
-                </p>
-              ) : null}
               <div className="participant-form-actions">
-                <button type="button" className="btn-secondary" onClick={closeParticipantModal} disabled={creatingMember}>
+                <button type="button" className="btn-secondary" onClick={closeParticipantModal} disabled={creatingMember || sendingPasswordReset}>
                   {isEn ? 'Cancel' : 'Annuler'}
                 </button>
                 <button type="submit" className="btn-primary" disabled={!canSubmitMember}>
                   {creatingMember
                     ? (editingMemberId
-                      ? (isEn ? 'Updating...' : 'Mise a jour...')
+                      ? (isEn ? 'Updating...' : 'Mise à jour...')
                       : (isEn ? 'Adding...' : 'Ajout...'))
                     : (editingMemberId
                       ? (isEn ? 'Save changes' : 'Enregistrer')
-                      : (isEn ? 'Create participant' : 'Creer un participant'))}
+                      : (isEn ? 'Create participant' : 'Créer un participant'))}
                 </button>
               </div>
             </form>
           </article>
         </div>
+      </Modal>
+      <Modal
+        open={Boolean(lastCreatedCredentials)}
+        title={isEn ? 'Participant created' : 'Participant créé'}
+        dialogClassName="participant-modal-dialog"
+        onClose={() => setLastCreatedCredentials(null)}
+      >
+        {lastCreatedCredentials ? (
+          <div style={{ padding: '0 1.35rem 1.25rem' }}>
+            <p className="participant-form-status participant-form-status--ok" role="status" aria-live="polite">
+              {isEn
+                ? `Participant created. Login: ${lastCreatedCredentials.loginIdentifier || 'n/a'} · Password setup link sent to ${lastCreatedCredentials.deliveredEmail || 'the participant email'}.`
+                : `Participant créé. Identifiant : ${lastCreatedCredentials.loginIdentifier || 'non disponible'} · Lien de création du mot de passe envoyé à ${lastCreatedCredentials.deliveredEmail || 'l’adresse e-mail du participant'}.`}
+            </p>
+            <div className="participant-form-actions" style={{ marginTop: '1rem' }}>
+              <button type="button" className="btn-primary" onClick={() => setLastCreatedCredentials(null)}>
+                {isEn ? 'Close' : 'Fermer'}
+              </button>
+            </div>
+          </div>
+        ) : null}
       </Modal>
       <style jsx global>{`
         .manager-home .home-sessions-controls {

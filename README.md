@@ -13,6 +13,13 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les champs de recherche, statut et dates conservent une marge interieure horizontale de 16 px et un espacement de 16 px entre eux, sans deborder de leur cadre sur mobile.
 - Validation: `node scripts/test-home-session-filters.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, largeurs de 320 a 1755 px, saisie et reinitialisation des filtres.
 
+### Gestion des participants par le manager
+
+- Après la création, le formulaire se ferme et une fenêtre de confirmation affiche l’identifiant et l’adresse e-mail du participant.
+- Dans « Modifier le participant », « Renvoyer le lien de réinitialisation » envoie un nouveau lien à l’adresse enregistrée. Enregistrer d’abord les modifications d’adresse ; le manager ne choisit ni ne voit le mot de passe.
+- Le renvoi affiche une confirmation après acceptation de l’envoi par le service e-mail ; les erreurs restent visibles dans le formulaire. Les boutons sont désactivés pendant l’envoi.
+- Validation : `node scripts/test-manager-participant-form.mjs` (frontend sur 3100, Chrome disponible, API simulées ; FR/EN, mobile/desktop, erreur puis renvoi, modification et création).
+
 ### Sessions des participants
 
 - Les sessions assignees reprennent les styles partages des cartes de l'accueil: fond, bordure, ombre, titre, badges de statut et pied de carte, en clair comme en sombre.
