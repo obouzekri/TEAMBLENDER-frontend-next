@@ -5,14 +5,22 @@ import { useEffect } from 'react';
 const THEME_STORAGE_KEY = 'tb_theme';
 
 function getPreference() {
-  const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-  return ['light', 'dark', 'system'].includes(storedTheme) ? storedTheme : 'system';
+  try {
+    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    return ['light', 'dark', 'system'].includes(storedTheme) ? storedTheme : 'system';
+  } catch (error) {
+    console.error('Unable to read theme preference', error);
+    return 'system';
+  }
 }
 
 function applyTheme(preference, prefersDark) {
   const theme = preference === 'system' ? (prefersDark ? 'dark' : 'light') : preference;
   document.documentElement.dataset.theme = theme;
   document.documentElement.dataset.themePreference = preference;
+  if (document.body) {
+    document.body.dataset.theme = theme;
+  }
 }
 
 export default function ThemeController() {

@@ -3,6 +3,8 @@
 :root {
   --font-ui: "Inter", "Segoe UI", system-ui, sans-serif;
   --font-display: "Inter", "Segoe UI", system-ui, sans-serif;
+  --logo-gradient-start: #0f766e;
+  --logo-gradient-end: #7c3aed;
   --motion-fast: 160ms;
   --motion-medium: 240ms;
   --motion-slow: 420ms;
@@ -164,6 +166,8 @@
 
 /* Explicit dark theme toggle: full token set, aligned with the system block below */
 :root[data-theme="dark"] {
+  --logo-gradient-start: #14b8a6;
+  --logo-gradient-end: #a78bfa;
   --session-title-color: #cbd8f2;
   --challenge-panel-bg: linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9));
   --bg: #081223;
@@ -368,6 +372,8 @@
   }
 
   :root:not([data-theme='light']) {
+    --logo-gradient-start: #14b8a6;
+    --logo-gradient-end: #a78bfa;
     --challenge-panel-bg: linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9));
     --bg: #081223;
     --bg-soft: #0b1630;

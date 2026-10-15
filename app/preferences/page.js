@@ -79,6 +79,9 @@ export default function PreferencesPage() {
     }
     document.documentElement.dataset.theme = resolvedTheme;
     document.documentElement.dataset.themePreference = nextPreference;
+    if (document.body) {
+      document.body.dataset.theme = resolvedTheme;
+    }
     setThemePreference(nextPreference);
   }
 

@@ -65,15 +65,21 @@ export default async function RootLayout({ children }) {
                   : preference;
                 document.documentElement.dataset.theme = resolvedTheme;
                 document.documentElement.dataset.themePreference = preference;
-              } catch {
-                document.documentElement.dataset.theme = 'light';
+              } catch (error) {
+                console.error('Unable to read theme preference', error);
+                document.documentElement.dataset.theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
                 document.documentElement.dataset.themePreference = 'system';
               }
             })();`,
           }}
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.body.dataset.theme = document.documentElement.dataset.theme || 'light';`,
+          }}
+        />
         <ThemeController />
         <ExternalNotificationGuard />
         <I18nProvider>
