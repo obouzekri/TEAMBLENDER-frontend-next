@@ -1854,9 +1854,16 @@ export default function SessionBuilder() {
               {renderObjectiveField(objective, setObjective, 'session-objective', true)}
 
               <section className={creationStyles.section} aria-labelledby="creation-flow-heading">
-                <h2 id="creation-flow-heading">{t('sessionBuilder.creationFlow')}</h2>
-                <fieldset className={creationStyles.flow}>
-                  <legend>{t('sessionBuilder.progressionMode')}</legend>
+                <h2 id="creation-flow-heading">
+                  {t('sessionBuilder.creationFlow')}{' '}
+                  <span className={creationStyles.headingHint}>
+                    ({t('sessionBuilder.progressionMode')})
+                  </span>
+                </h2>
+                <fieldset
+                  className={creationStyles.flow}
+                  aria-labelledby="creation-flow-heading"
+                >
                   <label className={creationStyles.flowOption}>
                     <input
                       type="radio"
@@ -1890,12 +1897,12 @@ export default function SessionBuilder() {
                 className={creationStyles.section}
                 aria-labelledby="creation-participants-heading"
               >
-                <div className={creationStyles.participantsHeading}>
-                  <h2 id="creation-participants-heading">
-                    {t('sessionBuilder.creationParticipants')}
-                  </h2>
-                  <span>{t('sessionBuilder.optionalLabel')}</span>
-                </div>
+                <h2 id="creation-participants-heading">
+                  {t('sessionBuilder.creationParticipants')}{' '}
+                  <span className={creationStyles.headingHint}>
+                    ({t('sessionBuilder.optionalLabel')})
+                  </span>
+                </h2>
 
                 <div className={creationStyles.notice}>
                   <Users size={20} aria-hidden="true" />
@@ -1962,11 +1969,11 @@ export default function SessionBuilder() {
                   {t('sessionBuilder.cancel')}
                 </Link>
                 <div className={creationStyles.submitGroup}>
-                  <p>{t('sessionBuilder.creationNextHint')}</p>
                   <Button
                     type="submit"
                     form="create-session-form"
                     className={creationStyles.submit}
+                    aria-describedby="creation-next-hint"
                     disabled={!canCreateSessionNow}
                     title={
                       !canCreateSessionNow
@@ -1978,6 +1985,7 @@ export default function SessionBuilder() {
                       ? t('sessionBuilder.creating')
                       : t('sessionBuilder.createSession')}
                   </Button>
+                  <p id="creation-next-hint">{t('sessionBuilder.creationNextHint')}</p>
                 </div>
               </footer>
             </form>

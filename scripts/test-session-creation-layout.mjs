@@ -10,6 +10,19 @@ const browser = await chromium.launch({
 });
 const participant = { id: 7, first_name: 'Alice', last_name: 'Martin', email: 'alice@example.com' };
 
+function contrastRatio(foreground, background) {
+  const luminance = (color) => {
+    const channels = color.match(/[\d.]+/g).slice(0, 3).map((value) => {
+      const channel = Number(value) / 255;
+      return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    });
+    return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+  };
+  const first = luminance(foreground);
+  const second = luminance(background);
+  return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+}
+
 try {
   for (const locale of ['fr', 'en']) {
     for (const theme of ['light', 'dark', 'system']) {
@@ -53,7 +66,22 @@ try {
         assert.equal(await form.locator('details').getAttribute('open'), null);
         assert.equal(await form.locator('#session-objective input').count(), 7);
         assert.equal(await form.locator('input[value="manual"]').isChecked(), true);
-        assert.equal(await form.getByRole('link', { name: locale === 'fr' ? 'Annuler' : 'Cancel', exact: true }).getAttribute('href'), `/${locale}/home`);
+        const cancel = form.getByRole('link', { name: locale === 'fr' ? 'Annuler' : 'Cancel', exact: true });
+        assert.equal(await cancel.getAttribute('href'), `/${locale}/home`);
+        const flowHeading = locale === 'fr'
+          ? 'Déroulement (Mode de progression des challenges)'
+          : 'Session flow (Challenge progression mode)';
+        assert.equal(await page.locator('#creation-flow-heading').innerText(), flowHeading);
+        assert.equal(await form.getByRole('group', { name: flowHeading, exact: true }).count(), 1);
+        assert.equal(
+          await page.locator('#creation-participants-heading').innerText(),
+          locale === 'fr' ? 'Participants (facultatif)' : 'Participants (optional)',
+        );
+        assert.equal(await submit.getAttribute('aria-describedby'), 'creation-next-hint');
+        assert.equal(
+          await page.locator('#creation-next-hint').innerText(),
+          locale === 'fr' ? 'Vous pourrez ensuite choisir vos challenges.' : 'You can choose your challenges next.',
+        );
         await name.fill('Premium session');
 
         for (const width of [320, 390, 768, 1440]) {
@@ -64,6 +92,13 @@ try {
             const sections = [...element.children].map((child) => child.getBoundingClientRect());
             const controls = [...element.querySelectorAll('input:not([type="radio"], [type="checkbox"])')];
             const cardStyle = getComputedStyle(element);
+            const submit = element.querySelector('button[type="submit"]');
+            const hint = element.querySelector('#creation-next-hint');
+            const cancel = element.querySelector('footer a');
+            const submitBounds = submit.getBoundingClientRect();
+            const hintBounds = hint.getBoundingClientRect();
+            const cancelBounds = cancel.getBoundingClientRect();
+            const cancelStyle = getComputedStyle(cancel);
             return {
               width: bounds.width,
               centered: Math.abs((bounds.left + bounds.right) / 2 - innerWidth / 2) < 2,
@@ -77,6 +112,18 @@ try {
               background: cardStyle.backgroundColor,
               backgroundImage: cardStyle.backgroundImage,
               frames: [...element.querySelectorAll('section, fieldset, details')].map((section) => getComputedStyle(section).borderTopWidth),
+              headingPadding: element.previousElementSibling.getBoundingClientRect().top - element.closest('main').getBoundingClientRect().top,
+              hintBelowSubmit: hintBounds.top >= submitBounds.bottom + 8,
+              hintCentered: Math.abs((hintBounds.left + hintBounds.right) / 2 - (submitBounds.left + submitBounds.right) / 2) < 2,
+              cancelBorder: cancelStyle.borderTopWidth,
+              cancelHeight: cancelBounds.height,
+              cancelColor: cancelStyle.color,
+              cancelBackground: cancelStyle.backgroundColor,
+              hintColor: getComputedStyle(hint).color,
+              mobileActions: innerWidth > 600 || (
+                cancelBounds.top >= hintBounds.bottom &&
+                Math.abs(cancelBounds.width - submitBounds.width) < 2
+              ),
             };
           });
           assert.ok(layout.width <= 1040, JSON.stringify(layout));
@@ -88,7 +135,27 @@ try {
           assert.equal(layout.backgroundImage, 'none');
           assert.equal(layout.background === 'rgb(255, 255, 255)', theme === 'light');
           assert.ok(layout.frames.every((border) => border === '0px'), `No nested section frames: ${layout.frames}`);
+          assert.ok(layout.headingPadding >= (width <= 600 ? 32 : 40), `Title needs breathing room below navigation: ${JSON.stringify(layout)}`);
+          assert.ok(layout.hintBelowSubmit, 'The next-step hint must sit below the create button');
+          assert.ok(layout.hintCentered, 'The next-step hint must align with the create button');
+          assert.equal(layout.cancelBorder, '1px', 'Cancel must have a visible secondary-button outline');
+          assert.ok(layout.cancelHeight >= 44, 'Cancel must remain an accessible touch target');
+          assert.ok(contrastRatio(layout.cancelColor, layout.cancelBackground) >= 4.5, 'Cancel text needs AA contrast');
+          assert.ok(contrastRatio(layout.hintColor, layout.background) >= 4.5, 'Next-step hint needs AA contrast');
+          assert.ok(layout.mobileActions, 'Mobile actions must stack at full width with cancel below the hint');
           console.log(`PASS session creation layout ${locale}/${theme}/${width}`);
+        }
+
+        await submit.focus();
+        await page.keyboard.press('Shift+Tab');
+        assert.equal(await cancel.evaluate((element) => element === document.activeElement), true);
+        assert.equal(await cancel.evaluate((element) => element.matches(':focus-visible')), true);
+        assert.equal(await cancel.evaluate((element) => getComputedStyle(element).outlineStyle), 'solid');
+        if (theme === 'system') {
+          await page.emulateMedia({ colorScheme: 'light' });
+          assert.equal(await form.evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(255, 255, 255)');
+          await page.emulateMedia({ colorScheme: 'dark' });
+          assert.notEqual(await form.evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(255, 255, 255)');
         }
 
         if (process.env.UX_SCREENSHOT_DIR) {

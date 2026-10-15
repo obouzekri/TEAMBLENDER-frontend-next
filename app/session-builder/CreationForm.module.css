@@ -6,6 +6,7 @@
   width: 100%;
   max-width: 1040px;
   margin-inline: auto;
+  padding-top: 1.5rem;
 }
 
 .title {
@@ -112,10 +113,11 @@
   border: 0;
 }
 
-.flow legend {
-  margin-bottom: 0.75rem;
+.headingHint {
   color: var(--text-muted);
   font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: normal;
 }
 
 .flowOption {
@@ -150,18 +152,6 @@
   margin-top: 0.25rem;
   color: var(--text-muted);
   font-size: 0.85rem;
-}
-
-.participantsHeading {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-}
-
-.participantsHeading > span {
-  color: var(--text-muted);
-  font-size: 0.8rem;
 }
 
 .notice {
@@ -209,7 +199,7 @@
 
 .actions {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
   padding-top: 1.5rem;
@@ -221,10 +211,13 @@
   align-items: center;
   justify-content: center;
   min-height: 46px;
-  padding: 0.6rem 0.75rem;
+  padding: 0.6rem 1.25rem;
+  border: 1px solid var(--surface-border);
   border-radius: 10px;
-  color: var(--text-muted);
+  background: var(--card);
+  color: var(--ink);
   font-size: 0.9rem;
+  font-weight: 600;
   text-decoration: none;
 }
 
@@ -245,17 +238,18 @@
 
 .submitGroup {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+  max-width: 100%;
 }
 
 .submitGroup p {
-  max-width: 25ch;
   margin: 0;
   color: var(--text-muted);
   font-size: 0.8rem;
   line-height: 1.5;
+  text-align: center;
 }
 
 .submitGroup .submit {
@@ -267,6 +261,10 @@
 
 @media (max-width: 600px) {
   .page {
+    padding-top: 1rem;
+  }
+
+  .container {
     padding-top: 1rem;
   }
 
@@ -285,18 +283,12 @@
     padding-block: 0.5rem;
   }
 
-  .submitGroup {
+  .actions {
     flex-direction: column-reverse;
-    align-items: flex-end;
-    gap: 0.65rem;
+    align-items: stretch;
   }
 
   .submitGroup .submit {
     min-width: 0;
-  }
-
-  .submitGroup p {
-    max-width: 23ch;
-    text-align: end;
   }
 }

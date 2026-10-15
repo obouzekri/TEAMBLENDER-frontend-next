@@ -21,7 +21,8 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 - Une carte unique de 1040 px maximum regroupe les informations, les objectifs multiples, le mode de progression et les participants facultatifs. Seul le nom est obligatoire.
 - L'ajout anticipe de participants est replie par defaut; le compteur et la selection restent synchronises apres fermeture. Le code d'invitation est disponible apres creation.
-- Annuler revient a l'accueil. Creer la session ouvre le choix des challenges; une mention l'annonce avant validation. Les erreurs conservent les valeurs saisies.
+- Le titre garde une marge sous la navigation. Les mentions du mode de progression et du caractere facultatif des participants sont entre parentheses pres de leur titre, en FR/EN et dans tous les themes.
+- Annuler revient a l'accueil et reste visible sous forme de bouton secondaire. Creer la session ouvre le choix des challenges; une mention sous le bouton l'annonce avant validation. Sur mobile, les deux actions prennent toute la largeur. Les erreurs conservent les valeurs saisies.
 - Validation: `node scripts/test-session-creation-layout.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, clair/sombre/automatique, 320 a 1440 px, dimensions et absence de cadres imbriques, creation avec et sans participants, objectifs multiples, modes manuel/automatique et erreur serveur.
 - Non-regression: `npm run test:unit:builder`, `npm run test:ux:builder` et `npm run test:ux:planning`.
 
