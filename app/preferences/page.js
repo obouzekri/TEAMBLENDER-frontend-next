@@ -241,6 +241,8 @@ export default function PreferencesPage() {
 
       <style jsx global>{`
         .preferences-page {
+          margin-top: 2.25rem;
+          padding-top: 0 !important;
           display: grid;
           gap: 1.75rem;
           background:

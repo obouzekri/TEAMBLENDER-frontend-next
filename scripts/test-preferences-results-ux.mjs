@@ -75,6 +75,34 @@ try {
       assert.ok(await checkboxes.nth(1).isDisabled());
       assert.equal(await checkboxes.nth(0).isChecked(), false);
       await page.getByText(preferences.notificationsUnavailable, { exact: true }).waitFor();
+      const checkPreferencesSpacing = async () => {
+        const layout = await page.locator('.preferences-page').evaluate((main) => {
+          const nav = document.querySelector('.top-nav').getBoundingClientRect();
+          const cards = [...main.querySelectorAll(':scope > section')].map((card) => card.getBoundingClientRect());
+          return {
+            navigationGap: cards[0].top - nav.bottom,
+            sectionGaps: cards.slice(1).map((card, index) => card.top - cards[index].bottom),
+            widths: cards.map((card) => card.width),
+          };
+        });
+        assert.ok(layout.navigationGap >= 32 && layout.navigationGap <= 40,
+          `Expected 32-40px below navigation, got ${layout.navigationGap}px`);
+        return layout;
+      };
+      const initialLayout = await checkPreferencesSpacing();
+      const previousSpacing = await page.addStyleTag({
+        content: '.shell.preferences-page { margin-top: 0; padding-top: 0.6rem; }',
+      });
+      const previousLayout = await page.locator('.preferences-page').evaluate((main) => {
+        const cards = [...main.querySelectorAll(':scope > section')].map((card) => card.getBoundingClientRect());
+        return {
+          sectionGaps: cards.slice(1).map((card, index) => card.top - cards[index].bottom),
+          widths: cards.map((card) => card.width),
+        };
+      });
+      await previousSpacing.evaluate((element) => element.remove());
+      assert.deepEqual(initialLayout.sectionGaps, previousLayout.sectionGaps);
+      assert.deepEqual(initialLayout.widths, previousLayout.widths);
       const navHeight = () => page.locator('.top-nav').evaluate((element) => element.getBoundingClientRect().height);
       const secondaryColors = () => page.getByText(preferences.highContrastBody, { exact: true }).evaluate((element) => ({
         foreground: getComputedStyle(element).color,
@@ -103,6 +131,7 @@ try {
       assert.ok(await checkboxes.nth(2).isChecked());
       assert.ok(await checkboxes.nth(3).isChecked());
       assert.equal(await navHeight(), compactHeight);
+      await checkPreferencesSpacing();
       await page.goto(`${baseUrl}/${locale}/account?tab=security`);
       await page.locator('#account-security').waitFor();
       assert.equal(await page.locator('html').getAttribute('data-high-contrast'), 'true');
