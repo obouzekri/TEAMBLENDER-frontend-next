@@ -120,15 +120,13 @@ export default function PreferencesPage() {
       />
       <main className="shell app-home preferences-page">
         <section className="preferences-page-header" aria-label={t('preferencesPage.headerAria')}>
-          <p className="eyebrow">{t('preferencesPage.eyebrow')}</p>
-          <h1>{t('preferencesPage.title')}</h1>
+          <h1 className="eyebrow">{t('preferencesPage.title')}</h1>
           <p>{t('preferencesPage.intro')}</p>
         </section>
 
         <section className="preferences-panel" aria-labelledby="preferences-notifications-title">
           <header className="preferences-panel__header">
-            <p className="eyebrow">{t('preferencesPage.notificationsEyebrow')}</p>
-            <h2 id="preferences-notifications-title">{t('preferencesPage.notificationsTitle')}</h2>
+            <h2 id="preferences-notifications-title" className="eyebrow">{t('preferencesPage.notificationsTitle')}</h2>
             <p id="preferences-notifications-unavailable">{t('preferencesPage.notificationsUnavailable')}</p>
           </header>
           <div className="preferences-panel__body">
@@ -176,8 +174,7 @@ export default function PreferencesPage() {
 
         <section className="preferences-panel" aria-labelledby="preferences-appearance-title">
           <header className="preferences-panel__header">
-            <p className="eyebrow">{t('preferencesPage.appearanceEyebrow')}</p>
-            <h2 id="preferences-appearance-title">{t('preferencesPage.appearanceTitle')}</h2>
+            <h2 id="preferences-appearance-title" className="eyebrow">{t('preferencesPage.appearanceTitle')}</h2>
             <p>{t('preferencesPage.appearanceIntro')}</p>
             <p>{t('preferencesPage.browserStorage')}</p>
           </header>
@@ -205,32 +202,9 @@ export default function PreferencesPage() {
           </div>
         </section>
 
-        <section className="preferences-panel" aria-labelledby="preferences-language-title">
-          <header className="preferences-panel__header">
-            <p className="eyebrow">{t('preferencesPage.languageEyebrow')}</p>
-            <h2 id="preferences-language-title">{t('preferencesPage.languageTitle')}</h2>
-            <p>{t('preferencesPage.languageIntro')}</p>
-          </header>
-          <div className="preferences-panel__body">
-            <div className="preferences-language-card">
-              <div>
-                <strong>{t('preferencesPage.displayLanguageTitle')}</strong>
-                <small>{t('preferencesPage.displayLanguageBody')}</small>
-              </div>
-              <LanguageSwitcher />
-            </div>
-          </div>
-        </section>
-
-        <section className="preferences-panel" aria-labelledby="preferences-personalization-title">
-          <header className="preferences-panel__header">
-            <p className="eyebrow">{t('preferencesPage.personalizationEyebrow')}</p>
-            <h2 id="preferences-personalization-title">{t('preferencesPage.personalizationTitle')}</h2>
-            <p>{t('preferencesPage.personalizationIntro')}</p>
-          </header>
-          <div className="preferences-panel__body preferences-panel__body--muted">
-            <p>{t('preferencesPage.personalizationBody')}</p>
-          </div>
+        <section className="preferences-panel preferences-language-row" aria-labelledby="preferences-language-title">
+          <h2 id="preferences-language-title" className="eyebrow">{t('preferencesPage.languageEyebrow')}</h2>
+          <LanguageSwitcher />
         </section>
 
         <div className="preferences-actions">
@@ -274,8 +248,7 @@ export default function PreferencesPage() {
 
         .preferences-page-header p,
         .preferences-panel__header p,
-        .preferences-toggle small,
-        .preferences-panel__body--muted {
+        .preferences-toggle small {
           color: var(--text-muted);
         }
 
@@ -320,16 +293,20 @@ export default function PreferencesPage() {
           line-height: 1.4;
         }
 
-        .preferences-language-card {
+        .preferences-language-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 1rem;
-          padding: 0.9rem 1rem;
-          border: 1px solid color-mix(in srgb, var(--surface-soft-border) 68%, transparent);
-          border-radius: 10px;
-          background: var(--surface-panel-soft);
-          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+          padding: 1.25rem 1.5rem;
+        }
+
+        .preferences-language-row h2 {
+          margin: 0;
+        }
+
+        .preferences-language-row .lang-switch {
+          flex-shrink: 0;
         }
 
         .preferences-theme-control {
@@ -379,17 +356,6 @@ export default function PreferencesPage() {
         .preferences-theme-options button.is-active {
           background: var(--accent);
           color: var(--text-on-accent);
-        }
-
-        .preferences-language-card > div {
-          display: grid;
-          gap: 0.16rem;
-        }
-
-        .preferences-language-card small {
-          color: var(--text-muted);
-          font-size: 0.84rem;
-          line-height: 1.4;
         }
 
         .preferences-toggle__switch {
@@ -453,11 +419,6 @@ export default function PreferencesPage() {
         @media (max-width: 640px) {
           .preferences-toggle {
             align-items: flex-start;
-          }
-
-          .preferences-language-card {
-            align-items: flex-start;
-            flex-direction: column;
           }
 
           .preferences-theme-control {

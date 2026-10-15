@@ -28,6 +28,8 @@ try {
     { locale: 'en', width: 1440, theme: 'dark' },
     { locale: 'fr', width: 390, theme: 'dark' },
     { locale: 'en', width: 390, theme: 'light' },
+    { locale: 'fr', width: 320, theme: 'light' },
+    { locale: 'en', width: 320, theme: 'dark' },
   ]) {
     console.log(`Checking preferences/results: ${locale}, ${width}, ${theme}`);
     const dictionary = locale === 'fr' ? fr : en;
@@ -75,6 +77,34 @@ try {
       assert.ok(await checkboxes.nth(1).isDisabled());
       assert.equal(await checkboxes.nth(0).isChecked(), false);
       await page.getByText(preferences.notificationsUnavailable, { exact: true }).waitFor();
+      const main = page.locator('.preferences-page');
+      assert.equal(await main.getByRole('heading', { level: 1, name: preferences.title, exact: true }).count(), 1);
+      assert.equal(await main.getByText(preferences.title, { exact: true }).count(), 1);
+      for (const title of [preferences.notificationsTitle, preferences.appearanceTitle]) {
+        assert.equal(await main.getByRole('heading', { level: 2, name: title, exact: true }).count(), 1);
+        assert.equal(await main.getByText(title, { exact: true }).count(), 1);
+      }
+      assert.equal(await main.getByText(preferences.languageTitle, { exact: true }).count(), 0);
+      assert.equal(await main.getByText(preferences.personalizationTitle, { exact: true }).count(), 0);
+      assert.equal(await main.locator(':scope > section').count(), 4);
+      const languageRow = main.locator('.preferences-language-row');
+      const languageLayout = await languageRow.evaluate((row) => {
+        const heading = row.querySelector('h2').getBoundingClientRect();
+        const switcher = row.querySelector('.lang-switch').getBoundingClientRect();
+        return {
+          centerDifference: Math.abs((heading.top + heading.bottom - switcher.top - switcher.bottom) / 2),
+          separated: heading.right <= switcher.left,
+          fits: row.scrollWidth <= row.clientWidth,
+        };
+      });
+      assert.ok(languageLayout.centerDifference <= 1 && languageLayout.separated && languageLayout.fits,
+        `Language controls must fit on one row: ${JSON.stringify(languageLayout)}`);
+      await languageRow.getByRole('combobox').selectOption(locale === 'fr' ? 'en' : 'fr');
+      await page.waitForURL(`**/${locale === 'fr' ? 'en' : 'fr'}/preferences`);
+      assert.equal(await page.evaluate(() => localStorage.getItem('tb_locale_preference')), locale === 'fr' ? 'en' : 'fr');
+      await languageRow.getByRole('combobox').selectOption(locale);
+      await page.waitForURL(`**/${locale}/preferences`);
+      await main.getByRole('heading', { level: 1, name: preferences.title, exact: true }).waitFor();
       const checkPreferencesSpacing = async () => {
         const layout = await page.locator('.preferences-page').evaluate((main) => {
           const nav = document.querySelector('.top-nav').getBoundingClientRect();
