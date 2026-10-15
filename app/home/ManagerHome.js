@@ -1577,21 +1577,27 @@ export default function ManagerHome() {
                   : 'Les champs marqués d’un * sont obligatoires.'}
               </p>
               {editingMemberId ? (
-                <section aria-label={isEn ? 'Password reset' : 'Réinitialisation du mot de passe'}>
-                  <p className="participant-form-hint">
+                <section className="participant-password-reset" aria-labelledby="participant-password-reset-title">
+                  <h3 id="participant-password-reset-title">
+                    {isEn ? 'Password reset' : 'Réinitialisation du mot de passe'}
+                  </h3>
+                  <p className="participant-password-reset-description" id="participant-password-reset-description">
                     {editingMember?.email
-                      ? (isEn
-                        ? `Send a new link to the saved email address: ${editingMember.email}. Save any email changes first.`
-                        : `Envoyez un nouveau lien à l’adresse enregistrée : ${editingMember.email}. Enregistrez d’abord toute modification de l’adresse e-mail.`)
+                      ? <>{isEn ? 'Send a reset link to ' : 'Envoyer un lien à '}<strong>{editingMember.email}</strong>.</>
                       : (isEn ? 'Save an email address first to send a reset link.' : 'Enregistrez d’abord une adresse e-mail pour envoyer un lien de réinitialisation.')}
                   </p>
+                  {editingMember?.email ? (
+                    <p className="participant-form-hint" id="participant-password-reset-hint">
+                      {isEn ? 'Changing the email? Save your changes before sending.' : 'Vous modifiez l’e-mail ? Enregistrez-le avant l’envoi.'}
+                    </p>
+                  ) : null}
                   <button
                     type="button"
-                    className="btn-secondary"
+                    className="btn-secondary participant-password-reset-button"
                     onClick={handleSendPasswordReset}
                     disabled={sendingPasswordReset || creatingMember || !editingMember?.email || editingMember?.disabled}
                     aria-busy={sendingPasswordReset}
-                    style={{ marginTop: '0.75rem' }}
+                    aria-describedby={`participant-password-reset-description${editingMember?.email ? ' participant-password-reset-hint' : ''}`}
                   >
                     {sendingPasswordReset
                       ? (isEn ? 'Sending...' : 'Envoi en cours...')

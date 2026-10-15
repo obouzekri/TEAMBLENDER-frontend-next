@@ -12,6 +12,9 @@ async function checkModalSpacing(modal, width) {
     const subtitle = dialog.querySelector('.participant-modal-subtitle').getBoundingClientRect();
     const form = dialog.querySelector('form').getBoundingClientRect();
     const label = dialog.querySelector('.participant-form-grid label').getBoundingClientRect();
+    const actions = dialog.querySelector('.participant-form-actions');
+    const actionStyle = getComputedStyle(actions);
+    const [cancel, save] = [...actions.querySelectorAll('button')].map((button) => button.getBoundingClientRect());
     return {
       titleLeft: title.left - bounds.left,
       titleTop: title.top - bounds.top,
@@ -20,6 +23,13 @@ async function checkModalSpacing(modal, width) {
       labelInset: label.left - form.left,
       overflow: dialog.scrollWidth > dialog.clientWidth,
       insideViewport: bounds.left >= 0 && bounds.right <= innerWidth,
+      actionBackground: actionStyle.backgroundColor,
+      actionBackgroundImage: actionStyle.backgroundImage,
+      actionBorder: actionStyle.borderTopWidth,
+      actionPosition: actionStyle.position,
+      cancelHeight: cancel.height,
+      saveHeight: save.height,
+      actionAlignment: innerWidth >= 768 ? Math.abs(cancel.top - save.top) : Math.abs(cancel.left - save.left),
     };
   });
   const minInset = width >= 768 ? 32 : 20;
@@ -29,6 +39,25 @@ async function checkModalSpacing(modal, width) {
   assert.ok(layout.labelInset >= 16, 'Field labels need inner spacing from the form border');
   assert.equal(layout.overflow, false, 'Modal must not overflow horizontally');
   assert.equal(layout.insideViewport, true, 'Modal must fit the viewport');
+  assert.equal(layout.actionBackground, 'rgba(0, 0, 0, 0)', 'Actions must have no background block');
+  assert.equal(layout.actionBackgroundImage, 'none', 'Actions must have no gradient');
+  assert.equal(layout.actionBorder, '0px', 'Actions must have no separator');
+  assert.equal(layout.actionPosition, 'static', 'Actions must not overlay the form');
+  assert.ok(Math.abs(layout.cancelHeight - layout.saveHeight) <= 1, 'Action buttons must have the same height');
+  assert.ok(layout.cancelHeight >= 44, 'Action buttons must retain a comfortable touch target');
+  assert.ok(layout.actionAlignment <= 1, 'Action buttons must align');
+}
+
+async function checkModalThemes(page, modal, width) {
+  for (const theme of ['light', 'dark', 'system']) {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.evaluate((value) => {
+      if (value === 'system') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', value);
+    }, theme);
+    await checkModalSpacing(modal, width);
+  }
+  await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
 }
 
 try {
@@ -90,13 +119,17 @@ try {
         const edit = page.getByRole('dialog', { name: en ? 'Edit participant' : 'Modifier le participant', exact: true });
         await edit.waitFor();
         await edit.getByLabel(en ? 'First name *' : 'Prénom *', { exact: true }).waitFor();
-        await checkModalSpacing(edit, width);
+        await checkModalThemes(page, edit, width);
+        const resetSection = edit.getByRole('region', { name: en ? 'Password reset' : 'Réinitialisation du mot de passe', exact: true });
+        assert.equal(await resetSection.locator('strong').textContent(), 'sophie.merini@example.com');
+        await resetSection.getByRole('heading', { name: en ? 'Password reset' : 'Réinitialisation du mot de passe', exact: true }).waitFor();
         if (!en) {
           assert.ok((await edit.textContent()).includes('Mettez à jour les informations du participant sélectionné.'));
           assert.ok((await edit.textContent()).includes('Département'));
           assert.ok((await edit.textContent()).includes('Les champs marqués d’un * sont obligatoires.'));
         }
         await edit.getByLabel(en ? 'Email *' : 'E-mail *', { exact: true }).fill('unsaved@example.com');
+        assert.equal(await resetSection.locator('strong').textContent(), 'sophie.merini@example.com', 'Destination must remain the saved address');
         const resend = edit.getByRole('button', { name: en ? 'Resend password reset link' : 'Renvoyer le lien de réinitialisation', exact: true });
         await resend.click();
         await edit.getByRole('alert').waitFor();
@@ -119,7 +152,7 @@ try {
         await page.getByRole('button', { name: en ? 'Create participant' : 'Créer un participant', exact: true }).click();
         const create = page.getByRole('dialog', { name: en ? 'Create participant' : 'Créer un participant', exact: true });
         await create.getByLabel(en ? 'First name *' : 'Prénom *', { exact: true }).fill('Alice');
-        await checkModalSpacing(create, width);
+        await checkModalThemes(page, create, width);
         await create.getByLabel(en ? 'Last name' : 'Nom', { exact: true }).fill('Martin');
         await create.getByLabel(en ? 'Email *' : 'E-mail *', { exact: true }).fill('alice@example.com');
         await create.getByRole('button', { name: en ? 'Create participant' : 'Créer un participant', exact: true }).click();

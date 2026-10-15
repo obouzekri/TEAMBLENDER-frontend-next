@@ -31,6 +31,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Après la création, le formulaire se ferme et une fenêtre de confirmation affiche l’identifiant et l’adresse e-mail du participant.
 - Les fenêtres de création et de modification alignent le titre et le sous-titre, avec des marges intérieures de 20 à 32 px et au moins 16 px autour des libellés du formulaire, sans débordement dès 320 px de largeur.
 - Dans « Modifier le participant », « Renvoyer le lien de réinitialisation » envoie un nouveau lien à l’adresse enregistrée. Enregistrer d’abord les modifications d’adresse ; le manager ne choisit ni ne voit le mot de passe.
+- La réinitialisation distingue le titre, l’adresse de destination et le rappel d’enregistrement. Les boutons Annuler et Enregistrer restent sans bloc de fond ni bordure de séparation, alignés et de même hauteur (empilés sur mobile).
 - Le renvoi affiche une confirmation après acceptation de l’envoi par le service e-mail ; les erreurs restent visibles dans le formulaire. Les boutons sont désactivés pendant l’envoi.
 - Validation : `node scripts/test-manager-participant-form.mjs` (frontend sur 3100, Chrome disponible, API simulées ; FR/EN, mobile/desktop, erreur puis renvoi, modification et création).
 

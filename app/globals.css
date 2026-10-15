@@ -17613,13 +17613,65 @@ html[data-theme='dark'] .admin-console-layout .list-count{
 }
 
 .participant-inline-form--modal .participant-form-actions {
-  position: sticky;
-  bottom: 0;
+  align-items: center;
   margin-top: 0.2rem;
-  padding: 0.95rem 0.2rem 0.16rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.participant-inline-form--modal .participant-form-actions > button {
+  min-height: 2.8rem;
+  margin: 0;
+  padding: 0.65rem 1rem;
+  line-height: 1.25;
+}
+
+.participant-password-reset {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+  padding-block: 1rem;
   border-top: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 78%, transparent) 0%, var(--surface-panel) 24%, var(--surface-panel) 100%);
-  backdrop-filter: blur(8px);
+}
+
+.participant-password-reset h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.participant-password-reset-description {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.participant-password-reset-description strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.participant-inline-form--modal .participant-password-reset .participant-form-hint {
+  margin: 0;
+  padding: 0;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.participant-password-reset .participant-password-reset-button {
+  justify-self: start;
+  max-width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  white-space: normal;
+  text-align: center;
+  box-shadow: none;
 }
 
 .participant-modal-title {
@@ -17723,9 +17775,6 @@ html[data-theme='dark'] .admin-console-layout .list-count{
     color: var(--text-subtle, #94a3b8);
   }
 
-  :where(html:not([data-theme='light'])) .participant-inline-form--modal .participant-form-actions{
-    background: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 70%, transparent) 0%, var(--surface-panel) 24%, var(--surface-panel) 100%);
-  }
 }
 /* Explicit dark theme mirror of the block above */
 
@@ -17733,9 +17782,6 @@ html[data-theme='dark'] .admin-console-layout .list-count{
     color: var(--text-subtle, #94a3b8);
   }
 
-  html[data-theme='dark'] .participant-inline-form--modal .participant-form-actions{
-    background: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 70%, transparent) 0%, var(--surface-panel) 24%, var(--surface-panel) 100%);
-  }
 
   @media (max-width: 640px) {
     .participant-modal-dialog {
