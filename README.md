@@ -8,6 +8,11 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Le frontend legacy vanilla a ete retire du repository pour reduire la dette technique.
 - Les changements en cours doivent rester alignes avec la navigation produit actuelle et les checks de go-live du projet.
 
+### Filtres des sessions de l'accueil animateur
+
+- Les champs de recherche, statut et dates conservent une marge interieure horizontale de 16 px et un espacement de 16 px entre eux, sans deborder de leur cadre sur mobile.
+- Validation: `node scripts/test-home-session-filters.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, largeurs de 320 a 1755 px, saisie et reinitialisation des filtres.
+
 ### Sessions des participants
 
 - Les sessions assignees reprennent les styles partages des cartes de l'accueil: fond, bordure, ombre, titre, badges de statut et pied de carte, en clair comme en sombre.

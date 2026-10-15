@@ -1577,11 +1577,12 @@ export default function ManagerHome() {
         .manager-home .home-sessions-filters {
           display: grid;
           grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(150px, 1fr));
-          gap: 0.6rem;
+          gap: 1rem;
         }
 
         .manager-home .home-sessions-field {
           display: grid;
+          min-width: 0;
           gap: 0.32rem;
         }
 
@@ -1594,7 +1595,11 @@ export default function ManagerHome() {
         }
 
         .manager-home .home-sessions-control {
+          box-sizing: border-box;
+          width: 100%;
+          min-width: 0;
           min-height: 42px;
+          padding: 0.65rem 1rem;
           border-radius: 11px;
           border: 1px solid rgba(100, 116, 139, 0.5);
           background: #ffffff;
