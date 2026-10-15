@@ -52,10 +52,25 @@
   flex: 0 1 auto;
   font-size: 1.12rem;
   font-weight: 800;
-  color: var(--session-title-color);
+  color: var(--accent-strong);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+@supports (background-clip: text) {
+  .sessionName {
+    background: var(--accent-gradient);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+@media (forced-colors: active) {
+  .sessionName {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
 }
 
 .headerChallengeName {

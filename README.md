@@ -44,11 +44,17 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Le renvoi affiche une confirmation après acceptation de l’envoi par le service e-mail ; les erreurs restent visibles dans le formulaire. Les boutons sont désactivés pendant l’envoi.
 - Validation : `node scripts/test-manager-participant-form.mjs` (frontend sur 3100, Chrome disponible, API simulées ; FR/EN, mobile/desktop, erreur puis renvoi, modification et création).
 
+### Salle Secrete en live
+
+- Les commandes indice, passage et pause/reprise restent visibles sur mobile et desktop, avec icones, focus clavier et desactivation pendant une action. Un indice deja debloque ne peut pas etre demande une seconde fois.
+- Les fins par reussite (`escaped`), timeout ou echec affichent un titre compact, une issue lisible, des dates localisees et un debrief en equipe. La progression distingue explicitement les enigmes franchies des seules enigmes resolues.
+- Validation: `node scripts/test-challenge-diagnostics-ux.mjs --escape-only` (API simulees, FR/EN, mobile/desktop, pause/reprise, indice, passage et debrief).
+
 ### Sessions des participants
 
 - Les sessions assignees reprennent les styles partages des cartes de l'accueil: fond, bordure, ombre, titre, badges de statut et pied de carte, en clair comme en sombre.
 - Le titre « Sessions assignees » utilise le meme accent degrade que Sessions et Participants sur l'accueil. Les cartes ont un repere colore par statut et un espacement resserre; Rejoindre garde une hauteur compacte de 44 px et reste accessible au clavier et sur mobile.
-- Le titre de la session live et celui des cartes de l'accueil partagent le token `--session-title-color`, y compris avec le theme automatique. Validation: `node scripts/test-session-title-theme.mjs` (frontend sur 3100, Chrome disponible, API simulees; desktop/mobile et preferences clair/sombre/automatique).
+- Le titre de la session live reprend le meme accent degrade que les titres Sessions et Participants de l'accueil, y compris avec le theme automatique. Validation: `node scripts/test-session-title-theme.mjs` (frontend sur 3100, Chrome disponible, API simulees; desktop/mobile et preferences clair/sombre/automatique).
 - Seules les sessions en cours proposent Rejoindre; l'attente du lancement et le rafraichissement automatique restent inchanges.
 - Toute nouvelle connexion participant (mot de passe, OAuth, code ou reprise d'acces) ouvre d'abord l'accueil, meme si la session est deja lancee. Le participant doit cliquer sur Rejoindre dans sa carte de session pour entrer dans le live.
 - Les sessions assignees restent accessibles dans la salle d'attente. Apres le clic sur Rejoindre (carte ou code), le challenge actif s'ouvre directement, sans afficher une salle d'attente intermediaire. Sans challenge actif, la salle d'attente reste disponible et ouvre automatiquement le challenge au lancement par l'animateur. Les changements de session et l'historique du navigateur resynchronisent la salle d'attente. Une erreur de connexion reste visible et permet de reessayer sans quitter l'accueil.

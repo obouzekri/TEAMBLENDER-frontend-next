@@ -24,7 +24,8 @@ async function titleColor(page, title, { theme, system, cssFallback = false }) {
   assert.equal(await title.count(), 1, `Title must remain visible at ${page.url()}: ${await page.locator('body').innerText()}`);
   return title.evaluate((element, fallback) => {
     if (fallback) document.documentElement.removeAttribute('data-theme');
-    return getComputedStyle(element).color;
+    const style = getComputedStyle(element);
+    return { color: style.color, background: style.backgroundImage, fill: style.webkitTextFillColor };
   }, cssFallback);
 }
 
@@ -52,12 +53,12 @@ try {
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
       await page.goto(`${baseUrl}/fr/home`);
-      const homeTitle = page.locator('.session-card-body .session-title').filter({ hasText: session.name });
+      const homeTitle = page.getByRole('heading', { name: 'Sessions', exact: true });
       await homeTitle.waitFor();
       const reference = [];
       for (const testCase of cases) {
         const color = await titleColor(page, homeTitle, testCase);
-        assert.equal(color, testCase.color, `Home ${width}/${testCase.theme}/${testCase.system}`);
+        assert.notEqual(color.background, 'none', `Home accent ${width}/${testCase.theme}/${testCase.system}`);
         reference.push(color);
       }
       const live = await fixture.context.newPage();
@@ -66,7 +67,7 @@ try {
       const liveTitle = live.locator('strong[title]').filter({ hasText: session.name });
       await liveTitle.waitFor();
       for (const [index, testCase] of cases.entries()) {
-        assert.equal(await titleColor(live, liveTitle, testCase), reference[index],
+        assert.deepEqual(await titleColor(live, liveTitle, testCase), reference[index],
           `Live title must match home ${width}/${testCase.theme}/${testCase.system}/${testCase.cssFallback ? 'CSS' : 'controller'}`);
         process.stdout.write(`PASS session title ${width}/${testCase.theme}/${testCase.system}/${testCase.cssFallback ? 'CSS' : 'controller'}\n`);
       }

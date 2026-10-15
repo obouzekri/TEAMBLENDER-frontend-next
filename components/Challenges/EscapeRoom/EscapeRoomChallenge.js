@@ -3,7 +3,7 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ChallengeProgressContext } from '@/lib/challenges/connection-context';
 import Image from 'next/image';
-import { KeyRound, LockKeyhole } from 'lucide-react';
+import { KeyRound, Lightbulb, LockKeyhole, Pause, Play, SkipForward } from 'lucide-react';
 import { buildBackendAssetCandidates, getApiUrl } from '@/lib/config';
 import { getAuthHeaders } from '@/lib/auth';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
@@ -102,7 +102,6 @@ export default function EscapeRoomChallenge({
         ? {
             apiError: 'API error ({status})',
             actionUnavailable: 'Action is currently unavailable.',
-            timerUnsupported: 'Pause/reset are not available for Secret Room (current MVP).',
             loadingRoom: 'Loading room...',
             missingParams: 'Missing parameters',
             missingParamsDetail: 'sessionId or challengeId is missing.',
@@ -131,6 +130,15 @@ export default function EscapeRoomChallenge({
             submit: 'Submit',
             timerTitle: 'Timer',
             unlockHint: 'Unlock a hint',
+            hintUnlocked: 'Hint unlocked',
+            debrief: 'Team debrief',
+            progress: 'Riddles passed or completed',
+            debriefNote: 'Progress includes riddles skipped by the facilitator, not just solved riddles.',
+            debriefQuestions: [
+              'How did you agree on a shared answer?',
+              'What helped you when the team was stuck?',
+              'What will you do differently together next time?',
+            ],
             skipRiddle: 'Skip the riddle',
             chatTitle: 'Chat',
             chatEmpty: 'No messages yet.',
@@ -214,12 +222,10 @@ export default function EscapeRoomChallenge({
         : {
             apiError: 'Erreur API ({status})',
             actionUnavailable: 'Action impossible pour le moment.',
-            timerUnsupported:
-              'Pause/Reinitialisation du chrono non disponibles pour Salle secrete (MVP actuel).',
             loadingRoom: 'Chargement de la salle...',
             missingParams: 'Parametres manquants',
             missingParamsDetail: 'sessionId ou challengeId est absent.',
-            challengeEnded: 'Partie terminee',
+            challengeEnded: 'Partie terminée',
             issue: 'Issue:',
             start: 'Debut:',
             end: 'Fin:',
@@ -244,6 +250,15 @@ export default function EscapeRoomChallenge({
             submit: 'Soumettre',
             timerTitle: 'Minuteur',
             unlockHint: 'Débloquer un indice',
+            hintUnlocked: 'Indice débloqué',
+            debrief: 'Débrief en équipe',
+            progress: 'Énigmes franchies',
+            debriefNote: "La progression inclut les énigmes passées par l’animateur, pas seulement les énigmes résolues.",
+            debriefQuestions: [
+              'Comment avez-vous trouvé une réponse commune ?',
+              'Qu’est-ce qui vous a aidés lorsque l’équipe était bloquée ?',
+              'Que ferez-vous différemment ensemble la prochaine fois ?',
+            ],
             skipRiddle: "Passer l'énigme",
             chatTitle: 'Chat',
             chatEmpty: 'Aucun message pour le moment.',
@@ -682,9 +697,6 @@ export default function EscapeRoomChallenge({
     [apiCall, runAction]
   );
 
-  const remaining = Number(
-    state?.timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0
-  );
   const respondedIds = Array.isArray(state?.submission_status?.responded_ids)
     ? state.submission_status.responded_ids
     : [];
@@ -767,11 +779,23 @@ export default function EscapeRoomChallenge({
   }, [participants, respondedSet]);
 
   const finishedStatuses = useMemo(
-    () => new Set(['completed', 'success', 'succeeded', 'timeout', 'timed_out', 'failed']),
+    () => new Set(['escaped', 'completed', 'success', 'succeeded', 'timeout', 'timed_out', 'failed']),
     []
   );
   const isFinished = finishedStatuses.has(challengeStatus);
-  const issueToneClass = isFinished ? styles.issueStatusFinished : styles.issueStatusWaiting;
+  const outcomeLabel = ['escaped', 'completed', 'success', 'succeeded'].includes(challengeStatus)
+    ? (isEn ? 'Room unlocked' : 'Salle déverrouillée')
+    : ['timeout', 'timed_out'].includes(challengeStatus)
+      ? (isEn ? 'Time elapsed' : 'Temps écoulé')
+      : (isEn ? 'Mission ended' : 'Mission arrêtée');
+  const totalRiddles = Math.max(0, Number(state?.total_enigmes || 0));
+  const progressedRiddles = Math.min(totalRiddles, Math.max(0,
+    challengeStatus === 'escaped' ? totalRiddles : Number(state?.current_enigme_index || 0)));
+  const formatDate = (value) => {
+    if (!value) return '—';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString(isEn ? 'en-GB' : 'fr-FR');
+  };
   const shouldUseFastPolling = Boolean(
     !isFacilitator &&
     currentEnigme &&
@@ -837,6 +861,42 @@ export default function EscapeRoomChallenge({
     },
     [apiCall, emitEvent, runAction]
   );
+
+  const timerControls = isFacilitator && (isTimerRunning || isTimerPaused) ? (
+    <button
+      type="button"
+      className={`${styles.actionButton} ${styles.pauseButton}`}
+      disabled={!!busyAction}
+      onClick={() => handleTimerAction(isTimerPaused ? 'resume' : 'pause')}
+    >
+      {isTimerPaused ? <Play size={17} aria-hidden="true" /> : <Pause size={17} aria-hidden="true" />}
+      {busyAction === 'pause' || busyAction === 'resume'
+        ? (isEn ? 'Updating…' : 'Mise à jour…')
+        : isTimerPaused ? (isEn ? 'Resume' : 'Reprendre') : (isEn ? 'Pause' : 'Mettre en pause')}
+    </button>
+  ) : null;
+  const quickActions = isFacilitator && !isFinished && hasChallengeStarted && currentEnigme ? (
+    <div className={styles.timerQuickActions}>
+      <button
+        type="button"
+        className={`${styles.actionButton} ${styles.hintButton}`}
+        disabled={!!busyAction || isTimerPaused || state.hint_unlocked}
+        onClick={() => facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })}
+      >
+        <Lightbulb size={17} aria-hidden="true" />
+        {state.hint_unlocked ? copy.hintUnlocked : copy.unlockHint}
+      </button>
+      <button
+        type="button"
+        className={styles.actionButton}
+        disabled={!!busyAction || isTimerPaused}
+        onClick={() => facilitatorAction('skip', '/skip')}
+      >
+        <SkipForward size={17} aria-hidden="true" />
+        {copy.skipRiddle}
+      </button>
+    </div>
+  ) : null;
 
   if (!endpointBase) {
     return (
@@ -916,37 +976,17 @@ export default function EscapeRoomChallenge({
           durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
           status={timerStatus}
           isFacilitator={isFacilitator}
+          actions={timerControls}
           onPause={() => handleTimerAction('pause')}
           onResume={() => handleTimerAction('resume')}
-          controlPending={busyAction === 'pause' || busyAction === 'resume'}
+          controlPending={!!busyAction}
           waitingText=""
-          footer={
-            isFacilitator && !isFinished && currentEnigme ? (
-              <div className={styles.timerQuickActions}>
-                <button
-                  className={styles.secondaryBtn}
-                  disabled={!!busyAction || isTimerPaused}
-                  onClick={() =>
-                    facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })
-                  }
-                >
-                  {copy.unlockHint}
-                </button>
-                <button
-                  className={styles.secondaryBtn}
-                  disabled={!!busyAction || isTimerPaused}
-                  onClick={() => facilitatorAction('skip', '/skip')}
-                >
-                  {copy.skipRiddle}
-                </button>
-              </div>
-            ) : null
-          }
         />
+        {quickActions}
       </div>
 
       <section className={styles.layout} data-challenge-layout>
-        <article className={`${styles.card} ${styles.mainCard}`} data-debrief-content={isFinished || undefined}>
+        <article className={`${styles.card} ${styles.mainCard}${isFinished ? ` ${styles.finishedCard}` : ''}`} data-debrief-content={isFinished || undefined}>
           {!hasChallengeStarted ? (
             <ChallengeRulesPanel
               isStarted={false}
@@ -962,17 +1002,19 @@ export default function EscapeRoomChallenge({
             />
           ) : isFinished ? (
             <>
-              <h2>{copy.challengeEnded}</h2>
-              <p className={styles.issueRow}>
-                <span className={styles.issueLabel}>{copy.issue}</span>{' '}
-                <strong className={issueToneClass}>{state.status}</strong>
+              <header className={styles.finishedHeader}>
+                <h2>{copy.challengeEnded}</h2>
+                <span className={styles.outcomeBadge}>{outcomeLabel}</span>
+              </header>
+              <p className={styles.finishedDates}>
+                {copy.start} {formatDate(state.started_at)} · {copy.end} {formatDate(state.finished_at)}
               </p>
-              <p>
-                {copy.start} {state.started_at || '-'}
-              </p>
-              <p>
-                {copy.end} {state.finished_at || '-'}
-              </p>
+              <section className={styles.debriefPanel} aria-label={copy.debrief}>
+                <h3>{copy.debrief}</h3>
+                <p className={styles.progressSummary}>{copy.progress} : <strong>{progressedRiddles}/{totalRiddles}</strong></p>
+                <p>{copy.debriefNote}</p>
+                <ul>{copy.debriefQuestions.map((question) => <li key={question}>{question}</li>)}</ul>
+              </section>
             </>
           ) : (
             <>
@@ -1220,32 +1262,12 @@ export default function EscapeRoomChallenge({
               durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
               status={timerStatus}
               isFacilitator={isFacilitator}
+              actions={timerControls}
               onPause={() => handleTimerAction('pause')}
               onResume={() => handleTimerAction('resume')}
-              controlPending={busyAction === 'pause' || busyAction === 'resume'}
+              controlPending={!!busyAction}
               waitingText=""
-              footer={
-                isFacilitator && !isFinished && currentEnigme ? (
-                  <div className={styles.timerQuickActions}>
-                    <button
-                      className={styles.secondaryBtn}
-                      disabled={!!busyAction || isTimerPaused}
-                      onClick={() =>
-                        facilitatorAction('hint', '/hint', { enigme_id: currentEnigme.id })
-                      }
-                    >
-                      {copy.unlockHint}
-                    </button>
-                    <button
-                      className={styles.secondaryBtn}
-                      disabled={!!busyAction || isTimerPaused}
-                      onClick={() => facilitatorAction('skip', '/skip')}
-                    >
-                      {copy.skipRiddle}
-                    </button>
-                  </div>
-                ) : null
-              }
+              footer={quickActions}
             />
           </div>
 
@@ -1279,7 +1301,7 @@ export default function EscapeRoomChallenge({
             </section>
           ) : null}
 
-          {feedback ? <p className={styles.feedback}>{feedback}</p> : null}
+          {feedback ? <p className={styles.feedback} role="status">{feedback}</p> : null}
         </aside>
       </section>
 

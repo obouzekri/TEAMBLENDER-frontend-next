@@ -58,7 +58,7 @@ const cases = [
   ['vrai_ou_mensonge_v1', { vom }, { vom: { ...vom, phase: 'finished', current_turn: null } }],
   ['the_quiz_v1', { quiz }, { quiz: { ...quiz, phase: 'final_score', status: 'finished', final_standings: [player], question_history: [{ question_id: 'q1', question_index: 0, question, correct_choice_index: 1 }] } }],
   ['escape_room_v1', {}, {}],
-];
+].filter(([engineKey]) => !process.argv.includes('--escape-only') || engineKey === 'escape_room_v1');
 
 async function assertMetricStyle(value) {
   const style = await value.evaluate((node) => {
@@ -125,7 +125,7 @@ try {
             const page = await fixture.context.newPage();
             const errors = [];
             page.on('pageerror', (error) => errors.push(error.message));
-            await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
+            await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`, { waitUntil: 'domcontentloaded' });
             await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
             await page.getByRole('timer').first().waitFor({ state: 'attached' });
             assert.ok(await page.getByRole('timer').count() > 0, 'Playing clock missing');
@@ -150,7 +150,12 @@ try {
             await content.waitFor();
             const heading = content.getByRole('heading').first();
             const titleStyle = await heading.evaluate((node) => ({ size: parseFloat(getComputedStyle(node).fontSize), weight: parseFloat(getComputedStyle(node).fontWeight) }));
-            assert.ok(titleStyle.size >= 22 && titleStyle.weight >= 700, `Weak debrief heading: ${JSON.stringify(titleStyle)}`);
+            const compactEndTitle = engineKey === 'escape_room_v1';
+            assert.ok(titleStyle.size >= (compactEndTitle ? 16 : 22) && titleStyle.weight >= 700, `Weak debrief heading: ${JSON.stringify(titleStyle)}`);
+            if (compactEndTitle) {
+              assert.ok(titleStyle.size <= 21, 'Escape Room end heading must remain compact');
+              await content.getByRole('region', { name: locale === 'en' ? 'Team debrief' : 'Débrief en équipe' }).waitFor();
+            }
             assert.ok(!/\p{Extended_Pictographic}/u.test(await content.innerText()), 'Decorative emoji in debrief analysis');
             for (const value of await content.locator('[data-debrief-metrics] strong').all()) {
               await assertMetricStyle(value);
@@ -167,7 +172,7 @@ try {
       }
     }
   }
-  console.log('TEST_DEBRIEF_UX_OK (72 game-to-debrief transitions)');
+  console.log(`TEST_DEBRIEF_UX_OK (${cases.length * 8} game-to-debrief transitions)`);
 } finally {
   await browser.close();
 }

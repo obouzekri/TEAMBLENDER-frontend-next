@@ -254,6 +254,7 @@ async function testEscape(locale, width) {
   let responseMode = 'healthy';
   let participantsMode = 'error';
   let requests = 0;
+  const actions = [];
   const escape = {
     status: 'in_progress', timer, total_enigmes: 2, current_enigme_index: 0,
     current_enigme: { id: 'e1', label: 'Synchronization test', description: 'Question', ui_type: 'text', ui_data: {} },
@@ -266,6 +267,15 @@ async function testEscape(locale, width) {
         return route.fulfill({ json: { participants: [] } });
       }
       requests += 1;
+      const action = new URL(route.request().url()).pathname.split('/').pop();
+      if (route.request().method() === 'POST') {
+        actions.push(action);
+        if (action === 'pause') escape.status = 'paused';
+        if (action === 'resume') escape.status = 'in_progress';
+        if (action === 'hint') escape.hint_unlocked = true;
+        if (action === 'skip') escape.current_enigme_index = 1;
+        return route.fulfill({ json: { ok: true } });
+      }
       if (responseMode === 'error') return route.fulfill({ status: 503, json: { error: 'Service unavailable' } });
       if (responseMode === 'invalid') return route.fulfill({ json: {} });
       return route.fulfill({ json: escape });
@@ -275,6 +285,21 @@ async function testEscape(locale, width) {
   await page.getByText('Synchronization test', { exact: true }).first().waitFor();
   await page.getByRole('timer').waitFor();
   await page.getByRole('button', { name: locale === 'en' ? 'Pause' : 'Mettre en pause', exact: true }).waitFor();
+  const pause = page.getByRole('button', { name: locale === 'en' ? 'Pause' : 'Mettre en pause', exact: true });
+  await pause.click();
+  const resume = page.getByRole('button', { name: locale === 'en' ? 'Resume' : 'Reprendre', exact: true });
+  await resume.waitFor();
+  const hint = page.getByRole('button', { name: locale === 'en' ? 'Unlock a hint' : 'Débloquer un indice', exact: true }).filter({ visible: true });
+  assert.ok(await hint.isVisible(), 'Hint must be visible on mobile and desktop');
+  assert.ok(await hint.isDisabled(), 'No hint while paused');
+  await resume.click();
+  await pause.waitFor();
+  await hint.click();
+  const unlocked = page.getByRole('button', { name: locale === 'en' ? 'Hint unlocked' : 'Indice débloqué', exact: true }).filter({ visible: true });
+  await unlocked.waitFor();
+  assert.ok(await unlocked.isDisabled(), 'Do not unlock the same hint twice');
+  await page.getByRole('button', { name: locale === 'en' ? 'Skip the riddle' : "Passer l'énigme", exact: true }).filter({ visible: true }).click();
+  assert.deepEqual(actions, ['pause', 'resume', 'hint', 'skip']);
   const participantsAlert = page.locator('[role="alert"]').filter({ hasText: 'Service unavailable' });
   await participantsAlert.waitFor({ timeout: 10000 });
   const retryParticipants = participantsAlert.getByRole('button', {
@@ -297,6 +322,23 @@ async function testEscape(locale, width) {
   responseMode = 'healthy';
   await alert.getByRole('button', { name: locale === 'en' ? 'Retry' : 'Réessayer', exact: true }).click();
   await alert.waitFor({ state: 'hidden' });
+  for (const status of ['timeout', 'escaped', 'failed']) {
+    escape.status = status;
+    escape.current_enigme = null;
+    escape.started_at = '2026-10-15T21:35:15.275Z';
+    escape.finished_at = '2026-10-15T21:55:16.195Z';
+    const debrief = page.getByRole('region', { name: locale === 'en' ? 'Team debrief' : 'Débrief en équipe', exact: true });
+    await debrief.waitFor({ timeout: 10000 });
+    const outcome = status === 'escaped' ? (locale === 'en' ? 'Room unlocked' : 'Salle déverrouillée')
+      : status === 'timeout' ? (locale === 'en' ? 'Time elapsed' : 'Temps écoulé')
+        : (locale === 'en' ? 'Mission ended' : 'Mission arrêtée');
+    await page.getByText(outcome, { exact: true }).waitFor({ timeout: 10000 });
+    assert.equal(await debrief.locator('li').count(), 3);
+    assert.equal(await debrief.locator('strong').innerText(), status === 'escaped' ? '2/2' : '1/2');
+    const heading = page.getByRole('heading', { name: locale === 'en' ? 'Game finished' : 'Partie terminée', exact: true });
+    assert.ok(await heading.evaluate((node) => Number.parseFloat(getComputedStyle(node).fontSize) <= 21), 'Compact end title');
+    assert.equal(await page.getByRole('button', { name: locale === 'en' ? 'Pause' : 'Mettre en pause', exact: true }).count(), 0);
+  }
   await finish(fixture);
 }
 
