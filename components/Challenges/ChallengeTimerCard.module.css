@@ -303,11 +303,12 @@
     display: none;
   }
 
+  :global(.challenge-mobile-timer) .timerCard.timerCardStarted,
   :global(.challenge-mobile-timer) .timerCard:has(.timerActions) {
-    display: grid;
+    display: flex;
   }
 
-  :global(.challenge-mobile-timer) .timerCompactBar {
+  :global(.challenge-mobile-timer) .timerCard:not(.timerCardStarted) .timerCompactBar {
     display: none;
   }
 
