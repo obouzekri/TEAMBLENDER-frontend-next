@@ -17,6 +17,13 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les champs de recherche, statut et dates conservent une marge interieure horizontale de 16 px et un espacement de 16 px entre eux, sans deborder de leur cadre sur mobile.
 - Validation: `node scripts/test-home-session-filters.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, largeurs de 320 a 1755 px, ouverture au clavier de la periode, saisie, conservation et reinitialisation des filtres, pagination conditionnelle et navigation.
 
+### Page Contact
+
+- Une carte unique reunit les coordonnees, le delai de reponse et le formulaire, sans cartes imbriquees ni colonne vide. L'introduction est raccourcie.
+- Nom et email sont presentes ensemble, puis entreprise et effectif facultatifs. Le besoin et le message gardent toute la largeur. Les champs passent sur une colonne sur mobile.
+- Les libelles obligatoires, l'autocompletion, le lien email et la politique de confidentialite restent accessibles au clavier. L'envoi conserve la protection CSRF, le champ anti-spam, les etats d'attente, les erreurs avec conservation du brouillon et la confirmation.
+- Validation : `node scripts/test-contact-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees sans envoi d'email) : FR/EN, clair/sombre/automatique, 320 a 1440 px, hauteur compacte, clavier, validation, champs facultatifs, requete et CSRF, attente, erreurs 429/500/reseau, nouvelle tentative et succes.
+
 ### Creation rapide d'une session
 
 - Une carte unique de 1040 px maximum regroupe les informations, les objectifs multiples, le mode de progression et les participants facultatifs. Seul le nom est obligatoire.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { Clock3, Mail } from 'lucide-react';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import useI18n from '@/lib/i18n/useI18n';
@@ -69,42 +70,31 @@ export default function ContactPage() {
     <>
       <TopNav />
       <main className="shell contact-page">
-        <section className="contact-hero reveal-up" aria-label={isEn ? 'Contact TeamBlender' : 'Contactez TeamBlender'}>
-          <div className="contact-hero__grid">
-            <div className="contact-hero__copy">
+        <section className="contact-intro" aria-label={isEn ? 'Contact TeamBlender' : 'Contactez TeamBlender'}>
+          <div className="contact-intro__grid">
+            <div className="contact-intro__copy">
               <p className="eyebrow">TeamBlender</p>
-              <h1>{isEn ? 'Create an experience that truly strengthens your team' : 'Créez une expérience qui renforce réellement la cohésion de votre équipe'}</h1>
-              <p className="contact-hero__lede">{isEn ? 'Talk with a TeamBlender expert and identify the challenge best aligned with your HR goals.' : 'Échangez avec un expert TeamBlender et découvrez le challenge le plus adapté à vos objectifs RH.'}</p>
+              <h1>{isEn ? 'Let’s talk about bringing your team together' : 'Parlons de la cohésion de votre équipe'}</h1>
+              <p className="contact-intro__lede">{isEn ? 'Talk with a TeamBlender expert and identify the challenge best aligned with your HR goals.' : 'Échangez avec un expert TeamBlender et découvrez le challenge le plus adapté à vos objectifs RH.'}</p>
             </div>
           </div>
         </section>
 
-        <section className="contact-layout contact-layout--separated">
-          <article className="feature-card contact-info-card">
-            <h2>{isEn ? 'How to reach us' : 'Comment nous joindre'}</h2>
-            <p className="contact-section-intro">{isEn ? 'For scoping, a demo, or an HR question, write to us.' : 'Pour un cadrage, une démonstration ou une question RH, écrivez-nous.'}</p>
-
-            <div className="contact-info-items">
-              <div className="contact-info-item">
-                <div className="contact-info-icon">✉</div>
-                <div className="contact-info-text">
-                  <strong>{isEn ? 'Direct email' : 'Email direct'}</strong>
-                  <a href="mailto:contact@teamblender.io">contact@teamblender.io</a>
-                </div>
-              </div>
-              <div className="contact-info-item">
-                <div className="contact-info-icon">⏱</div>
-                <div className="contact-info-text">
-                  <strong>{isEn ? 'Response time' : 'Délai de réponse'}</strong>
-                  <span>{isEn ? 'Within 24 business hours' : 'Sous 24h ouvrées'}</span>
-                </div>
-              </div>
-            </div>
-          </article>
-
-          <article className="feature-card contact-form-card">
-            <h2>{isEn ? 'Tell us about your project' : 'Parlons de votre projet'}</h2>
+        <section className="contact-panel" aria-labelledby="contact-project-title">
+          <header className="contact-panel__header">
+            <h2 id="contact-project-title">{isEn ? 'Tell us about your project' : 'Parlons de votre projet'}</h2>
             <p className="contact-section-intro">{isEn ? 'A few details will help us prepare a useful first conversation.' : 'Quelques informations suffisent pour préparer un premier échange utile.'}</p>
+            <div className="contact-channels">
+              <a href="mailto:contact@teamblender.io" className="contact-channel">
+                <Mail size={18} aria-hidden="true" />
+                <span>contact@teamblender.io</span>
+              </a>
+              <p className="contact-channel">
+                <Clock3 size={18} aria-hidden="true" />
+                <span>{isEn ? 'Response within 24 business hours' : 'Réponse sous 24h ouvrées'}</span>
+              </p>
+            </div>
+          </header>
             {status === 'success' ? (
               <div className="contact-success" role="status" aria-live="polite">
                 <div className="contact-success__icon" aria-hidden="true">✓</div>
@@ -112,7 +102,8 @@ export default function ContactPage() {
                 <p>{isEn ? 'A member of our team will get back to you within 24 business hours. A confirmation email is on its way.' : 'Un expert de l\'équipe vous répondra sous 24 heures ouvrées. Un email de confirmation vient de vous être envoyé.'}</p>
               </div>
             ) : (
-            <form className="auth-form contact-form" onSubmit={submitRequest}>
+            <form className="contact-form" onSubmit={submitRequest}>
+              <p className="contact-form__required contact-form__full">{isEn ? '* Required fields' : '* Champs obligatoires'}</p>
               <div className="contact-form__hp" aria-hidden="true">
                 <label>
                   Website
@@ -121,12 +112,17 @@ export default function ContactPage() {
               </div>
               <label>
                 {isEn ? 'Full name *' : 'Nom complet *'}
-                <input type="text" required value={form.name} onChange={(e) => updateField('name', e.target.value)} placeholder={isEn ? 'Ex: Sarah Martin' : 'Ex : Sarah Martin'} />
+                <input type="text" name="name" autoComplete="name" required value={form.name} onChange={(e) => updateField('name', e.target.value)} placeholder={isEn ? 'Ex: Sarah Martin' : 'Ex : Sarah Martin'} />
+              </label>
+
+              <label>
+                {isEn ? 'Work email *' : 'Email professionnel *'}
+                <input type="email" name="email" autoComplete="email" required value={form.email} onChange={(e) => updateField('email', e.target.value)} placeholder={isEn ? 'you@company.com' : 'vous@entreprise.com'} />
               </label>
 
               <label>
                 {isEn ? 'Company (optional)' : 'Entreprise (facultatif)'}
-                <input type="text" value={form.company} onChange={(e) => updateField('company', e.target.value)} placeholder={isEn ? 'Ex: A2D Agency' : 'Ex : Agence A2D'} />
+                <input type="text" name="company" autoComplete="organization" value={form.company} onChange={(e) => updateField('company', e.target.value)} placeholder={isEn ? 'Ex: A2D Agency' : 'Ex : Agence A2D'} />
               </label>
 
               <label>
@@ -139,12 +135,7 @@ export default function ContactPage() {
                 </select>
               </label>
 
-              <label>
-                {isEn ? 'Work email *' : 'Email professionnel *'}
-                <input type="email" required value={form.email} onChange={(e) => updateField('email', e.target.value)} placeholder="vous@entreprise.com" />
-              </label>
-
-              <label>
+              <label className="contact-form__full">
                 {isEn ? 'Main need *' : 'Votre besoin principal *'}
                 <select className={form.need ? '' : 'is-placeholder'} required value={form.need} onChange={(e) => updateField('need', e.target.value)}>
                   <option value="">{isEn ? 'Select a need' : 'Sélectionnez un besoin'}</option>
@@ -155,66 +146,70 @@ export default function ContactPage() {
                 </select>
               </label>
 
-              <label>
+              <label className="contact-form__full">
                 {isEn ? 'Message *' : 'Message *'}
                 <textarea rows={4} required value={form.message} onChange={(e) => updateField('message', e.target.value)} placeholder={isEn ? 'A little context about your team and your goal.' : 'Quelques mots sur votre équipe et votre objectif.'} />
               </label>
 
               {status === 'error' && errorMessage ? (
-                <p className="form-error" role="alert">{errorMessage}</p>
+                <p className="form-error contact-form__full" role="alert">{errorMessage}</p>
               ) : null}
 
-              <button type="submit" className="btn-primary wide" disabled={status === 'sending'} aria-busy={status === 'sending'}>
+              <button type="submit" className="btn-primary wide contact-form__full" disabled={status === 'sending'} aria-busy={status === 'sending'}>
                 {status === 'sending'
                   ? (isEn ? 'Sending...' : 'Envoi en cours...')
                   : (isEn ? 'Send my request' : 'Envoyer ma demande')}
               </button>
 
-              <p className="contact-privacy-note">
+              <p className="contact-privacy-note contact-form__full">
                 {isEn ? 'Your details are only used to answer your request. ' : 'Vos informations sont utilisées uniquement pour répondre à votre demande. '}
                 <a href={withLocalePath('/confidentialite')}>{isEn ? 'Privacy policy' : 'Politique de confidentialité'}</a>
               </p>
             </form>
             )}
-          </article>
         </section>
       </main>
       <Footer />
       <style jsx global>{`
         .contact-page {
-          width: min(100%, 80rem);
+          width: min(100%, 70rem);
           margin: 0 auto;
           padding: 1rem 1rem 2.5rem;
         }
 
-        .contact-page .contact-hero {
-          margin-bottom: 2rem;
-          padding: 2.5rem 2.5rem;
+        .contact-page .contact-intro {
+          margin: 0;
+          padding: 1.25rem 0.5rem;
+          border: 0;
+          background: none;
+          box-shadow: none;
+          backdrop-filter: none;
         }
 
-        .contact-page .contact-hero__grid {
+        .contact-page .contact-intro__grid {
           display: flex;
           justify-content: center;
         }
 
-        .contact-page .contact-hero__copy {
+        .contact-page .contact-intro__copy {
           display: grid;
-          gap: 0.95rem;
+          gap: 0.75rem;
           max-width: 46rem;
           justify-items: center;
           text-align: center;
         }
 
-        .contact-page .contact-hero__copy h1 {
-          max-width: none;
+        .contact-page .contact-intro__copy h1 {
+          max-width: 24ch;
           margin: 0;
-          font-size: clamp(2rem, 3.4vw, 3.2rem);
+          font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+          font-weight: 700;
           line-height: 1.08;
           letter-spacing: -0.03em;
           text-wrap: balance;
         }
 
-        .contact-page .contact-hero__lede {
+        .contact-page .contact-intro__lede {
           margin: 0;
           max-width: 58ch;
           font-size: 1.02rem;
@@ -222,25 +217,29 @@ export default function ContactPage() {
           color: var(--text-muted, #cbd5e1);
         }
 
-        .contact-page .contact-layout {
-          display: grid;
-          grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-          gap: 1.5rem;
-          align-items: start;
+        .contact-page .contact-intro .eyebrow {
+          margin: 0;
+          color: var(--text-muted, #cbd5e1);
         }
 
-        .contact-page .contact-info-card,
-        .contact-page .contact-form-card {
-          padding: 1.5rem 1.4rem 1.3rem;
+        .contact-page .contact-panel {
+          width: 100%;
+          max-width: 60rem;
+          min-width: 0;
+          margin: 0 auto;
+          padding: 1.5rem 2rem;
+          border: 1px solid var(--surface-soft-border);
           border-radius: 24px;
+          background: var(--surface-panel);
+          box-shadow: var(--surface-shadow-soft);
         }
 
-        .contact-page .contact-form-card {
-          padding-bottom: 1.15rem;
+        .contact-page .contact-panel__header {
+          padding-bottom: 1rem;
+          border-bottom: 1px solid var(--surface-soft-border);
         }
 
-        .contact-page .contact-info-card h2,
-        .contact-page .contact-form-card h2 {
+        .contact-page .contact-panel h2 {
           margin: 0;
           font-size: clamp(1.3rem, 2vw, 1.7rem);
           line-height: 1.2;
@@ -250,66 +249,71 @@ export default function ContactPage() {
 
         .contact-page .contact-section-intro {
           margin: 0.5rem 0 0;
-          max-width: 56ch;
           font-size: 0.98rem;
           line-height: 1.6;
           color: var(--text-muted, #cbd5e1);
         }
 
-        .contact-page .contact-info-items {
-          display: grid;
-          gap: 0.8rem;
+        .contact-page .contact-channels {
+          display: flex;
+          flex-wrap: wrap;
+          column-gap: 1.5rem;
+          row-gap: 0.25rem;
           margin-top: 1rem;
         }
 
-        .contact-page .contact-info-item {
-          display: grid;
-          grid-template-columns: auto minmax(0, 1fr);
-          gap: 0.85rem;
-          align-items: start;
-          padding: 0.95rem;
-          border-radius: 16px;
-          border: 1px solid rgba(148, 163, 184, 0.14);
-          background: rgba(255, 255, 255, 0.03);
-        }
-
-        .contact-page .contact-info-icon {
-          width: 2.4rem;
-          height: 2.4rem;
+        .contact-page .contact-channel {
           display: inline-flex;
+          min-width: 0;
+          min-height: 44px;
           align-items: center;
-          justify-content: center;
-          border-radius: 12px;
-          background: linear-gradient(135deg, rgba(53, 160, 255, 0.18), rgba(124, 58, 237, 0.18));
-          font-size: 1.05rem;
-        }
-
-        .contact-page .contact-info-text {
-          display: grid;
-          gap: 0.3rem;
-        }
-
-        .contact-page .contact-info-text strong {
-          font-size: 0.95rem;
-          line-height: 1.35;
-          color: var(--text-strong, #e2e8f0);
-        }
-
-        .contact-page .contact-info-text a,
-        .contact-page .contact-info-text span {
+          gap: 0.5rem;
+          margin: 0;
           color: var(--text-muted, #cbd5e1);
-          font-size: 0.92rem;
+          font-size: 0.9rem;
           line-height: 1.5;
+        }
+
+        .contact-page a.contact-channel {
+          color: var(--text-strong, #e2e8f0);
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
+
+        .contact-page .contact-channel svg {
+          flex-shrink: 0;
+        }
+
+        .contact-page .contact-channel span {
+          overflow-wrap: anywhere;
+        }
+
+        .contact-page a.contact-channel:focus-visible {
+          outline: 2px solid var(--text-strong, #e2e8f0);
+          outline-offset: 4px;
+          border-radius: 4px;
         }
 
         .contact-page .contact-form {
           display: grid;
-          gap: 0.95rem;
-          margin-top: 0.9rem;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 1rem;
+          margin-top: 1rem;
+        }
+
+        .contact-page .contact-form__full {
+          grid-column: 1 / -1;
+        }
+
+        .contact-page .contact-form__required {
+          margin: 0;
+          font-size: 0.82rem;
+          color: var(--text-muted, #cbd5e1);
         }
 
         .contact-page .contact-form label {
           display: grid;
+          min-width: 0;
           gap: 0.45rem;
           font-size: 0.9rem;
           font-weight: 600;
@@ -324,7 +328,7 @@ export default function ContactPage() {
           padding: 0.8rem 0.95rem;
           border-radius: 14px;
           border: 1px solid var(--control-border, rgba(148, 163, 184, 0.24));
-          background: rgba(255, 255, 255, 0.04);
+          background: var(--field-bg);
           color: var(--text-strong, #e2e8f0);
           font: inherit;
           font-weight: 400;
@@ -339,7 +343,7 @@ export default function ContactPage() {
         .contact-page .contact-form input::placeholder,
         .contact-page .contact-form textarea::placeholder {
           color: var(--field-placeholder, #64748b);
-          opacity: 0.62;
+          -webkit-text-fill-color: var(--field-placeholder, #64748b);
         }
 
         .contact-page .contact-form select.is-placeholder {
@@ -432,30 +436,22 @@ export default function ContactPage() {
           color: var(--text-muted, #cbd5e1);
         }
 
-        @media (max-width: 1024px) {
-          .contact-page .contact-layout {
-            grid-template-columns: 1fr;
-          }
-
-        }
-
         @media (max-width: 640px) {
           .contact-page {
             padding: 0.5rem 0.75rem 2rem;
           }
 
-          .contact-page .contact-hero {
-            padding: 1.5rem 1.25rem;
+          .contact-page .contact-intro {
+            padding: 1rem 0;
           }
 
-          .contact-page .contact-info-card,
-          .contact-page .contact-form-card {
+          .contact-page .contact-panel {
             padding: 1.1rem;
             border-radius: 20px;
           }
 
-          .contact-page .contact-info-item {
-            padding: 0.8rem;
+          .contact-page .contact-form {
+            grid-template-columns: minmax(0, 1fr);
           }
         }
       `}</style>
