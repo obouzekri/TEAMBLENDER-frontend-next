@@ -95,6 +95,15 @@ try {
     assert.equal(savedSession.expected_participant_count, 6);
     assert.equal(savedSession.objective, 'communication,collaboration');
     assert.equal(savedSession.participant_ids, undefined);
+    const preparationTitle = locale === 'fr' ? 'Préparation et déroulement de la session' : 'Session preparation and progress';
+    const preparation = page.getByRole('region', { name: preparationTitle, exact: true });
+    const preparationSteps = preparation.locator('li[data-stage-status]');
+    assert.equal(await preparationSteps.count(), 3);
+    assert.deepEqual(
+      await preparationSteps.evaluateAll((items) => items.map((item) => item.dataset.stageStatus)),
+      ['active', 'waiting', 'waiting'],
+    );
+    assert.equal(await preparationSteps.nth(0).getAttribute('aria-current'), 'step');
     const choice = page.getByRole('region', { name: choiceTitle, exact: true });
     await choice.getByRole('heading', { name: choiceTitle, exact: true }).waitFor();
     const manualSelection = choice.getByRole('link', {
@@ -107,7 +116,21 @@ try {
       await page.setViewportSize({ width, height: 420 });
       const manualBox = await manualSelection.boundingBox();
       const guidedBox = await guidedProgram.boundingBox();
+      const preparationBoxes = await Promise.all(
+        (await preparationSteps.all()).map((step) => step.boundingBox()),
+      );
       assert.ok(manualBox && guidedBox);
+      assert.ok(preparationBoxes.every(Boolean));
+      if (width <= 760) {
+        assert.equal(preparationBoxes[0].x, preparationBoxes[1].x);
+        assert.ok(preparationBoxes[1].y >= preparationBoxes[0].y + preparationBoxes[0].height);
+        assert.ok(preparationBoxes[2].y >= preparationBoxes[1].y + preparationBoxes[1].height);
+      } else {
+        assert.equal(preparationBoxes[0].y, preparationBoxes[1].y);
+        assert.equal(preparationBoxes[1].y, preparationBoxes[2].y);
+        assert.ok(preparationBoxes[1].x >= preparationBoxes[0].x + preparationBoxes[0].width);
+        assert.ok(preparationBoxes[2].x >= preparationBoxes[1].x + preparationBoxes[1].width);
+      }
       assert.ok(manualBox.height >= 44 && guidedBox.height >= 44);
       if (width <= 640) {
         assert.equal(manualBox.x, guidedBox.x);
@@ -187,6 +210,11 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.style.overflow), '');
     assert.equal(await page.evaluate(() => window.scrollY), lockedScrollY);
     assert.ok(await page.locator('[data-activity-id]').count() > 0);
+    assert.deepEqual(
+      await preparationSteps.evaluateAll((items) => items.map((item) => item.dataset.stageStatus)),
+      ['done', 'active', 'ready'],
+    );
+    assert.equal(await preparationSteps.nth(1).getAttribute('aria-current'), 'step');
     const appliedSelection = await page.locator('[data-activity-id]').allTextContents();
     await manualSelection.click();
     assert.deepEqual(await page.locator('[data-activity-id]').allTextContents(), appliedSelection);

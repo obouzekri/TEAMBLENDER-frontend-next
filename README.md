@@ -28,10 +28,12 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 ### Choix des challenges dans le Session Builder
 
+- Un repère de progression visible précède le choix des challenges : « Composer », « Configurer », puis « Lancer ». L’étape courante suit la sélection, et le lancement passe à l’état prêt quand au moins un challenge est choisi.
+- Le repère reste distinct des informations de session, se réorganise en colonne sur mobile et est disponible en FR/EN.
 - Apres la creation, la section « Choix des challenges » regroupe deux cartes de meme importance : « Selection manuelle » ouvre le catalogue et « Programme guide » ouvre la proposition selon les objectifs, l'effectif et la duree souhaitee.
 - Ce choix n'ajoute aucune etape a la creation de session. Le catalogue reste accessible, et une proposition appliquee peut toujours etre configuree, retiree ou reordonnee avant le lancement.
 - Les cartes sont cote a cote sur grand ecran et empilees sur mobile, avec navigation clavier et libelles FR/EN.
-- Validation : `npm run test:ux:planning` et `npm run test:ux:builder` (frontend sur 3100, Chrome disponible, API simulees).
+- Validation : `npm run test:ux:planning` (progression FR/EN, états et responsive) et `npm run test:ux:builder` (frontend sur 3100, Chrome disponible, API simulees).
 
 ### Gestion des participants par le manager
 
@@ -45,10 +47,11 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 ### Sessions des participants
 
 - Les sessions assignees reprennent les styles partages des cartes de l'accueil: fond, bordure, ombre, titre, badges de statut et pied de carte, en clair comme en sombre.
+- Le titre « Sessions assignees » utilise le meme accent degrade que Sessions et Participants sur l'accueil. Les cartes ont un repere colore par statut et un espacement resserre; Rejoindre garde une hauteur compacte de 44 px et reste accessible au clavier et sur mobile.
 - Le titre de la session live et celui des cartes de l'accueil partagent le token `--session-title-color`, y compris avec le theme automatique. Validation: `node scripts/test-session-title-theme.mjs` (frontend sur 3100, Chrome disponible, API simulees; desktop/mobile et preferences clair/sombre/automatique).
 - Seules les sessions en cours proposent Rejoindre; l'attente du lancement et le rafraichissement automatique restent inchanges.
 - Toute nouvelle connexion participant (mot de passe, OAuth, code ou reprise d'acces) ouvre d'abord l'accueil, meme si la session est deja lancee. Le participant doit cliquer sur Rejoindre dans sa carte de session pour entrer dans le live.
-- Les sessions assignees restent accessibles dans la salle d'attente. Apres le clic sur Rejoindre, le challenge actif s'ouvre automatiquement, immediatement ou au lancement par l'animateur. Les changements de session et l'historique du navigateur resynchronisent la salle d'attente.
+- Les sessions assignees restent accessibles dans la salle d'attente. Apres le clic sur Rejoindre (carte ou code), le challenge actif s'ouvre directement, sans afficher une salle d'attente intermediaire. Sans challenge actif, la salle d'attente reste disponible et ouvre automatiquement le challenge au lancement par l'animateur. Les changements de session et l'historique du navigateur resynchronisent la salle d'attente. Une erreur de connexion reste visible et permet de reessayer sans quitter l'accueil.
 - L'accueil participant ne charge plus la liste nominative de tous les inscrits sous un faux bloc « Equipe ». Les equipes et interactions propres aux challenges ne changent pas.
 - Les erreurs de chargement des sessions sont affichees sans masquer les cartes deja chargees; le rafraichissement retente automatiquement. Un acces de reprise reste limite a sa session et ne propose pas l'ajout d'une autre session.
 - Validation de non-regression: `node scripts/test-participant-navigation.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, mobile/desktop, navigation, reprise, lancement, erreurs et ajout par code.

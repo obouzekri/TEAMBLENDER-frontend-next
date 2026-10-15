@@ -1,92 +1,89 @@
 .panel {
-  margin: 12px 0 18px;
-  padding: 12px 16px;
+  margin: 12px 0 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
   background: var(--surface-panel);
   color: var(--challenge-text-primary);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  box-shadow: var(--shadow-sm);
 }
 
-.panel summary {
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.summaryHint {
-  flex: 0 0 auto;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: var(--surface-muted, var(--surface-panel));
-  color: var(--challenge-text-secondary);
-  font-size: 0.75rem;
-  font-weight: 600;
+.header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.3;
 }
 
 .intro {
-  margin: 0 0 12px;
+  margin: 6px 0 16px;
   color: var(--challenge-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.busy {
+  margin: -4px 0 12px;
+  color: var(--challenge-text-secondary);
+  font-size: 0.85rem;
 }
 
 .stages {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .stage {
   min-width: 0;
-  padding: 12px;
+  padding: 14px;
   border: 1px solid var(--line);
-  border-radius: 11px;
-  background: var(--surface-panel);
+  border-radius: 12px;
+  background: var(--surface-muted, var(--surface-panel));
 }
 
 .stageHeading {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 9px;
 }
 
 .stageHeading h3 {
+  min-width: 0;
   margin: 0;
   font-size: 0.95rem;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .stepNumber {
   display: inline-grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
+  width: 30px;
+  height: 30px;
   flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line);
   border-radius: 50%;
-  background: var(--surface-muted, var(--surface-panel));
+  background: var(--surface-panel);
   color: var(--challenge-text-secondary);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
 .status {
   margin-left: auto;
-  padding: 2px 7px;
+  padding: 3px 8px;
   border-radius: 999px;
-  background: var(--surface-muted, var(--surface-panel));
+  background: var(--surface-panel);
   color: var(--challenge-text-secondary);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 650;
+  white-space: nowrap;
 }
 
+.stage[data-stage-status='done'] .stepNumber,
 .stage[data-stage-status='done'] .status {
   color: var(--success-text, var(--challenge-text-primary));
 }
@@ -98,32 +95,29 @@
 
 .stage[data-stage-status='active'] .stepNumber,
 .stage[data-stage-status='active'] .status {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
   background: color-mix(in srgb, var(--accent) 14%, var(--surface-panel));
   color: var(--challenge-text-primary);
 }
 
-.details {
-  margin: 10px 0 0;
-  padding-left: 18px;
-  color: var(--challenge-text-secondary);
-}
-
-.details li + li {
-  margin-top: 5px;
+.stage[data-stage-status='ready'] .status {
+  color: var(--success-text, var(--challenge-text-primary));
 }
 
 .detail {
   margin: 10px 0 0;
   color: var(--challenge-text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.5;
 }
 
 @media (max-width: 760px) {
+  .panel {
+    padding: 16px;
+  }
+
   .stages {
     grid-template-columns: 1fr;
     gap: 8px;
-  }
-
-  .stage {
-    padding: 10px 12px;
   }
 }
