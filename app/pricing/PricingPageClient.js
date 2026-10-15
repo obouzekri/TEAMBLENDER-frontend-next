@@ -1030,10 +1030,15 @@ export default function PricingPageClient({ initialPlans = [] }) {
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-proof-pill,
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .toggle-group--compact,
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .currency-select,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls__row,
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card,
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta__inner {
           border-color: var(--surface-soft-border, rgba(148, 163, 184, 0.16));
           background: var(--surface-panel);
+        }
+
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls__row {
+          box-shadow: 0 14px 34px rgba(2, 6, 23, 0.28);
         }
 
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-proof-pill,
