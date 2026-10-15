@@ -73,7 +73,6 @@ export default function ContactPage() {
         <section className="contact-intro" aria-label={isEn ? 'Contact TeamBlender' : 'Contactez TeamBlender'}>
           <div className="contact-intro__grid">
             <div className="contact-intro__copy">
-              <p className="eyebrow">TeamBlender</p>
               <h1>{isEn ? 'Let’s talk about bringing your team together' : 'Parlons de la cohésion de votre équipe'}</h1>
               <p className="contact-intro__lede">{isEn ? 'Talk with a TeamBlender expert and identify the challenge best aligned with your HR goals.' : 'Échangez avec un expert TeamBlender et découvrez le challenge le plus adapté à vos objectifs RH.'}</p>
             </div>
