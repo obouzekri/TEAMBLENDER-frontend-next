@@ -1898,10 +1898,19 @@
 :global(html[data-theme='dark']) .flowModeContent strong,
 :global(body[data-theme='dark']) .flowModeContent strong,
 :global(.dark) .flowModeContent strong,
+:global(html[data-theme='dark']) .summaryInviteHeader strong,
+:global(body[data-theme='dark']) .summaryInviteHeader strong,
+:global(.dark) .summaryInviteHeader strong,
 :global(html[data-theme='dark']) .summaryInviteCode,
 :global(body[data-theme='dark']) .summaryInviteCode,
 :global(.dark) .summaryInviteCode {
   color: #e2e8f0;
+}
+
+:global(html[data-theme='dark']) .summaryInviteLink,
+:global(body[data-theme='dark']) .summaryInviteLink,
+:global(.dark) .summaryInviteLink {
+  color: #93c5fd;
 }
 
 :global(html[data-theme='dark']) .flowModeContent small,
@@ -1956,6 +1965,14 @@
   .flowModeContent strong,
   .summaryInviteCode {
     color: #e2e8f0;
+  }
+
+  .summaryInviteHeader strong {
+    color: #e2e8f0;
+  }
+
+  .summaryInviteLink {
+    color: #93c5fd;
   }
 
   .creationSectionHeader h2 {
