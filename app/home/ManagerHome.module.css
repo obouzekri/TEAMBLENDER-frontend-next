@@ -108,6 +108,7 @@
 .home:global(.manager-home.app-home) :global(.cards-grid) {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(0.75rem, 2vw, 1.5rem);
+  margin-top: -1rem;
 }
 
 .home:global(.manager-home.app-home) :global(.stat-card),
@@ -125,7 +126,7 @@
 
 .home:global(.manager-home.app-home) :global(.stat-value) {
   margin: 0 0 0.75rem;
-  font-size: clamp(2.75rem, 4.5vw, 4rem);
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   line-height: 1;
