@@ -130,25 +130,6 @@ export default function PreferencesPage() {
             <p id="preferences-notifications-unavailable">{t('preferencesPage.notificationsUnavailable')}</p>
           </header>
           <div className="preferences-panel__body">
-            <div className="preferences-theme-control" role="group" aria-label={t('preferencesPage.themeTitle')}>
-              <div>
-                <strong>{t('preferencesPage.themeTitle')}</strong>
-                <small>{t('preferencesPage.themeBody')}</small>
-              </div>
-              <div className="preferences-theme-options">
-                {['light', 'dark', 'system'].map((theme) => (
-                  <button
-                    key={theme}
-                    type="button"
-                    className={themePreference === theme ? 'is-active' : ''}
-                    onClick={() => updateThemePreference(theme)}
-                    aria-pressed={themePreference === theme}
-                  >
-                    {t(`preferencesPage.theme${theme[0].toUpperCase()}${theme.slice(1)}`)}
-                  </button>
-                ))}
-              </div>
-            </div>
             <label className="preferences-toggle">
               <span>
                 <strong>{t('preferencesPage.sessionRemindersTitle')}</strong>
@@ -179,6 +160,25 @@ export default function PreferencesPage() {
             <p>{t('preferencesPage.browserStorage')}</p>
           </header>
           <div className="preferences-panel__body">
+            <div className="preferences-theme-control" role="group" aria-label={t('preferencesPage.themeTitle')}>
+              <div>
+                <strong>{t('preferencesPage.themeTitle')}</strong>
+                <small>{t('preferencesPage.themeBody')}</small>
+              </div>
+              <div className="preferences-theme-options">
+                {['light', 'dark', 'system'].map((theme) => (
+                  <button
+                    key={theme}
+                    type="button"
+                    className={themePreference === theme ? 'is-active' : ''}
+                    onClick={() => updateThemePreference(theme)}
+                    aria-pressed={themePreference === theme}
+                  >
+                    {t(`preferencesPage.theme${theme[0].toUpperCase()}${theme.slice(1)}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
             <label className="preferences-toggle">
               <span>
                 <strong>{t('preferencesPage.compactNavigationTitle')}</strong>
