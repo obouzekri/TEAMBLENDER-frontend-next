@@ -96,39 +96,41 @@ export default function ChallengeRulesPanel({
         <p className="challenge-text">{objective}</p>
       </header>
 
-      {isFacilitator ? (
-        <section className={styles.rulesSection}>
-          <h3 className="challenge-section-title">🎯 {facilitatorLabel}</h3>
-          <ul>
-            {facilitatorRulesWithPlayers.map((rule) => (
-              <li key={`facilitator-${rule}`}>{rule}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      <section className={`${styles.rulesSection} ${styles.rulesSectionParticipant}`}>
-        <h3 className="challenge-section-title">🧭 {participantLabel}</h3>
-        <div className={styles.rulesGroupedList}>
-          <div className={styles.rulesGroup}>
+      <div className={`${styles.rulesColumns}${isFacilitator ? '' : ` ${styles.rulesColumnsSingle}`}`}>
+        {isFacilitator ? (
+          <section className={styles.rulesSection}>
+            <h3 className="challenge-section-title">🎯 {facilitatorLabel}</h3>
             <ul>
-              {regularParticipantRules.map((rule) => (
-                <li key={`participant-${rule}`}>{rule}</li>
+              {facilitatorRulesWithPlayers.map((rule) => (
+                <li key={`facilitator-${rule}`}>{rule}</li>
               ))}
             </ul>
-          </div>
-          {scoringRules.length > 0 ? (
+          </section>
+        ) : null}
+
+        <section className={`${styles.rulesSection} ${styles.rulesSectionParticipant}`}>
+          <h3 className="challenge-section-title">🧭 {participantLabel}</h3>
+          <div className={styles.rulesGroupedList}>
             <div className={styles.rulesGroup}>
-              <h3 className="challenge-section-title">🏆 {isEn ? 'Scoring' : 'Barème des points'}</h3>
               <ul>
-                {scoringRules.map((rule) => (
-                  <li key={`participant-score-${rule}`}>{rule}</li>
+                {regularParticipantRules.map((rule) => (
+                  <li key={`participant-${rule}`}>{rule}</li>
                 ))}
               </ul>
             </div>
-          ) : null}
-        </div>
-      </section>
+            {scoringRules.length > 0 ? (
+              <div className={styles.rulesGroup}>
+                <h3 className="challenge-section-title">🏆 {isEn ? 'Scoring' : 'Barème des points'}</h3>
+                <ul>
+                  {scoringRules.map((rule) => (
+                    <li key={`participant-score-${rule}`}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      </div>
 
       {footnote ? <p className={`${styles.rulesFootnote} challenge-text`}>{footnote}</p> : null}
 

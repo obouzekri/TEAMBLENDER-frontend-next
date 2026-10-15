@@ -94,6 +94,25 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.rulesColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: clamp(12px, 1.2vw, 18px);
+}
+
+.rulesColumnsSingle {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rulesColumns > .rulesSection {
+  align-content: start;
+  padding: clamp(12px, 1vw, 16px);
+  border: 1px solid var(--ch-line-soft);
+  border-radius: 12px;
+  background: var(--ch-surface-2);
+}
+
 .rulesGroupedList {
   display: grid;
   gap: clamp(8px, 0.8vw, 12px);
@@ -368,6 +387,15 @@
   .rulesCard {
     padding: 12px;
     gap: 10px;
+  }
+
+  .rulesColumns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .rulesColumns > .rulesSection {
+    padding: 10px;
   }
 
   .rulesSection {
