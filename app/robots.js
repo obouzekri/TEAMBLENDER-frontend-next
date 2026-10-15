@@ -1,4 +1,5 @@
 import { getPublicSiteOrigin } from '@/lib/siteMetadata';
+import { getRobotsDisallowPaths, isPreviewEnvironment } from '@/lib/seo';
 
 export default function robots() {
   const baseUrl = getPublicSiteOrigin();
@@ -6,18 +7,9 @@ export default function robots() {
   return {
     rules: {
       userAgent: '*',
-      allow: '/',
-      disallow: [
-        '/account',
-        '/admin',
-        '/challenges',
-        '/home',
-        '/participant',
-        '/preferences',
-        '/session-builder',
-        '/session-live',
-        '/session-results',
-      ],
+      ...(isPreviewEnvironment()
+        ? { disallow: '/' }
+        : { allow: '/', disallow: getRobotsDisallowPaths() }),
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   };

@@ -1,45 +1,24 @@
 import './globals.css';
-import { cookies } from 'next/headers';
 import TrackingConsentGate from '@/components/TrackingConsentGate';
 import ExternalNotificationGuard from '@/components/ExternalNotificationGuard';
 import ThemeController from '@/components/ThemeController';
 import DisplayPreferencesController from '@/components/DisplayPreferencesController';
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
-import { getPublicSiteOrigin, getSocialPreviewImage } from '@/lib/siteMetadata';
+import { getPublicSiteOrigin } from '@/lib/siteMetadata';
+import { buildPageMetadata } from '@/lib/seo';
+import { getSeoRequest } from '@/lib/seoRequest';
+import PublicStructuredData from '@/components/PublicStructuredData';
 
 const siteOrigin = getPublicSiteOrigin();
-const socialPreviewImage = getSocialPreviewImage();
-
-export const metadata = {
-  metadataBase: new URL(siteOrigin),
-  title: {
-    default: 'TeamBlender | Défis d’équipe pour managers et RH',
-    template: '%s | TeamBlender',
-  },
-  description:
-    'Rapprochez vos équipes autour de défis à vivre en direct, sur site ou à distance, et repartez avec des résultats concrets pour le débrief.',
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
-    title: 'TeamBlender | Défis d’équipe pour managers et RH',
-    description:
-      'Rapprochez vos équipes autour de défis à vivre en direct, sur site ou à distance, et repartez avec des résultats concrets pour le débrief.',
-    type: 'website',
-    url: siteOrigin,
-    images: [socialPreviewImage],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'TeamBlender | Défis d’équipe pour managers et RH',
-    description:
-      'Rapprochez vos équipes autour de défis à vivre en direct, sur site ou à distance, et repartez avec des résultats concrets pour le débrief.',
-    images: [socialPreviewImage.url],
-  },
-  icons: {
-    icon: '/icon.svg'
-  }
-};
+export async function generateMetadata() {
+  const { pathname, locale } = await getSeoRequest();
+  return {
+    metadataBase: new URL(siteOrigin),
+    title: { default: 'TeamBlender', template: '%s | TeamBlender' },
+    icons: { icon: '/icon.svg' },
+    ...buildPageMetadata(pathname, locale),
+  };
+}
 
 export const viewport = {
   width: 'device-width',
@@ -48,8 +27,7 @@ export const viewport = {
 };
 
 export default async function RootLayout({ children }) {
-  const cookieStore = await cookies();
-  const locale = String(cookieStore.get('tb_locale')?.value || 'fr').toLowerCase() === 'en' ? 'en' : 'fr';
+  const { locale } = await getSeoRequest();
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -75,6 +53,7 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning>
+        <PublicStructuredData />
         <script
           dangerouslySetInnerHTML={{
             __html: `document.body.dataset.theme = document.documentElement.dataset.theme || 'light';`,
@@ -82,7 +61,7 @@ export default async function RootLayout({ children }) {
         />
         <ThemeController />
         <ExternalNotificationGuard />
-        <I18nProvider>
+        <I18nProvider initialLocale={locale}>
           <DisplayPreferencesController />
           <a className="skip-to-content" href="#main-content">
             {locale === 'en' ? 'Skip to main content' : 'Aller au contenu principal'}

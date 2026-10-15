@@ -1,19 +1,13 @@
 import { getPublicSiteOrigin } from '@/lib/siteMetadata';
+import { SUPPORTED_LOCALES, withLocalePath } from '@/lib/i18n/routing';
+import { getLanguageAlternates, isPreviewEnvironment, PUBLIC_SEO_PATHS } from '@/lib/seo';
 
 export default function sitemap() {
   const baseUrl = getPublicSiteOrigin();
-  const now = new Date();
+  if (isPreviewEnvironment()) return [];
 
-  const routes = [
-    { path: '/', changeFrequency: 'weekly', priority: 1.0 },
-    { path: '/pricing', changeFrequency: 'weekly', priority: 0.9 },
-    { path: '/contact', changeFrequency: 'monthly', priority: 0.7 },
-  ];
-
-  return routes.map(({ path, changeFrequency, priority }) => ({
-    url: `${baseUrl}${path}`,
-    lastModified: now,
-    changeFrequency,
-    priority,
-  }));
+  return PUBLIC_SEO_PATHS.flatMap((path) => SUPPORTED_LOCALES.map((locale) => ({
+    url: `${baseUrl}${withLocalePath(locale, path)}`,
+    alternates: { languages: getLanguageAlternates(path) },
+  })));
 }

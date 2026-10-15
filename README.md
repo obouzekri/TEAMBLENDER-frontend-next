@@ -10,6 +10,8 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 ### Filtres des sessions de l'accueil animateur
 
+- L'accueil privilegie le message de bienvenue, puis les chiffres des KPI, les sessions et les participants. Le theme clair utilise un fond blanc pur, des cartes blanches a bordure fine et ombre discrete, et des sections sans cadre externe. Le theme sombre reste disponible.
+- La vue rapide est secondaire et compacte; les filtres gardent un fond uni et un espacement genereux.
 - Les champs de recherche, statut et dates conservent une marge interieure horizontale de 16 px et un espacement de 16 px entre eux, sans deborder de leur cadre sur mobile.
 - Validation: `node scripts/test-home-session-filters.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, largeurs de 320 a 1755 px, saisie et reinitialisation des filtres.
 
@@ -235,3 +237,18 @@ npm run test:smoke:preview
 - Backend API: `../backend/README.md`
 - Workflow livraison: `../docs/process/FEATURE_TO_PROD_FLOW.md`
 - Checklist release: `../docs/checklists/RELEASE_CHECKLIST_PRE_MAIN.md`
+
+## 7) SEO et moteurs IA
+
+- Les metadonnees SEO publiques sont centralisees dans `lib/seo.js` (titres, descriptions, canonical et hreflang FR/EN).
+- Les pages publiques indexables exposees dans le sitemap sont:
+  - `/fr/`, `/en/`
+  - `/fr/pricing`, `/en/pricing`
+  - `/fr/contact`, `/en/contact`
+  - `/fr/team-building`, `/en/team-building`
+- Les espaces prives (manager, participant, admin, session live, resume, etc.) sont non indexables via metadonnees et robots.
+- En environnement preview Vercel, l'indexation est desactivee (`robots.txt` global + sitemap vide).
+- Un endpoint `llms.txt` est expose (`/llms.txt`) pour aider les outils IA a decouvrir les pages publiques et leur contexte.
+- Des donnees structurees JSON-LD sont servies:
+  - globales (`Organization`, `WebSite`) dans le layout;
+  - specifiques FAQ/guide sur la page `/team-building`.

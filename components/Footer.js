@@ -6,7 +6,7 @@ import useI18n from '@/lib/i18n/useI18n';
 import { openConsentPreferences } from '@/lib/consent';
 
 export default function Footer() {
-  const { t, withLocalePath } = useI18n();
+  const { locale, t, withLocalePath } = useI18n();
 
   const footerGroups = [
     {
@@ -22,6 +22,7 @@ export default function Footer() {
       key: 'resources',
       label: t('footer.resources'),
       links: [
+        { href: withLocalePath('/team-building'), label: locale === 'en' ? 'Team building guide' : 'Guide du team building' },
         { href: withLocalePath('/pricing'), label: t('footer.offers') },
         { href: withLocalePath('/contact'), label: t('footer.askDemo') },
         { href: withLocalePath('/login'), label: t('footer.clientArea') },
@@ -105,4 +106,3 @@ export default function Footer() {
     </footer>
   );
 }
-

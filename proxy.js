@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from './lib/i18n/routing';
+import { isPublicSeoPath } from './lib/seo';
 
 const PUBLIC_FILE = /\.(.*)$/;
 
@@ -28,19 +29,25 @@ export function proxy(request) {
 
   const segments = pathname.split('/').filter(Boolean);
   const maybeLocale = String(segments[0] || '').toLowerCase();
+  const hasLocale = SUPPORTED_LOCALES.includes(maybeLocale);
+  const locale = hasLocale
+    ? maybeLocale
+    : isPublicSeoPath(pathname) ? DEFAULT_LOCALE : resolvePreferredLocale(request);
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-teamblender-locale', locale);
+  requestHeaders.set('x-teamblender-pathname', pathname);
 
-  if (SUPPORTED_LOCALES.includes(maybeLocale)) {
+  if (hasLocale) {
     const url = request.nextUrl.clone();
     const stripped = `/${segments.slice(1).join('/')}`;
     url.pathname = stripped === '/' ? '/' : stripped || '/';
-    const response = NextResponse.rewrite(url);
+    const response = NextResponse.rewrite(url, { request: { headers: requestHeaders } });
     response.cookies.set('tb_locale', maybeLocale, { path: '/', sameSite: 'lax' });
     return response;
   }
 
-  const preferredLocale = resolvePreferredLocale(request);
-  const response = NextResponse.next();
-  response.cookies.set('tb_locale', preferredLocale, { path: '/', sameSite: 'lax' });
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.cookies.set('tb_locale', locale, { path: '/', sameSite: 'lax' });
   return response;
 }
 
