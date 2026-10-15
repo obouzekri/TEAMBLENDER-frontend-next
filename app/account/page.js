@@ -1673,18 +1673,12 @@ export default function AccountPage() {
           }
 
           .account-panels {
-            height: clamp(34rem, 70dvh, 48rem);
             min-width: 0;
           }
 
           .account-page .account-panels .account-panel {
-            height: 100%;
             margin: 0;
-            overflow: auto;
-            scrollbar-gutter: stable;
-            scrollbar-width: thin;
-            scrollbar-color: var(--account-border-strong) transparent;
-            overscroll-behavior: contain;
+            overflow: visible;
             border: 1px solid var(--account-border-soft);
             border-radius: 16px;
             background: var(--account-surface);

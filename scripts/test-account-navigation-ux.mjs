@@ -27,35 +27,6 @@ const history = Array.from({ length: 15 }, (_, index) => ({
   amount_label: '390 DH HT',
 }));
 
-async function geometry(page) {
-  return page.evaluate(() => {
-    const rect = (selector) => {
-      const { x, y, width, height } = document.querySelector(selector).getBoundingClientRect();
-      return { x, y, width, height };
-    };
-    return {
-      viewport: rect('.account-panels'),
-      panel: rect('.account-panel.is-active'),
-      tabs: rect('.account-tabs'),
-      footer: rect('footer'),
-      documentHeight: document.documentElement.scrollHeight,
-      scrollY: window.scrollY,
-      scrollX: window.scrollX,
-    };
-  });
-}
-
-function assertStable(actual, expected) {
-  for (const area of ['viewport', 'panel', 'tabs', 'footer']) {
-    for (const dimension of ['x', 'y', 'width', 'height']) {
-      assert.ok(Math.abs(actual[area][dimension] - expected[area][dimension]) <= 1,
-        `${area}.${dimension} changed: ${JSON.stringify(expected)} -> ${JSON.stringify(actual)}`);
-    }
-  }
-  assert.ok(Math.abs(actual.documentHeight - expected.documentHeight) <= 1, 'Document height changed');
-  assert.ok(Math.abs(actual.scrollY - expected.scrollY) <= 1, 'Page scroll jumped');
-}
-
 async function check({ role, locale, width, theme, colorScheme = 'light' }) {
   console.log(`Account navigation: ${role}, ${locale}, ${width}px, ${theme}/${colorScheme}`);
   const account = (locale === 'fr' ? fr : en).account;
@@ -114,7 +85,6 @@ async function check({ role, locale, width, theme, colorScheme = 'light' }) {
     }
     assert.equal(await page.getByRole('tab').count(), 4);
     await page.getByRole('heading', { name: account.noInvoices, exact: true }).waitFor();
-    const reference = await geometry(page);
     const tabs = ['profile', 'security', 'pricing', 'invoices'];
     for (const tab of tabs) {
       await page.locator(`#account-tab-${tab}`).click();
@@ -122,7 +92,6 @@ async function check({ role, locale, width, theme, colorScheme = 'light' }) {
       assert.equal(await page.getByRole('tabpanel').count(), 1);
       assert.equal(new URL(page.url()).searchParams.get('tab'), tab);
       assert.equal(new URL(page.url()).searchParams.get('source'), 'navigation-test');
-      assertStable(await geometry(page), reference);
       if (process.env.ACCOUNT_SCREENSHOT_DIR && role === 'manager' && locale === 'fr' && theme === 'light' && width !== 768) {
         await page.screenshot({ path: join(process.env.ACCOUNT_SCREENSHOT_DIR, `account-${tab}-${width}.png`), fullPage: true });
       }
@@ -130,8 +99,11 @@ async function check({ role, locale, width, theme, colorScheme = 'light' }) {
         page: document.documentElement.scrollWidth > document.documentElement.clientWidth,
         panel: document.querySelector('.account-panel.is-active').scrollWidth >
           document.querySelector('.account-panel.is-active').clientWidth + 1,
+        panelY: ['auto', 'scroll'].includes(
+          getComputedStyle(document.querySelector('.account-panel.is-active')).overflowY
+        ),
       }));
-      assert.deepEqual(overflow, { page: false, panel: false });
+      assert.deepEqual(overflow, { page: false, panel: false, panelY: false });
     }
     await page.goBack();
     await page.locator('#account-pricing.is-active').waitFor();
@@ -160,16 +132,14 @@ async function check({ role, locale, width, theme, colorScheme = 'light' }) {
     assert.equal(await page.locator('#account-invoices tbody tr').count(), 15);
     assert.equal(await page.locator('#account-pricing table').count(), 0);
     assert.equal(await page.locator('#account-invoices th').allTextContents().then((items) => items[1]), account.invoicePlan);
-    const filledReference = await geometry(page);
     const invoicePanel = page.locator('#account-invoices');
+    assert.equal(await invoicePanel.evaluate((element) => getComputedStyle(element).overflowY), 'visible');
     await invoicePanel.evaluate((element) => { element.scrollTop = element.scrollHeight; });
-    assert.ok(await invoicePanel.evaluate((element) => element.scrollTop > 0));
-    assertStable(await geometry(page), filledReference);
+    assert.equal(await invoicePanel.evaluate((element) => element.scrollTop), 0);
     const downloadPromise = page.waitForEvent('download');
     await invoicePanel.getByRole('button', { name: account.downloadPdf, exact: true }).last().click();
     assert.match((await downloadPromise).suggestedFilename(), /^invoice-navigation-\d+\.pdf$/);
     await page.locator('#account-tab-pricing').click();
-    assertStable(await geometry(page), filledReference);
     await page.getByRole('button', { name: account.annual, exact: false }).click();
     await page.locator('.account-pricing-control-group select').selectOption('EUR');
     await page.locator('.account-plan-card-actions__primary').first().click();
@@ -178,11 +148,10 @@ async function check({ role, locale, width, theme, colorScheme = 'light' }) {
     await page.getByRole('dialog', { name: 'Finaliser le paiement', exact: true }).waitFor({ state: 'hidden' });
     await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
     await page.locator('#account-tab-invoices').click();
-    assert.ok(await invoicePanel.evaluate((element) => element.scrollTop > 0), 'Invoice scroll was lost');
+    assert.equal(await invoicePanel.evaluate((element) => element.scrollTop), 0);
     await page.locator('#account-tab-pricing').click();
     assert.equal(await page.locator('.account-pricing-control-group select').inputValue(), 'EUR');
     assert.ok(await page.getByRole('button', { name: account.annual, exact: false }).evaluate((element) => element.classList.contains('is-active')));
-    assertStable(await geometry(page), filledReference);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
