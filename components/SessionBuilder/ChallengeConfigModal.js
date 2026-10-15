@@ -649,7 +649,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
         locale,
         gridId: selectedCrossword.id,
         timer: { enabled: true, duration_seconds: clampInt(config?.timer?.duration_seconds, 900, 300, 1800) },
-        participants: { min_count: 2, max_count: 5, recommended_count: 5 },
+        participants: { min_count: 0, max_count: null, recommended_count: 5 },
       });
       return;
     }
@@ -773,7 +773,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
 
           {kind === 'crossword' && (
             <>
-              <p className={styles.helpText}>{txt('2 à 5 participants · 5 recommandés. Grilles sélectionnées, sans indices ni éditeur.', '2–5 participants · 5 recommended. Curated grids, without hints or an editor.')}</p>
+              <p className={styles.helpText}>{txt('Sans limite de participants. Grilles sélectionnées, sans indices ni éditeur.', 'No participant limit. Curated grids, without hints or an editor.')}</p>
               <div className={styles.configField}>
                 <label htmlFor="crosswordDifficulty" className={styles.label}>{txt('Difficulté', 'Difficulty')}</label>
                 <select id="crosswordDifficulty" className={styles.input} value={selectedCrosswordDifficulty}

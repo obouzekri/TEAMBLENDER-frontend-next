@@ -73,13 +73,6 @@ try {
     const mocks = {
       react: { ...R, default: R },
       '@/lib/i18n/useI18n': i18n,
-      '@/lib/challenges/crosswordParticipantValidation.mjs': {
-        getCrosswordParticipantLimitError: (count, currentLocale) => Number.isInteger(Number(count)) && Number(count) >= 2 && Number(count) <= 5
-          ? ''
-          : currentLocale === 'en'
-            ? 'Crossword requires 2 to 5 assigned participants. Update the session participants before starting the challenge.'
-            : 'Mots croisés nécessite 2 à 5 participants assignés. Modifiez les participants avant de démarrer le challenge.',
-      },
       '@/lib/challenges/useRealtimeChallenge': mockRealtime,
       '@/lib/challenges/useFacilitatorTimerControls': () => ({
         busy: false, feedback: null,
@@ -232,18 +225,18 @@ try {
   });
   const startButton = page.getByRole('button', { name: 'Start game', exact: true });
   await startButton.waitFor();
-  assert.equal(await startButton.isDisabled(), true);
-  await page.getByText('Crossword requires 2 to 5 assigned participants.', { exact: false }).waitFor();
-  await page.evaluate(() => {
-    runtimeConfig = { participants: { assigned_count: 2 } };
-    render();
-  });
-  assert.equal(await startButton.isDisabled(), false);
+  for (const count of [undefined, 0, 1, 2, 5, 6, 50]) {
+    await page.evaluate((assignedCount) => {
+      runtimeConfig = { participants: { assigned_count: assignedCount } };
+      render();
+    }, count);
+    assert.equal(await startButton.isDisabled(), false, `Start is available with ${count} assigned participants`);
+  }
   await startButton.click();
   assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.start')));
   assert.equal(await page.getByRole('grid').count(), 0, 'Clicking Start does not reveal the arena before server confirmation');
   for (const currentLocale of ['fr', 'en']) {
-    const message = currentLocale === 'en' ? 'Connect at least 2 people before starting.' : 'Connectez au moins 2 personnes avant de lancer.';
+    const message = currentLocale === 'en' ? 'The game has already started.' : 'La partie a déjà démarré.';
     await page.evaluate(({ currentLocale, message }) => {
       locale = currentLocale;
       serverError = message;
@@ -270,7 +263,7 @@ try {
     runtimeConfig = { participants: { assigned_count: 6 } };
     render();
   });
-  assert.equal(await startButton.isDisabled(), true);
+  assert.equal(await startButton.isDisabled(), false);
   await page.evaluate(() => {
     facilitator = true;
     state = { ...state, timer: { status: 'running', remaining_seconds: 900 } };
@@ -460,7 +453,7 @@ try {
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   assert.deepEqual(await page.evaluate(() => savedConfig), {
     locale: 'en', gridId: 'en-hard', timer: { enabled: true, duration_seconds: 1800 },
-    participants: { min_count: 2, max_count: 5, recommended_count: 5 },
+    participants: { min_count: 0, max_count: null, recommended_count: 5 },
   });
   await page.evaluate(() => { locale = 'fr'; renderModal(); });
   await page.getByLabel('Grille', { exact: true }).waitFor();

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { SESSION_OBJECTIVES, parseSessionObjectives, isValidExpectedCount, proposeSessionProgram, parseChallengeDuration, replaceProgramChallenge } from '../lib/sessionProgram.mjs';
+import { resolveChallengePlayerRange } from '../lib/challenges/playerRange.js';
 
 const challenge = (id, duration, extra = {}) => ({
   id, engine_key: `engine_${id}`, duration, status: 'actif', objectives: 'collaboration, communication', ...extra,
@@ -25,7 +26,26 @@ assert.equal(replaceProgramChallenge(result, 2, result.challenges, options), nul
 assert.equal(proposeSessionProgram(catalog, { ...options, objective: 'leadership' }).challenges.length, 0);
 assert.ok(proposeSessionProgram(catalog, { ...options, objective: 'leadership,collaboration' }).challenges.length > 0);
 assert.equal(proposeSessionProgram([catalog[6]], { targetMinutes: 15, expectedCount: '2' }).challenges.length, 1);
-assert.equal(proposeSessionProgram([catalog[6]], { targetMinutes: 15, expectedCount: '6' }).challenges.length, 0);
+for (const expectedCount of ['1', '6', '50']) {
+  assert.equal(proposeSessionProgram([catalog[6]], {
+    targetMinutes: 15, expectedCount, resolveRange: () => ({ min: 2, max: 5 }),
+  }).challenges.length, 1);
+}
+const legacyCrossword = {
+  ...catalog[6],
+  engine_config: { participants: { min_count: 2, max_count: 5 } },
+  min_team_size: 2, max_team_size: 5,
+};
+assert.deepEqual(resolveChallengePlayerRange(legacyCrossword), {
+  min: null, max: null, recommended: 5, hasRange: true,
+});
+assert.equal(proposeSessionProgram([legacyCrossword], {
+  targetMinutes: 15, expectedCount: '50', resolveRange: resolveChallengePlayerRange,
+}).challenges.length, 1);
+assert.deepEqual(resolveChallengePlayerRange({
+  engine_key: 'another_engine',
+  engine_config: { participants: { min_count: 2, max_count: 5 } },
+}), { min: 2, max: 5, recommended: 4, hasRange: true });
 assert.equal(proposeSessionProgram([catalog[6]], { targetMinutes: 15 }).challenges.length, 1);
 assert.equal(proposeSessionProgram([challenge(1, 10), challenge(2, 10, { engine_key: 'engine_1' })], { targetMinutes: 30 }).challenges.length, 1);
 assert.equal(proposeSessionProgram([challenge(1, 30)], { targetMinutes: 20 }).challenges.length, 0);

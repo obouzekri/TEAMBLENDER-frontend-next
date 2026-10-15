@@ -1637,8 +1637,8 @@ export default function SessionBuilder() {
 
   function formatProgramParticipantRange(challenge) {
     const range = resolveChallengePlayerRange(challenge);
-    const min = challenge.engine_key === 'crossword_live_v1' ? 2 : Number(range.min);
-    const max = challenge.engine_key === 'crossword_live_v1' ? 5 : Number(range.max);
+    const min = challenge.engine_key === 'crossword_live_v1' ? 0 : Number(range.min);
+    const max = challenge.engine_key === 'crossword_live_v1' ? NaN : Number(range.max);
     if (Number.isInteger(min) && Number.isInteger(max)) {
       return min === max
         ? t('sessionBuilder.programParticipantsExact', { count: min })
