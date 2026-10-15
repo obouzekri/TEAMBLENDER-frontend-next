@@ -1,0 +1,215 @@
+:global(html):has(.home) {
+  --ambient-paper-base: #ffffff;
+}
+
+.home:global(.manager-home.app-home) {
+  gap: clamp(2rem, 4vw, 3.5rem);
+  padding-block: clamp(1.5rem, 3vw, 3rem) 4rem;
+  background: transparent;
+}
+
+.home:global(.manager-home.app-home)::before,
+.home:global(.manager-home.app-home) :global(.home-hero)::before,
+.home:global(.manager-home.app-home) :global(.home-hero)::after,
+.home:global(.manager-home.app-home) :global(.sessions-panel)::before,
+.home:global(.manager-home.app-home) :global(.participants-panel)::before {
+  display: none;
+}
+
+.home:global(.manager-home.app-home) :global(.home-hero) {
+  margin: 0;
+  padding: clamp(1rem, 2vw, 2rem) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.home:global(.manager-home.app-home) :global(.home-hero-grid) {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  align-items: center;
+  gap: clamp(2rem, 4vw, 4rem);
+}
+
+.home:global(.manager-home.app-home) :global(.home-hero-copy) {
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.home:global(.manager-home.app-home) :global(.home-hero-greeting) {
+  max-width: 22ch;
+  margin: 0;
+  font-size: clamp(2.25rem, 4.2vw, 4rem);
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  text-shadow: none;
+}
+
+.home:global(.manager-home.app-home) :global(.home-hero-copy > p:not(.eyebrow)) {
+  max-width: 55ch;
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--text-muted);
+}
+
+.home:global(.manager-home.app-home) :global(.home-hero .eyebrow) {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.home:global(.manager-home.app-home) :global(.home-hero-actions:empty) {
+  display: none;
+}
+
+.home:global(.manager-home.app-home) :global(.home-hero-summary) {
+  display: grid;
+  align-content: center;
+  gap: 0.65rem;
+  padding: 0 0 0 1.5rem;
+  border: 0;
+  border-left: 1px solid var(--surface-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.home:global(.manager-home.app-home) :global(.home-hero-summary__eyebrow) {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.home:global(.manager-home.app-home) :global(.home-hero-summary__title) {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.home:global(.manager-home.app-home) :global(.home-quickview-guide-cta) {
+  width: fit-content;
+  min-height: 44px;
+  padding: 0.35rem 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.8rem;
+  text-align: start;
+  color: var(--accent-strong);
+}
+
+.home:global(.manager-home.app-home) :global(.cards-grid) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.home:global(.manager-home.app-home) :global(.stat-card),
+.home:global(.manager-home.app-home) :global(.participant-card) {
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 2px 8px rgb(15 23 42 / 3%);
+}
+
+.home:global(.manager-home.app-home) :global(.stat-card) {
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  transform: none;
+}
+
+.home:global(.manager-home.app-home) :global(.stat-value) {
+  margin: 0 0 0.75rem;
+  font-size: clamp(2.75rem, 4.5vw, 4rem);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+  text-shadow: none;
+}
+
+.home:global(.manager-home.app-home) :global(.stat-card > p) {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.home:global(.manager-home.app-home) :global(.sessions-panel),
+.home:global(.manager-home.app-home) :global(.participants-panel) {
+  gap: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.home:global(.manager-home.app-home) :global(.panel-head) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.home:global(.manager-home.app-home) :global(.home-section-title) {
+  margin: 0;
+  background: none;
+  color: var(--ink);
+  -webkit-text-fill-color: currentColor;
+  font-size: clamp(1.35rem, 2vw, 1.65rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.home:global(.manager-home.app-home) :global(.home-sessions-head > div > p) {
+  margin: 0.6rem 0 0;
+  color: var(--text-muted);
+}
+
+/* Shared session cards use important declarations; keep these overrides local. */
+.home:global(.manager-home.app-home) :global(.session-card) {
+  border: 1px solid var(--surface-border) !important;
+  background: var(--card) !important;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 3%) !important;
+  transform: none;
+}
+
+.home:global(.manager-home.app-home) :global(.session-card)::before {
+  display: none;
+}
+
+.home:global(.manager-home.app-home) :global(.session-card-actions) {
+  border-color: var(--surface-border);
+  background: transparent;
+}
+
+.home:global(.manager-home.app-home) :global(.participants-panel-kpis span) {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  .home:global(.manager-home.app-home) :global(.home-hero-grid) {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .home:global(.manager-home.app-home) :global(.cards-grid) {
+    grid-template-columns: 1fr;
+  }
+
+  .home:global(.manager-home.app-home) :global(.stat-card) {
+    padding: 1.25rem;
+  }
+}

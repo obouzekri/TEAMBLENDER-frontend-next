@@ -14,6 +14,7 @@ import { clearStoredAuth, getAuthHeaders } from '@/lib/auth';
 import { trackGaEvent, trackProductSessionEvent } from '@/lib/analytics';
 import useI18n from '@/lib/i18n/useI18n';
 import guideStyles from './StartupGuide.module.css';
+import homeStyles from './ManagerHome.module.css';
 
 function pickDisplayName(user) {
   if (!user || typeof user !== 'object') return 'Manager';
@@ -966,7 +967,7 @@ export default function ManagerHome() {
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
-      <main className="shell app-home manager-home">
+      <main className={`shell app-home manager-home ${homeStyles.home}`}>
         {asyncStatusMessage ? (
           <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
         ) : null}
@@ -1004,36 +1005,20 @@ export default function ManagerHome() {
         </section>
         <section className="cards-grid" aria-label={isEn ? 'Session statistics' : 'Statistiques des sessions'}>
           <article className="feature-card stat-card stat-card-live">
-            <p className="eyebrow">{isEn ? 'IN PROGRESS' : 'EN COURS'}</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.enCours}</h2>
-            <p>
-              {isEn
-                ? `active session${sessionStats.enCours !== 1 ? 's' : ''}`
-                : `session${sessionStats.enCours !== 1 ? 's' : ''} active${sessionStats.enCours !== 1 ? 's' : ''}`}
-            </p>
+            <p>{isEn ? 'Active sessions' : 'Sessions actives'}</p>
           </article>
           <article className="feature-card stat-card stat-card-ready">
-            <p className="eyebrow">{isEn ? 'TO CONFIGURE' : 'À CONFIGURER'}</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.preparee}</h2>
-            <p>
-              {isEn
-                ? `preparing session${sessionStats.preparee !== 1 ? 's' : ''}`
-                : `session${sessionStats.preparee !== 1 ? 's' : ''} en préparation`}
-            </p>
+            <p>{isEn ? 'To configure' : 'À configurer'}</p>
           </article>
           <article className="feature-card stat-card stat-card-done">
-            <p className="eyebrow">{isEn ? 'COMPLETED' : 'TERMINÉES'}</p>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.terminee}</h2>
-            <p>
-              {isEn
-                ? `completed session${sessionStats.terminee !== 1 ? 's' : ''}`
-                : `session${sessionStats.terminee !== 1 ? 's' : ''} terminée${sessionStats.terminee !== 1 ? 's' : ''}`}
-            </p>
-
+            <p>{isEn ? 'Completed' : 'Terminées'}</p>
           </article>
         </section>
 
-        <section id="home-sessions-block" className="feature-card sessions-panel home-sessions-panel home-anchor-target">
+        <section id="home-sessions-block" className="sessions-panel home-sessions-panel home-anchor-target">
           <div className="panel-head home-sessions-head">
             <div>
               <h2 className="home-section-title">{isEn ? 'Sessions' : 'Sessions'}</h2>
@@ -1147,7 +1132,6 @@ export default function ManagerHome() {
                 const isDone = session.status === 'terminee';
                 const statusVariant = isActive ? 'en-cours' : isDone ? 'terminee' : 'a-venir';
                 const statusClass = `status-pill--${statusVariant}`;
-                const statusAccent = isActive ? '#14b8a6' : isDone ? '#a78bfa' : '#3b82f6';
                 const modalityLabel = getSessionModalityLabel(session.modality, isEn);
                 const formatLabel = getSessionFormatLabel(session);
                 const durationLabel = getSessionDurationLabel(session, isEn);
@@ -1166,7 +1150,6 @@ export default function ManagerHome() {
                   <article
                     key={sessionIdentifier}
                     className={`feature-card session-card session-card--${statusVariant} ${isDeleting ? 'session-card--deleting' : ''}`}
-                    style={{ borderLeft: `4px solid ${statusAccent}` }}
                   >
                     <div className="session-card-body">
                       <p className="session-title">{session.name || `Session #${sessionIdentifier}`}</p>
@@ -1257,7 +1240,7 @@ export default function ManagerHome() {
           ) : null}
         </section>
 
-        <section id="home-participants-block" className="feature-card participants-panel home-anchor-target" aria-label={isEn ? 'Team participants' : 'Participants de l’équipe'}>
+        <section id="home-participants-block" className="participants-panel home-anchor-target" aria-label={isEn ? 'Team participants' : 'Participants de l’équipe'}>
           <div className="participants-panel-head">
             <div>
               <h2 className="home-section-title">{isEn ? 'Participants' : 'Participants'}</h2>
@@ -1586,13 +1569,13 @@ export default function ManagerHome() {
       <style jsx global>{`
         .manager-home .home-sessions-controls {
           display: grid;
-          gap: 0.72rem;
-          margin-bottom: 1rem;
-          padding: 0.85rem;
+          gap: 1rem;
+          margin-bottom: 0;
+          padding: clamp(1rem, 2vw, 1.5rem);
           border-radius: 14px;
-          border: 1px solid rgba(59, 130, 246, 0.2);
-          background: linear-gradient(180deg, rgba(239, 246, 255, 0.7) 0%, rgba(255, 255, 255, 0.99) 100%);
-          box-shadow: 0 10px 26px -22px rgba(15, 23, 42, 0.6);
+          border: 1px solid var(--surface-border);
+          background: var(--card);
+          box-shadow: none;
         }
 
         .manager-home .home-sessions-controls-head {
@@ -1609,7 +1592,7 @@ export default function ManagerHome() {
           align-items: center;
           gap: 0.5rem;
           font-weight: 700;
-          color: #1e3a8a;
+          color: var(--text-strong);
         }
 
         .manager-home .home-sessions-controls-chip {
@@ -1628,8 +1611,8 @@ export default function ManagerHome() {
 
         .manager-home .home-sessions-clear {
           border: 1px solid rgba(59, 130, 246, 0.35);
-          background: #ffffff;
-          color: #1d4ed8;
+          background: var(--card);
+          color: var(--accent-strong);
           border-radius: 999px;
           min-height: 32px;
           padding: 0.3rem 0.8rem;
@@ -1666,7 +1649,7 @@ export default function ManagerHome() {
           font-weight: 700;
           letter-spacing: 0.02em;
           text-transform: uppercase;
-          color: #475569;
+          color: var(--text-muted);
         }
 
         .manager-home .home-sessions-control {
@@ -1676,10 +1659,10 @@ export default function ManagerHome() {
           min-height: 42px;
           padding: 0.65rem 1rem;
           border-radius: 11px;
-          border: 1px solid rgba(100, 116, 139, 0.5);
-          background: #ffffff;
-          color: #0f172a;
-          box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+          border: 1px solid var(--surface-border);
+          background: var(--card);
+          color: var(--ink);
+          box-shadow: none;
         }
 
         .manager-home .home-sessions-control:focus-visible {
@@ -1690,7 +1673,7 @@ export default function ManagerHome() {
 
         .manager-home .home-sessions-meta {
           margin: 0;
-          color: #334155;
+          color: var(--text-muted);
           font-weight: 500;
         }
 
@@ -1700,10 +1683,6 @@ export default function ManagerHome() {
           align-items: center;
           gap: 0.65rem;
           margin-top: 0.85rem;
-        }
-
-        .manager-home .session-card {
-          border-left-width: 4px !important;
         }
 
         .manager-home .session-card-mobile-actions--top {
@@ -1721,7 +1700,7 @@ export default function ManagerHome() {
 
         @media (max-width: 640px) {
           .manager-home .home-sessions-controls {
-            padding: 0.65rem;
+            padding: 1rem;
           }
 
           .manager-home .home-sessions-clear {
