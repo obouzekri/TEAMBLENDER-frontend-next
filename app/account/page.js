@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import { CreditCard, ShieldCheck, UserRound } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import AvatarPickerModal from '@/components/AvatarPickerModal';
 import Footer from '@/components/Footer';
@@ -742,7 +743,7 @@ export default function AccountPage() {
   const currentPlanLabel = activePlan?.name || t('account.noPlan');
   const historyCount = planHistory.length;
   const roleLabel = isParticipantAccount
-    ? 'Participant'
+    ? t('account.roleParticipant')
     : String(guard.user?.role || '').toLowerCase() === 'admin'
       ? t('account.roleAdmin')
       : t('account.roleManager');
@@ -1028,7 +1029,24 @@ export default function AccountPage() {
     setStoredCurrentUser(nextUser);
     setGuard((prev) => ({ ...prev, user: nextUser }));
     setAvatarPickerOpen(false);
-    showSuccess('Avatar updated.');
+    showSuccess(t('account.avatarUpdated'));
+  }
+
+  function handleAccountTabKeyDown(event) {
+    const tabs = isParticipantAccount ? ['security'] : ['profile', 'security', 'pricing'];
+    const currentIndex = tabs.indexOf(activeTab);
+    let nextIndex = currentIndex;
+
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+    else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = tabs.length - 1;
+    else return;
+
+    event.preventDefault();
+    const nextTab = tabs[nextIndex];
+    setActiveTab(nextTab);
+    document.getElementById(`account-tab-${nextTab}`)?.focus();
   }
 
   if (guard.loading || loading) {
@@ -1071,35 +1089,59 @@ export default function AccountPage() {
           </section>
         ) : null}
 
-        <section className="account-page-header" aria-label="En-tête des paramètres du compte">
-          <p className="eyebrow">{isParticipantAccount ? 'ESPACE PARTICIPANT' : 'ESPACE MANAGER'}</p>
-          <h1>{t('account.settingsTitle')}</h1>
-          <p className="account-page-header__description">
-            {isParticipantAccount
-              ? 'Consultez votre identifiant et modifiez votre mot de passe depuis cet espace sécurisé.'
-              : t('account.managerHeaderDescription')}
-          </p>
+        <section className="account-page-header" aria-label={t('account.accountHeaderAria')}>
+          <div className="account-page-header__copy">
+            <p className="eyebrow">{isParticipantAccount ? t('participantSpace') : t('account.heroEyebrow')}</p>
+            <h1>{t('account.settingsTitle')}</h1>
+            <p className="account-page-header__description">
+              {isParticipantAccount
+                ? t('account.participantHeaderDescription')
+                : t('account.managerHeaderDescription')}
+            </p>
+          </div>
+          <div className="account-page-header__identity" aria-label={t('account.accountIdentityAria')}>
+            <span className="account-page-header__avatar">
+              {resolvedAvatarUrl ? (
+                <img src={resolvedAvatarUrl} alt={t('account.avatarAlt', { name: userLabel })} />
+              ) : (
+                profileIdentityInitials
+              )}
+            </span>
+            <span className="account-page-header__identity-copy">
+              <strong>{userLabel}</strong>
+              <span>{String(me?.email || guard.user?.email || '').trim()}</span>
+              <span className="account-page-header__role">{roleLabel}</span>
+            </span>
+          </div>
         </section>
 
         <div className="account-card-container">
-          <div className="account-tabs account-tabs--modern" role="tablist" aria-label={t('account.accountSectionsAria')}>
+          <div
+            className="account-tabs account-tabs--modern"
+            role="tablist"
+            aria-label={t('account.accountSectionsAria')}
+            onKeyDown={handleAccountTabKeyDown}
+          >
             {!isParticipantAccount ? (
-              <button type="button" role="tab" aria-selected={activeTab === 'profile'} className={`account-tab account-tab--modern ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => setActiveTab('profile')}>
+              <button type="button" id="account-tab-profile" role="tab" aria-controls="account-profile" aria-selected={activeTab === 'profile'} tabIndex={activeTab === 'profile' ? 0 : -1} className={`account-tab account-tab--modern ${activeTab === 'profile' ? 'is-active' : ''}`} onClick={() => setActiveTab('profile')}>
+                <UserRound size={17} aria-hidden="true" />
                 {t('account.heroProfile')}
               </button>
             ) : null}
-            <button type="button" role="tab" aria-selected={activeTab === 'security'} className={`account-tab account-tab--modern ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => setActiveTab('security')}>
+            <button type="button" id="account-tab-security" role="tab" aria-controls="account-security" aria-selected={activeTab === 'security'} tabIndex={activeTab === 'security' ? 0 : -1} className={`account-tab account-tab--modern ${activeTab === 'security' ? 'is-active' : ''}`} onClick={() => setActiveTab('security')}>
+              <ShieldCheck size={17} aria-hidden="true" />
               {t('account.heroSecurity')}
             </button>
             {!isParticipantAccount ? (
-              <button type="button" role="tab" aria-selected={activeTab === 'pricing'} className={`account-tab account-tab--modern ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => setActiveTab('pricing')}>
+              <button type="button" id="account-tab-pricing" role="tab" aria-controls="account-pricing" aria-selected={activeTab === 'pricing'} tabIndex={activeTab === 'pricing' ? 0 : -1} className={`account-tab account-tab--modern ${activeTab === 'pricing' ? 'is-active' : ''}`} onClick={() => setActiveTab('pricing')}>
+                <CreditCard size={17} aria-hidden="true" />
                 {t('account.pricingHeaderTitle')}
               </button>
             ) : null}
           </div>
 
           {!isParticipantAccount ? (
-          <section id="account-profile" className={`account-saas-card account-panel ${activeTab === 'profile' ? 'is-active' : ''}`} hidden={activeTab !== 'profile'}>
+          <section id="account-profile" role="tabpanel" aria-labelledby="account-tab-profile" className={`account-saas-card account-panel ${activeTab === 'profile' ? 'is-active' : ''}`} hidden={activeTab !== 'profile'}>
             <header className="account-saas-card__header">
               <p className="eyebrow">PROFIL</p>
               <h2 className="account-saas-card__title">{t('account.profileTitle')}</h2>
@@ -1148,11 +1190,9 @@ export default function AccountPage() {
                       <input id="account-last-name" className="account-form-input account-form-input--disabled" type="text" value={profileForm.last_name} disabled readOnly />
                     </div>
                     <div className="account-form-field account-form-field--full">
-                      <label className="account-form-label" htmlFor="account-email">Email <span className="account-field-required" aria-hidden="true">*</span></label>
+                      <label className="account-form-label" htmlFor="account-email">{t('account.email')} <span className="account-field-required" aria-hidden="true">*</span></label>
                       <input id="account-email" className="account-form-input account-form-input--disabled" type="email" value={String(me?.email || guard.user?.email || '').trim()} disabled readOnly />
-                      <button type="button" className="account-inline-link account-email-change-link" onClick={handleResetPassword} disabled={resettingPassword}>
-                        {resettingPassword ? 'Préparation en cours...' : 'Demander un changement d’e-mail'}
-                      </button>
+                      <p className="account-form-hint">{t('account.emailChangeUnavailable')}</p>
                     </div>
                   </div>
                 </section>
@@ -1196,16 +1236,16 @@ export default function AccountPage() {
           </section>
           ) : null}
 
-          <section id="account-security" className={`account-saas-card account-panel ${activeTab === 'security' ? 'is-active' : ''}`} hidden={activeTab !== 'security'}>
+          <section id="account-security" role="tabpanel" aria-labelledby="account-tab-security" className={`account-saas-card account-panel ${activeTab === 'security' ? 'is-active' : ''}`} hidden={activeTab !== 'security'}>
             <header className="account-saas-card__header">
-              <p className="eyebrow">SÉCURITÉ</p>
+              <p className="eyebrow">{t('account.securityEyebrow')}</p>
               <h2 className="account-saas-card__title">{t('account.securityAccessTitle')}</h2>
               <p className="account-saas-card__subtitle">{t('account.securitySubtitle')}</p>
             </header>
             <div className="account-saas-card__body account-security-grid account-panel-body--balanced">
               <article className="account-security-card">
                 <header className="account-security-card__head">
-                  <h3>Modifier le mot de passe</h3>
+                  <h3>{t('account.changePasswordTitle')}</h3>
                 </header>
                 <form className="account-security-form" onSubmit={handleUpdatePassword}>
                   <div className="account-form-field account-form-field--full">
@@ -1213,7 +1253,7 @@ export default function AccountPage() {
                       <span>{t('account.currentPassword')}</span>
                       {!isParticipantAccount ? (
                         <button type="button" className="account-inline-link" onClick={handleResetPassword} disabled={resettingPassword}>
-                          {resettingPassword ? t('account.generating') : t('account.forgotPassword')}
+                          {resettingPassword ? t('account.generating') : t('account.temporaryPasswordAction')}
                         </button>
                       ) : null}
                     </label>
@@ -1226,7 +1266,7 @@ export default function AccountPage() {
                         onChange={(e) => setPasswordForm((prev) => ({ ...prev, current_password: e.target.value }))}
                         placeholder={t('account.currentPasswordPlaceholder')}
                       />
-                      <button type="button" className="account-password-toggle" onClick={() => setShowCurrentPassword((prev) => !prev)} aria-label="Afficher ou masquer le mot de passe actuel">
+                      <button type="button" className="account-password-toggle" onClick={() => setShowCurrentPassword((prev) => !prev)} aria-label={t('account.showCurrentPassword')}>
                         👁️
                       </button>
                     </div>
@@ -1244,29 +1284,29 @@ export default function AccountPage() {
                         placeholder={t('account.newPasswordPlaceholder')}
                         minLength={8}
                       />
-                      <button type="button" className="account-password-toggle" onClick={() => setShowNewPassword((prev) => !prev)} aria-label="Afficher ou masquer le nouveau mot de passe">
+                      <button type="button" className="account-password-toggle" onClick={() => setShowNewPassword((prev) => !prev)} aria-label={t('account.showNewPassword')}>
                         👁️
                       </button>
                     </div>
 
                     <div className="account-password-strength" role="status" aria-live="polite">
-                      <span>Niveau de sécurité du mot de passe</span>
+                      <span>{t('account.passwordStrengthLabel')}</span>
                       <strong>
                         {passwordChecks.level === 'strong'
-                          ? 'Fort'
+                          ? t('account.strong')
                           : passwordChecks.level === 'medium'
-                            ? 'Moyen'
-                            : 'Faible'}
+                            ? t('account.medium')
+                            : t('account.weak')}
                       </strong>
                     </div>
                     <div className="account-password-strength-bar" aria-hidden="true">
                       <span className={`account-password-strength-bar__fill is-${passwordChecks.level}`} style={{ width: `${passwordChecks.percent}%` }} />
                     </div>
 
-                    <ul className="account-password-checklist" aria-label="Exigences du mot de passe">
-                      <li className={passwordChecks.hasLength ? 'is-met' : ''}>8 caractères minimum</li>
-                      <li className={passwordChecks.hasNumber ? 'is-met' : ''}>Au moins un chiffre</li>
-                      <li className={passwordChecks.hasSymbol ? 'is-met' : ''}>Au moins un symbole</li>
+                    <ul className="account-password-checklist" aria-label={t('account.passwordRequirements')}>
+                      <li className={passwordChecks.hasLength ? 'is-met' : ''}>{t('account.minimumCharacters')}</li>
+                      <li className={passwordChecks.hasNumber ? 'is-met' : ''}>{t('account.atLeastOneNumber')}</li>
+                      <li className={passwordChecks.hasSymbol ? 'is-met' : ''}>{t('account.atLeastOneSymbol')}</li>
                     </ul>
                   </div>
 
@@ -1281,7 +1321,7 @@ export default function AccountPage() {
                         onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirm_password: e.target.value }))}
                         placeholder={t('account.confirmPasswordPlaceholder')}
                       />
-                      <button type="button" className="account-password-toggle" onClick={() => setShowConfirmPassword((prev) => !prev)} aria-label="Afficher ou masquer la confirmation du mot de passe">
+                      <button type="button" className="account-password-toggle" onClick={() => setShowConfirmPassword((prev) => !prev)} aria-label={t('account.showConfirmPassword')}>
                         👁️
                       </button>
                     </div>
@@ -1326,7 +1366,7 @@ export default function AccountPage() {
         </div>
 
         {!isParticipantAccount ? (
-        <section id="account-pricing" className={`account-pricing-section account-panel ${activeTab === 'pricing' ? 'is-active' : ''}`} hidden={activeTab !== 'pricing'}>
+        <section id="account-pricing" role="tabpanel" aria-labelledby="account-tab-pricing" className={`account-pricing-section account-panel ${activeTab === 'pricing' ? 'is-active' : ''}`} hidden={activeTab !== 'pricing'}>
           <div className="account-pricing-surface">
             <header className="account-pricing-head">
               <div>

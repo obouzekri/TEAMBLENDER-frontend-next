@@ -62,9 +62,25 @@ try {
           const errors = [];
           page.on('pageerror', (error) => errors.push(error.message));
           await page.goto(`${baseUrl}/${locale}/account?tab=security`);
+          const identity = page.locator('.account-page-header__identity');
+          await identity.locator('strong').waitFor();
+          assert.equal(await identity.locator('strong').textContent(), 'Security Fixture');
+          assert.equal(await identity.innerText().then((text) => text.includes(user.email)), true);
           const panel = page.locator('#account-security');
           const twoFactor = panel.getByRole('button', { name: account.enableTwoFactor, exact: true });
           const signOut = panel.getByRole('button', { name: account.signOutOtherDevices, exact: true });
+          if (role !== 'participant') {
+            const securityTab = page.getByRole('tab', { name: account.heroSecurity, exact: true });
+            const profileTab = page.getByRole('tab', { name: account.heroProfile, exact: true });
+            assert.equal(await securityTab.getAttribute('aria-controls'), 'account-security');
+            await securityTab.press('ArrowLeft');
+            await page.waitForFunction(() => document.getElementById('account-tab-profile')?.getAttribute('aria-selected') === 'true');
+            assert.equal(await page.locator('#account-profile').isVisible(), true);
+            assert.equal(await page.locator('#account-profile').getByText(account.emailChangeUnavailable, { exact: true }).count(), 1);
+            assert.equal(await page.getByRole('button', { name: /change.*email|email.*change/i }).count(), 0);
+            await profileTab.press('ArrowRight');
+            await page.waitForFunction(() => document.getElementById('account-tab-security')?.getAttribute('aria-selected') === 'true');
+          }
           for (let pass = 0; pass < 2; pass += 1) {
             await twoFactor.waitFor();
             assert.ok(await twoFactor.isDisabled());
