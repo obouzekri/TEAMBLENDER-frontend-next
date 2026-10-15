@@ -1422,8 +1422,8 @@ export default function ManagerHome() {
           <div className="manager-onboarding-shell">
             <header className={`manager-onboarding-hero manager-onboarding-hero--modal ${guideStyles.guideHeader}`}>
               <div className="manager-onboarding-copy">
-                <p className="eyebrow manager-onboarding-eyebrow">{isEn ? 'YOUR FIRST SESSION' : 'VOTRE PREMIÈRE SESSION'}</p>
-                <h2 id="onboarding-guide-title">{isEn ? 'From your team to your first session.' : 'De votre équipe à votre première session.'}</h2>
+                <p className="eyebrow manager-onboarding-eyebrow">{isEn ? 'GETTING STARTED' : 'GUIDE DE DÉMARRAGE'}</p>
+                <h2 id="onboarding-guide-title">{isEn ? 'Your first session starts here.' : 'Votre première session commence ici.'}</h2>
                 <p>
                   {isEn
                     ? 'Follow these three steps to get ready to run a workshop.'
