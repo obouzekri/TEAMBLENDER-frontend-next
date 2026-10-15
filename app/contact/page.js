@@ -73,7 +73,7 @@ export default function ContactPage() {
           <div className="contact-hero__grid">
             <div className="contact-hero__copy">
               <p className="eyebrow">TeamBlender</p>
-              <h1>{isEn ? 'Create a team building that truly strengthens your team' : 'Créez un team building qui renforce réellement la cohésion de votre équipe'}</h1>
+              <h1>{isEn ? 'Create an experience that truly strengthens your team' : 'Créez une expérience qui renforce réellement la cohésion de votre équipe'}</h1>
               <p className="contact-hero__lede">{isEn ? 'Talk with a TeamBlender expert and identify the challenge best aligned with your HR goals.' : 'Échangez avec un expert TeamBlender et découvrez le challenge le plus adapté à vos objectifs RH.'}</p>
             </div>
           </div>
@@ -192,10 +192,17 @@ export default function ContactPage() {
           padding: 2.5rem 2.5rem;
         }
 
+        .contact-page .contact-hero__grid {
+          display: flex;
+          justify-content: center;
+        }
+
         .contact-page .contact-hero__copy {
           display: grid;
           gap: 0.95rem;
           max-width: 46rem;
+          justify-items: center;
+          text-align: center;
         }
 
         .contact-page .contact-hero__copy h1 {
