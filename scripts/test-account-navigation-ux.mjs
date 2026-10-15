@@ -72,6 +72,12 @@ async function check({ role, locale, width, theme, colorScheme = 'light' }) {
     const rejectCookies = page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true });
     if (await rejectCookies.isVisible()) await rejectCookies.click();
     await page.evaluate(() => document.fonts.ready);
+    const accountHeaderPadding = await page.locator('.account-page-header').evaluate((element) => {
+      const styles = getComputedStyle(element);
+      return [Number.parseFloat(styles.paddingLeft), Number.parseFloat(styles.paddingRight)];
+    });
+    assert.ok(accountHeaderPadding.every((padding) => padding >= 20),
+      `Account header side padding is too small: ${accountHeaderPadding.join(', ')}`);
     if (role === 'participant') {
       assert.equal(await page.getByRole('tab').count(), 1);
       assert.ok(await page.locator('#account-security').isVisible());

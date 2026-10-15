@@ -1637,7 +1637,7 @@ export default function AccountPage() {
 
           .account-page .account-page-header {
             margin: 0;
-            padding: 1rem 0;
+            padding: 1rem clamp(1.25rem, 4vw, 2.5rem);
             display: flex;
             gap: 2rem;
             border: 0;
@@ -2696,7 +2696,7 @@ export default function AccountPage() {
               flex-direction: column;
               align-items: stretch;
               gap: 1rem;
-              padding: 1rem 0;
+              padding: 1rem 1.25rem;
             }
 
             .account-page .account-tabs--modern .account-tab--modern {
