@@ -18,14 +18,18 @@ async function setObjectiveSelection(field, objective, selected) {
 
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
 try {
-  for (const locale of ['fr', 'en']) {
-    const context = await browser.newContext({ viewport: { width: locale === 'fr' ? 390 : 1440, height: 420 } });
+  for (const { locale, theme } of ['fr', 'en'].flatMap((locale) =>
+    ['light', 'dark', 'system'].map((theme) => ({ locale, theme })),
+  )) {
+    const viewport = { width: locale === 'fr' ? 390 : 1440, height: 420 };
+    const context = await browser.newContext({ viewport, colorScheme: theme === 'light' ? 'light' : 'dark' });
     let savedSession = null;
-    await context.addInitScript((language) => {
+    await context.addInitScript(({ language, theme }) => {
       sessionStorage.setItem('jwt', 'local-ux-fixture');
       sessionStorage.setItem('currentUser', JSON.stringify({ id: 1, role: 'user', first_name: 'UX' }));
       localStorage.setItem('tb_locale_preference', language);
-    }, locale);
+      localStorage.setItem('tb_theme', theme);
+    }, { language: locale, theme });
     await context.route('**/*', async (route) => {
       const url = new URL(route.request().url());
       if (!url.pathname.includes('/api/')) {
@@ -53,6 +57,8 @@ try {
     const cookieButton = page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true });
     await cookieButton.click();
     await page.locator('#session-name').fill('Session planning UX');
+    const choiceTitle = locale === 'fr' ? 'Choix des challenges' : 'Challenge selection';
+    assert.equal(await page.getByRole('region', { name: choiceTitle, exact: true }).count(), 0);
     assert.equal(await page.locator('#expected-participants').getAttribute('required'), null);
     const objectiveField = page.locator('#session-objective');
     if (await objectiveField.evaluate((element) => element.tagName === 'SELECT')) {
@@ -89,7 +95,36 @@ try {
     assert.equal(savedSession.expected_participant_count, 6);
     assert.equal(savedSession.objective, 'communication,collaboration');
     assert.equal(savedSession.participant_ids, undefined);
-    await page.getByRole('button', { name: locale === 'fr' ? 'Me proposer un programme' : 'Suggest a program', exact: true }).click();
+    const choice = page.getByRole('region', { name: choiceTitle, exact: true });
+    await choice.getByRole('heading', { name: choiceTitle, exact: true }).waitFor();
+    const manualSelection = choice.getByRole('link', {
+      name: locale === 'fr' ? 'Sélection manuelle' : 'Manual selection', exact: true,
+    });
+    const guidedProgram = choice.getByRole('button', {
+      name: locale === 'fr' ? 'Programme guidé' : 'Guided program', exact: true,
+    });
+    for (const width of [320, 390, 768, 1440]) {
+      await page.setViewportSize({ width, height: 420 });
+      const manualBox = await manualSelection.boundingBox();
+      const guidedBox = await guidedProgram.boundingBox();
+      assert.ok(manualBox && guidedBox);
+      assert.ok(manualBox.height >= 44 && guidedBox.height >= 44);
+      if (width <= 640) {
+        assert.equal(manualBox.x, guidedBox.x);
+        assert.ok(guidedBox.y >= manualBox.y + manualBox.height + 15);
+      } else {
+        assert.equal(manualBox.y, guidedBox.y);
+        assert.ok(guidedBox.x >= manualBox.x + manualBox.width + 15);
+      }
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    }
+    await page.setViewportSize(viewport);
+    await manualSelection.focus();
+    await manualSelection.press('Enter');
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'challenge-catalog');
+    assert.equal(await page.locator('[data-activity-id]').count(), 0);
+    await guidedProgram.focus();
+    await guidedProgram.press('Enter');
     const dialog = page.getByRole('dialog', { name: locale === 'fr' ? 'Me proposer un programme' : 'Suggest a program', exact: true });
     const preview = dialog.locator('ol li');
     await preview.first().waitFor();
@@ -152,6 +187,14 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.style.overflow), '');
     assert.equal(await page.evaluate(() => window.scrollY), lockedScrollY);
     assert.ok(await page.locator('[data-activity-id]').count() > 0);
+    const appliedSelection = await page.locator('[data-activity-id]').allTextContents();
+    await manualSelection.click();
+    assert.deepEqual(await page.locator('[data-activity-id]').allTextContents(), appliedSelection);
+    await guidedProgram.click();
+    await dialog.waitFor();
+    await dialog.getByRole('button', { name: locale === 'fr' ? 'Fermer' : 'Close', exact: true }).click();
+    await dialog.waitFor({ state: 'hidden' });
+    assert.deepEqual(await page.locator('[data-activity-id]').allTextContents(), appliedSelection);
     await page.getByRole('button', { name: locale === 'fr' ? 'Modifier les détails de session' : 'Edit session details', exact: true }).click();
     await page.locator('#edit-expected-participants').fill('');
     const editObjectiveField = page.locator('#edit-session-objective');
@@ -164,7 +207,7 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     assert.deepEqual(errors, []);
     await context.close();
-    console.log(`SESSION_PLANNING_UX_OK ${locale}`);
+    console.log(`SESSION_PLANNING_UX_OK ${locale} ${theme}`);
   }
 } finally {
   await browser.close();

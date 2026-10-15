@@ -269,7 +269,13 @@ export default function ChallengesCatalog({
   const visibleChallenges = useMemo(() => challenges.slice(0, visibleCount), [challenges, visibleCount]);
 
   return (
-    <section className={styles.catalog} data-catalog>
+    <section
+      id="challenge-catalog"
+      className={styles.catalog}
+      aria-label={t('sessionBuilder.manualSelection')}
+      tabIndex={-1}
+      data-catalog
+    >
       <div className={styles.filterBar}>
         <div className={styles.filterLine} ref={filterMenuRef}>
           <div className={styles.filterControls}>

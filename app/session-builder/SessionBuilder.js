@@ -2041,24 +2041,46 @@ export default function SessionBuilder() {
           busy={isSavingDraft || isLaunching}
         />
 
-        <section className={styles.programEntry}>
-          <div>
-            <strong>{t('sessionBuilder.proposeProgram')}</strong>
-            <p>{t('sessionBuilder.programHint')}</p>
+        <section className={styles.challengeChoice} aria-labelledby="challenge-choice-title">
+          <h2 id="challenge-choice-title">{t('sessionBuilder.challengeChoice')}</h2>
+          <p className={styles.challengeChoiceHint}>{t('sessionBuilder.challengeChoiceHint')}</p>
+          <div className={styles.challengeModes}>
+            <a
+              href="#challenge-catalog"
+              className={styles.challengeMode}
+              aria-labelledby="manual-selection-title"
+              aria-describedby="manual-selection-hint"
+            >
+              <span id="manual-selection-title" className={styles.challengeModeTitle}>
+                {t('sessionBuilder.manualSelection')}
+              </span>
+              <span id="manual-selection-hint" className={styles.challengeModeHint}>
+                {t('sessionBuilder.manualSelectionHint')}
+              </span>
+            </a>
+            <button
+              type="button"
+              className={styles.challengeMode}
+              aria-labelledby="guided-program-title"
+              aria-describedby="guided-program-hint"
+              aria-haspopup="dialog"
+              disabled={isLoading || isSavingDraft || isLaunching}
+              onClick={() => {
+                setProgramProposalNeedsRefresh(Boolean(programProposal));
+                setProgramError('');
+                setProgramNotice('');
+                generateProgram();
+                setProgramOpen(true);
+              }}
+            >
+              <span id="guided-program-title" className={styles.challengeModeTitle}>
+                {t('sessionBuilder.guidedProgram')}
+              </span>
+              <span id="guided-program-hint" className={styles.challengeModeHint}>
+                {t('sessionBuilder.programHint')}
+              </span>
+            </button>
           </div>
-          <Button
-            variant="secondary"
-            disabled={isLoading || isSavingDraft || isLaunching}
-            onClick={() => {
-              setProgramProposalNeedsRefresh(Boolean(programProposal));
-              setProgramError('');
-              setProgramNotice('');
-              generateProgram();
-              setProgramOpen(true);
-            }}
-          >
-            {t('sessionBuilder.proposeProgram')}
-          </Button>
         </section>
         <div className={styles.mainLayout}>
           <SelectedChallengesList

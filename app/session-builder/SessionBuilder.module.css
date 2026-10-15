@@ -8,16 +8,14 @@
 
 .contextField small,
 .participationNotice p,
-.participantsDisclosure p,
-.programEntry p {
+.participantsDisclosure p {
   color: var(--ink-soft);
   font-weight: 400;
   font-size: 0.875rem;
 }
 
 .participationNotice,
-.participantsDisclosure,
-.programEntry {
+.participantsDisclosure {
   padding: 1rem;
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -185,12 +183,74 @@
   font-weight: 650;
 }
 
-.programEntry {
-  display: flex;
-  flex-wrap: wrap;
+.challengeChoice {
+  display: grid;
   gap: 1rem;
-  justify-content: space-between;
-  align-items: center;
+}
+
+.challengeChoice h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.25rem;
+}
+
+.challengeChoiceHint {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+
+.challengeModes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.challengeMode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-panel);
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.challengeMode:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface-panel-soft);
+}
+
+.challengeMode:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.challengeMode:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.challengeModeTitle {
+  font-weight: 700;
+}
+
+.challengeModeHint {
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .challengeModes {
+    grid-template-columns: 1fr;
+  }
 }
 
 .programForm {

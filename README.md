@@ -26,6 +26,13 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Validation: `node scripts/test-session-creation-layout.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, clair/sombre/automatique, 320 a 1440 px, dimensions et absence de cadres imbriques, creation avec et sans participants, objectifs multiples, modes manuel/automatique et erreur serveur.
 - Non-regression: `npm run test:unit:builder`, `npm run test:ux:builder` et `npm run test:ux:planning`.
 
+### Choix des challenges dans le Session Builder
+
+- Apres la creation, la section « Choix des challenges » regroupe deux cartes de meme importance : « Selection manuelle » ouvre le catalogue et « Programme guide » ouvre la proposition selon les objectifs, l'effectif et la duree souhaitee.
+- Ce choix n'ajoute aucune etape a la creation de session. Le catalogue reste accessible, et une proposition appliquee peut toujours etre configuree, retiree ou reordonnee avant le lancement.
+- Les cartes sont cote a cote sur grand ecran et empilees sur mobile, avec navigation clavier et libelles FR/EN.
+- Validation : `npm run test:ux:planning` et `npm run test:ux:builder` (frontend sur 3100, Chrome disponible, API simulees).
+
 ### Gestion des participants par le manager
 
 - Après la création, le formulaire se ferme et une fenêtre de confirmation affiche l’identifiant et l’adresse e-mail du participant.
