@@ -17627,6 +17627,35 @@ html[data-theme='dark'] .admin-console-layout .list-count{
   font-weight: 700;
 }
 
+.participant-modal-dialog.participant-modal-dialog--form {
+  box-sizing: border-box;
+  width: min(880px, 100%);
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.participant-modal-dialog--form .participant-modal-header {
+  margin-bottom: 1rem;
+}
+
+.participant-modal-dialog--form .participant-modal-subtitle {
+  margin: 0;
+  padding: 0 0 1rem;
+  white-space: normal;
+}
+
+.participant-modal-dialog--form .participant-modal-body {
+  padding: 0;
+  margin: 0;
+}
+
+.participant-modal-dialog--form .participant-inline-form--modal {
+  padding: 0.5rem 0 0;
+}
+
+.participant-modal-dialog--form .participant-form {
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
 .participant-form input,
 .team-toolbar input {
   border: 1.5px solid var(--control-border, rgba(148, 163, 184, 0.28));

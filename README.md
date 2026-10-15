@@ -16,6 +16,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 ### Gestion des participants par le manager
 
 - Après la création, le formulaire se ferme et une fenêtre de confirmation affiche l’identifiant et l’adresse e-mail du participant.
+- Les fenêtres de création et de modification alignent le titre et le sous-titre, avec des marges intérieures de 20 à 32 px et au moins 16 px autour des libellés du formulaire, sans débordement dès 320 px de largeur.
 - Dans « Modifier le participant », « Renvoyer le lien de réinitialisation » envoie un nouveau lien à l’adresse enregistrée. Enregistrer d’abord les modifications d’adresse ; le manager ne choisit ni ne voit le mot de passe.
 - Le renvoi affiche une confirmation après acceptation de l’envoi par le service e-mail ; les erreurs restent visibles dans le formulaire. Les boutons sont désactivés pendant l’envoi.
 - Validation : `node scripts/test-manager-participant-form.mjs` (frontend sur 3100, Chrome disponible, API simulées ; FR/EN, mobile/desktop, erreur puis renvoi, modification et création).

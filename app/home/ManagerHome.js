@@ -1404,7 +1404,8 @@ export default function ManagerHome() {
           ? (isEn ? 'Edit participant' : 'Modifier le participant')
           : (isEn ? 'Create participant' : 'Créer un participant')}
         titleClassName="participant-modal-title"
-        dialogClassName="participant-modal-dialog"
+        dialogClassName="participant-modal-dialog participant-modal-dialog--form"
+        headerClassName="participant-modal-header"
         onClose={closeParticipantModal}
       >
         <p className="participant-modal-subtitle">

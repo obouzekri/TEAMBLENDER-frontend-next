@@ -5,9 +5,35 @@ import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
 
+async function checkModalSpacing(modal, width) {
+  const layout = await modal.evaluate((dialog) => {
+    const bounds = dialog.getBoundingClientRect();
+    const title = dialog.querySelector('h2').getBoundingClientRect();
+    const subtitle = dialog.querySelector('.participant-modal-subtitle').getBoundingClientRect();
+    const form = dialog.querySelector('form').getBoundingClientRect();
+    const label = dialog.querySelector('.participant-form-grid label').getBoundingClientRect();
+    return {
+      titleLeft: title.left - bounds.left,
+      titleTop: title.top - bounds.top,
+      subtitleLeft: subtitle.left,
+      titleX: title.left,
+      labelInset: label.left - form.left,
+      overflow: dialog.scrollWidth > dialog.clientWidth,
+      insideViewport: bounds.left >= 0 && bounds.right <= innerWidth,
+    };
+  });
+  const minInset = width >= 768 ? 32 : 20;
+  assert.ok(layout.titleLeft >= minInset, `Title needs breathing room from the left modal border: ${JSON.stringify(layout)}`);
+  assert.ok(layout.titleTop >= minInset, 'Title needs breathing room from the top modal border');
+  assert.ok(Math.abs(layout.subtitleLeft - layout.titleX) <= 1, 'Title and subtitle must align');
+  assert.ok(layout.labelInset >= 16, 'Field labels need inner spacing from the form border');
+  assert.equal(layout.overflow, false, 'Modal must not overflow horizontally');
+  assert.equal(layout.insideViewport, true, 'Modal must fit the viewport');
+}
+
 try {
   for (const locale of ['fr', 'en']) {
-    for (const width of [390, 1440]) {
+    for (const width of [320, 390, 1440]) {
       const en = locale === 'en';
       const fixture = await createRealtimeFixture(browser, {
         baseUrl, locale, role: 'user', engineKey: 'copuzzle_live_v1', viewport: { width, height: 1000 }, state: { config: {} },
@@ -64,6 +90,7 @@ try {
         const edit = page.getByRole('dialog', { name: en ? 'Edit participant' : 'Modifier le participant', exact: true });
         await edit.waitFor();
         await edit.getByLabel(en ? 'First name *' : 'Prénom *', { exact: true }).waitFor();
+        await checkModalSpacing(edit, width);
         if (!en) {
           assert.ok((await edit.textContent()).includes('Mettez à jour les informations du participant sélectionné.'));
           assert.ok((await edit.textContent()).includes('Département'));
@@ -92,6 +119,7 @@ try {
         await page.getByRole('button', { name: en ? 'Create participant' : 'Créer un participant', exact: true }).click();
         const create = page.getByRole('dialog', { name: en ? 'Create participant' : 'Créer un participant', exact: true });
         await create.getByLabel(en ? 'First name *' : 'Prénom *', { exact: true }).fill('Alice');
+        await checkModalSpacing(create, width);
         await create.getByLabel(en ? 'Last name' : 'Nom', { exact: true }).fill('Martin');
         await create.getByLabel(en ? 'Email *' : 'E-mail *', { exact: true }).fill('alice@example.com');
         await create.getByRole('button', { name: en ? 'Create participant' : 'Créer un participant', exact: true }).click();
