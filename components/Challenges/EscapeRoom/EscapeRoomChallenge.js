@@ -136,6 +136,8 @@ export default function EscapeRoomChallenge({
             chatEmpty: 'No messages yet.',
             chatPlaceholder: 'Team message',
             participantListUnavailable: 'Participant list unavailable.',
+            retryParticipants: 'Retry participants',
+            retryingParticipants: 'Loading participants...',
             responded: 'responded',
             waiting: 'waiting',
             subtitleFallback: 'Solve riddles as a team with collective validation',
@@ -247,6 +249,8 @@ export default function EscapeRoomChallenge({
             chatEmpty: 'Aucun message pour le moment.',
             chatPlaceholder: 'Message equipe',
             participantListUnavailable: 'Liste participants indisponible.',
+            retryParticipants: 'Réessayer les participants',
+            retryingParticipants: 'Chargement des participants...',
             responded: 'repondu',
             waiting: 'en attente',
             subtitleFallback: 'Resolvez les enigmes en equipe, avec validation collective',
@@ -327,6 +331,7 @@ export default function EscapeRoomChallenge({
   const [state, setState] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [participantsError, setParticipantsError] = useState('');
+  const [participantsLoading, setParticipantsLoading] = useState(false);
   const [answer, setAnswer] = useState('');
   const [busyAction, setBusyAction] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -425,6 +430,7 @@ export default function EscapeRoomChallenge({
 
   const loadParticipants = useCallback(async () => {
     if (!endpointBase) return;
+    setParticipantsLoading(true);
     try {
       const payload = await apiCall('/participants', { method: 'GET' });
       const rows = Array.isArray(payload?.participants)
@@ -437,6 +443,8 @@ export default function EscapeRoomChallenge({
       setParticipantsError('');
     } catch (error) {
       setParticipantsError(error.message || copy.actionUnavailable);
+    } finally {
+      setParticipantsLoading(false);
     }
   }, [apiCall, endpointBase, locale, copy.actionUnavailable]);
 
@@ -865,10 +873,19 @@ export default function EscapeRoomChallenge({
           <button type="button" className={styles.secondaryBtn} onClick={() => loadState().catch(() => {})}>{isEn ? 'Retry' : 'Réessayer'}</button>
         </div>
       ) : null}
-      {participantsError ? <div role="alert">
-        <p>{participantsError}</p>
-        <button type="button" onClick={loadParticipants}>{locale === 'en' ? 'Retry participants' : 'Réessayer les participants'}</button>
-      </div> : null}
+      {participantsError ? (
+        <div className={styles.participantsError} role="alert" aria-live="polite">
+          <p>{participantsError || copy.participantListUnavailable}</p>
+          <button
+            type="button"
+            className={styles.secondaryBtn}
+            onClick={loadParticipants}
+            disabled={participantsLoading}
+          >
+            {participantsLoading ? copy.retryingParticipants : copy.retryParticipants}
+          </button>
+        </div>
+      ) : null}
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || copy.subtitleFallback}

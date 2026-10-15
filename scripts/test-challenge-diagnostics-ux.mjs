@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url);
 const runtime = (engine) => require(`../../backend/src/challenges/engines/${engine}/server-runtime.js`);
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://127.0.0.1:3100';
 const noWebgl = process.argv.includes('--no-webgl');
+const escapeOnly = process.argv.includes('--escape-only');
 const timer = { status: 'running', enabled: true, duration_seconds: 600, remaining_seconds: 590 };
 const config = { chat: { enabled: true }, timer: { enabled: true, duration_seconds: 600 }, grid: { rows: 4, cols: 4 }, nombreJoueurs: 2, nombreIndices: 4 };
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
@@ -251,6 +252,7 @@ async function testLabMissingConfirmation() {
 
 async function testEscape(locale, width) {
   let responseMode = 'healthy';
+  let participantsMode = 'error';
   let requests = 0;
   const escape = {
     status: 'in_progress', timer, total_enigmes: 2, current_enigme_index: 0,
@@ -259,7 +261,10 @@ async function testEscape(locale, width) {
   };
   const fixture = await open('escape_room_v1', { config, timer }, { locale, width, role: 'manager',
     setup: async (context) => context.route('**/api/**/escape-room/**', async (route) => {
-      if (route.request().url().endsWith('/participants')) return route.fulfill({ json: { participants: [] } });
+      if (route.request().url().endsWith('/participants')) {
+        if (participantsMode === 'error') return route.fulfill({ status: 503, json: { error: 'Service unavailable' } });
+        return route.fulfill({ json: { participants: [] } });
+      }
       requests += 1;
       if (responseMode === 'error') return route.fulfill({ status: 503, json: { error: 'Service unavailable' } });
       if (responseMode === 'invalid') return route.fulfill({ json: {} });
@@ -270,6 +275,15 @@ async function testEscape(locale, width) {
   await page.getByText('Synchronization test', { exact: true }).first().waitFor();
   await page.getByRole('timer').waitFor();
   await page.getByRole('button', { name: locale === 'en' ? 'Pause' : 'Mettre en pause', exact: true }).waitFor();
+  const participantsAlert = page.locator('[role="alert"]').filter({ hasText: 'Service unavailable' });
+  await participantsAlert.waitFor({ timeout: 10000 });
+  const retryParticipants = participantsAlert.getByRole('button', {
+    name: locale === 'en' ? 'Retry participants' : 'Réessayer les participants',
+    exact: true,
+  });
+  participantsMode = 'healthy';
+  await retryParticipants.click();
+  await participantsAlert.waitFor({ state: 'hidden' });
   const baselineRequests = requests;
   responseMode = 'error';
   const alert = page.locator('[role="alert"]').filter({ hasText: locale === 'en' ? 'Synchronization interrupted' : 'Synchronisation interrompue' });
@@ -344,21 +358,32 @@ async function testPixel(locale, width, disableWebgl, role = 'participant') {
 }
 
 try {
-  for (const [locale, width] of [['en', 390], ['fr', 1440]]) {
-    if (noWebgl) {
-      await testPixel(locale, width, true);
-      await testPixel(locale, width, true, 'manager');
-    } else {
-      await testPhrase(locale, width);
-      await testCopuzzle(locale, 'participant', width);
-      await testCopuzzle(locale, 'manager', width);
-      await testLab(locale, width);
-      await testEscape(locale, width);
-      await testPixel(locale, width, false);
+  if (escapeOnly) {
+    await testEscape('en', 390);
+    await testEscape('fr', 1440);
+  } else {
+    for (const [locale, width] of [['en', 390], ['fr', 1440]]) {
+      if (noWebgl) {
+        await testPixel(locale, width, true);
+        await testPixel(locale, width, true, 'manager');
+      } else {
+        await testPhrase(locale, width);
+        await testCopuzzle(locale, 'participant', width);
+        await testCopuzzle(locale, 'manager', width);
+        await testLab(locale, width);
+        await testEscape(locale, width);
+        await testPixel(locale, width, false);
+      }
     }
   }
-  if (!noWebgl) await testLabMissingConfirmation();
-  console.log(noWebgl ? 'TEST_CHALLENGE_NO_WEBGL_UX_OK' : 'TEST_CHALLENGE_DIAGNOSTICS_UX_OK');
+  if (!noWebgl && !escapeOnly) await testLabMissingConfirmation();
+  console.log(
+    escapeOnly
+      ? 'TEST_ESCAPE_ROOM_PARTICIPANTS_UX_OK'
+      : noWebgl
+        ? 'TEST_CHALLENGE_NO_WEBGL_UX_OK'
+        : 'TEST_CHALLENGE_DIAGNOSTICS_UX_OK'
+  );
 } finally {
   await browser.close();
 }
