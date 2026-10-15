@@ -32,6 +32,8 @@ function ParticipantHome({ requestedSessionId }) {
   const [sessionsError, setSessionsError] = useState('');
   const [sessionId, setSessionId] = useState('');
   const [joiningSessionId, setJoiningSessionId] = useState(null);
+  const [joinSessionError, setJoinSessionError] = useState('');
+  const joinInFlightRef = useRef(false);
   const [joinCode, setJoinCode] = useState('');
   const [joinCodeMessage, setJoinCodeMessage] = useState('');
   const [joinCodeInvalid, setJoinCodeInvalid] = useState(false);
@@ -323,19 +325,54 @@ function ParticipantHome({ requestedSessionId }) {
       ? sessionDetails.participants.length
       : undefined;
 
-  function joinSession(sessionIdentifier) {
-    if (!sessionIdentifier) return;
+  async function navigateToSession(sessionIdentifier) {
+    const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionIdentifier)}/state`), {
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const state = await res.json();
+    let engine = String(state?.current_challenge?.engine_key || '').trim();
+    if (!engine && state?.active_challenge_id) {
+      const runtimeRes = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionIdentifier)}/runtime-challenge`), {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        cache: 'no-store',
+      });
+      if (!runtimeRes.ok) throw new Error(`HTTP ${runtimeRes.status}`);
+      const payload = await runtimeRes.json();
+      engine = String(payload?.engine_key || '').trim();
+      if (!engine) throw new Error(isEn ? 'Active challenge unavailable.' : 'Challenge actif indisponible.');
+    }
+    sessionStorage.setItem('targetSessionId', sessionIdentifier);
+    router.push(withLocalePath(engine
+      ? `/challenges/${encodeURIComponent(engine)}?sessionId=${encodeURIComponent(sessionIdentifier)}`
+      : `/participant?sessionId=${encodeURIComponent(sessionIdentifier)}`));
+  }
+
+  async function joinSession(sessionIdentifier) {
+    if (!sessionIdentifier || joinInFlightRef.current) return;
     const selectedSession = assignedSessions.find((session) => getSessionIdentifier(session) === String(sessionIdentifier));
     if (String(selectedSession?.status || '').trim().toLowerCase() !== 'en_cours') {
       return;
     }
-    if (sessionIdentifier !== sessionId) setJoiningSessionId(sessionIdentifier);
-    sessionStorage.setItem('targetSessionId', sessionIdentifier);
-    router.push(withLocalePath(`/participant?sessionId=${encodeURIComponent(sessionIdentifier)}`));
+    joinInFlightRef.current = true;
+    setJoiningSessionId(sessionIdentifier);
+    setJoinSessionError('');
+    try {
+      await navigateToSession(sessionIdentifier);
+    } catch (err) {
+      setJoinSessionError(`${isEn ? 'Unable to join this session. Please retry.' : 'Impossible de rejoindre cette session. Réessayez.'} ${err.message}`);
+    } finally {
+      joinInFlightRef.current = false;
+      setJoiningSessionId(null);
+    }
   }
 
   async function joinNewSession(event) {
     event.preventDefault();
+    if (joinInFlightRef.current) return;
     setJoinCodeMessage('');
     setJoinCodeInvalid(false);
     const normalizedCode = String(joinCode || '').trim().toUpperCase();
@@ -344,6 +381,7 @@ function ParticipantHome({ requestedSessionId }) {
       return;
     }
 
+    joinInFlightRef.current = true;
     setJoiningSessionId('new');
     try {
       const { res, data } = await joinParticipantAuthenticated(normalizedCode);
@@ -360,13 +398,13 @@ function ParticipantHome({ requestedSessionId }) {
         setJoinCodeMessage(isEn ? 'The server did not return a session. Please retry.' : 'Le serveur n’a pas renvoyé de session. Réessayez.');
         return;
       }
+      await navigateToSession(resolvedSessionId);
       setJoinCode('');
       setJoinModalOpen(false);
-      sessionStorage.setItem('targetSessionId', resolvedSessionId);
-      router.push(withLocalePath(`/participant?sessionId=${encodeURIComponent(resolvedSessionId)}`));
     } catch {
       setJoinCodeMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Vérifiez votre connexion.');
     } finally {
+      joinInFlightRef.current = false;
       setJoiningSessionId(null);
     }
   }
@@ -472,11 +510,11 @@ function ParticipantHome({ requestedSessionId }) {
         <div className="participant-grid">
           {/* Loading skeleton while sessions are being fetched */}
           {loadingSessions && (
-            <section className="feature-card participant-panel participant-panel--wide">
+            <section className="feature-card participant-panel participant-panel--wide participant-sessions-panel">
               <div className="participant-panel__head">
                 <div>
-                  <p className="eyebrow">{isEn ? 'ASSIGNED SESSIONS' : 'SESSIONS ASSIGNÉES'}</p>
-                  <h2>{isEn ? 'Loading your sessions...' : 'Chargement de vos sessions...'}</h2>
+                  <h2 className="participant-sessions-title">{isEn ? 'Assigned sessions' : 'Sessions assignées'}</h2>
+                  <p className="participant-help-text">{isEn ? 'Loading your sessions...' : 'Chargement de vos sessions...'}</p>
                 </div>
               </div>
               <p className="participant-help-text">{isEn ? 'Retrieving data...' : 'Récupération en cours...'}</p>
@@ -484,11 +522,12 @@ function ParticipantHome({ requestedSessionId }) {
           )}
 
           {sessionsError ? <p className="participant-error-text" role="alert">{sessionsError}</p> : null}
+          {joinSessionError ? <p className="participant-error-text" role="alert">{joinSessionError}</p> : null}
           {assignedSessions.length > 0 && (
             <section className="feature-card participant-panel participant-panel--wide participant-sessions-panel">
               <div className="participant-panel__head">
                 <div>
-                  <p className="eyebrow">{isEn ? 'ASSIGNED SESSIONS' : 'SESSIONS ASSIGNÉES'}</p>
+                  <h2 className="participant-sessions-title">{isEn ? 'Assigned sessions' : 'Sessions assignées'}</h2>
                 </div>
               </div>
               <div className="session-cards-grid participant-sessions-grid">
@@ -528,7 +567,7 @@ function ParticipantHome({ requestedSessionId }) {
                           <button
                             type="button"
                             className="btn-primary participant-session-card__cta"
-                            disabled={joiningSessionId === sessionIdentifier}
+                            disabled={Boolean(joiningSessionId)}
                             onClick={() => joinSession(sessionIdentifier)}
                           >
                             {joiningSessionId === sessionIdentifier

@@ -17,7 +17,7 @@ async function readStyles(card) {
     };
     return {
       card: pick(element, ['backgroundImage', 'borderTopColor', 'borderRadius', 'boxShadow']),
-      title: pick(element.querySelector('.session-title'), ['fontSize', 'fontWeight', 'lineHeight']),
+      title: pick(element.querySelector('.session-title'), ['color', 'fontSize', 'fontWeight', 'lineHeight']),
       badge: pick(element.querySelector('.status-pill'), ['color', 'backgroundColor', 'borderColor', 'fontSize', 'padding']),
       footer: pick(element.querySelector('.session-card-actions'), ['backgroundImage', 'backgroundColor', 'borderTopColor']),
     };
@@ -30,13 +30,13 @@ const browser = await chromium.launch({
 });
 try {
   for (const locale of ['fr', 'en']) {
-    for (const theme of ['light', 'dark', 'system']) {
-      for (const width of [390, 1440]) {
+    for (const [theme, colorScheme] of [['light', 'light'], ['dark', 'dark'], ['system', 'light'], ['system', 'dark']]) {
+      for (const width of [320, 390, 1440]) {
         const contexts = [];
         try {
           const pages = [];
           for (const role of ['user', 'participant']) {
-            const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: 'dark' });
+            const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme });
             contexts.push(context);
             await context.addInitScript(({ role, locale, theme }) => {
               sessionStorage.setItem('currentUser', JSON.stringify({ id: 123, role, name: 'Card UX', email: 'cards@example.test' }));
@@ -65,11 +65,33 @@ try {
             }, theme);
           }
           const [home, participant] = pages;
+          const headingStyles = (heading) => heading.evaluate((element) => {
+            const style = getComputedStyle(element);
+            return {
+              color: style.color,
+              backgroundImage: style.backgroundImage,
+              backgroundClip: style.backgroundClip,
+              textFillColor: style.webkitTextFillColor,
+            };
+          });
+          const heading = participant.locator('.participant-sessions-title');
+          assert.equal(await heading.textContent(), locale === 'fr' ? 'Sessions assignées' : 'Assigned sessions');
+          for (const reference of await home.locator('.home-section-title').all()) {
+            assert.deepEqual(await headingStyles(heading), await headingStyles(reference), 'Assigned sessions heading matches home headings');
+          }
+          const accents = [];
           for (let index = 0; index < 3; index += 1) {
             const reference = home.locator('.session-card').filter({ hasText: sessions[index].name });
             const card = participant.locator('.participant-session-card').nth(index);
-            assert.deepEqual(await readStyles(card), await readStyles(reference), `${locale}/${theme}/${width}: shared card styles (${sessions[index].status})`);
+            const actual = await readStyles(card);
+            const expected = await readStyles(reference);
+            assert.deepEqual(actual.title, expected.title, 'Shared session title styles');
+            assert.deepEqual(actual.badge, expected.badge, 'Shared session status styles');
+            assert.equal(actual.card.borderRadius, expected.card.borderRadius, 'Shared card shape');
+            accents.push(await card.evaluate((element) => getComputedStyle(element, '::before').backgroundImage));
           }
+          assert.equal(new Set(accents).size, 3, 'Each session status has a distinct accent');
+          assert.ok(accents.every((accent) => accent.includes('linear-gradient')), 'Status accents are visible');
           assert.equal(await participant.locator('.participant-session-card__cta').count(), 1);
           assert.equal(await participant.locator('.participant-session-card__waiting-status').count(), 3);
           const join = participant.locator('.participant-session-card__cta');
@@ -78,9 +100,14 @@ try {
           assert.equal(await join.textContent().then((text) => text.trim()), locale === 'fr' ? 'Rejoindre' : 'Join');
           const box = await join.boundingBox();
           assert.ok(box.height >= 44, 'Join target must be at least 44px tall');
+          assert.ok(box.height <= 45, `Join button stays compact: ${box.height}px`);
           assert.equal(await participant.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, 'No horizontal overflow');
           assert.equal(await participant.locator('.participant-session-card__name').last().evaluate((element) => element.scrollWidth > element.clientWidth), false, 'Long titles wrap');
-          console.log(`PASS participant session cards ${locale}/${theme}/${width}`);
+          await participant.emulateMedia({ forcedColors: 'active' });
+          const forcedHeading = await headingStyles(heading);
+          assert.equal(forcedHeading.backgroundImage, 'none', 'Forced colors remove the heading gradient');
+          assert.notEqual(forcedHeading.textFillColor, 'rgba(0, 0, 0, 0)', 'Forced colors keep the heading readable');
+          console.log(`PASS participant session cards ${locale}/${theme}/${colorScheme}/${width}`);
         } finally {
           for (const context of contexts) await context.close();
         }

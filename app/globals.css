@@ -11878,7 +11878,8 @@ html[data-theme='light'] .site-footer .footer-social__link {
   margin-inline-start: 0.5rem;
 }
 
-.manager-home .home-section-title {
+.manager-home .home-section-title,
+.participant-sessions-panel .participant-sessions-title {
   margin: 0.2rem 0 0;
   font-size: clamp(1.05rem, 1.55vw, 1.3rem);
   line-height: 1.2;
@@ -11888,7 +11889,8 @@ html[data-theme='light'] .site-footer .footer-social__link {
 }
 
 @supports (background-clip: text) or (-webkit-background-clip: text) {
-  .manager-home .home-section-title {
+  .manager-home .home-section-title,
+  .participant-sessions-panel .participant-sessions-title {
     background: var(--accent-gradient);
     -webkit-background-clip: text;
     background-clip: text;
@@ -11897,7 +11899,8 @@ html[data-theme='light'] .site-footer .footer-social__link {
 }
 
 @media (forced-colors: active) {
-  .manager-home .home-section-title {
+  .manager-home .home-section-title,
+  .participant-sessions-panel .participant-sessions-title {
     background: none;
     -webkit-text-fill-color: currentColor;
   }
@@ -13822,8 +13825,24 @@ html[data-theme='light'] .nav-toggle {
   min-width: 0;
 }
 
+.participant-sessions-grid .participant-session-card.session-card--en-cours::before {
+  background: linear-gradient(180deg, #0f766e, #14b8a6);
+}
+
+.participant-sessions-grid .participant-session-card.session-card--a-venir::before {
+  background: linear-gradient(180deg, #1d4ed8, #3b82f6);
+}
+
+.participant-sessions-grid .participant-session-card.session-card--terminee::before {
+  background: linear-gradient(180deg, #7c3aed, #a78bfa);
+}
+
 .participant-session-card__name {
   overflow-wrap: anywhere;
+}
+
+.participant-session-card__body .session-meta {
+  margin-bottom: 0;
 }
 
 .participant-session-card .participant-session-card__footer {
@@ -13836,7 +13855,10 @@ html[data-theme='light'] .nav-toggle {
   width: 100%;
   justify-content: center;
   min-height: 44px;
-  border-radius: 12px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  border-radius: 10px;
 }
 
 .participant-session-card__waiting-status {

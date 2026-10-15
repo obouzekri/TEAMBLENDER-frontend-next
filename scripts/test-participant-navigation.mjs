@@ -13,7 +13,7 @@ async function fixture(locale, width, recovery = false, authenticated = true) {
   const context = await browser.newContext({ viewport: { width, height: 900 } });
   const requests = [];
   const errors = [];
-  const control = { active: false, runtimeFallback: false, listStatus: 200, malformed: false };
+  const control = { active: false, runtimeFallback: false, listStatus: 200, stateStatus: 200, runtimeStatus: 200, malformed: false };
   await context.addInitScript(({ locale, recovery, authenticated }) => {
     if (authenticated) {
       sessionStorage.setItem('jwt', 'navigation-fixture');
@@ -46,7 +46,7 @@ async function fixture(locale, width, recovery = false, authenticated = true) {
         assert.equal(route.request().postDataJSON().sessionCode, 'BETA');
         await route.fulfill({ json: { sessionId: 43 } });
       } else if (url.pathname.endsWith('/state')) {
-        await route.fulfill({ json: {
+        await route.fulfill({ status: control.stateStatus, json: {
           status: 'en_cours',
           active_challenge_id: control.active ? 7 : null,
           current_challenge: control.active && !control.runtimeFallback
@@ -54,7 +54,7 @@ async function fixture(locale, width, recovery = false, authenticated = true) {
             : null,
         } });
       } else if (url.pathname.endsWith('/runtime-challenge')) {
-        await route.fulfill({ json: { engine_key: 'the_quiz', challenge_id: 7, config: {} } });
+        await route.fulfill({ status: control.runtimeStatus, json: { engine_key: 'the_quiz', challenge_id: 7, config: {} } });
       } else if (/\/sessions\/\d+$/.test(url.pathname)) {
         const id = Number(url.pathname.split('/').pop());
         await route.fulfill({ json: { ...sessions.find((session) => session.id === id), assigned_participants: [] } });
@@ -70,6 +70,23 @@ async function fixture(locale, width, recovery = false, authenticated = true) {
   const page = await context.newPage();
   page.on('pageerror', (error) => errors.push(error.message));
   return { context, page, requests, errors, control };
+}
+
+async function watchDirectJoin(page) {
+  const navigations = [];
+  page.on('framenavigated', (frame) => {
+    if (frame === page.mainFrame()) navigations.push(frame.url());
+  });
+  await page.evaluate(() => {
+    window.waitingRoomFlashed = false;
+    new MutationObserver(() => {
+      if (document.querySelector('.participant-live-header-shell')) window.waitingRoomFlashed = true;
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+  return async () => {
+    assert.equal(navigations.some((url) => /\/participant\?sessionId=/.test(url)), false, 'Join must not navigate through the waiting room');
+    assert.equal(await page.evaluate(() => window.waitingRoomFlashed), false, 'Join must not flash the waiting room');
+  };
 }
 
 try {
@@ -98,8 +115,10 @@ try {
           await page.clock.fastForward(15000);
           assert.equal(new URL(page.url()).pathname, `/${locale}/participant`, 'A running session must not bypass the participant home');
           assert.equal(requests.some((path) => /\/sessions\/\d+\/(?:state|runtime-challenge)$/.test(path)), false, 'Do not enter the live session before Join');
+          const assertDirectJoin = await watchDirectJoin(page);
           await join.click();
           await page.waitForURL(new RegExp(`/${locale}/challenges/the_quiz\\?sessionId=42$`));
+          await assertDirectJoin();
           assert.deepEqual(errors, []);
           console.log(`PASS new ${mode} connection requires Join for running session: ${locale}/${width}`);
         } finally { await login.context.close(); }
@@ -119,6 +138,7 @@ try {
         assert.equal(requests.some((path) => /\/sessions\/\d+\/participants$/.test(path)), false, 'No roster request on the participant home');
         assert.equal(await card('Not launched').getByRole('button').count(), 0, 'Prepared sessions remain unavailable');
         await card('Assigned Alpha').getByRole('button').click();
+        await page.waitForFunction(() => !document.querySelector('.participant-session-card__cta').disabled);
         assert.equal(await card('Assigned Alpha').getByRole('button').isEnabled(), true, 'Reopening the current waiting room must not stay busy');
         await card('Assigned Beta').getByRole('button').click();
         await page.waitForURL(/\/participant\?sessionId=43$/);
@@ -156,6 +176,29 @@ try {
     }
   }
 
+  for (const failure of ['state', 'runtime']) {
+    const current = await fixture('fr', 1440);
+    try {
+      const { page, control, errors } = current;
+      control.active = true;
+      control.runtimeFallback = failure === 'runtime';
+      control[`${failure}Status`] = 503;
+      await page.goto(`${baseUrl}/fr/participant`);
+      const join = page.locator('.participant-session-card__cta').first();
+      await join.click();
+      await page.getByRole('alert').filter({ hasText: 'Impossible de rejoindre cette session' }).waitFor();
+      assert.equal(new URL(page.url()).pathname, '/fr/participant', 'Failed join must stay on home');
+      assert.equal(await join.isEnabled(), true, 'Failed join must allow retry');
+      control[`${failure}Status`] = 200;
+      const assertDirectJoin = await watchDirectJoin(page);
+      await join.click();
+      await page.waitForURL(/\/fr\/challenges\/the_quiz\?sessionId=42$/);
+      await assertDirectJoin();
+      assert.deepEqual(errors, []);
+      console.log(`PASS direct join ${failure} failure and retry`);
+    } finally { await current.context.close(); }
+  }
+
   const current = await fixture('fr', 1440);
   try {
     const { page, control, errors } = current;
@@ -171,12 +214,14 @@ try {
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     await page.locator('.participant-session-card__cta').first().waitFor();
     await page.locator('.participant-error-text[role="alert"]').waitFor({ state: 'hidden' });
+    control.active = true;
+    const assertDirectJoin = await watchDirectJoin(page);
     await page.locator('.participant-join-trigger').click();
     const dialog = page.getByRole('dialog');
     await dialog.getByRole('textbox').fill('beta');
     await dialog.getByRole('button', { name: 'Rejoindre', exact: true }).click();
-    await page.waitForURL(/\/participant\?sessionId=43$/);
-    await page.locator('.participant-meta-line').filter({ hasText: '43' }).waitFor();
+    await page.waitForURL(/\/fr\/challenges\/the_quiz\?sessionId=43$/);
+    await assertDirectJoin();
     assert.deepEqual(errors, []);
     console.log('PASS session errors, retry and direct authenticated code join');
   } finally { await current.context.close(); }
