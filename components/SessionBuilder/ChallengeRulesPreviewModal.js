@@ -12,6 +12,7 @@ import { getPhraseMystereRulesPreset } from '@/lib/challenges/phraseMystereRules
 import { getCopuzzleRulesPreset } from '@/lib/challenges/copuzzleRules';
 import { getLabInnovationRulesPreset } from '@/lib/challenges/labInnovationRules';
 import { getCrosswordRulesPreset } from '@/lib/challenges/crosswordRules';
+import { isScoringRule } from '@/lib/challenges/rules';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './ChallengeRulesPreviewModal.module.css';
@@ -149,7 +150,6 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
   }, [onClose]);
 
   const rules = getFallbackRules(challenge, locale);
-  const isEn = locale === 'en';
   const duration = Number(challenge?.duration || challenge?.config?.duration_minutes || 0);
   const playerRange = resolveChallengePlayerRange(challenge);
   const isLabyrinthe = String(challenge?.engine_key || '').trim() === 'labyrinthe_live_v1';
@@ -166,20 +166,12 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
   const recommendedPlayers = String(isLabyrinthe ? labyrintheParticipants?.recommended : isVom ? vomParticipants?.recommended : isMissionCritique ? missionCritiqueParticipants?.recommended : isEscapeRoom ? escapeRoomParticipants?.recommended : isLabInnovation ? labInnovationParticipants?.recommended : playerRange.recommended || '').trim();
   const maxPlayers = String(isLabyrinthe ? labyrintheParticipants?.max : isVom ? vomParticipants?.max : isMissionCritique ? missionCritiqueParticipants?.max : isEscapeRoom ? escapeRoomParticipants?.max : isLabInnovation ? labInnovationParticipants?.max : playerRange.max || '').trim();
   const playersRuleText = [
-    minPlayers ? `${isEn ? 'minimum' : 'minimum'} ${minPlayers}` : '',
-    recommendedPlayers ? `${isEn ? 'recommended' : 'recommandé'} ${recommendedPlayers}` : '',
-    maxPlayers ? `${isEn ? 'maximum' : 'maximum'} ${maxPlayers}` : '',
+    minPlayers ? `${t('challengeRulesPanel.min')} ${minPlayers}` : '',
+    recommendedPlayers ? `${t('challengeRulesPanel.recommended')} ${recommendedPlayers}` : '',
+    maxPlayers ? `${t('challengeRulesPanel.max')} ${maxPlayers}` : '',
   ].filter(Boolean);
-  const facilitatorRulesWithPlayers = [
-    ...(playersRuleText.length > 0
-      ? [
-        isEn
-          ? `Recommended player format: ${playersRuleText.join(', ')}.`
-          : `Format de joueurs recommandé : ${playersRuleText.join(', ')}.`
-      ]
-      : []),
-    ...rules.facilitator,
-  ];
+  const regularParticipantRules = rules.participant.filter((rule) => !isScoringRule(rule));
+  const scoringRules = rules.participant.filter(isScoringRule);
 
   const modalTitleId = 'challenge-rules-preview-title';
 
@@ -196,29 +188,48 @@ export default function ChallengeRulesPreviewModal({ challenge, onClose }) {
           <div>
             <h2 id={modalTitleId} className={styles.challengeTitle}>{t('challengeRulesPanel.modalTitle')}</h2>
             <p className={styles.objective}>{rules.objective}</p>
+            {playersRuleText.length > 0 ? (
+              <p className={styles.playersMeta}>{playersRuleText.join(' · ')}</p>
+            ) : null}
           </div>
           <button type="button" className={styles.closeButton} onClick={onClose} aria-label={t('challengeRulesPanel.closeRulesWindow')}>
             {t('challengeRulesPanel.closeRules')}
           </button>
         </header>
 
-        <section className={styles.rulesSection}>
-          <h3 className={styles.sectionTitle}>🎯 {t('challengeRulesPanel.facilitator')}</h3>
-          <ul>
-            {facilitatorRulesWithPlayers.map((rule) => (
-              <li key={`facilitator-${rule}`}>{rule}</li>
-            ))}
-          </ul>
-        </section>
+        {regularParticipantRules.length > 0 || scoringRules.length > 0 ? (
+          <section className={styles.rulesSection}>
+            <h3 className={styles.sectionTitle}>🧭 {t('challengeRulesPanel.playFlow')}</h3>
+            {regularParticipantRules.length > 0 ? (
+              <ul>
+                {regularParticipantRules.map((rule) => (
+                  <li key={`participant-${rule}`}>{rule}</li>
+                ))}
+              </ul>
+            ) : null}
+            {scoringRules.length > 0 ? (
+              <div className={styles.scoringRules}>
+                <h3 className={styles.sectionTitle}>🏆 {t('challengeRulesPanel.scoringSuccess')}</h3>
+                <ul>
+                  {scoringRules.map((rule) => (
+                    <li key={`participant-score-${rule}`}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </section>
+        ) : null}
 
-        <section className={`${styles.rulesSection} ${styles.rulesSectionParticipant}`}>
-          <h3 className={styles.sectionTitle}>🧭 {t('challengeRulesPanel.participants')}</h3>
-          <ul>
-            {rules.participant.map((rule) => (
-              <li key={`participant-${rule}`}>{rule}</li>
-            ))}
-          </ul>
-        </section>
+        {rules.facilitator.length > 0 ? (
+          <details className={styles.facilitatorDetails}>
+            <summary>{t('challengeRulesPanel.facilitatorTips')}</summary>
+            <ul>
+              {rules.facilitator.map((rule) => (
+                <li key={`facilitator-${rule}`}>{rule}</li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
 
         {rules.footnote ? <p className={`${styles.footnote}`}>{rules.footnote}</p> : null}
 

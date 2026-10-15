@@ -20,6 +20,7 @@ const timerSource = read('components/Challenges/ChallengeTimerCard.js');
 const presentationSource = read('components/Challenges/ChallengePresentation.js');
 const actionFeedbackSource = read('components/Challenges/ChallengeActionFeedback.js');
 const rulesPresetSource = read('lib/challenges/crosswordRules.js');
+const challengeRulesSource = read('lib/challenges/rules.js');
 const sharedCss = ['ChallengeRulesPanel', 'ChallengeTimerCard', 'ChallengePresentation']
   .map((name) => read(`components/Challenges/${name}.module.css`).replace(/:global\(([^)]+)\)/g, '$1'))
   .join('\n');
@@ -34,7 +35,7 @@ try {
   await page.addScriptTag({ path: path.join(root, 'node_modules', 'react', 'umd', 'react.development.js') });
   await page.addScriptTag({ path: path.join(root, 'node_modules', 'react-dom', 'umd', 'react-dom.development.js') });
   await page.addStyleTag({ content: `${globalCss}\nbody { margin: 0; padding: 12px; box-sizing: border-box; } ${sharedCss} ${css} ${modalCss}` });
-  await page.evaluate(({ ui, modal, hook, rules, timer, presentation, actionFeedback, rulesPreset }) => {
+  await page.evaluate(({ ui, modal, hook, rules, timer, presentation, actionFeedback, rulesPreset, challengeRules }) => {
     const R = globalThis.React;
     const h = R.createElement;
     globalThis.locale = 'en';
@@ -73,6 +74,7 @@ try {
     const mocks = {
       react: { ...R, default: R },
       '@/lib/i18n/useI18n': i18n,
+      '@/lib/i18n/routing': { normalizeLocale: (value) => value },
       '@/lib/challenges/useRealtimeChallenge': mockRealtime,
       '@/lib/challenges/useFacilitatorTimerControls': () => ({
         busy: false, feedback: null,
@@ -109,6 +111,7 @@ try {
       return module.exports;
     };
     mocks['@/lib/challenges/crosswordRules'] = load(rulesPreset);
+    mocks['@/lib/challenges/rules'] = load(challengeRules);
     mocks['../ChallengeRulesPanel'] = load(rules).default;
     mocks['../ChallengeTimerCard'] = load(timer).default;
     mocks['../ChallengePresentation'] = load(presentation).default;
@@ -122,7 +125,7 @@ try {
     render();
   }, {
     ui: transpile(uiSource), modal: transpile(modalSource), hook: transpile(hookSource),
-    rules: transpile(rulesSource), timer: transpile(timerSource),
+    rules: transpile(rulesSource), timer: transpile(timerSource), challengeRules: transpile(challengeRulesSource),
     presentation: transpile(presentationSource), rulesPreset: transpile(rulesPresetSource),
     actionFeedback: transpile(actionFeedbackSource),
   });

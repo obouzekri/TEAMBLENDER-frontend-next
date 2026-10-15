@@ -5,26 +5,8 @@ import { ChallengeConnectionContext } from '@/lib/challenges/connection-context'
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import useModalFocus from '@/lib/useModalFocus';
+import { isScoringRule } from '@/lib/challenges/rules';
 import styles from './ChallengeRulesPanel.module.css';
-
-function isScoringRule(rule) {
-  const normalizedRule = String(rule || '').toLowerCase();
-  return (
-    normalizedRule.includes('barème')
-    || normalizedRule.includes('score')
-    || normalizedRule.includes('scoring')
-    || normalizedRule.includes('points')
-    || normalizedRule.includes('point')
-    || normalizedRule.includes('bonne réponse')
-    || normalizedRule.includes('correct answer')
-    || normalizedRule.includes('non posé')
-    || normalizedRule.includes('non répondu')
-    || normalizedRule.includes('no statement')
-    || normalizedRule.includes('no answer')
-    || normalizedRule.includes('wrong answer')
-    || normalizedRule.includes('mauvaise réponse')
-  );
-}
 
 export default function ChallengeRulesPanel({
   isStarted,
@@ -49,7 +31,6 @@ export default function ChallengeRulesPanel({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const { locale, t } = useI18n();
-  const isEn = locale === 'en';
   const connected = useContext(ChallengeConnectionContext);
 
   useBodyScrollLock(isOpen);
@@ -66,26 +47,14 @@ export default function ChallengeRulesPanel({
   const canStartFromRules = !isStarted && isFacilitator && typeof onStart === 'function';
   const resolvedBriefTitle = briefTitle || t('challengeRulesPanel.briefTitle');
   const resolvedStartLabel = startLabel || t('challengeRulesPanel.startChallenge');
-  const facilitatorLabel = t('challengeRulesPanel.facilitator');
-  const participantLabel = t('challengeRulesPanel.participants');
   const minPlayers = String(participantsMeta?.min || '').trim();
   const recommendedPlayers = String(participantsMeta?.recommended || '').trim();
   const maxPlayers = String(participantsMeta?.max || '').trim();
   const playersRuleText = [
-    minPlayers ? `${isEn ? 'minimum' : 'minimum'} ${minPlayers}` : '',
-    recommendedPlayers ? `${isEn ? 'recommended' : 'recommandé'} ${recommendedPlayers}` : '',
-    maxPlayers ? `${isEn ? 'maximum' : 'maximum'} ${maxPlayers}` : '',
+    minPlayers ? `${t('challengeRulesPanel.min')} ${minPlayers}` : '',
+    recommendedPlayers ? `${t('challengeRulesPanel.recommended')} ${recommendedPlayers}` : '',
+    maxPlayers ? `${t('challengeRulesPanel.max')} ${maxPlayers}` : '',
   ].filter(Boolean);
-  const facilitatorRulesWithPlayers = [
-    ...(playersRuleText.length > 0
-      ? [
-        isEn
-          ? `Player format: ${playersRuleText.join(' · ')}.`
-          : `Format de joueurs : ${playersRuleText.join(' · ')}.`
-      ]
-      : []),
-    ...facilitatorRules,
-  ];
   const regularParticipantRules = participantRules.filter((rule) => !isScoringRule(rule));
   const scoringRules = participantRules.filter((rule) => isScoringRule(rule));
 
@@ -94,43 +63,44 @@ export default function ChallengeRulesPanel({
       <header className={styles.rulesHeader}>
         <h3 className={styles.rulesBriefTitle}>{resolvedBriefTitle}</h3>
         <p className="challenge-text">{objective}</p>
+        {playersRuleText.length > 0 ? (
+          <p className={styles.rulesMeta}>{playersRuleText.join(' · ')}</p>
+        ) : null}
       </header>
 
-      <div className={`${styles.rulesColumns}${isFacilitator ? '' : ` ${styles.rulesColumnsSingle}`}`}>
-        {isFacilitator ? (
-          <section className={styles.rulesSection}>
-            <h3 className="challenge-section-title">🎯 {facilitatorLabel}</h3>
+      {regularParticipantRules.length > 0 || scoringRules.length > 0 ? (
+        <section className={styles.rulesSection}>
+          <h3 className="challenge-section-title">🧭 {t('challengeRulesPanel.playFlow')}</h3>
+          {regularParticipantRules.length > 0 ? (
             <ul>
-              {facilitatorRulesWithPlayers.map((rule) => (
-                <li key={`facilitator-${rule}`}>{rule}</li>
+              {regularParticipantRules.map((rule) => (
+                <li key={`participant-${rule}`}>{rule}</li>
               ))}
             </ul>
-          </section>
-        ) : null}
-
-        <section className={`${styles.rulesSection} ${styles.rulesSectionParticipant}`}>
-          <h3 className="challenge-section-title">🧭 {participantLabel}</h3>
-          <div className={styles.rulesGroupedList}>
-            <div className={styles.rulesGroup}>
+          ) : null}
+          {scoringRules.length > 0 ? (
+            <div className={styles.rulesScoring}>
+              <h3 className="challenge-section-title">🏆 {t('challengeRulesPanel.scoringSuccess')}</h3>
               <ul>
-                {regularParticipantRules.map((rule) => (
-                  <li key={`participant-${rule}`}>{rule}</li>
+                {scoringRules.map((rule) => (
+                  <li key={`participant-score-${rule}`}>{rule}</li>
                 ))}
               </ul>
             </div>
-            {scoringRules.length > 0 ? (
-              <div className={styles.rulesGroup}>
-                <h3 className="challenge-section-title">🏆 {isEn ? 'Scoring' : 'Barème des points'}</h3>
-                <ul>
-                  {scoringRules.map((rule) => (
-                    <li key={`participant-score-${rule}`}>{rule}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </div>
+          ) : null}
         </section>
-      </div>
+      ) : null}
+
+      {isFacilitator && facilitatorRules.length > 0 ? (
+        <details className={styles.rulesFacilitator}>
+          <summary>{t('challengeRulesPanel.facilitatorTips')}</summary>
+          <ul>
+            {facilitatorRules.map((rule) => (
+              <li key={`facilitator-${rule}`}>{rule}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
 
       {footnote ? <p className={`${styles.rulesFootnote} challenge-text`}>{footnote}</p> : null}
 

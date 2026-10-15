@@ -83,6 +83,12 @@
   overflow-wrap: anywhere;
 }
 
+.rulesHeader .rulesMeta {
+  color: var(--ch-text-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .rulesSection {
   display: grid;
   gap: clamp(7px, 0.7vw, 10px);
@@ -90,52 +96,16 @@
 }
 
 .rulesSection + .rulesSection,
-.rulesSection + .rulesFootnote {
+.rulesSection + .rulesFootnote,
+.rulesSection + .rulesFacilitator {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.rulesColumns {
+.rulesScoring {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: stretch;
-  gap: clamp(12px, 1.2vw, 18px);
-}
-
-.rulesColumnsSingle {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.rulesColumns > .rulesSection {
-  align-content: start;
-  padding: clamp(12px, 1vw, 16px);
-  border: 1px solid var(--ch-line-soft);
-  border-radius: 12px;
-  background: var(--ch-surface-2);
-}
-
-.rulesGroupedList {
-  display: grid;
-  gap: clamp(8px, 0.8vw, 12px);
-}
-
-.rulesGroup {
-  padding: clamp(10px, 0.9vw, 14px) 0;
-}
-
-.rulesGroup + .rulesGroup {
+  gap: clamp(7px, 0.7vw, 10px);
+  padding-top: clamp(10px, 0.9vw, 14px);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.rulesGroup > h3 + ul {
-  margin-top: 1em;
-}
-
-.rulesGroup h4 {
-  margin: 0 0 6px;
-  color: var(--challenge-text-accent, #7dd3fc);
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
 }
 
 .rulesSection ul {
@@ -184,9 +154,6 @@
     padding: 16px 0;
   }
 
-  .rulesGroup {
-    padding: 14px 0;
-  }
 }
 
 .rulesSection ul li {
@@ -194,8 +161,31 @@
   overflow-wrap: anywhere;
 }
 
-.rulesSectionParticipant ul {
-  font-size: 0.85rem;
+.rulesFacilitator {
+  display: grid;
+  gap: 10px;
+  padding-top: clamp(10px, 0.9vw, 14px);
+}
+
+.rulesFacilitator summary {
+  color: var(--ch-text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rulesFacilitator ul {
+  margin: 0;
+  padding-left: clamp(16px, 1.2vw, 22px);
+  display: grid;
+  gap: clamp(5px, 0.6vw, 8px);
+}
+
+.rulesFacilitator li {
+  color: var(--ch-text-main);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .metaList {
@@ -389,22 +379,9 @@
     gap: 10px;
   }
 
-  .rulesColumns {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-  }
-
-  .rulesColumns > .rulesSection {
-    padding: 10px;
-  }
-
   .rulesSection {
     padding: 10px;
     gap: 8px;
-  }
-
-  .rulesGroup {
-    padding: 8px;
   }
 
   .rulesSection ul {

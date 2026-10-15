@@ -61,6 +61,14 @@
   overflow-wrap: anywhere;
 }
 
+.playersMeta {
+  margin: 0;
+  color: #9cb2c7;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .closeButton {
   border: 1px solid rgba(148, 163, 184, 0.32);
   background: rgba(15, 23, 42, 0.68);
@@ -87,6 +95,39 @@
   padding: 1rem;
 }
 
+.scoringRules {
+  display: grid;
+  gap: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(125, 211, 252, 0.14);
+}
+
+.facilitatorDetails {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid rgba(125, 211, 252, 0.14);
+}
+
+.facilitatorDetails summary {
+  color: #9cb2c7;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.facilitatorDetails ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: #c9ddf0;
+  font-size: 0.85rem;
+  display: grid;
+  gap: 0.6rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  list-style: disc;
+}
+
 .sectionTitle {
   margin: 0;
   color: rgba(125, 211, 252, 0.9);
@@ -110,10 +151,6 @@
 .rulesSection li {
   line-height: 1.5;
   overflow-wrap: anywhere;
-}
-
-.rulesSectionParticipant ul {
-  font-size: 0.85rem;
 }
 
 .footnote {
