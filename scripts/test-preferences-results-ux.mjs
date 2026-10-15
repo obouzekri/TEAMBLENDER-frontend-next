@@ -37,6 +37,7 @@ try {
     const context = await browser.newContext({ locale, viewport: { width, height: 1000 } });
     const failures = new Map();
     let resultRows = [];
+    let notificationPreferences = { session_reminders: false, activity_summaries: true };
     const apiCalls = [];
     try {
       await context.addInitScript(({ user, locale, theme }) => {
@@ -56,7 +57,12 @@ try {
           if (failure === 'malformed') return route.fulfill({ json: {} });
           if (failure) return route.fulfill({ status: failure, json: { message: 'Fixture service unavailable' } });
           let payload = [];
-          if (url.pathname.endsWith('/users/me')) payload = user;
+          if (endpoint === 'notification-preferences') {
+            if (request.method() === 'PATCH') notificationPreferences = request.postDataJSON();
+            payload = notificationPreferences;
+          }
+          else if (url.pathname.endsWith('/auth/csrf-token')) payload = { csrfToken: 'fixture-csrf' };
+          else if (url.pathname.endsWith('/users/me')) payload = user;
           else if (/\/sessions\/42$/.test(url.pathname)) payload = { id: 42, name: 'Fixture results', status: 'terminee' };
           else if (endpoint === 'results') payload = { data: resultRows };
           else if (endpoint === 'participation-rate') payload = { data: { rate: 0, total_invited: 2 } };
@@ -73,10 +79,13 @@ try {
       await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
       const checkboxes = page.getByRole('checkbox');
       assert.equal(await checkboxes.count(), 4);
-      assert.ok(await checkboxes.nth(0).isDisabled());
-      assert.ok(await checkboxes.nth(1).isDisabled());
+      await page.getByRole('button', { name: preferences.save, exact: true }).waitFor();
+      await page.waitForFunction(() => !document.querySelector('.preferences-toggle input')?.disabled);
+      assert.equal(await checkboxes.nth(0).isDisabled(), false);
+      assert.equal(await checkboxes.nth(1).isDisabled(), false);
       assert.equal(await checkboxes.nth(0).isChecked(), false);
-      await page.getByText(preferences.notificationsUnavailable, { exact: true }).waitFor();
+      assert.equal(await checkboxes.nth(1).isChecked(), true);
+      await page.getByText(preferences.accountStorage, { exact: true }).waitFor();
       const main = page.locator('.preferences-page');
       assert.equal(await main.getByRole('heading', { level: 1, name: preferences.title, exact: true }).count(), 1);
       assert.equal(await main.getByText(preferences.title, { exact: true }).count(), 1);
@@ -140,10 +149,13 @@ try {
       }));
       const initialHeight = await navHeight();
       const initialColors = await secondaryColors();
+      await checkboxes.nth(0).locator('xpath=ancestor::label').click();
+      await checkboxes.nth(1).locator('xpath=ancestor::label').click();
       await checkboxes.nth(2).locator('xpath=ancestor::label').click();
       await checkboxes.nth(3).locator('xpath=ancestor::label').click();
       await page.getByRole('button', { name: preferences.save, exact: true }).click();
       await page.getByText(preferences.saved, { exact: true }).waitFor();
+      assert.deepEqual(notificationPreferences, { session_reminders: true, activity_summaries: false });
       assert.deepEqual(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), DISPLAY_PREFERENCES_KEY), { compactNavigation: true, highContrast: true });
       await page.waitForFunction(({ text, color }) => [...document.querySelectorAll('.preferences-toggle small')]
         .some((element) => element.textContent === text && getComputedStyle(element).color === color), {
@@ -160,6 +172,8 @@ try {
       await page.getByRole('heading', { name: preferences.title, exact: true }).waitFor();
       assert.ok(await checkboxes.nth(2).isChecked());
       assert.ok(await checkboxes.nth(3).isChecked());
+      assert.ok(await checkboxes.nth(0).isChecked());
+      assert.equal(await checkboxes.nth(1).isChecked(), false);
       assert.equal(await navHeight(), compactHeight);
       await checkPreferencesSpacing();
       await page.goto(`${baseUrl}/${locale}/account?tab=security`);
@@ -187,7 +201,25 @@ try {
       assert.equal(await page.getByText(preferences.saved, { exact: true }).count(), 0);
       assert.equal(await page.locator('html').getAttribute('data-high-contrast'), 'true');
       assert.equal(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)).highContrast, DISPLAY_PREFERENCES_KEY), true);
-      assert.ok(apiCalls.every((call) => call.method === 'GET'));
+      assert.ok(apiCalls.filter((call) => call.method === 'PATCH')
+        .every((call) => call.path.endsWith('/users/me/notification-preferences')));
+
+      failures.set('notification-preferences', 503);
+      await page.reload();
+      await page.getByText(preferences.notificationsLoadError, { exact: true }).waitFor();
+      assert.ok(await checkboxes.nth(0).isDisabled());
+      assert.ok(await page.getByRole('button', { name: preferences.save, exact: true }).isDisabled());
+      failures.clear();
+      await page.getByRole('button', { name: preferences.retry, exact: true }).click();
+      await page.waitForFunction(() => !document.querySelector('.preferences-toggle input')?.disabled);
+      assert.ok(await checkboxes.nth(0).isChecked());
+      failures.set('notification-preferences', 503);
+      await checkboxes.nth(0).locator('xpath=ancestor::label').click();
+      await page.getByRole('button', { name: preferences.save, exact: true }).click();
+      await page.getByText(preferences.saveError, { exact: true }).waitFor();
+      assert.equal(notificationPreferences.session_reminders, true);
+      assert.equal(await page.getByText(preferences.saved, { exact: true }).count(), 0);
+      failures.clear();
 
       const errorTitle = locale === 'fr' ? 'Impossible de charger les résultats' : 'Unable to load results';
       const emptyTitle = locale === 'fr' ? 'Aucun résultat enregistré' : 'No results recorded';

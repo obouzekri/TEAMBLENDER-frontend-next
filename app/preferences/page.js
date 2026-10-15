@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
+import { Bell, Globe2, Palette, Save, SlidersHorizontal } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -8,7 +9,7 @@ import ToastContainer from '@/components/ToastContainer';
 import { clearStoredAuth } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 import useToast from '@/lib/useToast';
-import { getStoredCurrentUser } from '@/lib/account';
+import { getStoredCurrentUser, getNotificationPreferences, updateNotificationPreferences } from '@/lib/account';
 import { ensureUserAvatarProfile, resolveUserAvatar } from '@/lib/avatar-profile';
 import {
   applyDisplayPreferences,
@@ -24,6 +25,11 @@ export default function PreferencesPage() {
   const [guard, setGuard] = useState({ loading: true, user: null });
   const [prefs, setPrefs] = useState({ ...DEFAULT_DISPLAY_PREFERENCES });
   const [themePreference, setThemePreference] = useState('system');
+  const [notifications, setNotifications] = useState(null);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const [notificationsError, setNotificationsError] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [reloadNotifications, setReloadNotifications] = useState(0);
   const preferencesInitRef = useRef(false);
 
   useEffect(() => {
@@ -46,6 +52,21 @@ export default function PreferencesPage() {
     }
     setGuard({ loading: false, user: normalizedCurrent });
   }, [showError, t, withLocalePath]);
+
+  useEffect(() => {
+    if (guard.loading) return;
+    let cancelled = false;
+    setNotificationsLoading(true);
+    setNotificationsError(false);
+    getNotificationPreferences()
+      .then((values) => { if (!cancelled) setNotifications(values); })
+      .catch((error) => {
+        console.error('Unable to load notification preferences', error);
+        if (!cancelled) setNotificationsError(true);
+      })
+      .finally(() => { if (!cancelled) setNotificationsLoading(false); });
+    return () => { cancelled = true; };
+  }, [guard.loading, reloadNotifications]);
 
   const userLabel = String(
     guard.user?.name ||
@@ -85,15 +106,20 @@ export default function PreferencesPage() {
     setThemePreference(nextPreference);
   }
 
-  function savePreferences() {
+  async function savePreferences() {
+    if (saving || notificationsLoading || notificationsError || !notifications) return;
+    setSaving(true);
     try {
+      await updateNotificationPreferences(notifications);
       const saved = saveDisplayPreferences(prefs, localStorage);
       applyDisplayPreferences(saved, document.documentElement);
       window.dispatchEvent(new Event(DISPLAY_PREFERENCES_EVENT));
       showSuccess(t('preferencesPage.saved'));
     } catch (error) {
-      console.error('Unable to save display preferences', error);
+      console.error('Unable to save preferences', error);
       showError(t('preferencesPage.saveError'));
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -120,23 +146,32 @@ export default function PreferencesPage() {
       />
       <main className="shell app-home preferences-page">
         <section className="preferences-page-header" aria-label={t('preferencesPage.headerAria')}>
-          <h1 className="eyebrow">{t('preferencesPage.title')}</h1>
-          <p>{t('preferencesPage.intro')}</p>
+          <div>
+            <h1>{t('preferencesPage.title')}</h1>
+            <p>{t('preferencesPage.intro')}</p>
+          </div>
+          <span className="preferences-hero-icon" aria-hidden="true"><SlidersHorizontal size={40} /></span>
         </section>
 
         <section className="preferences-panel" aria-labelledby="preferences-notifications-title">
           <header className="preferences-panel__header">
-            <h2 id="preferences-notifications-title" className="eyebrow">{t('preferencesPage.notificationsTitle')}</h2>
-            <p id="preferences-notifications-unavailable">{t('preferencesPage.notificationsUnavailable')}</p>
+            <h2 id="preferences-notifications-title"><Bell size={20} aria-hidden="true" />{t('preferencesPage.notificationsTitle')}</h2>
+            <p>{t('preferencesPage.notificationsIntro')}</p>
+            <p>{t('preferencesPage.accountStorage')}</p>
           </header>
-          <div className="preferences-panel__body">
+          <div className="preferences-panel__body" aria-busy={notificationsLoading}>
+            {notificationsLoading && <p role="status">{t('preferencesPage.loadingBody')}</p>}
+            {notificationsError && <div role="alert">
+              <p>{t('preferencesPage.notificationsLoadError')}</p>
+              <button type="button" className="btn-secondary" onClick={() => setReloadNotifications((value) => value + 1)}>{t('preferencesPage.retry')}</button>
+            </div>}
             <label className="preferences-toggle">
               <span>
                 <strong>{t('preferencesPage.sessionRemindersTitle')}</strong>
                 <small>{t('preferencesPage.sessionRemindersBody')}</small>
               </span>
               <span className="preferences-toggle__switch">
-                <input type="checkbox" checked={false} disabled aria-describedby="preferences-notifications-unavailable" />
+                <input type="checkbox" checked={notifications?.session_reminders ?? false} disabled={notificationsLoading || notificationsError || saving} onChange={(event) => setNotifications((current) => ({ ...current, session_reminders: event.target.checked }))} />
                 <span className="preferences-toggle__track" />
               </span>
             </label>
@@ -146,7 +181,7 @@ export default function PreferencesPage() {
                 <small>{t('preferencesPage.activitySummariesBody')}</small>
               </span>
               <span className="preferences-toggle__switch">
-                <input type="checkbox" checked={false} disabled aria-describedby="preferences-notifications-unavailable" />
+                <input type="checkbox" checked={notifications?.activity_summaries ?? false} disabled={notificationsLoading || notificationsError || saving} onChange={(event) => setNotifications((current) => ({ ...current, activity_summaries: event.target.checked }))} />
                 <span className="preferences-toggle__track" />
               </span>
             </label>
@@ -155,7 +190,7 @@ export default function PreferencesPage() {
 
         <section className="preferences-panel" aria-labelledby="preferences-appearance-title">
           <header className="preferences-panel__header">
-            <h2 id="preferences-appearance-title" className="eyebrow">{t('preferencesPage.appearanceTitle')}</h2>
+            <h2 id="preferences-appearance-title"><Palette size={20} aria-hidden="true" />{t('preferencesPage.appearanceTitle')}</h2>
             <p>{t('preferencesPage.appearanceIntro')}</p>
             <p>{t('preferencesPage.browserStorage')}</p>
           </header>
@@ -203,12 +238,12 @@ export default function PreferencesPage() {
         </section>
 
         <section className="preferences-panel preferences-language-row" aria-labelledby="preferences-language-title">
-          <h2 id="preferences-language-title" className="eyebrow">{t('preferencesPage.languageEyebrow')}</h2>
+          <h2 id="preferences-language-title"><Globe2 size={20} aria-hidden="true" />{t('preferencesPage.languageEyebrow')}</h2>
           <LanguageSwitcher />
         </section>
 
         <div className="preferences-actions">
-          <button type="button" className="btn-primary" onClick={savePreferences}>{t('preferencesPage.save')}</button>
+          <button type="button" className="btn-primary" disabled={saving || notificationsLoading || notificationsError} onClick={savePreferences}><Save size={18} aria-hidden="true" />{t(saving ? 'preferencesPage.saving' : 'preferencesPage.save')}</button>
         </div>
       </main>
       <Footer />
@@ -234,9 +269,52 @@ export default function PreferencesPage() {
         }
 
         .preferences-page-header {
-          padding: clamp(1rem, 2vw, 1.5rem) clamp(1rem, 2.4vw, 1.75rem);
+          padding: clamp(1.5rem, 3vw, 2.5rem);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1.5rem;
+          background:
+            radial-gradient(ellipse at top right, color-mix(in srgb, var(--accent) 15%, transparent), transparent 65%),
+            var(--surface-panel);
+        }
+
+        .preferences-page-header h1 {
+          font-size: clamp(1.8rem, 3vw, 2.5rem);
+          line-height: 1.15;
+          letter-spacing: -0.04em;
+          color: var(--text-strong);
+        }
+
+        .preferences-page-header p {
+          max-width: 42rem;
+          margin-top: 0.8rem !important;
+        }
+
+        .preferences-hero-icon {
           display: grid;
-          gap: 0.35rem;
+          place-items: center;
+          flex-shrink: 0;
+          width: 5rem;
+          height: 5rem;
+          border-radius: 24px;
+          background: color-mix(in srgb, var(--accent) 12%, var(--surface-panel));
+          color: var(--accent);
+          transform: rotate(-8deg);
+        }
+
+        .preferences-panel h2 {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+          color: var(--text-strong);
+          font-size: 1.15rem;
+          font-weight: 750;
+        }
+
+        .preferences-panel h2 svg {
+          flex-shrink: 0;
+          color: var(--accent);
         }
 
         .preferences-page-header h1,
@@ -277,10 +355,16 @@ export default function PreferencesPage() {
           gap: 1rem;
           padding: 0.9rem 1rem;
           border: 1px solid color-mix(in srgb, var(--surface-soft-border) 68%, transparent);
-          border-radius: 10px;
+          border-radius: 16px;
           background: var(--surface-panel-soft);
           color: var(--text-strong);
           box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+          cursor: pointer;
+          transition: border-color 0.2s ease;
+        }
+
+        .preferences-toggle:has(input:checked) {
+          border-color: color-mix(in srgb, var(--accent) 45%, var(--surface-soft-border));
         }
 
         .preferences-toggle > span:first-child {
@@ -416,7 +500,22 @@ export default function PreferencesPage() {
           justify-content: flex-end;
         }
 
+        .preferences-actions button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.6rem;
+          border-radius: 999px;
+        }
+
         @media (max-width: 640px) {
+          .preferences-hero-icon {
+            display: none;
+          }
+
+          .preferences-actions button {
+            width: 100%;
+          }
           .preferences-toggle {
             align-items: flex-start;
           }
