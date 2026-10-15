@@ -12,11 +12,6 @@ const COMPANY_SIZES = {
   en: ['1 to 10 people', '11 to 50 people', '51 to 200 people', '201 to 500 people', '500+ people'],
 };
 
-const OBJECTIVES = {
-  fr: ['Renforcer la cohésion', 'Accueillir de nouveaux collaborateurs', 'Lancer un séminaire', 'Fédérer une équipe hybride', 'Autre objectif RH'],
-  en: ['Strengthen cohesion', 'Onboard new employees', 'Launch a seminar', 'Unify a hybrid team', 'Other HR goal'],
-};
-
 export default function ContactPage() {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
@@ -25,9 +20,7 @@ export default function ContactPage() {
     company: '',
     companySize: '',
     email: '',
-    phone: '',
     need: '',
-    objective: '',
     message: '',
     website: '',
   });
@@ -82,28 +75,7 @@ export default function ContactPage() {
               <p className="eyebrow">TeamBlender</p>
               <h1>{isEn ? 'Create a team building that truly strengthens your team' : 'Créez un team building qui renforce réellement la cohésion de votre équipe'}</h1>
               <p className="contact-hero__lede">{isEn ? 'Talk with a TeamBlender expert and identify the challenge best aligned with your HR goals.' : 'Échangez avec un expert TeamBlender et découvrez le challenge le plus adapté à vos objectifs RH.'}</p>
-              <div className="contact-proof-box">
-                <span className="contact-proof-pill">
-                  {isEn ? 'Response within 24 business hours' : 'Réponse sous 24h ouvrées'}
-                </span>
-                <span className="contact-proof-pill">
-                  {isEn ? 'Designed for HR and leadership teams' : 'Pensé pour les équipes RH et les managers'}
-                </span>
-                <span className="contact-proof-pill">
-                  {isEn ? 'Premium SaaS experience' : 'Expérience SaaS premium'}
-                </span>
-              </div>
             </div>
-
-            <aside className="contact-hero__panel" aria-label={isEn ? 'Contact summary' : 'Résumé du contact'}>
-              <p className="contact-hero__panel-eyebrow">{isEn ? 'Fast contact' : 'Contact rapide'}</p>
-              <strong>{isEn ? 'A clear first exchange, focused on your context and objectives.' : 'Un premier échange clair, centré sur votre contexte et vos objectifs.'}</strong>
-              <div className="contact-hero__panel-points">
-                <span>{isEn ? 'HR use case and audience' : 'Cas d’usage RH et audience'}</span>
-                <span>{isEn ? 'Recommended format and timing' : 'Format et timing recommandés'}</span>
-                <span>{isEn ? 'Suitable plan or proposal path' : 'Formule ou parcours adapté'}</span>
-              </div>
-            </aside>
           </div>
         </section>
 
@@ -111,13 +83,6 @@ export default function ContactPage() {
           <article className="feature-card contact-info-card">
             <h2>{isEn ? 'How to reach us' : 'Comment nous joindre'}</h2>
             <p className="contact-section-intro">{isEn ? 'For scoping, a demo, or an HR question, write to us.' : 'Pour un cadrage, une démonstration ou une question RH, écrivez-nous.'}</p>
-
-            <div className="contact-trust-box highlight-violet contact-trust-box--soft contact-proof-card">
-              <p>
-                <strong>{isEn ? 'Proof point:' : 'Repère :'}</strong>{' '}
-                {isEn ? 'More than 5,000 employees engaged through our challenges.' : 'Plus de 5 000 collaborateurs engagés à travers nos challenges.'}
-              </p>
-            </div>
 
             <div className="contact-info-items">
               <div className="contact-info-item">
@@ -134,29 +99,12 @@ export default function ContactPage() {
                   <span>{isEn ? 'Within 24 business hours' : 'Sous 24h ouvrées'}</span>
                 </div>
               </div>
-              <div className="contact-info-item">
-                <div className="contact-info-icon">📋</div>
-                <div className="contact-info-text">
-                  <strong>{isEn ? 'For fast scoping, share' : 'Pour un cadrage rapide, partagez'}</strong>
-                  <span>{isEn ? 'Team size, objective, format, timeline' : 'Taille d\'équipe, objectif, format, échéance'}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="contact-trust-box highlight-violet contact-trust-box--soft">
-              <p>
-                {isEn ? 'Not ready yet? ' : 'Pas encore prêt ? '}
-                <a href={withLocalePath('/pricing')}>{isEn ? 'See our plans' : 'Consultez nos formules'}</a>
-                {isEn ? ' or ' : ' ou '}
-                <a href={withLocalePath('/signup')} className="accent-violet" style={{ fontWeight: '700' }}>{isEn ? 'create an account' : 'créez un compte'}</a>
-                {isEn ? ' to explore freely.' : ' pour explorer librement.'}
-              </p>
             </div>
           </article>
 
           <article className="feature-card contact-form-card">
-            <h2>{isEn ? 'How can we help you?' : 'Demander une démonstration'}</h2>
-            <p className="contact-section-intro">{isEn ? 'Tell us a little more about your team so we can prepare a useful first exchange.' : 'Donnez-nous quelques repères pour préparer un premier échange utile.'}</p>
+            <h2>{isEn ? 'Tell us about your project' : 'Parlons de votre projet'}</h2>
+            <p className="contact-section-intro">{isEn ? 'A few details will help us prepare a useful first conversation.' : 'Quelques informations suffisent pour préparer un premier échange utile.'}</p>
             {status === 'success' ? (
               <div className="contact-success" role="status" aria-live="polite">
                 <div className="contact-success__icon" aria-hidden="true">✓</div>
@@ -177,13 +125,13 @@ export default function ContactPage() {
               </label>
 
               <label>
-                {isEn ? 'Company' : 'Entreprise'}
+                {isEn ? 'Company (optional)' : 'Entreprise (facultatif)'}
                 <input type="text" value={form.company} onChange={(e) => updateField('company', e.target.value)} placeholder={isEn ? 'Ex: A2D Agency' : 'Ex : Agence A2D'} />
               </label>
 
               <label>
-                {isEn ? 'Company size *' : 'Effectif de l’entreprise *'}
-                <select required value={form.companySize} onChange={(e) => updateField('companySize', e.target.value)}>
+                {isEn ? 'Company size (optional)' : 'Effectif de l’entreprise (facultatif)'}
+                <select className={form.companySize ? '' : 'is-placeholder'} value={form.companySize} onChange={(e) => updateField('companySize', e.target.value)}>
                   <option value="">{isEn ? 'Select a company size' : 'Sélectionnez un effectif'}</option>
                   {COMPANY_SIZES[locale].map((size) => (
                     <option key={size} value={size}>{size}</option>
@@ -197,13 +145,8 @@ export default function ContactPage() {
               </label>
 
               <label>
-                {isEn ? 'Phone' : 'Téléphone'}
-                <input type="tel" value={form.phone} onChange={(e) => updateField('phone', e.target.value)} placeholder={isEn ? '+33 6 12 34 56 78' : '+33 6 12 34 56 78'} />
-              </label>
-
-              <label>
                 {isEn ? 'Main need *' : 'Votre besoin principal *'}
-                <select required value={form.need} onChange={(e) => updateField('need', e.target.value)}>
+                <select className={form.need ? '' : 'is-placeholder'} required value={form.need} onChange={(e) => updateField('need', e.target.value)}>
                   <option value="">{isEn ? 'Select a need' : 'Sélectionnez un besoin'}</option>
                   <option value={isEn ? 'Request a demo' : 'Demander une démonstration'}>{isEn ? 'Request a demo' : 'Demander une démonstration'}</option>
                   <option value={isEn ? 'Prepare a team session' : 'Préparer une session d\'équipe'}>{isEn ? 'Prepare a team session' : 'Préparer une session d\'équipe'}</option>
@@ -213,18 +156,8 @@ export default function ContactPage() {
               </label>
 
               <label>
-                {isEn ? 'Team building objective *' : 'Objectif du team building *'}
-                <select required value={form.objective} onChange={(e) => updateField('objective', e.target.value)}>
-                  <option value="">{isEn ? 'Select an objective' : 'Sélectionnez un objectif'}</option>
-                  {OBJECTIVES[locale].map((objective) => (
-                    <option key={objective} value={objective}>{objective}</option>
-                  ))}
-                </select>
-              </label>
-
-              <label>
                 {isEn ? 'Message *' : 'Message *'}
-                <textarea rows={6} required value={form.message} onChange={(e) => updateField('message', e.target.value)} placeholder={isEn ? 'Context, team objective, and expected format.' : 'Contexte, objectif équipe et format envisagé.'} />
+                <textarea rows={4} required value={form.message} onChange={(e) => updateField('message', e.target.value)} placeholder={isEn ? 'A little context about your team and your goal.' : 'Quelques mots sur votre équipe et votre objectif.'} />
               </label>
 
               {status === 'error' && errorMessage ? (
@@ -234,7 +167,7 @@ export default function ContactPage() {
               <button type="submit" className="btn-primary wide" disabled={status === 'sending'} aria-busy={status === 'sending'}>
                 {status === 'sending'
                   ? (isEn ? 'Sending...' : 'Envoi en cours...')
-                  : (isEn ? 'Send request' : 'Demander une démonstration')}
+                  : (isEn ? 'Send my request' : 'Envoyer ma demande')}
               </button>
 
               <p className="contact-privacy-note">
@@ -259,34 +192,6 @@ export default function ContactPage() {
           padding: 2.5rem 2.5rem;
         }
 
-        .contact-page .contact-proof-box {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 0.6rem;
-          margin-top: 0.2rem;
-        }
-
-        .contact-page .contact-proof-pill {
-          display: inline-flex;
-          align-items: center;
-          white-space: nowrap;
-          padding: 0.5rem 0.9rem;
-          border-radius: 999px;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.22));
-          background: var(--surface-panel-soft, rgba(255, 255, 255, 0.06));
-          color: var(--text-muted, #cbd5e1);
-          font-size: 0.85rem;
-          line-height: 1.4;
-        }
-
-        .contact-page .contact-hero__grid {
-          display: grid;
-          grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
-          gap: 1.75rem;
-          align-items: start;
-        }
-
         .contact-page .contact-hero__copy {
           display: grid;
           gap: 0.95rem;
@@ -308,51 +213,6 @@ export default function ContactPage() {
           font-size: 1.02rem;
           line-height: 1.7;
           color: var(--text-muted, #cbd5e1);
-        }
-
-        .contact-page .contact-hero__panel {
-          display: grid;
-          gap: 0.85rem;
-          align-content: start;
-          padding: 1.25rem;
-          border-radius: 22px;
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.22));
-          background: linear-gradient(145deg, var(--surface-panel, #ffffff), var(--surface-panel-soft, #f3f8ff));
-          box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
-        }
-
-        .contact-page .contact-hero__panel-eyebrow {
-          margin: 0;
-          font-size: 0.74rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.14em;
-          color: var(--text-subtle, #94a3b8);
-        }
-
-        .contact-page .contact-hero__panel strong {
-          font-size: 1.02rem;
-          line-height: 1.45;
-          color: var(--text-strong, #e2e8f0);
-        }
-
-        .contact-page .contact-hero__panel-points {
-          display: grid;
-          gap: 0.55rem;
-          margin-top: 0.2rem;
-        }
-
-        .contact-page .contact-hero__panel-points span {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.65rem 0.8rem;
-          border-radius: 14px;
-          background: var(--surface-panel-soft, #f3f8ff);
-          border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.22));
-          color: var(--text-muted, #cbd5e1);
-          font-size: 0.88rem;
-          line-height: 1.45;
         }
 
         .contact-page .contact-layout {
@@ -387,10 +247,6 @@ export default function ContactPage() {
           font-size: 0.98rem;
           line-height: 1.6;
           color: var(--text-muted, #cbd5e1);
-        }
-
-        .contact-page .contact-proof-card {
-          margin-top: 1rem;
         }
 
         .contact-page .contact-info-items {
@@ -439,17 +295,6 @@ export default function ContactPage() {
           line-height: 1.5;
         }
 
-        .contact-page .contact-trust-box {
-          margin-top: 1rem;
-          padding: 0.95rem 1rem;
-          border-radius: 16px;
-        }
-
-        .contact-page .contact-trust-box p {
-          margin: 0;
-          line-height: 1.55;
-        }
-
         .contact-page .contact-form {
           display: grid;
           gap: 0.95rem;
@@ -475,17 +320,23 @@ export default function ContactPage() {
           background: rgba(255, 255, 255, 0.04);
           color: var(--text-strong, #e2e8f0);
           font: inherit;
+          font-weight: 400;
           transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
         }
 
         .contact-page .contact-form textarea {
-          min-height: 8.5rem;
+          min-height: 6.5rem;
           resize: vertical;
         }
 
         .contact-page .contact-form input::placeholder,
         .contact-page .contact-form textarea::placeholder {
-          color: var(--text-subtle, #94a3b8);
+          color: var(--field-placeholder, #64748b);
+          opacity: 0.62;
+        }
+
+        .contact-page .contact-form select.is-placeholder {
+          color: var(--field-placeholder, #64748b);
         }
 
         .contact-page .contact-form input:focus,
@@ -575,14 +426,10 @@ export default function ContactPage() {
         }
 
         @media (max-width: 1024px) {
-          .contact-page .contact-hero__grid,
           .contact-page .contact-layout {
             grid-template-columns: 1fr;
           }
 
-          .contact-page .contact-hero__panel {
-            order: -1;
-          }
         }
 
         @media (max-width: 640px) {
@@ -600,12 +447,6 @@ export default function ContactPage() {
             border-radius: 20px;
           }
 
-          .contact-page .contact-proof-pill {
-            width: 100%;
-            justify-content: center;
-            white-space: normal;
-          }
-
           .contact-page .contact-info-item {
             padding: 0.8rem;
           }
@@ -614,4 +455,3 @@ export default function ContactPage() {
     </>
   );
 }
-
