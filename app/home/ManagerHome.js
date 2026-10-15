@@ -361,6 +361,7 @@ export default function ManagerHome() {
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
   const [sessions, setSessions] = useState([]);
   const [members, setMembers] = useState([]);
+  const [showSessionPeriod, setShowSessionPeriod] = useState(false);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
@@ -419,14 +420,6 @@ export default function ManagerHome() {
     || Boolean(sessionFromDate)
     || Boolean(sessionToDate)
   ), [sessionFromDate, sessionSearch, sessionStatusFilter, sessionToDate]);
-  const activeSessionFilterCount = useMemo(() => {
-    let count = 0;
-    if (sessionStatusFilter !== 'all') count += 1;
-    if (sessionSearch.trim().length > 0) count += 1;
-    if (sessionFromDate) count += 1;
-    if (sessionToDate) count += 1;
-    return count;
-  }, [sessionFromDate, sessionSearch, sessionStatusFilter, sessionToDate]);
 
   const memberFormChecks = useMemo(() => {
     const firstName = String(memberForm.first_name || '').trim();
@@ -1035,27 +1028,6 @@ export default function ManagerHome() {
           </div>
 
           <div className="home-sessions-controls">
-            <div className="home-sessions-controls-head">
-              <p className="home-sessions-controls-title">
-                {isEn ? 'Filters' : 'Filtres'}
-                {hasActiveSessionFilters ? (
-                  <span className="home-sessions-controls-chip">
-                    {isEn
-                      ? `${activeSessionFilterCount} active`
-                      : `${activeSessionFilterCount} actif${activeSessionFilterCount > 1 ? 's' : ''}`}
-                  </span>
-                ) : null}
-              </p>
-              {hasActiveSessionFilters ? (
-                <button
-                  type="button"
-                  className="home-sessions-clear"
-                  onClick={clearSessionFilters}
-                >
-                  {isEn ? 'Reset filters' : 'Réinitialiser les filtres'}
-                </button>
-              ) : null}
-            </div>
             <div className="home-sessions-filters">
               <label className="home-sessions-field">
                 <span className="home-sessions-field-label">{isEn ? 'Search' : 'Recherche'}</span>
@@ -1082,6 +1054,42 @@ export default function ManagerHome() {
                   <option value="terminee">{isEn ? 'Completed' : 'Terminée'}</option>
                 </select>
               </label>
+              <div className="home-sessions-field">
+                <span className="home-sessions-field-label">{isEn ? 'Dates' : 'Dates'}</span>
+                <button
+                  type="button"
+                  className="home-sessions-control home-sessions-period-toggle"
+                  aria-expanded={showSessionPeriod}
+                  aria-controls="home-sessions-period"
+                  onClick={() => setShowSessionPeriod((open) => !open)}
+                >
+                  <span>
+                    {isEn ? 'Period' : 'Période'}
+                    {sessionFromDate || sessionToDate ? (
+                      <small>
+                        {sessionFromDate
+                          ? new Date(`${sessionFromDate}T12:00:00`).toLocaleDateString(locale)
+                          : isEn
+                            ? 'Any start'
+                            : 'Début libre'}
+                        {' – '}
+                        {sessionToDate
+                          ? new Date(`${sessionToDate}T12:00:00`).toLocaleDateString(locale)
+                          : isEn
+                            ? 'Any end'
+                            : 'Fin libre'}
+                      </small>
+                    ) : null}
+                  </span>
+                  <span aria-hidden="true">{showSessionPeriod ? '−' : '+'}</span>
+                </button>
+              </div>
+            </div>
+            <div
+              id="home-sessions-period"
+              className="home-sessions-date-filters"
+              hidden={!showSessionPeriod}
+            >
               <label className="home-sessions-field">
                 <span className="home-sessions-field-label">{isEn ? 'From' : 'Du'}</span>
                 <input
@@ -1103,11 +1111,18 @@ export default function ManagerHome() {
                 />
               </label>
             </div>
-            <p className="session-meta home-sessions-meta">
-              {isEn
-                ? `Showing ${sessions.length} session(s) out of ${Number(sessionsPagination.total || 0)}`
-                : `${sessions.length} session(s) affichée(s) sur ${Number(sessionsPagination.total || 0)}`}
-            </p>
+            <div className="home-sessions-controls-head">
+              <p className="session-meta home-sessions-meta">
+                {isEn
+                  ? `Showing ${sessions.length} session(s) out of ${Number(sessionsPagination.total || 0)}`
+                  : `${sessions.length} session(s) affichée(s) sur ${Number(sessionsPagination.total || 0)}`}
+              </p>
+              {hasActiveSessionFilters ? (
+                <button type="button" className="home-sessions-clear" onClick={clearSessionFilters}>
+                  {isEn ? 'Reset filters' : 'Réinitialiser les filtres'}
+                </button>
+              ) : null}
+            </div>
           </div>
 
           {loadingSessions ? (
@@ -1142,9 +1157,33 @@ export default function ManagerHome() {
                     : withLocalePath(`/session-builder?sessionId=${sessionIdentifier}`);
                 const editLink = withLocalePath(`/session-builder?sessionId=${sessionIdentifier}`);
                 const mobileSessionActions = [
-                  { key: 'edit', label: isEn ? 'Edit session' : 'Modifier la session', href: editLink },
-                  { key: 'open', label: isDone ? (isEn ? 'View results' : 'Voir les résultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure session' : 'Configurer la session'), href: openLink },
-                  { key: 'delete', label: isEn ? 'Delete session' : 'Supprimer la session', danger: true, onClick: () => handleDeleteSession(session), disabled: isDeleting },
+                  {
+                    key: 'edit',
+                    label: isEn ? 'Edit session' : 'Modifier la session',
+                    href: editLink,
+                  },
+                  {
+                    key: 'open',
+                    label: isDone
+                      ? isEn
+                        ? 'View results'
+                        : 'Voir les résultats'
+                      : isActive
+                        ? isEn
+                          ? 'Open session'
+                          : 'Ouvrir la session'
+                        : isEn
+                          ? 'Configure session'
+                          : 'Configurer la session',
+                    href: openLink,
+                  },
+                  {
+                    key: 'delete',
+                    label: isEn ? 'Delete session' : 'Supprimer la session',
+                    danger: true,
+                    onClick: () => handleDeleteSession(session),
+                    disabled: isDeleting,
+                  },
                 ];
                 return (
                   <article
@@ -1193,8 +1232,32 @@ export default function ManagerHome() {
                       <Link
                         className="icon-action-btn"
                         href={openLink}
-                        title={isDone ? (isEn ? 'View results' : 'Voir les résultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure' : 'Configurer')}
-                        aria-label={isDone ? (isEn ? 'View results' : 'Voir les résultats') : isActive ? (isEn ? 'Open session' : 'Ouvrir la session') : (isEn ? 'Configure' : 'Configurer')}
+                        title={
+                          isDone
+                            ? isEn
+                              ? 'View results'
+                              : 'Voir les résultats'
+                            : isActive
+                              ? isEn
+                                ? 'Open session'
+                                : 'Ouvrir la session'
+                              : isEn
+                                ? 'Configure'
+                                : 'Configurer'
+                        }
+                        aria-label={
+                          isDone
+                            ? isEn
+                              ? 'View results'
+                              : 'Voir les résultats'
+                            : isActive
+                              ? isEn
+                                ? 'Open session'
+                                : 'Ouvrir la session'
+                              : isEn
+                                ? 'Configure'
+                                : 'Configurer'
+                        }
                       >
                         {isDone ? '📊' : isActive ? '▶️' : '⚙️'}
                       </Link>
@@ -1215,8 +1278,11 @@ export default function ManagerHome() {
             </div>
           ) : null}
 
-          {!loadingSessions ? (
-            <div className="home-sessions-pagination">
+          {!loadingSessions && Number(sessionsPagination.totalPages) > 1 ? (
+            <nav
+              className="home-sessions-pagination"
+              aria-label={isEn ? 'Session pages' : 'Pages des sessions'}
+            >
               <button
                 type="button"
                 className="btn-secondary"
@@ -1226,7 +1292,8 @@ export default function ManagerHome() {
                 {isEn ? 'Previous' : 'Précédent'}
               </button>
               <span className="session-meta">
-                {isEn ? 'Page' : 'Page'} {Number(sessionsPagination.page || sessionsPage)} / {Number(sessionsPagination.totalPages || 1)}
+                {isEn ? 'Page' : 'Page'} {Number(sessionsPagination.page || sessionsPage)} /{' '}
+                {Number(sessionsPagination.totalPages || 1)}
               </span>
               <button
                 type="button"
@@ -1236,7 +1303,7 @@ export default function ManagerHome() {
               >
                 {isEn ? 'Next' : 'Suivant'}
               </button>
-            </div>
+            </nav>
           ) : null}
         </section>
 
@@ -1264,7 +1331,9 @@ export default function ManagerHome() {
             </span>
           </div>
 
-          {loadingMembers ? <p>{isEn ? 'Loading participants...' : 'Chargement des participants...'}</p> : null}
+          {loadingMembers ? (
+            <p>{isEn ? 'Loading participants...' : 'Chargement des participants...'}</p>
+          ) : null}
 
           {!loadingMembers && members.length === 0 ? (
             <p className="team-empty">{isEn ? 'No participants yet. You can add them here when you want to reuse them across sessions.' : 'Aucun participant pour le moment. Vous pourrez en ajouter ici pour les réutiliser dans vos sessions.'}</p>
@@ -1277,8 +1346,19 @@ export default function ManagerHome() {
                 const details = [member.job_title, member.department].filter(Boolean).join(' · ');
                 const initials = getParticipantInitials(member);
                 const mobileParticipantActions = [
-                  { key: 'edit', label: isEn ? 'Edit participant' : 'Modifier le participant', onClick: () => beginEditMember(member), disabled: deletingMemberId === member.id },
-                  { key: 'delete', label: isEn ? 'Delete participant' : 'Supprimer le participant', danger: true, onClick: () => handleDeleteMember(member), disabled: deletingMemberId === member.id },
+                  {
+                    key: 'edit',
+                    label: isEn ? 'Edit participant' : 'Modifier le participant',
+                    onClick: () => beginEditMember(member),
+                    disabled: deletingMemberId === member.id,
+                  },
+                  {
+                    key: 'delete',
+                    label: isEn ? 'Delete participant' : 'Supprimer le participant',
+                    danger: true,
+                    onClick: () => handleDeleteMember(member),
+                    disabled: deletingMemberId === member.id,
+                  },
                 ];
                 return (
                   <article key={String(member.id)} className="participant-card">
@@ -1571,10 +1651,9 @@ export default function ManagerHome() {
           display: grid;
           gap: 1rem;
           margin-bottom: 0;
-          padding: clamp(1rem, 2vw, 1.5rem);
-          border-radius: 14px;
-          border: 1px solid var(--surface-border);
-          background: var(--card);
+          padding: 0;
+          border: 0;
+          background: transparent;
           box-shadow: none;
         }
 
@@ -1586,38 +1665,15 @@ export default function ManagerHome() {
           flex-wrap: wrap;
         }
 
-        .manager-home .home-sessions-controls-title {
-          margin: 0;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-weight: 700;
-          color: var(--text-strong);
-        }
-
-        .manager-home .home-sessions-controls-chip {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 24px;
-          padding: 0 0.55rem;
-          border-radius: 999px;
-          font-size: 0.77rem;
-          font-weight: 700;
-          color: #1d4ed8;
-          background: rgba(59, 130, 246, 0.12);
-          border: 1px solid rgba(59, 130, 246, 0.28);
-        }
-
         .manager-home .home-sessions-clear {
-          border: 1px solid rgba(59, 130, 246, 0.35);
-          background: var(--card);
+          border: 0;
+          background: transparent;
           color: var(--accent-strong);
-          border-radius: 999px;
-          min-height: 32px;
-          padding: 0.3rem 0.8rem;
+          border-radius: 6px;
+          min-height: 44px;
+          padding: 0.3rem 0.5rem;
           font-size: 0.84rem;
-          font-weight: 700;
+          font-weight: 500;
           cursor: pointer;
           transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
         }
@@ -1634,8 +1690,30 @@ export default function ManagerHome() {
 
         .manager-home .home-sessions-filters {
           display: grid;
-          grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(150px, 1fr));
+          grid-template-columns: minmax(220px, 2fr) minmax(160px, 1fr) minmax(220px, 1fr);
           gap: 1rem;
+        }
+
+        .manager-home .home-sessions-date-filters:not([hidden]) {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 1rem;
+          max-width: 36rem;
+        }
+
+        .manager-home .home-sessions-period-toggle {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.5rem;
+          text-align: start;
+          cursor: pointer;
+        }
+
+        .manager-home .home-sessions-period-toggle small {
+          display: block;
+          color: var(--text-muted);
+          font-size: 0.75rem;
         }
 
         .manager-home .home-sessions-field {
@@ -1646,9 +1724,7 @@ export default function ManagerHome() {
 
         .manager-home .home-sessions-field-label {
           font-size: 0.76rem;
-          font-weight: 700;
-          letter-spacing: 0.02em;
-          text-transform: uppercase;
+          font-weight: 500;
           color: var(--text-muted);
         }
 
@@ -1679,10 +1755,19 @@ export default function ManagerHome() {
 
         .manager-home .home-sessions-pagination {
           display: flex;
-          justify-content: space-between;
+          justify-content: flex-end;
           align-items: center;
           gap: 0.65rem;
           margin-top: 0.85rem;
+        }
+
+        .manager-home .home-sessions-pagination .btn-secondary {
+          min-height: 44px;
+          padding: 0.45rem 0.75rem;
+          border-color: transparent;
+          background: transparent;
+          box-shadow: none;
+          font-size: 0.85rem;
         }
 
         .manager-home .session-card-mobile-actions--top {
@@ -1699,22 +1784,13 @@ export default function ManagerHome() {
         }
 
         @media (max-width: 640px) {
-          .manager-home .home-sessions-controls {
-            padding: 1rem;
-          }
-
-          .manager-home .home-sessions-clear {
-            width: 100%;
-            justify-content: center;
-          }
-
           .manager-home .home-sessions-filters {
             grid-template-columns: 1fr;
           }
 
           .manager-home .home-sessions-pagination {
             flex-wrap: wrap;
-            justify-content: center;
+            justify-content: flex-end;
           }
         }
       `}</style>

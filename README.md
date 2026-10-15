@@ -11,9 +11,19 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 ### Filtres des sessions de l'accueil animateur
 
 - L'accueil privilegie le message de bienvenue, puis les chiffres des KPI, les sessions et les participants. Le theme clair utilise un fond blanc pur, des cartes blanches a bordure fine et ombre discrete, et des sections sans cadre externe. Le theme sombre reste disponible.
-- La vue rapide est secondaire et compacte; les filtres gardent un fond uni et un espacement genereux.
+- La vue rapide est secondaire et compacte. Les titres Sessions et Participants retrouvent l'accent colore du produit, sans grands fonds colores.
+- Les filtres n'ont pas de cadre externe: recherche et statut restent visibles; la commande Periode affiche les deux dates a la demande et conserve leur valeur lorsqu'elle est repliee. Reinitialiser apparait seulement si un filtre est actif.
+- La pagination est masquee pour zero ou une page; au-dela, elle reste compacte et alignee a droite. Les listes utilisent le defilement de la page plutot que des zones imbriquees.
 - Les champs de recherche, statut et dates conservent une marge interieure horizontale de 16 px et un espacement de 16 px entre eux, sans deborder de leur cadre sur mobile.
-- Validation: `node scripts/test-home-session-filters.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, largeurs de 320 a 1755 px, saisie et reinitialisation des filtres.
+- Validation: `node scripts/test-home-session-filters.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, largeurs de 320 a 1755 px, ouverture au clavier de la periode, saisie, conservation et reinitialisation des filtres, pagination conditionnelle et navigation.
+
+### Creation rapide d'une session
+
+- Une carte unique de 1040 px maximum regroupe les informations, les objectifs multiples, le mode de progression et les participants facultatifs. Seul le nom est obligatoire.
+- L'ajout anticipe de participants est replie par defaut; le compteur et la selection restent synchronises apres fermeture. Le code d'invitation est disponible apres creation.
+- Annuler revient a l'accueil. Creer la session ouvre le choix des challenges; une mention l'annonce avant validation. Les erreurs conservent les valeurs saisies.
+- Validation: `node scripts/test-session-creation-layout.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, clair/sombre/automatique, 320 a 1440 px, dimensions et absence de cadres imbriques, creation avec et sans participants, objectifs multiples, modes manuel/automatique et erreur serveur.
+- Non-regression: `npm run test:unit:builder`, `npm run test:ux:builder` et `npm run test:ux:planning`.
 
 ### Gestion des participants par le manager
 

@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import Link from 'next/link';
+import { Users } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
@@ -39,6 +41,7 @@ import {
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import { getAvailableEngines } from '@/lib/challenges/runtime';
 import styles from './SessionBuilder.module.css';
+import creationStyles from './CreationForm.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
 import useI18n from '@/lib/i18n/useI18n';
 
@@ -1584,12 +1587,16 @@ export default function SessionBuilder() {
     t,
   ]);
 
-  function renderObjectiveField(value, onChange, id) {
+  function renderObjectiveField(value, onChange, id, creation = false) {
     const selectedObjectives = parseSessionObjectives(normalizeSessionObjectiveValue(value));
     return (
-      <div className={styles.objectiveSection}>
+      <div className={`${styles.objectiveSection} ${creation ? creationStyles.objectives : ''}`}>
         <div className={styles.fieldTitleBlock}>
-          <span className={styles.fieldTitle}>{t('sessionBuilder.objective')}</span>
+          {creation ? (
+            <h2>{t('sessionBuilder.creationObjectives')}</h2>
+          ) : (
+            <span className={styles.fieldTitle}>{t('sessionBuilder.objective')}</span>
+          )}
           <small id={`${id}-hint`}>{t('sessionBuilder.objectiveHint')}</small>
         </div>
         <fieldset
@@ -1780,207 +1787,201 @@ export default function SessionBuilder() {
       <>
         <ToastContainer toasts={toasts} onRemove={removeToast} />
         <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
-        <main className={`auth-page ${styles.creationPageBackground}`}>
-          <section className={styles.creationExperience}>
-            <div className={styles.creationHero}>
-              <div className={styles.creationContent}>
-                <form
-                  id="create-session-form"
-                  onSubmit={handleCreateSession}
-                  className={styles.creationPrimary}
+        <main className={creationStyles.page}>
+          <div className={creationStyles.container}>
+            <h1 className={creationStyles.title}>{t('sessionBuilder.creationTitle')}</h1>
+            <form
+              id="create-session-form"
+              onSubmit={handleCreateSession}
+              className={creationStyles.form}
+            >
+              <section className={creationStyles.section} aria-labelledby="creation-info-heading">
+                <h2 id="creation-info-heading">{t('sessionBuilder.creationInformation')}</h2>
+
+                <Input
+                  id="session-name"
+                  label={`${t('sessionBuilder.sessionName')} ${t('sessionBuilder.requiredAsterisk')}`}
+                  value={sessionName}
+                  onChange={(e) => {
+                    setSessionName(e.target.value);
+                    setCreationTouched((prev) => ({ ...prev, sessionName: true }));
+                  }}
+                  onBlur={() => setCreationTouched((prev) => ({ ...prev, sessionName: true }))}
+                  placeholder={t('sessionBuilder.sessionNamePlaceholder')}
+                  autoFocus
+                  required
+                  error={nameError}
+                  aria-invalid={Boolean(nameError)}
+                />
+                <div className={creationStyles.grid}>
+                  <Input
+                    id="session-datetime"
+                    label={t('sessionBuilder.sessionDateTime')}
+                    type="datetime-local"
+                    value={sessionDateTime}
+                    onChange={(e) => {
+                      setSessionDateTime(e.target.value);
+                      setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }));
+                    }}
+                    onBlur={() =>
+                      setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }))
+                    }
+                    step="60"
+                    inputClassName={styles.creationDateInput}
+                    helpClassName={styles.creationDateHelp}
+                    error={dateError}
+                    aria-invalid={Boolean(dateError)}
+                  />
+                  <Input
+                    id="expected-participants"
+                    type="number"
+                    min="1"
+                    max="2147483647"
+                    step="1"
+                    label={t('sessionBuilder.creationExpectedCount')}
+                    value={expectedCount}
+                    onChange={(event) => setExpectedCount(event.target.value)}
+                    hint={t('sessionBuilder.expectedCountHint')}
+                    error={
+                      isValidExpectedCount(expectedCount)
+                        ? ''
+                        : t('sessionBuilder.expectedCountInvalid')
+                    }
+                  />
+                </div>
+              </section>
+
+              {renderObjectiveField(objective, setObjective, 'session-objective', true)}
+
+              <section className={creationStyles.section} aria-labelledby="creation-flow-heading">
+                <h2 id="creation-flow-heading">{t('sessionBuilder.creationFlow')}</h2>
+                <fieldset className={creationStyles.flow}>
+                  <legend>{t('sessionBuilder.progressionMode')}</legend>
+                  <label className={creationStyles.flowOption}>
+                    <input
+                      type="radio"
+                      name="flowMode"
+                      value="manual"
+                      checked={flowMode === 'manual'}
+                      onChange={() => setFlowMode('manual')}
+                    />
+                    <span>
+                      <strong>{t('sessionBuilder.manual')}</strong>
+                      <small>{t('sessionBuilder.creationManualHint')}</small>
+                    </span>
+                  </label>
+                  <label className={creationStyles.flowOption}>
+                    <input
+                      type="radio"
+                      name="flowMode"
+                      value="auto"
+                      checked={flowMode === 'auto'}
+                      onChange={() => setFlowMode('auto')}
+                    />
+                    <span>
+                      <strong>{t('sessionBuilder.automatic')}</strong>
+                      <small>{t('sessionBuilder.creationAutomaticHint')}</small>
+                    </span>
+                  </label>
+                </fieldset>
+              </section>
+
+              <section
+                className={creationStyles.section}
+                aria-labelledby="creation-participants-heading"
+              >
+                <div className={creationStyles.participantsHeading}>
+                  <h2 id="creation-participants-heading">
+                    {t('sessionBuilder.creationParticipants')}
+                  </h2>
+                  <span>{t('sessionBuilder.optionalLabel')}</span>
+                </div>
+
+                <div className={creationStyles.notice}>
+                  <Users size={20} aria-hidden="true" />
+                  <p>{t('sessionBuilder.creationParticipantsHint')}</p>
+                </div>
+                <details
+                  className={`${styles.participantsDisclosure} ${creationStyles.disclosure}`}
                 >
-                  <div className={styles.creationForm}>
-                    <div className={styles.creationSectionHeader}>
-                      <div>
-                        <h2>{t('sessionBuilder.frameTitle')}</h2>
-                      </div>
-                    </div>
+                  <summary>
+                    <span>{t('sessionBuilder.prepareAhead')}</span>
+                    <span className={styles.creationParticipantsCount}>
+                      {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
+                    </span>
+                  </summary>
+                  <p>{t('sessionBuilder.prepareAheadHint')}</p>
+                  <p>
+                    {availableParticipantsCount === 0
+                      ? t('sessionBuilder.noAvailableProfiles')
+                      : t('sessionBuilder.participantsAvailable', {
+                          count: availableParticipantsCount,
+                        })}
+                  </p>
+                  <ParticipantAssigner
+                    isLoading={isCreatingSession}
+                    selectedIds={draftParticipantIds}
+                    onSelectionChange={(ids) => {
+                      setDraftParticipantIds(ids);
+                      setCreationTouched((prev) => ({ ...prev, participants: true }));
+                    }}
+                    onParticipantsLoaded={handleParticipantsLoaded}
+                    onSelectionFeedback={handleParticipantSelectionFeedback}
+                    embedded
+                    hideActions
+                    showSelectionLimitNotice={false}
+                    title=""
+                    subtitle=""
+                  />
 
-                    <div className={styles.creationGrid}>
-                      <Input
-                        id="session-name"
-                        label={`${t('sessionBuilder.sessionName')} ${t('sessionBuilder.requiredAsterisk')}`}
-                        value={sessionName}
-                        onChange={(e) => {
-                          setSessionName(e.target.value);
-                          setCreationTouched((prev) => ({ ...prev, sessionName: true }));
-                        }}
-                        onBlur={() =>
-                          setCreationTouched((prev) => ({ ...prev, sessionName: true }))
+                  {availableParticipantsCount === 0 ? (
+                    <div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() =>
+                          window.location.assign(withLocalePath('/home#home-participants-block'))
                         }
-                        placeholder={t('sessionBuilder.sessionNamePlaceholder')}
-                        autoFocus
-                        required
-                        error={nameError}
-                        aria-invalid={Boolean(nameError)}
-                      />
-                      <Input
-                        id="session-datetime"
-                        label={t('sessionBuilder.sessionDateTime')}
-                        type="datetime-local"
-                        value={sessionDateTime}
-                        onChange={(e) => {
-                          setSessionDateTime(e.target.value);
-                          setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }));
-                        }}
-                        onBlur={() =>
-                          setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }))
-                        }
-                        step="60"
-                        inputClassName={styles.creationDateInput}
-                        helpClassName={styles.creationDateHelp}
-                        error={dateError}
-                        aria-invalid={Boolean(dateError)}
-                      />
+                      >
+                        {t('sessionBuilder.createParticipantCta')}
+                      </Button>
                     </div>
+                  ) : null}
+                </details>
+              </section>
 
-                    <div className={styles.creationGrid}>
-                      <Input
-                        id="expected-participants"
-                        type="number"
-                        min="1"
-                        max="2147483647"
-                        step="1"
-                        label={
-                          <span className={styles.fieldTitle}>
-                            {t('sessionBuilder.expectedCount')}
-                          </span>
-                        }
-                        value={expectedCount}
-                        onChange={(event) => setExpectedCount(event.target.value)}
-                        hint={t('sessionBuilder.expectedCountHint')}
-                        error={
-                          isValidExpectedCount(expectedCount)
-                            ? ''
-                            : t('sessionBuilder.expectedCountInvalid')
-                        }
-                        className={styles.expectedCountField}
-                      />
-                    </div>
-
-                    {renderObjectiveField(objective, setObjective, 'session-objective')}
-
-                    <div className={styles.flowModeField}>
-                      <div className={styles.creationFieldHeading}>
-                        <span>{t('sessionBuilder.progressionMode')}</span>
-                        <p>{t('sessionBuilder.progressionHint')}</p>
-                      </div>
-                      <div className={styles.flowModeGrid}>
-                        <label
-                          className={`${styles.flowModeCard} ${flowMode === 'manual' ? styles.flowModeCardActive : ''}`}
-                        >
-                          <input
-                            type="radio"
-                            name="flowMode"
-                            value="manual"
-                            checked={flowMode === 'manual'}
-                            onChange={() => setFlowMode('manual')}
-                          />
-                          <span className={styles.flowModeContent}>
-                            <strong>{t('sessionBuilder.manual')}</strong>
-                            <small>{t('sessionBuilder.manualHint')}</small>
-                          </span>
-                        </label>
-                        <label
-                          className={`${styles.flowModeCard} ${flowMode === 'auto' ? styles.flowModeCardActive : ''}`}
-                        >
-                          <input
-                            type="radio"
-                            name="flowMode"
-                            value="auto"
-                            checked={flowMode === 'auto'}
-                            onChange={() => setFlowMode('auto')}
-                          />
-                          <span className={styles.flowModeContent}>
-                            <strong>{t('sessionBuilder.automatic')}</strong>
-                            <small>{t('sessionBuilder.automaticHint')}</small>
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={styles.creationParticipantsPane}>
-                    <div className={styles.creationSectionHeader}>
-                      <div>
-                        <h2>{t('sessionBuilder.prepareGroup')}</h2>
-                        <p>{t('sessionBuilder.participationHint')}</p>
-                      </div>
-                    </div>
-
-                    <div className={styles.participationNotice}>
-                      <strong>{t('sessionBuilder.joinWithCode')}</strong>
-                      <p>{t('sessionBuilder.joinWithCodeHint')}</p>
-                      <p>{t('sessionBuilder.followUpHint')}</p>
-                    </div>
-                    <details className={styles.participantsDisclosure}>
-                      <summary>
-                        <span>{t('sessionBuilder.prepareAhead')}</span>
-                        <span className={styles.creationParticipantsCount}>
-                          {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
-                        </span>
-                      </summary>
-                      <p>{t('sessionBuilder.prepareAheadHint')}</p>
-                      <p>
-                        {availableParticipantsCount === 0
-                          ? t('sessionBuilder.noAvailableProfiles')
-                          : t('sessionBuilder.participantsAvailable', {
-                              count: availableParticipantsCount,
-                            })}
-                      </p>
-                      <ParticipantAssigner
-                        isLoading={isCreatingSession}
-                        selectedIds={draftParticipantIds}
-                        onSelectionChange={(ids) => {
-                          setDraftParticipantIds(ids);
-                          setCreationTouched((prev) => ({ ...prev, participants: true }));
-                        }}
-                        onParticipantsLoaded={handleParticipantsLoaded}
-                        onSelectionFeedback={handleParticipantSelectionFeedback}
-                        embedded
-                        hideActions
-                        showSelectionLimitNotice={false}
-                        title=""
-                        subtitle=""
-                      />
-
-                      {availableParticipantsCount === 0 ? (
-                        <div className={styles.creationInlineCtaRow}>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() =>
-                              window.location.assign(withLocalePath('/home#participants'))
-                            }
-                          >
-                            {t('sessionBuilder.createParticipantCta')}
-                          </Button>
-                        </div>
-                      ) : null}
-                    </details>
-                  </div>
-                </form>
-              </div>
-
-              <div className={styles.creationGlobalActions}>
-                <Button
-                  type="submit"
-                  form="create-session-form"
-                  className={styles.creationSubmit}
-                  disabled={!canCreateSessionNow}
-                  title={
-                    !canCreateSessionNow
-                      ? t('sessionBuilder.sessionNameRequired')
-                      : t('sessionBuilder.createSession')
-                  }
+              <footer className={creationStyles.actions}>
+                <Link
+                  href={withLocalePath('/home')}
+                  className={creationStyles.cancel}
+                  aria-disabled={isCreatingSession || undefined}
+                  onClick={(event) => {
+                    if (isCreatingSession) event.preventDefault();
+                  }}
                 >
-                  {isCreatingSession
-                    ? t('sessionBuilder.creating')
-                    : t('sessionBuilder.createSession')}
-                </Button>
-              </div>
-            </div>
-          </section>
+                  {t('sessionBuilder.cancel')}
+                </Link>
+                <div className={creationStyles.submitGroup}>
+                  <p>{t('sessionBuilder.creationNextHint')}</p>
+                  <Button
+                    type="submit"
+                    form="create-session-form"
+                    className={creationStyles.submit}
+                    disabled={!canCreateSessionNow}
+                    title={
+                      !canCreateSessionNow
+                        ? t('sessionBuilder.sessionNameRequired')
+                        : t('sessionBuilder.createSession')
+                    }
+                  >
+                    {isCreatingSession
+                      ? t('sessionBuilder.creating')
+                      : t('sessionBuilder.createSession')}
+                  </Button>
+                </div>
+              </footer>
+            </form>
+          </div>
         </main>
         <Footer />
       </>

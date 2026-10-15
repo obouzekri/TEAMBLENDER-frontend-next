@@ -59,7 +59,7 @@
   margin: 0;
   font-size: 0.7rem;
   letter-spacing: 0.12em;
-  color: var(--text-muted);
+  color: var(--accent-strong);
 }
 
 .home:global(.manager-home.app-home) :global(.home-hero-actions:empty) {
@@ -149,6 +149,8 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  max-height: none;
+  overflow: visible;
 }
 
 .home:global(.manager-home.app-home) :global(.panel-head) {
@@ -160,11 +162,26 @@
 .home:global(.manager-home.app-home) :global(.home-section-title) {
   margin: 0;
   background: none;
-  color: var(--ink);
+  color: var(--accent-strong);
   -webkit-text-fill-color: currentColor;
   font-size: clamp(1.35rem, 2vw, 1.65rem);
   font-weight: 650;
   letter-spacing: -0.025em;
+}
+
+@supports (background-clip: text) {
+  .home:global(.manager-home.app-home) :global(.home-section-title) {
+    background: var(--accent-gradient);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+@media (forced-colors: active) {
+  .home:global(.manager-home.app-home) :global(.home-section-title) {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
 }
 
 .home:global(.manager-home.app-home) :global(.home-sessions-head > div > p) {
@@ -194,6 +211,14 @@
   border: 0;
   background: transparent;
   font-weight: 400;
+  color: var(--text-muted);
+}
+
+.home:global(.manager-home.app-home) :global(.team-empty) {
+  margin: 0;
+  padding: 0.5rem 0;
+  border: 0;
+  background: transparent;
   color: var(--text-muted);
 }
 
