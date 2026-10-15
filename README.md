@@ -24,6 +24,12 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les libelles obligatoires, l'autocompletion, le lien email et la politique de confidentialite restent accessibles au clavier. L'envoi conserve la protection CSRF, le champ anti-spam, les etats d'attente, les erreurs avec conservation du brouillon et la confirmation.
 - Validation : `node scripts/test-contact-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees sans envoi d'email) : FR/EN, clair/sombre/automatique, 320 a 1440 px, hauteur compacte, clavier, validation, champs facultatifs, requete et CSRF, attente, erreurs 429/500/reseau, nouvelle tentative et succes.
 
+### Page Tarification
+
+- L'introduction conserve le titre et le conseil sur les groupes, sans tag Tarification ni phrase promotionnelle intermediaire.
+- Frequence de facturation, Mensuel, Annuel et Devise sont alignes sur une ligne sur grand ecran et se replient sur mobile. Le mode sombre ne presente aucun cadre autour de la barre ni du groupe Mensuel/Annuel.
+- Validation : `node scripts/test-pricing-controls-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees) : FR/EN, clair/sombre/automatique, 320 a 1440 px, alignement, absence de cadres sombres, changement de frequence et de devise.
+
 ### Creation rapide d'une session
 
 - Une carte unique de 1040 px maximum regroupe les informations, les objectifs multiples, le mode de progression et les participants facultatifs. Seul le nom est obligatoire.
@@ -236,7 +242,7 @@ Variables importantes:
 - `BACKEND_ORIGIN` (obligatoire hors dev, cible rewrite Next.js vers backend actif)
 - `PREVIEW_BACKEND_ORIGIN` (optionnel, fallback Vercel preview vers Railway dev)
 - `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` (optionnel, active PostHog frontend)
-- `NEXT_PUBLIC_POSTHOG_HOST` (optionnel, defaut `https://eu.i.posthog.com`, doit correspondre a la region du projet PostHog)
+- `NEXT_PUBLIC_POSTHOG_HOST` (optionnel, defaut `https://eu.i.posthog.com`, doit correspondre a la region du projet PostHog ; l'interface PostHog associee est derivee automatiquement)
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optionnel, active Google Analytics 4 pageview)
 - `NEXT_PUBLIC_GTM_ID` (optionnel, injecte Google Tag Manager sur toutes les pages)
 - `NEXT_PUBLIC_ENABLE_CHALLENGES_MOCK_DATA` (optionnel, `true` pour activer le fallback mock du catalogue challenges en dev)

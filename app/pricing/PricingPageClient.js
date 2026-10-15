@@ -384,13 +384,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
       <main className="shell pricing-page">
         <section className="pricing-hero reveal-up" aria-label="Tarification TeamBlender">
           <div className="pricing-hero__copy">
-            <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Pricing' : 'Tarification'}</p>
             <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
-            <p className="pricing-hero__lede" style={getDarkModeTextStyle()}>
-              {isEn
-                ? 'Start light, then scale with more capabilities, support, and customization.'
-                : 'Commencez avec une offre légère, puis montez en puissance avec plus de capacités, d\'accompagnement et de personnalisation.'}
-            </p>
             <p className="pricing-hero__context" style={getDarkModeTextStyle()}>
               {isEn
                 ? 'Challenges are optimized for groups of 4 to 6 people. For larger teams, create multiple sessions and run them in parallel.'
@@ -402,13 +396,14 @@ export default function PricingPageClient({ initialPlans = [] }) {
         {/* Billing Cycle & Currency Selector */}
         {!loading && sortedPlans.length > 0 ? (
           <section className="pricing-controls reveal-up mb-8" aria-label="Options d'affichage">
-            <div className="pricing-controls__row mx-auto flex w-full max-w-6xl flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div className="pricing-controls__row mx-auto w-full max-w-6xl">
               <div className="control-section pricing-controls__toggle">
-                <label className="pricing-controls__label" style={getDarkModeTextStyle()}>{isEn ? 'Billing cycle' : 'Fréquence de facturation'}</label>
-                <div className="toggle-group toggle-group--compact">
+                <span id="pricing-billing-label" className="pricing-controls__label" style={getDarkModeTextStyle()}>{isEn ? 'Billing cycle' : 'Fréquence de facturation'}</span>
+                <div className="toggle-group toggle-group--compact" role="group" aria-labelledby="pricing-billing-label">
                   <button
                     type="button"
                     className={`toggle-btn toggle-btn--soft ${selectedBilling === 'monthly' ? 'active' : ''}`}
+                    aria-pressed={selectedBilling === 'monthly'}
                     onClick={() => setSelectedBilling('monthly')}
                   >
                     {isEn ? 'Monthly' : 'Mensuel'}
@@ -416,6 +411,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
                   <button
                     type="button"
                     className={`toggle-btn toggle-btn--soft ${selectedBilling === 'annual' ? 'active' : ''}`}
+                    aria-pressed={selectedBilling === 'annual'}
                     onClick={() => setSelectedBilling('annual')}
                   >
                     <span>{isEn ? 'Yearly' : 'Annuel'}</span>
@@ -425,8 +421,9 @@ export default function PricingPageClient({ initialPlans = [] }) {
               </div>
 
               <div className="control-section pricing-controls__currency">
-                <label style={getDarkModeTextStyle()}>{isEn ? 'Currency' : 'Devise'}</label>
+                <label htmlFor="pricing-currency" style={getDarkModeTextStyle()}>{isEn ? 'Currency' : 'Devise'}</label>
                 <select
+                  id="pricing-currency"
                   className="currency-select currency-select--compact"
                   value={selectedCurrency}
                   onChange={(event) => setSelectedCurrency(event.target.value)}
@@ -642,6 +639,11 @@ export default function PricingPageClient({ initialPlans = [] }) {
         }
 
         .pricing-page .pricing-controls__row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem 1.5rem;
           padding: 1.05rem 1.35rem;
           border: 1px solid rgba(47, 98, 255, 0.13);
           border-radius: 20px;
@@ -654,7 +656,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
           display: flex;
           align-items: center;
           gap: 0.9rem;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
         }
 
         .pricing-page .pricing-controls__toggle,
@@ -671,7 +673,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
         .pricing-page .pricing-controls__label,
         .pricing-page .pricing-controls__currency label {
           display: block;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0;
           font-size: 0.74rem;
           font-weight: 700;
           letter-spacing: 0.08em;
@@ -1028,17 +1030,20 @@ export default function PricingPageClient({ initialPlans = [] }) {
         }
 
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-proof-pill,
-        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .toggle-group--compact,
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .currency-select,
-        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls__row,
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card,
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta__inner {
           border-color: var(--surface-soft-border, rgba(148, 163, 184, 0.16));
           background: var(--surface-panel);
         }
 
-        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls__row {
-          box-shadow: 0 14px 34px rgba(2, 6, 23, 0.28);
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls__row,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .toggle-group--compact {
+          border: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          backdrop-filter: none;
         }
 
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-proof-pill,
@@ -1119,12 +1124,13 @@ export default function PricingPageClient({ initialPlans = [] }) {
           }
 
           .pricing-page .pricing-controls__row {
-            align-items: stretch;
+            align-items: center;
           }
 
           .pricing-page .control-section {
-            align-items: flex-start;
-            flex-direction: column;
+            align-items: center;
+            flex-direction: row;
+            flex-wrap: wrap;
             gap: 0.55rem;
           }
 
@@ -1133,9 +1139,8 @@ export default function PricingPageClient({ initialPlans = [] }) {
             font-size: 0.68rem;
           }
 
-          .pricing-page .pricing-controls__currency,
-          .pricing-page .currency-select {
-            width: 100%;
+          .pricing-page .pricing-controls__currency {
+            width: auto;
           }
 
           .pricing-page .pricing-card {

@@ -965,6 +965,10 @@ body {
   box-shadow: var(--surface-shadow-soft);
 }
 
+.admin-page-hero--dashboard {
+  margin-bottom: 16px;
+}
+
 .admin-page-hero__eyebrow {
   margin: 0 0 4px;
   font-size: 11px;
@@ -1817,26 +1821,44 @@ html[data-theme='dark'] .admin-panel-card b {
 }
 
 .pricing-page .pricing-controls__row {
+  display: flex;
+  flex-wrap: nowrap;
   align-items: center;
+  justify-content: center;
+  gap: 1rem 1.25rem;
+}
+
+.pricing-page .control-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .pricing-page .pricing-controls__toggle,
 .pricing-page .pricing-controls__currency {
-  display: grid;
-  gap: 0.6rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: nowrap;
 }
 
 .pricing-page .pricing-controls__toggle {
-  justify-items: center;
+  justify-content: flex-start;
 }
 
 .pricing-page .pricing-controls__currency {
-  justify-items: end;
+  justify-content: flex-end;
+  margin-left: 0;
 }
 
-.pricing-page .pricing-controls__label {
+.pricing-page .pricing-controls__label,
+.pricing-page .pricing-controls__currency label {
   font-size: 0.9rem;
   font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .pricing-page .toggle-group--compact {
@@ -2094,8 +2116,14 @@ html[data-theme='dark'] .admin-panel-card b {
     margin-bottom: 1.5rem;
   }
 
+  .pricing-page .pricing-controls__row {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
   .pricing-page .pricing-controls__currency {
     justify-items: center;
+    margin-left: 0;
   }
 
   .pricing-page .pricing-controls {
@@ -5211,6 +5239,15 @@ html[data-theme='dark'] .icon-action-btn:hover{
   background-clip: padding-box;
 }
 
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls__row,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .toggle-group--compact,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .currency-select {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-card {
   position: relative;
@@ -5219,10 +5256,6 @@ html[data-theme='dark'] .icon-action-btn:hover{
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card > * + *,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-card > * + * {
   margin-top: 0.85rem;
-}
-
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-controls {
-  box-shadow: 0 18px 38px rgba(2, 6, 23, 0.32);
 }
 
 .contact-page .btn-secondary,
