@@ -224,7 +224,7 @@ export default function ContactPage() {
 
         .contact-page .contact-panel {
           width: 100%;
-          max-width: 60rem;
+          max-width: 70rem;
           min-width: 0;
           margin: 0 auto;
           padding: 1.5rem 2rem;
