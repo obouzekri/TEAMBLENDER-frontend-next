@@ -66,6 +66,11 @@ try {
       await info().click();
       await page.getByText('1 / 8', { exact: true }).waitFor();
       await page.getByText(en ? 'Registered : 2' : 'Inscrits : 2', { exact: true }).waitFor();
+      const infoDialog = page.getByRole('dialog', { name: en ? 'Session info' : 'Infos de session', exact: true });
+      const dialogBounds = await infoDialog.boundingBox();
+      assert.ok(dialogBounds, 'Session info dialog should be visible');
+      assert.ok(Math.abs(dialogBounds.x + dialogBounds.width / 2 - width / 2) <= 1, 'Session info dialog should be horizontally centered');
+      assert.ok(Math.abs(dialogBounds.y + dialogBounds.height / 2 - 450) <= 1, 'Session info dialog should be vertically centered');
       await manage().click();
       await modal().waitFor();
       assert.ok(await modal().evaluate((node) => node.contains(document.activeElement)));

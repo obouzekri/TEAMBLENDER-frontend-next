@@ -18,7 +18,11 @@ function resolveChallengeLabel(challenge, isCurrent, currentLabel) {
 
 function trapDialogFocus(event) {
   if (event.key !== 'Tab') return;
-  const controls = [...event.currentTarget.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), [href]')];
+  const controls = [
+    ...event.currentTarget.querySelectorAll(
+      'button:not(:disabled), input:not(:disabled), select:not(:disabled), [href]'
+    ),
+  ];
   const first = controls[0];
   const last = controls[controls.length - 1];
   if (event.shiftKey && document.activeElement === first) {
@@ -52,7 +56,6 @@ export default function SessionLiveHeader({
   const { locale, t } = useI18n();
   const isEn = locale === 'en';
   const [infoOpen, setInfoOpen] = useState(false);
-  const [popoverPosition, setPopoverPosition] = useState(null);
   const [copied, setCopied] = useState(false);
   const infoRef = useRef(null);
   const popoverRef = useRef(null);
@@ -68,7 +71,10 @@ export default function SessionLiveHeader({
   const [recovering, setRecovering] = useState(false);
   const contextRef = useRef(null);
   const [contextOpen, setContextOpen] = useState(false);
-  const [contextDraft, setContextDraft] = useState({ expected_participant_count: '', objective: '' });
+  const [contextDraft, setContextDraft] = useState({
+    expected_participant_count: '',
+    objective: '',
+  });
   const [contextError, setContextError] = useState('');
   const [contextSaving, setContextSaving] = useState(false);
   const [savedContext, setSavedContext] = useState(null);
@@ -83,18 +89,31 @@ export default function SessionLiveHeader({
     creativite: isEn ? 'Creativity' : 'Créativité',
     'intelligence-collective': isEn ? 'Collective intelligence' : 'Intelligence collective',
   };
-  const parseObjectiveKeys = (value) => (value == null || value === ''
-    ? []
-    : String(value).split(',').map((item) => item.trim()).filter(Boolean));
+  const parseObjectiveKeys = (value) =>
+    value == null || value === ''
+      ? []
+      : String(value)
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
   const objectiveKeys = Object.keys(objectiveLabels);
   const displayedObjective = savedContext?.objective ?? sessionObjective;
-  const displayedObjectiveKeys = parseObjectiveKeys(displayedObjective).filter((key) => objectiveKeys.includes(key));
-  const displayedObjectiveLabel = displayedObjectiveKeys.map((key) => objectiveLabels[key]).join(' · ');
-  const displayedExpectedCount = savedContext ? savedContext.expected_participant_count : expectedParticipantCount;
+  const displayedObjectiveKeys = parseObjectiveKeys(displayedObjective).filter((key) =>
+    objectiveKeys.includes(key)
+  );
+  const displayedObjectiveLabel = displayedObjectiveKeys
+    .map((key) => objectiveLabels[key])
+    .join(' · ');
+  const displayedExpectedCount = savedContext
+    ? savedContext.expected_participant_count
+    : expectedParticipantCount;
 
   function openContextEditor() {
     setInfoOpen(false);
-    if (onEditSessionInfo) { onEditSessionInfo(); return; }
+    if (onEditSessionInfo) {
+      onEditSessionInfo();
+      return;
+    }
     setContextDraft({
       expected_participant_count: displayedExpectedCount ?? '',
       objective: displayedObjectiveKeys.join(','),
@@ -108,13 +127,25 @@ export default function SessionLiveHeader({
     else contextRef.current?.close();
   }, [contextOpen]);
 
-  useEffect(() => { setSavedContext(null); }, [sessionId, expectedParticipantCount, sessionObjective]);
+  useEffect(() => {
+    setSavedContext(null);
+  }, [sessionId, expectedParticipantCount, sessionObjective]);
 
   async function saveContext(event) {
     event.preventDefault();
-    const expected = contextDraft.expected_participant_count === '' ? null : Number(contextDraft.expected_participant_count);
-    if (expected != null && (!Number.isInteger(expected) || expected < 1 || expected > 2147483647)) {
-      setContextError(isEn ? 'Expected count must be a positive integer.' : 'Le nombre attendu doit être un entier positif.');
+    const expected =
+      contextDraft.expected_participant_count === ''
+        ? null
+        : Number(contextDraft.expected_participant_count);
+    if (
+      expected != null &&
+      (!Number.isInteger(expected) || expected < 1 || expected > 2147483647)
+    ) {
+      setContextError(
+        isEn
+          ? 'Expected count must be a positive integer.'
+          : 'Le nombre attendu doit être un entier positif.'
+      );
       return;
     }
     setContextSaving(true);
@@ -123,9 +154,14 @@ export default function SessionLiveHeader({
       const normalizedObjective = objectiveKeys
         .filter((key) => parseObjectiveKeys(contextDraft.objective).includes(key))
         .join(',');
-      const fields = { expected_participant_count: expected, objective: normalizedObjective || null };
+      const fields = {
+        expected_participant_count: expected,
+        objective: normalizedObjective || null,
+      };
       const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), {
-        method: 'PUT', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, credentials: 'include',
+        method: 'PUT',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(fields),
       });
       const data = await res.json();
@@ -141,7 +177,10 @@ export default function SessionLiveHeader({
   }
 
   async function loadManagement() {
-    const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/participant-management`), { headers: getAuthHeaders(), credentials: 'include' });
+    const res = await fetch(
+      getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/participant-management`),
+      { headers: getAuthHeaders(), credentials: 'include' }
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `${isEn ? 'Error' : 'Erreur'} ${res.status}`);
     setManagement(data);
@@ -152,14 +191,24 @@ export default function SessionLiveHeader({
     setRecovering(true);
     setManagementError('');
     try {
-      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/participant-management/${encodeURIComponent(recoveryParticipant.id)}/recovery`), {
-        method: 'POST', headers: getAuthHeaders(), credentials: 'include',
-      });
+      const res = await fetch(
+        getApiUrl(
+          `/sessions/${encodeURIComponent(sessionId)}/participant-management/${encodeURIComponent(recoveryParticipant.id)}/recovery`
+        ),
+        {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          credentials: 'include',
+        }
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || data.message || `Erreur ${res.status}`);
       setRecoveryLink(data);
-    } catch (error) { setManagementError(error.message); }
-    finally { setRecovering(false); }
+    } catch (error) {
+      setManagementError(error.message);
+    } finally {
+      setRecovering(false);
+    }
   }
 
   useEffect(() => {
@@ -167,17 +216,29 @@ export default function SessionLiveHeader({
     let cancelled = false;
     async function refresh() {
       try {
-        const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/participant-management`), { headers: getAuthHeaders(), credentials: 'include' });
+        const res = await fetch(
+          getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/participant-management`),
+          { headers: getAuthHeaders(), credentials: 'include' }
+        );
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
-        if (!cancelled) { setManagement(data); setManagementError(''); }
+        if (!cancelled) {
+          setManagement(data);
+          setManagementError('');
+        }
       } catch (error) {
-        if (!cancelled) { setManagement(null); setManagementError(error.message); }
+        if (!cancelled) {
+          setManagement(null);
+          setManagementError(error.message);
+        }
       }
     }
     refresh();
     const timer = setInterval(refresh, 5000);
-    return () => { cancelled = true; clearInterval(timer); };
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
   }, [canManageParticipants, sessionId, activeChallengeId]);
 
   useEffect(() => {
@@ -190,10 +251,20 @@ export default function SessionLiveHeader({
     setRemoving(true);
     setManagementError('');
     try {
-      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/participant-management/${encodeURIComponent(removal.participant.id)}/remove`), {
-        method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, credentials: 'include',
-        body: JSON.stringify({ scope: removal.scope, active_challenge_id: management.active_challenge_id }),
-      });
+      const res = await fetch(
+        getApiUrl(
+          `/sessions/${encodeURIComponent(sessionId)}/participant-management/${encodeURIComponent(removal.participant.id)}/remove`
+        ),
+        {
+          method: 'POST',
+          headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            scope: removal.scope,
+            active_challenge_id: management.active_challenge_id,
+          }),
+        }
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
       setRemoval(null);
@@ -205,23 +276,37 @@ export default function SessionLiveHeader({
     }
   }
 
-  const resolvedSessionName = String(sessionName || '').trim() || sessionId || t('sessionLive.sessionFallbackName');
+  const resolvedSessionName =
+    String(sessionName || '').trim() || sessionId || t('sessionLive.sessionFallbackName');
   const resolvedSessionCode = String(sessionCode || sessionId || '').trim();
-  const resolvedActiveChallengeName = String(activeChallengeName || '').trim() || t('sessionLive.noActiveChallengeTitle');
-  const presenceAvailable = management?.participants?.every((participant) => participant.presence !== 'unavailable');
+  const resolvedActiveChallengeName =
+    String(activeChallengeName || '').trim() || t('sessionLive.noActiveChallengeTitle');
+  const presenceAvailable = management?.participants?.every(
+    (participant) => participant.presence !== 'unavailable'
+  );
   const resolvedParticipantCount = canManageParticipants
-    ? (presenceAvailable ? management.participants.filter((participant) => participant.presence === 'connected').length : null)
-    : (Number.isFinite(Number(participantCount)) ? Number(participantCount) : 0);
-  const resolvedExpectedCount = displayedExpectedCount != null && Number.isFinite(Number(displayedExpectedCount))
-    ? Number(displayedExpectedCount) : null;
+    ? presenceAvailable
+      ? management.participants.filter((participant) => participant.presence === 'connected').length
+      : null
+    : Number.isFinite(Number(participantCount))
+      ? Number(participantCount)
+      : 0;
+  const resolvedExpectedCount =
+    displayedExpectedCount != null && Number.isFinite(Number(displayedExpectedCount))
+      ? Number(displayedExpectedCount)
+      : null;
   const orderedChallenges = Array.isArray(challenges) ? challenges : [];
   const sessionInfoLabel = isEn ? 'Session info' : 'Infos de session';
   const sessionCodeLabel = isEn ? 'Session code' : 'Code de la session';
   const copyLabel = isEn ? 'Copy' : 'Copier';
   const copiedLabel = isEn ? 'Copied' : 'Copié';
   const participantSummaryLabel = canManageParticipants
-    ? (isEn ? 'Connected / expected participants' : 'Participants connectés / attendus')
-    : (isEn ? 'Assigned / expected participants' : 'Participants inscrits / attendus');
+    ? isEn
+      ? 'Connected / expected participants'
+      : 'Participants connectés / attendus'
+    : isEn
+      ? 'Assigned / expected participants'
+      : 'Participants inscrits / attendus';
   const challengeOrderLabel = isEn ? 'Challenge order' : 'Ordre des challenges';
   const currentChallengeLabel = isEn ? 'Current' : 'En cours';
   const noChallengeLabel = isEn ? 'No active challenge' : 'Aucun challenge actif';
@@ -240,23 +325,7 @@ export default function SessionLiveHeader({
   }, [activeChallengeId, orderedChallenges, resolvedActiveChallengeName]);
 
   useEffect(() => {
-    if (!infoOpen) {
-      setPopoverPosition(null);
-      return undefined;
-    }
-
-    function updatePosition() {
-      const trigger = infoRef.current;
-      if (!trigger || typeof window === 'undefined') return;
-      const rect = trigger.getBoundingClientRect();
-      const viewportPadding = 12;
-      const width = Math.min(360, window.innerWidth - viewportPadding * 2);
-      const left = Math.min(
-        Math.max(viewportPadding, rect.left),
-        window.innerWidth - width - viewportPadding
-      );
-      setPopoverPosition({ top: rect.bottom + 10, left, width });
-    }
+    if (!infoOpen) return undefined;
 
     function handlePointerDown(event) {
       if (infoRef.current?.contains(event.target)) return;
@@ -270,17 +339,13 @@ export default function SessionLiveHeader({
       }
     }
 
-    updatePosition();
+    popoverRef.current?.querySelector('button')?.focus();
     document.addEventListener('mousedown', handlePointerDown);
     document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
 
     return () => {
       document.removeEventListener('mousedown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
     };
   }, [infoOpen]);
 
@@ -306,76 +371,121 @@ export default function SessionLiveHeader({
     }
   }
 
-  const infoPopover = infoOpen && popoverPosition ? (
-    <div
-      ref={popoverRef}
-      className={styles.popover}
-      role="dialog"
-      aria-label={sessionInfoLabel}
-      style={{ top: `${popoverPosition.top}px`, left: `${popoverPosition.left}px`, width: `${popoverPosition.width}px` }}
-    >
-      <div className={styles.popoverHeader}>
-        <h2 className={styles.popoverTitle}>{sessionInfoLabel}</h2>
-        <button
-          type="button"
-          className={styles.popoverClose}
-          aria-label={closeLabel}
-          onClick={() => setInfoOpen(false)}
-        >
-          <X size={16} aria-hidden="true" />
-        </button>
-      </div>
-      <div className={styles.popoverSection}>
-        <p className={styles.popoverLabel}>{sessionCodeLabel}</p>
-        <div className={styles.codeRow}>
-          <strong className={styles.codeValue}>{resolvedSessionCode}</strong>
-          <Button variant="secondary" size="sm" className={styles.copyButton} onClick={handleCopySessionCode}>
-            {copied ? <Check size={14} strokeWidth={2.4} aria-hidden="true" /> : <Copy size={14} strokeWidth={2.4} aria-hidden="true" />}
-            <span>{copied ? copiedLabel : copyLabel}</span>
-          </Button>
+  const infoPopover = infoOpen ? (
+    <div className={styles.popoverBackdrop} role="presentation">
+      <div
+        ref={popoverRef}
+        className={styles.popover}
+        role="dialog"
+        aria-modal="true"
+        aria-label={sessionInfoLabel}
+        onKeyDown={trapDialogFocus}
+      >
+        <div className={styles.popoverHeader}>
+          <h2 className={styles.popoverTitle}>{sessionInfoLabel}</h2>
+          <button
+            type="button"
+            className={styles.popoverClose}
+            aria-label={closeLabel}
+            onClick={() => setInfoOpen(false)}
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
         </div>
-      </div>
-      <div className={styles.popoverSection}>
-        <p className={styles.popoverLabel}>{participantSummaryLabel}</p>
-        <div className={styles.participantSummary}>
-          <strong className={styles.countValue}>
-            {resolvedParticipantCount ?? '—'} <span>/ {resolvedExpectedCount ?? '—'}</span>
-          </strong>
-          <p className={styles.registeredCount}>
-            {isEn ? 'Registered' : 'Inscrits'} : {Number.isFinite(Number(participantCount)) ? Number(participantCount) : '—'}
-          </p>
-        </div>
-        {resolvedExpectedCount == null ? <p className={styles.popoverNote}>{isEn ? 'Expected attendance not specified' : 'Nombre attendu non précisé'}</p> : null}
-        {canManageParticipants ? (
-          <Button variant="secondary" size="sm" className={styles.sectionAction} onClick={() => { setInfoOpen(false); setManagementOpen(true); }}>
-            {manageLabel}
-          </Button>
-        ) : null}
-      </div>
-      {displayedObjectiveLabel || canManageParticipants ? (
         <div className={styles.popoverSection}>
-          <p className={styles.popoverLabel}>{isEn ? 'Objectives' : 'Objectifs'}</p>
-          {displayedObjectiveLabel ? <p className={styles.objectiveValue}>{displayedObjectiveLabel}</p> : <p className={styles.popoverNote}>{isEn ? 'No objective specified' : 'Aucun objectif précisé'}</p>}
+          <p className={styles.popoverLabel}>{sessionCodeLabel}</p>
+          <div className={styles.codeRow}>
+            <strong className={styles.codeValue}>{resolvedSessionCode}</strong>
+            <Button
+              variant="secondary"
+              size="sm"
+              className={styles.copyButton}
+              onClick={handleCopySessionCode}
+            >
+              {copied ? (
+                <Check size={14} strokeWidth={2.4} aria-hidden="true" />
+              ) : (
+                <Copy size={14} strokeWidth={2.4} aria-hidden="true" />
+              )}
+              <span>{copied ? copiedLabel : copyLabel}</span>
+            </Button>
+          </div>
+        </div>
+        <div className={styles.popoverSection}>
+          <p className={styles.popoverLabel}>{participantSummaryLabel}</p>
+          <div className={styles.participantSummary}>
+            <strong className={styles.countValue}>
+              {resolvedParticipantCount ?? '—'} <span>/ {resolvedExpectedCount ?? '—'}</span>
+            </strong>
+            <p className={styles.registeredCount}>
+              {isEn ? 'Registered' : 'Inscrits'} :{' '}
+              {Number.isFinite(Number(participantCount)) ? Number(participantCount) : '—'}
+            </p>
+          </div>
+          {resolvedExpectedCount == null ? (
+            <p className={styles.popoverNote}>
+              {isEn ? 'Expected attendance not specified' : 'Nombre attendu non précisé'}
+            </p>
+          ) : null}
           {canManageParticipants ? (
-            <Button variant="secondary" size="sm" className={styles.sectionAction} onClick={openContextEditor}>
-              {isEn ? 'Edit session info' : 'Modifier les infos'}
+            <Button
+              variant="secondary"
+              size="sm"
+              className={styles.sectionAction}
+              onClick={() => {
+                setInfoOpen(false);
+                setManagementOpen(true);
+              }}
+            >
+              {manageLabel}
             </Button>
           ) : null}
         </div>
-      ) : null}
-      <div className={styles.popoverSection}>
-        <p className={styles.popoverLabel}>{challengeOrderLabel}</p>
-        <ol className={styles.challengeList}>
-          {challengeRows.length > 0 ? challengeRows.map((challenge) => (
-            <li key={challenge.key} className={`${styles.challengeItem}${challenge.isCurrent ? ` ${styles.challengeItemCurrent}` : ''}`}>
-              <span className={styles.challengeIndex}>{challenge.index}</span>
-              <span className={styles.challengeLabel}>{challenge.label || t('sessionLive.noActiveChallengeTitle')}</span>
-              {challenge.isCurrent ? <span className={styles.challengeBadge}>{currentChallengeLabel}</span> : null}
-            </li>
-          )) : (
-            <li className={styles.challengeItemEmpty}>{noChallengeLabel}</li>
-          )}
-        </ol>
+        {displayedObjectiveLabel || canManageParticipants ? (
+          <div className={styles.popoverSection}>
+            <p className={styles.popoverLabel}>{isEn ? 'Objectives' : 'Objectifs'}</p>
+            {displayedObjectiveLabel ? (
+              <p className={styles.objectiveValue}>{displayedObjectiveLabel}</p>
+            ) : (
+              <p className={styles.popoverNote}>
+                {isEn ? 'No objective specified' : 'Aucun objectif précisé'}
+              </p>
+            )}
+            {canManageParticipants ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                className={styles.sectionAction}
+                onClick={openContextEditor}
+              >
+                {isEn ? 'Edit session info' : 'Modifier les infos'}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+        <div className={styles.popoverSection}>
+          <p className={styles.popoverLabel}>{challengeOrderLabel}</p>
+          <ol className={styles.challengeList}>
+            {challengeRows.length > 0 ? (
+              challengeRows.map((challenge) => (
+                <li
+                  key={challenge.key}
+                  className={`${styles.challengeItem}${challenge.isCurrent ? ` ${styles.challengeItemCurrent}` : ''}`}
+                >
+                  <span className={styles.challengeIndex}>{challenge.index}</span>
+                  <span className={styles.challengeLabel}>
+                    {challenge.label || t('sessionLive.noActiveChallengeTitle')}
+                  </span>
+                  {challenge.isCurrent ? (
+                    <span className={styles.challengeBadge}>{currentChallengeLabel}</span>
+                  ) : null}
+                </li>
+              ))
+            ) : (
+              <li className={styles.challengeItemEmpty}>{noChallengeLabel}</li>
+            )}
+          </ol>
+        </div>
       </div>
     </div>
   ) : null;
@@ -385,7 +495,9 @@ export default function SessionLiveHeader({
       <div className={styles.topRow}>
         <div className={styles.details}>
           <div className={styles.titleRow}>
-            <strong className={styles.sessionName} title={resolvedSessionName}>{resolvedSessionName}</strong>
+            <strong className={styles.sessionName} title={resolvedSessionName}>
+              {resolvedSessionName}
+            </strong>
             <div ref={infoRef} className={styles.infoWrap}>
               <button
                 type="button"
@@ -396,8 +508,12 @@ export default function SessionLiveHeader({
               >
                 <Info size={14} strokeWidth={2.2} aria-hidden="true" />
               </button>
-              <span className={styles.infoTooltip} role="tooltip">{sessionInfoLabel}</span>
-              {infoPopover && typeof document !== 'undefined' ? createPortal(infoPopover, document.body) : null}
+              <span className={styles.infoTooltip} role="tooltip">
+                {sessionInfoLabel}
+              </span>
+              {infoPopover && typeof document !== 'undefined'
+                ? createPortal(infoPopover, document.body)
+                : null}
             </div>
             <span className={styles.participantBadge}>
               <Users aria-hidden="true" size={14} strokeWidth={2} />
@@ -415,7 +531,9 @@ export default function SessionLiveHeader({
               onClick={onAdvance}
               disabled={advancing}
             >
-              {advancing ? t('sessionLive.inProgress') : (advanceLabel || t('sessionLive.moveToNextChallenge'))}
+              {advancing
+                ? t('sessionLive.inProgress')
+                : advanceLabel || t('sessionLive.moveToNextChallenge')}
             </Button>
           </div>
         ) : null}
@@ -423,96 +541,274 @@ export default function SessionLiveHeader({
 
       <div ref={challengeSlotRef} className={styles.challengeSlot} />
       {canManageParticipants ? (
-        <dialog ref={managementRef} className={styles.managementDialog} aria-labelledby="participant-management-title"
+        <dialog
+          ref={managementRef}
+          className={styles.managementDialog}
+          aria-labelledby="participant-management-title"
           onKeyDown={trapDialogFocus}
-          onCancel={(event) => { if (removing || recovering) event.preventDefault(); }}
-          onClose={() => { setManagementOpen(false); setRemoval(null); setRecoveryParticipant(null); setRecoveryLink(null); infoRef.current?.querySelector('button')?.focus(); }}>
+          onCancel={(event) => {
+            if (removing || recovering) event.preventDefault();
+          }}
+          onClose={() => {
+            setManagementOpen(false);
+            setRemoval(null);
+            setRecoveryParticipant(null);
+            setRecoveryLink(null);
+            infoRef.current?.querySelector('button')?.focus();
+          }}
+        >
           <h2 id="participant-management-title">{manageLabel}</h2>
-          <p>{isEn
-            ? 'Going offline does not remove a participant. Current removal redistributes unfinished puzzle pieces or words, preserving placed work. Other engines support future challenges only: finish the current challenge or use its own explicit reset controls.'
-            : 'Une déconnexion ne retire pas un participant. Le retrait actuel redistribue les pièces ou mots inachevés sans effacer le travail placé. Pour les autres moteurs, seul le retrait des prochains challenges est disponible : terminez le challenge actuel ou utilisez ses propres commandes de réinitialisation.'}</p>
-          <p>{isEn ? 'Removal applies to this session only and is not undone by reconnecting. Completed challenges and saved results remain unchanged.' : 'Le retrait concerne cette session uniquement et une reconnexion ne l’annule pas. Les challenges terminés et les résultats enregistrés restent inchangés.'}</p>
+          <p>
+            {isEn
+              ? 'Going offline does not remove a participant. Current removal redistributes unfinished puzzle pieces or words, preserving placed work. Other engines support future challenges only: finish the current challenge or use its own explicit reset controls.'
+              : 'Une déconnexion ne retire pas un participant. Le retrait actuel redistribue les pièces ou mots inachevés sans effacer le travail placé. Pour les autres moteurs, seul le retrait des prochains challenges est disponible : terminez le challenge actuel ou utilisez ses propres commandes de réinitialisation.'}
+          </p>
+          <p>
+            {isEn
+              ? 'Removal applies to this session only and is not undone by reconnecting. Completed challenges and saved results remain unchanged.'
+              : 'Le retrait concerne cette session uniquement et une reconnexion ne l’annule pas. Les challenges terminés et les résultats enregistrés restent inchangés.'}
+          </p>
           {managementError ? <p role="alert">{managementError}</p> : null}
-          {!management ? <p role="status">{isEn ? 'Presence unavailable' : 'Présence indisponible'}</p> : (
+          {!management ? (
+            <p role="status">{isEn ? 'Presence unavailable' : 'Présence indisponible'}</p>
+          ) : (
             <ul className={styles.managementList}>
               {management.participants.map((participant) => (
                 <li key={participant.id}>
-                  <div><strong>{participant.name}</strong><span>{({
-                    connected: isEn ? 'Connected' : 'Connecté', offline: isEn ? 'Offline' : 'Hors ligne',
-                    removed: isEn ? 'Removed' : 'Retiré', unavailable: isEn ? 'Presence unavailable' : 'Présence indisponible',
-                  })[participant.presence]}{participant.removed_from_future && participant.presence !== 'removed' ? (isEn ? ' · Removed from future challenges' : ' · Retiré des prochains challenges') : ''}</span></div>
-                  {participant.presence !== 'removed' ? <div className={styles.managementActions}>
-                    <Button size="sm" variant="secondary" disabled={removing || recovering} onClick={() => {
-                      setRecoveryParticipant(participant); setRecoveryLink(null); setRemoval(null); setManagementError('');
-                    }}>{isEn ? 'Restore access' : 'Retablir l acces'}</Button>
-                    {management.can_remove_current ? <Button size="sm" variant="secondary" disabled={removing} onClick={() => setRemoval({ participant, scope: 'current_and_future' })}>{isEn ? 'Remove and reassign' : 'Retirer et redistribuer'}</Button> : null}
-                    {!participant.removed_from_future ? <Button size="sm" variant="secondary" disabled={removing} onClick={() => setRemoval({ participant, scope: 'future' })}>{isEn ? 'Future challenges only' : 'Prochains challenges uniquement'}</Button> : null}
-                  </div> : null}
+                  <div>
+                    <strong>{participant.name}</strong>
+                    <span>
+                      {
+                        {
+                          connected: isEn ? 'Connected' : 'Connecté',
+                          offline: isEn ? 'Offline' : 'Hors ligne',
+                          removed: isEn ? 'Removed' : 'Retiré',
+                          unavailable: isEn ? 'Presence unavailable' : 'Présence indisponible',
+                        }[participant.presence]
+                      }
+                      {participant.removed_from_future && participant.presence !== 'removed'
+                        ? isEn
+                          ? ' · Removed from future challenges'
+                          : ' · Retiré des prochains challenges'
+                        : ''}
+                    </span>
+                  </div>
+                  {participant.presence !== 'removed' ? (
+                    <div className={styles.managementActions}>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={removing || recovering}
+                        onClick={() => {
+                          setRecoveryParticipant(participant);
+                          setRecoveryLink(null);
+                          setRemoval(null);
+                          setManagementError('');
+                        }}
+                      >
+                        {isEn ? 'Restore access' : 'Retablir l acces'}
+                      </Button>
+                      {management.can_remove_current ? (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={removing}
+                          onClick={() => setRemoval({ participant, scope: 'current_and_future' })}
+                        >
+                          {isEn ? 'Remove and reassign' : 'Retirer et redistribuer'}
+                        </Button>
+                      ) : null}
+                      {!participant.removed_from_future ? (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={removing}
+                          onClick={() => setRemoval({ participant, scope: 'future' })}
+                        >
+                          {isEn ? 'Future challenges only' : 'Prochains challenges uniquement'}
+                        </Button>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>
           )}
-          {recoveryParticipant ? <div className={styles.confirmRemoval} role="group" aria-label={isEn ? 'Restore participant access' : 'Retablir l acces du participant'}>
-            <h3>{recoveryParticipant.name} — #{recoveryParticipant.id}</h3>
-            <p>{isEn
-              ? 'Verify this participant’s identity in person or through a known channel before generating a link. It is valid for 10 minutes and one use. Using it replaces previous access to this participation, preserving the team and saved results.'
-              : 'Verifiez l identite de ce participant sur place ou par un canal connu avant de generer un lien. Il est valable 10 minutes et une seule fois. Son utilisation remplace les anciens acces a cette participation, sans modifier l equipe ni les resultats enregistres.'}</p>
-            {recoveryLink ? <RecoveryLinkDisplay {...recoveryLink} /> : null}
-            <Button variant="primary" size="sm" disabled={recovering} onClick={restoreAccess}>{recovering ? (isEn ? 'Generating...' : 'Generation...') : recoveryLink ? (isEn ? 'Replace link' : 'Remplacer le lien') : (isEn ? 'Identity verified: generate link' : 'Identite verifiee : generer le lien')}</Button>
-            <Button variant="secondary" size="sm" disabled={recovering} onClick={() => { setRecoveryParticipant(null); setRecoveryLink(null); }}>{isEn ? 'Close recovery' : 'Fermer la reprise'}</Button>
-          </div> : null}
-          {removal ? <div className={styles.confirmRemoval} role="group" aria-label={isEn ? 'Confirm removal' : 'Confirmer le retrait'}>
-            <p>{removal.scope === 'future'
-              ? (isEn ? `Remove ${removal.participant.name} from future challenges? Their current assignment stays unchanged.` : `Retirer ${removal.participant.name} des prochains challenges ? Son attribution actuelle reste inchangée.`)
-              : (isEn ? `Remove ${removal.participant.name} now and from future challenges? Unfinished items will be redistributed; this cannot be undone by reconnecting.` : `Retirer ${removal.participant.name} maintenant et des prochains challenges ? Les éléments inachevés seront redistribués ; une reconnexion ne pourra pas annuler ce retrait.`)}</p>
-            <Button variant="primary" size="sm" disabled={removing} onClick={confirmRemoval}>{removing ? (isEn ? 'Removing…' : 'Retrait…') : (isEn ? 'Confirm removal' : 'Confirmer le retrait')}</Button>
-            <Button variant="secondary" size="sm" disabled={removing} onClick={() => setRemoval(null)}>{isEn ? 'Cancel' : 'Annuler'}</Button>
-          </div> : null}
-          <Button variant="secondary" size="sm" disabled={removing || recovering} onClick={() => setManagementOpen(false)}>{closeLabel}</Button>
+          {recoveryParticipant ? (
+            <div
+              className={styles.confirmRemoval}
+              role="group"
+              aria-label={isEn ? 'Restore participant access' : 'Retablir l acces du participant'}
+            >
+              <h3>
+                {recoveryParticipant.name} — #{recoveryParticipant.id}
+              </h3>
+              <p>
+                {isEn
+                  ? 'Verify this participant’s identity in person or through a known channel before generating a link. It is valid for 10 minutes and one use. Using it replaces previous access to this participation, preserving the team and saved results.'
+                  : 'Verifiez l identite de ce participant sur place ou par un canal connu avant de generer un lien. Il est valable 10 minutes et une seule fois. Son utilisation remplace les anciens acces a cette participation, sans modifier l equipe ni les resultats enregistres.'}
+              </p>
+              {recoveryLink ? <RecoveryLinkDisplay {...recoveryLink} /> : null}
+              <Button variant="primary" size="sm" disabled={recovering} onClick={restoreAccess}>
+                {recovering
+                  ? isEn
+                    ? 'Generating...'
+                    : 'Generation...'
+                  : recoveryLink
+                    ? isEn
+                      ? 'Replace link'
+                      : 'Remplacer le lien'
+                    : isEn
+                      ? 'Identity verified: generate link'
+                      : 'Identite verifiee : generer le lien'}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={recovering}
+                onClick={() => {
+                  setRecoveryParticipant(null);
+                  setRecoveryLink(null);
+                }}
+              >
+                {isEn ? 'Close recovery' : 'Fermer la reprise'}
+              </Button>
+            </div>
+          ) : null}
+          {removal ? (
+            <div
+              className={styles.confirmRemoval}
+              role="group"
+              aria-label={isEn ? 'Confirm removal' : 'Confirmer le retrait'}
+            >
+              <p>
+                {removal.scope === 'future'
+                  ? isEn
+                    ? `Remove ${removal.participant.name} from future challenges? Their current assignment stays unchanged.`
+                    : `Retirer ${removal.participant.name} des prochains challenges ? Son attribution actuelle reste inchangée.`
+                  : isEn
+                    ? `Remove ${removal.participant.name} now and from future challenges? Unfinished items will be redistributed; this cannot be undone by reconnecting.`
+                    : `Retirer ${removal.participant.name} maintenant et des prochains challenges ? Les éléments inachevés seront redistribués ; une reconnexion ne pourra pas annuler ce retrait.`}
+              </p>
+              <Button variant="primary" size="sm" disabled={removing} onClick={confirmRemoval}>
+                {removing
+                  ? isEn
+                    ? 'Removing…'
+                    : 'Retrait…'
+                  : isEn
+                    ? 'Confirm removal'
+                    : 'Confirmer le retrait'}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={removing}
+                onClick={() => setRemoval(null)}
+              >
+                {isEn ? 'Cancel' : 'Annuler'}
+              </Button>
+            </div>
+          ) : null}
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={removing || recovering}
+            onClick={() => setManagementOpen(false)}
+          >
+            {closeLabel}
+          </Button>
         </dialog>
       ) : null}
-      {canManageParticipants ? <dialog ref={contextRef} className={styles.managementDialog} aria-labelledby="session-context-title"
-        onKeyDown={trapDialogFocus}
-        onCancel={(event) => { if (contextSaving) event.preventDefault(); }}
-        onClose={() => { setContextOpen(false); infoRef.current?.querySelector('button')?.focus(); }}>
-        <h2 id="session-context-title">{isEn ? 'Edit session info' : 'Modifier les infos'}</h2>
-        <form onSubmit={saveContext} className={styles.contextForm}>
-          <label>{isEn ? 'Expected participants' : 'Participants attendus'}
-            <input type="number" min="1" max="2147483647" step="1" value={contextDraft.expected_participant_count}
-              onChange={(event) => setContextDraft((draft) => ({ ...draft, expected_participant_count: event.target.value }))} />
-          </label>
-          <fieldset className={styles.contextObjectives}>
-            <legend>{isEn ? 'Objectives' : 'Objectifs'}</legend>
-            <div className={styles.contextObjectiveOptions}>
-              {Object.entries(objectiveLabels).map(([key, label]) => {
-                const checked = parseObjectiveKeys(contextDraft.objective).includes(key);
-                return (
-                  <label key={key}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(event) => {
-                        const current = parseObjectiveKeys(contextDraft.objective);
-                        const next = event.target.checked
-                          ? [...current, key]
-                          : current.filter((item) => item !== key);
-                        setContextDraft((draft) => ({ ...draft, objective: objectiveKeys.filter((item) => next.includes(item)).join(',') }));
-                      }}
-                    />
-                    <span>{label}</span>
-                  </label>
-                );
-              })}
+      {canManageParticipants ? (
+        <dialog
+          ref={contextRef}
+          className={styles.managementDialog}
+          aria-labelledby="session-context-title"
+          onKeyDown={trapDialogFocus}
+          onCancel={(event) => {
+            if (contextSaving) event.preventDefault();
+          }}
+          onClose={() => {
+            setContextOpen(false);
+            infoRef.current?.querySelector('button')?.focus();
+          }}
+        >
+          <h2 id="session-context-title">{isEn ? 'Edit session info' : 'Modifier les infos'}</h2>
+          <form onSubmit={saveContext} className={styles.contextForm}>
+            <label>
+              {isEn ? 'Expected participants' : 'Participants attendus'}
+              <input
+                type="number"
+                min="1"
+                max="2147483647"
+                step="1"
+                value={contextDraft.expected_participant_count}
+                onChange={(event) =>
+                  setContextDraft((draft) => ({
+                    ...draft,
+                    expected_participant_count: event.target.value,
+                  }))
+                }
+              />
+            </label>
+            <fieldset className={styles.contextObjectives}>
+              <legend>{isEn ? 'Objectives' : 'Objectifs'}</legend>
+              <div className={styles.contextObjectiveOptions}>
+                {Object.entries(objectiveLabels).map(([key, label]) => {
+                  const checked = parseObjectiveKeys(contextDraft.objective).includes(key);
+                  return (
+                    <label key={key}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(event) => {
+                          const current = parseObjectiveKeys(contextDraft.objective);
+                          const next = event.target.checked
+                            ? [...current, key]
+                            : current.filter((item) => item !== key);
+                          setContextDraft((draft) => ({
+                            ...draft,
+                            objective: objectiveKeys
+                              .filter((item) => next.includes(item))
+                              .join(','),
+                          }));
+                        }}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+            <p>
+              {isEn
+                ? 'Session context only: this does not change game assignments or restart the current challenge.'
+                : 'Contexte de session uniquement : ceci ne modifie pas les attributions et ne redémarre pas le challenge actuel.'}
+            </p>
+            {contextError ? <p role="alert">{contextError}</p> : null}
+            <div className={styles.managementActions}>
+              <Button type="submit" variant="primary" size="sm" disabled={contextSaving}>
+                {contextSaving
+                  ? isEn
+                    ? 'Saving…'
+                    : 'Enregistrement…'
+                  : isEn
+                    ? 'Save'
+                    : 'Enregistrer'}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={contextSaving}
+                onClick={() => setContextOpen(false)}
+              >
+                {closeLabel}
+              </Button>
             </div>
-          </fieldset>
-          <p>{isEn ? 'Session context only: this does not change game assignments or restart the current challenge.' : 'Contexte de session uniquement : ceci ne modifie pas les attributions et ne redémarre pas le challenge actuel.'}</p>
-          {contextError ? <p role="alert">{contextError}</p> : null}
-          <div className={styles.managementActions}>
-            <Button type="submit" variant="primary" size="sm" disabled={contextSaving}>{contextSaving ? (isEn ? 'Saving…' : 'Enregistrement…') : (isEn ? 'Save' : 'Enregistrer')}</Button>
-            <Button type="button" variant="secondary" size="sm" disabled={contextSaving} onClick={() => setContextOpen(false)}>{closeLabel}</Button>
-          </div>
-        </form>
-      </dialog> : null}
+          </form>
+        </dialog>
+      ) : null}
     </section>
   );
 }
