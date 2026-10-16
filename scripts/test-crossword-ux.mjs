@@ -381,16 +381,21 @@ try {
     locale = 'fr';
     state = { ...state, timer: { status: 'completed' }, crossword: {
       ...state.crossword,
-      grid: { ...state.crossword.grid, words: state.crossword.grid.words.map((word) => word.id === 'a' ? { ...word, solvedBy: null, answer: null } : word) },
+      grid: { ...state.crossword.grid, words: state.crossword.grid.words.map((word) => ({
+        ...word,
+        solvedBy: word.id === 'd' ? word.solvedBy : null,
+        answer: word.id === 'a' ? 'CAT' : word.id === 'b' ? 'ORG' : 'CAR',
+      })) },
     } };
     render();
   });
-  await page.getByRole('heading', { name: 'Partie terminée' }).waitFor();
+  await page.getByText('Partie terminée', { exact: true }).waitFor();
   assert.equal(await page.locator('.timerColumn, .timerCard').count(), 0, 'No timer in the final review');
   assert.equal(await page.locator('.challengeLayout').evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(' ').length), 1);
   await page.getByRole('heading', { level: 1, name: 'Mots croisés Live', exact: true }).waitFor();
-  await page.getByRole('heading', { name: 'Mots non résolus (2)' }).waitFor();
-  await page.getByLabel('Votre réponse', { exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'Mots non résolus', exact: true }).waitFor();
+  assert.deepEqual(await page.locator('.solution').allTextContents(), ['Réponse: CAT', 'Réponse: ORG']);
+  assert.equal(await page.locator('.answerForm, .clueLists').count(), 0, 'Final review hides answer entry and active clues');
   await page.evaluate(() => document.documentElement.dataset.theme = 'dark');
   assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).backgroundImage), 'linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9))');
   assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).color), 'rgb(232, 239, 255)');
@@ -404,7 +409,13 @@ try {
         id: `row-${row}`, number: row + 1, row, col: 0, direction: 'across', length: 15,
         clue: row === 14 ? 'The far edge of the board' : `Long clue ${row + 1}`,
         solvedBy: row === 0 ? 'p2' : null, answer: row === 0 ? 'ABCDEFGHIJKLMNO' : null,
-      })).concat({ id: 'edge', number: 16, row: 0, col: 14, direction: 'down', length: 15, clue: 'Rightmost column', solvedBy: null, answer: null }),
+      })).concat(
+        { id: 'edge', number: 16, row: 0, col: 14, direction: 'down', length: 15, clue: 'Rightmost column', solvedBy: null, answer: null },
+        ...Array.from({ length: 14 }, (_, col) => ({
+          id: `column-${col}`, number: col + 17, row: 0, col, direction: 'down', length: 15,
+          clue: `Column clue ${col + 1}`, solvedBy: null, answer: null,
+        })),
+      ),
     } } };
     render();
   });
@@ -423,6 +434,7 @@ try {
       }), true, `${theme}/${width}: selected clue cell visible`);
       if (width === 1440) {
         assert.equal(await page.locator('.boardScroll').evaluate((node) => node.scrollHeight <= node.clientHeight + 1), true, `${theme}: 15x15 board has no vertical inner scroll`);
+        assert.equal(await page.locator('.clues').evaluateAll((lists) => lists.length === 2 && lists.every((list) => getComputedStyle(list).overflowY === 'auto' && list.scrollHeight > list.clientHeight)), true, `${theme}: horizontal and vertical clues scroll independently`);
         assert.equal(await page.locator('[data-cell="14:0"] .cellNumber').evaluate((number) => {
           const cell = number.closest('button').getBoundingClientRect();
           const bounds = number.getBoundingClientRect();

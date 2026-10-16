@@ -20,6 +20,7 @@ const COPY = {
     row: 'Ligne', col: 'colonne', empty: 'vide', found: 'Trouvé', letters: 'lettres', answer: 'Votre réponse', submit: 'Proposer le mot',
     wordsFound: 'mots trouvés', leaderboard: 'Classement', activity: 'Dernières découvertes', none: 'Aucune découverte pour le moment.',
     points: 'points', finished: 'Partie terminée', unresolved: 'Mots non résolus', perfect: 'Bravo ! Toute la grille est résolue.',
+    solution: 'Réponse', answerUnavailable: 'Réponse indisponible',
     start: 'Démarrer la partie', waiting: 'En attente du démarrage par l’animateur.',
     offline: 'Connexion interrompue. Votre brouillon est conservé.', sending: 'Vérification en cours…',
     timeout: 'Pas de confirmation reçue. Votre brouillon est conservé ; vous pouvez réessayer.',
@@ -36,6 +37,7 @@ const COPY = {
     row: 'Row', col: 'column', empty: 'empty', found: 'Found', letters: 'letters', answer: 'Your answer', submit: 'Submit word',
     wordsFound: 'words found', leaderboard: 'Leaderboard', activity: 'Latest discoveries', none: 'No discoveries yet.',
     points: 'points', finished: 'Game over', unresolved: 'Unresolved words', perfect: 'Well done! The whole grid is solved.',
+    solution: 'Answer', answerUnavailable: 'Answer unavailable',
     start: 'Start game', waiting: 'Waiting for the facilitator to start.',
     offline: 'Connection interrupted. Your draft is saved.', sending: 'Checking your answer…',
     timeout: 'No confirmation received. Your draft is saved; you can try again.',
@@ -340,9 +342,24 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
             />
             {!grid && <p role="status">{copy.loading}</p>}
           </> : !grid ? <p role="status">{copy.loading}</p> : <>
-            {finished && <section className={styles.card} aria-labelledby={`${id}-final`}>
-              <h2 id={`${id}-final`}>{copy.finished}</h2>
-              {unresolved.length ? <><h3>{copy.unresolved} ({unresolved.length})</h3><ul>{unresolved.map((word) => <li key={word.id}>{word.number} · {copy[word.direction]} — {word.clue} ({word.length} {copy.letters})</li>)}</ul></> : <p>{copy.perfect}</p>}
+            {finished && <section className={`${styles.card} ${styles.finalCard}`} aria-labelledby={`${id}-final`}>
+              <div className={styles.finalHeading}>
+                <div>
+                  <span className={styles.finalEyebrow}>{copy.finished}</span>
+                  <h2 id={`${id}-final`}>{unresolved.length ? copy.unresolved : copy.perfect}</h2>
+                </div>
+                <span className={styles.finalScore}>{crossword.solvedCount || 0}<span>/{crossword.totalWords || words.length} {copy.wordsFound}</span></span>
+              </div>
+              {unresolved.length > 0 && <ol className={styles.unresolvedList}>
+                {unresolved.map((word) => <li className={styles.unresolvedItem} key={word.id}>
+                  <span className={styles.unresolvedNumber}>{word.number}</span>
+                  <div className={styles.unresolvedDetails}>
+                    <span className={styles.unresolvedClue}>{word.clue} <small>({word.length} {copy.letters})</small></span>
+                    <span className={styles.unresolvedMeta}>{copy[word.direction]}</span>
+                    <strong className={styles.solution}>{copy.solution}: {word.answer || copy.answerUnavailable}</strong>
+                  </div>
+                </li>)}
+              </ol>}
             </section>}
             <div className={styles.playLayout}>
               <section className={`${styles.card} ${styles.boardPanel}`} aria-label={copy.board}>
@@ -372,7 +389,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
                   </div>
                 </div>
                 <p id={`${id}-help`} className={styles.help}>{copy.help}</p>
-                {active && <form className={styles.answerForm} onSubmit={submit}>
+                {active && !finished && <form className={styles.answerForm} onSubmit={submit}>
                   <div id={`${id}-clue`} className={styles.activeClue}>
                     <span>{active.number} · {copy[active.direction]} · {active.length} {copy.letters}</span>
                     <h3>{active.clue}</h3>
@@ -390,17 +407,17 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
                   <ChallengeActionFeedback feedback={feedback} />
                 </form>}
               </section>
-              <aside className={styles.clueLists}>
+              {!finished && <aside className={styles.clueLists}>
                 {['across', 'down'].map((direction) => <section className={styles.card} key={direction}>
                   <h2>{copy[direction]}</h2>
                   <ol className={styles.clues}>{words.filter((word) => word.direction === direction).map((word) => <li key={word.id}>
-                    <button type="button" aria-pressed={active?.id === word.id} className={`${styles.clueButton} ${active?.id === word.id ? styles.selectedClue : ''}`}
+                    <button type="button" aria-pressed={active?.id === word.id} className={`${styles.clueButton} ${active?.id === word.id ? styles.selectedClue : ''} ${word.solvedBy != null ? styles.solvedClue : ''}`}
                       onClick={() => selectClue(word)}>
-                      <strong>{word.number}</strong><span>{word.clue} <small>({word.length})</small>{word.solvedBy != null && <span className={styles.foundLabel}>✓ {copy.found} — {word.answer}</span>}</span>
+                      <strong className={styles.clueNumber}>{word.number}</strong><span>{word.clue} <small>({word.length})</small>{word.solvedBy != null && <span className={styles.foundLabel}>✓ {copy.found} — {word.answer}</span>}</span>
                     </button>
                   </li>)}</ol>
                 </section>)}
-              </aside>
+              </aside>}
             </div>
             <div className={styles.socialLayout}>
               <section className={styles.card}><h2>{copy.leaderboard}</h2>
