@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useContext, useMemo, useState } from 'react';
+import { Pause, Play } from 'lucide-react';
 import { ChallengeConnectionContext } from '@/lib/challenges/connection-context';
 import { ChallengeDebriefContext } from '@/lib/challenges/debrief-context';
 import styles from './ChallengeTimerCard.module.css';
@@ -102,7 +103,9 @@ export default function ChallengeTimerCard({
           onClick={onPause}
           disabled={controlPending || !connected}
         >
-          <span aria-hidden="true">Ⅱ</span>
+          <span className={styles.timerControlIcon} aria-hidden="true">
+            <Pause size={16} strokeWidth={2.6} />
+          </span>
           {controlPending ? t('challengeTimer.actionPending') : t('challengeTimer.pause')}
         </button>
       )
@@ -114,7 +117,9 @@ export default function ChallengeTimerCard({
             onClick={onResume}
             disabled={controlPending || !connected}
           >
-            <span aria-hidden="true">▶</span>
+            <span className={styles.timerControlIcon} aria-hidden="true">
+              <Play size={16} strokeWidth={2.6} />
+            </span>
             {controlPending ? t('challengeTimer.actionPending') : t('challengeTimer.resume')}
           </button>
         )
