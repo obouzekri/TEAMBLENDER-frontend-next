@@ -3553,6 +3553,7 @@ export default function AdminClient() {
     { id: 'participants', label: isEn ? 'Participants' : 'Participants', badge: null },
     { id: 'sessions', label: isEn ? 'Sessions' : 'Sessions', badge: stats.activeSessions > 0 ? stats.activeSessions : null },
     { id: 'challenges', label: 'Challenges', badge: null },
+    { id: 'linkedin', label: isEn ? 'LinkedIn posts' : 'Posts LinkedIn', badge: null, href: withLocalePath('/admin/linkedin') },
     { id: 'billing', label: isEn ? 'Billing' : 'Paiements', badge: null, href: withLocalePath('/admin/billing') },
     { id: 'pricing', label: isEn ? 'Pricing' : 'Tarification', badge: stats.pricingPlans > 0 ? stats.pricingPlans : null },
     { id: 'landing', label: isEn ? 'Landing CMS' : 'Contenu d’accueil', badge: stats.landingBlocks > 0 ? stats.landingBlocks : null },
