@@ -17,6 +17,12 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les champs de recherche, statut et dates conservent une marge interieure horizontale de 16 px et un espacement de 16 px entre eux, sans deborder de leur cadre sur mobile.
 - Validation: `node scripts/test-home-session-filters.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, largeurs de 320 a 1755 px, ouverture au clavier de la periode, saisie, conservation et reinitialisation des filtres, pagination conditionnelle et navigation.
 
+### Selecteur de langue
+
+- Le bouton compact FR/EN ouvre un menu avec les noms natifs des langues, un badge de code et une coche pour la langue active. Le panneau utilise les couleurs du theme et reste dans la fenetre, y compris dans la navigation mobile.
+- Entree, Espace et les fleches ouvrent le menu; les fleches et Debut/Fin deplacent le focus. Echap, Tab ou un clic exterieur ferment le menu. Le changement conserve le chemin et les parametres de l'URL, ainsi que la preference enregistree.
+- Validation: `node scripts/test-language-switcher-ux.mjs` (frontend sur 3100, Chrome disponible): FR/EN, clair/sombre/automatique, mobile/desktop, souris, clavier, fermeture et conservation de l'URL.
+
 ### Page Contact
 
 - Une carte unique reunit les coordonnees, le delai de reponse et le formulaire, sans cartes imbriquees ni colonne vide. L'introduction est raccourcie.

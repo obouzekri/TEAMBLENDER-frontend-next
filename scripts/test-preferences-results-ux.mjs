@@ -108,10 +108,12 @@ try {
       });
       assert.ok(languageLayout.centerDifference <= 1 && languageLayout.separated && languageLayout.fits,
         `Language controls must fit on one row: ${JSON.stringify(languageLayout)}`);
-      await languageRow.getByRole('combobox').selectOption(locale === 'fr' ? 'en' : 'fr');
+      await languageRow.getByRole('button', { name: new RegExp(dictionary.language.switcherAria) }).click();
+      await page.getByRole('menuitemradio').filter({ hasText: locale === 'fr' ? 'English' : 'Fran\u00e7ais' }).click();
       await page.waitForURL(`**/${locale === 'fr' ? 'en' : 'fr'}/preferences`);
       assert.equal(await page.evaluate(() => localStorage.getItem('tb_locale_preference')), locale === 'fr' ? 'en' : 'fr');
-      await languageRow.getByRole('combobox').selectOption(locale);
+      await languageRow.getByRole('button').click();
+      await page.getByRole('menuitemradio').filter({ hasText: locale === 'fr' ? 'Fran\u00e7ais' : 'English' }).click();
       await page.waitForURL(`**/${locale}/preferences`);
       await main.getByRole('heading', { level: 1, name: preferences.title, exact: true }).waitFor();
       const checkPreferencesSpacing = async () => {
