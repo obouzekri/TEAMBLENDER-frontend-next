@@ -13,22 +13,21 @@ export default function LandingBenefitsOrbit({ locale, fallback, platformBenefit
           </h3>
         </div>
       </div>
-      <div className="landing-benefits-orbit">
-        <div className="landing-benefits-orbit__connections" aria-hidden="true">
-          {[1, 2, 3, 4, 5].map((connection) => (
-            <span
-              key={connection}
-              className={`landing-benefits-orbit__connection landing-benefits-orbit__connection--${connection}`}
-            />
-          ))}
-        </div>
-        <div className="landing-benefits-orbit-center" aria-label={locale === 'en' ? 'Core platform value' : 'Valeur centrale'}>
-          <div className="landing-benefits-orbit-center__halo" aria-hidden="true" />
-          <strong>
+      <div className="landing-benefits-grid">
+        <div className="landing-benefits-grid__intro" aria-labelledby="landing-benefits-core-title">
+          <span className="landing-benefits-grid__eyebrow">
+            {locale === 'en' ? 'A simple promise' : 'Une promesse simple'}
+          </span>
+          <strong id="landing-benefits-core-title">
             {locale === 'en'
-              ? 'Move forward together.'
-              : 'Avancez ensemble.'}
+              ? 'Team building that moves your team forward.'
+              : 'Le team building qui fait avancer vos équipes.'}
           </strong>
+          <p>
+            {locale === 'en'
+              ? 'Engaging experiences, easy to run and useful every day.'
+              : 'Des expériences fédératrices, simples à lancer et utiles au quotidien.'}
+          </p>
         </div>
 
         {platformBenefitsItems.slice(0, 5).map((item, index) => {
@@ -36,11 +35,10 @@ export default function LandingBenefitsOrbit({ locale, fallback, platformBenefit
           return (
             <article
               key={item.label}
-              className={`landing-benefits-orbit-item landing-benefits-orbit-item--${index + 1}`}
-              tabIndex={0}
+              className={`landing-benefits-grid__item landing-benefits-grid__item--${index + 1}`}
             >
-              <div className="landing-benefits-orbit-item__head">
-                <span className="landing-benefits-orbit-icon" aria-hidden="true">
+              <div className="landing-benefits-grid__item-head">
+                <span className="landing-benefits-grid__icon" aria-hidden="true">
                   <GamifiedIcon Icon={Icon} index={index} size="sm" />
                 </span>
                 <h3>{item.label}</h3>
