@@ -3311,6 +3311,7 @@ export default function AdminClient() {
     return {
       configured: Boolean(source.configured),
       degraded: Boolean(source.degraded),
+      errorCode: String(source.errorCode || ''),
       reason: String(source.reason || '').trim(),
       lookbackDays: Number(source.lookbackDays || 30),
       users: source.users || {},
@@ -3777,7 +3778,7 @@ export default function AdminClient() {
                     type="button"
                     className="btn-primary"
                     onClick={exportAnalyticsCsv}
-                    disabled={analyticsLoading}
+                    disabled={analyticsLoading || !analyticsSnapshot.configured || analyticsSnapshot.degraded || Boolean(analyticsError)}
                     style={{ fontSize: '12px', padding: '6px 10px' }}
                   >
                     {isEn ? 'Export CSV' : 'Export CSV'}
@@ -3787,9 +3788,10 @@ export default function AdminClient() {
 
               <div className="admin-panel-card" style={{ marginBottom: '16px' }}>
                 {analyticsSnapshot.configured ? (
-                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-success, #15803d)', fontWeight: 600 }}>
-                    {isEn ? '✓ PostHog connected' : '✓ PostHog connecté'}
-                    {analyticsSnapshot.degraded ? <span style={{ color: 'var(--color-warning, #b45309)', fontWeight: 400 }}>{isEn ? ' (degraded mode)' : ' (mode dégradé)'}</span> : null}
+                  <p style={{ margin: 0, fontSize: '13px', color: analyticsSnapshot.degraded ? 'var(--color-warning, #b45309)' : 'var(--color-success, #15803d)', fontWeight: 600 }}>
+                    {analyticsSnapshot.degraded
+                      ? (isEn ? 'PostHog unavailable (degraded mode)' : 'PostHog indisponible (mode dégradé)')
+                      : (isEn ? '✓ PostHog connected' : '✓ PostHog connecté')}
                   </p>
                 ) : (
                   <>
@@ -3804,6 +3806,17 @@ export default function AdminClient() {
                 {analyticsSnapshot.configured && analyticsSnapshot.degraded && analyticsSnapshot.reason ? (
                   <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-warning-dark, #92400e)', lineHeight: 1.5 }}>
                     {isEn ? 'Reason' : 'Raison'}: {analyticsSnapshot.reason}
+                  </p>
+                ) : null}
+                {analyticsSnapshot.errorCode === 'POSTHOG_AUTHENTICATION_FAILED' || analyticsSnapshot.errorCode === 'POSTHOG_ACCESS_DENIED' ? (
+                  <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-warning-dark, #92400e)', lineHeight: 1.5 }}>
+                    {analyticsSnapshot.errorCode === 'POSTHOG_AUTHENTICATION_FAILED'
+                      ? (isEn
+                        ? 'Replace POSTHOG_PERSONAL_API_KEY with a valid personal API key in the backend configuration, then restart the backend. Do not use the public project token.'
+                        : 'Remplacez POSTHOG_PERSONAL_API_KEY par une clé API personnelle valide dans la configuration du backend, puis redémarrez le backend. Ne pas utiliser le jeton public du projet.')
+                      : (isEn
+                        ? 'Check that the personal API key has access to POSTHOG_PROJECT_ID and the required query permissions.'
+                        : 'Vérifiez que la clé API personnelle a accès à POSTHOG_PROJECT_ID et aux permissions de requête requises.')}
                   </p>
                 ) : null}
                 {analyticsSnapshot.generatedAt ? (
@@ -3846,13 +3859,13 @@ export default function AdminClient() {
                   },
                 ].map((item) => (
                   <div key={item.label} style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 12px' }}>
-                    <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '20px', color: 'var(--color-text, #111)' }}>{item.value}</p>
+                    <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '20px', color: 'var(--color-text, #111)' }}>{!analyticsSnapshot.configured || analyticsSnapshot.degraded ? (isEn ? 'Unavailable' : 'Indisponible') : item.value}</p>
                     <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>{item.label}</p>
                   </div>
                 ))}
               </div>
 
-              {analyticsSnapshot.configured ? (
+              {analyticsSnapshot.configured && !analyticsSnapshot.degraded ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                   {[
                     {
