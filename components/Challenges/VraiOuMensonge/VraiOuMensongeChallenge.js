@@ -880,15 +880,14 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       </div>
 
       {error ? <p className={styles.errorBanner}>{error}</p> : null}
-      {hasChallengeStarted && !isFacilitator ? (
+      {hasChallengeStarted && !isFacilitator && (
+        (phase === 'selecting_statement' && isPoser)
+        || (phase === 'voting_open' && !isPoser && !myVote)
+      ) ? (
         <p className={styles.roleBanner} role="status">
           {phase === 'selecting_statement' && isPoser
             ? (isEn ? 'It is your turn: choose a statement and your personal answer.' : 'C’est votre tour : choisissez une affirmation et votre réponse personnelle.')
-            : phase === 'voting_open' && !isPoser && !myVote
-              ? (isEn ? 'Vote: guess the answer of the player whose turn it is.' : 'Votez : devinez la réponse du joueur dont c’est le tour.')
-              : phase === 'round_result'
-                ? (isEn ? 'Collective reveal: compare your answer with the revealed answer.' : 'Révélation collective : comparez votre réponse à la réponse révélée.')
-                : (isEn ? 'Waiting: follow the current player and the team votes.' : 'En attente : suivez le joueur actif et les votes de l’équipe.')}
+            : (isEn ? 'Vote: guess the answer of the player whose turn it is.' : 'Votez : devinez la réponse du joueur dont c’est le tour.')}
         </p>
       ) : null}
 
