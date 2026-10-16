@@ -16,6 +16,9 @@ function resolvePreferredLocale(request) {
 
 export function proxy(request) {
   const { pathname } = request.nextUrl;
+  const forwardedLocale = String(request.headers.get('x-teamblender-locale') || '').trim().toLowerCase();
+  const forwardedPathname = String(request.headers.get('x-teamblender-pathname') || '').trim();
+  const isSeoRewritePass = request.headers.get('x-teamblender-seo-rewrite') === '1';
 
   if (
     pathname.startsWith('/_next')
@@ -30,12 +33,16 @@ export function proxy(request) {
   const segments = pathname.split('/').filter(Boolean);
   const maybeLocale = String(segments[0] || '').toLowerCase();
   const hasLocale = SUPPORTED_LOCALES.includes(maybeLocale);
-  const locale = hasLocale
-    ? maybeLocale
-    : isPublicSeoPath(pathname) ? DEFAULT_LOCALE : resolvePreferredLocale(request);
+  const locale = isSeoRewritePass && SUPPORTED_LOCALES.includes(forwardedLocale)
+    ? forwardedLocale
+    : hasLocale
+      ? maybeLocale
+      : isPublicSeoPath(pathname) ? DEFAULT_LOCALE : resolvePreferredLocale(request);
+  const seoPathname = isSeoRewritePass && forwardedPathname ? forwardedPathname : pathname;
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-teamblender-locale', locale);
-  requestHeaders.set('x-teamblender-pathname', pathname);
+  requestHeaders.set('x-teamblender-pathname', seoPathname);
+  requestHeaders.set('x-teamblender-seo-rewrite', '1');
 
   if (hasLocale) {
     const url = request.nextUrl.clone();

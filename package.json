@@ -22,6 +22,8 @@
     "test:unit:vom": "node scripts/test-vom-utils.mjs",
     "test:unit:auth": "node scripts/test-auth.mjs",
     "test:unit:truthfulness": "node scripts/test-platform-truthfulness.mjs",
+    "test:unit:seo": "node scripts/test-seo.mjs",
+    "test:smoke:seo": "node scripts/test-seo.mjs --http",
     "test:ux:quiz": "node scripts/test-quiz-ux.mjs",
     "test:ux:crossword": "node scripts/test-crossword-ux.mjs",
     "test:unit:session-locale": "node scripts/test-session-locale.mjs",

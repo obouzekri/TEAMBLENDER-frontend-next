@@ -352,3 +352,7 @@ npm run test:smoke:preview
 - Des donnees structurees JSON-LD sont servies:
   - globales (`Organization`, `WebSite`, `SoftwareApplication`, `WebPage`/`ContactPage`, `BreadcrumbList`) dans le layout;
   - specifiques FAQ (`FAQPage`) sur les pages guide Team Building.
+- Les guides exposent aussi un `Article` relie a la page, avec titre, langue, auteur organisationnel et sujets (`keywords`) coherents avec le contenu. Aucune date, note ou statistique artificielle n'est ajoutee.
+- Les expressions recherchees (organiser un team building, challenges entre equipes, team building a distance, onboarding) sont reparties selon le sujet de chaque page dans les titres, descriptions et donnees structurees FR/EN. Les questions du guide general apportent des reponses directement consultables.
+- Aucun bloc de texte cache ni bourrage de mots-cles : les sujets JSON-LD ne sont pas affiches comme une liste dans l'interface. La balise `meta keywords`, ignoree par Google, n'est pas utilisee. Ces informations ne garantissent ni classement, ni resultat enrichi, ni citation par une IA.
+- Validation : `npm run test:unit:seo` couvre les metadonnees FR/EN, les sujets, les articles et l'exclusion des pages privees et previews. `npm run test:smoke:seo` (frontend demarre, Chrome disponible, `SMOKE_FRONTEND_URL` facultatif) controle les 14 pages publiques sans JavaScript, la concordance FAQ/HTML, le sitemap, `llms.txt` et les guides inconnus en 404.
