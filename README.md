@@ -47,6 +47,8 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 ### Choix des challenges dans le Session Builder
 
+- Les tags des cartes utilisent des fonds transparents a 10 % et des bordures fines uniformes : bleu pour l'effectif, cyan pour la duree, turquoise pour la categorie et lavande pour les objectifs. Le texte suit le theme pour garder un contraste d'au moins 4,5:1.
+- Validation des tags : `node scripts/test-catalog-tag-colors.mjs` (frontend sur 3100, Chrome disponible, API simulees) : FR/EN, clair/sombre/automatique, preference explicite opposee au systeme, 320 a 1440 px, transparence, contraste, absence de coupure et ajout d'un challenge.
 - Un repère de progression visible précède le choix des challenges : « Composer », « Configurer », puis « Lancer ». L’étape courante suit la sélection, et le lancement passe à l’état prêt quand au moins un challenge est choisi.
 - Le repère reste distinct des informations de session, se réorganise en colonne sur mobile et est disponible en FR/EN.
 - Apres la creation, la section « Choix des challenges » regroupe deux cartes de meme importance : « Selection manuelle » ouvre le catalogue et « Programme guide » ouvre la proposition selon les objectifs, l'effectif et la duree souhaitee.
