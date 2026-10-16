@@ -328,6 +328,21 @@ npm run test:smoke:preview
 
 ## 4) Runbook go-live (resume)
 
+### CI frontend
+
+- Le workflow `.github/workflows/ci.yml` s'execute sur les push et pull requests
+  vers `main`, sur Node.js 24 avec installation reproductible par `npm ci`.
+- Le controle `build` exige, dans cet ordre : lint sans avertissement,
+  verification FR/EN, tests unitaires et build de production propre.
+  Tout echec bloque le job ; aucun serveur backend ni secret de production
+  n'est necessaire.
+- Le lint conserve les regles partagees existantes dans une configuration locale
+  autonome : un checkout du seul depot frontend suffit.
+- Configurer `build` comme controle requis dans la protection de `main`,
+  avec branche a jour obligatoire, pour bloquer les merges en cas d'echec.
+  Les tests navigateur et les parcours avec backend reel restent des
+  validations de release distinctes, non couverts par ce job.
+
 1. Verifier variables de production (frontend + backend).
 2. Lancer localement `npm run test:smoke` puis `npm run build`.
 3. Deployer sur Vercel (`main`).
