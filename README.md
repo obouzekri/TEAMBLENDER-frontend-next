@@ -37,6 +37,8 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 ### Salle secrete : presentation des enigmes
 
+- Salle Secrete II reutilise ce meme composant et ses styles, sans copie de l'interface. Son titre propre est conserve dans l'en-tete, le brief et les regles; le titre historique reste traduit en FR/EN.
+- La nouvelle salle est creee en brouillon par la migration backend, avec une liste d'enigmes vide. Elle n'est pas proposee pour les sessions avant publication. Validation structure/titres : `npm run test:unit:escape-room`.
 - Toutes les enigmes conservent 24 px entre le titre et la consigne, puis au moins 24 px avant le bloc visuel, sur mobile comme sur ordinateur.
 - Les grilles de chiffres sont centrees et limitees a 280 px, avec des cases de 56 px de haut (50 px sur mobile), y compris pour Code mural.
 - Validation : `node scripts/test-challenge-diagnostics-ux.mjs --escape-only` (frontend sur 3100, Chrome disponible, API simulees) : grilles, enigme textuelle et anagramme, themes clair/sombre, mobile EN et ordinateur FR, puis non-regression de la synchronisation et des commandes.

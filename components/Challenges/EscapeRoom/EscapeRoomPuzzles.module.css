@@ -1,0 +1,184 @@
+.puzzle {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  min-width: 0;
+  color: var(--text-main);
+}
+
+.instructions {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  text-align: center;
+  max-width: 600px;
+}
+
+.houseBoard {
+  position: relative;
+  width: min(100%, 330px);
+  aspect-ratio: 1;
+  touch-action: none;
+  user-select: none;
+}
+
+.houseSvg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.houseEdge,
+.drawnEdge {
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.houseEdge {
+  stroke: var(--line-strong);
+}
+
+.drawnEdge {
+  stroke: var(--accent);
+}
+
+.houseNode,
+.token,
+.slot,
+.secondaryButton {
+  border: 1px solid var(--line-strong);
+  background: var(--surface-1);
+  color: var(--text-main);
+  font: inherit;
+  cursor: pointer;
+}
+
+.houseNode {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-weight: 800;
+}
+
+.currentNode,
+.token[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--bg-1);
+  border-color: var(--accent);
+}
+
+.houseNode:focus-visible,
+.token:focus-visible,
+.slot:focus-visible,
+.secondaryButton:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.boardDisabled {
+  opacity: 0.65;
+}
+
+.status {
+  min-height: 1.5em;
+  margin: 0;
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.secondaryButton {
+  padding: 10px 16px;
+  min-height: 44px;
+  border-radius: 10px;
+}
+
+.tokenTray {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.token {
+  min-width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+
+.token:disabled {
+  opacity: 0.35;
+}
+
+.expression {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 4px;
+  width: min(100%, 590px);
+}
+
+.slot {
+  min-width: 0;
+  height: 48px;
+  padding: 0;
+  border-radius: 8px;
+  font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+  font-weight: 700;
+  touch-action: manipulation;
+}
+
+.slot span {
+  color: var(--text-soft);
+  font-size: 0.65rem;
+  font-weight: 400;
+}
+
+.target {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.letterSequence {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.letter,
+.missingLetter {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 52px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface-1);
+  color: var(--text-main);
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.missingLetter {
+  border-style: dashed;
+  color: var(--accent);
+}
+
+@media (max-width: 480px) {
+  .expression {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .slot {
+    height: 44px;
+  }
+}

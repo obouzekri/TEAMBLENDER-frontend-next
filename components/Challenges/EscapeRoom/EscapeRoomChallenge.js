@@ -11,6 +11,7 @@ import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeCh
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
 import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets';
 import { getEscapeRoomRulesPreset } from '@/lib/challenges/escapeRoomRules';
+import { resolveEscapeRoomTitle } from '@/lib/challenges/escapeRoomTitle.mjs';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -18,6 +19,7 @@ import ChallengeHeader from '../ChallengeHeader';
 import ChallengePresentation from '../ChallengePresentation';
 import useI18n from '@/lib/i18n/useI18n';
 import styles from './EscapeRoom.module.css';
+import { ArithmeticPuzzle, LetterSequencePuzzle, OneStrokePuzzle } from './EscapeRoomPuzzles';
 
 function wait(ms) {
   return new Promise((resolve) => {
@@ -561,6 +563,7 @@ export default function EscapeRoomChallenge({
   }, [runtimePayload, state?.current_enigme_index, serverCurrentEnigme?.id]);
   const currentEnigme = serverCurrentEnigme || configuredCurrentEnigme;
   const currentUiType = String(currentEnigme?.ui_type || '').toLowerCase();
+  const isInteractivePuzzle = currentUiType === 'one_stroke' || currentUiType === 'arithmetic_slots';
   const currentUiData =
     currentEnigme?.ui_data && typeof currentEnigme.ui_data === 'object'
       ? currentEnigme.ui_data
@@ -678,12 +681,13 @@ export default function EscapeRoomChallenge({
 
       const outcome = String(payload?.validation?.outcome || '').trim();
       const shouldKeepAnswer =
-        outcome === 'divergent' || outcome === 'wrong' || outcome === 'max_attempts';
+        outcome === 'divergent' || outcome === 'wrong' || outcome === 'max_attempts'
+        || (isInteractivePuzzle && outcome === 'waiting');
       if (!shouldKeepAnswer) {
         setAnswer('');
       }
     });
-  }, [answer, apiCall, currentEnigme, runAction, state?.status]);
+  }, [answer, apiCall, currentEnigme, isInteractivePuzzle, runAction, state?.status]);
 
   const facilitatorAction = useCallback(
     (actionKey, path, body) => {
@@ -742,9 +746,10 @@ export default function EscapeRoomChallenge({
     }),
     [rulesPreset]
   );
-  const challengeName = String(
-    rulesPreset?.challengeName || (isEn ? 'Secret Room' : 'Salle secrete')
-  ).trim();
+  const challengeName = resolveEscapeRoomTitle(
+    runtimePayload?.config?.title,
+    String(rulesPreset?.challengeName || (isEn ? 'Secret Room' : 'Salle secrete')).trim()
+  );
   const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
   const rulesParticipantsMeta = useMemo(
     () => ({
@@ -809,6 +814,10 @@ export default function EscapeRoomChallenge({
     setImageBroken(false);
     setImageCandidateIndex(0);
   }, [currentEnigme?.id, rawEnigmeImageSrc]);
+
+  useEffect(() => {
+    setAnswer('');
+  }, [challengeId, currentEnigme?.id]);
 
   useEffect(() => {
     if (!shouldUseFastPolling) {
@@ -1078,6 +1087,36 @@ export default function EscapeRoomChallenge({
                 {currentEnigme?.description || copy.noDescription}
               </p>
 
+              {currentUiType === 'one_stroke' ? (
+                <div className={styles.enigmeUiBlock}>
+                  <OneStrokePuzzle
+                    key={`${challengeId}:${currentEnigme.id}`}
+                    data={currentUiData}
+                    isEn={isEn}
+                    disabled={isFacilitator || !!busyAction || isTimerPaused}
+                    onAnswerChange={setAnswer}
+                  />
+                </div>
+              ) : null}
+
+              {currentUiType === 'letter_sequence' ? (
+                <div className={styles.enigmeUiBlock}>
+                  <LetterSequencePuzzle data={currentUiData} />
+                </div>
+              ) : null}
+
+              {currentUiType === 'arithmetic_slots' ? (
+                <div className={styles.enigmeUiBlock}>
+                  <ArithmeticPuzzle
+                    key={`${challengeId}:${currentEnigme.id}`}
+                    data={currentUiData}
+                    isEn={isEn}
+                    disabled={isFacilitator || !!busyAction || isTimerPaused}
+                    onAnswerChange={setAnswer}
+                  />
+                </div>
+              ) : null}
+
               {isGridEnigme ? (
                 <div
                   className={`${styles.enigmeUiBlock}${isFirstGridEnigme ? ` ${styles.enigmeUiBlockFeatured}` : ''}`}
@@ -1228,6 +1267,7 @@ export default function EscapeRoomChallenge({
                     </div>
                   ) : null}
                   <div className={styles.answerRow}>
+                    {!isInteractivePuzzle ? (
                     <input
                       value={answer}
                       onChange={(event) => setAnswer(event.target.value.toUpperCase())}
@@ -1236,10 +1276,13 @@ export default function EscapeRoomChallenge({
                       disabled={busyAction === 'submit' || !currentEnigme || isTimerPaused}
                       autoComplete="off"
                       spellCheck={false}
+                      aria-label={copy.answerTitle}
+                      maxLength={currentUiType === 'letter_sequence' ? 1 : undefined}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && answer.trim()) submitAnswer();
                       }}
                     />
+                    ) : null}
                     <button
                       onClick={submitAnswer}
                       disabled={busyAction === 'submit' || !answer.trim() || !currentEnigme || isTimerPaused}

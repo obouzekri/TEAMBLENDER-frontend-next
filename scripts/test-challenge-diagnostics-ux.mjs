@@ -250,7 +250,7 @@ async function testLabMissingConfirmation() {
   await finish(fixture);
 }
 
-async function testEscape(locale, width) {
+async function testEscape(locale, width, title) {
   let responseMode = 'healthy';
   let participantsMode = 'error';
   let requests = 0;
@@ -260,7 +260,7 @@ async function testEscape(locale, width) {
     current_enigme: { id: 'e1', label: 'Synchronization test', description: 'Question', ui_type: 'text', ui_data: {} },
     submission_status: { total: 2, responded: 0, responded_ids: [] },
   };
-  const fixture = await open('escape_room_v1', { config, timer }, { locale, width, role: 'manager',
+  const fixture = await open('escape_room_v1', { config: { ...config, ...(title ? { title } : {}) }, timer }, { locale, width, role: 'manager',
     setup: async (context) => context.route('**/api/**/escape-room/**', async (route) => {
       if (route.request().url().endsWith('/participants')) {
         if (participantsMode === 'error') return route.fulfill({ status: 503, json: { error: 'Service unavailable' } });
@@ -283,6 +283,9 @@ async function testEscape(locale, width) {
   });
   const { page } = fixture;
   await page.getByText('Synchronization test', { exact: true }).first().waitFor();
+  await page.getByRole('heading', {
+    name: title || (locale === 'en' ? 'Secret Room' : 'Salle Secrète'), exact: true,
+  }).first().waitFor();
   const participantsAlert = page.locator('[role="alert"]').filter({ hasText: 'Service unavailable' });
   await participantsAlert.waitFor({ timeout: 10000 });
   const retryParticipants = participantsAlert.getByRole('button', {
@@ -442,6 +445,8 @@ try {
   if (escapeOnly) {
     await testEscape('en', 390);
     await testEscape('fr', 1440);
+    await testEscape('en', 1440, 'Salle Secrète II');
+    await testEscape('fr', 390, 'Salle Secrète II');
   } else {
     for (const [locale, width] of [['en', 390], ['fr', 1440]]) {
       if (noWebgl) {

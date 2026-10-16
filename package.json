@@ -40,7 +40,9 @@
     "test:ux:shared": "node scripts/test-shared-platform-ux.mjs",
     "test:ux:debrief": "node scripts/test-debrief-ux.mjs",
     "test:unit:runtime": "node scripts/test-runtime-dispatcher.mjs",
-    "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime && npm run test:unit:truthfulness",
+    "test:unit:escape-room": "node scripts/test-escape-room-structure.mjs",
+    "test:ux:escape-room-ii": "node scripts/test-escape-room-ii-ux.mjs",
+    "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime && npm run test:unit:escape-room && npm run test:unit:truthfulness",
     "test:integration:manager-participant": "node scripts/test-integration-manager-participant.mjs"
   },
   "dependencies": {
