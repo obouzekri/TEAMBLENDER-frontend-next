@@ -252,14 +252,14 @@
   border: 1px solid transparent;
   background: linear-gradient(180deg, rgba(17, 28, 43, 0.72), rgba(11, 21, 33, 0.86));
   border-radius: 8px;
-  padding: 16px 16px 15px;
+  padding: 12px;
   text-align: left;
   color: #e0eaf2;
   display: grid;
   grid-template-rows: 34px auto auto 1fr;
   align-items: start;
   align-content: start;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease, filter 160ms ease;
   position: relative;
@@ -267,7 +267,7 @@
   isolation: isolate;
   box-shadow: 0 16px 32px rgba(2, 9, 16, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   animation: cardReveal 360ms ease both;
-  min-height: 216px;
+  min-height: 152px;
 }
 
 .statementBtn:focus-visible,
@@ -1954,12 +1954,10 @@
   box-shadow: 0 20px 42px rgba(15, 23, 42, 0.12);
 }
 
-:global(html[data-theme='light']) .resultEyebrow,
 :global(html[data-theme='light']) .mainScoreLabel {
   color: var(--accent);
 }
 
-:global(html[data-theme='light']) .resultStatusBadge,
 :global(html[data-theme='light']) .scoreDeltaChip,
 :global(html[data-theme='light']) .scoreRankChip,
 :global(html[data-theme='light']) .resultFactChip {

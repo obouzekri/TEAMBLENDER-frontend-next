@@ -4,7 +4,22 @@ import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const engineKey = 'vrai_ou_mensonge_v1';
-const catalog = [{ id: 'ct_01', text: 'Je maîtrise plus de trois langues.', category: 'Compétences' }];
+const catalog = [
+  { id: 'ct_01', text: 'Je maîtrise plus de trois langues.', category: 'Compétences' },
+  { id: 'ct_02', text: 'J’ai un talent caché.', category: 'Compétences' },
+  { id: 'pr_01', text: 'Je préfère: café / thé / jus.', category: 'Préférences' },
+  { id: 'pr_02', text: 'Je préfère: montagne / plage / forêt.', category: 'Préférences' },
+  { id: 'pr_03', text: 'Je préfère: ville / campagne.', category: 'Préférences' },
+  { id: 'pr_04', text: 'Je préfère: films / sorties.', category: 'Préférences' },
+  { id: 'ht_01', text: 'Je me couche tard / tôt.', category: 'Habitudes' },
+  { id: 'ht_02', text: 'Je fais du sport régulièrement.', category: 'Habitudes' },
+  { id: 'ht_03', text: 'Je commence ma journée avec mon téléphone.', category: 'Habitudes' },
+  { id: 'ht_04', text: 'Je grignote entre les repas.', category: 'Habitudes' },
+  { id: 'pe_01', text: 'Je suis plutôt: compétitif / calme / spontané.', category: 'Personnalité' },
+  { id: 'pa_01', text: 'J’ai déjà oublié de me présenter en réunion importante.', category: 'Anecdotes' },
+  { id: 'pa_02', text: 'J’ai déjà répondu “oui” sans avoir compris.', category: 'Anecdotes' },
+  { id: 'pa_03', text: 'J’ai déjà perdu: téléphone / portefeuille / les deux.', category: 'Anecdotes' },
+];
 const baseVom = {
   phase: 'waiting_start',
   participants_order: ['1', '2', '3'],
@@ -37,6 +52,7 @@ try {
   for (const { locale, role, theme, width } of [
     { locale: 'fr', role: 'participant', theme: 'light', width: 1440 },
     { locale: 'fr', role: 'participant', theme: 'dark', width: 390 },
+    { locale: 'en', role: 'participant', theme: 'light', width: 320 },
     { locale: 'en', role: 'participant', theme: 'light', width: 1440 },
     { locale: 'fr', role: 'manager', theme: 'light', width: 1440 },
   ]) {
@@ -66,6 +82,31 @@ try {
       await page.getByText(locale === 'fr' ? /Votez : devinez/ : /Vote: guess/).waitFor();
       broadcast('vom.state', { vom: { ...baseVom, phase: 'selecting_statement', current_turn: { ...turn, poser_id: '1', votes: {} } } });
       await page.getByText(locale === 'fr' ? /C’est votre tour/ : /It is your turn/).waitFor();
+      const statementCards = page.locator('[class*="statementGrid"] > button');
+      await statementCards.last().waitFor();
+      await statementCards.evaluateAll((cards) => Promise.all(cards.flatMap((card) =>
+        card.getAnimations().map((animation) => animation.finished))));
+      const cardSizes = await statementCards.evaluateAll((cards) => cards.map((card) => {
+        const bounds = card.getBoundingClientRect();
+        const labels = [...card.children].filter((child) => child.getAttribute('aria-hidden') !== 'true');
+        return {
+          height: bounds.height,
+          fits: labels.every((label) => {
+            const textBounds = label.getBoundingClientRect();
+            return textBounds.top >= bounds.top && textBounds.bottom <= bounds.bottom
+              && textBounds.left >= bounds.left && textBounds.right <= bounds.right
+              && label.scrollHeight <= label.clientHeight && label.scrollWidth <= label.clientWidth;
+          }),
+        };
+      }));
+      assert.equal(cardSizes.length, catalog.length);
+      assert.ok(cardSizes.every(({ height }) => height >= 152 && height <= 180),
+        `Statement cards must stay compact: ${JSON.stringify(cardSizes)}`);
+      assert.ok(Math.max(...cardSizes.map(({ height }) => height)) - Math.min(...cardSizes.map(({ height }) => height)) < 1,
+        'All statement cards must have the same height, including across rows');
+      assert.ok(cardSizes.every(({ fits }) => fits), 'Statement text must not be clipped');
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        'Horizontal overflow in statement selection');
     }
 
     for (const status of ['incorrect', 'correct', 'absent']) {

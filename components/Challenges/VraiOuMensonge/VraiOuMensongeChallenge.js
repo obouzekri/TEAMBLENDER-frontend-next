@@ -1245,13 +1245,18 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               </>
             ) : (
               <>
-                <p className={styles.choicePanelTitle}>{getTranslatedStatementText(selectedStatement, locale)}</p>
+                <h2 id="vom-answer-selection-title" className={styles.modalTitle}>
+                  {getTranslatedStatementText(selectedStatement, locale)}
+                </h2>
                 <p className={styles.helper}>{t('vom.chooseTruth')}</p>
                 <div className={`${styles.choiceButtonsWrap} ${styles.answerHighlight}`}>
                   {poserSelectionOptions.map((option) => {
                     const active = selectedStatementOption.toLowerCase() === option.toLowerCase();
                     return (
-                      <label key={option} className={styles.choiceRadioLabel}>
+                      <label
+                        key={option}
+                        className={`${styles.choiceRadioLabel}${active ? ` ${styles.choiceRadioLabelActive}` : ''}`}
+                      >
                         <input
                           type="radio"
                           name="poser-choice"
