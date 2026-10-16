@@ -405,6 +405,14 @@ try {
         const bounds = cell.getBoundingClientRect();
         return bounds.left >= viewport.left && bounds.right <= viewport.right && bounds.top >= viewport.top && bounds.bottom <= viewport.bottom;
       }), true, `${theme}/${width}: selected clue cell visible`);
+      if (width === 1440) {
+        assert.equal(await page.locator('.boardScroll').evaluate((node) => node.scrollHeight <= node.clientHeight + 1), true, `${theme}: 15x15 board has no vertical inner scroll`);
+        assert.equal(await page.locator('[data-cell="14:0"] .cellNumber').evaluate((number) => {
+          const cell = number.closest('button').getBoundingClientRect();
+          const bounds = number.getBoundingClientRect();
+          return number.textContent === '15' && bounds.width >= 16 && bounds.right <= cell.right;
+        }), true, `${theme}: two-digit cell numbers remain readable and inside their cells`);
+      }
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${theme}/${width}: no page overflow`);
       const contrasts = await page.evaluate(() => {
         const composite = (front, back) => {
@@ -429,7 +437,7 @@ try {
         return Object.fromEntries(['.card', '.help', '.cell.revealed', '.wordCell', '.clueButton', '.primary', '.inputLine input'].map((selector) => [selector, contrast(selector)]));
       });
       for (const [selector, contrast] of Object.entries(contrasts)) assert.ok(contrast >= 4.5, `${theme}/${width} ${selector}: contrast ${contrast}`);
-      const missing = await page.locator('.root').evaluate((node, tokens) => tokens.filter((token) => !getComputedStyle(node).getPropertyValue(token).trim()), [...new Set(css.match(/--[a-z][\w-]+/g))].filter((token) => !['--columns', '--cell-size', '--challenge-panel-bg'].includes(token)));
+      const missing = await page.locator('.root').evaluate((node, tokens) => tokens.filter((token) => !getComputedStyle(node).getPropertyValue(token).trim()), [...new Set(css.match(/--[a-z][\w-]+/g))].filter((token) => !['--board-max-height', '--columns', '--rows', '--cell-size', '--challenge-panel-bg'].includes(token)));
       assert.deepEqual(missing, [], `${theme}: every CSS token resolves from real globals`);
       if (theme === 'light') {
         assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).backgroundColor), 'rgba(255, 255, 255, 0.99)', `${width}: light panels use the shared fallback surface`);

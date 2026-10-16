@@ -351,7 +351,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
                   <span className={styles.wordCount} role="status">{crossword.solvedCount || 0}/{crossword.totalWords || words.length} {copy.wordsFound}</span>
                 </div>
                 <div className={styles.boardScroll} tabIndex={0} role="region" aria-label={copy.board}>
-                  <div ref={boardRef} className={styles.board} role="grid" aria-label={copy.board} aria-describedby={`${id}-help`} style={{ '--columns': grid.width }}>
+                  <div ref={boardRef} className={styles.board} role="grid" aria-label={copy.board} aria-describedby={`${id}-help`} style={{ '--columns': grid.width, '--rows': grid.height }}>
                     {Array.from({ length: grid.height }, (_, row) => <div className={styles.row} role="row" key={row}>
                       {Array.from({ length: grid.width }, (_, col) => {
                         const key = `${row}:${col}`;
@@ -363,7 +363,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
                             className={`${styles.cell} ${inWord ? styles.wordCell : ''} ${key === selectedKey ? styles.activeCell : ''} ${cell.letter ? styles.revealed : ''}`}
                             aria-label={`${copy.row} ${row + 1}, ${copy.col} ${col + 1}, ${cell.letter || copy.empty}, ${cell.words.map((word) => `${word.number} ${copy[word.direction]}`).join(', ')}`}
                             aria-describedby={`${id}-clue`} onClick={() => choose(cell, key === selectedKey)} onKeyDown={(event) => navigate(event, cell)}>
-                            {cell.number != null && <small aria-hidden="true">{cell.number}</small>}
+                            {cell.number != null && <small className={styles.cellNumber} aria-hidden="true">{cell.number}</small>}
                             <span aria-hidden="true">{cell.letter}</span>
                           </button>
                         </div>;
