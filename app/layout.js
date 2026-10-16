@@ -27,7 +27,7 @@ export const viewport = {
 };
 
 export default async function RootLayout({ children }) {
-  const { locale } = await getSeoRequest();
+  const { pathname, locale } = await getSeoRequest();
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -53,7 +53,7 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning>
-        <PublicStructuredData />
+        <PublicStructuredData pathname={pathname} locale={locale} />
         <script
           dangerouslySetInnerHTML={{
             __html: `document.body.dataset.theme = document.documentElement.dataset.theme || 'light';`,

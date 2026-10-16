@@ -343,9 +343,12 @@ npm run test:smoke:preview
   - `/fr/pricing`, `/en/pricing`
   - `/fr/contact`, `/en/contact`
   - `/fr/team-building`, `/en/team-building`
+  - `/fr/team-building/a-distance`, `/en/team-building/a-distance`
+  - `/fr/team-building/hybride`, `/en/team-building/hybride`
+  - `/fr/team-building/onboarding`, `/en/team-building/onboarding`
 - Les espaces prives (manager, participant, admin, session live, resume, etc.) sont non indexables via metadonnees et robots.
 - En environnement preview Vercel, l'indexation est desactivee (`robots.txt` global + sitemap vide).
 - Un endpoint `llms.txt` est expose (`/llms.txt`) pour aider les outils IA a decouvrir les pages publiques et leur contexte.
 - Des donnees structurees JSON-LD sont servies:
-  - globales (`Organization`, `WebSite`) dans le layout;
-  - specifiques FAQ/guide sur la page `/team-building`.
+  - globales (`Organization`, `WebSite`, `SoftwareApplication`, `WebPage`/`ContactPage`, `BreadcrumbList`) dans le layout;
+  - specifiques FAQ (`FAQPage`) sur les pages guide Team Building.
