@@ -575,16 +575,16 @@ export default function PricingPageClient({ initialPlans = [] }) {
         }
 
         .pricing-page .pricing-hero {
-          margin-bottom: 2.5rem;
-          padding: clamp(1.5rem, 5vw, 3.75rem) 1rem 1.25rem;
-          background: transparent;
+          margin-bottom: 1.5rem;
+          padding: 1.25rem 0.5rem;
+          background: none;
         }
 
         .pricing-page .pricing-hero__copy {
           display: grid;
           justify-items: center;
-          gap: 1.1rem;
-          width: min(100%, 60rem);
+          gap: 0.75rem;
+          width: min(100%, 46rem);
           margin: 0 auto;
           text-align: center;
         }
@@ -603,11 +603,12 @@ export default function PricingPageClient({ initialPlans = [] }) {
         }
 
         .pricing-page .pricing-hero h1 {
-          max-width: 17ch;
+          max-width: 24ch;
           margin: 0;
-          font-size: clamp(2.25rem, 5vw, 4rem);
-          line-height: 1.04;
-          letter-spacing: -0.055em;
+          font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+          font-weight: 700;
+          line-height: 1.08;
+          letter-spacing: -0.03em;
           text-wrap: balance;
         }
 
@@ -620,15 +621,14 @@ export default function PricingPageClient({ initialPlans = [] }) {
         }
 
         .pricing-page .pricing-hero__context {
-          max-width: 48rem;
-          margin: 0.2rem 0 0;
-          padding: 0.7rem 1rem;
-          border: 1px solid rgba(47, 98, 255, 0.12);
-          border-radius: 14px;
-          background: rgba(255, 255, 255, 0.58);
-          font-size: 0.88rem;
-          line-height: 1.55;
-          font-weight: 500;
+          max-width: 58ch;
+          margin: 0;
+          padding: 0;
+          border: 0;
+          border-radius: 0;
+          background: none;
+          font-size: 1.02rem;
+          line-height: 1.7;
         }
 
         .pricing-page .pricing-controls {
@@ -1104,15 +1104,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
           .pricing-page .pricing-hero {
             margin-bottom: 1.25rem;
-            padding: 2rem 0.25rem 0.75rem;
-          }
-
-          .pricing-page .pricing-hero h1 {
-            font-size: clamp(2.1rem, 10vw, 2.8rem);
-          }
-
-          .pricing-page .pricing-hero__context {
-            font-size: 0.82rem;
+            padding: 1rem 0;
           }
 
           .pricing-page .pricing-controls__row,
