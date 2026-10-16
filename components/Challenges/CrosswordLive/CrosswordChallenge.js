@@ -20,7 +20,7 @@ const COPY = {
     row: 'Ligne', col: 'colonne', empty: 'vide', found: 'Trouvé', letters: 'lettres', answer: 'Votre réponse', submit: 'Proposer le mot',
     wordsFound: 'mots trouvés', leaderboard: 'Classement', activity: 'Dernières découvertes', none: 'Aucune découverte pour le moment.',
     points: 'points', finished: 'Partie terminée', unresolved: 'Mots non résolus', perfect: 'Bravo ! Toute la grille est résolue.',
-    stop: 'Terminer la partie', start: 'Démarrer la partie', waiting: 'En attente du démarrage par l’animateur.',
+    start: 'Démarrer la partie', waiting: 'En attente du démarrage par l’animateur.',
     offline: 'Connexion interrompue. Votre brouillon est conservé.', sending: 'Vérification en cours…',
     timeout: 'Pas de confirmation reçue. Votre brouillon est conservé ; vous pouvez réessayer.',
     conflict: 'Cette réponse ne correspond pas aux lettres déjà révélées.', length: 'Saisissez le nombre de lettres indiqué.',
@@ -36,7 +36,7 @@ const COPY = {
     row: 'Row', col: 'column', empty: 'empty', found: 'Found', letters: 'letters', answer: 'Your answer', submit: 'Submit word',
     wordsFound: 'words found', leaderboard: 'Leaderboard', activity: 'Latest discoveries', none: 'No discoveries yet.',
     points: 'points', finished: 'Game over', unresolved: 'Unresolved words', perfect: 'Well done! The whole grid is solved.',
-    stop: 'End game', start: 'Start game', waiting: 'Waiting for the facilitator to start.',
+    start: 'Start game', waiting: 'Waiting for the facilitator to start.',
     offline: 'Connection interrupted. Your draft is saved.', sending: 'Checking your answer…',
     timeout: 'No confirmation received. Your draft is saved; you can try again.',
     conflict: 'This answer conflicts with the letters already revealed.', length: 'Enter the indicated number of letters.',
@@ -293,12 +293,12 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
     }
   }
 
-  function control(type) {
+  function start() {
     if (!isFacilitator || !connected) return;
     controls.run({
-      type, payload: {},
-      isAvailable: (current) => type === 'timer.start' ? (!current?.timer?.status || current.timer.status === 'idle') : current?.timer?.status === 'running',
-      isConfirmed: (current) => type === 'timer.start' ? current?.timer?.status === 'running' : ['stopped', 'completed', 'timeout'].includes(current?.timer?.status),
+      type: 'timer.start', payload: {},
+      isAvailable: (current) => !current?.timer?.status || current.timer.status === 'idle',
+      isConfirmed: (current) => current?.timer?.status === 'running',
     });
   }
 
@@ -333,7 +333,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
           {!started ? <>
             <ChallengeRulesPanel
               {...rulesProps}
-              startLabel={copy.start} onStart={isFacilitator ? () => control('timer.start') : null}
+              startLabel={copy.start} onStart={isFacilitator ? start : null}
               startDisabled={!connected || controls.busy || !grid}
               startStatusText={controls.busy ? copy.sending : ''}
               extraContent={!isFacilitator ? <p className={styles.notice} role="status">{copy.waiting}</p> : null}
@@ -420,7 +420,6 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
             onPause={timerControls.pause} onResume={timerControls.resume}
             controlPending={timerControls.busy} controlFeedback={timerControls.feedback}
             waitingText={copy.waiting}
-            actions={isFacilitator && status === 'running' ? <button className={styles.secondary} type="button" disabled={!connected || controls.busy || timerControls.busy} onClick={() => control('timer.stop')}>{copy.stop}</button> : null}
           />
         </aside>}
       </div>

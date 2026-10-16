@@ -213,10 +213,12 @@ try {
           assert.ok(timerBounds.y + timerBounds.height <= arenaBounds.y, 'Timer is above the arena on mobile');
           assert.ok(Math.abs(timerBounds.x + timerBounds.width - arenaBounds.x - arenaBounds.width) <= 1, 'Mobile timer is right aligned');
         }
+        assert.equal(await page.getByRole('button', { name: /^(End game|Terminer la partie)$/ }).count(), 0);
+        assert.equal(await page.getByRole('button', { name: 'challengeTimer.pause', exact: true }).count(), currentFacilitator ? 1 : 0);
         if (currentFacilitator) {
-          const stopBounds = await page.getByRole('button', { name: currentLocale === 'en' ? 'End game' : 'Terminer la partie', exact: true }).boundingBox();
+          const pauseBounds = await page.getByRole('button', { name: 'challengeTimer.pause', exact: true }).boundingBox();
           const timeBounds = await page.getByRole('timer').boundingBox();
-          assert.ok(stopBounds.y >= timeBounds.y + timeBounds.height, 'End game stays below the timer');
+          assert.ok(pauseBounds.y >= timeBounds.y + timeBounds.height, 'Pause stays below the timer');
         }
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${width}: no page overflow during play`);
         await page.getByRole('button', { name: 'challengeRulesPanel.showRules', exact: true }).click();
@@ -280,16 +282,30 @@ try {
     render();
   });
   await page.getByRole('grid').waitFor();
-  await page.getByRole('button', { name: 'End game', exact: true }).click();
-  assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.stop')));
+  const pauseButton = page.getByRole('button', { name: 'challengeTimer.pause', exact: true });
+  await pauseButton.waitFor();
+  await page.evaluate(() => { socket.connected = false; render(); });
+  assert.equal(await pauseButton.isDisabled(), true, 'Pause is unavailable while disconnected');
+  await page.evaluate(() => { socket.connected = true; render(); });
+  await pauseButton.click();
+  assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.pause')));
+  assert.equal(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.stop')), false);
+  assert.equal(await pauseButton.count(), 1, 'Pause waits for server confirmation');
   await page.evaluate(() => {
     state = { ...state, timer: { status: 'paused', remaining_seconds: 900 } };
     render();
   });
   await page.getByRole('grid').waitFor();
   assert.equal(await page.locator('.rulesCard').count(), 0, 'Paused games do not return to the prestart rules');
+  assert.equal(await pauseButton.count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'Submit word', exact: true }).isDisabled(), true, 'Answers are disabled while paused');
   await page.getByRole('button', { name: 'challengeTimer.resume', exact: true }).click();
   assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.resume')));
+  await page.evaluate(() => {
+    state = { ...state, timer: { status: 'running', remaining_seconds: 900 } };
+    render();
+  });
+  await pauseButton.waitFor();
   await page.evaluate(() => {
     facilitator = false;
     runtimeConfig = { participants: { assigned_count: 2 } };
