@@ -199,7 +199,9 @@ Le bareme est presente en lignes courtes avec icones; les points du poseur reste
 
 Le nom de reference est Pari sur moi (Bet on me! en anglais). Un statut immediat indique son tour, le vote, l'attente ou la revelation collective; la reponse personnelle reste distincte du resultat collectif.
 
-Validation: `npm run test:ux:vom` (frontend sur le port 3100, Chrome disponible), avec API et Socket.IO simules. Le test couvre les votes corrects, incorrects, hors delai, les choix multiples, les vues facilitateur et participant, ainsi que les modes clair/sombre et le contraste des badges (minimum 4.5:1).
+Le vote utilise une seule carte: avatar et nom sont alignes sur une ligne, la question occupe la largeur disponible et les boutons conservent une hauteur tactile de 48 px minimum. Les contours et ombres sont discrets, le classement n'a plus de cadre externe et la colonne du minuteur est resserree. Les noms longs et les choix multiples se replient sans debordement sur mobile.
+
+Validation: `npm run test:ux:vom` (frontend sur le port 3100, Chrome disponible), avec API et Socket.IO simules. Le test couvre les votes corrects, incorrects, hors delai, les choix multiples, les vues facilitateur et participant, ainsi que les modes clair/sombre et le contraste des badges (minimum 4.5:1). `node scripts/test-vom-voting-layout.mjs` verifie le vote sur des largeurs de 320 a 1920 px en FR/EN et clair/sombre: alignement avatar/nom, hauteur compacte, cibles tactiles, textes longs et envoi des votes au clavier.
 
 ### Mission Critique
 

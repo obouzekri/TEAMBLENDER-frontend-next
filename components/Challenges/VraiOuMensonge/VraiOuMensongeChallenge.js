@@ -898,7 +898,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         </p>
       ) : null}
 
-      <div className={styles.layout} data-challenge-layout>
+      <div className={`${styles.layout}${phase === 'voting_open' ? ` ${styles.votingLayout}` : ''}`} data-challenge-layout>
         <div className={styles.mainColumn}>
 
         {!hasChallengeStarted ? (
@@ -988,7 +988,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         ) : null}
 
         {phase === 'voting_open' ? (
-          <section className={styles.card}>
+          <section className={`${styles.card} ${styles.votingCard}`}>
             {isPoser ? (
               <div className={styles.poserVoteWaitingCard}>
                 <h2 className={styles.sectionTitle}>{t('vom.votingTitle')}</h2>
@@ -1022,7 +1022,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   <div className={styles.voteTargetCard}>
                     <p className={styles.voteTargetEyebrow}>{isEn ? 'Guess the answer from' : 'DEVINEZ LA RÉPONSE DE'}</p>
                     <div className={styles.voteTargetIdentity}>
-                      <span className={styles.voteTargetAvatar}>{getInitials(poserName)}</span>
+                      <span className={styles.voteTargetAvatar} aria-hidden="true">{getInitials(poserName)}</span>
                       <h2 className={styles.voteTargetName}>{poserName}</h2>
                     </div>
                     <div className={styles.voteQuestionBlock}>
@@ -1237,19 +1237,22 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             className={styles.modalCard}
             role="dialog"
             aria-modal="true"
-            aria-label={isEn ? 'Answer selection' : 'Sélection de réponse'}
+            aria-labelledby="vom-answer-selection-title"
             onClick={(event) => event.stopPropagation()}
           >
             {selectedStatementChoices ? (
               <>
-                <p className={styles.choicePanelTitle}>
+                <h2 id="vom-answer-selection-title" className={styles.modalTitle}>
                   {selectedStatementChoices.prompt}{selectedStatementChoices.hasColon ? ':' : ''}
-                </p>
+                </h2>
                 <div className={`${styles.choiceButtonsWrap} ${styles.answerHighlight}`}>
                   {poserSelectionOptions.map((option) => {
                     const active = selectedStatementOption.toLowerCase() === option.toLowerCase();
                     return (
-                      <label key={option} className={styles.choiceRadioLabel}>
+                      <label
+                        key={option}
+                        className={`${styles.choiceRadioLabel}${active ? ` ${styles.choiceRadioLabelActive}` : ''}`}
+                      >
                         <input
                           type="radio"
                           name="poser-choice"
