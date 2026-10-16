@@ -1238,31 +1238,6 @@
   gap: 8px;
 }
 
-.resultListDense {
-  display: grid;
-  gap: 10px;
-}
-
-.resultRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(125, 164, 188, 0.2);
-  background: rgba(11, 24, 37, 0.82);
-  transition: border-color 140ms ease, transform 140ms ease, background-color 140ms ease;
-}
-
-.resultRow span:last-child {
-  font-weight: 700;
-}
-
-.resultRow span {
-  font-size: 0.9rem;
-}
-
 .leaderboardLine {
   font-size: 0.96rem;
   font-weight: 700;
@@ -1320,17 +1295,6 @@
   justify-content: center;
   font-size: 0.7rem;
   font-weight: 800;
-}
-
-.resultParticipantWrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.resultStatusText {
-  color: #bcd3e6;
-  font-weight: 700;
 }
 
 .leaderboardScoreWrap {
@@ -1720,14 +1684,8 @@
   color: var(--challenge-text-primary);
 }
 
-.answerComparison {
-  display: grid;
-  gap: 0.4rem;
-  color: var(--challenge-text-primary);
-}
-
-.answerComparison p {
-  margin: 0;
+.resultCorrectAnswer {
+  font-size: 1rem;
 }
 
 .resultHero {
@@ -1751,41 +1709,6 @@
   display: grid;
   align-content: start;
   gap: 8px;
-}
-
-.resultEyebrowRow {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px;
-  align-items: center;
-}
-
-.resultEyebrow {
-  color: #7dd3fc;
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.resultStatusBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: 999px;
-  padding: 7px 10px;
-  background: rgba(19, 36, 52, 0.88);
-  border: 1px solid rgba(125, 164, 188, 0.16);
-  color: #dbe9f6;
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.resultStatusSuccess {
-  color: #ebfff3;
-  border-color: rgba(53, 183, 118, 0.24);
-  background: rgba(18, 59, 45, 0.92);
 }
 
 .mainScoreCard {
@@ -1832,34 +1755,6 @@
   justify-content: center;
   gap: 8px;
   margin-left: auto;
-}
-
-.resultCorrect,
-.resultIncorrect,
-.resultTimeout {
-  display: inline-flex;
-  padding: 0.35rem 0.65rem;
-  border: 1px solid;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.resultCorrect {
-  color: #bbf7d0;
-  background: #14532d;
-  border-color: #4ade80;
-}
-
-.resultIncorrect {
-  color: #fecaca;
-  background: #7f1d1d;
-  border-color: #f87171;
-}
-
-.resultTimeout {
-  color: #fde68a;
-  background: #713f12;
-  border-color: #fbbf24;
 }
 
 .scoreDeltaChip,
@@ -2076,30 +1971,6 @@
 :global(html[data-theme='light']) .mainScoreCard {
   background: linear-gradient(145deg, #fff9e9, var(--surface-1));
   border-color: rgba(217, 119, 6, 0.32);
-}
-
-:global(html[data-theme='light']) .resultRow {
-  background: #f8fafc;
-  color: #0f172a;
-  border-color: #cbd5e1;
-}
-
-:global(html[data-theme='light']) .resultStatusText.resultCorrect {
-  color: #166534;
-  background: #dcfce7;
-  border-color: #86efac;
-}
-
-:global(html[data-theme='light']) .resultStatusText.resultIncorrect {
-  color: #991b1b;
-  background: #fee2e2;
-  border-color: #fca5a5;
-}
-
-:global(html[data-theme='light']) .resultStatusText.resultTimeout {
-  color: #854d0e;
-  background: #fef9c3;
-  border-color: #fde047;
 }
 
 :global(html[data-theme='light']) .mainScoreValue {
@@ -2382,8 +2253,7 @@
 
 :global(html[data-theme='light']) .headerSeparator,
 :global(html[data-theme='light']) .headerMetaLine,
-:global(html[data-theme='light']) .leaderboardScore,
-:global(html[data-theme='light']) .resultStatusText {
+:global(html[data-theme='light']) .leaderboardScore {
   color: var(--text-soft);
 }
 
@@ -2801,10 +2671,6 @@
     min-width: 40px;
     height: 30px;
     font-size: 0.8rem;
-  }
-
-  .resultRow {
-    flex-wrap: wrap;
   }
 
   .voteTrue,

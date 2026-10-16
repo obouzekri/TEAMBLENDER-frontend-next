@@ -838,12 +838,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     return formatChoiceDisplay(raw, locale);
   }
 
-  function resultStatusLabel(status) {
-    if (status === 'correct') return t('vom.resultCorrect');
-    if (status === 'incorrect') return t('vom.resultIncorrect');
-    return t('vom.resultTimeout');
-  }
-
   return (
     <ChallengePresentation className={`${styles.shell}${!hasChallengeStarted ? ` ${styles.shellPrestart}` : ''}`} isDebrief={phase === 'finished'}>
       <ChallengeHeader
@@ -1086,23 +1080,15 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             <h2 className={styles.sectionTitle}>{t('vom.roundResultTitle')}</h2>
             <div className={`${styles.resultHero}${resultPulse ? ` ${styles.resultHeroPulse}` : ''}`}>
               <div className={styles.resultHeroFeedback}>
-                <div className={styles.resultEyebrowRow}>
-                  <span className={styles.resultEyebrow}>{t('vom.instantFeedback')}</span>
-                  {!isFacilitator ? <span className={`${styles.resultStatusBadge}${myRoundPoints > 0 ? ` ${styles.resultStatusSuccess}` : ''}`}>
-                    {hasSelectionTimeout ? '⏳' : isPoser ? (poseurRoundPoints > 0 ? '🎯' : '•') : myRoundVote?.status === 'correct' ? '✅' : myRoundVote?.status === 'incorrect' ? '❌' : '•'}
-                    {myRoundPoints > 0 ? ` +${myRoundPoints} pts` : ' 0 pt'}
-                  </span> : null}
-                </div>
                 <strong className={styles.wowTitle}>{hasSelectionTimeout ? t('vom.roundInterrupted') : isFacilitator ? t('vom.answerRevealed') : isPoser ? t('vom.bluffRevealed') : myRoundVote?.status === 'correct' ? t('vom.feedbackCorrect') : myRoundVote?.status === 'incorrect' ? t('vom.feedbackIncorrect') : t('vom.resultTimeout')}</strong>
                 {hasSelectionTimeout ? (
                   <p className={styles.wowText}>{t('vom.selectionTimeoutBody')}</p>
                 ) : isFacilitator ? (
                   <p className={styles.wowText}>{t('vom.correctAnswerLabel')}: <strong>{formatAnswer(currentTurn?.revealed_truth)}</strong> ✅</p>
-                ) : !isPoser ? (
-                  <div className={styles.answerComparison}>
-                    <p>{t('vom.yourAnswerLabel')}: <strong>{formatAnswer(myRoundVote?.vote)}</strong> {myRoundVote?.status === 'correct' ? '✅' : myRoundVote?.status === 'incorrect' ? '❌' : '⏱️'}</p>
-                    <p>{t('vom.correctAnswerLabel')}: <strong>{formatAnswer(currentTurn?.revealed_truth)}</strong> ✅</p>
-                  </div>
+                ) : !isPoser && myRoundVote?.status !== 'correct' ? (
+                  <p className={`${styles.wowText} ${styles.resultCorrectAnswer}`}>
+                    {t('vom.correctAnswerLabel')}: <strong>{formatAnswer(currentTurn?.revealed_truth)}</strong>
+                  </p>
                 ) : (
                   <p className={styles.wowText}>
                     {t('vom.poserFeedback', { points: poseurRoundPoints })}
@@ -1120,18 +1106,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               </div> : null}
             </div>
 
-            <div className={styles.resultListDense}>
-              {(currentTurn?.result?.votes || []).map((item) => (
-                <div key={item.participant_id} className={styles.resultRow}>
-                  <span className={styles.resultParticipantWrap}>
-                    <span className={styles.inlineAvatar}>{getInitials(participantName(item.participant_id))}</span>
-                    <span>{participantName(item.participant_id)}</span>
-                  </span>
-                  <span className={`${styles.resultStatusText} ${item.status === 'correct' ? styles.resultCorrect : item.status === 'incorrect' ? styles.resultIncorrect : styles.resultTimeout}`}>{resultStatusLabel(item.status)}</span>
-                  <span>+{item.points}</span>
-                </div>
-              ))}
-            </div>
             <h3 className={styles.sectionTitle}>{t('vom.ranking')}</h3>
             <div className={styles.leaderboardList}>
               {liveRanking.map((entry, index) => renderLeaderboardRow(entry, index, { keyPrefix: 'result' }))}

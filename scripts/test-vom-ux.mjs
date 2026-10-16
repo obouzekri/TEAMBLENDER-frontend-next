@@ -61,7 +61,7 @@ try {
     await page.getByText(locale === 'fr' ? 'Je maîtrise plus de trois langues' : 'I speak more than three languages', { exact: false }).first().waitFor();
     assert.equal(await page.getByText(locale === 'fr' ? 'Votre question' : 'Your question', { exact: true }).count(), 0);
     if (role === 'participant') {
-      await page.getByText(locale === 'fr' ? /En attente : suivez le joueur actif/ : /Waiting: follow the current player/).waitFor();
+      assert.equal(await page.locator('[class*="roleBanner"]').count(), 0);
       broadcast('vom.state', { vom: { ...baseVom, phase: 'voting_open', current_turn: { ...turn, votes: {} } } });
       await page.getByText(locale === 'fr' ? /Votez : devinez/ : /Vote: guess/).waitFor();
       broadcast('vom.state', { vom: { ...baseVom, phase: 'selecting_statement', current_turn: { ...turn, poser_id: '1', votes: {} } } });
@@ -80,18 +80,25 @@ try {
         background: getComputedStyle(item.closest('[class*="resultHeroFeedback"]').parentElement).backgroundColor,
       }));
       assert.ok(contrastRatio(titleColors.foreground, titleColors.background) >= 4.5, `Result title contrast below 4.5: ${JSON.stringify(titleColors)}`);
-      const statusText = status === 'correct' ? '✅ Correct' : status === 'incorrect' ? '❌ Incorrect' : locale === 'fr' ? '⏱️ Hors délai' : '⏱️ Time expired';
-      const row = page.locator('[class*="resultRow"]').filter({ hasText: 'Sophie Bourger' });
-      await row.getByText(statusText, { exact: true }).waitFor();
-      const badge = row.locator('[class*="resultStatusText"]');
-      const colors = await badge.evaluate((item) => ({ foreground: getComputedStyle(item).color, background: getComputedStyle(item).backgroundColor }));
-      assert.ok(contrastRatio(colors.foreground, colors.background) >= 4.5, `Badge contrast below 4.5: ${JSON.stringify(colors)}`);
+      assert.equal(await page.locator('[class*="resultListDense"]').count(), 0);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Horizontal overflow in results');
       if (role === 'participant') {
-        const comparison = page.locator('[class*="answerComparison"]');
-        await comparison.getByText(locale === 'fr' ? 'Bonne réponse: Faux ✅' : 'Correct answer: False ✅', { exact: true }).waitFor();
-        const expected = status === 'absent' ? (locale === 'fr' ? 'Aucune réponse' : 'No answer') : status === 'correct' ? (locale === 'fr' ? 'Faux' : 'False') : (locale === 'fr' ? 'Vrai' : 'True');
-        assert.ok((await comparison.textContent()).includes(expected));
+        const title = await page.locator('[class*="wowTitle"]').textContent();
+        const expectedTitle = status === 'correct'
+          ? (locale === 'fr' ? 'Réponse correcte' : 'Correct answer')
+          : status === 'incorrect'
+            ? (locale === 'fr' ? 'Réponse incorrecte' : 'Incorrect answer')
+            : (locale === 'fr' ? 'Hors délai' : 'Time expired');
+        assert.ok(title.includes(expectedTitle), `Expected result title "${expectedTitle}", got "${title}"`);
+        const correctAnswer = page.locator('[class*="resultCorrectAnswer"]');
+        if (status === 'correct') {
+          assert.equal(await correctAnswer.count(), 0);
+        } else {
+          await correctAnswer.waitFor();
+          const answerText = await correctAnswer.textContent();
+          assert.ok(answerText.includes(locale === 'fr' ? 'Bonne réponse' : 'Correct answer'));
+          assert.ok(answerText.includes(locale === 'fr' ? 'Faux' : 'False'), `Expected the revealed answer, got "${answerText}"`);
+        }
         const score = page.locator('[class*="mainScoreCard"]');
         assert.ok(await score.evaluate((item) => item.getBoundingClientRect().height) < 100);
         const heading = await page.locator('[class*="wowTitle"]').boundingBox();
@@ -108,11 +115,11 @@ try {
         ...turn, revealed_truth: null, result: { reveal_reason: 'selection_timeout', poser_points: 0, votes: [] },
       } } });
       await page.getByText(locale === 'fr' ? 'Manche interrompue' : 'Round interrupted', { exact: true }).waitFor();
-      assert.equal(await page.locator('[class*="answerComparison"]').count(), 0);
+      assert.equal(await page.locator('[class*="resultCorrectAnswer"]').count(), 0);
       turn = { ...turn, statement_id: 'pr_01', statement_text: 'Je préfère Café / Thé / Jus', statement_options: ['Café', 'Thé', 'Jus'], answer_mode: 'choice', revealed_truth: 'Thé',
         result: { poser_points: 1, votes: [{ participant_id: '1', vote: 'Café', status: 'incorrect', points: 0 }] } };
       broadcast('vom.state', { vom: { ...baseVom, phase: 'round_result', current_turn: turn } });
-      await page.locator('[class*="answerComparison"]').getByText(locale === 'fr' ? 'Bonne réponse: Thé ✅' : 'Correct answer: Tea ✅', { exact: true }).waitFor();
+      await page.locator('[class*="resultCorrectAnswer"]').getByText(locale === 'fr' ? 'Thé' : 'Tea', { exact: true }).waitFor();
 
       broadcast('vom.state', { vom: { ...baseVom, phase: 'selecting_statement', current_turn: { poser_id: '1' } } });
       await page.getByRole('button', { name: /Je maîtrise plus de trois langues|I speak more than three languages/ }).click();
@@ -124,7 +131,7 @@ try {
         ...turn, poser_id: '1', result: { poser_points: 1, votes: [{ participant_id: '2', vote: 'Café', status: 'incorrect', points: 0 }] },
       } } });
       await page.getByText(locale === 'fr' ? 'Bluff révélé' : 'Bluff revealed', { exact: true }).waitFor();
-      assert.equal(await page.locator('[class*="answerComparison"]').count(), 0);
+      assert.equal(await page.locator('[class*="resultCorrectAnswer"]').count(), 0);
     }
     assert.ok(await page.getByText('Anne Martin', { exact: true }).count());
     assert.deepEqual(errors, []);
