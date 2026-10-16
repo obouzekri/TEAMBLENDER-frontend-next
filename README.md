@@ -20,6 +20,12 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les points restent centres pendant leur animation. Les deplacements clavier, boutons et cases voisines sont affiches immediatement, puis reconcilies avec le serveur sans annuler les clics plus recents. Les erreurs et penalites restaurent la position confirmee.
 - Validation : `npm run test:ux:labyrinthe` (frontend sur 3100, Chrome disponible, API simulees).
 
+### Salle secrete : presentation des enigmes
+
+- Toutes les enigmes conservent 24 px entre le titre et la consigne, puis au moins 24 px avant le bloc visuel, sur mobile comme sur ordinateur.
+- Les grilles de chiffres sont centrees et limitees a 280 px, avec des cases de 56 px de haut (50 px sur mobile), y compris pour Code mural.
+- Validation : `node scripts/test-challenge-diagnostics-ux.mjs --escape-only` (frontend sur 3100, Chrome disponible, API simulees) : grilles, enigme textuelle et anagramme, themes clair/sombre, mobile EN et ordinateur FR, puis non-regression de la synchronisation et des commandes.
+
 ### Filtres des sessions de l'accueil animateur
 
 - L'accueil privilegie le message de bienvenue, puis les chiffres des KPI, les sessions et les participants. Le theme clair utilise un fond blanc pur, des cartes blanches a bordure fine et ombre discrete, et des sections sans cadre externe. Le theme sombre reste disponible.

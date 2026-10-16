@@ -283,7 +283,55 @@ async function testEscape(locale, width) {
   });
   const { page } = fixture;
   await page.getByText('Synchronization test', { exact: true }).first().waitFor();
-  await page.getByRole('timer').waitFor();
+  const participantsAlert = page.locator('[role="alert"]').filter({ hasText: 'Service unavailable' });
+  await participantsAlert.waitFor({ timeout: 10000 });
+  const retryParticipants = participantsAlert.getByRole('button', {
+    name: locale === 'en' ? 'Retry participants' : 'Réessayer les participants',
+    exact: true,
+  });
+  participantsMode = 'healthy';
+  await retryParticipants.click();
+  await participantsAlert.waitFor({ state: 'hidden' });
+  const riddles = [
+    { ui_type: 'grid_3x3', ui_data: { grid: [[2, 7, 6], [9, '?', 1], [4, 3, 8]] } },
+    { ui_type: 'grid_3x3', ui_data: { grid: [[1, 2, 3], [4, '?', 6], [7, 8, 9]] } },
+    { ui_type: 'text_mystery', ui_data: { question_lines: ['CHAT = 4', 'LION = ?'] } },
+    { ui_type: 'word_anagram', ui_data: { letters: ['E', 'Q', 'U', 'I', 'P', 'E'], answer_length: 6 } },
+  ];
+  for (const [index, riddle] of riddles.entries()) {
+    escape.current_enigme_index = index;
+    escape.current_enigme = {
+      id: index === 0 ? 'e1' : `layout-${index}`, label: `Riddle layout ${index}`,
+      description: 'Sur le mur devant vous, une grille de nombres. Une case est manquante. Observez le pattern et completez la grille.',
+      ...riddle,
+    };
+    await page.getByRole('heading', { name: `Riddle layout ${index}`, exact: true }).waitFor({ timeout: 10000 });
+    for (const theme of ['light', 'dark']) {
+      await page.locator('html').evaluate((node, value) => { node.dataset.theme = value; }, theme);
+      const hero = await page.locator('[class*="enigmeHero"]').boundingBox();
+      const description = await page.locator('[class*="description"]').filter({ hasText: 'Sur le mur' }).boundingBox();
+      const block = await page.locator('[class*="enigmeUiBlock"]').boundingBox();
+      assert.ok(description.y - hero.y - hero.height >= 23.5, `${riddle.ui_type}: space after title (${theme}, ${width})`);
+      assert.ok(block.y - description.y - description.height >= 23.5, `${riddle.ui_type}: space before puzzle (${theme}, ${width})`);
+      if (riddle.ui_type === 'grid_3x3') {
+        const grid = await page.locator('[class*="matrixGrid"]').boundingBox();
+        const cells = page.locator('[class*="matrixCell"]');
+        assert.equal(await cells.count(), 9);
+        for (const cell of await cells.all()) {
+          const box = await cell.boundingBox();
+          assert.ok(box.width <= 90 && box.height <= 56, `Compact number cell: ${box.width} x ${box.height}`);
+        }
+        assert.ok(grid.width <= 280, 'Compact grid width');
+        assert.ok(Math.abs(grid.x + grid.width / 2 - block.x - block.width / 2) <= 1, 'Centered grid');
+        await page.getByLabel(locale === 'en' ? 'Cell to solve' : 'Case a trouver', { exact: true }).waitFor();
+      }
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Riddle layout must not overflow');
+    }
+  }
+  escape.current_enigme_index = 0;
+  escape.current_enigme = { id: 'e1', label: 'Synchronization test', description: 'Question', ui_type: 'text', ui_data: {} };
+  await page.getByText('Synchronization test', { exact: true }).first().waitFor({ timeout: 10000 });
+  await page.getByRole('timer').filter({ visible: true }).first().waitFor();
   await page.getByRole('button', { name: locale === 'en' ? 'Pause' : 'Mettre en pause', exact: true }).waitFor();
   const pause = page.getByRole('button', { name: locale === 'en' ? 'Pause' : 'Mettre en pause', exact: true });
   await pause.click();
@@ -300,15 +348,6 @@ async function testEscape(locale, width) {
   assert.ok(await unlocked.isDisabled(), 'Do not unlock the same hint twice');
   await page.getByRole('button', { name: locale === 'en' ? 'Skip the riddle' : "Passer l'énigme", exact: true }).filter({ visible: true }).click();
   assert.deepEqual(actions, ['pause', 'resume', 'hint', 'skip']);
-  const participantsAlert = page.locator('[role="alert"]').filter({ hasText: 'Service unavailable' });
-  await participantsAlert.waitFor({ timeout: 10000 });
-  const retryParticipants = participantsAlert.getByRole('button', {
-    name: locale === 'en' ? 'Retry participants' : 'Réessayer les participants',
-    exact: true,
-  });
-  participantsMode = 'healthy';
-  await retryParticipants.click();
-  await participantsAlert.waitFor({ state: 'hidden' });
   const baselineRequests = requests;
   responseMode = 'error';
   const alert = page.locator('[role="alert"]').filter({ hasText: locale === 'en' ? 'Synchronization interrupted' : 'Synchronisation interrompue' });
