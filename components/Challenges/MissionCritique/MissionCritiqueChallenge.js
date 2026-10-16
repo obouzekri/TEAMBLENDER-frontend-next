@@ -89,7 +89,7 @@ export default function MissionCritiqueChallenge({
   const facilitatorBoard = Array.isArray(mission.facilitator_board)
     ? mission.facilitator_board
     : [];
-  const collectiveResult = mission.collective_result || null;
+  const collectiveResult = mission.collective_result || mission.result || null;
   const boardSummary = useMemo(() => {
     const knownTaskIds = new Set(tasks.map((task) => String(task.id)));
     const placedTaskIds = new Set(facilitatorBoard.flatMap((item) => (
@@ -180,6 +180,30 @@ export default function MissionCritiqueChallenge({
 
   const timerRemainingSeconds = Math.max(0, Number(state?.timer?.remaining_seconds || 0));
   const timerDurationSeconds = Math.max(1, Number(state?.timer?.duration_seconds || 1));
+  const displayedResult = collectiveResult || submitResult;
+  const collectiveTimelineItems = useMemo(() => {
+    const resultTimeline = Array.isArray(displayedResult?.timeline) ? displayedResult.timeline : [];
+    const timelinePhases = Array.isArray(displayedResult?.timeline_phases)
+      ? displayedResult.timeline_phases
+      : [];
+
+    return resultTimeline.map((taskId, index) => {
+      const phaseKey = PHASES.some((phase) => phase.key === timelinePhases[index])
+        ? timelinePhases[index]
+        : inferPhaseKey(index, resultTimeline.length);
+      return {
+        taskId: String(taskId),
+        index,
+        phase: PHASES.find((phase) => phase.key === phaseKey) || PHASES[3],
+      };
+    });
+  }, [displayedResult]);
+  const submittedCount = Math.max(0, Number(mission.submitted_count || 0));
+  const participantCount = Math.max(
+    0,
+    Number(mission.participant_count || facilitatorBoard.length || 0)
+  );
+  const allParticipantsSubmitted = participantCount > 0 && submittedCount >= participantCount;
   const rulesPreset = useMemo(() => getMissionCritiqueRulesPreset(locale), [locale]);
   const rulesContent = useMemo(
     () => ({
@@ -425,6 +449,133 @@ export default function MissionCritiqueChallenge({
                 onStart={isFacilitator ? handleStartChallenge : null}
               />
             </section>
+          ) : isDebrief ? (
+            <section className={`${styles.card} ${styles.resultCard}`} data-debrief-content>
+              <div className={styles.resultHeader}>
+                <div>
+                  <span className={styles.resultEyebrow}>
+                    {allParticipantsSubmitted
+                      ? (isEn ? 'Challenge complete' : 'Challenge terminé')
+                      : (isEn ? 'Time ended' : 'Temps écoulé')}
+                  </span>
+                  <h2>
+                    {displayedResult
+                      ? (isEn ? 'Team results' : 'Résultats de l’équipe')
+                      : (isEn ? 'Challenge ended' : 'Challenge terminé')}
+                  </h2>
+                  <p className={styles.resultDescription}>
+                    {displayedResult
+                      ? (isEn
+                        ? 'The final score is based on the timelines submitted by the whole team.'
+                        : 'Le score final est calculé à partir des timelines validées par toute l’équipe.')
+                      : (isEn
+                        ? 'Time ran out before every participant submitted. No collective result is available.'
+                        : 'Le temps est écoulé avant que tous les participants aient validé. Aucun résultat collectif n’est disponible.')}
+                  </p>
+                </div>
+                <span className={`${styles.resultCompleteBadge}${allParticipantsSubmitted ? '' : ` ${styles.resultPendingBadge}`}`}>
+                  {allParticipantsSubmitted
+                    ? <CircleCheck size={17} aria-hidden="true" />
+                    : <AlertTriangle size={17} aria-hidden="true" />}
+                  {allParticipantsSubmitted
+                    ? (isEn ? 'All submissions received' : 'Toutes les réponses validées')
+                    : (isEn ? 'Submissions incomplete' : 'Validations incomplètes')}
+                </span>
+              </div>
+
+              {displayedResult ? (
+                <>
+                  <div className={styles.resultScorePanel}>
+                    <div className={styles.resultScoreLine}>
+                      <span>{isEn ? 'Collective score' : 'Score collectif'}</span>
+                      <strong>{Number(displayedResult.score || 0)}<small>/100</small></strong>
+                    </div>
+                    <progress
+                      className={styles.resultScoreProgress}
+                      value={Number(displayedResult.score || 0)}
+                      max="100"
+                      aria-label={isEn ? 'Collective score' : 'Score collectif'}
+                    />
+                    <p>
+                      {participantCount > 0
+                        ? (isEn
+                          ? `${submittedCount} of ${participantCount} participants submitted`
+                          : `${submittedCount} participant${participantCount > 1 ? 's' : ''} sur ${participantCount} ont validé`)
+                        : (isEn ? 'Collective result' : 'Résultat collectif')}
+                    </p>
+                  </div>
+
+                  <div className={styles.resultInsights}>
+                    <article className={styles.resultInsight}>
+                      <h3>{isEn ? 'Strengths' : 'Points forts'}</h3>
+                      <p>
+                        {(displayedResult.strengths || []).join(' · ') ||
+                          (isEn ? 'No strengths identified.' : 'Aucun point fort identifié.')}
+                      </p>
+                    </article>
+                    <article className={`${styles.resultInsight} ${styles.resultInsightReview}`}>
+                      <h3>{isEn ? 'Areas to improve' : 'Points à améliorer'}</h3>
+                      <p>
+                        {(displayedResult.weaknesses || []).join(' · ') ||
+                          (isEn ? 'No areas to improve.' : 'Aucun point à améliorer.')}
+                      </p>
+                    </article>
+                  </div>
+
+                  {(displayedResult.errors || []).length > 0 ? (
+                    <ul className={styles.errorList}>
+                      {displayedResult.errors.map((errMsg, idx) => (
+                        <li key={`${idx}-${errMsg}`}>{errMsg}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+
+                  <div className={styles.resultTimeline}>
+                    <div className={styles.resultTimelineHeader}>
+                      <div>
+                        <h3>{isEn ? 'Merged team timeline' : 'Timeline fusionnée de l’équipe'}</h3>
+                        <p>
+                          {isEn
+                            ? 'All participant timelines, combined in participant order.'
+                            : 'Les timelines de tous les participants, réunies dans l’ordre des participants.'}
+                        </p>
+                      </div>
+                      <span>{collectiveTimelineItems.length} {isEn ? 'actions' : 'actions'}</span>
+                    </div>
+                    {collectiveTimelineItems.length > 0 ? (
+                      <ol className={styles.resultTimelineList}>
+                        {collectiveTimelineItems.map((item) => {
+                          const task = taskMap.get(item.taskId);
+                          return (
+                            <li key={`${item.taskId}-${item.index}`} className={styles.resultTimelineItem}>
+                              <span className={styles.resultTimelineOrder}>{item.index + 1}</span>
+                              <div>
+                                <span className={`${styles.phaseTag} ${styles[item.phase.className]}`}>
+                                  {phaseLabel(item.phase, isEn)}
+                                </span>
+                                <p>{task?.label || item.taskId}</p>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ol>
+                    ) : (
+                      <p className={styles.empty}>
+                        {isEn ? 'No task was submitted.' : 'Aucune tâche n’a été soumise.'}
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className={styles.resultIncomplete}>
+                  <p>
+                    {isEn
+                      ? `${submittedCount} of ${participantCount} participants submitted.`
+                      : `${submittedCount} participant${submittedCount > 1 ? 's' : ''} sur ${participantCount} ont validé.`}
+                  </p>
+                </div>
+              )}
+            </section>
           ) : !isFacilitator ? (
             <>
               <section className={styles.card}>
@@ -445,6 +596,25 @@ export default function MissionCritiqueChallenge({
                       </p>
                     </div>
                   </div>
+                </div>
+
+                <div className={styles.submissionProgress} role="status" aria-live="polite">
+                  {mission.submitted
+                    ? <CircleCheck size={17} aria-hidden="true" />
+                    : <Users size={17} aria-hidden="true" />}
+                  <span>
+                    {mission.submitted
+                      ? (isEn ? 'Your solution is submitted.' : 'Votre réponse est enregistrée.')
+                      : (isEn ? 'Submit your solution when ready.' : 'Validez votre réponse lorsque vous êtes prêt.')}
+                    {participantCount > 0
+                      ? ` ${submittedCount}/${participantCount} ${isEn ? 'participants submitted' : 'participants ont validé'}.`
+                      : ''}
+                    {mission.submitted
+                      ? (isEn
+                        ? ' The challenge ends when everyone has submitted.'
+                        : ' Le challenge se termine lorsque tout le monde a validé.')
+                      : ''}
+                  </span>
                 </div>
 
                 <div
@@ -674,30 +844,6 @@ export default function MissionCritiqueChallenge({
                 </div>
               ) : null}
 
-              {submitResult || mission.result ? (
-                <section className={styles.card} data-debrief-content={isDebrief || undefined}>
-                  <h2>{isDebrief ? (isEn ? 'Team debrief' : 'Débrief équipe') : (isEn ? 'Result' : 'Résultat')}</h2>
-                  <p className={styles.score}>
-                    {isEn ? 'Score' : 'Score'}:{' '}
-                    {Number((submitResult || mission.result)?.score || 0)}/100
-                  </p>
-                  <h3>{isEn ? 'Strengths' : 'Points forts'}</h3>
-                  <p className={styles.meta}>
-                    {((submitResult || mission.result)?.strengths || []).join(' | ') ||
-                      (isEn ? 'None' : 'Aucun')}
-                  </p>
-                  <h3>{isEn ? 'Areas to review' : 'Points à améliorer'}</h3>
-                  <p className={styles.meta}>
-                    {((submitResult || mission.result)?.weaknesses || []).join(' | ') ||
-                      (isEn ? 'None' : 'Aucun')}
-                  </p>
-                  <ul className={styles.errorList}>
-                    {((submitResult || mission.result)?.errors || []).map((errMsg, idx) => (
-                      <li key={`${idx}-${errMsg}`}>{errMsg}</li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
             </>
           ) : (
             <section className={styles.card} data-debrief-content={isDebrief || undefined}>

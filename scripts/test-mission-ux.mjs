@@ -127,6 +127,48 @@ try {
     assert.deepEqual(errors, []);
     await close();
   }
+
+  const completedMission = {
+    ...mission,
+    result: null,
+    submitted: true,
+    submitted_count: 2,
+    participant_count: 2,
+    collective_result: {
+      score: 84,
+      strengths: ['Bon séquencement'],
+      weaknesses: ['Quelques dépendances à revoir'],
+      errors: [],
+      timeline: ['t1', 't2', 't3', 't4'],
+      timeline_phases: ['cadrage', 'preparation', 'execution', 'cloture'],
+    },
+  };
+  const { context, close } = await createRealtimeFixture(browser, {
+    baseUrl,
+    locale: 'fr',
+    role: 'participant',
+    theme: 'dark',
+    engineKey,
+    state: {
+      challengeKey: engineKey,
+      config: {},
+      mission: completedMission,
+      summary: { collective_score: 84 },
+      timer: { status: 'completed', duration_seconds: 1200, remaining_seconds: 120 },
+    },
+    viewport: { width: 390, height: 1000 },
+  });
+  const page = await context.newPage();
+  await page.goto(`${baseUrl}/fr/challenges/${engineKey}?sessionId=42`);
+  await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+  await page.getByRole('heading', { name: 'Résultats de l’équipe', exact: true }).waitFor();
+  assert.equal(await page.getByRole('tab').count(), 0);
+  assert.equal(await page.getByRole('heading', { name: 'Backlog mission', exact: true }).count(), 0);
+  assert.equal(await page.getByText('Timeline fusionnée de l’équipe', { exact: true }).count(), 1);
+  assert.equal(await page.locator('[class*="resultTimelineItem"]').count(), 4);
+  assert.equal(await page.getByText('Bon séquencement', { exact: true }).count(), 1);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Horizontal overflow in debrief');
+  await close();
   console.log('TEST_MISSION_UX_OK');
 } finally {
   await browser.close();
