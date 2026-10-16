@@ -1,8 +1,13 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
+const headerCss = fs.readFileSync(
+  new URL('../components/SessionLiveHeader.module.css', import.meta.url),
+  'utf8'
+);
 const browser = await chromium.launch({
   headless: true,
   channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome',
@@ -15,6 +20,7 @@ try {
       const fixture = await createRealtimeFixture(browser, {
         baseUrl,
         locale,
+        theme: en ? 'dark' : 'light',
         role: 'user',
         engineKey: 'copuzzle_live_v1',
         viewport: { width, height: 900 },
@@ -27,7 +33,10 @@ try {
         code: 'CONTROL',
         expected_participant_count: 8,
         objective: 'collaboration',
-        challenges: [],
+        challenges: [
+          { id: 7, name: en ? 'Current challenge' : 'Challenge en cours' },
+          { id: 8, name: en ? 'Next challenge' : 'Prochain challenge' },
+        ],
         assigned_participants: [{ id: 10 }, { id: 20 }],
       };
       let management = {
@@ -47,7 +56,7 @@ try {
         const path = new URL(request.url()).pathname;
         if (path.endsWith('/state'))
           return route.fulfill({
-            json: { status: 'en_cours', active_challenge_id: null, challenges: [] },
+            json: { status: 'en_cours', active_challenge_id: 7, challenges: session.challenges },
           });
         if (path.endsWith('/participant-management')) {
           if (unavailable)
@@ -112,6 +121,60 @@ try {
       await info().click();
       await page.getByText('1 / 8', { exact: true }).waitFor();
       await page.getByText(en ? 'Registered : 2' : 'Inscrits : 2', { exact: true }).waitFor();
+      const classNames = await page
+        .locator('[class]')
+        .evaluateAll((nodes) => [...new Set(nodes.flatMap((node) => [...node.classList]))]);
+      let mappedSelectors = 0;
+      const currentHeaderCss = headerCss
+        .replace(/:global\(([^)]+)\)/g, '$1')
+        .replace(/\.([a-zA-Z_][\w-]*)/g, (selector, name) => {
+          const compiled = classNames.find(
+            (token) =>
+              token.startsWith('SessionLiveHeader') &&
+              (token.endsWith(`__${name}`) || token.includes(`_${name}__`))
+          );
+          if (compiled) mappedSelectors += 1;
+          return compiled ? `.${compiled}` : selector;
+        });
+      assert.ok(
+        mappedSelectors > 0,
+        'SessionLiveHeader CSS module selectors must match the rendered interface'
+      );
+      await page.addStyleTag({ content: currentHeaderCss });
+      const currentChallenge = page.locator('li[class*="challengeItemCurrent"]');
+      await currentChallenge.getByText(en ? 'Current challenge' : 'Challenge en cours').waitFor();
+      const contrast = await currentChallenge.evaluate((item) => {
+        const luminance = (color) => {
+          const normalized = color.startsWith('color(srgb ');
+          const channels = color
+            .match(/[\d.]+/g)
+            .slice(0, 3)
+            .map(Number)
+            .map((channel) => {
+              const value = normalized ? channel : channel / 255;
+              return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+            });
+          return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+        };
+        const itemStyle = getComputedStyle(item);
+        const badgeStyle = getComputedStyle(item.querySelector('[class*="challengeBadge"]'));
+        const ratio = (foreground, background) => {
+          const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+          return (values[0] + 0.05) / (values[1] + 0.05);
+        };
+        return {
+          item: ratio(itemStyle.color, itemStyle.backgroundColor),
+          badge: ratio(badgeStyle.color, badgeStyle.backgroundColor),
+        };
+      });
+      assert.ok(
+        contrast.item >= 4.5,
+        `Current challenge text contrast is too low: ${contrast.item}`
+      );
+      assert.ok(
+        contrast.badge >= 4.5,
+        `Current challenge badge contrast is too low: ${contrast.badge}`
+      );
       const infoDialog = page.getByRole('dialog', {
         name: en ? 'Session info' : 'Infos de session',
         exact: true,
