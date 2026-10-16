@@ -1666,7 +1666,7 @@ html[data-theme='dark'] .admin-panel-card b {
 }
 
 .pricing-page {
-  background: radial-gradient(circle at top left, rgba(53, 160, 255, 0.08), transparent 34%), radial-gradient(circle at right 10%, rgba(124, 58, 237, 0.08), transparent 28%), linear-gradient(180deg, rgba(8, 15, 30, 0.98) 0%, rgba(12, 18, 34, 0.98) 100%);
+  background: var(--bg);
   color: var(--text-strong);
 }
 
@@ -10549,7 +10549,8 @@ html[data-theme='dark'] .contact-trust-box{
     background: rgba(15, 23, 42, 0.5);
   }
 
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page {
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page {
   background:
     radial-gradient(ellipse 60% 45% at 8% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 55%),
     radial-gradient(ellipse 55% 45% at 92% 100%, rgba(124, 58, 237, 0.1) 0%, transparent 55%),

@@ -34,6 +34,19 @@ try {
         await page.goto(`${baseUrl}/${locale}/pricing`);
         await page.locator('.pricing-controls').waitFor();
         await page.waitForFunction(() => document.querySelector('.pricing-price')?.textContent.includes('390 DH'));
+        const pricingBackground = await page.locator('.pricing-page').evaluate((element) => {
+          const style = getComputedStyle(element);
+          return { color: style.backgroundColor, image: style.backgroundImage };
+        });
+        const contactPage = await context.newPage();
+        await contactPage.goto(`${baseUrl}/${locale}/contact`);
+        await contactPage.locator('.contact-page').waitFor();
+        const contactBackground = await contactPage.locator('.contact-page').evaluate((element) => {
+          const style = getComputedStyle(element);
+          return { color: style.backgroundColor, image: style.backgroundImage };
+        });
+        assert.deepEqual(pricingBackground, contactBackground, `${locale}/${theme}: pricing background should match contact`);
+        await contactPage.close();
         assert.equal(await page.locator('.pricing-hero .eyebrow, .pricing-hero__lede').count(), 0);
         assert.equal(await page.locator('.pricing-hero h1').count(), 1);
         assert.equal(await page.locator('.pricing-hero__context').count(), 1);

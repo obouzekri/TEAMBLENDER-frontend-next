@@ -571,10 +571,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
           width: min(100%, 80rem);
           margin: 0 auto;
           padding: 2rem 1.5rem 4rem;
-          background:
-            radial-gradient(54rem 22rem at 50% 0%, rgba(53, 130, 255, 0.15) 0%, transparent 72%),
-            radial-gradient(36rem 24rem at 100% 24%, rgba(124, 58, 237, 0.08) 0%, transparent 72%),
-            linear-gradient(180deg, #f7faff 0%, #f1f5ff 45%, #ffffff 100%);
+          background: var(--bg);
         }
 
         .pricing-page .pricing-hero {
@@ -1025,8 +1022,9 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page {
           background:
-            radial-gradient(60rem 18rem at 50% 0%, color-mix(in srgb, var(--accent-soft) 42%, transparent) 0%, transparent 72%),
-            linear-gradient(180deg, color-mix(in srgb, var(--surface-muted) 86%, transparent) 0%, transparent 18%);
+            radial-gradient(ellipse 60% 45% at 8% 0%, rgba(53, 160, 255, 0.12) 0%, transparent 55%),
+            radial-gradient(ellipse 55% 45% at 92% 100%, rgba(124, 58, 237, 0.1) 0%, transparent 55%),
+            var(--bg);
         }
 
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-proof-pill,
