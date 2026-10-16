@@ -414,6 +414,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
         </div>
         {!finished && started && <aside className={styles.timerColumn}>
           <ChallengeTimerCard
+            isStarted={started}
             remainingSeconds={remaining} durationSeconds={timer.duration_seconds || config.timer?.duration_seconds || 900}
             status={status} isFacilitator={isFacilitator}
             onPause={timerControls.pause} onResume={timerControls.resume}

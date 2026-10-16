@@ -381,7 +381,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
       <ChallengeHeader
         title={effectiveConfig.title}
         subtitle={challengeSubtitle || 'Puzzle collaboratif en temps réel'}
-        timer={{ remainingSeconds: timerRemainingSeconds }}
+        timer={hasChallengeStarted ? { remainingSeconds: timerRemainingSeconds } : null}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader
@@ -401,6 +401,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
+          isStarted={hasChallengeStarted}
           title={locale === 'en' ? 'Timer' : 'Minuteur'}
           remainingSeconds={timerRemainingSeconds}
           durationSeconds={timerDurationSeconds}
@@ -548,6 +549,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
         <aside className={styles.sidePanel}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
+              isStarted={hasChallengeStarted}
               title={locale === 'en' ? 'Timer' : 'Minuteur'}
               remainingSeconds={timerRemainingSeconds}
               durationSeconds={timerDurationSeconds}

@@ -463,7 +463,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
           title={challengeName}
           subtitle={challengeSubtitle || (isEn ? 'Real-time multiplayer general knowledge quiz' : 'Quiz multijoueur realtime de culture générale')}
           uppercaseSubtitle={false}
-          timer={{ remainingSeconds: timerRemainingSeconds }}
+          timer={isStarted ? { remainingSeconds: timerRemainingSeconds } : null}
           headerAction={isStarted ? (
             <ChallengeRulesPanel
               inHeader
@@ -482,6 +482,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
         <div className="challenge-mobile-timer">
           <ChallengeTimerCard
+            isStarted={isStarted}
             title={isEn ? 'Timer' : 'Minuteur'}
             remainingSeconds={timerRemainingSeconds}
             durationSeconds={timerDurationSeconds}
@@ -539,6 +540,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
           <aside className={styles.sideColumn}>
             <div className="challenge-desktop-timer">
               <ChallengeTimerCard
+                isStarted={isStarted}
                 title={isEn ? 'Timer' : 'Minuteur'}
                 remainingSeconds={timerRemainingSeconds}
                 durationSeconds={timerDurationSeconds}

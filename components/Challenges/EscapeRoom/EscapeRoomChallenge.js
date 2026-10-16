@@ -950,7 +950,7 @@ export default function EscapeRoomChallenge({
         title={challengeName}
         subtitle={challengeSubtitle || copy.subtitleFallback}
         className={styles.escapeHeader}
-        timer={{ remainingSeconds: timerSeconds }}
+        timer={hasChallengeStarted ? { remainingSeconds: timerSeconds } : null}
         headerAction={
           hasChallengeStarted ? (
             <ChallengeRulesPanel
@@ -971,6 +971,7 @@ export default function EscapeRoomChallenge({
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
+          isStarted={hasChallengeStarted}
           title={copy.timerTitle}
           remainingSeconds={timerSeconds}
           durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}
@@ -1257,6 +1258,7 @@ export default function EscapeRoomChallenge({
         <aside className={`${styles.card} ${styles.sidePanel}`}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
+              isStarted={hasChallengeStarted}
               title={copy.timerTitle}
               remainingSeconds={timerSeconds}
               durationSeconds={Number(runtimePayload?.config?.timer?.duration_seconds || 300)}

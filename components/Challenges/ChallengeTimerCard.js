@@ -36,6 +36,7 @@ export default function ChallengeTimerCard({
   remainingSeconds = 0,
   durationSeconds = 0,
   status = 'idle',
+  isStarted = false,
   progressPercent,
   isFacilitator = false,
   actions = null,
@@ -121,7 +122,7 @@ export default function ChallengeTimerCard({
   const resolvedActions = actions || automaticControl;
   const feedbackMessage = controlFeedback?.status === 'failed' ? controlFeedback.message : '';
 
-  if (isDebrief) return null;
+  if (isDebrief || !isStarted) return null;
 
   if (compact) {
     return (

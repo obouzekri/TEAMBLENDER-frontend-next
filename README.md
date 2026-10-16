@@ -8,6 +8,12 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Le frontend legacy vanilla a ete retire du repository pour reduire la dette technique.
 - Les changements en cours doivent rester alignes avec la navigation produit actuelle et les checks de go-live du projet.
 
+### Minuteur des challenges
+
+- Pour tous les challenges, le minuteur (carte mobile/desktop et rappel dans l'en-tete) reste masque avant le demarrage, pour l'animateur comme pour les participants.
+- Il apparait au demarrage et reste disponible pendant les pauses et les transitions entre manches. Le retour a l'etat de preparation le masque de nouveau; le debrief conserve son comportement existant.
+- Validation : `node scripts/test-challenge-timer-visibility.mjs` (frontend sur 3100, Chrome disponible, API simulees) : les 10 challenges, animateur/desktop FR et participant/mobile EN, avant demarrage, en cours, en pause et apres reinitialisation.
+
 ### Filtres des sessions de l'accueil animateur
 
 - L'accueil privilegie le message de bienvenue, puis les chiffres des KPI, les sessions et les participants. Le theme clair utilise un fond blanc pur, des cartes blanches a bordure fine et ombre discrete, et des sections sans cadre externe. Le theme sombre reste disponible.

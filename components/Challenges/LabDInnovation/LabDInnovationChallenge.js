@@ -533,6 +533,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
+          isStarted={hasChallengeStarted}
           title={isEn ? 'Timer' : 'Minuteur'}
           remainingSeconds={timerRemainingSeconds}
           durationSeconds={timerDurationSeconds}
@@ -842,6 +843,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
         <aside className={styles.sideColumn}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
+              isStarted={hasChallengeStarted}
               title={isEn ? 'Timer' : 'Minuteur'}
               remainingSeconds={timerRemainingSeconds}
               durationSeconds={timerDurationSeconds}

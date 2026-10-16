@@ -375,7 +375,7 @@ export default function MissionCritiqueChallenge({
               'Organiser un séminaire d’entreprise pour 80 personnes.'
           )
         }
-        timer={{ remainingSeconds: timerRemainingSeconds }}
+        timer={hasChallengeStarted ? { remainingSeconds: timerRemainingSeconds } : null}
         headerAction={
           hasChallengeStarted ? (
             <ChallengeRulesPanel
@@ -396,6 +396,7 @@ export default function MissionCritiqueChallenge({
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
+          isStarted={hasChallengeStarted}
           title={isEn ? 'Timer' : 'Minuteur'}
           remainingSeconds={timerRemainingSeconds}
           durationSeconds={timerDurationSeconds}
@@ -830,6 +831,7 @@ export default function MissionCritiqueChallenge({
         <aside className={styles.sidebar}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
+              isStarted={hasChallengeStarted}
               title={isEn ? 'Timer' : 'Minuteur'}
               remainingSeconds={timerRemainingSeconds}
               durationSeconds={timerDurationSeconds}

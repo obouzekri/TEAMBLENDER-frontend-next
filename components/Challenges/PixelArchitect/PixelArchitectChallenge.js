@@ -1064,7 +1064,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || (isEn ? 'Replicate the model together in real time with grid and palette constraints.' : 'Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette.')}
-        timer={{ remainingSeconds: Number(timer?.remaining_seconds || 0) }}
+        timer={hasChallengeStarted ? { remainingSeconds: Number(timer?.remaining_seconds || 0) } : null}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader
@@ -1084,6 +1084,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
+          isStarted={hasChallengeStarted}
           title={isEn ? 'Timer' : 'Minuteur'}
           remainingSeconds={Number(timer?.remaining_seconds || 0)}
           durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
@@ -1379,6 +1380,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         <aside className={styles.sidebar}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
+              isStarted={hasChallengeStarted}
               title={isEn ? 'Timer' : 'Minuteur'}
               remainingSeconds={Number(timer?.remaining_seconds || 0)}
               durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}

@@ -747,7 +747,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         title={challengeName}
         subtitle={(challengeSubtitle || (isEn ? 'Read the traces, avoid traps, and open the exit.' : 'Observez les traces, évitez les pièges, ouvrez la sortie.'))
           + (hasChallengeStarted && labyLevelsTotal > 1 ? ` · ${isEn ? 'Level' : 'Niveau'} ${labyLevel}/${labyLevelsTotal}` : '')}
-        timer={{ remainingSeconds: Number(timer?.remaining_seconds || 0) }}
+        timer={hasChallengeStarted ? { remainingSeconds: Number(timer?.remaining_seconds || 0) } : null}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader
@@ -766,6 +766,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
+          isStarted={hasChallengeStarted}
           title={isEn ? 'Timer' : 'Minuteur'}
           remainingSeconds={Number(timer?.remaining_seconds || 0)}
           durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || runtimePayload?.config?.timer_seconds || 300)}
@@ -1057,6 +1058,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         <aside className={styles.sideStack}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
+              isStarted={hasChallengeStarted}
               title={isEn ? 'Timer' : 'Minuteur'}
               remainingSeconds={Number(timer?.remaining_seconds || 0)}
               durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || runtimePayload?.config?.timer_seconds || 300)}

@@ -277,7 +277,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || (isEn ? 'Rebuild the phrase together, slot by slot' : 'Reconstituez la phrase en équipe, slot par slot')}
-        timer={{ remainingSeconds: Number(timer?.remaining_seconds || 0) }}
+        timer={hasChallengeStarted ? { remainingSeconds: Number(timer?.remaining_seconds || 0) } : null}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader
@@ -296,6 +296,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
+          isStarted={hasChallengeStarted}
           title={isEn ? 'Timer' : 'Minuteur'}
           remainingSeconds={Number(timer?.remaining_seconds || 0)}
           durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
@@ -488,6 +489,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
         <aside className={styles.sidePanel}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
+              isStarted={hasChallengeStarted}
               title={isEn ? 'Timer' : 'Minuteur'}
               remainingSeconds={Number(timer?.remaining_seconds || 0)}
               durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}

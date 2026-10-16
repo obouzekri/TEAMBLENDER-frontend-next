@@ -849,7 +849,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       <ChallengeHeader
         title={challengeName}
         subtitle={challengeSubtitle || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !'}
-        timer={{ remainingSeconds: remainingSecondsForCard }}
+        timer={hasChallengeStarted ? { remainingSeconds: remainingSecondsForCard } : null}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader
@@ -868,6 +868,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
+          isStarted={hasChallengeStarted}
           className={styles.mobileTimerCard}
           title={isEn ? 'Timer' : 'Minuteur'}
           remainingSeconds={remainingSecondsForCard}
@@ -1196,6 +1197,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         <aside className={styles.sideColumn}>
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
+              isStarted={hasChallengeStarted}
               className={styles.desktopTimerCard}
               title={isEn ? 'Timer' : 'Minuteur'}
               remainingSeconds={remainingSecondsForCard}
