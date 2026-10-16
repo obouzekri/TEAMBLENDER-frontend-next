@@ -97,16 +97,20 @@
 }
 
 .infoButton {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-strong);
+  border: 1px solid var(--control-border-strong);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(53, 160, 255, 0.12);
   transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
     background-color 160ms ease,
     border-color 160ms ease,
     color 160ms ease;
@@ -114,8 +118,16 @@
 
 .infoButton:hover {
   border-color: var(--accent-strong);
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--surface-panel);
   color: var(--accent-strong);
+  box-shadow: 0 6px 16px rgba(53, 160, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.infoButton[aria-expanded='true'] {
+  color: white;
+  background: var(--accent-gradient);
+  border-color: transparent;
 }
 
 .infoButton:focus-visible {
@@ -481,94 +493,388 @@
   }
 }
 .managementDialog {
-  width: min(680px, calc(100vw - 32px));
-  max-height: 85vh;
-  overflow: auto;
-  border: 1px solid #cbd5e1;
-  border-radius: 16px;
-  padding: 24px;
-  color: #172033;
-  background: white;
+  position: fixed;
+  inset: 0;
+  width: min(760px, calc(100vw - 32px));
+  max-height: min(820px, calc(100dvh - 32px));
+  margin: auto;
+  overflow: hidden;
+  border: 1px solid var(--control-border-strong);
+  border-radius: 24px;
+  padding: 0;
+  color: var(--text-strong);
+  background: var(--surface-panel);
+  box-shadow:
+    0 28px 70px rgba(15, 23, 42, 0.28),
+    0 6px 20px rgba(15, 23, 42, 0.12);
 }
 
 .managementDialog::backdrop {
-  background: rgb(15 23 42 / 55%);
+  background: rgb(15 23 42 / 58%);
+  backdrop-filter: blur(5px);
 }
+
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  border-bottom: 1px solid var(--surface-soft-border);
+  background:
+    radial-gradient(circle at 0 0, rgba(122, 92, 255, 0.12), transparent 42%), var(--surface-panel);
+}
+
+.dialogHeading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.dialogHeading h2,
+.listHeading h3 {
+  margin: 0;
+  color: var(--text-strong);
+}
+
+.dialogHeading h2 {
+  font-size: 1.08rem;
+  letter-spacing: -0.015em;
+}
+
+.dialogIcon {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 13px;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid var(--control-border-strong);
+}
+
+.dialogEyebrow {
+  margin: 0 0 0.15rem;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dialogClose {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--surface-soft-border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  background: var(--surface-panel-soft);
+  cursor: pointer;
+}
+
+.dialogClose:hover:not(:disabled) {
+  color: var(--accent-strong);
+  border-color: var(--control-border-strong);
+  background: var(--accent-soft);
+}
+
+.dialogClose:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+.dialogBody {
+  max-height: calc(100dvh - 210px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.15rem 1.25rem;
+}
+
+.dialogNotice,
+.contextNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--surface-soft-border);
+  border-radius: 15px;
+  color: var(--text-muted);
+  background: var(--surface-panel-soft);
+}
+
+.dialogNotice > svg,
+.contextNote > svg {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  color: var(--accent-strong);
+}
+
+.dialogNotice p,
+.contextNote p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.dialogNotice p + p {
+  margin-top: 0.35rem;
+}
+
+.dialogError,
+.dialogStatus {
+  margin: 0.9rem 0 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+}
+
+.dialogError {
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(254, 226, 226, 0.78);
+}
+
+.dialogStatus {
+  color: var(--text-muted);
+  border: 1px dashed var(--surface-soft-border-strong);
+  text-align: center;
+}
+
+.listHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.15rem 0 0.55rem;
+}
+
+.listHeading h3 {
+  font-size: 0.9rem;
+}
+
+.listHeading span {
+  min-width: 1.45rem;
+  height: 1.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 0.35rem;
+  border-radius: 999px;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.dialogFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0.9rem 1.25rem;
+  border-top: 1px solid var(--surface-soft-border);
+  background: var(--surface-panel);
+}
+
 .managementList {
+  display: grid;
+  gap: 0.65rem;
   list-style: none;
+  margin: 0;
   padding: 0;
 }
+
 .managementList li {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 0.8rem;
+  align-items: center;
   justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 0.85rem;
+  border: 1px solid var(--surface-soft-border);
+  border-radius: 14px;
+  background: var(--surface-panel-soft);
 }
-.managementList span {
+
+.participantIdentity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.participantAvatar {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  font-size: 0.88rem;
+  font-weight: 850;
+}
+
+.participantStatus {
   display: block;
-  font-size: 0.875rem;
-  margin-top: 4px;
+  margin-top: 0.2rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
 }
+
 .managementActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  justify-content: flex-end;
+  gap: 0.45rem;
   align-items: center;
 }
+
 .contextForm {
   display: grid;
-  gap: 16px;
 }
-.contextForm label {
+
+.contextField {
   display: grid;
-  gap: 6px;
+  gap: 0.45rem;
+  color: var(--text-strong);
+  font-size: 0.86rem;
+  font-weight: 700;
 }
-.contextForm input,
-.contextForm select {
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 8px;
+
+.contextField input {
+  min-height: 44px;
+  border: 1px solid var(--surface-soft-border-strong);
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  color: var(--text-strong);
+  background: var(--surface-panel);
+  font: inherit;
 }
+
+.contextField input:focus {
+  outline: 2px solid var(--control-border-strong);
+  outline-offset: 2px;
+  border-color: var(--accent-strong);
+}
+
 .contextObjectives {
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 10px;
-  margin: 0;
+  border: 0;
+  padding: 0;
+  margin: 1.1rem 0 0;
 }
 
 .contextObjectives legend {
-  padding: 0 6px;
-  font-weight: 600;
+  padding: 0;
+  margin-bottom: 0.6rem;
+  color: var(--text-strong);
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
 .contextObjectiveOptions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .contextObjectiveOptions label {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border: 1px solid #cbd5e1;
+  gap: 0.45rem;
+  min-height: 40px;
+  border: 1px solid var(--surface-soft-border-strong);
   border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--text-strong);
+  background: var(--surface-panel-soft);
+  font-size: 0.82rem;
+  cursor: pointer;
 }
 
 .contextObjectiveOptions input {
   margin: 0;
+  accent-color: var(--accent-strong);
+}
+
+.contextObjectiveOptions label:has(input:checked) {
+  border-color: var(--control-border-strong);
+  background: var(--accent-soft);
+}
+
+.contextNote {
+  margin-top: 1.1rem;
 }
 
 .confirmRemoval {
-  padding: 16px;
-  margin-bottom: 16px;
-  border: 1px solid #d97706;
-  border-radius: 8px;
+  padding: 0.9rem;
+  margin-top: 0.85rem;
+  border: 1px solid rgba(217, 119, 6, 0.45);
+  border-radius: 14px;
+  background: rgba(255, 247, 237, 0.78);
 }
-.confirmRemoval button {
-  margin-right: 8px;
+
+.confirmRemoval h3,
+.confirmRemoval p {
+  margin-top: 0;
+}
+
+.confirmRemoval p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.inlineActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .managementDialog {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
+    border-radius: 19px;
+  }
+
+  .dialogHeader,
+  .dialogBody,
+  .dialogFooter {
+    padding-inline: 0.85rem;
+  }
+
+  .dialogBody {
+    max-height: calc(100dvh - 190px);
+  }
+
+  .managementList li {
+    align-items: flex-start;
+  }
+
+  .managementActions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .managementActions > button {
+    flex: 1 1 180px;
+  }
+
+  .dialogFooter > button {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .infoButton {
+    transition: none;
+  }
 }

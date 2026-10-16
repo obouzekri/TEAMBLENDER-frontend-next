@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, Copy, Info, Users, X } from 'lucide-react';
+import { Check, Copy, Info, Settings2, UserRoundCog, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui';
 import useI18n from '@/lib/i18n/useI18n';
 import { getApiUrl } from '@/lib/config';
@@ -80,6 +80,7 @@ export default function SessionLiveHeader({
   const [savedContext, setSavedContext] = useState(null);
   const manageLabel = isEn ? 'Manage participants' : 'Gérer les participants';
   const closeLabel = isEn ? 'Close' : 'Fermer';
+  const closeDialogLabel = isEn ? 'Close dialog' : 'Fermer la fenêtre';
   const objectiveLabels = {
     cohesion: isEn ? 'Team cohesion' : 'Cohésion',
     communication: isEn ? 'Communication' : 'Communication',
@@ -503,10 +504,11 @@ export default function SessionLiveHeader({
                 type="button"
                 className={styles.infoButton}
                 aria-expanded={infoOpen}
+                aria-haspopup="dialog"
                 aria-label={sessionInfoLabel}
                 onClick={() => setInfoOpen((current) => !current)}
               >
-                <Info size={14} strokeWidth={2.2} aria-hidden="true" />
+                <Info size={16} strokeWidth={2.3} aria-hidden="true" />
               </button>
               <span className={styles.infoTooltip} role="tooltip">
                 {sessionInfoLabel}
@@ -557,166 +559,221 @@ export default function SessionLiveHeader({
             infoRef.current?.querySelector('button')?.focus();
           }}
         >
-          <h2 id="participant-management-title">{manageLabel}</h2>
-          <p>
-            {isEn
-              ? 'Going offline does not remove a participant. Current removal redistributes unfinished puzzle pieces or words, preserving placed work. Other engines support future challenges only: finish the current challenge or use its own explicit reset controls.'
-              : 'Une déconnexion ne retire pas un participant. Le retrait actuel redistribue les pièces ou mots inachevés sans effacer le travail placé. Pour les autres moteurs, seul le retrait des prochains challenges est disponible : terminez le challenge actuel ou utilisez ses propres commandes de réinitialisation.'}
-          </p>
-          <p>
-            {isEn
-              ? 'Removal applies to this session only and is not undone by reconnecting. Completed challenges and saved results remain unchanged.'
-              : 'Le retrait concerne cette session uniquement et une reconnexion ne l’annule pas. Les challenges terminés et les résultats enregistrés restent inchangés.'}
-          </p>
-          {managementError ? <p role="alert">{managementError}</p> : null}
-          {!management ? (
-            <p role="status">{isEn ? 'Presence unavailable' : 'Présence indisponible'}</p>
-          ) : (
-            <ul className={styles.managementList}>
-              {management.participants.map((participant) => (
-                <li key={participant.id}>
-                  <div>
-                    <strong>{participant.name}</strong>
-                    <span>
-                      {
-                        {
-                          connected: isEn ? 'Connected' : 'Connecté',
-                          offline: isEn ? 'Offline' : 'Hors ligne',
-                          removed: isEn ? 'Removed' : 'Retiré',
-                          unavailable: isEn ? 'Presence unavailable' : 'Présence indisponible',
-                        }[participant.presence]
-                      }
-                      {participant.removed_from_future && participant.presence !== 'removed'
+          <div className={styles.dialogHeader}>
+            <div className={styles.dialogHeading}>
+              <span className={styles.dialogIcon} aria-hidden="true">
+                <UserRoundCog size={20} strokeWidth={2.1} />
+              </span>
+              <div>
+                <p className={styles.dialogEyebrow}>
+                  {isEn ? 'Session controls' : 'Contrôles de la session'}
+                </p>
+                <h2 id="participant-management-title">{manageLabel}</h2>
+              </div>
+            </div>
+            <button
+              type="button"
+              className={styles.dialogClose}
+              aria-label={closeDialogLabel}
+              disabled={removing || recovering}
+              onClick={() => setManagementOpen(false)}
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
+          <div className={styles.dialogBody}>
+            <div className={styles.dialogNotice}>
+              <Info size={18} aria-hidden="true" />
+              <div>
+                <p>
+                  {isEn
+                    ? 'Going offline does not remove a participant. Removing them now redistributes unfinished puzzle pieces or words without erasing completed work.'
+                    : 'Une déconnexion ne retire pas un participant. Un retrait immédiat redistribue les pièces ou mots inachevés sans effacer le travail déjà placé.'}
+                </p>
+                <p>
+                  {isEn
+                    ? 'Other engines support future challenges only: finish the current challenge or use its own reset controls. This change only affects this session; completed challenges and saved results remain unchanged.'
+                    : 'Pour les autres moteurs, seul le retrait des prochains challenges est disponible : terminez le challenge actuel ou utilisez ses commandes de réinitialisation. Ce changement concerne uniquement cette session ; les challenges terminés et les résultats enregistrés restent inchangés.'}
+                </p>
+              </div>
+            </div>
+            {managementError ? (
+              <p className={styles.dialogError} role="alert">
+                {managementError}
+              </p>
+            ) : null}
+            {!management ? (
+              <p className={styles.dialogStatus} role="status">
+                {isEn ? 'Presence unavailable' : 'Présence indisponible'}
+              </p>
+            ) : (
+              <>
+                <div className={styles.listHeading}>
+                  <h3>{isEn ? 'Participants' : 'Participants'}</h3>
+                  <span>{management.participants.length}</span>
+                </div>
+                <ul className={styles.managementList}>
+                  {management.participants.map((participant) => (
+                    <li key={participant.id}>
+                      <div className={styles.participantIdentity}>
+                        <span className={styles.participantAvatar} aria-hidden="true">
+                          {participant.name?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                        </span>
+                        <div>
+                          <strong>{participant.name}</strong>
+                          <span className={styles.participantStatus}>
+                            {
+                              {
+                                connected: isEn ? 'Connected' : 'Connecté',
+                                offline: isEn ? 'Offline' : 'Hors ligne',
+                                removed: isEn ? 'Removed' : 'Retiré',
+                                unavailable: isEn
+                                  ? 'Presence unavailable'
+                                  : 'Présence indisponible',
+                              }[participant.presence]
+                            }
+                            {participant.removed_from_future && participant.presence !== 'removed'
+                              ? isEn
+                                ? ' · Removed from future challenges'
+                                : ' · Retiré des prochains challenges'
+                              : ''}
+                          </span>
+                        </div>
+                      </div>
+                      {participant.presence !== 'removed' ? (
+                        <div className={styles.managementActions}>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            disabled={removing || recovering}
+                            onClick={() => {
+                              setRecoveryParticipant(participant);
+                              setRecoveryLink(null);
+                              setRemoval(null);
+                              setManagementError('');
+                            }}
+                          >
+                            {isEn ? 'Restore access' : 'Rétablir l’accès'}
+                          </Button>
+                          {management.can_remove_current ? (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              disabled={removing}
+                              onClick={() =>
+                                setRemoval({ participant, scope: 'current_and_future' })
+                              }
+                            >
+                              {isEn ? 'Remove and reassign' : 'Retirer et redistribuer'}
+                            </Button>
+                          ) : null}
+                          {!participant.removed_from_future ? (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              disabled={removing}
+                              onClick={() => setRemoval({ participant, scope: 'future' })}
+                            >
+                              {isEn ? 'Future challenges only' : 'Prochains challenges uniquement'}
+                            </Button>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {recoveryParticipant ? (
+              <div
+                className={styles.confirmRemoval}
+                role="group"
+                aria-label={isEn ? 'Restore participant access' : 'Rétablir l’accès du participant'}
+              >
+                <h3>
+                  {recoveryParticipant.name} — #{recoveryParticipant.id}
+                </h3>
+                <p>
+                  {isEn
+                    ? 'Verify this participant’s identity in person or through a known channel before generating a link. It is valid for 10 minutes and one use. Using it replaces previous access to this participation, preserving the team and saved results.'
+                    : 'Vérifiez l’identité de ce participant sur place ou par un canal connu avant de générer un lien. Il est valable 10 minutes et une seule fois. Son utilisation remplace les anciens accès à cette participation, sans modifier l’équipe ni les résultats enregistrés.'}
+                </p>
+                {recoveryLink ? <RecoveryLinkDisplay {...recoveryLink} /> : null}
+                <div className={styles.inlineActions}>
+                  <Button variant="primary" size="sm" disabled={recovering} onClick={restoreAccess}>
+                    {recovering
+                      ? isEn
+                        ? 'Generating...'
+                        : 'Génération...'
+                      : recoveryLink
                         ? isEn
-                          ? ' · Removed from future challenges'
-                          : ' · Retiré des prochains challenges'
-                        : ''}
-                    </span>
-                  </div>
-                  {participant.presence !== 'removed' ? (
-                    <div className={styles.managementActions}>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={removing || recovering}
-                        onClick={() => {
-                          setRecoveryParticipant(participant);
-                          setRecoveryLink(null);
-                          setRemoval(null);
-                          setManagementError('');
-                        }}
-                      >
-                        {isEn ? 'Restore access' : 'Retablir l acces'}
-                      </Button>
-                      {management.can_remove_current ? (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          disabled={removing}
-                          onClick={() => setRemoval({ participant, scope: 'current_and_future' })}
-                        >
-                          {isEn ? 'Remove and reassign' : 'Retirer et redistribuer'}
-                        </Button>
-                      ) : null}
-                      {!participant.removed_from_future ? (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          disabled={removing}
-                          onClick={() => setRemoval({ participant, scope: 'future' })}
-                        >
-                          {isEn ? 'Future challenges only' : 'Prochains challenges uniquement'}
-                        </Button>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-          {recoveryParticipant ? (
-            <div
-              className={styles.confirmRemoval}
-              role="group"
-              aria-label={isEn ? 'Restore participant access' : 'Retablir l acces du participant'}
-            >
-              <h3>
-                {recoveryParticipant.name} — #{recoveryParticipant.id}
-              </h3>
-              <p>
-                {isEn
-                  ? 'Verify this participant’s identity in person or through a known channel before generating a link. It is valid for 10 minutes and one use. Using it replaces previous access to this participation, preserving the team and saved results.'
-                  : 'Verifiez l identite de ce participant sur place ou par un canal connu avant de generer un lien. Il est valable 10 minutes et une seule fois. Son utilisation remplace les anciens acces a cette participation, sans modifier l equipe ni les resultats enregistres.'}
-              </p>
-              {recoveryLink ? <RecoveryLinkDisplay {...recoveryLink} /> : null}
-              <Button variant="primary" size="sm" disabled={recovering} onClick={restoreAccess}>
-                {recovering
-                  ? isEn
-                    ? 'Generating...'
-                    : 'Generation...'
-                  : recoveryLink
+                          ? 'Replace link'
+                          : 'Remplacer le lien'
+                        : isEn
+                          ? 'Identity verified: generate link'
+                          : 'Identité vérifiée : générer le lien'}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={recovering}
+                    onClick={() => {
+                      setRecoveryParticipant(null);
+                      setRecoveryLink(null);
+                    }}
+                  >
+                    {isEn ? 'Close recovery' : 'Fermer la reprise'}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+            {removal ? (
+              <div
+                className={styles.confirmRemoval}
+                role="group"
+                aria-label={isEn ? 'Confirm removal' : 'Confirmer le retrait'}
+              >
+                <p>
+                  {removal.scope === 'future'
                     ? isEn
-                      ? 'Replace link'
-                      : 'Remplacer le lien'
+                      ? `Remove ${removal.participant.name} from future challenges? Their current assignment stays unchanged.`
+                      : `Retirer ${removal.participant.name} des prochains challenges ? Son attribution actuelle reste inchangée.`
                     : isEn
-                      ? 'Identity verified: generate link'
-                      : 'Identite verifiee : generer le lien'}
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={recovering}
-                onClick={() => {
-                  setRecoveryParticipant(null);
-                  setRecoveryLink(null);
-                }}
-              >
-                {isEn ? 'Close recovery' : 'Fermer la reprise'}
-              </Button>
-            </div>
-          ) : null}
-          {removal ? (
-            <div
-              className={styles.confirmRemoval}
-              role="group"
-              aria-label={isEn ? 'Confirm removal' : 'Confirmer le retrait'}
+                      ? `Remove ${removal.participant.name} now and from future challenges? Unfinished items will be redistributed; this cannot be undone by reconnecting.`
+                      : `Retirer ${removal.participant.name} maintenant et des prochains challenges ? Les éléments inachevés seront redistribués ; une reconnexion ne pourra pas annuler ce retrait.`}
+                </p>
+                <div className={styles.inlineActions}>
+                  <Button variant="primary" size="sm" disabled={removing} onClick={confirmRemoval}>
+                    {removing
+                      ? isEn
+                        ? 'Removing…'
+                        : 'Retrait…'
+                      : isEn
+                        ? 'Confirm removal'
+                        : 'Confirmer le retrait'}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={removing}
+                    onClick={() => setRemoval(null)}
+                  >
+                    {isEn ? 'Cancel' : 'Annuler'}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          <div className={styles.dialogFooter}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={removing || recovering}
+              onClick={() => setManagementOpen(false)}
             >
-              <p>
-                {removal.scope === 'future'
-                  ? isEn
-                    ? `Remove ${removal.participant.name} from future challenges? Their current assignment stays unchanged.`
-                    : `Retirer ${removal.participant.name} des prochains challenges ? Son attribution actuelle reste inchangée.`
-                  : isEn
-                    ? `Remove ${removal.participant.name} now and from future challenges? Unfinished items will be redistributed; this cannot be undone by reconnecting.`
-                    : `Retirer ${removal.participant.name} maintenant et des prochains challenges ? Les éléments inachevés seront redistribués ; une reconnexion ne pourra pas annuler ce retrait.`}
-              </p>
-              <Button variant="primary" size="sm" disabled={removing} onClick={confirmRemoval}>
-                {removing
-                  ? isEn
-                    ? 'Removing…'
-                    : 'Retrait…'
-                  : isEn
-                    ? 'Confirm removal'
-                    : 'Confirmer le retrait'}
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={removing}
-                onClick={() => setRemoval(null)}
-              >
-                {isEn ? 'Cancel' : 'Annuler'}
-              </Button>
-            </div>
-          ) : null}
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={removing || recovering}
-            onClick={() => setManagementOpen(false)}
-          >
-            {closeLabel}
-          </Button>
+              {closeLabel}
+            </Button>
+          </div>
         </dialog>
       ) : null}
       {canManageParticipants ? (
@@ -733,60 +790,94 @@ export default function SessionLiveHeader({
             infoRef.current?.querySelector('button')?.focus();
           }}
         >
-          <h2 id="session-context-title">{isEn ? 'Edit session info' : 'Modifier les infos'}</h2>
-          <form onSubmit={saveContext} className={styles.contextForm}>
-            <label>
-              {isEn ? 'Expected participants' : 'Participants attendus'}
-              <input
-                type="number"
-                min="1"
-                max="2147483647"
-                step="1"
-                value={contextDraft.expected_participant_count}
-                onChange={(event) =>
-                  setContextDraft((draft) => ({
-                    ...draft,
-                    expected_participant_count: event.target.value,
-                  }))
-                }
-              />
-            </label>
-            <fieldset className={styles.contextObjectives}>
-              <legend>{isEn ? 'Objectives' : 'Objectifs'}</legend>
-              <div className={styles.contextObjectiveOptions}>
-                {Object.entries(objectiveLabels).map(([key, label]) => {
-                  const checked = parseObjectiveKeys(contextDraft.objective).includes(key);
-                  return (
-                    <label key={key}>
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={(event) => {
-                          const current = parseObjectiveKeys(contextDraft.objective);
-                          const next = event.target.checked
-                            ? [...current, key]
-                            : current.filter((item) => item !== key);
-                          setContextDraft((draft) => ({
-                            ...draft,
-                            objective: objectiveKeys
-                              .filter((item) => next.includes(item))
-                              .join(','),
-                          }));
-                        }}
-                      />
-                      <span>{label}</span>
-                    </label>
-                  );
-                })}
+          <div className={styles.dialogHeader}>
+            <div className={styles.dialogHeading}>
+              <span className={styles.dialogIcon} aria-hidden="true">
+                <Settings2 size={20} strokeWidth={2.1} />
+              </span>
+              <div>
+                <p className={styles.dialogEyebrow}>
+                  {isEn ? 'Session settings' : 'Paramètres de la session'}
+                </p>
+                <h2 id="session-context-title">
+                  {isEn ? 'Edit session info' : 'Modifier les infos'}
+                </h2>
               </div>
-            </fieldset>
-            <p>
-              {isEn
-                ? 'Session context only: this does not change game assignments or restart the current challenge.'
-                : 'Contexte de session uniquement : ceci ne modifie pas les attributions et ne redémarre pas le challenge actuel.'}
-            </p>
-            {contextError ? <p role="alert">{contextError}</p> : null}
-            <div className={styles.managementActions}>
+            </div>
+            <button
+              type="button"
+              className={styles.dialogClose}
+              aria-label={closeDialogLabel}
+              disabled={contextSaving}
+              onClick={() => setContextOpen(false)}
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
+          <form onSubmit={saveContext} className={styles.contextForm}>
+            <div className={styles.dialogBody}>
+              <label className={styles.contextField}>
+                <span>{isEn ? 'Expected participants' : 'Participants attendus'}</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="2147483647"
+                  step="1"
+                  inputMode="numeric"
+                  placeholder={isEn ? 'e.g. 12' : 'ex. 12'}
+                  value={contextDraft.expected_participant_count}
+                  onChange={(event) =>
+                    setContextDraft((draft) => ({
+                      ...draft,
+                      expected_participant_count: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <fieldset className={styles.contextObjectives}>
+                <legend>{isEn ? 'Session objectives' : 'Objectifs de la session'}</legend>
+                <div className={styles.contextObjectiveOptions}>
+                  {Object.entries(objectiveLabels).map(([key, label]) => {
+                    const checked = parseObjectiveKeys(contextDraft.objective).includes(key);
+                    return (
+                      <label key={key}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(event) => {
+                            const current = parseObjectiveKeys(contextDraft.objective);
+                            const next = event.target.checked
+                              ? [...current, key]
+                              : current.filter((item) => item !== key);
+                            setContextDraft((draft) => ({
+                              ...draft,
+                              objective: objectiveKeys
+                                .filter((item) => next.includes(item))
+                                .join(','),
+                            }));
+                          }}
+                        />
+                        <span>{label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
+              <div className={styles.contextNote}>
+                <Info size={17} aria-hidden="true" />
+                <p>
+                  {isEn
+                    ? 'These details provide context only. They do not change assignments or restart the current challenge.'
+                    : 'Ces informations servent uniquement de contexte. Elles ne modifient pas les attributions et ne redémarrent pas le challenge actuel.'}
+                </p>
+              </div>
+              {contextError ? (
+                <p className={styles.dialogError} role="alert">
+                  {contextError}
+                </p>
+              ) : null}
+            </div>
+            <div className={styles.dialogFooter}>
               <Button type="submit" variant="primary" size="sm" disabled={contextSaving}>
                 {contextSaving
                   ? isEn
