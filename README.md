@@ -2,6 +2,12 @@
 
 Frontend cible du produit TeamBlender (migration depuis le legacy).
 
+## Administration : textes et facturation
+
+- Les libellés de la console admin et des paiements sont disponibles en FR/EN, avec accents et apostrophes françaises.
+- La facturation conserve au moins 20 px entre les titres et leur contenu, 12 px entre les cartes de comptes et 12 px entre les commandes. Les actions passent sur une colonne sur mobile et restent lisibles dans les thèmes clair et sombre.
+- Validation : `node scripts/test-admin-billing-ux.mjs` (frontend sur le port 3100, Chrome disponible, API simulées) couvre les deux langues, les deux thèmes, les largeurs 390/1440 px, les onglets admin et les changements de formule, paiements manuels et remboursements.
+
 ## Etat actuel
 
 - `frontend-next/` porte les parcours utilisateur actifs: manager, admin, participant et les pages publiques principales.
