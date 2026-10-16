@@ -29,7 +29,7 @@ function ResilientPreviewImage({ src, alt }) {
       width={640}
       height={360}
       loading="lazy"
-      style={{ maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+      style={{ maxWidth: '100%', maxHeight: '160px', objectFit: 'contain', borderRadius: '6px', border: '1px solid var(--surface-border)' }}
       onError={() => {
         setIndex((prev) => (prev + 1 < candidates.length ? prev + 1 : prev));
       }}
@@ -877,10 +877,10 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       disabled={isUploadingImage}
                     />
                     {isUploadingImage ? (
-                      <p style={{ marginTop: '6px', color: '#6b7280', fontSize: '12px' }}>{txt('Import en cours...', 'Uploading...')}</p>
+                      <p style={{ marginTop: '6px', color: 'var(--text-muted)', fontSize: '12px' }}>{txt('Import en cours...', 'Uploading...')}</p>
                     ) : null}
                     {uploadError ? (
-                      <p style={{ marginTop: '6px', color: '#dc2626', fontSize: '12px' }}>{uploadError}</p>
+                      <p style={{ marginTop: '6px', color: 'var(--error-line)', fontSize: '12px' }}>{uploadError}</p>
                     ) : null}
                   </div>
                 </>
@@ -1301,23 +1301,23 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       <div
                         key={enigme.id || idx}
                         style={{
-                          background: '#f8f9fa',
-                          border: '1px solid #e5e7eb',
+                          background: 'var(--surface-panel-soft)',
+                          border: '1px solid var(--surface-border)',
                           borderRadius: '6px',
                           padding: '10px 12px',
                           fontSize: '13px',
                         }}
                       >
-                        <strong style={{ color: '#374151' }}>{idx + 1}. {enigme.label}</strong>
+                        <strong style={{ color: 'var(--text-strong)' }}>{idx + 1}. {enigme.label}</strong>
                         {enigme.description && (
-                          <p style={{ margin: '4px 0 0', color: '#6b7280', lineHeight: '1.4' }}>{enigme.description}</p>
+                          <p style={{ margin: '4px 0 0', color: 'var(--text-muted)', lineHeight: '1.4' }}>{enigme.description}</p>
                         )}
                         <div style={{ marginTop: '6px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                          <span style={{ color: '#059669', fontFamily: 'monospace', fontSize: '12px' }}>
+                          <span style={{ color: 'var(--color-success)', fontFamily: 'monospace', fontSize: '12px' }}>
                             ✓ Answer: <strong>{enigme.expected_answer}</strong>
                           </span>
                           {enigme.hint && (
-                            <span style={{ color: '#6b7280', fontSize: '12px' }}>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
                               💡 {enigme.hint}
                             </span>
                           )}
@@ -1325,7 +1325,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                       </div>
                     ))}
                   </div>
-                  <p style={{ marginTop: '8px', fontSize: '12px', color: '#9ca3af' }}>
+                  <p style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-subtle)' }}>
                     {txt('Les énigmes se gèrent depuis l’administration du challenge.', 'Puzzles are managed from challenge administration.')}
                   </p>
                 </div>

@@ -7,10 +7,7 @@ export default function LandingTestimonials({ locale, testimonialsHeader, testim
   return (
     <section
       className="landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-10"
-      style={{
-        '--reveal-delay': '170ms',
-        background: 'linear-gradient(145deg, #f6fbff 0%, #eef6ff 100%)',
-      }}
+      style={{ '--reveal-delay': '170ms' }}
       aria-label={locale === 'en' ? 'Customer testimonials' : 'Témoignages clients'}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(99,102,241,0.10),transparent_44%)]" />
@@ -18,7 +15,7 @@ export default function LandingTestimonials({ locale, testimonialsHeader, testim
         <div className="panel-head landing-testimonials-head">
           <div>
             <p className="eyebrow landing-section-eyebrow">{testimonialsHeader.label}</p>
-            <h2 className="landing-section-title text-slate-950">{testimonialsHeader.title}</h2>
+            <h2 className="landing-section-title">{testimonialsHeader.title}</h2>
           </div>
         </div>
         <div className="landing-testimonials-carousel mt-7" role="region" aria-label={locale === 'en' ? 'Testimonials carousel' : 'Carrousel de temoignages'}>
@@ -39,11 +36,11 @@ export default function LandingTestimonials({ locale, testimonialsHeader, testim
               <div className="landing-testimonial-head">
                 <div className="landing-testimonial-avatar" aria-hidden="true">{item.initials}</div>
                 <div>
-                  <strong className="block text-sm font-semibold text-slate-950">{item.title}</strong>
-                  <span className="text-sm text-slate-500">{item.subtitle}</span>
+                  <strong className="block text-sm font-semibold">{item.title}</strong>
+                  <span className="text-sm">{item.subtitle}</span>
                 </div>
               </div>
-              <p className="text-base leading-7 text-slate-700">“{item.description}”</p>
+              <p className="text-base leading-7">“{item.description}”</p>
             </article>
           ))}
         </div>

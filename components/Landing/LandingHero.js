@@ -31,16 +31,16 @@ export default function LandingHero({
       <div className="landing-hero-aurora pointer-events-none absolute inset-0" />
       <div className="landing-hero-inner relative grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
         <div className="landing-hero-copy max-w-3xl">
-          <h1 className="landing-hero-title max-w-2xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+          <h1 className="landing-hero-title max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
             <span className="block">{structuredHeroTitle}</span>
             {heroMain.subtitle ? <span className="landing-hero-subtitle mt-2 block bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-700 bg-clip-text text-transparent">{heroMain.subtitle}</span> : null}
           </h1>
 
-          <p className="landing-hero-description mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+          <p className="landing-hero-description mt-5 max-w-2xl text-base leading-7 sm:text-lg">
             {heroDescription}
           </p>
 
-          <p className="landing-hero-keyline mt-3 max-w-2xl text-sm font-semibold tracking-wide text-indigo-700 sm:text-base">
+          <p className="landing-hero-keyline mt-3 max-w-2xl text-sm font-semibold tracking-wide sm:text-base">
             {t('landing.heroKeyline')}
           </p>
           <div className="landing-hero-actions mt-6 flex flex-wrap gap-3">

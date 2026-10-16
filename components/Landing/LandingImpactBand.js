@@ -18,8 +18,8 @@ export default function LandingImpactBand({ locale, impactItems }) {
                 {String(index + 1).padStart(2, '0')}
               </span>
               <div>
-                <strong className="block text-2xl font-semibold tracking-tight text-slate-950">{item.value}</strong>
-                <p className="mt-1 text-sm leading-6 text-slate-600">{item.description}</p>
+                <strong className="block text-2xl font-semibold tracking-tight">{item.value}</strong>
+                <p className="mt-1 text-sm leading-6">{item.description}</p>
               </div>
             </div>
           </article>
