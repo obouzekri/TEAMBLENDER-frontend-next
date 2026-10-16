@@ -11,6 +11,20 @@ const POSTHOG_PROJECT_TOKEN = String(
   process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN || process.env.NEXT_PUBLIC_POSTHOG_KEY || ''
 ).trim();
 const POSTHOG_HOST = String(process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com').trim();
+const POSTHOG_API_HOST = process.env.NODE_ENV === 'development' ? POSTHOG_HOST : '/ingest';
+
+function getPostHogUiHost(ingestHost) {
+  try {
+    const url = new URL(ingestHost);
+    url.hostname = url.hostname.replace(/^([a-z0-9-]+)\.i\.posthog\.com$/i, '$1.posthog.com');
+    url.pathname = '';
+    url.search = '';
+    url.hash = '';
+    return url.toString().replace(/\/$/, '');
+  } catch {
+    return 'https://eu.posthog.com';
+  }
+}
 
 function capturePerformanceEvent() {
   if (typeof window === 'undefined' || !window.performance) return;
@@ -49,8 +63,8 @@ export default function PostHogProvider() {
 
     if (!window.__TEAMBLENDER_POSTHOG_INIT__) {
       posthog.init(POSTHOG_PROJECT_TOKEN, {
-        api_host: '/ingest',
-        ui_host: POSTHOG_HOST,
+        api_host: POSTHOG_API_HOST,
+        ui_host: getPostHogUiHost(POSTHOG_HOST),
         defaults: '2026-01-30',
         capture_pageview: false,
         capture_pageleave: true,

@@ -3642,7 +3642,7 @@ export default function AdminClient() {
           {/* ── DASHBOARD ── */}
           {activeTab === 'dashboard' ? (
             <div>
-              <div className="admin-page-hero">
+              <div className="admin-page-hero admin-page-hero--dashboard">
                 <div>
                   <p className="admin-page-hero__eyebrow">{isEn ? 'Operations center' : 'Centre d\'opérations'}</p>
                   <h1 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 6px' }}>{isEn ? 'Dashboard' : 'Tableau de bord'}</h1>
