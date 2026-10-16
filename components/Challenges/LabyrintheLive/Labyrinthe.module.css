@@ -288,10 +288,6 @@
   padding: 18px 10px;
 }
 
-.miniGrid {
-  gap: 2px;
-}
-
 .gameGrid:focus {
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.55), 0 12px 28px rgba(3, 10, 19, 0.5);
   border-radius: 8px;
@@ -325,10 +321,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 35px;
-  height: 35px;
-  min-width: 35px;
-  min-height: 35px;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1;
   padding: 0;
   position: relative;
   transition: filter 0.12s ease, transform 0.12s ease, box-shadow 0.16s ease;
@@ -349,7 +346,6 @@ button.cell {
 
 button.cell:not(:disabled):hover {
   filter: brightness(1.18) saturate(1.08);
-  transform: translateY(-1px);
 }
 
 button.cell:focus-visible {
@@ -373,9 +369,7 @@ button.cell:focus-visible {
   inset: 0;
   background: var(--player-soft, rgba(34, 211, 238, 0.42));
   box-shadow:
-    inset 0 0 0 1px var(--player-color, rgba(103, 232, 249, 0.72)),
-    inset 0 0 10px var(--player-glow, rgba(34, 211, 238, 0.5)),
-    0 0 8px var(--player-glow, rgba(34, 211, 238, 0.32));
+    inset 0 0 10px var(--player-glow, rgba(34, 211, 238, 0.5));
   pointer-events: none;
   z-index: 1;
 }
@@ -457,14 +451,15 @@ button.cell:focus-visible {
 }
 
 .cellTrapKnownIcon {
+  box-sizing: border-box;
   position: absolute;
   z-index: 3;
   display: grid;
   place-items: center;
   width: 60%;
   height: 60%;
-  min-width: 10px;
-  min-height: 10px;
+  min-width: 0;
+  min-height: 0;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.92);
   background: rgba(69, 10, 10, 0.9);
@@ -477,6 +472,11 @@ button.cell:focus-visible {
     0 0 12px rgba(248, 113, 113, 0.48),
     inset 0 0 8px rgba(248, 113, 113, 0.3);
   filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.22));
+}
+
+.cellTrapKnownIcon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .cellSolutionDot {
@@ -559,13 +559,16 @@ button.cell:focus-visible {
 .cellPlayerDot {
   position: absolute;
   z-index: 5;
-  left: calc(50% + var(--marker-offset, 0px));
-  top: 50%;
+  left: calc(50% + var(--cell-center-x, 0px) + var(--marker-offset, 0px));
+  top: calc(50% + var(--cell-center-y, 0px));
   transform: translate(-50%, -50%);
-  color: var(--player-color, #67e8f9);
-  font-size: 0.7rem;
-  line-height: 1;
-  text-shadow: 0 0 2px rgba(2, 6, 23, 0.95), 0 0 8px var(--player-glow, rgba(34, 211, 238, 0.75));
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--player-color, #67e8f9);
+  font-size: 0;
+  box-shadow: 0 0 2px rgba(2, 6, 23, 0.95), 0 0 8px var(--player-glow, rgba(34, 211, 238, 0.75));
+  pointer-events: none;
   animation: playerBreath 0.95s ease-in-out infinite;
 }
 
@@ -596,10 +599,7 @@ button.cell:focus-visible {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.25rem;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--surface-soft-border-strong);
-  border-radius: 10px;
-  background: var(--surface-panel-soft);
+  padding: 0;
   flex-shrink: 0;
 }
 
@@ -707,10 +707,11 @@ button.cell:focus-visible {
 .miniGridList {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
 }
 
 .miniGridCard {
+  min-width: 0;
   border: 1px solid rgba(56, 189, 248, 0.24);
   border-radius: 14px;
   background:
@@ -728,16 +729,8 @@ button.cell:focus-visible {
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 12px;
   padding: 10px 8px;
-  overflow: auto;
+  overflow: visible;
   box-shadow: inset 0 0 0 1px rgba(7, 20, 34, 0.92), 0 8px 22px rgba(2, 8, 16, 0.22);
-}
-
-.miniGrid .cell {
-  border-radius: 0;
-  width: 23px;
-  height: 23px;
-  min-width: 23px;
-  min-height: 23px;
 }
 
 .controlDock {
@@ -1052,11 +1045,11 @@ button.cell:focus-visible {
   0%,
   100% {
     opacity: 0.8;
-    transform: scale(0.96);
+    transform: translate(-50%, -50%) scale(0.96);
   }
   50% {
     opacity: 1;
-    transform: scale(1.08);
+    transform: translate(-50%, -50%) scale(1.08);
   }
 }
 
@@ -1102,16 +1095,12 @@ button.cell:focus-visible {
 }
 
 .cellThumb {
-  width: 16px !important;
-  height: 16px !important;
-  min-width: 16px !important;
-  min-height: 16px !important;
   border-radius: 0 !important;
 }
 
 .solutionMiniGrid {
   gap: 0 !important;
-  width: max-content;
+  width: min(100%, 360px);
   margin: 0 auto;
   overflow: visible;
 }
@@ -1155,7 +1144,6 @@ button.cell:focus-visible {
   .gameGrid {
     width: 100%;
     padding: 8px;
-    aspect-ratio: 1 / 1;
   }
 
   .gameGrid .cell {
@@ -1174,7 +1162,8 @@ button.cell:focus-visible {
   }
 
   .cellPlayerDot {
-    font-size: clamp(0.38rem, 2vw, 0.62rem);
+    width: clamp(5px, 2vw, 9px);
+    height: clamp(5px, 2vw, 9px);
   }
 
   .controlHeadLegendWrap {

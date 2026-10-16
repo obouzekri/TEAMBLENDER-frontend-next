@@ -14,6 +14,12 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Il apparait au demarrage et reste disponible pendant les pauses et les transitions entre manches. Le retour a l'etat de preparation le masque de nouveau; le debrief conserve son comportement existant.
 - Validation : `node scripts/test-challenge-timer-visibility.mjs` (frontend sur 3100, Chrome disponible, API simulees) : les 10 challenges, animateur/desktop FR et participant/mobile EN, avant demarrage, en cours, en pause et apres reinitialisation.
 
+### Labyrinthe : suivi et deplacements
+
+- Les mini-grilles du facilitateur occupent leur largeur disponible, avec des cases jointives et un seul trait par mur. Les vies sont affichees sans cadre.
+- Les points restent centres pendant leur animation. Les deplacements clavier, boutons et cases voisines sont affiches immediatement, puis reconcilies avec le serveur sans annuler les clics plus recents. Les erreurs et penalites restaurent la position confirmee.
+- Validation : `npm run test:ux:labyrinthe` (frontend sur 3100, Chrome disponible, API simulees).
+
 ### Filtres des sessions de l'accueil animateur
 
 - L'accueil privilegie le message de bienvenue, puis les chiffres des KPI, les sessions et les participants. Le theme clair utilise un fond blanc pur, des cartes blanches a bordure fine et ombre discrete, et des sections sans cadre externe. Le theme sombre reste disponible.

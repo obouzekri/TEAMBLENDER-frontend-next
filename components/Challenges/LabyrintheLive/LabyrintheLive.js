@@ -99,7 +99,7 @@ function getMazeCell(maze, row, col) {
   return cell && typeof cell === 'object' ? cell : null;
 }
 
-const WALL_THICK = '1.8px';
+const WALL_THICK = '2px';
 const OPEN_THICK = '0px';
 const WALL_COLOR = 'var(--maze-wall)';
 const OPEN_COLOR = 'transparent';
@@ -114,23 +114,22 @@ function buildMazeCellStyle(maze, row, col) {
       borderBottomWidth: '0',
       borderLeftWidth: '0',
       backgroundColor: FLOOR_BG,
-      backgroundImage: 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 55%)',
-      boxShadow: 'inset 0 0 6px rgba(0,0,0,0.28)',
     };
   }
 
   return {
+    '--cell-center-x': `${(Number(col === maze.cells[row].length - 1 && !cell.e) - Number(!cell.w))}px`,
+    '--cell-center-y': `${(Number(row === maze.cells.length - 1 && !cell.s) - Number(!cell.n))}px`,
     borderTopWidth: cell.n ? OPEN_THICK : WALL_THICK,
-    borderRightWidth: cell.e ? OPEN_THICK : WALL_THICK,
-    borderBottomWidth: cell.s ? OPEN_THICK : WALL_THICK,
+    // Each shared wall belongs to one cell only.
+    borderRightWidth: col === maze.cells[row].length - 1 && !cell.e ? WALL_THICK : OPEN_THICK,
+    borderBottomWidth: row === maze.cells.length - 1 && !cell.s ? WALL_THICK : OPEN_THICK,
     borderLeftWidth: cell.w ? OPEN_THICK : WALL_THICK,
     borderTopColor: cell.n ? OPEN_COLOR : WALL_COLOR,
     borderRightColor: cell.e ? OPEN_COLOR : WALL_COLOR,
     borderBottomColor: cell.s ? OPEN_COLOR : WALL_COLOR,
     borderLeftColor: cell.w ? OPEN_COLOR : WALL_COLOR,
     backgroundColor: FLOOR_BG,
-    backgroundImage: 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 55%)',
-    boxShadow: 'inset 0 0 6px rgba(0,0,0,0.28)',
   };
 }
 
@@ -218,6 +217,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const { locale } = useI18n();
   const isEn = locale === 'en';
   const [optimisticPos, setOptimisticPos] = useState(null);
+  const optimisticPosRef = useRef(null);
+  const pendingPositionsRef = useRef([]);
   const [moveFeedback, setMoveFeedback] = useState('');
   const [moveFeedbackTone, setMoveFeedbackTone] = useState('info');
   const [flashCellKey, setFlashCellKey] = useState('');
@@ -292,7 +293,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         name: participantNameById[String(id)] || `Participant ${id}`,
         colorStyle: participantColorById[String(id)] || getPlayerColorStyle(0),
         hasSelectedStart: selectedStart,
-        positionKey: selectedStart ? posKey(participant?.solo?.pos) : '',
+        positionKey: selectedStart ? posKey(String(id) === String(participantId) ? optimisticPos || participant?.solo?.pos : participant?.solo?.pos) : '',
         visited: normalizeVisited(
           participant?.solo?.path
           || participant?.solo?.visited
@@ -301,7 +302,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         ),
       };
     });
-  }, [participantEntries, participantNameById, participantColorById]);
+  }, [participantEntries, participantNameById, participantColorById, participantId, optimisticPos]);
   const timerStatus = String(timer?.status || 'idle').trim().toLowerCase();
   const hasChallengeStarted = timerStatus === 'running'
     || timerStatus === 'paused'
@@ -348,7 +349,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const startCellKey = posKey(laby?.maze?.start);
   const endCellKey = posKey(laby?.maze?.end);
   const maze = laby?.maze || null;
-  const playerPosKey = hasSelectedStart ? posKey(myParticipantState?.solo?.pos) : '';
+  const playerPosKey = hasSelectedStart ? posKey(optimisticPos || myParticipantState?.solo?.pos) : '';
   const mySpawnKey = hasSelectedStart ? posKey(myParticipantState?.solo?.path?.[0]) : '';
   const mazeTrapKeys = useMemo(() => normalizeTrapKeys(maze?.traps), [maze?.traps]);
   const revealMazeTraps = Boolean(maze);
@@ -384,13 +385,14 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       || myParticipantState?.solo?.visited_cells
       || myParticipantState?.visited_cells
     );
+    pendingPositionsRef.current.forEach((pos) => visitedFromState.add(posKey(pos)));
     if (visitedFromState.size > 0) return visitedFromState;
     const fallback = new Set();
     Object.entries(revealedCells).forEach(([key, value]) => {
       if (value) fallback.add(key);
     });
     return fallback;
-  }, [myParticipantState, revealedCells]);
+  }, [myParticipantState, revealedCells, optimisticPos]);
 
   const rulesPreset = useMemo(() => getLabyrintheRulesPreset(locale), [locale]);
   const challengeName = String(rulesPreset?.challengeName || 'Labyrinthe des Signaux').trim();
@@ -409,23 +411,32 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
   useEffect(() => {
     const serverPos = Array.isArray(myParticipantState?.solo?.pos) ? myParticipantState.solo.pos : null;
-    setOptimisticPos(serverPos && serverPos.length >= 2 ? [Number(serverPos[0]), Number(serverPos[1])] : null);
-  }, [myParticipantState?.solo?.pos]);
+    const pending = pendingPositionsRef.current;
+    const confirmedIndex = pending.findIndex((pos) => posKey(pos) === posKey(serverPos));
+    if (confirmedIndex >= 0) pending.splice(0, confirmedIndex + 1);
+    if (!connected || error || isRespawning || !hasSelectedStart || labyPhase === 'done') pending.length = 0;
+    // A timer tick or an older acknowledgement must not erase newer local moves.
+    const nextPos = pending.length ? pending[pending.length - 1] : serverPos;
+    optimisticPosRef.current = nextPos;
+    setOptimisticPos(nextPos);
+  }, [myParticipantState?.solo?.pos, connected, error, isRespawning, hasSelectedStart, labyPhase, labyLevel]);
 
-  // Predicts the resulting cell locally so movement feels instant; the effect above corrects/rolls back once the server confirms.
   const attemptSoloMove = useCallback((dir) => {
     if (!canMoveDir) return;
-    const currentPos = Array.isArray(optimisticPos)
-      ? optimisticPos
+    const currentPos = Array.isArray(optimisticPosRef.current)
+      ? optimisticPosRef.current
       : Array.isArray(myParticipantState?.solo?.pos)
         ? myParticipantState.solo.pos
         : null;
     const delta = LABY_MOVE_DELTAS[dir];
-    if (currentPos && delta && canMoveFromCell(maze, currentPos, dir)) {
-      setOptimisticPos([Number(currentPos[0]) + delta.dr, Number(currentPos[1]) + delta.dc]);
+    if (!emitEvent('laby.solo.move', { dir })) return;
+    if (hasSelectedStart && currentPos && delta && canMoveFromCell(maze, currentPos, dir)) {
+      const nextPos = [Number(currentPos[0]) + delta.dr, Number(currentPos[1]) + delta.dc];
+      pendingPositionsRef.current.push(nextPos);
+      optimisticPosRef.current = nextPos;
+      setOptimisticPos(nextPos);
     }
-    emitEvent('laby.solo.move', { dir });
-  }, [canMoveDir, optimisticPos, myParticipantState?.solo?.pos, maze, emitEvent]);
+  }, [canMoveDir, hasSelectedStart, myParticipantState?.solo?.pos, maze, emitEvent]);
 
   useEffect(() => {
     if (!isFacilitator) return;
@@ -505,6 +516,11 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       if (String(packet?.type || '').trim() !== 'laby.solo.resolved') return;
       const payload = packet?.payload || {};
       if (String(payload?.participant_id || '').trim() !== String(participantId || '').trim()) return;
+      if (!['free', 'move'].includes(payload.outcome)) {
+        pendingPositionsRef.current = [];
+        optimisticPosRef.current = payload.position || null;
+        setOptimisticPos(payload.position || null);
+      }
 
       const impactedPos = Array.isArray(payload?.triggered_position)
         ? payload.triggered_position
@@ -694,7 +710,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     const clickedKey = `${row},${col}`;
     const hasMovedAway = Array.isArray(myParticipantState?.solo?.path) && myParticipantState.solo.path.length > 1;
     if (allStartKeys.has(clickedKey) && (!hasMovedAway || isRespawning)) {
-      emitEvent('laby.solo.select_start', { pos: [row, col] });
+      if (!emitEvent('laby.solo.select_start', { pos: [row, col] })) return;
+      pendingPositionsRef.current = [[row, col]];
+      optimisticPosRef.current = [row, col];
       setOptimisticPos([row, col]);
       setMoveFeedback(isRespawning
         ? (isEn ? 'New starting point selected. Resume your path from here.' : 'Nouveau point de départ sélectionné. Reprenez votre parcours depuis ici.')
@@ -703,8 +721,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       return;
     }
 
-    const currentPos = Array.isArray(optimisticPos)
-      ? optimisticPos
+    const currentPos = Array.isArray(optimisticPosRef.current)
+      ? optimisticPosRef.current
       : Array.isArray(myParticipantState?.solo?.pos)
         ? myParticipantState.solo.pos
         : null;
@@ -721,9 +739,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       return;
     }
 
-    const nextPos = [Number(row), Number(col)];
-    emitEvent('laby.solo.move', { dir });
-    setOptimisticPos(nextPos);
+    attemptSoloMove(dir);
   }
 
   function moveByDirection(dir) {
@@ -848,6 +864,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               ) : (
                 <div className={styles.miniGridList}>
                   {participantEntries.map(([id, participant]) => {
+                    const hasSelectedStart = Boolean(participant?.solo?.ss) || Boolean(participant?.solo?.rg);
                     const playerPosKey = posKey(participant?.solo?.pos);
                     const playerColorStyle = participantColorById[String(id)] || getPlayerColorStyle(0);
                     const playerVisited = normalizeVisited(
