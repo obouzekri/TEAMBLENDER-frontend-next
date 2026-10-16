@@ -22,6 +22,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 ### Minuteur des challenges
 
+- Les commandes Pause / Reprendre sont compactes et centrees, sans occuper toute la largeur de la carte, avec une cible cliquable de 44 px de haut sur mobile et ordinateur. Validation FR/EN et clair/sombre : `npm run test:ux:shared`.
 - Pour tous les challenges, le minuteur (carte mobile/desktop et rappel dans l'en-tete) reste masque avant le demarrage, pour l'animateur comme pour les participants.
 - Il apparait au demarrage et reste disponible pendant les pauses et les transitions entre manches. Le retour a l'etat de preparation le masque de nouveau; le debrief conserve son comportement existant.
 - Pour les mots croises, l'animateur utilise les commandes communes Pause / Reprendre, sans bouton de fin de partie dans le minuteur. Les reponses sont bloquees pendant la pause.

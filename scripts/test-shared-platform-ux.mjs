@@ -39,6 +39,23 @@ async function waitChatEvent(page, fixture, count) {
   return messages[messages.length - 1].payload;
 }
 
+async function assertCompactTimerControl(button) {
+  const size = await button.evaluate((node) => {
+    const bounds = node.getBoundingClientRect();
+    const actions = node.parentElement.getBoundingClientRect();
+    return {
+      width: bounds.width,
+      height: bounds.height,
+      centered: Math.abs(bounds.left + bounds.width / 2 - actions.left - actions.width / 2) <= 1,
+      fits: node.scrollWidth <= node.clientWidth && node.scrollHeight <= node.clientHeight,
+    };
+  });
+  assert.ok(size.height >= 44 && size.height <= 45, `Timer control must keep a compact 44px touch target: ${JSON.stringify(size)}`);
+  assert.ok(size.width < 240, `Timer control must not stretch across the card: ${JSON.stringify(size)}`);
+  assert.ok(size.centered, 'Timer control must be centered');
+  assert.ok(size.fits, 'Timer control label must not be clipped');
+}
+
 try {
   for (const [locale, width, theme] of [['fr', 1440, 'light'], ['fr', 390, 'dark'], ['en', 1440, 'dark'], ['en', 390, 'light']]) {
     const dictionary = locale === 'en' ? en : fr;
@@ -154,11 +171,14 @@ try {
 
       const facilitatorPreparation = facilitatorPage.locator('details').filter({ has: facilitatorPage.getByText(locale === 'en' ? 'Session preparation and progress' : 'Préparation et déroulement de la session', { exact: true }) });
       await facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.pause, exact: true }).waitFor();
+      await assertCompactTimerControl(facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.pause, exact: true }));
       assert.equal(await facilitatorPreparation.count(), 0, 'Facilitators must not see the session preparation guide during challenges');
       await facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.pause, exact: true }).click();
       assert.ok(facilitatorFixture.receivedEvents.some((event) => event.type === 'timer.pause'));
 
       facilitatorFixture.broadcast('timer.state', { ...timer, status: 'paused' });
+      await facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.resume, exact: true }).waitFor();
+      await assertCompactTimerControl(facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.resume, exact: true }));
       await facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.resume, exact: true }).click();
       assert.ok(facilitatorFixture.receivedEvents.some((event) => event.type === 'timer.resume'));
       assert.ok(await facilitatorPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
