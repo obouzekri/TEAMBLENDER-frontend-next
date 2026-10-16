@@ -68,7 +68,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 ### Page Tarification
 
 - L'introduction conserve le titre et le conseil sur les groupes, sans tag Tarification ni phrase promotionnelle intermediaire.
-- Frequence de facturation, Mensuel, Annuel et Devise sont alignes sur une ligne sur grand ecran et se replient sur mobile. Le mode sombre ne presente aucun cadre autour de la barre ni du groupe Mensuel/Annuel.
+- Frequence de facturation, Mensuel, Annuel et Devise affichee sont alignes sur une ligne sur grand ecran. Sur mobile, le choix de periode occupe une ligne complete et le selecteur de devise reste facile a atteindre. Les controles affichent un focus clavier visible; le mode sombre ne presente aucun cadre autour de la barre ni du groupe Mensuel/Annuel.
 - Validation : `node scripts/test-pricing-controls-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees) : FR/EN, clair/sombre/automatique, 320 a 1440 px, alignement, absence de cadres sombres, changement de frequence et de devise.
 
 ### Creation rapide d'une session
