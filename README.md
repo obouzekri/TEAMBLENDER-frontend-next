@@ -8,6 +8,12 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Le frontend legacy vanilla a ete retire du repository pour reduire la dette technique.
 - Les changements en cours doivent rester alignes avec la navigation produit actuelle et les checks de go-live du projet.
 
+### Lisibilite de l'administration
+
+- Les formulaires de creation et de modification suivent les surfaces du theme, y compris en mode sombre automatique.
+- Les objectifs distinguent les etats selectionne, disponible et indisponible sans reduire l'opacite du texte. La limite de trois objectifs et la navigation clavier sont conservees.
+- Validation : `node scripts/test-admin-theme.mjs` (frontend sur 3100, Chrome disponible, API simulees) : FR/EN, mobile/desktop, clair/sombre/automatique, contraste du texte d'au moins 4,5:1 et selection des objectifs.
+
 ### Minuteur des challenges
 
 - Pour tous les challenges, le minuteur (carte mobile/desktop et rappel dans l'en-tete) reste masque avant le demarrage, pour l'animateur comme pour les participants.

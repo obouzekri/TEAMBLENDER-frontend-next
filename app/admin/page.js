@@ -1,4 +1,5 @@
 import AdminClient from './AdminClient';
+import './admin.css';
 
 export const metadata = {
   title: 'Admin | TeamBlender',
@@ -9,4 +10,3 @@ export const metadata = {
 export default function AdminPage() {
   return <AdminClient />;
 }
-

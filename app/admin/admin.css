@@ -1,0 +1,35 @@
+.admin-console-layout form.auth-form {
+  background: linear-gradient(165deg, var(--surface-panel), var(--surface-panel-soft));
+  border-color: var(--surface-border-strong);
+  color: var(--ink);
+}
+
+.admin-console-layout .admin-objective-chip {
+  border: 1px solid var(--field-line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: var(--surface-panel);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-console-layout .admin-objective-chip[aria-pressed='true'] {
+  border-color: var(--status-ongoing-dot);
+  background: var(--status-ongoing-bg);
+  color: var(--status-ongoing-text);
+}
+
+.admin-console-layout .admin-objective-chip:hover:not(:disabled) {
+  border-color: var(--field-line-focus);
+  box-shadow: inset 0 0 0 1px var(--field-line-focus);
+}
+
+.admin-console-layout .admin-objective-chip:disabled {
+  border-style: dashed;
+  background: var(--surface-muted);
+  color: var(--ink-soft);
+  cursor: not-allowed;
+  opacity: 1;
+}

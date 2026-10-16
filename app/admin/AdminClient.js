@@ -4587,19 +4587,10 @@ export default function AdminClient() {
                                 <button
                                   key={option.value}
                                   type="button"
+                                  className="admin-objective-chip"
+                                  aria-pressed={isSelected}
                                   onClick={() => setNewChallenge((p) => ({ ...p, objectives: toggleObjectiveSelection(p.objectives, option.value) }))}
                                   disabled={disabled}
-                                  style={{
-                                    border: isSelected ? '1px solid #0f766e' : '1px solid #cbd5e1',
-                                    background: isSelected ? 'rgba(15, 118, 110, 0.12)' : '#fff',
-                                    color: isSelected ? '#115e59' : '#334155',
-                                    borderRadius: '999px',
-                                    padding: '6px 12px',
-                                    fontSize: '13px',
-                                    fontWeight: 600,
-                                    cursor: disabled ? 'not-allowed' : 'pointer',
-                                    opacity: disabled ? 0.5 : 1,
-                                  }}
                                 >
                                   {option.label}
                                 </button>
@@ -4713,19 +4704,10 @@ export default function AdminClient() {
                                   <button
                                     key={option.value}
                                     type="button"
+                                    className="admin-objective-chip"
+                                    aria-pressed={isSelected}
                                     onClick={() => setEditingChallenge((p) => ({ ...p, objectives: toggleObjectiveSelection(p.objectives, option.value) }))}
                                     disabled={disabled}
-                                    style={{
-                                      border: isSelected ? '1px solid #0f766e' : '1px solid #cbd5e1',
-                                      background: isSelected ? 'rgba(15, 118, 110, 0.12)' : '#fff',
-                                      color: isSelected ? '#115e59' : '#334155',
-                                      borderRadius: '999px',
-                                      padding: '6px 12px',
-                                      fontSize: '13px',
-                                      fontWeight: 600,
-                                      cursor: disabled ? 'not-allowed' : 'pointer',
-                                      opacity: disabled ? 0.5 : 1,
-                                    }}
                                   >
                                     {option.label}
                                   </button>
