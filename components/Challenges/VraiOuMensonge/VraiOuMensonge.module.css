@@ -19,6 +19,7 @@
   padding: clamp(14px, 1.8vw, 26px);
   display: grid;
   gap: 16px;
+  align-content: start;
   color: var(--text-main);
   /* Fond herite du fond de page global (voir --ambient-bg-dark) */
   background: transparent;

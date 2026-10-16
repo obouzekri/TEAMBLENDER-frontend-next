@@ -76,6 +76,8 @@ try {
             assert.ok(button.x >= geometry.card.x && button.right <= geometry.card.right, `Button containment: ${label}`);
           }
           assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `No horizontal overflow: ${label}`);
+          const banner = await page.locator('[class*="roleBanner"]').boundingBox();
+          assert.ok(banner.height <= 90, `Instruction banner must not stretch: ${label}`);
         }
 
         const vote = card.getByRole('button', { name: /Vrai|True/ });
