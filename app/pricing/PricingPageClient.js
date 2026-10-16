@@ -555,7 +555,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
         ) : null}
 
         {!loading && sortedPlans.length > 0 ? (
-          <section className="pricing-footer-cta reveal-up pricing-footer-cta--flat" aria-label={isEn ? 'Sales support' : 'Assistance commerciale'}>
+          <section className="pricing-footer-cta reveal-up" aria-label={isEn ? 'Sales support' : 'Assistance commerciale'}>
             <div className="pricing-footer-cta__inner">
               <div className="pricing-footer-cta__copy">
                 <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Need support?' : 'Besoin d\'un accompagnement ?'}</p>
@@ -1029,8 +1029,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
 
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-proof-pill,
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .currency-select,
-        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card,
-        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta__inner {
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card {
           border-color: var(--surface-soft-border, rgba(148, 163, 184, 0.16));
           background: var(--surface-panel);
         }

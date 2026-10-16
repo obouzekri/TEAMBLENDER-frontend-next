@@ -2059,25 +2059,9 @@ html[data-theme='dark'] .admin-panel-card b {
   margin-top: 1rem;
   padding: 0;
   border: 0;
-  border-radius: 0;
+  border-radius: 32px;
   background: transparent;
   box-shadow: none;
-}
-
-.pricing-page .pricing-footer-cta--flat {
-  padding-top: 1rem;
-}
-
-.pricing-page .pricing-footer-cta::before {
-  content: '';
-  position: absolute;
-  inset: -20% auto auto -10%;
-  width: 12rem;
-  height: 12rem;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(99, 102, 241, 0) 70%);
-  filter: blur(6px);
-  pointer-events: none;
 }
 
 .pricing-page .pricing-footer-cta__inner {
@@ -2088,10 +2072,10 @@ html[data-theme='dark'] .admin-panel-card b {
   justify-content: space-between;
   gap: 1.25rem;
   padding: 1.25rem 1.35rem;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 22px;
-  background: rgba(17, 26, 46, 0.9);
-  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.18);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .pricing-page .pricing-footer-cta__copy h2 {
@@ -18655,8 +18639,8 @@ html[data-theme='dark'] .admin-console-layout .list-count{
   }
 
   :where(html:not([data-theme='light'])) .pricing-card-featured,:where(html:not([data-theme='light'])) .pricing-footer-cta,:where(html:not([data-theme='light'])) .pricing-empty{
-    border-bottom-left-radius: 22px;
-    border-bottom-right-radius: 22px;
+    border-bottom-left-radius: 32px;
+    border-bottom-right-radius: 32px;
   }
 
   :where(html:not([data-theme='light'])) .pricing-card .pricing-actions{
@@ -18694,8 +18678,8 @@ html[data-theme='dark'] .pricing-empty{
   html[data-theme='dark'] .pricing-card-featured,
 html[data-theme='dark'] .pricing-footer-cta,
 html[data-theme='dark'] .pricing-empty{
-    border-bottom-left-radius: 22px;
-    border-bottom-right-radius: 22px;
+    border-bottom-left-radius: 32px;
+    border-bottom-right-radius: 32px;
   }
 
   html[data-theme='dark'] .pricing-card .pricing-actions{
