@@ -1,3 +1,18 @@
+:global([data-challenge-layout]):has([data-challenge-rules-card]) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+:global([data-challenge-layout]):has([data-challenge-rules-card]) > * {
+  min-width: 0;
+  width: 100%;
+}
+
+:global([data-challenge-layout]):has([data-challenge-rules-card]) [data-challenge-rules-card] {
+  width: min(100%, 1100px);
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
 .debrief[data-challenge-debrief] [data-challenge-layout] {
   grid-template-columns: minmax(0, 1fr);
   align-items: start;

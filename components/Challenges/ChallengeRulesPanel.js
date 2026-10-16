@@ -123,7 +123,7 @@ export default function ChallengeRulesPanel({
   );
 
   if (!isStarted && showPrestartCard) {
-    return <section className={styles.rulesCard}>{cardContent}</section>;
+    return <section className={styles.rulesCard} data-challenge-rules-card>{cardContent}</section>;
   }
 
   if (!isStarted && !showPrestartCard) {

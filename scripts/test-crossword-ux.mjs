@@ -73,6 +73,7 @@ try {
     const debriefContext = R.createContext(false);
     const mocks = {
       react: { ...R, default: R },
+      'lucide-react': { Pause: () => h('span'), Play: () => h('span') },
       '@/lib/i18n/useI18n': i18n,
       '@/lib/i18n/routing': { normalizeLocale: (value) => value },
       '@/lib/challenges/useRealtimeChallenge': mockRealtime,
@@ -163,8 +164,14 @@ try {
         await page.locator('.rulesCard').waitFor();
         const layoutBounds = await page.locator('[data-challenge-layout]').boundingBox();
         const rulesBounds = await page.locator('.rulesCard').boundingBox();
-        assert.ok(Math.abs(rulesBounds.x - layoutBounds.x) <= 1, 'Prestart rules align with the layout');
-        assert.ok(Math.abs(rulesBounds.width - layoutBounds.width) <= 1, 'Prestart rules fill the available width');
+        if (layoutBounds.width > 1100) {
+          const sideMargin = (layoutBounds.width - rulesBounds.width) / 2;
+          assert.ok(rulesBounds.width <= 1100, 'Prestart rules stay within the readable maximum width');
+          assert.ok(Math.abs(rulesBounds.x - layoutBounds.x - sideMargin) <= 1, 'Prestart rules are centered in the layout');
+        } else {
+          assert.ok(Math.abs(rulesBounds.x - layoutBounds.x) <= 1, 'Prestart rules align with the layout');
+          assert.ok(Math.abs(rulesBounds.width - layoutBounds.width) <= 1, 'Prestart rules fill the available width');
+        }
         assert.equal(await page.getByRole('grid').count(), 0, 'No arena before the server starts the timer');
         assert.equal(await page.locator('.answerForm, .wordCount, .socialLayout, .clueLists').count(), 0);
         assert.equal(await page.locator('.timerColumn, .headerTimer, [role="timer"]').count(), 0, 'No timer before the server starts the challenge');
