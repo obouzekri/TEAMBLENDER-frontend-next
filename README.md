@@ -302,6 +302,8 @@ Variables importantes:
 ```bash
 npm run dev
 npm run build
+npm run build:clean
+npm run test:unit:build
 npm run start
 npm run test:smoke
 npm run test:smoke:manager
@@ -310,6 +312,19 @@ npm run test:smoke:session-builder
 npm run test:smoke:login
 npm run test:smoke:preview
 ```
+
+### Build de production et caches
+
+- Le build utilise `tsconfig.build.json`, qui herite de `tsconfig.json` et exclut
+  les types generes de `.next/dev`. La configuration de developpement conserve
+  ces types pour Next.js et l'editeur. Les controles TypeScript restent actifs.
+- `npm run build:clean` supprime uniquement `.next` et les caches TypeScript
+  du projet, puis lance le build de production. Arreter le serveur Next.js
+  avant cette commande ; ne pas lancer dev et build simultanement dans le meme
+  dossier, car Next.js regenere aussi `next-env.d.ts`.
+- `next-env.d.ts` et les fichiers `*.tsbuildinfo` sont generes et ignores par Git.
+- `npm run test:unit:build` verifie l'isolation des types de production, les
+  configurations dev/build et le nettoyage idempotent sur un dossier temporaire.
 
 ## 4) Runbook go-live (resume)
 

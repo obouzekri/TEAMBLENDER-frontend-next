@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "next dev -p 3100",
     "build": "next build",
+    "clean": "node scripts/clean-build.mjs",
+    "build:clean": "npm run clean && npm run build",
+    "test:unit:build": "node scripts/test-build-config.mjs",
     "build:analyze": "cross-env ANALYZE=true next build --webpack",
     "start": "next start -p 3100",
     "lint": "eslint .",
@@ -44,7 +47,7 @@
     "test:unit:runtime": "node scripts/test-runtime-dispatcher.mjs",
     "test:unit:escape-room": "node scripts/test-escape-room-structure.mjs",
     "test:ux:escape-room-ii": "node scripts/test-escape-room-ii-ux.mjs",
-    "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime && npm run test:unit:escape-room && npm run test:unit:truthfulness",
+    "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime && npm run test:unit:escape-room && npm run test:unit:truthfulness && npm run test:unit:build",
     "test:integration:manager-participant": "node scripts/test-integration-manager-participant.mjs"
   },
   "dependencies": {

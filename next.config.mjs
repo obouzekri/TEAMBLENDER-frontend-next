@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import bundleAnalyzer from '@next/bundle-analyzer';
+import { PHASE_PRODUCTION_BUILD } from 'next/constants.js';
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
@@ -184,4 +185,9 @@ const nextConfig = {
   },
 };
 
-export default withBundleAnalyzer(nextConfig);
+export default (phase) => withBundleAnalyzer({
+  ...nextConfig,
+  typescript: {
+    tsconfigPath: phase === PHASE_PRODUCTION_BUILD ? 'tsconfig.build.json' : 'tsconfig.json',
+  },
+});
