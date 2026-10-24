@@ -9,7 +9,17 @@ const previousEnvironment = process.env.VERCEL_ENV;
 try {
   process.env.VERCEL_ENV = 'production';
   const productionRobotsRules = getRobotsRules();
-  assert.deepEqual(productionRobotsRules.map(({ userAgent }) => userAgent), ['*', 'GPTBot', 'PerplexityBot', 'ClaudeBot', 'Google-Extended']);
+  assert.deepEqual(productionRobotsRules.map(({ userAgent }) => userAgent), [
+    '*',
+    'OAI-SearchBot',
+    'ChatGPT-User',
+    'GPTBot',
+    'ClaudeBot',
+    'Claude-SearchBot',
+    'PerplexityBot',
+    'Google-Extended',
+    'CCBot',
+  ]);
   for (const rule of productionRobotsRules) {
     assert.equal(rule.allow, '/');
     assert.deepEqual(rule.disallow, getRobotsDisallowPaths());
@@ -79,7 +89,17 @@ try {
 
   process.env.VERCEL_ENV = 'preview';
   const previewRobotsRules = getRobotsRules();
-  assert.deepEqual(previewRobotsRules.map(({ userAgent }) => userAgent), ['*', 'GPTBot', 'PerplexityBot', 'ClaudeBot', 'Google-Extended']);
+  assert.deepEqual(previewRobotsRules.map(({ userAgent }) => userAgent), [
+    '*',
+    'OAI-SearchBot',
+    'ChatGPT-User',
+    'GPTBot',
+    'ClaudeBot',
+    'Claude-SearchBot',
+    'PerplexityBot',
+    'Google-Extended',
+    'CCBot',
+  ]);
   for (const rule of previewRobotsRules) {
     assert.equal(rule.allow, undefined);
     assert.equal(rule.disallow, '/');
