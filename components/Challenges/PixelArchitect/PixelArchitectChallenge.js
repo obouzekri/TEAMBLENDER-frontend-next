@@ -1358,15 +1358,19 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               {summary ? (
                 <section className={styles.panel} data-debrief-content>
                   <h2>{isEn ? 'Team debrief' : 'Débrief équipe'}</h2>
-                  <div className={styles.summaryGrid} data-debrief-metrics>
-                    <p>{isEn ? 'Global score' : 'Score global'}: <strong>{Number(summary.collective_score || 0)}</strong></p>
-                    <p>Completion: <strong>{Number(summary.completion_percent || 0)}%</strong></p>
-                    <p>Actions: <strong>{Number(summary.action_count || 0)}</strong></p>
-                    <p>{isEn ? 'Messages' : 'Messages'}: <strong>{Number(summary.message_count || 0)}</strong></p>
-                    {summaryPixelMetrics ? <p>{isEn ? 'Exact' : 'Exacts'}: <strong>{Number(summaryPixelMetrics.matched_count || 0)}</strong></p> : null}
-                    {summaryPixelMetrics ? <p>{isEn ? 'Missing' : 'Manquants'}: <strong>{Number(summaryPixelMetrics.missing_count || 0)}</strong></p> : null}
-                    {summaryPixelMetrics ? <p>{isEn ? 'Extra' : 'En trop'}: <strong>{Number(summaryPixelMetrics.extra_count || 0)}</strong></p> : null}
-                    {summaryPixelMetrics ? <p>{isEn ? 'Used colors' : 'Couleurs utilisees'}: <strong>{Number(summaryPixelMetrics.used_colors || 0)}</strong></p> : null}
+                  <div
+                    className={`${styles.summaryGrid}${summaryPixelMetrics ? ` ${styles.summaryGridPixel}` : ''}`}
+                    data-debrief-metrics
+                    data-pixel-debrief={summaryPixelMetrics ? 'true' : undefined}
+                  >
+                    <p><span>{isEn ? 'Global score' : 'Score global'}</span><strong>{Number(summary.collective_score || 0)}</strong></p>
+                    <p><span>{isEn ? 'Completion' : 'Complétion'}</span><strong>{Number(summary.completion_percent || 0)}%</strong></p>
+                    <p><span>Actions</span><strong>{Number(summary.action_count || 0)}</strong></p>
+                    <p><span>{isEn ? 'Messages' : 'Messages'}</span><strong>{Number(summary.message_count || 0)}</strong></p>
+                    {summaryPixelMetrics ? <p><span>{isEn ? 'Exact' : 'Exacts'}</span><strong>{Number(summaryPixelMetrics.matched_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p><span>{isEn ? 'Missing' : 'Manquants'}</span><strong>{Number(summaryPixelMetrics.missing_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p><span>{isEn ? 'Extra' : 'En trop'}</span><strong>{Number(summaryPixelMetrics.extra_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p><span>{isEn ? 'Used colors' : 'Couleurs utilisées'}</span><strong>{Number(summaryPixelMetrics.used_colors || 0)}</strong></p> : null}
                   </div>
                 </section>
               ) : null}

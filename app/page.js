@@ -33,6 +33,7 @@ import LandingChallengesShowcase from '@/components/Landing/LandingChallengesSho
 import LandingSessionOutcomes from '@/components/Landing/LandingSessionOutcomes';
 import LandingFlowSteps from '@/components/Landing/LandingFlowSteps';
 import LandingFinalCta from '@/components/Landing/LandingFinalCta';
+import LandingFaq from '@/components/Landing/LandingFaq';
 import LandingPreviewModal from '@/components/Landing/LandingPreviewModal';
 import LandingStickyCta from '@/components/Landing/LandingStickyCta';
 import { resolveHeroTrustIcon, resolveUseCaseIcon, resolveFlowStepIcon } from '@/components/Landing/landingIconResolvers';
@@ -49,6 +50,7 @@ import {
   getChallengeExamples,
 } from '@/lib/landing/landingContent';
 import { getSocialProofData } from '@/lib/landing/socialProofData';
+import { HOME_FAQ_BY_LOCALE } from '@/lib/teamBuildingContent';
 import useLandingCtaTracking from '@/lib/landing/useLandingCtaTracking';
 import useStickyCtaVisibility from '@/lib/landing/useStickyCtaVisibility';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
@@ -433,6 +435,8 @@ export default function HomePage() {
           finalPrimaryHref={finalPrimaryHref}
           finalPrimaryLabel={finalPrimaryLabel}
         />
+
+        <LandingFaq locale={locale} faq={HOME_FAQ_BY_LOCALE[locale]} />
 
         <LandingPreviewModal
           locale={locale}

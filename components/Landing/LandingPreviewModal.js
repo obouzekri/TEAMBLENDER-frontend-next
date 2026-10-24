@@ -35,8 +35,10 @@ export default function LandingPreviewModal({ locale, isOpen, onClose, fallback 
             : 'Découvrez une session TeamBlender, de la consigne d’équipe au minuteur et à l’image de référence.'}
         </p>
         <Image
-          src="/images/teamblender-live-session.png"
-          alt={locale === 'en' ? 'TeamBlender CoPuzzle team session' : 'Session d’équipe TeamBlender CoPuzzle'}
+          src="/images/teamblender-live-session.webp"
+          alt={locale === 'en'
+            ? 'TeamBlender team building interface featuring the CoPuzzle challenge'
+            : 'Interface TeamBlender de team building avec le défi CoPuzzle'}
           width={1227}
           height={768}
           className="landing-preview-modal__image"

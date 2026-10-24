@@ -77,7 +77,7 @@ async function testCrossBridge(locale, width, disableWebgl, templateId = 'pont_c
         }
       }
     }
-    assert.equal(await next.isDisabled(), true);
+    assert.equal(await navigation.locator('select').inputValue(), String(usedLayers.at(-1)));
     assert.deepEqual(renderedKeys, serverKeys, 'Every frontend target must match server evaluation');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal overflow');
 

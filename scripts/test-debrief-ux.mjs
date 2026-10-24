@@ -51,7 +51,10 @@ const escape = {
 const cases = [
   ['phrase_collaborative_v1', { phrase }, { phrase, summary }],
   ['copuzzle_live_v1', { puzzle: { pieces } }, { puzzle: { pieces }, summary }],
-  ['pixel_architect_v1', { pixel }, { pixel: { ...pixel, phase: 'debrief' }, summary }],
+  ['pixel_architect_v1', { pixel }, {
+    pixel: { ...pixel, phase: 'debrief' },
+    summary: { ...summary, pixel_metrics: { matched_count: 8, missing_count: 2, extra_count: 1, used_colors: 3 } },
+  }],
   ['lab_d_innovation_v1', { labInnovation: lab }, { labInnovation: { ...lab, phase: 'final_vote' }, summary }],
   ['labyrinthe_live_v1', { labyrinthe: maze }, { labyrinthe: { ...maze, phase: 'done', result: { status: 'success' }, winner_participant_id: '1' } }],
   ['mission_critique_v1', { mission }, { mission: { ...mission, result, collective_result: result }, summary }],
@@ -60,7 +63,7 @@ const cases = [
   ['escape_room_v1', {}, {}],
 ].filter(([engineKey]) => !process.argv.includes('--escape-only') || engineKey === 'escape_room_v1');
 
-async function assertMetricStyle(value) {
+async function assertMetricStyle(value, { minSize = 22, maxSize = Number.POSITIVE_INFINITY } = {}) {
   const style = await value.evaluate((node) => {
     const parse = (color) => color.match(/[\d.]+/g).map(Number);
     const ancestors = [];
@@ -85,7 +88,7 @@ async function assertMetricStyle(value) {
       contrast: (Math.max(foregroundLuminance, backgroundLuminance) + 0.05) / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05),
     };
   });
-  assert.ok(style.size >= 22, 'Small performance value');
+  assert.ok(style.size >= minSize && style.size <= maxSize, `Unexpected performance value size: ${JSON.stringify(style)}`);
   assert.ok(style.contrast >= 4.5, `Performance value contrast below 4.5: ${JSON.stringify(style)}`);
 }
 
@@ -157,8 +160,13 @@ try {
               await content.getByRole('region', { name: locale === 'en' ? 'Team debrief' : 'Débrief en équipe' }).waitFor();
             }
             assert.ok(!/\p{Extended_Pictographic}/u.test(await content.innerText()), 'Decorative emoji in debrief analysis');
+            if (engineKey === 'pixel_architect_v1') {
+              const pixelMetrics = content.locator('[data-pixel-debrief="true"]');
+              assert.equal(await pixelMetrics.locator('p').count(), 8, 'Pixel Architect should show all eight summary metrics');
+              assert.equal(await pixelMetrics.locator('p span').count(), 8, 'Pixel Architect metrics should have compact labels');
+            }
             for (const value of await content.locator('[data-debrief-metrics] strong').all()) {
-              await assertMetricStyle(value);
+              await assertMetricStyle(value, engineKey === 'pixel_architect_v1' ? { minSize: 14, maxSize: 18 } : undefined);
             }
             assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Horizontal overflow');
             assert.deepEqual(errors, [], 'Runtime errors');

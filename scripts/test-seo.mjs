@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { buildPageMetadata, getLanguageAlternates, PRIVATE_SEO_PATHS, PUBLIC_PAGE_COPY, PUBLIC_SEO_PATHS } from '../lib/seo.js';
 import { getPublicStructuredData } from '../lib/structuredData.js';
-import { TEAM_BUILDING_CONTENT } from '../lib/teamBuildingContent.js';
+import { HOME_FAQ_BY_LOCALE, TEAM_BUILDING_CONTENT } from '../lib/teamBuildingContent.js';
 import { getTeamBuildingGuide } from '../lib/teamBuildingGuides.js';
 import { withLocalePath } from '../lib/i18n/routing.js';
 
@@ -26,10 +26,24 @@ try {
       assert.equal(new Set(copy.keywords).size, copy.keywords.length);
       assert.ok(copy.keywords.every((keyword) => typeof keyword === 'string' && keyword.trim()));
       assert.equal(metadata.keywords, undefined, 'Do not use the obsolete meta keywords tag');
+      if (path === '/') {
+        assert.ok(copy.title.length <= 60, `Homepage title exceeds 60 characters for ${locale}`);
+        assert.ok(copy.description.length >= 150 && copy.description.length <= 160, `Homepage description length is out of range for ${locale}`);
+      }
 
       const data = getPublicStructuredData(path, locale);
       const webpage = data['@graph'].find((node) => ['WebPage', 'ContactPage'].includes(node['@type']));
       assert.deepEqual(webpage.keywords, copy.keywords);
+      const homepageFaq = data['@graph'].find((node) => node['@type'] === 'FAQPage');
+      if (path === '/') {
+        assert.equal(homepageFaq.mainEntity.length, HOME_FAQ_BY_LOCALE[locale].items.length);
+        assert.deepEqual(
+          homepageFaq.mainEntity.map(({ name, acceptedAnswer }) => ({ question: name, answer: acceptedAnswer.text })),
+          HOME_FAQ_BY_LOCALE[locale].items.map(({ question, answer }) => ({ question, answer }))
+        );
+      } else {
+        assert.equal(homepageFaq, undefined);
+      }
       const article = data['@graph'].find((node) => node['@type'] === 'Article');
       const guide = path === '/team-building' ? TEAM_BUILDING_CONTENT[locale]
         : getTeamBuildingGuide(path.replace('/team-building/', ''), locale);
@@ -110,6 +124,15 @@ if (process.argv.includes('--http')) {
           assert.equal(await page.locator('#related-guides + ul a').count(), 3);
         } else {
           assert.equal(article, undefined);
+        }
+        if (path === '/') {
+          const faq = nodes.find((node) => node['@type'] === 'FAQPage');
+          assert.equal(await page.locator('main details').count(), faq.mainEntity.length);
+          for (const [index, question] of faq.mainEntity.entries()) {
+            const details = page.locator('main details').nth(index);
+            assert.equal(await details.locator('summary').innerText(), question.name);
+            assert.equal(await details.locator('p').innerText(), question.acceptedAnswer.text);
+          }
         }
       }
     }

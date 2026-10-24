@@ -96,8 +96,10 @@ export default function LandingHero({
             >
               <figure className="landing-hero-product-frame landing-hero-product-frame--interactive">
                 <Image
-                  src="/images/teamblender-live-session.png"
-                  alt="Aperçu d’une session TeamBlender avec le défi CoPuzzle"
+                  src="/images/teamblender-live-session.webp"
+                  alt={locale === 'en'
+                    ? 'TeamBlender team building interface preview featuring the CoPuzzle challenge'
+                    : 'Aperçu de l’interface TeamBlender pour le défi de team building collaboratif CoPuzzle'}
                   width={1227}
                   height={768}
                   priority

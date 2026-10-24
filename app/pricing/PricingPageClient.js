@@ -279,7 +279,7 @@ function getDarkModeHeadingStyle() {
 }
 
 export default function PricingPageClient({ initialPlans = [] }) {
-  const { locale, withLocalePath } = useI18n();
+  const { locale, t, withLocalePath } = useI18n();
   const isEn = locale === 'en';
   const [plans, setPlans] = useState(initialPlans);
   const [loading, setLoading] = useState(initialPlans.length === 0);
@@ -421,7 +421,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
               </div>
 
               <div className="control-section pricing-controls__currency">
-                <label htmlFor="pricing-currency" style={getDarkModeTextStyle()}>{isEn ? 'Display currency' : 'Devise affichée'}</label>
+                <label htmlFor="pricing-currency" style={getDarkModeTextStyle()}>{t('account.displayCurrency')}</label>
                 <select
                   id="pricing-currency"
                   className="currency-select currency-select--compact"
