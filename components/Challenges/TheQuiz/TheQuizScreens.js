@@ -99,7 +99,6 @@ export function QuizQuestionScreen({
     <section className={styles.screenCard}>
       <div className={styles.screenHeader}>
         <div className={styles.questionHeadline}>
-          <p className={styles.kicker}>{isEn ? 'Live question' : 'Question live'}</p>
           <h2 className={styles.screenTitle}>{question.title}</h2>
         </div>
         <span className={styles.phaseBadge}>{question.category}</span>
@@ -221,7 +220,7 @@ export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerI
       <div className={styles.screenHeader}>
         <div>
           <p className={styles.kicker}>{isEn ? 'Question result' : 'Résultat question'}</p>
-          <h2 className={styles.screenTitle}>{isEn ? 'Reveal of the correct answer and short debrief' : 'Reveal de la bonne réponse et micro-débrief'}</h2>
+          <h2 className={styles.screenTitle}>{currentQuestion.title}</h2>
         </div>
       </div>
 
