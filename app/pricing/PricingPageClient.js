@@ -279,7 +279,7 @@ function getDarkModeHeadingStyle() {
 }
 
 export default function PricingPageClient({ initialPlans = [] }) {
-  const { locale, withLocalePath } = useI18n();
+  const { locale, t, withLocalePath } = useI18n();
   const isEn = locale === 'en';
   const [plans, setPlans] = useState(initialPlans);
   const [loading, setLoading] = useState(initialPlans.length === 0);
@@ -421,7 +421,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
               </div>
 
               <div className="control-section pricing-controls__currency">
-                <label htmlFor="pricing-currency" style={getDarkModeTextStyle()}>{isEn ? 'Currency' : 'Devise'}</label>
+                <label htmlFor="pricing-currency" style={getDarkModeTextStyle()}>{t('account.displayCurrency')}</label>
                 <select
                   id="pricing-currency"
                   className="currency-select currency-select--compact"
@@ -700,7 +700,14 @@ export default function PricingPageClient({ initialPlans = [] }) {
           color: #334155;
           font-size: 0.9rem;
           font-weight: 600;
+          cursor: pointer;
           transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+        }
+
+        .pricing-page .toggle-btn:focus-visible,
+        .pricing-page .currency-select:focus-visible {
+          outline: 3px solid color-mix(in srgb, var(--accent) 58%, transparent);
+          outline-offset: 3px;
         }
 
         .pricing-page .toggle-btn.active {
@@ -1106,21 +1113,43 @@ export default function PricingPageClient({ initialPlans = [] }) {
             padding: 1rem 0;
           }
 
-          .pricing-page .pricing-controls__row,
           .pricing-page .pricing-footer-cta__inner {
             padding: 1rem;
             border-radius: 18px;
           }
 
           .pricing-page .pricing-controls__row {
-            align-items: center;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 18px;
           }
 
-          .pricing-page .control-section {
-            align-items: center;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 0.55rem;
+          .pricing-page .pricing-controls__toggle {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0.5rem;
+            width: 100%;
+          }
+
+          .pricing-page .toggle-group--compact {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            width: 100%;
+          }
+
+          .pricing-page .toggle-btn {
+            justify-content: center;
+            min-width: 0;
+            padding-inline: 0.5rem;
+          }
+
+          .pricing-page .pricing-controls__currency {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 0.75rem;
           }
 
           .pricing-page .pricing-controls__label,
@@ -1128,8 +1157,8 @@ export default function PricingPageClient({ initialPlans = [] }) {
             font-size: 0.68rem;
           }
 
-          .pricing-page .pricing-controls__currency {
-            width: auto;
+          .pricing-page .currency-select {
+            min-width: 6rem;
           }
 
           .pricing-page .pricing-card {

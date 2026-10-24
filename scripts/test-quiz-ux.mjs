@@ -22,6 +22,7 @@ try {
       const dictionary = locale === 'fr' ? fr : en;
       const fixture = await createRealtimeFixture(browser, {
         baseUrl, locale, role: 'participant', engineKey, state: { quiz: baseQuiz, config: {} },
+        theme: (locale === 'fr') === (width === 1440) ? 'light' : 'dark',
         viewport: { width, height: 1000 },
       });
       try {
@@ -31,6 +32,7 @@ try {
         await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
         await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
         await page.getByRole('heading', { name: question.question, exact: true }).waitFor();
+        assert.equal(await page.getByText(locale === 'fr' ? 'Question live' : 'Live question', { exact: true }).count(), 0);
         const submit = page.getByRole('button', { name: locale === 'fr' ? 'Valider ma réponse' : 'Submit my answer', exact: true });
         const answers = page.getByRole('radio');
         const submissions = () => fixture.receivedEvents.filter((event) => event.type === 'quiz.answer.submit');
@@ -43,6 +45,21 @@ try {
         await answers.nth(1).focus();
         await answers.nth(1).press('Enter');
         assert.equal(await answers.nth(1).getAttribute('aria-checked'), 'true');
+        const selectedBadge = page.getByText(locale === 'fr' ? 'Sélectionnée' : 'Selected', { exact: true });
+        await selectedBadge.waitFor();
+        const selectedBadgeColors = await selectedBadge.evaluate((node) => {
+          const luminance = (color) => {
+            const channels = color.match(/[\d.]+/g).slice(0, 3).map((value) => {
+              const normalized = Number(value) / 255;
+              return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+            });
+            return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+          };
+          const style = getComputedStyle(node);
+          return [luminance(style.color), luminance(style.backgroundColor)];
+        });
+        const selectedBadgeContrast = (Math.max(...selectedBadgeColors) + 0.05) / (Math.min(...selectedBadgeColors) + 0.05);
+        assert.ok(selectedBadgeContrast >= 4.5, `Selected badge contrast: ${selectedBadgeContrast}`);
         assert.ok(await submit.isEnabled());
         assert.deepEqual(submissions(), []);
 
@@ -90,8 +107,19 @@ try {
           ...baseQuiz, phase: 'question_result', current_question: questionTwo,
           latest_question_result: { question_id: 'q2', question: questionTwo, correct_choice_index: null },
         } });
+        assert.equal(await page.getByRole('heading', { name: locale === 'fr' ? 'Reveal de la bonne réponse et micro-débrief' : 'Reveal of the correct answer and short debrief', exact: true }).count(), 0);
+        await page.getByRole('heading', { name: questionTwo.question, exact: true }).waitFor();
         await page.getByText(locale === 'fr' ? 'Aucune réponse envoyée' : 'No answer submitted', { exact: true }).waitFor();
         assert.equal(await page.getByText(/Bonne réponse: A\.|Correct answer: A\./).count(), 0);
+        const highlightPanel = page.locator('[class*="highlightPanel"]');
+        const answerRevealCard = page.locator('[class*="answerRevealCard"]');
+        assert.equal(await answerRevealCard.evaluate((node) => getComputedStyle(node).borderTopWidth), '0px', 'Correct answer should not have a second frame');
+        assert.notEqual(await highlightPanel.evaluate((node) => getComputedStyle(node).borderTopWidth), '0px', 'Keep a single frame around the answer');
+        fixture.broadcast('quiz.state', { quiz: {
+          ...baseQuiz, phase: 'question_result', current_question: questionTwo,
+          latest_question_result: { question_id: 'q2', question: questionTwo, correct_choice_index: 1 },
+        } });
+        await page.getByText('B. Green', { exact: true }).waitFor();
         assert.equal(await page.locator('[class*="leaderboardCard"]').count(), 0);
         await page.getByText(locale === 'fr' ? 'Classement en attente : aucun score reçu pour le moment.' : 'Leaderboard pending: no scores received yet.', { exact: true }).first().waitFor();
 

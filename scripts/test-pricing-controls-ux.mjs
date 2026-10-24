@@ -92,7 +92,7 @@ try {
         assert.equal(await annual.getAttribute('aria-pressed'), 'true');
         assert.equal(await monthly.getAttribute('aria-pressed'), 'false');
         assert.match(await page.locator('.pricing-price').textContent(), /3744 DH\s*\/(an|year)/);
-        const currency = page.getByRole('combobox', { name: locale === 'en' ? 'Currency' : 'Devise', exact: true });
+        const currency = page.getByRole('combobox', { name: locale === 'en' ? 'Display currency' : 'Devise affichée', exact: true });
         await currency.selectOption('EUR');
         assert.match(await page.locator('.pricing-price').textContent(), /344 €/);
         await monthly.click();
