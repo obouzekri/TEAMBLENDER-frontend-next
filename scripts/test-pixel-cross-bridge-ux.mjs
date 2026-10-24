@@ -51,14 +51,12 @@ async function testCrossBridge(locale, width, disableWebgl, templateId = 'pont_c
     assert.equal(await layers.count(), usedLayers.length);
     assert.equal(await navigation.locator('option').count(), usedLayers.length);
     assert.equal(await navigation.locator('option').last().getAttribute('value'), templateId === 'pont_croise' ? '4' : '3');
+    assert.equal(await navigation.getByRole('button').count(), 0, 'Layer navigation uses the selector only');
     assert.equal(serverKeys.size, expectedCount);
     const renderedKeys = new Set();
-    const previous = navigation.getByRole('button', { name: locale === 'en' ? 'Previous layer' : 'Couche précédente' });
-    const next = navigation.getByRole('button', { name: locale === 'en' ? 'Next layer' : 'Couche suivante' });
-    assert.equal(await previous.isDisabled(), true);
-    await next.click();
+    await navigation.locator('select').selectOption(String(usedLayers[1]));
     assert.equal(await navigation.locator('select').inputValue(), String(usedLayers[1]));
-    await previous.click();
+    await navigation.locator('select').selectOption(String(usedLayers[0]));
     assert.equal(await navigation.locator('select').inputValue(), String(usedLayers[0]));
 
     for (const [index, y] of usedLayers.entries()) {
@@ -132,7 +130,7 @@ async function testCrossBridge(locale, width, disableWebgl, templateId = 'pont_c
     rebuildPixelCounters(pixel);
     fixture.replaceState({ config, timer, pixel });
     await navigation.locator(`option[value="${extraLayer}"]`).waitFor({ state: 'attached' });
-    await next.click();
+    await navigation.locator('select').selectOption(String(extraLayer));
     assert.equal(await navigation.locator('select').inputValue(), String(extraLayer));
     await layers.last().getByRole('button', { name: /x1 z1,/ }).click();
     const removalDeadline = Date.now() + 5000;

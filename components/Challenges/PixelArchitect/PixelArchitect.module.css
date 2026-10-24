@@ -687,29 +687,29 @@
 .layerNavigation {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   margin: 12px 0;
 }
 
 .activeLayerControl {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(120px, auto) auto;
   align-items: center;
-  gap: 4px 12px;
-  padding: 10px 14px;
+  gap: 10px;
+  padding: 12px 16px;
   border: 1px solid var(--ch-accent);
-  border-radius: 14px;
-  background: var(--ch-surface-2);
+  border-radius: 16px;
+  background: linear-gradient(145deg, var(--ch-surface-2), var(--ch-surface-1));
+  box-shadow: 0 8px 20px rgba(2, 9, 16, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .activeLayerLabel {
-  grid-column: 1 / -1;
   color: var(--ch-text-soft);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 .activeLayerCount {
@@ -741,15 +741,14 @@
 }
 
 @media (max-width: 640px) {
-  .layerNavigation {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .activeLayerControl {
+    width: min(100%, 360px);
+    box-sizing: border-box;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .activeLayerControl {
+  .activeLayerLabel {
     grid-column: 1 / -1;
-    grid-row: 1;
-    justify-self: center;
   }
 
   .layerQuickCard[data-active-layer='false'] {
@@ -897,7 +896,7 @@
 
 .viewport3dCompact {
   width: 100%;
-  height: 220px;
+  height: 360px;
 }
 
 .modelLayerList {
@@ -1274,7 +1273,7 @@
   }
 
   .viewport3dCompact {
-    height: 200px;
+    height: 340px;
   }
 
   .modelMiniStats {
@@ -1413,7 +1412,7 @@
   }
 
   .viewport3dCompact {
-    height: 180px;
+    height: 320px;
   }
 
   .paletteRow {
