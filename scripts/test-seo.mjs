@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildPageMetadata, getLanguageAlternates, PRIVATE_SEO_PATHS, PUBLIC_PAGE_COPY, PUBLIC_SEO_PATHS } from '../lib/seo.js';
+import { buildPageMetadata, getLanguageAlternates, getRobotsDisallowPaths, getRobotsRules, PRIVATE_SEO_PATHS, PUBLIC_PAGE_COPY, PUBLIC_SEO_PATHS } from '../lib/seo.js';
 import { getPublicStructuredData } from '../lib/structuredData.js';
 import { HOME_FAQ_BY_LOCALE, TEAM_BUILDING_CONTENT } from '../lib/teamBuildingContent.js';
 import { getTeamBuildingGuide } from '../lib/teamBuildingGuides.js';
@@ -8,6 +8,12 @@ import { withLocalePath } from '../lib/i18n/routing.js';
 const previousEnvironment = process.env.VERCEL_ENV;
 try {
   process.env.VERCEL_ENV = 'production';
+  const productionRobotsRules = getRobotsRules();
+  assert.deepEqual(productionRobotsRules.map(({ userAgent }) => userAgent), ['*', 'GPTBot', 'PerplexityBot', 'ClaudeBot', 'Google-Extended']);
+  for (const rule of productionRobotsRules) {
+    assert.equal(rule.allow, '/');
+    assert.deepEqual(rule.disallow, getRobotsDisallowPaths());
+  }
   for (const locale of ['fr', 'en']) {
     const titles = new Set();
     const descriptions = new Set();
@@ -72,6 +78,12 @@ try {
   assert.equal(getTeamBuildingGuide('unknown', 'fr'), null);
 
   process.env.VERCEL_ENV = 'preview';
+  const previewRobotsRules = getRobotsRules();
+  assert.deepEqual(previewRobotsRules.map(({ userAgent }) => userAgent), ['*', 'GPTBot', 'PerplexityBot', 'ClaudeBot', 'Google-Extended']);
+  for (const rule of previewRobotsRules) {
+    assert.equal(rule.allow, undefined);
+    assert.equal(rule.disallow, '/');
+  }
   for (const locale of ['fr', 'en']) {
     for (const path of PUBLIC_SEO_PATHS) {
       assert.equal(buildPageMetadata(path, locale).robots.index, false);
