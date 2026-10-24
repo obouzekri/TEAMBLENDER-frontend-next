@@ -397,13 +397,16 @@ async function testPixel(locale, width, disableWebgl, role = 'participant') {
   const layers = page.locator('[data-active-layer]');
   const layerCount = await layers.count();
   assert.ok(layerCount >= 2);
+  assert.equal(await navigation.getByRole('button').count(), 0, 'Layer navigation uses the selector only');
   const visibleCount = async () => {
     let count = 0;
     for (const card of await layers.all()) if (await card.isVisible()) count += 1;
     return count;
   };
   assert.equal(await visibleCount(), width < 640 ? 1 : layerCount);
-  await navigation.getByRole('button', { name: locale === 'en' ? 'Next layer' : 'Couche suivante', exact: true }).click();
+  const viewportHeight = await page.locator('[class*="viewport3dCompact"]').evaluate((node) => Number.parseFloat(getComputedStyle(node).height));
+  assert.ok(viewportHeight >= (width < 640 ? 320 : width < 980 ? 340 : 360), 'The 3D construction view has enough height');
+  await navigation.locator('select').selectOption('1');
   assert.equal(await navigation.locator('select').inputValue(), '1');
   if (width < 640) assert.ok(await layers.nth(1).isVisible());
   await navigation.locator('select').selectOption('0');

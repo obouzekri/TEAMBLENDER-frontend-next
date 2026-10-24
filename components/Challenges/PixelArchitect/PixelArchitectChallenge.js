@@ -1239,7 +1239,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 </div>
 
                 <div className={styles.layerNavigation} role="group" aria-label={isEn ? 'Layer navigation' : 'Navigation des couches'}>
-                  <button type="button" className={styles.btnSecondary} disabled={activeLayerIndex === 0} onClick={() => setActiveLayer(layers[activeLayerIndex - 1])}>{isEn ? 'Previous layer' : 'Couche précédente'}</button>
                   <label className={styles.activeLayerControl}>
                     <span className={styles.activeLayerLabel}>{isEn ? 'Active layer' : 'Couche active'}</span>
                     <select value={safeLayer} onChange={(event) => setActiveLayer(Number(event.target.value))}>
@@ -1249,7 +1248,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                       {activeLayerIndex + 1} / {layers.length}
                     </span>
                   </label>
-                  <button type="button" className={styles.btnSecondary} disabled={activeLayerIndex === layers.length - 1} onClick={() => setActiveLayer(layers[activeLayerIndex + 1])}>{isEn ? 'Next layer' : 'Couche suivante'}</button>
                 </div>
                 <div className={styles.layerQuickList}>
                   {liveLayerBoards.map(({ layer, rows }) => {
@@ -1417,7 +1415,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 {isFacilitator
                   ? (isEn
                     ? '3D observer view of team construction.'
-                    : 'Vue 3D d observation de la construction equipe.')
+                    : 'Vue 3D d’observation de la construction de l’équipe.')
                   : (isEn
                     ? '3D team build view. Drag to orbit, click cubes to remove.'
                     : 'Vue 3D equipe. Glissez pour orbiter, cliquez les cubes pour retirer.')}
