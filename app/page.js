@@ -460,8 +460,6 @@ export default function HomePage() {
           onSecondaryCtaClick={handleFinalSecondaryCtaClick}
         />
 
-        <LandingFaq locale={locale} faq={HOME_FAQ_BY_LOCALE[locale]} />
-
         <LandingPreviewModal
           locale={locale}
           isOpen={isPreviewExpanded}
