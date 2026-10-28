@@ -20,7 +20,8 @@ export default function TopNav({ compact = false }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
   const { locale, t, withLocalePath } = useI18n();
-  const participantLabel = locale === 'fr' && isLandingHome ? 'Participer' : t('nav.participant');
+  const landingParticipantLabel = locale === 'fr' ? 'Participer' : 'Join';
+  const participantLabel = isLandingHome ? landingParticipantLabel : t('nav.participant');
   const isActive = (href) => (href === '/' ? plainPathname === '/' : plainPathname?.startsWith(href));
 
   useEffect(() => {

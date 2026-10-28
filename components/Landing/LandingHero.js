@@ -2,14 +2,11 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Activity, BarChart3, Sparkles, Users } from 'lucide-react';
-import GamifiedIcon from './GamifiedIcon';
+import { ArrowRight, Activity, BarChart3, Users } from 'lucide-react';
 import { CHIP_CLASS, PILL_CLASS } from './landingStyles';
 
 export default function LandingHero({
   locale,
-  t,
-  heroMain,
   structuredHeroTitle,
   heroDescription,
   heroEyebrow,
@@ -19,7 +16,6 @@ export default function LandingHero({
   heroPrimaryLabel,
   heroSecondaryHref,
   heroSecondaryLabel,
-  heroTrustBadges,
   heroImageB,
   fallback,
   onOpenPreview,
@@ -33,21 +29,15 @@ export default function LandingHero({
       <div className="landing-hero-aurora pointer-events-none absolute inset-0" />
       <div className="landing-hero-inner relative grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
         <div className="landing-hero-copy max-w-3xl">
-          {locale === 'fr' ? <p className="eyebrow landing-section-eyebrow">{heroEyebrow}</p> : null}
+          <p className="eyebrow landing-section-eyebrow">{heroEyebrow}</p>
           <h1 className="landing-hero-title max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
             <span className="block">{structuredHeroTitle}</span>
-            {locale !== 'fr' && heroMain.subtitle ? <span className="landing-hero-subtitle mt-2 block bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-700 bg-clip-text text-transparent">{heroMain.subtitle}</span> : null}
           </h1>
 
           <p className="landing-hero-description mt-5 max-w-2xl text-base leading-7 sm:text-lg">
             {heroDescription}
           </p>
 
-          {locale !== 'fr' ? (
-            <p className="landing-hero-keyline mt-3 max-w-2xl text-sm font-semibold tracking-wide sm:text-base">
-              {t('landing.heroKeyline')}
-            </p>
-          ) : null}
           <div className="landing-hero-actions mt-6 flex flex-wrap gap-3">
             <Link
               href={heroPrimaryHref}
@@ -65,27 +55,13 @@ export default function LandingHero({
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
           </div>
-          {locale === 'fr' ? <p className="mt-3 text-sm text-slate-300">{heroMicrocopy}</p> : null}
-
-          {locale !== 'fr' && heroTrustBadges.length > 0 ? (
-            <ul className="landing-hero-trust mt-6" aria-label={locale === 'en' ? 'Trust points' : 'Points de confiance'}>
-              {heroTrustBadges.map(({ title, Icon }, index) => (
-                <li key={`hero-trust-${index}-${title}`} className="landing-hero-trust-item">
-                  <span className="landing-hero-trust-icon" aria-hidden="true">
-                    <GamifiedIcon Icon={Icon} index={index} size="xs" />
-                  </span>
-                  <span>{title}</span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          <p className="mt-3 text-sm text-slate-300">{heroMicrocopy}</p>
         </div>
 
         <div className="landing-hero-product-shell relative lg:translate-x-8 xl:translate-x-14">
           <div className="landing-hero-product-wrap">
             <div className="landing-hero-product-head">
               <div>
-                {locale !== 'fr' ? <p className="landing-hero-product-label">{fallback.productPreview}</p> : null}
                 <p className="landing-hero-product-title">{fallback.liveExperience}</p>
               </div>
               <div className="landing-hero-product-live">
@@ -104,7 +80,7 @@ export default function LandingHero({
                 <Image
                   src="/images/teamblender-live-session.webp"
                   alt={locale === 'en'
-                    ? 'TeamBlender team building interface preview featuring the CoPuzzle challenge'
+                    ? 'Hybrid team collaborating live on TeamBlender to strengthen team cohesion'
                     : "Équipe hybride en pleine activité collaborative sur TeamBlender pour renforcer la cohésion d'équipe"}
                   width={1227}
                   height={768}

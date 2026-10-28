@@ -41,9 +41,7 @@ export default function LandingFlowSteps({ locale, flowHeader, flowStepsWithIcon
                 <span className="landing-flow-card-title-icon" aria-hidden="true">
                   <GamifiedIcon Icon={step.Icon} index={index} size="sm" />
                 </span>
-                {locale === 'fr'
-                  ? <h3 className="text-lg font-semibold tracking-tight">{step.title}</h3>
-                  : <h2 className="text-lg font-semibold tracking-tight">{step.title}</h2>}
+                <h3 className="text-lg font-semibold tracking-tight">{step.title}</h3>
               </div>
               <p className="mt-2 text-sm leading-6">{step.description}</p>
             </article>

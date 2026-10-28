@@ -12,15 +12,10 @@ export default function LandingChallengesShowcase({ locale, challengeExamples })
       <div className="landing-section-inner relative">
         <div className="landing-challenges-head landing-section-heading">
           <div>
-            <p className="eyebrow landing-section-eyebrow">{locale === 'en' ? 'Challenge library' : 'Défis en équipe'}</p>
+            <p className="eyebrow landing-section-eyebrow">{locale === 'en' ? 'Team challenges' : 'Défis en équipe'}</p>
             <h2 className="landing-section-title text-white">
-              {locale === 'en' ? 'Explore interactive challenge formats' : 'Plusieurs défis pour se retrouver'}
+              {locale === 'en' ? 'Several challenges to bring people together' : 'Plusieurs défis pour se retrouver'}
             </h2>
-            {locale !== 'fr' ? <p className="landing-challenges-subtitle">
-              {locale === 'en'
-                ? 'Short, structured formats designed for every team objective.'
-                : 'Des formats courts, structurés et adaptés à tous vos enjeux d’équipe.'}
-            </p> : null}
           </div>
         </div>
 
@@ -41,7 +36,9 @@ export default function LandingChallengesShowcase({ locale, challengeExamples })
             </article>
           ))}
         </div>
-        {locale === 'fr' ? <p className="landing-challenges-subtitle mt-6">Et bien d'autres défis à découvrir.</p> : null}
+        <p className="landing-challenges-subtitle mt-6">
+          {locale === 'en' ? 'And many more challenges to discover.' : "Et bien d'autres défis à découvrir."}
+        </p>
       </div>
     </section>
   );
