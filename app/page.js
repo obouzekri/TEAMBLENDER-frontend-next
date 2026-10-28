@@ -29,6 +29,7 @@ import LandingHero from '@/components/Landing/LandingHero';
 import LandingImpactBand from '@/components/Landing/LandingImpactBand';
 import LandingSocialProof from '@/components/Landing/LandingSocialProof';
 import LandingPlatformOffer from '@/components/Landing/LandingPlatformOffer';
+import LandingAudience from '@/components/Landing/LandingAudience';
 import LandingChallengesShowcase from '@/components/Landing/LandingChallengesShowcase';
 import LandingSessionOutcomes from '@/components/Landing/LandingSessionOutcomes';
 import LandingFlowSteps from '@/components/Landing/LandingFlowSteps';
@@ -433,6 +434,8 @@ export default function HomePage() {
           platformBenefitsItems={PLATFORM_BENEFITS_ITEMS}
         />
 
+        {locale === 'fr' ? <LandingAudience fallback={landingStatic.fallback} /> : null}
+
         <LandingChallengesShowcase locale={locale} challengeExamples={challengeExamples} />
 
         {locale === 'fr' ? (
@@ -447,7 +450,12 @@ export default function HomePage() {
           </>
         )}
 
-        <LandingFaq locale={locale} faq={HOME_FAQ_BY_LOCALE[locale]} />
+        <LandingFaq
+          locale={locale}
+          faq={HOME_FAQ_BY_LOCALE[locale]}
+          eyebrow={landingStatic.fallback.faqEyebrow}
+          intro={landingStatic.fallback.faqIntro}
+        />
 
         <LandingFinalCta
           locale={locale}

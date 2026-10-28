@@ -12,11 +12,12 @@ export default function LandingPlatformOffer({ locale, fallback, platformOfferIt
         <div className="landing-section-rupture landing-section-rupture--accent" />
         <div className="landing-section-inner relative">
           <div className="panel-head landing-offer-head landing-offer-head--center landing-section-heading">
+            <p className="eyebrow landing-section-eyebrow">{fallback.benefitsEyebrow}</p>
             <h2 id="landing-platform-benefits-title" className="landing-section-title">
               {fallback.benefitsTitle}
             </h2>
           </div>
-          <div className="landing-benefits-grid" aria-label={fallback.benefitsTitle}>
+          <div className="landing-benefits-grid landing-benefits-grid--open" aria-label={fallback.benefitsTitle}>
             {platformBenefitsItems.map((item, index) => {
               const Icon = item.icon;
               return (
@@ -34,20 +35,6 @@ export default function LandingPlatformOffer({ locale, fallback, platformOfferIt
                 </article>
               );
             })}
-          </div>
-
-          <div className="panel-head landing-offer-head landing-offer-head--center landing-section-heading mt-12">
-            <h2 className="landing-section-title">{fallback.audienceTitle}</h2>
-          </div>
-          <div className="landing-benefits-grid" aria-label={fallback.audienceTitle}>
-            <article className="landing-benefits-grid__item landing-benefits-grid__item--1">
-              <h3>{fallback.hrTitle}</h3>
-              <p>{fallback.hrDescription}</p>
-            </article>
-            <article className="landing-benefits-grid__item landing-benefits-grid__item--2">
-              <h3>{fallback.managerTitle}</h3>
-              <p>{fallback.managerDescription}</p>
-            </article>
           </div>
         </div>
       </section>
