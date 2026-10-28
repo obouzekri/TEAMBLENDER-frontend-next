@@ -264,9 +264,6 @@ export default function HomePage() {
   const heroTitle = t('landing.heroTitle');
   const heroDescription = t('landing.heroDescription');
   const heroPrimaryLabel = landingStatic.fallback.heroPrimaryLabel;
-  // TODO: Replace this anchor with a dedicated demo/video URL once available.
-  const heroSecondaryHref = '#challenge-examples';
-  const heroSecondaryLabel = landingStatic.fallback.heroSecondaryLabel;
   const heroPrimaryHref = withLocalePath(safeHref(heroCtaPrimary.cta_href, '/signup'));
   const finalPrimaryLabel = hasCmsValue(finalCta.cta_label) ? finalCta.cta_label : landingStatic.fallback.finalPrimaryLabel;
   const finalPrimaryHref = withLocalePath(safeHref(finalCta.cta_href, '/signup'));
@@ -393,8 +390,6 @@ export default function HomePage() {
           heroEyebrow={landingStatic.fallback.heroEyebrow}
           heroMicrocopy={landingStatic.fallback.heroMicrocopy}
           heroPrimaryHref={heroPrimaryHref}
-          heroSecondaryHref={heroSecondaryHref}
-          heroSecondaryLabel={heroSecondaryLabel}
           onPrimaryCtaClick={handlePrimaryCtaClick}
           heroPrimaryLabel={heroPrimaryLabel}
           heroImageB={heroImageB}
