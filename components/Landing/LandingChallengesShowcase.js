@@ -6,25 +6,25 @@ export default function LandingChallengesShowcase({ locale, challengeExamples })
       id="challenge-examples"
       className="landing-challenges-section landing-section-full relative overflow-hidden p-6 sm:p-10"
       style={{ '--reveal-delay': '150ms' }}
-      aria-label={locale === 'en' ? 'Challenge examples' : 'Exemples de défis'}
+      aria-label={locale === 'en' ? 'Challenge examples' : 'Défis collaboratifs'}
     >
       <div className="landing-section-rupture landing-section-rupture--accent" />
       <div className="landing-section-inner relative">
         <div className="landing-challenges-head landing-section-heading">
           <div>
-            <p className="eyebrow landing-section-eyebrow">{locale === 'en' ? 'Challenge library' : 'Bibliothèque de défis'}</p>
+            <p className="eyebrow landing-section-eyebrow">{locale === 'en' ? 'Challenge library' : 'Défis en équipe'}</p>
             <h2 className="landing-section-title text-white">
-              {locale === 'en' ? 'Explore interactive challenge formats' : 'Exemples de défis prêts à l’emploi'}
+              {locale === 'en' ? 'Explore interactive challenge formats' : 'Plusieurs défis pour se retrouver'}
             </h2>
-            <p className="landing-challenges-subtitle">
+            {locale !== 'fr' ? <p className="landing-challenges-subtitle">
               {locale === 'en'
                 ? 'Short, structured formats designed for every team objective.'
                 : 'Des formats courts, structurés et adaptés à tous vos enjeux d’équipe.'}
-            </p>
+            </p> : null}
           </div>
         </div>
 
-        <div className="landing-challenges-grid" role="list" aria-label={locale === 'en' ? 'Challenge examples' : 'Exemples de défis'}>
+        <div className="landing-challenges-grid" role="list" aria-label={locale === 'en' ? 'Challenge examples' : 'Défis collaboratifs'}>
           {challengeExamples.map(({ category, duration, title, description, tags, Icon }) => (
             <article key={title} className="landing-challenge-card" role="listitem">
               <div className="landing-challenge-card__topline">
@@ -41,6 +41,7 @@ export default function LandingChallengesShowcase({ locale, challengeExamples })
             </article>
           ))}
         </div>
+        {locale === 'fr' ? <p className="landing-challenges-subtitle mt-6">Et bien d'autres défis à découvrir.</p> : null}
       </div>
     </section>
   );

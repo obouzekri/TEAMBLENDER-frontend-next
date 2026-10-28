@@ -2,9 +2,18 @@
 
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { PILL_CLASS } from './landingStyles';
+import { CHIP_CLASS, PILL_CLASS } from './landingStyles';
 
-export default function LandingFinalCta({ locale, finalCta, fallback, finalPrimaryHref, finalPrimaryLabel }) {
+export default function LandingFinalCta({
+  locale,
+  finalCta,
+  fallback,
+  finalPrimaryHref,
+  finalPrimaryLabel,
+  finalSecondaryHref,
+  finalSecondaryLabel,
+  onSecondaryCtaClick,
+}) {
   return (
     <section className="landing-cta-block landing-final-cta landing-section-full p-8 text-center" style={{ '--reveal-delay': '240ms' }} aria-label={locale === 'en' ? 'Final call to action' : 'Dernier appel à l’action'}>
       <div className="landing-section-inner">
@@ -15,6 +24,12 @@ export default function LandingFinalCta({ locale, finalCta, fallback, finalPrima
             <span>{finalPrimaryLabel}</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
+          {locale === 'fr' ? (
+            <Link href={finalSecondaryHref} onClick={onSecondaryCtaClick} className={`${CHIP_CLASS} landing-cta-secondary-btn group`}>
+              <span>{finalSecondaryLabel}</span>
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </Link>
+          ) : null}
         </div>
       </div>
     </section>

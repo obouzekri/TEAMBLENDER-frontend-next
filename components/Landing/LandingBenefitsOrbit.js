@@ -21,7 +21,7 @@ export default function LandingBenefitsOrbit({ locale, fallback, platformBenefit
           <strong id="landing-benefits-core-title">
             {locale === 'en'
               ? 'Team building that moves your team forward.'
-              : 'Le team building qui fait avancer vos équipes.'}
+              : 'Des moments qui font avancer vos équipes.'}
           </strong>
           <p>
             {locale === 'en'

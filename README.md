@@ -377,6 +377,7 @@ npm run test:smoke:preview
   - `/fr/team-building/hybride`, `/en/team-building/hybride`
   - `/fr/team-building/onboarding`, `/en/team-building/onboarding`
 - Les espaces prives (manager, participant, admin, session live, resume, etc.) sont non indexables via metadonnees et robots.
+- Les URL publiques sans prefixe de langue redirigent en 308 vers leur URL francaise canonique (`/fr/...`); les variantes `/en/...` restent servies comme pages indexables distinctes.
 - En environnement preview Vercel, l'indexation est desactivee (`robots.txt` global + sitemap vide).
 - Un endpoint `llms.txt` est expose (`/llms.txt`) pour aider les outils IA a decouvrir les pages publiques et leur contexte.
 - Des donnees structurees JSON-LD sont servies:

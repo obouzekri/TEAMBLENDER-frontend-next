@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildPageMetadata, getLanguageAlternates, getRobotsDisallowPaths, getRobotsRules, PRIVATE_SEO_PATHS, PUBLIC_PAGE_COPY, PUBLIC_SEO_PATHS } from '../lib/seo.js';
+import { buildPageMetadata, getLanguageAlternates, getPublicSeoRedirectPath, getRobotsDisallowPaths, getRobotsRules, PRIVATE_SEO_PATHS, PUBLIC_PAGE_COPY, PUBLIC_SEO_PATHS } from '../lib/seo.js';
 import { getPublicStructuredData } from '../lib/structuredData.js';
 import { HOME_FAQ_BY_LOCALE, TEAM_BUILDING_CONTENT } from '../lib/teamBuildingContent.js';
 import { getTeamBuildingGuide } from '../lib/teamBuildingGuides.js';
@@ -44,12 +44,27 @@ try {
       assert.equal(metadata.keywords, undefined, 'Do not use the obsolete meta keywords tag');
       if (path === '/') {
         assert.ok(copy.title.length <= 60, `Homepage title exceeds 60 characters for ${locale}`);
-        assert.ok(copy.description.length >= 150 && copy.description.length <= 160, `Homepage description length is out of range for ${locale}`);
+        if (locale === 'fr') {
+          assert.equal(copy.title, "Cohésion d'équipe et team building en ligne | TeamBlender");
+          assert.equal(copy.description, "Renforcez la cohésion d'équipe sur site ou à distance avec des moments collaboratifs de 15 à 30 min. Le complément de vos team buildings.");
+          assert.equal(metadata.openGraph.title, copy.title);
+          assert.equal(metadata.openGraph.description, copy.description);
+          assert.equal(metadata.twitter.title, copy.title);
+          assert.equal(metadata.twitter.description, copy.description);
+        } else {
+          assert.ok(copy.description.length >= 150 && copy.description.length <= 160, `Homepage description length is out of range for ${locale}`);
+        }
       }
 
       const data = getPublicStructuredData(path, locale);
       const webpage = data['@graph'].find((node) => ['WebPage', 'ContactPage'].includes(node['@type']));
-      assert.deepEqual(webpage.keywords, copy.keywords);
+      const expectedKeywords = path === '/' && locale === 'fr'
+        ? copy.keywords.filter((keyword) => !/team[\s\-_]?building/i.test(keyword))
+        : copy.keywords;
+      assert.deepEqual(webpage.keywords, expectedKeywords);
+      if (path === '/' && locale === 'fr') {
+        assert.doesNotMatch(JSON.stringify(data), /team[\s\-_]?building/i);
+      }
       const homepageFaq = data['@graph'].find((node) => node['@type'] === 'FAQPage');
       if (path === '/') {
         assert.equal(homepageFaq.mainEntity.length, HOME_FAQ_BY_LOCALE[locale].items.length);
@@ -82,6 +97,13 @@ try {
       assert.equal(getPublicStructuredData(path, locale), null);
     }
   }
+  assert.equal(getPublicSeoRedirectPath('/'), '/fr');
+  assert.equal(getPublicSeoRedirectPath('/pricing'), '/fr/pricing');
+  assert.equal(getPublicSeoRedirectPath('/team-building/a-distance/'), '/fr/team-building/a-distance');
+  assert.equal(getPublicSeoRedirectPath('/fr/pricing'), null);
+  assert.equal(getPublicSeoRedirectPath('/en/pricing'), null);
+  assert.equal(getPublicSeoRedirectPath('/login'), null);
+  assert.equal(getPublicSeoRedirectPath('/team-building/unknown'), null);
   assert.ok(PUBLIC_PAGE_COPY.fr['/'].keywords.includes('organiser un team building'));
   assert.ok(PUBLIC_PAGE_COPY.fr['/'].keywords.includes('challenge entre équipes'));
   assert.ok(TEAM_BUILDING_CONTENT.fr.faq.some(({ question }) => question.includes('challenges entre équipes')));

@@ -3,6 +3,57 @@
 import LandingBenefitsOrbit from './LandingBenefitsOrbit';
 
 export default function LandingPlatformOffer({ locale, fallback, platformOfferItems, platformBenefitsItems }) {
+  if (locale === 'fr') {
+    return (
+      <section
+        className="landing-section-full landing-offer-section landing-platform-section relative overflow-hidden p-6 sm:p-9"
+        aria-labelledby="landing-platform-benefits-title"
+      >
+        <div className="landing-section-rupture landing-section-rupture--accent" />
+        <div className="landing-section-inner relative">
+          <div className="panel-head landing-offer-head landing-offer-head--center landing-section-heading">
+            <h2 id="landing-platform-benefits-title" className="landing-section-title">
+              {fallback.benefitsTitle}
+            </h2>
+          </div>
+          <div className="landing-benefits-grid" aria-label={fallback.benefitsTitle}>
+            {platformBenefitsItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <article
+                  key={item.label}
+                  className={`landing-benefits-grid__item landing-benefits-grid__item--${index + 1}`}
+                >
+                  <div className="landing-benefits-grid__item-head">
+                    <span className="landing-benefits-grid__icon" aria-hidden="true">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <h3>{item.label}</h3>
+                  </div>
+                  <p>{item.description}</p>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="panel-head landing-offer-head landing-offer-head--center landing-section-heading mt-12">
+            <h2 className="landing-section-title">{fallback.audienceTitle}</h2>
+          </div>
+          <div className="landing-benefits-grid" aria-label={fallback.audienceTitle}>
+            <article className="landing-benefits-grid__item landing-benefits-grid__item--1">
+              <h3>{fallback.hrTitle}</h3>
+              <p>{fallback.hrDescription}</p>
+            </article>
+            <article className="landing-benefits-grid__item landing-benefits-grid__item--2">
+              <h3>{fallback.managerTitle}</h3>
+              <p>{fallback.managerDescription}</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       className="landing-section-full landing-offer-section landing-platform-section relative overflow-hidden p-6 sm:p-9"
