@@ -19,7 +19,8 @@ export default function TopNav({ compact = false }) {
   const isLandingHome = !compact && plainPathname === '/';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
-  const { t, withLocalePath } = useI18n();
+  const { locale, t, withLocalePath } = useI18n();
+  const participantLabel = locale === 'fr' && isLandingHome ? 'Participer' : t('nav.participant');
   const isActive = (href) => (href === '/' ? plainPathname === '/' : plainPathname?.startsWith(href));
 
   useEffect(() => {
@@ -48,7 +49,7 @@ export default function TopNav({ compact = false }) {
   const avatarInitialsResolved = String(resolvedAvatar.avatarInitials || avatarInitials).trim() || avatarInitials;
   const accountHref = sessionUser?.role === 'participant' ? '/participant' : '/account';
   const homeHref = sessionUser?.role === 'participant' ? '/participant' : sessionUser?.role === 'admin' ? '/admin' : '/home';
-  const roleLabel = sessionUser?.role === 'participant' ? t('nav.participant') : sessionUser?.role === 'admin' ? t('nav.admin') : t('nav.manager');
+  const roleLabel = sessionUser?.role === 'participant' ? participantLabel : sessionUser?.role === 'admin' ? t('nav.admin') : t('nav.manager');
   const mobileLoginHref = withLocalePath('/login');
   const mobileJoinHref = withLocalePath('/login?mode=join');
 
@@ -170,7 +171,7 @@ export default function TopNav({ compact = false }) {
               ) : (
                 <>
                   <Link href={mobileJoinHref} className="nav-cta-btn nav-mobile-signup-btn">
-                    {t('nav.participant')}
+                    {participantLabel}
                   </Link>
                   <Link href={mobileLoginHref} className="btn-mini nav-mobile-login-btn nav-mobile-login-btn--outline">
                     {t('nav.login')}
@@ -228,7 +229,7 @@ export default function TopNav({ compact = false }) {
               />
             ) : (
               <>
-                <NavItem href={withLocalePath('/login?mode=join')} className="nav-link--participant-cta" active={isActive('/login')} onClick={() => setIsMenuOpen(false)}>{t('nav.participant')}</NavItem>
+                <NavItem href={withLocalePath('/login?mode=join')} className="nav-link--participant-cta" active={isActive('/login')} onClick={() => setIsMenuOpen(false)}>{participantLabel}</NavItem>
                 <Link href={withLocalePath('/login')} className="nav-cta-btn nav-login-cta" onClick={() => setIsMenuOpen(false)}>{t('nav.login')}</Link>
               </>
             )}
@@ -251,4 +252,3 @@ export default function TopNav({ compact = false }) {
     </header>
   );
 }
-

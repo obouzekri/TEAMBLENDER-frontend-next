@@ -89,7 +89,7 @@ const FLOW_ICON_SET = [Target, PlayCircle, BarChart3];
 const TRUST_LOGO_PLACEHOLDERS = ['NovaTech', 'Helios Groupe', 'Axis Retail', 'BluePeak Conseil', 'Mosaic Industries'];
 
 const PLATFORM_STATEMENT = {
-  title: 'TeamBlender est la plateforme pour organiser des expériences de team building hybrides.',
+  title: 'TeamBlender aide à rapprocher les équipes hybrides.',
   description:
     'Pensée pour les managers et les équipes RH, elle permet de déployer des expériences simples à organiser, engageantes pour les équipes et utiles au quotidien.',
 };
@@ -159,6 +159,10 @@ export default function HomePage() {
   const defaultBlocks = useMemo(() => getLocaleDefaultBlocks(locale), [locale]);
   const landingStatic = useMemo(() => getLandingStatic(locale), [locale]);
   const [dynamicBlocks, setDynamicBlocks] = useState({});
+  const cmsContentBlocks = useMemo(
+    () => (locale === 'fr' ? {} : dynamicBlocks),
+    [dynamicBlocks, locale]
+  );
   const [landingLoaded, setLandingLoaded] = useState(false);
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
   const heroSentinelRef = useRef(null);
@@ -167,6 +171,11 @@ export default function HomePage() {
   useEffect(() => {
     let cancelled = false;
     async function loadLandingContent() {
+      if (locale === 'fr') {
+        setLandingLoaded(true);
+        return;
+      }
+
       try {
         const res = await fetch(getApiUrl(`/landing-content?locale=${encodeURIComponent(locale)}`));
         const payload = await res.json().catch(() => []);
@@ -200,23 +209,23 @@ export default function HomePage() {
       'hero_trust_3',
       'hero_image_a',
       'hero_image_b',
-    ], dynamicBlocks, defaultBlocks),
-    [defaultBlocks, dynamicBlocks]
+    ], cmsContentBlocks, defaultBlocks),
+    [cmsContentBlocks, defaultBlocks]
   );
 
   const impactSection = useMemo(
-    () => buildSectionBlocks(['impact_1', 'impact_2', 'impact_3'], dynamicBlocks, defaultBlocks),
-    [defaultBlocks, dynamicBlocks]
+    () => buildSectionBlocks(['impact_1', 'impact_2', 'impact_3'], cmsContentBlocks, defaultBlocks),
+    [cmsContentBlocks, defaultBlocks]
   );
 
   const flowSection = useMemo(
-    () => buildSectionBlocks(['flow_header', 'flow_step_1', 'flow_step_2', 'flow_step_3'], dynamicBlocks, defaultBlocks),
-    [defaultBlocks, dynamicBlocks]
+    () => buildSectionBlocks(['flow_header', 'flow_step_1', 'flow_step_2', 'flow_step_3'], cmsContentBlocks, defaultBlocks),
+    [cmsContentBlocks, defaultBlocks]
   );
 
   const finalCtaSection = useMemo(
-    () => buildSectionBlocks(['final_cta', 'final_cta_secondary'], dynamicBlocks, defaultBlocks),
-    [defaultBlocks, dynamicBlocks]
+    () => buildSectionBlocks(['final_cta', 'final_cta_secondary'], cmsContentBlocks, defaultBlocks),
+    [cmsContentBlocks, defaultBlocks]
   );
 
   const partnersSection = useMemo(
@@ -228,8 +237,8 @@ export default function HomePage() {
       'partner_4',
       'partner_5',
       'partner_6',
-    ], dynamicBlocks, defaultBlocks),
-    [defaultBlocks, dynamicBlocks]
+    ], cmsContentBlocks, defaultBlocks),
+    [cmsContentBlocks, defaultBlocks]
   );
 
   const testimonialsSection = useMemo(
@@ -238,8 +247,8 @@ export default function HomePage() {
       'testimonial_1',
       'testimonial_2',
       'testimonial_3',
-    ], dynamicBlocks, defaultBlocks),
-    [defaultBlocks, dynamicBlocks]
+    ], cmsContentBlocks, defaultBlocks),
+    [cmsContentBlocks, defaultBlocks]
   );
 
   const heroMain = heroSection.blocks.hero_main || {};
@@ -269,7 +278,7 @@ export default function HomePage() {
 
   const heroTrustItems = locale === 'en'
     ? ['Zero installation', 'Real-time participation', 'Customizable experiences']
-    : ['Zéro installation', 'Participation en temps réel', 'Expériences personnalisables'];
+    : [];
 
   const heroTrustBadges = useMemo(
     () => heroTrustItems.slice(0, 2).map((title, index) => ({
@@ -314,7 +323,7 @@ export default function HomePage() {
     [partnersSection]
   );
 
-  const cmsAudit = useMemo(() => buildLandingCmsAudit(dynamicBlocks), [dynamicBlocks]);
+  const cmsAudit = useMemo(() => buildLandingCmsAudit(cmsContentBlocks), [cmsContentBlocks]);
   const TRUST_PROOF_METRICS = landingStatic.trustProofMetrics;
   const PLATFORM_OFFER_ITEMS = landingStatic.platformOfferItems;
   const PLATFORM_BENEFITS_ITEMS = landingStatic.platformBenefitsItems;
@@ -384,7 +393,7 @@ export default function HomePage() {
     <>
       <TopNav />
       <main className="landing-v2">
-        <LandingCmsAuditPanel locale={locale} isStrict={isLandingCmsStrict} loaded={landingLoaded} cmsAudit={cmsAudit} />
+        {locale !== 'fr' ? <LandingCmsAuditPanel locale={locale} isStrict={isLandingCmsStrict} loaded={landingLoaded} cmsAudit={cmsAudit} /> : null}
 
         <LandingHero
           locale={locale}
@@ -392,6 +401,8 @@ export default function HomePage() {
           heroMain={heroMain}
           structuredHeroTitle={structuredHeroTitle}
           heroDescription={heroDescription}
+          heroEyebrow={landingStatic.fallback.heroEyebrow}
+          heroMicrocopy={landingStatic.fallback.heroMicrocopy}
           heroPrimaryHref={heroPrimaryHref}
           heroSecondaryHref={heroSecondaryHref}
           heroSecondaryLabel={heroSecondaryLabel}
@@ -424,9 +435,19 @@ export default function HomePage() {
 
         <LandingChallengesShowcase locale={locale} challengeExamples={challengeExamples} />
 
-        <LandingSessionOutcomes locale={locale} outcomesSection={postSessionOutcomes} />
+        {locale === 'fr' ? (
+          <>
+            <LandingFlowSteps locale={locale} flowHeader={flowHeader} flowStepsWithIcons={flowStepsWithIcons} />
+            <LandingSessionOutcomes locale={locale} outcomesSection={postSessionOutcomes} />
+          </>
+        ) : (
+          <>
+            <LandingSessionOutcomes locale={locale} outcomesSection={postSessionOutcomes} />
+            <LandingFlowSteps locale={locale} flowHeader={flowHeader} flowStepsWithIcons={flowStepsWithIcons} />
+          </>
+        )}
 
-        <LandingFlowSteps locale={locale} flowHeader={flowHeader} flowStepsWithIcons={flowStepsWithIcons} />
+        <LandingFaq locale={locale} faq={HOME_FAQ_BY_LOCALE[locale]} />
 
         <LandingFinalCta
           locale={locale}
@@ -434,9 +455,10 @@ export default function HomePage() {
           fallback={landingStatic.fallback}
           finalPrimaryHref={finalPrimaryHref}
           finalPrimaryLabel={finalPrimaryLabel}
+          finalSecondaryHref={finalSecondaryHref}
+          finalSecondaryLabel={finalSecondaryLabel}
+          onSecondaryCtaClick={handleFinalSecondaryCtaClick}
         />
-
-        <LandingFaq locale={locale} faq={HOME_FAQ_BY_LOCALE[locale]} />
 
         <LandingPreviewModal
           locale={locale}

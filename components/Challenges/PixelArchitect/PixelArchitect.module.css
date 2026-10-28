@@ -751,6 +751,7 @@
     grid-column: 1 / -1;
     grid-row: 1;
     justify-self: center;
+    grid-column: 1 / -1;
   }
 
   .layerQuickCard[data-active-layer='false'] {

@@ -47,7 +47,7 @@ export default function LandingSocialProof({ locale, partnersHeader, useCaseChip
           </div>
         </div>
 
-        <div className="landing-metrics-grid grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label={locale === 'en' ? 'Key metrics' : 'Indicateurs clés'}>
+        <div className="landing-metrics-grid grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label={locale === 'en' ? 'Key metrics' : 'Repères clés'}>
           {trustProofMetrics.map((metric, index) => (
             <TrustProofCard
               key={`${metric.value}-${index}`}

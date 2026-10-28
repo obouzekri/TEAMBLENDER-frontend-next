@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from './lib/i18n/routing';
-import { isPublicSeoPath } from './lib/seo';
+import { getPublicSeoRedirectPath, isPublicSeoPath } from './lib/seo';
 
 const PUBLIC_FILE = /\.(.*)$/;
 
@@ -28,6 +28,13 @@ export function proxy(request) {
     || PUBLIC_FILE.test(pathname)
   ) {
     return NextResponse.next();
+  }
+
+  const publicRedirectPath = getPublicSeoRedirectPath(pathname);
+  if (publicRedirectPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = publicRedirectPath;
+    return NextResponse.redirect(url, 308);
   }
 
   const segments = pathname.split('/').filter(Boolean);
