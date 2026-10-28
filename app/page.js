@@ -37,7 +37,7 @@ import LandingFinalCta from '@/components/Landing/LandingFinalCta';
 import LandingFaq from '@/components/Landing/LandingFaq';
 import LandingPreviewModal from '@/components/Landing/LandingPreviewModal';
 import LandingStickyCta from '@/components/Landing/LandingStickyCta';
-import { resolveHeroTrustIcon, resolveUseCaseIcon, resolveFlowStepIcon } from '@/components/Landing/landingIconResolvers';
+import { resolveUseCaseIcon, resolveFlowStepIcon } from '@/components/Landing/landingIconResolvers';
 import { getApiUrl } from '@/lib/config';
 import useI18n from '@/lib/i18n/useI18n';
 import {
@@ -83,6 +83,9 @@ const TRUST_PROOF_METRICS = [
     detail: 'Une expérience fluide quel que soit le format d’organisation.',
   },
 ];
+
+// Landing copy is static for every locale; add a locale here to drive it from the CMS again.
+const CMS_LANDING_LOCALES = new Set();
 
 const METRIC_ICON_SET = [Building2, Gauge, Layers];
 const FLOW_ICON_SET = [Target, PlayCircle, BarChart3];
@@ -161,7 +164,7 @@ export default function HomePage() {
   const landingStatic = useMemo(() => getLandingStatic(locale), [locale]);
   const [dynamicBlocks, setDynamicBlocks] = useState({});
   const cmsContentBlocks = useMemo(
-    () => (locale === 'fr' ? {} : dynamicBlocks),
+    () => (CMS_LANDING_LOCALES.has(locale) ? dynamicBlocks : {}),
     [dynamicBlocks, locale]
   );
   const [landingLoaded, setLandingLoaded] = useState(false);
@@ -172,7 +175,7 @@ export default function HomePage() {
   useEffect(() => {
     let cancelled = false;
     async function loadLandingContent() {
-      if (locale === 'fr') {
+      if (!CMS_LANDING_LOCALES.has(locale)) {
         setLandingLoaded(true);
         return;
       }
@@ -252,7 +255,6 @@ export default function HomePage() {
     [cmsContentBlocks, defaultBlocks]
   );
 
-  const heroMain = heroSection.blocks.hero_main || {};
   const heroCtaPrimary = heroSection.blocks.hero_cta_primary || {};
   const heroImageB = heroSection.blocks.hero_image_b || {};
   const flowHeader = flowSection.blocks.flow_header || {};
@@ -276,18 +278,6 @@ export default function HomePage() {
     heroCtaPrimary,
     finalCtaSecondary,
   });
-
-  const heroTrustItems = locale === 'en'
-    ? ['Zero installation', 'Real-time participation', 'Customizable experiences']
-    : [];
-
-  const heroTrustBadges = useMemo(
-    () => heroTrustItems.slice(0, 2).map((title, index) => ({
-      title,
-      Icon: resolveHeroTrustIcon(title, index),
-    })),
-    [heroTrustItems]
-  );
 
   const structuredHeroTitle = heroTitle;
 
@@ -393,13 +383,11 @@ export default function HomePage() {
   return (
     <>
       <TopNav />
-      <main className={`landing-v2${locale === 'fr' ? ' landing-v2--fr' : ''}`}>
-        {locale !== 'fr' ? <LandingCmsAuditPanel locale={locale} isStrict={isLandingCmsStrict} loaded={landingLoaded} cmsAudit={cmsAudit} /> : null}
+      <main className="landing-v2 landing-v2--premium">
+        {CMS_LANDING_LOCALES.has(locale) ? <LandingCmsAuditPanel locale={locale} isStrict={isLandingCmsStrict} loaded={landingLoaded} cmsAudit={cmsAudit} /> : null}
 
         <LandingHero
           locale={locale}
-          t={t}
-          heroMain={heroMain}
           structuredHeroTitle={structuredHeroTitle}
           heroDescription={heroDescription}
           heroEyebrow={landingStatic.fallback.heroEyebrow}
@@ -409,7 +397,6 @@ export default function HomePage() {
           heroSecondaryLabel={heroSecondaryLabel}
           onPrimaryCtaClick={handlePrimaryCtaClick}
           heroPrimaryLabel={heroPrimaryLabel}
-          heroTrustBadges={heroTrustBadges}
           heroImageB={heroImageB}
           fallback={landingStatic.fallback}
           onOpenPreview={() => setIsPreviewExpanded(true)}
@@ -428,27 +415,16 @@ export default function HomePage() {
         />
 
         <LandingPlatformOffer
-          locale={locale}
           fallback={landingStatic.fallback}
-          platformOfferItems={PLATFORM_OFFER_ITEMS}
           platformBenefitsItems={PLATFORM_BENEFITS_ITEMS}
         />
 
-        {locale === 'fr' ? <LandingAudience fallback={landingStatic.fallback} /> : null}
+        <LandingAudience fallback={landingStatic.fallback} />
 
         <LandingChallengesShowcase locale={locale} challengeExamples={challengeExamples} />
 
-        {locale === 'fr' ? (
-          <>
-            <LandingFlowSteps locale={locale} flowHeader={flowHeader} flowStepsWithIcons={flowStepsWithIcons} />
-            <LandingSessionOutcomes locale={locale} outcomesSection={postSessionOutcomes} />
-          </>
-        ) : (
-          <>
-            <LandingSessionOutcomes locale={locale} outcomesSection={postSessionOutcomes} />
-            <LandingFlowSteps locale={locale} flowHeader={flowHeader} flowStepsWithIcons={flowStepsWithIcons} />
-          </>
-        )}
+        <LandingFlowSteps locale={locale} flowHeader={flowHeader} flowStepsWithIcons={flowStepsWithIcons} />
+        <LandingSessionOutcomes locale={locale} outcomesSection={postSessionOutcomes} />
 
         <LandingFaq
           locale={locale}

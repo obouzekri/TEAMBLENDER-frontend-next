@@ -17,7 +17,6 @@ export default function LandingPreviewModal({ locale, isOpen, onClose, fallback 
       <div className="landing-preview-modal__panel" onClick={(event) => event.stopPropagation()}>
         <div className="landing-preview-modal__head">
           <div>
-            {locale !== 'fr' ? <p className="landing-hero-product-label">{fallback.productPreview}</p> : null}
             <p className="landing-hero-product-title">{fallback.liveExperience}</p>
           </div>
           <button
@@ -31,13 +30,13 @@ export default function LandingPreviewModal({ locale, isOpen, onClose, fallback 
         </div>
         <p className="landing-preview-modal__copy">
           {locale === 'en'
-            ? 'Explore a TeamBlender session, from team instructions and timer to the reference image.'
+            ? 'Explore a TeamBlender activity, from team instructions and timer to the reference image.'
             : 'Découvrez une activité TeamBlender, de la consigne d’équipe au minuteur et à l’image de référence.'}
         </p>
         <Image
           src="/images/teamblender-live-session.webp"
           alt={locale === 'en'
-            ? 'TeamBlender team building interface featuring the CoPuzzle challenge'
+            ? 'Hybrid team collaborating live on TeamBlender to strengthen team cohesion'
             : "Équipe hybride en pleine activité collaborative sur TeamBlender pour renforcer la cohésion d'équipe"}
           width={1227}
           height={768}
