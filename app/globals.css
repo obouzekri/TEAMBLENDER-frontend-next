@@ -21988,8 +21988,8 @@ html[data-theme='dark'] .auth-remember-me{
 
 /* Landing FR: structure refresh (hero rhythm, open benefits grid, audience, FAQ) */
 .landing-v2 .landing-hero-title {
-  max-width: 22ch;
-  font-size: clamp(2.4rem, 3.9vw, 3.5rem) !important;
+  max-width: 26ch;
+  font-size: clamp(2.4rem, 3.9vw, 3.25rem) !important;
   line-height: 1.06 !important;
   text-wrap: balance;
 }

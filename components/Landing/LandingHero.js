@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Activity, BarChart3, Users } from 'lucide-react';
-import { CHIP_CLASS, PILL_CLASS } from './landingStyles';
+import { PILL_CLASS } from './landingStyles';
 
 export default function LandingHero({
   locale,
@@ -14,8 +14,6 @@ export default function LandingHero({
   heroPrimaryHref,
   onPrimaryCtaClick,
   heroPrimaryLabel,
-  heroSecondaryHref,
-  heroSecondaryLabel,
   heroImageB,
   fallback,
   onOpenPreview,
@@ -45,13 +43,6 @@ export default function LandingHero({
               className={`${PILL_CLASS} landing-cta-primary landing-hero-primary-btn cta-surface group text-white`}
             >
               <span>{heroPrimaryLabel}</span>
-              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              href={heroSecondaryHref}
-              className={`${CHIP_CLASS} landing-hero-secondary-btn group`}
-            >
-              <span>{heroSecondaryLabel}</span>
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
           </div>
