@@ -393,7 +393,7 @@ export default function HomePage() {
   return (
     <>
       <TopNav />
-      <main className="landing-v2">
+      <main className={`landing-v2${locale === 'fr' ? ' landing-v2--fr' : ''}`}>
         {locale !== 'fr' ? <LandingCmsAuditPanel locale={locale} isStrict={isLandingCmsStrict} loaded={landingLoaded} cmsAudit={cmsAudit} /> : null}
 
         <LandingHero

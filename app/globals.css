@@ -22263,3 +22263,366 @@ html[data-theme='dark'] .auth-remember-me{
   text-align: center;
   text-wrap: balance;
 }
+
+/* ==========================================================================
+   Landing FR - premium spacing & surfaces
+   One vertical rhythm, one container width, one card language.
+   Scoped to .landing-v2--fr so the EN landing keeps its current look.
+   ========================================================================== */
+.landing-v2.landing-v2--fr {
+  --lp-section-y: clamp(4.5rem, 8.5vw, 7.5rem);
+  --landing-section-space: var(--lp-section-y);
+  --lp-gutter: clamp(1.25rem, 4vw, 3rem);
+  --lp-container: 72rem;
+  --lp-head-gap: clamp(2.5rem, 4.5vw, 3.75rem);
+  --lp-card-gap: clamp(1rem, 1.8vw, 1.5rem);
+  --lp-card-radius: 1.25rem;
+  --lp-card-pad: clamp(1.5rem, 2.4vw, 2rem);
+  --lp-card-border: 1px solid rgba(15, 23, 42, 0.08);
+  --lp-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 30px rgba(15, 23, 42, 0.05);
+  --lp-card-shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.05), 0 18px 40px rgba(15, 23, 42, 0.09);
+  --lp-ink: #0b1b33;
+  --lp-ink-soft: #5b6b82;
+  --lp-eyebrow: #2f62ff;
+  --lp-surface: #ffffff;
+  --lp-surface-soft: #f7f8fb;
+}
+
+/* Rhythm: every section shares the same vertical padding and gutters. */
+.landing-v2.landing-v2--fr > section.landing-section-full {
+  padding: var(--lp-section-y) 0 !important;
+}
+
+.landing-v2.landing-v2--fr .landing-section-inner {
+  width: min(var(--lp-container), calc(100% - 2 * var(--lp-gutter)));
+}
+
+.landing-v2.landing-v2--fr > .landing-hero-full {
+  padding-block: clamp(3.5rem, 7vw, 6.5rem) clamp(4rem, 8vw, 7rem) !important;
+}
+
+.landing-v2.landing-v2--fr .landing-hero-inner {
+  width: min(76rem, calc(100% - 2 * var(--lp-gutter)));
+  margin-inline: auto;
+  gap: clamp(2.5rem, 5vw, 4.5rem);
+  align-items: center;
+}
+
+.landing-v2.landing-v2--fr .landing-hero-description {
+  margin-top: 1.5rem;
+}
+
+.landing-v2.landing-v2--fr .landing-hero-actions {
+  margin-top: 2.25rem;
+}
+
+/* Surfaces: dark hero / challenges / CTA, alternating white and soft grey in between. */
+.landing-v2.landing-v2--fr > .landing-proof-section,
+.landing-v2.landing-v2--fr > .landing-audience-section,
+.landing-v2.landing-v2--fr > .landing-flow,
+.landing-v2.landing-v2--fr > .landing-faq-section {
+  background: var(--lp-surface) !important;
+}
+
+.landing-v2.landing-v2--fr > .landing-platform-section,
+.landing-v2.landing-v2--fr > .landing-outcomes-section {
+  background: var(--lp-surface-soft) !important;
+}
+
+.landing-v2.landing-v2--fr > .landing-proof-section::before,
+.landing-v2.landing-v2--fr > .landing-proof-section > .pointer-events-none,
+.landing-v2.landing-v2--fr > .landing-flow > .pointer-events-none,
+.landing-v2.landing-v2--fr > .landing-platform-section > .landing-section-rupture {
+  display: none;
+}
+
+.landing-v2.landing-v2--fr > .landing-proof-section + section,
+.landing-v2.landing-v2--fr > .landing-flow + section,
+.landing-v2.landing-v2--fr > .landing-outcomes-section + section {
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+/* Section headings: eyebrow -> title -> subtitle, then a fixed gap before content. */
+.landing-v2.landing-v2--fr .landing-section-heading,
+.landing-v2.landing-v2--fr .panel-head {
+  border-bottom: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.landing-v2.landing-v2--fr .landing-section-eyebrow {
+  margin: 0;
+  color: var(--lp-eyebrow);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+}
+
+.landing-v2.landing-v2--fr .landing-section-title {
+  margin-top: 0.875rem;
+  font-size: clamp(2rem, 3.4vw, 2.875rem) !important;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.landing-v2.landing-v2--fr > section:not(.landing-challenges-section):not(.landing-final-cta) .landing-section-title,
+.landing-v2.landing-v2--fr .landing-proof-section h2 {
+  color: var(--lp-ink) !important;
+}
+
+.landing-v2.landing-v2--fr .landing-offer-subtitle,
+.landing-v2.landing-v2--fr .landing-faq-intro,
+.landing-v2.landing-v2--fr .landing-proof-section .landing-section-heading p {
+  max-width: 60ch;
+  margin-top: 1rem;
+  color: var(--lp-ink-soft) !important;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+.landing-v2.landing-v2--fr .landing-outcomes-heading,
+.landing-v2.landing-v2--fr .landing-flow .landing-section-heading,
+.landing-v2.landing-v2--fr .landing-challenges-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.landing-v2.landing-v2--fr .landing-outcomes-heading .landing-section-title,
+.landing-v2.landing-v2--fr .landing-flow .landing-section-title,
+.landing-v2.landing-v2--fr .landing-challenges-head .landing-section-title {
+  max-width: 26ch;
+  margin-inline: auto;
+}
+
+.landing-v2.landing-v2--fr .landing-outcomes-heading .landing-offer-subtitle {
+  margin-inline: auto;
+}
+
+.landing-v2.landing-v2--fr .landing-benefits-grid,
+.landing-v2.landing-v2--fr .landing-audience-grid,
+.landing-v2.landing-v2--fr .landing-challenges-grid,
+.landing-v2.landing-v2--fr .landing-flow-timeline,
+.landing-v2.landing-v2--fr .landing-outcomes-grid {
+  margin-top: var(--lp-head-gap) !important;
+  gap: var(--lp-card-gap);
+}
+
+/* Proof section: heading + use-case panel, then three quiet metric cards. */
+.landing-v2.landing-v2--fr .landing-proof-section .landing-section-inner {
+  display: grid;
+  gap: var(--lp-head-gap);
+}
+
+.landing-v2.landing-v2--fr .landing-proof-section .landing-section-inner > .grid {
+  gap: clamp(2rem, 5vw, 4rem);
+}
+
+.landing-v2.landing-v2--fr .landing-proof-section h2 {
+  margin-top: 0;
+}
+
+.landing-v2.landing-v2--fr .landing-partners-usage {
+  padding: var(--lp-card-pad);
+  border: var(--lp-card-border);
+  border-radius: var(--lp-card-radius);
+  background: var(--lp-surface-soft);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.landing-v2.landing-v2--fr .landing-metrics-grid {
+  gap: var(--lp-card-gap);
+}
+
+/* Card language shared by every light card on the page. */
+.landing-v2.landing-v2--fr .landing-metric-card,
+.landing-v2.landing-v2--fr .landing-benefits-grid__item,
+.landing-v2.landing-v2--fr .landing-audience-card,
+.landing-v2.landing-v2--fr .landing-flow-card,
+.landing-v2.landing-v2--fr .landing-outcome-card {
+  padding: var(--lp-card-pad);
+  border: var(--lp-card-border) !important;
+  border-radius: var(--lp-card-radius);
+  background: var(--lp-surface) !important;
+  box-shadow: var(--lp-card-shadow) !important;
+  transition: transform var(--motion-medium) var(--ease-standard), box-shadow var(--motion-medium) var(--ease-standard);
+}
+
+.landing-v2.landing-v2--fr .landing-metric-card:hover,
+.landing-v2.landing-v2--fr .landing-benefits-grid__item:hover,
+.landing-v2.landing-v2--fr .landing-audience-card:hover,
+.landing-v2.landing-v2--fr .landing-flow-card:hover,
+.landing-v2.landing-v2--fr .landing-outcome-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--lp-card-shadow-hover) !important;
+}
+
+.landing-v2.landing-v2--fr .landing-outcome-card::before {
+  display: none;
+}
+
+.landing-v2.landing-v2--fr .landing-outcome-card {
+  min-height: 0;
+}
+
+/* Benefits: light cards, icon on top, text breathing. */
+.landing-v2.landing-v2--fr .landing-benefits-grid__item {
+  justify-content: flex-start;
+  min-height: 0;
+}
+
+.landing-v2.landing-v2--fr .landing-benefits-grid__item-head {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.landing-v2.landing-v2--fr .landing-benefits-grid__item h3 {
+  color: var(--lp-ink);
+  font-size: 1.125rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.landing-v2.landing-v2--fr .landing-benefits-grid__item p {
+  margin-top: 0.625rem;
+  color: var(--lp-ink-soft);
+  font-size: 0.975rem;
+  line-height: 1.65;
+}
+
+.landing-v2.landing-v2--fr .landing-benefits-grid__icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.875rem;
+  border: 0;
+  background: color-mix(in srgb, var(--benefit-accent) 14%, #ffffff);
+  color: color-mix(in srgb, var(--benefit-accent) 80%, #0b1b33);
+}
+
+/* Flow: quieter numbered cards, no connector line competing with the cards. */
+.landing-v2.landing-v2--fr .landing-flow-timeline::before {
+  display: none;
+}
+
+.landing-v2.landing-v2--fr .landing-flow-card h3,
+.landing-v2.landing-v2--fr .landing-outcome-card h3,
+.landing-v2.landing-v2--fr .landing-metric-card p.text-lg {
+  color: var(--lp-ink);
+}
+
+.landing-v2.landing-v2--fr .landing-flow-card p,
+.landing-v2.landing-v2--fr .landing-outcome-card p {
+  color: var(--lp-ink-soft);
+  line-height: 1.65;
+}
+
+/* Challenges: same rhythm on the dark band. */
+.landing-v2.landing-v2--fr .landing-challenge-card {
+  padding: var(--lp-card-pad);
+  border-radius: var(--lp-card-radius);
+}
+
+.landing-v2.landing-v2--fr .landing-challenges-section .landing-challenges-subtitle {
+  margin-top: 2.5rem;
+  text-align: center;
+}
+
+/* FAQ & audience reuse the shared rhythm. */
+.landing-v2.landing-v2--fr .landing-faq-layout {
+  gap: clamp(2.5rem, 6vw, 5.5rem);
+}
+
+.landing-v2.landing-v2--fr .landing-faq-item {
+  border: var(--lp-card-border);
+  box-shadow: none;
+}
+
+.landing-v2.landing-v2--fr .landing-faq-item[open] {
+  box-shadow: var(--lp-card-shadow);
+}
+
+/* Final CTA: more air around the closing message. */
+.landing-v2.landing-v2--fr > .landing-final-cta {
+  padding-block: clamp(5rem, 10vw, 8.5rem) !important;
+}
+
+.landing-v2.landing-v2--fr .landing-final-cta h2 {
+  max-width: 20ch;
+  margin: 0 auto;
+  font-size: clamp(2.1rem, 4vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.landing-v2.landing-v2--fr .landing-final-cta p {
+  margin-top: 1.25rem;
+  font-size: 1.125rem;
+}
+
+.landing-v2.landing-v2--fr .landing-final-cta .landing-cta-actions {
+  margin-top: 2.5rem;
+}
+
+@media (max-width: 860px) {
+  .landing-v2.landing-v2--fr .landing-flow-timeline,
+  .landing-v2.landing-v2--fr .landing-challenges-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-v2.landing-v2--fr {
+    --lp-section-y: 4.5rem;
+    --lp-head-gap: 2.25rem;
+    --lp-card-pad: 1.375rem;
+  }
+
+  .landing-v2.landing-v2--fr > .landing-hero-full {
+    padding-block: 2.75rem 4rem !important;
+  }
+
+  .landing-v2.landing-v2--fr .landing-section-title {
+    font-size: clamp(1.75rem, 7.4vw, 2.125rem) !important;
+  }
+
+  .landing-v2.landing-v2--fr .landing-offer-subtitle,
+  .landing-v2.landing-v2--fr .landing-faq-intro {
+    font-size: 1rem;
+  }
+}
+
+.landing-v2.landing-v2--fr .landing-challenges-head > div,
+.landing-v2.landing-v2--fr .landing-outcomes-heading .landing-offer-head-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  text-align: center;
+}
+
+.landing-v2.landing-v2--fr .landing-proof-section h2 {
+  font-size: clamp(2rem, 3.4vw, 2.875rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.landing-v2.landing-v2--fr .landing-outcome-card h3,
+.landing-v2.landing-v2--fr .landing-challenge-card h3 {
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.landing-v2.landing-v2--fr .landing-challenges-head,
+.landing-v2.landing-v2--fr .landing-outcomes-heading,
+.landing-v2.landing-v2--fr .landing-flow .landing-section-heading {
+  max-width: none;
+  width: 100%;
+  margin-inline: auto;
+}
