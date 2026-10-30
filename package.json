@@ -44,10 +44,12 @@
     "test:ux:challenges:no-webgl": "node scripts/test-challenge-diagnostics-ux.mjs --no-webgl",
     "test:ux:shared": "node scripts/test-shared-platform-ux.mjs",
     "test:ux:debrief": "node scripts/test-debrief-ux.mjs",
+    "test:ux:demo": "node scripts/test-demo-ux.mjs",
     "test:unit:runtime": "node scripts/test-runtime-dispatcher.mjs",
+    "test:unit:demo": "node scripts/test-demo-scenario.mjs",
     "test:unit:escape-room": "node scripts/test-escape-room-structure.mjs",
     "test:ux:escape-room-ii": "node scripts/test-escape-room-ii-ux.mjs",
-    "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime && npm run test:unit:escape-room && npm run test:unit:truthfulness && npm run test:unit:build",
+    "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime && npm run test:unit:demo && npm run test:unit:escape-room && npm run test:unit:truthfulness && npm run test:unit:build",
     "test:integration:manager-participant": "node scripts/test-integration-manager-participant.mjs"
   },
   "dependencies": {
