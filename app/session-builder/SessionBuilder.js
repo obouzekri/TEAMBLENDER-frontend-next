@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { Users } from 'lucide-react';
 import AppNav from '@/components/AppNav';
@@ -13,14 +13,13 @@ import ParticipantAssigner from '@/components/SessionBuilder/ParticipantAssigner
 import SessionBuilderHeader from '@/components/SessionBuilder/SessionBuilderHeader';
 import SessionPreparation from '@/components/SessionPreparation';
 import Modal from '@/components/ui/Modal';
-import { Alert, Button, Input, LoadingState } from '@/components/ui';
-import { clearSessionAuth, getStoredAuthToken, getStoredCurrentUser } from '@/lib/auth';
+import { Button, Input, LoadingState } from '@/components/ui';
+import { clearSessionAuth, getStoredAuthToken } from '@/lib/auth';
 import useToast from '@/lib/useToast';
 import useSessionBuilder from '@/lib/useSessionBuilder';
 import { fetchWithRetry } from '@/lib/api';
 import { ENABLE_CHALLENGES_MOCK_DATA, getApiUrl } from '@/lib/config';
 import { trackGaEvent, trackProductSessionEvent } from '@/lib/analytics';
-import { localizeBuilderChallenge } from '@/lib/challenges/catalogLocalization';
 import {
   SESSION_OBJECTIVES,
   parseSessionObjectives,
@@ -35,346 +34,17 @@ import styles from './SessionBuilder.module.css';
 import creationStyles from './CreationForm.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
 import useI18n from '@/lib/i18n/useI18n';
-
-const PIXEL_ARCHITECT_CATALOG_ENTRY = {
-  id: 'pixel_architect_001',
-  name: 'Pixel Architect',
-  category: 'creativite-innovation',
-  objective: 'collaboration',
-  duration: 15,
-  type: 'Collaborative 3D creation',
-  tags: ['Voxel', 'Collaboration', 'Timeboxed'],
-  description: 'Build a 3D cube structure under time, resource, and communication constraints.',
-  engine_key: 'pixel_architect_v1',
-  engine_config: {
-    participants: {
-      min_count: 3,
-      recommended_count: 6,
-      max_count: 12,
-    },
-  },
-  config: {
-    mode: 'replication',
-    collaborationMode: 'standard',
-    settings: {
-      timeLimitSeconds: 900,
-      maxCubes: 50,
-      maxColors: 3,
-      hintsEnabled: true,
-      chatEnabled: true,
-      timerEnabled: true,
-    },
-    replication: {
-      modelSource: 'template',
-      templateId: 'tour_signal',
-    },
-    creative: {
-      theme: 'Build a structure that symbolizes collaboration.',
-    },
-  },
-};
-
-const THE_QUIZ_CATALOG_ENTRY = {
-  id: 'the_quiz_001',
-  name: 'The Quiz',
-  category: 'culture-decouverte',
-  objective: 'collaboration',
-  objectives: 'collaboration, communication, intelligence-collective',
-  duration: 20,
-  type: 'Quiz multijoueur realtime',
-  tags: ['Quiz', 'General knowledge', 'Realtime', 'Leaderboard'],
-  description:
-    'Competitive general-knowledge quiz synchronized in real time for the whole session.',
-  engine_key: 'the_quiz_v1',
-  engine_config: {
-    participants: {
-      min_count: 4,
-      recommended_count: 8,
-      max_count: 30,
-    },
-  },
-  config: {
-    preset: 'medium',
-    question_count: 9,
-    question_duration_seconds: 30,
-    chat: {
-      enabled: true,
-      quick_reactions_enabled: true,
-    },
-    leaderboard: {
-      enabled: true,
-    },
-    timer: {
-      enabled: true,
-      duration_seconds: 30,
-      warning_threshold_seconds: 10,
-    },
-  },
-};
-
-const LAB_INNOVATION_CATALOG_ENTRY = {
-  id: 'lab_innovation_001',
-  name: "Lab d'Innovation",
-  category: 'creativite-innovation',
-  objective: 'intelligence-collective',
-  objectives: 'intelligence-collective, communication, collaboration',
-  duration: 30,
-  type: 'equipe',
-  tags: ['Ideation', 'Votes', 'Leadership', 'Innovation'],
-  description: 'Challenge collaboratif en 4 phases pour faire émerger une solution innovante.',
-  engine_key: 'lab_d_innovation_v1',
-  engine_config: {
-    participants: {
-      min_count: 3,
-      recommended_count: 6,
-      max_count: 12,
-    },
-  },
-  config: {
-    timer: {
-      enabled: true,
-      duration_seconds: 2100,
-      warning_threshold_seconds: 120,
-    },
-    participants: {
-      expected_count: 6,
-    },
-  },
-};
-
-function ensurePixelArchitectChallenge(challenges) {
-  const list = Array.isArray(challenges) ? [...challenges] : [];
-  const existingIndex = list.findIndex(
-    (challenge) => String(challenge?.engine_key || '').trim() === 'pixel_architect_v1'
-  );
-
-  if (existingIndex >= 0) {
-    const current = list[existingIndex] || {};
-    list[existingIndex] = {
-      ...PIXEL_ARCHITECT_CATALOG_ENTRY,
-      ...current,
-      config: {
-        ...PIXEL_ARCHITECT_CATALOG_ENTRY.config,
-        ...(current.config && typeof current.config === 'object' ? current.config : {}),
-      },
-    };
-    return list;
-  }
-
-  return [...list, PIXEL_ARCHITECT_CATALOG_ENTRY];
-}
-
-function ensureTheQuizChallenge(challenges) {
-  const list = Array.isArray(challenges) ? [...challenges] : [];
-  const existingIndex = list.findIndex(
-    (challenge) => String(challenge?.engine_key || '').trim() === 'the_quiz_v1'
-  );
-
-  if (existingIndex >= 0) {
-    const current = list[existingIndex] || {};
-    list[existingIndex] = {
-      ...THE_QUIZ_CATALOG_ENTRY,
-      ...current,
-      config: {
-        ...THE_QUIZ_CATALOG_ENTRY.config,
-        ...(current.config && typeof current.config === 'object' ? current.config : {}),
-      },
-    };
-    return list;
-  }
-
-  return [...list, THE_QUIZ_CATALOG_ENTRY];
-}
-
-function ensureLabInnovationChallenge(challenges) {
-  const list = Array.isArray(challenges) ? [...challenges] : [];
-  const existingIndex = list.findIndex(
-    (challenge) => String(challenge?.engine_key || '').trim() === 'lab_d_innovation_v1'
-  );
-
-  if (existingIndex >= 0) {
-    const current = list[existingIndex] || {};
-    list[existingIndex] = {
-      ...LAB_INNOVATION_CATALOG_ENTRY,
-      ...current,
-      name: LAB_INNOVATION_CATALOG_ENTRY.name,
-      config: {
-        ...LAB_INNOVATION_CATALOG_ENTRY.config,
-        ...(current.config && typeof current.config === 'object' ? current.config : {}),
-      },
-    };
-    return list;
-  }
-
-  return [...list, LAB_INNOVATION_CATALOG_ENTRY];
-}
-
-function ensureBuilderCatalogChallenges(challenges, locale = 'fr') {
-  return ensureLabInnovationChallenge(
-    ensureTheQuizChallenge(ensurePixelArchitectChallenge(challenges))
-  ).map((challenge) => localizeBuilderChallenge(challenge, locale));
-}
-
-const SESSION_ID_STORAGE_KEY = 'sessionId';
-const SELECTED_CHALLENGES_STORAGE_KEY = 'selectedChallenges';
-const DRAFT_STORAGE_PREFIX = 'sessionBuilderDraft:';
-const CREATION_DRAFT_STORAGE_KEY = 'sessionBuilderCreationDraft:v1';
-
-function getDraftStorageKey(sessionId) {
-  const normalizedId = String(sessionId || '').trim();
-  if (!normalizedId) return null;
-  return `${DRAFT_STORAGE_PREFIX}${normalizedId}`;
-}
-
-function readDraftFromStorage(sessionId) {
-  if (typeof window === 'undefined') return null;
-  const storageKey = getDraftStorageKey(sessionId);
-  if (!storageKey) return null;
-
-  const raw = localStorage.getItem(storageKey);
-  if (!raw) return null;
-
-  try {
-    const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.selectedChallenges)) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function persistDraftToStorage(sessionId, selectedChallenges) {
-  if (typeof window === 'undefined') return null;
-  const storageKey = getDraftStorageKey(sessionId);
-  if (!storageKey) return null;
-
-  const nowIso = new Date().toISOString();
-  localStorage.setItem(
-    storageKey,
-    JSON.stringify({
-      sessionId: String(sessionId),
-      selectedChallenges,
-      updatedAt: nowIso,
-    })
-  );
-
-  // Kept for compatibility with existing manager flow and live page reads.
-  sessionStorage.setItem(SELECTED_CHALLENGES_STORAGE_KEY, JSON.stringify(selectedChallenges));
-  localStorage.setItem(SELECTED_CHALLENGES_STORAGE_KEY, JSON.stringify(selectedChallenges));
-  sessionStorage.setItem(SESSION_ID_STORAGE_KEY, String(sessionId));
-
-  return nowIso;
-}
-
-function toEpochMs(value) {
-  const parsed = Date.parse(String(value || '').trim());
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function getSessionFreshnessMs(session) {
-  const base = toEpochMs(session?.updatedAt);
-  const challenges = Array.isArray(session?.challenges) ? session.challenges : [];
-
-  return challenges.reduce((max, challenge) => {
-    const challengeUpdated = toEpochMs(challenge?.updatedAt);
-    const junctionUpdated = toEpochMs(challenge?.SessionChallenge?.updatedAt);
-    return Math.max(max, challengeUpdated, junctionUpdated);
-  }, base);
-}
-
-function shouldApplyLocalDraftOverSession(savedDraft, session) {
-  const draftUpdatedMs = toEpochMs(savedDraft?.updatedAt);
-  if (draftUpdatedMs <= 0) {
-    return false;
-  }
-
-  const sessionChallenges = Array.isArray(session?.challenges) ? session.challenges : [];
-  if (sessionChallenges.length > 0) {
-    // Server-side session data is the source of truth once challenges exist.
-    // This avoids stale local drafts from overriding persisted configs (e.g. CoPuzzle images).
-    return false;
-  }
-
-  const sessionFreshnessMs = getSessionFreshnessMs(session);
-  return draftUpdatedMs > sessionFreshnessMs;
-}
-
-function useManagerGuard() {
-  const [state, setState] = React.useState({ loading: true, allowed: false, user: null });
-
-  useEffect(() => {
-    const token = getStoredAuthToken();
-    const user = getStoredCurrentUser();
-
-    if (!token || !user) {
-      window.location.replace('/login');
-      return;
-    }
-
-    if (user.role === 'participant') {
-      window.location.replace('/participant');
-      return;
-    }
-
-    setState({ loading: false, allowed: true, user });
-  }, []);
-
-  return state;
-}
-
-function pickDisplayName(user) {
-  if (!user || typeof user !== 'object') return 'Manager';
-  const first = String(user.first_name || user.firstName || '').trim();
-  const last = String(user.last_name || user.lastName || '').trim();
-  const full = `${first} ${last}`.trim();
-  return full || String(user.name || user.email || 'Manager');
-}
-
-function mergeChallengeConfig(baseConfig, overrideConfig) {
-  const base = baseConfig && typeof baseConfig === 'object' ? baseConfig : {};
-  const override = overrideConfig && typeof overrideConfig === 'object' ? overrideConfig : {};
-
-  return {
-    ...base,
-    ...override,
-    image: { ...(base.image || {}), ...(override.image || {}) },
-    timer: { ...(base.timer || {}), ...(override.timer || {}) },
-    participants: { ...(base.participants || {}), ...(override.participants || {}) },
-    grid: { ...(base.grid || {}), ...(override.grid || {}) },
-    chat: { ...(base.chat || {}), ...(override.chat || {}) },
-    settings: { ...(base.settings || {}), ...(override.settings || {}) },
-    replication: { ...(base.replication || {}), ...(override.replication || {}) },
-    creative: { ...(base.creative || {}), ...(override.creative || {}) },
-    advancedRoles: { ...(base.advancedRoles || {}), ...(override.advancedRoles || {}) },
-  };
-}
-
-function extractChallengeConfig(challenge) {
-  const baseConfig =
-    challenge?.engine_config && typeof challenge.engine_config === 'object'
-      ? challenge.engine_config
-      : {};
-
-  const directConfig =
-    challenge?.config && typeof challenge.config === 'object' ? challenge.config : {};
-
-  const junctionConfig =
-    challenge?.SessionChallenge?.config && typeof challenge.SessionChallenge.config === 'object'
-      ? challenge.SessionChallenge.config
-      : {};
-
-  return mergeChallengeConfig(baseConfig, mergeChallengeConfig(directConfig, junctionConfig));
-}
-
-function normalizeSessionObjectiveValue(value) {
-  if (value == null || value === '') return '';
-  try {
-    const parsed = parseSessionObjectives(value);
-    return SESSION_OBJECTIVES.filter((objectiveKey) => parsed.includes(objectiveKey)).join(',');
-  } catch {
-    return '';
-  }
-}
+import { ensureBuilderCatalogChallenges } from '@/lib/session-builder/catalog';
+import {
+  CREATION_DRAFT_STORAGE_KEY,
+  SELECTED_CHALLENGES_STORAGE_KEY,
+  SESSION_ID_STORAGE_KEY,
+  persistDraftToStorage,
+  readDraftFromStorage,
+  shouldApplyLocalDraftOverSession,
+} from '@/lib/session-builder/drafts';
+import { useManagerGuard } from '@/lib/session-builder/useManagerGuard';
+import { extractChallengeConfig, normalizeSessionObjectiveValue, pickDisplayName } from '@/lib/session-builder/utils';
 
 export default function SessionBuilder() {
   const { locale, t, withLocalePath } = useI18n();
