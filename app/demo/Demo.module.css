@@ -13,6 +13,11 @@
   padding-bottom: var(--space-10);
 }
 
+/* Challenge steps use the same width as the product challenge pages. */
+.page[data-wide='true'] {
+  width: min(1360px, calc(100% - 1.5rem));
+}
+
 :global(:root[data-theme='dark']) .page {
   --demo-tint: rgba(122, 140, 255, 0.18);
   --demo-tint-ink: #b9c6ff;
@@ -345,8 +350,7 @@
   font-weight: 600;
 }
 
-.optionChip:focus-visible,
-.statement:focus-visible {
+.optionChip:focus-visible {
   outline: 3px solid var(--focus-ring-teal);
   outline-offset: 2px;
 }
@@ -354,9 +358,7 @@
 .programCard,
 .codeCard,
 .lobbyCard,
-.liveCard,
 .timelineCard,
-.playCard,
 .kpi {
   display: grid;
   align-content: start;
@@ -430,15 +432,10 @@
 /* Invite */
 
 .inviteGrid,
-.liveGrid,
 .resultsColumns {
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: var(--space-5);
-}
-
-.liveGrid {
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr);
 }
 
 .resultsColumns {
@@ -560,24 +557,88 @@
 
 /* Facilitate */
 
-.liveBadge {
-  padding: var(--space-1) var(--space-3);
-  border-radius: 999px;
-  background: var(--demo-success-bg);
-  color: var(--demo-success-ink);
-  font-size: 0.8rem;
+.liveLayout {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.liveBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.liveBarInfo {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.liveBarTitle {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
   font-weight: 700;
 }
 
-.liveBadge[data-paused='true'] {
-  background: var(--demo-warning-bg);
-  color: var(--demo-warning-ink);
-}
-
-.controls {
+.liveBarActions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-3);
+}
+
+.programChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.programChip {
+  padding: 2px var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.programChip[data-state='live'] {
+  border-color: var(--accent);
+  color: var(--demo-tint-ink);
+}
+
+.programChip[data-state='done'] {
+  background: var(--demo-success-bg);
+  color: var(--demo-success-ink);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* The real challenge interface keeps its own layout and theme. */
+.challengeStage {
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg);
 }
 
 .autoBanner {
@@ -588,45 +649,6 @@
   color: var(--demo-success-ink);
   font-weight: 600;
   font-size: 0.92rem;
-}
-
-.sideColumn {
-  display: grid;
-  align-content: start;
-  gap: var(--space-4);
-}
-
-.liveStats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-}
-
-.clock {
-  margin: var(--space-1) 0 0;
-  color: var(--ink);
-  font-size: 1.8rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.feed {
-  display: grid;
-  gap: var(--space-2);
-  min-height: 9.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.feed li {
-  padding: var(--space-2) var(--space-3);
-  border-left: 3px solid var(--accent);
-  border-radius: var(--radius-sm);
-  background: var(--card);
-  color: var(--ink);
-  font-size: 0.9rem;
-  animation: demoJoin var(--motion-medium) var(--ease-standard);
 }
 
 .timeline {
@@ -676,136 +698,6 @@
 }
 
 /* Play */
-
-.presenter {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin: 0;
-  color: var(--ink);
-  font-size: 1.05rem;
-  font-weight: 600;
-}
-
-.question {
-  margin: 0;
-  color: var(--ink);
-  font-size: 1.2rem;
-  font-weight: 700;
-}
-
-.statements {
-  display: grid;
-  gap: var(--space-3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.statement {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-  width: 100%;
-  padding: var(--space-4);
-  border: 2px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--card);
-  color: var(--ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard);
-}
-
-.statement:not(:disabled):hover {
-  border-color: var(--accent);
-  transform: translateY(-1px);
-}
-
-.statement:disabled {
-  cursor: default;
-}
-
-.statement[data-revealed='lie'] {
-  border-color: var(--error-line);
-  background: var(--demo-error-bg);
-}
-
-.statement[data-revealed='truth'] {
-  opacity: 0.85;
-}
-
-.statement[aria-pressed='true'] {
-  box-shadow: 0 0 0 3px var(--focus-ring-violet);
-}
-
-.statementNumber {
-  display: inline-grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--demo-tint);
-  color: var(--demo-tint-ink);
-  font-weight: 700;
-}
-
-.statementText {
-  font-size: 1rem;
-  line-height: 1.45;
-}
-
-.statementResult {
-  grid-column: 2;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-  color: var(--ink-soft);
-  font-size: 0.86rem;
-}
-
-.statement[data-revealed='lie'] .statementResult strong {
-  color: var(--demo-error-ink);
-}
-
-.voteBar {
-  flex: 1 1 120px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--demo-tint);
-  overflow: hidden;
-}
-
-.voteBar > span {
-  display: block;
-  height: 100%;
-  background: var(--accent);
-  transition: width var(--motion-slow) var(--ease-standard);
-}
-
-.roundFooter {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.roundOutcome {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin: 0;
-  font-weight: 700;
-  color: var(--demo-error-ink);
-}
-
-.roundOutcome[data-correct='true'] {
-  color: var(--demo-success-ink);
-}
 
 /* Results */
 
@@ -904,7 +796,6 @@
 @media (max-width: 900px) {
   .prepareGrid,
   .inviteGrid,
-  .liveGrid,
   .resultsColumns {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -937,14 +828,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .personRow[data-connected='true'],
-  .feed li {
+  .personRow[data-connected='true'] {
     animation: none;
   }
 
   .meter > span,
-  .voteBar > span,
-  .statement,
   .optionChip {
     transition: none;
   }
