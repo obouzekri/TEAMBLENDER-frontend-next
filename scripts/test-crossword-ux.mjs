@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 import { chromium } from 'playwright';
+import { readGlobalCss } from './helpers/global-css.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (name) => fs.readFileSync(path.join(root, ...name.split('/')), 'utf8');
@@ -24,7 +25,7 @@ const challengeRulesSource = read('lib/challenges/rules.js');
 const sharedCss = ['ChallengeRulesPanel', 'ChallengeTimerCard', 'ChallengePresentation']
   .map((name) => read(`components/Challenges/${name}.module.css`).replace(/:global\(([^)]+)\)/g, '$1'))
   .join('\n');
-const globalCss = read('app/globals.css').replace(/^@import.*$/gm, '');
+const globalCss = readGlobalCss();
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
 const page = await browser.newPage();
 const errors = [];

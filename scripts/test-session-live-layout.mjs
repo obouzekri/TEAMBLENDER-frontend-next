@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
+import { readGlobalCss } from './helpers/global-css.mjs';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
 
 const require = createRequire(import.meta.url);
@@ -20,10 +21,12 @@ const state = {
   puzzle: { pieces: buildPieces(config) },
 };
 const cssSources = [
-  ['../app/globals.css', null],
-  ['../components/Challenges/ChallengeWrapper.module.css', 'ChallengeWrapper'],
-  ['../components/Challenges/CopuzzleLive/Copuzzle.module.css', 'Copuzzle'],
-].map(([file, module]) => ({ module, css: fs.readFileSync(new URL(file, import.meta.url), 'utf8') }));
+  { module: null, css: readGlobalCss() },
+  ...[
+    ['../components/Challenges/ChallengeWrapper.module.css', 'ChallengeWrapper'],
+    ['../components/Challenges/CopuzzleLive/Copuzzle.module.css', 'Copuzzle'],
+  ].map(([file, module]) => ({ module, css: fs.readFileSync(new URL(file, import.meta.url), 'utf8') })),
+];
 const browser = await chromium.launch({
   headless: true,
   channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome',

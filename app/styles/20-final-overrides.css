@@ -1,0 +1,827 @@
+/* ================================================================
+   DARK MODE — CONTRAST FIXES (session cards + top navigation)
+   Placed last so it wins over the earlier `!important` light rules.
+   ================================================================ */
+@media (prefers-color-scheme: dark) {
+  :where(html:not([data-theme='light'])) .home-sessions-panel .eyebrow{
+    color: #94a3b8;
+  }
+
+  :where(html:not([data-theme='light'])) .home-sessions-panel .home-sessions-head h2{
+    color: #f2f6ff;
+  }
+
+  :where(html:not([data-theme='light'])) .home-sessions-panel .home-sessions-head > div > p:not(.eyebrow){
+    color: #cbd5e1;
+  }
+
+  :where(html:not([data-theme='light'])) /* ── Session cards ── */
+  .session-card{
+    border-color: rgba(122, 140, 255, 0.22) !important;
+    background: linear-gradient(180deg, rgba(17, 26, 46, 0.98) 0%, rgba(12, 18, 34, 0.98) 100%) !important;
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.42) !important;
+    color: var(--ink);
+  }
+
+  :where(html:not([data-theme='light'])) .session-card:hover{
+    border-color: rgba(148, 163, 255, 0.48) !important;
+    box-shadow: 0 18px 38px rgba(2, 6, 23, 0.55) !important;
+  }
+
+  :where(html:not([data-theme='light'])) .session-card::before{
+    background: rgba(122, 140, 255, 0.3);
+  }
+
+  :where(html:not([data-theme='light'])) .session-card-body .session-title{
+    color: var(--session-title-color);
+  }
+
+  :where(html:not([data-theme='light'])) .session-card-body .session-meta,:where(html:not([data-theme='light'])) .session-card .session-meta{
+    color: var(--ink-soft);
+  }
+
+  :where(html:not([data-theme='light'])) .session-card-actions{
+    border-top-color: rgba(226, 232, 255, 0.1);
+    background: rgba(11, 17, 32, 0.92) !important;
+  }
+
+  :where(html:not([data-theme='light'])) .session-card-actions .icon-action-btn{
+    box-sizing: border-box;
+    flex: 0 0 34px;
+    padding: 0;
+  }
+
+  :where(html:not([data-theme='light'])) .session-tag{
+    border-color: rgba(226, 232, 255, 0.16);
+    background: rgba(30, 41, 66, 0.86);
+    color: #d7e1f7;
+  }
+
+  :where(html:not([data-theme='light'])) .session-tag--modality{
+    border-color: rgba(96, 165, 250, 0.36);
+    background: rgba(30, 58, 138, 0.4);
+    color: #bfdbfe;
+  }
+
+  :where(html:not([data-theme='light'])) .session-tag--format{
+    border-color: rgba(45, 212, 191, 0.34);
+    background: rgba(19, 78, 74, 0.42);
+    color: #99f6e4;
+  }
+
+  :where(html:not([data-theme='light'])) .session-tag--duration{
+    border-color: rgba(148, 163, 184, 0.32);
+    background: rgba(51, 65, 85, 0.5);
+    color: #dbe4f2;
+  }
+
+  :where(html:not([data-theme='light'])) /* ── Secondary buttons (ex: "Créer un participant") ── */
+  .btn-secondary{
+    background: linear-gradient(180deg, rgba(30, 41, 66, 0.96) 0%, rgba(21, 30, 51, 0.96) 100%);
+    border-color: rgba(122, 140, 255, 0.28);
+    color: #e8efff;
+    box-shadow: 0 8px 18px rgba(2, 6, 23, 0.4);
+  }
+
+  :where(html:not([data-theme='light'])) .btn-secondary:hover{
+    border-color: rgba(148, 163, 255, 0.5);
+    color: #ffffff;
+    box-shadow: 0 14px 28px rgba(2, 6, 23, 0.52);
+  }
+
+  :where(html:not([data-theme='light'])) /* ── Top navigation ── */
+  .top-nav{
+    background: linear-gradient(180deg, rgba(12, 18, 34, 0.94) 0%, rgba(17, 26, 46, 0.88) 100%);
+    border-bottom-color: rgba(122, 140, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.5);
+  }
+
+  :where(html:not([data-theme='light'])) .top-nav .nav-panel.is-open{
+    background: linear-gradient(180deg, rgba(12, 18, 34, 0.98) 0%, rgba(17, 26, 46, 0.98) 100%);
+  }
+
+  :where(html:not([data-theme='light'])) .nav-link,:where(html:not([data-theme='light'])) .btn-mini,:where(html:not([data-theme='light'])) .nav-toggle,:where(html:not([data-theme='light'])) .nav-context{
+    color: #dbe4f8;
+  }
+
+  :where(html:not([data-theme='light'])) .nav-link:hover{
+    color: #ffffff;
+    background: rgba(148, 163, 255, 0.12);
+  }
+
+  :where(html:not([data-theme='light'])) .nav-link.is-active{
+    border-color: rgba(148, 163, 255, 0.32);
+    background: rgba(148, 163, 255, 0.16);
+    color: #ffffff;
+  }
+
+  :where(html:not([data-theme='light'])) .btn-mini:hover{
+    color: #ffffff;
+  }
+
+  :where(html:not([data-theme='light'])) /* ── Login card — nouveaux éléments ── */
+  .auth-tabs{
+    border-color: rgba(226, 232, 255, 0.12);
+    background: rgba(12, 18, 34, 0.7);
+  }
+
+  :where(html:not([data-theme='light'])) .auth-tab-btn{
+    color: #b9c7e4;
+  }
+
+  :where(html:not([data-theme='light'])) .auth-tab-btn:hover{
+    color: #ffffff;
+  }
+
+  :where(html:not([data-theme='light'])) .auth-tab-btn.is-active{
+    color: #ffffff;
+    border-color: rgba(122, 140, 255, 0.34);
+    background: rgba(30, 41, 66, 0.96);
+  }
+
+  :where(html:not([data-theme='light'])) .auth-tabs-subtitle,:where(html:not([data-theme='light'])) .auth-remember-me{
+    color: #b9c7e4;
+  }
+
+  :where(html:not([data-theme='light'])) .auth-inline-help-link{
+    color: #8fd7ff;
+  }
+}
+/* Explicit dark theme mirror of the block above */
+
+  html[data-theme='dark'] .home-sessions-panel .eyebrow{
+    color: #94a3b8;
+  }
+
+  html[data-theme='dark'] .home-sessions-panel .home-sessions-head h2{
+    color: #f2f6ff;
+  }
+
+  html[data-theme='dark'] .home-sessions-panel .home-sessions-head > div > p:not(.eyebrow){
+    color: #cbd5e1;
+  }
+
+  html[data-theme='dark'] /* ── Session cards ── */
+  .session-card{
+    border-color: rgba(122, 140, 255, 0.22) !important;
+    background: linear-gradient(180deg, rgba(17, 26, 46, 0.98) 0%, rgba(12, 18, 34, 0.98) 100%) !important;
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.42) !important;
+    color: var(--ink);
+  }
+
+  html[data-theme='dark'] .session-card:hover{
+    border-color: rgba(148, 163, 255, 0.48) !important;
+    box-shadow: 0 18px 38px rgba(2, 6, 23, 0.55) !important;
+  }
+
+  html[data-theme='dark'] .session-card::before{
+    background: rgba(122, 140, 255, 0.3);
+  }
+
+  html[data-theme='dark'] .session-card-body .session-title{
+    color: var(--session-title-color);
+  }
+
+  html[data-theme='dark'] .session-card-body .session-meta,
+html[data-theme='dark'] .session-card .session-meta{
+    color: var(--ink-soft);
+  }
+
+  html[data-theme='dark'] .session-card-actions{
+    border-top-color: rgba(226, 232, 255, 0.1);
+    background: rgba(11, 17, 32, 0.92) !important;
+  }
+
+  html[data-theme='dark'] .session-card-actions .icon-action-btn{
+    box-sizing: border-box;
+    flex: 0 0 34px;
+    padding: 0;
+  }
+
+  html[data-theme='dark'] .session-tag{
+    border-color: rgba(226, 232, 255, 0.16);
+    background: rgba(30, 41, 66, 0.86);
+    color: #d7e1f7;
+  }
+
+  html[data-theme='dark'] .session-tag--modality{
+    border-color: rgba(96, 165, 250, 0.36);
+    background: rgba(30, 58, 138, 0.4);
+    color: #bfdbfe;
+  }
+
+  html[data-theme='dark'] .session-tag--format{
+    border-color: rgba(45, 212, 191, 0.34);
+    background: rgba(19, 78, 74, 0.42);
+    color: #99f6e4;
+  }
+
+  html[data-theme='dark'] .session-tag--duration{
+    border-color: rgba(148, 163, 184, 0.32);
+    background: rgba(51, 65, 85, 0.5);
+    color: #dbe4f2;
+  }
+
+  html[data-theme='dark'] /* ── Secondary buttons (ex: "Créer un participant") ── */
+  .btn-secondary{
+    background: linear-gradient(180deg, rgba(30, 41, 66, 0.96) 0%, rgba(21, 30, 51, 0.96) 100%);
+    border-color: rgba(122, 140, 255, 0.28);
+    color: #e8efff;
+    box-shadow: 0 8px 18px rgba(2, 6, 23, 0.4);
+  }
+
+  html[data-theme='dark'] .btn-secondary:hover{
+    border-color: rgba(148, 163, 255, 0.5);
+    color: #ffffff;
+    box-shadow: 0 14px 28px rgba(2, 6, 23, 0.52);
+  }
+
+  html[data-theme='dark'] /* ── Top navigation ── */
+  .top-nav{
+    background: linear-gradient(180deg, rgba(12, 18, 34, 0.94) 0%, rgba(17, 26, 46, 0.88) 100%);
+    border-bottom-color: rgba(122, 140, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.5);
+  }
+
+  html[data-theme='dark'] .top-nav .nav-panel.is-open{
+    background: linear-gradient(180deg, rgba(12, 18, 34, 0.98) 0%, rgba(17, 26, 46, 0.98) 100%);
+  }
+
+  html[data-theme='dark'] .nav-link,
+html[data-theme='dark'] .btn-mini,
+html[data-theme='dark'] .nav-toggle,
+html[data-theme='dark'] .nav-context{
+    color: #dbe4f8;
+  }
+
+  html[data-theme='dark'] .nav-link:hover{
+    color: #ffffff;
+    background: rgba(148, 163, 255, 0.12);
+  }
+
+  html[data-theme='dark'] .nav-link.is-active{
+    border-color: rgba(148, 163, 255, 0.32);
+    background: rgba(148, 163, 255, 0.16);
+    color: #ffffff;
+  }
+
+  html[data-theme='dark'] .btn-mini:hover{
+    color: #ffffff;
+  }
+
+  html[data-theme='dark'] /* ── Login card — nouveaux éléments ── */
+  .auth-tabs{
+    border-color: rgba(226, 232, 255, 0.12);
+    background: rgba(12, 18, 34, 0.7);
+  }
+
+  html[data-theme='dark'] .auth-tab-btn{
+    color: #b9c7e4;
+  }
+
+  html[data-theme='dark'] .auth-tab-btn:hover{
+    color: #ffffff;
+  }
+
+  html[data-theme='dark'] .auth-tab-btn.is-active{
+    color: #ffffff;
+    border-color: rgba(122, 140, 255, 0.34);
+    background: rgba(30, 41, 66, 0.96);
+  }
+
+  html[data-theme='dark'] .auth-tabs-subtitle,
+html[data-theme='dark'] .auth-remember-me{
+    color: #b9c7e4;
+  }
+
+  html[data-theme='dark'] .auth-inline-help-link{
+    color: #8fd7ff;
+  }
+
+/* ================================================================
+   FINAL OVERRIDE — DESKTOP HEADER CLEANUP
+   An earlier unguarded `.nav-toggle { display: inline-flex; }` rule
+   (auth dark-mode section) made the mobile hamburger button, mobile
+   CTA and mobile action drawers appear on desktop alongside the
+   normal desktop nav, causing visual duplication. Force the
+   mobile-only controls hidden and the desktop nav panel/actions
+   visible above 860px, for both the public (TopNav) and
+   authenticated (AppNav) headers.
+   ================================================================ */
+@media (min-width: 861px) {
+  .top-nav:not(.top-nav--live-inline) .nav-toggle,
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-cta,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-cta,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions,
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions,
+  .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions {
+    display: none !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-panel {
+    position: static !important;
+    display: flex !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-actions,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-desktop-actions,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-desktop-language,
+  .top-nav:not(.top-nav--live-inline) .appnav-desktop-actions {
+    display: inline-flex !important;
+  }
+}
+
+.top-nav .brand {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* ================================================================
+   FINAL OVERRIDE — ADMIN DARK SURFACES
+   AdminClient still uses a number of inline styles based on
+   --color-surface / --surface-elevated, while generic .session-item
+   rules are declared much later than the first admin block. Scope the
+   dark tokens to the admin shell and override the list/card surfaces
+   here so html, body and class-based dark toggles all behave the same.
+   ================================================================ */
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout {
+  --bg: #071124;
+  --ink: #eef5ff;
+  --ink-soft: #b8c6df;
+  --line: rgba(96, 165, 250, 0.2);
+  --card: #101a2f;
+  --color-surface: #101a2f;
+  --color-border: rgba(96, 165, 250, 0.22);
+  --color-muted: #b8c6df;
+  --color-text: #eef5ff;
+  --color-primary: #7dd3fc;
+  --surface-elevated: #101a2f;
+  --surface-elevated-soft: rgba(16, 26, 47, 0.88);
+  --surface-panel: rgba(16, 26, 47, 0.98);
+  --surface-panel-soft: rgba(21, 33, 57, 0.96);
+  --surface-glass: rgba(16, 26, 47, 0.82);
+  --surface-glass-strong: rgba(16, 26, 47, 0.96);
+  --surface-border: rgba(96, 165, 250, 0.18);
+  --surface-border-strong: rgba(125, 211, 252, 0.34);
+  --surface-soft-border: rgba(96, 165, 250, 0.18);
+  --surface-soft-border-strong: rgba(125, 211, 252, 0.34);
+  --surface-control: rgba(8, 16, 31, 0.9);
+  --surface-control-hover: rgba(15, 28, 50, 0.96);
+  background:
+    radial-gradient(circle at 78% 0%, rgba(59, 130, 246, 0.1), transparent 30%),
+    linear-gradient(180deg, #0b1427 0%, #071124 100%);
+  color: var(--ink);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-main-shell {
+  background: transparent;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-sidebar {
+  background: rgba(12, 20, 38, 0.98);
+  border-right-color: rgba(96, 165, 250, 0.18);
+  box-shadow: inset -1px 0 0 rgba(125, 211, 252, 0.08), 12px 0 42px rgba(2, 6, 23, 0.22);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-sidebar__brand {
+  border-bottom-color: rgba(96, 165, 250, 0.16);
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-sidebar__title,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card h1,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card h2,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card h3,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .session-title,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card strong,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card b {
+  color: #f8fbff !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-sidebar__eyebrow,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .session-meta,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .session-meta,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .list-count,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .list-count,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .list-empty,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .list-empty {
+  color: #b8c6df !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-nav-button {
+  color: #cbd8f2;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-nav-button:hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-nav-button.is-active {
+  background: rgba(59, 130, 246, 0.16);
+  color: #dbeafe;
+  border-left-color: #60a5fa;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-page-hero,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-stat-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout [style*='--color-surface'],
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout [style*='--surface-elevated'] {
+  background:
+    radial-gradient(circle at 94% 0%, rgba(96, 165, 250, 0.14), transparent 34%),
+    linear-gradient(160deg, rgba(16, 26, 47, 0.98), rgba(10, 18, 34, 0.98)) !important;
+  border-color: rgba(96, 165, 250, 0.24) !important;
+  box-shadow: 0 18px 46px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  color: #eef5ff !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-stat-card--highlight,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card--accent {
+  background:
+    radial-gradient(circle at 78% 10%, rgba(125, 211, 252, 0.18), transparent 36%),
+    linear-gradient(160deg, rgba(22, 35, 61, 0.98), rgba(12, 20, 38, 0.98)) !important;
+  border-color: rgba(125, 211, 252, 0.36) !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-stat-card__value {
+  color: #ffffff !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-stat-card__label {
+  color: #cbd8f2 !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .session-list,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .session-list,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card ul {
+  background: transparent !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .session-item,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .session-item,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout li:not(.list-empty),
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card li:not(.list-empty),
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout [class*='row'],
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card [class*='row'] {
+  background:
+    linear-gradient(180deg, rgba(15, 26, 48, 0.94) 0%, rgba(10, 18, 34, 0.94) 100%) !important;
+  border-color: rgba(96, 165, 250, 0.22) !important;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22) !important;
+  color: #eef5ff !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .session-item:hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .session-item:hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout li:not(.list-empty):hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card li:not(.list-empty):hover {
+  border-color: rgba(125, 211, 252, 0.42) !important;
+  background:
+    linear-gradient(180deg, rgba(22, 36, 64, 0.96) 0%, rgba(14, 24, 44, 0.96) 100%) !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .inline-input,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .inline-input,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout input,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card input,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout select,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card select,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout textarea,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card textarea {
+  background: rgba(7, 15, 30, 0.92) !important;
+  border-color: rgba(96, 165, 250, 0.28) !important;
+  color: #eef5ff !important;
+  box-shadow: none !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .inline-input::placeholder,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .inline-input::placeholder,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout input::placeholder,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card input::placeholder,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout textarea::placeholder,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card textarea::placeholder {
+  color: rgba(184, 198, 223, 0.64) !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .icon-action-btn,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .icon-action-btn {
+  background: rgba(7, 15, 30, 0.9) !important;
+  border-color: rgba(96, 165, 250, 0.3) !important;
+  color: #dbeafe !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .icon-action-btn:hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .icon-action-btn:hover {
+  background: rgba(37, 99, 235, 0.24) !important;
+  border-color: rgba(125, 211, 252, 0.5) !important;
+  color: #ffffff !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .team-empty,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-prerequisite-hint,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .participants-panel p,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-sessions-panel p:not(.session-title) {
+  color: #cbd8f2 !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .team-empty {
+  border-color: rgba(125, 211, 252, 0.38) !important;
+  background: rgba(15, 35, 62, 0.82) !important;
+  color: #dbeafe !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-sessions-head .btn-primary {
+  background: #38bdf8 !important;
+  border-color: #7dd3fc !important;
+  color: #082f49 !important;
+  box-shadow: 0 10px 22px rgba(56, 189, 248, 0.28) !important;
+}
+
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-sessions-head .btn-primary:hover,
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .manager-home .home-sessions-head .btn-primary:focus-visible {
+  background: #7dd3fc !important;
+  border-color: #bae6fd !important;
+  color: #082f49 !important;
+}
+
+/* Checkout responsive layout */
+.checkout-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.checkout-page .checkout-hero,
+.checkout-page .checkout-plan-selector,
+.checkout-page .checkout-plan-summary,
+.checkout-page .checkout-methods,
+.checkout-page .checkout-back-link {
+  width: min(100%, 72rem);
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.checkout-page .checkout-plan-tabs,
+.checkout-page .checkout-methods {
+  min-width: 0;
+}
+
+.checkout-page .checkout-plan-tab,
+.checkout-page .checkout-method-card,
+.checkout-page .checkout-plan-summary,
+.checkout-page .checkout-method-card__body,
+.checkout-page .checkout-method-card__header,
+.checkout-page .checkout-method-card__header > div:last-child {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 900px) {
+  .checkout-page {
+    padding-inline: 0.85rem;
+  }
+
+  .checkout-page .checkout-hero {
+    padding: 1.15rem 0.25rem 0.5rem;
+  }
+
+  .checkout-page .checkout-hero h1 {
+    font-size: clamp(1.75rem, 5vw, 2.35rem);
+    line-height: 1.12;
+  }
+
+  .checkout-page .checkout-hero > p:last-child {
+    max-width: 48rem;
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .checkout-page .checkout-plan-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .checkout-page .checkout-methods {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .checkout-page .checkout-plan-summary {
+    gap: 0.8rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .checkout-page {
+    padding-inline: 0.6rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .checkout-page .checkout-hero h1 {
+    font-size: 1.7rem;
+  }
+
+  .checkout-page .checkout-hero > p:last-child {
+    font-size: 0.88rem;
+  }
+
+  .checkout-page .checkout-plan-selector,
+  .checkout-page .checkout-plan-summary,
+  .checkout-page .checkout-method-card,
+  .checkout-page .checkout-confirmed {
+    border-radius: 16px;
+  }
+
+  .checkout-page .checkout-plan-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-page .checkout-plan-tab {
+    width: 100%;
+    min-height: 3.7rem;
+    padding: 0.75rem 0.85rem;
+    text-align: left;
+  }
+
+  .checkout-page .checkout-plan-tab__name,
+  .checkout-page .checkout-plan-tab__price {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .checkout-page .checkout-plan-summary {
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding: 1rem;
+  }
+
+  .checkout-page .checkout-plan-summary__price {
+    justify-self: start;
+    font-size: 1.45rem;
+  }
+
+  .checkout-page .checkout-method-card__header {
+    align-items: flex-start;
+    padding: 0.95rem;
+  }
+
+  .checkout-page .checkout-method-card__header strong {
+    font-size: 0.98rem;
+  }
+
+  .checkout-page .checkout-method-card__header p,
+  .checkout-page .checkout-secure-note {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .checkout-page .checkout-method-card__body {
+    padding: 0 0.95rem 0.95rem;
+  }
+
+  .checkout-page .checkout-paypal-btn,
+  .checkout-page .checkout-method-card .btn-primary,
+  .checkout-page .checkout-method-card .btn-secondary,
+  .checkout-page .checkout-confirmed .btn-primary,
+  .checkout-page .checkout-confirmed .btn-secondary,
+  .checkout-page .checkout-back-link a {
+    width: 100%;
+    min-height: 2.8rem;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .checkout-page .participant-form-actions {
+    flex-direction: column;
+  }
+
+  .checkout-page .participant-form-actions > * {
+    width: 100%;
+  }
+
+  .checkout-page .paypal-redirect-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 1.25rem 1rem;
+    box-sizing: border-box;
+  }
+
+  .checkout-page .paypal-redirect-card__title {
+    font-size: 1.25rem;
+  }
+
+  .checkout-page .paypal-redirect-card__desc,
+  .checkout-page .paypal-redirect-card__trust {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .checkout-page .paypal-redirect-card__btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ================================================================
+   ABSOLUTE FINAL OVERRIDE — MOBILE HAMBURGER MENU REDESIGN
+   Placed at end of file on purpose: several earlier blocks re-declare
+   the same selectors with !important later in the cascade and would
+   otherwise win by source order. Keep this block last.
+   ================================================================ */
+@media (max-width: 860px) {
+  /* Header now only has logo + burger; toggle sits at the far right */
+  .top-nav:not(.top-nav--live-inline) .nav-top-row {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-panel {
+    background: var(--surface-panel, #ffffff) !important;
+    border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.22)) !important;
+    border-radius: var(--radius-lg, 20px) !important;
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18) !important;
+    padding: 1rem 1.1rem 1.15rem !important;
+    transition: opacity 0.22s var(--ease-standard, ease), transform 0.22s var(--ease-standard, ease) !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-link {
+    font-size: 1rem !important;
+    padding: 0.75rem 0.65rem !important;
+    min-height: 48px !important;
+  }
+
+  /* Actions block: session CTAs, separated from nav links by a subtle divider */
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    gap: 0 !important;
+    margin-top: 0.7rem !important;
+    padding: 1.5rem 0 0.1rem !important;
+    border-top: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.24)) !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions__buttons,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .nav-mobile-menu-actions__buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .nav-mobile-login-btn,
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .nav-mobile-signup-btn,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .nav-mobile-login-btn,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .nav-mobile-signup-btn {
+    width: 100% !important;
+    min-height: 52px !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    justify-content: center !important;
+  }
+
+  /* Footer: language switch, visually detached with its own subtle divider, 44px tap target */
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions__footer,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .nav-mobile-menu-actions__footer {
+    display: flex !important;
+    margin-top: 0.9rem !important;
+    padding-top: 0.75rem !important;
+    border-top: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18)) !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .lang-switch,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .lang-switch {
+    width: auto !important;
+    max-width: 100% !important;
+    justify-content: flex-start !important;
+    margin: 0 !important;
+    min-height: 44px !important;
+    padding: 0.4rem 0.2rem !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #64748b !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .lang-switch__icon,
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .lang-switch__value,
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .lang-switch__chevron,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .lang-switch__icon,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .lang-switch__value,
+  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions .lang-switch__chevron {
+    color: #64748b !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+  }
+}
+
