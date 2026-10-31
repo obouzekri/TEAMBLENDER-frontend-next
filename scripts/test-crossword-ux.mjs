@@ -33,8 +33,30 @@ page.on('pageerror', (error) => errors.push(error.message));
 
 try {
   await page.setContent('<html><body><main id="root"></main></body></html>');
-  await page.addScriptTag({ path: path.join(root, 'node_modules', 'react', 'umd', 'react.development.js') });
-  await page.addScriptTag({ path: path.join(root, 'node_modules', 'react-dom', 'umd', 'react-dom.development.js') });
+  // React 19 no longer ships UMD builds: load the CommonJS builds through a minimal in-page require.
+  const reactModules = {
+    react: 'react/cjs/react.development.js',
+    scheduler: 'scheduler/cjs/scheduler.development.js',
+    'react-dom': 'react-dom/cjs/react-dom.development.js',
+    'react-dom/client': 'react-dom/cjs/react-dom-client.development.js',
+  };
+  const factories = Object.entries(reactModules)
+    .map(([name, file]) => `${JSON.stringify(name)}: function (require, module, exports) {\n${read(`node_modules/${file}`)}\n}`)
+    .join(',\n');
+  await page.addScriptTag({ content: `(() => {
+    globalThis.process = { env: { NODE_ENV: 'development' } };
+    const factories = {${factories}};
+    const cache = {};
+    const require = (name) => {
+      if (!cache[name]) {
+        cache[name] = { exports: {} };
+        factories[name](require, cache[name], cache[name].exports);
+      }
+      return cache[name].exports;
+    };
+    globalThis.React = require('react');
+    globalThis.ReactDOM = { ...require('react-dom'), ...require('react-dom/client') };
+  })();` });
   await page.addStyleTag({ content: `${globalCss}\nbody { margin: 0; padding: 12px; box-sizing: border-box; } ${sharedCss} ${css} ${modalCss}` });
   await page.evaluate(({ ui, modal, hook, rules, timer, presentation, actionFeedback, rulesPreset, challengeRules }) => {
     const R = globalThis.React;

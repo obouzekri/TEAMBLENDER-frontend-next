@@ -59,8 +59,8 @@
     "postcss": "8.5.32",
     "posthog-js": "^1.379.1",
     "qrcode": "^1.5.4",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "socket.io-client": "^4.7.2",
     "three": "^0.184.0"
   },
