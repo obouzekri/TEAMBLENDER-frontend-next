@@ -1,0 +1,248 @@
+/* ================================================================
+   FINAL OVERRIDE — MOBILE NAV VISIBILITY
+   Ensures hamburger/row layout wins when earlier rules conflict.
+   ================================================================ */
+@media (max-width: 860px) {
+  .top-nav:not(.top-nav--live-inline) .nav-top-row {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    column-gap: 0.5rem !important;
+    width: 100% !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-toggle {
+    display: inline-flex !important;
+    justify-self: end !important;
+    flex: 0 0 auto !important;
+    z-index: 250 !important;
+  }
+
+  /* Quick action button sits directly beside the hamburger, on the right */
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-cta {
+    display: inline-flex !important;
+    justify-self: end !important;
+    align-items: center !important;
+    gap: 0.45rem !important;
+    margin-right: 0.4rem !important;
+  }
+
+  .top-nav--landing .nav-mobile-cta--landing {
+    display: none !important;
+  }
+
+  .top-nav--landing .nav-top-row {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  /* Drawer surface: detached card with soft shadow, rounded corners, smooth transition */
+  .top-nav:not(.top-nav--live-inline) .nav-panel {
+    position: absolute !important;
+    top: calc(100% + 10px) !important;
+    left: 0.65rem !important;
+    right: 0.65rem !important;
+    display: grid !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(-10px) !important;
+    z-index: 180 !important;
+    background: var(--surface-panel, #ffffff) !important;
+    border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.22)) !important;
+    border-radius: var(--radius-lg, 20px) !important;
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18) !important;
+    padding: 1rem 1.1rem 1.15rem !important;
+    max-height: calc(100dvh - 96px) !important;
+    overflow-y: auto !important;
+    transition: opacity 0.22s var(--ease-standard, ease), transform 0.22s var(--ease-standard, ease) !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-panel.is-open {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-main-block,
+  .top-nav:not(.top-nav--live-inline) .nav-links,
+  .top-nav:not(.top-nav--live-inline) .nav-actions {
+    width: 100% !important;
+  }
+
+  /* Primary navigation: airy spacing, min. 16px readable labels */
+  .top-nav:not(.top-nav--live-inline) .nav-links {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0.3rem !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-link {
+    width: 100% !important;
+    min-height: 48px !important;
+    padding: 0.75rem 0.65rem !important;
+    font-size: 1rem !important;
+    justify-content: flex-start !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.55rem !important;
+  }
+
+  /* Account/session actions: separated from nav links by a subtle divider */
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.65rem !important;
+    width: 100% !important;
+    margin-top: 0.7rem !important;
+    padding: 0.9rem 0 0.1rem !important;
+    border-top: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.24)) !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .lang-switch,
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .nav-mobile-login-btn,
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .nav-mobile-signup-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Language switch stays last, with breathing room, never overlapping the buttons above */
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .lang-switch {
+    margin-top: 0.2rem !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions .nav-user-trigger-wrap {
+    width: 100% !important;
+  }
+
+  .top-nav:not(.top-nav--live-inline) .nav-link {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: flex-start !important;
+  }
+
+  .nav-mobile-overlay {
+    z-index: 170 !important;
+  }
+}
+
+/* Header layout fixes: force flexbox for consistent alignment and gaps */
+.top-nav .nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.top-nav .nav-top-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1rem !important;
+}
+
+/* Left group: logo, burger, back-to-admin button spacing */
+.nav-brand-block {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Ensure mobile toggle has breathing room from adjacent CTAs */
+.nav-toggle {
+  margin-left: 0.25rem;
+}
+
+/* Right group: user actions alignment */
+.nav-actions,
+.appnav-desktop-actions,
+.nav-mobile-menu-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Only show desktop language switcher in desktop actions; hide duplicate on larger viewports */
+.nav-mobile-menu-actions .lang-switch {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  /* On small screens, hide desktop language and show mobile language inside mobile menu */
+  .nav-actions .lang-switch {
+    display: none !important;
+  }
+  .nav-mobile-menu-actions .lang-switch {
+    display: flex !important;
+    justify-content: center;
+  }
+}
+
+/* Align avatar/menu and account links on same baseline */
+.nav-mobile-menu-actions .btn-mini,
+.nav-mobile-menu-actions .btn-mini + .btn-mini,
+.nav-actions .nav-user-trigger-wrap,
+.nav-actions .btn-mini {
+  align-items: center;
+  display: inline-flex;
+}
+
+
+/* Enforce breakpoint-based hiding of desktop nav and prevent header overflow
+   - Hide desktop-specific actions under 1024px (lg)
+   - Ensure header rows do not wrap and internal overflow is clipped
+*/
+@media (max-width: 860px) {
+  .top-nav .nav-inner {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
+  }
+
+  .top-nav .nav-top-row {
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
+  }
+
+  /* Hide desktop-only action groups so they cannot appear alongside mobile menu */
+  .topnav-public-desktop-actions,
+  .topnav-public-desktop-language {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  /* Ensure the mobile toggle and mobile CTAs remain visible */
+  .top-nav .nav-toggle {
+    display: inline-flex !important;
+  }
+
+  .top-nav .nav-mobile-cta,
+  .top-nav .nav-mobile-menu-actions {
+    display: inline-flex !important;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  color: var(--ink);
+}
+
