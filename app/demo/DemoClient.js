@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Info, Pause, Play, PlayCircle, Plus, RotateCcw, Users, WifiOff, XCircle } from 'lucide-react';
+import { CheckCircle2, Info, PlayCircle, Plus, RotateCcw, Users } from 'lucide-react';
 import { Button } from '@/components/ui';
 import useI18n from '@/lib/i18n/useI18n';
 import { trackProductEvent } from '@/lib/analytics';
@@ -10,46 +10,32 @@ import { mockChallenges } from '@/lib/mockChallenges';
 import { localizeBuilderChallenge } from '@/lib/challenges/catalogLocalization';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import { getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRules';
-import { getAvailableEngines } from '@/lib/challenges/runtime';
 import { getPublicSiteOrigin } from '@/lib/siteMetadata';
 import { getChallengeDuration, proposeSessionProgram, replaceProgramChallenge } from '@/lib/sessionProgram.mjs';
 import {
   DEMO_AUTO_ADVANCE_SECONDS,
   DEMO_DURATIONS,
   DEMO_FLOW_MODES,
-  DEMO_MS_PER_MINUTE,
   DEMO_OBJECTIVES,
-  DEMO_PARI_ROUNDS,
-  DEMO_PARTICIPANTS,
   DEMO_PAST_SESSIONS,
   DEMO_STEPS,
   DEMO_TEAM_SIZE,
-  buildActivityFeed,
+  DEMO_VISITOR_ID,
   buildJoinSchedule,
   computeDemoResults,
   createRandom,
-  getChallengeCompletion,
   getDebriefPrompts,
   getDemoParticipants,
-  getRoundStatements,
-  isParticipantOnline,
-  simulateVotes,
+  getVisitorResult,
 } from '@/lib/demo/demoScenario.mjs';
+import { DEMO_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '@/lib/demo/challenges/index.mjs';
+import DemoChallengeStage from './DemoChallengeStage';
 import styles from './Demo.module.css';
 
-const TICK_MS = DEMO_MS_PER_MINUTE / 2;
-const FEED_LENGTH = 5;
 const INVITE_HOST = getPublicSiteOrigin().replace(/^https?:\/\//, '');
 
 function track(action, context = {}) {
   trackProductEvent('demo', action, context);
-}
-
-function formatClock(minutes) {
-  const totalSeconds = Math.max(0, Math.round(minutes * 60));
-  const mm = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-  const ss = String(totalSeconds % 60).padStart(2, '0');
-  return `${mm}:${ss}`;
 }
 
 function OptionGroup({ label, options, value, onChange, hint }) {
@@ -85,19 +71,17 @@ export default function DemoClient() {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const [sessionName, setSessionName] = useState(() => t('demo.prepare.sessionNameDefault'));
   const [objective, setObjective] = useState('');
-  const [targetMinutes, setTargetMinutes] = useState(45);
+  const [targetMinutes, setTargetMinutes] = useState(60);
   const [flowMode, setFlowMode] = useState('manual');
   const [proposal, setProposal] = useState(null);
   const [programNotice, setProgramNotice] = useState('');
   const [joinedCount, setJoinedCount] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [elapsedMinutes, setElapsedMinutes] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [activeDone, setActiveDone] = useState(false);
   const [autoCountdown, setAutoCountdown] = useState(null);
   const [completions, setCompletions] = useState({});
-  const [roundIndex, setRoundIndex] = useState(0);
-  const [answers, setAnswers] = useState([]);
-  const [votes, setVotes] = useState([]);
+  const [visitorResult, setVisitorResult] = useState(null);
+  const [playDone, setPlayDone] = useState(false);
   const headingRef = useRef(null);
   const hasMountedRef = useRef(false);
   const advanceRef = useRef(() => {});
@@ -133,7 +117,7 @@ export default function DemoClient() {
     expectedCount: DEMO_TEAM_SIZE,
     targetMinutes,
     resolveRange: resolveChallengePlayerRange,
-    availableEngineKeys: getAvailableEngines().map((engine) => engine.key),
+    availableEngineKeys: DEMO_ENGINE_KEYS,
   }), [objective, targetMinutes]);
 
   const generateProgram = useCallback(() => {
@@ -165,60 +149,27 @@ export default function DemoClient() {
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [seed, step]);
 
-  const activeDuration = activeChallenge ? getChallengeDuration(activeChallenge) : 0;
-  const activeTarget = useMemo(
-    () => (activeChallenge ? getChallengeCompletion(createRandom(seed + activeIndex + 1)) : 0),
-    [activeChallenge, activeIndex, seed]
-  );
-  const activeFeed = useMemo(
+  const activeScenario = useMemo(
     () => (activeChallenge
-      ? buildActivityFeed(
-        activeChallenge.engine_key,
-        participants,
-        activeDuration * 2,
-        locale,
-        createRandom(seed + activeIndex),
-        (position, entryIndex) => isParticipantOnline(position, activeIndex, (entryIndex + 1) / 2),
-      )
-      : []),
-    [activeChallenge, activeDuration, activeIndex, locale, participants, seed]
+      ? createDemoScenario(activeChallenge.engine_key, { seed: seed + activeIndex, locale, players: participants })
+      : null),
+    [activeChallenge, activeIndex, locale, participants, seed]
   );
-  const isActiveDone = activeDuration > 0 && elapsedMinutes >= activeDuration;
-  const activeProgress = activeDuration
-    ? Math.round(Math.min(1, elapsedMinutes / activeDuration) * activeTarget)
-    : 0;
-  const visibleFeed = activeFeed
-    .filter((item) => item.at < Math.floor(elapsedMinutes * 2))
-    .slice(-FEED_LENGTH)
-    .reverse();
-  const presence = participants.map((participant, index) => ({
-    ...participant,
-    online: isParticipantOnline(index, activeIndex, elapsedMinutes),
-  }));
-  const offlineParticipant = presence.find((participant) => !participant.online);
 
-  // Facilitate: accelerated timer for the running challenge, stopped while paused.
-  useEffect(() => {
-    if (step !== 'facilitate' || !activeChallenge || isActiveDone || isPaused) return undefined;
-    const timer = window.setInterval(() => {
-      setElapsedMinutes((value) => Math.min(activeDuration, value + 0.5));
-    }, TICK_MS);
-    return () => window.clearInterval(timer);
-  }, [activeChallenge, activeDuration, isActiveDone, isPaused, step]);
+  const handleChallengeComplete = useCallback((summary) => {
+    if (!activeChallenge) return;
+    setCompletions((previous) => ({ ...previous, [activeChallenge.id]: Number(summary?.completion_percent) || 0 }));
+    setActiveDone(true);
+  }, [activeChallenge]);
 
   function goToStep(nextStep) {
     setStepIndex(DEMO_STEPS.indexOf(nextStep));
   }
 
+  // Moves on to the next challenge; a challenge left before its debrief stays without result.
   function advanceChallenge() {
     if (!activeChallenge) return;
-    if (!isActiveDone) {
-      setIsPaused(false);
-      setElapsedMinutes(activeDuration);
-      return;
-    }
-    setCompletions({ ...completions, [activeChallenge.id]: activeProgress });
-    setElapsedMinutes(0);
+    setActiveDone(false);
     if (activeIndex + 1 < program.length) {
       setActiveIndex(activeIndex + 1);
     } else {
@@ -229,7 +180,7 @@ export default function DemoClient() {
 
   // Automatic sequencing: the next challenge starts after a short countdown.
   useEffect(() => {
-    if (step !== 'facilitate' || flowMode !== 'auto' || !isActiveDone) {
+    if (step !== 'facilitate' || flowMode !== 'auto' || !activeDone) {
       setAutoCountdown(null);
       return undefined;
     }
@@ -245,29 +196,30 @@ export default function DemoClient() {
       setAutoCountdown(remaining);
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [activeIndex, flowMode, isActiveDone, step]);
+  }, [activeDone, activeIndex, flowMode, step]);
 
-  const round = DEMO_PARI_ROUNDS[roundIndex];
-  const roundAnswer = answers[roundIndex];
-  const roundVotes = votes[roundIndex];
-  const presenter = DEMO_PARTICIPANTS.find((participant) => participant.name === round?.presenter);
+  // Participant preview: the visitor plays Pari sur moi with three fictional colleagues.
+  const visitorName = t('demo.play.you');
+  const playScenario = useMemo(
+    () => (step === 'play'
+      ? createDemoScenario(VOM_ENGINE_KEY, {
+        seed: seed + 100,
+        locale,
+        players: [{ id: DEMO_VISITOR_ID, name: visitorName, bot: false }, ...participants.slice(0, 3)],
+        autoStartMs: 1500,
+      })
+      : null),
+    [locale, participants, seed, step, visitorName]
+  );
 
-  function submitAnswer(choice) {
-    if (roundAnswer !== undefined) return;
-    const counts = simulateVotes({
-      voterCount: DEMO_TEAM_SIZE - 1,
-      lieIndex: round.lieIndex,
-      accuracy: round.botAccuracy,
-      random: createRandom(seed + 100 + roundIndex),
-    });
-    counts[choice] += 1;
-    setAnswers([...answers, choice]);
-    setVotes([...votes, counts]);
-  }
+  const handlePlayComplete = useCallback((summary, state) => {
+    setVisitorResult(getVisitorResult(state?.vom, DEMO_VISITOR_ID));
+    setPlayDone(true);
+  }, []);
 
   const results = useMemo(
-    () => computeDemoResults({ program, completions, answers, votes }),
-    [answers, completions, program, votes]
+    () => computeDemoResults({ program, completions, visitor: visitorResult }),
+    [completions, program, visitorResult]
   );
 
   function restart() {
@@ -277,12 +229,10 @@ export default function DemoClient() {
     setProgramNotice('');
     setJoinedCount(0);
     setActiveIndex(0);
-    setElapsedMinutes(0);
-    setIsPaused(false);
+    setActiveDone(false);
     setCompletions({});
-    setRoundIndex(0);
-    setAnswers([]);
-    setVotes([]);
+    setVisitorResult(null);
+    setPlayDone(false);
     setStepIndex(0);
   }
 
@@ -299,13 +249,13 @@ export default function DemoClient() {
   const flowLabel = (mode) => (mode === 'auto' ? t('demo.prepare.flowAuto') : t('demo.prepare.flowManual'));
   const debriefObjective = objective || DEMO_OBJECTIVES.find((key) => program.some((challenge) => challenge.objective === key));
 
-  let facilitateAction = t('demo.facilitate.fastForward');
-  if (isActiveDone) {
+  let facilitateAction = t('demo.facilitate.skip');
+  if (activeDone) {
     facilitateAction = activeIndex + 1 < program.length ? t('demo.facilitate.next') : t('demo.facilitate.finish');
   }
 
   return (
-    <main className={`shell ${styles.page}`}>
+    <main className={`shell ${styles.page}`} data-wide={step === 'facilitate' || step === 'play' ? 'true' : undefined}>
       <header className={styles.hero}>
         <p className={styles.eyebrow}>{t('demo.eyebrow')}</p>
         <h1 className={styles.title}>{t('demo.title')}</h1>
@@ -543,157 +493,82 @@ export default function DemoClient() {
           </div>
         ) : null}
 
-        {step === 'facilitate' && activeChallenge ? (
-          <div className={styles.liveGrid}>
-            <div className={styles.liveCard}>
-              <div className={styles.programHead}>
-                <div>
-                  <p className={styles.sessionLabel}>{displayedSessionName}</p>
-                  <h3 className={styles.cardTitle}>{activeChallenge.name}</h3>
-                </div>
-                <span className={styles.liveBadge} data-paused={isPaused}>
-                  {isPaused ? t('demo.facilitate.paused') : t('demo.facilitate.statusLive')}
-                </span>
-              </div>
-              <div className={styles.liveStats}>
-                <div>
-                  <p className={styles.label}>{t('demo.facilitate.timeLeft')}</p>
-                  <p className={styles.clock}>{formatClock(activeDuration - elapsedMinutes)}</p>
-                </div>
-                <div>
-                  <p className={styles.label}>{t('demo.facilitate.progress')}</p>
-                  <p className={styles.clock}>{activeProgress} %</p>
-                </div>
-              </div>
-              <div
-                className={styles.meter}
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={activeProgress}
-                aria-label={t('demo.facilitate.progress')}
-              >
-                <span style={{ width: `${activeProgress}%` }} />
-              </div>
-              <div className={styles.controls}>
-                <Button variant="secondary" disabled={isActiveDone} onClick={() => setIsPaused(!isPaused)}>
-                  {isPaused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
-                  {isPaused ? t('demo.facilitate.resume') : t('demo.facilitate.pause')}
-                </Button>
-                <Button onClick={advanceChallenge}>{facilitateAction}</Button>
-              </div>
-              {autoCountdown !== null ? (
-                <p className={styles.autoBanner} role="status">
-                  {activeIndex + 1 < program.length
-                    ? t('demo.facilitate.autoNext', { seconds: autoCountdown })
-                    : t('demo.facilitate.autoFinish', { seconds: autoCountdown })}
+        {step === 'facilitate' && activeChallenge && activeScenario ? (
+          <div className={styles.liveLayout}>
+            <div className={styles.liveBar}>
+              <div className={styles.liveBarInfo}>
+                <p className={styles.sessionLabel}>{displayedSessionName}</p>
+                <p className={styles.liveBarTitle}>
+                  {t('demo.facilitate.challengeCounter', { current: activeIndex + 1, total: program.length })}
+                  {' · '}
+                  {activeChallenge.name}
                 </p>
-              ) : null}
-              <p className={styles.label}>{t('demo.facilitate.feed')}</p>
-              <ul className={styles.feed}>
-                {visibleFeed.map((item) => (
-                  <li key={item.id}>{item.text}</li>
-                ))}
-              </ul>
-            </div>
-            <aside className={styles.sideColumn}>
-              <div className={styles.timelineCard}>
-                <h3 className={styles.cardTitle}>{t('demo.facilitate.presence')}</h3>
-                <ul className={styles.timeline} aria-live="polite">
-                  {presence.map((participant) => (
-                    <li key={participant.id} className={styles.personRow}>
-                      <Avatar name={participant.name} />
-                      <span className={styles.timelineName}>{participant.name}</span>
-                      <span className={styles.statusPill} data-tone={participant.online ? 'success' : 'warning'}>
-                        {participant.online ? null : <WifiOff size={12} aria-hidden="true" />}
-                        {participant.online ? t('demo.facilitate.online') : t('demo.facilitate.offline')}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                {offlineParticipant ? (
-                  <p className={styles.hint}>{t('demo.facilitate.offlineHint', { name: offlineParticipant.name })}</p>
-                ) : null}
-              </div>
-              <div className={styles.timelineCard}>
-                <div className={styles.programHead}>
-                  <h3 className={styles.cardTitle}>{t('demo.facilitate.program')}</h3>
-                  <span className={styles.itemMeta}>{t('demo.facilitate.modeLabel', { mode: flowLabel(flowMode) })}</span>
-                </div>
-                <ol className={styles.timeline}>
+                <ol className={styles.programChips} aria-label={t('demo.facilitate.program')}>
                   {program.map((challenge, index) => {
                     const state = index < activeIndex ? 'done' : index === activeIndex ? 'live' : 'next';
                     const label = state === 'done'
                       ? t('demo.facilitate.statusDone')
                       : state === 'live' ? t('demo.facilitate.statusLive') : t('demo.facilitate.statusNext');
                     return (
-                      <li key={challenge.id} className={styles.timelineItem} data-state={state}>
-                        <span className={styles.timelineName}>{challenge.name}</span>
-                        <span className={styles.timelineStatus}>{label}</span>
+                      <li key={challenge.id} className={styles.programChip} data-state={state}>
+                        <span>{challenge.name}</span>
+                        <span className={styles.visuallyHidden}>{label}</span>
                       </li>
                     );
                   })}
                 </ol>
               </div>
-            </aside>
+              <div className={styles.liveBarActions}>
+                <span className={styles.itemMeta}>{t('demo.facilitate.modeLabel', { mode: flowLabel(flowMode) })}</span>
+                <Button variant={activeDone ? 'primary' : 'ghost'} onClick={advanceChallenge}>{facilitateAction}</Button>
+              </div>
+            </div>
+            {autoCountdown !== null ? (
+              <p className={styles.autoBanner} role="status">
+                {activeIndex + 1 < program.length
+                  ? t('demo.facilitate.autoNext', { seconds: autoCountdown })
+                  : t('demo.facilitate.autoFinish', { seconds: autoCountdown })}
+              </p>
+            ) : null}
+            <div className={styles.challengeStage}>
+              <DemoChallengeStage
+                key={`${seed}-${activeIndex}`}
+                scenario={activeScenario}
+                locale={locale}
+                displayName="Alex"
+                loadingLabel={t('demo.facilitate.loading')}
+                onComplete={handleChallengeComplete}
+              />
+            </div>
           </div>
         ) : null}
 
-        {step === 'play' && round ? (
-          <div className={styles.playCard}>
-            <p className={styles.label}>{t('demo.play.round', { current: roundIndex + 1, total: DEMO_PARI_ROUNDS.length })}</p>
-            <p className={styles.presenter}>
-              <Avatar name={round.presenter} />
-              {t('demo.play.presenterSays', { name: round.presenter, role: presenter?.role[lang] })}
-            </p>
-            <p className={styles.question}>{t('demo.play.vote')}</p>
-            <ol className={styles.statements}>
-              {getRoundStatements(round, locale).map((statement, index) => {
-                const revealed = roundAnswer !== undefined;
-                const isLie = index === round.lieIndex;
-                const count = roundVotes?.[index] || 0;
-                const total = roundVotes?.reduce((sum, value) => sum + value, 0) || 1;
-                return (
-                  <li key={statement}>
-                    <button
-                      type="button"
-                      className={styles.statement}
-                      data-revealed={revealed ? (isLie ? 'lie' : 'truth') : undefined}
-                      aria-pressed={roundAnswer === index}
-                      disabled={revealed}
-                      onClick={() => submitAnswer(index)}
-                    >
-                      <span className={styles.statementNumber}>{index + 1}</span>
-                      <span className={styles.statementText}>{statement}</span>
-                      {revealed ? (
-                        <span className={styles.statementResult}>
-                          <strong>{isLie ? t('demo.play.lie') : t('demo.play.truth')}</strong>
-                          {roundAnswer === index ? <em>{t('demo.play.yourVote')}</em> : null}
-                          <span>{t('demo.play.votes', { count })}</span>
-                          <span className={styles.voteBar} aria-hidden="true">
-                            <span style={{ width: `${(count / total) * 100}%` }} />
-                          </span>
-                        </span>
-                      ) : null}
-                    </button>
-                  </li>
-                );
-              })}
-            </ol>
-            {roundAnswer !== undefined ? (
-              <div className={styles.roundFooter} aria-live="polite">
-                <p className={styles.roundOutcome} data-correct={roundAnswer === round.lieIndex}>
-                  {roundAnswer === round.lieIndex
-                    ? <><CheckCircle2 size={18} aria-hidden="true" />{t('demo.play.correct')}</>
-                    : <><XCircle size={18} aria-hidden="true" />{t('demo.play.wrong', { number: round.lieIndex + 1 })}</>}
-                </p>
-                {roundIndex + 1 < DEMO_PARI_ROUNDS.length ? (
-                  <Button onClick={() => setRoundIndex(roundIndex + 1)}>{t('demo.play.nextRound')}</Button>
-                ) : (
-                  <Button onClick={() => goToStep('results')}>{t('demo.play.seeResults')}</Button>
-                )}
+        {step === 'play' && playScenario ? (
+          <div className={styles.liveLayout}>
+            <div className={styles.liveBar}>
+              <div className={styles.liveBarInfo}>
+                <p className={styles.sessionLabel}>{displayedSessionName}</p>
+                <p className={styles.liveBarTitle}>{t('demo.play.barTitle', { challenge: pariName, name: visitorName })}</p>
               </div>
-            ) : null}
+              <div className={styles.liveBarActions}>
+                <Button variant={playDone ? 'primary' : 'ghost'} onClick={() => goToStep('results')}>
+                  {playDone ? t('demo.play.seeResults') : t('demo.play.skip')}
+                </Button>
+              </div>
+            </div>
+            <div className={styles.challengeStage}>
+              <DemoChallengeStage
+                key={`play-${seed}`}
+                scenario={playScenario}
+                locale={locale}
+                role="participant"
+                participantId={DEMO_VISITOR_ID}
+                participantSlot={1}
+                displayName={visitorName}
+                loadingLabel={t('demo.facilitate.loading')}
+                onComplete={handlePlayComplete}
+              />
+            </div>
           </div>
         ) : null}
 
@@ -718,8 +593,14 @@ export default function DemoClient() {
               </div>
               <div className={styles.kpi}>
                 <p className={styles.label}>{t('demo.results.yourScore')}</p>
-                <p className={styles.kpiValue}>{t('demo.results.yourScoreValue', { score: results.userScore, total: results.roundCount })}</p>
-                <p className={styles.kpiDetail}>{t('demo.results.yourScoreDetail', { accuracy: results.teamAccuracy })}</p>
+                <p className={styles.kpiValue}>
+                  {results.visitor ? t('demo.results.yourScoreValue', { score: results.visitor.score }) : '–'}
+                </p>
+                <p className={styles.kpiDetail}>
+                  {results.visitor
+                    ? t('demo.results.yourScoreDetail', { rank: results.visitor.rank, total: results.visitor.total, challenge: pariName })
+                    : t('demo.results.yourScoreMissing', { challenge: pariName })}
+                </p>
               </div>
             </div>
 
@@ -733,7 +614,9 @@ export default function DemoClient() {
                       <span className={styles.meter} aria-hidden="true">
                         <span style={{ width: `${completions[challenge.id] || 0}%` }} />
                       </span>
-                      <span className={styles.timelineStatus}>{completions[challenge.id] || 0} %</span>
+                      <span className={styles.timelineStatus}>
+                        {Number.isFinite(completions[challenge.id]) ? `${completions[challenge.id]} %` : t('demo.results.skipped')}
+                      </span>
                     </li>
                   ))}
                 </ul>
