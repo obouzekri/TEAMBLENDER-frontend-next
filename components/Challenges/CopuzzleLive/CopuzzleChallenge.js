@@ -518,6 +518,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                     <div className={styles.summaryCard}>
                       <strong className={styles.summaryValue}>
                         {Number(state.summary?.collective_score || 0)}
+                        <small> / {Number(state.summary?.collective_score_max || 1000)}</small>
                       </strong>
                       <span className={styles.summaryLabel}>{isEn ? 'Team score' : 'Score collectif'}</span>
                     </div>
