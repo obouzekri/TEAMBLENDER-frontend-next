@@ -28,7 +28,7 @@ import {
   getDemoParticipants,
   getVisitorResult,
 } from '@/lib/demo/demoScenario.mjs';
-import { DEMO_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '@/lib/demo/challenges/index.mjs';
+import { DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '@/lib/demo/challenges/index.mjs';
 import DemoChallengeStage from './DemoChallengeStage';
 import styles from './Demo.module.css';
 
@@ -71,7 +71,7 @@ export default function DemoClient() {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const [sessionName, setSessionName] = useState(() => t('demo.prepare.sessionNameDefault'));
   const [objective, setObjective] = useState('');
-  const [targetMinutes, setTargetMinutes] = useState(60);
+  const [targetMinutes, setTargetMinutes] = useState(45);
   const [flowMode, setFlowMode] = useState('manual');
   const [proposal, setProposal] = useState(null);
   const [programNotice, setProgramNotice] = useState('');
@@ -117,7 +117,7 @@ export default function DemoClient() {
     expectedCount: DEMO_TEAM_SIZE,
     targetMinutes,
     resolveRange: resolveChallengePlayerRange,
-    availableEngineKeys: DEMO_ENGINE_KEYS,
+    availableEngineKeys: DEMO_PROGRAM_ENGINE_KEYS,
   }), [objective, targetMinutes]);
 
   const generateProgram = useCallback(() => {
@@ -129,6 +129,13 @@ export default function DemoClient() {
   useEffect(() => {
     if (step === 'prepare') generateProgram();
   }, [generateProgram, step]);
+
+  // Only offer a replacement when another challenge fits the remaining time.
+  const replaceableIds = useMemo(() => new Set(
+    (proposal?.challenges || [])
+      .filter((challenge) => replaceProgramChallenge(proposal, challenge.id, catalog, programOptions))
+      .map((challenge) => challenge.id)
+  ), [catalog, programOptions, proposal]);
 
   function replaceChallenge(challengeId) {
     const replacement = replaceProgramChallenge(proposal, challengeId, catalog, programOptions);
@@ -419,9 +426,11 @@ export default function DemoClient() {
                         <div className={styles.programTags}>
                           <span>{t('demo.prepare.minutes', { minutes: getChallengeDuration(challenge) })}</span>
                           {recommended ? <span>{t('demo.prepare.idealPlayers', { count: recommended })}</span> : null}
-                          <button type="button" className={styles.linkButton} onClick={() => replaceChallenge(challenge.id)}>
-                            {t('demo.prepare.replace')}
-                          </button>
+                          {replaceableIds.has(challenge.id) ? (
+                            <button type="button" className={styles.linkButton} onClick={() => replaceChallenge(challenge.id)}>
+                              {t('demo.prepare.replace')}
+                            </button>
+                          ) : null}
                         </div>
                       </li>
                     );
@@ -431,6 +440,7 @@ export default function DemoClient() {
                 <p className={styles.emptyText}>{t('demo.prepare.empty')}</p>
               )}
               {programNotice ? <p className={styles.hint}>{programNotice}</p> : null}
+              <p className={styles.hint}>{t('demo.prepare.playNote', { challenge: pariName })}</p>
               <div className={styles.actions}>
                 <Button variant="secondary" onClick={generateProgram}>{t('demo.prepare.regenerate')}</Button>
                 <Button disabled={!program.length} onClick={() => goToStep('invite')}>{t('demo.prepare.continue')}</Button>
