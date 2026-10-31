@@ -65,7 +65,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les libelles obligatoires, l'autocompletion, le lien email et la politique de confidentialite restent accessibles au clavier. L'envoi conserve la protection CSRF, le champ anti-spam, les etats d'attente, les erreurs avec conservation du brouillon et la confirmation.
 - Validation : `node scripts/test-contact-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees sans envoi d'email) : FR/EN, clair/sombre/automatique, 320 a 1440 px, hauteur compacte, clavier, validation, champs facultatifs, requete et CSRF, attente, erreurs 429/500/reseau, nouvelle tentative et succes.
 
-### Page Tarification
+### Page Tarifs
 
 - L'introduction conserve le titre et le conseil sur les groupes, sans tag Tarification ni phrase promotionnelle intermediaire.
 - Frequence de facturation, Mensuel, Annuel et Devise affichee sont alignes sur une ligne sur grand ecran. Sur mobile, le choix de periode occupe une ligne complete et le selecteur de devise reste facile a atteindre. Les controles affichent un focus clavier visible; le mode sombre ne presente aucun cadre autour de la barre ni du groupe Mensuel/Annuel.
