@@ -54,6 +54,20 @@ async function closeChallengeDialogs(page) {
   if (await close.count()) await close.first().click().catch(() => {});
 }
 
+// The announcement can appear just after the demo's next button, so close it and retry.
+async function clickPastAnnouncements(page, button) {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    await closeChallengeDialogs(page);
+    try {
+      await button.click({ timeout: 2000 });
+      return;
+    } catch {
+      await page.waitForTimeout(500);
+    }
+  }
+  await button.click();
+}
+
 async function runDemo(browser, locale, viewport, { flowMode }) {
   const copy = COPY[locale];
   const page = await browser.newPage({ viewport });
@@ -124,8 +138,7 @@ async function runDemo(browser, locale, viewport, { flowMode }) {
     } else {
       const next = page.getByRole('button', { name: copy.next });
       await next.waitFor({ timeout: 120000 });
-      await closeChallengeDialogs(page);
-      await next.click();
+      await clickPastAnnouncements(page, next);
     }
   }
   assert.deepEqual([...played].sort(), DEMO_ENGINES, 'All four demo challenges were played');

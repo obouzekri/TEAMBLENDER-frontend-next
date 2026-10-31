@@ -154,6 +154,8 @@ function runFacilitator(engineKey, seed, { start = 'timer.start', clock } = {}) 
   const { scenario, state } = runFacilitator('pixel_architect_v1', 5);
   assert.equal(state.pixel.phase, 'debrief');
   assert.equal(state.summary.pixel_metrics.accuracy_percent, 100);
+  const names = new Set(players.map(({ name }) => name));
+  assert.ok(Object.values(state.pixel.cubes).every((cube) => cube.placed_by.startsWith('demo-') && names.has(cube.placed_by_name)), 'Cubes carry their author id and name');
   assert.equal(scenario.view(state, { role: 'manager', participantId: 'demo-facilitator' }).pixel.viewer_role, 'facilitator');
 }
 {

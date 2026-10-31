@@ -122,6 +122,7 @@ function normalizeServerCubes(cubesMap) {
       z: Number(cube?.z),
       color: String(cube?.color || '').trim() || '#22c55e',
       placedBy: String(cube?.placed_by || '').trim(),
+      placedByName: String(cube?.placed_by_name || '').trim(),
       ts: String(cube?.ts || '').trim(),
     }))
     .filter((cube) => Number.isInteger(cube.x) && Number.isInteger(cube.y) && Number.isInteger(cube.z));
@@ -929,7 +930,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const summary = state?.summary || null;
   const isDebrief = Boolean(summary) || isLockedByPhase || ['completed', 'timeout'].includes(timerStatus);
   const summaryPixelMetrics = summary?.pixel_metrics || null;
-  const templateName = String(selectedTemplate?.name || 'Modele').trim();
+  const templateName = String(selectedTemplate?.name || 'Modèle').trim();
   const templateDifficulty = String(selectedTemplate?.difficulty || state?.config?.difficulty || (isEn ? 'medium' : 'moyen')).trim();
   const miniCells = useMemo(() => targetCells.slice(0, 42), [targetCells]);
 
@@ -995,8 +996,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     const grouped = serverCubes.reduce((acc, cube) => {
       const key = String(cube.placedBy || 'equipe').trim() || 'equipe';
       if (!acc[key]) {
-        acc[key] = { id: key, cubeCount: 0, layers: new Set(), colors: new Set() };
+        acc[key] = { id: key, name: '', cubeCount: 0, layers: new Set(), colors: new Set() };
       }
+      // Cubes placed before names were stored only carry the participant id.
+      if (!acc[key].name && cube.placedByName) acc[key].name = cube.placedByName;
       acc[key].cubeCount += 1;
       acc[key].layers.add(cube.y);
       acc[key].colors.add(cube.color);
@@ -1006,13 +1009,14 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     return Object.values(grouped)
       .map((item) => ({
         id: item.id,
+        name: item.name || (item.id === 'equipe' ? (isEn ? 'Team' : 'Équipe') : item.id),
         cubeCount: item.cubeCount,
         layerCount: item.layers.size,
         colorCount: item.colors.size,
       }))
       .sort((a, b) => b.cubeCount - a.cubeCount)
       .slice(0, 6);
-  }, [serverCubes]);
+  }, [isEn, serverCubes]);
 
   const liveLayerBoards = useMemo(() => {
     return layers.map((layer) => ({
@@ -1035,13 +1039,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         </p>
         <ul className={styles.howToList}>
           <li>{isEn ? 'Choose a layer, then place or remove cubes.' : 'Choisir une couche puis poser ou supprimer des cubes.'}</li>
-          <li>{isEn ? 'Check the model map and progress layer by layer.' : 'Verifier la carte modele et avancer couche par couche.'}</li>
-          <li>{isEn ? 'Coordinate in chat to avoid duplicates.' : 'Se coordonner via le chat pour eviter les doublons.'}</li>
-          <li>{isEn ? 'Submit the final version when your team is ready.' : 'Soumettre la version finale quand votre equipe est prete.'}</li>
+          <li>{isEn ? 'Check the model map and progress layer by layer.' : 'Vérifier la carte modèle et avancer couche par couche.'}</li>
+          <li>{isEn ? 'Coordinate in chat to avoid duplicates.' : 'Se coordonner via le chat pour éviter les doublons.'}</li>
+          <li>{isEn ? 'Submit the final version when your team is ready.' : 'Soumettre la version finale quand votre équipe est prête.'}</li>
         </ul>
         <div className={styles.helperRow}>
           <div className={styles.helperItem}>
-            <span className={styles.helperDotTarget} /> {isEn ? 'Target model (ghost)' : 'Modele cible (fantome)'}
+            <span className={styles.helperDotTarget} /> {isEn ? 'Target model (ghost)' : 'Modèle cible (fantôme)'}
           </div>
           <div className={styles.helperItem}>
             <span className={styles.helperDotPlayer} /> {isEn ? 'Correct cube on target' : 'Cube correct sur cible'}
@@ -1106,9 +1110,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               className={styles.modelMapFab}
               onClick={() => setIsModelMapOpen(true)}
               aria-expanded={isModelMapOpen}
-              aria-label={isEn ? 'Open model map' : 'Ouvrir la carte modele'}
+              aria-label={isEn ? 'Open model map' : 'Ouvrir la carte modèle'}
             >
-              {!isDebrief ? '🧩 ' : ''}{isEn ? 'Model' : 'Modele'}
+              {!isDebrief ? '🧩 ' : ''}{isEn ? 'Model' : 'Modèle'}
             </button>
           ) : null}
           {hasChallengeStarted && !isFacilitator ? (
@@ -1155,7 +1159,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             tabIndex={-1}
             role="dialog"
             aria-modal="true"
-            aria-label={isEn ? 'Model map' : 'Carte modele'}
+            aria-label={isEn ? 'Model map' : 'Carte modèle'}
             onClick={(event) => event.stopPropagation()}
           >
             <div className={styles.modelMapSheetHead}>
@@ -1278,12 +1282,12 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                             className={`${styles.layerQuickClaimBtn}${isReservedByMe ? ` ${styles.layerQuickClaimBtnMine}` : ''}${isReservedByOther ? ` ${styles.layerQuickClaimBtnReserved}` : ''}`}
                             onClick={() => handleToggleLayerClaim(layer)}
                             disabled={!connected || isFacilitator || isReservedByOther}
-                            title={isReservedByOther ? `${isEn ? 'Reserved by' : 'Reservee par'} ${String(claim?.display_name || '')}` : undefined}
+                            title={isReservedByOther ? `${isEn ? 'Reserved by' : 'Réservée par'} ${String(claim?.display_name || '')}` : undefined}
                           >
                             {isReservedByMe
                               ? (isEn ? 'Mine' : 'Ma couche')
                               : isReservedByOther
-                                ? (isEn ? 'Reserved' : 'Reservee')
+                                ? (isEn ? 'Reserved' : 'Réservée')
                                 : (isEn ? 'Open' : 'Libre')}
                           </button>
                         </div>
@@ -1305,7 +1309,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                                 style={cell.isPlaced ? { '--pixel-cell-color': placedColor } : undefined}
                                 onClick={() => handleBoardCellToggle(cell.x, cell.z, layer)}
                                 disabled={!canBuild}
-                                aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}, ${isEn ? 'cell' : 'case'} x${cell.x + 1} z${cell.z + 1}${cell.isTarget ? `, ${isEn ? 'target' : 'cible'}` : ''}${cell.isPlaced ? `, ${isEn ? 'occupied' : 'occupee'}` : ''}`}
+                                aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}, ${isEn ? 'cell' : 'case'} x${cell.x + 1} z${cell.z + 1}${cell.isTarget ? `, ${isEn ? 'target' : 'cible'}` : ''}${cell.isPlaced ? `, ${isEn ? 'occupied' : 'occupée'}` : ''}`}
                               />
                             );
                           })}
@@ -1322,10 +1326,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 {!isFacilitator ? (
                   <div className={`${styles.actionsRow} ${styles.actionsRowSticky}`} aria-label="Actions de construction">
                     <button type="button" className={styles.btnSecondary} onClick={handleResetLayer} disabled={!canBuild || !serverCubes.some((cube) => Number(cube.y) === safeLayer)}>
-                      {isEn ? 'Reset layer' : 'Reinitialiser la couche'}
+                      {isEn ? 'Reset layer' : 'Réinitialiser la couche'}
                     </button>
                     <button type="button" className={styles.btnSecondary} onClick={handleResetBuild} disabled={!canBuild || serverCubes.length === 0}>
-                      {isEn ? 'Reset cubes' : 'Reinitialiser les cubes'}
+                      {isEn ? 'Reset cubes' : 'Réinitialiser les cubes'}
                     </button>
                     <button type="button" className={styles.btnPrimary} onClick={handleSubmitFinal} disabled={!connected || isLockedByPhase}>
                       {isEn ? 'Submit final version' : 'Soumettre version finale'}
@@ -1347,7 +1351,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     <p>{isEn ? 'Exact' : 'Exacts'}: <strong>{playerExactHits}</strong></p>
                     <p>{isEn ? 'Missing' : 'Manquants'}: <strong>{missingCount}</strong></p>
                     <p>{isEn ? 'Extra' : 'En trop'}: <strong>{extraCount}</strong></p>
-                    <p>{isEn ? 'Accuracy' : 'Precision'}: <strong>{accuracyPercent}%</strong></p>
+                    <p>{isEn ? 'Accuracy' : 'Précision'}: <strong>{accuracyPercent}%</strong></p>
                   </div>
                   <div className={styles.progressTrack} aria-hidden="true">
                     <span className={styles.progressFill} style={{ width: `${progress}%` }} />
@@ -1410,7 +1414,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               ) : (
                 <p className={styles.modelMiniHidden}>{webglUnavailable && canSeeTargetModel
                   ? (isEn ? '3D preview unavailable. Use the target layer grids.' : 'Aperçu 3D indisponible. Utilisez les grilles des couches cibles.')
-                  : (isEn ? 'Model hidden for this role' : 'Modele masque pour ce role')}</p>
+                  : (isEn ? 'Model hidden for this role' : 'Modèle masqué pour ce rôle')}</p>
               )}
             </div>
 
@@ -1427,7 +1431,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               <span className={styles.viewportWatermark}>{isEn ? '3D Build View' : 'Vue 3D Build'}</span>
               {!isViewportReady && !viewportError ? (
                 <div className={styles.viewportOverlay} role="status" aria-live="polite">
-                  {isEn ? 'Loading 3D scene...' : 'Chargement de la scene 3D...'}
+                  {isEn ? 'Loading 3D scene...' : 'Chargement de la scène 3D…'}
                 </div>
               ) : null}
               {viewportError ? (
@@ -1441,12 +1445,16 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
           {contributorStats.length > 0 ? (
             <section className={styles.panel}>
-              <h3>{isEn ? 'Team distribution' : 'Repartition equipe'}</h3>
+              <h3>{isEn ? 'Team distribution' : 'Répartition de l’équipe'}</h3>
               <ul className={styles.activityList}>
                 {contributorStats.map((item) => (
                   <li key={`contrib-${item.id}`} className={styles.activityItem}>
-                    <strong>{item.id}</strong>
-                    <span>{item.cubeCount} {isEn ? 'cubes' : 'cubes'} · {item.layerCount} {isEn ? 'layers' : 'couches'} · {item.colorCount} {isEn ? 'colors' : 'couleurs'}</span>
+                    <strong>{item.name}</strong>
+                    <span>
+                      {item.cubeCount} {item.cubeCount > 1 ? 'cubes' : 'cube'}
+                      {' · '}{item.layerCount} {isEn ? (item.layerCount > 1 ? 'layers' : 'layer') : (item.layerCount > 1 ? 'couches' : 'couche')}
+                      {' · '}{item.colorCount} {isEn ? (item.colorCount > 1 ? 'colors' : 'color') : (item.colorCount > 1 ? 'couleurs' : 'couleur')}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -1455,7 +1463,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
           {Array.isArray(pixel?.hints) && pixel.hints.length > 0 ? (
             <section className={styles.panel}>
-              <h3>{isEn ? 'Hint history' : 'Historique indices'}</h3>
+              <h3>{isEn ? 'Hint history' : 'Historique des indices'}</h3>
               <ul className={styles.attemptList}>
                 {pixel.hints.slice(-6).reverse().map((item, index) => (
                   <li key={`hint-${index}`}>
