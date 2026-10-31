@@ -22410,35 +22410,397 @@ html[data-theme='dark'] .auth-remember-me{
   gap: var(--lp-card-gap);
 }
 
-/* Proof section: heading + use-case panel, then three quiet metric cards. */
-.landing-v2.landing-v2--premium .landing-proof-section .landing-section-inner {
-  display: grid;
-  gap: var(--lp-head-gap);
+/* Proof section: heading + use cases beside a live hybrid session preview,
+   then a light three-point strip instead of three near-empty cards. */
+.landing-v2.landing-v2--premium > section.landing-proof-section {
+  padding-block: clamp(4rem, 7vw, 6rem) !important;
 }
 
-.landing-v2.landing-v2--premium .landing-proof-section .landing-section-inner > .grid {
-  gap: clamp(2rem, 5vw, 4rem);
+.landing-v2.landing-v2--premium .landing-proof-section .landing-section-inner {
+  display: grid;
+  gap: clamp(3rem, 5vw, 4.5rem);
 }
 
 .landing-v2.landing-v2--premium .landing-proof-section h2 {
   margin-top: 0;
 }
 
-.landing-v2.landing-v2--premium .landing-partners-usage {
-  padding: var(--lp-card-pad);
-  border: var(--lp-card-border);
-  border-radius: var(--lp-card-radius);
-  background: var(--lp-surface-soft);
-  box-shadow: none;
-  backdrop-filter: none;
+.landing-v2.landing-v2--premium .landing-proof-tone--indigo { --proof-tone: #4f46e5; }
+.landing-v2.landing-v2--premium .landing-proof-tone--cyan { --proof-tone: #0e7490; }
+.landing-v2.landing-v2--premium .landing-proof-tone--teal { --proof-tone: #0f766e; }
+.landing-v2.landing-v2--premium .landing-proof-tone--slate { --proof-tone: #334155; }
+
+.landing-v2.landing-v2--premium .landing-proof-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: clamp(2.5rem, 5vw, 4.5rem);
 }
 
-.landing-v2.landing-v2--premium .landing-metrics-grid {
-  gap: var(--lp-card-gap);
+.landing-v2.landing-v2--premium .landing-proof-copy {
+  min-width: 0;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-usecases {
+  margin-top: 2rem;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-usecases__label {
+  margin: 0 0 0.75rem;
+  color: var(--lp-ink-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-usecases ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-usecase {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  border-radius: 999px;
+  background: var(--lp-surface);
+  color: var(--lp-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.landing-v2.landing-v2--premium .landing-proof-usecase svg {
+  flex: 0 0 auto;
+  color: var(--proof-tone);
+}
+
+/* Session preview: a white product card on a softly tinted stage. */
+.landing-v2.landing-v2--premium .landing-proof-visual {
+  position: relative;
+  margin: 0;
+  padding: clamp(1.25rem, 3vw, 2.25rem) clamp(1.25rem, 3vw, 2.25rem) 3.25rem;
+  border: var(--lp-card-border);
+  border-radius: 1.75rem;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(99, 102, 241, 0.16), transparent 60%),
+    radial-gradient(90% 80% at 0% 100%, rgba(6, 182, 212, 0.14), transparent 60%),
+    var(--lp-surface-soft);
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: var(--lp-card-radius);
+  background: var(--lp-surface);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 24px 48px -16px rgba(30, 41, 78, 0.22);
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.125rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session__title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  color: var(--lp-ink);
+  font-size: 0.975rem;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session__title strong {
+  font-weight: 700;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session__live-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #10b981;
+  animation: landing-proof-live 2.4s ease-out infinite;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--lp-ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session__sites {
+  display: grid;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 1.125rem 1.125rem 0.25rem;
+  list-style: none;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-site {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.875rem;
+  background: var(--lp-surface-soft);
+}
+
+.landing-v2.landing-v2--premium .landing-proof-site__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: 0.625rem;
+  background: color-mix(in srgb, var(--proof-tone) 12%, #ffffff);
+  color: var(--proof-tone);
+}
+
+.landing-v2.landing-v2--premium .landing-proof-site__text {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-site__text strong {
+  overflow: hidden;
+  color: var(--lp-ink);
+  font-size: 0.875rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-site__text span {
+  color: var(--lp-ink-soft);
+  font-size: 0.75rem;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-site__people {
+  display: flex;
+  padding-left: 0.5rem;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  margin-left: -0.5rem;
+  border: 2px solid var(--lp-surface);
+  border-radius: 999px;
+  background: var(--avatar-bg);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-avatar--0 { --avatar-bg: #4f46e5; }
+.landing-v2.landing-v2--premium .landing-proof-avatar--1 { --avatar-bg: #0e7490; }
+.landing-v2.landing-v2--premium .landing-proof-avatar--2 { --avatar-bg: #0f766e; }
+.landing-v2.landing-v2--premium .landing-proof-avatar--3 { --avatar-bg: #c2410c; }
+.landing-v2.landing-v2--premium .landing-proof-avatar--4 { --avatar-bg: #7c3aed; }
+
+.landing-v2.landing-v2--premium .landing-proof-session__progress {
+  padding: 1rem 1.125rem 1.25rem;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session__progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--lp-ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session__progress-head strong {
+  color: var(--lp-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session__bar {
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef1f6;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-session__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4f46e5, #06b6d4);
+}
+
+/* Chat bubble from a remote participant, tucked under the card's bottom edge. */
+.landing-v2.landing-v2--premium .landing-proof-bubble {
+  position: absolute;
+  right: clamp(1rem, 3vw, 2.25rem);
+  bottom: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  max-width: calc(100% - 2rem);
+  padding: 0.625rem 0.875rem 0.625rem 0.625rem;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 1rem 1rem 0.375rem 1rem;
+  background: var(--lp-surface);
+  box-shadow: 0 18px 36px -12px rgba(30, 41, 78, 0.28);
+  animation: landing-proof-float 5s ease-in-out infinite;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-bubble .landing-proof-avatar {
+  flex: 0 0 auto;
+  margin-left: 0;
+  border-color: transparent;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-bubble__text {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+  color: var(--lp-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-bubble__text small {
+  color: var(--lp-ink-soft);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+/* Three points: one row under a hairline, icon on top, one sentence each. */
+.landing-v2.landing-v2--premium .landing-proof-points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.75rem, 4vw, 3.5rem);
+  margin: 0;
+  padding: clamp(2rem, 4vw, 2.75rem) 0 0;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  list-style: none;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-point {
+  min-width: 0;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-point__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.875rem;
+  background: color-mix(in srgb, var(--proof-tone) 12%, #ffffff);
+  color: var(--proof-tone);
+}
+
+.landing-v2.landing-v2--premium .landing-proof-point h3 {
+  margin: 1.125rem 0 0;
+  color: var(--lp-ink);
+  font-size: 1.125rem;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.landing-v2.landing-v2--premium .landing-proof-point p {
+  max-width: 34ch;
+  margin: 0.5rem 0 0;
+  color: var(--lp-ink-soft);
+  font-size: 0.975rem;
+  line-height: 1.6;
+}
+
+@keyframes landing-proof-live {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+  70%, 100% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+}
+
+@keyframes landing-proof-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-v2.landing-v2--premium .landing-proof-session__live-dot,
+  .landing-v2.landing-v2--premium .landing-proof-bubble {
+    animation: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .landing-v2.landing-v2--premium .landing-proof-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing-v2.landing-v2--premium .landing-proof-visual {
+    width: 100%;
+    max-width: 36rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .landing-v2.landing-v2--premium .landing-proof-points {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .landing-v2.landing-v2--premium .landing-proof-point {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 1rem;
+  }
+
+  .landing-v2.landing-v2--premium .landing-proof-point__icon {
+    grid-row: span 2;
+  }
+
+  .landing-v2.landing-v2--premium .landing-proof-point h3 {
+    margin-top: 0.125rem;
+  }
 }
 
 /* Card language shared by every light card on the page. */
-.landing-v2.landing-v2--premium .landing-metric-card,
 .landing-v2.landing-v2--premium .landing-benefits-grid__item,
 .landing-v2.landing-v2--premium .landing-audience-card,
 .landing-v2.landing-v2--premium .landing-flow-card,
@@ -22451,7 +22813,6 @@ html[data-theme='dark'] .auth-remember-me{
   transition: transform var(--motion-medium) var(--ease-standard), box-shadow var(--motion-medium) var(--ease-standard);
 }
 
-.landing-v2.landing-v2--premium .landing-metric-card:hover,
 .landing-v2.landing-v2--premium .landing-benefits-grid__item:hover,
 .landing-v2.landing-v2--premium .landing-audience-card:hover,
 .landing-v2.landing-v2--premium .landing-flow-card:hover,
@@ -22509,8 +22870,7 @@ html[data-theme='dark'] .auth-remember-me{
 }
 
 .landing-v2.landing-v2--premium .landing-flow-card h3,
-.landing-v2.landing-v2--premium .landing-outcome-card h3,
-.landing-v2.landing-v2--premium .landing-metric-card p.text-lg {
+.landing-v2.landing-v2--premium .landing-outcome-card h3 {
   color: var(--lp-ink);
 }
 

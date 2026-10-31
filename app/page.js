@@ -406,6 +406,7 @@ export default function HomePage() {
           partnersHeader={partnersHeader}
           useCaseChips={useCaseChips}
           trustProofMetrics={TRUST_PROOF_METRICS}
+          sessionPreview={landingStatic.proofSessionPreview}
           socialProof={socialProof}
         />
 
