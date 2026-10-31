@@ -363,8 +363,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       finalStatusLabel,
       isSuccess,
       summaryMessage,
+      collectiveScore: Number.isFinite(Number(state?.summary?.collective_score)) ? Number(state.summary.collective_score) : null,
+      collectiveScoreMax: Number(state?.summary?.collective_score_max || 1000),
     };
-  }, [laby?.phase, laby?.result?.status, laby?.result?.reason, laby?.winner_participant_id, participantEntries, timer?.duration_seconds, timer?.remaining_seconds, isEn]);
+  }, [laby?.phase, laby?.result?.status, laby?.result?.reason, laby?.winner_participant_id, participantEntries, timer?.duration_seconds, timer?.remaining_seconds, state?.summary?.collective_score, state?.summary?.collective_score_max, isEn]);
 
   const startCellKey = posKey(laby?.maze?.start);
   const endCellKey = posKey(laby?.maze?.end);
@@ -840,6 +842,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                   <h3>{isEn ? 'Final debrief' : 'Débrief final'}</h3>
                   <p>{labyFinalSummary.summaryMessage}</p>
                   <div className={styles.debriefMetrics} data-debrief-metrics>
+                    {labyFinalSummary.collectiveScore != null ? (
+                      <article className={styles.debriefMetric}><span>{isEn ? 'Team score' : 'Score collectif'}</span><strong>{labyFinalSummary.collectiveScore}<small> / {labyFinalSummary.collectiveScoreMax}</small></strong></article>
+                    ) : null}
                     <article className={styles.debriefMetric}><span>{isEn ? 'Remaining lives' : 'Vies restantes'}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
                     <article className={styles.debriefMetric}><span>{isEn ? 'Cells traversed' : 'Cases parcourues'}</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
                     <article className={styles.debriefMetric}><span>{isEn ? 'Final time' : 'Temps final'}</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>
@@ -963,6 +968,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                       <h3>{isEn ? 'Final debrief' : 'Débrief final'}</h3>
                       <p>{labyFinalSummary.summaryMessage}</p>
                       <div className={styles.debriefMetrics} data-debrief-metrics>
+                        {labyFinalSummary.collectiveScore != null ? (
+                          <article className={styles.debriefMetric}><span>{isEn ? 'Team score' : 'Score collectif'}</span><strong>{labyFinalSummary.collectiveScore}<small> / {labyFinalSummary.collectiveScoreMax}</small></strong></article>
+                        ) : null}
                         <article className={styles.debriefMetric}><span>{isEn ? 'Remaining lives' : 'Vies restantes'}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
                         <article className={styles.debriefMetric}><span>{isEn ? 'Cells traversed' : 'Cases parcourues'}</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
                         <article className={styles.debriefMetric}><span>{isEn ? 'Final time' : 'Temps final'}</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>

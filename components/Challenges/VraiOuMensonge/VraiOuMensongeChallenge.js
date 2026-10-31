@@ -591,6 +591,9 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   }, [currentTurn?.result?.votes, me]);
 
   const myScore = Number(scores[me] || 0);
+  // Each turn is worth at most 1 point to everyone (right guess, or fooling someone as the poser).
+  const maxPoints = Math.max(0, Number(vom?.total_turns || 0));
+  const maxPointsLabel = maxPoints > 0 ? `/ ${maxPoints} ` : '';
 
   const liveRanking = useMemo(() => {
     const baseIds = orderedParticipantIds.length > 0
@@ -1097,7 +1100,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               {!isFacilitator ? <div className={styles.mainScoreCard}>
                 <span className={styles.mainScoreLabel}>{t('vom.myScore')}</span>
                 <span className={`${styles.mainScoreValue}${resultPulse ? ` ${styles.mainScoreValuePulse}` : ''}`}>{myScore}</span>
-                <span className={styles.mainScoreUnit}>{t(myScore === 1 ? 'vom.point' : 'vom.points')}</span>
+                <span className={styles.mainScoreUnit}>{maxPointsLabel}{t(myScore === 1 && !maxPointsLabel ? 'vom.point' : 'vom.points')}</span>
                 <div className={styles.scoreDeltaRow}>
                   <span className={`${styles.scoreDeltaChip}${myRoundPoints > 0 ? ` ${styles.scoreDeltaChipPositive}` : ''}`}>{myRoundPoints > 0 ? `+${myRoundPoints}` : '0'} pt</span>
                   <span className={styles.scoreRankChip}>{myRankMedal || `#${myRank || '-'}`} {myRoundMovement === 'up' ? '↑' : myRoundMovement === 'down' ? '↓' : '→'}</span>
@@ -1139,7 +1142,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 <span>{t('vom.playedCycles')}</span>
               </article>
               <article className={styles.finalSummaryItem}>
-                <strong>{ranking[0]?.score ?? 0}</strong>
+                <strong>{ranking[0]?.score ?? 0}{maxPoints > 0 ? <small> / {maxPoints}</small> : null}</strong>
                 <span>{t('vom.bestScore')}</span>
               </article>
             </div>
@@ -1147,7 +1150,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
               <div className={`${styles.mainScoreCard} ${styles.finalWow}`}>
                 <span className={styles.mainScoreLabel}>{t('vom.finalScore')}</span>
                 <span className={styles.mainScoreValue}>{myScore}</span>
-                <span className={styles.mainScoreUnit}>{t('vom.points')}</span>
+                <span className={styles.mainScoreUnit}>{maxPointsLabel}{t('vom.points')}</span>
               </div>
             ) : null}
             <div className={styles.finalBlock}>
