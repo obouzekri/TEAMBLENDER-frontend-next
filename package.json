@@ -55,12 +55,12 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "lucide-react": "^1.17.0",
-    "next": "16.2.6",
-    "postcss": "8.5.14",
+    "next": "16.4.3",
+    "postcss": "8.5.32",
     "posthog-js": "^1.379.1",
+    "qrcode": "^1.5.4",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "qrcode": "^1.5.4",
     "socket.io-client": "^4.7.2",
     "three": "^0.184.0"
   },
