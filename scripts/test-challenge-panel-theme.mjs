@@ -3,10 +3,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { readGlobalCss } from './helpers/global-css.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (...parts) => fs.readFileSync(path.join(root, ...parts), 'utf8');
-const globalCss = read('app', 'globals.css').replace(/^@import.*$/gm, '');
+const globalCss = readGlobalCss();
 const modules = [
   ['MissionCritique', 'MissionCritique', 'container', ['card taskCard', 'card timelineCard']],
   ['PhraseCoop', 'PhraseCoop', 'phraseContainer', ['boardPanel', 'sideCard']],
