@@ -382,7 +382,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
     <>
       <TopNav />
       <main className="shell pricing-page">
-        <section className="pricing-hero reveal-up" aria-label="Tarification TeamBlender">
+        <section className="pricing-hero reveal-up" aria-label={isEn ? 'TeamBlender pricing' : 'Tarifs TeamBlender'}>
           <div className="pricing-hero__copy">
             <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
             <p className="pricing-hero__context" style={getDarkModeTextStyle()}>
