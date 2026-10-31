@@ -8,7 +8,6 @@ import {
   Layers,
   PlayCircle,
   ShieldCheck,
-  Sparkles,
   Target,
   Users,
 } from 'lucide-react';
@@ -33,10 +32,6 @@ export function resolveUseCaseIcon(label, index = 0) {
   if (/cohes|cohesion|team/.test(low)) return Handshake;
   if (/manager/.test(low)) return Users;
   return FLOW_ICON_SET[index % FLOW_ICON_SET.length] || Target;
-}
-
-export function resolveMetricIcon(index = 0) {
-  return METRIC_ICON_SET[index % METRIC_ICON_SET.length] || Sparkles;
 }
 
 export function resolveFlowStepIcon(index = 0) {
