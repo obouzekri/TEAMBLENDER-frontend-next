@@ -17,7 +17,7 @@ import {
   getVisitorResult,
 } from '../lib/demo/demoScenario.mjs';
 import { applyTimerEvent, createDemoChallengeServer } from '../lib/demo/demoChallengeServer.mjs';
-import { DEMO_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '../lib/demo/challenges/index.mjs';
+import { DEMO_ENGINE_KEYS, DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '../lib/demo/challenges/index.mjs';
 import { SESSION_OBJECTIVES } from '../lib/sessionProgram.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -39,6 +39,8 @@ assert.deepEqual(
   [...DEMO_ENGINE_KEYS].sort(),
   ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1', 'vrai_ou_mensonge_v1'],
 );
+assert.ok(!DEMO_PROGRAM_ENGINE_KEYS.includes(VOM_ENGINE_KEY), 'Pari sur moi is only played in the participant preview');
+assert.equal(DEMO_PROGRAM_ENGINE_KEYS.length, 3);
 
 // A fixed team of four, the minimum needed for every demo challenge.
 assert.equal(DEMO_TEAM_SIZE, 4);

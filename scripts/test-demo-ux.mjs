@@ -4,7 +4,8 @@ import { chromium } from 'playwright';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const screenshotDir = process.env.DEMO_SCREENSHOT_DIR || '';
-const DEMO_ENGINES = ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1', 'vrai_ou_mensonge_v1'];
+// Pari sur moi is played in the participant preview, not in the facilitator programme.
+const PROGRAM_ENGINES = ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1'];
 
 const COPY = {
   fr: {
@@ -141,7 +142,7 @@ async function runDemo(browser, locale, viewport, { flowMode }) {
       await clickPastAnnouncements(page, next);
     }
   }
-  assert.deepEqual([...played].sort(), DEMO_ENGINES, 'All four demo challenges were played');
+  assert.deepEqual([...played].sort(), PROGRAM_ENGINES, 'The three programme challenges were played');
 
   // Participant preview: the visitor plays Pari sur moi in the real participant interface.
   const stage = page.locator('[data-demo-challenge="vrai_ou_mensonge_v1"]');
