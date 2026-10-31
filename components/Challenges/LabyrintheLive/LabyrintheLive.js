@@ -159,6 +159,26 @@ const CHALLENGE_FAILURE_MESSAGE = {
     body: 'Your team did not reach the objective before running out of lives or allotted time.',
   },
 };
+const CHALLENGE_SUCCESS_MESSAGE = {
+  fr: {
+    title: "Félicitations ! Toute l'équipe a réussi le Labyrinthe des Signaux.",
+    body: "Le chrono s'est arrêté automatiquement et le débrief collectif est prêt.",
+  },
+  en: {
+    title: 'Congratulations! The whole team cleared the Signal Maze.',
+    body: 'The timer stopped automatically and the team debrief is ready.',
+  },
+};
+const NO_LIVES_LEFT_MESSAGE = {
+  fr: {
+    title: 'Vous avez perdu toutes vos vies.',
+    body: "Vous pouvez rester en observation pendant que le reste de l'équipe continue.",
+  },
+  en: {
+    title: 'You have lost all your lives.',
+    body: 'You can keep watching while the rest of the team carries on.',
+  },
+};
 
 function getPlayerColorStyle(index) {
   const normalizedIndex = Math.abs(Number(index) || 0) % PLAYER_COLOR_COUNT;
@@ -560,23 +580,21 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       if (outcome === 'exit') {
         setAnnouncement({
           tone: 'success',
-          title: 'Félicitations ! Toute l\'équipe a réussi le Labyrinthe des Signaux.',
-          body: 'Le chrono s\'est arrêté automatiquement et le débrief collectif est prêt.',
+          ...CHALLENGE_SUCCESS_MESSAGE[isEn ? 'en' : 'fr'],
         });
-        setMoveFeedback('Bravo ! Vous avez atteint la sortie.');
+        setMoveFeedback(isEn ? 'Well done! You reached the exit.' : 'Bravo ! Vous avez atteint la sortie.');
         setMoveFeedbackTone('success');
-        showMicroCue(impactedCellKey || playerPosKey, 'success', '🏁 Sortie !');
+        showMicroCue(impactedCellKey || playerPosKey, 'success', isEn ? '🏁 Exit!' : '🏁 Sortie !');
         return;
       }
       if (outcome === 'trap') {
-        setMoveFeedback('💥 Piège déclenché : -1 vie');
+        setMoveFeedback(isEn ? '💥 Trap triggered: -1 life' : '💥 Piège déclenché : -1 vie');
         setMoveFeedbackTone('danger');
-        showMicroCue(impactedCellKey, 'danger', '💥 Boom !', '−1 vie');
+        showMicroCue(impactedCellKey, 'danger', '💥 Boom !', isEn ? '−1 life' : '−1 vie');
         if (Number(payload?.remaining_lives || 0) <= 0) {
           setAnnouncement({
             tone: 'failure',
-            title: 'Vous avez perdu toutes vos vies.',
-            body: 'Vous pouvez rester en observation pendant que le reste de l\'équipe continue.',
+            ...NO_LIVES_LEFT_MESSAGE[isEn ? 'en' : 'fr'],
           });
         }
         if (payload?.all_lost) {
@@ -588,31 +606,30 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         return;
       }
       if (outcome === 'blocked') {
-        setMoveFeedback('🚧 Chemin bloqué : -1 vie');
+        setMoveFeedback(isEn ? '🚧 Dead end: -1 life' : '🚧 Chemin bloqué : -1 vie');
         setMoveFeedbackTone('danger');
-        showMicroCue(impactedCellKey, 'danger', '🚧 Chemin bloqué', '−1 vie');
+        showMicroCue(impactedCellKey, 'danger', isEn ? '🚧 Dead end' : '🚧 Chemin bloqué', isEn ? '−1 life' : '−1 vie');
         if (Number(payload?.remaining_lives || 0) <= 0) {
           setAnnouncement({
             tone: 'failure',
-            title: 'Vous avez perdu toutes vos vies.',
-            body: 'Vous pouvez rester en observation pendant que le reste de l\'équipe continue.',
+            ...NO_LIVES_LEFT_MESSAGE[isEn ? 'en' : 'fr'],
           });
         }
         return;
       }
       if (outcome === 'backtrack') {
-        setMoveFeedback('↩️ Retour interdit — ce couloir se referme derrière vous.');
+        setMoveFeedback(isEn ? '↩️ No going back: this corridor closes behind you.' : '↩️ Retour interdit — ce couloir se referme derrière vous.');
         setMoveFeedbackTone('warning');
-        showMicroCue(impactedCellKey || playerPosKey, 'warning', '↩️ Retour interdit');
+        showMicroCue(impactedCellKey || playerPosKey, 'warning', isEn ? '↩️ No going back' : '↩️ Retour interdit');
         return;
       }
       if (outcome === 'wall') {
-        setMoveFeedback('Mur détecté dans cette direction.');
+        setMoveFeedback(isEn ? 'Wall ahead in this direction.' : 'Mur détecté dans cette direction.');
         setMoveFeedbackTone('warning');
-        showMicroCue(impactedCellKey || playerPosKey, 'warning', '🚧 Impasse');
+        showMicroCue(impactedCellKey || playerPosKey, 'warning', isEn ? '🚧 Blocked' : '🚧 Impasse');
         return;
       }
-      setMoveFeedback('Déplacement validé. Continuez vers la sortie.');
+      setMoveFeedback(isEn ? 'Move confirmed. Keep heading for the exit.' : 'Déplacement validé. Continuez vers la sortie.');
       setMoveFeedbackTone('info');
     };
 
@@ -637,8 +654,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     if (labyFinalSummary.isSuccess) {
       setAnnouncement({
         tone: 'success',
-        title: 'Félicitations ! Toute l\'équipe a réussi le Labyrinthe des Signaux.',
-        body: 'Le chrono s\'est arrêté automatiquement et le débrief collectif est prêt.',
+        ...CHALLENGE_SUCCESS_MESSAGE[isEn ? 'en' : 'fr'],
       });
       return;
     }
@@ -1141,7 +1157,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
           {isFacilitator && maze ? (
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
-                <h4 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--challenge-text-primary)' }}>Carte solution</h4>
+                <h4 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--challenge-text-primary)' }}>{isEn ? 'Solution map' : 'Carte solution'}</h4>
                 <span className={styles.muted}>{isEn ? 'possible path(s)' : 'chemin(s) possible(s)'}</span>
               </div>
               <div className={`${styles.miniGrid} ${colsClass} ${styles.solutionMiniGrid}`}>
