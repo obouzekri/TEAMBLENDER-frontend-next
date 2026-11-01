@@ -138,9 +138,9 @@ try {
         await page.goto(`${baseUrl}/${locale}/session-live/12`);
         await page.locator('button[aria-expanded]').filter({ has: page.locator('svg.lucide-info') }).click();
         await page.getByRole('button', { name: en ? 'Manage participants' : 'Gérer les participants' }).click();
-        await page.getByRole('button', { name: en ? 'Restore access' : 'Retablir l acces' }).click();
+        await page.getByRole('button', { name: en ? 'Restore access' : 'Rétablir l’accès', exact: true }).click();
         assert.equal(writes.length, 0, 'Opening the confirmation must not issue a secret');
-        await page.getByRole('button', { name: en ? 'Identity verified: generate link' : 'Identite verifiee : generer le lien' }).click();
+        await page.getByRole('button', { name: en ? 'Identity verified: generate link' : 'Identité vérifiée : générer le lien' }).click();
         await page.getByRole('img', { name: en ? 'Scan to resume participation' : 'Scanner pour reprendre la participation' }).waitFor();
         assert.equal(writes.filter((write) => write.path.endsWith('/participant-management/42/recovery')).length, 1);
         assert.deepEqual(errors, []);

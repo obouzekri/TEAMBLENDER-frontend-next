@@ -414,8 +414,8 @@ async function testPixel(locale, width, disableWebgl, role = 'participant') {
     await page.getByText(locale === 'en' ? /You can keep playing with the layer grids below/ : /Vous pouvez continuer à jouer avec les grilles/).waitFor();
     assert.equal(await page.locator('canvas').count(), 0);
     if (width < 640) {
-      await page.getByRole('button', { name: locale === 'en' ? 'Open model map' : 'Ouvrir la carte modele' }).click();
-      const dialog = page.getByRole('dialog', { name: locale === 'en' ? 'Model map' : 'Carte modele' });
+      await page.getByRole('button', { name: locale === 'en' ? 'Open model map' : 'Ouvrir la carte modèle' }).click();
+      const dialog = page.getByRole('dialog', { name: locale === 'en' ? 'Model map' : 'Carte modèle' });
       await dialog.getByText(locale === 'en' ? /3D preview unavailable/ : /Aperçu 3D indisponible/).waitFor();
       await dialog.getByRole('button', { name: locale === 'en' ? 'Close' : 'Fermer', exact: true }).click();
     }
@@ -423,7 +423,7 @@ async function testPixel(locale, width, disableWebgl, role = 'participant') {
   if (role === 'participant') {
     await layers.first().getByRole('button', { name: locale === 'en' ? /^Layer 1, cell x2 z1/ : /^Couche 1, case x2 z1/ }).click();
     await eventCount(fixture, 'pixel.cube.place', 1);
-    const reset = page.getByRole('button', { name: locale === 'en' ? 'Reset layer' : 'Reinitialiser la couche', exact: true });
+    const reset = page.getByRole('button', { name: locale === 'en' ? 'Reset layer' : 'Réinitialiser la couche', exact: true });
     assert.ok(await reset.isEnabled());
     page.once('dialog', async (dialog) => {
       assert.equal(dialog.type(), 'confirm');
@@ -435,7 +435,7 @@ async function testPixel(locale, width, disableWebgl, role = 'participant') {
     page.once('dialog', (dialog) => dialog.accept());
     await reset.click();
     await eventCount(fixture, 'pixel.cube.remove', 1);
-    const allReset = page.getByRole('button', { name: locale === 'en' ? 'Reset cubes' : 'Reinitialiser les cubes', exact: true });
+    const allReset = page.getByRole('button', { name: locale === 'en' ? 'Reset cubes' : 'Réinitialiser les cubes', exact: true });
     page.once('dialog', (dialog) => dialog.dismiss());
     await allReset.click();
     await page.waitForTimeout(200);

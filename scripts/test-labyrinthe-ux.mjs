@@ -175,10 +175,10 @@ try {
       await page.getByText('Deplacement indisponible pour le moment', { exact: true }).waitFor();
       await waitForPosition(0, 3);
       broadcast('laby.solo.resolved', { participant_id: '1', outcome: 'move', position: [0, 1] });
-      await page.getByText('Déplacement validé. Continuez vers la sortie.', { exact: true }).waitFor();
+      await page.getByText(locale === 'fr' ? 'Déplacement validé. Continuez vers la sortie.' : 'Move confirmed. Keep heading for the exit.', { exact: true }).waitFor();
       assert.equal(await page.getByText('✨ Bien joué', { exact: true }).count(), 0);
       broadcast('laby.solo.resolved', { participant_id: '1', outcome: 'wall', position: [0, 1] });
-      await page.getByText('🚧 Impasse', { exact: true }).waitFor();
+      await page.getByText(locale === 'fr' ? '🚧 Impasse' : '🚧 Blocked', { exact: true }).waitFor();
       broadcast('laby.solo.resolved', { participant_id: '1', outcome: 'level_complete', level: 2, levels_total: 3 });
       const dialog = page.getByRole('dialog');
       await dialog.waitFor();
