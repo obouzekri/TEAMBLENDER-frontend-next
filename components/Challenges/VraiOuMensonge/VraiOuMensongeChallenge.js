@@ -13,6 +13,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengePresentation from '../ChallengePresentation';
+import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import styles from './VraiOuMensonge.module.css';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
@@ -1128,7 +1129,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
         {phase === 'finished' ? (
           <section className={styles.card} data-debrief-content>
-            <h2 className={styles.sectionTitle}>{t('vom.finalDebrief')}</h2>
+            <ChallengeDebriefHeading />
             <div className={styles.finalSummaryGrid} data-debrief-metrics>
               <article className={styles.finalSummaryItem}>
                 <strong>{ranking.length}</strong>

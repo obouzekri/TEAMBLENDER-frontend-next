@@ -16,6 +16,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengePresentation from '../ChallengePresentation';
+import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import useI18n from '@/lib/i18n/useI18n';
 import styles from './Copuzzle.module.css';
 
@@ -507,7 +508,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
 
               {state?.summary ? (
                 <div className={styles.summary} data-debrief-content>
-                  <h3 className={styles.summaryTitle}>{isEn ? 'Team debrief' : 'Débrief collectif'}</h3>
+                  <ChallengeDebriefHeading />
                   <div className={styles.summaryGrid} data-debrief-metrics>
                     <div className={styles.summaryCard}>
                       <strong className={styles.summaryValue}>
@@ -563,17 +564,6 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
               waitingText=""
             />
           </div>
-
-          {isChallengeCompleted ? (
-            <section className={styles.completionNotice} role="status" aria-live="polite">
-              <p className={styles.completionNoticeTitle}>{isEn ? 'Challenge complete' : 'Challenge terminé'}</p>
-              <p className={styles.completionNoticeBody}>
-                {isFacilitator
-                  ? (isEn ? 'Challenge complete. Move on to the next challenge when you are ready.' : 'Challenge terminé. Passez au challenge suivant lorsque vous êtes prêt.')
-                  : (isEn ? 'Waiting for the facilitator, who will start the next challenge after the debrief.' : 'En attente du facilitateur. Le facilitateur déclenchera le prochain challenge après le débrief.')}
-              </p>
-            </section>
-          ) : null}
 
           <section className={styles.sideCard} style={{ order: 3 }}>
             <h2>{isFacilitator ? (isEn ? 'Reference image' : 'Image de référence') : (isEn ? 'Your pieces' : 'Pièces assignées')}</h2>

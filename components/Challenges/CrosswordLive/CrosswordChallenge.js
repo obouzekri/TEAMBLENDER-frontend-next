@@ -11,6 +11,7 @@ import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeActionFeedback from '../ChallengeActionFeedback';
 import ChallengePresentation from '../ChallengePresentation';
+import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import styles from './CrosswordChallenge.module.css';
 
 const COPY = {
@@ -19,7 +20,7 @@ const COPY = {
     board: 'Grille de mots croisés', help: 'Choisissez une case ou une définition. Flèches : déplacer la sélection. Espace : changer de direction à une intersection. Début / Fin : première / dernière case du mot.',
     row: 'Ligne', col: 'colonne', empty: 'vide', found: 'Trouvé', letters: 'lettres', answer: 'Votre réponse', submit: 'Proposer le mot',
     wordsFound: 'mots trouvés', leaderboard: 'Classement', activity: 'Dernières découvertes', none: 'Aucune découverte pour le moment.',
-    points: 'points', finished: 'Partie terminée', unresolved: 'Mots non résolus', perfect: 'Bravo ! Toute la grille est résolue.',
+    points: 'points', unresolved: 'Mots non résolus', perfect: 'Bravo ! Toute la grille est résolue.',
     solution: 'Réponse', answerUnavailable: 'Réponse indisponible',
     start: 'Démarrer la partie', waiting: 'En attente du démarrage par l’animateur.',
     offline: 'Connexion interrompue. Votre brouillon est conservé.', sending: 'Vérification en cours…',
@@ -36,7 +37,7 @@ const COPY = {
     board: 'Crossword board', help: 'Choose a cell or a clue. Arrow keys: move selection. Space: switch direction at an intersection. Home / End: first / last cell of the word.',
     row: 'Row', col: 'column', empty: 'empty', found: 'Found', letters: 'letters', answer: 'Your answer', submit: 'Submit word',
     wordsFound: 'words found', leaderboard: 'Leaderboard', activity: 'Latest discoveries', none: 'No discoveries yet.',
-    points: 'points', finished: 'Game over', unresolved: 'Unresolved words', perfect: 'Well done! The whole grid is solved.',
+    points: 'points', unresolved: 'Unresolved words', perfect: 'Well done! The whole grid is solved.',
     solution: 'Answer', answerUnavailable: 'Answer unavailable',
     start: 'Start game', waiting: 'Waiting for the facilitator to start.',
     offline: 'Connection interrupted. Your draft is saved.', sending: 'Checking your answer…',
@@ -321,12 +322,25 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   const scores = [...(crossword?.scores || [])].sort((a, b) => b.score - a.score);
   const remaining = timer.remaining_seconds ?? timer.remainingSeconds ?? config.timer?.duration_seconds ?? 900;
 
+  const timerCard = (
+    <ChallengeTimerCard
+      isStarted={started}
+      remainingSeconds={remaining} durationSeconds={timer.duration_seconds || config.timer?.duration_seconds || 900}
+      status={status} isFacilitator={isFacilitator}
+      onPause={timerControls.pause} onResume={timerControls.resume}
+      controlPending={timerControls.busy} controlFeedback={timerControls.feedback}
+      waitingText={copy.waiting}
+    />
+  );
+
   return (
     <ChallengePresentation as="main" className={styles.root} isDebrief={finished}>
       <ChallengeHeader
         title={copy.title}
+        timer={started ? { remainingSeconds: remaining } : null}
         headerAction={started ? <ChallengeRulesPanel {...rulesProps} inHeader showPrestartCard={false} /> : null}
       />
+      <div className="challenge-mobile-timer">{timerCard}</div>
       <ChallengeActionFeedback feedback={error && error === controls.feedback?.message ? null : { ...controls.feedback, retry: null }} />
       {!connected && <p className={styles.notice} role="status">{copy.offline}</p>}
       {error && <p className={styles.notice} role="alert">{error}</p>}
@@ -342,11 +356,11 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
             />
             {!grid && <p role="status">{copy.loading}</p>}
           </> : !grid ? <p role="status">{copy.loading}</p> : <>
-            {finished && <section className={`${styles.card} ${styles.finalCard}`} aria-labelledby={`${id}-final`}>
+            {finished && <section className={`${styles.card} ${styles.finalCard}`} data-debrief-content>
               <div className={styles.finalHeading}>
                 <div>
-                  <span className={styles.finalEyebrow}>{copy.finished}</span>
-                  <h2 id={`${id}-final`}>{unresolved.length ? copy.unresolved : copy.perfect}</h2>
+                  <ChallengeDebriefHeading />
+                  <p className={styles.finalOutcome}>{unresolved.length ? copy.unresolved : copy.perfect}</p>
                 </div>
                 <span className={styles.finalScore}>{crossword.solvedCount || 0}<span>/{crossword.totalWords || words.length} {copy.wordsFound}</span></span>
               </div>
@@ -430,14 +444,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
           </>}
         </div>
         {!finished && started && <aside className={styles.timerColumn}>
-          <ChallengeTimerCard
-            isStarted={started}
-            remainingSeconds={remaining} durationSeconds={timer.duration_seconds || config.timer?.duration_seconds || 900}
-            status={status} isFacilitator={isFacilitator}
-            onPause={timerControls.pause} onResume={timerControls.resume}
-            controlPending={timerControls.busy} controlFeedback={timerControls.feedback}
-            waitingText={copy.waiting}
-          />
+          <div className="challenge-desktop-timer">{timerCard}</div>
         </aside>}
       </div>
     </ChallengePresentation>

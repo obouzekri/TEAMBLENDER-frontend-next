@@ -90,6 +90,7 @@ try {
       }),
       '../ChallengeHeader': (props) => h('header', {}, h('h1', {}, props.title), props.timer ? h('span', { className: 'headerTimer' }, 'timer') : null, props.headerAction),
       '../ChallengeActionFeedback': shared,
+      '../ChallengeDebriefHeading': ({ children }) => h('div', {}, h('span', {}, 'Challenge terminé'), h('h2', {}, "Débrief de l'équipe"), children),
       './CrosswordChallenge.module.css': styles, './ChallengeConfigModal.module.css': styles,
       './ChallengeRulesPanel.module.css': styles, './ChallengeTimerCard.module.css': styles,
       './ChallengePresentation.module.css': styles,
@@ -194,11 +195,12 @@ try {
         assert.equal(await page.locator('.rulesCard').count(), 0);
         assert.equal(await page.getByRole('button', { name: currentLocale === 'en' ? 'Start game' : 'Démarrer la partie', exact: true }).count(), 0);
         assert.equal(await page.locator('.timerColumn').count(), 1, 'Timer column is shown after server confirmation');
-        assert.equal(await page.locator('.headerTimer').count(), 0, 'No duplicate timer in the header');
-        assert.equal(await page.getByRole('timer').count(), 1, 'Only one visible timer');
-        assert.equal(await page.locator('.timerRing').count(), 1, 'Timer uses the shared circular display');
+        assert.equal(await page.locator('.headerTimer').count(), 1, 'Header shows the compact timer, as in the other challenges');
+        assert.equal(await page.getByRole('timer').count(), 1, 'Only one visible timer card');
+        const timerSlot = width > 900 ? '.challenge-desktop-timer' : '.challenge-mobile-timer';
+        assert.equal(await page.locator(`${timerSlot} .timerRing`).count(), 1, 'Timer uses the shared circular display');
         await page.getByRole('status').filter({ hasText: currentLocale === 'en' ? '1/2 words found' : '1/2 mots trouvés' }).waitFor();
-        const timerBounds = await page.locator('.timerColumn').boundingBox();
+        const timerBounds = await page.locator(timerSlot).boundingBox();
         const arenaBounds = await page.locator('.arenaColumn').boundingBox();
         if (width > 960) {
           assert.ok(arenaBounds.x + arenaBounds.width <= timerBounds.x, 'Timer is right of the arena on desktop');
@@ -212,7 +214,7 @@ try {
           assert.ok(await page.locator('.cell').first().evaluate((node) => node.getBoundingClientRect().width) > 44, 'Cells grow when board space allows');
         } else {
           assert.ok(timerBounds.y + timerBounds.height <= arenaBounds.y, 'Timer is above the arena on mobile');
-          assert.ok(Math.abs(timerBounds.x + timerBounds.width - arenaBounds.x - arenaBounds.width) <= 1, 'Mobile timer is right aligned');
+          assert.ok(Math.abs(timerBounds.width - arenaBounds.width) <= 1, 'Mobile timer spans the layout, as in the other challenges');
         }
         assert.equal(await page.getByRole('button', { name: /^(End game|Terminer la partie)$/ }).count(), 0);
         assert.equal(await page.getByRole('button', { name: 'challengeTimer.pause', exact: true }).count(), currentFacilitator ? 1 : 0);
@@ -390,16 +392,16 @@ try {
     } };
     render();
   });
-  await page.getByText('Partie terminée', { exact: true }).waitFor();
+  await page.getByRole('heading', { name: "Débrief de l'équipe", exact: true }).waitFor();
   assert.equal(await page.locator('.timerColumn, .timerCard').count(), 0, 'No timer in the final review');
   assert.equal(await page.locator('.challengeLayout').evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(' ').length), 1);
   await page.getByRole('heading', { level: 1, name: 'Mots croisés Live', exact: true }).waitFor();
-  await page.getByRole('heading', { name: 'Mots non résolus', exact: true }).waitFor();
+  await page.getByText('Mots non résolus', { exact: true }).waitFor();
   assert.deepEqual(await page.locator('.solution').allTextContents(), ['Réponse: CAT', 'Réponse: ORG']);
   assert.equal(await page.locator('.answerForm, .clueLists').count(), 0, 'Final review hides answer entry and active clues');
   await page.evaluate(() => document.documentElement.dataset.theme = 'dark');
-  assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).backgroundImage), 'linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9))');
-  assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).color), 'rgb(232, 239, 255)');
+  assert.equal(await page.locator('.card:not([data-debrief-content])').first().evaluate((card) => getComputedStyle(card).backgroundImage), 'linear-gradient(165deg, rgba(16, 33, 49, 0.9), rgba(10, 24, 36, 0.9))');
+  assert.equal(await page.locator('.card:not([data-debrief-content])').first().evaluate((card) => getComputedStyle(card).color), 'rgb(232, 239, 255)');
 
   await page.evaluate(() => {
     locale = 'en';

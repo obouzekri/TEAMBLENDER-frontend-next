@@ -9,6 +9,7 @@ import { DEFAULT_CHALLENGE_QUICK_MESSAGES } from '@/lib/challenges/chat-presets'
 import { getDictionary } from '@/lib/i18n';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengePresentation from '../ChallengePresentation';
+import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
@@ -515,6 +516,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
       <ChallengeHeader
         title={rulesPreset?.challengeName || 'Lab d\'Innovation'}
         subtitle={rulesPreset?.subtitle || 'Innovation collaborative'}
+        timer={hasChallengeStarted ? { remainingSeconds: timerRemainingSeconds } : null}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
             inHeader
@@ -572,7 +574,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               <section className={styles.card} data-debrief-content={isDebrief || undefined}>
                 <div className={styles.phaseHeader}>
                   <div>
-                    <h2 className={styles.phaseTitle}>{isDebrief ? (isEn ? 'Team debrief' : 'Débrief équipe') : getPhaseTitle(locale, currentPhase)}</h2>
+                    {isDebrief ? <ChallengeDebriefHeading /> : <h2 className={styles.phaseTitle}>{getPhaseTitle(locale, currentPhase)}</h2>}
                     {!isDebrief ? <p className={styles.phaseGuidance}>{getPhaseGuidance(locale, currentPhase)}</p> : null}
                     {isFacilitator ? <p className={styles.facilitatorNote}>{isEn ? 'Facilitator mode: observation only.' : 'Mode facilitateur : observation uniquement.'}</p> : null}
                   </div>

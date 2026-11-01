@@ -825,7 +825,6 @@ button.cell:focus-visible {
   box-shadow: 0 14px 30px rgba(2, 9, 16, 0.22);
 }
 
-.debriefCard h3,
 .debriefCard p {
   margin: 0;
   line-height: 1.45;

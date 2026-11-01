@@ -161,7 +161,7 @@ try {
   const page = await context.newPage();
   await page.goto(`${baseUrl}/fr/challenges/${engineKey}?sessionId=42`);
   await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
-  await page.getByRole('heading', { name: 'Résultats de l’équipe', exact: true }).waitFor();
+  await page.getByRole('heading', { name: "Débrief de l'équipe", exact: true }).waitFor();
   assert.equal(await page.getByRole('tab').count(), 0);
   assert.equal(await page.getByRole('heading', { name: 'Backlog mission', exact: true }).count(), 0);
   assert.equal(await page.getByText('Timeline fusionnée de l’équipe', { exact: true }).count(), 1);

@@ -13,6 +13,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengePresentation from '../ChallengePresentation';
+import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './Labyrinthe.module.css';
@@ -837,7 +838,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
               </div>
               {labyFinalSummary ? (
                 <div className={styles.debriefCard} data-debrief-content>
-                  <h3>{isEn ? 'Final debrief' : 'Débrief final'}</h3>
+                  <ChallengeDebriefHeading />
                   <p>{labyFinalSummary.summaryMessage}</p>
                   <div className={styles.debriefMetrics} data-debrief-metrics>
                     <article className={styles.debriefMetric}><span>{isEn ? 'Remaining lives' : 'Vies restantes'}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
@@ -960,7 +961,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 <>
                   {labyFinalSummary ? (
                     <div className={styles.debriefCard} data-debrief-content>
-                      <h3>{isEn ? 'Final debrief' : 'Débrief final'}</h3>
+                      <ChallengeDebriefHeading />
                       <p>{labyFinalSummary.summaryMessage}</p>
                       <div className={styles.debriefMetrics} data-debrief-metrics>
                         <article className={styles.debriefMetric}><span>{isEn ? 'Remaining lives' : 'Vies restantes'}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>

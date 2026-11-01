@@ -369,7 +369,7 @@ async function testEscape(locale, width, title) {
     escape.current_enigme = null;
     escape.started_at = '2026-10-15T21:35:15.275Z';
     escape.finished_at = '2026-10-15T21:55:16.195Z';
-    const debrief = page.getByRole('region', { name: locale === 'en' ? 'Team debrief' : 'Débrief en équipe', exact: true });
+    const debrief = page.getByRole('region', { name: locale === 'en' ? 'Debrief questions' : 'Questions pour le débrief', exact: true });
     await debrief.waitFor({ timeout: 10000 });
     const outcome = status === 'escaped' ? (locale === 'en' ? 'Room unlocked' : 'Salle déverrouillée')
       : status === 'timeout' ? (locale === 'en' ? 'Time elapsed' : 'Temps écoulé')
@@ -377,8 +377,7 @@ async function testEscape(locale, width, title) {
     await page.getByText(outcome, { exact: true }).waitFor({ timeout: 10000 });
     assert.equal(await debrief.locator('li').count(), 3);
     assert.equal(await debrief.locator('strong').innerText(), status === 'escaped' ? '2/2' : '1/2');
-    const heading = page.getByRole('heading', { name: locale === 'en' ? 'Game finished' : 'Partie terminée', exact: true });
-    assert.ok(await heading.evaluate((node) => Number.parseFloat(getComputedStyle(node).fontSize) <= 21), 'Compact end title');
+    await page.getByRole('heading', { name: locale === 'en' ? 'Team debrief' : "Débrief de l'équipe", exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: locale === 'en' ? 'Pause' : 'Mettre en pause', exact: true }).count(), 0);
   }
   await finish(fixture);

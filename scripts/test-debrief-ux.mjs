@@ -152,12 +152,11 @@ try {
             const content = root.locator('[data-debrief-content]').first();
             await content.waitFor();
             const heading = content.getByRole('heading').first();
+            assert.equal(await heading.innerText(), locale === 'en' ? 'Team debrief' : "Débrief de l'équipe", 'Every challenge opens its summary with the shared debrief title');
             const titleStyle = await heading.evaluate((node) => ({ size: parseFloat(getComputedStyle(node).fontSize), weight: parseFloat(getComputedStyle(node).fontWeight) }));
-            const compactEndTitle = engineKey === 'escape_room_v1';
-            assert.ok(titleStyle.size >= (compactEndTitle ? 16 : 22) && titleStyle.weight >= 700, `Weak debrief heading: ${JSON.stringify(titleStyle)}`);
-            if (compactEndTitle) {
-              assert.ok(titleStyle.size <= 21, 'Escape Room end heading must remain compact');
-              await content.getByRole('region', { name: locale === 'en' ? 'Team debrief' : 'Débrief en équipe' }).waitFor();
+            assert.ok(titleStyle.size >= 22 && titleStyle.weight >= 700, `Weak debrief heading: ${JSON.stringify(titleStyle)}`);
+            if (engineKey === 'escape_room_v1') {
+              await content.getByRole('region', { name: locale === 'en' ? 'Debrief questions' : 'Questions pour le débrief' }).waitFor();
             }
             assert.ok(!/\p{Extended_Pictographic}/u.test(await content.innerText()), 'Decorative emoji in debrief analysis');
             if (engineKey === 'pixel_architect_v1') {
@@ -166,7 +165,7 @@ try {
               assert.equal(await pixelMetrics.locator('p span').count(), 8, 'Pixel Architect metrics should have compact labels');
             }
             for (const value of await content.locator('[data-debrief-metrics] strong').all()) {
-              await assertMetricStyle(value, engineKey === 'pixel_architect_v1' ? { minSize: 14, maxSize: 18 } : undefined);
+              await assertMetricStyle(value);
             }
             assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Horizontal overflow');
             assert.deepEqual(errors, [], 'Runtime errors');
