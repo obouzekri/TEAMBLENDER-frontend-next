@@ -1,6 +1,7 @@
 'use client';
 
 import styles from './TheQuiz.module.css';
+import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import { getQuizOptions, getQuizRankingStatus, normalizeQuizAnswerIndex } from '@/lib/challenges/quiz-utils';
 
 function normalizeQuestion(quiz, isEn = false) {
@@ -254,13 +255,7 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
 
   return (
     <section className={styles.screenCard} data-debrief-content>
-      <div className={styles.screenHeader}>
-        <div>
-          <p className={styles.kicker}>{isEn ? 'Final score' : 'Score final'}</p>
-          <h2 className={styles.screenTitle}>{isEn ? 'Final session ranking' : 'Classement final de la session'}</h2>
-        </div>
-        <span className={styles.phaseBadge}>Final</span>
-      </div>
+      <ChallengeDebriefHeading />
 
       <div className={styles.finalSummaryGrid} data-debrief-metrics>
         <article className={styles.metricCard}><span>{isEn ? 'Participants' : 'Participants'}</span><strong>{status === 'ready' ? totalPlayers : '-'}</strong></article>

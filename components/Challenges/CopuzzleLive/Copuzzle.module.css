@@ -493,14 +493,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.summaryTitle {
-  margin: 0 0 12px;
-  font-size: 1rem;
-  font-weight: 800;
-  color: #34d399;
-  letter-spacing: 0.04em;
-}
-
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -780,32 +772,6 @@
   color: #bfd3e8;
 }
 
-.completionNotice {
-  order: 1;
-  border-radius: 12px;
-  border: 1px solid rgba(125, 211, 252, 0.28);
-  background: linear-gradient(140deg, rgba(10, 18, 34, 0.92), rgba(17, 24, 39, 0.96));
-  padding: 12px 14px;
-  display: grid;
-  gap: 4px;
-}
-
-.completionNoticeTitle {
-  margin: 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 800;
-  color: #7dd3fc;
-}
-
-.completionNoticeBody {
-  margin: 0;
-  font-size: 0.86rem;
-  line-height: 1.4;
-  color: #cbd5e1;
-}
-
 /* FOOTER */
 .footerMeta {
   display: flex;
@@ -951,8 +917,7 @@
 :global(html[data-theme='light']) .sideCard,
 :global(html[data-theme='light']) .chatCard,
 :global(html[data-theme='light']) .timerCard,
-:global(html[data-theme='light']) .summary,
-:global(html[data-theme='light']) .completionNotice {
+:global(html[data-theme='light']) .summary {
   background: linear-gradient(160deg, var(--surface-1), var(--surface-2));
   border-color: var(--line-soft);
   color: var(--text-main);
@@ -973,9 +938,7 @@
 :global(html[data-theme='light']) .timerState,
 :global(html[data-theme='light']) .timerWaitingText,
 :global(html[data-theme='light']) .sideCard h2,
-:global(html[data-theme='light']) .sideCard h3,
-:global(html[data-theme='light']) .summaryTitle,
-:global(html[data-theme='light']) .completionNoticeTitle {
+:global(html[data-theme='light']) .sideCard h3 {
   color: var(--accent-2);
 }
 
@@ -984,7 +947,6 @@
 :global(html[data-theme='light']) .pieceLabel,
 :global(html[data-theme='light']) .summaryLabel,
 :global(html[data-theme='light']) .summaryTime,
-:global(html[data-theme='light']) .completionNoticeBody,
 :global(html[data-theme='light']) .selectionBanner p {
   color: var(--text-soft);
 }

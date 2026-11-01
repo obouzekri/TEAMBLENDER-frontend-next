@@ -17,6 +17,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengePresentation from '../ChallengePresentation';
+import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import useI18n from '@/lib/i18n/useI18n';
 import styles from './EscapeRoom.module.css';
 import { ArithmeticPuzzle, LetterSequencePuzzle, OneStrokePuzzle } from './EscapeRoomPuzzles';
@@ -107,7 +108,6 @@ export default function EscapeRoomChallenge({
             loadingRoom: 'Loading room...',
             missingParams: 'Missing parameters',
             missingParamsDetail: 'sessionId or challengeId is missing.',
-            challengeEnded: 'Game finished',
             issue: 'Outcome:',
             start: 'Start:',
             end: 'End:',
@@ -133,7 +133,7 @@ export default function EscapeRoomChallenge({
             timerTitle: 'Timer',
             unlockHint: 'Unlock a hint',
             hintUnlocked: 'Hint unlocked',
-            debrief: 'Team debrief',
+            debrief: 'Debrief questions',
             progress: 'Riddles passed or completed',
             debriefNote: 'Progress includes riddles skipped by the facilitator, not just solved riddles.',
             debriefQuestions: [
@@ -227,7 +227,6 @@ export default function EscapeRoomChallenge({
             loadingRoom: 'Chargement de la salle...',
             missingParams: 'Parametres manquants',
             missingParamsDetail: 'sessionId ou challengeId est absent.',
-            challengeEnded: 'Partie terminée',
             issue: 'Issue:',
             start: 'Debut:',
             end: 'Fin:',
@@ -253,7 +252,7 @@ export default function EscapeRoomChallenge({
             timerTitle: 'Minuteur',
             unlockHint: 'Débloquer un indice',
             hintUnlocked: 'Indice débloqué',
-            debrief: 'Débrief en équipe',
+            debrief: 'Questions pour le débrief',
             progress: 'Énigmes franchies',
             debriefNote: "La progression inclut les énigmes passées par l’animateur, pas seulement les énigmes résolues.",
             debriefQuestions: [
@@ -1012,10 +1011,9 @@ export default function EscapeRoomChallenge({
             />
           ) : isFinished ? (
             <>
-              <header className={styles.finishedHeader}>
-                <h2>{copy.challengeEnded}</h2>
+              <ChallengeDebriefHeading>
                 <span className={styles.outcomeBadge}>{outcomeLabel}</span>
-              </header>
+              </ChallengeDebriefHeading>
               <p className={styles.finishedDates}>
                 {copy.start} {formatDate(state.started_at)} · {copy.end} {formatDate(state.finished_at)}
               </p>

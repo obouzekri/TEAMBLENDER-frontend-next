@@ -1179,18 +1179,6 @@
   min-height: 0;
 }
 
-.finishedHeader {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px 16px;
-}
-
-.escapeRoomContainer[data-challenge-debrief] .finishedCard .finishedHeader h2 {
-  margin: 0;
-  font-size: clamp(1.05rem, 1.5vw, 1.25rem);
-}
-
 .outcomeBadge {
   padding: 5px 10px;
   border: 1px solid var(--line-strong);

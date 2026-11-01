@@ -197,7 +197,7 @@ try {
         assert.equal(await page.locator('[class*="slot"] > span').count(), 0, 'Retain filled slots after network failure');
         fixture.setForcedError(false);
         await submit.click();
-        await page.getByRole('heading', { name: isEn ? 'Game finished' : 'Partie terminée', exact: true }).waitFor();
+        await page.getByRole('heading', { name: isEn ? 'Team debrief' : "Débrief de l'équipe", exact: true }).waitFor();
         assert.equal(fixture.submissions.at(-1).answer, '5*(5-(1/5))');
       }
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal overflow');

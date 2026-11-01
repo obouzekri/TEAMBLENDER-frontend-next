@@ -15,6 +15,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengePresentation from '../ChallengePresentation';
+import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import useI18n from '@/lib/i18n/useI18n';
 import styles from './PixelArchitect.module.css';
 
@@ -1361,7 +1362,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
               {summary ? (
                 <section className={styles.panel} data-debrief-content>
-                  <h2>{isEn ? 'Team debrief' : 'Débrief équipe'}</h2>
+                  <ChallengeDebriefHeading />
                   <div
                     className={`${styles.summaryGrid}${summaryPixelMetrics ? ` ${styles.summaryGridPixel}` : ''}`}
                     data-debrief-metrics

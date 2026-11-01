@@ -1,0 +1,30 @@
+.heading {
+  display: grid;
+  gap: 4px;
+  margin-block-end: 16px;
+}
+
+.heading .kicker {
+  display: block;
+  color: var(--accent, #38bdf8);
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heading .titleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.heading .title {
+  margin: 0;
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--text-strong, var(--ink));
+}

@@ -13,6 +13,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengePresentation from '../ChallengePresentation';
+import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import useI18n from '@/lib/i18n/useI18n';
 import styles from './PhraseCoop.module.css';
 
@@ -307,7 +308,6 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
           controlPending={timerControls.busy}
           controlFeedback={timerControls.feedback}
           waitingText=""
-          showCompactBar={false}
         />
       </div>
 
@@ -382,7 +382,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
               {summary ? (
                 <div className={styles.summary} data-debrief-content>
                   <header className={styles.summaryHead}>
-                    <h3>{isEn ? 'Team debrief — Mystery Phrase' : 'Débrief équipe — Phrase Mystère'}</h3>
+                    <ChallengeDebriefHeading />
                     <p>
                       {isEn ? (isFacilitator
                         ? 'Review coordination, decoy management and collective decisions.'

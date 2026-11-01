@@ -779,21 +779,6 @@
   gap: 12px;
 }
 
-.resultEyebrow {
-  display: inline-block;
-  margin-bottom: 6px;
-  color: var(--accent);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.resultHeader h2 {
-  margin: 0;
-  font-size: clamp(1.35rem, 2vw, 1.8rem);
-}
-
 .resultDescription {
   max-width: 680px;
   margin: 7px 0 0;

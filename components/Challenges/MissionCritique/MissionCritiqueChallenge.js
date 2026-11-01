@@ -12,6 +12,7 @@ import ChallengeChatCard from '../ChallengeChatCard';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengePresentation from '../ChallengePresentation';
+import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import useI18n from '@/lib/i18n/useI18n';
 import useModalFocus from '@/lib/useModalFocus';
 import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2, X, Check, Users, CircleCheck, AlertTriangle } from 'lucide-react';
@@ -453,16 +454,7 @@ export default function MissionCritiqueChallenge({
             <section className={`${styles.card} ${styles.resultCard}`} data-debrief-content>
               <div className={styles.resultHeader}>
                 <div>
-                  <span className={styles.resultEyebrow}>
-                    {allParticipantsSubmitted
-                      ? (isEn ? 'Challenge complete' : 'Challenge terminé')
-                      : (isEn ? 'Time ended' : 'Temps écoulé')}
-                  </span>
-                  <h2>
-                    {displayedResult
-                      ? (isEn ? 'Team results' : 'Résultats de l’équipe')
-                      : (isEn ? 'Challenge ended' : 'Challenge terminé')}
-                  </h2>
+                  <ChallengeDebriefHeading />
                   <p className={styles.resultDescription}>
                     {displayedResult
                       ? (isEn
@@ -849,7 +841,7 @@ export default function MissionCritiqueChallenge({
             <section className={styles.card} data-debrief-content={isDebrief || undefined}>
               <div className={styles.dashboardHeader}>
                 <div>
-                  <h2>{isDebrief ? (isEn ? 'Team debrief' : 'Débrief équipe') : (isEn ? 'Facilitator dashboard' : 'Tableau de bord facilitateur')}</h2>
+                  {isDebrief ? <ChallengeDebriefHeading /> : <h2>{isEn ? 'Facilitator dashboard' : 'Tableau de bord facilitateur'}</h2>}
                   <p className={styles.meta}>{isDebrief ? (isEn ? 'Review task placement, submissions and collective results.' : 'Analysez le placement des tâches, les soumissions et les résultats collectifs.') : (isEn ? 'Live task placement and submission tracking' : 'Suivi des tâches placées et des soumissions en temps réel')}</p>
                 </div>
                 {!isDebrief ? <span className={styles.liveBadge}><span aria-hidden="true" />{isEn ? 'Live' : 'En direct'}</span> : null}

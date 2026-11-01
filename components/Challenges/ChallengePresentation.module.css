@@ -39,6 +39,11 @@
 
 .debrief [data-debrief-content] {
   order: -1;
+  align-self: stretch;
+  justify-self: stretch;
+  box-sizing: border-box;
+  width: auto;
+  max-width: none;
   padding: clamp(18px, 2vw, 30px);
   border-inline-start: 4px solid var(--accent, #38bdf8);
   background: var(--surface-panel-soft);
@@ -80,16 +85,41 @@
 }
 
 .debrief [data-debrief-metrics] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 14px;
 }
 
+/* Same tile in every challenge: value first, label underneath, whatever the markup order. */
 .debrief [data-debrief-metrics] > * {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
   background: var(--surface-panel);
-  border-color: var(--line);
+  text-align: start;
 }
 
-.debrief [data-debrief-metrics] span {
+.debrief [data-debrief-metrics] > * > svg {
+  order: -2;
+}
+
+.debrief [data-debrief-metrics] > * > strong {
+  order: -1;
+}
+
+.debrief [data-debrief-metrics] > * > span {
   color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .debrief [data-debrief-metrics] strong {
