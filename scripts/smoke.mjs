@@ -44,21 +44,6 @@ async function prepareSessionData() {
     'Content-Type': 'application/json',
   };
 
-  const sessionsRes = await requestJson(`${BACKEND_URL}/api/sessions`, { headers });
-  assert(sessionsRes.response.ok, `Fetch sessions failed (${sessionsRes.response.status})`);
-
-  const sessions = Array.isArray(sessionsRes.payload)
-    ? sessionsRes.payload
-    : Array.isArray(sessionsRes.payload?.sessions)
-      ? sessionsRes.payload.sessions
-      : Array.isArray(sessionsRes.payload?.data)
-        ? sessionsRes.payload.data
-        : [];
-
-  assert(sessions.length > 0, 'No sessions available for smoke test');
-  const sessionId = Number(sessions[0].id);
-  assert(Number.isInteger(sessionId), 'Invalid session id from backend');
-
   const challengesRes = await requestJson(`${BACKEND_URL}/api/challenges`, { headers });
   assert(challengesRes.response.ok, `Fetch challenges failed (${challengesRes.response.status})`);
 
@@ -73,26 +58,56 @@ async function prepareSessionData() {
   const selected = challenges.find((item) => String(item?.engine_key || '').trim() === CHALLENGE_ENGINE);
   assert(selected?.id, `No challenge found for engine ${CHALLENGE_ENGINE}`);
 
+  // The backend only accepts an active challenge that belongs to the session,
+  // so the smoke test creates its own session instead of reusing an existing one.
+  const sessionName = `Smoke manager ${Date.now()}`;
+  const createSession = await requestJson(`${BACKEND_URL}/api/sessions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ name: sessionName, challenge_ids: [Number(selected.id)] }),
+  });
+  assert(createSession.response.ok, `Create session failed (${createSession.response.status})`);
+  const sessionId = Number(createSession.payload?.id);
+  assert(Number.isInteger(sessionId), 'Session creation did not return an id');
+
+  return { sessionId, sessionName, challengeId: Number(selected.id), token, user: login.payload.user };
+}
+
+async function setActiveChallenge(sessionId, challengeId, token) {
   const setActive = await requestJson(`${BACKEND_URL}/api/sessions/${sessionId}/active-challenge`, {
     method: 'PATCH',
-    headers,
-    body: JSON.stringify({ active_challenge_id: Number(selected.id) }),
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ active_challenge_id: challengeId }),
   });
   assert(setActive.response.ok, `Set active challenge failed (${setActive.response.status})`);
+}
 
-  return { sessionId, token, user: login.payload.user };
+async function deleteSession(sessionId, token) {
+  const { response } = await requestJson(`${BACKEND_URL}/api/sessions/${sessionId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) console.warn(`Smoke session ${sessionId} not deleted (${response.status})`);
 }
 
 async function run() {
-  const { sessionId, token, user } = await prepareSessionData();
+  const { sessionId, sessionName, challengeId, token, user } = await prepareSessionData();
+  try {
+    await setActiveChallenge(sessionId, challengeId, token);
+    await checkPages(sessionId, sessionName, token, user);
+  } finally {
+    await deleteSession(sessionId, token);
+  }
+}
 
+async function checkPages(sessionId, sessionName, token, user) {
   let browser = null;
   try {
     browser = await chromium.launch({ headless: true, channel: BROWSER_CHANNEL });
   } catch (err) {
     throw new Error(`Unable to launch browser channel "${BROWSER_CHANNEL}". ${err.message}`);
   }
-  const context = await browser.newContext();
+  const context = await browser.newContext({ locale: 'fr-FR' }); // the checks below use the French UI
   const page = await context.newPage();
 
   try {
@@ -108,24 +123,24 @@ async function run() {
     await page.waitForSelector('text=ESPACE MANAGER', { timeout: 15000 });
 
     await page.goto(`${FRONTEND_URL}/session-builder`, { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector('text=Construire votre session', { timeout: 15000 });
+    await page.waitForSelector('h1:has-text("Créer une session")', { timeout: 15000 });
 
     await page.goto(`${FRONTEND_URL}/session-live/${sessionId}`, {
       waitUntil: 'domcontentloaded',
       timeout: 90000,
     });
 
-    await page.waitForFunction(() => {
+    // The live page shows the session name once the session data has loaded.
+    await page.waitForFunction((expectedName) => {
       const bodyText = document.body?.innerText || '';
       const blockingStates = [
         'ERREUR 404',
         'Cette page n existe pas',
         'Une erreur inattendue est survenue',
       ];
-      const successStates = ['Challenge actif', 'Aucun challenge actif'];
       return !blockingStates.some((label) => bodyText.includes(label))
-        && successStates.some((label) => bodyText.includes(label));
-    }, { timeout: 20000 });
+        && bodyText.includes(expectedName);
+    }, sessionName, { timeout: 20000 });
 
     console.log('SMOKE_OK');
     console.log(`sessionId=${sessionId}`);
