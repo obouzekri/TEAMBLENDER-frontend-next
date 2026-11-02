@@ -14,6 +14,7 @@ export default function ChallengeRulesPanel({
   challengeName,
   briefTitle,
   objective,
+  compactSummary = null,
   participantsMeta = null,
   facilitatorRules = [],
   participantRules = [],
@@ -57,6 +58,7 @@ export default function ChallengeRulesPanel({
   ].filter(Boolean);
   const regularParticipantRules = participantRules.filter((rule) => !isScoringRule(rule));
   const scoringRules = participantRules.filter((rule) => isScoringRule(rule));
+  const showCompactSummary = !isStarted && Array.isArray(compactSummary) && compactSummary.length > 0;
 
   const cardContent = (
     <>
@@ -68,7 +70,44 @@ export default function ChallengeRulesPanel({
         ) : null}
       </header>
 
-      {regularParticipantRules.length > 0 || scoringRules.length > 0 ? (
+      {showCompactSummary ? (
+        <>
+          <ul className={styles.compactRulesSummary}>
+            {compactSummary.map((rule) => <li key={`summary-${rule}`}>{rule}</li>)}
+          </ul>
+          <details className={styles.compactRulesDetails}>
+            <summary>{t('challengeRulesPanel.fullRules')}</summary>
+            {regularParticipantRules.length > 0 || scoringRules.length > 0 ? (
+              <section className={styles.rulesSection}>
+                <h3 className="challenge-section-title">🧭 {t('challengeRulesPanel.playFlow')}</h3>
+                {regularParticipantRules.length > 0 ? (
+                  <ul>
+                    {regularParticipantRules.map((rule) => <li key={`participant-${rule}`}>{rule}</li>)}
+                  </ul>
+                ) : null}
+                {scoringRules.length > 0 ? (
+                  <div className={styles.rulesScoring}>
+                    <h3 className="challenge-section-title">🏆 {t('challengeRulesPanel.scoringSuccess')}</h3>
+                    <ul>
+                      {scoringRules.map((rule) => <li key={`participant-score-${rule}`}>{rule}</li>)}
+                    </ul>
+                  </div>
+                ) : null}
+              </section>
+            ) : null}
+            {isFacilitator && facilitatorRules.length > 0 ? (
+              <details className={styles.rulesFacilitator}>
+                <summary>{t('challengeRulesPanel.facilitatorTips')}</summary>
+                <ul>
+                  {facilitatorRules.map((rule) => <li key={`facilitator-${rule}`}>{rule}</li>)}
+                </ul>
+              </details>
+            ) : null}
+            {footnote ? <p className={`${styles.rulesFootnote} challenge-text`}>{footnote}</p> : null}
+            {extraContent}
+          </details>
+        </>
+      ) : regularParticipantRules.length > 0 || scoringRules.length > 0 ? (
         <section className={styles.rulesSection}>
           <h3 className="challenge-section-title">🧭 {t('challengeRulesPanel.playFlow')}</h3>
           {regularParticipantRules.length > 0 ? (
@@ -91,7 +130,7 @@ export default function ChallengeRulesPanel({
         </section>
       ) : null}
 
-      {isFacilitator && facilitatorRules.length > 0 ? (
+      {!showCompactSummary && isFacilitator && facilitatorRules.length > 0 ? (
         <details className={styles.rulesFacilitator}>
           <summary>{t('challengeRulesPanel.facilitatorTips')}</summary>
           <ul>
@@ -102,9 +141,9 @@ export default function ChallengeRulesPanel({
         </details>
       ) : null}
 
-      {footnote ? <p className={`${styles.rulesFootnote} challenge-text`}>{footnote}</p> : null}
+      {!showCompactSummary && footnote ? <p className={`${styles.rulesFootnote} challenge-text`}>{footnote}</p> : null}
 
-      {extraContent}
+      {!showCompactSummary ? extraContent : null}
 
       {canStartFromRules ? (
         <div className={`${styles.rulesActions}${stickyStartButton ? ` ${styles.rulesActionsSticky}` : ''}`}>

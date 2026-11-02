@@ -18,6 +18,8 @@ import {
 } from '../lib/demo/demoScenario.mjs';
 import { applyTimerEvent, createDemoChallengeServer } from '../lib/demo/demoChallengeServer.mjs';
 import { DEMO_ENGINE_KEYS, DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '../lib/demo/challenges/index.mjs';
+import { buildCopuzzleSummary } from '../lib/demo/challenges/copuzzle.mjs';
+import { buildLabySummary } from '../lib/demo/challenges/labyrinthe.mjs';
 import { SESSION_OBJECTIVES } from '../lib/sessionProgram.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -93,6 +95,38 @@ function createManualScheduler() {
     },
     get intervalCount() { return intervals.size; },
   };
+
+  const copuzzleScoreState = {
+    puzzle: { pieces: [{ placed: true }, { placed: false }] },
+    metrics: { action_count: 1 },
+    timer: { duration_seconds: 600, remaining_seconds: 300 },
+  };
+  const preciseCopuzzleScore = buildCopuzzleSummary(copuzzleScoreState).collective_score;
+  assert.ok(
+    buildCopuzzleSummary({ ...copuzzleScoreState, metrics: { action_count: 10 } }).collective_score < preciseCopuzzleScore,
+    'Wasted CoPuzzle actions reduce precision instead of adding points'
+  );
+
+  const labyScoreState = {
+    labyrinthe: {
+      level: 2,
+      levels_total: 3,
+      cfg: { lives: 3 },
+      parts: { p1: { lives_remaining: 2, total_cells_traversed: 4 } },
+    },
+    metrics: { action_count: 4 },
+    timer: { duration_seconds: 600, remaining_seconds: 300 },
+  };
+  const labyScore = buildLabySummary(labyScoreState).collective_score;
+  assert.equal(
+    buildLabySummary({
+      ...labyScoreState,
+      labyrinthe: { ...labyScoreState.labyrinthe, parts: { p1: { lives_remaining: 2, total_cells_traversed: 400 } } },
+      metrics: { action_count: 400 },
+    }).collective_score,
+    labyScore,
+    'Labyrinthe traversal count does not add points'
+  );
 }
 
 const players = getDemoParticipants('fr').map(({ id, name }) => ({ id, name }));
@@ -151,11 +185,13 @@ function runFacilitator(engineKey, seed, { start = 'timer.start', clock } = {}) 
   const { state } = runFacilitator('copuzzle_live_v1', 5);
   assert.ok(state.puzzle.pieces.every((piece) => piece.placed && piece.current.x === piece.correct.x && piece.current.y === piece.correct.y));
   assert.equal(new Set(state.puzzle.pieces.map((piece) => piece.assigned_slot)).size, DEMO_TEAM_SIZE);
+  assert.equal(state.summary.collective_score_max, 1000);
 }
 {
   const { scenario, state } = runFacilitator('pixel_architect_v1', 5);
   assert.equal(state.pixel.phase, 'debrief');
   assert.equal(state.summary.pixel_metrics.accuracy_percent, 100);
+  assert.equal(state.summary.collective_score_max, 100);
   const names = new Set(players.map(({ name }) => name));
   assert.ok(Object.values(state.pixel.cubes).every((cube) => cube.placed_by.startsWith('demo-') && names.has(cube.placed_by_name)), 'Cubes carry their author id and name');
   assert.equal(scenario.view(state, { role: 'manager', participantId: 'demo-facilitator' }).pixel.viewer_role, 'facilitator');
@@ -163,6 +199,7 @@ function runFacilitator(engineKey, seed, { start = 'timer.start', clock } = {}) 
 {
   const outcomes = [1, 2, 3, 4, 5].map((seed) => runFacilitator('labyrinthe_live_v1', seed).state);
   assert.ok(outcomes.every((state) => state.labyrinthe.phase === 'done' && state.summary));
+  assert.ok(outcomes.every((state) => state.summary.collective_score_max === 1000));
   assert.ok(outcomes.some((state) => state.labyrinthe.result.status === 'success'), 'Players usually find the exit');
 }
 {

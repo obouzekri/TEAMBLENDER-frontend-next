@@ -95,6 +95,31 @@
   padding: clamp(12px, 1vw, 16px) 0;
 }
 
+.compactRulesSummary {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.compactRulesSummary li {
+  color: var(--ch-text-main);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.compactRulesDetails {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 8px;
+}
+
+.compactRulesDetails > summary {
+  color: var(--ch-text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .rulesSection + .rulesSection,
 .rulesSection + .rulesFootnote,
 .rulesSection + .rulesFacilitator {

@@ -98,7 +98,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Dans « Modifier le participant », « Renvoyer le lien de réinitialisation » envoie un nouveau lien à l’adresse enregistrée. Enregistrer d’abord les modifications d’adresse ; le manager ne choisit ni ne voit le mot de passe.
 - La réinitialisation distingue le titre, l’adresse de destination et le rappel d’enregistrement. Les boutons Annuler et Enregistrer restent sans bloc de fond ni bordure de séparation, alignés et de même hauteur (empilés sur mobile).
 - Le renvoi affiche une confirmation après acceptation de l’envoi par le service e-mail ; les erreurs restent visibles dans le formulaire. Les boutons sont désactivés pendant l’envoi.
-- Validation : `node scripts/test-manager-participant-form.mjs` (frontend sur 3100, Chrome disponible, API simulées ; FR/EN, mobile/desktop, erreur puis renvoi, modification et création).
+- Validation : `node scripts/test-manager-participant-form.mjs` (frontend sur 3100, Chrome disponible, API simulées ; FR/EN, mobile/desktop, erreur puis renvoi, modification et création). Lancer le frontend avec `npm run dev` : les assertions utilisent les noms lisibles des classes CSS modules et ne sont pas compatibles avec les noms générés par un build de production.
 
 ### Salle Secrete en live
 
@@ -135,7 +135,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 - Les vues animateur et challenge participant sont centrees et limitees a 1360 px. Le zoom du navigateur reste libre; une grande fenetre ou un dezoom laisse davantage d'espace autour du contenu.
 - L'en-tete de session et la grille CoPuzzle restent ancres en haut, sans repartir la hauteur libre dans les panneaux. Sur mobile, les controles et le jeu se reorganisent avec defilement vertical.
-- Validation: `npm run test:ux:session-layout` (frontend sur le port 3100, Chrome disponible). La suite applique les feuilles de style source a l'interface, meme si le serveur local utilise un build anterieur; les API et le temps reel sont simules localement. Elle couvre les deux roles, FR/EN, clair/sombre et des fenetres CSS de 320 a 2560 px de large et de 900 a 1800 px de haut pour reproduire l'espace disponible au dezoom.
+- Validation: `npm run test:ux:session-layout` (frontend sur le port 3100, Chrome disponible). Lancer le frontend avec `npm run dev` : les assertions ciblent les noms lisibles des classes CSS modules et ne sont pas compatibles avec les noms générés par un build de production. La suite applique les feuilles de style source à l'interface; les API et le temps réel sont simulés localement. Elle couvre les deux rôles, FR/EN, clair/sombre et des fenêtres CSS de 320 à 2560 px de large et de 900 à 1800 px de haut pour reproduire l'espace disponible au dézoom.
 
 ### Session Builder
 
