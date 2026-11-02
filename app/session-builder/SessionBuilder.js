@@ -14,7 +14,7 @@ import SessionBuilderHeader from '@/components/SessionBuilder/SessionBuilderHead
 import SessionPreparation from '@/components/SessionPreparation';
 import Modal from '@/components/ui/Modal';
 import { Button, Input, LoadingState } from '@/components/ui';
-import { clearSessionAuth, getStoredAuthToken } from '@/lib/auth';
+import { clearSessionAuth, getAuthHeaders } from '@/lib/auth';
 import useToast from '@/lib/useToast';
 import useSessionBuilder from '@/lib/useSessionBuilder';
 import { fetchWithRetry } from '@/lib/api';
@@ -221,7 +221,7 @@ export default function SessionBuilder() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [sessionId]);
 
-  const getAuthToken = useCallback(() => getStoredAuthToken(), []);
+  const getAuthToken = useCallback(() => (guard.allowed ? 'cookie-session' : ''), [guard.allowed]);
 
   const toIntegerId = useCallback((value) => {
     const parsed = Number(value);
@@ -256,7 +256,11 @@ export default function SessionBuilder() {
     const method = String(options.method || 'GET').toUpperCase();
     const cacheBust =
       method === 'GET' ? `${String(path).includes('?') ? '&' : '?'}_t=${Date.now()}` : '';
-    const response = await fetch(getApiUrl(`${path}${cacheBust}`), options);
+    const response = await fetch(getApiUrl(`${path}${cacheBust}`), {
+      ...options,
+      headers: getAuthHeaders(options.headers || {}),
+      credentials: 'include',
+    });
 
     if (response.status === 401) {
       logout();
@@ -880,10 +884,10 @@ export default function SessionBuilder() {
     const token = getAuthToken();
 
     fetch(getApiUrl(`/sessions/${sessionId}?_t=${Date.now()}`), {
-      headers: {
-        Authorization: `Bearer ${token}`,
+      headers: getAuthHeaders({
         'Content-Type': 'application/json',
-      },
+      }),
+      credentials: 'include',
     })
       .then(async (res) => {
         const rawText = await res.text();
@@ -979,10 +983,10 @@ export default function SessionBuilder() {
     const token = getAuthToken();
 
     fetchWithRetry(getApiUrl(`/challenges?_t=${Date.now()}`), {
-      headers: {
-        Authorization: `Bearer ${token}`,
+      headers: getAuthHeaders({
         'Content-Type': 'application/json',
-      },
+      }),
+      credentials: 'include',
     })
       .then((data) => {
         if (!cancelled) {

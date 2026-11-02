@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import AppNav from '@/components/AppNav';
+import { clearSessionAuth, getStoredCurrentUser } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 import {
   createLinkedInDraft,
@@ -46,19 +47,12 @@ export default function LinkedInAdminClient() {
   }
 
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem('currentUser');
-      setSessionUser(raw ? JSON.parse(raw) : null);
-    } catch {
-      setSessionUser(null);
-    }
+    setSessionUser(getStoredCurrentUser());
     refreshDrafts();
   }, []);
 
   function logout() {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
+    clearSessionAuth();
     window.location.replace(withLocalePath('/login'));
   }
 

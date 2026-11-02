@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import AppNav from '@/components/AppNav';
+import { clearSessionAuth, getStoredCurrentUser } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 import {
   adminChangeUserPlan,
@@ -97,19 +98,12 @@ export default function BillingAdminClient() {
   }
 
   function logout() {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
+    clearSessionAuth();
     window.location.replace(withLocalePath('/login'));
   }
 
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem('currentUser');
-      setSessionUser(raw ? JSON.parse(raw) : null);
-    } catch {
-      setSessionUser(null);
-    }
+    setSessionUser(getStoredCurrentUser());
     refresh();
   }, []);
 

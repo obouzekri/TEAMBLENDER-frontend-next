@@ -6,6 +6,9 @@ import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import Modal from '@/components/ui/Modal';
 import { getApiUrl, normalizeUploadResultUrl } from '@/lib/config';
+import { withCsrfHeaders } from '@/lib/csrf';
+import { clearSessionAuth } from '@/lib/auth';
+import { getStoredCurrentUser as readAuthStoredCurrentUser } from '@/lib/auth-storage';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
 import {
@@ -78,6 +81,18 @@ import {
   stripRulesFromEngineConfig,
   toggleObjectiveSelection,
 } from '@/lib/admin/utils';
+
+const fetch = (input, options = {}) => {
+  const method = String(options.method || 'GET').toUpperCase();
+  const headers = new Headers(options.headers || {});
+  headers.delete('Authorization');
+  if (method !== 'GET' && method !== 'HEAD') {
+    for (const [name, value] of Object.entries(withCsrfHeaders(Object.fromEntries(headers.entries())))) {
+      headers.set(name, value);
+    }
+  }
+  return globalThis.fetch(input, { ...options, headers, credentials: 'include' });
+};
 
 export default function AdminClient() {
   const { locale, withLocalePath } = useI18n();
@@ -189,31 +204,8 @@ export default function AdminClient() {
     });
   }, [isEn]);
 
-  const getPreferredAuthToken = useCallback(() => {
-    const sessionToken = String(sessionStorage.getItem('jwt') || '').trim();
-    const localToken = String(localStorage.getItem('jwt') || '').trim();
-    return sessionToken || localToken;
-  }, []);
-
-  const getAuthTokenCandidates = useCallback(() => {
-    const sessionToken = String(sessionStorage.getItem('jwt') || '').trim();
-    const localToken = String(localStorage.getItem('jwt') || '').trim();
-    const candidates = [];
-
-    if (sessionToken) candidates.push(sessionToken);
-    if (localToken && localToken !== sessionToken) candidates.push(localToken);
-
-    return candidates;
-  }, []);
-
   const readStoredCurrentUser = useCallback(() => {
-    const raw = sessionStorage.getItem('currentUser');
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return null;
-    }
+    return readAuthStoredCurrentUser();
   }, []);
 
   const persistCurrentUser = useCallback((nextUser) => {
@@ -229,20 +221,8 @@ export default function AdminClient() {
     }
   }, []);
 
-  const getFallbackAuthToken = useCallback((activeToken) => {
-    const active = String(activeToken || '').trim();
-    const sessionToken = String(sessionStorage.getItem('jwt') || '').trim();
-    const localToken = String(localStorage.getItem('jwt') || '').trim();
-
-    if (sessionToken && sessionToken !== active) return sessionToken;
-    if (localToken && localToken !== active) return localToken;
-    return '';
-  }, []);
-
   const forceReauth = useCallback(() => {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
+    clearSessionAuth();
     window.location.replace('/login');
   }, []);
 
@@ -250,68 +230,41 @@ export default function AdminClient() {
     let cancelled = false;
 
     const initAdminContext = async () => {
-      const fallbackToken = getPreferredAuthToken();
-      const tokenCandidates = getAuthTokenCandidates();
       const storedCurrentUser = readStoredCurrentUser();
-      let lastNonAdminUser =
+      const lastNonAdminUser =
         storedCurrentUser && String(storedCurrentUser.role || '').toLowerCase() !== 'admin'
           ? storedCurrentUser
           : null;
 
-      const candidates = tokenCandidates.length > 0
-        ? tokenCandidates
-        : (fallbackToken ? [fallbackToken] : []);
+      try {
+        const mePayload = await fetchAdminJson('/users/me');
+        const me = mePayload?.user && typeof mePayload.user === 'object' ? mePayload.user : mePayload;
+        if (cancelled) return;
 
-      if (candidates.length === 0) {
-        forceReauth();
-        return;
-      }
-
-      for (const candidateToken of candidates) {
-        try {
-          const mePayload = await fetchAdminJson('/users/me', candidateToken);
-          const me = mePayload?.user && typeof mePayload.user === 'object' ? mePayload.user : mePayload;
-          const role = String(me?.role || '').toLowerCase();
-
-          if (!me || typeof me !== 'object') {
-            continue;
-          }
-
-          if (role !== 'admin') {
-            lastNonAdminUser = me;
-            continue;
-          }
-
-          if (cancelled) return;
-          persistCurrentUser(me);
-          setToken(candidateToken);
-          setUser(me);
-          setLoading(false);
-          return;
-        } catch (err) {
-          const message = String(err?.message || '').toLowerCase();
-          const roleMismatch = message.includes('insufficient role');
-
-          if (isTokenAuthError(err) || roleMismatch) {
-            continue;
-          }
-
-          if (cancelled) return;
-          setError(isEn ? 'Unable to verify the admin session. Please try again.' : 'Impossible de vérifier la session admin. Veuillez réessayer.');
-          setLoading(false);
+        if (!me || typeof me !== 'object') {
+          forceReauth();
           return;
         }
+
+        if (String(me.role || '').toLowerCase() !== 'admin') {
+          persistCurrentUser(me || lastNonAdminUser);
+          window.location.replace('/home');
+          return;
+        }
+
+        persistCurrentUser(me);
+        setToken('cookie-session');
+        setUser(me);
+        setLoading(false);
+      } catch (err) {
+        if (cancelled) return;
+        if (isTokenAuthError(err)) {
+          forceReauth();
+          return;
+        }
+        setError(isEn ? 'Unable to verify the admin session. Please try again.' : 'Impossible de vérifier la session admin. Veuillez réessayer.');
+        setLoading(false);
       }
-
-      if (cancelled) return;
-
-      if (lastNonAdminUser) {
-        persistCurrentUser(lastNonAdminUser);
-        window.location.replace('/home');
-        return;
-      }
-
-      forceReauth();
     };
 
     initAdminContext();
@@ -319,7 +272,7 @@ export default function AdminClient() {
     return () => {
       cancelled = true;
     };
-  }, [forceReauth, getAuthTokenCandidates, getPreferredAuthToken, persistCurrentUser, readStoredCurrentUser]);
+  }, [forceReauth, isEn, persistCurrentUser, readStoredCurrentUser]);
 
   const loadAnalytics = useCallback(async (daysOverride = null) => {
     if (!token) return;
@@ -446,12 +399,6 @@ export default function AdminClient() {
       });
 
       if (hasInvalidTokenOnCriticalEndpoint) {
-        const fallbackToken = getFallbackAuthToken(token);
-        if (fallbackToken) {
-          setToken(fallbackToken);
-          return;
-        }
-
         setError(isEn ? 'Session expired or invalid. Please sign in again.' : 'Session expirée ou invalide. Veuillez vous reconnecter.');
         forceReauth();
         return;
@@ -509,7 +456,7 @@ export default function AdminClient() {
     } catch (err) {
       setError(err.message || (isEn ? 'Admin loading error.' : 'Erreur de chargement admin.'));
     }
-  }, [forceReauth, getFallbackAuthToken, token]);
+  }, [forceReauth, token]);
 
   useEffect(() => {
     if (!token) return;
@@ -2084,9 +2031,7 @@ export default function AdminClient() {
   }
 
   function logout() {
-    localStorage.removeItem('jwt');
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('currentUser');
+    clearSessionAuth();
     window.location.replace(withLocalePath('/login'));
   }
 

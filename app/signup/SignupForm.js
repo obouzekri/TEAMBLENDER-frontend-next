@@ -74,12 +74,12 @@ export default function SignupForm() {
       return;
     }
 
-    if (!oauth.token || !oauth.user) {
+    if (!oauth.user) {
       setMessage(isEn ? 'Invalid OAuth response. Please try again.' : 'Réponse OAuth invalide. Veuillez réessayer.');
       return;
     }
 
-    setStoredAuthSession({ token: oauth.token, user: oauth.user });
+    setStoredAuthSession({ user: oauth.user });
 
     trackPosthogEvent('signup_oauth', {
       provider: oauth.provider || 'unknown',
