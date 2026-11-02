@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
-import { clearSessionAuth, getAuthHeaders, getStoredAuthToken, getStoredCurrentUser } from '@/lib/auth';
+import { clearSessionAuth, getAuthHeaders, getStoredCurrentUser } from '@/lib/auth';
 import { getApiUrl } from '@/lib/config';
 import useI18n from '@/lib/i18n/useI18n';
 import { fetchSessionResults } from '@/lib/session-results';
@@ -56,9 +56,8 @@ export default function SessionResultsClient() {
       return;
     }
 
-    const token = getStoredAuthToken();
     const currentUser = getStoredCurrentUser();
-    if (!token || !currentUser) {
+    if (!currentUser) {
       window.location.replace(withLocalePath('/login'));
       return;
     }

@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic';
 import { useSessionState } from '@/lib/useSessionState';
 import { trackProductChallengeEvent } from '@/lib/analytics';
 import { getApiUrl } from '@/lib/config';
-import { getStoredAuthToken } from '@/lib/auth-storage';
 import { getAuthHeaders } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 import SessionLiveHeader from '@/components/SessionLiveHeader';
@@ -157,22 +156,14 @@ export default function ChallengeRouteClient() {
       return;
     }
 
-    const token = getStoredAuthToken();
-    if (!token) {
-      setAuthoritativeEngineKey('');
-      return;
-    }
-
     let cancelled = false;
 
     async function fetchAuthoritativeRuntime() {
       try {
         const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/runtime-challenge`), {
           method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+          headers: getAuthHeaders(),
+          credentials: 'include',
         });
 
         if (!res.ok) {

@@ -160,16 +160,6 @@ const CHALLENGE_FAILURE_MESSAGE = {
     body: 'Your team did not reach the objective before running out of lives or allotted time.',
   },
 };
-const CHALLENGE_SUCCESS_MESSAGE = {
-  fr: {
-    title: "Félicitations ! Toute l'équipe a réussi le Labyrinthe des Signaux.",
-    body: "Le chrono s'est arrêté automatiquement et le débrief collectif est prêt.",
-  },
-  en: {
-    title: 'Congratulations! The whole team cleared the Signal Maze.',
-    body: 'The timer stopped automatically and the team debrief is ready.',
-  },
-};
 const NO_LIVES_LEFT_MESSAGE = {
   fr: {
     title: 'Vous avez perdu toutes vos vies.',
@@ -360,12 +350,14 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       totalPlayers,
       totalTeamLivesRemaining,
       totalCasesTraversed,
+      collectiveScore: Number(state?.summary?.collective_score || 0),
+      collectiveScoreMax: Number(state?.summary?.collective_score_max ?? 1000),
       finalTimeLabel,
       finalStatusLabel,
       isSuccess,
       summaryMessage,
     };
-  }, [laby?.phase, laby?.result?.status, laby?.result?.reason, laby?.winner_participant_id, participantEntries, timer?.duration_seconds, timer?.remaining_seconds, isEn]);
+  }, [laby?.phase, laby?.result?.status, laby?.result?.reason, laby?.winner_participant_id, participantEntries, state?.summary, timer?.duration_seconds, timer?.remaining_seconds, isEn]);
 
   const startCellKey = posKey(laby?.maze?.start);
   const endCellKey = posKey(laby?.maze?.end);
@@ -420,6 +412,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
   const rulesContent = useMemo(() => ({
     objective: rulesPreset.objective,
+    summary: [...rulesPreset.summary],
     facilitator: [...rulesPreset.facilitator],
     participant: [...rulesPreset.participant],
     footnote: rulesPreset.footnote,
@@ -579,10 +572,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         return;
       }
       if (outcome === 'exit') {
-        setAnnouncement({
-          tone: 'success',
-          ...CHALLENGE_SUCCESS_MESSAGE[isEn ? 'en' : 'fr'],
-        });
         setMoveFeedback(isEn ? 'Well done! You reached the exit.' : 'Bravo ! Vous avez atteint la sortie.');
         setMoveFeedbackTone('success');
         showMicroCue(impactedCellKey || playerPosKey, 'success', isEn ? '🏁 Exit!' : '🏁 Sortie !');
@@ -653,10 +642,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     finalEventSignatureRef.current = signature;
 
     if (labyFinalSummary.isSuccess) {
-      setAnnouncement({
-        tone: 'success',
-        ...CHALLENGE_SUCCESS_MESSAGE[isEn ? 'en' : 'fr'],
-      });
+      setAnnouncement(null);
       return;
     }
 
@@ -822,6 +808,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 isFacilitator={isFacilitator}
                 challengeName={challengeName}
                 objective={rulesContent.objective}
+                compactSummary={rulesContent.summary}
                 participantsMeta={rulesParticipantsMeta}
                 facilitatorRules={rulesContent.facilitator}
                 participantRules={rulesContent.participant}
@@ -841,6 +828,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                   <ChallengeDebriefHeading />
                   <p>{labyFinalSummary.summaryMessage}</p>
                   <div className={styles.debriefMetrics} data-debrief-metrics>
+                    <article className={styles.debriefMetric}><span>{isEn ? 'Team score' : 'Score collectif'}</span><strong>{labyFinalSummary.collectiveScore} / {labyFinalSummary.collectiveScoreMax}</strong></article>
                     <article className={styles.debriefMetric}><span>{isEn ? 'Remaining lives' : 'Vies restantes'}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
                     <article className={styles.debriefMetric}><span>{isEn ? 'Cells traversed' : 'Cases parcourues'}</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
                     <article className={styles.debriefMetric}><span>{isEn ? 'Final time' : 'Temps final'}</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>

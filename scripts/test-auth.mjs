@@ -2,10 +2,9 @@ import assert from 'node:assert/strict';
 import {
   getRedirectPath,
   resolveConnectedUserId,
-  sanitizeJwtFromStorage,
   shouldStoreParticipantTargetSession,
 } from '../lib/auth.js';
-import { getStoredAuthToken, setStoredAuthToken } from '../lib/auth-storage.js';
+import { buildAuthHeaders, getStoredAuthToken, setStoredAuthToken } from '../lib/auth-storage.js';
 
 function createStorage(values = {}) {
   return {
@@ -14,6 +13,9 @@ function createStorage(values = {}) {
     },
     setItem(key, value) {
       values[key] = value;
+    },
+    removeItem(key) {
+      delete values[key];
     },
   };
 }
@@ -33,15 +35,11 @@ function run() {
   assert.equal(shouldStoreParticipantTargetSession('participant', '15'), '15');
   assert.equal(shouldStoreParticipantTargetSession('manager', '15'), '');
 
-  assert.equal(sanitizeJwtFromStorage(' stale-local-token ', 'current-session-token'), 'current-session-token');
-  assert.equal(sanitizeJwtFromStorage('', ' session-token '), 'session-token');
-  assert.equal(sanitizeJwtFromStorage(' local-token ', ''), 'local-token');
-  assert.equal(sanitizeJwtFromStorage('', ''), '');
-
-  assert.equal(getStoredAuthToken({
-    local: createStorage({ jwt: 'stale-participant-token' }),
-    session: createStorage({ jwt: 'current-manager-token' }),
-  }), 'current-manager-token');
+  const legacyLocalStorage = createStorage({ jwt: 'stale-participant-token' });
+  const legacySessionStorage = createStorage({ jwt: 'current-manager-token' });
+  assert.equal(getStoredAuthToken({ local: legacyLocalStorage, session: legacySessionStorage }), '');
+  assert.equal(legacyLocalStorage.getItem('jwt'), null);
+  assert.equal(legacySessionStorage.getItem('jwt'), null);
 
   const managerLocalStorage = createStorage({ jwt: 'manager-token' });
   const participantSessionStorage = createStorage();
@@ -49,8 +47,11 @@ function run() {
     local: managerLocalStorage,
     session: participantSessionStorage,
   }, { persistLocal: false });
-  assert.equal(managerLocalStorage.getItem('jwt'), 'manager-token');
-  assert.equal(participantSessionStorage.getItem('jwt'), 'participant-token');
+  assert.equal(managerLocalStorage.getItem('jwt'), null);
+  assert.equal(participantSessionStorage.getItem('jwt'), null);
+  assert.deepEqual(buildAuthHeaders({ Authorization: 'Bearer exposed-token', 'X-Test': 'ok' }), {
+    'X-Test': 'ok',
+  });
 
   console.log('TEST_AUTH_OK');
 }

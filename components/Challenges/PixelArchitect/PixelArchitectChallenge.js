@@ -1368,7 +1368,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     data-debrief-metrics
                     data-pixel-debrief={summaryPixelMetrics ? 'true' : undefined}
                   >
-                    <p><span>{isEn ? 'Global score' : 'Score global'}</span><strong>{Number(summary.collective_score || 0)}</strong></p>
+                    <p><span>{isEn ? 'Global score' : 'Score global'}</span><strong>{Number(summary.collective_score || 0)} / {Number(summary.collective_score_max ?? 100)}</strong></p>
                     <p><span>{isEn ? 'Completion' : 'Complétion'}</span><strong>{Number(summary.completion_percent || 0)}%</strong></p>
                     <p><span>Actions</span><strong>{Number(summary.action_count || 0)}</strong></p>
                     <p><span>{isEn ? 'Messages' : 'Messages'}</span><strong>{Number(summary.message_count || 0)}</strong></p>

@@ -160,13 +160,12 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       return;
     }
 
-    if (!oauth.token || !oauth.user) {
+    if (!oauth.user) {
       setMessage(isEn ? 'Invalid OAuth response. Please try again.' : 'Réponse OAuth invalide. Veuillez réessayer.');
       return;
     }
 
     setStoredAuthSession({
-      token: oauth.token,
       user: oauth.user,
       targetSessionId: shouldStoreParticipantTargetSession(oauth.user?.role, normalizedRequestedSessionId),
     });
@@ -285,17 +284,15 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       const { response, data, authScope } = await loginWithFallback(normalizedIdentifier, password, { allowParticipantFallback });
       setLastAuthScope(authScope || 'user');
       if (response.ok) {
-        const token = String(data?.token || '').trim();
         const user = data?.user || null;
 
-        if (!token || !user) {
+        if (!user) {
           setMessage(isEn ? 'Invalid login response. Please try again.' : 'Réponse de connexion invalide. Veuillez réessayer.');
           return;
         }
 
         const connectedUserId = resolveConnectedUserId(user);
         setStoredAuthSession({
-          token,
           user,
           targetSessionId: shouldStoreParticipantTargetSession(user.role, normalizedRequestedSessionId),
         });
@@ -409,16 +406,14 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         return;
       }
 
-      const token = String(data?.token || '').trim();
       const user = data?.user || null;
       const resolvedSessionId = String(data?.sessionId || '').trim();
-      if (!token || !user) {
+      if (!user) {
         setJoinMessage(isEn ? 'Invalid join response. Please try again.' : 'Reponse de connexion invalide. Veuillez reessayer.');
         return;
       }
 
       setStoredAuthSession({
-        token,
         user,
         targetSessionId: shouldStoreParticipantTargetSession('participant', resolvedSessionId),
       });

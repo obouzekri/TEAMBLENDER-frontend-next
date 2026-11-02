@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
-import { clearSessionAuth, getAuthHeaders, getStoredAuthToken, getStoredCurrentUser } from '@/lib/auth';
+import { clearSessionAuth, getAuthHeaders, getStoredCurrentUser } from '@/lib/auth';
 import { getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
@@ -63,9 +63,8 @@ export default function SessionLiveClient() {
       return;
     }
 
-    const token = getStoredAuthToken();
     const currentUser = getStoredCurrentUser();
-    if (!token || !currentUser || isParticipantRole(currentUser.role)) {
+    if (!currentUser || isParticipantRole(currentUser.role)) {
       window.location.replace(withLocalePath('/login'));
       return;
     }
@@ -77,7 +76,10 @@ export default function SessionLiveClient() {
   const loadSession = useCallback(async () => {
     if (!sessionId) return;
     try {
-      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), { headers: getAuthHeaders() });
+      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
       if (!res.ok) throw new Error(`${isEn ? 'Error' : 'Erreur'} ${res.status}`);
       const data = await res.json();
       setSession(data);
@@ -116,7 +118,7 @@ export default function SessionLiveClient() {
     try {
       const res = await fetch(
         getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/flow/complete-active`),
-        { method: 'PATCH', headers: getAuthHeaders() }
+        { method: 'PATCH', headers: getAuthHeaders(), credentials: 'include' }
       );
       if (!res.ok) {
         const body = await res.text();
