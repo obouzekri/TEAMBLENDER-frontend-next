@@ -27,7 +27,6 @@ import Footer from '@/components/Footer';
 import LandingCmsAuditPanel from '@/components/Landing/LandingCmsAuditPanel';
 import LandingHero from '@/components/Landing/LandingHero';
 import LandingImpactBand from '@/components/Landing/LandingImpactBand';
-import LandingSocialProof from '@/components/Landing/LandingSocialProof';
 import LandingPlatformOffer from '@/components/Landing/LandingPlatformOffer';
 import LandingAudience from '@/components/Landing/LandingAudience';
 import LandingChallengesShowcase from '@/components/Landing/LandingChallengesShowcase';
@@ -37,7 +36,7 @@ import LandingFinalCta from '@/components/Landing/LandingFinalCta';
 import LandingFaq from '@/components/Landing/LandingFaq';
 import LandingPreviewModal from '@/components/Landing/LandingPreviewModal';
 import LandingStickyCta from '@/components/Landing/LandingStickyCta';
-import { resolveUseCaseIcon, resolveFlowStepIcon } from '@/components/Landing/landingIconResolvers';
+import { resolveFlowStepIcon } from '@/components/Landing/landingIconResolvers';
 import { getApiUrl } from '@/lib/config';
 import useI18n from '@/lib/i18n/useI18n';
 import {
@@ -50,7 +49,6 @@ import {
   safeHref,
   getChallengeExamples,
 } from '@/lib/landing/landingContent';
-import { getSocialProofData } from '@/lib/landing/socialProofData';
 import { HOME_FAQ_BY_LOCALE } from '@/lib/teamBuildingContent';
 import useLandingCtaTracking from '@/lib/landing/useLandingCtaTracking';
 import useStickyCtaVisibility from '@/lib/landing/useStickyCtaVisibility';
@@ -301,35 +299,18 @@ export default function HomePage() {
     [flowSection]
   );
 
-  const partnerItems = useMemo(
-    () => ['partner_1', 'partner_2', 'partner_3', 'partner_4', 'partner_5', 'partner_6'].map((key) => {
-      const item = partnersSection.blocks[key] || {};
-      return {
-        title: item.title || '',
-      };
-    }).filter((item) => item.title),
-    [partnersSection]
-  );
-
   const cmsAudit = useMemo(() => buildLandingCmsAudit(cmsContentBlocks), [cmsContentBlocks]);
-  const TRUST_PROOF_METRICS = landingStatic.trustProofMetrics;
   const PLATFORM_OFFER_ITEMS = landingStatic.platformOfferItems;
   const PLATFORM_BENEFITS_ITEMS = landingStatic.platformBenefitsItems;
-  const USE_CASES = landingStatic.useCases;
-  const socialProof = getSocialProofData(locale);
   const postSessionOutcomes = {
     eyebrow: landingStatic.fallback.outcomesEyebrow,
     title: landingStatic.fallback.outcomesTitle,
     description: landingStatic.fallback.outcomesDescription,
+    privacyNote: landingStatic.fallback.outcomesPrivacyNote,
+    privacyHref: withLocalePath('/politique-confidentialite'),
+    privacyLinkLabel: landingStatic.fallback.outcomesPrivacyLinkLabel,
     items: landingStatic.postSessionOutcomes || [],
   };
-  const useCaseChips = useMemo(
-    () => USE_CASES.map((label, index) => ({
-      label,
-      Icon: resolveUseCaseIcon(label, index),
-    })),
-    [USE_CASES]
-  );
   const flowStepsWithIcons = useMemo(
     () => flowSteps.map((step, index) => ({
       ...step,
@@ -400,15 +381,6 @@ export default function HomePage() {
         <div ref={heroSentinelRef} className="landing-hero-sentinel" aria-hidden="true" />
 
         <LandingImpactBand locale={locale} impactItems={impactItems} />
-
-        <LandingSocialProof
-          locale={locale}
-          partnersHeader={partnersHeader}
-          useCaseChips={useCaseChips}
-          trustProofMetrics={TRUST_PROOF_METRICS}
-          sessionPreview={landingStatic.proofSessionPreview}
-          socialProof={socialProof}
-        />
 
         <LandingPlatformOffer
           fallback={landingStatic.fallback}

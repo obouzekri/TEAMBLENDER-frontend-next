@@ -75,6 +75,7 @@ export default function DemoClient() {
   const [sessionName, setSessionName] = useState(() => t('demo.prepare.sessionNameDefault'));
   const [objective, setObjective] = useState('');
   const [targetMinutes, setTargetMinutes] = useState(45);
+  const [challengeLimit, setChallengeLimit] = useState(2);
   const [flowMode, setFlowMode] = useState('manual');
   const [proposal, setProposal] = useState(null);
   const [programNotice, setProgramNotice] = useState('');
@@ -141,9 +142,15 @@ export default function DemoClient() {
   }), [objective, targetMinutes]);
 
   const generateProgram = useCallback(() => {
-    setProposal(proposeSessionProgram(catalog, programOptions));
+    const suggested = proposeSessionProgram(catalog, programOptions);
+    const challenges = suggested.challenges.slice(0, challengeLimit);
+    setProposal({
+      ...suggested,
+      challenges,
+      duration: challenges.reduce((total, challenge) => total + getChallengeDuration(challenge), 0),
+    });
     setProgramNotice('');
-  }, [catalog, programOptions]);
+  }, [catalog, challengeLimit, programOptions]);
 
   // Programme suggestions follow the selected criteria, as in the session builder.
   useEffect(() => {
@@ -151,18 +158,36 @@ export default function DemoClient() {
   }, [generateProgram, step]);
 
   function updateProgramChallenges(challenges) {
+    const limitedChallenges = challenges.slice(0, challengeLimit);
     setProposal((current) => current && ({
       ...current,
-      challenges,
-      duration: challenges.reduce((total, challenge) => total + getChallengeDuration(challenge), 0),
+      challenges: limitedChallenges,
+      duration: limitedChallenges.reduce((total, challenge) => total + getChallengeDuration(challenge), 0),
     }));
     setProgramNotice('');
   }
 
   function addProgramChallenge(challenge) {
-    if (!program.some((item) => String(item.id) === String(challenge.id))) {
-      updateProgramChallenges([...program, challenge]);
+    if (program.some((item) => String(item.id) === String(challenge.id))) return;
+    if (program.length >= challengeLimit) {
+      setProgramNotice(t('demo.prepare.challengeLimitReached', { count: challengeLimit }));
+      return;
     }
+    updateProgramChallenges([...program, challenge]);
+  }
+
+  function changeChallengeLimit(limit) {
+    setChallengeLimit(limit);
+    setProposal((current) => {
+      if (!current || current.challenges.length <= limit) return current;
+      const challenges = current.challenges.slice(0, limit);
+      return {
+        ...current,
+        challenges,
+        duration: challenges.reduce((total, challenge) => total + getChallengeDuration(challenge), 0),
+      };
+    });
+    setProgramNotice('');
   }
 
   function removeProgramChallenge(challengeId) {
@@ -395,6 +420,12 @@ export default function DemoClient() {
                 onChange={setTargetMinutes}
               />
               <OptionGroup
+                label={t('demo.prepare.challengeCount')}
+                options={[1, 2].map((count) => ({ value: count, label: t(`demo.prepare.challengeCountOption${count}`) }))}
+                value={challengeLimit}
+                onChange={changeChallengeLimit}
+              />
+              <OptionGroup
                 label={t('demo.prepare.flowMode')}
                 options={DEMO_FLOW_MODES.map((mode) => ({ value: mode, label: flowLabel(mode) }))}
                 value={flowMode}
@@ -544,6 +575,7 @@ export default function DemoClient() {
               <DemoChallengeStage
                 key={`${seed}-${activeIndex}`}
                 scenario={activeScenario}
+                autoStart={flowMode === 'auto'}
                 locale={locale}
                 displayName="Alex"
                 loadingLabel={t('demo.facilitate.loading')}

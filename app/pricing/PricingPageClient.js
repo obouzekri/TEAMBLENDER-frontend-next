@@ -102,13 +102,13 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         meta: [],
         features: isEn ? [
           '5 users (admins/managers)',
-          'Up to 150 participants',
+          'Up to 150 participants, split into teams of 4 to 6',
           '60 sessions',
           'All features included in the PRO plan',
           'Multi-account manager management',
         ] : [
           '5 utilisateurs (admins/managers)',
-          'Jusqu’à 150 participants',
+          'Jusqu’à 150 participants, répartis en équipes de 4 à 6',
           '60 sessions',
           'Toutes les fonctionnalités incluses dans l’offre PRO',
           'Gestion multi-comptes managers',
@@ -123,7 +123,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       meta: [],
       features: isEn ? [
         '1 user (admin/manager)',
-        'Up to 30 participants',
+        'Up to 30 participants, split into teams of 4 to 6',
         '10 sessions',
         'Full catalog access',
         'Results & scoring',
@@ -132,7 +132,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Insights',
       ] : [
         '1 utilisateur (admin/manager)',
-        'Jusqu’à 30 participants',
+        'Jusqu’à 30 participants, répartis en équipes de 4 à 6',
         '10 sessions',
         'Accès catalogue complet',
         'Résultats et scores',
@@ -153,13 +153,13 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       meta: [],
       features: isEn ? [
         '5 users (admins/managers)',
-        'Up to 150 participants',
+        'Up to 150 participants, split into teams of 4 to 6',
         '60 sessions',
         'All features included in the PRO plan',
         'Multi-account manager management',
       ] : [
         '5 utilisateurs (admins/managers)',
-        'Jusqu’à 150 participants',
+        'Jusqu’à 150 participants, répartis en équipes de 4 à 6',
         '60 sessions',
         'Toutes les fonctionnalités incluses dans l’offre PRO',
         'Gestion multi-comptes managers',
@@ -329,8 +329,8 @@ export default function PricingPageClient({ initialPlans = [] }) {
             <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
             <p className="pricing-hero__context" style={getDarkModeTextStyle()}>
               {isEn
-                ? 'Challenges are optimized for groups of 4 to 6 people. For larger teams, create multiple sessions and run them in parallel.'
-                : 'Les challenges sont optimisés pour des groupes de 4 à 6 personnes. Pour une équipe plus grande, créez plusieurs sessions et lancez-les en parallèle.'}
+                ? 'Challenges are designed for teams of 4 to 6 people. Pro plans support up to 30 or 150 participants, split across multiple teams.'
+                : 'Les challenges sont conçus pour des équipes de 4 à 6 personnes. Les offres Pro accueillent jusqu’à 30 ou 150 participants, répartis en plusieurs équipes.'}
             </p>
           </div>
         </section>

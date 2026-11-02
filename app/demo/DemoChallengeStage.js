@@ -15,9 +15,11 @@ export default function DemoChallengeStage({
   participantSlot = null,
   displayName,
   loadingLabel,
+  autoStart = false,
   onComplete,
 }) {
   const [engine, setEngine] = useState(null);
+  const serverRef = useRef(null);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
@@ -29,6 +31,7 @@ export default function DemoChallengeStage({
       participantSlot,
       onSummary: (summary, state) => onCompleteRef.current?.(summary, state),
     });
+    serverRef.current = server;
     const challengeId = `demo-${scenario.engineKey}`;
     const runtimePayload = {
       engine_key: scenario.engineKey,
@@ -44,10 +47,17 @@ export default function DemoChallengeStage({
     });
     return () => {
       cancelled = true;
+      serverRef.current = null;
       server.dispose();
       setEngine(null);
     };
   }, [scenario, locale, role, participantId, participantSlot, displayName]);
+
+  useEffect(() => {
+    if (!autoStart || !engine) return undefined;
+    const timer = window.setTimeout(() => serverRef.current?.dispatch('timer.start'), 100);
+    return () => window.clearTimeout(timer);
+  }, [autoStart, engine]);
 
   if (!engine) return <p role="status">{loadingLabel}</p>;
   const { component: EngineComponent, props } = engine;
