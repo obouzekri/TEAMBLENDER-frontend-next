@@ -176,7 +176,7 @@ async function run() {
   }
 }
 
-async function checkParticipantPage({ sessionId, sessionCode }) {
+async function checkParticipantPage({ sessionId, sessionCode, managerToken }) {
   let browser = null;
   try {
     browser = await chromium.launch({ headless: true, channel: BROWSER_CHANNEL });
@@ -186,6 +186,7 @@ async function checkParticipantPage({ sessionId, sessionCode }) {
 
   const context = await browser.newContext({ locale: 'fr-FR' }); // the checks below use the French UI
   const page = await context.newPage();
+  let createdParticipantId = null;
 
   try {
     // Participants join with the session code; a manager can no longer set their password.
@@ -196,8 +197,12 @@ async function checkParticipantPage({ sessionId, sessionCode }) {
     });
     assert(join.ok(), `Participant join failed (${join.status()})`);
     const joined = await join.json();
+    if (joined?.accountCreated && Number.isSafeInteger(Number(joined?.user?.id))) {
+      createdParticipantId = Number(joined.user.id);
+    }
     assert(joined?.token, 'Participant join did not return token');
     assert(joined?.user, 'Participant join did not return user');
+    assert(!joined.accountCreated || createdParticipantId, 'Created participant did not return an id');
 
     await page.goto(`${FRONTEND_URL}/participant?sessionId=${sessionId}`, { waitUntil: 'domcontentloaded' });
 
@@ -220,8 +225,18 @@ async function checkParticipantPage({ sessionId, sessionCode }) {
     console.log(`sessionId=${sessionId}`);
     console.log(`engine=${CHALLENGE_ENGINE}`);
   } finally {
-    await context.close();
-    await browser.close();
+    try {
+      if (createdParticipantId) {
+        const { response } = await requestJson(`${BACKEND_URL}/api/participants/${createdParticipantId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${managerToken}`, 'Content-Type': 'application/json' },
+        });
+        assert(response.ok, `Delete smoke participant failed (${response.status})`);
+      }
+    } finally {
+      await context.close();
+      await browser.close();
+    }
   }
 }
 
