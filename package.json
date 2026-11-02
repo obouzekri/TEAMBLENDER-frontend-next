@@ -48,8 +48,10 @@
     "test:unit:runtime": "node scripts/test-runtime-dispatcher.mjs",
     "test:unit:demo": "node scripts/test-demo-scenario.mjs",
     "test:unit:escape-room": "node scripts/test-escape-room-structure.mjs",
+    "test:unit:pricing": "node scripts/test-pricing-display.mjs",
+    "test:ux:pricing": "node scripts/test-pricing-controls-ux.mjs",
     "test:ux:escape-room-ii": "node scripts/test-escape-room-ii-ux.mjs",
-    "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime && npm run test:unit:demo && npm run test:unit:escape-room && npm run test:unit:truthfulness && npm run test:unit:build",
+    "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime && npm run test:unit:demo && npm run test:unit:escape-room && npm run test:unit:pricing && npm run test:unit:truthfulness && npm run test:unit:build",
     "test:integration:manager-participant": "node scripts/test-integration-manager-participant.mjs"
   },
   "dependencies": {

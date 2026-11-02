@@ -10,6 +10,7 @@ import useI18n from '@/lib/i18n/useI18n';
 import { getCheckoutRedirectUrl } from '@/lib/billing-utils';
 import { getPricingPlanBadgeLabel, getPricingPlanVariantLabel, normalizePricingPlanName } from '@/lib/pricing-labels';
 import { getPricingPlansFallback } from '@/lib/pricingFallbackPlans';
+import { PRICING_CURRENCY_OPTIONS, formatPlanAmount, getAnnualSavings, getPlanAmountDh } from '@/lib/pricing-display.mjs';
 
 function getStoredCurrentUser() {
   if (typeof window === 'undefined') return null;
@@ -19,52 +20,6 @@ function getStoredCurrentUser() {
   } catch {
     return null;
   }
-}
-
-function buildDhPriceByPlanId(plans) {
-  const map = {};
-  plans.forEach((plan) => {
-    const slug = String(plan?.slug || '').toLowerCase();
-    const fallbackBySlug = slug.includes('free') ? 0 : slug.includes('session') ? 49 : slug.includes('pro+') || slug.includes('pro-plus') ? 690 : slug.includes('pro') ? 390 : null;
-    const cents = Number(plan?.price_mad_cents);
-    map[String(plan.id)] = Number.isFinite(cents) && cents >= 0
-      ? Math.round(cents / 100)
-      : (fallbackBySlug ?? Math.max(0, Math.round(Number(plan?.price_cents || 0) / 100)));
-  });
-  return map;
-}
-
-const CURRENCY_OPTIONS = [
-  { code: 'MAD', label: 'DH', rate: 1 },
-  { code: 'EUR', label: '€', rate: 0.092 },
-  { code: 'USD', label: '$', rate: 0.1 },
-];
-
-const PRO_PLUS_PRICE_EUR = 64;
-const PRO_PLUS_PRICE_DH = Math.round(PRO_PLUS_PRICE_EUR / CURRENCY_OPTIONS.find((entry) => entry.code === 'EUR').rate);
-
-function formatDhAmount(amountDh, currencyCode = 'MAD') {
-  const option = CURRENCY_OPTIONS.find((entry) => entry.code === currencyCode) || CURRENCY_OPTIONS[0];
-  const converted = Number(amountDh || 0) * option.rate;
-  const rounded = option.code === 'EUR' || option.code === 'MAD' ? Math.round(converted) : Math.round(converted * 10) / 10;
-  return `${rounded} ${option.label}`;
-}
-
-function getPlanDisplayAmountDh(plan, selectedBilling, dhPriceByPlanId) {
-  const normalizedName = normalizePricingPlanName(plan).toLowerCase();
-  if (normalizedName === 'pro+') {
-    return selectedBilling === 'annual' || selectedBilling === 'yearly'
-      ? Math.round(PRO_PLUS_PRICE_DH * 12 * 0.8)
-      : PRO_PLUS_PRICE_DH;
-  }
-  return getPlanChargeCents(plan, selectedBilling) / 100 || dhPriceByPlanId[String(plan.id)];
-}
-
-function getPlanChargeCents(plan, selectedBilling) {
-  if ((selectedBilling === 'annual' || selectedBilling === 'yearly') && Number.isFinite(Number(plan?.annual_price_mad_cents))) {
-    return Number(plan.annual_price_mad_cents);
-  }
-  return Number(plan?.price_mad_cents);
 }
 
 function getPricingPeriodSuffix(plan, selectedBilling, locale = 'fr') {
@@ -105,7 +60,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         '1 session / mois · max 6 participants',
         'Accès catalogue limité (4 challenges)',
         'Pas d’export',
-        'Pas d’insights avancés',
+        'Pas d’analyses avancées',
       ],
       ctaLabel: isEn ? 'Start for free' : 'Commencer gratuitement',
     };
@@ -113,7 +68,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
 
   if (planKey === 'pay-per-session') {
     return {
-      displayName: isOneTimeSession ? 'Pay-per-session' : (isEn ? 'Session package' : 'Forfait session'),
+      displayName: isOneTimeSession ? (isEn ? 'Pay-per-session' : 'Session à l’unité') : (isEn ? 'Session package' : 'Forfait session'),
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
       features: isEn ? [
@@ -130,10 +85,10 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         '6 participants max',
         '1 session incluse',
         'Accès catalogue complet',
-        'Résultats & scoring',
-        'Dashboard manager',
-        'Live facilitation',
-        'Insights',
+        'Résultats et scores',
+        'Espace manager',
+        'Animation en direct',
+        'Analyses avancées',
       ],
       ctaLabel: isEn ? 'Buy a session' : 'Acheter une session',
     };
@@ -180,10 +135,10 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Jusqu’à 30 participants',
         '10 sessions',
         'Accès catalogue complet',
-        'Résultats & scoring',
-        'Dashboard manager',
-        'Live facilitation',
-        'Insights',
+        'Résultats et scores',
+        'Espace manager',
+        'Animation en direct',
+        'Analyses avancées',
       ],
       highlightedLabel: getPricingPlanBadgeLabel(plan, cardVariant) || (isEn ? 'Most popular' : 'Plus populaire'),
       ctaLabel: isEn ? 'Start free trial' : 'Démarrer l’essai gratuit',
@@ -235,28 +190,15 @@ function buildPricingCards(plans, selectedBilling, locale = 'fr') {
       }
     }
 
-    const basePriceCents = Number(plan.price_cents || 0);
-    let displayPriceCents = basePriceCents;
-    let originalPriceCents = null;
-    let discountPercentage = 0;
-    const billingCycle = String(plan.billing_cycle || '').trim().toLowerCase();
-    const useAnnualDisplay = selectedBilling === 'annual' || selectedBilling === 'yearly';
-
-    if (useAnnualDisplay && billingCycle !== 'one_time') {
-      discountPercentage = Number(plan.annual_discount_percentage || (normalizedName === 'pro' ? 20 : 0));
-      if (discountPercentage > 0) {
-        originalPriceCents = basePriceCents;
-        displayPriceCents = Math.round(basePriceCents * (1 - discountPercentage / 100));
-      }
-    }
+    const annualSavings = getAnnualSavings(plan, selectedBilling);
 
     return {
       ...plan,
       cardVariant,
       isFeatured: normalizedName === 'pro' && cardVariant === 'standard',
-      displayPriceCents,
-      originalPriceCents,
-      discountPercentage,
+      displayAmountDh: getPlanAmountDh(plan, selectedBilling),
+      originalAmountDh: annualSavings?.originalAmountDh ?? null,
+      discountPercentage: annualSavings?.percentage ?? 0,
       planCopy: getPricingPlanCopy(plan, selectedBilling, cardVariant, locale),
     };
   });
@@ -335,7 +277,6 @@ export default function PricingPageClient({ initialPlans = [] }) {
   }, [plans]);
 
   const displayedPlans = useMemo(() => buildPricingCards(sortedPlans, selectedBilling, locale), [sortedPlans, selectedBilling, locale]);
-  const dhPriceByPlanId = useMemo(() => buildDhPriceByPlanId(sortedPlans), [sortedPlans]);
 
   async function handleProviderCheckout(plan, provider) {
     const currentUser = getStoredCurrentUser();
@@ -352,7 +293,8 @@ export default function PricingPageClient({ initialPlans = [] }) {
       const response = await startBillingCheckout({
         pricing_plan_id: plan.id,
         method: provider,
-        billing_cycle: selectedBilling,
+        // A single session has no annual price: never send the annual cycle for it.
+        billing_cycle: String(plan?.billing_cycle || '').toLowerCase() === 'one_time' ? 'monthly' : selectedBilling,
       });
 
       const checkoutUrl = getCheckoutRedirectUrl(response);
@@ -428,12 +370,19 @@ export default function PricingPageClient({ initialPlans = [] }) {
                   value={selectedCurrency}
                   onChange={(event) => setSelectedCurrency(event.target.value)}
                 >
-                  {CURRENCY_OPTIONS.map((option) => (
+                  {PRICING_CURRENCY_OPTIONS.map((option) => (
                     <option key={option.code} value={option.code}>{option.label}</option>
                   ))}
                 </select>
               </div>
             </div>
+            {selectedCurrency !== 'MAD' ? (
+              <p className="pricing-controls__note" style={getDarkModeTextStyle()}>
+                {isEn
+                  ? 'Indicative amounts converted from Moroccan dirhams. Payment is made in dirhams (MAD).'
+                  : 'Montants indicatifs convertis depuis le dirham marocain. Le paiement est effectué en dirhams (MAD).'}
+              </p>
+            ) : null}
           </section>
         ) : null}
 
@@ -495,8 +444,8 @@ export default function PricingPageClient({ initialPlans = [] }) {
               return (
               <article key={String(plan.id)} className={`feature-card pricing-card flex h-full flex-col${plan.isFeatured ? ' pricing-card-featured' : ''}`}>
                 <div className="pricing-card-top">
-                  {plan.discountPercentage > 0 && (selectedBilling === 'annual' || selectedBilling === 'yearly') ? (
-                    <span className="pricing-discount-badge">{isEn ? `Save ${plan.discountPercentage}%` : `Économisez ${plan.discountPercentage}%`}</span>
+                  {plan.discountPercentage > 0 ? (
+                    <span className="pricing-discount-badge">{isEn ? `Save ${plan.discountPercentage}%` : `Économisez ${plan.discountPercentage} %`}</span>
                   ) : null}
                   <div className="pricing-plan-title-row">
                     <p className="eyebrow" style={getDarkModeTextStyle()}>{plan.planCopy.displayName}</p>
@@ -505,12 +454,12 @@ export default function PricingPageClient({ initialPlans = [] }) {
                 </div>
 
                 <h2 className="pricing-price" style={getDarkModeHeadingStyle()}>
-                  {plan.planCopy.priceLabel || formatDhAmount(getPlanDisplayAmountDh(plan, selectedBilling, dhPriceByPlanId), selectedCurrency)}
+                  {plan.planCopy.priceLabel || formatPlanAmount(plan.displayAmountDh, selectedCurrency, locale)}
                   <span style={getDarkModeTextStyle()}>{plan.planCopy.priceSuffix}</span>
                 </h2>
-                {!plan.planCopy.priceLabel && plan.originalPriceCents ? (
+                {!plan.planCopy.priceLabel && plan.originalAmountDh ? (
                   <p className="pricing-original" style={getDarkModeTextStyle()}>
-                    <s>{formatDhAmount(Number(plan.price_mad_cents || 0) / 100 || dhPriceByPlanId[String(plan.id)], selectedCurrency)}</s>
+                    <s>{formatPlanAmount(plan.originalAmountDh, selectedCurrency, locale)}</s>
                   </p>
                 ) : null}
                 {plan.description ? <p className="pricing-description" style={getDarkModeTextStyle()}>{plan.description}</p> : null}
@@ -647,6 +596,13 @@ export default function PricingPageClient({ initialPlans = [] }) {
           background: rgba(255, 255, 255, 0.82);
           backdrop-filter: blur(16px);
           box-shadow: 0 12px 32px rgba(31, 55, 112, 0.07);
+        }
+
+        .pricing-page .pricing-controls__note {
+          width: min(100%, 72rem);
+          margin: 0.6rem auto 0;
+          font-size: 0.82rem;
+          text-align: center;
         }
 
         .pricing-page .control-section {

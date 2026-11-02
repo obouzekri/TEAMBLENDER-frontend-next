@@ -91,14 +91,22 @@ try {
         await annual.click();
         assert.equal(await annual.getAttribute('aria-pressed'), 'true');
         assert.equal(await monthly.getAttribute('aria-pressed'), 'false');
-        assert.match(await page.locator('.pricing-price').textContent(), /3744 DH\s*\/(an|year)/);
+        assert.match(await page.locator('.pricing-price').textContent(), /3[\s,]744 DH\s*\/(an|year)/);
+        // Crossed-out amount is 12 monthly payments, and the plan keeps its own name.
+        assert.match(await page.locator('.pricing-original').textContent(), /4[\s,]680 DH/);
+        assert.match(await page.locator('.pricing-discount-badge').textContent(), /20\s?%/);
+        assert.equal((await page.locator('.pricing-card .eyebrow').first().textContent()).trim(), 'Pro');
         const currency = page.getByRole('combobox', { name: locale === 'en' ? 'Display currency' : 'Devise affichée', exact: true });
         await currency.selectOption('EUR');
-        assert.match(await page.locator('.pricing-price').textContent(), /344 €/);
+        assert.match(await page.locator('.pricing-price').textContent(), locale === 'en' ? /€344/ : /344 €/);
+        assert.equal(await page.locator('.pricing-controls__note').count(), 1);
         await monthly.click();
-        assert.match(await page.locator('.pricing-price').textContent(), /36 €\s*\/(mois|month)/);
+        assert.match(await page.locator('.pricing-price').textContent(), locale === 'en' ? /€36\s*\/month/ : /36 €\s*\/mois/);
+        await currency.selectOption('USD');
+        assert.match(await page.locator('.pricing-price').textContent(), locale === 'en' ? /\$39\s*\/month/ : /39 \$\s*\/mois/);
         await currency.selectOption('MAD');
         assert.match(await page.locator('.pricing-price').textContent(), /390 DH/);
+        assert.equal(await page.locator('.pricing-controls__note').count(), 0);
         assert.deepEqual(errors, []);
         console.log(`PASS pricing controls: ${locale}/${theme}`);
       } finally {
