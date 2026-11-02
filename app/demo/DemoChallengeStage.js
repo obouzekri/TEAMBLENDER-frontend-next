@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { mountRuntimeChallenge } from '@/lib/challenges/runtime';
-import { ChallengeConnectionContext } from '@/lib/challenges/connection-context';
+import { ChallengeConnectionContext, ChallengeDemoContext } from '@/lib/challenges/connection-context';
 import { createDemoChallengeServer } from '@/lib/demo/demoChallengeServer.mjs';
 import wrapperStyles from '@/components/Challenges/ChallengeWrapper.module.css';
 
@@ -54,7 +54,9 @@ export default function DemoChallengeStage({
   return (
     <div className={wrapperStyles.challengeContainer} data-demo-challenge={scenario.engineKey}>
       <ChallengeConnectionContext.Provider value>
-        <EngineComponent {...props} />
+        <ChallengeDemoContext.Provider value>
+          <EngineComponent {...props} />
+        </ChallengeDemoContext.Provider>
       </ChallengeConnectionContext.Provider>
     </div>
   );

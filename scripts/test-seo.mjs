@@ -46,7 +46,7 @@ try {
         assert.ok(copy.title.length <= 60, `Homepage title exceeds 60 characters for ${locale}`);
         if (locale === 'fr') {
           assert.equal(copy.title, "Cohésion d'équipe et team building en ligne | TeamBlender");
-          assert.equal(copy.description, "Renforcez la cohésion d'équipe sur site ou à distance avec des moments collaboratifs de 15 à 30 min. Le complément de vos team buildings.");
+          assert.equal(copy.description, "Renforcez la cohésion d'équipe sur site ou à distance avec des moments collaboratifs de 15 à 35 min. Le complément de vos team buildings.");
           assert.equal(metadata.openGraph.title, copy.title);
           assert.equal(metadata.openGraph.description, copy.description);
           assert.equal(metadata.twitter.title, copy.title);
@@ -64,6 +64,10 @@ try {
       assert.deepEqual(webpage.keywords, expectedKeywords);
       if (path === '/' && locale === 'fr') {
         assert.doesNotMatch(JSON.stringify(data), /team[\s\-_]?building/i);
+      }
+      if (path === '/demo') {
+        const software = data['@graph'].find((node) => node['@type'] === 'SoftwareApplication');
+        assert.equal(webpage.mainEntity['@id'], software['@id']);
       }
       const homepageFaq = data['@graph'].find((node) => node['@type'] === 'FAQPage');
       if (path === '/') {

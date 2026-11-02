@@ -121,10 +121,13 @@ function getSessionIdentifier(session) {
   return normalized;
 }
 
-function useManagerGuard() {
-  const [state, setState] = useState({ loading: true, allowed: false, user: null, token: '' });
+function useManagerGuard(demoMode) {
+  const [state, setState] = useState(() => (demoMode
+    ? { loading: false, allowed: true, user: { first_name: 'Alex', role: 'user' }, token: '' }
+    : { loading: true, allowed: false, user: null, token: '' }));
 
   useEffect(() => {
+    if (demoMode) return undefined;
     let cancelled = false;
 
     const rawUser = sessionStorage.getItem('currentUser');
@@ -167,7 +170,7 @@ function useManagerGuard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [demoMode]);
 
   return state;
 }
@@ -352,18 +355,23 @@ function MobileActionMenu({ triggerLabel, menuLabel, items, closeSignal }) {
   );
 }
 
-export default function ManagerHome() {
+export default function ManagerHome({
+  demoMode = false,
+  demoSessions = [],
+  demoMembers = [],
+  onDemoCreateSession,
+} = {}) {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
   const startupGuideSteps = useMemo(() => getStartupGuideSteps(isEn), [isEn]);
   const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
-  const guard = useManagerGuard();
+  const guard = useManagerGuard(demoMode);
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
-  const [sessions, setSessions] = useState([]);
-  const [members, setMembers] = useState([]);
+  const [sessions, setSessions] = useState(() => (demoMode ? demoSessions : []));
+  const [members, setMembers] = useState(() => (demoMode ? demoMembers : []));
   const [showSessionPeriod, setShowSessionPeriod] = useState(false);
-  const [loadingSessions, setLoadingSessions] = useState(true);
-  const [loadingMembers, setLoadingMembers] = useState(true);
+  const [loadingSessions, setLoadingSessions] = useState(!demoMode);
+  const [loadingMembers, setLoadingMembers] = useState(!demoMode);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [deletingMemberId, setDeletingMemberId] = useState(null);
   const [creatingMember, setCreatingMember] = useState(false);
@@ -479,6 +487,7 @@ export default function ManagerHome() {
   }
 
   const refreshSessions = useCallback(async ({ withToast = false } = {}) => {
+    if (demoMode) return;
     if (!guard.allowed || authInvalid) return;
 
     let loadingId = null;
@@ -516,6 +525,7 @@ export default function ManagerHome() {
     }
   }, [
     authInvalid,
+    demoMode,
     guard.allowed,
     isEn,
     removeToast,
@@ -529,6 +539,7 @@ export default function ManagerHome() {
   ]);
 
   const refreshMembers = useCallback(async () => {
+    if (demoMode) return;
     if (!guard.allowed || authInvalid) return;
 
     setLoadingMembers(true);
@@ -571,7 +582,7 @@ export default function ManagerHome() {
     } finally {
       setLoadingMembers(false);
     }
-  }, [authInvalid, guard.allowed, isEn, showErrorToast]);
+  }, [authInvalid, demoMode, guard.allowed, isEn, showErrorToast]);
 
 
 
@@ -584,6 +595,20 @@ export default function ManagerHome() {
   useEffect(() => {
     refreshMembers();
   }, [refreshMembers]);
+
+  useEffect(() => {
+    if (!demoMode) return;
+    setSessions(demoSessions);
+    setMembers(demoMembers);
+    setSessionsPagination((current) => ({
+      ...current,
+      total: demoSessions.length,
+      page: 1,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPrevPage: false,
+    }));
+  }, [demoMembers, demoMode, demoSessions]);
 
   useEffect(() => {
     setSessionsPage(1);
@@ -956,11 +981,13 @@ export default function ManagerHome() {
     );
   }
 
+  const HomeContainer = demoMode ? 'section' : 'main';
+
   return (
     <>
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
-      <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
-      <main className={`shell app-home manager-home ${homeStyles.home}`}>
+      {!demoMode ? <ToastContainer toasts={toasts} onRemove={removeToast} /> : null}
+      {!demoMode ? <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} /> : null}
+      <HomeContainer className={`shell app-home manager-home ${homeStyles.home}`}>
         {asyncStatusMessage ? (
           <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
         ) : null}
@@ -1017,14 +1044,25 @@ export default function ManagerHome() {
               <h2 className="home-section-title">{isEn ? 'Sessions' : 'Sessions'}</h2>
               <p>{isEn ? 'Track preparing, active, and completed sessions from one panel.' : 'Suivez les sessions en préparation, actives et terminées depuis un seul panneau.'}</p>
             </div>
-            <Link
-              className="btn-primary"
-              href={withLocalePath('/session-builder')}
-              onClick={handleCreateSessionClick}
-              title={isEn ? 'Create session' : 'Créer une session'}
-            >
-              {isEn ? 'Create session' : 'Créer une session'}
-            </Link>
+            {demoMode ? (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={onDemoCreateSession}
+                title={isEn ? 'Create session' : 'Créer une session'}
+              >
+                {isEn ? 'Create session' : 'Créer une session'}
+              </button>
+            ) : (
+              <Link
+                className="btn-primary"
+                href={withLocalePath('/session-builder')}
+                onClick={handleCreateSessionClick}
+                title={isEn ? 'Create session' : 'Créer une session'}
+              >
+                {isEn ? 'Create session' : 'Créer une session'}
+              </Link>
+            )}
           </div>
 
           <div className="home-sessions-controls">
@@ -1212,15 +1250,17 @@ export default function ManagerHome() {
                         ) : null}
                       </div>
                     </div>
-                    <div className="session-card-mobile-actions session-card-mobile-actions--top">
-                      <MobileActionMenu
-                        triggerLabel={isEn ? 'Open session actions' : 'Ouvrir les actions session'}
-                        menuLabel={isEn ? 'Session actions' : 'Actions session'}
-                        items={mobileSessionActions}
-                        closeSignal={mobileMenuSignal}
-                      />
-                    </div>
-                    <div className="session-card-actions">
+                    {!demoMode ? (
+                      <div className="session-card-mobile-actions session-card-mobile-actions--top">
+                        <MobileActionMenu
+                          triggerLabel={isEn ? 'Open session actions' : 'Ouvrir les actions session'}
+                          menuLabel={isEn ? 'Session actions' : 'Actions session'}
+                          items={mobileSessionActions}
+                          closeSignal={mobileMenuSignal}
+                        />
+                      </div>
+                    ) : null}
+                    {!demoMode ? <div className="session-card-actions">
                       <Link
                         className="icon-action-btn"
                         href={editLink}
@@ -1271,7 +1311,7 @@ export default function ManagerHome() {
                       >
                         {isDeleting ? '…' : '🗑️'}
                       </button>
-                    </div>
+                    </div> : null}
                   </article>
                 );
               })}
@@ -1312,15 +1352,17 @@ export default function ManagerHome() {
             <div>
               <h2 className="home-section-title">{isEn ? 'Participants' : 'Participants'}</h2>
             </div>
-            <div className="participants-panel-actions">
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={openNewMemberForm}
-              >
-                {isEn ? 'Create participant' : 'Créer un participant'}
-              </button>
-            </div>
+            {!demoMode ? (
+              <div className="participants-panel-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={openNewMemberForm}
+                >
+                  {isEn ? 'Create participant' : 'Créer un participant'}
+                </button>
+              </div>
+            ) : null}
           </div>
 
           <div className="participants-panel-kpis" aria-label={isEn ? 'Participant summary' : 'Résumé des participants'}>
@@ -1372,15 +1414,15 @@ export default function ManagerHome() {
                         {details ? ` · ${details}` : ''}
                       </p>
                     </div>
-                    <div className="team-member-mobile-actions">
+                    {!demoMode ? <div className="team-member-mobile-actions">
                       <MobileActionMenu
                         triggerLabel={isEn ? 'Open participant actions' : 'Ouvrir les actions participant'}
                         menuLabel={isEn ? 'Participant actions' : 'Actions participant'}
                         items={mobileParticipantActions}
                         closeSignal={mobileMenuSignal}
                       />
-                    </div>
-                    <div className="session-item-actions icon-only-actions team-member-actions">
+                    </div> : null}
+                    {!demoMode ? <div className="session-item-actions icon-only-actions team-member-actions">
                       <button
                         type="button"
                         className="icon-action-btn icon-action-btn--mobile-friendly"
@@ -1401,14 +1443,14 @@ export default function ManagerHome() {
                       >
                         {deletingMemberId === member.id ? '…' : '🗑️'}
                       </button>
-                    </div>
+                    </div> : null}
                   </article>
                 );
               })}
             </div>
           ) : null}
         </section>
-      </main>
+      </HomeContainer>
       <Modal
         open={isStartupGuideOpen}
         title={isEn ? 'Getting started guide' : 'Guide de démarrage'}
@@ -1800,7 +1842,7 @@ export default function ManagerHome() {
           }
         }
       `}</style>
-      <Footer />
+      {!demoMode ? <Footer /> : null}
     </>
   );
 }

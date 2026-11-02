@@ -27,7 +27,7 @@ const COPY = {
   },
   en: {
     notice: 'Simulated demo',
-    createFromDashboard: 'Create a session',
+    createFromDashboard: 'Create session',
     automatic: 'Automatic',
     create: 'Create the session',
     launch: 'Launch the session',
@@ -90,8 +90,11 @@ async function runDemo(browser, locale, viewport, { flowMode }) {
 
   // Manager space, then preparation: the default programme runs the four demo challenges.
   assert.equal(await page.getByText('@example.com').count(), 4);
+  assert.equal(await page.locator('.manager-home .stat-card').count(), 3);
+  assert.equal(await page.locator('.manager-home .session-card').count(), 2);
   await page.getByRole('button', { name: copy.createFromDashboard, exact: true }).click();
   await page.getByRole('button', { name: copy.create, exact: true }).waitFor();
+  await page.locator('[data-catalog]').waitFor();
   if (flowMode === 'auto') await page.getByRole('button', { name: copy.automatic, exact: true }).click();
   await snap(page, `${tag}-1-prepare`);
   await page.getByRole('button', { name: copy.create, exact: true }).click();

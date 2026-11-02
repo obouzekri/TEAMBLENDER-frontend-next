@@ -1187,6 +1187,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             />
           </div>
 
+          {!hasChallengeStarted ? renderRankingCard('prestart-desktop') : null}
+
           <ChallengeChatCard
             title="Chat"
             messages={chatMessages}

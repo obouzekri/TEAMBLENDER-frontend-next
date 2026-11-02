@@ -423,7 +423,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
                 : 'Notre équipe prépare les offres. Contactez-nous pour recevoir une proposition adaptée à votre contexte.'}
             </p>
             <div className="hero-actions">
-              <Link href={withLocalePath('/contact')} className="btn-primary">{isEn ? 'Request a proposal' : 'Demander une proposition'}</Link>
+              <Link href={withLocalePath('/contact')} className="btn-primary">{isEn ? 'Talk to an expert' : 'Parler à un expert'}</Link>
               <Link href={withLocalePath('/signup')} className="btn-secondary">{isEn ? 'Create account' : 'Créer un compte'}</Link>
             </div>
           </section>
@@ -435,9 +435,9 @@ export default function PricingPageClient({ initialPlans = [] }) {
             {displayedPlans.map((plan) => {
               const isFallbackPlan = Boolean(plan?.is_fallback);
               const isContactPlan = Boolean(plan.planCopy.ctaHref) || isFallbackPlan;
-              const ctaLabel = isFallbackPlan
+              const ctaLabel = isContactPlan
                 ? (isEn ? 'Talk to an expert' : 'Parler à un expert')
-                : (isContactPlan ? (plan.planCopy.ctaLabel || (isEn ? 'Contact the team' : 'Contacter l’équipe')) : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant')));
+                : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
               const ctaHref = isContactPlan ? withLocalePath(plan.planCopy.ctaHref || '/contact') : null;
                   const badgeLabel = plan.isFeatured ? (isEn ? 'Most popular' : 'Plus populaire') : '';
 
@@ -510,7 +510,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
                 <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Need support?' : 'Besoin d\'un accompagnement ?'}</p>
                 <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Our team replies within a few hours.' : 'Notre équipe vous répond sous quelques heures.'}</h2>
               </div>
-              <Link href={withLocalePath('/contact')} className="btn-primary pricing-footer-cta__button cta-surface">{isEn ? 'Contact the team' : 'Contacter l\'équipe'}</Link>
+              <Link href={withLocalePath('/contact')} className="btn-primary pricing-footer-cta__button cta-surface">{isEn ? 'Talk to an expert' : 'Parler à un expert'}</Link>
             </div>
           </section>
         ) : null}
