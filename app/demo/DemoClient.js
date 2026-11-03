@@ -456,20 +456,22 @@ export default function DemoClient() {
                 onReorder={reorderProgramChallenges}
                 onClearAll={() => updateProgramChallenges([])}
               />
-              <ChallengesCatalog
-                challenges={catalog}
-                allChallenges={catalog}
-                selectedIds={program.map((challenge) => challenge.id)}
-                filters={catalogFilters}
-                isLoading={false}
-                onSelect={addProgramChallenge}
-                onDeselect={removeProgramChallenge}
-                onConfigure={() => {}}
-                onFilterChange={(key, value) => setCatalogFilters((current) => ({ ...current, [key]: value }))}
-                onToggleCategory={(value) => toggleCatalogFilter('categories', value)}
-                onToggleObjective={(value) => toggleCatalogFilter('objectives', value)}
-                onResetFilters={() => setCatalogFilters({ categories: [], objectives: [], duration: '' })}
-              />
+              <div className={styles.catalogScroll}>
+                <ChallengesCatalog
+                  challenges={catalog}
+                  allChallenges={catalog}
+                  selectedIds={program.map((challenge) => challenge.id)}
+                  filters={catalogFilters}
+                  isLoading={false}
+                  onSelect={addProgramChallenge}
+                  onDeselect={removeProgramChallenge}
+                  onConfigure={() => {}}
+                  onFilterChange={(key, value) => setCatalogFilters((current) => ({ ...current, [key]: value }))}
+                  onToggleCategory={(value) => toggleCatalogFilter('categories', value)}
+                  onToggleObjective={(value) => toggleCatalogFilter('objectives', value)}
+                  onResetFilters={() => setCatalogFilters({ categories: [], objectives: [], duration: '' })}
+                />
+              </div>
               {programNotice ? <p className={styles.hint}>{programNotice}</p> : null}
               <p className={styles.hint}>{t('demo.prepare.playNote', { challenge: pariName })}</p>
               <div className={styles.actions}>
@@ -538,11 +540,12 @@ export default function DemoClient() {
           <div className={styles.liveLayout}>
             <div className={styles.liveBar}>
               <div className={styles.liveBarInfo}>
-                <p className={styles.sessionLabel}>{displayedSessionName}</p>
+                <p className={styles.sessionLabel}>
+                  <span className={styles.liveDot} aria-hidden="true" />
+                  {displayedSessionName}
+                </p>
                 <p className={styles.liveBarTitle}>
                   {t('demo.facilitate.challengeCounter', { current: activeIndex + 1, total: program.length })}
-                  {' · '}
-                  {activeChallenge.name}
                 </p>
                 <ol className={styles.programChips} aria-label={t('demo.facilitate.program')}>
                   {program.map((challenge, index) => {
@@ -589,7 +592,10 @@ export default function DemoClient() {
           <div className={styles.liveLayout}>
             <div className={styles.liveBar}>
               <div className={styles.liveBarInfo}>
-                <p className={styles.sessionLabel}>{displayedSessionName}</p>
+                <p className={styles.sessionLabel}>
+                  <span className={styles.liveDot} aria-hidden="true" />
+                  {displayedSessionName}
+                </p>
                 <p className={styles.liveBarTitle}>{t('demo.play.barTitle', { challenge: pariName, name: visitorName })}</p>
               </div>
               <div className={styles.liveBarActions}>
