@@ -113,7 +113,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
           'Toutes les fonctionnalités incluses dans l’offre PRO',
           'Gestion multi-comptes managers',
         ],
-        ctaLabel: isEn ? 'Start free trial' : 'Démarrer l’essai gratuit',
+        ctaLabel: isEn ? 'Subscribe' : 'S’abonner',
       };
     }
 
@@ -141,7 +141,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Analyses avancées',
       ],
       highlightedLabel: getPricingPlanBadgeLabel(plan, cardVariant) || (isEn ? 'Most popular' : 'Plus populaire'),
-      ctaLabel: isEn ? 'Start free trial' : 'Démarrer l’essai gratuit',
+      ctaLabel: isEn ? 'Subscribe' : 'S’abonner',
       ctaHref: cardVariant === 'enterprise' ? '/contact' : null,
     };
   }
@@ -164,7 +164,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Toutes les fonctionnalités incluses dans l’offre PRO',
         'Gestion multi-comptes managers',
       ],
-      ctaLabel: isEn ? 'Start free trial' : 'Démarrer l’essai gratuit',
+      ctaLabel: isEn ? 'Subscribe' : 'S’abonner',
     };
   }
 
@@ -500,6 +500,15 @@ export default function PricingPageClient({ initialPlans = [] }) {
             );
             })}
             </section>
+            <p className="pricing-terms-note" style={getDarkModeTextStyle()}>
+              {isEn
+                ? 'Prices include VAT. No commitment: cancel anytime by writing to '
+                : 'Prix TTC. Sans engagement : résiliation sur simple demande à '}
+              <a href="mailto:contact@teamblender.io">contact@teamblender.io</a>
+              {isEn
+                ? ', effective at the end of the current billing period.'
+                : ', effective à la fin de la période en cours.'}
+            </p>
           </div>
         ) : null}
 
@@ -603,6 +612,17 @@ export default function PricingPageClient({ initialPlans = [] }) {
           margin: 0.6rem auto 0;
           font-size: 0.82rem;
           text-align: center;
+        }
+
+        .pricing-page .pricing-terms-note {
+          margin: 1.25rem auto 0;
+          font-size: 0.85rem;
+          text-align: center;
+        }
+
+        .pricing-page .pricing-terms-note a {
+          color: inherit;
+          text-decoration: underline;
         }
 
         .pricing-page .control-section {
