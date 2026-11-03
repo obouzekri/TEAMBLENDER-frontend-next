@@ -4,13 +4,13 @@
 
 .container {
   width: 100%;
-  max-width: 1040px;
+  max-width: 720px;
   margin-inline: auto;
   padding-top: 1.5rem;
 }
 
 .title {
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.5rem;
   color: var(--ink);
   font-size: clamp(1.65rem, 3vw, 2.1rem);
   font-weight: 650;
@@ -18,9 +18,16 @@
   letter-spacing: -0.035em;
 }
 
+.intro {
+  margin: 0 0 1.5rem;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
 .form {
   display: grid;
-  gap: 2.5rem;
+  gap: 2rem;
   padding: clamp(1.25rem, 3.5vw, 2.75rem);
   border: 1px solid var(--surface-border);
   border-radius: 20px;
@@ -28,10 +35,15 @@
   box-shadow: 0 3px 16px rgb(15 23 42 / 3%);
 }
 
+.form > * + * {
+  padding-top: 2rem;
+  border-top: 1px solid var(--surface-border);
+}
+
 .form h2 {
   margin: 0;
   color: var(--ink);
-  font-size: 1.05rem;
+  font-size: 1.125rem;
   font-weight: 650;
   line-height: 1.4;
   letter-spacing: -0.015em;
@@ -41,6 +53,12 @@
   display: grid;
   gap: 1rem;
   min-width: 0;
+}
+
+.section > label > span:first-child,
+.grid > label > span:first-child {
+  font-size: 0.9375rem;
+  font-weight: 500;
 }
 
 .grid {
@@ -65,8 +83,35 @@
   outline-offset: 2px;
 }
 
+.dateInput {
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.4;
+}
+
+.form .dateInputEmpty {
+  color: var(--text-muted);
+}
+
+.dateInput::-webkit-datetime-edit {
+  padding: 0;
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.dateInput:hover::-webkit-calendar-picker-indicator {
+  opacity: 0.9;
+}
+
 .objectives {
   gap: 1rem;
+}
+
+.form .objectives small {
+  font-size: 0.875rem;
 }
 
 .objectives fieldset {
@@ -88,7 +133,7 @@
   border-color: var(--surface-border);
   background: var(--card);
   color: var(--ink);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   box-shadow: none;
 }
 
@@ -96,6 +141,13 @@
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 7%, var(--card));
   color: var(--accent-strong);
+}
+
+.objectives label:has(input:checked) span::before {
+  content: '✓';
+  content: '✓' / '';
+  margin-right: 0.4rem;
+  font-weight: 700;
 }
 
 .objectives label:focus-within {
@@ -106,7 +158,7 @@
 .flow {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem 1.5rem;
+  gap: 0.75rem;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -121,19 +173,44 @@
 }
 
 .flowOption {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-  padding-block: 0.5rem;
+  position: relative;
+  display: block;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  background: var(--card);
   cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.flowOption:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--surface-border));
+}
+
+.flowOption:has(input:checked) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--card));
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.flowOption:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .flowOption input {
-  flex-shrink: 0;
-  width: 1rem;
-  height: 1rem;
-  margin: 0.2rem 0 0;
-  accent-color: var(--accent);
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.flowOption:has(input:checked) strong {
+  color: var(--accent-strong);
 }
 
 .flowOption strong,
@@ -144,14 +221,14 @@
 
 .flowOption strong {
   color: var(--ink);
-  font-size: 0.9rem;
+  font-size: 0.9375rem;
   font-weight: 550;
 }
 
 .flowOption small {
   margin-top: 0.25rem;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .notice {
@@ -182,19 +259,60 @@
   background: transparent;
 }
 
-.disclosure summary {
-  min-height: 44px;
-  font-size: 0.875rem;
+.form .disclosure summary {
+  justify-content: flex-start;
+  min-height: 48px;
+  padding: 0.65rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--surface-border));
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--accent-strong);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: background-color 0.18s ease;
 }
 
-.disclosure summary > span:last-child {
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  font-weight: 400;
+.form .disclosure summary:hover {
+  background: color-mix(in srgb, var(--accent) 6%, var(--card));
+}
+
+.form .disclosure summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.form .disclosure[open] summary {
+  margin-bottom: 1rem;
+}
+
+.form .disclosure summary > span:first-child::before {
+  content: none;
+}
+
+.disclosureLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.disclosureChevron {
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.disclosure[open] .disclosureChevron {
+  transform: rotate(180deg);
+}
+
+.disclosureCount {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  color: var(--accent-strong);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .actions {
@@ -216,7 +334,7 @@
   border-radius: 10px;
   background: var(--card);
   color: var(--ink);
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
 }
@@ -236,27 +354,24 @@
   cursor: not-allowed;
 }
 
-.submitGroup {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.65rem;
-  max-width: 100%;
-}
-
-.submitGroup p {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  line-height: 1.5;
-  text-align: center;
-}
-
-.submitGroup .submit {
+.actions .submit {
   min-width: 190px;
   min-height: 48px;
   border-radius: 10px;
+  font-size: 1.0625rem;
   font-weight: 650;
+}
+
+:global(html[data-theme='dark']) .flowOption:has(input:checked) strong,
+:global(body[data-theme='dark']) .flowOption:has(input:checked) strong,
+:global(.dark) .flowOption:has(input:checked) strong,
+:global(html[data-theme='dark']) .form .disclosure summary,
+:global(body[data-theme='dark']) .form .disclosure summary,
+:global(.dark) .form .disclosure summary,
+:global(html[data-theme='dark']) .disclosureCount,
+:global(body[data-theme='dark']) .disclosureCount,
+:global(.dark) .disclosureCount {
+  color: #bfdbfe;
 }
 
 @media (max-width: 600px) {
@@ -274,7 +389,11 @@
   }
 
   .form {
-    gap: 2rem;
+    gap: 1.5rem;
+  }
+
+  .form > * + * {
+    padding-top: 1.5rem;
   }
 
   .disclosure summary {
@@ -288,7 +407,7 @@
     align-items: stretch;
   }
 
-  .submitGroup .submit {
+  .actions .submit {
     min-width: 0;
   }
 }

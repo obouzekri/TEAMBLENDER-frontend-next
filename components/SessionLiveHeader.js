@@ -7,6 +7,7 @@ import { Button } from '@/components/ui';
 import useI18n from '@/lib/i18n/useI18n';
 import { getApiUrl } from '@/lib/config';
 import { getAuthHeaders } from '@/lib/auth';
+import { fetchWithCsrfRetry } from '@/lib/csrf';
 import styles from './SessionLiveHeader.module.css';
 import RecoveryLinkDisplay from './RecoveryLinkDisplay';
 
@@ -159,7 +160,7 @@ export default function SessionLiveHeader({
         expected_participant_count: expected,
         objective: normalizedObjective || null,
       };
-      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), {
+      const res = await fetchWithCsrfRetry(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}`), {
         method: 'PUT',
         headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -192,7 +193,7 @@ export default function SessionLiveHeader({
     setRecovering(true);
     setManagementError('');
     try {
-      const res = await fetch(
+      const res = await fetchWithCsrfRetry(
         getApiUrl(
           `/sessions/${encodeURIComponent(sessionId)}/participant-management/${encodeURIComponent(recoveryParticipant.id)}/recovery`
         ),
@@ -252,7 +253,7 @@ export default function SessionLiveHeader({
     setRemoving(true);
     setManagementError('');
     try {
-      const res = await fetch(
+      const res = await fetchWithCsrfRetry(
         getApiUrl(
           `/sessions/${encodeURIComponent(sessionId)}/participant-management/${encodeURIComponent(removal.participant.id)}/remove`
         ),

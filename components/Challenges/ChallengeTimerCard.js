@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Pause, Play } from 'lucide-react';
-import { ChallengeConnectionContext } from '@/lib/challenges/connection-context';
+import { ChallengeConnectionContext, ChallengeDemoContext } from '@/lib/challenges/connection-context';
 import { ChallengeDebriefContext } from '@/lib/challenges/debrief-context';
 import styles from './ChallengeTimerCard.module.css';
 import useI18n from '@/lib/i18n/useI18n';
 
 function formatTimer(seconds) {
-  const safe = Math.max(0, Number(seconds || 0));
+  const safe = Math.floor(Math.max(0, Number(seconds || 0)));
   const mm = String(Math.floor(safe / 60)).padStart(2, '0');
   const ss = String(safe % 60).padStart(2, '0');
   return `${mm}:${ss}`;
@@ -54,24 +54,67 @@ export default function ChallengeTimerCard({
 }) {
   const { t } = useI18n();
   const connected = useContext(ChallengeConnectionContext);
+  const isDemo = useContext(ChallengeDemoContext);
   const isDebrief = useContext(ChallengeDebriefContext);
   const resolvedTitle = title ?? t('challengeTimer.title');
   const resolvedWaitingText = waitingText ?? t('challengeTimer.waiting');
   const [collapsed, setCollapsed] = useState(Boolean(defaultCollapsed));
   const normalizedStatus = normalizeStatus(status);
+  const [displayRemainingSeconds, setDisplayRemainingSeconds] = useState(remainingSeconds);
+  const visibleRemainingSeconds = isDemo ? displayRemainingSeconds : remainingSeconds;
+  const interpolationRef = useRef({ from: Number(remainingSeconds), to: Number(remainingSeconds), startedAt: 0, duration: 0, lastUpdateAt: 0 });
   const shouldShowWaitingText = !isFacilitator
     && Boolean(resolvedWaitingText)
     && (normalizedStatus === 'idle' || normalizedStatus === 'disabled');
+
+  useEffect(() => {
+    const target = Math.max(0, Number(remainingSeconds || 0));
+    const animation = interpolationRef.current;
+    if (!isDemo || normalizedStatus !== 'running') {
+      interpolationRef.current = { from: target, to: target, startedAt: 0, duration: 0, lastUpdateAt: 0 };
+      setDisplayRemainingSeconds(target);
+      return undefined;
+    }
+
+    const now = performance.now();
+    const progress = animation.duration > 0
+      ? Math.min(1, Math.max(0, (now - animation.startedAt) / animation.duration))
+      : 1;
+    const current = animation.from + ((animation.to - animation.from) * progress);
+    const duration = animation.lastUpdateAt
+      ? Math.min(1000, Math.max(30, now - animation.lastUpdateAt))
+      : 300;
+    interpolationRef.current = {
+      from: current,
+      to: target,
+      startedAt: now,
+      duration,
+      lastUpdateAt: now,
+    };
+
+    let frameId;
+    const animate = (timestamp) => {
+      const currentAnimation = interpolationRef.current;
+      const progress = Math.min(1, Math.max(0, (timestamp - currentAnimation.startedAt) / currentAnimation.duration));
+      const value = currentAnimation.from + ((currentAnimation.to - currentAnimation.from) * progress);
+      setDisplayRemainingSeconds(value);
+      if (progress < 1) frameId = window.requestAnimationFrame(animate);
+    };
+
+    setDisplayRemainingSeconds(current);
+    if (current !== target) frameId = window.requestAnimationFrame(animate);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [isDemo, normalizedStatus, remainingSeconds]);
 
   const computedProgress = useMemo(() => {
     if (progressPercent != null) {
       return clampPercent(progressPercent);
     }
     if ((normalizedStatus === 'running' || normalizedStatus === 'paused') && Number(durationSeconds) > 0) {
-      return clampPercent((Number(remainingSeconds) / Number(durationSeconds)) * 100);
+      return clampPercent((Number(visibleRemainingSeconds) / Number(durationSeconds)) * 100);
     }
     return normalizedStatus === 'running' ? 100 : 0;
-  }, [durationSeconds, normalizedStatus, progressPercent, remainingSeconds]);
+  }, [durationSeconds, normalizedStatus, progressPercent, visibleRemainingSeconds]);
 
   const tone = useMemo(() => {
     if (normalizedStatus !== 'running') return 'idle';
@@ -93,7 +136,7 @@ export default function ChallengeTimerCard({
 
   const ringColor = tone === 'danger' ? '#ef4444' : tone === 'warn' ? '#f59e0b' : tone === 'safe' ? '#22c55e' : '#38bdf8';
   const ringSweep = clampPercent(computedProgress);
-  const compactTime = formatTimer(remainingSeconds);
+  const compactTime = formatTimer(visibleRemainingSeconds);
   const compactStatus = t(`challengeTimer.${normalizedStatus}`);
   const automaticControl = isFacilitator && normalizedStatus === 'running' && typeof onPause === 'function'
     ? (
@@ -180,7 +223,7 @@ export default function ChallengeTimerCard({
               }}
             >
               <div className={styles.timerDisplay}>
-                <div className={styles.timerTime} role="timer" aria-label={resolvedTitle} aria-live="off">{formatTimer(remainingSeconds)}</div>
+                <div className={styles.timerTime} role="timer" aria-label={resolvedTitle} aria-live="off">{formatTimer(visibleRemainingSeconds)}</div>
               </div>
             </div>
           </div>

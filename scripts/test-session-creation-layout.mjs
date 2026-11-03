@@ -77,10 +77,12 @@ try {
           await page.locator('#creation-participants-heading').innerText(),
           locale === 'fr' ? 'Participants (facultatif)' : 'Participants (optional)',
         );
-        assert.equal(await submit.getAttribute('aria-describedby'), 'creation-next-hint');
+        assert.equal(await submit.getAttribute('aria-describedby'), 'creation-intro');
         assert.equal(
-          await page.locator('#creation-next-hint').innerText(),
-          locale === 'fr' ? 'Vous pourrez ensuite choisir vos challenges.' : 'You can choose your challenges next.',
+          await page.locator('#creation-intro').innerText(),
+          locale === 'fr'
+            ? 'Renseignez les informations de base : vous choisirez les challenges à l’étape suivante.'
+            : 'Fill in the basics: you’ll choose your challenges in the next step.',
         );
         await name.fill('Premium session');
 
@@ -93,10 +95,10 @@ try {
             const controls = [...element.querySelectorAll('input:not([type="radio"], [type="checkbox"])')];
             const cardStyle = getComputedStyle(element);
             const submit = element.querySelector('button[type="submit"]');
-            const hint = element.querySelector('#creation-next-hint');
+            const intro = document.querySelector('#creation-intro');
             const cancel = element.querySelector('footer a');
             const submitBounds = submit.getBoundingClientRect();
-            const hintBounds = hint.getBoundingClientRect();
+            const introBounds = intro.getBoundingClientRect();
             const cancelBounds = cancel.getBoundingClientRect();
             const cancelStyle = getComputedStyle(cancel);
             return {
@@ -111,22 +113,25 @@ try {
               }),
               background: cardStyle.backgroundColor,
               backgroundImage: cardStyle.backgroundImage,
-              frames: [...element.querySelectorAll('section, fieldset, details')].map((section) => getComputedStyle(section).borderTopWidth),
+              // Top borders are allowed: sections are separated by a divider line, not boxed.
+              frames: [...element.querySelectorAll('section, fieldset, details')].flatMap((section) => {
+                const style = getComputedStyle(section);
+                return [style.borderLeftWidth, style.borderRightWidth, style.borderBottomWidth];
+              }),
               headingPadding: element.previousElementSibling.getBoundingClientRect().top - element.closest('main').getBoundingClientRect().top,
-              hintBelowSubmit: hintBounds.top >= submitBounds.bottom + 8,
-              hintCentered: Math.abs((hintBounds.left + hintBounds.right) / 2 - (submitBounds.left + submitBounds.right) / 2) < 2,
+              introAboveForm: introBounds.bottom <= bounds.top,
               cancelBorder: cancelStyle.borderTopWidth,
               cancelHeight: cancelBounds.height,
               cancelColor: cancelStyle.color,
               cancelBackground: cancelStyle.backgroundColor,
-              hintColor: getComputedStyle(hint).color,
+              introColor: getComputedStyle(intro).color,
               mobileActions: innerWidth > 600 || (
-                cancelBounds.top >= hintBounds.bottom &&
+                cancelBounds.top >= submitBounds.bottom &&
                 Math.abs(cancelBounds.width - submitBounds.width) < 2
               ),
             };
           });
-          assert.ok(layout.width <= 1040, JSON.stringify(layout));
+          assert.ok(layout.width <= 720, JSON.stringify(layout));
           assert.ok(layout.centered, JSON.stringify(layout));
           assert.ok(layout.top < 260, 'No oversized empty header above the form');
           assert.equal(layout.overflow, false, `Overflow ${locale}/${theme}/${width}`);
@@ -136,13 +141,12 @@ try {
           assert.equal(layout.background === 'rgb(255, 255, 255)', theme === 'light');
           assert.ok(layout.frames.every((border) => border === '0px'), `No nested section frames: ${layout.frames}`);
           assert.ok(layout.headingPadding >= (width <= 600 ? 32 : 40), `Title needs breathing room below navigation: ${JSON.stringify(layout)}`);
-          assert.ok(layout.hintBelowSubmit, 'The next-step hint must sit below the create button');
-          assert.ok(layout.hintCentered, 'The next-step hint must align with the create button');
+          assert.ok(layout.introAboveForm, 'The intro must sit between the title and the form');
           assert.equal(layout.cancelBorder, '1px', 'Cancel must have a visible secondary-button outline');
           assert.ok(layout.cancelHeight >= 44, 'Cancel must remain an accessible touch target');
           assert.ok(contrastRatio(layout.cancelColor, layout.cancelBackground) >= 4.5, 'Cancel text needs AA contrast');
-          assert.ok(contrastRatio(layout.hintColor, layout.background) >= 4.5, 'Next-step hint needs AA contrast');
-          assert.ok(layout.mobileActions, 'Mobile actions must stack at full width with cancel below the hint');
+          assert.ok(contrastRatio(layout.introColor, layout.background) >= 4.5, 'Intro needs AA contrast');
+          assert.ok(layout.mobileActions, 'Mobile actions must stack at full width with cancel below create');
           console.log(`PASS session creation layout ${locale}/${theme}/${width}`);
         }
 
@@ -173,7 +177,9 @@ try {
           await page.locator('#expected-participants').fill('0');
           assert.equal(await submit.isDisabled(), true);
           await page.locator('#expected-participants').fill('8');
-          await page.locator('#session-datetime').fill('2026-11-15T10:30');
+          const nextMonth = new Date();
+          nextMonth.setMonth(nextMonth.getMonth() + 1);
+          await page.locator('#session-datetime').fill(`${nextMonth.toISOString().slice(0, 10)}T10:30`);
           await form.locator('input[value="auto"]').check();
           await form.locator('#session-objective').getByLabel('Collaboration', { exact: true }).check();
           await form.locator('#session-objective').getByLabel('Communication', { exact: true }).check();

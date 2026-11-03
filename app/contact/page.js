@@ -6,7 +6,7 @@ import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import useI18n from '@/lib/i18n/useI18n';
 import { getApiUrl } from '@/lib/config';
-import { withCsrfHeaders } from '@/lib/csrf';
+import { fetchWithCsrfRetry, withCsrfHeaders } from '@/lib/csrf';
 
 const COMPANY_SIZES = {
   fr: ['1 à 10 personnes', '11 à 50 personnes', '51 à 200 personnes', '201 à 500 personnes', '500+ personnes'],
@@ -46,7 +46,7 @@ export default function ContactPage() {
     setErrorMessage('');
 
     try {
-      const response = await fetch(getApiUrl('/contact'), {
+      const response = await fetchWithCsrfRetry(getApiUrl('/contact'), {
         method: 'POST',
         headers: withCsrfHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'include',

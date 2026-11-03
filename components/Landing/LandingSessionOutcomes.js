@@ -1,6 +1,7 @@
 "use client";
 
 import { BarChart3, Eye, Gauge, MessageCircle, Users } from 'lucide-react';
+import Link from 'next/link';
 
 const OUTCOME_ICONS = [Users, Gauge, MessageCircle, BarChart3, Eye];
 
@@ -43,6 +44,12 @@ export default function LandingSessionOutcomes({ outcomesSection }) {
             );
           })}
         </ul>
+        {outcomesSection.privacyNote ? (
+          <p className="landing-offer-subtitle">
+            {outcomesSection.privacyNote}{' '}
+            <Link href={outcomesSection.privacyHref}>{outcomesSection.privacyLinkLabel}</Link>
+          </p>
+        ) : null}
       </div>
     </section>
   );
