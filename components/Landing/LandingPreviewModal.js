@@ -38,7 +38,7 @@ export default function LandingPreviewModal({ locale, isOpen, onClose, fallback 
           src={heroCaptureSrc(locale)}
           alt={heroCaptureAlt(locale)}
           width={1600}
-          height={1106}
+          height={1027}
           className="landing-preview-modal__image"
         />
       </div>
