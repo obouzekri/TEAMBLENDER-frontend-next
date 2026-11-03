@@ -1,18 +1,9 @@
 import { NextResponse } from 'next/server';
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from './lib/i18n/routing';
+import { isBotUserAgent, resolveRequestLocale } from './lib/i18n/detectLocale';
 import { getPublicSeoRedirectPath, isPublicSeoPath } from './lib/seo';
 
 const PUBLIC_FILE = /\.(.*)$/;
-
-function resolvePreferredLocale(request) {
-  const fromCookie = String(request.cookies.get('tb_locale')?.value || '').trim().toLowerCase();
-  if (SUPPORTED_LOCALES.includes(fromCookie)) return fromCookie;
-
-  const acceptLanguage = String(request.headers.get('accept-language') || '').toLowerCase();
-  if (acceptLanguage.includes('en')) return 'en';
-
-  return DEFAULT_LOCALE;
-}
 
 export function proxy(request) {
   const { pathname } = request.nextUrl;
@@ -30,11 +21,14 @@ export function proxy(request) {
     return NextResponse.next();
   }
 
-  const publicRedirectPath = getPublicSeoRedirectPath(pathname);
+  // Robots : redirection permanente et stable vers la version FR (x-default).
+  // Visiteurs : redirection temporaire vers la langue détectée, qui varie selon la personne.
+  const isBot = isBotUserAgent(request.headers.get('user-agent'));
+  const publicRedirectPath = getPublicSeoRedirectPath(pathname, isBot ? DEFAULT_LOCALE : resolveRequestLocale(request));
   if (publicRedirectPath) {
     const url = request.nextUrl.clone();
     url.pathname = publicRedirectPath;
-    return NextResponse.redirect(url, 308);
+    return NextResponse.redirect(url, isBot ? 308 : 307);
   }
 
   const segments = pathname.split('/').filter(Boolean);
@@ -44,7 +38,7 @@ export function proxy(request) {
     ? forwardedLocale
     : hasLocale
       ? maybeLocale
-      : isPublicSeoPath(pathname) ? DEFAULT_LOCALE : resolvePreferredLocale(request);
+      : isPublicSeoPath(pathname) ? DEFAULT_LOCALE : resolveRequestLocale(request);
   const seoPathname = isSeoRewritePass && forwardedPathname ? forwardedPathname : pathname;
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-teamblender-locale', locale);
