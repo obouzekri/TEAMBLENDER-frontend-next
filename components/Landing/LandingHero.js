@@ -2,8 +2,19 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Activity, BarChart3, Users } from 'lucide-react';
+import { ArrowRight, Activity, BarChart3, ListChecks, PlayCircle } from 'lucide-react';
 import { PILL_CLASS } from './landingStyles';
+
+// Facilitator view of the /demo page while the team assembles CoPuzzle.
+export function heroCaptureSrc(locale) {
+  return `/images/copuzzle-facilitator-live-${locale === 'en' ? 'en' : 'fr'}.webp`;
+}
+
+export function heroCaptureAlt(locale) {
+  return locale === 'en'
+    ? 'TeamBlender facilitator view: the team assembles the CoPuzzle board live, with the timer and reference image'
+    : 'Vue facilitateur TeamBlender : l’équipe assemble le plateau CoPuzzle en direct, avec le minuteur et l’image de référence';
+}
 
 export default function LandingHero({
   locale,
@@ -14,18 +25,21 @@ export default function LandingHero({
   heroPrimaryHref,
   onPrimaryCtaClick,
   heroPrimaryLabel,
+  heroDemoHref,
+  heroDemoLabel,
+  onDemoCtaClick,
   heroImageB,
   fallback,
   onOpenPreview,
 }) {
   return (
     <section
-      className="landing-hero-full relative overflow-hidden px-0 py-4 sm:py-5 lg:py-6"
+      className="landing-hero-full relative overflow-hidden px-0"
       style={{ '--reveal-delay': '40ms' }}
       aria-label={locale === 'en' ? 'TeamBlender overview' : 'Presentation TeamBlender'}
     >
       <div className="landing-hero-aurora pointer-events-none absolute inset-0" />
-      <div className="landing-hero-inner relative grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+      <div className="landing-hero-inner relative grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
         <div className="landing-hero-copy max-w-3xl">
           <p className="eyebrow landing-section-eyebrow">{heroEyebrow}</p>
           <h1 className="landing-hero-title max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
@@ -45,11 +59,19 @@ export default function LandingHero({
               <span>{heroPrimaryLabel}</span>
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
+            <Link
+              href={heroDemoHref}
+              onClick={onDemoCtaClick}
+              className={`${PILL_CLASS} landing-cta-secondary landing-hero-secondary-btn gap-2`}
+            >
+              <PlayCircle className="h-4 w-4" aria-hidden="true" />
+              <span>{heroDemoLabel}</span>
+            </Link>
           </div>
           <p className="mt-3 text-sm text-slate-300">{heroMicrocopy}</p>
         </div>
 
-        <div className="landing-hero-product-shell relative lg:translate-x-8 xl:translate-x-14">
+        <div className="landing-hero-product-shell relative">
           <div className="landing-hero-product-wrap">
             <div className="landing-hero-product-head">
               <div>
@@ -69,14 +91,12 @@ export default function LandingHero({
             >
               <figure className="landing-hero-product-frame landing-hero-product-frame--interactive">
                 <Image
-                  src="/images/teamblender-live-session.webp"
-                  alt={locale === 'en'
-                    ? 'Hybrid team collaborating live on TeamBlender to strengthen team cohesion'
-                    : "Équipe hybride en pleine activité collaborative sur TeamBlender pour renforcer la cohésion d'équipe"}
-                  width={1227}
-                  height={768}
+                  src={heroCaptureSrc(locale)}
+                  alt={heroCaptureAlt(locale)}
+                  width={1600}
+                  height={1106}
                   priority
-                  sizes="(max-width: 1024px) 90vw, 45vw"
+                  sizes="(max-width: 1024px) 92vw, 46rem"
                   className="landing-hero-product-image"
                 />
               </figure>
@@ -88,7 +108,7 @@ export default function LandingHero({
                 {fallback.liveSignals.timer}
               </span>
               <span>
-                <Users className="h-4 w-4" />
+                <ListChecks className="h-4 w-4" />
                 {heroImageB.description || fallback.liveSignals.chat}
               </span>
               <span>

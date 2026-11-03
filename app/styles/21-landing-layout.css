@@ -19,9 +19,10 @@
 
 .landing-hero-full .landing-hero-inner {
   width: min(100%, 80rem);
-  min-height: min(42rem, calc(100svh - var(--header-height, 5.5rem) - 6rem));
+  min-height: 0;
   padding-inline: clamp(1.25rem, 5vw, 4rem);
-  padding-block: clamp(2.25rem, 4.5vw, 3.75rem);
+  /* The section owns the vertical rhythm of the hero. */
+  padding-block: 0;
   gap: clamp(2rem, 5vw, 4.5rem);
   align-items: center;
 }
@@ -64,22 +65,57 @@
   transform: none !important;
 }
 
+.landing-hero-product-shell {
+  padding-block: 0;
+}
+
+/* Flat frame: the capture is a real product screen, it must stay sharp and uncropped. */
+.landing-hero-product-wrap,
+.landing-hero-product-wrap:hover {
+  transform: none;
+}
+
 .landing-hero-product-wrap {
   border-color: rgba(148, 163, 184, 0.2);
   background: rgba(10, 20, 40, 0.76);
   box-shadow: 0 28px 72px rgba(0, 0, 0, 0.32), 0 1px 0 rgba(255, 255, 255, 0.08) inset;
 }
 
-.landing-hero-product-image {
-  height: clamp(15rem, 29vw, 22rem);
-  object-position: center;
+.landing-hero-product-frame {
+  background: #f8fafc;
+}
+
+.landing-hero-product-live {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.landing-hero-product-image,
+.landing-hero-product-wrap:hover .landing-hero-product-image {
+  height: auto;
+  object-fit: contain;
+  transform: none;
+}
+
+.landing-hero-product-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.landing-hero-product-signals span {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.76rem;
+}
+
+.landing-hero-product-signals svg {
+  color: #7dd3fc;
 }
 
 @media (max-width: 1023px) {
   .landing-hero-full .landing-hero-inner {
-    min-height: 0;
-    padding-block: clamp(2.75rem, 7vw, 4rem) clamp(2rem, 5vw, 3rem);
-    gap: 1.5rem;
+    gap: 1.75rem;
   }
 
   .landing-hero-copy {
@@ -116,14 +152,11 @@
     justify-content: center;
   }
 
-  .landing-hero-product-image {
-    height: clamp(13rem, 48vw, 19rem);
-  }
 }
 
 @media (max-width: 640px) {
   .landing-hero-full .landing-hero-inner {
-    padding-block: 2.25rem 2rem !important;
+    padding-block: 0 !important;
   }
 
   .landing-hero-copy {
@@ -150,6 +183,32 @@
   .landing-hero-product-shell {
     margin-top: 0;
   }
+
+  /* The capture already shows the timer and programme; the chips would only stack. */
+  .landing-hero-product-signals {
+    display: none;
+  }
+}
+
+.landing-outcomes-privacy {
+  max-width: 62ch;
+  margin: 2rem auto 0;
+  text-align: center;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  /* Landing sections keep a light surface in both themes. */
+  color: #5d6b7d;
+}
+
+.landing-outcomes-privacy a {
+  color: #1d4ed8;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.landing-preview-modal__head .landing-hero-product-title {
+  color: var(--ink);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1278,7 +1337,7 @@
 }
 
 .landing-v2.landing-v2--premium > .landing-hero-full {
-  padding-block: clamp(3.5rem, 7vw, 6.5rem) clamp(4rem, 8vw, 7rem) !important;
+  padding-block: clamp(2rem, 4vw, 3.25rem) clamp(2.25rem, 4.5vw, 3.5rem) !important;
 }
 
 .landing-v2.landing-v2--premium .landing-hero-inner {
@@ -1293,7 +1352,7 @@
 }
 
 .landing-v2.landing-v2--premium .landing-hero-actions {
-  margin-top: 2.25rem;
+  margin-top: 2rem;
 }
 
 /* Surfaces: dark hero / challenges / CTA, alternating white and soft grey in between. */
@@ -1923,7 +1982,7 @@
   }
 
   .landing-v2.landing-v2--premium > .landing-hero-full {
-    padding-block: 2.75rem 4rem !important;
+    padding-block: 1.75rem 2.5rem !important;
   }
 
   .landing-v2.landing-v2--premium .landing-section-title {

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { X } from 'lucide-react';
+import { heroCaptureAlt, heroCaptureSrc } from './LandingHero';
 
 export default function LandingPreviewModal({ locale, isOpen, onClose, fallback }) {
   if (!isOpen) return null;
@@ -30,16 +31,14 @@ export default function LandingPreviewModal({ locale, isOpen, onClose, fallback 
         </div>
         <p className="landing-preview-modal__copy">
           {locale === 'en'
-            ? 'Explore a TeamBlender activity, from team instructions and timer to the reference image.'
-            : 'Découvrez une activité TeamBlender, de la consigne d’équipe au minuteur et à l’image de référence.'}
+            ? 'What the facilitator sees while the team plays CoPuzzle: the session programme, the shared board, the timer and the reference image.'
+            : 'Ce que voit le facilitateur pendant que l’équipe joue à CoPuzzle : le programme de la session, le plateau partagé, le minuteur et l’image de référence.'}
         </p>
         <Image
-          src="/images/teamblender-live-session.webp"
-          alt={locale === 'en'
-            ? 'Hybrid team collaborating live on TeamBlender to strengthen team cohesion'
-            : "Équipe hybride en pleine activité collaborative sur TeamBlender pour renforcer la cohésion d'équipe"}
-          width={1227}
-          height={768}
+          src={heroCaptureSrc(locale)}
+          alt={heroCaptureAlt(locale)}
+          width={1600}
+          height={1106}
           className="landing-preview-modal__image"
         />
       </div>
