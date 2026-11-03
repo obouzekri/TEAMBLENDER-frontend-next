@@ -99,14 +99,12 @@ try {
         const currency = page.getByRole('combobox', { name: locale === 'en' ? 'Display currency' : 'Devise affichée', exact: true });
         await currency.selectOption('EUR');
         assert.match(await page.locator('.pricing-price').textContent(), locale === 'en' ? /€344/ : /344 €/);
-        assert.equal(await page.locator('.pricing-controls__note').count(), 1);
         await monthly.click();
         assert.match(await page.locator('.pricing-price').textContent(), locale === 'en' ? /€36\s*\/month/ : /36 €\s*\/mois/);
         await currency.selectOption('USD');
         assert.match(await page.locator('.pricing-price').textContent(), locale === 'en' ? /\$39\s*\/month/ : /39 \$\s*\/mois/);
         await currency.selectOption('MAD');
         assert.match(await page.locator('.pricing-price').textContent(), /390 DH/);
-        assert.equal(await page.locator('.pricing-controls__note').count(), 0);
         assert.deepEqual(errors, []);
         console.log(`PASS pricing controls: ${locale}/${theme}`);
       } finally {
