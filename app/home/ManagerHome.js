@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { BarChart3, Pencil, Play, Settings, Trash2 } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import Modal from '@/components/ui/Modal';
@@ -1268,7 +1269,7 @@ export default function ManagerHome({
                         title={isEn ? 'Edit' : 'Modifier'}
                         aria-label={isEn ? 'Edit session' : 'Modifier la session'}
                       >
-                        ✏️
+                        <Pencil size={16} aria-hidden="true" />
                       </Link>
                       <Link
                         className="icon-action-btn"
@@ -1300,7 +1301,7 @@ export default function ManagerHome({
                                 : 'Configurer'
                         }
                       >
-                        {isDone ? '📊' : isActive ? '▶️' : '⚙️'}
+                        {isDone ? <BarChart3 size={16} aria-hidden="true" /> : isActive ? <Play size={16} aria-hidden="true" /> : <Settings size={16} aria-hidden="true" />}
                       </Link>
                       <button
                         type="button"
@@ -1310,7 +1311,7 @@ export default function ManagerHome({
                         onClick={() => handleDeleteSession(session)}
                         disabled={isDeleting}
                       >
-                        {isDeleting ? '…' : '🗑️'}
+                        {isDeleting ? '…' : <Trash2 size={16} aria-hidden="true" />}
                       </button>
                     </div> : null}
                   </article>
@@ -1432,7 +1433,7 @@ export default function ManagerHome({
                         onClick={() => beginEditMember(member)}
                         disabled={deletingMemberId === member.id}
                       >
-                        ✏️
+                        <Pencil size={16} aria-hidden="true" />
                       </button>
                       <button
                         type="button"
@@ -1442,7 +1443,7 @@ export default function ManagerHome({
                         onClick={() => handleDeleteMember(member)}
                         disabled={deletingMemberId === member.id}
                       >
-                        {deletingMemberId === member.id ? '…' : '🗑️'}
+                        {deletingMemberId === member.id ? '…' : <Trash2 size={16} aria-hidden="true" />}
                       </button>
                     </div> : null}
                   </article>

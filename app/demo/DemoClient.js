@@ -143,14 +143,23 @@ export default function DemoClient() {
 
   const generateProgram = useCallback(() => {
     const suggested = proposeSessionProgram(catalog, programOptions);
-    const challenges = suggested.challenges.slice(0, challengeLimit);
+    let challenges = suggested.challenges.slice(0, challengeLimit);
+    // An objective can match a single demo challenge: the programme is completed so it shows the chosen count.
+    if (challenges.length < challengeLimit) {
+      const taken = new Set(challenges.map((challenge) => challenge.engine_key));
+      const extra = proposeSessionProgram(
+        catalog.filter((challenge) => !taken.has(challenge.engine_key)),
+        { ...programOptions, objective: '', targetMinutes: Math.max(1, targetMinutes - suggested.duration) },
+      ).challenges;
+      challenges = [...challenges, ...extra].slice(0, challengeLimit);
+    }
     setProposal({
       ...suggested,
       challenges,
       duration: challenges.reduce((total, challenge) => total + getChallengeDuration(challenge), 0),
     });
     setProgramNotice('');
-  }, [catalog, challengeLimit, programOptions]);
+  }, [catalog, challengeLimit, programOptions, targetMinutes]);
 
   // Programme suggestions follow the selected criteria, as in the session builder.
   useEffect(() => {
@@ -167,8 +176,10 @@ export default function DemoClient() {
     setProgramNotice('');
   }
 
-  function addProgramChallenge(challenge) {
-    if (program.some((item) => String(item.id) === String(challenge.id))) return;
+  // The catalog reports the selected challenge by id.
+  function addProgramChallenge(challengeId) {
+    const challenge = catalog.find((item) => String(item.id) === String(challengeId));
+    if (!challenge || program.some((item) => String(item.id) === String(challengeId))) return;
     if (program.length >= challengeLimit) {
       setProgramNotice(t('demo.prepare.challengeLimitReached', { count: challengeLimit }));
       return;

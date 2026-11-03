@@ -268,7 +268,7 @@ export default function HomePage() {
   const finalSecondaryLabel = hasCmsValue(finalCtaSecondary.cta_label) ? finalCtaSecondary.cta_label : landingStatic.fallback.finalSecondaryLabel;
   const finalSecondaryHref = withLocalePath(safeHref(finalCtaSecondary.cta_href, '/contact'));
 
-  const { handlePrimaryCtaClick, handleFinalSecondaryCtaClick } = useLandingCtaTracking({
+  const { handlePrimaryCtaClick, handleDemoCtaClick, handleFinalSecondaryCtaClick } = useLandingCtaTracking({
     landingStatic,
     heroCtaPrimary,
     finalCtaSecondary,
@@ -373,6 +373,9 @@ export default function HomePage() {
           heroPrimaryHref={heroPrimaryHref}
           onPrimaryCtaClick={handlePrimaryCtaClick}
           heroPrimaryLabel={heroPrimaryLabel}
+          heroDemoHref={withLocalePath('/demo')}
+          heroDemoLabel={landingStatic.fallback.heroDemoLabel}
+          onDemoCtaClick={handleDemoCtaClick}
           heroImageB={heroImageB}
           fallback={landingStatic.fallback}
           onOpenPreview={() => setIsPreviewExpanded(true)}
