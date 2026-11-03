@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Info, PlayCircle, Plus, RotateCcw, Users } from 'lucide-react';
+import { CheckCircle2, Info, PlayCircle, RotateCcw, Users } from 'lucide-react';
+import ChallengesCatalog from '@/components/SessionBuilder/ChallengesCatalog';
+import SelectedChallengesList from '@/components/SessionBuilder/SelectedChallengesList';
 import { Button } from '@/components/ui';
 import useI18n from '@/lib/i18n/useI18n';
 import { trackProductEvent } from '@/lib/analytics';
@@ -11,7 +13,7 @@ import { localizeBuilderChallenge } from '@/lib/challenges/catalogLocalization';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import { getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRules';
 import { getPublicSiteOrigin } from '@/lib/siteMetadata';
-import { getChallengeDuration, proposeSessionProgram, replaceProgramChallenge } from '@/lib/sessionProgram.mjs';
+import { getChallengeDuration, proposeSessionProgram } from '@/lib/sessionProgram.mjs';
 import {
   DEMO_AUTO_ADVANCE_SECONDS,
   DEMO_DURATIONS,
@@ -29,6 +31,7 @@ import {
   getVisitorResult,
 } from '@/lib/demo/demoScenario.mjs';
 import { DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '@/lib/demo/challenges/index.mjs';
+import ManagerHome from '../home/ManagerHome';
 import DemoChallengeStage from './DemoChallengeStage';
 import styles from './Demo.module.css';
 
@@ -72,6 +75,7 @@ export default function DemoClient() {
   const [sessionName, setSessionName] = useState(() => t('demo.prepare.sessionNameDefault'));
   const [objective, setObjective] = useState('');
   const [targetMinutes, setTargetMinutes] = useState(45);
+  const [challengeLimit, setChallengeLimit] = useState(2);
   const [flowMode, setFlowMode] = useState('manual');
   const [proposal, setProposal] = useState(null);
   const [programNotice, setProgramNotice] = useState('');
@@ -80,8 +84,10 @@ export default function DemoClient() {
   const [activeDone, setActiveDone] = useState(false);
   const [autoCountdown, setAutoCountdown] = useState(null);
   const [completions, setCompletions] = useState({});
+  const [challengeActions, setChallengeActions] = useState({});
   const [visitorResult, setVisitorResult] = useState(null);
   const [playDone, setPlayDone] = useState(false);
+  const [catalogFilters, setCatalogFilters] = useState({ categories: [], objectives: [], duration: '' });
   const headingRef = useRef(null);
   const hasMountedRef = useRef(false);
   const advanceRef = useRef(() => {});
@@ -96,6 +102,21 @@ export default function DemoClient() {
     [locale]
   );
   const participants = useMemo(() => getDemoParticipants(locale), [locale]);
+  const demoSessions = useMemo(() => DEMO_PAST_SESSIONS.map((session) => ({
+    id: session.id,
+    name: session.name[lang],
+    status: 'terminee',
+    challengeCount: session.challengeCount,
+    participationRate: session.participationRate,
+  })), [lang]);
+  const demoMembers = useMemo(() => participants.map((participant) => ({
+    id: participant.id,
+    first_name: participant.name,
+    last_name: '',
+    email: participant.email,
+    job_title: participant.role,
+    department: '',
+  })), [participants]);
   const pariName = getVraiOuMensongeRulesPreset(locale).challengeName;
 
   useEffect(() => {
@@ -121,30 +142,88 @@ export default function DemoClient() {
   }), [objective, targetMinutes]);
 
   const generateProgram = useCallback(() => {
-    setProposal(proposeSessionProgram(catalog, programOptions));
+    const suggested = proposeSessionProgram(catalog, programOptions);
+    const challenges = suggested.challenges.slice(0, challengeLimit);
+    setProposal({
+      ...suggested,
+      challenges,
+      duration: challenges.reduce((total, challenge) => total + getChallengeDuration(challenge), 0),
+    });
     setProgramNotice('');
-  }, [catalog, programOptions]);
+  }, [catalog, challengeLimit, programOptions]);
 
   // Programme suggestions follow the selected criteria, as in the session builder.
   useEffect(() => {
     if (step === 'prepare') generateProgram();
   }, [generateProgram, step]);
 
-  // Only offer a replacement when another challenge fits the remaining time.
-  const replaceableIds = useMemo(() => new Set(
-    (proposal?.challenges || [])
-      .filter((challenge) => replaceProgramChallenge(proposal, challenge.id, catalog, programOptions))
-      .map((challenge) => challenge.id)
-  ), [catalog, programOptions, proposal]);
+  function updateProgramChallenges(challenges) {
+    const limitedChallenges = challenges.slice(0, challengeLimit);
+    setProposal((current) => current && ({
+      ...current,
+      challenges: limitedChallenges,
+      duration: limitedChallenges.reduce((total, challenge) => total + getChallengeDuration(challenge), 0),
+    }));
+    setProgramNotice('');
+  }
 
-  function replaceChallenge(challengeId) {
-    const replacement = replaceProgramChallenge(proposal, challengeId, catalog, programOptions);
-    if (replacement) {
-      setProposal(replacement);
-      setProgramNotice('');
-    } else {
-      setProgramNotice(t('demo.prepare.noReplacement'));
+  function addProgramChallenge(challenge) {
+    if (program.some((item) => String(item.id) === String(challenge.id))) return;
+    if (program.length >= challengeLimit) {
+      setProgramNotice(t('demo.prepare.challengeLimitReached', { count: challengeLimit }));
+      return;
     }
+    updateProgramChallenges([...program, challenge]);
+  }
+
+  function changeChallengeLimit(limit) {
+    setChallengeLimit(limit);
+    setProposal((current) => {
+      if (!current || current.challenges.length <= limit) return current;
+      const challenges = current.challenges.slice(0, limit);
+      return {
+        ...current,
+        challenges,
+        duration: challenges.reduce((total, challenge) => total + getChallengeDuration(challenge), 0),
+      };
+    });
+    setProgramNotice('');
+  }
+
+  function removeProgramChallenge(challengeId) {
+    updateProgramChallenges(program.filter((item) => String(item.id) !== String(challengeId)));
+  }
+
+  function moveProgramChallenge(challengeId, offset) {
+    const from = program.findIndex((item) => String(item.id) === String(challengeId));
+    const to = from + offset;
+    if (from < 0 || to < 0 || to >= program.length) return;
+    const reordered = [...program];
+    [reordered[from], reordered[to]] = [reordered[to], reordered[from]];
+    updateProgramChallenges(reordered);
+  }
+
+  function reorderProgramChallenges(sourceId, targetId) {
+    const from = program.findIndex((item) => String(item.id) === String(sourceId));
+    const to = program.findIndex((item) => String(item.id) === String(targetId));
+    if (from < 0 || to < 0 || from === to) return;
+    const reordered = [...program];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+    updateProgramChallenges(reordered);
+  }
+
+  function toggleCatalogFilter(key, value) {
+    setCatalogFilters((current) => {
+      const selected = current[key];
+      if (!Array.isArray(selected)) return { ...current, [key]: value };
+      return {
+        ...current,
+        [key]: selected.includes(value)
+          ? selected.filter((item) => item !== value)
+          : [...selected, value],
+      };
+    });
   }
 
   // Invite: the participants added in advance connect one by one.
@@ -166,6 +245,7 @@ export default function DemoClient() {
   const handleChallengeComplete = useCallback((summary) => {
     if (!activeChallenge) return;
     setCompletions((previous) => ({ ...previous, [activeChallenge.id]: Number(summary?.completion_percent) || 0 }));
+    setChallengeActions((previous) => ({ ...previous, [activeChallenge.id]: Number(summary?.action_count) || 0 }));
     setActiveDone(true);
   }, [activeChallenge]);
 
@@ -225,8 +305,8 @@ export default function DemoClient() {
   }, []);
 
   const results = useMemo(
-    () => computeDemoResults({ program, completions, visitor: visitorResult }),
-    [completions, program, visitorResult]
+    () => computeDemoResults({ program, completions, actions: challengeActions, visitor: visitorResult }),
+    [challengeActions, completions, program, visitorResult]
   );
 
   function restart() {
@@ -238,6 +318,7 @@ export default function DemoClient() {
     setActiveIndex(0);
     setActiveDone(false);
     setCompletions({});
+    setChallengeActions({});
     setVisitorResult(null);
     setPlayDone(false);
     setStepIndex(0);
@@ -311,65 +392,12 @@ export default function DemoClient() {
         </div>
 
         {step === 'dashboard' ? (
-          <div className={styles.dashboard}>
-            <div className={styles.dashboardHead}>
-              <p className={styles.greeting}>{t('demo.dashboard.greeting')}</p>
-              <Button onClick={() => goToStep('prepare')}>
-                <Plus size={18} aria-hidden="true" />
-                {t('demo.dashboard.create')}
-              </Button>
-            </div>
-            <dl className={styles.statGrid} aria-label={t('demo.dashboard.statsLabel')}>
-              <div className={styles.stat}>
-                <dt>{t('demo.dashboard.statInProgress')}</dt>
-                <dd>0</dd>
-              </div>
-              <div className={styles.stat}>
-                <dt>{t('demo.dashboard.statUpcoming')}</dt>
-                <dd>0</dd>
-              </div>
-              <div className={styles.stat}>
-                <dt>{t('demo.dashboard.statDone')}</dt>
-                <dd>{DEMO_PAST_SESSIONS.length}</dd>
-              </div>
-            </dl>
-            <div className={styles.resultsColumns}>
-              <div className={styles.timelineCard}>
-                <h3 className={styles.cardTitle}>{t('demo.dashboard.sessionsTitle')}</h3>
-                <ul className={styles.timeline}>
-                  {DEMO_PAST_SESSIONS.map((session) => (
-                    <li key={session.id} className={styles.timelineItem} data-state="done">
-                      <span>
-                        <span className={styles.timelineName}>{session.name[lang]}</span>
-                        <span className={styles.itemMeta}>
-                          {t('demo.dashboard.sessionMeta', { count: session.challengeCount, rate: session.participationRate })}
-                        </span>
-                      </span>
-                      <span className={styles.timelineStatus}>{t('demo.dashboard.statusDone')}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className={styles.timelineCard}>
-                <h3 className={styles.cardTitle}>
-                  <Users size={18} aria-hidden="true" />
-                  {t('demo.dashboard.teamTitle')}
-                </h3>
-                <ul className={styles.timeline}>
-                  {participants.map((participant) => (
-                    <li key={participant.id} className={styles.personRow}>
-                      <Avatar name={participant.name} />
-                      <span>
-                        <span className={styles.timelineName}>{participant.name}</span>
-                        <span className={styles.itemMeta}>{participant.role} · {participant.email}</span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <p className={styles.hint}>{t('demo.dashboard.teamHint', { count: DEMO_TEAM_SIZE })}</p>
-              </div>
-            </div>
-          </div>
+          <ManagerHome
+            demoMode
+            demoSessions={demoSessions}
+            demoMembers={demoMembers}
+            onDemoCreateSession={() => goToStep('prepare')}
+          />
         ) : null}
 
         {step === 'prepare' ? (
@@ -390,6 +418,12 @@ export default function DemoClient() {
                 options={DEMO_DURATIONS.map((minutes) => ({ value: minutes, label: t('demo.prepare.minutes', { minutes }) }))}
                 value={targetMinutes}
                 onChange={setTargetMinutes}
+              />
+              <OptionGroup
+                label={t('demo.prepare.challengeCount')}
+                options={[1, 2].map((count) => ({ value: count, label: t(`demo.prepare.challengeCountOption${count}`) }))}
+                value={challengeLimit}
+                onChange={changeChallengeLimit}
               />
               <OptionGroup
                 label={t('demo.prepare.flowMode')}
@@ -413,32 +447,29 @@ export default function DemoClient() {
                   </span>
                 ) : null}
               </div>
-              {program.length ? (
-                <ol className={styles.programList}>
-                  {program.map((challenge) => {
-                    const recommended = resolveChallengePlayerRange(challenge).recommended;
-                    return (
-                      <li key={challenge.id} className={styles.programItem}>
-                        <div>
-                          <p className={styles.programName}>{challenge.name}</p>
-                          <p className={styles.programDescription}>{challenge.description}</p>
-                        </div>
-                        <div className={styles.programTags}>
-                          <span>{t('demo.prepare.minutes', { minutes: getChallengeDuration(challenge) })}</span>
-                          {recommended ? <span>{t('demo.prepare.idealPlayers', { count: recommended })}</span> : null}
-                          {replaceableIds.has(challenge.id) ? (
-                            <button type="button" className={styles.linkButton} onClick={() => replaceChallenge(challenge.id)}>
-                              {t('demo.prepare.replace')}
-                            </button>
-                          ) : null}
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ol>
-              ) : (
-                <p className={styles.emptyText}>{t('demo.prepare.empty')}</p>
-              )}
+              <SelectedChallengesList
+                challenges={program}
+                onConfigure={() => {}}
+                onRemove={removeProgramChallenge}
+                onMoveUp={(challengeId) => moveProgramChallenge(challengeId, -1)}
+                onMoveDown={(challengeId) => moveProgramChallenge(challengeId, 1)}
+                onReorder={reorderProgramChallenges}
+                onClearAll={() => updateProgramChallenges([])}
+              />
+              <ChallengesCatalog
+                challenges={catalog}
+                allChallenges={catalog}
+                selectedIds={program.map((challenge) => challenge.id)}
+                filters={catalogFilters}
+                isLoading={false}
+                onSelect={addProgramChallenge}
+                onDeselect={removeProgramChallenge}
+                onConfigure={() => {}}
+                onFilterChange={(key, value) => setCatalogFilters((current) => ({ ...current, [key]: value }))}
+                onToggleCategory={(value) => toggleCatalogFilter('categories', value)}
+                onToggleObjective={(value) => toggleCatalogFilter('objectives', value)}
+                onResetFilters={() => setCatalogFilters({ categories: [], objectives: [], duration: '' })}
+              />
               {programNotice ? <p className={styles.hint}>{programNotice}</p> : null}
               <p className={styles.hint}>{t('demo.prepare.playNote', { challenge: pariName })}</p>
               <div className={styles.actions}>
@@ -544,6 +575,7 @@ export default function DemoClient() {
               <DemoChallengeStage
                 key={`${seed}-${activeIndex}`}
                 scenario={activeScenario}
+                autoStart={flowMode === 'auto'}
                 locale={locale}
                 displayName="Alex"
                 loadingLabel={t('demo.facilitate.loading')}
@@ -597,9 +629,9 @@ export default function DemoClient() {
                 <p className={styles.kpiDetail}>{t('demo.results.challengesDetail', { minutes: results.totalMinutes })}</p>
               </div>
               <div className={styles.kpi}>
-                <p className={styles.label}>{t('demo.results.completion')}</p>
-                <p className={styles.kpiValue}>{results.averageCompletion} %</p>
-                <p className={styles.kpiDetail}>{t('demo.results.completionDetail')}</p>
+                <p className={styles.label}>{t('demo.results.actions')}</p>
+                <p className={styles.kpiValue}>{results.totalActions}</p>
+                <p className={styles.kpiDetail}>{t('demo.results.actionsDetail')}</p>
               </div>
               <div className={styles.kpi}>
                 <p className={styles.label}>{t('demo.results.yourScore')}</p>

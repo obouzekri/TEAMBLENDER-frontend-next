@@ -61,11 +61,12 @@ for (const objective of DEMO_OBJECTIVES) {
 }
 
 const program = [{ id: 'a', duration: 15 }, { id: 'b', duration: 12 }, { id: 'c', duration: 15 }];
-const results = computeDemoResults({ program, completions: { a: 80, b: 100 }, visitor: { score: 3, rank: 1, total: 4 } });
+const results = computeDemoResults({ program, completions: { a: 80, b: 100 }, actions: { a: 5, b: 7 }, visitor: { score: 3, rank: 1, total: 4 } });
 assert.equal(results.participationRate, 100);
 assert.equal(results.challengesCompleted, 2, 'Skipped challenges have no result');
 assert.equal(results.totalMinutes, 42);
-assert.equal(results.averageCompletion, 90);
+assert.equal(results.totalActions, 12);
+assert.equal(computeDemoResults({ program }).totalActions, 0);
 assert.deepEqual(results.visitor, { score: 3, rank: 1, total: 4 });
 assert.equal(getVisitorResult({ ranking: [{ participant_id: 'x', score: 2, rank: 1 }] }, DEMO_VISITOR_ID), null);
 assert.deepEqual(

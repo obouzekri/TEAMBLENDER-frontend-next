@@ -102,13 +102,13 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         meta: [],
         features: isEn ? [
           '5 users (admins/managers)',
-          'Up to 150 participants',
+          'Up to 150 participants, split into teams of 4 to 6',
           '60 sessions',
           'All features included in the PRO plan',
           'Multi-account manager management',
         ] : [
           '5 utilisateurs (admins/managers)',
-          'Jusqu’à 150 participants',
+          'Jusqu’à 150 participants, répartis en équipes de 4 à 6',
           '60 sessions',
           'Toutes les fonctionnalités incluses dans l’offre PRO',
           'Gestion multi-comptes managers',
@@ -123,7 +123,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       meta: [],
       features: isEn ? [
         '1 user (admin/manager)',
-        'Up to 30 participants',
+        'Up to 30 participants, split into teams of 4 to 6',
         '10 sessions',
         'Full catalog access',
         'Results & scoring',
@@ -132,7 +132,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Insights',
       ] : [
         '1 utilisateur (admin/manager)',
-        'Jusqu’à 30 participants',
+        'Jusqu’à 30 participants, répartis en équipes de 4 à 6',
         '10 sessions',
         'Accès catalogue complet',
         'Résultats et scores',
@@ -153,13 +153,13 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       meta: [],
       features: isEn ? [
         '5 users (admins/managers)',
-        'Up to 150 participants',
+        'Up to 150 participants, split into teams of 4 to 6',
         '60 sessions',
         'All features included in the PRO plan',
         'Multi-account manager management',
       ] : [
         '5 utilisateurs (admins/managers)',
-        'Jusqu’à 150 participants',
+        'Jusqu’à 150 participants, répartis en équipes de 4 à 6',
         '60 sessions',
         'Toutes les fonctionnalités incluses dans l’offre PRO',
         'Gestion multi-comptes managers',
@@ -329,8 +329,8 @@ export default function PricingPageClient({ initialPlans = [] }) {
             <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
             <p className="pricing-hero__context" style={getDarkModeTextStyle()}>
               {isEn
-                ? 'Challenges are optimized for groups of 4 to 6 people. For larger teams, create multiple sessions and run them in parallel.'
-                : 'Les challenges sont optimisés pour des groupes de 4 à 6 personnes. Pour une équipe plus grande, créez plusieurs sessions et lancez-les en parallèle.'}
+                ? 'Challenges are designed for teams of 4 to 6 people. Pro plans support up to 30 or 150 participants, split across multiple teams.'
+                : 'Les challenges sont conçus pour des équipes de 4 à 6 personnes. Les offres Pro accueillent jusqu’à 30 ou 150 participants, répartis en plusieurs équipes.'}
             </p>
           </div>
         </section>
@@ -423,7 +423,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
                 : 'Notre équipe prépare les offres. Contactez-nous pour recevoir une proposition adaptée à votre contexte.'}
             </p>
             <div className="hero-actions">
-              <Link href={withLocalePath('/contact')} className="btn-primary">{isEn ? 'Request a proposal' : 'Demander une proposition'}</Link>
+              <Link href={withLocalePath('/contact')} className="btn-primary">{isEn ? 'Talk to an expert' : 'Parler à un expert'}</Link>
               <Link href={withLocalePath('/signup')} className="btn-secondary">{isEn ? 'Create account' : 'Créer un compte'}</Link>
             </div>
           </section>
@@ -435,9 +435,9 @@ export default function PricingPageClient({ initialPlans = [] }) {
             {displayedPlans.map((plan) => {
               const isFallbackPlan = Boolean(plan?.is_fallback);
               const isContactPlan = Boolean(plan.planCopy.ctaHref) || isFallbackPlan;
-              const ctaLabel = isFallbackPlan
+              const ctaLabel = isContactPlan
                 ? (isEn ? 'Talk to an expert' : 'Parler à un expert')
-                : (isContactPlan ? (plan.planCopy.ctaLabel || (isEn ? 'Contact the team' : 'Contacter l’équipe')) : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant')));
+                : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
               const ctaHref = isContactPlan ? withLocalePath(plan.planCopy.ctaHref || '/contact') : null;
                   const badgeLabel = plan.isFeatured ? (isEn ? 'Most popular' : 'Plus populaire') : '';
 
@@ -510,7 +510,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
                 <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Need support?' : 'Besoin d\'un accompagnement ?'}</p>
                 <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Our team replies within a few hours.' : 'Notre équipe vous répond sous quelques heures.'}</h2>
               </div>
-              <Link href={withLocalePath('/contact')} className="btn-primary pricing-footer-cta__button cta-surface">{isEn ? 'Contact the team' : 'Contacter l\'équipe'}</Link>
+              <Link href={withLocalePath('/contact')} className="btn-primary pricing-footer-cta__button cta-surface">{isEn ? 'Talk to an expert' : 'Parler à un expert'}</Link>
             </div>
           </section>
         ) : null}

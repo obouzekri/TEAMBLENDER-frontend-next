@@ -339,6 +339,58 @@
   background: var(--challenge-panel-bg, linear-gradient(165deg, var(--ch-surface-2), var(--ch-surface-1)));
 }
 
+.disclosureSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.modelDisclosure {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ch-line-soft);
+}
+
+.disclosureSummary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosureSummary::after {
+  content: '+';
+  flex: 0 0 auto;
+  color: var(--ch-accent);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+details[open] > .disclosureSummary::after {
+  content: '\2212';
+}
+
+.disclosureSummary span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.disclosureSummary strong {
+  font-size: 0.94rem;
+}
+
+.disclosureSummary small {
+  color: var(--ch-text-soft);
+  font-size: 0.76rem;
+  font-weight: 400;
+}
+
+.disclosureSummary + .activityList,
+.disclosureSummary + .attemptList {
+  margin-top: 12px;
+}
+
 .panelHead {
   margin-bottom: 10px;
 }
@@ -682,6 +734,10 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+}
+
+.layerQuickListFacilitator {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .layerNavigation {

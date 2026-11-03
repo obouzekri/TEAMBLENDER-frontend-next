@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
@@ -337,25 +337,33 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
   const rowCount = Number(effectiveConfig.grid.rows || 4);
   const colCount = Number(effectiveConfig.grid.cols || 4);
 
+  const boardPanelRef = useRef(null);
   const [cellSize, setCellSize] = useState(108);
 
   useEffect(() => {
+    const boardPanel = boardPanelRef.current;
+    if (!boardPanel) return undefined;
+
     function computeCellSize() {
-      const vpW = window.innerWidth;
       const vpH = window.innerHeight;
-      // Board panel takes most of the viewport width for a larger workspace.
-      const panelW = Math.floor(vpW * 0.74) - 64;
+      const panelStyle = window.getComputedStyle(boardPanel);
+      const panelW = boardPanel.clientWidth - Number.parseFloat(panelStyle.paddingLeft) - Number.parseFloat(panelStyle.paddingRight);
       // Reserve room for the arena title plus facilitator side controls to keep the full view compact.
       const panelH = vpH - (isFacilitator ? 280 : 220);
-      const byWidth = Math.floor(panelW / colCount);
+      const byWidth = Math.floor((panelW - (colCount - 1) * 5) / colCount);
       const byHeight = Math.floor(panelH / rowCount);
       // Cards stay compact by default but still shrink to fit larger grids inside the frame.
-      const computed = Math.max(48, Math.min(128, Math.min(byWidth, byHeight)));
+      const computed = Math.max(1, Math.min(128, byWidth, byHeight));
       setCellSize(computed);
     }
     computeCellSize();
+    const resizeObserver = new ResizeObserver(computeCellSize);
+    resizeObserver.observe(boardPanel);
     window.addEventListener('resize', computeCellSize);
-    return () => window.removeEventListener('resize', computeCellSize);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', computeCellSize);
+    };
   }, [rowCount, colCount, isFacilitator]);
 
   const boardCells = useMemo(() => {
@@ -418,7 +426,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
       </div>
 
       <div className={styles.shell} data-challenge-layout>
-        <section className={styles.boardPanel}>
+        <section ref={boardPanelRef} className={styles.boardPanel}>
           {!hasChallengeStarted ? (
             <ChallengeRulesPanel
               isStarted={false}
@@ -491,7 +499,9 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                               #{getPieceNumber(occupant)}
                             </span>
                           </div>
-                          <span className={styles.pieceLabel}>{isMyPiece ? (isEn ? 'Your piece' : 'Votre pièce') : (isEn ? 'Placed piece' : 'Pièce visible')}</span>
+                          {!isFacilitator ? (
+                            <span className={styles.pieceLabel}>{isMyPiece ? (isEn ? 'Your piece' : 'Votre pièce') : (isEn ? 'Placed piece' : 'Pièce visible')}</span>
+                          ) : null}
                           {isMyPiece && canPlay ? (
                             <span className={styles.removeBtn}>
                               {locale === 'en' ? 'Remove' : 'Retirer'}

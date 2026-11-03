@@ -23,7 +23,7 @@ export default function Footer() {
       label: t('footer.resources'),
       links: [
         { href: withLocalePath('/team-building'), label: locale === 'en' ? 'Team cohesion guide' : "Guide de la cohésion d'équipe" },
-        { href: withLocalePath('/contact'), label: t('footer.askDemo') },
+        { href: withLocalePath('/demo'), label: t('footer.askDemo') },
         { href: withLocalePath('/login'), label: t('footer.clientArea') },
       ],
     },

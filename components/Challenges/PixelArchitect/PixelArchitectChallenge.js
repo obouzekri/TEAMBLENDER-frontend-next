@@ -259,6 +259,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const [selectedColor, setSelectedColor] = useState(FALLBACK_PALETTE[0]);
   const [webglUnavailable, setWebglUnavailable] = useState(false);
   const [isViewportReady, setIsViewportReady] = useState(false);
+  const [isModelSidebarOpen, setIsModelSidebarOpen] = useState(false);
   const [viewportError, setViewportError] = useState('');
   const [isModelMapOpen, setIsModelMapOpen] = useState(false);
   const modelDialogRef = useRef(null);
@@ -279,6 +280,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     context,
     onChallengeCompleted,
   });
+  const [isContributorStatsOpen, setIsContributorStatsOpen] = useState(false);
+  const [isHintHistoryOpen, setIsHintHistoryOpen] = useState(false);
   const timerControls = useFacilitatorTimerControls({ socket, emitEvent, state, isFacilitator });
 
   const pixel = state?.pixel || null;
@@ -845,9 +848,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   }, [hasChallengeStarted]);
 
   useEffect(() => {
+    if (isFacilitator && !isModelSidebarOpen) return () => {};
     if (!modelPreviewRef.current || !canSeeTargetModel || webglUnavailable) return () => {};
     return mountMiniModelScene(modelPreviewRef.current, { gridSize, grid, palette, targetCells, onUnavailable: () => setWebglUnavailable(true) });
-  }, [canSeeTargetModel, grid, gridSize, hasChallengeStarted, palette, targetCells, webglUnavailable]);
+  }, [canSeeTargetModel, grid, gridSize, hasChallengeStarted, isFacilitator, isModelSidebarOpen, palette, targetCells, webglUnavailable]);
 
   useEffect(() => {
     if (!isModelMapOpen || !modelPreviewMobileRef.current || !canSeeTargetModel || webglUnavailable) return () => {};
@@ -1254,8 +1258,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     </span>
                   </label>
                 </div>
-                <div className={styles.layerQuickList}>
-                  {liveLayerBoards.map(({ layer, rows }) => {
+                <div className={`${styles.layerQuickList}${isFacilitator ? ` ${styles.layerQuickListFacilitator}` : ''}`}>
+                  {liveLayerBoards.filter(({ layer }) => !isFacilitator || layer === safeLayer).map(({ layer, rows }) => {
                     const stats = layerStats.find((item) => Number(item.layer) === Number(layer)) || null;
                     const isActive = safeLayer === layer;
                     const claim = layerClaims[String(layer)] || null;
@@ -1402,22 +1406,53 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           </div>
 
           <section className={styles.panel}>
-            <div className={styles.panelHead}>
-              <h2>{isEn ? 'Model map' : 'Carte modèle'}</h2>
-              <p>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z} · {targetCubeCount} {isEn ? 'cubes' : 'cubes cibles'}</p>
-            </div>
-            <div className={styles.modelSidebarViewport}>
-              {canSeeTargetModel && !webglUnavailable ? (
-                <>
-                  <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
-                  <span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span>
-                </>
-              ) : (
-                <p className={styles.modelMiniHidden}>{webglUnavailable && canSeeTargetModel
-                  ? (isEn ? '3D preview unavailable. Use the target layer grids.' : 'Aperçu 3D indisponible. Utilisez les grilles des couches cibles.')
-                  : (isEn ? 'Model hidden for this role' : 'Modèle masqué pour ce rôle')}</p>
-              )}
-            </div>
+            {isFacilitator ? (
+              <details
+                className={styles.modelDisclosure}
+                open={isModelSidebarOpen}
+                onToggle={(event) => setIsModelSidebarOpen(event.currentTarget.open)}
+              >
+                <summary className={styles.disclosureSummary}>
+                  <span>
+                    <strong>{isEn ? 'Model map' : 'Carte modèle'}</strong>
+                    <small>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z}</small>
+                  </span>
+                </summary>
+                {isModelSidebarOpen ? (
+                  <div className={styles.modelSidebarViewport}>
+                    {canSeeTargetModel && !webglUnavailable ? (
+                      <>
+                        <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
+                        <span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span>
+                      </>
+                    ) : (
+                      <p className={styles.modelMiniHidden}>{webglUnavailable && canSeeTargetModel
+                        ? (isEn ? '3D preview unavailable. Use the target layer grids.' : 'Aperçu 3D indisponible. Utilisez les grilles des couches cibles.')
+                        : (isEn ? 'Model hidden for this role' : 'Modèle masqué pour ce rôle')}</p>
+                    )}
+                  </div>
+                ) : null}
+              </details>
+            ) : (
+              <>
+                <div className={styles.panelHead}>
+                  <h2>{isEn ? 'Model map' : 'Carte modèle'}</h2>
+                  <p>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z} · {targetCubeCount} {isEn ? 'cubes' : 'cubes cibles'}</p>
+                </div>
+                <div className={styles.modelSidebarViewport}>
+                  {canSeeTargetModel && !webglUnavailable ? (
+                    <>
+                      <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
+                      <span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span>
+                    </>
+                  ) : (
+                    <p className={styles.modelMiniHidden}>{webglUnavailable && canSeeTargetModel
+                      ? (isEn ? '3D preview unavailable. Use the target layer grids.' : 'Aperçu 3D indisponible. Utilisez les grilles des couches cibles.')
+                      : (isEn ? 'Model hidden for this role' : 'Modèle masqué pour ce rôle')}</p>
+                  )}
+                </div>
+              </>
+            )}
 
             <div className={styles.viewportWrapCompact}>
               <p className={styles.viewportHint}>
@@ -1445,8 +1480,14 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           </section>
 
           {contributorStats.length > 0 ? (
-            <section className={styles.panel}>
-              <h3>{isEn ? 'Team distribution' : 'Répartition de l’équipe'}</h3>
+            <details
+              className={styles.panel}
+              open={!isFacilitator || isContributorStatsOpen}
+              onToggle={(event) => setIsContributorStatsOpen(event.currentTarget.open)}
+            >
+              <summary className={styles.disclosureSummary}>
+                <strong>{isEn ? 'Team distribution' : 'Répartition de l’équipe'}</strong>
+              </summary>
               <ul className={styles.activityList}>
                 {contributorStats.map((item) => (
                   <li key={`contrib-${item.id}`} className={styles.activityItem}>
@@ -1459,12 +1500,18 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   </li>
                 ))}
               </ul>
-            </section>
+            </details>
           ) : null}
 
           {Array.isArray(pixel?.hints) && pixel.hints.length > 0 ? (
-            <section className={styles.panel}>
-              <h3>{isEn ? 'Hint history' : 'Historique des indices'}</h3>
+            <details
+              className={styles.panel}
+              open={!isFacilitator || isHintHistoryOpen}
+              onToggle={(event) => setIsHintHistoryOpen(event.currentTarget.open)}
+            >
+              <summary className={styles.disclosureSummary}>
+                <strong>{isEn ? 'Hint history' : 'Historique des indices'}</strong>
+              </summary>
               <ul className={styles.attemptList}>
                 {pixel.hints.slice(-6).reverse().map((item, index) => (
                   <li key={`hint-${index}`}>
@@ -1472,7 +1519,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   </li>
                 ))}
               </ul>
-            </section>
+            </details>
           ) : null}
 
           {state?.config?.chat?.enabled !== false ? (

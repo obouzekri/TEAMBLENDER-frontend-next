@@ -112,13 +112,21 @@ async function testPhrase(locale, width) {
 async function testCopuzzle(locale, role, width) {
   const engineKey = 'copuzzle_live_v1';
   const pieces = runtime(engineKey).buildPieces({ ...config, participants: { expected_count: 2 } });
-  const fixture = await open(engineKey, { config, timer, puzzle: { pieces } }, { locale, role, width });
+  const testPieces = role === 'manager'
+    ? pieces.map((piece, index) => index === 0 ? { ...piece, current: { x: 0, y: 0 }, placed: true } : piece)
+    : pieces;
+  const fixture = await open(engineKey, { config, timer, puzzle: { pieces: testPieces } }, { locale, role, width });
   const { page } = fixture;
   await page.locator('[class*="boardPanel"]').waitFor();
   const board = await page.locator('[class*="boardPanel"]').boundingBox();
   const side = await page.locator('[class*="sidePanel"]').boundingBox();
   assert.ok(board.width >= (width < 500 ? 300 : 500), `Board width ${board.width}`);
+  const boardOverflow = await page.locator('[class*="boardPanel"]').evaluate((panel) => panel.scrollWidth > panel.clientWidth);
+  assert.equal(boardOverflow, false, 'Puzzle board must fit inside its panel');
   if (width < 500) assert.ok(side.y >= board.y + board.height - 1, 'Sidebar overlaps board');
+  if (role === 'manager') {
+    assert.equal(await page.getByText(locale === 'en' ? 'Placed piece' : 'Pièce visible', { exact: true }).count(), 0);
+  }
   if (role === 'participant') {
     const piece = pieces.find((item) => Number(item.assigned_slot) === 1);
     await page.locator('[class*="trayPiece"]').first().click();
@@ -395,20 +403,32 @@ async function testPixel(locale, width, disableWebgl, role = 'participant') {
   await navigation.waitFor();
   const layers = page.locator('[data-active-layer]');
   const layerCount = await layers.count();
-  assert.ok(layerCount >= 2);
+  assert.ok(layerCount >= (role === 'manager' ? 1 : 2));
   assert.equal(await navigation.getByRole('button').count(), 0, 'Layer navigation uses the selector only');
   const visibleCount = async () => {
     let count = 0;
     for (const card of await layers.all()) if (await card.isVisible()) count += 1;
     return count;
   };
-  assert.equal(await visibleCount(), width < 640 ? 1 : layerCount);
+  assert.equal(await visibleCount(), role === 'manager' || width < 640 ? 1 : layerCount);
   const viewportHeight = await page.locator('[class*="viewport3dCompact"]').evaluate((node) => Number.parseFloat(getComputedStyle(node).height));
   assert.ok(viewportHeight >= (width < 640 ? 320 : width < 980 ? 340 : 360), 'The 3D construction view has enough height');
   await navigation.locator('select').selectOption('1');
   assert.equal(await navigation.locator('select').inputValue(), '1');
-  if (width < 640) assert.ok(await layers.nth(1).isVisible());
+  if (role === 'manager') {
+    assert.equal(await layers.first().getAttribute('aria-label'), locale === 'en' ? 'Layer 2' : 'Couche 2');
+  } else if (width < 640) {
+    assert.ok(await layers.nth(1).isVisible());
+  }
   await navigation.locator('select').selectOption('0');
+  if (role === 'manager' && width >= 980) {
+    const modelDisclosure = page.locator('details').filter({ has: page.locator('summary', { hasText: locale === 'en' ? 'Model map' : 'Carte modèle' }) });
+    assert.equal(await modelDisclosure.locator('[class*="modelSidebarViewport"]').count(), 0, 'The facilitator model preview stays unmounted while collapsed');
+    await modelDisclosure.locator('summary').click();
+    await modelDisclosure.locator('[class*="modelSidebarViewport"]').waitFor();
+    if (!disableWebgl) await modelDisclosure.locator('canvas').waitFor();
+    if (disableWebgl) await modelDisclosure.getByText(locale === 'en' ? /3D preview unavailable/ : /Aperçu 3D indisponible/).waitFor();
+  }
   if (disableWebgl) {
     await page.getByText(locale === 'en' ? /You can keep playing with the layer grids below/ : /Vous pouvez continuer à jouer avec les grilles/).waitFor();
     assert.equal(await page.locator('canvas').count(), 0);
@@ -461,6 +481,7 @@ try {
         await testLab(locale, width);
         await testEscape(locale, width);
         await testPixel(locale, width, false);
+        await testPixel(locale, width, false, 'manager');
       }
     }
   }
