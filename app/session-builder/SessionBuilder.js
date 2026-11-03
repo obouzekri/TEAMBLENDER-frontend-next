@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { Users } from 'lucide-react';
+import { ChevronDown, UserPlus, Users } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
@@ -46,6 +46,19 @@ import {
 } from '@/lib/session-builder/drafts';
 import { useManagerGuard } from '@/lib/session-builder/useManagerGuard';
 import { extractChallengeConfig, normalizeSessionObjectiveValue, pickDisplayName } from '@/lib/session-builder/utils';
+
+function toDateTimeLocalValue(date) {
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}`;
+}
+
+function isPastDateTime(date) {
+  const currentMinute = new Date();
+  currentMinute.setSeconds(0, 0);
+  return date < currentMinute;
+}
 
 export default function SessionBuilder() {
   const { locale, t, withLocalePath } = useI18n();
@@ -91,6 +104,8 @@ export default function SessionBuilder() {
   const [sessionName, setSessionName] = useState('');
   const [flowMode, setFlowMode] = useState('manual');
   const [sessionDateTime, setSessionDateTime] = useState('');
+  // Refreshed on focus rather than at render, so SSR and the browser agree and it stays current.
+  const [minSessionDateTime, setMinSessionDateTime] = useState('');
   const [expectedCount, setExpectedCount] = useState('');
   const [objective, setObjective] = useState('');
   const [editExpectedCount, setEditExpectedCount] = useState('');
@@ -172,7 +187,8 @@ export default function SessionBuilder() {
   const dateError = useMemo(() => {
     if (!creationTouched.sessionDateTime || !sessionDateTime) return '';
     const parsed = new Date(sessionDateTime);
-    return Number.isNaN(parsed.getTime()) ? t('sessionBuilder.invalidDateTimeDetailed') : '';
+    if (Number.isNaN(parsed.getTime())) return t('sessionBuilder.invalidDateTimeDetailed');
+    return isPastDateTime(parsed) ? t('sessionBuilder.pastDateTime') : '';
   }, [creationTouched.sessionDateTime, sessionDateTime, t]);
   const participantsError = '';
   const canCreateSessionNow =
@@ -1069,6 +1085,10 @@ export default function SessionBuilder() {
         showErrorToast(t('sessionBuilder.invalidDateTimeDetailed'));
         return;
       }
+      if (sessionDate && isPastDateTime(sessionDate)) {
+        showErrorToast(t('sessionBuilder.pastDateTime'));
+        return;
+      }
       const token = getAuthToken();
       setIsCreatingSession(true);
       const loadingId = showLoadingToast(t('sessionBuilder.creatingSession'));
@@ -1398,6 +1418,9 @@ export default function SessionBuilder() {
         <main className={creationStyles.page}>
           <div className={creationStyles.container}>
             <h1 className={creationStyles.title}>{t('sessionBuilder.creationTitle')}</h1>
+            <p id="creation-intro" className={creationStyles.intro}>
+              {t('sessionBuilder.creationIntro')}
+            </p>
             <form
               id="create-session-form"
               onSubmit={handleCreateSession}
@@ -1435,8 +1458,11 @@ export default function SessionBuilder() {
                       setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }))
                     }
                     step="60"
-                    inputClassName={styles.creationDateInput}
-                    helpClassName={styles.creationDateHelp}
+                    min={minSessionDateTime || undefined}
+                    onFocus={() => setMinSessionDateTime(toDateTimeLocalValue(new Date()))}
+                    inputClassName={`${creationStyles.dateInput} ${
+                      sessionDateTime ? '' : creationStyles.dateInputEmpty
+                    }`}
                     error={dateError}
                     aria-invalid={Boolean(dateError)}
                   />
@@ -1449,6 +1475,7 @@ export default function SessionBuilder() {
                     label={t('sessionBuilder.creationExpectedCount')}
                     value={expectedCount}
                     onChange={(event) => setExpectedCount(event.target.value)}
+                    placeholder={t('sessionBuilder.expectedCountPlaceholder')}
                     hint={t('sessionBuilder.expectedCountHint')}
                     error={
                       isValidExpectedCount(expectedCount)
@@ -1520,10 +1547,20 @@ export default function SessionBuilder() {
                   className={`${styles.participantsDisclosure} ${creationStyles.disclosure}`}
                 >
                   <summary>
-                    <span>{t('sessionBuilder.prepareAhead')}</span>
-                    <span className={styles.creationParticipantsCount}>
-                      {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
+                    <span className={creationStyles.disclosureLabel}>
+                      <UserPlus size={18} aria-hidden="true" />
+                      {t('sessionBuilder.prepareAhead')}
                     </span>
+                    {draftParticipantIds.length > 0 ? (
+                      <span className={creationStyles.disclosureCount}>
+                        {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
+                      </span>
+                    ) : null}
+                    <ChevronDown
+                      className={creationStyles.disclosureChevron}
+                      size={18}
+                      aria-hidden="true"
+                    />
                   </summary>
                   <p>{t('sessionBuilder.prepareAheadHint')}</p>
                   <p>
@@ -1576,25 +1613,22 @@ export default function SessionBuilder() {
                 >
                   {t('sessionBuilder.cancel')}
                 </Link>
-                <div className={creationStyles.submitGroup}>
-                  <Button
-                    type="submit"
-                    form="create-session-form"
-                    className={creationStyles.submit}
-                    aria-describedby="creation-next-hint"
-                    disabled={!canCreateSessionNow}
-                    title={
-                      !canCreateSessionNow
-                        ? t('sessionBuilder.sessionNameRequired')
-                        : t('sessionBuilder.createSession')
-                    }
-                  >
-                    {isCreatingSession
-                      ? t('sessionBuilder.creating')
-                      : t('sessionBuilder.createSession')}
-                  </Button>
-                  <p id="creation-next-hint">{t('sessionBuilder.creationNextHint')}</p>
-                </div>
+                <Button
+                  type="submit"
+                  form="create-session-form"
+                  className={creationStyles.submit}
+                  aria-describedby="creation-intro"
+                  disabled={!canCreateSessionNow}
+                  title={
+                    !canCreateSessionNow
+                      ? t('sessionBuilder.sessionNameRequired')
+                      : t('sessionBuilder.createSession')
+                  }
+                >
+                  {isCreatingSession
+                    ? t('sessionBuilder.creating')
+                    : t('sessionBuilder.createSession')}
+                </Button>
               </footer>
             </form>
           </div>

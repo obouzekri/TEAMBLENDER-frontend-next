@@ -1045,14 +1045,6 @@
   min-width: 0;
 }
 
-.creationDateInput {
-  padding-right: 1rem;
-}
-
-.creationDateHelp {
-  white-space: nowrap;
-}
-
 .creationOverviewCard {
   display: grid;
   gap: 1.25rem;
