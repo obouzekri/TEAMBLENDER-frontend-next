@@ -7,6 +7,7 @@ import Link from 'next/link';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { clearSessionAuth, getAuthHeaders, getStoredCurrentUser } from '@/lib/auth';
+import { fetchWithCsrfRetry } from '@/lib/csrf';
 import { getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
@@ -116,7 +117,7 @@ export default function SessionLiveClient() {
     setActionPending(true);
     setActionError('');
     try {
-      const res = await fetch(
+      const res = await fetchWithCsrfRetry(
         getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/flow/complete-active`),
         { method: 'PATCH', headers: getAuthHeaders(), credentials: 'include' }
       );

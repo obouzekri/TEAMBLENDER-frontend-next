@@ -4,7 +4,7 @@ import styles from './ChallengeConfigModal.module.css';
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { buildBackendAssetCandidates, getApiUrl, normalizeBackendAssetUrl, normalizeUploadResultUrl } from '@/lib/config';
-import { withCsrfHeaders } from '@/lib/csrf';
+import { fetchWithCsrfRetry, withCsrfHeaders } from '@/lib/csrf';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
@@ -712,7 +712,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     const formData = new FormData();
     formData.append('image', file);
 
-    fetch(getApiUrl('/challenges/upload-image'), {
+    fetchWithCsrfRetry(getApiUrl('/challenges/upload-image'), {
       method: 'POST',
       headers: withCsrfHeaders(),
       credentials: 'include',

@@ -6,7 +6,7 @@ import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import Modal from '@/components/ui/Modal';
 import { getApiUrl, normalizeUploadResultUrl } from '@/lib/config';
-import { withCsrfHeaders } from '@/lib/csrf';
+import { fetchWithCsrfRetry, withCsrfHeaders } from '@/lib/csrf';
 import { clearSessionAuth } from '@/lib/auth';
 import { getStoredCurrentUser as readAuthStoredCurrentUser } from '@/lib/auth-storage';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
@@ -86,12 +86,14 @@ const fetch = (input, options = {}) => {
   const method = String(options.method || 'GET').toUpperCase();
   const headers = new Headers(options.headers || {});
   headers.delete('Authorization');
-  if (method !== 'GET' && method !== 'HEAD') {
-    for (const [name, value] of Object.entries(withCsrfHeaders(Object.fromEntries(headers.entries())))) {
-      headers.set(name, value);
-    }
+  if (method === 'GET' || method === 'HEAD') {
+    return globalThis.fetch(input, { ...options, headers, credentials: 'include' });
   }
-  return globalThis.fetch(input, { ...options, headers, credentials: 'include' });
+  return fetchWithCsrfRetry(input, {
+    ...options,
+    headers: withCsrfHeaders(Object.fromEntries(headers.entries())),
+    credentials: 'include',
+  });
 };
 
 export default function AdminClient() {

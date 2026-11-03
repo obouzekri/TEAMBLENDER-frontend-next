@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import RecoveryLinkDisplay from './RecoveryLinkDisplay';
 import { getAuthHeaders } from '@/lib/auth';
+import { fetchWithCsrfRetry } from '@/lib/csrf';
 import { getApiUrl } from '@/lib/config';
 import { readPersonalLink } from '@/lib/participant-recovery';
 import useI18n from '@/lib/i18n/useI18n';
@@ -30,7 +31,7 @@ export default function ParticipantRecoveryAccess({ sessionId }) {
     setBusy(true);
     setError('');
     try {
-      const res = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/recovery-link`), {
+      const res = await fetchWithCsrfRetry(getApiUrl(`/sessions/${encodeURIComponent(sessionId)}/recovery-link`), {
         method: 'POST', headers: getAuthHeaders(), credentials: 'include',
       });
       const data = await res.json();
