@@ -101,6 +101,7 @@ async function runDemo(browser, locale, viewport, { flowMode, challengeLimit }) 
   await page.getByRole('button', { name: copy.createFromDashboard, exact: true }).click();
   await page.getByRole('button', { name: copy.create, exact: true }).waitFor();
   await page.locator('[data-catalog]').waitFor();
+  assert.equal(await page.locator('[data-activity-id]').count(), 2, 'The programme starts with two challenges');
   await page.getByRole('button', { name: copy[`challengeCountOption${challengeLimit}`], exact: true }).click();
   if (flowMode === 'auto') await page.getByRole('button', { name: copy.automatic, exact: true }).click();
   await snap(page, `${tag}-1-prepare`);

@@ -45,7 +45,7 @@ export default function LandingSessionOutcomes({ outcomesSection }) {
           })}
         </ul>
         {outcomesSection.privacyNote ? (
-          <p className="landing-offer-subtitle">
+          <p className="landing-outcomes-privacy">
             {outcomesSection.privacyNote}{' '}
             <Link href={outcomesSection.privacyHref}>{outcomesSection.privacyLinkLabel}</Link>
           </p>
