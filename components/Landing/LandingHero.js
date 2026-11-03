@@ -94,7 +94,7 @@ export default function LandingHero({
                   src={heroCaptureSrc(locale)}
                   alt={heroCaptureAlt(locale)}
                   width={1600}
-                  height={1106}
+                  height={1027}
                   priority
                   sizes="(max-width: 1024px) 92vw, 46rem"
                   className="landing-hero-product-image"
