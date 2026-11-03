@@ -15,6 +15,7 @@ import SessionPreparation from '@/components/SessionPreparation';
 import Modal from '@/components/ui/Modal';
 import { Button, Input, LoadingState } from '@/components/ui';
 import { clearSessionAuth, getAuthHeaders } from '@/lib/auth';
+import { fetchWithCsrfRetry } from '@/lib/csrf';
 import useToast from '@/lib/useToast';
 import useSessionBuilder from '@/lib/useSessionBuilder';
 import { fetchWithRetry } from '@/lib/api';
@@ -256,7 +257,8 @@ export default function SessionBuilder() {
     const method = String(options.method || 'GET').toUpperCase();
     const cacheBust =
       method === 'GET' ? `${String(path).includes('?') ? '&' : '?'}_t=${Date.now()}` : '';
-    const response = await fetch(getApiUrl(`${path}${cacheBust}`), {
+    const doFetch = method === 'GET' ? fetch : fetchWithCsrfRetry;
+    const response = await doFetch(getApiUrl(`${path}${cacheBust}`), {
       ...options,
       headers: getAuthHeaders(options.headers || {}),
       credentials: 'include',
