@@ -10,6 +10,7 @@ import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import { getApiUrl } from '@/lib/config';
 import useToast from '@/lib/useToast';
 import { fetchSessionsWithRetry } from '@/lib/api';
+import { fetchWithCsrfRetry } from '@/lib/csrf';
 import { clearStoredAuth, getAuthHeaders } from '@/lib/auth';
 import { trackGaEvent, trackProductSessionEvent } from '@/lib/analytics';
 import useI18n from '@/lib/i18n/useI18n';
@@ -661,7 +662,7 @@ export default function ManagerHome() {
 
     setDeletingSessionId(sessionIdentifier);
     try {
-      const response = await fetch(getApiUrl(`/sessions/${encodeURIComponent(sessionIdentifier)}`), {
+      const response = await fetchWithCsrfRetry(getApiUrl(`/sessions/${encodeURIComponent(sessionIdentifier)}`), {
         method: 'DELETE',
         headers: getAuthHeaders(),
         credentials: 'include',
@@ -732,7 +733,7 @@ export default function ManagerHome() {
     setPasswordResetMessage('');
     setMemberFormStatus('');
     try {
-      const response = await fetch(getApiUrl(`/participants/${encodeURIComponent(editingMember.id)}/password-reset-email`), {
+      const response = await fetchWithCsrfRetry(getApiUrl(`/participants/${encodeURIComponent(editingMember.id)}/password-reset-email`), {
         method: 'POST',
         headers: getAuthHeaders(),
         credentials: 'include',
@@ -812,7 +813,7 @@ export default function ManagerHome() {
         department: department || null,
       };
 
-      const response = await fetch(targetUrl, {
+      const response = await fetchWithCsrfRetry(targetUrl, {
         method,
         headers: getAuthHeaders(),
         credentials: 'include',
@@ -920,7 +921,7 @@ export default function ManagerHome() {
 
     setDeletingMemberId(member.id);
     try {
-      const response = await fetch(getApiUrl(`/participants/${encodeURIComponent(member.id)}`), {
+      const response = await fetchWithCsrfRetry(getApiUrl(`/participants/${encodeURIComponent(member.id)}`), {
         method: 'DELETE',
         headers: getAuthHeaders(),
         credentials: 'include',
