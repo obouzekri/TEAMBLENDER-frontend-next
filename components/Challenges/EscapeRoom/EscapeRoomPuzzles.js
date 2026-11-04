@@ -2,10 +2,11 @@
 
 import { useRef, useState } from 'react';
 import styles from './EscapeRoomPuzzles.module.css';
+import { translate } from '@/lib/i18n';
 
 const edgeKey = (a, b) => [a, b].sort().join(':');
 
-export function OneStrokePuzzle({ data, disabled, isEn, onAnswerChange }) {
+export function OneStrokePuzzle({ data, disabled, locale, onAnswerChange }) {
   const [path, setPath] = useState([]);
   const [message, setMessage] = useState('');
   const gesture = useRef(null);
@@ -29,11 +30,11 @@ export function OneStrokePuzzle({ data, disabled, isEn, onAnswerChange }) {
     if (current.length > 0) {
       const key = edgeKey(current[current.length - 1], id);
       if (!edges.some(([a, b]) => edgeKey(a, b) === key)) {
-        setMessage(isEn ? 'These corners are not connected by an edge.' : 'Ces sommets ne sont pas reliés par un trait.');
+        setMessage(translate(locale, 'challengeEscape.theseCornersAreNotConnectedBy'));
         return;
       }
       if (current.slice(1).some((node, i) => edgeKey(current[i], node) === key)) {
-        setMessage(isEn ? 'You have already drawn this edge. Try another route.' : 'Ce trait est déjà tracé. Essayez un autre chemin.');
+        setMessage(translate(locale, 'challengeEscape.youHaveAlreadyDrawnThisEdge'));
         return;
       }
     }
@@ -55,7 +56,7 @@ export function OneStrokePuzzle({ data, disabled, isEn, onAnswerChange }) {
     if (gesture.current?.pointerId !== event.pointerId) return;
     gesture.current = null;
     if (pathRef.current.length !== edges.length + 1) {
-      setMessage(isEn ? 'Stroke interrupted. Restart to draw without lifting.' : 'Trait interrompu. Recommencez pour tracer sans lever le doigt.');
+      setMessage(translate(locale, 'challengeEscape.strokeInterruptedRestartToDrawWithout'));
       onAnswerChange('');
     }
   }
@@ -63,9 +64,7 @@ export function OneStrokePuzzle({ data, disabled, isEn, onAnswerChange }) {
   return (
     <div className={styles.puzzle}>
       <p className={styles.instructions} id="stroke-instructions">
-        {isEn
-          ? 'Drag from corner to corner in one stroke. With a keyboard, activate each corner in order. The crossing is not a stopping point.'
-          : 'Glissez de sommet en sommet en un seul trait. Au clavier, activez les sommets dans l’ordre. Le croisement n’est pas un point d’arrêt.'}
+        {translate(locale, 'challengeEscape.dragFromCornerToCornerIn')}
       </p>
       <div
         className={`${styles.houseBoard}${disabled ? ` ${styles.boardDisabled}` : ''}`}
@@ -75,7 +74,7 @@ export function OneStrokePuzzle({ data, disabled, isEn, onAnswerChange }) {
           const node = nearestNode(event);
           if (!node) return;
           if (pathRef.current.length > 0) {
-            setMessage(isEn ? 'Restart before beginning a new stroke.' : 'Recommencez avant de débuter un nouveau trait.');
+            setMessage(translate(locale, 'challengeEscape.restartBeforeBeginningANewStroke'));
             return;
           }
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -108,7 +107,7 @@ export function OneStrokePuzzle({ data, disabled, isEn, onAnswerChange }) {
             className={`${styles.houseNode}${path[path.length - 1] === node.id ? ` ${styles.currentNode}` : ''}`}
             style={{ left: `${node.x / 3}%`, top: `${node.y / 3}%` }}
             disabled={disabled || complete}
-            aria-label={`${isEn ? 'Corner' : 'Sommet'} ${node.id.toUpperCase()}`}
+            aria-label={`${translate(locale, 'challengeEscape.corner')} ${node.id.toUpperCase()}`}
             onClick={(event) => {
               if (event.detail === 0 && !disabled && !complete) visit(node.id);
             }}
@@ -117,11 +116,11 @@ export function OneStrokePuzzle({ data, disabled, isEn, onAnswerChange }) {
       </div>
       <p className={styles.status} role="status">
         {message || (complete
-          ? (isEn ? 'House complete. You can submit your drawing.' : 'Maison terminée. Vous pouvez soumettre votre dessin.')
-          : `${usedEdges.size}/${edges.length} ${isEn ? 'edges drawn' : 'traits tracés'}`)}
+          ? translate(locale, 'challengeEscape.houseCompleteYouCanSubmitYour')
+          : `${usedEdges.size}/${edges.length} ${translate(locale, 'challengeEscape.edgesDrawn')}`)}
       </p>
       <button className={styles.secondaryButton} type="button" onClick={reset} disabled={disabled}>
-        {isEn ? 'Restart drawing' : 'Recommencer le dessin'}
+        {translate(locale, 'challengeEscape.restartDrawing')}
       </button>
     </div>
   );
@@ -136,7 +135,7 @@ const SYMBOLS = [
   { id: 'close', value: ')', label: ')' }
 ];
 
-export function ArithmeticPuzzle({ data, disabled, isEn, onAnswerChange }) {
+export function ArithmeticPuzzle({ data, disabled, locale, onAnswerChange }) {
   const tokens = [
     ...(data.numbers || []).map((number, i) => ({ id: `number-${i}`, value: String(number), label: String(number), number: true })),
     ...SYMBOLS
@@ -181,15 +180,13 @@ export function ArithmeticPuzzle({ data, disabled, isEn, onAnswerChange }) {
   return (
     <div className={styles.puzzle}>
       <p className={styles.instructions} id="arithmetic-instructions">
-        {isEn
-          ? 'Drag tiles into the 11 slots, or select a tile and then a slot. Click a filled slot without a selection to clear it. Operators and parentheses can be reused.'
-          : 'Glissez les tuiles dans les 11 cases, ou sélectionnez une tuile puis une case. Cliquez sur une case remplie sans sélection pour la vider. Les signes et parenthèses sont réutilisables.'}
+        {translate(locale, 'challengeEscape.dragTilesIntoThe11Slots')}
       </p>
-      <div className={styles.tokenTray} role="group" aria-label={isEn ? 'Available tiles' : 'Tuiles disponibles'}>
+      <div className={styles.tokenTray} role="group" aria-label={translate(locale, 'challengeEscape.availableTiles')}>
         {tokens.map((token, index) => (
           <button
             type="button" key={token.id} className={styles.token}
-            aria-label={token.number ? `${isEn ? 'Number' : 'Chiffre'} ${token.label} (${index + 1})` : `${isEn ? 'Symbol' : 'Signe'} ${token.label}`}
+            aria-label={token.number ? `${translate(locale, 'challengeEscape.number')} ${token.label} (${index + 1})` : `${translate(locale, 'challengeEscape.symbol')} ${token.label}`}
             aria-pressed={selected?.id === token.id}
             disabled={disabled || (token.number && slots.includes(token.id))}
             draggable={!disabled && !(token.number && slots.includes(token.id))}
@@ -199,11 +196,11 @@ export function ArithmeticPuzzle({ data, disabled, isEn, onAnswerChange }) {
           >{token.label}</button>
         ))}
       </div>
-      <div className={styles.expression} role="group" aria-label={isEn ? '11 expression slots' : '11 cases du calcul'} aria-describedby="arithmetic-instructions">
+      <div className={styles.expression} role="group" aria-label={translate(locale, 'challengeEscape.n11ExpressionSlots')} aria-describedby="arithmetic-instructions">
         {slots.map((id, index) => (
           <button
             type="button" key={index} className={styles.slot}
-            aria-label={`${isEn ? 'Slot' : 'Case'} ${index + 1}${id ? ` : ${tokenById(id).label}` : ''}`}
+            aria-label={`${translate(locale, 'challengeEscape.slot')} ${index + 1}${id ? ` : ${tokenById(id).label}` : ''}`}
             disabled={disabled}
             draggable={!disabled && Boolean(id)}
             onDragStart={(event) => beginDrag(event, { id, from: index })}
@@ -220,7 +217,7 @@ export function ArithmeticPuzzle({ data, disabled, isEn, onAnswerChange }) {
                 const next = [...slots];
                 next[index] = null;
                 update(next);
-              } else setMessage(isEn ? 'Select a tile first.' : 'Sélectionnez d’abord une tuile.');
+              } else setMessage(translate(locale, 'challengeEscape.selectATileFirst'));
             }}
             onKeyDown={(event) => {
               if (event.key === 'Delete' || event.key === 'Backspace') {
@@ -235,13 +232,13 @@ export function ArithmeticPuzzle({ data, disabled, isEn, onAnswerChange }) {
       </div>
       <p className={styles.target}>= {data.target}</p>
       <p role="status" className={styles.status}>
-        {message || `${filled}/${slots.length} ${isEn ? 'slots filled' : 'cases remplies'}`}
-        {selected ? ` · ${isEn ? 'Selected tile' : 'Tuile sélectionnée'} : ${tokenById(selected.id).label}` : ''}
+        {message || `${filled}/${slots.length} ${translate(locale, 'challengeEscape.slotsFilled')}`}
+        {selected ? ` · ${translate(locale, 'challengeEscape.selectedTile')} : ${tokenById(selected.id).label}` : ''}
       </p>
       <button className={styles.secondaryButton} type="button" disabled={disabled} onClick={() => {
         update(Array(data.slot_count).fill(null));
         setSelected(null);
-      }}>{isEn ? 'Clear expression' : 'Effacer le calcul'}</button>
+      }}>{translate(locale, 'challengeEscape.clearExpression')}</button>
     </div>
   );
 }

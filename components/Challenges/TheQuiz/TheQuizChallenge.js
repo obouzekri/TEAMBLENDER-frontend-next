@@ -74,7 +74,6 @@ function buildRankMap(entries = []) {
 
 export default function TheQuizChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale, t } = useI18n();
-  const isEn = locale === 'en';
   const rulesPreset = useMemo(() => getTheQuizRulesPreset(locale), [locale]);
   const [forcedPhase, setForcedPhase] = useState('');
   const [displayedPhase, setDisplayedPhase] = useState('lobby');
@@ -408,7 +407,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
     if (renderedPhase === 'question_live') {
       return (
         <QuizQuestionScreen
-          isEn={isEn}
+          locale={locale}
           quiz={phaseQuizView}
           isFacilitator={isFacilitator}
           selectedAnswerIndex={selectedAnswerIndex}
@@ -425,12 +424,12 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
       );
     }
     if (renderedPhase === 'leaderboard_live') {
-      return <QuizLeaderboardScreen isEn={isEn} quiz={phaseQuizView} rankMovementByParticipantId={rankMovementByParticipantId} />;
+      return <QuizLeaderboardScreen locale={locale} quiz={phaseQuizView} rankMovementByParticipantId={rankMovementByParticipantId} />;
     }
     if (renderedPhase === 'question_result') {
       return (
         <QuizQuestionResultScreen
-          isEn={isEn}
+          locale={locale}
           quiz={phaseQuizView}
           mySelectedAnswerIndex={mySelectedAnswerForResult}
           isFacilitator={isFacilitator}
@@ -438,7 +437,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
       );
     }
     if (renderedPhase === 'final_score') {
-      return <QuizFinalScreen isEn={isEn} quiz={phaseQuizView} />;
+      return <QuizFinalScreen locale={locale} quiz={phaseQuizView} />;
     }
 
     return (
@@ -573,7 +572,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 </div>
 
                 {leaderboardVisible && renderedPhase !== 'final_score' ? (
-                  <QuizLeaderboardScreen isEn={isEn} quiz={phaseQuizView} rankMovementByParticipantId={rankMovementByParticipantId} />
+                  <QuizLeaderboardScreen locale={locale} quiz={phaseQuizView} rankMovementByParticipantId={rankMovementByParticipantId} />
                 ) : null}
 
               </div>

@@ -46,7 +46,7 @@ values.set(DISPLAY_PREFERENCES_KEY, 'not-json');
 assert.throws(() => readDisplayPreferences(storage), SyntaxError);
 
 const payloads = [{ id: 42 }, { data: [] }, { data: { rate: 0 } }, { data: { answer_submissions: 0 } }];
-const options = { sessionId: 42, getApiUrl: (path) => path, headers: {}, isEn: false };
+const options = { sessionId: 42, getApiUrl: (path) => path, headers: {}, locale: 'fr' };
 function fixtureFetch({ failureIndex = -1, malformedIndex = -1, invalidJsonIndex = -1 } = {}) {
   let index = 0;
   return async () => {

@@ -3,20 +3,21 @@
 import styles from './TheQuiz.module.css';
 import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import { getQuizOptions, getQuizRankingStatus, normalizeQuizAnswerIndex } from '@/lib/challenges/quiz-utils';
+import { translate } from '@/lib/i18n';
 
-function normalizeQuestion(quiz, isEn = false) {
+function normalizeQuestion(quiz, locale) {
   const source = quiz?.current_question || {};
   const options = getQuizOptions(source);
 
   return {
     id: source?.id || 'question',
-    title: String(source?.question || source?.text || (isEn ? 'Question pending...' : 'Question en attente...')),
+    title: String(source?.question || source?.text || translate(locale, 'challengeQuiz.questionPending')),
     options: options.map((value, index) => ({
       index,
       label: String(value || ''),
     })).slice(0, 4),
-    category: String(source?.category || (isEn ? 'General knowledge' : 'Culture générale')),
-    difficulty: String(source?.difficulty || (isEn ? 'medium' : 'moyen')),
+    category: String(source?.category || translate(locale, 'challengeQuiz.generalKnowledge')),
+    difficulty: String(source?.difficulty || translate(locale, 'challengeQuiz.medium')),
     correctAnswer: normalizeQuizAnswerIndex(source?.correctAnswer, options.length),
   };
 }
@@ -56,7 +57,7 @@ function renderLeaderboardRows({ rows, rankMovementByParticipantId = {}, showMed
 }
 
 export function QuizQuestionScreen({
-  isEn = false,
+  locale,
   isFacilitator = false,
   quiz,
   selectedAnswerIndex,
@@ -70,7 +71,7 @@ export function QuizQuestionScreen({
   participantsTotal,
   onSubmitAnswer,
 }) {
-  const question = normalizeQuestion(quiz, isEn);
+  const question = normalizeQuestion(quiz, locale);
   const optionCount = question.options.length;
   const selectedIndex = normalizeQuizAnswerIndex(selectedAnswerIndex, optionCount);
   const hasSelectedAnswer = selectedIndex !== null;
@@ -107,17 +108,17 @@ export function QuizQuestionScreen({
 
       {isFacilitator ? (
         <p className={styles.facilitatorNotice} role="status">
-          {isEn ? 'Only participants can answer' : 'Seuls les participants peuvent répondre'}
+          {translate(locale, 'challengeQuiz.onlyParticipantsCanAnswer')}
         </p>
       ) : <div className={styles.questionPromptPanel} aria-live="polite">
         <p className={styles.questionPromptState}>{isAnswerLocked
-          ? (isEn ? 'Answer sent and locked' : 'Réponse validée, verrouillée')
+          ? translate(locale, 'challengeQuiz.answerSentAndLocked')
           : !isConnected
-            ? (isEn ? 'Connection unavailable. Waiting to reconnect.' : 'Connexion indisponible. En attente de reconnexion.')
-            : (isEn ? 'Choose your answer' : 'Choisissez votre réponse')}</p>
+            ? translate(locale, 'challengeQuiz.connectionUnavailableWaitingToReconnect')
+            : translate(locale, 'challengeQuiz.chooseYourAnswer')}</p>
       </div>}
 
-      <div className={styles.answerGrid} role={isFacilitator ? 'group' : 'radiogroup'} aria-label={isEn ? 'Possible answers' : 'Réponses possibles'}>
+      <div className={styles.answerGrid} role={isFacilitator ? 'group' : 'radiogroup'} aria-label={translate(locale, 'challengeQuiz.possibleAnswers')}>
         {question.options.map((choice) => {
           if (isFacilitator) {
             return (
@@ -128,7 +129,7 @@ export function QuizQuestionScreen({
             );
           }
           const active = selectedIndex === choice.index;
-          const ariaLabel = `${isEn ? 'Answer' : 'Réponse'} ${String.fromCharCode(65 + choice.index)} ${choice.label}`;
+          const ariaLabel = `${translate(locale, 'challengeQuiz.answer')} ${String.fromCharCode(65 + choice.index)} ${choice.label}`;
           return (
             <button
               key={`${question.id}-${choice.index}`}
@@ -143,7 +144,7 @@ export function QuizQuestionScreen({
             >
               <span className={styles.answerKey}>{String.fromCharCode(65 + choice.index)}</span>
               <span>{choice.label}</span>
-              {active ? <span className={styles.answerSelectedBadge}>{isEn ? 'Selected' : 'Sélectionnée'}</span> : null}
+              {active ? <span className={styles.answerSelectedBadge}>{translate(locale, 'challengeQuiz.selected')}</span> : null}
             </button>
           );
         })}
@@ -156,47 +157,47 @@ export function QuizQuestionScreen({
           onClick={onSubmitAnswer}
           disabled={isAnswerLocked || !isConnected || !hasSelectedAnswer}
         >
-          {isAnswerPending ? (isEn ? 'Awaiting confirmation...' : 'En attente de confirmation...') : isAnswerLocked ? (isEn ? 'Answer confirmed' : 'Réponse confirmée') : (isEn ? 'Submit my answer' : 'Valider ma réponse')}
+          {isAnswerPending ? translate(locale, 'challengeQuiz.awaitingConfirmation') : isAnswerLocked ? translate(locale, 'challengeQuiz.answerConfirmed') : translate(locale, 'challengeQuiz.submitMyAnswer')}
         </button>
       </div> : null}
     </section>
   );
 }
 
-export function QuizLeaderboardScreen({ isEn = false, quiz, rankMovementByParticipantId = {} }) {
+export function QuizLeaderboardScreen({ locale, quiz, rankMovementByParticipantId = {} }) {
   const topRows = (quiz.leaderboard || []).slice(0, 10);
   const status = quiz.leaderboard_status || getQuizRankingStatus(quiz.leaderboard, quiz.phase);
 
   return (
     <section className={styles.rankingCardWrap}>
       <div className={styles.rankingCardHeader}>
-        <h3 className={`${styles.rankingCardTitle} challenge-section-title`}>{isEn ? 'Leaderboard' : 'Classement'}</h3>
-        <span className={styles.rankingMeta}>{isEn ? 'Live update' : 'Mis à jour en direct'}</span>
+        <h3 className={`${styles.rankingCardTitle} challenge-section-title`}>{translate(locale, 'challengeQuiz.leaderboard')}</h3>
+        <span className={styles.rankingMeta}>{translate(locale, 'challengeQuiz.liveUpdate')}</span>
       </div>
       <div className={styles.leaderboardList}>
-        {status === 'ready' ? renderLeaderboardRows({ rows: topRows, rankMovementByParticipantId }) : <QuizRankingNotice isEn={isEn} status={status} />}
+        {status === 'ready' ? renderLeaderboardRows({ rows: topRows, rankMovementByParticipantId }) : <QuizRankingNotice locale={locale} status={status} />}
       </div>
     </section>
   );
 }
 
-function QuizRankingNotice({ isEn, status }) {
+function QuizRankingNotice({ locale, status }) {
   const messages = {
-    pending: isEn ? 'Leaderboard pending: no scores received yet.' : 'Classement en attente : aucun score reçu pour le moment.',
-    empty: isEn ? 'No scores recorded for this quiz.' : 'Aucun score enregistré pour ce quiz.',
-    unavailable: isEn ? 'Leaderboard data unavailable.' : 'Données du classement indisponibles.',
+    pending: translate(locale, 'challengeQuiz.leaderboardPendingNoScoresReceivedYet'),
+    empty: translate(locale, 'challengeQuiz.noScoresRecordedForThisQuiz'),
+    unavailable: translate(locale, 'challengeQuiz.leaderboardDataUnavailable'),
   };
   return <p className={styles.helperText} role="status">{messages[status]}</p>;
 }
 
-export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerIndex = null, isFacilitator = false }) {
+export function QuizQuestionResultScreen({ locale, quiz, mySelectedAnswerIndex = null, isFacilitator = false }) {
   const result = quiz.latest_question_result || {};
-  const currentQuestion = normalizeQuestion({ current_question: result.question || quiz.current_question }, isEn);
+  const currentQuestion = normalizeQuestion({ current_question: result.question || quiz.current_question }, locale);
   const answerIndex = normalizeQuizAnswerIndex(result.correct_choice_index, currentQuestion.options.length)
     ?? currentQuestion.correctAnswer;
   const answerLabel = Number.isInteger(answerIndex) && currentQuestion.options[answerIndex]
     ? currentQuestion.options[answerIndex].label
-    : (isEn ? 'Answer unavailable' : 'Réponse non disponible');
+    : translate(locale, 'challengeQuiz.answerUnavailable');
 
   const myAnswerIndex = normalizeQuizAnswerIndex(mySelectedAnswerIndex, currentQuestion.options.length);
   const hasMyAnswer = myAnswerIndex !== null;
@@ -207,12 +208,12 @@ export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerI
       ? styles.myAnswerBadgeCorrect
       : styles.myAnswerBadgeIncorrect;
   const myAnswerBadgeLabel = !hasMyAnswer
-    ? (isEn ? 'No answer submitted' : 'Aucune réponse envoyée')
+    ? translate(locale, 'challengeQuiz.noAnswerSubmitted')
     : answerIndex === null
-      ? (isEn ? 'Your answer was submitted; result unavailable' : 'Votre réponse a été envoyée ; résultat indisponible')
+      ? translate(locale, 'challengeQuiz.yourAnswerWasSubmittedResultUnavailable')
     : myAnswerIsCorrect
-      ? (isEn ? 'Your answer was correct' : 'Votre réponse est correcte')
-      : (isEn ? 'Your answer was incorrect' : 'Votre réponse est incorrecte');
+      ? translate(locale, 'challengeQuiz.yourAnswerWasCorrect')
+      : translate(locale, 'challengeQuiz.yourAnswerWasIncorrect');
   const explanationText = typeof result.explanation === 'string' ? result.explanation.trim() : '';
   const shouldShowExplanation = Boolean(explanationText && !explanationText.toLowerCase().includes('zone réservée') && !explanationText.toLowerCase().includes('reserved area'));
 
@@ -220,7 +221,7 @@ export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerI
     <section className={styles.screenCard}>
       <div className={styles.screenHeader}>
         <div>
-          <p className={styles.kicker}>{isEn ? 'Question result' : 'Résultat question'}</p>
+          <p className={styles.kicker}>{translate(locale, 'challengeQuiz.questionResult')}</p>
           <h2 className={styles.screenTitle}>{currentQuestion.title}</h2>
         </div>
       </div>
@@ -233,10 +234,10 @@ export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerI
         <div className={styles.answerRevealCard}>
           <span className={styles.answerRevealLabel}>
             <span className={styles.answerStatusIcon} aria-hidden="true">✓</span>
-            {isEn ? 'Correct answer' : 'Bonne réponse'}
+            {translate(locale, 'challengeQuiz.correctAnswer')}
           </span>
           <strong className={styles.correctAnswerValue}>
-            {Number.isInteger(answerIndex) ? `${String.fromCharCode(65 + answerIndex)}. ${answerLabel}` : (isEn ? 'coming soon' : 'à venir')}
+            {Number.isInteger(answerIndex) ? `${String.fromCharCode(65 + answerIndex)}. ${answerLabel}` : translate(locale, 'challengeQuiz.comingSoon')}
           </strong>
         </div>
 
@@ -246,7 +247,7 @@ export function QuizQuestionResultScreen({ isEn = false, quiz, mySelectedAnswerI
   );
 }
 
-export function QuizFinalScreen({ isEn = false, quiz }) {
+export function QuizFinalScreen({ locale, quiz }) {
   const standings = Array.isArray(quiz.final_standings) ? quiz.final_standings : [];
   const status = quiz.final_standings_status || getQuizRankingStatus(quiz.final_standings, 'final_score');
   const questionHistory = Array.isArray(quiz.question_history) ? quiz.question_history : [];
@@ -258,28 +259,28 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
       <ChallengeDebriefHeading />
 
       <div className={styles.finalSummaryGrid} data-debrief-metrics>
-        <article className={styles.metricCard}><span>{isEn ? 'Participants' : 'Participants'}</span><strong>{status === 'ready' ? totalPlayers : '-'}</strong></article>
-        <article className={styles.metricCard}><span>{isEn ? 'Winner' : 'Gagnant'}</span><strong>{winner?.display_name || '-'}</strong></article>
-        <article className={styles.metricCard}><span>{isEn ? 'Winning score' : 'Score gagnant'}</span><strong>{winner ? `${winner.score} pts` : '-'}</strong></article>
+        <article className={styles.metricCard}><span>{translate(locale, 'challengeQuiz.participants')}</span><strong>{status === 'ready' ? totalPlayers : '-'}</strong></article>
+        <article className={styles.metricCard}><span>{translate(locale, 'challengeQuiz.winner')}</span><strong>{winner?.display_name || '-'}</strong></article>
+        <article className={styles.metricCard}><span>{translate(locale, 'challengeQuiz.winningScore')}</span><strong>{winner ? `${winner.score} pts` : '-'}</strong></article>
       </div>
 
       <div className={styles.finalRankingBlock}>
-        <h3>{isEn ? 'Detailed ranking' : 'Classement détaillé'}</h3>
+        <h3>{translate(locale, 'challengeQuiz.detailedRanking')}</h3>
         <div className={styles.rankingList}>
           {status === 'ready' ? renderLeaderboardRows({
             rows: standings,
             rankMovementByParticipantId: {},
             showMedals: false,
-          }) : <QuizRankingNotice isEn={isEn} status={status} />}
+          }) : <QuizRankingNotice locale={locale} status={status} />}
         </div>
       </div>
 
       <div className={styles.finalDebriefBlock}>
-        <h3>{isEn ? 'Final debrief' : 'Débrief final'}</h3>
+        <h3>{translate(locale, 'challengeQuiz.finalDebrief')}</h3>
         <div className={styles.debriefList}>
           {questionHistory.length > 0 ? questionHistory.map((entry) => {
             const sourceQuestion = entry?.question || {};
-            const title = String(sourceQuestion?.question || sourceQuestion?.text || (isEn ? 'Question unavailable' : 'Question indisponible'));
+            const title = String(sourceQuestion?.question || sourceQuestion?.text || translate(locale, 'challengeQuiz.questionUnavailable'));
             const options = Array.isArray(sourceQuestion?.options)
               ? sourceQuestion.options
               : Array.isArray(sourceQuestion?.choices)
@@ -289,18 +290,18 @@ export function QuizFinalScreen({ isEn = false, quiz }) {
               ?? normalizeQuizAnswerIndex(sourceQuestion?.correctAnswer, options.length);
             const answerLabel = Number.isInteger(answerIndex) && options[answerIndex]
               ? `${String.fromCharCode(65 + answerIndex)}. ${String(options[answerIndex] || '')}`
-              : (isEn ? 'Answer unavailable' : 'Réponse indisponible');
+              : translate(locale, 'challengeQuiz.answerUnavailable2');
 
             return (
               <article key={`${entry?.question_id || title}-${entry?.question_index || 0}`} className={styles.debriefCard}>
-                <p className={styles.debriefQuestion}>{`${isEn ? 'Question' : 'Question'} ${Number(entry?.question_index || 0) + 1}`}</p>
+                <p className={styles.debriefQuestion}>{`${translate(locale, 'challengeQuiz.question')} ${Number(entry?.question_index || 0) + 1}`}</p>
                 <h3 className={styles.debriefTitle}>{title}</h3>
-                <p className={styles.debriefAnswer}><strong>{isEn ? 'Correct answer:' : 'Bonne réponse :'}</strong> {answerLabel}</p>
+                <p className={styles.debriefAnswer}><strong>{translate(locale, 'challengeQuiz.correctAnswer2')}</strong> {answerLabel}</p>
                 {entry?.explanation ? <p className={styles.debriefExplanation}>{String(entry.explanation)}</p> : null}
               </article>
             );
           }) : (
-            <p className={styles.helperText}>{isEn ? 'Question recap unavailable for this session.' : 'Le récapitulatif des questions n est pas disponible pour cette session.'}</p>
+            <p className={styles.helperText}>{translate(locale, 'challengeQuiz.questionRecapUnavailableForThisSession')}</p>
           )}
         </div>
       </div>

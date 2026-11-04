@@ -11,6 +11,7 @@ import { clearSessionAuth } from '@/lib/auth';
 import { getStoredCurrentUser as readAuthStoredCurrentUser } from '@/lib/auth-storage';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
+import { formatDate, formatDateTime, NUMERIC_DATE_TIME } from '@/lib/i18n/format';
 import {
   ADMIN_TAB_IDS,
   CHALLENGE_CATEGORY_LABELS,
@@ -98,7 +99,6 @@ const fetch = (input, options = {}) => {
 
 export default function AdminClient() {
   const { locale, withLocalePath, t } = useI18n();
-  const isEn = locale === 'en';
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -182,7 +182,7 @@ export default function AdminClient() {
   const challengeCategoryOptions = useMemo(
     () => CHALLENGE_CATEGORY_OPTIONS.map((option) => ({
       ...option,
-      label: getLocalizedLabel(CHALLENGE_CATEGORY_LABELS[option.value], isEn) || option.label,
+      label: getLocalizedLabel(CHALLENGE_CATEGORY_LABELS[option.value], locale) || option.label,
     })),
     [locale]
   );
@@ -190,7 +190,7 @@ export default function AdminClient() {
   const challengeObjectiveOptions = useMemo(
     () => CHALLENGE_OBJECTIVE_OPTIONS.map((option) => ({
       ...option,
-      label: getLocalizedLabel(CHALLENGE_OBJECTIVE_LABELS[option.value], isEn) || option.label,
+      label: getLocalizedLabel(CHALLENGE_OBJECTIVE_LABELS[option.value], locale) || option.label,
     })),
     [locale]
   );
@@ -1463,14 +1463,14 @@ export default function AdminClient() {
       engine_key: challengeItem.engine_key || '',
       description: challengeItem.description || '',
       engine_config: normalizedEngineConfig,
-      rules_objective: String(resolveLocalizedRuleValue(rulesSource.objective, isEn ? 'en' : 'fr') || ''),
-      rules_facilitator: Array.isArray(resolveLocalizedRuleValue(rulesSource.facilitator, isEn ? 'en' : 'fr'))
-        ? resolveLocalizedRuleValue(rulesSource.facilitator, isEn ? 'en' : 'fr').join('\n')
+      rules_objective: String(resolveLocalizedRuleValue(rulesSource.objective, locale) || ''),
+      rules_facilitator: Array.isArray(resolveLocalizedRuleValue(rulesSource.facilitator, locale))
+        ? resolveLocalizedRuleValue(rulesSource.facilitator, locale).join('\n')
         : '',
-      rules_participant: Array.isArray(resolveLocalizedRuleValue(rulesSource.participant, isEn ? 'en' : 'fr'))
-        ? resolveLocalizedRuleValue(rulesSource.participant, isEn ? 'en' : 'fr').join('\n')
+      rules_participant: Array.isArray(resolveLocalizedRuleValue(rulesSource.participant, locale))
+        ? resolveLocalizedRuleValue(rulesSource.participant, locale).join('\n')
         : '',
-      rules_footnote: String(resolveLocalizedRuleValue(rulesSource.footnote, isEn ? 'en' : 'fr') || ''),
+      rules_footnote: String(resolveLocalizedRuleValue(rulesSource.footnote, locale) || ''),
       player_min: playerRange.min || '',
       player_recommended: playerRange.recommended || '',
       player_max: playerRange.max || '',
@@ -2444,7 +2444,7 @@ export default function AdminClient() {
                           </p>
                         </div>
                         <div style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', textAlign: 'right', flexShrink: 0 }}>
-                          <div>{visit.createdAt ? new Date(visit.createdAt).toLocaleString(isEn ? 'en-US' : 'fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : t('adminConsole.justNow')}</div>
+                          <div>{visit.createdAt ? formatDateTime(visit.createdAt, locale) : t('adminConsole.justNow')}</div>
                           <div>{visit.userRole || 'admin'}</div>
                         </div>
                       </li>
@@ -2558,7 +2558,7 @@ export default function AdminClient() {
                 ) : null}
                 {analyticsSnapshot.generatedAt ? (
                   <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--color-muted, #6b7280)' }}>
-                    {t('adminConsole.generatedAt')} {new Date(analyticsSnapshot.generatedAt).toLocaleString(isEn ? 'en-US' : 'fr-FR')}
+                    {t('adminConsole.generatedAt')} {formatDate(analyticsSnapshot.generatedAt, locale, NUMERIC_DATE_TIME)}
                   </p>
                 ) : null}
                 {analyticsError ? (
@@ -3095,18 +3095,18 @@ export default function AdminClient() {
                       <label>{t('adminConsole.name')}<input value={newSession.name} onChange={(e) => setNewSession((p) => ({ ...p, name: e.target.value }))} required /></label>
                       <label>{t('adminConsole.status')}
                         <select value={newSession.status} onChange={(e) => setNewSession((p) => ({ ...p, status: e.target.value }))}>
-                          <option value="preparee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.preparee, isEn)}</option>
-                          <option value="en_cours">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.en_cours, isEn)}</option>
-                          <option value="terminee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.terminee, isEn)}</option>
+                          <option value="preparee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.preparee, locale)}</option>
+                          <option value="en_cours">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.en_cours, locale)}</option>
+                          <option value="terminee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.terminee, locale)}</option>
                         </select>
                       </label>
                       <label>{t('adminConsole.format')}<input value={newSession.format} onChange={(e) => setNewSession((p) => ({ ...p, format: e.target.value }))} placeholder={t('adminConsole.exampleWorkshop')} /></label>
                       <label>{t('adminConsole.modality')}
                         <select value={newSession.modality} onChange={(e) => setNewSession((p) => ({ ...p, modality: e.target.value }))}>
-                          <option value="">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS[''], isEn)}</option>
-                          <option value="remote">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.remote, isEn)}</option>
-                          <option value="hybrid">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.hybrid, isEn)}</option>
-                          <option value="in-person">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS['in-person'], isEn)}</option>
+                          <option value="">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS[''], locale)}</option>
+                          <option value="remote">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.remote, locale)}</option>
+                          <option value="hybrid">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.hybrid, locale)}</option>
+                          <option value="in-person">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS['in-person'], locale)}</option>
                         </select>
                       </label>
                       <label>{t('adminConsole.date')}<input type="date" value={newSession.session_date} onChange={(e) => setNewSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
@@ -3199,18 +3199,18 @@ export default function AdminClient() {
                         <label>{t('adminConsole.name')}<input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required /></label>
                         <label>{t('adminConsole.status')}
                           <select value={editingSession.status} onChange={(e) => setEditingSession((p) => ({ ...p, status: e.target.value }))}>
-                            <option value="preparee">{getSessionStatusLabel('preparee', isEn)}</option>
-                            <option value="en_cours">{getSessionStatusLabel('en_cours', isEn)}</option>
-                            <option value="terminee">{getSessionStatusLabel('terminee', isEn)}</option>
+                            <option value="preparee">{getSessionStatusLabel('preparee', locale)}</option>
+                            <option value="en_cours">{getSessionStatusLabel('en_cours', locale)}</option>
+                            <option value="terminee">{getSessionStatusLabel('terminee', locale)}</option>
                           </select>
                         </label>
                         <label>{t('adminConsole.format')}<input value={editingSession.format} onChange={(e) => setEditingSession((p) => ({ ...p, format: e.target.value }))} /></label>
                         <label>{t('adminConsole.modality')}
                           <select value={editingSession.modality} onChange={(e) => setEditingSession((p) => ({ ...p, modality: e.target.value }))}>
-                            <option value="">{getSessionModalityLabel('', isEn)}</option>
-                            <option value="remote">{getSessionModalityLabel('remote', isEn)}</option>
-                            <option value="hybrid">{getSessionModalityLabel('hybrid', isEn)}</option>
-                            <option value="in-person">{getSessionModalityLabel('in-person', isEn)}</option>
+                            <option value="">{getSessionModalityLabel('', locale)}</option>
+                            <option value="remote">{getSessionModalityLabel('remote', locale)}</option>
+                            <option value="hybrid">{getSessionModalityLabel('hybrid', locale)}</option>
+                            <option value="in-person">{getSessionModalityLabel('in-person', locale)}</option>
                           </select>
                         </label>
                         <label>{t('adminConsole.date')}<input type="date" value={editingSession.session_date} onChange={(e) => setEditingSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
@@ -3245,9 +3245,9 @@ export default function AdminClient() {
                           <p className="session-title">{s.name || `Session #${s.id}`}</p>
                           <p className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                             <span className={`status-pill status-${s.status || 'preparee'}`}>
-                              {getSessionStatusLabel(s.status, isEn)}
+                              {getSessionStatusLabel(s.status, locale)}
                             </span>
-                            {s.modality ? <span>{t('adminConsole.modality')}: {getSessionModalityLabel(s.modality, isEn) || s.modality}</span> : null}
+                            {s.modality ? <span>{t('adminConsole.modality')}: {getSessionModalityLabel(s.modality, locale) || s.modality}</span> : null}
                           </p>
                         </div>
                         <div className="session-item-actions" style={{ flexShrink: 0 }}>
@@ -3294,21 +3294,21 @@ export default function AdminClient() {
                       <label>{t('adminConsole.name')}<input value={newChallenge.name} onChange={(e) => setNewChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
                       <label>{t('adminConsole.type')}
                         <select value={newChallenge.type} onChange={(e) => setNewChallenge((p) => ({ ...p, type: e.target.value }))}>
-                          <option value="individuel">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.individuel, isEn)}</option>
-                          <option value="equipe">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.equipe, isEn)}</option>
+                          <option value="individuel">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.individuel, locale)}</option>
+                          <option value="equipe">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.equipe, locale)}</option>
                         </select>
                       </label>
                       <label>{t('adminConsole.status')}
                         <select value={newChallenge.status} onChange={(e) => setNewChallenge((p) => ({ ...p, status: e.target.value }))}>
-                          <option value="actif">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.actif, isEn)}</option>
-                          <option value="brouillon">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.brouillon, isEn)}</option>
-                          <option value="archive">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.archive, isEn)}</option>
+                          <option value="actif">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.actif, locale)}</option>
+                          <option value="brouillon">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.brouillon, locale)}</option>
+                          <option value="archive">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.archive, locale)}</option>
                         </select>
                       </label>
                       <label>{t('adminConsole.source')}
                         <select value={newChallenge.source} onChange={(e) => setNewChallenge((p) => ({ ...p, source: e.target.value }))}>
-                          <option value="local">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.local, isEn)}</option>
-                          <option value="external">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.external, isEn)}</option>
+                          <option value="local">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.local, locale)}</option>
+                          <option value="external">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.external, locale)}</option>
                         </select>
                       </label>
                       <label>{t('adminConsole.category')}
@@ -3417,15 +3417,15 @@ export default function AdminClient() {
                         <label>{t('adminConsole.name')}<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
                         <label>{t('adminConsole.type')}
                           <select value={editingChallenge.type} onChange={(e) => setEditingChallenge((p) => ({ ...p, type: e.target.value }))}>
-                            <option value="individuel">{getChallengeTypeLabel('individuel', isEn)}</option>
-                            <option value="equipe">{getChallengeTypeLabel('equipe', isEn)}</option>
+                            <option value="individuel">{getChallengeTypeLabel('individuel', locale)}</option>
+                            <option value="equipe">{getChallengeTypeLabel('equipe', locale)}</option>
                           </select>
                         </label>
                         <label>{t('adminConsole.status')}
                           <select value={editingChallenge.status} onChange={(e) => setEditingChallenge((p) => ({ ...p, status: e.target.value }))}>
-                            <option value="actif">{getChallengeStatusLabel('actif', isEn)}</option>
-                            <option value="brouillon">{getChallengeStatusLabel('brouillon', isEn)}</option>
-                            <option value="archive">{getChallengeStatusLabel('archive', isEn)}</option>
+                            <option value="actif">{getChallengeStatusLabel('actif', locale)}</option>
+                            <option value="brouillon">{getChallengeStatusLabel('brouillon', locale)}</option>
+                            <option value="archive">{getChallengeStatusLabel('archive', locale)}</option>
                           </select>
                         </label>
                         <label>{t('adminConsole.category')}
@@ -3542,7 +3542,7 @@ export default function AdminClient() {
                                 disabled={challengeImageUploadBusy}
                                 style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }}
                               />
-                              {renderUploadInputLabel({ isEn, busy: challengeImageUploadBusy })}
+                              {renderUploadInputLabel({ locale, busy: challengeImageUploadBusy })}
                             </label>
                             {challengeImageUploadError ? (
                               <p className="session-meta" style={{ margin: 0, color: '#b91c1c', fontWeight: 600 }}>{challengeImageUploadError}</p>
@@ -3659,7 +3659,7 @@ export default function AdminClient() {
                                       disabled={challengeImageUploadBusy}
                                       style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }}
                                     />
-                                    {renderUploadInputLabel({ isEn, busy: challengeImageUploadBusy })}
+                                    {renderUploadInputLabel({ locale, busy: challengeImageUploadBusy })}
                                   </label>
 
                                   {String(imageItem.src || '').trim() ? (
@@ -3913,7 +3913,7 @@ export default function AdminClient() {
                       <li key={String(c.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
-                          <p className="session-meta">{getChallengeTypeLabel(c.type, isEn)} · {getChallengeStatusLabel(c.status, isEn)} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
+                          <p className="session-meta">{getChallengeTypeLabel(c.type, locale)} · {getChallengeStatusLabel(c.status, locale)} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
                           {(() => {
                             const playerRange = resolveChallengePlayerRange(c);
                             if (!playerRange.hasRange) return null;
@@ -3992,10 +3992,10 @@ export default function AdminClient() {
                       </div>
                       <label>{t('adminConsole.billingCycle')}
                         <select value={newPricingPlan.billing_cycle} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
-                          <option value="monthly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.monthly, isEn)}</option>
-                          <option value="yearly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.yearly, isEn)}</option>
-                          <option value="one_time">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.one_time, isEn)}</option>
-                          <option value="custom">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.custom, isEn)}</option>
+                          <option value="monthly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.monthly, locale)}</option>
+                          <option value="yearly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.yearly, locale)}</option>
+                          <option value="one_time">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.one_time, locale)}</option>
+                          <option value="custom">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.custom, locale)}</option>
                         </select>
                       </label>
                       <label>{t('adminConsole.ctaButtonLabel')}<input value={newPricingPlan.cta_label} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
@@ -4065,10 +4065,10 @@ export default function AdminClient() {
                         </div>
                         <label>{t('adminConsole.billingCycle')}
                           <select value={editingPricingPlan.billing_cycle} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
-                            <option value="monthly">{getPricingBillingCycleLabel('monthly', isEn)}</option>
-                            <option value="yearly">{getPricingBillingCycleLabel('yearly', isEn)}</option>
-                            <option value="one_time">{getPricingBillingCycleLabel('one_time', isEn)}</option>
-                            <option value="custom">{getPricingBillingCycleLabel('custom', isEn)}</option>
+                            <option value="monthly">{getPricingBillingCycleLabel('monthly', locale)}</option>
+                            <option value="yearly">{getPricingBillingCycleLabel('yearly', locale)}</option>
+                            <option value="one_time">{getPricingBillingCycleLabel('one_time', locale)}</option>
+                            <option value="custom">{getPricingBillingCycleLabel('custom', locale)}</option>
                           </select>
                         </label>
                         <label>{t('adminConsole.ctaButtonLabel')}<input value={editingPricingPlan.cta_label} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
@@ -4124,12 +4124,12 @@ export default function AdminClient() {
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">
                             {plan.name}
-                            {getAdminPricingBadgeLabel(plan, isEn) ? <span className="pricing-badge admin-pricing-inline-badge">{getAdminPricingBadgeLabel(plan, isEn)}</span> : null}
+                            {getAdminPricingBadgeLabel(plan, locale) ? <span className="pricing-badge admin-pricing-inline-badge">{getAdminPricingBadgeLabel(plan, locale)}</span> : null}
                           </p>
                           <p className="session-meta">
-                            {formatPricingPlanAmount(plan, isEn)}
+                            {formatPricingPlanAmount(plan, locale)}
                             {' · '}
-                            {getPricingBillingCycleLabel(plan.billing_cycle, isEn)}
+                            {getPricingBillingCycleLabel(plan.billing_cycle, locale)}
                             {' · '}
                             {plan.is_active ? t('adminConsole.active2') : t('adminConsole.inactive2')}
                           </p>

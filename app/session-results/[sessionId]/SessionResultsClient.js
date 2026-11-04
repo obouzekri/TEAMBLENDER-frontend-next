@@ -11,6 +11,7 @@ import useI18n from '@/lib/i18n/useI18n';
 import { formatDate } from '@/lib/i18n/format';
 import { fetchSessionResults } from '@/lib/session-results';
 import { trackProductSessionEvent } from '@/lib/analytics';
+import { translate } from '@/lib/i18n';
 
 function formatDuration(ms) {
   if (!ms || ms <= 0) return '—';
@@ -20,11 +21,11 @@ function formatDuration(ms) {
   return min > 0 ? `${min}m ${sec}s` : `${sec}s`;
 }
 
-function StatusBadge({ status, isEn }) {
+function StatusBadge({ status, locale }) {
   const map = {
-    completed: { label: isEn ? 'Completed' : 'Terminé', className: 'session-results-status--completed' },
-    in_progress: { label: isEn ? 'In progress' : 'En cours', className: 'session-results-status--in-progress' },
-    abandoned: { label: isEn ? 'Abandoned' : 'Abandonné', className: 'session-results-status--abandoned' },
+    completed: { label: translate(locale, 'sessionResults.completed5'), className: 'session-results-status--completed' },
+    in_progress: { label: translate(locale, 'sessionResults.inProgress'), className: 'session-results-status--in-progress' },
+    abandoned: { label: translate(locale, 'sessionResults.abandoned'), className: 'session-results-status--abandoned' },
   };
   const { label, className } = map[status] || { label: status, className: 'session-results-status--default' };
   return (
@@ -36,7 +37,6 @@ function StatusBadge({ status, isEn }) {
 
 export default function SessionResultsClient() {
   const { locale, withLocalePath, t } = useI18n();
-  const isEn = locale === 'en';
   const params = useParams();
   const sessionId = String(params?.sessionId || '');
 
@@ -75,7 +75,7 @@ export default function SessionResultsClient() {
     setLoading(true);
     setError('');
     try {
-      const data = await fetchSessionResults({ sessionId, getApiUrl, headers: getAuthHeaders(), signal, isEn });
+      const data = await fetchSessionResults({ sessionId, getApiUrl, headers: getAuthHeaders(), signal, locale });
       if (signal?.aborted) return;
       setSession(data.session);
       setResults(data.results);
@@ -322,7 +322,7 @@ export default function SessionResultsClient() {
                           {r.score != null && (
                             <span className="session-results-score">{r.score} {t('sessionResults.pts')}</span>
                           )}
-                          <StatusBadge status={r.status} isEn={isEn} />
+                          <StatusBadge status={r.status} locale={locale} />
                         </div>
                       </div>
                     );

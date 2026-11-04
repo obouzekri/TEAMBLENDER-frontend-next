@@ -193,9 +193,11 @@ function rewriteLocaleFlagParams(code, file, skipped) {
   for (const scope of scopeManager.scopes) {
     if (scope.type !== 'function' || scope.block.type !== 'FunctionDeclaration') continue;
     const fn = scope.block;
-    const index = fn.params.findIndex((param) => param.type === 'Identifier' && /^is(En|Fr)$/.test(param.name));
+    // `isEn` ou `isEn = false`.
+    const flagName = (param) => (param.type === 'AssignmentPattern' ? param.left : param);
+    const index = fn.params.findIndex((param) => flagName(param).type === 'Identifier' && /^is(En|Fr)$/.test(flagName(param).name));
     if (index < 0) continue;
-    const flag = fn.params[index].name;
+    const flag = flagName(fn.params[index]).name;
     const line = fn.loc.start.line;
     if (exported.has(fn.id.name)) {
       skipped.push(`${file}:${line} ${fn.id.name}(…, ${flag}) is exported`);
@@ -211,6 +213,12 @@ function rewriteLocaleFlagParams(code, file, skipped) {
     let ok = calls.length > 0;
     for (const { ref, parentCall } of calls) {
       const arg = parentCall?.arguments[index];
+      // Argument déjà écrit `(locale === 'en')` (prop convertie au passage précédent).
+      const direct = readComparison(arg);
+      if (direct && direct.enFirst === (flag === 'isEn') && direct.localeNode.type === 'Identifier') {
+        replacements.push([arg, direct.localeNode.name]);
+        continue;
+      }
       const argVariable = arg?.type === 'Identifier' && arg.name === flag ? resolve(ref.from, flag) : null;
       const def = argVariable?.defs[0];
       const comparison = def?.type === 'Variable' && def.parent.kind === 'const' ? readComparison(def.node.init) : null;
@@ -227,13 +235,95 @@ function rewriteLocaleFlagParams(code, file, skipped) {
       skipped.push(`${file}:${line} ${fn.id.name}(…, ${flag}) has a call that does not pass a local locale flag`);
       continue;
     }
-    for (const [arg, name] of replacements) out.overwrite(...arg.range, name);
-    out.overwrite(...fn.params[index].range, 'locale');
+    for (const [arg, name] of replacements) {
+      let [start, end] = arg.range;
+      // `(locale === 'en')` en argument : retirer aussi les parenthèses.
+      if (code[start - 1] === '(' && code[end] === ')' && /[,(]$/.test(code.slice(0, start - 1).trimEnd())) {
+        start -= 1;
+        end += 1;
+      }
+      out.overwrite(start, end, name);
+    }
+    const param = fn.params[index];
+    out.overwrite(...param.range, 'locale');
     const variable = scope.set.get(flag);
     for (const ref of variable.references) {
+      if (ref.identifier.range[0] >= param.range[0] && ref.identifier.range[1] <= param.range[1]) continue;
       out.overwrite(...ref.identifier.range, flag === 'isEn' ? "(locale === 'en')" : "(locale === 'fr')");
     }
   }
+  return out.toString();
+}
+
+const flagTest = (flag) => (flag === 'isEn' ? "(locale === 'en')" : "(locale === 'fr')");
+
+// Props de composants : `{ isEn = false }` devient `{ locale }` et `isEn={isEn}` devient `locale={locale}`.
+// Les composants qui reçoivent la prop doivent être migrés dans le même lancement (vérifié par lint:i18n).
+function rewriteLocaleFlagProps(code, file, skipped) {
+  const ast = parse(code);
+  const scopeManager = analyze(ast);
+  const out = new MagicString(code);
+  const parents = new Map();
+  walk(ast, (node, ancestors) => parents.set(node, ancestors.at(-1)));
+  const done = new Set();
+
+  const jsxFlagAttribute = (identifier) => {
+    const container = parents.get(identifier);
+    const attribute = container?.type === 'JSXExpressionContainer' ? parents.get(container) : null;
+    return attribute?.type === 'JSXAttribute' && /^is(En|Fr)$/.test(attribute.name.name) ? attribute : null;
+  };
+
+  // 1. Composants qui reçoivent isEn / isFr en prop déstructurée.
+  for (const scope of scopeManager.scopes) {
+    if (scope.type !== 'function') continue;
+    for (const param of scope.block.params) {
+      if (param.type !== 'ObjectPattern') continue;
+      for (const property of param.properties) {
+        if (property.type !== 'Property' || property.key.type !== 'Identifier' || !/^is(En|Fr)$/.test(property.key.name)) continue;
+        const flag = property.key.name;
+        const local = property.value.type === 'AssignmentPattern' ? property.value.left : property.value;
+        if (local.type !== 'Identifier' || local.name !== flag) continue;
+        const line = property.loc.start.line;
+        if (scope.set.has('locale') || scope.through.some((ref) => ref.identifier.name === 'locale')) {
+          skipped.push(`${file}:${line} prop ${flag} next to an existing \`locale\``);
+          continue;
+        }
+        if (flag === 'isFr') {
+          skipped.push(`${file}:${line} prop isFr (convert by hand)`);
+          continue;
+        }
+        out.overwrite(...property.range, 'locale');
+        for (const ref of scope.set.get(flag).references) {
+          if (ref.identifier.range[0] >= property.range[0] && ref.identifier.range[1] <= property.range[1]) continue;
+          const attribute = jsxFlagAttribute(ref.identifier);
+          if (attribute && attribute.name.name === flag) {
+            out.overwrite(...attribute.range, 'locale={locale}');
+            done.add(attribute);
+          } else if (parents.get(ref.identifier)?.type === 'Property' && parents.get(ref.identifier).shorthand) {
+            out.overwrite(...parents.get(ref.identifier).range, 'locale');
+          } else {
+            out.overwrite(...ref.identifier.range, flagTest(flag));
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Parents qui passent `isEn={isEn}` avec `const isEn = locale === 'en'`.
+  walk(ast, (node) => {
+    if (node.type !== 'JSXAttribute' || done.has(node) || node.name.name !== 'isEn') return;
+    const expression = node.value?.type === 'JSXExpressionContainer' ? node.value.expression : null;
+    if (expression?.type !== 'Identifier') return;
+    const reference = scopeManager.scopes.flatMap((entry) => entry.references).find((ref) => ref.identifier === expression);
+    const def = reference?.resolved?.defs[0];
+    const comparison = def?.type === 'Variable' && def.parent.kind === 'const' ? readComparison(def.node.init) : null;
+    if (!comparison?.enFirst || comparison.localeNode.type !== 'Identifier') {
+      skipped.push(`${file}:${node.loc.start.line} isEn={${expression.name}} is not a local locale flag`);
+      return;
+    }
+    out.overwrite(...node.range, `locale={${comparison.localeNode.name}}`);
+  });
+
   return out.toString();
 }
 
@@ -249,7 +339,7 @@ async function migrate(file, dictionaries) {
   const absolute = path.resolve(rootDir, file);
   const original = await fs.readFile(absolute, 'utf8');
   const skipped = [];
-  const code = rewriteLocaleFlagParams(original, file, skipped);
+  const code = rewriteLocaleFlagProps(rewriteLocaleFlagParams(original, file, skipped), file, skipped);
   const ast = parse(code);
   const scopeManager = analyze(ast);
   const out = new MagicString(code);
