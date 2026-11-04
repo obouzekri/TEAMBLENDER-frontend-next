@@ -105,6 +105,8 @@ export default function ChallengesCatalog({
   onToggleCategory,
   onToggleObjective,
   onResetFilters,
+  showFilters = true,
+  renderToggleAction = (challenge, action) => action,
 }) {
   const { locale, t } = useI18n();
   const isEn = locale === 'en';
@@ -276,7 +278,7 @@ export default function ChallengesCatalog({
       tabIndex={-1}
       data-catalog
     >
-      <div className={styles.filterBar}>
+      {showFilters ? <div className={styles.filterBar}>
         <div className={styles.filterLine} ref={filterMenuRef}>
           <div className={styles.filterControls}>
             <div className={styles.filterDropdownWrap}>
@@ -431,7 +433,7 @@ export default function ChallengesCatalog({
             </button>
           </div>
         </div>
-      </div>
+      </div> : null}
 
       {isLoading ? (
         <div className={styles.skeletonGrid}>
@@ -507,7 +509,7 @@ export default function ChallengesCatalog({
                 </div>
 
                 <div className={styles.cardActions}>
-                  <button
+                  {renderToggleAction(challenge, <button
                     type="button"
                     className={`${styles.toggleAction} ${isSelected ? styles.toggleActionSelected : ''}`}
                     onClick={() => {
@@ -525,8 +527,8 @@ export default function ChallengesCatalog({
                     <span className={styles.toggleActionLabel}>
                       {isSelected ? t('sessionBuilder.catalogRemoveAction') : t('sessionBuilder.catalogAddAction')}
                     </span>
-                  </button>
-                  {isSelected && (
+                  </button>)}
+                  {isSelected && onConfigure && (
                     <Button
                       className={styles.configureAction}
                       variant="secondary"

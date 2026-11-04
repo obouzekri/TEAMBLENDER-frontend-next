@@ -343,16 +343,6 @@
 }
 
 /* The full catalogue scrolls in place instead of stretching the page. */
-.catalogScroll {
-  max-height: min(640px, 70vh);
-  margin: 0 calc(var(--space-2) * -1);
-  padding: var(--space-2);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
 .optionGroup {
   margin: 0;
   padding: 0;
@@ -981,11 +971,7 @@
     backdrop-filter: none;
   }
 
-  .catalogScroll {
-    max-height: 60vh;
-  }
-
-  /* The create button stays reachable under the scrolling catalogue. */
+  /* The create button stays reachable under the catalogue. */
   .programCard .actions {
     position: sticky;
     bottom: 0;
@@ -1103,6 +1089,36 @@
 .hintAnchor[data-placement='top'] .hintBubble::before {
   top: auto;
   bottom: -6px;
+}
+
+.hintAnchor[data-placement='start'] .hintBubble {
+  top: 50%;
+  inset-inline-end: calc(100% + 12px);
+  inset-inline-start: auto;
+  transform: translateY(-50%);
+  animation: none;
+}
+
+.hintAnchor[data-placement='start'] .hintBubble::before {
+  top: calc(50% - 6px);
+  inset-inline-end: -6px;
+  inset-inline-start: auto;
+}
+
+/* No room beside a full-width button: the bubble goes above it. */
+@media (max-width: 760px) {
+  .hintAnchor[data-placement='start'] .hintBubble {
+    top: auto;
+    bottom: calc(100% + 12px);
+    inset-inline-end: 0;
+    transform: none;
+  }
+
+  .hintAnchor[data-placement='start'] .hintBubble::before {
+    top: auto;
+    bottom: -6px;
+    inset-inline-end: 1.25rem;
+  }
 }
 
 .hintIcon {
