@@ -24,7 +24,7 @@
     justify-self: end !important;
     align-items: center !important;
     gap: 0.45rem !important;
-    margin-right: 0.4rem !important;
+    margin-inline-end: 0.4rem !important;
   }
 
   .top-nav--landing .nav-mobile-cta--landing {
@@ -39,8 +39,8 @@
   .top-nav:not(.top-nav--live-inline) .nav-panel {
     position: absolute !important;
     top: calc(100% + 10px) !important;
-    left: 0.65rem !important;
-    right: 0.65rem !important;
+    inset-inline-start: 0.65rem !important;
+    inset-inline-end: 0.65rem !important;
     display: grid !important;
     opacity: 0 !important;
     pointer-events: none !important;
@@ -150,7 +150,7 @@
 
 /* Ensure mobile toggle has breathing room from adjacent CTAs */
 .nav-toggle {
-  margin-left: 0.25rem;
+  margin-inline-start: 0.25rem;
 }
 
 /* Right group: user actions alignment */

@@ -910,7 +910,7 @@ html[data-theme='dark'] .admin-console-layout .list-count{
     overflow-x: auto;
     scroll-snap-type: x proximity;
     padding-bottom: 0.2rem;
-    margin-right: -0.15rem;
+    margin-inline-end: -0.15rem;
     scrollbar-width: none;
   }
 
@@ -1018,8 +1018,8 @@ html[data-theme='dark'] .admin-console-layout .list-count{
 
   .participant-session-card__body,
   .participant-session-card__footer {
-    padding-left: 0.92rem;
-    padding-right: 0.92rem;
+    padding-inline-start: 0.92rem;
+    padding-inline-end: 0.92rem;
   }
 
   .footer-inner {
@@ -1127,7 +1127,7 @@ html[data-theme='dark'] .admin-console-layout .list-count{
   overflow-y: auto;
   width: 100%;
   padding: 0 0.15rem;
-  margin-right: -0.1rem;
+  margin-inline-end: -0.1rem;
   scrollbar-width: thin;
   scrollbar-color: rgba(120, 138, 168, 0.34) transparent;
 }
@@ -1204,8 +1204,8 @@ html[data-theme='dark'] .admin-console-layout .list-count{
 
 .participant-inline-form--modal .participant-form-hint,
 .participant-inline-form--modal .participant-form-status {
-  padding-left: 0.2rem;
-  padding-right: 0.2rem;
+  padding-inline-start: 0.2rem;
+  padding-inline-end: 0.2rem;
 }
 
 .participant-inline-form--modal .participant-form label {

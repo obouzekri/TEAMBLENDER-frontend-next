@@ -2431,7 +2431,7 @@ export default function AdminClient() {
                       {t('adminConsole.totalvisitsVisitsRecordedInTheLast', { totalVisits: adminVisitSummary.totalVisits })}
                     </p>
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', textAlign: 'right' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', textAlign: 'end' }}>
                     <div><strong style={{ color: 'var(--color-primary, #4f46e5)' }}>{adminVisitSummary.totalVisits}</strong> {t('adminConsole.visits')}</div>
                     <div>{adminVisitSummary.uniqueUsers} {t('adminConsole.activeUsers2')}</div>
                   </div>
@@ -2449,7 +2449,7 @@ export default function AdminClient() {
                             {String(visit.eventType || 'page_view').trim() || 'page_view'} · {visit.userEmail || t('adminConsole.unknownUser')}
                           </p>
                         </div>
-                        <div style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', textAlign: 'end', flexShrink: 0 }}>
                           <div>{visit.createdAt ? formatDateTime(visit.createdAt, locale) : t('adminConsole.justNow')}</div>
                           <div>{visit.userRole || 'admin'}</div>
                         </div>
@@ -2641,7 +2641,7 @@ export default function AdminClient() {
                                     background: 'transparent',
                                     padding: 0,
                                     margin: 0,
-                                    textAlign: 'left',
+                                    textAlign: 'start',
                                     cursor: 'pointer',
                                     minWidth: 0,
                                     overflow: 'hidden',

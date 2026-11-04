@@ -444,6 +444,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
               <h2 className={styles.arenaTitle}>{t('challengeCopuzzle.copuzzleArena')}</h2>
               <div
                 className={styles.board}
+                data-board-direction="ltr"
                 style={{
                   gridTemplateColumns: `repeat(${colCount}, ${cellSize}px)`,
                   gridAutoRows: `${cellSize}px`,

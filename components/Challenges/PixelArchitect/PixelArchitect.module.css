@@ -270,7 +270,7 @@
 
 .modelMiniHint {
   position: absolute;
-  right: 8px;
+  inset-inline-end: 8px;
   bottom: 6px;
   font-size: 0.68rem;
   color: #d7edf9;
@@ -438,7 +438,7 @@ details[open] > .disclosureSummary::after {
 
 .howToList {
   margin: 10px 0 0;
-  padding-left: 18px;
+  padding-inline-start: 18px;
   display: grid;
   gap: 5px;
   color: #d8e9f7;
@@ -652,7 +652,7 @@ details[open] > .disclosureSummary::after {
 
 .viewportWatermark {
   position: absolute;
-  right: 10px;
+  inset-inline-end: 10px;
   top: 44px;
   z-index: 2;
   font-size: 0.66rem;
@@ -820,7 +820,7 @@ details[open] > .disclosureSummary::after {
   border-radius: 10px;
   background: rgba(8, 20, 31, 0.9);
   padding: 8px;
-  text-align: left;
+  text-align: start;
   color: #d3e7f7;
   display: grid;
   gap: 6px;
@@ -1139,7 +1139,7 @@ details[open] > .disclosureSummary::after {
 
 .attemptList {
   margin: 8px 0 0;
-  padding-left: 18px;
+  padding-inline-start: 18px;
   display: grid;
   gap: 4px;
 }
@@ -1161,12 +1161,12 @@ details[open] > .disclosureSummary::after {
 .layerSummaryListScrollable {
   max-height: 360px;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-inline-end: 4px;
 }
 
 .layerSummaryCard {
   width: 100%;
-  text-align: left;
+  text-align: start;
   display: grid;
   gap: 5px;
   border: 1px solid rgba(136, 170, 194, 0.22);
@@ -1188,7 +1188,7 @@ details[open] > .disclosureSummary::after {
   border: 0;
   background: transparent;
   color: inherit;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
 }
 
@@ -1360,7 +1360,7 @@ details[open] > .disclosureSummary::after {
     justify-items: end;
     gap: 8px;
     position: fixed;
-    right: 12px;
+    inset-inline-end: 12px;
     bottom: 84px;
     z-index: 95;
   }

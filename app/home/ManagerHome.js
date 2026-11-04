@@ -1320,7 +1320,7 @@ export default function ManagerHome({
 
           <div className="participants-panel-kpis" aria-label={t('managerHome.participantSummary')}>
             <span>
-              {t('managerHome.lengthParticipantValueTotal', { length: members.length, value: members.length > 1 ? 's' : '' })}
+              {t('managerHome.participantsTotal', { count: members.length })}
             </span>
           </div>
 
@@ -1519,7 +1519,7 @@ export default function ManagerHome({
                 autoComplete="username"
                 tabIndex={-1}
                 aria-hidden="true"
-                style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
+                style={{ position: 'absolute', insetInlineStart: '-9999px', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
               />
               <input
                 type="password"
@@ -1527,7 +1527,7 @@ export default function ManagerHome({
                 autoComplete="current-password"
                 tabIndex={-1}
                 aria-hidden="true"
-                style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
+                style={{ position: 'absolute', insetInlineStart: '-9999px', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
               />
               <div className="participant-form-grid">
                 <label>
@@ -1805,8 +1805,8 @@ export default function ManagerHome({
         .manager-home .session-card-mobile-actions--top {
           position: absolute;
           top: 0.5rem;
-          right: 0.5rem;
-          left: auto;
+          inset-inline-end: 0.5rem;
+          inset-inline-start: auto;
         }
 
         @media (max-width: 960px) {

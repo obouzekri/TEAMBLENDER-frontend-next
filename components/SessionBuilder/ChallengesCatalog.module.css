@@ -80,7 +80,7 @@
 }
 
 .filterDropdownButton > span:last-child {
-  margin-left: auto;
+  margin-inline-start: auto;
   color: var(--ink-soft);
 }
 
@@ -96,7 +96,7 @@
 
 .filterDropdownPanel {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: calc(100% + 0.5rem);
   z-index: 40;
   width: 100%;
@@ -155,7 +155,7 @@
   display: flex;
   gap: 0.55rem;
   align-items: center;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .resetIconButton {
@@ -186,7 +186,7 @@
 .resetTooltip {
   position: absolute;
   top: calc(100% + 0.5rem);
-  right: 0;
+  inset-inline-end: 0;
   width: max-content;
   max-width: 220px;
   padding: 0.5rem 0.7rem;
@@ -678,7 +678,7 @@
   }
 
   .filterActions {
-    margin-left: 0;
+    margin-inline-start: 0;
     justify-content: flex-start;
   }
 

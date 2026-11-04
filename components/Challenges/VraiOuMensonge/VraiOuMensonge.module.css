@@ -236,7 +236,7 @@
 
 .orderList {
   margin: 0;
-  padding-left: 20px;
+  padding-inline-start: 20px;
   display: grid;
   gap: 6px;
 }
@@ -253,7 +253,7 @@
   background: linear-gradient(180deg, rgba(17, 28, 43, 0.72), rgba(11, 21, 33, 0.86));
   border-radius: 8px;
   padding: 12px;
-  text-align: left;
+  text-align: start;
   color: #e0eaf2;
   display: grid;
   grid-template-rows: 34px auto auto 1fr;
@@ -734,7 +734,7 @@
   border-radius: 6px;
   border-inline-start: 3px solid var(--accent);
   background: rgba(9, 23, 36, 0.78);
-  text-align: left;
+  text-align: start;
   overflow-wrap: anywhere;
 }
 
@@ -1161,7 +1161,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  text-align: left;
+  text-align: start;
   min-height: 58px;
   justify-content: flex-start;
 }
@@ -1754,7 +1754,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .scoreDeltaChip,
@@ -2121,7 +2121,7 @@
   background: rgba(10, 24, 36, 0.76);
   color: #dfeaf2;
   font-weight: 700;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   box-shadow: 0 12px 26px rgba(2, 9, 16, 0.18);
   transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;

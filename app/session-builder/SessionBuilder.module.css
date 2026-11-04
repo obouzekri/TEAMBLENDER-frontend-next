@@ -44,7 +44,7 @@
 
 .participantsDisclosure summary > span:first-child::before {
   content: '▸';
-  margin-right: 0.45rem;
+  margin-inline-end: 0.45rem;
   transition: transform 0.2s ease;
   display: inline-block;
 }
@@ -324,7 +324,7 @@
   height: 1rem;
   flex: 0 0 auto;
   border: 2px solid currentColor;
-  border-right-color: transparent;
+  border-inline-end-color: transparent;
   border-radius: 50%;
   animation: program-spin 0.7s linear infinite;
 }
@@ -748,7 +748,7 @@
 
   .summaryInviteHeader .summaryInviteCopy {
     white-space: normal;
-    text-align: left;
+    text-align: start;
   }
 
   .summaryInviteControl:not(.summaryInviteCodeControl) {
@@ -822,7 +822,7 @@
 .creationHero::after {
   content: '';
   position: absolute;
-  right: -80px;
+  inset-inline-end: -80px;
   top: -70px;
   width: 220px;
   height: 220px;
@@ -925,7 +925,7 @@
 
 .creationStepperConnector {
   position: absolute;
-  right: -0.4rem;
+  inset-inline-end: -0.4rem;
   top: 50%;
   width: 0.8rem;
   height: 1px;
@@ -1432,7 +1432,7 @@
 .modeSelectedBadge {
   position: absolute;
   top: 0.6rem;
-  right: 0.7rem;
+  inset-inline-end: 0.7rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2391,7 +2391,7 @@
   .creationHero::after {
     width: 140px;
     height: 140px;
-    right: -46px;
+    inset-inline-end: -46px;
     top: -52px;
   }
 

@@ -362,11 +362,11 @@
   grid-template-columns: 1fr;
   max-height: 540px;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-inline-end: 4px;
 }
 
 .taskChip {
-  text-align: left;
+  text-align: start;
   border: 1px solid rgba(145, 174, 196, 0.32);
   border-radius: var(--radius-item);
   padding: 10px;
@@ -833,7 +833,7 @@
 }
 
 .resultScoreLine small {
-  margin-left: 3px;
+  margin-inline-start: 3px;
   color: var(--text-soft);
   font-size: 0.9rem;
 }
@@ -1224,7 +1224,7 @@
 
 .participantTimelineList {
   margin: 0;
-  padding-left: 18px;
+  padding-inline-start: 18px;
   display: grid;
   gap: 4px;
   color: #d7e4ef;
@@ -1250,7 +1250,7 @@
 
 .emptyTimeline ol {
   margin: 0;
-  padding-left: 18px;
+  padding-inline-start: 18px;
   display: grid;
   gap: 5px;
   font-size: 0.84rem;
@@ -1526,7 +1526,7 @@
   background: var(--surface-1);
   color: var(--text-main);
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
@@ -1581,7 +1581,7 @@
   margin-top: 10px;
   max-height: 344px;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-inline-end: 4px;
   scrollbar-gutter: stable;
 }
 
@@ -1598,7 +1598,7 @@
   background: var(--surface-1);
   color: var(--text-main);
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   font-size: 0.9rem;
   transition:
     border-color 160ms ease,
@@ -1615,7 +1615,7 @@
 }
 
 .taskRowAssigned {
-  border-left: 3px solid var(--accent);
+  border-inline-start: 3px solid var(--accent);
   background: var(--surface-2);
 }
 

@@ -26,7 +26,7 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--surface-panel);
-  border-right: 1px solid var(--surface-border);
+  border-inline-end: 1px solid var(--surface-border);
   box-shadow: inset -1px 0 0 var(--surface-border);
   backdrop-filter: blur(12px);
   position: sticky;
@@ -68,12 +68,12 @@ body {
   width: 100%;
   padding: 10px 20px;
   border: none;
-  border-left: 3px solid transparent;
+  border-inline-start: 3px solid transparent;
   background: transparent;
   color: var(--text-muted);
   font-size: 14px;
   font-weight: 500;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -86,7 +86,7 @@ body {
 .admin-nav-button.is-active {
   background: color-mix(in srgb, var(--accent-soft) 68%, transparent);
   color: var(--accent-strong);
-  border-left-color: var(--accent);
+  border-inline-start-color: var(--accent);
   font-weight: 600;
 }
 
@@ -313,7 +313,7 @@ html[data-theme='dark'] .admin-panel-card b {
 }
 
 .admin-pricing-inline-badge {
-  margin-left: 8px;
+  margin-inline-start: 8px;
   vertical-align: middle;
 }
 
@@ -368,7 +368,7 @@ html[data-theme='dark'] .admin-panel-card b {
     min-width: 0;
     height: auto;
     max-height: none;
-    border-right: none;
+    border-inline-end: none;
     border-bottom: 1px solid var(--surface-border);
     position: relative;
   }
@@ -599,13 +599,13 @@ html[data-theme='dark'] .admin-panel-card b {
   .participant-card {
     grid-template-columns: auto minmax(0, 1fr);
     gap: 0.75rem;
-    padding-right: 3.15rem;
+    padding-inline-end: 3.15rem;
   }
 
   .participant-card .team-member-mobile-actions {
     position: absolute;
     top: 0.62rem;
-    right: 0.62rem;
+    inset-inline-end: 0.62rem;
     width: auto;
     margin: 0;
     z-index: 6;
@@ -1031,7 +1031,7 @@ html[data-theme='dark'] .admin-panel-card b {
 
 .pricing-page .pricing-controls__currency {
   justify-content: flex-end;
-  margin-left: 0;
+  margin-inline-start: 0;
 }
 
 .pricing-page .pricing-controls__label,
@@ -1113,8 +1113,8 @@ html[data-theme='dark'] .admin-panel-card b {
 .pricing-page .pricing-empty,
 .pricing-page .feature-card {
   width: min(100%, 1280px);
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline-start: auto;
+  margin-inline-end: auto;
 }
 
 .pricing-page .pricing-hero h1 {
@@ -1288,7 +1288,7 @@ html[data-theme='dark'] .admin-panel-card b {
 
   .pricing-page .pricing-controls__currency {
     justify-items: center;
-    margin-left: 0;
+    margin-inline-start: 0;
   }
 
   .pricing-page .pricing-controls {

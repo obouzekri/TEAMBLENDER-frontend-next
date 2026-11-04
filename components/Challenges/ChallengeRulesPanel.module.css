@@ -99,7 +99,7 @@
   display: grid;
   gap: 5px;
   margin: 0;
-  padding-left: 1.2rem;
+  padding-inline-start: 1.2rem;
 }
 
 .compactRulesSummary li {
@@ -135,7 +135,7 @@
 
 .rulesSection ul {
   list-style: disc;
-  padding-left: 1.2rem;
+  padding-inline-start: 1.2rem;
   display: grid;
   gap: 3px;
 }
@@ -156,7 +156,7 @@
 
 .rulesSection ul {
   margin: 0;
-  padding-left: clamp(16px, 1.2vw, 22px);
+  padding-inline-start: clamp(16px, 1.2vw, 22px);
   color: var(--ch-text-main);
   font-size: 0.85rem;
   display: grid;
@@ -201,7 +201,7 @@
 
 .rulesFacilitator ul {
   margin: 0;
-  padding-left: clamp(16px, 1.2vw, 22px);
+  padding-inline-start: clamp(16px, 1.2vw, 22px);
   display: grid;
   gap: clamp(5px, 0.6vw, 8px);
 }
@@ -410,7 +410,7 @@
   }
 
   .rulesSection ul {
-    padding-left: 16px;
+    padding-inline-start: 16px;
   }
 
   .rulesActionsSticky {

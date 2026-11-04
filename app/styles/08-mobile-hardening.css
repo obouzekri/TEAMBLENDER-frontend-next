@@ -47,8 +47,8 @@
 
   .nav-user-dropdown {
     z-index: 1500;
-    right: 0;
-    left: auto;
+    inset-inline-end: 0;
+    inset-inline-start: auto;
     min-width: min(240px, calc(100vw - 24px));
     max-width: calc(100vw - 24px);
   }
@@ -67,7 +67,7 @@
   .home-sessions-panel .session-card {
     min-width: 0;
     overflow: visible;
-    padding-right: clamp(0.9rem, 2vw, 1rem);
+    padding-inline-end: clamp(0.9rem, 2vw, 1rem);
   }
 
   .home-sessions-panel .session-card-body {
@@ -95,7 +95,7 @@
   .home-sessions-panel .manager-mobile-menu__trigger {
     position: relative;
     z-index: 10000;
-    margin-right: 0;
+    margin-inline-end: 0;
     flex-shrink: 0;
   }
 
@@ -170,7 +170,7 @@
 
   .session-live-header__row2 {
     width: 100%;
-    margin-left: 0;
+    margin-inline-start: 0;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.4rem;
@@ -271,7 +271,7 @@
 .step-index {
   position: absolute;
   top: 1rem;
-  left: 1rem;
+  inset-inline-start: 1rem;
   width: 1.9rem;
   height: 1.9rem;
   display: inline-flex;
@@ -311,7 +311,7 @@
 .home-hero::after {
   content: "";
   position: absolute;
-  right: -80px;
+  inset-inline-end: -80px;
   top: -80px;
   width: 260px;
   height: 260px;
@@ -342,8 +342,8 @@
   width: 100%;
   max-width: 100%;
   min-height: calc(100vh - var(--header-height));
-  margin-left: 0;
-  margin-right: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
   border: 0;
   border-radius: 0;
   background:
@@ -445,7 +445,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-right: -0.42rem;
+  margin-inline-end: -0.42rem;
   border: 2px solid rgba(255, 255, 255, 0.8);
   background: linear-gradient(145deg, #60a5fa 0%, #4f46e5 100%);
   color: #eff6ff;

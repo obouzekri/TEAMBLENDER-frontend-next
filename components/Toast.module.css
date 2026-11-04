@@ -1,7 +1,7 @@
 .toastContainer {
   position: fixed;
   top: 1.5rem;
-  right: 1.5rem;
+  inset-inline-end: 1.5rem;
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -58,28 +58,28 @@
   background-color: var(--toast-success-bg);
   color: var(--toast-success-text);
   border-color: var(--toast-success-border);
-  border-left: 4px solid var(--toast-success-accent);
+  border-inline-start: 4px solid var(--toast-success-accent);
 }
 
 .error {
   background-color: var(--toast-error-bg);
   color: var(--toast-error-text);
   border-color: var(--toast-error-border);
-  border-left: 4px solid var(--toast-error-accent);
+  border-inline-start: 4px solid var(--toast-error-accent);
 }
 
 .info {
   background-color: var(--toast-info-bg);
   color: var(--toast-info-text);
   border-color: var(--toast-info-border);
-  border-left: 4px solid var(--toast-info-accent);
+  border-inline-start: 4px solid var(--toast-info-accent);
 }
 
 .loading {
   background-color: var(--toast-loading-bg);
   color: var(--toast-loading-text);
   border-color: var(--toast-loading-border);
-  border-left: 4px solid var(--toast-loading-accent);
+  border-inline-start: 4px solid var(--toast-loading-accent);
 }
 
 .spinner {
@@ -90,6 +90,22 @@
   border-top-color: currentColor;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+/* Les toasts arrivent du bord de fin de ligne : depuis la gauche en RTL. */
+:global([dir='rtl']) .toast {
+  animation-name: slideInRtl;
+}
+
+@keyframes slideInRtl {
+  from {
+    transform: translateX(-400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes slideIn {
@@ -112,8 +128,8 @@
 @media (max-width: 640px) {
   .toastContainer {
     top: 1rem;
-    right: 1rem;
-    left: 1rem;
+    inset-inline-end: 1rem;
+    inset-inline-start: 1rem;
     max-width: 100%;
   }
 

@@ -118,7 +118,7 @@
 
 .facilitatorDetails ul {
   margin: 0;
-  padding-left: 1.2rem;
+  padding-inline-start: 1.2rem;
   color: #c9ddf0;
   font-size: 0.85rem;
   display: grid;
@@ -138,7 +138,7 @@
 
 .rulesSection ul {
   margin: 0;
-  padding-left: 1.2rem;
+  padding-inline-start: 1.2rem;
   color: #c9ddf0;
   font-size: 0.85rem;
   display: grid;
@@ -159,7 +159,7 @@
   font-size: 0.78rem;
   line-height: 1.5;
   padding: 0.6rem;
-  border-left: 2px solid rgba(125, 211, 252, 0.3);
+  border-inline-start: 2px solid rgba(125, 211, 252, 0.3);
 }
 
 .durationMeta {

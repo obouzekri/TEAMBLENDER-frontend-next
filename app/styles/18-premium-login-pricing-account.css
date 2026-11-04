@@ -98,7 +98,7 @@
 .social-auth-pill {
   position: absolute;
   top: -8px;
-  right: -7px;
+  inset-inline-end: -7px;
   z-index: 2;
   display: inline-flex;
   align-items: center;
@@ -124,7 +124,7 @@
 }
 .social-auth-label {
   flex: 1;
-  text-align: left;
+  text-align: start;
   font-size: 0.9rem;
   font-weight: 600;
   line-height: 1.15;
@@ -179,15 +179,15 @@
 
 .pricing-hero > .grid > :last-child {
   overflow: hidden;
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
+  border-end-start-radius: 24px;
+  border-end-end-radius: 24px;
   max-height: 100%;
 }
 
 .pricing-hero > .grid > :last-child > * {
   display: block;
-  border-bottom-left-radius: inherit;
-  border-bottom-right-radius: inherit;
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
 }
 
 .pricing-hero > .grid > :last-child img {
@@ -333,10 +333,10 @@
 .pricing-card-featured {
   border-top: 3px solid transparent;
   border-image: linear-gradient(90deg, #7B61FF, #5B8CFF) 1;
-  border-top-left-radius: 22px;
-  border-top-right-radius: 22px;
-  border-bottom-left-radius: 22px;
-  border-bottom-right-radius: 22px;
+  border-start-start-radius: 22px;
+  border-start-end-radius: 22px;
+  border-end-start-radius: 22px;
+  border-end-end-radius: 22px;
 }
 
 /* Badge "Recommandé" */
@@ -371,8 +371,8 @@
 .pricing-card .pricing-actions {
   margin-top: auto;
   padding-top: 0.1rem;
-  border-bottom-left-radius: inherit;
-  border-bottom-right-radius: inherit;
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
   overflow: hidden;
   position: relative;
   z-index: 2;
@@ -386,8 +386,8 @@
 .pricing-card .pricing-actions .btn-primary,
 .pricing-card .pricing-actions .btn-secondary,
 .pricing-card .pricing-actions .btn-mini {
-  border-bottom-left-radius: inherit;
-  border-bottom-right-radius: inherit;
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
 }
 
 /* Price number */
@@ -429,7 +429,7 @@
 }
 .pricing-feature-list li {
   position: relative;
-  padding-left: 1.55rem;
+  padding-inline-start: 1.55rem;
   color: #374151;
   font-size: 0.875rem;
   line-height: 1.55;
@@ -437,7 +437,7 @@
 .pricing-feature-list li::before {
   content: '';
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0.3rem;
   width: 1rem;
   height: 1rem;
@@ -508,13 +508,13 @@
   }
 
   :where(html:not([data-theme='light'])) .pricing-card-featured,:where(html:not([data-theme='light'])) .pricing-footer-cta,:where(html:not([data-theme='light'])) .pricing-empty{
-    border-bottom-left-radius: 32px;
-    border-bottom-right-radius: 32px;
+    border-end-start-radius: 32px;
+    border-end-end-radius: 32px;
   }
 
   :where(html:not([data-theme='light'])) .pricing-card .pricing-actions{
-    border-bottom-left-radius: inherit;
-    border-bottom-right-radius: inherit;
+    border-end-start-radius: inherit;
+    border-end-end-radius: inherit;
     overflow: hidden;
   }
 
@@ -547,13 +547,13 @@ html[data-theme='dark'] .pricing-empty{
   html[data-theme='dark'] .pricing-card-featured,
 html[data-theme='dark'] .pricing-footer-cta,
 html[data-theme='dark'] .pricing-empty{
-    border-bottom-left-radius: 32px;
-    border-bottom-right-radius: 32px;
+    border-end-start-radius: 32px;
+    border-end-end-radius: 32px;
   }
 
   html[data-theme='dark'] .pricing-card .pricing-actions{
-    border-bottom-left-radius: inherit;
-    border-bottom-right-radius: inherit;
+    border-end-start-radius: inherit;
+    border-end-end-radius: inherit;
     overflow: hidden;
   }
 
@@ -660,7 +660,7 @@ html[data-theme='dark'] .pricing-card .pricing-actions .btn-secondary{
 }
 
 .account-lock-indicator {
-  margin-left: 0.28rem;
+  margin-inline-start: 0.28rem;
   font-size: 0.82rem;
 }
 
@@ -718,7 +718,7 @@ html[data-theme='dark'] .pricing-card .pricing-actions .btn-secondary{
 .account-plan-pill {
   display: inline-flex;
   align-items: center;
-  margin-left: 0.45rem;
+  margin-inline-start: 0.45rem;
   padding: 0.15rem 0.62rem;
   border-radius: 999px;
   background: #ebe8ff;

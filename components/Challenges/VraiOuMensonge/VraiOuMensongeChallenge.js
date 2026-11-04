@@ -464,7 +464,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const missingParticipants = Math.max(0, minParticipantsRequired - participantCount);
   const startStatusText = canStartChallenge
     ? ''
-    : t('challengeVom.waitingForMissingparticipantsParticipantValue', { missingParticipants, value: missingParticipants > 1 ? 's' : '' });
+    : t('challengeVom.waitingForParticipants', { count: missingParticipants });
   const facilitatorRules = useMemo(
     () => (Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : []),
     [rulesContent?.facilitator]
@@ -515,7 +515,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
   const answeredVotesCount = facilitatorVoteRows.filter((item) => item.hasAnswered).length;
   const totalExpectedVotes = facilitatorVoteRows.length;
-  const voteProgressLabel = `${answeredVotesCount}/${totalExpectedVotes} ${t('challengeVom.responseReceived')}${answeredVotesCount > 1 ? t('challengeVom.s') : ''}`;
+  const voteProgressLabel = t('challengeVom.votesReceived', { count: answeredVotesCount, answered: answeredVotesCount, total: totalExpectedVotes });
 
   const remainingMs = useMemo(() => {
     if (isFacilitatorPaused) {

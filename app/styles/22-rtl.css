@@ -1,0 +1,33 @@
+/*
+ * Droite à gauche (dir="rtl", ex. arabe).
+ * Les marges, positions et alignements utilisent les propriétés logiques (margin-inline-start…) :
+ * ce fichier ne contient que ce qu'elles ne savent pas inverser (translations, icônes).
+ */
+
+/* Police arabe (chargée par next/font dans app/layout.js), seulement pour les pages en arabe. */
+html:lang(ar) {
+  --font-ui: var(--font-arabic), "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--font-arabic), "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-ui);
+}
+
+/* Icônes directionnelles (flèches, chevrons « suivant / retour ») : miroir horizontal. */
+[dir='rtl'] .rtl-flip {
+  display: inline-block;
+  scale: -1 1;
+}
+
+/* Interrupteurs : la pastille glisse vers la gauche quand l'option est activée. */
+[dir='rtl'] .nav-settings-toggle__switch input:checked + .nav-settings-toggle__track::after {
+  transform: translateX(-16px);
+}
+
+[dir='rtl'] .preferences-toggle__switch input:checked + .preferences-toggle__track::after {
+  transform: translateX(-18px);
+}
+
+/* Plateaux de jeu (labyrinthe, grilles, pixels, puzzle) : les coordonnées et les directions
+   (est / ouest, flèches du clavier) restent celles du plateau, quelle que soit la langue. */
+[dir='rtl'] [data-board-direction='ltr'] {
+  direction: ltr;
+}

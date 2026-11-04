@@ -16,6 +16,7 @@ export default function Logo({ size = 'default' }) {
       viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
       xmlns="http://www.w3.org/2000/svg"
       aria-label="TeamBlender"
+      direction="ltr"
     >
       <defs>
         <linearGradient id={gradientId} x1="40" y1="40" x2="100" y2="80" gradientUnits="userSpaceOnUse">

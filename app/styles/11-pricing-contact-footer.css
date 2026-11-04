@@ -628,7 +628,7 @@ html[data-theme='light'] .pricing-page .feature-card {
   }
 
   .auth-tabs-subtitle {
-    text-align: left;
+    text-align: start;
   }
 
   .auth-form {
@@ -682,7 +682,7 @@ html[data-theme='light'] .pricing-page .feature-card {
   font-weight: 600;
   background: var(--error-bg);
   border: 1px solid rgba(239, 68, 68, 0.25);
-  border-left: 4px solid var(--error-line);
+  border-inline-start: 4px solid var(--error-line);
   border-radius: 10px;
   padding: 0.75rem 0.9rem;
 }
@@ -693,7 +693,7 @@ html[data-theme='light'] .pricing-page .feature-card {
   font-weight: 600;
   background: var(--success-bg);
   border: 1px solid rgba(16, 185, 129, 0.22);
-  border-left: 4px solid var(--success-line);
+  border-inline-start: 4px solid var(--success-line);
   border-radius: 10px;
   padding: 0.75rem 0.9rem;
 }
@@ -1036,7 +1036,7 @@ html[data-theme='dark'] .contact-trust-box{
 
 .contact-list {
   margin: 0.75rem 0 0;
-  padding-left: 1.05rem;
+  padding-inline-start: 1.05rem;
   color: var(--ink-soft);
 }
 
@@ -1120,7 +1120,7 @@ html[data-theme='dark'] .contact-trust-box{
   padding: 0;
   background: none;
   font: inherit;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   color: var(--text-muted);
   transition: color 0.16s ease;
@@ -1349,7 +1349,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
   content: "";
   position: absolute;
   top: -60px;
-  right: -30px;
+  inset-inline-end: -30px;
   width: 280px;
   height: 280px;
   border-radius: 50%;
@@ -1370,7 +1370,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
 .home-hero::before {
   content: "";
   position: absolute;
-  right: -80px;
+  inset-inline-end: -80px;
   top: -60px;
   width: 220px;
   height: 220px;
@@ -1498,7 +1498,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
 
 .home-hero-summary__list li {
   position: relative;
-  padding-left: 1rem;
+  padding-inline-start: 1rem;
   color: var(--ink-soft);
   font-size: 0.9rem;
   font-weight: 600;
@@ -1508,7 +1508,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
 .home-hero-summary__list li::before {
   content: "";
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0.48rem;
   width: 0.44rem;
   height: 0.44rem;
@@ -1597,7 +1597,7 @@ html[data-theme='light'] .site-footer .footer-social__link {
 .participants-panel::before {
   content: "";
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0;
   bottom: 0;
   width: 4px;

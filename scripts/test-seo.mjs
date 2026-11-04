@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildPageMetadata, getLanguageAlternates, getPublicSeoRedirectPath, getRobotsDisallowPaths, getRobotsRules, PRIVATE_SEO_PATHS, PUBLIC_PAGE_COPY, PUBLIC_SEO_PATHS } from '../lib/seo.js';
+import { buildPageMetadata, getLanguageAlternates, getPublicSeoLocales, getPublicSeoRedirectPath, getRobotsDisallowPaths, getRobotsRules, PRIVATE_SEO_PATHS, PUBLIC_PAGE_COPY, PUBLIC_SEO_PATHS } from '../lib/seo.js';
 import { getPublicStructuredData } from '../lib/structuredData.js';
 import { HOME_FAQ_BY_LOCALE, TEAM_BUILDING_CONTENT } from '../lib/teamBuildingContent.js';
 import { getTeamBuildingGuide } from '../lib/teamBuildingGuides.js';
@@ -37,7 +37,9 @@ try {
       assert.equal(metadata.robots.index, true);
       assert.equal(metadata.alternates.canonical, getLanguageAlternates(path)[locale]);
       assert.equal(metadata.openGraph.url, metadata.alternates.canonical);
-      assert.deepEqual(Object.keys(metadata.alternates.languages), ['fr', 'en', 'x-default']);
+      // hreflang : seulement les langues qui ont cette page (l'arabe n'a pas encore les guides).
+      assert.deepEqual(Object.keys(metadata.alternates.languages), [...getPublicSeoLocales(path), 'x-default']);
+      assert.deepEqual(getPublicSeoLocales(path).slice(0, 2), ['fr', 'en']);
       assert.ok(copy.keywords.length >= 3 && copy.keywords.length <= 5);
       assert.equal(new Set(copy.keywords).size, copy.keywords.length);
       assert.ok(copy.keywords.every((keyword) => typeof keyword === 'string' && keyword.trim()));
