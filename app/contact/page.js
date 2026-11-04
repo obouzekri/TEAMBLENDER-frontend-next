@@ -11,6 +11,7 @@ import { fetchWithCsrfRetry, withCsrfHeaders } from '@/lib/csrf';
 const COMPANY_SIZES = {
   fr: ['1 à 10 personnes', '11 à 50 personnes', '51 à 200 personnes', '201 à 500 personnes', '500+ personnes'],
   en: ['1 to 10 people', '11 to 50 people', '51 to 200 people', '201 to 500 people', '500+ people'],
+  ar: ['من 1 إلى 10 أشخاص', 'من 11 إلى 50 شخصًا', 'من 51 إلى 200 شخص', 'من 201 إلى 500 شخص', 'أكثر من 500 شخص'],
 };
 
 export default function ContactPage() {

@@ -15,6 +15,7 @@ export function GET() {
     sections.push(`## ${getLocaleMeta(locale).name}`, '');
     for (const path of PUBLIC_SEO_PATHS) {
       const copy = PUBLIC_PAGE_COPY[locale][path];
+      if (!copy) continue;
       sections.push(`- [${copy.title}](${origin}${withLocalePath(locale, path)}): ${copy.description}`);
     }
     sections.push('');
