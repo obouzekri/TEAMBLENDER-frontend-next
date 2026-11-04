@@ -11,7 +11,7 @@ export default function LandingStickyCta({ locale, isVisible, heroPrimaryHref, o
     <div className="landing-sticky-cta" role="region" aria-label={translate(locale, 'landingUi.quickSignupAction')}>
       <Link href={heroPrimaryHref} onClick={onPrimaryCtaClick} className="landing-sticky-cta__button">
         <span>{translate(locale, 'landingUi.getStartedFree')}</span>
-        <ArrowRight className="h-4 w-4" />
+        <ArrowRight className="rtl-flip h-4 w-4" />
       </Link>
     </div>
   );

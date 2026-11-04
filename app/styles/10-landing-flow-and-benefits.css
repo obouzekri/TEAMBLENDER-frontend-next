@@ -22,7 +22,7 @@
 
 .flow-index {
   position: absolute;
-  left: 1rem;
+  inset-inline-start: 1rem;
   top: 1rem;
   color: var(--accent-violet-strong);
   font-weight: 800;
@@ -1097,8 +1097,8 @@
 .landing-flow-timeline::before {
   content: "";
   position: absolute;
-  left: 16%;
-  right: 16%;
+  inset-inline-start: 16%;
+  inset-inline-end: 16%;
   top: 2rem;
   height: 2px;
   background: linear-gradient(90deg, rgba(99, 102, 241, 0.62), rgba(14, 165, 233, 0.58), rgba(51, 65, 85, 0.56));
@@ -1168,8 +1168,8 @@
 
 .landing-cta-primary {
   min-height: 3.5rem;
-  padding-left: 1.3rem;
-  padding-right: 1.3rem;
+  padding-inline-start: 1.3rem;
+  padding-inline-end: 1.3rem;
   background: linear-gradient(135deg, #14b8a6 0%, #0f766e 55%, #0ea5e9 100%);
   box-shadow: 0 20px 42px rgba(53, 160, 255, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.18) inset;
 }
@@ -1316,11 +1316,11 @@
   }
 
   .landing-values-timeline {
-    padding-left: 1.5rem;
+    padding-inline-start: 1.5rem;
   }
 
   .landing-values-step-dot {
-    left: -1.25rem;
+    inset-inline-start: -1.25rem;
   }
 
   .landing-section-title {
@@ -1423,26 +1423,26 @@
   }
 
   .landing-hero-product-overlay {
-    left: 0.75rem;
+    inset-inline-start: 0.75rem;
     bottom: 0.75rem;
     font-size: 0.72rem;
   }
 
   .landing-hero-product-motion {
-    right: 0.75rem;
+    inset-inline-end: 0.75rem;
     top: 0.75rem;
   }
 
   .landing-flow-timeline {
     grid-template-columns: 1fr;
     gap: 0.9rem;
-    padding-left: 1.35rem;
+    padding-inline-start: 1.35rem;
   }
 
   .landing-flow-timeline::before {
     content: "";
-    left: 0.45rem;
-    right: auto;
+    inset-inline-start: 0.45rem;
+    inset-inline-end: auto;
     top: 0.8rem;
     bottom: 0.8rem;
     width: 2px;
@@ -1450,14 +1450,14 @@
   }
 
   .landing-flow-node {
-    padding-left: 1rem;
+    padding-inline-start: 1rem;
     align-items: stretch;
   }
 
   .landing-flow-node::before {
     content: "";
     position: absolute;
-    left: -0.02rem;
+    inset-inline-start: -0.02rem;
     top: 1.35rem;
     width: 0.82rem;
     height: 0.82rem;
@@ -1680,7 +1680,7 @@
 
 .pricing-feature-list li {
   position: relative;
-  padding-left: 1.2rem;
+  padding-inline-start: 1.2rem;
   color: var(--ink-soft);
   line-height: 1.5;
 }
@@ -1688,7 +1688,7 @@
 .pricing-feature-list li::before {
   content: '';
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0.48rem;
   width: 0.46rem;
   height: 0.46rem;

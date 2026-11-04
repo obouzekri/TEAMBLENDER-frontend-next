@@ -146,7 +146,7 @@
 .objectives label:has(input:checked) span::before {
   content: '✓';
   content: '✓' / '';
-  margin-right: 0.4rem;
+  margin-inline-end: 0.4rem;
   font-weight: 700;
 }
 
@@ -297,7 +297,7 @@
 
 .disclosureChevron {
   flex-shrink: 0;
-  margin-left: auto;
+  margin-inline-start: auto;
   transition: transform 0.2s ease;
 }
 

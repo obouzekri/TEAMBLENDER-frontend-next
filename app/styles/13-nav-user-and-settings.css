@@ -9,7 +9,7 @@
 }
 
 .nav-user-trigger-wrap--push {
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .nav-user-trigger {
@@ -70,7 +70,7 @@
 .nav-user-dropdown {
   position: absolute;
   top: calc(100% + 9px);
-  right: 0;
+  inset-inline-end: 0;
   width: 220px;
   min-width: 220px;
   max-width: min(220px, calc(100vw - 24px));
@@ -142,7 +142,7 @@
   background: transparent;
   border: 0;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   transition: background 0.13s ease, color 0.13s ease, transform 0.12s ease;
 }
 
@@ -554,7 +554,7 @@ html[data-theme='light'] .nav-toggle {
   content: "";
   position: absolute;
   top: 3px;
-  left: 3px;
+  inset-inline-start: 3px;
   width: 14px;
   height: 14px;
   border-radius: 999px;
@@ -715,7 +715,7 @@ html[data-theme='light'] .nav-toggle {
 .manager-mobile-menu__dropdown {
   position: absolute;
   top: calc(100% + 0.4rem);
-  right: 0;
+  inset-inline-end: 0;
   min-width: 190px;
   padding: 0.3rem;
   z-index: 500;
@@ -743,7 +743,7 @@ html[data-theme='light'] .nav-toggle {
   background: transparent;
   color: var(--ink);
   text-decoration: none;
-  text-align: left;
+  text-align: start;
   font-size: 0.86rem;
   font-weight: 600;
   cursor: pointer;

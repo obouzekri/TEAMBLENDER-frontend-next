@@ -129,14 +129,14 @@
   width: 220px;
   height: 220px;
   top: -78px;
-  right: -64px;
+  inset-inline-end: -64px;
   background: radial-gradient(circle, rgba(53, 160, 255, 0.18), transparent 68%);
 }
 
 .auth-showcase-card::after {
   width: 240px;
   height: 240px;
-  left: -90px;
+  inset-inline-start: -90px;
   bottom: -110px;
   background: radial-gradient(circle, rgba(124, 58, 237, 0.14), transparent 70%);
 }
@@ -371,7 +371,7 @@
   margin: 0.55rem 0 0;
   color: #526079;
   font-size: 0.78rem;
-  text-align: left;
+  text-align: start;
 }
 
 .auth-field-grid--join {
@@ -424,7 +424,7 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .auth-input-status {
@@ -486,7 +486,7 @@
 }
 
 .auth-field--password .auth-input-shell {
-  padding-right: 0.45rem;
+  padding-inline-end: 0.45rem;
 }
 
 .password-input-wrap {
@@ -585,7 +585,7 @@
   align-items: center;
   justify-content: center;
   min-height: 1.25rem;
-  margin-left: 0.3rem;
+  margin-inline-start: 0.3rem;
   padding: 0.1rem 0.44rem;
   border-radius: 999px;
   background: rgba(99, 102, 241, 0.1);
@@ -757,21 +757,21 @@
 .auth-card .social-auth-separator,
 .auth-page .social-auth-separator {
   max-width: 520px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline-start: auto;
+  margin-inline-end: auto;
 }
 
 /* Auth container paddings and overflow fixes */
 .auth-page,
 .auth-card {
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-inline-start: 1rem;
+  padding-inline-end: 1rem;
 }
 
 @media (min-width: 640px) {
   .auth-card {
-    padding-left: 2rem;
-    padding-right: 2rem;
+    padding-inline-start: 2rem;
+    padding-inline-end: 2rem;
   }
 }
 
@@ -805,7 +805,7 @@ html, body, .shell {
   align-items: center;
   justify-content: flex-end;
   gap: 0.7rem;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .appnav-desktop-link {
@@ -1036,7 +1036,7 @@ html, body, .shell {
     max-width: 560px;
     justify-self: start;
     width: 100%;
-    margin-left: -0.5rem;
+    margin-inline-start: -0.5rem;
   }
 }
 

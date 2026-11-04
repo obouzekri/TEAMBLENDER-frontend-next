@@ -341,7 +341,7 @@ html[data-theme='dark'] .icon-action-btn:hover{
 .pricing-feature-list {
   display: grid;
   gap: 0.5rem;
-  padding-left: 1rem;
+  padding-inline-start: 1rem;
 }
 
 .pricing-meta-row {
@@ -522,7 +522,7 @@ html[data-theme='dark'] .icon-action-btn:hover{
   .participant-card .team-member-mobile-actions {
     position: absolute;
     top: 0.5rem;
-    right: 0.5rem;
+    inset-inline-end: 0.5rem;
     z-index: 30;
     display: flex;
     align-items: center;
@@ -532,7 +532,7 @@ html[data-theme='dark'] .icon-action-btn:hover{
   .manager-mobile-menu__dropdown,
   .team-member-mobile-actions .manager-mobile-menu__dropdown {
     position: absolute;
-    right: 0;
+    inset-inline-end: 0;
     top: 2.25rem;
     min-width: 10.5rem;
     background: var(--card);
@@ -572,8 +572,8 @@ html[data-theme='dark'] .icon-action-btn:hover{
     .participant-card .team-member-mobile-actions {
       position: absolute !important;
       top: 0.5rem !important;
-      right: 0.5rem !important;
-      left: auto !important;
+      inset-inline-end: 0.5rem !important;
+      inset-inline-start: auto !important;
       bottom: auto !important;
       z-index: 9999 !important;
       display: flex !important;
@@ -584,7 +584,7 @@ html[data-theme='dark'] .icon-action-btn:hover{
     .manager-mobile-menu__dropdown,
     .team-member-mobile-actions .manager-mobile-menu__dropdown {
       position: absolute !important;
-      right: 0 !important;
+      inset-inline-end: 0 !important;
       top: 2.25rem !important;
       min-width: 10.5rem !important;
       background: var(--card) !important;

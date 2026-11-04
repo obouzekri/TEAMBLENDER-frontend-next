@@ -839,7 +839,7 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
 
         .pricing-page .pricing-feature-list li {
           position: relative;
-          padding-left: 1.55rem;
+          padding-inline-start: 1.55rem;
           font-size: 0.92rem;
           line-height: 1.5;
           color: var(--text-muted, #cbd5e1);
@@ -848,7 +848,7 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
         .pricing-page .pricing-feature-list li::before {
           content: '✓';
           position: absolute;
-          left: 0;
+          inset-inline-start: 0;
           top: 0.08rem;
           display: grid;
           width: 1.05rem;

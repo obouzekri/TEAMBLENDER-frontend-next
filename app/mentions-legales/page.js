@@ -166,7 +166,7 @@ export default async function MentionsLegalesPage() {
               <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{section.title}</h2>
               {section.body ? <p style={{ marginBottom: '0.5rem' }}>{section.body}</p> : null}
               {Array.isArray(section.items) ? (
-                <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
+                <ul style={{ paddingInlineStart: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
                   {section.items.map((item) => {
                     if (item.includes('contact@teamblender.io')) {
                       const [label] = item.split('contact@teamblender.io');

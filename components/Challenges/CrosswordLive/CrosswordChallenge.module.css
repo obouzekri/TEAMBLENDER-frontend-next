@@ -67,7 +67,7 @@
   position: absolute;
   z-index: 1;
   top: 2px;
-  left: 2px;
+  inset-inline-start: 2px;
   display: flex;
   align-items: center;
   min-width: 16px;

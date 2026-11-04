@@ -31,6 +31,7 @@
     "test:ux:crossword": "node scripts/test-crossword-ux.mjs",
     "test:unit:session-locale": "node scripts/test-session-locale.mjs",
     "test:unit:locale-detection": "node scripts/test-locale-detection.mjs",
+    "test:unit:i18n": "node scripts/test-i18n-plural.mjs",
     "test:ux:preferences-results": "node scripts/test-preferences-results-ux.mjs",
     "test:unit:builder": "node scripts/test-session-builder-utils.mjs && node scripts/test-session-program.mjs",
     "test:ux:builder": "node scripts/test-session-builder-ux.mjs",
@@ -41,6 +42,7 @@
     "test:ux:mission": "node scripts/test-mission-ux.mjs",
     "test:ux:challenges": "node scripts/test-challenge-diagnostics-ux.mjs",
     "test:ux:session-layout": "node scripts/test-session-live-layout.mjs",
+    "test:ux:rtl": "node scripts/test-rtl-layout.mjs",
     "test:ux:challenge-theme": "node scripts/test-challenge-panel-theme.mjs",
     "test:ux:challenges:no-webgl": "node scripts/test-challenge-diagnostics-ux.mjs --no-webgl",
     "test:ux:shared": "node scripts/test-shared-platform-ux.mjs",
@@ -52,7 +54,7 @@
     "test:unit:pricing": "node scripts/test-pricing-display.mjs",
     "test:ux:pricing": "node scripts/test-pricing-controls-ux.mjs",
     "test:ux:escape-room-ii": "node scripts/test-escape-room-ii-ux.mjs",
-    "test:unit": "npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime && npm run test:unit:demo && npm run test:unit:escape-room && npm run test:unit:pricing && npm run test:unit:truthfulness && npm run test:unit:build",
+    "test:unit": "npm run test:unit:i18n && npm run test:unit:vom && npm run test:unit:auth && npm run test:unit:builder && npm run test:unit:runtime && npm run test:unit:demo && npm run test:unit:escape-room && npm run test:unit:pricing && npm run test:unit:truthfulness && npm run test:unit:build",
     "test:integration:manager-participant": "node scripts/test-integration-manager-participant.mjs"
   },
   "dependencies": {

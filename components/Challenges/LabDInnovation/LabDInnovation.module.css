@@ -251,10 +251,10 @@
 }
 
 .charCount {
-  text-align: right;
+  text-align: end;
   font-size: 0.72rem;
   color: rgba(163, 190, 214, 0.55);
-  padding-right: 4px;
+  padding-inline-end: 4px;
   line-height: 1;
 }
 

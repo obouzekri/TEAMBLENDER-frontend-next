@@ -195,7 +195,7 @@ body[data-theme='dark'] .admin-billing-card {
   border: 1px solid #d5deea;
   border-radius: 10px;
   background: #f9fbff;
-  text-align: left;
+  text-align: start;
   padding: 0.85rem;
   display: grid;
   gap: 0.5rem;

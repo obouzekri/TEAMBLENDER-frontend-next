@@ -813,7 +813,7 @@ html[data-theme='light'] .psb {
       box-shadow: none !important;
       color: var(--text-strong) !important;
       font-weight: 700 !important;
-      text-align: left !important;
+      text-align: start !important;
     }
 
     .top-nav:not(.top-nav--live-inline) #app-nav-panel .appnav-mobile-main-links--desktop-menu .nav-link.is-active {

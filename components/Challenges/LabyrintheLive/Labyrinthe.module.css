@@ -575,7 +575,7 @@ button.cell:focus-visible {
 .cellPlayerTrailDot {
   position: absolute;
   z-index: 4;
-  left: calc(50% + var(--trail-offset, 0px));
+  inset-inline-start: calc(50% + var(--trail-offset, 0px));
   bottom: 5px;
   width: 7px;
   height: 7px;

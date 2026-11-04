@@ -633,7 +633,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                 disabled={joinLoading || !canSubmitJoin}
                 aria-busy={joinLoading}
               >
-                {joinLoading ? t('auth.joining') : <>{t('auth.joinSession')} <span aria-hidden="true">→</span></>}
+                {joinLoading ? t('auth.joining') : <>{t('auth.joinSession')} <span className="rtl-flip" aria-hidden="true">→</span></>}
               </button>
               {joinMessage ? (
                 <p className="form-error">

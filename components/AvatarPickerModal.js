@@ -141,7 +141,7 @@ export default function AvatarPickerModal({
           width: 100%;
           border: none;
           background: transparent;
-          text-align: left;
+          text-align: start;
           padding: 0;
           color: #24324f;
           cursor: pointer;

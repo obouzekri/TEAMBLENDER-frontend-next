@@ -20,9 +20,7 @@ export default function SessionPreparation({
         hasSelection ? 'sessionPreparation.statusDone' : 'sessionPreparation.statusActive'
       ),
       detail: hasSelection
-        ? selectedCount === 1
-          ? t('sessionPreparation.activitySelected', { count: selectedCount })
-          : t('sessionPreparation.activitiesSelected', { count: selectedCount })
+        ? t('sessionPreparation.activitiesSelected', { count: selectedCount })
         : t('sessionPreparation.chooseActivity'),
     },
     {

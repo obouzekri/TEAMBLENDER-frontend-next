@@ -1,7 +1,7 @@
 .banner {
   position: fixed;
-  left: 16px;
-  right: 16px;
+  inset-inline-start: 16px;
+  inset-inline-end: 16px;
   bottom: 16px;
   z-index: 60;
   display: flex;
@@ -143,8 +143,8 @@
 
 @media (max-width: 720px) {
   .banner {
-    left: 12px;
-    right: 12px;
+    inset-inline-start: 12px;
+    inset-inline-end: 12px;
     bottom: 12px;
   }
 

@@ -246,7 +246,7 @@
   border: 1px solid #dbe5f5;
   background: linear-gradient(175deg, #ffffff 0%, #f8fbff 100%);
   color: #0f172a;
-  text-align: left;
+  text-align: start;
   padding: 7px 8px;
   display: grid;
   gap: 4px;
@@ -382,7 +382,7 @@
 
 .summaryPanel ul {
   margin: 0;
-  padding-left: 16px;
+  padding-inline-start: 16px;
   display: grid;
   gap: 4px;
 }
@@ -539,11 +539,11 @@
 
 .selectedWordStatus {
   margin: 0;
-  border-left: 3px solid #38bdf8;
+  border-inline-start: 3px solid #38bdf8;
   color: #475569;
   font-size: 0.8rem;
   line-height: 1.4;
-  padding-left: 8px;
+  padding-inline-start: 8px;
 }
 
 .error {

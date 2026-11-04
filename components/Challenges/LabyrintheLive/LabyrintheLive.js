@@ -835,7 +835,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.status')}</span><strong>{labyFinalSummary.finalStatusLabel}</strong></article>
                   </div>
                   {maze ? (
-                    <div className={`${styles.miniGrid} ${colsClass} ${styles.solutionMiniGrid} ${styles.debriefMiniGrid}`}>
+                    <div className={`${styles.miniGrid} ${colsClass} ${styles.solutionMiniGrid} ${styles.debriefMiniGrid}`} data-board-direction="ltr">
                       {Array.from({ length: mazeRows }).map((_, row) => (
                         Array.from({ length: mazeCols }).map((__, col) => {
                           const key = `${row},${col}`;
@@ -891,7 +891,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                           </span>
                         </div>
 
-                        <div className={`${styles.miniGrid} ${colsClass}`}>
+                        <div className={`${styles.miniGrid} ${colsClass}`} data-board-direction="ltr">
                           {Array.from({ length: mazeRows }).map((_, row) => (
                             Array.from({ length: mazeCols }).map((__, col) => {
                               const key = `${row},${col}`;
@@ -970,6 +970,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
               <div
                 className={`${styles.gameGrid} ${colsClass}`}
+                data-board-direction="ltr"
                 ref={labyPhase !== 'done' ? gridRef : null}
                 tabIndex={canMoveSolo ? 0 : -1}
                 onTouchStart={labyPhase !== 'done' ? handleSwipeStart : undefined}
@@ -1149,7 +1150,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                 <h4 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--challenge-text-primary)' }}>{t('challengeLabyrinth.solutionMap')}</h4>
                 <span className={styles.muted}>{t('challengeLabyrinth.possiblePathS')}</span>
               </div>
-              <div className={`${styles.miniGrid} ${colsClass} ${styles.solutionMiniGrid}`}>
+              <div className={`${styles.miniGrid} ${colsClass} ${styles.solutionMiniGrid}`} data-board-direction="ltr">
                 {Array.from({ length: mazeRows }).map((_, row) => (
                   Array.from({ length: mazeCols }).map((__, col) => {
                     const key = `${row},${col}`;

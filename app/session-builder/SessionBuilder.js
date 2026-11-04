@@ -1921,12 +1921,7 @@ export default function SessionBuilder() {
               <section className={styles.programResults} aria-labelledby="program-results-title">
                 <h3 id="program-results-title">{t('sessionBuilder.programResultsTitle')}</h3>
                 <p className={styles.programEligibleCount}>
-                  {t(
-                    programProposal.eligibleCount === 1
-                      ? 'sessionBuilder.programEligibleCountSingular'
-                      : 'sessionBuilder.programEligibleCount',
-                    { count: programProposal.eligibleCount }
-                  )}
+                  {t('sessionBuilder.programEligibleCount', { count: programProposal.eligibleCount })}
                 </p>
               </section>
               {programProposal.challenges.length ? (

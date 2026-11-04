@@ -39,7 +39,7 @@ export default function LandingFaq({ locale, faq, eyebrow, intro }) {
           {intro ? <p className="landing-faq-intro">{intro}</p> : null}
           <Link className="landing-faq-guide group" href={guideHref}>
             <span>{guideLabel}</span>
-            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
+            <ArrowRight className="rtl-flip h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
           </Link>
         </div>
         <div className="landing-faq-list">
