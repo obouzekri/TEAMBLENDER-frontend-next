@@ -398,25 +398,28 @@ export default function DemoClient() {
                 <Users size={16} aria-hidden="true" />
                 {t('demo.prepare.teamNote', { count: DEMO_TEAM_SIZE })}
               </p>
+              <div className={styles.programSection} aria-live="polite">
+                <div className={styles.programHead}>
+                  <h3 className={styles.cardTitle}>{t('demo.prepare.programTitle')}</h3>
+                  {program.length ? (
+                    <span className={styles.programMeta}>
+                      {t('demo.prepare.programSummary', { count: program.length, minutes: programMinutes })}
+                    </span>
+                  ) : null}
+                </div>
+                <SelectedChallengesList
+                  challenges={program}
+                  onRemove={removeProgramChallenge}
+                  onMoveUp={(challengeId) => moveProgramChallenge(challengeId, -1)}
+                  onMoveDown={(challengeId) => moveProgramChallenge(challengeId, 1)}
+                  onReorder={reorderProgramChallenges}
+                  onClearAll={() => setProgram([])}
+                />
+              </div>
             </div>
 
-            <div className={styles.programCard} aria-live="polite">
-              <div className={styles.programHead}>
-                <h3 className={styles.cardTitle}>{t('demo.prepare.programTitle')}</h3>
-                {program.length ? (
-                  <span className={styles.programMeta}>
-                    {t('demo.prepare.programSummary', { count: program.length, minutes: programMinutes })}
-                  </span>
-                ) : null}
-              </div>
-              <SelectedChallengesList
-                challenges={program}
-                onRemove={removeProgramChallenge}
-                onMoveUp={(challengeId) => moveProgramChallenge(challengeId, -1)}
-                onMoveDown={(challengeId) => moveProgramChallenge(challengeId, 1)}
-                onReorder={reorderProgramChallenges}
-                onClearAll={() => setProgram([])}
-              />
+            <div className={styles.programCard}>
+              <h3 className={styles.cardTitle}>{t('demo.prepare.catalogTitle')}</h3>
               <ChallengesCatalog
                 challenges={demoCatalog}
                 allChallenges={demoCatalog}
