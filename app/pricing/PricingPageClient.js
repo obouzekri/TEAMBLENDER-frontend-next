@@ -11,7 +11,7 @@ import { getCheckoutRedirectUrl } from '@/lib/billing-utils';
 import { getPricingPlanBadgeLabel, getPricingPlanVariantLabel, normalizePricingPlanName } from '@/lib/pricing-labels';
 import { getPricingPlansFallback } from '@/lib/pricingFallbackPlans';
 import { DEFAULT_PRICING_CURRENCY, PRICING_CURRENCY_OPTIONS, formatPlanAmount, getAnnualSavings, getPlanAmountDh } from '@/lib/pricing-display.mjs';
-import { translate } from '@/lib/i18n';
+import { translate, pickLocalized } from '@/lib/i18n';
 
 function getStoredCurrentUser() {
   if (typeof window === 'undefined') return null;
@@ -38,7 +38,6 @@ function getPricingPeriodSuffix(plan, selectedBilling, locale = 'fr') {
 }
 
 function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', locale = 'fr') {
-  const isEn = locale === 'en';
   const normalizedName = normalizePricingPlanName(plan);
   const planKey = normalizedName.toLowerCase();
   const billingCycle = String(plan?.billing_cycle || '').trim().toLowerCase();
@@ -49,19 +48,19 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       displayName: 'Free',
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: isEn ? [
+      features: pickLocalized({ en: [
         '1 user (admin/manager)',
         '1 session / month - max 6 participants',
         'Limited catalog access (4 challenges)',
         'No export',
         'No advanced insights',
-      ] : [
+      ], fr: [
         '1 utilisateur (admin/manager)',
         '1 session / mois · max 6 participants',
         'Accès catalogue limité (4 challenges)',
         'Pas d’export',
         'Pas d’analyses avancées',
-      ],
+      ] }, locale),
       ctaLabel: translate(locale, 'pricingPage.startForFree'),
     };
   }
@@ -71,7 +70,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       displayName: isOneTimeSession ? translate(locale, 'pricingPage.payPerSession') : translate(locale, 'pricingPage.sessionPackage'),
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: isEn ? [
+      features: pickLocalized({ en: [
         '1 user max',
         '6 participants max',
         '1 session included',
@@ -80,7 +79,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Manager dashboard',
         'Live facilitation',
         'Insights',
-      ] : [
+      ], fr: [
         '1 utilisateur max',
         '6 participants max',
         '1 session incluse',
@@ -89,7 +88,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Espace manager',
         'Animation en direct',
         'Analyses avancées',
-      ],
+      ] }, locale),
       ctaLabel: translate(locale, 'pricingPage.buyASession'),
     };
   }
@@ -100,19 +99,19 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         displayName: 'Pro +',
         priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
         meta: [],
-        features: isEn ? [
+        features: pickLocalized({ en: [
           '5 users (admins/managers)',
           'Up to 150 participants, split into teams of 4 to 6',
           '60 sessions',
           'All features included in the PRO plan',
           'Multi-account manager management',
-        ] : [
+        ], fr: [
           '5 utilisateurs (admins/managers)',
           'Jusqu’à 150 participants, répartis en équipes de 4 à 6',
           '60 sessions',
           'Toutes les fonctionnalités incluses dans l’offre PRO',
           'Gestion multi-comptes managers',
-        ],
+        ] }, locale),
         ctaLabel: translate(locale, 'pricingPage.subscribe'),
       };
     }
@@ -121,7 +120,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       displayName: getPricingPlanVariantLabel(plan, cardVariant),
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: isEn ? [
+      features: pickLocalized({ en: [
         '1 user (admin/manager)',
         'Up to 30 participants, split into teams of 4 to 6',
         '10 sessions',
@@ -130,7 +129,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Manager dashboard',
         'Live facilitation',
         'Insights',
-      ] : [
+      ], fr: [
         '1 utilisateur (admin/manager)',
         'Jusqu’à 30 participants, répartis en équipes de 4 à 6',
         '10 sessions',
@@ -139,7 +138,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Espace manager',
         'Animation en direct',
         'Analyses avancées',
-      ],
+      ] }, locale),
       highlightedLabel: getPricingPlanBadgeLabel(plan, cardVariant) || translate(locale, 'pricingPage.mostPopular'),
       ctaLabel: translate(locale, 'pricingPage.subscribe'),
       ctaHref: cardVariant === 'enterprise' ? '/contact' : null,
@@ -151,19 +150,19 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       displayName: 'Pro +',
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: isEn ? [
+      features: pickLocalized({ en: [
         '5 users (admins/managers)',
         'Up to 150 participants, split into teams of 4 to 6',
         '60 sessions',
         'All features included in the PRO plan',
         'Multi-account manager management',
-      ] : [
+      ], fr: [
         '5 utilisateurs (admins/managers)',
         'Jusqu’à 150 participants, répartis en équipes de 4 à 6',
         '60 sessions',
         'Toutes les fonctionnalités incluses dans l’offre PRO',
         'Gestion multi-comptes managers',
-      ],
+      ] }, locale),
       ctaLabel: translate(locale, 'pricingPage.subscribe'),
     };
   }
@@ -222,7 +221,6 @@ function getDarkModeHeadingStyle() {
 
 export default function PricingPageClient({ initialPlans = [], initialCurrency = DEFAULT_PRICING_CURRENCY }) {
   const { locale, t, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
   const [plans, setPlans] = useState(initialPlans);
   const [loading, setLoading] = useState(initialPlans.length === 0);
   const [error, setError] = useState('');
@@ -388,16 +386,10 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
         ) : null}
 
         {error ? (
-          <section className="feature-card" aria-label="Erreur tarification" style={getDarkModeSectionStyle()}>
+          <section className="feature-card" aria-label={t('pricingPage.pricingErrorAria')} style={getDarkModeSectionStyle()}>
             <p className="form-error">{error}</p>
             <p style={getDarkModeTextStyle()}>
-              {isEn
-                ? (hasFallbackPlans
-                    ? 'Fallback plans are shown below while we reconnect to live pricing.'
-                    : 'Pricing could not be loaded at the moment.')
-                : (hasFallbackPlans
-                    ? 'Des formules de secours sont affichées ci-dessous pendant la reconnexion à la tarification en direct.'
-                    : 'La tarification ne peut pas être chargée pour le moment.')}
+              {t(hasFallbackPlans ? 'pricingPage.fallbackPlansShown' : 'pricingPage.pricingCouldNotBeLoaded')}
             </p>
             <div className="hero-actions">
               <Link href={withLocalePath('/contact')} className="btn-primary">{t('pricingPage.talkToAnExpert')}</Link>

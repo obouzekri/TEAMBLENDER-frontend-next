@@ -244,7 +244,6 @@ function mountMiniModelScene(container, { gridSize, grid, palette, targetCells, 
 
 export default function PixelArchitectChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale, t } = useI18n();
-  const isEn = locale === 'en';
   const rulesPreset = useMemo(() => getPixelArchitectRulesPreset(locale), [locale]);
   const mountRef = useRef(null);
   const modelPreviewRef = useRef(null);
@@ -1478,8 +1477,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     <strong>{item.name}</strong>
                     <span>
                       {item.cubeCount} {item.cubeCount > 1 ? 'cubes' : 'cube'}
-                      {' · '}{item.layerCount} {isEn ? (item.layerCount > 1 ? 'layers' : 'layer') : (item.layerCount > 1 ? 'couches' : 'couche')}
-                      {' · '}{item.colorCount} {isEn ? (item.colorCount > 1 ? 'colors' : 'color') : (item.colorCount > 1 ? 'couleurs' : 'couleur')}
+                      {' · '}{item.layerCount} {t(item.layerCount > 1 ? 'challengePixel.layersPlural' : 'challengePixel.layerSingular')}
+                      {' · '}{item.colorCount} {t(item.colorCount > 1 ? 'challengePixel.colorsPlural' : 'challengePixel.colorSingular')}
                     </span>
                   </li>
                 ))}

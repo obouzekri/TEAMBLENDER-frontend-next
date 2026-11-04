@@ -17,6 +17,8 @@ import useI18n from '@/lib/i18n/useI18n';
 import useModalFocus from '@/lib/useModalFocus';
 import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2, X, Check, Users, CircleCheck, AlertTriangle } from 'lucide-react';
 import styles from './MissionCritique.module.css';
+import { translate } from '@/lib/i18n';
+import { normalizeLocale, DEFAULT_LOCALE } from '@/lib/i18n/routing';
 
 const PHASES = Object.freeze([
   { key: 'cadrage', label: 'Cadrage', mobileLabel: 'Cadre', className: 'phaseCadrage' },
@@ -34,20 +36,20 @@ function inferPhaseKey(index, total) {
   return 'cloture';
 }
 
+const PHASE_KEYS = new Set(['cadrage', 'preparation', 'execution', 'cloture']);
+
+function phaseKey(phase) {
+  return PHASE_KEYS.has(phase.key) ? phase.key : 'cloture';
+}
+
 function phaseLabel(phase, locale) {
-  if (!(locale === 'en')) return phase.label;
-  if (phase.key === 'cadrage') return 'Scoping';
-  if (phase.key === 'preparation') return 'Preparation';
-  if (phase.key === 'execution') return 'Execution';
-  return 'Closure';
+  if (normalizeLocale(locale) === DEFAULT_LOCALE) return phase.label;
+  return translate(locale, `challengeMission.phase_${phaseKey(phase)}`);
 }
 
 function mobilePhaseLabel(phase, locale) {
-  if (!(locale === 'en')) return phase.mobileLabel;
-  if (phase.key === 'cadrage') return 'Scope';
-  if (phase.key === 'preparation') return 'Prep';
-  if (phase.key === 'execution') return 'Execute';
-  return 'Close';
+  if (normalizeLocale(locale) === DEFAULT_LOCALE) return phase.mobileLabel;
+  return translate(locale, `challengeMission.phaseShort_${phaseKey(phase)}`);
 }
 
 function normalizeName(value) {

@@ -8,6 +8,7 @@ import { Badge, Button, EmptyState } from '@/components/ui';
 import { formatRecommendedPlayersLabel } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
 import { Plus, X } from 'lucide-react';
+import { pickLocalized } from '@/lib/i18n';
 
 const MAX_FILTER_OBJECTIVES = 3;
 
@@ -109,19 +110,18 @@ export default function ChallengesCatalog({
   renderToggleAction = (challenge, action) => action,
 }) {
   const { locale, t } = useI18n();
-  const isEn = locale === 'en';
   const [previewChallenge, setPreviewChallenge] = useState(null);
   function localizeMappingLabel(entry, fallback) {
     if (!entry || typeof entry !== 'object') {
       return fallback;
     }
-    return String(entry[isEn ? 'en' : 'fr'] || entry.en || entry.fr || fallback || '').trim();
+    return String(pickLocalized(entry, locale) || entry.en || entry.fr || fallback || '').trim();
   }
 
   function localizePlainValue(value) {
     if (value == null) return '';
     if (typeof value === 'object' && !Array.isArray(value)) {
-      return String(value[isEn ? 'en' : 'fr'] || value.en || value.fr || '').trim();
+      return String(pickLocalized(value, locale) || value.en || value.fr || '').trim();
     }
     return String(value || '').trim();
   }
@@ -463,7 +463,7 @@ export default function ChallengesCatalog({
                 seenLabels.add(key);
                 return true;
               }).slice(0, 3);
-            const recommendedPlayersLabel = formatRecommendedPlayersLabel(challenge, isEn);
+            const recommendedPlayersLabel = formatRecommendedPlayersLabel(challenge, locale);
             const challengeName = localizePlainValue(challenge.name) || t('builder.activity');
             const challengeDescription = localizePlainValue(challenge.description);
             const challengeDuration = getApproximateDurationMinutes(challenge);

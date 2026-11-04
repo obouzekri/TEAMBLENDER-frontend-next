@@ -345,6 +345,7 @@ async function migrate(file, dictionaries) {
   const out = new MagicString(code);
   const declaratorsNeedingT = new Set();
   let usesTranslate = false;
+  let usesPickLocalized = false;
   let converted = 0;
   const pairToKey = new Map(Object.keys(dictionaries.en).map((key) => [`${dictionaries.en[key]}\u0001${dictionaries.fr[key]}`, key]));
 
@@ -380,6 +381,16 @@ async function migrate(file, dictionaries) {
       en = null;
     }
     if (!en || !fr) {
+      // `isEn ? [ … ] : [ … ]` / `isEn ? { … } : { … }` : contenu par langue → pickLocalized({ en, fr }, locale).
+      const isContent = (branch) => branch.type === 'ArrayExpression' || branch.type === 'ObjectExpression';
+      const { localeNode } = test;
+      if (isContent(enNode) && isContent(frNode) && localeNode.type === 'Identifier' && resolve(scope, localeNode.name)) {
+        const map = `{ en: ${code.slice(...enNode.range)}, fr: ${code.slice(...frNode.range)} }`;
+        out.overwrite(...node.range, `pickLocalized(${map}, ${localeNode.name})`);
+        usesPickLocalized = true;
+        converted += 1;
+        continue;
+      }
       skipped.push(`${file}:${line} non-string branch`);
       continue;
     }
@@ -452,17 +463,20 @@ async function migrate(file, dictionaries) {
     out.appendLeft(last.range[1], ', t');
   }
 
-  if (usesTranslate && !/\btranslate\b[^;]*from '@\/lib\/i18n'/.test(code)) {
+  const needed = [usesTranslate && 'translate', usesPickLocalized && 'pickLocalized']
+    .filter((name) => name && !new RegExp(`\\b${name}\\b[^;]*from '@/lib/i18n'`).test(code));
+  if (needed.length) {
     const existing = /import \{([^}]*)\} from '@\/lib\/i18n';/.exec(code);
     if (existing) {
-      out.overwrite(existing.index, existing.index + existing[0].length, `import {${existing[1].replace(/\s*$/, '')}, translate } from '@/lib/i18n';`);
+      out.overwrite(existing.index, existing.index + existing[0].length, `import {${existing[1].replace(/\s*$/, '')}, ${needed.join(', ')} } from '@/lib/i18n';`);
     } else {
-      const imports = ast.body.filter((statement) => statement.type === 'ImportDeclaration');
+      const statement = `import { ${needed.join(', ')} } from '@/lib/i18n';`;
+      const imports = ast.body.filter((entry) => entry.type === 'ImportDeclaration');
       // Après le dernier import, sinon après une directive "use client" (qui doit rester en tête).
-      const directive = ast.body.find((statement) => statement.type === 'ExpressionStatement' && statement.directive);
+      const directive = ast.body.find((entry) => entry.type === 'ExpressionStatement' && entry.directive);
       const anchor = imports.at(-1) || directive;
-      if (anchor) out.appendRight(anchor.range[1], "\nimport { translate } from '@/lib/i18n';");
-      else out.prepend("import { translate } from '@/lib/i18n';\n");
+      if (anchor) out.appendRight(anchor.range[1], `\n${statement}`);
+      else out.prepend(`${statement}\n`);
     }
   }
 

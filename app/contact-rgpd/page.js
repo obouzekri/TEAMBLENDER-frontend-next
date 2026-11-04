@@ -2,6 +2,8 @@ import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
+import { normalizeLocale } from '@/lib/i18n/routing';
+import { LOCALE_COOKIE } from '@/lib/i18n/detectLocale';
 
 export const metadata = {
   title: 'Contact RGPD | TeamBlender',
@@ -54,7 +56,7 @@ const COPY = {
 
 export default async function ContactRgpdPage() {
   const cookieStore = await cookies();
-  const locale = String(cookieStore.get('tb_locale')?.value || 'fr').toLowerCase() === 'en' ? 'en' : 'fr';
+  const locale = normalizeLocale(cookieStore.get(LOCALE_COOKIE)?.value);
   const copy = COPY[locale];
 
   return (

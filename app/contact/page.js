@@ -15,7 +15,6 @@ const COMPANY_SIZES = {
 
 export default function ContactPage() {
   const { locale, withLocalePath, t } = useI18n();
-  const isEn = locale === 'en';
   const [form, setForm] = useState({
     name: '',
     company: '',
@@ -50,7 +49,7 @@ export default function ContactPage() {
         method: 'POST',
         headers: withCsrfHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'include',
-        body: JSON.stringify({ ...form, locale: isEn ? 'en' : 'fr' }),
+        body: JSON.stringify({ ...form, locale }),
       });
 
       if (!response.ok) {

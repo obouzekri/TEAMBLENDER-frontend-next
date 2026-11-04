@@ -4,11 +4,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Activity, BarChart3, ListChecks, PlayCircle } from 'lucide-react';
 import { PILL_CLASS } from './landingStyles';
-import { translate } from '@/lib/i18n';
+import { translate, pickLocalized } from '@/lib/i18n';
 
 // Facilitator view of the /demo page while the team assembles CoPuzzle.
+// Captures disponibles par langue (repli sur la langue par défaut).
+const HERO_CAPTURES = {
+  fr: '/images/copuzzle-facilitator-live-fr.webp',
+  en: '/images/copuzzle-facilitator-live-en.webp',
+};
+
 export function heroCaptureSrc(locale) {
-  return `/images/copuzzle-facilitator-live-${locale === 'en' ? 'en' : 'fr'}.webp`;
+  return pickLocalized(HERO_CAPTURES, locale);
 }
 
 export function heroCaptureAlt(locale) {

@@ -9,6 +9,7 @@ import { buildPageMetadata } from '@/lib/seo';
 import { getLocaleMeta } from '@/lib/i18n/routing';
 import { getSeoRequest } from '@/lib/seoRequest';
 import PublicStructuredData from '@/components/PublicStructuredData';
+import { translate } from '@/lib/i18n';
 
 const siteOrigin = getPublicSiteOrigin();
 export async function generateMetadata() {
@@ -65,7 +66,7 @@ export default async function RootLayout({ children }) {
         <I18nProvider initialLocale={locale}>
           <DisplayPreferencesController />
           <a className="skip-to-content" href="#main-content">
-            {locale === 'en' ? 'Skip to main content' : 'Aller au contenu principal'}
+            {translate(locale, 'shell.skipToMainContent')}
           </a>
           <div id="main-content" className="skip-to-content-target" tabIndex={-1}>
             <TrackingConsentGate>{children}</TrackingConsentGate>

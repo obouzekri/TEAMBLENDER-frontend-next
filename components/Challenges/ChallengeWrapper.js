@@ -11,6 +11,7 @@ import mountRuntimeChallenge from '@/lib/challenges/runtime';
 import styles from './ChallengeWrapper.module.css';
 import useI18n from '@/lib/i18n/useI18n';
 import { ChallengeConnectionContext } from '@/lib/challenges/connection-context';
+import { normalizeLocale } from '@/lib/i18n/routing';
 
 const REALTIME_ENGINES = new Set([
   'escape_room_v1',
@@ -153,7 +154,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
           const displayName = String(payload.context?.displayName || payload.context?.name || fullName || email || '').trim();
 
           const nextContext = {
-            locale: payload.context?.locale === 'en' ? 'en' : 'fr',
+            locale: normalizeLocale(payload.context?.locale),
             sessionConfigLocked: Boolean(payload.context?.sessionConfigLocked),
             role: payload.context?.role || 'participant',
             userId: resolvedUserId,
@@ -235,7 +236,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
             const displayName = String(payload.context?.displayName || payload.context?.name || fullName || email || '').trim();
 
             const nextContext = {
-              locale: payload.context?.locale === 'en' ? 'en' : 'fr',
+              locale: normalizeLocale(payload.context?.locale),
               sessionConfigLocked: Boolean(payload.context?.sessionConfigLocked),
               role: payload.context?.role || prev?.role || 'participant',
               userId: prev?.userId || payload.context?.participantId || null,

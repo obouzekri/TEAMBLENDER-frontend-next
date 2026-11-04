@@ -10,7 +10,7 @@ le workspace est en place).
 - Next.js (App Router, `app/`), React, JavaScript avec `jsconfig.json`. Node 24 en CI (`.nvmrc` indique encore 20).
 - Temps réel : `socket.io-client` (`lib/socket.js`). Appels API : `lib/api.js`.
 - Challenges : `components/Challenges/`, runtime dans `lib/challenges/`.
-- Textes : `lib/i18n/` — toute chaîne visible passe par `t()` et existe dans chaque dictionnaire. Les langues sont déclarées une seule fois dans `LOCALE_META` (`lib/i18n/routing.js`) ; dates, nombres et devises via `lib/i18n/format.js`. Pas de `locale === 'en'`, `isEn` ni d'objet `{ fr, en }` hors de `lib/i18n/` : `npm run lint:i18n` bloque toute hausse par rapport à `scripts/i18n-hardcoded-baseline.json` (à resserrer avec `-- --update-baseline` après une migration).
+- Textes : `lib/i18n/` — toute chaîne visible passe par `t()` (ou `translate(locale, key)` hors composant) et existe dans chaque dictionnaire (`lib/i18n/dictionaries/<langue>/<zone>.js`). Les langues sont déclarées une seule fois dans `LOCALE_META` (`lib/i18n/routing.js`) ; dates, nombres et devises via `lib/i18n/format.js` ; contenu rangé par langue lu avec `pickLocalized(map, locale)`. Interdit hors de `lib/i18n/` : `locale === 'en'`, `isEn`, `'fr-FR'` (`npm run lint:i18n` échoue). Les objets `{ fr, en }` restants sont plafonnés par `scripts/i18n-hardcoded-baseline.json` (resserrer avec `-- --update-baseline`).
 
 ```bash
 npm run dev          # http://localhost:3100

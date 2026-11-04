@@ -81,7 +81,6 @@ function buildFallbackAvailableWords(slots, participantSlot, fakeWordsBySlot) {
 
 export default function PhraseChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale, t } = useI18n();
-  const isEn = locale === 'en';
   const [selectedWord, setSelectedWord] = useState('');
   const [draggingWord, setDraggingWord] = useState('');
   const [dragOverSlotIndex, setDragOverSlotIndex] = useState(null);
@@ -384,11 +383,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                   <header className={styles.summaryHead}>
                     <ChallengeDebriefHeading />
                     <p>
-                      {isEn ? (isFacilitator
-                        ? 'Review coordination, decoy management and collective decisions.'
-                        : 'Reflect on your choices, communication and detection of decoy words.') : isFacilitator
-                        ? 'Analysez la coordination, la gestion des leurres et la qualité des décisions collectives.'
-                        : 'Revenez sur vos choix, votre communication et la détection des faux mots.'}
+                      {t(isFacilitator ? 'challengePhrase.debriefFacilitator' : 'challengePhrase.debriefParticipant')}
                     </p>
                   </header>
 

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createContext, runInContext } from 'node:vm';
 import { buildFinalRanking, expectedTotalTurns } from '../lib/challenges/vraiOuMensongeUtils.js';
 import { getLocaleMeta } from '../lib/i18n/routing.js';
+import { pickLocalized, translate } from '../lib/i18n/index.js';
 
 function run() {
   assert.equal(expectedTotalTurns(2), 14);
@@ -24,7 +25,7 @@ function run() {
   const helperStart = source.indexOf('function sanitizeChoiceText');
   const helperEnd = source.indexOf('export default function');
   assert.ok(helperStart >= 0 && helperEnd > helperStart, 'Statement helpers must be available for regression checks');
-  const helpers = createContext({ getLocaleMeta });
+  const helpers = createContext({ getLocaleMeta, pickLocalized, translate });
   runInContext(source.slice(helperStart, helperEnd), helpers);
 
   const englishChoices = {

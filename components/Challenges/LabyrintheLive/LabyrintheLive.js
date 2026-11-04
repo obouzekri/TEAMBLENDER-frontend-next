@@ -17,6 +17,7 @@ import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './Labyrinthe.module.css';
+import { pickLocalized } from '@/lib/i18n';
 
 function safeInt(value, fallback, min, max) {
   const parsed = Number.parseInt(value, 10);
@@ -226,7 +227,6 @@ function formatDurationLabel(totalSeconds) {
 
 export default function LabyrintheLive({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale, t } = useI18n();
-  const isEn = locale === 'en';
   const [optimisticPos, setOptimisticPos] = useState(null);
   const optimisticPosRef = useRef(null);
   const pendingPositionsRef = useRef([]);
@@ -584,13 +584,13 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         if (Number(payload?.remaining_lives || 0) <= 0) {
           setAnnouncement({
             tone: 'failure',
-            ...NO_LIVES_LEFT_MESSAGE[isEn ? 'en' : 'fr'],
+            ...pickLocalized(NO_LIVES_LEFT_MESSAGE, locale),
           });
         }
         if (payload?.all_lost) {
           setAnnouncement({
             tone: 'failure',
-            ...CHALLENGE_FAILURE_MESSAGE[isEn ? 'en' : 'fr'],
+            ...pickLocalized(CHALLENGE_FAILURE_MESSAGE, locale),
           });
         }
         return;
@@ -602,7 +602,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
         if (Number(payload?.remaining_lives || 0) <= 0) {
           setAnnouncement({
             tone: 'failure',
-            ...NO_LIVES_LEFT_MESSAGE[isEn ? 'en' : 'fr'],
+            ...pickLocalized(NO_LIVES_LEFT_MESSAGE, locale),
           });
         }
         return;
@@ -648,7 +648,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
 
     setAnnouncement({
       tone: 'failure',
-      ...CHALLENGE_FAILURE_MESSAGE[isEn ? 'en' : 'fr'],
+      ...pickLocalized(CHALLENGE_FAILURE_MESSAGE, locale),
     });
   }, [labyFinalSummary, laby?.result, laby?.winner_participant_id, locale]);
 

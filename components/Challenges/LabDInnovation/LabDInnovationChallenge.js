@@ -126,17 +126,6 @@ function getPhaseGuidance(locale, phaseKey) {
   return guidance[phaseKey] || '';
 }
 
-function getBadgeText(type, isEn = false) {
-  const labels = {
-    explorer: isEn ? 'Explorer' : 'Explorateur',
-    innovator: isEn ? 'Innovator' : 'Innovateur',
-    co_builder: isEn ? 'Co-builder' : 'Co-Constructeur',
-    visionary: isEn ? 'Visionary' : 'Visionnaire',
-    catalyst: isEn ? 'Catalyst' : 'Catalyseur'
-  };
-  return labels[type] || type;
-}
-
 function buildFallbackState(runtimePayload) {
   const config = runtimePayload?.config || {};
   return {
@@ -177,7 +166,6 @@ function buildFallbackState(runtimePayload) {
 
 export default function LabDInnovationChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale, t } = useI18n();
-  const isEn = locale === 'en';
   const { state, error, isFacilitator, emitEvent, participantId, connected } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
   const timerControls = useFacilitatorTimerControls({ socket, emitEvent, state, isFacilitator });
   const timer = state?.timer || {};
@@ -466,7 +454,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     const limitReached = votedIds.size >= voteLimit;
     const waitingForThisVote = pendingVote?.type === type && pendingVote.id === String(item.id);
     const label = ownProposal
-      ? (isEn ? (isProblem ? 'Your proposal' : 'Your solution') : (isProblem ? 'Votre proposition' : 'Votre solution'))
+      ? t(isProblem ? 'challengeLab.yourProposalLabel' : 'challengeLab.yourSolutionLabel')
       : hasVoted
         ? t('challengeLab.voted')
         : waitingForThisVote

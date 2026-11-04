@@ -18,6 +18,7 @@ import styles from './VraiOuMensonge.module.css';
 import useI18n from '@/lib/i18n/useI18n';
 import { getLocaleMeta } from '@/lib/i18n/routing';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
+import { pickLocalized, translate } from '@/lib/i18n';
 
 function formatSeconds(ms) {
   const raw = Number(ms || 0);
@@ -179,8 +180,7 @@ function formatChoiceDisplay(value, locale) {
 
 function getTranslatedStatementChoices(statement, locale) {
   const id = String(statement?.id || '').trim();
-  const language = locale === 'en' ? 'en' : 'fr';
-  const translated = STATEMENT_TRANSLATIONS[id]?.[language];
+  const translated = pickLocalized(STATEMENT_TRANSLATIONS[id], locale);
   if (translated?.prompt && Array.isArray(translated.options) && translated.options.length >= 2) {
     return {
       prompt: translated.prompt,
@@ -193,8 +193,7 @@ function getTranslatedStatementChoices(statement, locale) {
 
 function getTranslatedStatementText(statement, locale) {
   const id = String(statement?.id || '').trim();
-  const language = locale === 'en' ? 'en' : 'fr';
-  const translated = STATEMENT_TRANSLATIONS[id]?.[language];
+  const translated = pickLocalized(STATEMENT_TRANSLATIONS[id], locale);
   return String(translated?.text || statement?.text || '').trim().replace(/\.+$/g, '').trim();
 }
 
@@ -238,12 +237,11 @@ function translateCurrentTurnOption(currentTurn, option, locale) {
 function formatStatementCategory(value, locale = 'fr') {
   const normalized = String(value || '').trim().toLowerCase();
   if (!normalized) return '';
-  const isEnglish = locale === 'en';
-  if (normalized.includes('préférence') || normalized.includes('preference')) return isEnglish ? 'Preferences' : 'Préférences';
-  if (normalized.includes('compétence') || normalized.includes('competence')) return isEnglish ? 'Skills' : 'Compétences';
-  if (normalized.includes('habitude') || normalized.includes('habit')) return isEnglish ? 'Habits' : 'Habitudes';
-  if (normalized.includes('personnalité') || normalized.includes('personality')) return isEnglish ? 'Personality' : 'Personnalité';
-  if (normalized.includes('anecdote') || normalized.includes('short stor') || normalized.includes('experience') || normalized.includes('expérience')) return isEnglish ? 'Experiences' : 'Expériences';
+  if (normalized.includes('préférence') || normalized.includes('preference')) return translate(locale, 'challengeVom.categoryPreferences');
+  if (normalized.includes('compétence') || normalized.includes('competence')) return translate(locale, 'challengeVom.categorySkills');
+  if (normalized.includes('habitude') || normalized.includes('habit')) return translate(locale, 'challengeVom.categoryHabits');
+  if (normalized.includes('personnalité') || normalized.includes('personality')) return translate(locale, 'challengeVom.categoryPersonality');
+  if (normalized.includes('anecdote') || normalized.includes('short stor') || normalized.includes('experience') || normalized.includes('expérience')) return translate(locale, 'challengeVom.categoryExperiences');
   return normalized
     .split(/\s+/)
     .map((word) => word ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : '')

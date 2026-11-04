@@ -17,11 +17,11 @@ import { listPricingPlans } from '@/lib/account';
 import './billing.css';
 import { translate } from '@/lib/i18n';
 
-function userLabel(user, isEn = false) {
+function userLabel(user, locale) {
   const first = String(user?.first_name || '').trim();
   const last = String(user?.last_name || '').trim();
   const full = `${first} ${last}`.trim();
-  return full || user?.email || `${isEn ? 'User' : 'Utilisateur'} #${user?.id || '?'}`;
+  return full || user?.email || `${translate(locale, 'adminBilling.user')} #${user?.id || '?'}`;
 }
 
 function money(amountCents, priceMadCents) {
@@ -64,7 +64,6 @@ function buildStatusLabel(value, locale) {
 
 export default function BillingAdminClient() {
   const { locale, withLocalePath, t } = useI18n();
-  const isEn = locale === 'en';
   const [sessionUser, setSessionUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -205,7 +204,7 @@ export default function BillingAdminClient() {
 
   return (
     <>
-      <AppNav userLabel={userLabel(sessionUser, isEn)} onLogout={logout} role="admin" />
+      <AppNav userLabel={userLabel(sessionUser, locale)} onLogout={logout} role="admin" />
       <main className="admin-billing-shell">
         <header className="admin-billing-header">
           <div>
@@ -283,7 +282,7 @@ export default function BillingAdminClient() {
                   }}
                 >
                   <div className="user-row-top">
-                    <strong>{userLabel(user, isEn)}</strong>
+                    <strong>{userLabel(user, locale)}</strong>
                     <span className={`status-chip status-${normalizeStatus(subscription?.status, 'incomplete')}`}>
                       {buildStatusLabel(subscription?.status || 'incomplete', locale)}
                     </span>
@@ -309,7 +308,7 @@ export default function BillingAdminClient() {
           {selectedUser ? (
             <>
               <div className="selected-user-summary">
-                <p><strong>{t('adminBilling.account')}</strong> {userLabel(selectedUser, isEn)}</p>
+                <p><strong>{t('adminBilling.account')}</strong> {userLabel(selectedUser, locale)}</p>
                 <p><strong>{t('adminBilling.activePlan')}</strong> {selectedSubscription?.pricing_plan?.name || selectedUser?.pricing_plan?.name || t('adminBilling.noPlan')}</p>
                 <p><strong>{t('adminBilling.renewal')}</strong> {formatDate(selectedSubscription?.current_period_end, locale)}</p>
               </div>
