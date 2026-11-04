@@ -96,7 +96,7 @@ export default function DemoClient() {
     () => mockChallenges.map((challenge) => localizeBuilderChallenge(challenge, locale)),
     [locale]
   );
-  // Only the challenges the demo can play, in a fixed order: the visitor adds both.
+  // Only the challenges the demo can play, in a fixed order: the visitor adds all of them.
   const demoCatalog = useMemo(
     () => DEMO_PROGRAM_ENGINE_KEYS.map((key) => catalog.find((challenge) => challenge.engine_key === key)).filter(Boolean),
     [catalog]
@@ -193,11 +193,16 @@ export default function DemoClient() {
     setActiveDone(true);
   }, [activeChallenge]);
 
+  // The add hint points at the first challenge not yet in the programme.
+  const nextChallengeToAdd = demoCatalog.find((challenge) => !program.some((item) => item.id === challenge.id));
+  let addHintKey = program.length ? 'addNext' : 'add';
+  if (nextChallengeToAdd?.engine_key === VOM_ENGINE_KEY) addHintKey = 'addSelf';
+
   // One coach mark at a time, on the action that moves the demo forward.
   let activeHint = null;
   if (!hintsHidden) {
     if (step === 'dashboard') activeHint = 'dashboard';
-    else if (step === 'prepare') activeHint = programReady ? 'prepare' : program.length ? 'addSecond' : 'add';
+    else if (step === 'prepare') activeHint = programReady ? 'prepare' : addHintKey;
     else if (step === 'facilitate' && flowMode === 'manual' && activeDone) activeHint = 'facilitate';
   }
 
@@ -215,11 +220,8 @@ export default function DemoClient() {
     }
   }
 
-  // The add hint points at the first challenge not yet in the programme.
-  const nextChallengeToAdd = demoCatalog.find((challenge) => !program.some((item) => item.id === challenge.id));
-
   function renderHint(key, action, options = {}) {
-    let text = t(`demo.hints.${key}`);
+    let text = t(`demo.hints.${key}`, { challenge: pariName });
     if (key === 'facilitate' && activeIndex + 1 >= program.length) text = t('demo.hints.facilitateLast');
     return (
       <DemoHint show={activeHint === key} text={text} dismissLabel={t('demo.hints.dismiss')} onDismiss={hideHints} {...options}>
@@ -430,7 +432,7 @@ export default function DemoClient() {
                 onSelect={addProgramChallenge}
                 onDeselect={removeProgramChallenge}
                 renderToggleAction={(challenge, action) => (
-                  challenge.id === nextChallengeToAdd?.id ? renderHint(program.length ? 'addSecond' : 'add', action, { align: 'start' }) : action
+                  challenge.id === nextChallengeToAdd?.id ? renderHint(addHintKey, action, { align: 'start' }) : action
                 )}
               />
               <p className={styles.hint}>{t('demo.prepare.playNote', { challenge: pariName })}</p>
