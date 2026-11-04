@@ -19,8 +19,8 @@ export default function Modal({
   closeClassName = '',
   bodyClassName = '',
 }) {
-  const { locale } = useI18n();
-  const closeLabel = locale === 'en' ? 'Close' : 'Fermer';
+  const { locale, t } = useI18n();
+  const closeLabel = t('shell.close');
 
   useBodyScrollLock(open);
   const dialogRef = useRef(null);

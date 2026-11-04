@@ -7,8 +7,7 @@ import { forgotPassword } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
 export default function ForgotPasswordForm() {
-  const { locale, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, withLocalePath, t } = useI18n();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -21,20 +20,20 @@ export default function ForgotPasswordForm() {
 
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) {
-      setMessage(isEn ? 'Please enter your email address.' : 'Veuillez saisir votre adresse email.');
+      setMessage(t('auth.pleaseEnterYourEmailAddress'));
       return;
     }
 
     setLoading(true);
     try {
-      const { res, data } = await forgotPassword({ email: normalizedEmail, userType });
+      const { res, data } = await forgotPassword({ email: normalizedEmail, userType, locale });
       if (res.ok) {
         setDone(true);
       } else {
-        setMessage(data?.message || data?.error || (isEn ? 'Something went wrong. Please try again.' : 'Une erreur est survenue. Veuillez réessayer.'));
+        setMessage(data?.message || data?.error || t('auth.somethingWentWrongPleaseTryAgain'));
       }
     } catch {
-      setMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Vérifiez votre connexion.');
+      setMessage(t('auth.unableToReachTheServerCheck'));
     } finally {
       setLoading(false);
     }
@@ -43,39 +42,39 @@ export default function ForgotPasswordForm() {
   return (
     <main className="shell auth-page">
       <AuthCard
-        title={isEn ? 'Forgot password' : 'Mot de passe oublié'}
-        footer={<span><Link href={withLocalePath('/login')}>{isEn ? 'Back to login' : 'Retour à la connexion'}</Link></span>}
+        title={t('auth.forgotPassword2')}
+        footer={<span><Link href={withLocalePath('/login')}>{t('auth.backToLogin')}</Link></span>}
       >
         {done ? (
           <div className="success-box">
-            <p>{isEn ? 'If an account exists with this email, you will receive a reset link shortly.' : 'Si un compte existe avec cette adresse, vous recevrez un email avec un lien pour réinitialiser votre mot de passe.'}</p>
-            <p className="form-help">{isEn ? 'Also check your spam folder if you do not see the email.' : 'Vérifiez également vos spams si vous ne voyez pas l\'email.'}</p>
-            <Link href={withLocalePath('/login')} className="btn-outline-dark wide" style={{ marginTop: '1rem', display: 'block', textAlign: 'center' }}>{isEn ? 'Back to login' : 'Retour à la connexion'}</Link>
+            <p>{t('auth.ifAnAccountExistsWithThis')}</p>
+            <p className="form-help">{t('auth.alsoCheckYourSpamFolderIf')}</p>
+            <Link href={withLocalePath('/login')} className="btn-outline-dark wide" style={{ marginTop: '1rem', display: 'block', textAlign: 'center' }}>{t('auth.backToLogin')}</Link>
           </div>
         ) : (
           <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
-            <p className="form-help">{isEn ? 'Choose your account type and enter your email to receive a password reset link.' : 'Choisissez votre type de compte et saisissez votre email pour recevoir un lien de réinitialisation.'}</p>
+            <p className="form-help">{t('auth.chooseYourAccountTypeAndEnter')}</p>
             <label>
-              {isEn ? 'Account type' : 'Type de compte'}
+              {t('auth.accountType')}
               <select value={userType} onChange={(e) => setUserType(e.target.value)}>
-                <option value="user">{isEn ? 'Manager' : 'Manager'}</option>
-                <option value="participant">{isEn ? 'Participant' : 'Participant'}</option>
+                <option value="user">{t('auth.manager2')}</option>
+                <option value="participant">{t('auth.participant2')}</option>
               </select>
             </label>
             <label>
-              {isEn ? 'Email' : 'Email'}
+              {t('auth.email')}
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder={isEn ? 'you@company.com' : 'votre@email.com'}
+                placeholder={t('auth.youCompanyCom2')}
                 autoComplete="email"
               />
             </label>
 
             <button type="submit" className="btn-primary wide" disabled={loading}>
-              {loading ? (isEn ? 'Sending...' : 'Envoi en cours...') : (isEn ? 'Send link' : 'Envoyer le lien')}
+              {loading ? t('auth.sending') : t('auth.sendLink')}
             </button>
 
             {message ? <p className="form-error">{message}</p> : null}

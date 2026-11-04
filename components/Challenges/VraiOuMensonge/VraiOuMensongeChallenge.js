@@ -16,7 +16,9 @@ import ChallengePresentation from '../ChallengePresentation';
 import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import styles from './VraiOuMensonge.module.css';
 import useI18n from '@/lib/i18n/useI18n';
+import { getLocaleMeta } from '@/lib/i18n/routing';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
+import { pickLocalized, translate } from '@/lib/i18n';
 
 function formatSeconds(ms) {
   const raw = Number(ms || 0);
@@ -170,7 +172,7 @@ const STATEMENT_TRANSLATIONS = Object.freeze({
 });
 
 function formatChoiceDisplay(value, locale) {
-  const language = locale === 'en' ? 'en-US' : 'fr-FR';
+  const language = getLocaleMeta(locale).intl;
   return sanitizeChoiceText(value)
     .toLocaleLowerCase(language)
     .replace(/\p{L}[\p{L}\p{M}]*/gu, (word) => word.charAt(0).toLocaleUpperCase(language) + word.slice(1));
@@ -178,8 +180,7 @@ function formatChoiceDisplay(value, locale) {
 
 function getTranslatedStatementChoices(statement, locale) {
   const id = String(statement?.id || '').trim();
-  const language = locale === 'en' ? 'en' : 'fr';
-  const translated = STATEMENT_TRANSLATIONS[id]?.[language];
+  const translated = pickLocalized(STATEMENT_TRANSLATIONS[id], locale);
   if (translated?.prompt && Array.isArray(translated.options) && translated.options.length >= 2) {
     return {
       prompt: translated.prompt,
@@ -192,8 +193,7 @@ function getTranslatedStatementChoices(statement, locale) {
 
 function getTranslatedStatementText(statement, locale) {
   const id = String(statement?.id || '').trim();
-  const language = locale === 'en' ? 'en' : 'fr';
-  const translated = STATEMENT_TRANSLATIONS[id]?.[language];
+  const translated = pickLocalized(STATEMENT_TRANSLATIONS[id], locale);
   return String(translated?.text || statement?.text || '').trim().replace(/\.+$/g, '').trim();
 }
 
@@ -237,12 +237,11 @@ function translateCurrentTurnOption(currentTurn, option, locale) {
 function formatStatementCategory(value, locale = 'fr') {
   const normalized = String(value || '').trim().toLowerCase();
   if (!normalized) return '';
-  const isEnglish = locale === 'en';
-  if (normalized.includes('préférence') || normalized.includes('preference')) return isEnglish ? 'Preferences' : 'Préférences';
-  if (normalized.includes('compétence') || normalized.includes('competence')) return isEnglish ? 'Skills' : 'Compétences';
-  if (normalized.includes('habitude') || normalized.includes('habit')) return isEnglish ? 'Habits' : 'Habitudes';
-  if (normalized.includes('personnalité') || normalized.includes('personality')) return isEnglish ? 'Personality' : 'Personnalité';
-  if (normalized.includes('anecdote') || normalized.includes('short stor') || normalized.includes('experience') || normalized.includes('expérience')) return isEnglish ? 'Experiences' : 'Expériences';
+  if (normalized.includes('préférence') || normalized.includes('preference')) return translate(locale, 'challengeVom.categoryPreferences');
+  if (normalized.includes('compétence') || normalized.includes('competence')) return translate(locale, 'challengeVom.categorySkills');
+  if (normalized.includes('habitude') || normalized.includes('habit')) return translate(locale, 'challengeVom.categoryHabits');
+  if (normalized.includes('personnalité') || normalized.includes('personality')) return translate(locale, 'challengeVom.categoryPersonality');
+  if (normalized.includes('anecdote') || normalized.includes('short stor') || normalized.includes('experience') || normalized.includes('expérience')) return translate(locale, 'challengeVom.categoryExperiences');
   return normalized
     .split(/\s+/)
     .map((word) => word ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : '')
@@ -312,7 +311,6 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
     connected,
   } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
   const { t, locale } = useI18n();
-  const isEn = locale === 'en';
 
   const vom = state?.vom || {};
   const phase = String(vom?.phase || 'waiting_start');
@@ -445,18 +443,14 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const isChoiceVoting = votingChoices.length > 1;
   const rulesPreset = useMemo(() => getVraiOuMensongeRulesPreset(locale), [locale]);
   const rulesContent = useMemo(() => ({
-    objective: rulesPreset.objective || (isEn
-      ? 'Each participant takes turns sharing personal information. A playful challenge to see how well you know each other!'
-      : 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !'),
+    objective: rulesPreset.objective || t('challengeVom.eachParticipantTakesTurnsSharingPersonal'),
     facilitator: [...rulesPreset.facilitator],
     participant: [
-      isEn
-        ? 'Game rules: listen, observe, and guess if the statement is true or a bluff.'
-        : 'Règles du jeu : écoutez, observez et devinez si la déclaration est vraie ou bluff.',
+      t('challengeVom.gameRulesListenObserveAndGuess'),
       ...(Array.isArray(rulesPreset.participant) ? rulesPreset.participant : []),
     ],
     footnote: rulesPreset.footnote,
-  }), [isEn, rulesPreset]);
+  }), [locale, rulesPreset]);
   const challengeName = String(rulesPreset?.challengeName || t('vom.title')).trim();
   const challengeSubtitle = String(rulesPreset?.subtitle || 'À tour de rôle, chaque participant partage des informations sur lui-même. Un défi ludique pour voir à quel point vous connaissez les autres !').trim();
   const rulesParticipantsMeta = useMemo(() => ({
@@ -470,9 +464,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
   const missingParticipants = Math.max(0, minParticipantsRequired - participantCount);
   const startStatusText = canStartChallenge
     ? ''
-    : isEn
-      ? `Waiting for ${missingParticipants} participant${missingParticipants > 1 ? 's' : ''}...`
-      : `En attente de ${missingParticipants} participant${missingParticipants > 1 ? 's' : ''}...`;
+    : t('challengeVom.waitingForMissingparticipantsParticipantValue', { missingParticipants, value: missingParticipants > 1 ? 's' : '' });
   const facilitatorRules = useMemo(
     () => (Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : []),
     [rulesContent?.facilitator]
@@ -523,7 +515,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
 
   const answeredVotesCount = facilitatorVoteRows.filter((item) => item.hasAnswered).length;
   const totalExpectedVotes = facilitatorVoteRows.length;
-  const voteProgressLabel = `${answeredVotesCount}/${totalExpectedVotes} ${isEn ? 'response received' : 'reponse recue'}${answeredVotesCount > 1 ? (isEn ? 's' : 's') : ''}`;
+  const voteProgressLabel = `${answeredVotesCount}/${totalExpectedVotes} ${t('challengeVom.responseReceived')}${answeredVotesCount > 1 ? t('challengeVom.s') : ''}`;
 
   const remainingMs = useMemo(() => {
     if (isFacilitatorPaused) {
@@ -868,7 +860,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
         <ChallengeTimerCard
           isStarted={hasChallengeStarted}
           className={styles.mobileTimerCard}
-          title={isEn ? 'Timer' : 'Minuteur'}
+          title={t('challengeVom.timer')}
           remainingSeconds={remainingSecondsForCard}
           durationSeconds={Math.max(1, phaseDurationSeconds)}
           status={timerStatus}
@@ -890,8 +882,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
       ) ? (
         <p className={styles.roleBanner} role="status">
           {phase === 'selecting_statement' && isPoser
-            ? (isEn ? 'It is your turn: choose a statement and your personal answer.' : 'C’est votre tour : choisissez une affirmation et votre réponse personnelle.')
-            : (isEn ? 'Vote: guess the answer of the player whose turn it is.' : 'Votez : devinez la réponse du joueur dont c’est le tour.')}
+            ? t('challengeVom.itIsYourTurnChooseA')
+            : t('challengeVom.voteGuessTheAnswerOfThe')}
         </p>
       ) : null}
 
@@ -927,10 +919,8 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             <div className={styles.selectionHeader}>
               <h2 className={styles.selectionTitle}>
                 {isPoser
-                  ? (isEn ? 'Choose a statement' : 'Choisissez une affirmation')
-                  : (isEn
-                    ? `The participant ${poserName} is choosing a statement`
-                    : `${poserName} choisit une affirmation`)}
+                  ? t('challengeVom.chooseAStatement')
+                  : t('challengeVom.theParticipantPosernameIsChoosingA', { poserName })}
               </h2>
               <span className={styles.selectionProgress}>{`Passage ${currentCycle}/${totalCycles}`}</span>
             </div>
@@ -996,10 +986,10 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   <>
                     <h2 className={styles.sectionTitle}>{t('vom.votingTitle')}</h2>
                     <div className={styles.voteCompactCard}>
-                      <p className={styles.voteCompactQuestionLabel}>{isEn ? 'Question' : 'Question'}</p>
+                      <p className={styles.voteCompactQuestionLabel}>{t('challengeVom.question')}</p>
                       <p className={styles.voteCompactQuestion}>"{currentQuestionDisplayText}"</p>
-                      <p className={styles.voteCompactProgress}>{isEn ? `Progress: ${voteProgressLabel}` : `Progression: ${voteProgressLabel}`}</p>
-                      <span className={styles.observerBadge}>{isEn ? 'Observation only' : 'Observation uniquement'}</span>
+                      <p className={styles.voteCompactProgress}>{t('challengeVom.progressVoteprogresslabel', { voteProgressLabel })}</p>
+                      <span className={styles.observerBadge}>{t('challengeVom.observationOnly')}</span>
                       <div className={styles.voteStatusList}>
                         {facilitatorVoteRows.map((row) => (
                           <article key={row.participantId} className={`${styles.voteStatusRow}${row.hasAnswered ? ` ${styles.voteStatusRowDone}` : ''}`}>
@@ -1008,7 +998,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                               <strong>{row.participantName}</strong>
                             </div>
                             <span className={`${styles.voteStatusBadge}${row.hasAnswered ? ` ${styles.voteStatusBadgeDone}` : ` ${styles.voteStatusBadgePending}`}`}>
-                              {row.hasAnswered ? `✅ ${isEn ? 'Answered' : 'Repondu'}` : `⏳ ${isEn ? 'Pending' : 'En attente'}`}
+                              {row.hasAnswered ? `✅ ${t('challengeVom.answered')}` : `⏳ ${t('challengeVom.pending')}`}
                             </span>
                           </article>
                         ))}
@@ -1017,13 +1007,13 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                   </>
                 ) : (
                   <div className={styles.voteTargetCard}>
-                    <p className={styles.voteTargetEyebrow}>{isEn ? 'Guess the answer from' : 'DEVINEZ LA RÉPONSE DE'}</p>
+                    <p className={styles.voteTargetEyebrow}>{t('challengeVom.guessTheAnswerFrom')}</p>
                     <div className={styles.voteTargetIdentity}>
                       <span className={styles.voteTargetAvatar} aria-hidden="true">{getInitials(poserName)}</span>
                       <h2 className={styles.voteTargetName}>{poserName}</h2>
                     </div>
                     <div className={styles.voteQuestionBlock}>
-                      <span>{isEn ? 'Question:' : 'Question :'}</span>
+                      <span>{t('challengeVom.question2')}</span>
                       <p>{currentQuestionDisplayText}</p>
                     </div>
                   </div>
@@ -1176,7 +1166,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
             <ChallengeTimerCard
               isStarted={hasChallengeStarted}
               className={styles.desktopTimerCard}
-              title={isEn ? 'Timer' : 'Minuteur'}
+              title={t('challengeVom.timer')}
               remainingSeconds={remainingSecondsForCard}
               durationSeconds={Math.max(1, phaseDurationSeconds)}
               status={timerStatus}

@@ -11,6 +11,7 @@ import { getCheckoutRedirectUrl } from '@/lib/billing-utils';
 import { getPricingPlanBadgeLabel, getPricingPlanVariantLabel, normalizePricingPlanName } from '@/lib/pricing-labels';
 import { getPricingPlansFallback } from '@/lib/pricingFallbackPlans';
 import { DEFAULT_PRICING_CURRENCY, PRICING_CURRENCY_OPTIONS, formatPlanAmount, getAnnualSavings, getPlanAmountDh } from '@/lib/pricing-display.mjs';
+import { translate, pickLocalized } from '@/lib/i18n';
 
 function getStoredCurrentUser() {
   if (typeof window === 'undefined') return null;
@@ -24,21 +25,19 @@ function getStoredCurrentUser() {
 
 function getPricingPeriodSuffix(plan, selectedBilling, locale = 'fr') {
   const billingCycle = String(plan?.billing_cycle || '').trim().toLowerCase();
-  const isEn = locale === 'en';
 
   if (billingCycle === 'one_time') {
     return '/session';
   }
 
   if (selectedBilling === 'annual' || selectedBilling === 'yearly') {
-    return isEn ? '/year' : '/an';
+    return translate(locale, 'pricingPage.year');
   }
 
-  return isEn ? '/month' : '/mois';
+  return translate(locale, 'pricingPage.month');
 }
 
 function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', locale = 'fr') {
-  const isEn = locale === 'en';
   const normalizedName = normalizePricingPlanName(plan);
   const planKey = normalizedName.toLowerCase();
   const billingCycle = String(plan?.billing_cycle || '').trim().toLowerCase();
@@ -49,29 +48,29 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       displayName: 'Free',
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: isEn ? [
+      features: pickLocalized({ en: [
         '1 user (admin/manager)',
         '1 session / month - max 6 participants',
         'Limited catalog access (4 challenges)',
         'No export',
         'No advanced insights',
-      ] : [
+      ], fr: [
         '1 utilisateur (admin/manager)',
         '1 session / mois · max 6 participants',
         'Accès catalogue limité (4 challenges)',
         'Pas d’export',
         'Pas d’analyses avancées',
-      ],
-      ctaLabel: isEn ? 'Start for free' : 'Commencer gratuitement',
+      ] }, locale),
+      ctaLabel: translate(locale, 'pricingPage.startForFree'),
     };
   }
 
   if (planKey === 'pay-per-session') {
     return {
-      displayName: isOneTimeSession ? (isEn ? 'Pay-per-session' : 'Session à l’unité') : (isEn ? 'Session package' : 'Forfait session'),
+      displayName: isOneTimeSession ? translate(locale, 'pricingPage.payPerSession') : translate(locale, 'pricingPage.sessionPackage'),
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: isEn ? [
+      features: pickLocalized({ en: [
         '1 user max',
         '6 participants max',
         '1 session included',
@@ -80,7 +79,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Manager dashboard',
         'Live facilitation',
         'Insights',
-      ] : [
+      ], fr: [
         '1 utilisateur max',
         '6 participants max',
         '1 session incluse',
@@ -89,8 +88,8 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Espace manager',
         'Animation en direct',
         'Analyses avancées',
-      ],
-      ctaLabel: isEn ? 'Buy a session' : 'Acheter une session',
+      ] }, locale),
+      ctaLabel: translate(locale, 'pricingPage.buyASession'),
     };
   }
 
@@ -100,20 +99,20 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         displayName: 'Pro +',
         priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
         meta: [],
-        features: isEn ? [
+        features: pickLocalized({ en: [
           '5 users (admins/managers)',
           'Up to 150 participants, split into teams of 4 to 6',
           '60 sessions',
           'All features included in the PRO plan',
           'Multi-account manager management',
-        ] : [
+        ], fr: [
           '5 utilisateurs (admins/managers)',
           'Jusqu’à 150 participants, répartis en équipes de 4 à 6',
           '60 sessions',
           'Toutes les fonctionnalités incluses dans l’offre PRO',
           'Gestion multi-comptes managers',
-        ],
-        ctaLabel: isEn ? 'Subscribe' : 'S’abonner',
+        ] }, locale),
+        ctaLabel: translate(locale, 'pricingPage.subscribe'),
       };
     }
 
@@ -121,7 +120,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       displayName: getPricingPlanVariantLabel(plan, cardVariant),
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: isEn ? [
+      features: pickLocalized({ en: [
         '1 user (admin/manager)',
         'Up to 30 participants, split into teams of 4 to 6',
         '10 sessions',
@@ -130,7 +129,7 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Manager dashboard',
         'Live facilitation',
         'Insights',
-      ] : [
+      ], fr: [
         '1 utilisateur (admin/manager)',
         'Jusqu’à 30 participants, répartis en équipes de 4 à 6',
         '10 sessions',
@@ -139,9 +138,9 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Espace manager',
         'Animation en direct',
         'Analyses avancées',
-      ],
-      highlightedLabel: getPricingPlanBadgeLabel(plan, cardVariant) || (isEn ? 'Most popular' : 'Plus populaire'),
-      ctaLabel: isEn ? 'Subscribe' : 'S’abonner',
+      ] }, locale),
+      highlightedLabel: getPricingPlanBadgeLabel(plan, cardVariant) || translate(locale, 'pricingPage.mostPopular'),
+      ctaLabel: translate(locale, 'pricingPage.subscribe'),
       ctaHref: cardVariant === 'enterprise' ? '/contact' : null,
     };
   }
@@ -151,20 +150,20 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
       displayName: 'Pro +',
       priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
       meta: [],
-      features: isEn ? [
+      features: pickLocalized({ en: [
         '5 users (admins/managers)',
         'Up to 150 participants, split into teams of 4 to 6',
         '60 sessions',
         'All features included in the PRO plan',
         'Multi-account manager management',
-      ] : [
+      ], fr: [
         '5 utilisateurs (admins/managers)',
         'Jusqu’à 150 participants, répartis en équipes de 4 à 6',
         '60 sessions',
         'Toutes les fonctionnalités incluses dans l’offre PRO',
         'Gestion multi-comptes managers',
-      ],
-      ctaLabel: isEn ? 'Subscribe' : 'S’abonner',
+      ] }, locale),
+      ctaLabel: translate(locale, 'pricingPage.subscribe'),
     };
   }
 
@@ -222,7 +221,6 @@ function getDarkModeHeadingStyle() {
 
 export default function PricingPageClient({ initialPlans = [], initialCurrency = DEFAULT_PRICING_CURRENCY }) {
   const { locale, t, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
   const [plans, setPlans] = useState(initialPlans);
   const [loading, setLoading] = useState(initialPlans.length === 0);
   const [error, setError] = useState('');
@@ -243,7 +241,7 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
         const response = await fetch(getApiUrl('/pricing-plans'), { signal: controller.signal });
         const payload = await response.json().catch(() => []);
         if (!response.ok) {
-          throw new Error(isEn ? 'Unable to load pricing.' : 'Impossible de charger la tarification.');
+          throw new Error(t('pricingPage.unableToLoadPricing'));
         }
         const list = Array.isArray(payload) ? payload : [];
         setPlans(list.length > 0 ? list : getPricingPlansFallback());
@@ -256,8 +254,8 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
         const timeoutError = err?.name === 'AbortError';
         setError(
           timeoutError
-            ? (isEn ? 'Pricing service is taking too long to respond.' : 'Le service de tarification met trop de temps à répondre.')
-            : (err.message || (isEn ? 'Pricing load error.' : 'Erreur de chargement de la tarification.'))
+            ? t('pricingPage.pricingServiceIsTakingTooLong')
+            : (err.message || t('pricingPage.pricingLoadError'))
         );
       } finally {
         setLoading(false);
@@ -269,7 +267,7 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [isEn, hasInitialLivePlans]);
+  }, [locale, hasInitialLivePlans]);
 
   const sortedPlans = useMemo(() => {
     return [...plans].sort((a, b) => {
@@ -313,12 +311,12 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
       }
 
       throw new Error(provider === 'payoneer'
-        ? (isEn ? 'Payoneer checkout is temporarily unavailable.' : 'Le paiement Payoneer est temporairement indisponible.')
-        : (isEn ? 'PayPal checkout is temporarily unavailable.' : 'Le paiement PayPal est temporairement indisponible.'));
+        ? t('pricingPage.payoneerCheckoutIsTemporarilyUnavailable')
+        : t('pricingPage.paypalCheckoutIsTemporarilyUnavailable'));
     } catch (err) {
       setError(err.message || (provider === 'payoneer'
-        ? (isEn ? 'Payoneer payment is currently unavailable.' : 'Paiement Payoneer impossible pour le moment.')
-        : (isEn ? 'PayPal payment is currently unavailable.' : 'Paiement PayPal impossible pour le moment.')));
+        ? t('pricingPage.payoneerPaymentIsCurrentlyUnavailable')
+        : t('pricingPage.paypalPaymentIsCurrentlyUnavailable')));
     } finally {
       setCheckoutPlanId('');
     }
@@ -328,13 +326,11 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
     <>
       <TopNav />
       <main className="shell pricing-page">
-        <section className="pricing-hero reveal-up" aria-label={isEn ? 'TeamBlender pricing' : 'Tarifs TeamBlender'}>
+        <section className="pricing-hero reveal-up" aria-label={t('pricingPage.teamblenderPricing')}>
           <div className="pricing-hero__copy">
-            <h1 style={getDarkModeHeadingStyle()}>{isEn ? 'Simple plans to scale your team sessions.' : 'Des formules simples pour faire grandir vos sessions d\'équipe.'}</h1>
+            <h1 style={getDarkModeHeadingStyle()}>{t('pricingPage.simplePlansToScaleYourTeam')}</h1>
             <p className="pricing-hero__context" style={getDarkModeTextStyle()}>
-              {isEn
-                ? 'Challenges are designed for teams of 4 to 6 people. Pro plans support up to 30 or 150 participants, split across multiple teams.'
-                : 'Les challenges sont conçus pour des équipes de 4 à 6 personnes. Les offres Pro accueillent jusqu’à 30 ou 150 participants, répartis en plusieurs équipes.'}
+              {t('pricingPage.challengesAreDesignedForTeamsOf')}
             </p>
           </div>
         </section>
@@ -344,7 +340,7 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
           <section className="pricing-controls reveal-up mb-8" aria-label="Options d'affichage">
             <div className="pricing-controls__row mx-auto w-full max-w-6xl">
               <div className="control-section pricing-controls__toggle">
-                <span id="pricing-billing-label" className="pricing-controls__label" style={getDarkModeTextStyle()}>{isEn ? 'Billing cycle' : 'Fréquence de facturation'}</span>
+                <span id="pricing-billing-label" className="pricing-controls__label" style={getDarkModeTextStyle()}>{t('pricingPage.billingCycle')}</span>
                 <div className="toggle-group toggle-group--compact" role="group" aria-labelledby="pricing-billing-label">
                   <button
                     type="button"
@@ -352,7 +348,7 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
                     aria-pressed={selectedBilling === 'monthly'}
                     onClick={() => setSelectedBilling('monthly')}
                   >
-                    {isEn ? 'Monthly' : 'Mensuel'}
+                    {t('pricingPage.monthly')}
                   </button>
                   <button
                     type="button"
@@ -360,7 +356,7 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
                     aria-pressed={selectedBilling === 'annual'}
                     onClick={() => setSelectedBilling('annual')}
                   >
-                    <span>{isEn ? 'Yearly' : 'Annuel'}</span>
+                    <span>{t('pricingPage.yearly')}</span>
                     <span className="toggle-savings-badge">-20%</span>
                   </button>
                 </div>
@@ -385,26 +381,20 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
 
         {loading ? (
           <section className="feature-card" aria-label="Chargement des formules" style={getDarkModeSectionStyle()}>
-            <p>{isEn ? 'Loading plans...' : 'Chargement des formules en cours...'}</p>
+            <p>{t('pricingPage.loadingPlans')}</p>
           </section>
         ) : null}
 
         {error ? (
-          <section className="feature-card" aria-label="Erreur tarification" style={getDarkModeSectionStyle()}>
+          <section className="feature-card" aria-label={t('pricingPage.pricingErrorAria')} style={getDarkModeSectionStyle()}>
             <p className="form-error">{error}</p>
             <p style={getDarkModeTextStyle()}>
-              {isEn
-                ? (hasFallbackPlans
-                    ? 'Fallback plans are shown below while we reconnect to live pricing.'
-                    : 'Pricing could not be loaded at the moment.')
-                : (hasFallbackPlans
-                    ? 'Des formules de secours sont affichées ci-dessous pendant la reconnexion à la tarification en direct.'
-                    : 'La tarification ne peut pas être chargée pour le moment.')}
+              {t(hasFallbackPlans ? 'pricingPage.fallbackPlansShown' : 'pricingPage.pricingCouldNotBeLoaded')}
             </p>
             <div className="hero-actions">
-              <Link href={withLocalePath('/contact')} className="btn-primary">{isEn ? 'Talk to an expert' : 'Parler à un expert'}</Link>
+              <Link href={withLocalePath('/contact')} className="btn-primary">{t('pricingPage.talkToAnExpert')}</Link>
               <button type="button" className="btn-secondary" onClick={() => window.location.reload()}>
-                {isEn ? 'Retry' : 'Réessayer'}
+                {t('pricingPage.retry')}
               </button>
             </div>
           </section>
@@ -413,36 +403,34 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
         {!loading && !error && sortedPlans.length === 0 ? (
           <section className="pricing-empty reveal-up" aria-label="Aucune formule" style={getDarkModeSectionStyle()}>
             <div className="pricing-empty-icon">💬</div>
-            <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Plans are being finalized' : 'Formules en cours de finalisation'}</h2>
+            <h2 style={getDarkModeHeadingStyle()}>{t('pricingPage.plansAreBeingFinalized')}</h2>
             <p style={getDarkModeTextStyle()}>
-              {isEn
-                ? 'Our team is preparing the offers. Contact us for a proposal adapted to your context.'
-                : 'Notre équipe prépare les offres. Contactez-nous pour recevoir une proposition adaptée à votre contexte.'}
+              {t('pricingPage.ourTeamIsPreparingTheOffers')}
             </p>
             <div className="hero-actions">
-              <Link href={withLocalePath('/contact')} className="btn-primary">{isEn ? 'Talk to an expert' : 'Parler à un expert'}</Link>
-              <Link href={withLocalePath('/signup')} className="btn-secondary">{isEn ? 'Create account' : 'Créer un compte'}</Link>
+              <Link href={withLocalePath('/contact')} className="btn-primary">{t('pricingPage.talkToAnExpert')}</Link>
+              <Link href={withLocalePath('/signup')} className="btn-secondary">{t('pricingPage.createAccount')}</Link>
             </div>
           </section>
         ) : null}
 
         {!loading && sortedPlans.length > 0 ? (
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-            <section className="pricing-grid reveal-up grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-6" aria-label={isEn ? 'Available plans' : 'Formules disponibles'} style={{ background: 'transparent' }}>
+            <section className="pricing-grid reveal-up grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-6" aria-label={t('pricingPage.availablePlans')} style={{ background: 'transparent' }}>
             {displayedPlans.map((plan) => {
               const isFallbackPlan = Boolean(plan?.is_fallback);
               const isContactPlan = Boolean(plan.planCopy.ctaHref) || isFallbackPlan;
               const ctaLabel = isContactPlan
-                ? (isEn ? 'Talk to an expert' : 'Parler à un expert')
-                : (plan.planCopy.ctaLabel || (isEn ? 'Pay now' : 'Payer maintenant'));
+                ? t('pricingPage.talkToAnExpert')
+                : (plan.planCopy.ctaLabel || t('pricingPage.payNow'));
               const ctaHref = isContactPlan ? withLocalePath(plan.planCopy.ctaHref || '/contact') : null;
-                  const badgeLabel = plan.isFeatured ? (isEn ? 'Most popular' : 'Plus populaire') : '';
+                  const badgeLabel = plan.isFeatured ? t('pricingPage.mostPopular') : '';
 
               return (
               <article key={String(plan.id)} className={`feature-card pricing-card flex h-full flex-col${plan.isFeatured ? ' pricing-card-featured' : ''}`}>
                 <div className="pricing-card-top">
                   {plan.discountPercentage > 0 ? (
-                    <span className="pricing-discount-badge">{isEn ? `Save ${plan.discountPercentage}%` : `Économisez ${plan.discountPercentage} %`}</span>
+                    <span className="pricing-discount-badge">{t('pricingPage.saveDiscountpercentage', { discountPercentage: plan.discountPercentage })}</span>
                   ) : null}
                   <div className="pricing-plan-title-row">
                     <p className="eyebrow" style={getDarkModeTextStyle()}>{plan.planCopy.displayName}</p>
@@ -473,8 +461,8 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
                   {plan.planCopy.meta.map((item, index) => (
                     <span key={`${plan.id}-meta-${index}`} style={getDarkModeTextStyle()}>{item}</span>
                   ))}
-                  {plan.trial_days ? <span>{plan.trial_days} {isEn ? 'trial days' : 'jours d\'essai'}</span> : null}
-                  {plan.support_level ? <span>{isEn ? 'Support' : 'Support'} {plan.support_level}</span> : null}
+                  {plan.trial_days ? <span>{plan.trial_days} {t('pricingPage.trialDays')}</span> : null}
+                  {plan.support_level ? <span>{t('pricingPage.support')} {plan.support_level}</span> : null}
                 </div>
 
                 <div className="pricing-actions pricing-actions--card mt-auto">
@@ -489,7 +477,7 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
                       onClick={() => handleProviderCheckout(plan, 'payoneer')}
                       disabled={checkoutPlanId === String(plan.id)}
                     >
-                      {checkoutPlanId === String(plan.id) ? (isEn ? 'Opening checkout...' : 'Ouverture du paiement...') : ctaLabel}
+                      {checkoutPlanId === String(plan.id) ? t('pricingPage.openingCheckout') : ctaLabel}
                     </button>
                   )}
                 </div>
@@ -498,25 +486,21 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
             })}
             </section>
             <p className="pricing-terms-note" style={getDarkModeTextStyle()}>
-              {isEn
-                ? 'Prices include VAT. No commitment: cancel anytime by writing to '
-                : 'Prix TTC. Sans engagement : résiliation sur simple demande à '}
+              {t('pricingPage.pricesIncludeVatNoCommitmentCancel')}
               <a href="mailto:contact@teamblender.io">contact@teamblender.io</a>
-              {isEn
-                ? ', effective at the end of the current billing period.'
-                : ', effective à la fin de la période en cours.'}
+              {t('pricingPage.effectiveAtTheEndOfThe')}
             </p>
           </div>
         ) : null}
 
         {!loading && sortedPlans.length > 0 ? (
-          <section className="pricing-footer-cta reveal-up" aria-label={isEn ? 'Sales support' : 'Assistance commerciale'}>
+          <section className="pricing-footer-cta reveal-up" aria-label={t('pricingPage.salesSupport')}>
             <div className="pricing-footer-cta__inner">
               <div className="pricing-footer-cta__copy">
-                <p className="eyebrow" style={getDarkModeTextStyle()}>{isEn ? 'Need support?' : 'Besoin d\'un accompagnement ?'}</p>
-                <h2 style={getDarkModeHeadingStyle()}>{isEn ? 'Our team replies within a few hours.' : 'Notre équipe vous répond sous quelques heures.'}</h2>
+                <p className="eyebrow" style={getDarkModeTextStyle()}>{t('pricingPage.needSupport')}</p>
+                <h2 style={getDarkModeHeadingStyle()}>{t('pricingPage.ourTeamRepliesWithinAFew')}</h2>
               </div>
-              <Link href={withLocalePath('/contact')} className="btn-primary pricing-footer-cta__button cta-surface">{isEn ? 'Talk to an expert' : 'Parler à un expert'}</Link>
+              <Link href={withLocalePath('/contact')} className="btn-primary pricing-footer-cta__button cta-surface">{t('pricingPage.talkToAnExpert')}</Link>
             </div>
           </section>
         ) : null}

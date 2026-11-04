@@ -32,4 +32,11 @@ module.exports = [
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
+  {
+    // Une clé en double écrase silencieusement la première (cf. sessionBuilder / challengeRules).
+    files: ['lib/i18n/dictionaries/**/*.js'],
+    rules: {
+      'no-dupe-keys': 'error',
+    },
+  },
 ];

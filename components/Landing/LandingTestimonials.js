@@ -2,13 +2,14 @@
 
 import { Quote } from 'lucide-react';
 import GamifiedIcon from './GamifiedIcon';
+import { translate } from '@/lib/i18n';
 
 export default function LandingTestimonials({ locale, testimonialsHeader, testimonialItems }) {
   return (
     <section
       className="landing-testimonials landing-section-full relative overflow-hidden p-6 sm:p-10"
       style={{ '--reveal-delay': '170ms' }}
-      aria-label={locale === 'en' ? 'Customer testimonials' : 'Témoignages clients'}
+      aria-label={translate(locale, 'landingUi.customerTestimonials')}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(99,102,241,0.10),transparent_44%)]" />
       <div className="landing-section-inner relative">
@@ -18,7 +19,7 @@ export default function LandingTestimonials({ locale, testimonialsHeader, testim
             <h2 className="landing-section-title">{testimonialsHeader.title}</h2>
           </div>
         </div>
-        <div className="landing-testimonials-carousel mt-7" role="region" aria-label={locale === 'en' ? 'Testimonials carousel' : 'Carrousel de temoignages'}>
+        <div className="landing-testimonials-carousel mt-7" role="region" aria-label={translate(locale, 'landingUi.testimonialsCarousel')}>
           {testimonialItems.map((item, index) => (
             <article
               key={`${item.title}-${item.subtitle}`}

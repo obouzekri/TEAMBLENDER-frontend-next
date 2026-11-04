@@ -7,6 +7,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import ts from 'typescript';
 
 const require = createRequire(import.meta.url);
+const routing = await import('../lib/i18n/routing.js');
 const source = fs.readFileSync(new URL('../lib/i18n/I18nProvider.js', import.meta.url), 'utf8');
 const compiled = ts.transpileModule(source, {
   compilerOptions: { jsx: ts.JsxEmit.React, module: ts.ModuleKind.CommonJS, allowJs: true, esModuleInterop: true },
@@ -20,11 +21,9 @@ vm.runInNewContext(compiled, {
       return { usePathname: () => '/fr/participant', useRouter: () => ({}) };
     }
     if (name === './routing') {
-      return {
-        detectLocaleFromPathname: () => 'fr',
-        normalizeLocale: (locale) => locale === 'en' ? 'en' : 'fr',
-      };
+      return { ...routing, detectLocaleFromPathname: () => 'fr' };
     }
+    if (name === '../seo') return { isPublicSeoPath: () => false };
     return require(name);
   },
 });
@@ -63,7 +62,7 @@ assert.match(admin, /editingSession\.status === 'en_cours' \? \{ locale \}/);
 assert.match(admin, /newSession\.status === 'en_cours' \? \{ locale \}/);
 const wrapper = fs.readFileSync(new URL('../components/Challenges/ChallengeWrapper.js', import.meta.url), 'utf8');
 assert.match(wrapper, /'crossword_live_v1'/);
-assert.equal((wrapper.match(/locale: payload\.context\?\.locale === 'en' \? 'en' : 'fr'/g) || []).length, 2);
+assert.equal((wrapper.match(/locale: normalizeLocale\(payload\.context\?\.locale\)/g) || []).length, 2);
 assert.match(wrapper, /a\.locale === b\.locale/);
 assert.match(wrapper, /a\.sessionConfigLocked === b\.sessionConfigLocked/);
 assert.doesNotMatch(fs.readFileSync(new URL('../components/Challenges/CrosswordLive/CrosswordChallenge.js', import.meta.url), 'utf8'), /participantLimitError|crosswordParticipantValidation/);

@@ -19,6 +19,9 @@ import ChallengeHeader from '../ChallengeHeader';
 import ChallengePresentation from '../ChallengePresentation';
 import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import useI18n from '@/lib/i18n/useI18n';
+import { getDictionary } from '@/lib/i18n';
+import { DEFAULT_LOCALE } from '@/lib/i18n/routing';
+import { formatDate as formatLocaleDate, NUMERIC_DATE_TIME, NUMERIC_TIME } from '@/lib/i18n/format';
 import styles from './EscapeRoom.module.css';
 import { ArithmeticPuzzle, LetterSequencePuzzle, OneStrokePuzzle } from './EscapeRoomPuzzles';
 
@@ -33,6 +36,50 @@ function applyTemplate(template, values = {}) {
     String(values?.[key] ?? `{${key}}`)
   );
 }
+
+// Réglages des retours de validation (identiques dans toutes les langues) ; les textes sont dans le dictionnaire.
+const OUTCOME_SETTINGS = {
+  waiting: {
+    tone: 'Info',
+    durationMs: 1200,
+    blockProgression: false,
+  },
+  divergent: {
+    tone: 'Warning',
+    durationMs: 2000,
+    blockProgression: false,
+  },
+  wrong: {
+    tone: 'Danger',
+    durationMs: 1800,
+    blockProgression: false,
+  },
+  correct: {
+    tone: 'Success',
+    durationMs: 2000,
+    blockProgression: true,
+  },
+  escaped: {
+    tone: 'Success',
+    durationMs: 2200,
+    blockProgression: false,
+  },
+  max_attempts: {
+    tone: 'Danger',
+    durationMs: 2200,
+    blockProgression: true,
+  },
+  already_finished: {
+    tone: 'Info',
+    durationMs: 1200,
+    blockProgression: false,
+  },
+  enigme_not_found: {
+    tone: 'Danger',
+    durationMs: 2000,
+    blockProgression: false,
+  },
+};
 
 function formatValidationFeedback(validation = {}, outcomeUi = {}, copy = {}) {
   const outcome = String(validation?.outcome || '').trim();
@@ -97,252 +144,13 @@ export default function EscapeRoomChallenge({
   context,
   onChallengeCompleted,
 }) {
-  const { locale } = useI18n();
-  const isEn = locale === 'en';
-  const copy = useMemo(
-    () =>
-      isEn
-        ? {
-            apiError: 'API error ({status})',
-            actionUnavailable: 'Action is currently unavailable.',
-            loadingRoom: 'Loading room...',
-            missingParams: 'Missing parameters',
-            missingParamsDetail: 'sessionId or challengeId is missing.',
-            issue: 'Outcome:',
-            start: 'Start:',
-            end: 'End:',
-            pendingRiddle: 'Riddle pending',
-            riddleCounter: 'Riddle {current}/{total}',
-            riddleCounterFallback: 'Riddle -/-',
-            responsesCounter: '{responded}/{total} answers',
-            imageUnavailable: 'Image unavailable for this riddle.',
-            imageFallbackTitle: 'Visual unavailable',
-            imageFallbackBody:
-              'Continue by solving the text clues while the image cannot be loaded.',
-            noDescription: 'No description.',
-            textRiddleTitle: 'Text riddle',
-            wordCodeTitle: 'Word code',
-            wordCodeInstruction: 'Find the logic and provide the correct value.',
-            puzzleHint: 'Hint:',
-            answerTitle: 'Your proposal',
-            answerPrivacyBadge: 'Private until collective validation',
-            answerSent: 'Answer sent. You can edit and submit again.',
-            answersReceived: '{responded}/{total} answers received',
-            answerPlaceholder: 'Enter your proposal...',
-            submit: 'Submit',
-            timerTitle: 'Timer',
-            unlockHint: 'Unlock a hint',
-            hintUnlocked: 'Hint unlocked',
-            debrief: 'Debrief questions',
-            progress: 'Riddles passed or completed',
-            debriefNote: 'Progress includes riddles skipped by the facilitator, not just solved riddles.',
-            debriefQuestions: [
-              'How did you agree on a shared answer?',
-              'What helped you when the team was stuck?',
-              'What will you do differently together next time?',
-            ],
-            skipRiddle: 'Skip the riddle',
-            chatTitle: 'Chat',
-            chatEmpty: 'No messages yet.',
-            chatPlaceholder: 'Team message',
-            participantListUnavailable: 'Participant list unavailable.',
-            retryParticipants: 'Retry participants',
-            retryingParticipants: 'Loading participants...',
-            responded: 'responded',
-            waiting: 'waiting',
-            subtitleFallback: 'Solve riddles as a team with collective validation',
-            answerSubmittedFallback: 'Answer sent.',
-            teamProgressDetail: 'Team progress: {responded}/{total} answers.',
-            attemptSuffix: 'Attempt {attempts}/{maxAttempts}.',
-            outcomeUi: {
-              waiting: {
-                tone: 'Info',
-                feedback: 'Waiting: all participants must submit before validation.',
-                title: 'Validation pending',
-                detail: 'The team has not finished answering yet.',
-                durationMs: 1200,
-                blockProgression: false,
-              },
-              divergent: {
-                tone: 'Warning',
-                feedback: 'Team answers are not aligned yet. Discuss, then submit a new answer.',
-                title: 'Divergent answers',
-                detail: 'Answers are not identical within the team.',
-                durationMs: 2000,
-                blockProgression: false,
-              },
-              wrong: {
-                tone: 'Danger',
-                feedback: 'Incorrect answer. Try again with one shared proposal.',
-                title: 'Incorrect answer',
-                detail: 'The shared answer does not match the expected solution.',
-                durationMs: 1800,
-                blockProgression: false,
-              },
-              correct: {
-                tone: 'Success',
-                feedback: 'Riddle validated. Moving to the next one...',
-                title: 'Riddle solved',
-                detail: 'Great teamwork. Preparing the next riddle.',
-                durationMs: 2000,
-                blockProgression: true,
-              },
-              escaped: {
-                tone: 'Success',
-                feedback: 'Room unlocked. Great job, mission accomplished!',
-                title: 'Room unlocked',
-                detail: 'All riddles have been solved.',
-                durationMs: 2200,
-                blockProgression: false,
-              },
-              max_attempts: {
-                tone: 'Danger',
-                feedback: 'Maximum attempts reached for this riddle.',
-                title: 'Attempt limit reached',
-                detail: 'Ask for a hint or wait for the facilitator to skip it.',
-                durationMs: 2200,
-                blockProgression: true,
-              },
-              already_finished: {
-                tone: 'Info',
-                feedback: 'The game is already finished.',
-                title: 'Game finished',
-                detail: 'No further action is required.',
-                durationMs: 1200,
-                blockProgression: false,
-              },
-              enigme_not_found: {
-                tone: 'Danger',
-                feedback: 'Riddle not found. Reload and try again.',
-                title: 'Riddle not found',
-                detail: 'Client/server synchronization failed.',
-                durationMs: 2000,
-                blockProgression: false,
-              },
-            },
-          }
-        : {
-            apiError: 'Erreur API ({status})',
-            actionUnavailable: 'Action impossible pour le moment.',
-            loadingRoom: 'Chargement de la salle...',
-            missingParams: 'Parametres manquants',
-            missingParamsDetail: 'sessionId ou challengeId est absent.',
-            issue: 'Issue:',
-            start: 'Debut:',
-            end: 'Fin:',
-            pendingRiddle: 'Enigme en attente',
-            riddleCounter: 'Enigme {current}/{total}',
-            riddleCounterFallback: 'Enigme -/-',
-            responsesCounter: '{responded}/{total} reponses',
-            imageUnavailable: 'Image indisponible pour cette enigme.',
-            imageFallbackTitle: 'Visuel indisponible',
-            imageFallbackBody:
-              'Continuez avec les indices textuels pendant le chargement du visuel.',
-            noDescription: 'Aucune description.',
-            textRiddleTitle: 'Enigme texte',
-            wordCodeTitle: 'Code de mots',
-            wordCodeInstruction: 'Identifiez la logique et donnez la valeur correcte.',
-            puzzleHint: 'Indice:',
-            answerTitle: 'Votre proposition',
-            answerPrivacyBadge: "Privé jusqu'à validation collective",
-            answerSent: 'Réponse envoyée. Vous pouvez la modifier et soumettre de nouveau.',
-            answersReceived: '{responded}/{total} reponses recues',
-            answerPlaceholder: 'Saisissez votre proposition...',
-            submit: 'Soumettre',
-            timerTitle: 'Minuteur',
-            unlockHint: 'Débloquer un indice',
-            hintUnlocked: 'Indice débloqué',
-            debrief: 'Questions pour le débrief',
-            progress: 'Énigmes franchies',
-            debriefNote: "La progression inclut les énigmes passées par l’animateur, pas seulement les énigmes résolues.",
-            debriefQuestions: [
-              'Comment avez-vous trouvé une réponse commune ?',
-              'Qu’est-ce qui vous a aidés lorsque l’équipe était bloquée ?',
-              'Que ferez-vous différemment ensemble la prochaine fois ?',
-            ],
-            skipRiddle: "Passer l'énigme",
-            chatTitle: 'Chat',
-            chatEmpty: 'Aucun message pour le moment.',
-            chatPlaceholder: 'Message equipe',
-            participantListUnavailable: 'Liste participants indisponible.',
-            retryParticipants: 'Réessayer les participants',
-            retryingParticipants: 'Chargement des participants...',
-            responded: 'repondu',
-            waiting: 'en attente',
-            subtitleFallback: 'Resolvez les enigmes en equipe, avec validation collective',
-            answerSubmittedFallback: 'Reponse envoyee.',
-            teamProgressDetail: 'Progression equipe: {responded}/{total} reponses.',
-            attemptSuffix: 'Tentative {attempts}/{maxAttempts}.',
-            outcomeUi: {
-              waiting: {
-                tone: 'Info',
-                feedback: 'En attente: tous les participants doivent soumettre avant validation.',
-                title: 'Validation en attente',
-                detail: "L'equipe n'a pas encore fini de repondre.",
-                durationMs: 1200,
-                blockProgression: false,
-              },
-              divergent: {
-                tone: 'Warning',
-                feedback:
-                  "Les reponses de l'equipe ne sont pas encore alignees. Discutez ensemble puis soumettez une nouvelle reponse.",
-                title: 'Reponses divergentes',
-                detail: "Les reponses ne sont pas identiques dans l'equipe.",
-                durationMs: 2000,
-                blockProgression: false,
-              },
-              wrong: {
-                tone: 'Danger',
-                feedback: 'Reponse incorrecte. Reessayez avec une proposition commune.',
-                title: 'Reponse incorrecte',
-                detail: 'La reponse commune ne correspond pas a la solution attendue.',
-                durationMs: 1800,
-                blockProgression: false,
-              },
-              correct: {
-                tone: 'Success',
-                feedback: 'Enigme validee. Passage a la suivante...',
-                title: 'Enigme reussie',
-                detail: "Excellent travail d'equipe. Preparation de la prochaine enigme.",
-                durationMs: 2000,
-                blockProgression: true,
-              },
-              escaped: {
-                tone: 'Success',
-                feedback: 'Salle deverrouillee. Bravo, mission accomplie!',
-                title: 'Salle deverrouillee',
-                detail: 'Toutes les enigmes ont ete resolues.',
-                durationMs: 2200,
-                blockProgression: false,
-              },
-              max_attempts: {
-                tone: 'Danger',
-                feedback: 'Nombre maximal de tentatives atteint pour cette enigme.',
-                title: 'Limite de tentatives atteinte',
-                detail: 'Demandez un indice ou attendez que le facilitateur passe a la suivante.',
-                durationMs: 2200,
-                blockProgression: true,
-              },
-              already_finished: {
-                tone: 'Info',
-                feedback: 'La partie est deja terminee.',
-                title: 'Partie terminee',
-                detail: "Aucune action supplementaire n'est necessaire.",
-                durationMs: 1200,
-                blockProgression: false,
-              },
-              enigme_not_found: {
-                tone: 'Danger',
-                feedback: 'Enigme introuvable. Rechargez la vue et reessayez.',
-                title: 'Enigme introuvable',
-                detail: 'La synchronisation a echoue entre client et serveur.',
-                durationMs: 2000,
-                blockProgression: false,
-              },
-            },
-          },
-    [isEn]
-  );
+  const { locale, t } = useI18n();
+  const copy = useMemo(() => {
+    const text = getDictionary(locale).escapeRoomCopy || getDictionary(DEFAULT_LOCALE).escapeRoomCopy;
+    const outcomeUi = Object.fromEntries(Object.entries(OUTCOME_SETTINGS)
+      .map(([outcome, setting]) => [outcome, { ...text.outcomeUi[outcome], ...setting }]));
+    return { ...text, outcomeUi };
+  }, [locale]);
   const rulesPreset = useMemo(() => getEscapeRoomRulesPreset(locale), [locale]);
   const [state, setState] = useState(null);
   const [participants, setParticipants] = useState([]);
@@ -396,7 +204,7 @@ export default function EscapeRoomChallenge({
       try {
         payload = body ? JSON.parse(body) : {};
       } catch {
-        throw new Error(locale === 'en' ? 'Invalid server response. Please retry.' : 'Réponse du serveur invalide. Veuillez réessayer.');
+        throw new Error(t('challengeEscape.invalidServerResponsePleaseRetry'));
       }
 
       if (!response.ok) {
@@ -421,7 +229,7 @@ export default function EscapeRoomChallenge({
     const requestPromise = apiCall('/state', { method: 'GET' })
       .then((payload) => {
         if (!payload || typeof payload !== 'object' || Array.isArray(payload) || typeof payload.status !== 'string' || !payload.timer || typeof payload.timer !== 'object') {
-          throw new Error(locale === 'en' ? 'Incomplete game state received. Please retry.' : 'État de la partie incomplet reçu. Veuillez réessayer.');
+          throw new Error(t('challengeEscape.incompleteGameStateReceivedPleaseRetry'));
         }
         if (requestId < appliedStateRequestIdRef.current) {
           return payload;
@@ -454,7 +262,7 @@ export default function EscapeRoomChallenge({
         : Array.isArray(payload)
           ? payload
           : null;
-      if (!rows) throw new Error(locale === 'en' ? 'Invalid participants list received.' : 'Liste des participants reçue invalide.');
+      if (!rows) throw new Error(t('challengeEscape.invalidParticipantsListReceived'));
       setParticipants(rows);
       setParticipantsError('');
     } catch (error) {
@@ -747,7 +555,7 @@ export default function EscapeRoomChallenge({
   );
   const challengeName = resolveEscapeRoomTitle(
     runtimePayload?.config?.title,
-    String(rulesPreset?.challengeName || (isEn ? 'Secret Room' : 'Salle secrete')).trim()
+    String(rulesPreset?.challengeName || t('challengeEscape.secretRoom')).trim()
   );
   const challengeSubtitle = String(rulesPreset?.subtitle || '').trim();
   const rulesParticipantsMeta = useMemo(
@@ -788,17 +596,16 @@ export default function EscapeRoomChallenge({
   );
   const isFinished = finishedStatuses.has(challengeStatus);
   const outcomeLabel = ['escaped', 'completed', 'success', 'succeeded'].includes(challengeStatus)
-    ? (isEn ? 'Room unlocked' : 'Salle déverrouillée')
+    ? t('challengeEscape.roomUnlocked')
     : ['timeout', 'timed_out'].includes(challengeStatus)
-      ? (isEn ? 'Time elapsed' : 'Temps écoulé')
-      : (isEn ? 'Mission ended' : 'Mission arrêtée');
+      ? t('challengeEscape.timeElapsed')
+      : t('challengeEscape.missionEnded');
   const totalRiddles = Math.max(0, Number(state?.total_enigmes || 0));
   const progressedRiddles = Math.min(totalRiddles, Math.max(0,
     challengeStatus === 'escaped' ? totalRiddles : Number(state?.current_enigme_index || 0)));
   const formatDate = (value) => {
     if (!value) return '—';
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString(isEn ? 'en-GB' : 'fr-FR');
+    return formatLocaleDate(value, locale, NUMERIC_DATE_TIME) || '—';
   };
   const shouldUseFastPolling = Boolean(
     !isFacilitator &&
@@ -879,8 +686,8 @@ export default function EscapeRoomChallenge({
     >
       {isTimerPaused ? <Play size={17} aria-hidden="true" /> : <Pause size={17} aria-hidden="true" />}
       {busyAction === 'pause' || busyAction === 'resume'
-        ? (isEn ? 'Updating…' : 'Mise à jour…')
-        : isTimerPaused ? (isEn ? 'Resume' : 'Reprendre') : (isEn ? 'Pause' : 'Mettre en pause')}
+        ? t('challengeEscape.updating')
+        : isTimerPaused ? t('challengeEscape.resume') : t('challengeEscape.pause')}
     </button>
   ) : null;
   const quickActions = isFacilitator && !isFinished && hasChallengeStarted && currentEnigme ? (
@@ -924,7 +731,7 @@ export default function EscapeRoomChallenge({
           <h2>{copy.loadingRoom}</h2>
           {syncError ? <div role="alert">
             <p>{syncError}</p>
-            <button type="button" className={styles.secondaryBtn} onClick={() => loadState().catch(() => {})}>{isEn ? 'Retry' : 'Réessayer'}</button>
+            <button type="button" className={styles.secondaryBtn} onClick={() => loadState().catch(() => {})}>{t('challengeEscape.retry')}</button>
           </div> : null}
         </div>
       </div>
@@ -935,10 +742,10 @@ export default function EscapeRoomChallenge({
     <ChallengePresentation className={styles.escapeRoomContainer} isDebrief={isFinished}>
       {syncError ? (
         <div className={styles.card} role="alert">
-          <strong>{isEn ? 'Synchronization interrupted: displayed state may be outdated.' : 'Synchronisation interrompue : l’état affiché peut être obsolète.'}</strong>
+          <strong>{t('challengeEscape.synchronizationInterruptedDisplayedStateMayBe')}</strong>
           <p>{syncError}</p>
-          {lastSyncedAt ? <p>{isEn ? 'Last update:' : 'Dernière mise à jour :'} {new Date(lastSyncedAt).toLocaleTimeString(isEn ? 'en-US' : 'fr-FR')}</p> : null}
-          <button type="button" className={styles.secondaryBtn} onClick={() => loadState().catch(() => {})}>{isEn ? 'Retry' : 'Réessayer'}</button>
+          {lastSyncedAt ? <p>{t('challengeEscape.lastUpdate')} {formatLocaleDate(lastSyncedAt, locale, NUMERIC_TIME)}</p> : null}
+          <button type="button" className={styles.secondaryBtn} onClick={() => loadState().catch(() => {})}>{t('challengeEscape.retry')}</button>
         </div>
       ) : null}
       {participantsError ? (
@@ -1090,7 +897,7 @@ export default function EscapeRoomChallenge({
                   <OneStrokePuzzle
                     key={`${challengeId}:${currentEnigme.id}`}
                     data={currentUiData}
-                    isEn={isEn}
+                    locale={locale}
                     disabled={isFacilitator || !!busyAction || isTimerPaused}
                     onAnswerChange={setAnswer}
                   />
@@ -1108,7 +915,7 @@ export default function EscapeRoomChallenge({
                   <ArithmeticPuzzle
                     key={`${challengeId}:${currentEnigme.id}`}
                     data={currentUiData}
-                    isEn={isEn}
+                    locale={locale}
                     disabled={isFacilitator || !!busyAction || isTimerPaused}
                     onAnswerChange={setAnswer}
                   />
@@ -1132,7 +939,7 @@ export default function EscapeRoomChallenge({
                           {isMystery ? (
                             <span
                               className={styles.mysteryMark}
-                              aria-label={isEn ? 'Cell to solve' : 'Case a trouver'}
+                              aria-label={t('challengeEscape.cellToSolve')}
                             >
                               ?
                             </span>
@@ -1200,9 +1007,7 @@ export default function EscapeRoomChallenge({
                   <div className={styles.anagramLettersWrap}>
                     {anagramLetters.length === 0 ? (
                       <p className={styles.teamEmpty}>
-                        {isEn
-                          ? 'Letters unavailable for this riddle.'
-                          : 'Lettres indisponibles pour cette enigme.'}
+                        {t('challengeEscape.lettersUnavailableForThisRiddle')}
                       </p>
                     ) : (
                       anagramLetters.map((letter, idx) => (

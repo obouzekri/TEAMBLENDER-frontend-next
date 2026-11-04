@@ -11,6 +11,7 @@ import mountRuntimeChallenge from '@/lib/challenges/runtime';
 import styles from './ChallengeWrapper.module.css';
 import useI18n from '@/lib/i18n/useI18n';
 import { ChallengeConnectionContext } from '@/lib/challenges/connection-context';
+import { normalizeLocale } from '@/lib/i18n/routing';
 
 const REALTIME_ENGINES = new Set([
   'escape_room_v1',
@@ -36,8 +37,7 @@ const REALTIME_ENGINES = new Set([
  * - Manage auth & ownership
  */
 export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, onChallengeCompleted = null, headerContent = null }) {
-  const { locale, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, withLocalePath, t } = useI18n();
   const normalizedEngineKey = String(engineKey || '').trim();
   const [activeEngineKey, setActiveEngineKey] = useState(normalizedEngineKey);
   const effectiveEngineKey = String(activeEngineKey || normalizedEngineKey || '').trim();
@@ -154,7 +154,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
           const displayName = String(payload.context?.displayName || payload.context?.name || fullName || email || '').trim();
 
           const nextContext = {
-            locale: payload.context?.locale === 'en' ? 'en' : 'fr',
+            locale: normalizeLocale(payload.context?.locale),
             sessionConfigLocked: Boolean(payload.context?.sessionConfigLocked),
             role: payload.context?.role || 'participant',
             userId: resolvedUserId,
@@ -236,7 +236,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
             const displayName = String(payload.context?.displayName || payload.context?.name || fullName || email || '').trim();
 
             const nextContext = {
-              locale: payload.context?.locale === 'en' ? 'en' : 'fr',
+              locale: normalizeLocale(payload.context?.locale),
               sessionConfigLocked: Boolean(payload.context?.sessionConfigLocked),
               role: payload.context?.role || prev?.role || 'participant',
               userId: prev?.userId || payload.context?.participantId || null,
@@ -284,11 +284,11 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
       if (packet?.type !== 'participant.removed' || String(packet.payload?.sessionId) !== String(sessionId)) return;
       setEngineComponent(null);
       setRuntimePayload(null);
-      setError(isEn ? 'The facilitator removed you from this session. Reconnecting will not restore your assignment.' : 'Le facilitateur vous a retiré de cette session. Une reconnexion ne rétablira pas votre attribution.');
+      setError(t('challengeCommon.theFacilitatorRemovedYouFromThis'));
     }
     socket.on('challenge:event', handleRemoval);
     return () => socket.off('challenge:event', handleRemoval);
-  }, [socket, sessionId, isEn]);
+  }, [socket, sessionId, locale]);
 
   useEffect(() => {
     if (!runtimePayload) return;
@@ -369,8 +369,8 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
       <main className={styles.statusShell}>
         <section className={styles.statusCard}>
           <div className={styles.spinner} aria-hidden="true" />
-          <h1>{isEn ? 'Loading challenge' : 'Chargement du challenge'}</h1>
-          <p>{isEn ? 'Preparing your experience...' : 'Préparation de votre expérience en cours...'}</p>
+          <h1>{t('challengeCommon.loadingChallenge')}</h1>
+          <p>{t('challengeCommon.preparingYourExperience')}</p>
         </section>
       </main>
     );
@@ -380,17 +380,17 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
   if (error) {
     const isAuthError = /connect|session|authentif/i.test(error);
     const userMessage = isAuthError
-      ? (isEn ? 'Your session has expired or you do not have access to this challenge.' : 'Votre session a expiré ou vous n\'avez pas accès à ce challenge.')
-      : (isEn ? 'Unable to load the challenge. Check your connection and retry.' : 'Le challenge n\'a pas pu être chargé. Vérifiez votre connexion et réessayez.');
+      ? t('challengeCommon.yourSessionHasExpiredOrYou')
+      : t('challengeCommon.unableToLoadTheChallengeCheck');
     return (
       <main className={styles.statusShell}>
         <section className={styles.statusCard}>
-          <h1>{isEn ? 'Unable to load challenge' : 'Impossible de charger le challenge'}</h1>
+          <h1>{t('challengeCommon.unableToLoadChallenge')}</h1>
           <p className={styles.error}>{userMessage}</p>
           <p className={styles.errorDetail}>{error}</p>
           <div className={styles.statusActions}>
-            <button className="btn-primary" onClick={() => window.location.reload()}>{isEn ? 'Retry' : 'Réessayer'}</button>
-            <a href={withLocalePath('/home')} className="btn-secondary">{isEn ? 'Back to home' : 'Retour à l’accueil'}</a>
+            <button className="btn-primary" onClick={() => window.location.reload()}>{t('challengeCommon.retry')}</button>
+            <a href={withLocalePath('/home')} className="btn-secondary">{t('challengeCommon.backToHome')}</a>
           </div>
         </section>
       </main>
@@ -403,11 +403,11 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
       <main className={styles.statusShell}>
         <section className={styles.statusCard}>
           <div className={styles.spinner} aria-hidden="true" />
-          <h1>{isEn ? 'Connecting' : 'Connexion en cours'}</h1>
+          <h1>{t('challengeCommon.connecting')}</h1>
           <p>
-            {requiresRealtime && !connected ? (isEn ? 'Connecting to the realtime server...' : 'Connexion au serveur temps réel...') : (isEn ? 'Initializing challenge...' : 'Initialisation du challenge...')}
+            {requiresRealtime && !connected ? t('challengeCommon.connectingToTheRealtimeServer') : t('challengeCommon.initializingChallenge')}
           </p>
-          {socketError ? <p className={styles.error}>{isEn ? 'Connection problem: check your network.' : 'Problème de connexion — vérifiez votre réseau.'}</p> : null}
+          {socketError ? <p className={styles.error}>{t('challengeCommon.connectionProblemCheckYourNetwork')}</p> : null}
         </section>
       </main>
     );
@@ -441,7 +441,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
       )}
       {headerContent ? <div className={styles.headerSlot}>{headerContent}</div> : null}
       {requiresRealtime && !connected ? <p role="alert" className={styles.connectionError}>
-        {isEn ? 'Connection interrupted. Actions are unavailable; your drafts are kept.' : 'Connexion interrompue. Les actions sont indisponibles ; vos brouillons sont conservés.'}
+        {t('challengeCommon.connectionInterruptedActionsAreUnavailableYour')}
       </p> : null}
       <div className={styles.challengeContainer}>
         <ChallengeConnectionContext.Provider value={!requiresRealtime || connected}>

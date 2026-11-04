@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { CHIP_CLASS, PILL_CLASS } from './landingStyles';
+import { translate } from '@/lib/i18n';
 
 export default function LandingFinalCta({
   locale,
@@ -15,7 +16,7 @@ export default function LandingFinalCta({
   onSecondaryCtaClick,
 }) {
   return (
-    <section className="landing-cta-block landing-final-cta landing-section-full p-8 text-center" style={{ '--reveal-delay': '240ms' }} aria-label={locale === 'en' ? 'Final call to action' : 'Dernier appel à l’action'}>
+    <section className="landing-cta-block landing-final-cta landing-section-full p-8 text-center" style={{ '--reveal-delay': '240ms' }} aria-label={translate(locale, 'landingUi.finalCallToAction')}>
       <div className="landing-section-inner">
         <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{finalCta.title || fallback.finalCtaTitle}</h2>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-7">{finalCta.description || fallback.finalCtaDescription}</p>

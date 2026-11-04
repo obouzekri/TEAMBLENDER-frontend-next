@@ -125,8 +125,7 @@ function computePieceStyle(piece, config, imageUrl) {
 }
 
 export default function CoPuzzleChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
-  const { locale } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, t } = useI18n();
   const rulesPreset = useMemo(() => getCopuzzleRulesPreset(locale), [locale]);
   const [selectedPieceId, setSelectedPieceId] = useState('');
   const [dragOverCellKey, setDragOverCellKey] = useState('');
@@ -390,7 +389,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
     <ChallengePresentation className={`${styles.copuzzleContainer}${isFacilitator ? ` ${styles.facilitatorView}` : ''}`} isDebrief={isChallengeCompleted}>
       <ChallengeHeader
         title={effectiveConfig.title}
-        subtitle={challengeSubtitle || (isEn ? 'Real-time collaborative puzzle' : 'Puzzle collaboratif en temps réel')}
+        subtitle={challengeSubtitle || t('challengeCopuzzle.realTimeCollaborativePuzzle')}
         timer={hasChallengeStarted ? { remainingSeconds: timerRemainingSeconds } : null}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
@@ -412,7 +411,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
           isStarted={hasChallengeStarted}
-          title={locale === 'en' ? 'Timer' : 'Minuteur'}
+          title={t('challengeCopuzzle.timer')}
           remainingSeconds={timerRemainingSeconds}
           durationSeconds={timerDurationSeconds}
           status={timerState}
@@ -442,7 +441,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
             />
           ) : (
             <>
-              <h2 className={styles.arenaTitle}>{isEn ? 'COPUZZLE ARENA' : 'PLATEAU COPUZZLE'}</h2>
+              <h2 className={styles.arenaTitle}>{t('challengeCopuzzle.copuzzleArena')}</h2>
               <div
                 className={styles.board}
                 style={{
@@ -463,7 +462,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                       key={cell.key}
                       type="button"
                       className={cellClass}
-                      aria-label={`${locale === 'en' ? 'Cell' : 'Case'} ${cell.x + 1}, ${cell.y + 1}${occupant ? `, ${locale === 'en' ? 'piece' : 'pièce'} ${getPieceNumber(occupant)}${canRemoveBoardPiece ? `, ${locale === 'en' ? 'click to remove' : 'cliquer pour retirer'}` : ''}` : ''}`}
+                      aria-label={`${t('challengeCopuzzle.cell')} ${cell.x + 1}, ${cell.y + 1}${occupant ? `, ${t('challengeCopuzzle.piece')} ${getPieceNumber(occupant)}${canRemoveBoardPiece ? `, ${t('challengeCopuzzle.clickToRemove')}` : ''}` : ''}`}
                       onClick={() => {
                         if (occupant && canRemoveBoardPiece) {
                           removePiece(occupant.id);
@@ -500,11 +499,11 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                             </span>
                           </div>
                           {!isFacilitator ? (
-                            <span className={styles.pieceLabel}>{isMyPiece ? (isEn ? 'Your piece' : 'Votre pièce') : (isEn ? 'Placed piece' : 'Pièce visible')}</span>
+                            <span className={styles.pieceLabel}>{isMyPiece ? t('challengeCopuzzle.yourPiece') : t('challengeCopuzzle.placedPiece')}</span>
                           ) : null}
                           {isMyPiece && canPlay ? (
                             <span className={styles.removeBtn}>
-                              {locale === 'en' ? 'Remove' : 'Retirer'}
+                              {t('challengeCopuzzle.remove')}
                             </span>
                           ) : null}
                         </div>
@@ -524,13 +523,13 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                       <strong className={styles.summaryValue}>
                         {Number(state.summary?.completion_percent || completion)}%
                       </strong>
-                      <span className={styles.summaryLabel}>{isEn ? 'Completion' : 'Complétion'}</span>
+                      <span className={styles.summaryLabel}>{t('challengeCopuzzle.completion')}</span>
                     </div>
                     <div className={styles.summaryCard}>
                       <strong className={styles.summaryValue}>
                         {Number(state.summary?.collective_score || 0)} / {Number(state.summary?.collective_score_max ?? 1000)}
                       </strong>
-                      <span className={styles.summaryLabel}>{isEn ? 'Team score' : 'Score collectif'}</span>
+                      <span className={styles.summaryLabel}>{t('challengeCopuzzle.teamScore')}</span>
                     </div>
                     <div className={styles.summaryCard}>
                       <strong className={styles.summaryValue}>
@@ -547,7 +546,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                   </div>
                   {state.summary?.total_time_seconds > 0 ? (
                     <div className={styles.summaryTime}>
-                      {locale === 'en' ? 'Total time' : 'Temps total'}: {Math.floor(Number(state.summary.total_time_seconds) / 60)}m{' '}
+                      {t('challengeCopuzzle.totalTime')}: {Math.floor(Number(state.summary.total_time_seconds) / 60)}m{' '}
                       {Number(state.summary.total_time_seconds) % 60}s
                     </div>
                   ) : null}
@@ -562,7 +561,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
               isStarted={hasChallengeStarted}
-              title={locale === 'en' ? 'Timer' : 'Minuteur'}
+              title={t('challengeCopuzzle.timer')}
               remainingSeconds={timerRemainingSeconds}
               durationSeconds={timerDurationSeconds}
               status={timerState}
@@ -576,13 +575,13 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
           </div>
 
           <section className={styles.sideCard} style={{ order: 3 }}>
-            <h2>{isFacilitator ? (isEn ? 'Reference image' : 'Image de référence') : (isEn ? 'Your pieces' : 'Pièces assignées')}</h2>
+            <h2>{isFacilitator ? t('challengeCopuzzle.referenceImage') : t('challengeCopuzzle.yourPieces')}</h2>
 
             {imageUrl && (isFacilitator || effectiveConfig.participants.show_reference_image) ? (
               <div className={styles.referenceWrap}>
                 <Image
                   src={imageUrl}
-                  alt={isEn ? 'Puzzle reference' : 'Référence du puzzle'}
+                  alt={t('challengeCopuzzle.puzzleReference')}
                   unoptimized
                   width={840}
                   height={840}
@@ -605,29 +604,29 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                     emitEvent('puzzle.reference_visibility.update', { visible: event.target.checked });
                   }}
                 />
-                <span>{isEn ? 'Show or hide the image for participants' : "Afficher ou masquer l'image aux participants"}</span>
+                <span>{t('challengeCopuzzle.showOrHideTheImageFor')}</span>
               </label>
             ) : null}
 
             {isFacilitator ? (
               <p className={styles.metaLine}>
                 {effectiveConfig.participants.show_reference_image
-                  ? (isEn ? 'Image visible to participants.' : 'Image visible pour les participants.')
-                  : (isEn ? 'Image hidden from participants.' : 'Image masquée pour les participants.')}
+                  ? t('challengeCopuzzle.imageVisibleToParticipants')
+                  : t('challengeCopuzzle.imageHiddenFromParticipants')}
               </p>
             ) : null}
 
             {!isFacilitator ? (
               <>
-                <p className={styles.metaLine}>{isEn ? 'Your pieces placed' : 'Vos pièces placées'} : {placedAssignedCount}/{assignedPieces.length}</p>
+                <p className={styles.metaLine}>{t('challengeCopuzzle.yourPiecesPlaced')} : {placedAssignedCount}/{assignedPieces.length}</p>
                 <p className={styles.metaLine}>
                   {canPlay
-                    ? (isEn ? 'The board is active.' : 'Le plateau est actif.')
-                    : (isEn ? 'Waiting for the facilitator to start.' : 'En attente du démarrage du facilitateur.')}
+                    ? t('challengeCopuzzle.theBoardIsActive')
+                    : t('challengeCopuzzle.waitingForTheFacilitatorToStart')}
                 </p>
                 <div className={styles.tray}>
                   {trayPieces.length === 0 ? (
-                    <p className={styles.empty}>{isEn ? 'No piece available yet.' : 'Aucune pièce disponible pour le moment.'}</p>
+                    <p className={styles.empty}>{t('challengeCopuzzle.noPieceAvailableYet')}</p>
                   ) : (
                     trayPieces.map((piece) => {
                       const selected = String(piece.id) === String(selectedPieceId);
@@ -644,7 +643,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                           onDragStart={(event) => onTrayDragStart(event, piece)}
                           onDragEnd={onDragEnd}
                           disabled={!canPlay}
-                          title={`${isEn ? 'Piece' : 'Pièce'} #${getPieceNumber(piece)}`}
+                          title={`${t('challengeCopuzzle.piece2')} #${getPieceNumber(piece)}`}
                         >
                           <span
                             className={styles.trayPreview}
@@ -673,7 +672,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                 delivery={chatDelivery}
                 quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
                 onQuickMessage={sendQuickChat}
-                emptyText={locale === 'en' ? 'No messages yet.' : 'Aucun message pour le moment.'}
+                emptyText={t('challengeCopuzzle.noMessagesYet')}
                 maxLength={240}
               />
             </div>
@@ -684,10 +683,8 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
       {!isFacilitator && selectedPiece ? (
         <section className={styles.selectionBanner}>
           <p>
-            {isEn ? 'Selected piece' : 'Pièce sélectionnée'} : <strong>#{getPieceNumber(selectedPiece)}</strong>.{' '}
-            {isEn
-              ? 'Drag it to a free cell, or click a placed piece to remove it.'
-              : 'Glissez-la vers une case libre, ou cliquez sur une pièce posée pour la retirer.'}
+            {t('challengeCopuzzle.selectedPiece')} : <strong>#{getPieceNumber(selectedPiece)}</strong>.{' '}
+            {t('challengeCopuzzle.dragItToAFreeCell')}
           </p>
         </section>
       ) : null}

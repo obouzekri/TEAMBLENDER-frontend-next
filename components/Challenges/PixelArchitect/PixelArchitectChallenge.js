@@ -243,8 +243,7 @@ function mountMiniModelScene(container, { gridSize, grid, palette, targetCells, 
 }
 
 export default function PixelArchitectChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
-  const { locale } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, t } = useI18n();
   const rulesPreset = useMemo(() => getPixelArchitectRulesPreset(locale), [locale]);
   const mountRef = useRef(null);
   const modelPreviewRef = useRef(null);
@@ -443,9 +442,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         return r;
       } catch {
         setWebglUnavailable(true);
-        setViewportError(isEn
-          ? '3D rendering is unavailable on this device/browser.'
-          : 'Le rendu 3D est indisponible sur cet appareil/navigateur.');
+        setViewportError(t('challengePixel.n3dRenderingIsUnavailableOnThis'));
         return null;
       }
     })();
@@ -461,9 +458,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     const onWebglContextLost = (event) => {
       event.preventDefault();
       setWebglUnavailable(true);
-      setViewportError(isEn
-        ? 'WebGL context was lost. Continue with the layer grids.'
-        : 'Le contexte WebGL a été perdu. Continuez avec les grilles par couche.');
+      setViewportError(t('challengePixel.webglContextWasLostContinueWith'));
     };
 
     renderer.domElement.addEventListener('webglcontextlost', onWebglContextLost);
@@ -767,9 +762,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           setIsViewportReady(true);
         }
       } catch {
-        setViewportError(isEn
-          ? '3D view failed to render. Please refresh and try again.'
-          : 'La vue 3D n a pas pu s afficher. Rechargez puis reessayez.');
+        setViewportError(t('challengePixel.n3dViewFailedToRenderPlease'));
         setWebglUnavailable(true);
       }
     };
@@ -870,9 +863,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   function handleResetBuild() {
     if (!canBuild) return;
     if (!serverCubes.length) return;
-    if (!window.confirm(isEn
-      ? `Remove all ${serverCubes.length} cubes from the shared build? This affects the whole team and cannot be undone.`
-      : `Supprimer les ${serverCubes.length} cubes de la construction partagée ? Cette action affecte toute l’équipe et ne peut pas être annulée.`)) return;
+    if (!window.confirm(t('challengePixel.removeAllLengthCubesFromThe', { length: serverCubes.length }))) return;
     serverCubes.forEach((cube) => {
       emitEvent('pixel.cube.remove', { x: cube.x, y: cube.y, z: cube.z });
     });
@@ -882,9 +873,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     if (!canBuild) return;
     const cubes = serverCubes.filter((cube) => Number(cube.y) === safeLayer);
     if (!cubes.length) return;
-    if (!window.confirm(isEn
-      ? `Remove ${cubes.length} cube(s) from shared layer ${safeLayer + 1}? This cannot be undone.`
-      : `Supprimer ${cubes.length} cube(s) de la couche partagée ${safeLayer + 1} ? Cette action ne peut pas être annulée.`)) return;
+    if (!window.confirm(t('challengePixel.removeLengthCubeSFromShared', { length: cubes.length, safeLayer: safeLayer + 1 }))) return;
     cubes
       .forEach((cube) => {
         emitEvent('pixel.cube.remove', { x: cube.x, y: cube.y, z: cube.z });
@@ -936,7 +925,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const isDebrief = Boolean(summary) || isLockedByPhase || ['completed', 'timeout'].includes(timerStatus);
   const summaryPixelMetrics = summary?.pixel_metrics || null;
   const templateName = String(selectedTemplate?.name || 'Modèle').trim();
-  const templateDifficulty = String(selectedTemplate?.difficulty || state?.config?.difficulty || (isEn ? 'medium' : 'moyen')).trim();
+  const templateDifficulty = String(selectedTemplate?.difficulty || state?.config?.difficulty || t('challengePixel.medium')).trim();
   const miniCells = useMemo(() => targetCells.slice(0, 42), [targetCells]);
 
   const playerExactHits = useMemo(() => {
@@ -1014,14 +1003,14 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     return Object.values(grouped)
       .map((item) => ({
         id: item.id,
-        name: item.name || (item.id === 'equipe' ? (isEn ? 'Team' : 'Équipe') : item.id),
+        name: item.name || (item.id === 'equipe' ? t('challengePixel.team') : item.id),
         cubeCount: item.cubeCount,
         layerCount: item.layers.size,
         colorCount: item.colors.size,
       }))
       .sort((a, b) => b.cubeCount - a.cubeCount)
       .slice(0, 6);
-  }, [isEn, serverCubes]);
+  }, [locale, serverCubes]);
 
   const liveLayerBoards = useMemo(() => {
     return layers.map((layer) => ({
@@ -1033,35 +1022,35 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const rulesExtraContent = useMemo(() => (
     <>
       <section className={styles.rulesMetaSection}>
-        <h3>{isEn ? 'Execution plan' : 'Plan d\'execution'}</h3>
+        <h3>{t('challengePixel.executionPlan')}</h3>
         <div className={styles.statusRow}>
-          <span className={styles.badge}>{isEn ? 'Phase' : 'Phase'}: {phase || 'intro'}</span>
-          <span className={styles.badge}>{isEn ? 'Accuracy' : 'Exactitude'}: {accuracyPercent}%</span>
-          <span className={styles.badge}>{isEn ? 'Remaining' : 'Restants'}: {remainingCubes}</span>
+          <span className={styles.badge}>{t('challengePixel.phase')}: {phase || 'intro'}</span>
+          <span className={styles.badge}>{t('challengePixel.accuracy')}: {accuracyPercent}%</span>
+          <span className={styles.badge}>{t('challengePixel.remaining')}: {remainingCubes}</span>
         </div>
         <p className={styles.rulesInlineText}>
-          {isEn ? 'Click grid to place, click a cube to remove, drag to orbit or zoom.' : 'Cliquer la grille pour poser, cliquer un cube pour supprimer, glisser pour orbiter ou zoomer.'}
+          {t('challengePixel.clickGridToPlaceClickA')}
         </p>
         <ul className={styles.howToList}>
-          <li>{isEn ? 'Choose a layer, then place or remove cubes.' : 'Choisir une couche puis poser ou supprimer des cubes.'}</li>
-          <li>{isEn ? 'Check the model map and progress layer by layer.' : 'Vérifier la carte modèle et avancer couche par couche.'}</li>
-          <li>{isEn ? 'Coordinate in chat to avoid duplicates.' : 'Se coordonner via le chat pour éviter les doublons.'}</li>
-          <li>{isEn ? 'Submit the final version when your team is ready.' : 'Soumettre la version finale quand votre équipe est prête.'}</li>
+          <li>{t('challengePixel.chooseALayerThenPlaceOr')}</li>
+          <li>{t('challengePixel.checkTheModelMapAndProgress')}</li>
+          <li>{t('challengePixel.coordinateInChatToAvoidDuplicates')}</li>
+          <li>{t('challengePixel.submitTheFinalVersionWhenYour')}</li>
         </ul>
         <div className={styles.helperRow}>
           <div className={styles.helperItem}>
-            <span className={styles.helperDotTarget} /> {isEn ? 'Target model (ghost)' : 'Modèle cible (fantôme)'}
+            <span className={styles.helperDotTarget} /> {t('challengePixel.targetModelGhost')}
           </div>
           <div className={styles.helperItem}>
-            <span className={styles.helperDotPlayer} /> {isEn ? 'Correct cube on target' : 'Cube correct sur cible'}
+            <span className={styles.helperDotPlayer} /> {t('challengePixel.correctCubeOnTarget')}
           </div>
           <div className={styles.helperItem}>
-            <span className={styles.helperDotError} /> {isEn ? 'Wrong cube or extra placement' : 'Cube incorrect ou placement en trop'}
+            <span className={styles.helperDotError} /> {t('challengePixel.wrongCubeOrExtraPlacement')}
           </div>
         </div>
       </section>
     </>
-  ), [accuracyPercent, phase, remainingCubes, isEn]);
+  ), [accuracyPercent, phase, remainingCubes, locale]);
 
   function handleStartChallenge() {
     refreshChallengeStateBeforeStart(emitEvent);
@@ -1072,7 +1061,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     <ChallengePresentation className={styles.container} isDebrief={isDebrief}>
       <ChallengeHeader
         title={challengeName}
-        subtitle={challengeSubtitle || (isEn ? 'Replicate the model together in real time with grid and palette constraints.' : 'Répliquez le modèle collectivement en temps réel avec contraintes de grille et de palette.')}
+        subtitle={challengeSubtitle || t('challengePixel.replicateTheModelTogetherInReal')}
         timer={hasChallengeStarted ? { remainingSeconds: Number(timer?.remaining_seconds || 0) } : null}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
@@ -1094,7 +1083,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
           isStarted={hasChallengeStarted}
-          title={isEn ? 'Timer' : 'Minuteur'}
+          title={t('challengePixel.timer')}
           remainingSeconds={Number(timer?.remaining_seconds || 0)}
           durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
           status={String(timer?.status || 'idle')}
@@ -1115,9 +1104,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               className={styles.modelMapFab}
               onClick={() => setIsModelMapOpen(true)}
               aria-expanded={isModelMapOpen}
-              aria-label={isEn ? 'Open model map' : 'Ouvrir la carte modèle'}
+              aria-label={t('challengePixel.openModelMap')}
             >
-              {!isDebrief ? '🧩 ' : ''}{isEn ? 'Model' : 'Modèle'}
+              {!isDebrief ? '🧩 ' : ''}{t('challengePixel.model')}
             </button>
           ) : null}
           {hasChallengeStarted && !isFacilitator ? (
@@ -1129,10 +1118,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 aria-expanded={isPaletteOpen}
                 aria-controls="pixel-architect-mobile-palette"
               >
-                {isEn ? 'Active palette' : 'Palette active'}
+                {t('challengePixel.activePalette')}
               </button>
               {isPaletteOpen ? (
-                <div id="pixel-architect-mobile-palette" className={styles.mobilePaletteMenu} role="radiogroup" aria-label={isEn ? 'Color palette' : 'Palette de couleurs'}>
+                <div id="pixel-architect-mobile-palette" className={styles.mobilePaletteMenu} role="radiogroup" aria-label={t('challengePixel.colorPalette')}>
                   {palette.map((color) => (
                     <button
                       key={`mobile-swatch-${color}`}
@@ -1164,27 +1153,27 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             tabIndex={-1}
             role="dialog"
             aria-modal="true"
-            aria-label={isEn ? 'Model map' : 'Carte modèle'}
+            aria-label={t('challengePixel.modelMap')}
             onClick={(event) => event.stopPropagation()}
           >
             <div className={styles.modelMapSheetHead}>
               <div>
-                <h2>{isEn ? 'Model map' : 'Carte modèle'}</h2>
-                <p>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z} · {targetCubeCount} {isEn ? 'cubes' : 'cubes cibles'}</p>
+                <h2>{t('challengePixel.modelMap')}</h2>
+                <p>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z} · {targetCubeCount} {t('challengePixel.cubes')}</p>
               </div>
               <button
                 type="button"
                 className={styles.modelMapSheetClose}
                 onClick={() => setIsModelMapOpen(false)}
-                aria-label={isEn ? 'Close' : 'Fermer'}
+                aria-label={t('challengePixel.close')}
               >
                 ✕
               </button>
             </div>
             <div className={styles.modelSidebarViewport}>
               {webglUnavailable
-                ? <p role="status">{isEn ? '3D preview unavailable. Use the target layer grids on the game screen.' : 'Aperçu 3D indisponible. Utilisez les grilles des couches cibles sur l’écran de jeu.'}</p>
-                : <><div ref={modelPreviewMobileRef} className={styles.modelMiniCanvas} /><span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span></>}
+                ? <p role="status">{t('challengePixel.n3dPreviewUnavailableUseTheTarget')}</p>
+                : <><div ref={modelPreviewMobileRef} className={styles.modelMiniCanvas} /><span className={styles.modelMiniHint}>{t('challengePixel.dragToRotate')}</span></>}
             </div>
           </div>
         </div>
@@ -1192,8 +1181,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
       {webglUnavailable ? (
         <div className={styles.webglFallback}>
-          <p>{isEn ? 'Your browser or device does not support WebGL 3D rendering.' : 'Votre navigateur ou appareil ne supporte pas le rendu 3D WebGL.'}</p>
-          <p>{isEn ? 'You can keep playing with the layer grids below. Target cells and occupied cells remain available without 3D.' : 'Vous pouvez continuer à jouer avec les grilles par couche ci-dessous. Les cases cibles et occupées restent accessibles sans 3D.'}</p>
+          <p>{t('challengePixel.yourBrowserOrDeviceDoesNot')}</p>
+          <p>{t('challengePixel.youCanKeepPlayingWithThe')}</p>
         </div>
       ) : null}
 
@@ -1218,17 +1207,15 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               <section className={styles.panel}>
                 <div className={styles.panelHead}>
                   <div className={styles.workspaceCopy}>
-                    <h2>{isEn ? 'Layer build workspace' : 'Espace de build par couche'}</h2>
+                    <h2>{t('challengePixel.layerBuildWorkspace')}</h2>
                     <p>
-                      {isEn
-                        ? 'Choose a layer, then click cells to place or remove cubes. On mobile, only the active layer is displayed.'
-                        : 'Choisissez une couche, puis cliquez sur les cellules pour poser ou retirer des cubes. Sur mobile, seule la couche active est affichée.'}
+                      {t('challengePixel.chooseALayerThenClickCells')}
                     </p>
                   </div>
                   {!isFacilitator ? (
                     <div className={styles.paletteRow}>
-                      <p className={styles.paletteLabel}>{isEn ? 'Active palette' : 'Palette active'}</p>
-                      <div className={styles.paletteSwatches} role="radiogroup" aria-label={isEn ? 'Color palette' : 'Palette de couleurs'}>
+                      <p className={styles.paletteLabel}>{t('challengePixel.activePalette')}</p>
+                      <div className={styles.paletteSwatches} role="radiogroup" aria-label={t('challengePixel.colorPalette')}>
                         {palette.map((color) => (
                           <button
                             key={color}
@@ -1247,11 +1234,11 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   ) : null}
                 </div>
 
-                <div className={styles.layerNavigation} role="group" aria-label={isEn ? 'Layer navigation' : 'Navigation des couches'}>
+                <div className={styles.layerNavigation} role="group" aria-label={t('challengePixel.layerNavigation')}>
                   <label className={styles.activeLayerControl}>
-                    <span className={styles.activeLayerLabel}>{isEn ? 'Active layer' : 'Couche active'}</span>
+                    <span className={styles.activeLayerLabel}>{t('challengePixel.activeLayer')}</span>
                     <select value={safeLayer} onChange={(event) => setActiveLayer(Number(event.target.value))}>
-                      {layers.map((layer) => <option key={layer} value={layer}>{isEn ? 'Layer' : 'Couche'} {layer + 1}</option>)}
+                      {layers.map((layer) => <option key={layer} value={layer}>{t('challengePixel.layer')} {layer + 1}</option>)}
                     </select>
                     <span className={styles.activeLayerCount} aria-live="polite" aria-atomic="true">
                       {activeLayerIndex + 1} / {layers.length}
@@ -1270,7 +1257,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                         key={`layer-mini-${layer}`}
                         data-active-layer={isActive}
                         className={`${styles.layerQuickCard}${isActive ? ` ${styles.layerQuickCardActive}` : ''}`}
-                        aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}`}
+                        aria-label={`${t('challengePixel.layer')} ${layer + 1}`}
                       >
                         <div className={styles.layerQuickHeadRow}>
                           <button
@@ -1278,29 +1265,29 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                             className={styles.layerQuickActivateBtn}
                             onClick={() => setActiveLayer(layer)}
                             aria-pressed={isActive}
-                            aria-label={`${isEn ? 'Activate layer' : 'Activer couche'} ${layer + 1}`}
+                            aria-label={`${t('challengePixel.activateLayer')} ${layer + 1}`}
                           >
-                            {isEn ? 'Layer' : 'Couche'} {layer + 1}
+                            {t('challengePixel.layer')} {layer + 1}
                           </button>
                           <button
                             type="button"
                             className={`${styles.layerQuickClaimBtn}${isReservedByMe ? ` ${styles.layerQuickClaimBtnMine}` : ''}${isReservedByOther ? ` ${styles.layerQuickClaimBtnReserved}` : ''}`}
                             onClick={() => handleToggleLayerClaim(layer)}
                             disabled={!connected || isFacilitator || isReservedByOther}
-                            title={isReservedByOther ? `${isEn ? 'Reserved by' : 'Réservée par'} ${String(claim?.display_name || '')}` : undefined}
+                            title={isReservedByOther ? `${t('challengePixel.reservedBy')} ${String(claim?.display_name || '')}` : undefined}
                           >
                             {isReservedByMe
-                              ? (isEn ? 'Mine' : 'Ma couche')
+                              ? t('challengePixel.mine')
                               : isReservedByOther
-                                ? (isEn ? 'Reserved' : 'Réservée')
-                                : (isEn ? 'Open' : 'Libre')}
+                                ? t('challengePixel.reserved')
+                                : t('challengePixel.open')}
                           </button>
                         </div>
                         <div
                           className={styles.layerQuickGrid}
                           style={{ gridTemplateColumns: `repeat(${grid.x}, minmax(0, 1fr))` }}
                           role="grid"
-                          aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}`}
+                          aria-label={`${t('challengePixel.layer')} ${layer + 1}`}
                         >
                           {rows.flatMap((row) => row).map((cell) => {
                             const isPlacedCorrect = cell.isPlaced && cell.isTarget;
@@ -1314,7 +1301,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                                 style={cell.isPlaced ? { '--pixel-cell-color': placedColor } : undefined}
                                 onClick={() => handleBoardCellToggle(cell.x, cell.z, layer)}
                                 disabled={!canBuild}
-                                aria-label={`${isEn ? 'Layer' : 'Couche'} ${layer + 1}, ${isEn ? 'cell' : 'case'} x${cell.x + 1} z${cell.z + 1}${cell.isTarget ? `, ${isEn ? 'target' : 'cible'}` : ''}${cell.isPlaced ? `, ${isEn ? 'occupied' : 'occupée'}` : ''}`}
+                                aria-label={`${t('challengePixel.layer')} ${layer + 1}, ${t('challengePixel.cell')} x${cell.x + 1} z${cell.z + 1}${cell.isTarget ? `, ${t('challengePixel.target')}` : ''}${cell.isPlaced ? `, ${t('challengePixel.occupied')}` : ''}`}
                               />
                             );
                           })}
@@ -1331,32 +1318,32 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 {!isFacilitator ? (
                   <div className={`${styles.actionsRow} ${styles.actionsRowSticky}`} aria-label="Actions de construction">
                     <button type="button" className={styles.btnSecondary} onClick={handleResetLayer} disabled={!canBuild || !serverCubes.some((cube) => Number(cube.y) === safeLayer)}>
-                      {isEn ? 'Reset layer' : 'Réinitialiser la couche'}
+                      {t('challengePixel.resetLayer')}
                     </button>
                     <button type="button" className={styles.btnSecondary} onClick={handleResetBuild} disabled={!canBuild || serverCubes.length === 0}>
-                      {isEn ? 'Reset cubes' : 'Réinitialiser les cubes'}
+                      {t('challengePixel.resetCubes')}
                     </button>
                     <button type="button" className={styles.btnPrimary} onClick={handleSubmitFinal} disabled={!connected || isLockedByPhase}>
-                      {isEn ? 'Submit final version' : 'Soumettre version finale'}
+                      {t('challengePixel.submitFinalVersion')}
                     </button>
                   </div>
                 ) : (
                   <div className={styles.actionsRow}>
                     <button type="button" className={styles.btnSecondary} onClick={onRequestHint}>
-                      {isEn ? 'Broadcast hint' : 'Diffuser un indice'}
+                      {t('challengePixel.broadcastHint')}
                     </button>
                   </div>
                 )}
 
                 <div className={styles.attemptCard} role="status" aria-live="polite">
-                  <h3>{isEn ? 'Build progress' : 'Progression du build'}</h3>
+                  <h3>{t('challengePixel.buildProgress')}</h3>
                   <div className={styles.progressCompactGrid}>
-                    <p>{isEn ? 'Targets' : 'Cibles'}: <strong>{targetCubeCount}</strong></p>
-                    <p>{isEn ? 'Placed' : 'Poses'}: <strong>{cubeCount}</strong></p>
-                    <p>{isEn ? 'Exact' : 'Exacts'}: <strong>{playerExactHits}</strong></p>
-                    <p>{isEn ? 'Missing' : 'Manquants'}: <strong>{missingCount}</strong></p>
-                    <p>{isEn ? 'Extra' : 'En trop'}: <strong>{extraCount}</strong></p>
-                    <p>{isEn ? 'Accuracy' : 'Précision'}: <strong>{accuracyPercent}%</strong></p>
+                    <p>{t('challengePixel.targets')}: <strong>{targetCubeCount}</strong></p>
+                    <p>{t('challengePixel.placed')}: <strong>{cubeCount}</strong></p>
+                    <p>{t('challengePixel.exact')}: <strong>{playerExactHits}</strong></p>
+                    <p>{t('challengePixel.missing')}: <strong>{missingCount}</strong></p>
+                    <p>{t('challengePixel.extra')}: <strong>{extraCount}</strong></p>
+                    <p>{t('challengePixel.accuracy2')}: <strong>{accuracyPercent}%</strong></p>
                   </div>
                   <div className={styles.progressTrack} aria-hidden="true">
                     <span className={styles.progressFill} style={{ width: `${progress}%` }} />
@@ -1372,14 +1359,14 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     data-debrief-metrics
                     data-pixel-debrief={summaryPixelMetrics ? 'true' : undefined}
                   >
-                    <p><span>{isEn ? 'Global score' : 'Score global'}</span><strong>{Number(summary.collective_score || 0)} / {Number(summary.collective_score_max ?? 100)}</strong></p>
-                    <p><span>{isEn ? 'Completion' : 'Complétion'}</span><strong>{Number(summary.completion_percent || 0)}%</strong></p>
+                    <p><span>{t('challengePixel.globalScore')}</span><strong>{Number(summary.collective_score || 0)} / {Number(summary.collective_score_max ?? 100)}</strong></p>
+                    <p><span>{t('challengePixel.completion')}</span><strong>{Number(summary.completion_percent || 0)}%</strong></p>
                     <p><span>Actions</span><strong>{Number(summary.action_count || 0)}</strong></p>
-                    <p><span>{isEn ? 'Messages' : 'Messages'}</span><strong>{Number(summary.message_count || 0)}</strong></p>
-                    {summaryPixelMetrics ? <p><span>{isEn ? 'Exact' : 'Exacts'}</span><strong>{Number(summaryPixelMetrics.matched_count || 0)}</strong></p> : null}
-                    {summaryPixelMetrics ? <p><span>{isEn ? 'Missing' : 'Manquants'}</span><strong>{Number(summaryPixelMetrics.missing_count || 0)}</strong></p> : null}
-                    {summaryPixelMetrics ? <p><span>{isEn ? 'Extra' : 'En trop'}</span><strong>{Number(summaryPixelMetrics.extra_count || 0)}</strong></p> : null}
-                    {summaryPixelMetrics ? <p><span>{isEn ? 'Used colors' : 'Couleurs utilisées'}</span><strong>{Number(summaryPixelMetrics.used_colors || 0)}</strong></p> : null}
+                    <p><span>{t('challengePixel.messages')}</span><strong>{Number(summary.message_count || 0)}</strong></p>
+                    {summaryPixelMetrics ? <p><span>{t('challengePixel.exact')}</span><strong>{Number(summaryPixelMetrics.matched_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p><span>{t('challengePixel.missing')}</span><strong>{Number(summaryPixelMetrics.missing_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p><span>{t('challengePixel.extra')}</span><strong>{Number(summaryPixelMetrics.extra_count || 0)}</strong></p> : null}
+                    {summaryPixelMetrics ? <p><span>{t('challengePixel.usedColors')}</span><strong>{Number(summaryPixelMetrics.used_colors || 0)}</strong></p> : null}
                   </div>
                 </section>
               ) : null}
@@ -1392,7 +1379,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
               isStarted={hasChallengeStarted}
-              title={isEn ? 'Timer' : 'Minuteur'}
+              title={t('challengePixel.timer')}
               remainingSeconds={Number(timer?.remaining_seconds || 0)}
               durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 900)}
               status={String(timer?.status || 'idle')}
@@ -1414,7 +1401,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               >
                 <summary className={styles.disclosureSummary}>
                   <span>
-                    <strong>{isEn ? 'Model map' : 'Carte modèle'}</strong>
+                    <strong>{t('challengePixel.modelMap')}</strong>
                     <small>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z}</small>
                   </span>
                 </summary>
@@ -1423,12 +1410,12 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     {canSeeTargetModel && !webglUnavailable ? (
                       <>
                         <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
-                        <span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span>
+                        <span className={styles.modelMiniHint}>{t('challengePixel.dragToRotate')}</span>
                       </>
                     ) : (
                       <p className={styles.modelMiniHidden}>{webglUnavailable && canSeeTargetModel
-                        ? (isEn ? '3D preview unavailable. Use the target layer grids.' : 'Aperçu 3D indisponible. Utilisez les grilles des couches cibles.')
-                        : (isEn ? 'Model hidden for this role' : 'Modèle masqué pour ce rôle')}</p>
+                        ? t('challengePixel.n3dPreviewUnavailableUseTheTarget2')
+                        : t('challengePixel.modelHiddenForThisRole')}</p>
                     )}
                   </div>
                 ) : null}
@@ -1436,19 +1423,19 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             ) : (
               <>
                 <div className={styles.panelHead}>
-                  <h2>{isEn ? 'Model map' : 'Carte modèle'}</h2>
-                  <p>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z} · {targetCubeCount} {isEn ? 'cubes' : 'cubes cibles'}</p>
+                  <h2>{t('challengePixel.modelMap')}</h2>
+                  <p>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z} · {targetCubeCount} {t('challengePixel.cubes')}</p>
                 </div>
                 <div className={styles.modelSidebarViewport}>
                   {canSeeTargetModel && !webglUnavailable ? (
                     <>
                       <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
-                      <span className={styles.modelMiniHint}>{isEn ? 'Drag to rotate' : 'Glisser pour tourner'}</span>
+                      <span className={styles.modelMiniHint}>{t('challengePixel.dragToRotate')}</span>
                     </>
                   ) : (
                     <p className={styles.modelMiniHidden}>{webglUnavailable && canSeeTargetModel
-                      ? (isEn ? '3D preview unavailable. Use the target layer grids.' : 'Aperçu 3D indisponible. Utilisez les grilles des couches cibles.')
-                      : (isEn ? 'Model hidden for this role' : 'Modèle masqué pour ce rôle')}</p>
+                      ? t('challengePixel.n3dPreviewUnavailableUseTheTarget2')
+                      : t('challengePixel.modelHiddenForThisRole')}</p>
                   )}
                 </div>
               </>
@@ -1457,17 +1444,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
             <div className={styles.viewportWrapCompact}>
               <p className={styles.viewportHint}>
                 {isFacilitator
-                  ? (isEn
-                    ? '3D observer view of team construction.'
-                    : 'Vue 3D d’observation de la construction de l’équipe.')
-                  : (isEn
-                    ? '3D team build view. Drag to orbit, click cubes to remove.'
-                    : 'Vue 3D equipe. Glissez pour orbiter, cliquez les cubes pour retirer.')}
+                  ? t('challengePixel.n3dObserverViewOfTeamConstruction')
+                  : t('challengePixel.n3dTeamBuildViewDragTo')}
               </p>
-              <span className={styles.viewportWatermark}>{isEn ? '3D Build View' : 'Vue 3D Build'}</span>
+              <span className={styles.viewportWatermark}>{t('challengePixel.n3dBuildView')}</span>
               {!isViewportReady && !viewportError ? (
                 <div className={styles.viewportOverlay} role="status" aria-live="polite">
-                  {isEn ? 'Loading 3D scene...' : 'Chargement de la scène 3D…'}
+                  {t('challengePixel.loading3dScene')}
                 </div>
               ) : null}
               {viewportError ? (
@@ -1486,7 +1469,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               onToggle={(event) => setIsContributorStatsOpen(event.currentTarget.open)}
             >
               <summary className={styles.disclosureSummary}>
-                <strong>{isEn ? 'Team distribution' : 'Répartition de l’équipe'}</strong>
+                <strong>{t('challengePixel.teamDistribution')}</strong>
               </summary>
               <ul className={styles.activityList}>
                 {contributorStats.map((item) => (
@@ -1494,8 +1477,8 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                     <strong>{item.name}</strong>
                     <span>
                       {item.cubeCount} {item.cubeCount > 1 ? 'cubes' : 'cube'}
-                      {' · '}{item.layerCount} {isEn ? (item.layerCount > 1 ? 'layers' : 'layer') : (item.layerCount > 1 ? 'couches' : 'couche')}
-                      {' · '}{item.colorCount} {isEn ? (item.colorCount > 1 ? 'colors' : 'color') : (item.colorCount > 1 ? 'couleurs' : 'couleur')}
+                      {' · '}{item.layerCount} {t(item.layerCount > 1 ? 'challengePixel.layersPlural' : 'challengePixel.layerSingular')}
+                      {' · '}{item.colorCount} {t(item.colorCount > 1 ? 'challengePixel.colorsPlural' : 'challengePixel.colorSingular')}
                     </span>
                   </li>
                 ))}
@@ -1510,7 +1493,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               onToggle={(event) => setIsHintHistoryOpen(event.currentTarget.open)}
             >
               <summary className={styles.disclosureSummary}>
-                <strong>{isEn ? 'Hint history' : 'Historique des indices'}</strong>
+                <strong>{t('challengePixel.hintHistory')}</strong>
               </summary>
               <ul className={styles.attemptList}>
                 {pixel.hints.slice(-6).reverse().map((item, index) => (

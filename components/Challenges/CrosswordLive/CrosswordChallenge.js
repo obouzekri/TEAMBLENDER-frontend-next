@@ -13,6 +13,7 @@ import ChallengeActionFeedback from '../ChallengeActionFeedback';
 import ChallengePresentation from '../ChallengePresentation';
 import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import styles from './CrosswordChallenge.module.css';
+import { pickLocalized } from '@/lib/i18n';
 
 const COPY = {
   fr: {
@@ -84,7 +85,7 @@ export function hasCrosswordConflict(word, answer, cells) {
 
 export default function CrosswordChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
-  const copy = COPY[locale === 'en' ? 'en' : 'fr'];
+  const copy = pickLocalized(COPY, locale);
   const { state, error, connected, isFacilitator, emitEvent } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
   const config = state?.config || runtimePayload?.config || {};
   const crossword = state?.crossword;

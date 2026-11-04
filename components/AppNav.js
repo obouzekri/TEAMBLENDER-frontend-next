@@ -63,7 +63,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
       }
       onLogout?.();
     } catch (err) {
-      setLogoutError(`${locale === 'en' ? 'Logout failed. Please retry online.' : 'Deconnexion impossible. Reessayez avec une connexion reseau.'} ${err.message}`);
+      setLogoutError(`${t('shell.logoutFailedPleaseRetryOnline')} ${err.message}`);
     } finally { setLoggingOut(false); }
   }
   const canUseMobileDrawer = !isCompact;

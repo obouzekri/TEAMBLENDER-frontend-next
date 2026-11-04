@@ -32,6 +32,7 @@ import ManagerHome from '../home/ManagerHome';
 import DemoChallengeStage from './DemoChallengeStage';
 import DemoHint from './DemoHint';
 import styles from './Demo.module.css';
+import { pickLocalized } from '@/lib/i18n';
 
 const INVITE_HOST = getPublicSiteOrigin().replace(/^https?:\/\//, '');
 const HINTS_HIDDEN_KEY = 'demo-hints-hidden';
@@ -69,7 +70,6 @@ function Avatar({ name }) {
 
 export default function DemoClient() {
   const { locale, t, withLocalePath } = useI18n();
-  const lang = locale === 'en' ? 'en' : 'fr';
   const [stepIndex, setStepIndex] = useState(0);
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const [sessionName, setSessionName] = useState(() => t('demo.prepare.sessionNameDefault'));
@@ -106,11 +106,11 @@ export default function DemoClient() {
   const participants = useMemo(() => getDemoParticipants(locale), [locale]);
   const demoSessions = useMemo(() => DEMO_PAST_SESSIONS.map((session) => ({
     id: session.id,
-    name: session.name[lang],
+    name: pickLocalized(session.name, locale),
     status: 'terminee',
     challengeCount: session.challengeCount,
     participationRate: session.participationRate,
-  })), [lang]);
+  })), [locale]);
   const demoMembers = useMemo(() => participants.map((participant) => ({
     id: participant.id,
     first_name: participant.name,

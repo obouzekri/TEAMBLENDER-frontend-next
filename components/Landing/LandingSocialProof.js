@@ -2,6 +2,7 @@
 
 import LandingProofSessionPreview from './LandingProofSessionPreview';
 import LandingSocialProofEvidence from './LandingSocialProofEvidence';
+import { translate } from '@/lib/i18n';
 
 const PROOF_TONES = ['indigo', 'cyan', 'teal', 'slate'];
 
@@ -14,7 +15,7 @@ export default function LandingSocialProof({ locale, partnersHeader, useCaseChip
     <section
       className="landing-partners landing-proof-section landing-section-full landing-section-full--proof relative overflow-hidden p-8 sm:p-12"
       style={{ '--reveal-delay': '110ms' }}
-      aria-label={locale === 'en' ? 'Social proof' : 'Preuve sociale'}
+      aria-label={translate(locale, 'landingUi.socialProof')}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_84%_16%,rgba(96,165,250,0.10),transparent_42%)]" />
       <div className="landing-section-inner relative">
@@ -35,8 +36,8 @@ export default function LandingSocialProof({ locale, partnersHeader, useCaseChip
             </div>
 
             <div className="landing-proof-usecases">
-              <p className="landing-proof-usecases__label">{locale === 'en' ? 'Great for' : 'Idéal pour'}</p>
-              <ul aria-label={locale === 'en' ? 'Use cases' : 'Cas d’usage'}>
+              <p className="landing-proof-usecases__label">{translate(locale, 'landingUi.greatFor')}</p>
+              <ul aria-label={translate(locale, 'landingUi.useCases')}>
                 {useCaseChips.map(({ label, Icon }, index) => (
                   <li key={`use-case-${index}-${label}`} className={`landing-proof-usecase landing-proof-tone--${resolveProofTone(index)}`}>
                     <Icon className="h-4 w-4" aria-hidden="true" />
@@ -50,7 +51,7 @@ export default function LandingSocialProof({ locale, partnersHeader, useCaseChip
           <LandingProofSessionPreview locale={locale} preview={sessionPreview} />
         </div>
 
-        <ul className="landing-proof-points" aria-label={locale === 'en' ? 'Key metrics' : 'Repères clés'}>
+        <ul className="landing-proof-points" aria-label={translate(locale, 'landingUi.keyMetrics')}>
           {trustProofMetrics.map(({ icon: Icon, value, detail }, index) => (
             <li key={`${value}-${index}`} className="landing-proof-point">
               <span className={`landing-proof-point__icon landing-proof-tone--${resolveProofTone(index)}`} aria-hidden="true">
