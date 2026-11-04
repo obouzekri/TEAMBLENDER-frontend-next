@@ -41,6 +41,7 @@
     "test:ux:mission": "node scripts/test-mission-ux.mjs",
     "test:ux:challenges": "node scripts/test-challenge-diagnostics-ux.mjs",
     "test:ux:session-layout": "node scripts/test-session-live-layout.mjs",
+    "test:ux:rtl": "node scripts/test-rtl-layout.mjs",
     "test:ux:challenge-theme": "node scripts/test-challenge-panel-theme.mjs",
     "test:ux:challenges:no-webgl": "node scripts/test-challenge-diagnostics-ux.mjs --no-webgl",
     "test:ux:shared": "node scripts/test-shared-platform-ux.mjs",

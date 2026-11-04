@@ -446,7 +446,7 @@
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  margin-left: -0.3rem;
+  margin-inline-start: -0.3rem;
   border-radius: 10px;
 }
 

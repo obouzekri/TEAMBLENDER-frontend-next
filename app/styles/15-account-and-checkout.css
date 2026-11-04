@@ -1082,8 +1082,8 @@
 }
 
 .account-billing-summary__renewal {
-  padding-left: 1rem;
-  border-left: 1px solid rgba(47, 98, 255, 0.18);
+  padding-inline-start: 1rem;
+  border-inline-start: 1px solid rgba(47, 98, 255, 0.18);
 }
 
 .account-plan-cards-grid {
@@ -1133,13 +1133,13 @@
 
 .pricing-feature-list li {
   position: relative;
-  padding-left: 1.15rem;
+  padding-inline-start: 1.15rem;
 }
 
 .pricing-feature-list li::before {
   content: '✓';
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0;
   color: #1f9d55;
   font-weight: 800;
@@ -1173,7 +1173,7 @@
 .account-history-table td {
   padding: 0.9rem 0.75rem;
   border-bottom: 1px solid var(--surface-border);
-  text-align: left;
+  text-align: start;
   vertical-align: top;
 }
 
@@ -1227,8 +1227,8 @@
   }
 
   .account-billing-summary__renewal {
-    border-left: 0;
-    padding-left: 0;
+    border-inline-start: 0;
+    padding-inline-start: 0;
     border-top: 1px solid rgba(47, 98, 255, 0.18);
     padding-top: 0.9rem;
   }
@@ -1288,7 +1288,7 @@
 
   .hero-v2 {
     padding: 1.5rem;
-    text-align: left;
+    text-align: start;
     justify-items: stretch;
   }
 
@@ -1321,8 +1321,8 @@
   .landing-section-inner {
     width: 100% !important;
     max-width: 100% !important;
-    padding-left: 0.65rem !important;
-    padding-right: 0.65rem !important;
+    padding-inline-start: 0.65rem !important;
+    padding-inline-end: 0.65rem !important;
     overflow: visible;
   }
 
@@ -1331,7 +1331,7 @@
   }
 
   .landing-partners-usage {
-    padding-right: 1rem !important;
+    padding-inline-end: 1rem !important;
   }
 
   .landing-v2 h1 {
@@ -1376,8 +1376,8 @@
   .landing-testimonial-card,
   .landing-cta-block {
     width: min(100%, 22rem);
-    margin-left: auto;
-    margin-right: auto;
+    margin-inline-start: auto;
+    margin-inline-end: auto;
   }
 
   .landing-testimonials-grid article:nth-child(3) {
@@ -1390,8 +1390,8 @@
   }
 
   .landing-section-full--statement .landing-section-inner {
-    padding-left: 0.45rem !important;
-    padding-right: 1.35rem !important;
+    padding-inline-start: 0.45rem !important;
+    padding-inline-end: 1.35rem !important;
   }
 
   .landing-section-full--statement .landing-section-title,
@@ -1409,12 +1409,12 @@
   }
 
   .landing-section-full--proof .landing-section-inner {
-    text-align: left !important;
+    text-align: start !important;
   }
 
   .landing-section-full--proof h2,
   .landing-section-full--proof p {
-    text-align: left !important;
+    text-align: start !important;
     max-width: 100% !important;
     text-wrap: pretty;
     overflow-wrap: anywhere;
@@ -1677,7 +1677,7 @@
   }
 
   .nav-user-dropdown {
-    right: -0.25rem;
+    inset-inline-end: -0.25rem;
     min-width: 188px;
   }
 
@@ -1776,7 +1776,7 @@
 
   .top-nav--live-inline .nav-panel--live-inline .app-user-box {
     width: auto;
-    margin-left: 0.45rem;
+    margin-inline-start: 0.45rem;
     padding: 0.24rem 0.46rem 0.24rem 0.62rem;
   }
 
@@ -1814,14 +1814,14 @@
   }
 
   .nav-user-dropdown {
-    right: -0.5rem;
+    inset-inline-end: -0.5rem;
     min-width: 180px;
   }
 
   .nav-settings-modal {
     align-self: flex-end;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
     width: 100%;
   }
 }

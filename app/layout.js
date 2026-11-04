@@ -1,4 +1,5 @@
 import './globals.css';
+import { IBM_Plex_Sans_Arabic } from 'next/font/google';
 import TrackingConsentGate from '@/components/TrackingConsentGate';
 import ExternalNotificationGuard from '@/components/ExternalNotificationGuard';
 import ThemeController from '@/components/ThemeController';
@@ -12,6 +13,16 @@ import PublicStructuredData from '@/components/PublicStructuredData';
 import { translate } from '@/lib/i18n';
 
 const siteOrigin = getPublicSiteOrigin();
+
+// Police des pages en arabe : déclarée partout, mais utilisée (donc téléchargée) seulement
+// sous <html lang="ar"> (voir 22-rtl.css).
+const arabicFont = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-arabic',
+});
 export async function generateMetadata() {
   const { pathname, locale } = await getSeoRequest();
   return {
@@ -32,7 +43,7 @@ export default async function RootLayout({ children }) {
   const { pathname, locale } = await getSeoRequest();
 
   return (
-    <html lang={locale} dir={getLocaleMeta(locale).dir} suppressHydrationWarning>
+    <html lang={locale} dir={getLocaleMeta(locale).dir} className={arabicFont.variable} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

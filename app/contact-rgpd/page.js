@@ -78,7 +78,7 @@ export default async function ContactRgpdPage() {
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.expected}</h2>
-            <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
+            <ul style={{ paddingInlineStart: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
               {copy.fields.map((field) => <li key={field}>{field}</li>)}
             </ul>
           </section>

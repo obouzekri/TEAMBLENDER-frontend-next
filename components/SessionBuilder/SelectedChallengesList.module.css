@@ -88,7 +88,7 @@
   background: var(--surface-glass-strong);
   border-radius: 18px;
   border: 1px solid var(--surface-soft-border);
-  border-left: 4px solid var(--surface-soft-border-strong);
+  border-inline-start: 4px solid var(--surface-soft-border-strong);
   animation: ui-fade-in-up var(--motion-medium) var(--ease-standard) both;
 }
 

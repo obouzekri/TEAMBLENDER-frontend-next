@@ -100,7 +100,7 @@ export default async function PolitiqueConfidentialitePage() {
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.controller}</h2>
-            <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
+            <ul style={{ paddingInlineStart: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
               <li><strong>{translate(locale, 'privacyPage.entity')}</strong> [NOM DE LA SOCIÉTÉ]</li>
               <li><strong>{translate(locale, 'privacyPage.address')}</strong> [ADRESSE]</li>
               <li><strong>Email :</strong> <a href="mailto:contact@teamblender.io">contact@teamblender.io</a></li>
@@ -112,7 +112,7 @@ export default async function PolitiqueConfidentialitePage() {
             <p style={{ lineHeight: 1.7, color: 'var(--muted)', marginBottom: '0.5rem' }}>
               {translate(locale, 'privacyPage.dependingOnYourPlatformUsageWe')}
             </p>
-            <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
+            <ul style={{ paddingInlineStart: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
               <li><strong>{translate(locale, 'privacyPage.accountData')}</strong> {translate(locale, 'privacyPage.nameEmailEncryptedPasswordRoleManager')}</li>
               <li><strong>{translate(locale, 'privacyPage.sessionData')}</strong> {translate(locale, 'privacyPage.sessionNameSelectedChallengesActivityResults')}</li>
               <li><strong>{translate(locale, 'privacyPage.navigationData')}</strong> {translate(locale, 'privacyPage.ipAddressBrowserTypeVisitedPages')}</li>
@@ -125,7 +125,7 @@ export default async function PolitiqueConfidentialitePage() {
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.purposes}</h2>
-            <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
+            <ul style={{ paddingInlineStart: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
               <li>{translate(locale, 'privacyPage.userAccountManagementAndAuthentication')}</li>
               <li>{translate(locale, 'privacyPage.organizationAndFacilitationOfTeamSessions')}</li>
               <li>{translate(locale, 'privacyPage.sessionRelatedNotificationsInvitesConfirmations')}</li>
@@ -137,7 +137,7 @@ export default async function PolitiqueConfidentialitePage() {
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.legal}</h2>
-            <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
+            <ul style={{ paddingInlineStart: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
               <li><strong>{translate(locale, 'privacyPage.contractPerformance')}</strong> — {translate(locale, 'privacyPage.forAccountManagementAndFeatureAccess')}</li>
               <li><strong>{translate(locale, 'privacyPage.legitimateInterest')}</strong> — {translate(locale, 'privacyPage.forPlatformImprovementAndFraudPrevention')}</li>
               <li><strong>{translate(locale, 'privacyPage.consent')}</strong> — {translate(locale, 'privacyPage.forMarketingCommunicationsOrAnalyticsActivation')}</li>
@@ -147,7 +147,7 @@ export default async function PolitiqueConfidentialitePage() {
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.retention}</h2>
-            <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
+            <ul style={{ paddingInlineStart: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
               <li><strong>{translate(locale, 'privacyPage.activeAccountData')}</strong> {translate(locale, 'privacyPage.durationOfContractualRelation3Years')}</li>
               <li><strong>{translate(locale, 'privacyPage.sessionData')}</strong> {translate(locale, 'privacyPage.n12MonthsAfterSessionEnd')}</li>
               <li><strong>{translate(locale, 'privacyPage.contactData')}</strong> {translate(locale, 'privacyPage.n3YearsFromLastInteraction')}</li>
@@ -164,7 +164,7 @@ export default async function PolitiqueConfidentialitePage() {
             <p style={{ lineHeight: 1.7, color: 'var(--muted)', marginBottom: '0.5rem' }}>
               {translate(locale, 'privacyPage.yourDataIsNeverSoldIt')}
             </p>
-            <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
+            <ul style={{ paddingInlineStart: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
               <li><strong>{translate(locale, 'privacyPage.hostingProvider')}</strong> [NOM HÉBERGEUR] — {translate(locale, 'privacyPage.forSecureDataHosting')}</li>
               <li><strong>{translate(locale, 'privacyPage.emailProvider')}</strong> Brevo (Sendinblue) — {translate(locale, 'privacyPage.forTransactionalNotifications')}</li>
               <li><strong>{translate(locale, 'privacyPage.paymentProvider')}</strong> Stripe — {translate(locale, 'privacyPage.forSubscriptionProcessingNoBankingData')}</li>

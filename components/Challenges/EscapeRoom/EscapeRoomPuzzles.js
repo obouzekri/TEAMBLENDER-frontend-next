@@ -68,6 +68,7 @@ export function OneStrokePuzzle({ data, disabled, locale, onAnswerChange }) {
       </p>
       <div
         className={`${styles.houseBoard}${disabled ? ` ${styles.boardDisabled}` : ''}`}
+        data-board-direction="ltr"
         aria-describedby="stroke-instructions"
         onPointerDown={(event) => {
           if (disabled || event.button !== 0 || gesture.current) return;

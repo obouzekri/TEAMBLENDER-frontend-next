@@ -239,7 +239,7 @@
   position: absolute;
   z-index: 2;
   bottom: calc(100% + 0.5rem);
-  right: 0;
+  inset-inline-end: 0;
   width: max-content;
   max-width: min(220px, 65vw);
   padding: 0.5rem 0.7rem;
@@ -268,7 +268,7 @@
   margin: 0;
   color: var(--ink-soft);
   font-size: 0.78rem;
-  text-align: right;
+  text-align: end;
 }
 
 .primaryAction {

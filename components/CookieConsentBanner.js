@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import styles from './CookieConsentBanner.module.css';
 import { getConsentPolicyVersion, recordConsentDecision } from '@/lib/consent';
+import useI18n from '@/lib/i18n/useI18n';
 
 export default function CookieConsentBanner({ consentState, isReopened = false, onDismiss }) {
+  const { t, withLocalePath } = useI18n();
   const currentDecision = String(consentState?.decision || 'unset');
   const policyVersion = getConsentPolicyVersion();
   const hasDecision = currentDecision === 'granted' || currentDecision === 'denied';
@@ -21,7 +23,7 @@ export default function CookieConsentBanner({ consentState, isReopened = false, 
   };
 
   return (
-    <aside className={styles.banner} aria-label="Gestion des cookies et du consentement">
+    <aside className={styles.banner} aria-label={t('cookieConsent.aria')}>
       <div
         className={styles.panel}
         role="dialog"
@@ -31,29 +33,26 @@ export default function CookieConsentBanner({ consentState, isReopened = false, 
       >
         <div className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>Consentement cookies</p>
+            <p className={styles.eyebrow}>{t('cookieConsent.eyebrow')}</p>
             <h2 id="cookie-consent-title" className={styles.title}>
-              {isReopened
-                ? 'Gérez vos cookies de mesure.'
-                : 'Nous utilisons des cookies pour mesurer l’usage de manière limitée.'}
+              {t(isReopened ? 'cookieConsent.titleReopened' : 'cookieConsent.title')}
             </h2>
             <p id="cookie-consent-text" className={styles.text}>
-              TeamBlender n’active pas les outils d’analytics, de tracking produit ni les balises tierces
-              avant votre accord. Vous pouvez accepter pour aider à améliorer la plateforme ou refuser
-              pour garder uniquement le strict nécessaire.
+              {t('cookieConsent.text')}
             </p>
             <div className={styles.meta}>
-              <span className={styles.badge}>Politique {policyVersion}</span>
+              <span className={styles.badge}>{t('cookieConsent.policy', { version: policyVersion })}</span>
               {hasDecision ? (
                 <span className={styles.badge}>
-                  Choix actuel :{' '}
-                  {currentDecision === 'granted' ? 'cookies autorisés' : 'cookies refusés'}
+                  {t('cookieConsent.currentChoice', {
+                    choice: t(currentDecision === 'granted' ? 'cookieConsent.granted' : 'cookieConsent.denied'),
+                  })}
                 </span>
               ) : (
-                <span className={styles.badge}>Journal local horodaté</span>
+                <span className={styles.badge}>{t('cookieConsent.localLog')}</span>
               )}
-              <Link href="/confidentialite" className={styles.link}>
-                Politique de confidentialité
+              <Link href={withLocalePath('/confidentialite')} className={styles.link}>
+                {t('cookieConsent.privacyPolicy')}
               </Link>
             </div>
           </div>
@@ -65,14 +64,14 @@ export default function CookieConsentBanner({ consentState, isReopened = false, 
             className={`${styles.button} ${styles.buttonPrimary}`}
             onClick={() => handleDecision('granted')}
           >
-            Autoriser les cookies de mesure
+            {t('cookieConsent.accept')}
           </button>
           <button
             type="button"
             className={`${styles.button} ${styles.buttonSecondary}`}
             onClick={() => handleDecision('denied')}
           >
-            Refuser les cookies de mesure
+            {t('cookieConsent.refuse')}
           </button>
           {isReopened ? (
             <button
@@ -80,7 +79,7 @@ export default function CookieConsentBanner({ consentState, isReopened = false, 
               className={`${styles.button} ${styles.buttonGhost}`}
               onClick={() => onDismiss?.()}
             >
-              Fermer
+              {t('cookieConsent.close')}
             </button>
           ) : null}
         </div>

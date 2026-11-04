@@ -152,7 +152,7 @@
 .landing-orb-icon__pulse {
   width: 0.44rem;
   height: 0.44rem;
-  right: 0.15rem;
+  inset-inline-end: 0.15rem;
   top: 0.1rem;
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.24);
@@ -393,9 +393,9 @@
   .top-nav:not(.top-nav--live-inline) .nav-panel {
     position: absolute;
     top: calc(100% + 8px);
-    left: 0;
-    right: 0;
-    margin-left: 0;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    margin-inline-start: 0;
     width: 100%;
     max-width: 100%;
     max-height: calc(100dvh - 92px);
@@ -460,7 +460,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.55rem;
-    margin-left: auto;
+    margin-inline-start: auto;
     align-items: center;
     white-space: normal;
     justify-content: flex-start;
@@ -487,7 +487,7 @@
 
   .top-nav:not(.top-nav--live-inline) .nav-user-trigger-wrap {
     display: inline-flex;
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 
   .top-nav:not(.top-nav--live-inline) .nav-mobile-profile {
@@ -647,7 +647,7 @@
 
 .account-plan-option {
   width: 100%;
-  text-align: left;
+  text-align: start;
   display: grid;
   gap: 0.15rem;
   border: 1px solid rgba(53, 160, 255, 0.18);

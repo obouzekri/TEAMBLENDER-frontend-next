@@ -468,7 +468,7 @@ export default function PreferencesPage() {
           content: "";
           position: absolute;
           top: 3px;
-          left: 3px;
+          inset-inline-start: 3px;
           width: 18px;
           height: 18px;
           border-radius: 999px;
@@ -526,8 +526,8 @@ export default function PreferencesPage() {
           }
 
           .preferences-panel__body {
-            padding-left: 1.25rem;
-            padding-right: 1.25rem;
+            padding-inline-start: 1.25rem;
+            padding-inline-end: 1.25rem;
           }
         }
       `}</style>

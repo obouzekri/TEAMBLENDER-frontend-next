@@ -337,8 +337,8 @@
   .timerCard {
     position: static;
     top: auto;
-    left: auto;
-    right: auto;
+    inset-inline-start: auto;
+    inset-inline-end: auto;
     z-index: auto;
     border-radius: 14px;
     padding: 0.58rem 0.9rem;
@@ -350,8 +350,8 @@
   .timerCardStarted {
     position: static;
     top: auto;
-    left: auto;
-    right: auto;
+    inset-inline-start: auto;
+    inset-inline-end: auto;
     border-color: color-mix(in srgb, var(--ch-warn) 62%, transparent);
     background: var(--challenge-panel-bg, var(--card));
   }
@@ -381,7 +381,7 @@
   }
 
   .timerCompactState {
-    margin-left: 0.25rem;
+    margin-inline-start: 0.25rem;
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;

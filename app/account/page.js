@@ -1370,7 +1370,7 @@ export default function AccountPage() {
 
           .account-page .account-identity-avatar-edit {
             position: absolute;
-            right: -0.35rem;
+            inset-inline-end: -0.35rem;
             bottom: -0.35rem;
             width: 2rem;
             height: 2rem;
@@ -1511,12 +1511,12 @@ export default function AccountPage() {
           }
 
           .account-password-field .account-form-input {
-            padding-right: 2.6rem;
+            padding-inline-end: 2.6rem;
           }
 
           .account-password-toggle {
             position: absolute;
-            right: 0.5rem;
+            inset-inline-end: 0.5rem;
             top: 50%;
             transform: translateY(-50%);
             border: 1px solid transparent;
@@ -1581,7 +1581,7 @@ export default function AccountPage() {
             justify-self: start;
             margin-top: 0.45rem;
             line-height: 1.35;
-            text-align: left;
+            text-align: start;
           }
 
           .account-forgot-inline:disabled {
@@ -1642,7 +1642,7 @@ export default function AccountPage() {
 
           .account-password-checklist li::before {
             content: '○';
-            margin-right: 0.45rem;
+            margin-inline-end: 0.45rem;
           }
 
           .account-password-checklist li.is-met {
@@ -1853,7 +1853,7 @@ export default function AccountPage() {
           }
 
           .account-history-table {
-            text-align: left;
+            text-align: start;
           }
 
           .account-history-link {
@@ -1882,7 +1882,7 @@ export default function AccountPage() {
           }
 
           .account-lock-indicator {
-            margin-left: 0.28rem;
+            margin-inline-start: 0.28rem;
             font-size: 0.82rem;
             position: relative;
             cursor: help;
@@ -1924,7 +1924,7 @@ export default function AccountPage() {
           .account-plan-pill {
             display: inline-flex;
             align-items: center;
-            margin-left: 0.45rem;
+            margin-inline-start: 0.45rem;
             padding: 0.15rem 0.62rem;
             border-radius: 999px;
             background: var(--account-primary-light);

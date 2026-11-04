@@ -227,8 +227,8 @@ async function main() {
   const output = [];
   let hasError = false;
 
-  const { SUPPORTED_LOCALES, DEFAULT_LOCALE } = await importModule(path.join(I18N_DIR, 'routing.js'));
-  const parity = await checkDictionaryParity(SUPPORTED_LOCALES, DEFAULT_LOCALE);
+  const { ALL_LOCALES, DEFAULT_LOCALE } = await importModule(path.join(I18N_DIR, 'routing.js'));
+  const parity = await checkDictionaryParity(ALL_LOCALES, DEFAULT_LOCALE);
   output.push(...parity);
   if (parity.length) {
     hasError = true;

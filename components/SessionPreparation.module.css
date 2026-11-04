@@ -73,7 +73,7 @@
 }
 
 .status {
-  margin-left: auto;
+  margin-inline-start: auto;
   padding: 3px 8px;
   border-radius: 999px;
   background: var(--surface-panel);

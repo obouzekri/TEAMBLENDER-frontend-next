@@ -379,7 +379,7 @@ export default function ContactPage() {
 
         .contact-page .contact-form__hp {
           position: absolute;
-          left: -10000px;
+          clip-path: inset(50%);
           width: 1px;
           height: 1px;
           overflow: hidden;

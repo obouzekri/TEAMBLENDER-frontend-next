@@ -928,6 +928,7 @@ export default function EscapeRoomChallenge({
                 >
                   <div
                     className={`${styles.matrixGrid}${isFirstGridEnigme ? ` ${styles.matrixGridFeatured}` : ''}`}
+                    data-board-direction="ltr"
                   >
                     {currentUiData.grid.flat().map((cell, idx) => {
                       const isMystery = String(cell) === '?';

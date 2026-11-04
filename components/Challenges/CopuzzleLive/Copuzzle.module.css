@@ -189,7 +189,7 @@
 .arenaTitle {
   margin: 0 0 4px;
   width: 100%;
-  text-align: left;
+  text-align: start;
   font-size: clamp(0.85rem, 1.1vw, 1.1rem);
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -409,7 +409,7 @@
 .trayBadge {
   position: absolute;
   top: 4px;
-  left: 4px;
+  inset-inline-start: 4px;
   z-index: 1;
   display: inline-flex;
   align-items: center;
@@ -447,7 +447,7 @@
 .removeBtn {
   position: absolute;
   top: 1px;
-  right: 1px;
+  inset-inline-end: 1px;
   background: rgba(239, 68, 68, 0.2);
   border: 1px solid rgba(239, 68, 68, 0.4);
   color: #fca5a5;
@@ -672,7 +672,7 @@
 .trayBadge {
   position: absolute;
   top: 4px;
-  left: 4px;
+  inset-inline-start: 4px;
   z-index: 2;
   display: inline-flex;
   align-items: center;

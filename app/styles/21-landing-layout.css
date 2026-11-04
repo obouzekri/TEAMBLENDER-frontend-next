@@ -549,7 +549,7 @@
 
 .landing-platform-section .landing-offer-head {
   justify-content: flex-start;
-  text-align: left;
+  text-align: start;
 }
 
 .landing-platform-section .landing-offer-head-content {
@@ -834,7 +834,7 @@
 
 .landing-proof-section .landing-section-heading h2,
 .landing-proof-section .landing-section-heading p {
-  text-align: left;
+  text-align: start;
 }
 
 .landing-proof-section .landing-social-proof-evidence {
@@ -855,7 +855,7 @@
 
 .landing-challenges-head {
   margin-inline: 0;
-  text-align: left;
+  text-align: start;
 }
 
 .landing-challenges-head .landing-section-title {
@@ -871,7 +871,7 @@
 .landing-outcomes-heading {
   max-width: 58rem;
   margin-inline: 0;
-  text-align: left;
+  text-align: start;
 }
 
 .landing-outcomes-heading .landing-section-title,
@@ -943,7 +943,7 @@
   position: fixed;
   z-index: 2000;
   top: 1rem;
-  left: 1rem;
+  inset-inline-start: 1rem;
   padding: 0.75rem 1rem;
   border: 2px solid #fff;
   border-radius: 0.5rem;
@@ -1647,7 +1647,7 @@
 
 .landing-v2.landing-v2--premium .landing-proof-site__people {
   display: flex;
-  padding-left: 0.5rem;
+  padding-inline-start: 0.5rem;
 }
 
 .landing-v2.landing-v2--premium .landing-proof-avatar {
@@ -1656,7 +1656,7 @@
   justify-content: center;
   width: 1.875rem;
   height: 1.875rem;
-  margin-left: -0.5rem;
+  margin-inline-start: -0.5rem;
   border: 2px solid var(--lp-surface);
   border-radius: 999px;
   background: var(--avatar-bg);
@@ -1711,7 +1711,7 @@
 /* Chat bubble from a remote participant, tucked under the card's bottom edge. */
 .landing-v2.landing-v2--premium .landing-proof-bubble {
   position: absolute;
-  right: clamp(1rem, 3vw, 2.25rem);
+  inset-inline-end: clamp(1rem, 3vw, 2.25rem);
   bottom: 0.875rem;
   display: flex;
   align-items: center;
@@ -1727,7 +1727,7 @@
 
 .landing-v2.landing-v2--premium .landing-proof-bubble .landing-proof-avatar {
   flex: 0 0 auto;
-  margin-left: 0;
+  margin-inline-start: 0;
   border-color: transparent;
 }
 

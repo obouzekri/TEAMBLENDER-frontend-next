@@ -30,13 +30,13 @@
 }
 
 .controlWithSuffixInput {
-  padding-right: 5.25rem;
+  padding-inline-end: 5.25rem;
 }
 
 .suffix {
   position: absolute;
   top: 50%;
-  right: 0.85rem;
+  inset-inline-end: 0.85rem;
   color: var(--ink-soft);
   font-size: 0.875rem;
   pointer-events: none;
