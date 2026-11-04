@@ -35,7 +35,7 @@ function StatusBadge({ status, isEn }) {
 }
 
 export default function SessionResultsClient() {
-  const { locale, withLocalePath } = useI18n();
+  const { locale, withLocalePath, t } = useI18n();
   const isEn = locale === 'en';
   const params = useParams();
   const sessionId = String(params?.sessionId || '');
@@ -92,11 +92,11 @@ export default function SessionResultsClient() {
       }
     } catch (err) {
       if (signal?.aborted) return;
-      setError(err.message || (isEn ? 'Unable to load results.' : 'Impossible de charger les résultats.'));
+      setError(err.message || t('sessionResults.unableToLoadResults'));
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [isEn, sessionId]);
+  }, [locale, sessionId]);
 
   useEffect(() => {
     if (!user) return;
@@ -153,7 +153,7 @@ export default function SessionResultsClient() {
   if (loading) {
     return (
       <main className="shell auth-page">
-        <section className="feature-card"><h1>{isEn ? 'Loading results...' : 'Chargement des résultats...'}</h1></section>
+        <section className="feature-card"><h1>{t('sessionResults.loadingResults')}</h1></section>
       </main>
     );
   }
@@ -162,12 +162,12 @@ export default function SessionResultsClient() {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>{isEn ? 'Unable to load results' : 'Impossible de charger les résultats'}</h1>
+          <h1>{t('sessionResults.unableToLoadResults2')}</h1>
           <p role="alert">{error}</p>
-          <p>{isEn ? 'The data could not be retrieved. This does not mean the session has no results.' : 'Les données n’ont pas pu être récupérées. Cela ne signifie pas que la session ne contient aucun résultat.'}</p>
+          <p>{t('sessionResults.theDataCouldNotBeRetrieved')}</p>
           <div className="hero-actions">
-            <button type="button" className="btn-primary" onClick={() => loadData()}>{isEn ? 'Retry' : 'Réessayer'}</button>
-            <Link href={withLocalePath(user?.role === 'participant' ? '/participant' : '/home')} className="btn-secondary">{isEn ? 'Back' : 'Retour'}</Link>
+            <button type="button" className="btn-primary" onClick={() => loadData()}>{t('sessionResults.retry')}</button>
+            <Link href={withLocalePath(user?.role === 'participant' ? '/participant' : '/home')} className="btn-secondary">{t('sessionResults.back')}</Link>
           </div>
         </section>
       </main>
@@ -179,54 +179,54 @@ export default function SessionResultsClient() {
       <AppNav userLabel={userLabel} onLogout={logout} role={user?.role} />
       <main className="shell app-home">
         <section className="hero session-results-hero">
-          <p className="eyebrow">{isEn ? 'SESSION RESULTS' : 'RESULTATS DE SESSION'}</p>
+          <p className="eyebrow">{t('sessionResults.sessionResults')}</p>
           <h1 className="session-results-title">{session?.name || `Session ${sessionId}`}</h1>
           <div className="session-results-meta-row">
             {session?.status && (
               <span className="eyebrow">
-                {isEn ? 'Status:' : 'Statut :'} {{
-                  en_cours: isEn ? 'In progress' : 'En cours',
-                  preparee: isEn ? 'Prepared' : 'En préparation',
-                  terminee: isEn ? 'Completed' : 'Terminée'
+                {t('sessionResults.status')} {{
+                  en_cours: t('sessionResults.inProgress'),
+                  preparee: t('sessionResults.prepared'),
+                  terminee: t('sessionResults.completed')
                 }[session.status] || session.status}
               </span>
             )}
             {session?.session_date && (
               <span className="eyebrow">
-                {isEn ? 'Date:' : 'Date :'} {formatDate(session.session_date, locale, {})}
+                {t('sessionResults.date')} {formatDate(session.session_date, locale, {})}
               </span>
             )}
           </div>
           <div className="hero-actions session-results-actions">
             {!isParticipant && (
-              <Link href={withLocalePath('/home')} className="btn-primary">{isEn ? 'Back to home' : 'Retour a l\'accueil'}</Link>
+              <Link href={withLocalePath('/home')} className="btn-primary">{t('sessionResults.backToHome')}</Link>
             )}
             {!isParticipant && (
               <Link
                 href={withLocalePath(`/session-live/${encodeURIComponent(sessionId)}`)}
                 className="btn-secondary"
               >
-                {isEn ? 'Resume session' : 'Reprendre la session'}
+                {t('sessionResults.resumeSession')}
               </Link>
             )}
             {isParticipant && (
               <Link href={withLocalePath(`/participant?sessionId=${encodeURIComponent(sessionId)}`)} className="btn-primary">
-                {isEn ? 'Back to session' : 'Retour a la session'}
+                {t('sessionResults.backToSession')}
               </Link>
             )}
           </div>
         </section>
 
         <section className="feature-card session-results-overview">
-          <h2>{isEn ? 'Overview' : 'Vue d\'ensemble'}</h2>
+          <h2>{t('sessionResults.overview')}</h2>
           <div className="session-results-stats-grid">
             {[
-              { label: isEn ? 'Active participants' : 'Participants actifs', value: stats.uniqueParticipants },
-              { label: isEn ? 'Participation rate' : 'Taux de participation', value: stats.participationRate != null ? `${stats.participationRate}%` : '—' },
-              { label: isEn ? 'Played challenges' : 'Challenges joués', value: stats.uniqueChallenges },
-              { label: isEn ? 'Answer submissions' : 'Soumissions', value: stats.answerSubmissions },
-              { label: isEn ? 'Completed' : 'Complétées', value: stats.completed },
-              { label: isEn ? 'Average score' : 'Score moyen', value: stats.avgScore != null ? `${stats.avgScore} pts` : '—' },
+              { label: t('sessionResults.activeParticipants'), value: stats.uniqueParticipants },
+              { label: t('sessionResults.participationRate'), value: stats.participationRate != null ? `${stats.participationRate}%` : '—' },
+              { label: t('sessionResults.playedChallenges'), value: stats.uniqueChallenges },
+              { label: t('sessionResults.answerSubmissions'), value: stats.answerSubmissions },
+              { label: t('sessionResults.completed2'), value: stats.completed },
+              { label: t('sessionResults.averageScore'), value: stats.avgScore != null ? `${stats.avgScore} pts` : '—' },
             ].map(({ label, value }) => (
               <div key={label} className="session-results-stat-card">
                 <div className="session-results-stat-label">{label}</div>
@@ -238,15 +238,15 @@ export default function SessionResultsClient() {
 
         {challengeInsights.length > 0 && (
           <section className="feature-card session-results-summary-card">
-            <h2>{isEn ? 'Challenge insights' : 'Analyses par challenge'}</h2>
+            <h2>{t('sessionResults.challengeInsights')}</h2>
             <div className="session-results-insight-grid">
               {challengeInsights.map((insight) => (
                 <div key={insight.challenge_id} className="session-results-insight-item">
                   <div className="session-results-insight-title">{insight.challenge_name}</div>
                   <div className="session-results-insight-metrics">
-                    <span>{insight.completed}/{insight.attempts} {isEn ? 'completed' : 'terminés'}</span>
-                    <span>{insight.completion_rate}% {isEn ? 'completion' : 'de complétion'}</span>
-                    <span>{insight.answer_submissions} {isEn ? 'responses' : 'réponses'}</span>
+                    <span>{insight.completed}/{insight.attempts} {t('sessionResults.completed3')}</span>
+                    <span>{insight.completion_rate}% {t('sessionResults.completion')}</span>
+                    <span>{insight.answer_submissions} {t('sessionResults.responses')}</span>
                   </div>
                 </div>
               ))}
@@ -256,15 +256,15 @@ export default function SessionResultsClient() {
 
         {participantContributions.length > 0 && (
           <section className="feature-card session-results-summary-card">
-            <h2>{isEn ? 'Participation contribution' : 'Contribution des participants'}</h2>
+            <h2>{t('sessionResults.participationContribution')}</h2>
             <div className="session-results-insight-grid">
               {participantContributions.map((participant) => (
                 <div key={participant.participant_id} className="session-results-insight-item">
                   <div className="session-results-insight-title">{participant.participant_name}</div>
                   <div className="session-results-insight-metrics">
-                    <span>{participant.attempts} {isEn ? 'attempts' : 'tentatives'}</span>
-                    <span>{participant.completed} {isEn ? 'completed' : 'terminées'}</span>
-                    <span>{participant.answer_submissions} {isEn ? 'responses' : 'réponses'}</span>
+                    <span>{participant.attempts} {t('sessionResults.attempts')}</span>
+                    <span>{participant.completed} {t('sessionResults.completed4')}</span>
+                    <span>{participant.answer_submissions} {t('sessionResults.responses')}</span>
                   </div>
                 </div>
               ))}
@@ -284,20 +284,20 @@ export default function SessionResultsClient() {
               <section key={challenge?.id || 'unknown'} className="feature-card session-results-challenge-card">
                 <div className="session-results-challenge-header">
                   <div>
-                    <h2>{challenge?.name || challenge?.engine_key || (isEn ? 'Challenge' : 'Challenge')}</h2>
+                    <h2>{challenge?.name || challenge?.engine_key || t('sessionResults.challenge')}</h2>
                     {challenge?.engine_key && (
                       <p className="eyebrow session-results-engine-key">{challenge.engine_key}</p>
                     )}
                   </div>
                   <div className="session-results-challenge-summary">
-                    <span>{challengeCompleted} {isEn ? 'done' : 'terminés'}</span>
-                    <span>{challengeAverage != null ? `${challengeAverage} pts` : (isEn ? 'No score yet' : 'Pas de score')}</span>
+                    <span>{challengeCompleted} {t('sessionResults.done')}</span>
+                    <span>{challengeAverage != null ? `${challengeAverage} pts` : t('sessionResults.noScoreYet')}</span>
                   </div>
                 </div>
                 <div className="session-results-rows">
                   {rows.map((r) => {
                     const name = String(r.participant_name || r.participant_name_snapshot || '').trim()
-                      || `${isEn ? 'Participant' : 'Participant'} ${r.participant_id}`;
+                      || `${t('sessionResults.participant')} ${r.participant_id}`;
                     const duration = r.completed_at && r.created_at
                       ? formatDuration(new Date(r.completed_at) - new Date(r.created_at))
                       : '—';
@@ -306,21 +306,21 @@ export default function SessionResultsClient() {
                         <div className="session-results-row-main">
                           <div className="session-results-row-name">{name}</div>
                           <div className="session-results-row-duration">
-                            {isEn ? 'Duration:' : 'Durée :'} {duration}
+                            {t('sessionResults.duration')} {duration}
                           </div>
                           {r.engine_key === 'crossword_live_v1' && (
                             <div className="session-results-row-duration">
-                              {isEn ? 'Words found: ' : 'Mots trouvés : '}
-                              {(r.data?.words_found || []).map((word) => word.answer).join(', ') || (isEn ? 'None' : 'Aucun')}
+                              {t('sessionResults.wordsFound')}
+                              {(r.data?.words_found || []).map((word) => word.answer).join(', ') || t('sessionResults.none')}
                               {' · '}
-                              {isEn ? 'Shared completion: ' : 'Progression collective : '}
+                              {t('sessionResults.sharedCompletion')}
                               {r.data?.completion_percent ?? 0}%
                             </div>
                           )}
                         </div>
                         <div className="session-results-row-metrics">
                           {r.score != null && (
-                            <span className="session-results-score">{r.score} {isEn ? 'pts' : 'pts'}</span>
+                            <span className="session-results-score">{r.score} {t('sessionResults.pts')}</span>
                           )}
                           <StatusBadge status={r.status} isEn={isEn} />
                         </div>
@@ -333,15 +333,11 @@ export default function SessionResultsClient() {
           })
         ) : (
           <section className="feature-card session-results-empty">
-            <h2>{isEn ? 'No results recorded' : 'Aucun résultat enregistré'}</h2>
+            <h2>{t('sessionResults.noResultsRecorded')}</h2>
             <p>
               {stats.totalInvited > 0
-                ? (isEn
-                  ? `The session has ${stats.totalInvited} assigned participant(s), but no challenge attempts have been captured yet.`
-                  : `La session compte ${stats.totalInvited} participant(s) assigné(s), mais aucune tentative de challenge n'a encore été enregistrée.`)
-                : (isEn
-                  ? 'Results will appear here once participants have played.'
-                  : 'Les résultats apparaîtront ici une fois que les participants auront joué.')}
+                ? t('sessionResults.theSessionHasTotalinvitedAssignedParticipant', { totalInvited: stats.totalInvited })
+                : t('sessionResults.resultsWillAppearHereOnceParticipants')}
             </p>
           </section>
         )}

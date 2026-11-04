@@ -1,4 +1,5 @@
 "use client";
+import { translate } from '@/lib/i18n';
 
 export default function LandingChallengesShowcase({ locale, challengeExamples }) {
   return (
@@ -6,20 +7,20 @@ export default function LandingChallengesShowcase({ locale, challengeExamples })
       id="challenge-examples"
       className="landing-challenges-section landing-section-full relative overflow-hidden p-6 sm:p-10"
       style={{ '--reveal-delay': '150ms' }}
-      aria-label={locale === 'en' ? 'Challenge examples' : 'Défis collaboratifs'}
+      aria-label={translate(locale, 'landingUi.challengeExamples')}
     >
       <div className="landing-section-rupture landing-section-rupture--accent" />
       <div className="landing-section-inner relative">
         <div className="landing-challenges-head landing-section-heading">
           <div>
-            <p className="eyebrow landing-section-eyebrow">{locale === 'en' ? 'Team challenges' : 'Défis en équipe'}</p>
+            <p className="eyebrow landing-section-eyebrow">{translate(locale, 'landingUi.teamChallenges')}</p>
             <h2 className="landing-section-title text-white">
-              {locale === 'en' ? 'Several challenges to bring people together' : 'Plusieurs défis pour se retrouver'}
+              {translate(locale, 'landingUi.severalChallengesToBringPeopleTogether')}
             </h2>
           </div>
         </div>
 
-        <div className="landing-challenges-grid" role="list" aria-label={locale === 'en' ? 'Challenge examples' : 'Défis collaboratifs'}>
+        <div className="landing-challenges-grid" role="list" aria-label={translate(locale, 'landingUi.challengeExamples')}>
           {challengeExamples.map(({ category, duration, title, description, tags, Icon }) => (
             <article key={title} className="landing-challenge-card" role="listitem">
               <div className="landing-challenge-card__topline">
@@ -30,14 +31,14 @@ export default function LandingChallengesShowcase({ locale, challengeExamples })
               </div>
               <h3>{title}</h3>
               <p>{description}</p>
-              <div className="landing-challenge-card__tags" aria-label={locale === 'en' ? 'Challenge objectives' : 'Objectifs du challenge'}>
+              <div className="landing-challenge-card__tags" aria-label={translate(locale, 'landingUi.challengeObjectives')}>
                 {tags.map((tag) => <span key={tag}>{tag}</span>)}
               </div>
             </article>
           ))}
         </div>
         <p className="landing-challenges-subtitle mt-6">
-          {locale === 'en' ? 'And many more challenges to discover.' : "Et bien d'autres défis à découvrir."}
+          {translate(locale, 'landingUi.andManyMoreChallengesToDiscover')}
         </p>
       </div>
     </section>

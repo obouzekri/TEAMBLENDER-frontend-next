@@ -190,7 +190,7 @@ export default function ChallengesCatalog({
         label: localizeMappingLabel(CATEGORY_LABELS[cat], cat),
       })),
     ];
-  }, [allChallenges, challenges, isEn, t]);
+  }, [allChallenges, challenges, locale, t]);
 
   // Extract unique objectives from challenges
   // Handle both formats: string (new) and array (legacy)
@@ -209,7 +209,7 @@ export default function ChallengesCatalog({
         label: localizeMappingLabel(OBJECTIVE_LABELS[obj], obj),
       })),
     ];
-  }, [allChallenges, challenges, isEn, t]);
+  }, [allChallenges, challenges, locale, t]);
 
   const durations = [
     { value: '', label: t('sessionBuilder.catalogFilterAll') },
@@ -464,7 +464,7 @@ export default function ChallengesCatalog({
                 return true;
               }).slice(0, 3);
             const recommendedPlayersLabel = formatRecommendedPlayersLabel(challenge, isEn);
-            const challengeName = localizePlainValue(challenge.name) || (isEn ? 'Activity' : 'Activité');
+            const challengeName = localizePlainValue(challenge.name) || t('builder.activity');
             const challengeDescription = localizePlainValue(challenge.description);
             const challengeDuration = getApproximateDurationMinutes(challenge);
             return (

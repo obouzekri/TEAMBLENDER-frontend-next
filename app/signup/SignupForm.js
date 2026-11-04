@@ -21,8 +21,7 @@ import {
 import useI18n from '@/lib/i18n/useI18n';
 
 export default function SignupForm() {
-  const { locale, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, withLocalePath, t } = useI18n();
   const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'false').toLowerCase() === 'true';
 
   const [firstName, setFirstName] = useState('');
@@ -56,8 +55,8 @@ export default function SignupForm() {
   const emailLooksValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
   const showEmailStatus = Boolean(touched.email) && normalizedEmail.length > 0;
   const emailStatusLabel = emailLooksValid
-    ? (isEn ? 'Email format looks valid' : 'Le format de l’email est valide')
-    : (isEn ? 'Enter a valid email address' : 'Saisissez une adresse email valide');
+    ? t('auth.emailFormatLooksValid')
+    : t('auth.enterAValidEmailAddress2');
 
   useEffect(() => {
     ensureCsrfToken().catch(() => {});
@@ -70,12 +69,12 @@ export default function SignupForm() {
     clearOAuthCallbackParamsFromUrl();
 
     if (oauth.error) {
-      setMessage(oauth.errorDescription || (isEn ? 'Social login failed. Please try again.' : 'Connexion sociale impossible. Veuillez réessayer.'));
+      setMessage(oauth.errorDescription || t('auth.socialLoginFailedPleaseTryAgain'));
       return;
     }
 
     if (!oauth.user) {
-      setMessage(isEn ? 'Invalid OAuth response. Please try again.' : 'Réponse OAuth invalide. Veuillez réessayer.');
+      setMessage(t('auth.invalidOauthResponsePleaseTryAgain'));
       return;
     }
 
@@ -102,14 +101,14 @@ export default function SignupForm() {
 
     const redirect = withLocalePath(getRedirectPath(oauth.user.role, '', connectedUserId));
     window.location.href = redirect;
-  }, [isEn, withLocalePath]);
+  }, [locale, withLocalePath]);
 
   function startOAuth(provider) {
     const url = getOAuthStartUrl(provider, '/signup');
     if (!url) {
       setMessage(provider === 'microsoft'
-        ? (isEn ? 'Microsoft login will be available soon.' : 'La connexion Microsoft sera disponible prochainement.')
-        : (isEn ? 'OAuth configuration unavailable.' : 'Configuration OAuth indisponible.'));
+        ? t('auth.microsoftLoginWillBeAvailableSoon')
+        : t('auth.oauthConfigurationUnavailable'));
       return;
     }
 
@@ -127,11 +126,11 @@ export default function SignupForm() {
     const e = normalizedEmail;
 
     if (!f || !l || !e || !password) {
-      setMessage(isEn ? 'Please fill in all fields.' : 'Veuillez remplir tous les champs.');
+      setMessage(t('auth.pleaseFillInAllFields'));
       return;
     }
     if (password.length < 8) {
-      setMessage(isEn ? 'Password must be at least 8 characters long.' : 'Le mot de passe doit contenir au moins 8 caractères.');
+      setMessage(t('auth.passwordMustBeAtLeast8'));
       return;
     }
 
@@ -150,20 +149,18 @@ export default function SignupForm() {
           surface: 'signup',
         });
         setDone(true);
-        setMessage(isEn
-          ? 'Your account has been created. A confirmation email was sent. Click the link in that email to activate your account.'
-          : 'Votre compte a bien été créé. Un email de confirmation vous a été envoyé. Cliquez sur le lien dans cet email pour activer votre compte.');
+        setMessage(t('auth.yourAccountHasBeenCreatedA'));
         return;
       }
 
       if (res.status === 409) {
-        setMessage(isEn ? 'This email is already in use.' : 'Cet email est deja utilise.');
+        setMessage(t('auth.thisEmailIsAlreadyInUse'));
         return;
       }
 
-      setMessage(data?.message || data?.error || text || (isEn ? 'Something went wrong. Please try again.' : 'Une erreur est survenue. Veuillez réessayer.'));
+      setMessage(data?.message || data?.error || text || t('auth.somethingWentWrongPleaseTryAgain'));
     } catch {
-      setMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Vérifiez votre connexion.');
+      setMessage(t('auth.unableToReachTheServerCheck'));
     } finally {
       setLoading(false);
     }
@@ -172,14 +169,14 @@ export default function SignupForm() {
   return (
     <main className="auth-page auth-page--signup">
       <AuthCard
-        title={isEn ? 'Create your TeamBlender account' : 'Créer un compte TeamBlender'}
-        brand={<Link href={withLocalePath('/')} className="auth-card-brand-link" aria-label={isEn ? 'Back to TeamBlender home' : 'Retour a l accueil TeamBlender'}><Logo size="compact" /></Link>}
-        footer={<span>{isEn ? 'Already have an account? ' : 'Déjà un compte ? '}<Link href={withLocalePath('/login')}>{isEn ? 'Log in' : 'Se connecter'}</Link></span>}
+        title={t('auth.createYourTeamblenderAccount')}
+        brand={<Link href={withLocalePath('/')} className="auth-card-brand-link" aria-label={t('auth.backToTeamblenderHome')}><Logo size="compact" /></Link>}
+        footer={<span>{t('auth.alreadyHaveAnAccount')}<Link href={withLocalePath('/login')}>{t('auth.logIn')}</Link></span>}
       >
         {done ? (
           <div className="success-box">
             <p>{message}</p>
-            <Link href={withLocalePath('/login')} className="btn-primary wide">{isEn ? 'Back to login' : 'Retour à la connexion'}</Link>
+            <Link href={withLocalePath('/login')} className="btn-primary wide">{t('auth.backToLogin')}</Link>
           </div>
         ) : (
           <>
@@ -188,8 +185,8 @@ export default function SignupForm() {
               loadingProvider={oauthLoadingProvider}
               microsoftEnabled={microsoftLoginEnabled}
               stacked
-              googleLabelOverride={isEn ? 'Continue with Google' : 'Continuer avec Google'}
-              separatorLabelOverride={isEn ? 'Or continue with your email address' : 'Ou continuer avec votre adresse email'}
+              googleLabelOverride={t('auth.continueWithGoogle')}
+              separatorLabelOverride={t('auth.orContinueWithYourEmailAddress')}
               onProviderClick={(provider) => startOAuth(provider)}
             />
 
@@ -197,18 +194,18 @@ export default function SignupForm() {
             <input type="text" name="fake_signup_username" autoComplete="username" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
             <input type="password" name="fake_signup_password" autoComplete="current-password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
             <div className="auth-field-grid">
-              <AuthField id="signup-first-name" label={isEn ? 'First name' : 'Prenom'} icon={<User size={18} strokeWidth={1.9} />}>
-                <input id="signup-first-name" type="text" name="signup_first_name" autoComplete="given-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} onBlur={() => setTouched(t => ({ ...t, firstName: true }))} required placeholder={isEn ? 'Your first name' : 'Votre prenom'} aria-label={isEn ? 'First name' : 'Prenom'} />
+              <AuthField id="signup-first-name" label={t('auth.firstName2')} icon={<User size={18} strokeWidth={1.9} />}>
+                <input id="signup-first-name" type="text" name="signup_first_name" autoComplete="given-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} onBlur={() => setTouched(t => ({ ...t, firstName: true }))} required placeholder={t('auth.yourFirstName')} aria-label={t('auth.firstName2')} />
               </AuthField>
 
-              <AuthField id="signup-last-name" label={isEn ? 'Last name' : 'Nom'} icon={<User size={18} strokeWidth={1.9} />}>
-                <input id="signup-last-name" type="text" name="signup_last_name" autoComplete="family-name" value={lastName} onChange={(e) => setLastName(e.target.value)} onBlur={() => setTouched(t => ({ ...t, lastName: true }))} required placeholder={isEn ? 'Your last name' : 'Votre nom'} aria-label={isEn ? 'Last name' : 'Nom'} />
+              <AuthField id="signup-last-name" label={t('auth.lastName2')} icon={<User size={18} strokeWidth={1.9} />}>
+                <input id="signup-last-name" type="text" name="signup_last_name" autoComplete="family-name" value={lastName} onChange={(e) => setLastName(e.target.value)} onBlur={() => setTouched(t => ({ ...t, lastName: true }))} required placeholder={t('auth.yourLastName')} aria-label={t('auth.lastName2')} />
               </AuthField>
             </div>
 
             <AuthField
               id="signup-email"
-              label={isEn ? 'Work email' : 'Email professionnel'}
+              label={t('auth.workEmail')}
               icon={<Mail size={18} strokeWidth={1.9} />}
               after={showEmailStatus ? (
                 <span className={`auth-input-status${emailLooksValid ? ' is-valid' : ''}`} aria-label={emailStatusLabel} title={emailStatusLabel}>
@@ -225,13 +222,13 @@ export default function SignupForm() {
                 onChange={(event) => setEmail(event.target.value)}
                 onBlur={() => setTouched((current) => ({ ...current, email: true }))}
                 required
-                placeholder={isEn ? 'you@company.com' : 'vous@entreprise.com'}
-                aria-label={isEn ? 'Work email' : 'Email professionnel'}
+                placeholder={t('auth.youCompanyCom')}
+                aria-label={t('auth.workEmail')}
                 aria-invalid={showEmailStatus ? String(!emailLooksValid) : undefined}
               />
             </AuthField>
 
-            <AuthField id="signup-password" label={isEn ? 'Password' : 'Mot de passe'} icon={<LockKeyhole size={18} strokeWidth={1.9} />} className="auth-field--password">
+            <AuthField id="signup-password" label={t('auth.password')} icon={<LockKeyhole size={18} strokeWidth={1.9} />} className="auth-field--password">
               <div className="password-input-wrap">
                 <input
                   id="signup-password"
@@ -243,15 +240,15 @@ export default function SignupForm() {
                   onBlur={() => setTouched(t => ({ ...t, password: true }))}
                   required
                   minLength={8}
-                  placeholder={isEn ? 'Minimum 8 characters' : 'Minimum 8 caracteres'}
-                  aria-label={isEn ? 'Password' : 'Mot de passe'}
+                  placeholder={t('auth.minimum8Characters')}
+                  aria-label={t('auth.password')}
                 />
                 <button
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword((prev) => !prev)}
                   aria-controls="signup-password"
-                  aria-label={showPassword ? (isEn ? 'Hide password' : 'Masquer le mot de passe') : (isEn ? 'Show password' : 'Afficher le mot de passe')}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                   aria-pressed={showPassword}
                 >
                   {showPassword ? <EyeOff size={18} strokeWidth={1.9} aria-hidden="true" /> : <Eye size={18} strokeWidth={1.9} aria-hidden="true" />}
@@ -266,12 +263,12 @@ export default function SignupForm() {
                     <span key={i} className={`psb ${passwordScore >= i ? `psb--${passwordLevel}` : ''}`} />
                   ))}
                 </div>
-                <ul className="password-criteria" aria-label={isEn ? 'Password requirements' : 'Critères du mot de passe'}>
+                <ul className="password-criteria" aria-label={t('auth.passwordRequirements')}>
                   {[
-                    { key: 'length', label: isEn ? 'At least 8 characters' : 'Au moins 8 caractères' },
-                    { key: 'upper', label: isEn ? 'One uppercase letter' : 'Une majuscule' },
-                    { key: 'number', label: isEn ? 'One number' : 'Un chiffre' },
-                    { key: 'special', label: isEn ? 'One special character' : 'Un caractère spécial' },
+                    { key: 'length', label: t('auth.atLeast8Characters') },
+                    { key: 'upper', label: t('auth.oneUppercaseLetter') },
+                    { key: 'number', label: t('auth.oneNumber') },
+                    { key: 'special', label: t('auth.oneSpecialCharacter') },
                   ].map(({ key, label }) => (
                     <li key={key} className={passwordChecks[key] ? 'pc-met' : 'pc-unmet'}>
                       {passwordChecks[key]
@@ -288,10 +285,10 @@ export default function SignupForm() {
               {loading ? (
                 <>
                   <LoaderCircle className="login-submit-spinner" size={18} strokeWidth={2.2} />
-                  <span>{isEn ? 'Creating...' : 'Création...'}</span>
+                  <span>{t('auth.creating')}</span>
                 </>
               ) : (
-                isEn ? 'Create account' : 'Créer mon compte'
+                t('auth.createAccount')
               )}
             </button>
 

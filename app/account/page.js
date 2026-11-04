@@ -386,8 +386,8 @@ export default function AccountPage() {
   const dhPriceByPlanId = useMemo(() => buildDhPriceByPlanId(plans), [plans]);
   const sessionLimitValue = Number(planSessions || 0);
   const usageLabel = sessionLimitValue > 0
-    ? `${formatCount(sessionsThisMonth, locale)}/${formatCount(sessionLimitValue, locale)} ${locale === 'en' ? 'sessions this month' : 'session ce mois-ci'}`
-    : (locale === 'en' ? `${formatCount(sessionsThisMonth, locale)} sessions this month` : `${formatCount(sessionsThisMonth, locale)} session ce mois-ci`);
+    ? `${formatCount(sessionsThisMonth, locale)}/${formatCount(sessionLimitValue, locale)} ${t('pricingPage.sessionsThisMonth')}`
+    : t('pricingPage.countSessionsThisMonth', { count: formatCount(sessionsThisMonth, locale) });
   const sessionsConsumed = Number(sessionsThisMonth || 0);
   const sessionsQuota = Number(planSessions || 0);
   const sessionsUsagePercent = sessionsQuota > 0 ? Math.min(100, Math.round((sessionsConsumed / sessionsQuota) * 100)) : 0;
@@ -1068,7 +1068,7 @@ export default function AccountPage() {
                   const isProPlus = normalizePricingPlanName(plan).toLowerCase() === 'pro+';
                   const amountDh = getAccountPlanAmountDh(plan, selectedBilling, dhPriceByPlanId);
                   const priceFmt = formatAccountPrice(amountDh, selectedCurrency);
-                  const priceSuffix = selectedBilling === 'annual' ? (locale === 'en' ? '/year' : '/an') : t('account.monthlySuffix');
+                  const priceSuffix = selectedBilling === 'annual' ? t('pricingPage.year') : t('account.monthlySuffix');
                   const actionLabel = planCopy.ctaLabel || (isProPlus
                     ? t('account.startFreeTrial')
                     : (isUpgrade ? t('account.upgradeToPro') : t('account.changePlan')));

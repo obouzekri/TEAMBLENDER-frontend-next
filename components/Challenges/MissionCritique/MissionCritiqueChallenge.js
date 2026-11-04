@@ -34,16 +34,16 @@ function inferPhaseKey(index, total) {
   return 'cloture';
 }
 
-function phaseLabel(phase, isEn) {
-  if (!isEn) return phase.label;
+function phaseLabel(phase, locale) {
+  if (!(locale === 'en')) return phase.label;
   if (phase.key === 'cadrage') return 'Scoping';
   if (phase.key === 'preparation') return 'Preparation';
   if (phase.key === 'execution') return 'Execution';
   return 'Closure';
 }
 
-function mobilePhaseLabel(phase, isEn) {
-  if (!isEn) return phase.mobileLabel;
+function mobilePhaseLabel(phase, locale) {
+  if (!(locale === 'en')) return phase.mobileLabel;
   if (phase.key === 'cadrage') return 'Scope';
   if (phase.key === 'preparation') return 'Prep';
   if (phase.key === 'execution') return 'Execute';
@@ -70,8 +70,7 @@ export default function MissionCritiqueChallenge({
   context,
   onChallengeCompleted,
 }) {
-  const { locale } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, t } = useI18n();
   const [activePhase, setActivePhase] = useState('cadrage');
   const [modalTaskId, setModalTaskId] = useState('');
   const [submitResult, setSubmitResult] = useState(null);
@@ -230,39 +229,23 @@ export default function MissionCritiqueChallenge({
     const baseRules = Array.isArray(rulesContent?.facilitator) ? rulesContent.facilitator : [];
     return [
       ...baseRules,
-      isEn
-        ? 'Scoring (transparent): all individual timelines are merged end-to-end, in participant order, into a single collective timeline, which is validated once (0 to 100).'
-        : 'Calcul du score (transparent) : les timelines individuelles sont mises bout à bout, dans l’ordre des participants, pour former une seule timeline collective, validée une seule fois (0 à 100).',
-      isEn
-        ? 'Penalties: unmet dependency (-8), missing critical task (-10), duplicate (-5), unknown task (-3).'
-        : 'Pénalités: dépendance non respectée (-8), tâche critique manquante (-10), doublon (-5), tâche inconnue (-3).',
-      isEn
-        ? 'Formula: 100 - penalties (clamped between 0 and 100).'
-        : 'Formule: 100 - pénalités (borné entre 0 et 100).',
-      isEn
-        ? 'The team must converge and submit one coherent collective timeline.'
-        : 'L’équipe doit converger puis soumettre une seule timeline cohérente au niveau collectif.',
-      isEn
-        ? 'Distribute tasks by phase (scoping, preparation, execution, closure) to balance workload.'
-        : 'Répartissez les tâches par phase (cadrage, préparation, exécution, clôture) pour équilibrer la charge.',
-      isEn
-        ? 'Assign a dependency owner to validate prerequisites before each major move.'
-        : 'Affectez un responsable dépendances pour valider les prérequis avant chaque déplacement majeur.',
+      t('challengeMission.scoringTransparentAllIndividualTimelinesAre'),
+      t('challengeMission.penaltiesUnmetDependency8MissingCritical'),
+      t('challengeMission.formula100PenaltiesClampedBetween0'),
+      t('challengeMission.theTeamMustConvergeAndSubmit'),
+      t('challengeMission.distributeTasksByPhaseScopingPreparation'),
+      t('challengeMission.assignADependencyOwnerToValidate'),
     ];
-  }, [rulesContent?.facilitator, isEn]);
+  }, [rulesContent?.facilitator, locale]);
 
   const participantRules = useMemo(() => {
     const baseRules = Array.isArray(rulesContent?.participant) ? rulesContent.participant : [];
     return [
       ...baseRules,
-      isEn
-        ? 'Coordinate to submit one unique and coherent timeline for the entire team.'
-        : 'Synchronisez-vous pour soumettre une timeline unique et cohérente pour toute l’équipe.',
-      isEn
-        ? 'Prioritize dependencies and critical tasks first, then complete the remaining backlog.'
-        : 'Priorisez d’abord les dépendances et les tâches critiques, puis complétez le reste du backlog.',
+      t('challengeMission.coordinateToSubmitOneUniqueAnd'),
+      t('challengeMission.prioritizeDependenciesAndCriticalTasksFirst'),
     ];
-  }, [rulesContent?.participant, isEn]);
+  }, [rulesContent?.participant, locale]);
 
   // Phases come from the server (persisted per task). Ratio inference is only
   // a fallback for legacy timelines that predate server-side phase storage.
@@ -422,7 +405,7 @@ export default function MissionCritiqueChallenge({
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
           isStarted={hasChallengeStarted}
-          title={isEn ? 'Timer' : 'Minuteur'}
+          title={t('challengeMission.timer')}
           remainingSeconds={timerRemainingSeconds}
           durationSeconds={timerDurationSeconds}
           status={timerState}
@@ -457,12 +440,8 @@ export default function MissionCritiqueChallenge({
                   <ChallengeDebriefHeading />
                   <p className={styles.resultDescription}>
                     {displayedResult
-                      ? (isEn
-                        ? 'The final score is based on the timelines submitted by the whole team.'
-                        : 'Le score final est calculé à partir des timelines validées par toute l’équipe.')
-                      : (isEn
-                        ? 'Time ran out before every participant submitted. No collective result is available.'
-                        : 'Le temps est écoulé avant que tous les participants aient validé. Aucun résultat collectif n’est disponible.')}
+                      ? t('challengeMission.theFinalScoreIsBasedOn')
+                      : t('challengeMission.timeRanOutBeforeEveryParticipant')}
                   </p>
                 </div>
                 <span className={`${styles.resultCompleteBadge}${allParticipantsSubmitted ? '' : ` ${styles.resultPendingBadge}`}`}>
@@ -470,8 +449,8 @@ export default function MissionCritiqueChallenge({
                     ? <CircleCheck size={17} aria-hidden="true" />
                     : <AlertTriangle size={17} aria-hidden="true" />}
                   {allParticipantsSubmitted
-                    ? (isEn ? 'All submissions received' : 'Toutes les réponses validées')
-                    : (isEn ? 'Submissions incomplete' : 'Validations incomplètes')}
+                    ? t('challengeMission.allSubmissionsReceived')
+                    : t('challengeMission.submissionsIncomplete')}
                 </span>
               </div>
 
@@ -479,37 +458,35 @@ export default function MissionCritiqueChallenge({
                 <>
                   <div className={styles.resultScorePanel}>
                     <div className={styles.resultScoreLine}>
-                      <span>{isEn ? 'Collective score' : 'Score collectif'}</span>
+                      <span>{t('challengeMission.collectiveScore')}</span>
                       <strong>{Number(displayedResult.score || 0)}<small>/100</small></strong>
                     </div>
                     <progress
                       className={styles.resultScoreProgress}
                       value={Number(displayedResult.score || 0)}
                       max="100"
-                      aria-label={isEn ? 'Collective score' : 'Score collectif'}
+                      aria-label={t('challengeMission.collectiveScore')}
                     />
                     <p>
                       {participantCount > 0
-                        ? (isEn
-                          ? `${submittedCount} of ${participantCount} participants submitted`
-                          : `${submittedCount} participant${participantCount > 1 ? 's' : ''} sur ${participantCount} ont validé`)
-                        : (isEn ? 'Collective result' : 'Résultat collectif')}
+                        ? t(participantCount > 1 ? 'challengeMission.submittedOfParticipantsPlural' : 'challengeMission.submittedOfParticipantsSingular', { submittedCount, participantCount })
+                        : t('challengeMission.collectiveResult')}
                     </p>
                   </div>
 
                   <div className={styles.resultInsights}>
                     <article className={styles.resultInsight}>
-                      <h3>{isEn ? 'Strengths' : 'Points forts'}</h3>
+                      <h3>{t('challengeMission.strengths')}</h3>
                       <p>
                         {(displayedResult.strengths || []).join(' · ') ||
-                          (isEn ? 'No strengths identified.' : 'Aucun point fort identifié.')}
+                          t('challengeMission.noStrengthsIdentified')}
                       </p>
                     </article>
                     <article className={`${styles.resultInsight} ${styles.resultInsightReview}`}>
-                      <h3>{isEn ? 'Areas to improve' : 'Points à améliorer'}</h3>
+                      <h3>{t('challengeMission.areasToImprove')}</h3>
                       <p>
                         {(displayedResult.weaknesses || []).join(' · ') ||
-                          (isEn ? 'No areas to improve.' : 'Aucun point à améliorer.')}
+                          t('challengeMission.noAreasToImprove')}
                       </p>
                     </article>
                   </div>
@@ -525,14 +502,12 @@ export default function MissionCritiqueChallenge({
                   <div className={styles.resultTimeline}>
                     <div className={styles.resultTimelineHeader}>
                       <div>
-                        <h3>{isEn ? 'Merged team timeline' : 'Timeline fusionnée de l’équipe'}</h3>
+                        <h3>{t('challengeMission.mergedTeamTimeline')}</h3>
                         <p>
-                          {isEn
-                            ? 'All participant timelines, combined in participant order.'
-                            : 'Les timelines de tous les participants, réunies dans l’ordre des participants.'}
+                          {t('challengeMission.allParticipantTimelinesCombinedInParticipant')}
                         </p>
                       </div>
-                      <span>{collectiveTimelineItems.length} {isEn ? 'actions' : 'actions'}</span>
+                      <span>{collectiveTimelineItems.length} {t('challengeMission.actions')}</span>
                     </div>
                     {collectiveTimelineItems.length > 0 ? (
                       <ol className={styles.resultTimelineList}>
@@ -543,7 +518,7 @@ export default function MissionCritiqueChallenge({
                               <span className={styles.resultTimelineOrder}>{item.index + 1}</span>
                               <div>
                                 <span className={`${styles.phaseTag} ${styles[item.phase.className]}`}>
-                                  {phaseLabel(item.phase, isEn)}
+                                  {phaseLabel(item.phase, locale)}
                                 </span>
                                 <p>{task?.label || item.taskId}</p>
                               </div>
@@ -553,7 +528,7 @@ export default function MissionCritiqueChallenge({
                       </ol>
                     ) : (
                       <p className={styles.empty}>
-                        {isEn ? 'No task was submitted.' : 'Aucune tâche n’a été soumise.'}
+                        {t('challengeMission.noTaskWasSubmitted')}
                       </p>
                     )}
                   </div>
@@ -561,9 +536,7 @@ export default function MissionCritiqueChallenge({
               ) : (
                 <div className={styles.resultIncomplete}>
                   <p>
-                    {isEn
-                      ? `${submittedCount} of ${participantCount} participants submitted.`
-                      : `${submittedCount} participant${submittedCount > 1 ? 's' : ''} sur ${participantCount} ont validé.`}
+                    {t(submittedCount > 1 ? 'challengeMission.submittedOfParticipantsPluralEnd' : 'challengeMission.submittedOfParticipantsSingularEnd', { submittedCount, participantCount })}
                   </p>
                 </div>
               )}
@@ -580,11 +553,9 @@ export default function MissionCritiqueChallenge({
                       aria-hidden="true"
                     />
                     <div>
-                      <h2>{isEn ? 'Timeline' : 'Timeline'}</h2>
+                      <h2>{t('challengeMission.timeline')}</h2>
                       <p>
-                        {isEn
-                          ? 'Assign tasks from the backlog, then order them inside each phase.'
-                          : 'Affectez les tâches depuis le backlog, puis ordonnez-les dans chaque phase.'}
+                        {t('challengeMission.assignTasksFromTheBacklogThen')}
                       </p>
                     </div>
                   </div>
@@ -596,15 +567,13 @@ export default function MissionCritiqueChallenge({
                     : <Users size={17} aria-hidden="true" />}
                   <span>
                     {mission.submitted
-                      ? (isEn ? 'Your solution is submitted.' : 'Votre réponse est enregistrée.')
-                      : (isEn ? 'Submit your solution when ready.' : 'Validez votre réponse lorsque vous êtes prêt.')}
+                      ? t('challengeMission.yourSolutionIsSubmitted')
+                      : t('challengeMission.submitYourSolutionWhenReady')}
                     {participantCount > 0
-                      ? ` ${submittedCount}/${participantCount} ${isEn ? 'participants submitted' : 'participants ont validé'}.`
+                      ? ` ${submittedCount}/${participantCount} ${t('challengeMission.participantsSubmitted')}.`
                       : ''}
                     {mission.submitted
-                      ? (isEn
-                        ? ' The challenge ends when everyone has submitted.'
-                        : ' Le challenge se termine lorsque tout le monde a validé.')
+                      ? t('challengeMission.theChallengeEndsWhenEveryoneHas')
                       : ''}
                   </span>
                 </div>
@@ -612,7 +581,7 @@ export default function MissionCritiqueChallenge({
                 <div
                   className={styles.stepper}
                   role="tablist"
-                  aria-label={isEn ? 'Timeline phases' : 'Phases de la timeline'}
+                  aria-label={t('challengeMission.timelinePhases')}
                 >
                   {PHASES.map((phase) => {
                     const count = (phaseItems[phase.key] || []).length;
@@ -641,7 +610,7 @@ export default function MissionCritiqueChallenge({
                           event.currentTarget.parentElement.querySelectorAll('[role="tab"]')[nextIndex].focus();
                         }}
                       >
-                        <span className={styles.stepLabel} data-mobile-label={mobilePhaseLabel(phase, isEn)}>{phaseLabel(phase, isEn)}</span>
+                        <span className={styles.stepLabel} data-mobile-label={mobilePhaseLabel(phase, locale)}>{phaseLabel(phase, locale)}</span>
                         <span className={styles.stepCount}>{count}</span>
                       </button>
                     );
@@ -651,9 +620,7 @@ export default function MissionCritiqueChallenge({
                 <div id="mission-phase-panel" className={styles.phasePanel} role="tabpanel" aria-labelledby={`mission-tab-${activePhase}`}>
                   {activePhaseItems.length === 0 ? (
                     <p className={styles.empty}>
-                      {isEn
-                        ? 'No task in this phase yet. Assign one from the backlog below.'
-                        : 'Aucune tâche dans cette phase. Affectez-en une depuis le backlog ci-dessous.'}
+                      {t('challengeMission.noTaskInThisPhaseYet')}
                     </p>
                   ) : (
                     activePhaseItems.map((item, indexInPhase) => {
@@ -677,8 +644,8 @@ export default function MissionCritiqueChallenge({
                                 className={styles.iconBtn}
                                 onClick={() => moveTaskWithinPhase(item.timelineIndex, upTarget)}
                                 disabled={!canEditTimeline || !canMoveUp}
-                                title={isEn ? 'Move up' : 'Monter'}
-                                aria-label={isEn ? 'Move up in phase' : 'Monter dans la phase'}
+                                title={t('challengeMission.moveUp')}
+                                aria-label={t('challengeMission.moveUpInPhase')}
                               >
                                 <ArrowUp size={16} strokeWidth={2.4} aria-hidden="true" />
                               </button>
@@ -687,8 +654,8 @@ export default function MissionCritiqueChallenge({
                                 className={styles.iconBtn}
                                 onClick={() => moveTaskWithinPhase(item.timelineIndex, downTarget)}
                                 disabled={!canEditTimeline || !canMoveDown}
-                                title={isEn ? 'Move down' : 'Descendre'}
-                                aria-label={isEn ? 'Move down in phase' : 'Descendre dans la phase'}
+                                title={t('challengeMission.moveDown')}
+                                aria-label={t('challengeMission.moveDownInPhase')}
                               >
                                 <ArrowDown size={16} strokeWidth={2.4} aria-hidden="true" />
                               </button>
@@ -699,8 +666,8 @@ export default function MissionCritiqueChallenge({
                                   emitEvent('mission.task.remove', { index: item.timelineIndex })
                                 }
                                 disabled={!canEditTimeline}
-                                title={isEn ? 'Remove' : 'Retirer'}
-                                aria-label={isEn ? 'Remove from timeline' : 'Retirer de la timeline'}
+                                title={t('challengeMission.remove')}
+                                aria-label={t('challengeMission.removeFromTimeline')}
                               >
                                 <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
                               </button>
@@ -719,7 +686,7 @@ export default function MissionCritiqueChallenge({
                     onClick={submitTimeline}
                     disabled={!canEditTimeline || timeline.length === 0}
                   >
-                    {isEn ? 'Submit my solution' : 'Valider ma solution'}
+                    {t('challengeMission.submitMySolution')}
                   </button>
                 </div>
               </section>
@@ -733,18 +700,16 @@ export default function MissionCritiqueChallenge({
                       strokeWidth={2}
                       aria-hidden="true"
                     />
-                    <h2>{isEn ? 'Mission backlog' : 'Backlog mission'}</h2>
+                    <h2>{t('challengeMission.missionBacklog')}</h2>
                   </div>
                   <p>
-                    {isEn
-                      ? 'Click a task to assign it to a phase.'
-                      : 'Cliquez sur une tâche pour l’affecter à une phase.'}
+                    {t('challengeMission.clickATaskToAssignIt')}
                   </p>
                 </div>
 
                 {backlogTasks.length === 0 ? (
                   <p className={styles.empty}>
-                    {isEn ? 'No tasks available.' : 'Aucune tâche disponible.'}
+                    {t('challengeMission.noTasksAvailable')}
                   </p>
                 ) : (
                   <div className={styles.backlogList}>
@@ -769,7 +734,7 @@ export default function MissionCritiqueChallenge({
                             <span
                               className={`${styles.phaseTag} ${styles[assignedPhase.className]}`}
                             >
-                              {phaseLabel(assignedPhase, isEn)}
+                              {phaseLabel(assignedPhase, locale)}
                             </span>
                           ) : null}
                         </button>
@@ -796,14 +761,14 @@ export default function MissionCritiqueChallenge({
                         type="button"
                         className={styles.modalCloseBtn}
                         onClick={closeTaskModal}
-                        aria-label={isEn ? 'Close' : 'Fermer'}
-                        title={isEn ? 'Close' : 'Fermer'}
+                        aria-label={t('challengeMission.close')}
+                        title={t('challengeMission.close')}
                       >
                         <X size={16} strokeWidth={2.1} aria-hidden="true" />
                       </button>
                     </div>
                     <p className={styles.modalHint}>
-                      {isEn ? 'Assign this task to a phase.' : 'Affectez cette tâche à une phase.'}
+                      {t('challengeMission.assignThisTaskToAPhase')}
                     </p>
                     <div className={styles.modalPhaseGrid}>
                       {PHASES.map((phase) => (
@@ -815,8 +780,8 @@ export default function MissionCritiqueChallenge({
                           disabled={!canEditTimeline}
                           aria-pressed={modalAssignedPhase === phase.key}
                         >
-                          <span>{phaseLabel(phase, isEn)}</span>
-                          {modalAssignedPhase === phase.key ? <span className={styles.selectedPhaseMark}><Check size={16} aria-hidden="true" />{isEn ? 'Selected' : 'Sélectionnée'}</span> : null}
+                          <span>{phaseLabel(phase, locale)}</span>
+                          {modalAssignedPhase === phase.key ? <span className={styles.selectedPhaseMark}><Check size={16} aria-hidden="true" />{t('challengeMission.selected')}</span> : null}
                         </button>
                       ))}
                     </div>
@@ -828,7 +793,7 @@ export default function MissionCritiqueChallenge({
                           onClick={() => removeTaskFromTimeline(modalTask.id)}
                           disabled={!canEditTimeline}
                         >
-                          {isEn ? 'Remove from timeline' : 'Retirer de la timeline'}
+                          {t('challengeMission.removeFromTimeline')}
                         </button>
                       </div>
                     ) : null}
@@ -841,26 +806,26 @@ export default function MissionCritiqueChallenge({
             <section className={styles.card} data-debrief-content={isDebrief || undefined}>
               <div className={styles.dashboardHeader}>
                 <div>
-                  {isDebrief ? <ChallengeDebriefHeading /> : <h2>{isEn ? 'Facilitator dashboard' : 'Tableau de bord facilitateur'}</h2>}
-                  <p className={styles.meta}>{isDebrief ? (isEn ? 'Review task placement, submissions and collective results.' : 'Analysez le placement des tâches, les soumissions et les résultats collectifs.') : (isEn ? 'Live task placement and submission tracking' : 'Suivi des tâches placées et des soumissions en temps réel')}</p>
+                  {isDebrief ? <ChallengeDebriefHeading /> : <h2>{t('challengeMission.facilitatorDashboard')}</h2>}
+                  <p className={styles.meta}>{isDebrief ? t('challengeMission.reviewTaskPlacementSubmissionsAndCollective') : t('challengeMission.liveTaskPlacementAndSubmissionTracking')}</p>
                 </div>
-                {!isDebrief ? <span className={styles.liveBadge}><span aria-hidden="true" />{isEn ? 'Live' : 'En direct'}</span> : null}
+                {!isDebrief ? <span className={styles.liveBadge}><span aria-hidden="true" />{t('challengeMission.live')}</span> : null}
               </div>
               <div className={styles.dashboardMetrics} data-debrief-metrics={isDebrief || undefined}>
-                <article><Users size={20} aria-hidden="true" /><strong>{facilitatorBoard.length}</strong><span>{isEn ? 'Participants' : 'Participants'}</span></article>
-                <article><ListTodo size={20} aria-hidden="true" /><strong>{boardSummary.placed}/{tasks.length}</strong><span>{isEn ? 'Unique tasks placed' : 'Tâches distinctes placées'}</span></article>
-                <article><CircleCheck size={20} aria-hidden="true" /><strong>{boardSummary.submitted}/{facilitatorBoard.length}</strong><span>{isEn ? 'Submissions' : 'Soumissions'}</span></article>
-                <article><AlertTriangle size={20} aria-hidden="true" /><strong>{boardSummary.submitted ? boardSummary.errors : '—'}</strong><span>{isEn ? 'Errors in submissions' : 'Erreurs des soumissions'}</span></article>
+                <article><Users size={20} aria-hidden="true" /><strong>{facilitatorBoard.length}</strong><span>{t('challengeMission.participants')}</span></article>
+                <article><ListTodo size={20} aria-hidden="true" /><strong>{boardSummary.placed}/{tasks.length}</strong><span>{t('challengeMission.uniqueTasksPlaced')}</span></article>
+                <article><CircleCheck size={20} aria-hidden="true" /><strong>{boardSummary.submitted}/{facilitatorBoard.length}</strong><span>{t('challengeMission.submissions')}</span></article>
+                <article><AlertTriangle size={20} aria-hidden="true" /><strong>{boardSummary.submitted ? boardSummary.errors : '—'}</strong><span>{t('challengeMission.errorsInSubmissions')}</span></article>
               </div>
               {collectiveResult ? (
                 <p className={styles.score}>
-                  {isEn ? 'Collective score' : 'Score collectif'}:{' '}
+                  {t('challengeMission.collectiveScore')}:{' '}
                   {Number(collectiveResult.score || 0)}/100
                 </p>
               ) : null}
               {facilitatorBoard.length === 0 ? (
                 <p className={styles.empty}>
-                  {isEn ? 'No active participants yet.' : 'Aucun participant actif pour le moment.'}
+                  {t('challengeMission.noActiveParticipantsYet')}
                 </p>
               ) : (
                 <div className={styles.boardGrid}>
@@ -878,20 +843,20 @@ export default function MissionCritiqueChallenge({
                         </div>
                         <span className={`${styles.submissionBadge} ${item.submitted ? styles.submissionDone : styles.submissionPending}`}>
                           {item.submitted ? <CircleCheck size={15} aria-hidden="true" /> : <ClipboardList size={15} aria-hidden="true" />}
-                          {item.submitted ? (isEn ? 'Submitted' : 'Soumis') : (isEn ? 'In progress' : 'En cours')}
+                          {item.submitted ? t('challengeMission.submitted') : t('challengeMission.inProgress')}
                         </span>
                       </div>
                       <div className={styles.participantMetrics}>
-                        <div><span>{isEn ? 'Tasks placed' : 'Tâches placées'}</span><strong>{placed}/{tasks.length}</strong></div>
-                        <div><span>{isEn ? 'Errors' : 'Erreurs'}</span><strong className={item.submitted && item.errors_count > 0 ? styles.metricError : ''}>{item.submitted ? (item.errors_count ?? 0) : '—'}</strong><small>{item.submitted ? (isEn ? 'Validated submission' : 'Soumission évaluée') : (isEn ? 'Not evaluated yet' : 'Non évalué')}</small></div>
+                        <div><span>{t('challengeMission.tasksPlaced')}</span><strong>{placed}/{tasks.length}</strong></div>
+                        <div><span>{t('challengeMission.errors')}</span><strong className={item.submitted && item.errors_count > 0 ? styles.metricError : ''}>{item.submitted ? (item.errors_count ?? 0) : '—'}</strong><small>{item.submitted ? t('challengeMission.validatedSubmission') : t('challengeMission.notEvaluatedYet')}</small></div>
                       </div>
                       <div className={styles.participantProgress}>
-                        <span>{isEn ? 'Task placement' : 'Placement des tâches'} <strong>{progress}%</strong></span>
-                        <progress value={placed} max={Math.max(1, tasks.length)} aria-label={`${participantLabel} — ${isEn ? 'task placement' : 'placement des tâches'}`} />
+                        <span>{t('challengeMission.taskPlacement')} <strong>{progress}%</strong></span>
+                        <progress value={placed} max={Math.max(1, tasks.length)} aria-label={`${participantLabel} — ${t('challengeMission.taskPlacement2')}`} />
                       </div>
                       <details className={styles.participantTimelineBlock} open>
                         <summary className={styles.miniTitle}>
-                          {isEn ? 'Real-time timeline' : 'Timeline temps réel'}
+                          {t('challengeMission.realTimeTimeline')}
                         </summary>
                         {Array.isArray(item.timeline) && item.timeline.length > 0 ? (
                           <div className={styles.phaseTimeline}>
@@ -916,14 +881,14 @@ export default function MissionCritiqueChallenge({
                                     className={`${styles.phaseLine} ${styles[phase.className]}`}
                                   >
                                     <div className={styles.phaseLineHeader}>
-                                      <h3>{phaseLabel(phase, isEn)}</h3>
+                                      <h3>{phaseLabel(phase, locale)}</h3>
                                       <span>{facPhaseItems.length}</span>
                                     </div>
                                   </section>
                                   <section className={styles.timelineLane}>
                                     {facPhaseItems.length === 0 ? (
                                       <div className={styles.timelineLaneHint}>
-                                        {isEn ? 'No action' : 'Aucune action'}
+                                        {t('challengeMission.noAction')}
                                       </div>
                                     ) : (
                                       facPhaseItems.map((entry) => {
@@ -949,9 +914,7 @@ export default function MissionCritiqueChallenge({
                           </div>
                         ) : (
                           <p className={styles.meta}>
-                            {isEn
-                              ? 'No action placed yet.'
-                              : 'Aucune action placée pour le moment.'}
+                            {t('challengeMission.noActionPlacedYet')}
                           </p>
                         )}
                       </details>
@@ -970,7 +933,7 @@ export default function MissionCritiqueChallenge({
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
               isStarted={hasChallengeStarted}
-              title={isEn ? 'Timer' : 'Minuteur'}
+              title={t('challengeMission.timer')}
               remainingSeconds={timerRemainingSeconds}
               durationSeconds={timerDurationSeconds}
               status={timerState}
@@ -983,7 +946,7 @@ export default function MissionCritiqueChallenge({
           </div>
 
           <ChallengeChatCard
-            title={isEn ? 'Chat' : 'Chat'}
+            title={t('challengeMission.chat')}
             messages={chatMessages}
             currentAuthor={displayName}
             inputValue={chatInput}

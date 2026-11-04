@@ -35,7 +35,6 @@ function isParticipantRole(role) {
 
 export default function SessionLiveClient() {
   const { locale, t, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
   const params = useParams();
   const pathname = usePathname();
   const sessionId = String(params?.sessionId || '');
@@ -81,15 +80,15 @@ export default function SessionLiveClient() {
         headers: getAuthHeaders(),
         credentials: 'include',
       });
-      if (!res.ok) throw new Error(`${isEn ? 'Error' : 'Erreur'} ${res.status}`);
+      if (!res.ok) throw new Error(`${t('liveSession.error')} ${res.status}`);
       const data = await res.json();
       setSession(data);
       setLoading(false);
     } catch (err) {
-      setError(err.message || (isEn ? 'Unable to load session.' : 'Impossible de charger la session.'));
+      setError(err.message || t('liveSession.unableToLoadSession'));
       setLoading(false);
     }
-  }, [isEn, sessionId]);
+  }, [locale, sessionId]);
 
   useEffect(() => {
     if (user) loadSession();
@@ -129,7 +128,7 @@ export default function SessionLiveClient() {
         } catch {
           payload = null;
         }
-        throw new Error(payload?.error || body || `${isEn ? 'Error' : 'Erreur'} ${res.status}`);
+        throw new Error(payload?.error || body || `${t('liveSession.error')} ${res.status}`);
       }
       await res.json();
       await loadSession();
@@ -186,7 +185,7 @@ export default function SessionLiveClient() {
       scheduleAutoAdvance();
       return;
     }
-  }, [activeChallengeId, canManageFlow, flowMode, isEn, scheduleAutoAdvance, sessionState?.current_challenge?.id]);
+  }, [activeChallengeId, canManageFlow, flowMode, locale, scheduleAutoAdvance, sessionState?.current_challenge?.id]);
 
   useEffect(() => {
     completedChallengeKeyRef.current = '';
@@ -226,7 +225,7 @@ export default function SessionLiveClient() {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>{isEn ? 'Loading session...' : 'Chargement de la session...'}</h1>
+          <h1>{t('liveSession.loadingSession')}</h1>
         </section>
       </main>
     );
@@ -236,9 +235,9 @@ export default function SessionLiveClient() {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>{isEn ? 'Error' : 'Erreur'}</h1>
+          <h1>{t('liveSession.error')}</h1>
           <p className="error">{error}</p>
-          <Link href={withLocalePath('/home')} className="btn-secondary">{isEn ? 'Back to home' : 'Retour a l\'accueil'}</Link>
+          <Link href={withLocalePath('/home')} className="btn-secondary">{t('liveSession.backToHome')}</Link>
         </section>
       </main>
     );
@@ -281,9 +280,9 @@ export default function SessionLiveClient() {
             </section>
           ) : (
             <section className="feature-card session-live-empty-state">
-              <h2>{isEn ? 'No active challenge' : 'Aucun challenge actif'}</h2>
+              <h2>{t('liveSession.noActiveChallenge')}</h2>
               <p>
-                {isEn ? 'Activate a challenge from the' : 'Activez un challenge depuis le'}{' '}
+                {t('liveSession.activateAChallengeFromThe')}{' '}
                 <Link href={withLocalePath(`/session-builder?sessionId=${encodeURIComponent(sessionId)}`)}>
                   session builder
                 </Link>

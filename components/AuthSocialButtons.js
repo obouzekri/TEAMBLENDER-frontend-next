@@ -59,18 +59,17 @@ export default function AuthSocialButtons({
   googleLabelOverride = '',
   separatorLabelOverride = '',
 }) {
-  const { locale } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, t } = useI18n();
   const busy = loading || loadingProvider !== '';
-  const unavailableLabel = isEn ? 'Coming soon' : 'Bientot disponible';
-  const socialGroupLabel = isEn ? 'Social sign-ins' : 'Connexions sociales';
-  const continueWithEmail = separatorLabelOverride || (isEn ? 'Or continue with your email address' : 'Ou continuer avec votre adresse email');
+  const unavailableLabel = t('auth.comingSoon');
+  const socialGroupLabel = t('auth.socialSignIns');
+  const continueWithEmail = separatorLabelOverride || t('auth.orContinueWithYourEmailAddress');
   const googleLabel = googleLabelOverride || (loadingProvider === 'google'
-    ? (isEn ? 'Redirecting to Google...' : 'Redirection Google...')
-    : (isEn ? 'Continue with Gmail' : 'Continuer avec Gmail'));
+    ? t('auth.redirectingToGoogle')
+    : t('auth.continueWithGmail'));
   const microsoftLabel = loadingProvider === 'microsoft'
-    ? (isEn ? 'Redirecting to Microsoft...' : 'Redirection Microsoft...')
-    : (isEn ? 'Continue with Microsoft' : 'Continuer avec Microsoft');
+    ? t('auth.redirectingToMicrosoft')
+    : t('auth.continueWithMicrosoft');
 
   return (
     <div className="social-auth-stack">

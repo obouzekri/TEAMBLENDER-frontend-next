@@ -494,7 +494,7 @@ export function normalizeCrosswordDifficulty(value) {
 }
 
 export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   useBodyScrollLock(true);
   const isEn = locale === 'en';
   const txt = (frText, enText) => (isEn ? enText : frText);
@@ -980,7 +980,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
           {kind === 'labyrinthe_live' && (
             <>
               <div className={styles.configField}>
-                <label htmlFor="mazeRows" className={styles.label}>{isEn ? 'Rows' : 'Lignes'}</label>
+                <label htmlFor="mazeRows" className={styles.label}>{t('builder.rows')}</label>
                 <input
                   id="mazeRows"
                   type="number"
@@ -997,7 +997,7 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
               </div>
 
               <div className={styles.configField}>
-                <label htmlFor="mazeCols" className={styles.label}>{isEn ? 'Columns' : 'Colonnes'}</label>
+                <label htmlFor="mazeCols" className={styles.label}>{t('builder.columns')}</label>
                 <input
                   id="mazeCols"
                   type="number"

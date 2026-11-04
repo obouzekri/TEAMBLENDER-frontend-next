@@ -1,28 +1,27 @@
 "use client";
 
 import TrustedCompanyLogo from './TrustedCompanyLogo';
+import { translate } from '@/lib/i18n';
 
 export default function LandingTrustedCompanies({ locale, trustedCompanies }) {
   return (
     <section
       className="landing-trusted landing-section-full relative overflow-hidden p-6 sm:p-10"
       style={{ '--reveal-delay': '165ms' }}
-      aria-label={locale === 'en' ? 'Trusted companies' : 'Entreprises de confiance'}
+      aria-label={translate(locale, 'landingUi.trustedCompanies')}
     >
       <div className="landing-section-inner relative">
         <h2 className="landing-trusted-title text-center text-xl font-semibold tracking-normal sm:text-2xl">
           {trustedCompanies.title}
         </h2>
         <p className="landing-trusted-subtitle mx-auto mt-2 max-w-[820px] text-center text-sm leading-6">
-          {locale === 'en'
-            ? 'Leading teams in industry, retail, healthcare and technology rely on structured collaborative formats.'
-            : 'Des equipes exigeantes de l\'industrie, du retail, de la sante et de la tech s\'appuient sur des formats collaboratifs structures.'}
+          {translate(locale, 'landingUi.leadingTeamsInIndustryRetailHealthcare')}
         </p>
         <div className="landing-trusted-marquee">
           <div className="landing-trusted-marquee-track">
             <ul
               className="landing-trusted-logos"
-              aria-label={locale === 'en' ? 'Trusted company logos' : 'Logos des entreprises'}
+              aria-label={translate(locale, 'landingUi.trustedCompanyLogos')}
             >
               {trustedCompanies.logos.map((company) => (
                 <li

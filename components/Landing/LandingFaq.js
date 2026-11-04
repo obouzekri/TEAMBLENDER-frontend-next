@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { withLocalePath } from '@/lib/i18n/routing';
+import { translate } from '@/lib/i18n';
 
 export default function LandingFaq({ locale, faq, eyebrow, intro }) {
   const guideHref = withLocalePath(locale, '/team-building');
-  const guideLabel = locale === 'en' ? 'Read the team building guide' : 'Lire le guide du team building';
+  const guideLabel = translate(locale, 'landingUi.readTheTeamBuildingGuide');
 
   if (!eyebrow) {
     return (

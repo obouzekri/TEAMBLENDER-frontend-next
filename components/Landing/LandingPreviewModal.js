@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { X } from 'lucide-react';
 import { heroCaptureAlt, heroCaptureSrc } from './LandingHero';
+import { translate } from '@/lib/i18n';
 
 export default function LandingPreviewModal({ locale, isOpen, onClose, fallback }) {
   if (!isOpen) return null;
@@ -12,7 +13,7 @@ export default function LandingPreviewModal({ locale, isOpen, onClose, fallback 
       className="landing-preview-modal"
       role="dialog"
       aria-modal="true"
-      aria-label={locale === 'en' ? 'Live preview fullscreen view' : 'Activité collaborative en plein écran'}
+      aria-label={translate(locale, 'landingUi.livePreviewFullscreenView')}
       onClick={onClose}
     >
       <div className="landing-preview-modal__panel" onClick={(event) => event.stopPropagation()}>
@@ -23,16 +24,14 @@ export default function LandingPreviewModal({ locale, isOpen, onClose, fallback 
           <button
             type="button"
             className="landing-preview-modal__close"
-            aria-label={locale === 'en' ? 'Close fullscreen preview' : 'Fermer l’aperçu plein écran'}
+            aria-label={translate(locale, 'landingUi.closeFullscreenPreview')}
             onClick={onClose}
           >
             <X className="h-4 w-4" />
           </button>
         </div>
         <p className="landing-preview-modal__copy">
-          {locale === 'en'
-            ? 'What the facilitator sees while the team plays CoPuzzle: the session programme, the shared board, the timer and the reference image.'
-            : 'Ce que voit le facilitateur pendant que l’équipe joue à CoPuzzle : le programme de la session, le plateau partagé, le minuteur et l’image de référence.'}
+          {translate(locale, 'landingUi.whatTheFacilitatorSeesWhileThe')}
         </p>
         <Image
           src={heroCaptureSrc(locale)}

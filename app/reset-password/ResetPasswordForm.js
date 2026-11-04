@@ -7,11 +7,10 @@ import { resetPassword } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 
 export default function ResetPasswordForm({ token, userType = 'user' }) {
-  const { locale, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, withLocalePath, t } = useI18n();
   const accountLabel = userType === 'participant'
-    ? (isEn ? 'participant' : 'participant')
-    : (isEn ? 'manager' : 'manager');
+    ? t('auth.participant')
+    : t('auth.manager');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,11 +21,11 @@ export default function ResetPasswordForm({ token, userType = 'user' }) {
     return (
       <main className="shell auth-page">
         <AuthCard
-          title={isEn ? 'Reset password' : 'Réinitialiser le mot de passe'}
-          footer={<span><Link href={withLocalePath('/login')}>{isEn ? 'Back to login' : 'Retour à la connexion'}</Link></span>}
+          title={t('auth.resetPassword')}
+          footer={<span><Link href={withLocalePath('/login')}>{t('auth.backToLogin')}</Link></span>}
         >
-          <p className="form-error">{isEn ? `Invalid ${accountLabel} link. Please request a new reset link.` : `Lien ${accountLabel} invalide. Veuillez refaire une demande de réinitialisation.`}</p>
-          <Link href={withLocalePath('/forgot-password')} className="btn-secondary wide" style={{ marginTop: '1rem', display: 'block', textAlign: 'center' }}>{isEn ? 'Forgot password' : 'Mot de passe oublié'}</Link>
+          <p className="form-error">{t('auth.invalidAccountlabelLinkPleaseRequestA', { accountLabel })}</p>
+          <Link href={withLocalePath('/forgot-password')} className="btn-secondary wide" style={{ marginTop: '1rem', display: 'block', textAlign: 'center' }}>{t('auth.forgotPassword2')}</Link>
         </AuthCard>
       </main>
     );
@@ -37,12 +36,12 @@ export default function ResetPasswordForm({ token, userType = 'user' }) {
     setMessage('');
 
     if (newPassword.length < 8) {
-      setMessage(isEn ? 'Password must be at least 8 characters long.' : 'Le mot de passe doit contenir au moins 8 caractères.');
+      setMessage(t('auth.passwordMustBeAtLeast8'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setMessage(isEn ? 'Passwords do not match.' : 'Les mots de passe ne correspondent pas.');
+      setMessage(t('auth.passwordsDoNotMatch'));
       return;
     }
 
@@ -52,14 +51,14 @@ export default function ResetPasswordForm({ token, userType = 'user' }) {
       if (res.ok && data?.success) {
         setDone(true);
       } else if (data?.code === 'RESET_TOKEN_EXPIRED') {
-        setMessage(isEn ? 'This link has expired (valid for 1 hour). Please request another reset.' : 'Ce lien a expiré (validité 1h). Veuillez refaire une demande de réinitialisation.');
+        setMessage(t('auth.thisLinkHasExpiredValidFor'));
       } else if (data?.code === 'INVALID_RESET_TOKEN') {
-        setMessage(isEn ? 'Invalid or already used link. Please request another reset.' : 'Lien invalide ou déjà utilisé. Veuillez refaire une demande de réinitialisation.');
+        setMessage(t('auth.invalidOrAlreadyUsedLinkPlease'));
       } else {
-        setMessage(data?.message || data?.error || (isEn ? 'Something went wrong. Please try again.' : 'Une erreur est survenue. Veuillez réessayer.'));
+        setMessage(data?.message || data?.error || t('auth.somethingWentWrongPleaseTryAgain'));
       }
     } catch {
-      setMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Vérifiez votre connexion.');
+      setMessage(t('auth.unableToReachTheServerCheck'));
     } finally {
       setLoading(false);
     }
@@ -69,12 +68,12 @@ export default function ResetPasswordForm({ token, userType = 'user' }) {
     return (
       <main className="shell auth-page">
         <AuthCard
-          title={isEn ? `Set ${accountLabel} password` : `Définir le mot de passe ${accountLabel}`}
-          footer={<span><Link href={withLocalePath('/login')}>{isEn ? 'Back to login' : 'Retour à la connexion'}</Link></span>}
+          title={t('auth.setAccountlabelPassword', { accountLabel })}
+          footer={<span><Link href={withLocalePath('/login')}>{t('auth.backToLogin')}</Link></span>}
         >
           <div className="success-box">
-            <p>{isEn ? 'Your password has been saved successfully.' : 'Votre mot de passe a bien été enregistré.'}</p>
-            <Link href={withLocalePath('/login')} className="btn-primary wide">{isEn ? 'Log in' : 'Se connecter'}</Link>
+            <p>{t('auth.yourPasswordHasBeenSavedSuccessfully')}</p>
+            <Link href={withLocalePath('/login')} className="btn-primary wide">{t('auth.logIn')}</Link>
           </div>
         </AuthCard>
       </main>
@@ -84,38 +83,38 @@ export default function ResetPasswordForm({ token, userType = 'user' }) {
   return (
     <main className="shell auth-page">
       <AuthCard
-        title={isEn ? `Set ${accountLabel} password` : `Définir le mot de passe ${accountLabel}`}
-        footer={<span><Link href={withLocalePath('/login')}>{isEn ? 'Back to login' : 'Retour à la connexion'}</Link></span>}
+        title={t('auth.setAccountlabelPassword', { accountLabel })}
+        footer={<span><Link href={withLocalePath('/login')}>{t('auth.backToLogin')}</Link></span>}
       >
         <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
           <label>
-            {isEn ? 'New password' : 'Nouveau mot de passe'}
+            {t('auth.newPassword')}
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
               minLength={8}
-              placeholder={isEn ? 'Minimum 8 characters' : 'Minimum 8 caractères'}
+              placeholder={t('auth.minimum8Characters2')}
               autoComplete="new-password"
             />
           </label>
 
           <label>
-            {isEn ? 'Confirm password' : 'Confirmer le mot de passe'}
+            {t('auth.confirmPassword')}
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               minLength={8}
-              placeholder={isEn ? 'Repeat your password' : 'Répétez votre mot de passe'}
+              placeholder={t('auth.repeatYourPassword')}
               autoComplete="new-password"
             />
           </label>
 
           <button type="submit" className="btn-primary wide" disabled={loading}>
-            {loading ? (isEn ? 'Resetting...' : 'Réinitialisation...') : (isEn ? 'Apply new password' : 'Valider le nouveau mot de passe')}
+            {loading ? t('auth.resetting') : t('auth.applyNewPassword')}
           </button>
 
           {message ? <p className="form-error">{message}</p> : null}

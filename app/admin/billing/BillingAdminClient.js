@@ -15,6 +15,7 @@ import {
 } from '@/lib/admin-billing';
 import { listPricingPlans } from '@/lib/account';
 import './billing.css';
+import { translate } from '@/lib/i18n';
 
 function userLabel(user, isEn = false) {
   const first = String(user?.first_name || '').trim();
@@ -39,30 +40,30 @@ function normalizeStatus(value, fallback = 'unknown') {
   return String(value || fallback).trim().toLowerCase();
 }
 
-function buildStatusLabel(value, isEn) {
+function buildStatusLabel(value, locale) {
   const normalized = normalizeStatus(value);
   const labels = {
-    active: isEn ? 'Active' : 'Actif',
-    canceled: isEn ? 'Cancelled' : 'Annulé',
-    past_due: isEn ? 'Past due' : 'Impayé',
-    incomplete: isEn ? 'Incomplete' : 'Incomplet',
-    trialing: isEn ? 'Trial' : 'Essai',
-    paused: isEn ? 'Paused' : 'En pause',
-    paid: isEn ? 'Paid' : 'Payé',
-    pending: isEn ? 'Pending' : 'En attente',
-    failed: isEn ? 'Failed' : 'Échoué',
-    refunded: isEn ? 'Refunded' : 'Remboursé',
-    none: isEn ? 'None' : 'Aucun',
+    active: translate(locale, 'adminBilling.active'),
+    canceled: translate(locale, 'adminBilling.cancelled'),
+    past_due: translate(locale, 'adminBilling.pastDue'),
+    incomplete: translate(locale, 'adminBilling.incomplete'),
+    trialing: translate(locale, 'adminBilling.trial'),
+    paused: translate(locale, 'adminBilling.paused'),
+    paid: translate(locale, 'adminBilling.paid'),
+    pending: translate(locale, 'adminBilling.pending'),
+    failed: translate(locale, 'adminBilling.failed'),
+    refunded: translate(locale, 'adminBilling.refunded'),
+    none: translate(locale, 'adminBilling.none'),
     paypal: 'PayPal',
     stripe: 'Stripe',
-    manual: isEn ? 'Manual' : 'Manuel',
-    unknown: isEn ? 'Unknown' : 'Inconnu',
+    manual: translate(locale, 'adminBilling.manual'),
+    unknown: translate(locale, 'adminBilling.unknown'),
   };
   return labels[normalized] || normalized;
 }
 
 export default function BillingAdminClient() {
-  const { locale, withLocalePath } = useI18n();
+  const { locale, withLocalePath, t } = useI18n();
   const isEn = locale === 'en';
   const [sessionUser, setSessionUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -90,7 +91,7 @@ export default function BillingAdminClient() {
       setTimeline(Array.isArray(timelinePayload?.items) ? timelinePayload.items : []);
       setPlans(Array.isArray(pricingPlans) ? pricingPlans : []);
     } catch (err) {
-      setError(err.message || (isEn ? 'Unable to load billing.' : 'Chargement de la facturation impossible.'));
+      setError(err.message || t('adminBilling.unableToLoadBilling'));
     } finally {
       setLoading(false);
     }
@@ -147,10 +148,10 @@ export default function BillingAdminClient() {
         pricing_plan_id: selectedPlanId,
         reason: 'Admin backoffice change',
       });
-      setNotice(isEn ? 'Plan updated.' : 'Formule mise à jour.');
+      setNotice(t('adminBilling.planUpdated'));
       await refresh();
     } catch (err) {
-      setError(err.message || (isEn ? 'Failed to change plan.' : 'Échec du changement de formule.'));
+      setError(err.message || t('adminBilling.failedToChangePlan'));
     }
   }
 
@@ -168,10 +169,10 @@ export default function BillingAdminClient() {
         billing_cycle: selectedPlan?.billing_cycle || 'monthly',
         provider: 'manual',
       });
-      setNotice(isEn ? 'Manual payment recorded and subscription synchronized.' : 'Paiement manuel enregistré et abonnement synchronisé.');
+      setNotice(t('adminBilling.manualPaymentRecordedAndSubscriptionSynchronized'));
       await refresh();
     } catch (err) {
-      setError(err.message || (isEn ? 'Failed to record manual payment.' : 'Échec de l’enregistrement du paiement manuel.'));
+      setError(err.message || t('adminBilling.failedToRecordManualPayment'));
     }
   }
 
@@ -180,10 +181,10 @@ export default function BillingAdminClient() {
     setNotice('');
     try {
       await adminRefundInvoice(invoiceId, { reason: 'Refund requested by support' });
-      setNotice(isEn ? 'Invoice refunded.' : 'Facture remboursée.');
+      setNotice(t('adminBilling.invoiceRefunded'));
       await refresh();
     } catch (err) {
-      setError(err.message || (isEn ? 'Unable to refund.' : 'Remboursement impossible.'));
+      setError(err.message || t('adminBilling.unableToRefund'));
     }
   }
 
@@ -195,10 +196,10 @@ export default function BillingAdminClient() {
       if (payload?.pdf_url) {
         window.open(payload.pdf_url, '_blank', 'noopener,noreferrer');
       }
-      setNotice(isEn ? 'Invoice PDF generated.' : 'PDF de la facture généré.');
+      setNotice(t('adminBilling.invoicePdfGenerated'));
       await refresh();
     } catch (err) {
-      setError(err.message || (isEn ? 'Unable to generate PDF.' : 'Génération du PDF impossible.'));
+      setError(err.message || t('adminBilling.unableToGeneratePdf'));
     }
   }
 
@@ -208,54 +209,54 @@ export default function BillingAdminClient() {
       <main className="admin-billing-shell">
         <header className="admin-billing-header">
           <div>
-            <p className="eyebrow">{isEn ? 'Payment back office' : 'Gestion des paiements'}</p>
-            <h1>{isEn ? 'Subscriptions, billing and operations' : 'Abonnements, facturation et opérations'}</h1>
-            <p>{isEn ? 'Centralized console for plan changes, payments, refunds and payment provider tracking.' : 'Console centralisée pour les changements de formule, paiements, remboursements et le suivi des prestataires de paiement.'}</p>
+            <p className="eyebrow">{t('adminBilling.paymentBackOffice')}</p>
+            <h1>{t('adminBilling.subscriptionsBillingAndOperations')}</h1>
+            <p>{t('adminBilling.centralizedConsoleForPlanChangesPayments')}</p>
           </div>
           <div className="admin-billing-header-actions" />
         </header>
 
         <section className="admin-billing-filters">
-        <input value={query} onChange={(e) => setQuery(e.target.value)} aria-label={isEn ? 'Search accounts' : 'Rechercher des comptes'} placeholder={isEn ? 'Search email, first name, last name' : 'Rechercher par e-mail, prénom, nom'} />
-        <select value={provider} onChange={(e) => setProvider(e.target.value)} aria-label={isEn ? 'Payment provider' : 'Prestataire de paiement'}>
-          <option value="">{isEn ? 'All providers' : 'Tous les prestataires'}</option>
+        <input value={query} onChange={(e) => setQuery(e.target.value)} aria-label={t('adminBilling.searchAccounts')} placeholder={t('adminBilling.searchEmailFirstNameLastName')} />
+        <select value={provider} onChange={(e) => setProvider(e.target.value)} aria-label={t('adminBilling.paymentProvider')}>
+          <option value="">{t('adminBilling.allProviders')}</option>
           <option value="paypal">PayPal</option>
           <option value="stripe">Stripe</option>
-          <option value="manual">{isEn ? 'Manual' : 'Manuel'}</option>
+          <option value="manual">{t('adminBilling.manual')}</option>
         </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label={isEn ? 'Subscription status' : 'Statut de l’abonnement'}>
-          <option value="">{isEn ? 'All statuses' : 'Tous statuts'}</option>
-          <option value="active">{buildStatusLabel('active', isEn)}</option>
-          <option value="past_due">{buildStatusLabel('past_due', isEn)}</option>
-          <option value="incomplete">{buildStatusLabel('incomplete', isEn)}</option>
-          <option value="canceled">{buildStatusLabel('canceled', isEn)}</option>
+        <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label={t('adminBilling.subscriptionStatus')}>
+          <option value="">{t('adminBilling.allStatuses')}</option>
+          <option value="active">{buildStatusLabel('active', locale)}</option>
+          <option value="past_due">{buildStatusLabel('past_due', locale)}</option>
+          <option value="incomplete">{buildStatusLabel('incomplete', locale)}</option>
+          <option value="canceled">{buildStatusLabel('canceled', locale)}</option>
         </select>
-        <button type="button" className="btn-secondary" onClick={refresh} disabled={loading}>{isEn ? 'Apply' : 'Appliquer'}</button>
+        <button type="button" className="btn-secondary" onClick={refresh} disabled={loading}>{t('adminBilling.apply')}</button>
         </section>
 
-        <section className="admin-billing-kpis" aria-label={isEn ? 'Payment KPIs' : 'Indicateurs paiements'}>
+        <section className="admin-billing-kpis" aria-label={t('adminBilling.paymentKpis')}>
         <article className="kpi-card">
-          <p>{isEn ? 'Managed accounts' : 'Comptes suivis'}</p>
+          <p>{t('adminBilling.managedAccounts')}</p>
           <strong>{stats.managedAccounts}</strong>
         </article>
         <article className="kpi-card">
-          <p>{isEn ? 'Active subscriptions' : 'Abonnements actifs'}</p>
+          <p>{t('adminBilling.activeSubscriptions')}</p>
           <strong>{stats.activeSubscriptions}</strong>
         </article>
         <article className="kpi-card is-warning">
-          <p>{isEn ? 'At-risk subscriptions' : 'Abonnements à risque'}</p>
+          <p>{t('adminBilling.atRiskSubscriptions')}</p>
           <strong>{stats.riskSubscriptions}</strong>
         </article>
         <article className="kpi-card">
-          <p>{isEn ? 'Pending invoices' : 'Factures en attente'}</p>
+          <p>{t('adminBilling.pendingInvoices')}</p>
           <strong>{stats.pendingInvoices}</strong>
         </article>
         <article className="kpi-card is-danger">
-          <p>{isEn ? 'Failed invoices' : 'Factures échouées'}</p>
+          <p>{t('adminBilling.failedInvoices')}</p>
           <strong>{stats.failedInvoices}</strong>
         </article>
         <article className="kpi-card">
-          <p>{isEn ? 'Timeline events' : 'Événements de l’historique'}</p>
+          <p>{t('adminBilling.timelineEvents')}</p>
           <strong>{stats.timelineEvents}</strong>
         </article>
         </section>
@@ -265,8 +266,8 @@ export default function BillingAdminClient() {
 
         <section className="admin-billing-grid">
         <article className="admin-billing-card">
-          <h2>{isEn ? 'Accounts & subscriptions' : 'Comptes & abonnements'}</h2>
-          {loading ? <p>{isEn ? 'Loading...' : 'Chargement...'}</p> : null}
+          <h2>{t('adminBilling.accountsSubscriptions')}</h2>
+          {loading ? <p>{t('adminBilling.loading')}</p> : null}
           <div className="admin-billing-users">
             {users.map((user) => {
               const subscription = Array.isArray(user.subscriptions) ? user.subscriptions[0] : null;
@@ -284,87 +285,87 @@ export default function BillingAdminClient() {
                   <div className="user-row-top">
                     <strong>{userLabel(user, isEn)}</strong>
                     <span className={`status-chip status-${normalizeStatus(subscription?.status, 'incomplete')}`}>
-                      {buildStatusLabel(subscription?.status || 'incomplete', isEn)}
+                      {buildStatusLabel(subscription?.status || 'incomplete', locale)}
                     </span>
                   </div>
-                  <span className="user-row-plan">{subscription?.pricing_plan?.name || user?.pricing_plan?.name || (isEn ? 'No plan' : 'Sans formule')}</span>
+                  <span className="user-row-plan">{subscription?.pricing_plan?.name || user?.pricing_plan?.name || t('adminBilling.noPlan')}</span>
                   <div className="user-row-meta">
                     <span className={`status-chip status-${normalizeStatus(subscription?.payment_status, 'none')}`}>
-                      {isEn ? 'Payment: ' : 'Paiement : '}{buildStatusLabel(subscription?.payment_status || 'none', isEn)}
+                      {t('adminBilling.payment')}{buildStatusLabel(subscription?.payment_status || 'none', locale)}
                     </span>
                     <span className={`status-chip status-${normalizeStatus(subscription?.provider, 'none')}`}>
-                      {buildStatusLabel(subscription?.provider || 'none', isEn)}
+                      {buildStatusLabel(subscription?.provider || 'none', locale)}
                     </span>
                   </div>
                 </button>
               );
             })}
-            {!loading && users.length === 0 ? <p className="empty-state">{isEn ? 'No accounts found with this filter.' : 'Aucun compte trouvé avec ce filtre.'}</p> : null}
+            {!loading && users.length === 0 ? <p className="empty-state">{t('adminBilling.noAccountsFoundWithThisFilter')}</p> : null}
           </div>
         </article>
 
         <article className="admin-billing-card">
-          <h2>{isEn ? 'Operator actions' : 'Actions opérateur'}</h2>
+          <h2>{t('adminBilling.operatorActions')}</h2>
           {selectedUser ? (
             <>
               <div className="selected-user-summary">
-                <p><strong>{isEn ? 'Account:' : 'Compte :'}</strong> {userLabel(selectedUser, isEn)}</p>
-                <p><strong>{isEn ? 'Active plan:' : 'Formule active :'}</strong> {selectedSubscription?.pricing_plan?.name || selectedUser?.pricing_plan?.name || (isEn ? 'No plan' : 'Sans formule')}</p>
-                <p><strong>{isEn ? 'Renewal:' : 'Renouvellement :'}</strong> {formatDate(selectedSubscription?.current_period_end, locale)}</p>
+                <p><strong>{t('adminBilling.account')}</strong> {userLabel(selectedUser, isEn)}</p>
+                <p><strong>{t('adminBilling.activePlan')}</strong> {selectedSubscription?.pricing_plan?.name || selectedUser?.pricing_plan?.name || t('adminBilling.noPlan')}</p>
+                <p><strong>{t('adminBilling.renewal')}</strong> {formatDate(selectedSubscription?.current_period_end, locale)}</p>
               </div>
               <div className="admin-billing-actions">
-                <select value={selectedPlanId} onChange={(e) => setSelectedPlanId(e.target.value)} aria-label={isEn ? 'Subscription plan' : 'Formule d’abonnement'}>
-                  <option value="">{isEn ? 'Select a plan' : 'Sélectionner une formule'}</option>
+                <select value={selectedPlanId} onChange={(e) => setSelectedPlanId(e.target.value)} aria-label={t('adminBilling.subscriptionPlan')}>
+                  <option value="">{t('adminBilling.selectAPlan')}</option>
                   {plans.map((plan) => (
                     <option key={plan.id} value={plan.id}>{plan.name} - {money(plan.price_cents, plan.price_mad_cents)}</option>
                   ))}
                 </select>
-                <button type="button" className="btn-primary" onClick={handleApplyPlan} disabled={!selectedPlanId || loading}>{isEn ? 'Change plan' : 'Changer de formule'}</button>
-                <button type="button" className="btn-secondary" onClick={handleRecordManualPayment} disabled={!selectedPlanId || loading}>{isEn ? 'Record manual payment' : 'Valider le paiement manuel'}</button>
+                <button type="button" className="btn-primary" onClick={handleApplyPlan} disabled={!selectedPlanId || loading}>{t('adminBilling.changePlan')}</button>
+                <button type="button" className="btn-secondary" onClick={handleRecordManualPayment} disabled={!selectedPlanId || loading}>{t('adminBilling.recordManualPayment')}</button>
               </div>
-              <h3>{isEn ? 'Invoices' : 'Factures'}</h3>
+              <h3>{t('adminBilling.invoices')}</h3>
               <div className="admin-billing-invoices">
                 {(selectedUser.invoices || []).map((invoice) => (
                   <div key={invoice.id} className="invoice-row">
                     <div className="invoice-main">
                       <span className="invoice-number">{invoice.invoice_number}</span>
                       <span>{money(invoice.amount_cents, plans.find((plan) => String(plan.id) === String(invoice.pricing_plan_id))?.price_mad_cents)}</span>
-                      <span className={`status-chip status-${normalizeStatus(invoice.status, 'pending')}`}>{buildStatusLabel(invoice.status, isEn)}</span>
+                      <span className={`status-chip status-${normalizeStatus(invoice.status, 'pending')}`}>{buildStatusLabel(invoice.status, locale)}</span>
                       <span className="invoice-date">{formatDate(invoice.createdAt, locale)}</span>
                     </div>
                     <div className="invoice-actions">
                       <button type="button" onClick={() => handleGeneratePdf(invoice.id)} disabled={loading}>PDF</button>
-                      <button type="button" onClick={() => handleRefund(invoice.id)} disabled={loading || normalizeStatus(invoice.status) === 'refunded'}>{isEn ? 'Refund' : 'Rembourser'}</button>
+                      <button type="button" onClick={() => handleRefund(invoice.id)} disabled={loading || normalizeStatus(invoice.status) === 'refunded'}>{t('adminBilling.refund')}</button>
                     </div>
                   </div>
                 ))}
-                {(selectedUser.invoices || []).length === 0 ? <p className="empty-state">{isEn ? 'No invoices.' : 'Aucune facture.'}</p> : null}
+                {(selectedUser.invoices || []).length === 0 ? <p className="empty-state">{t('adminBilling.noInvoices')}</p> : null}
               </div>
             </>
           ) : (
-            <p className="empty-state">{isEn ? 'Select an account to manage its subscription.' : 'Sélectionnez un compte pour administrer son abonnement.'}</p>
+            <p className="empty-state">{t('adminBilling.selectAnAccountToManageIts')}</p>
           )}
         </article>
         </section>
 
         <section className="admin-billing-card timeline">
-        <h2>{isEn ? 'Recent operational timeline' : 'Historique opérationnel récent'}</h2>
+        <h2>{t('adminBilling.recentOperationalTimeline')}</h2>
         <div className="timeline-list">
           {timeline.map((event) => (
             <div key={event.id} className="timeline-row">
               <div className="timeline-row-top">
                 <span>{formatDate(event.createdAt, locale)}</span>
-                <span className={`status-chip status-${normalizeStatus(event.status, 'pending')}`}>{buildStatusLabel(event.status, isEn)}</span>
+                <span className={`status-chip status-${normalizeStatus(event.status, 'pending')}`}>{buildStatusLabel(event.status, locale)}</span>
               </div>
               <div className="timeline-row-main">
                 <strong>{event.type}</strong>
-                <span className={`status-chip status-${normalizeStatus(event.provider, 'none')}`}>{buildStatusLabel(event.provider, isEn)}</span>
+                <span className={`status-chip status-${normalizeStatus(event.provider, 'none')}`}>{buildStatusLabel(event.provider, locale)}</span>
               </div>
               <span>{event.user?.email || '-'}</span>
               <span>{event.message || '-'}</span>
             </div>
           ))}
-          {timeline.length === 0 ? <p className="empty-state">{isEn ? 'No recent events.' : 'Aucun événement récent.'}</p> : null}
+          {timeline.length === 0 ? <p className="empty-state">{t('adminBilling.noRecentEvents')}</p> : null}
         </div>
         </section>
       </main>

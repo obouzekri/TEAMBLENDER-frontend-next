@@ -80,7 +80,7 @@ function buildFallbackAvailableWords(slots, participantSlot, fakeWordsBySlot) {
 }
 
 export default function PhraseChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const isEn = locale === 'en';
   const [selectedWord, setSelectedWord] = useState('');
   const [draggingWord, setDraggingWord] = useState('');
@@ -277,7 +277,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
     <ChallengePresentation className={styles.phraseContainer} isDebrief={Boolean(summary) || ['completed', 'timeout'].includes(normalizedTimerStatus)}>
       <ChallengeHeader
         title={challengeName}
-        subtitle={challengeSubtitle || (isEn ? 'Rebuild the phrase together, slot by slot' : 'Reconstituez la phrase en équipe, slot par slot')}
+        subtitle={challengeSubtitle || t('challengePhrase.rebuildThePhraseTogetherSlotBy')}
         timer={hasChallengeStarted ? { remainingSeconds: Number(timer?.remaining_seconds || 0) } : null}
         headerAction={hasChallengeStarted ? (
           <ChallengeRulesPanel
@@ -298,7 +298,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
       <div className="challenge-mobile-timer">
         <ChallengeTimerCard
           isStarted={hasChallengeStarted}
-          title={isEn ? 'Timer' : 'Minuteur'}
+          title={t('challengePhrase.timer')}
           remainingSeconds={Number(timer?.remaining_seconds || 0)}
           durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
           status={timerStatus}
@@ -329,7 +329,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
           ) : (
             <>
               {slots.length === 0 ? (
-                <p className={styles.empty}>{isEn ? 'Waiting for initial state...' : 'En attente de l’état initial...'}</p>
+                <p className={styles.empty}>{t('challengePhrase.waitingForInitialState')}</p>
               ) : (
                 <div className={styles.board}>
                   {slots.map((slot) => {
@@ -366,12 +366,12 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                         onDrop={(event) => onSlotDrop(event, slot, isMine)}
                         disabled={Boolean(isFacilitator || isLocked || !canPlay)}
                       >
-                        <span className={styles.slotIndex}>{isEn ? 'Cell' : 'Case'} {Number(slot.index) + 1}</span>
+                        <span className={styles.slotIndex}>{t('challengePhrase.cell')} {Number(slot.index) + 1}</span>
                         <span className={styles.slotWord}>{displayedWord || '\u00a0'}</span>
                         {isFacilitator ? (
-                          <span className={styles.slotExpected}>{isEn ? 'Target' : 'Cible'}: {expectedWord || '-'}</span>
+                          <span className={styles.slotExpected}>{t('challengePhrase.target')}: {expectedWord || '-'}</span>
                         ) : (
-                          <span className={styles.slotMeta}>{isEn ? 'Assigned' : 'Assignée'}: {slot.assigned_slot}</span>
+                          <span className={styles.slotMeta}>{t('challengePhrase.assigned')}: {slot.assigned_slot}</span>
                         )}
                       </button>
                     );
@@ -394,39 +394,39 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
 
                   <div className={styles.summaryStats} data-debrief-metrics>
                     <article className={styles.summaryStatCard}>
-                      <span>{isEn ? 'Collective score' : 'Score collectif'}</span>
+                      <span>{t('challengePhrase.collectiveScore')}</span>
                       <strong>{summaryScore}/100</strong>
                     </article>
                     <article className={styles.summaryStatCard}>
-                      <span>{isEn ? 'Progress' : 'Progression'}</span>
+                      <span>{t('challengePhrase.progress')}</span>
                       <strong>{summarySolvedWords}/{summaryTotalWords}</strong>
                     </article>
                     <article className={styles.summaryStatCard}>
-                      <span>{isEn ? 'Total time' : 'Temps total'}</span>
+                      <span>{t('challengePhrase.totalTime')}</span>
                       <strong>{formatDuration(summaryTimeSeconds)}</strong>
                     </article>
                     <article className={styles.summaryStatCard}>
-                      <span>{isEn ? 'Coordination (chat)' : 'Coordination (chat)'}</span>
+                      <span>{t('challengePhrase.coordinationChat')}</span>
                       <strong>{summaryMessages}</strong>
                     </article>
                   </div>
 
                   <div className={styles.summaryColumns}>
                     <section className={styles.summaryPanel}>
-                      <h4>{isEn ? 'What worked well' : 'Ce qui a bien fonctionné'}</h4>
+                      <h4>{t('challengePhrase.whatWorkedWell')}</h4>
                       <ul>
-                        <li>{isEn ? 'Final completion' : 'Complétion finale'} : {summaryCompletion}%.</li>
-                        <li>{summarySolvedWords} {isEn ? 'word(s) correctly placed.' : 'mot(s) correctement positionné(s).'}</li>
-                        <li>{summaryMessages} {isEn ? 'message(s) exchanged.' : 'échange(s) pour converger.'}</li>
+                        <li>{t('challengePhrase.finalCompletion')} : {summaryCompletion}%.</li>
+                        <li>{summarySolvedWords} {t('challengePhrase.wordSCorrectlyPlaced')}</li>
+                        <li>{summaryMessages} {t('challengePhrase.messageSExchanged')}</li>
                       </ul>
                     </section>
 
                     <section className={styles.summaryPanel}>
-                      <h4>{isEn ? 'Areas for improvement' : 'Pistes d’amélioration'}</h4>
+                      <h4>{t('challengePhrase.areasForImprovement')}</h4>
                       <ul>
-                        <li>{isEn ? 'Reduce unsuccessful attempts' : 'Réduire les essais non concluants'} ({decoyRisk}).</li>
-                        <li>{isEn ? 'Discuss ambiguous words and decoys together.' : 'Valider collectivement les mots ambigus (leurres).'}</li>
-                        <li>{isEn ? 'Confirm key placements before final validation.' : 'Confirmer les placements clés avant validation finale.'}</li>
+                        <li>{t('challengePhrase.reduceUnsuccessfulAttempts')} ({decoyRisk}).</li>
+                        <li>{t('challengePhrase.discussAmbiguousWordsAndDecoysTogether')}</li>
+                        <li>{t('challengePhrase.confirmKeyPlacementsBeforeFinalValidation')}</li>
                       </ul>
                     </section>
                   </div>
@@ -436,19 +436,19 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
               {!isFacilitator ? (
                 <section className={styles.playerWorkbench}>
                   <div className={styles.playerWorkbenchHead}>
-                    <h3>{isEn ? 'Available words' : 'Mots disponibles'}</h3>
+                    <h3>{t('challengePhrase.availableWords')}</h3>
                     <button
                       type="button"
                       className={styles.btnSecondary}
                       onClick={requestHint}
                       disabled={remainingHints <= 0 || !canPlay}
                     >
-                      {`${isEn ? 'Discover a word' : 'Découvrir un mot'} (${remainingHints})`}
+                      {`${t('challengePhrase.discoverAWord')} (${remainingHints})`}
                     </button>
                   </div>
                   <div className={styles.wordBank}>
                     {groupedWords.length === 0 ? (
-                      <p className={styles.empty}>{isEn ? 'No words available.' : 'Aucun mot disponible.'}</p>
+                      <p className={styles.empty}>{t('challengePhrase.noWordsAvailable')}</p>
                     ) : groupedWords.map((entry) => {
                       const selected = selectedWord === entry.value;
                       return (
@@ -471,13 +471,11 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                     })}
                   </div>
                   <p className={styles.helper}>
-                    {isEn
-                      ? `Select or drag a word to one of your cells. The team has ${hintBudget} “Discover a word” hints in total; ${remainingHints} remaining.`
-                      : `Sélectionnez ou glissez un mot vers une de vos cases pour le placer. L’équipe dispose de ${hintBudget} indices « Découvrir un mot » au total ; ${remainingHints} restants.`}
+                    {t('challengePhrase.selectOrDragAWordTo', { hintBudget, remainingHints })}
                   </p>
                   {selectedWord ? (
                     <p className={styles.selectedWordStatus}>
-                      {isEn ? 'Selected word' : 'Mot sélectionné'} : <strong>{formatWord(selectedWord)}</strong>. {isEn ? 'Drag it or choose one of your cells.' : 'Glissez-le ou choisissez une de vos cases.'}
+                      {t('challengePhrase.selectedWord')} : <strong>{formatWord(selectedWord)}</strong>. {t('challengePhrase.dragItOrChooseOneOf')}
                     </p>
                   ) : null}
                 </section>
@@ -490,7 +488,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
           <div className="challenge-desktop-timer">
             <ChallengeTimerCard
               isStarted={hasChallengeStarted}
-              title={isEn ? 'Timer' : 'Minuteur'}
+              title={t('challengePhrase.timer')}
               remainingSeconds={Number(timer?.remaining_seconds || 0)}
               durationSeconds={Number(timer?.duration_seconds || runtimePayload?.config?.timer?.duration_seconds || 0)}
               status={timerStatus}
@@ -516,7 +514,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                 delivery={chatDelivery}
                 quickMessages={DEFAULT_CHALLENGE_QUICK_MESSAGES}
                 onQuickMessage={sendQuickChat}
-                emptyText={isEn ? 'No messages yet.' : 'Aucun message pour le moment.'}
+                emptyText={t('challengePhrase.noMessagesYet')}
                 maxLength={240}
               />
             </section>

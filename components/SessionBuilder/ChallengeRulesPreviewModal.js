@@ -16,6 +16,7 @@ import { isScoringRule } from '@/lib/challenges/rules';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './ChallengeRulesPreviewModal.module.css';
+import { translate } from '@/lib/i18n';
 
 function getFallbackRules(challenge, locale) {
   if (challenge?.engine_key === 'crossword_live_v1') return getCrosswordRulesPreset(locale);
@@ -119,17 +120,10 @@ function getFallbackRules(challenge, locale) {
   }
 
   const description = String(challenge?.description || '').trim();
-  const isEn = locale === 'en';
   return {
-    objective: description || (isEn
-      ? 'Review the rules for this activity before adding it to your session.'
-      : 'Consultez les règles de cette activité avant de l’ajouter à votre session.'),
-    facilitator: [isEn
-      ? 'Set the frame, explain the context, and coordinate the team flow.'
-      : 'Posez le cadre, expliquez le contexte et coordonnez le déroulé de l’équipe.'],
-    participant: [isEn
-      ? 'Align on the brief, assign roles, and progress together on the challenge.'
-      : 'Alignez-vous sur le brief, répartissez les rôles et progressez ensemble sur le challenge.'],
+    objective: description || translate(locale, 'builder.reviewTheRulesForThisActivity'),
+    facilitator: [translate(locale, 'builder.setTheFrameExplainTheContext')],
+    participant: [translate(locale, 'builder.alignOnTheBriefAssignRoles')],
     footnote: '',
   };
 }

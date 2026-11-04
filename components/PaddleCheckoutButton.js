@@ -24,8 +24,7 @@ export default function PaddleCheckoutButton({
   className = 'btn-primary',
   disabled = false,
 }) {
-  const { locale, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, withLocalePath, t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -62,7 +61,7 @@ export default function PaddleCheckoutButton({
         );
         return;
       }
-      setError(err.message || (isEn ? 'Payment temporarily unavailable.' : 'Paiement temporairement indisponible.'));
+      setError(err.message || t('pricingPage.paymentTemporarilyUnavailable'));
     } finally {
       setLoading(false);
     }
@@ -78,11 +77,11 @@ export default function PaddleCheckoutButton({
         aria-busy={loading}
       >
         {loading
-          ? (isEn ? 'Opening checkout…' : 'Ouverture du paiement…')
-          : (isEn ? 'Pay now' : 'Payer maintenant')}
+          ? t('pricingPage.openingCheckout2')
+          : t('pricingPage.payNow')}
       </button>
       <span className="paddle-checkout-secure-label" aria-hidden="true">
-        🔒 {isEn ? 'Secure payment' : 'Paiement sécurisé'}
+        🔒 {t('pricingPage.securePayment')}
       </span>
       {error ? (
         <p className="paddle-checkout-error form-error" role="alert">{error}</p>

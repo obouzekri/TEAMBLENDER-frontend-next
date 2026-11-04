@@ -14,7 +14,7 @@ const COMPANY_SIZES = {
 };
 
 export default function ContactPage() {
-  const { locale, withLocalePath } = useI18n();
+  const { locale, withLocalePath, t } = useI18n();
   const isEn = locale === 'en';
   const [form, setForm] = useState({
     name: '',
@@ -37,7 +37,7 @@ export default function ContactPage() {
     if (status === 'sending') return;
 
     if (!form.name.trim() || !form.email.trim() || !form.need.trim() || !form.message.trim()) {
-      setErrorMessage(isEn ? 'Please fill in all required fields.' : 'Veuillez renseigner tous les champs obligatoires.');
+      setErrorMessage(t('contactPage.pleaseFillInAllRequiredFields'));
       setStatus('error');
       return;
     }
@@ -60,8 +60,8 @@ export default function ContactPage() {
       setStatus('success');
     } catch (err) {
       setErrorMessage(err.message === 'rate_limited'
-        ? (isEn ? 'Too many requests sent. Please try again in an hour.' : 'Trop de demandes envoyées. Veuillez réessayer dans une heure.')
-        : (isEn ? 'Your request could not be sent. Please try again or write to us at contact@teamblender.io.' : 'L\'envoi a échoué. Réessayez ou écrivez-nous à contact@teamblender.io.'));
+        ? t('contactPage.tooManyRequestsSentPleaseTry')
+        : t('contactPage.yourRequestCouldNotBeSent'));
       setStatus('error');
     }
   }
@@ -70,19 +70,19 @@ export default function ContactPage() {
     <>
       <TopNav />
       <main className="shell contact-page">
-        <section className="contact-intro" aria-label={isEn ? 'Contact TeamBlender' : 'Contactez TeamBlender'}>
+        <section className="contact-intro" aria-label={t('contactPage.contactTeamblender')}>
           <div className="contact-intro__grid">
             <div className="contact-intro__copy">
-              <h1>{isEn ? 'Let’s talk about bringing your team together' : 'Parlons de la cohésion de votre équipe'}</h1>
-              <p className="contact-intro__lede">{isEn ? 'Talk with a TeamBlender expert and identify the challenge best aligned with your HR goals.' : 'Échangez avec un expert TeamBlender et découvrez le challenge le plus adapté à vos objectifs RH.'}</p>
+              <h1>{t('contactPage.letSTalkAboutBringingYour')}</h1>
+              <p className="contact-intro__lede">{t('contactPage.talkWithATeamblenderExpertAnd')}</p>
             </div>
           </div>
         </section>
 
         <section className="contact-panel" aria-labelledby="contact-project-title">
           <header className="contact-panel__header">
-            <h2 id="contact-project-title">{isEn ? 'Tell us about your project' : 'Parlons de votre projet'}</h2>
-            <p className="contact-section-intro">{isEn ? 'A few details will help us prepare a useful first conversation.' : 'Quelques informations suffisent pour préparer un premier échange utile.'}</p>
+            <h2 id="contact-project-title">{t('contactPage.tellUsAboutYourProject')}</h2>
+            <p className="contact-section-intro">{t('contactPage.aFewDetailsWillHelpUs')}</p>
             <div className="contact-channels">
               <a href="mailto:contact@teamblender.io" className="contact-channel">
                 <Mail size={18} aria-hidden="true" />
@@ -90,19 +90,19 @@ export default function ContactPage() {
               </a>
               <p className="contact-channel">
                 <Clock3 size={18} aria-hidden="true" />
-                <span>{isEn ? 'Response within 24 business hours' : 'Réponse sous 24h ouvrées'}</span>
+                <span>{t('contactPage.responseWithin24BusinessHours')}</span>
               </p>
             </div>
           </header>
             {status === 'success' ? (
               <div className="contact-success" role="status" aria-live="polite">
                 <div className="contact-success__icon" aria-hidden="true">✓</div>
-                <strong>{isEn ? 'Thank you! Your request has been sent.' : 'Merci ! Votre demande a bien été envoyée.'}</strong>
-                <p>{isEn ? 'A member of our team will get back to you within 24 business hours. A confirmation email is on its way.' : 'Un expert de l\'équipe vous répondra sous 24 heures ouvrées. Un email de confirmation vient de vous être envoyé.'}</p>
+                <strong>{t('contactPage.thankYouYourRequestHasBeen')}</strong>
+                <p>{t('contactPage.aMemberOfOurTeamWill')}</p>
               </div>
             ) : (
             <form className="contact-form" onSubmit={submitRequest}>
-              <p className="contact-form__required contact-form__full">{isEn ? '* Required fields' : '* Champs obligatoires'}</p>
+              <p className="contact-form__required contact-form__full">{t('contactPage.requiredFields')}</p>
               <div className="contact-form__hp" aria-hidden="true">
                 <label>
                   Website
@@ -110,24 +110,24 @@ export default function ContactPage() {
                 </label>
               </div>
               <label>
-                {isEn ? 'Full name *' : 'Nom complet *'}
-                <input type="text" name="name" autoComplete="name" required value={form.name} onChange={(e) => updateField('name', e.target.value)} placeholder={isEn ? 'Ex: Sarah Martin' : 'Ex : Sarah Martin'} />
+                {t('contactPage.fullName')}
+                <input type="text" name="name" autoComplete="name" required value={form.name} onChange={(e) => updateField('name', e.target.value)} placeholder={t('contactPage.exSarahMartin')} />
               </label>
 
               <label>
-                {isEn ? 'Work email *' : 'Email professionnel *'}
-                <input type="email" name="email" autoComplete="email" required value={form.email} onChange={(e) => updateField('email', e.target.value)} placeholder={isEn ? 'you@company.com' : 'vous@entreprise.com'} />
+                {t('contactPage.workEmail')}
+                <input type="email" name="email" autoComplete="email" required value={form.email} onChange={(e) => updateField('email', e.target.value)} placeholder={t('contactPage.youCompanyCom')} />
               </label>
 
               <label>
-                {isEn ? 'Company (optional)' : 'Entreprise (facultatif)'}
-                <input type="text" name="company" autoComplete="organization" value={form.company} onChange={(e) => updateField('company', e.target.value)} placeholder={isEn ? 'Ex: A2D Agency' : 'Ex : Agence A2D'} />
+                {t('contactPage.companyOptional')}
+                <input type="text" name="company" autoComplete="organization" value={form.company} onChange={(e) => updateField('company', e.target.value)} placeholder={t('contactPage.exA2dAgency')} />
               </label>
 
               <label>
-                {isEn ? 'Company size (optional)' : 'Effectif de l’entreprise (facultatif)'}
+                {t('contactPage.companySizeOptional')}
                 <select className={form.companySize ? '' : 'is-placeholder'} value={form.companySize} onChange={(e) => updateField('companySize', e.target.value)}>
-                  <option value="">{isEn ? 'Select a company size' : 'Sélectionnez un effectif'}</option>
+                  <option value="">{t('contactPage.selectACompanySize')}</option>
                   {COMPANY_SIZES[locale].map((size) => (
                     <option key={size} value={size}>{size}</option>
                   ))}
@@ -135,19 +135,19 @@ export default function ContactPage() {
               </label>
 
               <label className="contact-form__full">
-                {isEn ? 'Main need *' : 'Votre besoin principal *'}
+                {t('contactPage.mainNeed')}
                 <select className={form.need ? '' : 'is-placeholder'} required value={form.need} onChange={(e) => updateField('need', e.target.value)}>
-                  <option value="">{isEn ? 'Select a need' : 'Sélectionnez un besoin'}</option>
-                  <option value={isEn ? 'Request a demo' : 'Demander une démonstration'}>{isEn ? 'Request a demo' : 'Demander une démonstration'}</option>
-                  <option value={isEn ? 'Prepare a team session' : 'Préparer une session d\'équipe'}>{isEn ? 'Prepare a team session' : 'Préparer une session d\'équipe'}</option>
-                  <option value={isEn ? 'Explore an HR use case' : 'Explorer un usage RH'}>{isEn ? 'Explore an HR use case' : 'Explorer un usage RH'}</option>
-                  <option value={isEn ? 'Ask a product question' : 'Poser une question produit'}>{isEn ? 'Ask a product question' : 'Poser une question produit'}</option>
+                  <option value="">{t('contactPage.selectANeed')}</option>
+                  <option value={t('contactPage.requestADemo')}>{t('contactPage.requestADemo')}</option>
+                  <option value={t('contactPage.prepareATeamSession')}>{t('contactPage.prepareATeamSession')}</option>
+                  <option value={t('contactPage.exploreAnHrUseCase')}>{t('contactPage.exploreAnHrUseCase')}</option>
+                  <option value={t('contactPage.askAProductQuestion')}>{t('contactPage.askAProductQuestion')}</option>
                 </select>
               </label>
 
               <label className="contact-form__full">
-                {isEn ? 'Message *' : 'Message *'}
-                <textarea rows={4} required value={form.message} onChange={(e) => updateField('message', e.target.value)} placeholder={isEn ? 'A little context about your team and your goal.' : 'Quelques mots sur votre équipe et votre objectif.'} />
+                {t('contactPage.message')}
+                <textarea rows={4} required value={form.message} onChange={(e) => updateField('message', e.target.value)} placeholder={t('contactPage.aLittleContextAboutYourTeam')} />
               </label>
 
               {status === 'error' && errorMessage ? (
@@ -156,13 +156,13 @@ export default function ContactPage() {
 
               <button type="submit" className="btn-primary wide contact-form__full" disabled={status === 'sending'} aria-busy={status === 'sending'}>
                 {status === 'sending'
-                  ? (isEn ? 'Sending...' : 'Envoi en cours...')
-                  : (isEn ? 'Send my request' : 'Envoyer ma demande')}
+                  ? t('contactPage.sending')
+                  : t('contactPage.sendMyRequest')}
               </button>
 
               <p className="contact-privacy-note contact-form__full">
-                {isEn ? 'Your details are only used to answer your request. ' : 'Vos informations sont utilisées uniquement pour répondre à votre demande. '}
-                <a href={withLocalePath('/confidentialite')}>{isEn ? 'Privacy policy' : 'Politique de confidentialité'}</a>
+                {t('contactPage.yourDetailsAreOnlyUsedTo')}
+                <a href={withLocalePath('/confidentialite')}>{t('contactPage.privacyPolicy')}</a>
               </p>
             </form>
             )}

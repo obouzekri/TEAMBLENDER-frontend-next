@@ -73,7 +73,7 @@ function buildRankMap(entries = []) {
 }
 
 export default function TheQuizChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const isEn = locale === 'en';
   const rulesPreset = useMemo(() => getTheQuizRulesPreset(locale), [locale]);
   const [forcedPhase, setForcedPhase] = useState('');
@@ -232,7 +232,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
   const chatEnabled = Boolean(socket) && quiz.chat_enabled;
   const author = normalizeDisplayName(
     context?.displayName || runtimePayload?.context?.displayName,
-    isFacilitator ? (isEn ? 'Host' : 'Animateur') : 'Participant'
+    isFacilitator ? t('challengeQuiz.host') : 'Participant'
   );
   const {
     chatInput,
@@ -446,12 +446,12 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         <div className={styles.screenHeader}>
           <div>
             <p className={styles.kicker}>The Quiz</p>
-            <h2 className={styles.screenTitle}>{isEn ? 'Real-time session setup' : 'Préparation de la session en temps réel'}</h2>
+            <h2 className={styles.screenTitle}>{t('challengeQuiz.realTimeSessionSetup')}</h2>
           </div>
-          <span className={styles.phaseBadge}>{isEn ? 'Ready' : 'Prêt'}</span>
+          <span className={styles.phaseBadge}>{t('challengeQuiz.ready')}</span>
         </div>
 
-        <p className={styles.helperText}>{isEn ? 'The challenge starts as soon as the host launches the session.' : 'Le challenge démarre dès que l’animateur lance la session.'}</p>
+        <p className={styles.helperText}>{t('challengeQuiz.theChallengeStartsAsSoonAs')}</p>
       </section>
     );
   }
@@ -461,7 +461,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
       <section className={styles.challengeBoard}>
         <ChallengeHeader
           title={challengeName}
-          subtitle={challengeSubtitle || (isEn ? 'Real-time multiplayer general knowledge quiz' : 'Quiz multijoueur realtime de culture générale')}
+          subtitle={challengeSubtitle || t('challengeQuiz.realTimeMultiplayerGeneralKnowledgeQuiz')}
           uppercaseSubtitle={false}
           timer={isStarted ? { remainingSeconds: timerRemainingSeconds } : null}
           headerAction={isStarted ? (
@@ -483,7 +483,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
         <div className="challenge-mobile-timer">
           <ChallengeTimerCard
             isStarted={isStarted}
-            title={isEn ? 'Timer' : 'Minuteur'}
+            title={t('challengeQuiz.timer')}
             remainingSeconds={timerRemainingSeconds}
             durationSeconds={timerDurationSeconds}
             status={timerStatus}
@@ -496,8 +496,8 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
           />
         </div>
         {error ? <div className={styles.errorBanner}>{error}</div> : null}
-        {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>{isEn ? 'Reconnecting, restoring active question...' : 'Reconnexion en cours, restauration de la question active...'}</div> : null}
-        {reconnectState === 'reconnected' ? <div className={styles.reconnectBannerSuccess}>{isEn ? 'Connection restored' : 'Connexion restaurée'}</div> : null}
+        {reconnectState === 'reconnecting' ? <div className={styles.reconnectBanner}>{t('challengeQuiz.reconnectingRestoringActiveQuestion')}</div> : null}
+        {reconnectState === 'reconnected' ? <div className={styles.reconnectBannerSuccess}>{t('challengeQuiz.connectionRestored')}</div> : null}
 
         <section className={styles.mainGrid} data-challenge-layout>
           <div className={styles.primaryColumn}>
@@ -525,13 +525,13 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
             {!isFacilitator && activePhase === 'question_live' ? <ChallengeActionFeedback feedback={answerAction.feedback} /> : null}
             {!isFacilitator && activePhase === 'question_live' && answerLocked ? (
               <div className={styles.autoTransitionHint} aria-live="polite">
-                {isEn ? 'Answer submitted. Next question will appear automatically.' : 'Réponse soumise. La question suivante s\'affichera automatiquement.'}
+                {t('challengeQuiz.answerSubmittedNextQuestionWillAppear')}
               </div>
             ) : null}
 
             {transientQuestionResult && activePhase === 'question_result' ? (
               <div className={styles.autoTransitionHint} aria-live="polite">
-                {isEn ? 'Auto transition to the next question...' : 'Transition automatique vers la prochaine question...'}
+                {t('challengeQuiz.autoTransitionToTheNextQuestion')}
               </div>
             ) : null}
 
@@ -541,7 +541,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
             <div className="challenge-desktop-timer">
               <ChallengeTimerCard
                 isStarted={isStarted}
-                title={isEn ? 'Timer' : 'Minuteur'}
+                title={t('challengeQuiz.timer')}
                 remainingSeconds={timerRemainingSeconds}
                 durationSeconds={timerDurationSeconds}
                 status={timerStatus}
@@ -559,7 +559,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 <div className={`${styles.chatWrap} ${unreadChatPulse ? styles.chatWrapPulse : ''}`}>
                   {unreadChatCount > 0 ? <span className={styles.chatNotifBadge}>{unreadChatCount}</span> : null}
                   <ChallengeChatCard
-                  title={isEn ? 'Chat' : 'Chat'}
+                  title={t('challengeQuiz.chat')}
                   messages={chatMessages}
                   currentAuthor={author}
                   inputValue={chatInput}
@@ -568,7 +568,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                   delivery={chatDelivery}
                   quickMessages={quiz.quick_reactions_enabled ? quickMessages : []}
                   onQuickMessage={sendQuickChat}
-                  emptyText={isEn ? 'No messages yet.' : 'Aucun message pour le moment.'}
+                  emptyText={t('challengeQuiz.noMessagesYet')}
                   />
                 </div>
 
@@ -582,10 +582,10 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
                 <div className={styles.screenHeader}>
                   <div>
                     <p className={styles.kicker}>Chat</p>
-                    <h2 className={styles.screenTitle}>{isEn ? 'Chat disabled for this session' : 'Chat désactivé pour cette session'}</h2>
+                    <h2 className={styles.screenTitle}>{t('challengeQuiz.chatDisabledForThisSession')}</h2>
                   </div>
                 </div>
-                <p className={styles.helperText}>{isEn ? 'The challenge still keeps real-time leaderboard and round progression.' : 'Le challenge conserve néanmoins la structure temps réel pour le leaderboard et la progression de manche.'}</p>
+                <p className={styles.helperText}>{t('challengeQuiz.theChallengeStillKeepsRealTime')}</p>
               </section>
             ) : null}
           </aside>
