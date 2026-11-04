@@ -147,14 +147,16 @@ export default function SelectedChallengesList({
             </div>
 
             <div className={styles.itemActions}>
-              <button
-                className={`${styles.actionBtn} ${styles.configBtn}`}
-                onClick={() => onConfigure(challenge.id)}
-                title={t('sessionBuilder.catalogConfigureAction')}
-                aria-label={t('sessionBuilder.configureActivityAria')}
-              >
-                ⚙
-              </button>
+              {onConfigure ? (
+                <button
+                  className={`${styles.actionBtn} ${styles.configBtn}`}
+                  onClick={() => onConfigure(challenge.id)}
+                  title={t('sessionBuilder.catalogConfigureAction')}
+                  aria-label={t('sessionBuilder.configureActivityAria')}
+                >
+                  ⚙
+                </button>
+              ) : null}
 
               <button
                 className={`${styles.actionBtn} ${styles.removeBtn}`}

@@ -5,15 +5,14 @@ import { chromium } from 'playwright';
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const screenshotDir = process.env.DEMO_SCREENSHOT_DIR || '';
 // Pari sur moi is played in the participant preview, not in the facilitator programme.
-const PROGRAM_ENGINES = ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1'];
+const PROGRAM_ENGINES = ['copuzzle_live_v1', 'labyrinthe_live_v1'];
 
 const COPY = {
   fr: {
     notice: 'Démo simulée',
     createFromDashboard: 'Créer une session',
     automatic: 'Automatique',
-    challengeCountOption1: '1 challenge',
-    challengeCountOption2: '2 challenges',
+    add: 'Ajouter',
     program: 'Programme',
     create: 'Créer la session',
     launch: 'Lancer la session',
@@ -32,8 +31,7 @@ const COPY = {
     notice: 'Simulated demo',
     createFromDashboard: 'Create session',
     automatic: 'Automatic',
-    challengeCountOption1: '1 challenge',
-    challengeCountOption2: '2 challenges',
+    add: 'Add',
     program: 'Programme',
     create: 'Create the session',
     launch: 'Launch the session',
@@ -75,7 +73,7 @@ async function clickPastAnnouncements(page, button) {
   await button.click();
 }
 
-async function runDemo(browser, locale, viewport, { flowMode, challengeLimit }) {
+async function runDemo(browser, locale, viewport, { flowMode }) {
   const copy = COPY[locale];
   const page = await browser.newPage({ viewport });
   const errors = [];
@@ -94,18 +92,24 @@ async function runDemo(browser, locale, viewport, { flowMode, challengeLimit }) 
   if (await refuseCookies.count()) await refuseCookies.first().click();
   const tag = `${locale}-${viewport.width}`;
 
-  // Manager space, then preparation: the default programme runs the four demo challenges.
+  // Manager space, then preparation: the visitor adds the two playable challenges.
   assert.equal(await page.getByText('@example.com').count(), 4);
   assert.equal(await page.locator('.manager-home .stat-card').count(), 3);
   assert.equal(await page.locator('.manager-home .session-card').count(), 2);
   await page.getByRole('button', { name: copy.createFromDashboard, exact: true }).click();
   await page.getByRole('button', { name: copy.create, exact: true }).waitFor();
   await page.locator('[data-catalog]').waitFor();
-  assert.equal(await page.locator('[data-activity-id]').count(), 2, 'The programme starts with two challenges');
-  await page.getByRole('button', { name: copy[`challengeCountOption${challengeLimit}`], exact: true }).click();
+  const create = page.getByRole('button', { name: copy.create, exact: true });
+  assert.equal(await page.locator('[data-activity-id]').count(), 0, 'The programme starts empty');
+  assert.equal(await create.isDisabled(), true, 'The session needs both challenges');
+  const addButtons = page.locator('[data-catalog]').getByRole('button', { name: copy.add, exact: true });
+  assert.equal(await addButtons.count(), PROGRAM_ENGINES.length, 'Only the playable challenges are offered');
+  await addButtons.first().click();
+  await addButtons.first().click();
+  assert.equal(await page.locator('[data-activity-id]').count(), PROGRAM_ENGINES.length);
   if (flowMode === 'auto') await page.getByRole('button', { name: copy.automatic, exact: true }).click();
   await snap(page, `${tag}-1-prepare`);
-  await page.getByRole('button', { name: copy.create, exact: true }).click();
+  await create.click();
 
   // Invite: the four participants connect before the launch.
   const launch = page.getByRole('button', { name: copy.launch });
@@ -126,7 +130,7 @@ async function runDemo(browser, locale, viewport, { flowMode, challengeLimit }) 
     await stage.waitFor({ timeout: 20000 });
     const engine = await stage.getAttribute('data-demo-challenge');
     played.push(engine);
-    assert.equal(await page.getByRole('list', { name: copy.program }).locator('li').count(), challengeLimit);
+    assert.equal(await page.getByRole('list', { name: copy.program }).locator('li').count(), PROGRAM_ENGINES.length);
     if (flowMode !== 'auto') {
       await stage.getByRole('button', { name: /Démarrer|Start/ }).first().click({ timeout: 15000 });
     }
@@ -156,7 +160,7 @@ async function runDemo(browser, locale, viewport, { flowMode, challengeLimit }) 
       await clickPastAnnouncements(page, next);
     }
   }
-  assert.equal(played.length, challengeLimit, 'The selected number of programme challenges was played');
+  assert.deepEqual(played, PROGRAM_ENGINES, 'Both programme challenges were played in order');
   assert.ok(played.every((engine) => PROGRAM_ENGINES.includes(engine)), 'Only supported programme challenges were played');
 
   // Participant preview: the visitor plays Pari sur moi in the real participant interface.
@@ -202,8 +206,8 @@ async function runDemo(browser, locale, viewport, { flowMode, challengeLimit }) 
 
 const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || undefined });
 try {
-  await runDemo(browser, 'fr', { width: 1440, height: 1000 }, { flowMode: 'manual', challengeLimit: 1 });
-  await runDemo(browser, 'en', { width: 390, height: 844 }, { flowMode: 'auto', challengeLimit: 2 });
+  await runDemo(browser, 'fr', { width: 1440, height: 1000 }, { flowMode: 'manual' });
+  await runDemo(browser, 'en', { width: 390, height: 844 }, { flowMode: 'auto' });
 } finally {
   await browser.close();
 }

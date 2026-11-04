@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  DEMO_DEBRIEF_PROMPTS,
   DEMO_FLOW_MODES,
-  DEMO_OBJECTIVES,
   DEMO_PAST_SESSIONS,
   DEMO_STEPS,
   DEMO_TEAM_SIZE,
@@ -35,14 +35,14 @@ for (let index = 0; index < 20; index += 1) {
 
 assert.equal(DEMO_STEPS[0], 'dashboard', 'The demo starts in the manager space');
 assert.deepEqual(DEMO_FLOW_MODES, ['manual', 'auto']);
-assert.ok(DEMO_OBJECTIVES.every((objective) => SESSION_OBJECTIVES.includes(objective)));
+assert.ok(Object.keys(DEMO_DEBRIEF_PROMPTS).every((objective) => SESSION_OBJECTIVES.includes(objective)));
 assert.ok(DEMO_PAST_SESSIONS.every((session) => session.name.fr && session.name.en));
 assert.deepEqual(
   [...DEMO_ENGINE_KEYS].sort(),
   ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1', 'vrai_ou_mensonge_v1'],
 );
 assert.ok(!DEMO_PROGRAM_ENGINE_KEYS.includes(VOM_ENGINE_KEY), 'Pari sur moi is only played in the participant preview');
-assert.equal(DEMO_PROGRAM_ENGINE_KEYS.length, 3);
+assert.deepEqual(DEMO_PROGRAM_ENGINE_KEYS, ['copuzzle_live_v1', 'labyrinthe_live_v1'], 'The visitor adds CoPuzzle then Labyrinthe');
 
 // A fixed team of four, the minimum needed for every demo challenge.
 assert.equal(DEMO_TEAM_SIZE, 4);
@@ -55,7 +55,7 @@ const schedule = buildJoinSchedule(DEMO_TEAM_SIZE, createRandom(4));
 assert.equal(schedule.length, DEMO_TEAM_SIZE);
 assert.ok(schedule.every((entry, index) => index === 0 || entry.delayMs > schedule[index - 1].delayMs));
 assert.ok(schedule.at(-1).delayMs <= 4000, 'Joining must stay short enough for a demo');
-for (const objective of DEMO_OBJECTIVES) {
+for (const objective of Object.keys(DEMO_DEBRIEF_PROMPTS)) {
   assert.equal(getDebriefPrompts(objective, 'fr').length, 3);
   assert.equal(getDebriefPrompts(objective, 'en').length, 3);
 }
