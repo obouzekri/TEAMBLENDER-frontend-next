@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { formatPlanAmount, getAnnualSavings, getPlanAmountDh } from '../lib/pricing-display.mjs';
+import { currencyFromCountry, formatPlanAmount, getAnnualSavings, getPlanAmountDh } from '../lib/pricing-display.mjs';
 import { normalizePricingPlanName } from '../lib/pricing-labels.js';
 import { getPricingPlansFallback } from '../lib/pricingFallbackPlans.js';
 
@@ -39,5 +39,13 @@ assert.equal(formatPlanAmount(3744, 'USD', 'fr'), '374 $');
 assert.equal(formatPlanAmount(696, 'USD', 'en'), '$70');
 assert.equal(formatPlanAmount(390, 'EUR', 'en'), '€36');
 assert.equal(formatPlanAmount(6681.6, 'EUR', 'fr'), '615 €');
+
+// Display currency from the IP country: DH for Morocco, $ for the US, € otherwise.
+assert.equal(currencyFromCountry('MA'), 'MAD');
+assert.equal(currencyFromCountry('us'), 'USD');
+assert.equal(currencyFromCountry('FR'), 'EUR');
+assert.equal(currencyFromCountry('GB'), 'EUR');
+assert.equal(currencyFromCountry(null), 'EUR');
+assert.equal(currencyFromCountry('XX'), 'EUR');
 
 console.log('PASS pricing display');

@@ -33,7 +33,8 @@ try {
         page.on('pageerror', (error) => errors.push(error.message));
         await page.goto(`${baseUrl}/${locale}/pricing`);
         await page.locator('.pricing-controls').waitFor();
-        await page.waitForFunction(() => document.querySelector('.pricing-price')?.textContent.includes('390 DH'));
+        // Without an IP country the amounts default to euros.
+        await page.waitForFunction(() => /36\s?€|€36/.test(document.querySelector('.pricing-price')?.textContent || ''));
         const pricingBackground = await page.locator('.pricing-page').evaluate((element) => {
           const style = getComputedStyle(element);
           return { color: style.backgroundColor, image: style.backgroundImage };
@@ -88,6 +89,9 @@ try {
         }
         const monthly = page.getByRole('button', { name: locale === 'en' ? 'Monthly' : 'Mensuel', exact: true });
         const annual = page.getByRole('button', { name: locale === 'en' ? 'Yearly -20%' : 'Annuel -20%', exact: true });
+        const currency = page.getByRole('combobox', { name: locale === 'en' ? 'Display currency' : 'Devise affichée', exact: true });
+        assert.equal(await currency.inputValue(), 'EUR');
+        await currency.selectOption('MAD');
         await annual.click();
         assert.equal(await annual.getAttribute('aria-pressed'), 'true');
         assert.equal(await monthly.getAttribute('aria-pressed'), 'false');
@@ -96,7 +100,6 @@ try {
         assert.match(await page.locator('.pricing-original').textContent(), /4[\s,]680 DH/);
         assert.match(await page.locator('.pricing-discount-badge').textContent(), /20\s?%/);
         assert.equal((await page.locator('.pricing-card .eyebrow').first().textContent()).trim(), 'Pro');
-        const currency = page.getByRole('combobox', { name: locale === 'en' ? 'Display currency' : 'Devise affichée', exact: true });
         await currency.selectOption('EUR');
         assert.match(await page.locator('.pricing-price').textContent(), locale === 'en' ? /€344/ : /344 €/);
         await monthly.click();
@@ -105,6 +108,16 @@ try {
         assert.match(await page.locator('.pricing-price').textContent(), locale === 'en' ? /\$39\s*\/month/ : /39 \$\s*\/mois/);
         await currency.selectOption('MAD');
         assert.match(await page.locator('.pricing-price').textContent(), /390 DH/);
+        // Visitors from Morocco see dirhams first, visitors from the US see dollars.
+        for (const [country, expected] of [['MA', 'MAD'], ['US', 'USD'], ['FR', 'EUR']]) {
+          const countryPage = await context.newPage();
+          await countryPage.setExtraHTTPHeaders({ 'x-vercel-ip-country': country });
+          await countryPage.goto(`${baseUrl}/${locale}/pricing`);
+          const countryCurrency = countryPage.locator('#pricing-currency');
+          await countryCurrency.waitFor();
+          assert.equal(await countryCurrency.inputValue(), expected, `${country}: initial currency`);
+          await countryPage.close();
+        }
         assert.deepEqual(errors, []);
         console.log(`PASS pricing controls: ${locale}/${theme}`);
       } finally {

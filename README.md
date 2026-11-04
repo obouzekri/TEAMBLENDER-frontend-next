@@ -68,8 +68,8 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 ### Page Tarifs
 
 - L'introduction conserve le titre et le conseil sur les groupes, sans tag Tarification ni phrase promotionnelle intermediaire.
-- Frequence de facturation, Mensuel, Annuel et Devise affichee sont alignes sur une ligne sur grand ecran. Sur mobile, le choix de periode occupe une ligne complete et le selecteur de devise reste facile a atteindre. Les controles affichent un focus clavier visible; le mode sombre ne presente aucun cadre autour de la barre ni du groupe Mensuel/Annuel.
-- Validation : `node scripts/test-pricing-controls-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees) : FR/EN, clair/sombre/automatique, 320 a 1440 px, alignement, absence de cadres sombres, changement de frequence et de devise.
+- Frequence de facturation, Mensuel, Annuel et Devise affichee sont alignes sur une ligne sur grand ecran. Sur mobile, le choix de periode occupe une ligne complete et le selecteur de devise reste facile a atteindre. La devise affichee par defaut depend du pays de l'IP (en-tete `x-vercel-ip-country` ou `cf-ipcountry`) : DH pour le Maroc, $ pour les Etats-Unis, € partout ailleurs et quand le pays est inconnu. Le visiteur peut toujours changer de devise. Les controles affichent un focus clavier visible; le mode sombre ne presente aucun cadre autour de la barre ni du groupe Mensuel/Annuel.
+- Validation : `node scripts/test-pricing-controls-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees) : FR/EN, clair/sombre/automatique, 320 a 1440 px, alignement, absence de cadres sombres, changement de frequence et de devise, devise par defaut selon le pays (aucun, MA, US, FR).
 
 ### Creation rapide d'une session
 

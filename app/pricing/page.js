@@ -1,4 +1,7 @@
+import { headers } from 'next/headers';
 import PricingPageClient from './PricingPageClient';
+import { getRequestCountry } from '@/lib/i18n/detectLocale';
+import { currencyFromCountry } from '@/lib/pricing-display.mjs';
 import { getPricingPlansFallback } from '@/lib/pricingFallbackPlans';
 
 export const revalidate = 3600;
@@ -32,6 +35,7 @@ async function fetchPricingPlans() {
 }
 
 export default async function PricingPage() {
-  const initialPlans = await fetchPricingPlans();
-  return <PricingPageClient initialPlans={initialPlans} />;
+  const [initialPlans, requestHeaders] = await Promise.all([fetchPricingPlans(), headers()]);
+  const initialCurrency = currencyFromCountry(getRequestCountry(requestHeaders));
+  return <PricingPageClient initialPlans={initialPlans} initialCurrency={initialCurrency} />;
 }
