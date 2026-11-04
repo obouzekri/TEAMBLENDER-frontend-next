@@ -2196,11 +2196,17 @@ export default function AdminClient() {
     });
   }, [participants, participantQuery]);
 
+  function getSessionOwnerLabel(s) {
+    const fullName = [s.owner?.first_name, s.owner?.last_name].filter(Boolean).join(' ');
+    if (fullName && s.owner?.email) return `${fullName} (${s.owner.email})`;
+    return fullName || s.owner?.email || `#${s.owner_id || '?'}`;
+  }
+
   const filteredSessions = useMemo(() => {
     const query = sessionQuery.trim().toLowerCase();
     if (!query) return sessions;
     return sessions.filter((s) => {
-      const haystack = [s.name, s.status, s.format, s.modality]
+      const haystack = [s.name, s.status, s.format, s.modality, s.owner?.first_name, s.owner?.last_name, s.owner?.email]
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
@@ -3270,6 +3276,7 @@ export default function AdminClient() {
                               {getSessionStatusLabel(s.status, isEn)}
                             </span>
                             {s.modality ? <span>{isEn ? 'Modality' : 'Modalité'}: {getSessionModalityLabel(s.modality, isEn) || s.modality}</span> : null}
+                            <span>{isEn ? 'Owner' : 'Créateur'}: {getSessionOwnerLabel(s)}</span>
                           </p>
                         </div>
                         <div className="session-item-actions" style={{ flexShrink: 0 }}>
