@@ -333,16 +333,12 @@
   gap: var(--space-6);
 }
 
-/* The settings stay in view while the programme card is scrolled. */
 .prepareForm {
-  position: sticky;
-  top: 88px;
   display: grid;
   align-content: start;
   gap: var(--space-5);
 }
 
-/* The full catalogue scrolls in place instead of stretching the page. */
 .optionGroup {
   margin: 0;
   padding: 0;
@@ -401,6 +397,11 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: var(--bg);
+}
+
+.programSection {
+  display: grid;
+  gap: var(--space-3);
 }
 
 .programHead {
@@ -865,10 +866,6 @@
 }
 
 @media (max-width: 900px) {
-  .prepareForm {
-    position: static;
-  }
-
   .prepareGrid,
   .inviteGrid,
   .resultsColumns {
@@ -959,16 +956,6 @@
   .timelineCard,
   .kpi {
     padding: var(--space-4);
-  }
-
-  /* The selected challenges sit directly in the programme card. */
-  .programCard > aside {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    box-shadow: none;
-    backdrop-filter: none;
   }
 
   /* The create button stays reachable under the catalogue. */
