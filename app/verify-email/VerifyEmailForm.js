@@ -46,7 +46,7 @@ export default function VerifyEmailForm({ token, userType = 'user' }) {
     setResendStatus('sending');
     setResendMessage(t('auth.sending'));
     try {
-      const { res, data } = await resendVerification({ token, userType });
+      const { res, data } = await resendVerification({ token, userType, locale });
       if (res.ok && data?.success) {
         setResendStatus('done');
         setResendMessage(data?.message || t('auth.aNewVerificationLinkHasBeen'));

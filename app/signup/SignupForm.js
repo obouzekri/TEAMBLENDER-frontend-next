@@ -141,6 +141,7 @@ export default function SignupForm() {
         password,
         first_name: f,
         last_name: l,
+        locale,
       });
 
       if (res.status === 201) {

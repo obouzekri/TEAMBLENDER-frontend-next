@@ -345,6 +345,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       const { res, data } = await resendVerification({
         email: normalizedEmail,
         userType: lastAuthScope === 'participant' ? 'participant' : 'user',
+        locale,
       });
 
       if (res.ok && data?.success) {

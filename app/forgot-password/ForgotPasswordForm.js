@@ -26,7 +26,7 @@ export default function ForgotPasswordForm() {
 
     setLoading(true);
     try {
-      const { res, data } = await forgotPassword({ email: normalizedEmail, userType });
+      const { res, data } = await forgotPassword({ email: normalizedEmail, userType, locale });
       if (res.ok) {
         setDone(true);
       } else {
