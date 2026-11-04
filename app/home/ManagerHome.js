@@ -362,6 +362,7 @@ export default function ManagerHome({
   demoSessions = [],
   demoMembers = [],
   onDemoCreateSession,
+  renderDemoCreateAction = (action) => action,
 } = {}) {
   const { locale, withLocalePath } = useI18n();
   const isEn = locale === 'en';
@@ -1046,7 +1047,7 @@ export default function ManagerHome({
               <h2 className="home-section-title">{isEn ? 'Sessions' : 'Sessions'}</h2>
               <p>{isEn ? 'Track preparing, active, and completed sessions from one panel.' : 'Suivez les sessions en préparation, actives et terminées depuis un seul panneau.'}</p>
             </div>
-            {demoMode ? (
+            {demoMode ? renderDemoCreateAction(
               <button
                 type="button"
                 className="btn-primary"
