@@ -33,9 +33,11 @@ import {
 import { DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '@/lib/demo/challenges/index.mjs';
 import ManagerHome from '../home/ManagerHome';
 import DemoChallengeStage from './DemoChallengeStage';
+import DemoHint from './DemoHint';
 import styles from './Demo.module.css';
 
 const INVITE_HOST = getPublicSiteOrigin().replace(/^https?:\/\//, '');
+const HINTS_HIDDEN_KEY = 'demo-hints-hidden';
 
 function track(action, context = {}) {
   trackProductEvent('demo', action, context);
@@ -87,6 +89,7 @@ export default function DemoClient() {
   const [challengeActions, setChallengeActions] = useState({});
   const [visitorResult, setVisitorResult] = useState(null);
   const [playDone, setPlayDone] = useState(false);
+  const [hintsHidden, setHintsHidden] = useState(false);
   const [catalogFilters, setCatalogFilters] = useState({ categories: [], objectives: [], duration: '' });
   const headingRef = useRef(null);
   const hasMountedRef = useRef(false);
@@ -121,6 +124,11 @@ export default function DemoClient() {
 
   useEffect(() => {
     track('started', { surface: 'demo_page' });
+    try {
+      if (window.sessionStorage.getItem(HINTS_HIDDEN_KEY) === '1') setHintsHidden(true);
+    } catch {
+      // Storage can be blocked (private mode): hints then stay on for this visit.
+    }
   }, []);
 
   useEffect(() => {
@@ -259,6 +267,38 @@ export default function DemoClient() {
     setChallengeActions((previous) => ({ ...previous, [activeChallenge.id]: Number(summary?.action_count) || 0 }));
     setActiveDone(true);
   }, [activeChallenge]);
+
+  // One coach mark at a time, on the action that moves the demo forward.
+  let activeHint = null;
+  if (!hintsHidden) {
+    if (step === 'dashboard') activeHint = 'dashboard';
+    else if (step === 'prepare' && program.length) activeHint = 'prepare';
+    else if (step === 'facilitate' && flowMode === 'manual' && activeDone) activeHint = 'facilitate';
+  }
+
+  useEffect(() => {
+    if (activeHint) track('hint_shown', { surface: activeHint });
+  }, [activeHint, activeIndex]);
+
+  function hideHints() {
+    track('hints_dismissed', { surface: activeHint || step });
+    setHintsHidden(true);
+    try {
+      window.sessionStorage.setItem(HINTS_HIDDEN_KEY, '1');
+    } catch {
+      // Hints stay hidden until the page reloads.
+    }
+  }
+
+  function renderHint(key, action, options = {}) {
+    let text = t(`demo.hints.${key}`);
+    if (key === 'facilitate' && activeIndex + 1 >= program.length) text = t('demo.hints.facilitateLast');
+    return (
+      <DemoHint show={activeHint === key} text={text} dismissLabel={t('demo.hints.dismiss')} onDismiss={hideHints} {...options}>
+        {action}
+      </DemoHint>
+    );
+  }
 
   function goToStep(nextStep) {
     setStepIndex(DEMO_STEPS.indexOf(nextStep));
@@ -408,6 +448,7 @@ export default function DemoClient() {
             demoSessions={demoSessions}
             demoMembers={demoMembers}
             onDemoCreateSession={() => goToStep('prepare')}
+            renderDemoCreateAction={(action) => renderHint('dashboard', action)}
           />
         ) : null}
 
@@ -487,7 +528,9 @@ export default function DemoClient() {
               <p className={styles.hint}>{t('demo.prepare.playNote', { challenge: pariName })}</p>
               <div className={styles.actions}>
                 <Button variant="secondary" onClick={generateProgram}>{t('demo.prepare.regenerate')}</Button>
-                <Button disabled={!program.length} onClick={() => goToStep('invite')}>{t('demo.prepare.continue')}</Button>
+                {renderHint('prepare', (
+                  <Button disabled={!program.length} onClick={() => goToStep('invite')}>{t('demo.prepare.continue')}</Button>
+                ), { placement: 'top' })}
               </div>
             </div>
           </div>
@@ -575,7 +618,9 @@ export default function DemoClient() {
               </div>
               <div className={styles.liveBarActions}>
                 <span className={styles.itemMeta}>{t('demo.facilitate.modeLabel', { mode: flowLabel(flowMode) })}</span>
-                <Button variant={activeDone ? 'primary' : 'ghost'} onClick={advanceChallenge}>{facilitateAction}</Button>
+                {renderHint('facilitate', (
+                  <Button variant={activeDone ? 'primary' : 'ghost'} onClick={advanceChallenge}>{facilitateAction}</Button>
+                ))}
               </div>
             </div>
             {autoCountdown !== null ? (
