@@ -16,6 +16,7 @@ import ChallengePresentation from '../ChallengePresentation';
 import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import styles from './VraiOuMensonge.module.css';
 import useI18n from '@/lib/i18n/useI18n';
+import { getLocaleMeta } from '@/lib/i18n/routing';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 
 function formatSeconds(ms) {
@@ -170,7 +171,7 @@ const STATEMENT_TRANSLATIONS = Object.freeze({
 });
 
 function formatChoiceDisplay(value, locale) {
-  const language = locale === 'en' ? 'en-US' : 'fr-FR';
+  const language = getLocaleMeta(locale).intl;
   return sanitizeChoiceText(value)
     .toLocaleLowerCase(language)
     .replace(/\p{L}[\p{L}\p{M}]*/gu, (word) => word.charAt(0).toLocaleUpperCase(language) + word.slice(1));

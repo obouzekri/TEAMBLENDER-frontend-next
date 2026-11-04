@@ -88,12 +88,7 @@ function formatPaywallMessage(payload, fallbackMessage) {
 
 function formatSessionDate(value, locale = 'en') {
   if (!value) return '';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return '';
-  return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(parsed);
+  return formatDateTime(value, locale);
 }
 
 function getSessionModalityLabel(value, isEn) {

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import AppNav from '@/components/AppNav';
 import { clearSessionAuth, getStoredCurrentUser } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
+import { formatDate as formatLocaleDate, NUMERIC_DATE_TIME } from '@/lib/i18n/format';
 import {
   createLinkedInDraft,
   deleteLinkedInDraft,
@@ -15,10 +16,8 @@ import './linkedin.css';
 const MAX_CONTENT_LENGTH = 3000;
 const EMPTY_DRAFT = { title: '', content: '' };
 
-function formatDate(value, isEn) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleString(isEn ? 'en-US' : 'fr-FR');
+function formatDate(value, locale) {
+  return formatLocaleDate(value, locale, NUMERIC_DATE_TIME) || '';
 }
 
 export default function LinkedInAdminClient() {
@@ -204,7 +203,7 @@ export default function LinkedInAdminClient() {
                 <li key={item.id} className="linkedin-draft-item">
                   <div className="linkedin-draft-copy">
                     <strong>{item.title || (isEn ? 'Untitled post' : 'Publication sans titre')}</strong>
-                    <span>{formatDate(item.updated_at, isEn)}</span>
+                    <span>{formatDate(item.updated_at, locale)}</span>
                     <p>{item.content}</p>
                   </div>
                   <div className="linkedin-draft-actions">

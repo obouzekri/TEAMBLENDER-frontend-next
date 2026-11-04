@@ -11,6 +11,7 @@ import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
 import { clearStoredAuth, getAuthHeaders, getStoredCurrentUser, joinParticipantAuthenticated } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
+import { formatDate } from '@/lib/i18n/format';
 
 export default function ParticipantPage() {
   const searchParams = useSearchParams();
@@ -557,7 +558,7 @@ function ParticipantHome({ requestedSessionId }) {
                           )}
                           {session.session_date && (
                             <span className="session-date">
-                              {new Date(session.session_date).toLocaleDateString(isEn ? 'en-US' : 'fr-FR', { dateStyle: 'medium' })}
+                              {formatDate(session.session_date, locale)}
                             </span>
                           )}
                         </p>

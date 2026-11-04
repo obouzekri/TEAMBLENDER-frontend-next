@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import AppNav from '@/components/AppNav';
 import { clearSessionAuth, getStoredCurrentUser } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
+import { formatDate as formatLocaleDate, NUMERIC_DATE_TIME } from '@/lib/i18n/format';
 import {
   adminChangeUserPlan,
   adminCreateManualPayment,
@@ -29,11 +30,9 @@ function money(amountCents, priceMadCents) {
   return `${amount} DH`;
 }
 
-function formatDate(value, isEn) {
+function formatDate(value, locale) {
   if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
-  return date.toLocaleString(isEn ? 'en-US' : 'fr-FR');
+  return formatLocaleDate(value, locale, NUMERIC_DATE_TIME) || '-';
 }
 
 function normalizeStatus(value, fallback = 'unknown') {
@@ -311,7 +310,7 @@ export default function BillingAdminClient() {
               <div className="selected-user-summary">
                 <p><strong>{isEn ? 'Account:' : 'Compte :'}</strong> {userLabel(selectedUser, isEn)}</p>
                 <p><strong>{isEn ? 'Active plan:' : 'Formule active :'}</strong> {selectedSubscription?.pricing_plan?.name || selectedUser?.pricing_plan?.name || (isEn ? 'No plan' : 'Sans formule')}</p>
-                <p><strong>{isEn ? 'Renewal:' : 'Renouvellement :'}</strong> {formatDate(selectedSubscription?.current_period_end, isEn)}</p>
+                <p><strong>{isEn ? 'Renewal:' : 'Renouvellement :'}</strong> {formatDate(selectedSubscription?.current_period_end, locale)}</p>
               </div>
               <div className="admin-billing-actions">
                 <select value={selectedPlanId} onChange={(e) => setSelectedPlanId(e.target.value)} aria-label={isEn ? 'Subscription plan' : 'Formule d’abonnement'}>
@@ -331,7 +330,7 @@ export default function BillingAdminClient() {
                       <span className="invoice-number">{invoice.invoice_number}</span>
                       <span>{money(invoice.amount_cents, plans.find((plan) => String(plan.id) === String(invoice.pricing_plan_id))?.price_mad_cents)}</span>
                       <span className={`status-chip status-${normalizeStatus(invoice.status, 'pending')}`}>{buildStatusLabel(invoice.status, isEn)}</span>
-                      <span className="invoice-date">{formatDate(invoice.createdAt, isEn)}</span>
+                      <span className="invoice-date">{formatDate(invoice.createdAt, locale)}</span>
                     </div>
                     <div className="invoice-actions">
                       <button type="button" onClick={() => handleGeneratePdf(invoice.id)} disabled={loading}>PDF</button>
@@ -354,7 +353,7 @@ export default function BillingAdminClient() {
           {timeline.map((event) => (
             <div key={event.id} className="timeline-row">
               <div className="timeline-row-top">
-                <span>{formatDate(event.createdAt, isEn)}</span>
+                <span>{formatDate(event.createdAt, locale)}</span>
                 <span className={`status-chip status-${normalizeStatus(event.status, 'pending')}`}>{buildStatusLabel(event.status, isEn)}</span>
               </div>
               <div className="timeline-row-main">

@@ -6,6 +6,7 @@ import DisplayPreferencesController from '@/components/DisplayPreferencesControl
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
 import { getPublicSiteOrigin } from '@/lib/siteMetadata';
 import { buildPageMetadata } from '@/lib/seo';
+import { getLocaleMeta } from '@/lib/i18n/routing';
 import { getSeoRequest } from '@/lib/seoRequest';
 import PublicStructuredData from '@/components/PublicStructuredData';
 
@@ -30,7 +31,7 @@ export default async function RootLayout({ children }) {
   const { pathname, locale } = await getSeoRequest();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} dir={getLocaleMeta(locale).dir} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

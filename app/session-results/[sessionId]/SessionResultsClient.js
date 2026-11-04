@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { clearSessionAuth, getAuthHeaders, getStoredCurrentUser } from '@/lib/auth';
 import { getApiUrl } from '@/lib/config';
 import useI18n from '@/lib/i18n/useI18n';
+import { formatDate } from '@/lib/i18n/format';
 import { fetchSessionResults } from '@/lib/session-results';
 import { trackProductSessionEvent } from '@/lib/analytics';
 
@@ -192,7 +193,7 @@ export default function SessionResultsClient() {
             )}
             {session?.session_date && (
               <span className="eyebrow">
-                {isEn ? 'Date:' : 'Date :'} {new Date(session.session_date).toLocaleDateString(isEn ? 'en-US' : 'fr-FR')}
+                {isEn ? 'Date:' : 'Date :'} {formatDate(session.session_date, locale, {})}
               </span>
             )}
           </div>

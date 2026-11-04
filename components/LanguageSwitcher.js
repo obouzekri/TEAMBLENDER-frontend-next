@@ -6,10 +6,8 @@ import { Check, ChevronDown, Globe2 } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import useI18n from '@/lib/i18n/useI18n';
 import { useI18nContext } from '@/lib/i18n/I18nProvider';
-import { SUPPORTED_LOCALES, withLocalePath, stripLocaleFromPath } from '@/lib/i18n/routing';
+import { LOCALE_META, SUPPORTED_LOCALES, withLocalePath, stripLocaleFromPath } from '@/lib/i18n/routing';
 import styles from './LanguageSwitcher.module.css';
-
-const languageNames = { fr: 'Fran\u00e7ais', en: 'English' };
 
 export default function LanguageSwitcher() {
   const router = useRouter();
@@ -109,7 +107,7 @@ export default function LanguageSwitcher() {
         ref={triggerRef}
         type="button"
         className={styles.trigger}
-        aria-label={`${t('language.switcherAria')}: ${languageNames[locale]}`}
+        aria-label={`${t('language.switcherAria')}: ${LOCALE_META[locale].name}`}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-controls={isOpen ? switcherId : undefined}
@@ -144,7 +142,7 @@ export default function LanguageSwitcher() {
               onClick={() => handleLocaleChange(targetLocale)}
             >
               <span className={styles.code}>{targetLocale.toUpperCase()}</span>
-              <span lang={targetLocale}>{languageNames[targetLocale]}</span>
+              <span lang={targetLocale} dir={LOCALE_META[targetLocale].dir}>{LOCALE_META[targetLocale].name}</span>
               {locale === targetLocale && <Check className={styles.check} size={16} aria-hidden="true" />}
             </button>
           ))}

@@ -19,6 +19,7 @@ import ChallengeHeader from '../ChallengeHeader';
 import ChallengePresentation from '../ChallengePresentation';
 import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import useI18n from '@/lib/i18n/useI18n';
+import { formatDate as formatLocaleDate, NUMERIC_DATE_TIME, NUMERIC_TIME } from '@/lib/i18n/format';
 import styles from './EscapeRoom.module.css';
 import { ArithmeticPuzzle, LetterSequencePuzzle, OneStrokePuzzle } from './EscapeRoomPuzzles';
 
@@ -797,8 +798,7 @@ export default function EscapeRoomChallenge({
     challengeStatus === 'escaped' ? totalRiddles : Number(state?.current_enigme_index || 0)));
   const formatDate = (value) => {
     if (!value) return '—';
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString(isEn ? 'en-GB' : 'fr-FR');
+    return formatLocaleDate(value, locale, NUMERIC_DATE_TIME) || '—';
   };
   const shouldUseFastPolling = Boolean(
     !isFacilitator &&
@@ -937,7 +937,7 @@ export default function EscapeRoomChallenge({
         <div className={styles.card} role="alert">
           <strong>{isEn ? 'Synchronization interrupted: displayed state may be outdated.' : 'Synchronisation interrompue : l’état affiché peut être obsolète.'}</strong>
           <p>{syncError}</p>
-          {lastSyncedAt ? <p>{isEn ? 'Last update:' : 'Dernière mise à jour :'} {new Date(lastSyncedAt).toLocaleTimeString(isEn ? 'en-US' : 'fr-FR')}</p> : null}
+          {lastSyncedAt ? <p>{isEn ? 'Last update:' : 'Dernière mise à jour :'} {formatLocaleDate(lastSyncedAt, locale, NUMERIC_TIME)}</p> : null}
           <button type="button" className={styles.secondaryBtn} onClick={() => loadState().catch(() => {})}>{isEn ? 'Retry' : 'Réessayer'}</button>
         </div>
       ) : null}
