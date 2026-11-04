@@ -3,7 +3,7 @@ import TopNav from './TopNav';
 import Footer from './Footer';
 import { getLanguageAlternates } from '@/lib/seo';
 import { withLocalePath } from '@/lib/i18n/routing';
-import { TEAM_BUILDING_GUIDES } from '@/lib/teamBuildingGuides';
+import { getTeamBuildingGuidesForLocale } from '@/lib/teamBuildingGuides';
 import styles from '@/app/team-building/page.module.css';
 import { translate } from '@/lib/i18n';
 
@@ -23,7 +23,7 @@ export default function TeamBuildingGuide({ content, locale, pathname }) {
   };
   const relatedGuides = [
     { path: '/team-building', title: content.guide },
-    ...TEAM_BUILDING_GUIDES.map((guide) => ({
+    ...getTeamBuildingGuidesForLocale(locale).map((guide) => ({
       path: `/team-building/${guide.slug}`, title: guide[locale].title,
     })),
   ].filter(({ path }) => path !== pathname);
