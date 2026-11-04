@@ -179,11 +179,17 @@ export default function DemoClient() {
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [seed, step]);
 
+  // Pari sur moi starts with its own action instead of the timer, so automatic flow schedules it.
   const activeScenario = useMemo(
     () => (activeChallenge
-      ? createDemoScenario(activeChallenge.engine_key, { seed: seed + activeIndex, locale, players: participants })
+      ? createDemoScenario(activeChallenge.engine_key, {
+        seed: seed + activeIndex,
+        locale,
+        players: participants,
+        autoStartMs: flowMode === 'auto' ? 1500 : null,
+      })
       : null),
-    [activeChallenge, activeIndex, locale, participants, seed]
+    [activeChallenge, activeIndex, flowMode, locale, participants, seed]
   );
 
   const handleChallengeComplete = useCallback((summary) => {
