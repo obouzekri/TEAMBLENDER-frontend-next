@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { BarChart3, Pencil, Play, Settings, Trash2 } from 'lucide-react';
+import { ArrowRight, BarChart3, Hash, Link2, Pencil, Play, Send, Settings, Sparkles, Trash2, UserPlus, X } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import Modal from '@/components/ui/Modal';
@@ -206,25 +206,23 @@ function getStartupGuideSteps(locale) {
   return Object.freeze([
     {
       step: '1',
-      title: translate(locale, 'managerHome.addYourTeam'),
-      text: translate(locale, 'managerHome.addThePeopleWhoWillTake'),
-      href: '/home#home-participants-block',
-      cta: translate(locale, 'managerHome.addParticipants'),
+      icon: Sparkles,
+      title: translate(locale, 'managerHome.guideStep1Title'),
+      text: translate(locale, 'managerHome.guideStep1Text'),
     },
     {
       step: '2',
-      title: translate(locale, 'managerHome.createASession'),
-      text: translate(locale, 'managerHome.chooseAChallengeAddParticipantsAnd'),
-      href: '/session-builder',
-      cta: translate(locale, 'managerHome.createASession2'),
+      icon: Send,
+      title: translate(locale, 'managerHome.guideStep2Title'),
+      text: translate(locale, 'managerHome.guideStep2Text'),
+      chips: [translate(locale, 'managerHome.guideInviteLink'), translate(locale, 'managerHome.guideSessionCode')],
     },
     {
       step: '3',
-      title: translate(locale, 'managerHome.launchAndDebrief'),
-      text: translate(locale, 'managerHome.openYourSessionToFacilitateIt'),
-      href: '/home#home-sessions-block',
-      cta: translate(locale, 'managerHome.viewSessions'),
-    }
+      icon: Play,
+      title: translate(locale, 'managerHome.guideStep3Title'),
+      text: translate(locale, 'managerHome.guideStep3Text'),
+    },
   ]);
 }
 
@@ -658,6 +656,11 @@ export default function ManagerHome({
 
   function closeStartupGuide() {
     setIsStartupGuideOpen(false);
+  }
+
+  function addParticipantsFromGuide() {
+    closeStartupGuide();
+    openNewMemberForm();
   }
 
   function logout() {
@@ -1405,47 +1408,83 @@ export default function ManagerHome({
         onClose={closeStartupGuide}
         hideHeader
         overlayClassName="manager-onboarding-modalOverlay"
-        dialogClassName="manager-onboarding-modalDialog"
+        dialogClassName={`manager-onboarding-modalDialog ${guideStyles.guideDialog}`}
         bodyClassName="manager-onboarding-modalBody"
       >
         <section className={`manager-onboarding-panel manager-onboarding-panel--modal ${guideStyles.guidePanel}`} aria-labelledby="onboarding-guide-title">
-          <div className="manager-onboarding-shell">
-            <header className={`manager-onboarding-hero manager-onboarding-hero--modal ${guideStyles.guideHeader}`}>
-              <div className="manager-onboarding-copy">
-                <p className="eyebrow manager-onboarding-eyebrow">{t('managerHome.gettingStarted')}</p>
-                <h2 id="onboarding-guide-title">{t('managerHome.yourFirstSessionStartsHere')}</h2>
-                <p>
-                  {t('managerHome.followTheseThreeStepsToGet')}
-                </p>
-              </div>
-              <button
-                type="button"
-                className={`btn-secondary manager-onboarding-close ${guideStyles.guideClose}`}
-                onClick={closeStartupGuide}
-                aria-label={t('managerHome.closeTheGettingStartedGuide')}
-              >
-                {t('managerHome.close')}
-              </button>
-            </header>
+          <header className={guideStyles.guideHeader}>
+            <div className={guideStyles.guideCopy}>
+              <p className={guideStyles.guideEyebrow}>{t('managerHome.guideEyebrow')}</p>
+              <h2 id="onboarding-guide-title">
+                {t('managerHome.guideTitle')}
+              </h2>
+              <p>
+                {t('managerHome.guideIntro')}
+              </p>
+            </div>
+            <button
+              type="button"
+              className={`manager-onboarding-close ${guideStyles.guideClose}`}
+              onClick={closeStartupGuide}
+              aria-label={t('managerHome.guideCloseAria')}
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </header>
 
-            <ol className={`manager-onboarding-grid manager-onboarding-grid--modal ${guideStyles.guideGrid}`} aria-label={t('managerHome.stepsToCreateASession')}>
-              {startupGuideSteps.map((item, index) => (
-                <li key={item.step}>
-                  <article
-                    className={`card manager-onboarding-step manager-onboarding-step--premium ${guideStyles.guideStep}`}
-                    style={{ '--onboarding-delay': `${index * 90}ms` }}
-                  >
-                    <span className={guideStyles.guideNumber} aria-hidden="true">{item.step.padStart(2, '0')}</span>
+          <ol className={guideStyles.guideSteps} aria-label={t('managerHome.guideStepsAria')}>
+            {startupGuideSteps.map((item, index) => {
+              const StepIcon = item.icon;
+              return (
+                <li
+                  key={item.step}
+                  className={guideStyles.guideStep}
+                  style={{ '--guide-delay': `${index * 80}ms` }}
+                >
+                  <div className={guideStyles.guideMarker} aria-hidden="true">
+                    <span className={guideStyles.guideIcon}><StepIcon size={20} /></span>
+                    <span className={guideStyles.guideNumber}>{item.step}</span>
+                  </div>
+                  <div className={guideStyles.guideBody}>
                     <h3>{item.title}</h3>
                     <p>{item.text}</p>
-                    <Link className={`btn-secondary manager-onboarding-step__cta ${guideStyles.guideCta}`} href={withLocalePath(item.href)} onClick={closeStartupGuide}>
-                      {item.cta}
-                    </Link>
-                  </article>
+                    {item.chips ? (
+                      <ul className={guideStyles.guideChips} aria-label={t('managerHome.guideInviteWaysAria')}>
+                        <li><Link2 size={14} aria-hidden="true" />{item.chips[0]}</li>
+                        <li><Hash size={14} aria-hidden="true" />{item.chips[1]}</li>
+                      </ul>
+                    ) : null}
+                    {item.step === '2' ? (
+                      <button type="button" className={guideStyles.guideAlt} onClick={addParticipantsFromGuide}>
+                        <UserPlus size={15} aria-hidden="true" />
+                        <span>
+                          {t('managerHome.guidePreferList')}
+                          <strong>{t('managerHome.guideAddInAdvance')}</strong>
+                        </span>
+                      </button>
+                    ) : null}
+                  </div>
                 </li>
-              ))}
-            </ol>
-          </div>
+              );
+            })}
+          </ol>
+
+          <footer className={guideStyles.guideFooter}>
+            <p>
+              {t('managerHome.guideReopenNote')}
+            </p>
+            <div className={guideStyles.guideActions}>
+              <button type="button" className="btn-secondary" onClick={closeStartupGuide}>
+                {t('managerHome.guideLater')}
+              </button>
+              <Link className={`btn-primary ${guideStyles.guidePrimary}`} href={withLocalePath('/session-builder')} onClick={closeStartupGuide}>
+                {sessions.length > 0
+                  ? t('managerHome.guideCreateSession')
+                  : t('managerHome.guideCreateFirstSession')}
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
+          </footer>
         </section>
       </Modal>
 
