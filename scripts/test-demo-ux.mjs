@@ -6,6 +6,7 @@ const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const screenshotDir = process.env.DEMO_SCREENSHOT_DIR || '';
 // Pari sur moi is played in the participant preview, not in the facilitator programme.
 const PROGRAM_ENGINES = ['copuzzle_live_v1', 'labyrinthe_live_v1'];
+const CATALOG_SIZE = PROGRAM_ENGINES.length + 1;
 
 const COPY = {
   fr: {
@@ -92,21 +93,24 @@ async function runDemo(browser, locale, viewport, { flowMode }) {
   if (await refuseCookies.count()) await refuseCookies.first().click();
   const tag = `${locale}-${viewport.width}`;
 
-  // Manager space, then preparation: the visitor adds the two playable challenges.
+  // Manager space, then preparation: the visitor adds the three playable challenges.
   assert.equal(await page.getByText('@example.com').count(), 4);
   assert.equal(await page.locator('.manager-home .stat-card').count(), 3);
   assert.equal(await page.locator('.manager-home .session-card').count(), 2);
-  await page.getByRole('button', { name: copy.createFromDashboard, exact: true }).click();
-  await page.getByRole('button', { name: copy.create, exact: true }).waitFor();
-  await page.locator('[data-catalog]').waitFor();
   const create = page.getByRole('button', { name: copy.create, exact: true });
+  // On a dev server the first click can land before hydration: click again until the step changes.
+  for (let attempt = 0; attempt < 5 && !(await create.count()); attempt += 1) {
+    await page.getByRole('button', { name: copy.createFromDashboard, exact: true }).click();
+    await create.waitFor({ timeout: 6000 }).catch(() => {});
+  }
+  await create.waitFor();
+  await page.locator('[data-catalog]').waitFor();
   assert.equal(await page.locator('[data-activity-id]').count(), 0, 'The programme starts empty');
-  assert.equal(await create.isDisabled(), true, 'The session needs both challenges');
+  assert.equal(await create.isDisabled(), true, 'The session needs every challenge');
   const addButtons = page.locator('[data-catalog]').getByRole('button', { name: copy.add, exact: true });
-  assert.equal(await addButtons.count(), PROGRAM_ENGINES.length, 'Only the playable challenges are offered');
-  await addButtons.first().click();
-  await addButtons.first().click();
-  assert.equal(await page.locator('[data-activity-id]').count(), PROGRAM_ENGINES.length);
+  assert.equal(await addButtons.count(), CATALOG_SIZE, 'Only the playable challenges are offered');
+  for (let index = 0; index < CATALOG_SIZE; index += 1) await addButtons.first().click();
+  assert.equal(await page.locator('[data-activity-id]').count(), CATALOG_SIZE);
   if (flowMode === 'auto') await page.getByRole('button', { name: copy.automatic, exact: true }).click();
   await snap(page, `${tag}-1-prepare`);
   await create.click();

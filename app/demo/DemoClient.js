@@ -27,7 +27,7 @@ import {
   getDemoParticipants,
   getVisitorResult,
 } from '@/lib/demo/demoScenario.mjs';
-import { DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '@/lib/demo/challenges/index.mjs';
+import { DEMO_CATALOG_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '@/lib/demo/challenges/index.mjs';
 import ManagerHome from '../home/ManagerHome';
 import DemoChallengeStage from './DemoChallengeStage';
 import DemoHint from './DemoHint';
@@ -89,16 +89,18 @@ export default function DemoClient() {
   const advanceRef = useRef(() => {});
 
   const step = DEMO_STEPS[stepIndex];
-  const activeChallenge = program[activeIndex] || null;
+  // Pari sur moi is played by the visitor in the participant preview, not by the facilitator.
+  const facilitateProgram = useMemo(() => program.filter((challenge) => challenge.engine_key !== VOM_ENGINE_KEY), [program]);
+  const activeChallenge = facilitateProgram[activeIndex] || null;
   const displayedSessionName = sessionName.trim() || t('demo.prepare.sessionNameDefault');
 
   const catalog = useMemo(
     () => mockChallenges.map((challenge) => localizeBuilderChallenge(challenge, locale)),
     [locale]
   );
-  // Only the challenges the demo can play, in a fixed order: the visitor adds both.
+  // Only the challenges the demo can play, in a fixed order: the visitor adds all of them.
   const demoCatalog = useMemo(
-    () => DEMO_PROGRAM_ENGINE_KEYS.map((key) => catalog.find((challenge) => challenge.engine_key === key)).filter(Boolean),
+    () => DEMO_CATALOG_ENGINE_KEYS.map((key) => catalog.find((challenge) => challenge.engine_key === key)).filter(Boolean),
     [catalog]
   );
   const programReady = program.length === demoCatalog.length;
@@ -193,11 +195,16 @@ export default function DemoClient() {
     setActiveDone(true);
   }, [activeChallenge]);
 
+  // The add hint points at the first challenge not yet in the programme.
+  const nextChallengeToAdd = demoCatalog.find((challenge) => !program.some((item) => item.id === challenge.id));
+  let addHintKey = program.length ? 'addNext' : 'add';
+  if (nextChallengeToAdd?.engine_key === VOM_ENGINE_KEY) addHintKey = 'addSelf';
+
   // One coach mark at a time, on the action that moves the demo forward.
   let activeHint = null;
   if (!hintsHidden) {
     if (step === 'dashboard') activeHint = 'dashboard';
-    else if (step === 'prepare') activeHint = programReady ? 'prepare' : program.length ? 'addSecond' : 'add';
+    else if (step === 'prepare') activeHint = programReady ? 'prepare' : addHintKey;
     else if (step === 'facilitate' && flowMode === 'manual' && activeDone) activeHint = 'facilitate';
   }
 
@@ -215,12 +222,9 @@ export default function DemoClient() {
     }
   }
 
-  // The add hint points at the first challenge not yet in the programme.
-  const nextChallengeToAdd = demoCatalog.find((challenge) => !program.some((item) => item.id === challenge.id));
-
   function renderHint(key, action, options = {}) {
-    let text = t(`demo.hints.${key}`);
-    if (key === 'facilitate' && activeIndex + 1 >= program.length) text = t('demo.hints.facilitateLast');
+    let text = t(`demo.hints.${key}`, { challenge: pariName });
+    if (key === 'facilitate' && activeIndex + 1 >= facilitateProgram.length) text = t('demo.hints.facilitateLast');
     return (
       <DemoHint show={activeHint === key} text={text} dismissLabel={t('demo.hints.dismiss')} onDismiss={hideHints} {...options}>
         {action}
@@ -236,7 +240,7 @@ export default function DemoClient() {
   function advanceChallenge() {
     if (!activeChallenge) return;
     setActiveDone(false);
-    if (activeIndex + 1 < program.length) {
+    if (activeIndex + 1 < facilitateProgram.length) {
       setActiveIndex(activeIndex + 1);
     } else {
       goToStep('play');
@@ -278,10 +282,15 @@ export default function DemoClient() {
     [locale, participants, seed, step, visitorName]
   );
 
+  const vomChallengeId = program.find((challenge) => challenge.engine_key === VOM_ENGINE_KEY)?.id;
   const handlePlayComplete = useCallback((summary, state) => {
     setVisitorResult(getVisitorResult(state?.vom, DEMO_VISITOR_ID));
+    if (vomChallengeId) {
+      setCompletions((previous) => ({ ...previous, [vomChallengeId]: Number(summary?.completion_percent) || 0 }));
+      setChallengeActions((previous) => ({ ...previous, [vomChallengeId]: Number(summary?.action_count) || 0 }));
+    }
     setPlayDone(true);
-  }, []);
+  }, [vomChallengeId]);
 
   const results = useMemo(
     () => computeDemoResults({ program, completions, actions: challengeActions, visitor: visitorResult }),
@@ -313,7 +322,7 @@ export default function DemoClient() {
 
   let facilitateAction = t('demo.facilitate.skip');
   if (activeDone) {
-    facilitateAction = activeIndex + 1 < program.length ? t('demo.facilitate.next') : t('demo.facilitate.finish');
+    facilitateAction = activeIndex + 1 < facilitateProgram.length ? t('demo.facilitate.next') : t('demo.facilitate.finish');
   }
 
   return (
@@ -430,7 +439,7 @@ export default function DemoClient() {
                 onSelect={addProgramChallenge}
                 onDeselect={removeProgramChallenge}
                 renderToggleAction={(challenge, action) => (
-                  challenge.id === nextChallengeToAdd?.id ? renderHint(program.length ? 'addSecond' : 'add', action, { align: 'start' }) : action
+                  challenge.id === nextChallengeToAdd?.id ? renderHint(addHintKey, action, { align: 'start' }) : action
                 )}
               />
               <p className={styles.hint}>{t('demo.prepare.playNote', { challenge: pariName })}</p>
@@ -506,10 +515,10 @@ export default function DemoClient() {
                   {displayedSessionName}
                 </p>
                 <p className={styles.liveBarTitle}>
-                  {t('demo.facilitate.challengeCounter', { current: activeIndex + 1, total: program.length })}
+                  {t('demo.facilitate.challengeCounter', { current: activeIndex + 1, total: facilitateProgram.length })}
                 </p>
                 <ol className={styles.programChips} aria-label={t('demo.facilitate.program')}>
-                  {program.map((challenge, index) => {
+                  {facilitateProgram.map((challenge, index) => {
                     const state = index < activeIndex ? 'done' : index === activeIndex ? 'live' : 'next';
                     const label = state === 'done'
                       ? t('demo.facilitate.statusDone')
@@ -532,7 +541,7 @@ export default function DemoClient() {
             </div>
             {autoCountdown !== null ? (
               <p className={styles.autoBanner} role="status">
-                {activeIndex + 1 < program.length
+                {activeIndex + 1 < facilitateProgram.length
                   ? t('demo.facilitate.autoNext', { seconds: autoCountdown })
                   : t('demo.facilitate.autoFinish', { seconds: autoCountdown })}
               </p>

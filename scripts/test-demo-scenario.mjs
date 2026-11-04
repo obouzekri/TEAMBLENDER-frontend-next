@@ -17,7 +17,7 @@ import {
   getVisitorResult,
 } from '../lib/demo/demoScenario.mjs';
 import { applyTimerEvent, createDemoChallengeServer } from '../lib/demo/demoChallengeServer.mjs';
-import { DEMO_ENGINE_KEYS, DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '../lib/demo/challenges/index.mjs';
+import { DEMO_CATALOG_ENGINE_KEYS, DEMO_ENGINE_KEYS, DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '../lib/demo/challenges/index.mjs';
 import { buildCopuzzleSummary } from '../lib/demo/challenges/copuzzle.mjs';
 import { buildLabySummary } from '../lib/demo/challenges/labyrinthe.mjs';
 import { SESSION_OBJECTIVES } from '../lib/sessionProgram.mjs';
@@ -42,7 +42,8 @@ assert.deepEqual(
   ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1', 'vrai_ou_mensonge_v1'],
 );
 assert.ok(!DEMO_PROGRAM_ENGINE_KEYS.includes(VOM_ENGINE_KEY), 'Pari sur moi is only played in the participant preview');
-assert.deepEqual(DEMO_PROGRAM_ENGINE_KEYS, ['copuzzle_live_v1', 'labyrinthe_live_v1'], 'The visitor adds CoPuzzle then Labyrinthe');
+assert.deepEqual(DEMO_PROGRAM_ENGINE_KEYS, ['copuzzle_live_v1', 'labyrinthe_live_v1'], 'The facilitator runs CoPuzzle then Labyrinthe');
+assert.deepEqual(DEMO_CATALOG_ENGINE_KEYS, [...DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY], 'The visitor also adds Pari sur moi');
 
 // A fixed team of four, the minimum needed for every demo challenge.
 assert.equal(DEMO_TEAM_SIZE, 4);
