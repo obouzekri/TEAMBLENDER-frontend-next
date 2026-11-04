@@ -17,6 +17,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 ### Lisibilite de l'administration
 
 - Les formulaires de creation et de modification suivent les surfaces du theme, y compris en mode sombre automatique.
+- La liste des sessions affiche le créateur de chaque session (nom et e-mail du manager) ; la recherche porte aussi sur ces informations.
 - Les objectifs distinguent les etats selectionne, disponible et indisponible sans reduire l'opacite du texte. La limite de trois objectifs et la navigation clavier sont conservees.
 - Validation : `node scripts/test-admin-theme.mjs` (frontend sur 3100, Chrome disponible, API simulees) : FR/EN, mobile/desktop, clair/sombre/automatique, contraste du texte d'au moins 4,5:1 et selection des objectifs.
 
