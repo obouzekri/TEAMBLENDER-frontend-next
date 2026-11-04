@@ -41,8 +41,7 @@ assert.deepEqual(
   [...DEMO_ENGINE_KEYS].sort(),
   ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1', 'vrai_ou_mensonge_v1'],
 );
-assert.ok(!DEMO_PROGRAM_ENGINE_KEYS.includes(VOM_ENGINE_KEY), 'Pari sur moi is only played in the participant preview');
-assert.deepEqual(DEMO_PROGRAM_ENGINE_KEYS, ['copuzzle_live_v1', 'labyrinthe_live_v1'], 'The visitor adds CoPuzzle then Labyrinthe');
+assert.deepEqual(DEMO_PROGRAM_ENGINE_KEYS, ['copuzzle_live_v1', 'labyrinthe_live_v1', VOM_ENGINE_KEY], 'The facilitator runs the three challenges in order');
 
 // A fixed team of four, the minimum needed for every demo challenge.
 assert.equal(DEMO_TEAM_SIZE, 4);
