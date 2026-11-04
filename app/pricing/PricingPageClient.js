@@ -10,7 +10,7 @@ import useI18n from '@/lib/i18n/useI18n';
 import { getCheckoutRedirectUrl } from '@/lib/billing-utils';
 import { getPricingPlanBadgeLabel, getPricingPlanVariantLabel, normalizePricingPlanName } from '@/lib/pricing-labels';
 import { getPricingPlansFallback } from '@/lib/pricingFallbackPlans';
-import { PRICING_CURRENCY_OPTIONS, formatPlanAmount, getAnnualSavings, getPlanAmountDh } from '@/lib/pricing-display.mjs';
+import { DEFAULT_PRICING_CURRENCY, PRICING_CURRENCY_OPTIONS, formatPlanAmount, getAnnualSavings, getPlanAmountDh } from '@/lib/pricing-display.mjs';
 
 function getStoredCurrentUser() {
   if (typeof window === 'undefined') return null;
@@ -220,14 +220,14 @@ function getDarkModeHeadingStyle() {
   return { color: 'var(--text-strong, #e2e8f0)' };
 }
 
-export default function PricingPageClient({ initialPlans = [] }) {
+export default function PricingPageClient({ initialPlans = [], initialCurrency = DEFAULT_PRICING_CURRENCY }) {
   const { locale, t, withLocalePath } = useI18n();
   const isEn = locale === 'en';
   const [plans, setPlans] = useState(initialPlans);
   const [loading, setLoading] = useState(initialPlans.length === 0);
   const [error, setError] = useState('');
   const [selectedBilling, setSelectedBilling] = useState('monthly');
-  const [selectedCurrency, setSelectedCurrency] = useState('MAD');
+  const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency);
   const [checkoutPlanId, setCheckoutPlanId] = useState('');
 
   const hasInitialLivePlans = initialPlans.some((plan) => !plan?.is_fallback);
