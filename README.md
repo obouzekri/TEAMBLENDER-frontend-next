@@ -53,6 +53,14 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les champs de recherche, statut et dates conservent une marge interieure horizontale de 16 px et un espacement de 16 px entre eux, sans deborder de leur cadre sur mobile.
 - Validation: `node scripts/test-home-session-filters.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, largeurs de 320 a 1755 px, ouverture au clavier de la periode, saisie, conservation et reinitialisation des filtres, pagination conditionnelle et navigation.
 
+### Guide de demarrage de l'accueil animateur
+
+- Le guide s'ouvre automatiquement a la premiere visite du manager, puis depuis « Ouvrir le guide de demarrage » dans la vue rapide.
+- Trois etapes : creer la session, inviter l'equipe, lancer et debriefer. L'equipe n'a pas besoin d'etre inscrite a l'avance : apres la creation, le manager partage le lien ou le code de session et chacun rejoint avec son nom, sans compte.
+- Ajouter les participants a l'avance reste possible : le lien de l'etape 2 ferme le guide et ouvre directement le formulaire « Creer un participant ».
+- Une seule action principale, « Creer ma premiere session » (ou « Creer une session » si des sessions existent), mene au Session Builder ; « Plus tard » ferme le guide.
+- Etapes en ligne reliees sur ordinateur, en frise verticale sous 760 px ; accent eclairci en theme sombre pour garder le contraste.
+
 ### Selecteur de langue
 
 - Le bouton compact FR/EN ouvre un menu avec les noms natifs des langues, un badge de code et une coche pour la langue active. Le panneau utilise les couleurs du theme et reste dans la fenetre, y compris dans la navigation mobile.
