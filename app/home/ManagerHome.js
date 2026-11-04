@@ -1317,7 +1317,7 @@ export default function ManagerHome({
 
           <div className="participants-panel-kpis" aria-label={t('managerHome.participantSummary')}>
             <span>
-              {t('managerHome.lengthParticipantValueTotal', { length: members.length, value: members.length > 1 ? 's' : '' })}
+              {t('managerHome.participantsTotal', { count: members.length })}
             </span>
           </div>
 

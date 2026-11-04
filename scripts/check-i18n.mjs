@@ -36,6 +36,12 @@ const ADMIN_FILES_TO_CHECK = [
   path.join(rootDir, 'app', 'admin', 'billing', 'BillingAdminClient.js')
 ];
 
+// Valeur plurielle ({ one, other } en FR/EN, jusqu'à 6 formes en arabe) : une seule clé,
+// chaque langue choisit ses formes (lib/i18n/plural.js).
+const PLURAL_CATEGORIES = ['zero', 'one', 'two', 'few', 'many', 'other'];
+const isPluralValue = (value) => Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+  && 'other' in value && Object.keys(value).every((key) => PLURAL_CATEGORIES.includes(key));
+
 function flattenObjectKeys(source, prefix = '') {
   const acc = [];
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
@@ -43,7 +49,7 @@ function flattenObjectKeys(source, prefix = '') {
   }
   for (const [key, value] of Object.entries(source)) {
     const nextKey = prefix ? `${prefix}.${key}` : key;
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
+    if (value && typeof value === 'object' && !Array.isArray(value) && !isPluralValue(value)) {
       acc.push(...flattenObjectKeys(value, nextKey));
     } else {
       acc.push(nextKey);
@@ -54,7 +60,7 @@ function flattenObjectKeys(source, prefix = '') {
 
 function extractPlaceholders(value) {
   const set = new Set();
-  const text = String(value ?? '');
+  const text = isPluralValue(value) ? Object.values(value).join(' ') : String(value ?? '');
   const regex = /\{(\w+)\}/g;
   let match = regex.exec(text);
   while (match) {
