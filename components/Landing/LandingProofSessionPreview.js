@@ -1,12 +1,13 @@
 "use client";
 
 import { Timer } from 'lucide-react';
+import { translate } from '@/lib/i18n';
 
 const SITE_TONES = ['indigo', 'cyan', 'teal'];
 const AVATAR_TONE_COUNT = 5;
 
 function formatPercent(value, locale) {
-  return locale === 'en' ? `${value}%` : `${value} %`;
+  return translate(locale, 'landingUi.value', { value });
 }
 
 export default function LandingProofSessionPreview({ locale, preview }) {

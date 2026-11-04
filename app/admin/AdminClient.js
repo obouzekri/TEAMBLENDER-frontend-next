@@ -11,6 +11,7 @@ import { clearSessionAuth } from '@/lib/auth';
 import { getStoredCurrentUser as readAuthStoredCurrentUser } from '@/lib/auth-storage';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
+import { formatDate, formatDateTime, NUMERIC_DATE_TIME } from '@/lib/i18n/format';
 import {
   ADMIN_TAB_IDS,
   CHALLENGE_CATEGORY_LABELS,
@@ -97,8 +98,7 @@ const fetch = (input, options = {}) => {
 };
 
 export default function AdminClient() {
-  const { locale, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, withLocalePath, t } = useI18n();
   const [token, setToken] = useState('');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -182,29 +182,29 @@ export default function AdminClient() {
   const challengeCategoryOptions = useMemo(
     () => CHALLENGE_CATEGORY_OPTIONS.map((option) => ({
       ...option,
-      label: getLocalizedLabel(CHALLENGE_CATEGORY_LABELS[option.value], isEn) || option.label,
+      label: getLocalizedLabel(CHALLENGE_CATEGORY_LABELS[option.value], locale) || option.label,
     })),
-    [isEn]
+    [locale]
   );
 
   const challengeObjectiveOptions = useMemo(
     () => CHALLENGE_OBJECTIVE_OPTIONS.map((option) => ({
       ...option,
-      label: getLocalizedLabel(CHALLENGE_OBJECTIVE_LABELS[option.value], isEn) || option.label,
+      label: getLocalizedLabel(CHALLENGE_OBJECTIVE_LABELS[option.value], locale) || option.label,
     })),
-    [isEn]
+    [locale]
   );
 
   useEffect(() => {
     setNewPricingPlan((prev) => {
-      const nextCta = isEn ? 'Choose this plan' : 'Choisir cette formule';
+      const nextCta = t('adminConsole.chooseThisPlan');
       const current = String(prev.cta_label || '').trim();
       if (!current || current === 'Choisir cette formule' || current === 'Choose this plan') {
         return { ...prev, cta_label: nextCta };
       }
       return prev;
     });
-  }, [isEn]);
+  }, [locale]);
 
   const readStoredCurrentUser = useCallback(() => {
     return readAuthStoredCurrentUser();
@@ -264,7 +264,7 @@ export default function AdminClient() {
           forceReauth();
           return;
         }
-        setError(isEn ? 'Unable to verify the admin session. Please try again.' : 'Impossible de vérifier la session admin. Veuillez réessayer.');
+        setError(t('adminConsole.unableToVerifyTheAdminSession'));
         setLoading(false);
       }
     };
@@ -274,7 +274,7 @@ export default function AdminClient() {
     return () => {
       cancelled = true;
     };
-  }, [forceReauth, isEn, persistCurrentUser, readStoredCurrentUser]);
+  }, [forceReauth, locale, persistCurrentUser, readStoredCurrentUser]);
 
   const loadAnalytics = useCallback(async (daysOverride = null) => {
     if (!token) return;
@@ -401,7 +401,7 @@ export default function AdminClient() {
       });
 
       if (hasInvalidTokenOnCriticalEndpoint) {
-        setError(isEn ? 'Session expired or invalid. Please sign in again.' : 'Session expirée ou invalide. Veuillez vous reconnecter.');
+        setError(t('adminConsole.sessionExpiredOrInvalidPleaseSign'));
         forceReauth();
         return;
       }
@@ -421,9 +421,9 @@ export default function AdminClient() {
           return;
         }
 
-        const reasonRaw = String(result.reason?.message || (isEn ? 'Unknown error' : 'Erreur inconnue'));
+        const reasonRaw = String(result.reason?.message || t('adminConsole.unknownError'));
         const reasonMessage = reasonRaw.toLowerCase().includes('insufficient role')
-          ? (isEn ? 'Insufficient role (admin required)' : 'Rôle insuffisant (admin requis)')
+          ? t('adminConsole.insufficientRoleAdminRequired')
           : reasonRaw;
 
         // Landing CMS is optional for the rest of admin loading.
@@ -446,17 +446,15 @@ export default function AdminClient() {
       });
 
       if (failures.length > 0) {
-        const hasRoleMismatch = failures.some((entry) => entry.includes(isEn ? 'Insufficient role (admin required)' : 'Rôle insuffisant (admin requis)'));
+        const hasRoleMismatch = failures.some((entry) => entry.includes(t('adminConsole.insufficientRoleAdminRequired')));
         const hint = hasRoleMismatch
-          ? (isEn ? ' Verify that your active session belongs to an admin account.' : ' Vérifiez que votre session active correspond bien à un compte admin.')
+          ? t('adminConsole.verifyThatYourActiveSessionBelongs')
           : '';
-        setError(isEn
-          ? `Some admin data could not be loaded: ${failures.join(' | ')}${hint}`
-          : `Certaines données admin n’ont pas pu être chargées : ${failures.join(' | ')}${hint}`);
+        setError(t('adminConsole.someAdminDataCouldNotBe', { value: failures.join(' | '), hint }));
       }
 
     } catch (err) {
-      setError(err.message || (isEn ? 'Admin loading error.' : 'Erreur de chargement admin.'));
+      setError(err.message || t('adminConsole.adminLoadingError'));
     }
   }, [forceReauth, token]);
 
@@ -492,15 +490,15 @@ export default function AdminClient() {
       });
 
       if (!response.ok) {
-        throw new Error(isEn ? 'Admin action denied.' : 'Action admin refusée.');
+        throw new Error(t('adminConsole.adminActionDenied'));
       }
 
       await loadAll();
       showNotice(approval_status === 'approved'
-        ? (isEn ? 'Account approved successfully.' : 'Compte validé avec succès.')
-        : (isEn ? 'Account rejected successfully.' : 'Compte refusé avec succès.'));
+        ? t('adminConsole.accountApprovedSuccessfully')
+        : t('adminConsole.accountRejectedSuccessfully'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while updating.' : 'Erreur pendant la mise à jour.'));
+      setError(err.message || t('adminConsole.errorWhileUpdating'));
     } finally {
       setBusyApprovalId(null);
     }
@@ -511,17 +509,17 @@ export default function AdminClient() {
     setNewUserMessage('');
 
     if (!newUser.first_name.trim() || !newUser.email.trim() || !newUser.password.trim()) {
-      setNewUserMessage(isEn ? 'First name, email, and password are required.' : 'Prénom, email et mot de passe sont obligatoires.');
+      setNewUserMessage(t('adminConsole.firstNameEmailAndPasswordAre'));
       return;
     }
 
     if (!isValidEmail(newUser.email)) {
-      setNewUserMessage(isEn ? 'Invalid email.' : 'Email invalide.');
+      setNewUserMessage(t('adminConsole.invalidEmail'));
       return;
     }
 
     if (!USER_ROLES.has(newUser.role)) {
-      setNewUserMessage(isEn ? 'Invalid role.' : 'Rôle invalide.');
+      setNewUserMessage(t('adminConsole.invalidRole'));
       return;
     }
 
@@ -538,30 +536,28 @@ export default function AdminClient() {
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setNewUserMessage(payload.error || (isEn ? 'Unable to create user.' : 'Création utilisateur impossible.'));
+        setNewUserMessage(payload.error || t('adminConsole.unableToCreateUser'));
         return;
       }
 
       setNewUser({ first_name: '', last_name: '', email: '', password: '', role: 'user' });
-      setNewUserMessage(isEn ? 'User created successfully.' : 'Utilisateur créé avec succès.');
+      setNewUserMessage(t('adminConsole.userCreatedSuccessfully'));
       setShowNewUserForm(false);
       await loadAll();
-      showNotice(isEn ? 'User created successfully.' : 'Utilisateur créé avec succès.');
+      showNotice(t('adminConsole.userCreatedSuccessfully'));
     } catch {
-      setNewUserMessage(isEn ? 'Network error while creating the user.' : 'Erreur réseau pendant la création.');
+      setNewUserMessage(t('adminConsole.networkErrorWhileCreatingTheUser'));
     }
   }
 
   async function handleDeleteUser(targetUser) {
     if (!token || !targetUser?.id) return;
     if (String(targetUser.id) === String(user?.id)) {
-      setError(isEn ? 'You cannot delete your own admin account.' : 'Vous ne pouvez pas supprimer votre propre compte admin.');
+      setError(t('adminConsole.youCannotDeleteYourOwnAdmin'));
       return;
     }
 
-    const accepted = window.confirm(isEn
-      ? `Delete user ${targetUser.email || targetUser.id}?`
-      : `Supprimer l’utilisateur ${targetUser.email || targetUser.id} ?`);
+    const accepted = window.confirm(t('adminConsole.deleteUserEmail', { email: targetUser.email || targetUser.id }));
     if (!accepted) return;
 
     const key = `user:${targetUser.id}`;
@@ -578,13 +574,13 @@ export default function AdminClient() {
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || (isEn ? `Unable to delete (${response.status})` : `Suppression impossible (${response.status})`));
+        throw new Error(payload.error || t('adminConsole.unableToDeleteStatus', { status: response.status }));
       }
 
       await loadAll();
-      showNotice(isEn ? 'User deleted successfully.' : 'Utilisateur supprimé avec succès.');
+      showNotice(t('adminConsole.userDeletedSuccessfully'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while deleting user.' : 'Erreur lors de la suppression utilisateur.'));
+      setError(err.message || t('adminConsole.errorWhileDeletingUser'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -593,15 +589,15 @@ export default function AdminClient() {
   async function handleToggleUserStatus(targetUser) {
     if (!token || !targetUser?.id) return;
     if (String(targetUser.id) === String(user?.id)) {
-      setError(isEn ? 'You cannot disable your own admin account.' : 'Vous ne pouvez pas désactiver votre propre compte admin.');
+      setError(t('adminConsole.youCannotDisableYourOwnAdmin'));
       return;
     }
 
     const currentlyDisabled = Boolean(targetUser.disabled);
     const accepted = window.confirm(
       currentlyDisabled
-        ? (isEn ? `Re-enable ${targetUser.email || 'this user'}?` : `Réactiver ${targetUser.email || 'cet utilisateur'} ?`)
-        : (isEn ? `Disable ${targetUser.email || 'this user'}?` : `Désactiver ${targetUser.email || 'cet utilisateur'} ?`)
+        ? t('adminConsole.reEnableEmail', { email: targetUser.email || t('adminConsole.thisUser') })
+        : t('adminConsole.disableEmail', { email: targetUser.email || t('adminConsole.thisUser') })
     );
     if (!accepted) return;
 
@@ -620,15 +616,15 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || (isEn ? `Unable to update status (${response.status})` : `Mise à jour statut impossible (${response.status})`));
+        throw new Error(payload.error || t('adminConsole.unableToUpdateStatusStatus', { status: response.status }));
       }
 
       await loadAll();
       showNotice(currentlyDisabled
-        ? (isEn ? 'User re-enabled.' : 'Utilisateur réactivé.')
-        : (isEn ? 'User disabled.' : 'Utilisateur désactivé.'));
+        ? t('adminConsole.userReEnabled')
+        : t('adminConsole.userDisabled'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while changing user status.' : 'Erreur lors du changement de statut utilisateur.'));
+      setError(err.message || t('adminConsole.errorWhileChangingUserStatus'));
     } finally {
       setBusySaveKey('');
     }
@@ -638,9 +634,7 @@ export default function AdminClient() {
     if (!token || !targetUser?.id) return;
 
     const custom = window.prompt(
-      isEn
-        ? `New password for ${targetUser.email || `user #${targetUser.id}`} (leave blank for automatic generation):`
-        : `Nouveau mot de passe pour ${targetUser.email || `utilisateur #${targetUser.id}`} (laisser vide pour génération automatique) :`,
+      t('adminConsole.newPasswordForEmailLeaveBlank', { email: targetUser.email || t('adminConsole.userNumber', { id: targetUser.id }) }),
       ''
     );
     if (custom === null) return;
@@ -662,15 +656,15 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || (isEn ? `Unable to reset password (${response.status})` : `Réinitialisation du mot de passe impossible (${response.status})`));
+        throw new Error(payload.error || t('adminConsole.unableToResetPasswordStatus', { status: response.status }));
       }
 
       const tempPassword = payload?.tempPassword
-        ? (isEn ? ` Password: ${payload.tempPassword}` : ` Mot de passe: ${payload.tempPassword}`)
+        ? t('adminConsole.passwordTemppassword', { tempPassword: payload.tempPassword })
         : '';
-      showNotice(isEn ? `User password reset.${tempPassword}` : `Mot de passe utilisateur réinitialisé.${tempPassword}`);
+      showNotice(t('adminConsole.userPasswordResetTemppassword', { tempPassword }));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while resetting the user password.' : 'Erreur lors du réinitialisation du mot de passe utilisateur.'));
+      setError(err.message || t('adminConsole.errorWhileResettingTheUserPassword'));
     } finally {
       setBusySaveKey('');
     }
@@ -697,12 +691,12 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.message || (isEn ? `Unable to resend verification link (${response.status})` : `Renvoi impossible (${response.status})`));
+        throw new Error(payload.error || payload.message || t('adminConsole.unableToResendVerificationLinkStatus', { status: response.status }));
       }
 
-      showNotice(payload.message || (isEn ? 'Verification link resent.' : 'Lien de vérification renvoyé.'));
+      showNotice(payload.message || t('adminConsole.verificationLinkResent'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while resending the verification link.' : 'Erreur lors du renvoi du lien de vérification.'));
+      setError(err.message || t('adminConsole.errorWhileResendingTheVerificationLink'));
     } finally {
       setBusySaveKey('');
     }
@@ -726,13 +720,13 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.message || (isEn ? `Unable to approve manually (${response.status})` : `Validation manuelle impossible (${response.status})`));
+        throw new Error(payload.error || payload.message || t('adminConsole.unableToApproveManuallyStatus', { status: response.status }));
       }
 
       await loadAll();
-      showNotice(payload.message || (isEn ? 'Account manually approved.' : 'Compte validé manuellement.'));
+      showNotice(payload.message || t('adminConsole.accountManuallyApproved'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error during manual account approval.' : 'Erreur pendant la validation manuelle du compte.'));
+      setError(err.message || t('adminConsole.errorDuringManualAccountApproval'));
     } finally {
       setBusySaveKey('');
     }
@@ -758,12 +752,12 @@ export default function AdminClient() {
     if (!token || !editingUser?.id) return;
 
     if (!editingUser.first_name.trim() || !isValidEmail(editingUser.email)) {
-      setError(isEn ? 'First name and a valid email are required.' : 'Le prénom et un email valide sont requis.');
+      setError(t('adminConsole.firstNameAndAValidEmail'));
       return;
     }
 
     if (!USER_ROLES.has(editingUser.role)) {
-      setError(isEn ? 'Invalid user role.' : 'Rôle utilisateur invalide.');
+      setError(t('adminConsole.invalidUserRole'));
       return;
     }
 
@@ -791,14 +785,14 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.details || (isEn ? `Unable to update (${response.status})` : `Mise à jour impossible (${response.status})`));
+        throw new Error(payload.error || payload.details || t('adminConsole.unableToUpdateStatus', { status: response.status }));
       }
 
       setEditingUser(null);
       await loadAll();
-      showNotice(isEn ? 'User updated successfully.' : 'Utilisateur mis à jour avec succès.');
+      showNotice(t('adminConsole.userUpdatedSuccessfully'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while updating user.' : 'Erreur lors de la mise à jour utilisateur.'));
+      setError(err.message || t('adminConsole.errorWhileUpdatingUser'));
     } finally {
       setBusySaveKey('');
     }
@@ -811,12 +805,12 @@ export default function AdminClient() {
     if (!token) return;
 
     if (!newParticipant.owner_id || !newParticipant.first_name.trim() || !newParticipant.email.trim() || !newParticipant.password.trim()) {
-      setNewParticipantMessage(isEn ? 'Owner, first name, email, and password are required.' : 'Créateur, prénom, email et mot de passe sont obligatoires.');
+      setNewParticipantMessage(t('adminConsole.ownerFirstNameEmailAndPassword'));
       return;
     }
 
     if (!isValidEmail(newParticipant.email)) {
-      setNewParticipantMessage(isEn ? 'Invalid email.' : 'Email invalide.');
+      setNewParticipantMessage(t('adminConsole.invalidEmail'));
       return;
     }
 
@@ -842,7 +836,7 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || (isEn ? `Unable to create participant (${response.status})` : `Création participant impossible (${response.status})`));
+        throw new Error(payload.error || t('adminConsole.unableToCreateParticipantStatus', { status: response.status }));
       }
 
       setNewParticipant({
@@ -856,13 +850,13 @@ export default function AdminClient() {
       });
       setShowNewParticipantForm(false);
       const tempPassword = payload?.tempPassword
-        ? (isEn ? ` Password: ${payload.tempPassword}` : ` Mot de passe: ${payload.tempPassword}`)
+        ? t('adminConsole.passwordTemppassword', { tempPassword: payload.tempPassword })
         : '';
-      setNewParticipantMessage(isEn ? `Participant created successfully.${tempPassword}` : `Participant créé avec succès.${tempPassword}`);
+      setNewParticipantMessage(t('adminConsole.participantCreatedSuccessfullyTemppassword', { tempPassword }));
       await loadAll();
-      showNotice(isEn ? 'Participant created successfully.' : 'Participant créé avec succès.');
+      showNotice(t('adminConsole.participantCreatedSuccessfully'));
     } catch (err) {
-      setNewParticipantMessage(err.message || (isEn ? 'Unable to create participant.' : 'Création participant impossible.'));
+      setNewParticipantMessage(err.message || t('adminConsole.unableToCreateParticipant'));
     } finally {
       setBusySaveKey('');
     }
@@ -889,16 +883,14 @@ export default function AdminClient() {
     setEditingParticipantError('');
 
     if (!editingParticipant.first_name.trim() || !isValidEmail(editingParticipant.email)) {
-      const message = isEn ? 'Participant first name and a valid email are required.' : 'Le prénom participant et un email valide sont requis.';
+      const message = t('adminConsole.participantFirstNameAndAValid');
       setEditingParticipantError(message);
       setError(message);
       return;
     }
 
     if (editingParticipant.password && !isStrongPassword(editingParticipant.password)) {
-      const message = isEn
-        ? 'Invalid password. Use 8+ chars with upper/lower case, a number, and a symbol.'
-        : 'Mot de passe invalide. Utilisez au moins 8 caractères avec une majuscule, une minuscule, un chiffre et un symbole.';
+      const message = t('adminConsole.invalidPasswordUse8CharsWith');
       setEditingParticipantError(message);
       setError(message);
       return;
@@ -912,7 +904,7 @@ export default function AdminClient() {
     ));
 
     if (duplicateEmail) {
-      const message = isEn ? 'This email is already used by another participant.' : 'Cet email est déjà utilisé par un autre participant.';
+      const message = t('adminConsole.thisEmailIsAlreadyUsedBy');
       setEditingParticipantError(message);
       setError(message);
       return;
@@ -941,7 +933,7 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || (isEn ? `Unable to update participant (${response.status})` : `Mise à jour participant impossible (${response.status})`));
+        throw new Error(payload.error || t('adminConsole.unableToUpdateParticipantStatus', { status: response.status }));
       }
 
       setParticipants((prev) => prev.map((participant) => (
@@ -964,9 +956,9 @@ export default function AdminClient() {
 
       setEditingParticipant(null);
       await loadAll();
-      showNotice(isEn ? 'Participant updated successfully.' : 'Participant mis à jour avec succès.');
+      showNotice(t('adminConsole.participantUpdatedSuccessfully'));
     } catch (err) {
-      const message = err.message || (isEn ? 'Error while updating participant.' : 'Erreur lors de la mise à jour participant.');
+      const message = err.message || t('adminConsole.errorWhileUpdatingParticipant');
       setEditingParticipantError(message);
       setError(message);
     } finally {
@@ -979,8 +971,8 @@ export default function AdminClient() {
     const currentlyDisabled = Boolean(participant.disabled);
     const accepted = window.confirm(
       currentlyDisabled
-        ? (isEn ? `Re-enable ${getParticipantDisplayName(participant)}?` : `Réactiver ${getParticipantDisplayName(participant)} ?`)
-        : (isEn ? `Disable ${getParticipantDisplayName(participant)}?` : `Désactiver ${getParticipantDisplayName(participant)} ?`)
+        ? t('adminConsole.reEnableParticipantdisplayname', { participantDisplayName: getParticipantDisplayName(participant) })
+        : t('adminConsole.disableParticipantdisplayname', { participantDisplayName: getParticipantDisplayName(participant) })
     );
     if (!accepted) return;
 
@@ -1000,15 +992,15 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || (isEn ? `Unable to update participant status (${response.status})` : `Mise à jour statut participant impossible (${response.status})`));
+        throw new Error(payload.error || t('adminConsole.unableToUpdateParticipantStatusStatus', { status: response.status }));
       }
 
       await loadAll();
       showNotice(currentlyDisabled
-        ? (isEn ? 'Participant re-enabled.' : 'Participant réactivé.')
-        : (isEn ? 'Participant disabled.' : 'Participant désactivé.'));
+        ? t('adminConsole.participantReEnabled')
+        : t('adminConsole.participantDisabled'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while changing participant status.' : 'Erreur lors du changement de statut participant.'));
+      setError(err.message || t('adminConsole.errorWhileChangingParticipantStatus'));
     } finally {
       setBusySaveKey('');
     }
@@ -1016,9 +1008,7 @@ export default function AdminClient() {
 
   async function handleDeleteParticipant(participant) {
     if (!token || !participant?.id) return;
-    const accepted = window.confirm(isEn
-      ? `Delete ${getParticipantDisplayName(participant)}?`
-      : `Supprimer ${getParticipantDisplayName(participant)} ?`);
+    const accepted = window.confirm(t('adminConsole.deleteParticipantdisplayname', { participantDisplayName: getParticipantDisplayName(participant) }));
     if (!accepted) return;
 
     const key = `participant:${participant.id}`;
@@ -1035,16 +1025,16 @@ export default function AdminClient() {
 
       if (!response.ok) {
         const body = await response.text();
-        throw new Error(body || (isEn ? `Unable to delete participant (${response.status})` : `Suppression participant impossible (${response.status})`));
+        throw new Error(body || t('adminConsole.unableToDeleteParticipantStatus', { status: response.status }));
       }
 
       if (editingParticipant && String(editingParticipant.id) === String(participant.id)) {
         setEditingParticipant(null);
       }
       await loadAll();
-      showNotice(isEn ? 'Participant deleted successfully.' : 'Participant supprimé avec succès.');
+      showNotice(t('adminConsole.participantDeletedSuccessfully'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while deleting participant.' : 'Erreur lors de la suppression participant.'));
+      setError(err.message || t('adminConsole.errorWhileDeletingParticipant'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -1054,9 +1044,7 @@ export default function AdminClient() {
     if (!token || !participant?.id) return;
 
     const custom = window.prompt(
-      isEn
-        ? `New password for ${getParticipantDisplayName(participant)} (leave blank for automatic generation):`
-        : `Nouveau mot de passe pour ${getParticipantDisplayName(participant)} (laisser vide pour génération automatique):`,
+      t('adminConsole.newPasswordForParticipantdisplaynameLeaveBlank', { participantDisplayName: getParticipantDisplayName(participant) }),
       ''
     );
     if (custom === null) return;
@@ -1078,15 +1066,15 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || (isEn ? `Unable to reset participant password (${response.status})` : `Réinitialisation du mot de passe participant impossible (${response.status})`));
+        throw new Error(payload.error || t('adminConsole.unableToResetParticipantPasswordStatus', { status: response.status }));
       }
 
       const tempPassword = payload?.tempPassword
-        ? (isEn ? ` Password: ${payload.tempPassword}` : ` Mot de passe: ${payload.tempPassword}`)
+        ? t('adminConsole.passwordTemppassword', { tempPassword: payload.tempPassword })
         : '';
-      showNotice(isEn ? `Participant password reset.${tempPassword}` : `Mot de passe participant réinitialisé.${tempPassword}`);
+      showNotice(t('adminConsole.participantPasswordResetTemppassword', { tempPassword }));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while resetting the participant password.' : 'Erreur lors du réinitialisation du mot de passe participant.'));
+      setError(err.message || t('adminConsole.errorWhileResettingTheParticipantPassword'));
     } finally {
       setBusySaveKey('');
     }
@@ -1113,12 +1101,12 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.message || (isEn ? `Unable to resend verification link (${response.status})` : `Renvoi impossible (${response.status})`));
+        throw new Error(payload.error || payload.message || t('adminConsole.unableToResendVerificationLinkStatus', { status: response.status }));
       }
 
-      showNotice(payload.message || (isEn ? 'Participant verification link resent.' : 'Lien de vérification participant renvoyé.'));
+      showNotice(payload.message || t('adminConsole.participantVerificationLinkResent'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while resending the participant verification link.' : 'Erreur lors du renvoi du lien de vérification participant.'));
+      setError(err.message || t('adminConsole.errorWhileResendingTheParticipantVerification'));
     } finally {
       setBusySaveKey('');
     }
@@ -1142,13 +1130,13 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.message || (isEn ? `Unable to approve manually (${response.status})` : `Validation manuelle impossible (${response.status})`));
+        throw new Error(payload.error || payload.message || t('adminConsole.unableToApproveManuallyStatus', { status: response.status }));
       }
 
       await loadAll();
-      showNotice(payload.message || (isEn ? 'Participant manually approved.' : 'Participant validé manuellement.'));
+      showNotice(payload.message || t('adminConsole.participantManuallyApproved'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error during manual participant approval.' : 'Erreur pendant la validation manuelle du participant.'));
+      setError(err.message || t('adminConsole.errorDuringManualParticipantApproval'));
     } finally {
       setBusySaveKey('');
     }
@@ -1159,8 +1147,8 @@ export default function AdminClient() {
     const isLive = sessionItem.status === 'en_cours';
     const accepted = window.confirm(
       isLive
-        ? (isEn ? `Session ${sessionItem.name || sessionItem.id} is live. Confirm deletion?` : `La session ${sessionItem.name || sessionItem.id} est en cours. Confirmer la suppression ?`)
-        : (isEn ? `Delete session ${sessionItem.name || sessionItem.id}?` : `Supprimer la session ${sessionItem.name || sessionItem.id} ?`)
+        ? t('adminConsole.sessionNameIsLiveConfirmDeletion', { name: sessionItem.name || sessionItem.id })
+        : t('adminConsole.deleteSessionName', { name: sessionItem.name || sessionItem.id })
     );
     if (!accepted) return;
 
@@ -1178,13 +1166,13 @@ export default function AdminClient() {
 
       if (!response.ok) {
         const body = await response.text();
-        throw new Error(body || (isEn ? `Unable to delete (${response.status})` : `Suppression impossible (${response.status})`));
+        throw new Error(body || t('adminConsole.unableToDeleteStatus', { status: response.status }));
       }
 
       await loadAll();
-      showNotice(isEn ? 'Session deleted successfully.' : 'Session supprimée avec succès.');
+      showNotice(t('adminConsole.sessionDeletedSuccessfully'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while deleting session.' : 'Erreur lors de la suppression session.'));
+      setError(err.message || t('adminConsole.errorWhileDeletingSession'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -1208,22 +1196,22 @@ export default function AdminClient() {
     if (!token || !editingSession?.id) return;
 
     if (!editingSession.name.trim()) {
-      setError(isEn ? 'Session name is required.' : 'Le nom de session est requis.');
+      setError(t('adminConsole.sessionNameIsRequired'));
       return;
     }
 
     if (!SESSION_STATUSES.has(editingSession.status)) {
-      setError(isEn ? 'Invalid session status.' : 'Statut de session invalide.');
+      setError(t('adminConsole.invalidSessionStatus'));
       return;
     }
 
     if (!SESSION_MODALITIES.has(editingSession.modality || '')) {
-      setError(isEn ? 'Invalid modality. Use remote, hybrid, or in-person.' : 'Modalité invalide. Utilisez remote, hybrid ou in-person.');
+      setError(t('adminConsole.invalidModalityUseRemoteHybridOr'));
       return;
     }
 
     if (editingSession.duration_minutes && Number(editingSession.duration_minutes) <= 0) {
-      setError(isEn ? 'Duration must be greater than 0.' : 'La durée doit être supérieure à 0.');
+      setError(t('adminConsole.durationMustBeGreaterThan0'));
       return;
     }
 
@@ -1250,14 +1238,14 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.details || (isEn ? `Unable to update (${response.status})` : `Mise à jour impossible (${response.status})`));
+        throw new Error(payload.error || payload.details || t('adminConsole.unableToUpdateStatus', { status: response.status }));
       }
 
       setEditingSession(null);
       await loadAll();
-      showNotice(isEn ? 'Session updated successfully.' : 'Session mise à jour avec succès.');
+      showNotice(t('adminConsole.sessionUpdatedSuccessfully'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while updating session.' : 'Erreur lors de la mise à jour session.'));
+      setError(err.message || t('adminConsole.errorWhileUpdatingSession'));
     } finally {
       setBusySaveKey('');
     }
@@ -1270,22 +1258,22 @@ export default function AdminClient() {
     setNewSessionMessage('');
 
     if (!newSession.name.trim()) {
-      setNewSessionMessage(isEn ? 'Session name is required.' : 'Le nom de session est requis.');
+      setNewSessionMessage(t('adminConsole.sessionNameIsRequired'));
       return;
     }
 
     if (!SESSION_STATUSES.has(newSession.status)) {
-      setNewSessionMessage(isEn ? 'Invalid session status.' : 'Statut de session invalide.');
+      setNewSessionMessage(t('adminConsole.invalidSessionStatus'));
       return;
     }
 
     if (!SESSION_MODALITIES.has(newSession.modality || '')) {
-      setNewSessionMessage(isEn ? 'Invalid modality. Use remote, hybrid, or in-person.' : 'Modalité invalide. Utilisez remote, hybrid ou in-person.');
+      setNewSessionMessage(t('adminConsole.invalidModalityUseRemoteHybridOr'));
       return;
     }
 
     if (newSession.duration_minutes && Number(newSession.duration_minutes) <= 0) {
-      setNewSessionMessage(isEn ? 'Duration must be greater than 0.' : 'La durée doit être supérieure à 0.');
+      setNewSessionMessage(t('adminConsole.durationMustBeGreaterThan0'));
       return;
     }
 
@@ -1313,14 +1301,14 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.details || (isEn ? `Unable to create session (${response.status})` : `Création session impossible (${response.status})`));
+        throw new Error(payload.error || payload.details || t('adminConsole.unableToCreateSessionStatus', { status: response.status }));
       }
 
       const createdSession = payload?.session || payload;
       setNewSession(DEFAULT_NEW_SESSION);
       setNewSessionMemberIds([]);
       setNewSessionMemberQuery('');
-      setNewSessionMessage(isEn ? 'Session created successfully.' : 'Session créée avec succès.');
+      setNewSessionMessage(t('adminConsole.sessionCreatedSuccessfully'));
       setShowNewSessionForm(false);
       await loadAll();
       setActiveTab('sessions');
@@ -1336,9 +1324,9 @@ export default function AdminClient() {
           duration_minutes: createdSession.duration_minutes || '',
         });
       }
-      showNotice(isEn ? 'Session created successfully from the admin console.' : 'Session créée avec succès depuis la console admin.');
+      showNotice(t('adminConsole.sessionCreatedSuccessfullyFromTheAdmin'));
     } catch (err) {
-      setNewSessionMessage(err.message || (isEn ? 'Unable to create session.' : 'Création session impossible.'));
+      setNewSessionMessage(err.message || t('adminConsole.unableToCreateSession'));
     } finally {
       setBusySaveKey('');
     }
@@ -1347,7 +1335,7 @@ export default function AdminClient() {
   async function handleDeleteChallenge(challengeItem) {
     if (!token || !challengeItem?.id) return;
     const label = challengeItem.name || challengeItem.title || challengeItem.id;
-    const accepted = window.confirm(isEn ? `Delete challenge ${label}?` : `Supprimer le challenge ${label} ?`);
+    const accepted = window.confirm(t('adminConsole.deleteChallengeLabel', { label }));
     if (!accepted) return;
 
     const key = `challenge:${challengeItem.id}`;
@@ -1364,13 +1352,13 @@ export default function AdminClient() {
 
       if (!response.ok) {
         const body = await response.text();
-        throw new Error(body || (isEn ? `Unable to delete (${response.status})` : `Suppression impossible (${response.status})`));
+        throw new Error(body || t('adminConsole.unableToDeleteStatus', { status: response.status }));
       }
 
       await loadAll();
-      showNotice(isEn ? 'Challenge deleted successfully.' : 'Challenge supprimé avec succès.');
+      showNotice(t('adminConsole.challengeDeletedSuccessfully'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while deleting challenge.' : 'Erreur lors de la suppression challenge.'));
+      setError(err.message || t('adminConsole.errorWhileDeletingChallenge'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -1383,22 +1371,22 @@ export default function AdminClient() {
     setNewChallengeMessage('');
 
     if (!newChallenge.name.trim()) {
-      setNewChallengeMessage(isEn ? 'Challenge name is required.' : 'Le nom du challenge est requis.');
+      setNewChallengeMessage(t('adminConsole.challengeNameIsRequired'));
       return;
     }
 
     if (!CHALLENGE_TYPES.has(newChallenge.type)) {
-      setNewChallengeMessage(isEn ? 'Invalid challenge type.' : 'Type de challenge invalide.');
+      setNewChallengeMessage(t('adminConsole.invalidChallengeType'));
       return;
     }
 
     if (!CHALLENGE_STATUSES.has(newChallenge.status)) {
-      setNewChallengeMessage(isEn ? 'Invalid challenge status.' : 'Statut de challenge invalide.');
+      setNewChallengeMessage(t('adminConsole.invalidChallengeStatus'));
       return;
     }
 
     if (!CHALLENGE_SOURCES.has(newChallenge.source)) {
-      setNewChallengeMessage(isEn ? 'Invalid challenge source.' : 'Source de challenge invalide.');
+      setNewChallengeMessage(t('adminConsole.invalidChallengeSource'));
       return;
     }
 
@@ -1434,16 +1422,16 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.details || (isEn ? `Unable to create challenge (${response.status})` : `Création challenge impossible (${response.status})`));
+        throw new Error(payload.error || payload.details || t('adminConsole.unableToCreateChallengeStatus', { status: response.status }));
       }
 
       setNewChallenge(DEFAULT_NEW_CHALLENGE);
-      setNewChallengeMessage(isEn ? 'Challenge created successfully.' : 'Challenge créé avec succès.');
+      setNewChallengeMessage(t('adminConsole.challengeCreatedSuccessfully'));
       setShowNewChallengeForm(false);
       await loadAll();
-      showNotice(isEn ? 'Challenge created successfully.' : 'Challenge créé avec succès.');
+      showNotice(t('adminConsole.challengeCreatedSuccessfully'));
     } catch (err) {
-      setNewChallengeMessage(err.message || (isEn ? 'Unable to create challenge.' : 'Création challenge impossible.'));
+      setNewChallengeMessage(err.message || t('adminConsole.unableToCreateChallenge'));
     } finally {
       setBusySaveKey('');
     }
@@ -1475,14 +1463,14 @@ export default function AdminClient() {
       engine_key: challengeItem.engine_key || '',
       description: challengeItem.description || '',
       engine_config: normalizedEngineConfig,
-      rules_objective: String(resolveLocalizedRuleValue(rulesSource.objective, isEn ? 'en' : 'fr') || ''),
-      rules_facilitator: Array.isArray(resolveLocalizedRuleValue(rulesSource.facilitator, isEn ? 'en' : 'fr'))
-        ? resolveLocalizedRuleValue(rulesSource.facilitator, isEn ? 'en' : 'fr').join('\n')
+      rules_objective: String(resolveLocalizedRuleValue(rulesSource.objective, locale) || ''),
+      rules_facilitator: Array.isArray(resolveLocalizedRuleValue(rulesSource.facilitator, locale))
+        ? resolveLocalizedRuleValue(rulesSource.facilitator, locale).join('\n')
         : '',
-      rules_participant: Array.isArray(resolveLocalizedRuleValue(rulesSource.participant, isEn ? 'en' : 'fr'))
-        ? resolveLocalizedRuleValue(rulesSource.participant, isEn ? 'en' : 'fr').join('\n')
+      rules_participant: Array.isArray(resolveLocalizedRuleValue(rulesSource.participant, locale))
+        ? resolveLocalizedRuleValue(rulesSource.participant, locale).join('\n')
         : '',
-      rules_footnote: String(resolveLocalizedRuleValue(rulesSource.footnote, isEn ? 'en' : 'fr') || ''),
+      rules_footnote: String(resolveLocalizedRuleValue(rulesSource.footnote, locale) || ''),
       player_min: playerRange.min || '',
       player_recommended: playerRange.recommended || '',
       player_max: playerRange.max || '',
@@ -1503,7 +1491,7 @@ export default function AdminClient() {
 
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(payload.error || payload.details || (isEn ? `Unable to save challenge (${response.status})` : `Sauvegarde challenge impossible (${response.status})`));
+      throw new Error(payload.error || payload.details || t('adminConsole.unableToSaveChallengeStatus', { status: response.status }));
     }
 
     const persistedConfig = cloneJson(payload?.engine_config, null) || cloneJson(nextEngineConfig, {}) || {};
@@ -1536,12 +1524,12 @@ export default function AdminClient() {
 
     const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!allowed.includes(file.type)) {
-      setChallengeImageUploadError(isEn ? 'Unsupported format. Use JPG or PNG.' : 'Format non supporté. Utilisez JPG ou PNG.');
+      setChallengeImageUploadError(t('adminConsole.unsupportedFormatUseJpgOrPng'));
       event.target.value = '';
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
-      setChallengeImageUploadError(isEn ? 'Image too large (max 8 MB).' : 'Image trop volumineuse (max 8 Mo).');
+      setChallengeImageUploadError(t('adminConsole.imageTooLargeMax8Mb'));
       event.target.value = '';
       return;
     }
@@ -1561,19 +1549,19 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || (isEn ? `Unable to upload (${response.status})` : `Téléversement impossible (${response.status})`));
+        throw new Error(payload.error || t('adminConsole.unableToUploadStatus', { status: response.status }));
       }
 
       const uploadedUrl = normalizeUploadResultUrl(payload);
       if (!uploadedUrl) {
-        throw new Error(isEn ? 'Missing image URL in upload response.' : 'URL image manquante dans la réponse upload.');
+        throw new Error(t('adminConsole.missingImageUrlInUploadResponse'));
       }
 
       const nextEngineConfig = ensureEscapeRoomE5Image(editingChallenge.engine_config, uploadedUrl);
       await persistChallengeEngineConfig(editingChallenge.id, nextEngineConfig);
-      showNotice(isEn ? 'Puzzle 5 image uploaded and saved automatically.' : 'Image énigme 5 téléversée et sauvegardée automatiquement.');
+      showNotice(t('adminConsole.puzzle5ImageUploadedAndSaved'));
     } catch (err) {
-      setChallengeImageUploadError(err.message || (isEn ? 'Unable to upload image.' : 'Upload image impossible.'));
+      setChallengeImageUploadError(err.message || t('adminConsole.unableToUploadImage'));
     } finally {
       setChallengeImageUploadBusy(false);
       event.target.value = '';
@@ -1590,12 +1578,12 @@ export default function AdminClient() {
 
     const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!allowed.includes(file.type)) {
-      setChallengeImageUploadError(isEn ? 'Unsupported format. Use JPG or PNG.' : 'Format non supporté. Utilisez JPG ou PNG.');
+      setChallengeImageUploadError(t('adminConsole.unsupportedFormatUseJpgOrPng'));
       event.target.value = '';
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
-      setChallengeImageUploadError(isEn ? 'Image too large (max 8 MB).' : 'Image trop volumineuse (max 8 Mo).');
+      setChallengeImageUploadError(t('adminConsole.imageTooLargeMax8Mb'));
       event.target.value = '';
       return;
     }
@@ -1615,12 +1603,12 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || (isEn ? `Unable to upload (${response.status})` : `Téléversement impossible (${response.status})`));
+        throw new Error(payload.error || t('adminConsole.unableToUploadStatus', { status: response.status }));
       }
 
       const uploadedUrl = normalizeUploadResultUrl(payload);
       if (!uploadedUrl) {
-        throw new Error(isEn ? 'Missing image URL in upload response.' : 'URL image manquante dans la réponse upload.');
+        throw new Error(t('adminConsole.missingImageUrlInUploadResponse'));
       }
 
       const currentConfig = ensureCopuzzleConfig(editingChallenge.engine_config);
@@ -1650,9 +1638,9 @@ export default function AdminClient() {
       };
 
       await persistChallengeEngineConfig(editingChallenge.id, nextEngineConfig);
-      showNotice(isEn ? 'CoPuzzle reference image uploaded and saved automatically.' : 'Image de référence CoPuzzle téléversée et sauvegardée automatiquement.');
+      showNotice(t('adminConsole.copuzzleReferenceImageUploadedAndSaved'));
     } catch (err) {
-      setChallengeImageUploadError(err.message || (isEn ? 'Unable to upload image.' : 'Upload image impossible.'));
+      setChallengeImageUploadError(err.message || t('adminConsole.unableToUploadImage'));
     } finally {
       setChallengeImageUploadBusy(false);
       event.target.value = '';
@@ -1664,17 +1652,17 @@ export default function AdminClient() {
     if (!token || !editingChallenge?.id) return;
 
     if (!editingChallenge.name.trim()) {
-      setError(isEn ? 'Challenge name is required.' : 'Le nom du challenge est requis.');
+      setError(t('adminConsole.challengeNameIsRequired'));
       return;
     }
 
     if (!CHALLENGE_TYPES.has(editingChallenge.type)) {
-      setError(isEn ? 'Invalid challenge type.' : 'Type de challenge invalide.');
+      setError(t('adminConsole.invalidChallengeType'));
       return;
     }
 
     if (!CHALLENGE_STATUSES.has(editingChallenge.status)) {
-      setError(isEn ? 'Invalid challenge status.' : 'Statut de challenge invalide.');
+      setError(t('adminConsole.invalidChallengeStatus'));
       return;
     }
 
@@ -1708,14 +1696,14 @@ export default function AdminClient() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error || payload.details || (isEn ? `Unable to update (${response.status})` : `Mise à jour impossible (${response.status})`));
+        throw new Error(payload.error || payload.details || t('adminConsole.unableToUpdateStatus', { status: response.status }));
       }
 
       setEditingChallenge(null);
       await loadAll();
-      showNotice(isEn ? 'Challenge updated successfully.' : 'Challenge mis à jour avec succès.');
+      showNotice(t('adminConsole.challengeUpdatedSuccessfully'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while updating challenge.' : 'Erreur lors de la mise à jour challenge.'));
+      setError(err.message || t('adminConsole.errorWhileUpdatingChallenge'));
     } finally {
       setBusySaveKey('');
     }
@@ -1753,17 +1741,17 @@ export default function AdminClient() {
     const payload = buildPricingPayloadFromDraft(newPricingPlan);
 
     if (!payload.name) {
-      setNewPricingMessage(isEn ? 'Plan name is required.' : 'Le nom de la formule est requis.');
+      setNewPricingMessage(t('adminConsole.planNameIsRequired'));
       return;
     }
 
     if (!Number.isFinite(payload.price) || payload.price < 0) {
-      setNewPricingMessage(isEn ? 'Price is required and must be positive.' : 'Le prix est requis et doit être positif.');
+      setNewPricingMessage(t('adminConsole.priceIsRequiredAndMustBe'));
       return;
     }
 
     if (!PRICING_BILLING_CYCLES.has(payload.billing_cycle)) {
-      setNewPricingMessage(isEn ? 'Invalid billing cycle.' : 'Cycle de facturation invalide.');
+      setNewPricingMessage(t('adminConsole.invalidBillingCycle'));
       return;
     }
 
@@ -1782,16 +1770,16 @@ export default function AdminClient() {
 
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(body.error || (isEn ? `Unable to create plan (${response.status})` : `Création formule impossible (${response.status})`));
+        throw new Error(body.error || t('adminConsole.unableToCreatePlanStatus', { status: response.status }));
       }
 
       setNewPricingPlan(DEFAULT_NEW_PRICING_PLAN);
-      setNewPricingMessage(isEn ? 'Plan created successfully.' : 'Formule créée avec succès.');
+      setNewPricingMessage(t('adminConsole.planCreatedSuccessfully'));
       setShowNewPricingPlanForm(false);
       await loadAll();
-      showNotice(isEn ? 'Pricing plan created.' : 'Formule tarifaire créée.');
+      showNotice(t('adminConsole.pricingPlanCreated'));
     } catch (err) {
-      setNewPricingMessage(err.message || (isEn ? 'Unable to create plan.' : 'Création formule impossible.'));
+      setNewPricingMessage(err.message || t('adminConsole.unableToCreatePlan'));
     } finally {
       setBusySaveKey('');
     }
@@ -1808,17 +1796,17 @@ export default function AdminClient() {
 
     const payload = buildPricingPayloadFromDraft(editingPricingPlan);
     if (!payload.name) {
-      setError(isEn ? 'Plan name is required.' : 'Le nom de la formule est requis.');
+      setError(t('adminConsole.planNameIsRequired'));
       return;
     }
 
     if (!Number.isFinite(payload.price) || payload.price < 0) {
-      setError(isEn ? 'Price must be valid and positive.' : 'Le prix doit être valide et positif.');
+      setError(t('adminConsole.priceMustBeValidAndPositive'));
       return;
     }
 
     if (!PRICING_BILLING_CYCLES.has(payload.billing_cycle)) {
-      setError(isEn ? 'Invalid billing cycle.' : 'Cycle de facturation invalide.');
+      setError(t('adminConsole.invalidBillingCycle'));
       return;
     }
 
@@ -1837,14 +1825,14 @@ export default function AdminClient() {
 
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(body.error || (isEn ? `Unable to update plan (${response.status})` : `Mise à jour formule impossible (${response.status})`));
+        throw new Error(body.error || t('adminConsole.unableToUpdatePlanStatus', { status: response.status }));
       }
 
       setEditingPricingPlan(null);
       await loadAll();
-      showNotice(isEn ? 'Pricing plan updated.' : 'Formule tarifaire mise à jour.');
+      showNotice(t('adminConsole.pricingPlanUpdated'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while updating the plan.' : 'Erreur lors de la mise à jour de la formule.'));
+      setError(err.message || t('adminConsole.errorWhileUpdatingThePlan'));
     } finally {
       setBusySaveKey('');
     }
@@ -1852,7 +1840,7 @@ export default function AdminClient() {
 
   async function handleDeletePricingPlan(plan) {
     if (!token || !plan?.id) return;
-    const accepted = window.confirm(isEn ? `Delete plan ${plan.name || plan.id}?` : `Supprimer la formule ${plan.name || plan.id} ?`);
+    const accepted = window.confirm(t('adminConsole.deletePlanName', { name: plan.name || plan.id }));
     if (!accepted) return;
 
     const key = `pricing-plan:${plan.id}`;
@@ -1869,16 +1857,16 @@ export default function AdminClient() {
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw new Error(body.error || (isEn ? `Unable to delete plan (${response.status})` : `Suppression formule impossible (${response.status})`));
+        throw new Error(body.error || t('adminConsole.unableToDeletePlanStatus', { status: response.status }));
       }
 
       if (editingPricingPlan && String(editingPricingPlan.id) === String(plan.id)) {
         setEditingPricingPlan(null);
       }
       await loadAll();
-      showNotice(isEn ? 'Pricing plan deleted.' : 'Formule tarifaire supprimée.');
+      showNotice(t('adminConsole.pricingPlanDeleted'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while deleting the plan.' : 'Erreur lors de la suppression de la formule.'));
+      setError(err.message || t('adminConsole.errorWhileDeletingThePlan'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -1905,12 +1893,12 @@ export default function AdminClient() {
 
     const blockKey = String(newLandingBlock.block_key || '').trim().toLowerCase();
     if (!blockKey) {
-      setNewLandingMessage(isEn ? 'Block key is required.' : 'La clé du bloc est requise.');
+      setNewLandingMessage(t('adminConsole.blockKeyIsRequired'));
       return;
     }
 
     if (!isAllowedLandingBlockKey(blockKey)) {
-      setNewLandingMessage(isEn ? `Unauthorized block key. Use only: ${LANDING_ALLOWED_BLOCK_KEY_HINT}` : `Clé bloc non autorisée. Utilisez uniquement: ${LANDING_ALLOWED_BLOCK_KEY_HINT}`);
+      setNewLandingMessage(t('adminConsole.unauthorizedBlockKeyUseOnlyLanding', { LANDING_ALLOWED_BLOCK_KEY_HINT }));
       return;
     }
 
@@ -1932,16 +1920,16 @@ export default function AdminClient() {
 
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(body.error || (isEn ? `Unable to create block (${response.status})` : `Création bloc impossible (${response.status})`));
+        throw new Error(body.error || t('adminConsole.unableToCreateBlockStatus', { status: response.status }));
       }
 
       setNewLandingBlock(DEFAULT_NEW_LANDING_BLOCK);
-      setNewLandingMessage(isEn ? 'Landing block saved.' : 'Bloc landing enregistré.');
+      setNewLandingMessage(t('adminConsole.landingBlockSaved'));
       setShowNewLandingBlockForm(false);
       await loadAll();
-      showNotice(isEn ? 'Landing block created/updated.' : 'Bloc landing créé/mis à jour.');
+      showNotice(t('adminConsole.landingBlockCreatedUpdated'));
     } catch (err) {
-      setNewLandingMessage(err.message || (isEn ? 'Error while creating landing block.' : 'Erreur création bloc landing.'));
+      setNewLandingMessage(err.message || t('adminConsole.errorWhileCreatingLandingBlock'));
     } finally {
       setBusySaveKey('');
     }
@@ -1958,12 +1946,12 @@ export default function AdminClient() {
 
     const blockKey = String(editingLandingBlock.block_key || '').trim().toLowerCase();
     if (!blockKey) {
-      setError(isEn ? 'Block key is required.' : 'La clé du bloc est requise.');
+      setError(t('adminConsole.blockKeyIsRequired'));
       return;
     }
 
     if (!isAllowedLandingBlockKey(blockKey)) {
-      setError(isEn ? `Unauthorized block key. Use only: ${LANDING_ALLOWED_BLOCK_KEY_HINT}` : `Clé bloc non autorisée. Utilisez uniquement: ${LANDING_ALLOWED_BLOCK_KEY_HINT}`);
+      setError(t('adminConsole.unauthorizedBlockKeyUseOnlyLanding', { LANDING_ALLOWED_BLOCK_KEY_HINT }));
       return;
     }
 
@@ -1984,14 +1972,14 @@ export default function AdminClient() {
 
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(body.error || (isEn ? `Unable to update block (${response.status})` : `Mise à jour bloc impossible (${response.status})`));
+        throw new Error(body.error || t('adminConsole.unableToUpdateBlockStatus', { status: response.status }));
       }
 
       setEditingLandingBlock(null);
       await loadAll();
-      showNotice(isEn ? 'Landing block updated.' : 'Bloc landing mis à jour.');
+      showNotice(t('adminConsole.landingBlockUpdated'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while updating landing block.' : 'Erreur mise à jour bloc landing.'));
+      setError(err.message || t('adminConsole.errorWhileUpdatingLandingBlock'));
     } finally {
       setBusySaveKey('');
     }
@@ -1999,7 +1987,7 @@ export default function AdminClient() {
 
   async function handleDeleteLandingBlock(block) {
     if (!token || !block?.block_key) return;
-    const accepted = window.confirm(isEn ? `Delete block ${block.block_key}?` : `Supprimer le bloc ${block.block_key} ?`);
+    const accepted = window.confirm(t('adminConsole.deleteBlockBlockKey', { block_key: block.block_key }));
     if (!accepted) return;
 
     const key = `landing:${block.block_key}`;
@@ -2016,7 +2004,7 @@ export default function AdminClient() {
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw new Error(body.error || (isEn ? `Unable to delete block (${response.status})` : `Suppression bloc impossible (${response.status})`));
+        throw new Error(body.error || t('adminConsole.unableToDeleteBlockStatus', { status: response.status }));
       }
 
       if (editingLandingBlock && editingLandingBlock.block_key === block.block_key) {
@@ -2024,9 +2012,9 @@ export default function AdminClient() {
       }
 
       await loadAll();
-      showNotice(isEn ? 'Landing block deleted.' : 'Bloc landing supprimé.');
+      showNotice(t('adminConsole.landingBlockDeleted'));
     } catch (err) {
-      setError(err.message || (isEn ? 'Error while deleting landing block.' : 'Erreur suppression bloc landing.'));
+      setError(err.message || t('adminConsole.errorWhileDeletingLandingBlock'));
     } finally {
       setBusyDeleteKey('');
     }
@@ -2301,24 +2289,24 @@ export default function AdminClient() {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>{isEn ? 'Checking admin session...' : 'Vérification de la session admin...'}</h1>
-          <p>{isEn ? 'Loading...' : 'Chargement en cours.'}</p>
+          <h1>{t('adminConsole.checkingAdminSession')}</h1>
+          <p>{t('adminConsole.loading')}</p>
         </section>
       </main>
     );
   }
 
   const TAB_ITEMS = [
-    { id: 'dashboard', label: isEn ? 'Dashboard' : 'Tableau de bord', badge: null },
-    { id: 'analytics', label: isEn ? 'Analytics' : 'Statistiques', badge: null },
-    { id: 'users', label: isEn ? 'Users' : 'Utilisateurs', badge: stats.pending > 0 ? stats.pending : null },
-    { id: 'participants', label: isEn ? 'Participants' : 'Participants', badge: null },
-    { id: 'sessions', label: isEn ? 'Sessions' : 'Sessions', badge: stats.activeSessions > 0 ? stats.activeSessions : null },
+    { id: 'dashboard', label: t('adminConsole.dashboard'), badge: null },
+    { id: 'analytics', label: t('adminConsole.analytics'), badge: null },
+    { id: 'users', label: t('adminConsole.users'), badge: stats.pending > 0 ? stats.pending : null },
+    { id: 'participants', label: t('adminConsole.participants'), badge: null },
+    { id: 'sessions', label: t('adminConsole.sessions'), badge: stats.activeSessions > 0 ? stats.activeSessions : null },
     { id: 'challenges', label: 'Challenges', badge: null },
-    { id: 'linkedin', label: isEn ? 'LinkedIn posts' : 'Posts LinkedIn', badge: null, href: withLocalePath('/admin/linkedin') },
-    { id: 'billing', label: isEn ? 'Billing' : 'Paiements', badge: null, href: withLocalePath('/admin/billing') },
-    { id: 'pricing', label: isEn ? 'Pricing' : 'Tarification', badge: stats.pricingPlans > 0 ? stats.pricingPlans : null },
-    { id: 'landing', label: isEn ? 'Landing CMS' : 'Contenu d’accueil', badge: stats.landingBlocks > 0 ? stats.landingBlocks : null },
+    { id: 'linkedin', label: t('adminConsole.linkedinPosts'), badge: null, href: withLocalePath('/admin/linkedin') },
+    { id: 'billing', label: t('adminConsole.billing'), badge: null, href: withLocalePath('/admin/billing') },
+    { id: 'pricing', label: t('adminConsole.pricing'), badge: stats.pricingPlans > 0 ? stats.pricingPlans : null },
+    { id: 'landing', label: t('adminConsole.landingCms'), badge: stats.landingBlocks > 0 ? stats.landingBlocks : null },
   ];
 
   function handleAdminTabClick(tab) {
@@ -2343,7 +2331,7 @@ export default function AdminClient() {
         <aside className="admin-sidebar">
           <div className="admin-sidebar__brand">
             <p className="admin-sidebar__eyebrow">TeamBlender</p>
-            <p className="admin-sidebar__title">{isEn ? 'Admin console' : 'Console admin'}</p>
+            <p className="admin-sidebar__title">{t('adminConsole.adminConsole')}</p>
           </div>
 
           <nav className="admin-sidebar__nav">
@@ -2374,7 +2362,7 @@ export default function AdminClient() {
               justifyContent: 'space-between',
             }}>
               <span>{error}</span>
-              <button type="button" aria-label={isEn ? 'Close error message' : 'Fermer le message d’erreur'} onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
+              <button type="button" aria-label={t('adminConsole.closeErrorMessage')} onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
             </div>
           ) : null}
 
@@ -2385,11 +2373,11 @@ export default function AdminClient() {
               justifyContent: 'space-between',
             }}>
               <span>{notice}</span>
-              <button type="button" aria-label={isEn ? 'Close info message' : 'Fermer le message d’information'} onClick={() => setNotice('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#15803d', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
+              <button type="button" aria-label={t('adminConsole.closeInfoMessage')} onClick={() => setNotice('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#15803d', fontSize: '16px', lineHeight: 1, padding: '0 0 0 12px' }}>✕</button>
             </div>
           ) : null}
 
-          <div className="admin-mobile-tabs" aria-label={isEn ? 'Admin mobile navigation' : 'Navigation admin mobile'}>
+          <div className="admin-mobile-tabs" aria-label={t('adminConsole.adminMobileNavigation')}>
             {TAB_ITEMS.map((tab) => (
               <button
                 key={`mobile-${tab.id}`}
@@ -2408,25 +2396,25 @@ export default function AdminClient() {
             <div>
               <div className="admin-page-hero admin-page-hero--dashboard">
                 <div>
-                  <p className="admin-page-hero__eyebrow">{isEn ? 'Operations center' : 'Centre d’opérations'}</p>
-                  <h1 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 6px' }}>{isEn ? 'Dashboard' : 'Tableau de bord'}</h1>
-                  <p className="admin-page-hero__text">{isEn ? 'Platform overview in real time.' : 'Vue d’ensemble de la plateforme en temps réel.'}</p>
+                  <p className="admin-page-hero__eyebrow">{t('adminConsole.operationsCenter')}</p>
+                  <h1 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 6px' }}>{t('adminConsole.dashboard')}</h1>
+                  <p className="admin-page-hero__text">{t('adminConsole.platformOverviewInRealTime')}</p>
                 </div>
                 <div className="admin-page-hero__pill">{pickUserLabel(user)}</div>
               </div>
               <div className="admin-stat-grid" style={{ marginBottom: '24px' }}>
                 {[
-                  { value: stats.users, label: isEn ? 'Users' : 'Utilisateurs' },
-                  { value: stats.activeUsers, label: isEn ? 'Active users' : 'Utilisateurs actifs' },
-                  { value: stats.disabledUsers, label: isEn ? 'Inactive users' : 'Utilisateurs inactifs' },
-                  { value: stats.pending, label: isEn ? 'Pending requests' : 'Demandes en attente', highlight: stats.pending > 0 },
+                  { value: stats.users, label: t('adminConsole.users') },
+                  { value: stats.activeUsers, label: t('adminConsole.activeUsers') },
+                  { value: stats.disabledUsers, label: t('adminConsole.inactiveUsers') },
+                  { value: stats.pending, label: t('adminConsole.pendingRequests'), highlight: stats.pending > 0 },
                   { value: stats.participants, label: 'Participants' },
-                  { value: stats.activeParticipants, label: isEn ? 'Active participants' : 'Participants actifs' },
+                  { value: stats.activeParticipants, label: t('adminConsole.activeParticipants') },
                   { value: stats.sessions, label: 'Sessions' },
-                  { value: stats.activeSessions, label: isEn ? 'Live sessions' : 'Sessions en cours', highlight: stats.activeSessions > 0 },
+                  { value: stats.activeSessions, label: t('adminConsole.liveSessions'), highlight: stats.activeSessions > 0 },
                   { value: stats.challenges, label: 'Challenges' },
-                  { value: stats.pricingPlans, label: isEn ? 'Pricing plans' : 'Formules tarifaires' },
-                  { value: stats.landingBlocks, label: isEn ? 'Landing CMS blocks' : 'Blocs landing CMS' },
+                  { value: stats.pricingPlans, label: t('adminConsole.pricingPlans') },
+                  { value: stats.landingBlocks, label: t('adminConsole.landingCmsBlocks') },
                 ].map((item) => (
                   <div key={item.label} className={`admin-stat-card${item.highlight ? ' admin-stat-card--highlight' : ''}`}>
                     <p className="admin-stat-card__value">{item.value}</p>
@@ -2438,21 +2426,19 @@ export default function AdminClient() {
               <div className="admin-panel-card" style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                   <div>
-                    <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Recent admin activity' : 'Activité admin récente'}</h2>
+                    <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.recentAdminActivity')}</h2>
                     <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>
-                      {isEn
-                        ? `${adminVisitSummary.totalVisits} visits recorded in the last 30 days.`
-                        : `${adminVisitSummary.totalVisits} visites enregistrées sur les 30 derniers jours.`}
+                      {t('adminConsole.totalvisitsVisitsRecordedInTheLast', { totalVisits: adminVisitSummary.totalVisits })}
                     </p>
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', textAlign: 'right' }}>
-                    <div><strong style={{ color: 'var(--color-primary, #4f46e5)' }}>{adminVisitSummary.totalVisits}</strong> {isEn ? 'visits' : 'visites'}</div>
-                    <div>{adminVisitSummary.uniqueUsers} {isEn ? 'active users' : 'utilisateurs actifs'}</div>
+                    <div><strong style={{ color: 'var(--color-primary, #4f46e5)' }}>{adminVisitSummary.totalVisits}</strong> {t('adminConsole.visits')}</div>
+                    <div>{adminVisitSummary.uniqueUsers} {t('adminConsole.activeUsers2')}</div>
                   </div>
                 </div>
 
                 {adminActivityLoading ? (
-                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>{isEn ? 'Loading activity...' : 'Chargement de l’activité...'}</p>
+                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>{t('adminConsole.loadingActivity')}</p>
                 ) : adminVisits.length > 0 ? (
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {adminVisits.map((visit) => (
@@ -2460,25 +2446,25 @@ export default function AdminClient() {
                         <div style={{ minWidth: 0 }}>
                           <p style={{ fontWeight: 600, margin: '0 0 2px', fontSize: '14px' }}>{String(visit.page || '/admin').trim() || '/admin'}</p>
                           <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '12px' }}>
-                            {String(visit.eventType || 'page_view').trim() || 'page_view'} · {visit.userEmail || (isEn ? 'Unknown user' : 'Utilisateur inconnu')}
+                            {String(visit.eventType || 'page_view').trim() || 'page_view'} · {visit.userEmail || t('adminConsole.unknownUser')}
                           </p>
                         </div>
                         <div style={{ fontSize: '12px', color: 'var(--color-muted, #6b7280)', textAlign: 'right', flexShrink: 0 }}>
-                          <div>{visit.createdAt ? new Date(visit.createdAt).toLocaleString(isEn ? 'en-US' : 'fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : (isEn ? 'Just now' : 'À l’instant')}</div>
+                          <div>{visit.createdAt ? formatDateTime(visit.createdAt, locale) : t('adminConsole.justNow')}</div>
                           <div>{visit.userRole || 'admin'}</div>
                         </div>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>{isEn ? 'No visit activity has been recorded yet.' : 'Aucune visite n’a encore été enregistrée.'}</p>
+                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>{t('adminConsole.noVisitActivityHasBeenRecorded')}</p>
                 )}
               </div>
 
               {/* Pending approvals on dashboard */}
               {pendingUsers.length > 0 ? (
                 <div className="admin-panel-card admin-panel-card--accent">
-                  <h2 style={{ fontSize: '16px', fontWeight: 700, marginTop: 0, marginBottom: '16px' }}>{isEn ? 'Pending requests' : 'Demandes en attente'} ({pendingUsers.length})</h2>
+                  <h2 style={{ fontSize: '16px', fontWeight: 700, marginTop: 0, marginBottom: '16px' }}>{t('adminConsole.pendingRequests')} ({pendingUsers.length})</h2>
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {pendingUsers.map((u) => (
                       <li key={String(u.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '12px 0', borderBottom: '1px solid var(--color-border, #e5e7eb)' }}>
@@ -2487,8 +2473,8 @@ export default function AdminClient() {
                           <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>{u.email}</p>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                          <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '13px', padding: '6px 14px' }}>{isEn ? 'Approve' : 'Valider'}</button>
-                          <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '13px', padding: '6px 14px' }}>{isEn ? 'Reject' : 'Refuser'}</button>
+                          <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '13px', padding: '6px 14px' }}>{t('adminConsole.approve')}</button>
+                          <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '13px', padding: '6px 14px' }}>{t('adminConsole.reject')}</button>
                         </div>
                       </li>
                     ))}
@@ -2503,11 +2489,9 @@ export default function AdminClient() {
             <div>
               <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
                 <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'PostHog analytics' : 'Statistiques PostHog'}</h1>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.posthogAnalytics')}</h1>
                   <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                    {isEn
-                      ? `Summary of the last ${analyticsSnapshot.lookbackDays} days for product and business monitoring.`
-                      : `Synthèse des ${analyticsSnapshot.lookbackDays} derniers jours pour le pilotage produit et commercial.`}
+                    {t('adminConsole.summaryOfTheLastLookbackdaysDays', { lookbackDays: analyticsSnapshot.lookbackDays })}
                   </p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -2525,7 +2509,7 @@ export default function AdminClient() {
                         color: analyticsDays === days ? 'var(--color-primary, #4f46e5)' : undefined,
                       }}
                     >
-                      {days}{isEn ? 'd' : 'j'}
+                      {days}{t('adminConsole.d')}
                     </button>
                   ))}
                   <button
@@ -2535,7 +2519,7 @@ export default function AdminClient() {
                     disabled={analyticsLoading}
                     style={{ fontSize: '12px', padding: '6px 10px' }}
                   >
-                    {analyticsLoading ? (isEn ? 'Refreshing...' : 'Actualisation...') : (isEn ? 'Refresh' : 'Actualiser')}
+                    {analyticsLoading ? t('adminConsole.refreshing') : t('adminConsole.refresh')}
                   </button>
                   <button
                     type="button"
@@ -2544,7 +2528,7 @@ export default function AdminClient() {
                     disabled={analyticsLoading || !analyticsSnapshot.configured || analyticsSnapshot.degraded || Boolean(analyticsError)}
                     style={{ fontSize: '12px', padding: '6px 10px' }}
                   >
-                    {isEn ? 'Export CSV' : 'Export CSV'}
+                    {t('adminConsole.exportCsv')}
                   </button>
                 </div>
               </div>
@@ -2553,76 +2537,72 @@ export default function AdminClient() {
                 {analyticsSnapshot.configured ? (
                   <p style={{ margin: 0, fontSize: '13px', color: analyticsSnapshot.degraded ? 'var(--color-warning, #b45309)' : 'var(--color-success, #15803d)', fontWeight: 600 }}>
                     {analyticsSnapshot.degraded
-                      ? (isEn ? 'PostHog unavailable (degraded mode)' : 'PostHog indisponible (mode dégradé)')
-                      : (isEn ? '✓ PostHog connected' : '✓ PostHog connecté')}
+                      ? t('adminConsole.posthogUnavailableDegradedMode')
+                      : t('adminConsole.posthogConnected')}
                   </p>
                 ) : (
                   <>
-                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-warning, #b45309)', fontWeight: 600 }}>{isEn ? '⚠ Analytics not configured' : '⚠ Analytics non configuré'}</p>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-warning, #b45309)', fontWeight: 600 }}>{t('adminConsole.analyticsNotConfigured')}</p>
                     <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-muted, #6b7280)', lineHeight: 1.55 }}>
-                      {isEn ? 'Add ' : 'Ajoutez '}<code style={{ fontFamily: 'monospace', background: 'var(--color-code-bg, #f3f4f6)', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PROJECT_ID</code>{isEn ? ' and ' : ' et '}
+                      {t('adminConsole.add')}<code style={{ fontFamily: 'monospace', background: 'var(--color-code-bg, #f3f4f6)', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PROJECT_ID</code>{t('adminConsole.and')}
                       <code style={{ fontFamily: 'monospace', background: 'var(--color-code-bg, #f3f4f6)', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PERSONAL_API_KEY</code>{' '}
-                      {isEn ? 'to the backend ' : 'dans le fichier '}<code style={{ fontFamily: 'monospace', background: 'var(--color-code-bg, #f3f4f6)', padding: '1px 4px', borderRadius: '3px' }}>.env</code>{isEn ? ' file, then restart the server.' : ' du backend puis redémarrez le serveur.'}
+                      {t('adminConsole.toTheBackend')}<code style={{ fontFamily: 'monospace', background: 'var(--color-code-bg, #f3f4f6)', padding: '1px 4px', borderRadius: '3px' }}>.env</code>{t('adminConsole.fileThenRestartTheServer')}
                     </p>
                   </>
                 )}
                 {analyticsSnapshot.configured && analyticsSnapshot.degraded && analyticsSnapshot.reason ? (
                   <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-warning-dark, #92400e)', lineHeight: 1.5 }}>
-                    {isEn ? 'Reason' : 'Raison'}: {analyticsSnapshot.reason}
+                    {t('adminConsole.reason')}: {analyticsSnapshot.reason}
                   </p>
                 ) : null}
                 {analyticsSnapshot.errorCode === 'POSTHOG_AUTHENTICATION_FAILED' || analyticsSnapshot.errorCode === 'POSTHOG_ACCESS_DENIED' ? (
                   <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-warning-dark, #92400e)', lineHeight: 1.5 }}>
                     {analyticsSnapshot.errorCode === 'POSTHOG_AUTHENTICATION_FAILED'
-                      ? (isEn
-                        ? 'Replace POSTHOG_PERSONAL_API_KEY with a valid personal API key in the backend configuration, then restart the backend. Do not use the public project token.'
-                        : 'Remplacez POSTHOG_PERSONAL_API_KEY par une clé API personnelle valide dans la configuration du backend, puis redémarrez le backend. Ne pas utiliser le jeton public du projet.')
-                      : (isEn
-                        ? 'Check that the personal API key has access to POSTHOG_PROJECT_ID and the required query permissions.'
-                        : 'Vérifiez que la clé API personnelle a accès à POSTHOG_PROJECT_ID et aux permissions de requête requises.')}
+                      ? t('adminConsole.replacePosthogPersonalApiKeyWith')
+                      : t('adminConsole.checkThatThePersonalApiKey')}
                   </p>
                 ) : null}
                 {analyticsSnapshot.generatedAt ? (
                   <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--color-muted, #6b7280)' }}>
-                    {isEn ? 'Generated at' : 'Généré le'} {new Date(analyticsSnapshot.generatedAt).toLocaleString(isEn ? 'en-US' : 'fr-FR')}
+                    {t('adminConsole.generatedAt')} {formatDate(analyticsSnapshot.generatedAt, locale, NUMERIC_DATE_TIME)}
                   </p>
                 ) : null}
                 {analyticsError ? (
                   <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#b45309' }}>
-                    {isEn ? 'Data temporarily unavailable' : 'Données temporairement indisponibles'}: {analyticsError}
+                    {t('adminConsole.dataTemporarilyUnavailable')}: {analyticsError}
                   </p>
                 ) : null}
               </div>
 
               {analyticsLoading ? (
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)' }}>{isEn ? 'Loading analytics data...' : 'Chargement des données analytics...'}</p>
+                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)' }}>{t('adminConsole.loadingAnalyticsData')}</p>
                 </div>
               ) : null}
 
               <div className="admin-stat-grid" style={{ marginBottom: '16px' }}>
                 {[
-                  { label: isEn ? 'Active users' : 'Utilisateurs actifs', value: Number(analyticsSnapshot.users.totalActive || 0) },
-                  { label: isEn ? 'New users' : 'Nouveaux utilisateurs', value: Number(analyticsSnapshot.users.newUsers || 0) },
-                  { label: isEn ? 'Returning users' : 'Utilisateurs récurrents', value: Number(analyticsSnapshot.users.returningUsers || 0) },
-                  { label: isEn ? 'Page views' : 'Pages vues', value: Number(analyticsSnapshot.engagement.pageViews || 0) },
-                  { label: isEn ? 'Average session duration' : 'Durée session moyenne', value: formatDurationSeconds(analyticsSnapshot.engagement.avgSessionDurationSec) },
-                  { label: isEn ? 'Signups' : 'Inscriptions', value: Number(analyticsSnapshot.conversion.signupCount || 0) },
-                  { label: isEn ? 'Purchases (checkout)' : 'Achats (checkout)', value: Number(analyticsSnapshot.conversion.purchaseCount || 0) },
-                  { label: isEn ? 'Key action (sessions created)' : 'Action clé (sessions créées)', value: Number(analyticsSnapshot.conversion.keyActionCount || 0) },
-                  { label: isEn ? 'Average load time' : 'Temps de chargement moyen', value: `${Math.round(Number(analyticsSnapshot.performance.avgPageLoadMs || 0))} ms` },
-                  { label: isEn ? 'Frontend errors' : 'Erreurs frontend', value: Number(analyticsSnapshot.performance.frontendErrorCount || 0) },
+                  { label: t('adminConsole.activeUsers'), value: Number(analyticsSnapshot.users.totalActive || 0) },
+                  { label: t('adminConsole.newUsers'), value: Number(analyticsSnapshot.users.newUsers || 0) },
+                  { label: t('adminConsole.returningUsers'), value: Number(analyticsSnapshot.users.returningUsers || 0) },
+                  { label: t('adminConsole.pageViews'), value: Number(analyticsSnapshot.engagement.pageViews || 0) },
+                  { label: t('adminConsole.averageSessionDuration'), value: formatDurationSeconds(analyticsSnapshot.engagement.avgSessionDurationSec) },
+                  { label: t('adminConsole.signups'), value: Number(analyticsSnapshot.conversion.signupCount || 0) },
+                  { label: t('adminConsole.purchasesCheckout'), value: Number(analyticsSnapshot.conversion.purchaseCount || 0) },
+                  { label: t('adminConsole.keyActionSessionsCreated'), value: Number(analyticsSnapshot.conversion.keyActionCount || 0) },
+                  { label: t('adminConsole.averageLoadTime'), value: `${Math.round(Number(analyticsSnapshot.performance.avgPageLoadMs || 0))} ms` },
+                  { label: t('adminConsole.frontendErrors'), value: Number(analyticsSnapshot.performance.frontendErrorCount || 0) },
                   {
-                    label: `${isEn ? 'Revenue' : 'Revenus'} (${String(analyticsSnapshot.business.currency || 'EUR').toUpperCase()})`,
+                    label: `${t('adminConsole.revenue')} (${String(analyticsSnapshot.business.currency || 'EUR').toUpperCase()})`,
                     value: formatCurrency(analyticsSnapshot.business.revenue, analyticsSnapshot.business.currency),
                   },
                   {
-                    label: isEn ? 'Average basket' : 'Panier moyen',
+                    label: t('adminConsole.averageBasket'),
                     value: formatCurrency(analyticsSnapshot.business.avgBasket, analyticsSnapshot.business.currency),
                   },
                 ].map((item) => (
                   <div key={item.label} style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 12px' }}>
-                    <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '20px', color: 'var(--color-text, #111)' }}>{!analyticsSnapshot.configured || analyticsSnapshot.degraded ? (isEn ? 'Unavailable' : 'Indisponible') : item.value}</p>
+                    <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '20px', color: 'var(--color-text, #111)' }}>{!analyticsSnapshot.configured || analyticsSnapshot.degraded ? t('adminConsole.unavailable') : item.value}</p>
                     <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>{item.label}</p>
                   </div>
                 ))}
@@ -2632,19 +2612,19 @@ export default function AdminClient() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                   {[
                     {
-                      title: isEn ? 'Top countries' : 'Top pays',
+                      title: t('adminConsole.topCountries'),
                       list: visitorCountries,
                       interactive: true,
                     },
                     {
                       title: effectiveSelectedCountry
-                        ? `${isEn ? 'Cities' : 'Villes'} - ${effectiveSelectedCountry}`
-                        : (isEn ? 'Top cities' : 'Top villes'),
+                        ? `${t('adminConsole.cities')} - ${effectiveSelectedCountry}`
+                        : t('adminConsole.topCities'),
                       list: displayedCitiesForAnalytics,
                       expandable: canExpandCitiesForCountry,
                     },
-                    { title: isEn ? 'Top browsers' : 'Top navigateurs', list: Array.isArray(analyticsSnapshot.visitors.browsers) ? analyticsSnapshot.visitors.browsers : [] },
-                    { title: isEn ? 'Top systems' : 'Top systèmes', list: Array.isArray(analyticsSnapshot.visitors.os) ? analyticsSnapshot.visitors.os : [] },
+                    { title: t('adminConsole.topBrowsers'), list: Array.isArray(analyticsSnapshot.visitors.browsers) ? analyticsSnapshot.visitors.browsers : [] },
+                    { title: t('adminConsole.topSystems'), list: Array.isArray(analyticsSnapshot.visitors.os) ? analyticsSnapshot.visitors.os : [] },
                   ].map((block) => (
                     <div key={block.title} style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 14px' }}>
                       <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700 }}>{block.title}</p>
@@ -2672,7 +2652,7 @@ export default function AdminClient() {
                                       : 'var(--color-text, #111)',
                                     fontWeight: String(item.label || '').trim() === effectiveSelectedCountry ? 700 : 400,
                                   }}
-                                  title={isEn ? `Show cities for ${item.label}` : `Afficher les villes pour ${item.label}`}
+                                  title={t('adminConsole.showCitiesForLabel', { label: item.label })}
                                 >
                                   {item.label}
                                 </button>
@@ -2691,10 +2671,10 @@ export default function AdminClient() {
                           onClick={() => setShowAllCitiesForCountry((current) => !current)}
                           style={{ marginTop: '10px', fontSize: '12px', padding: '4px 8px' }}
                         >
-                          {showAllCitiesForCountry ? (isEn ? 'Show less' : 'Voir moins') : (isEn ? 'Show all cities' : 'Voir toutes les villes')}
+                          {showAllCitiesForCountry ? t('adminConsole.showLess') : t('adminConsole.showAllCities')}
                         </button>
                       ) : (
-                        block.list.length === 0 ? <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>{isEn ? 'No data available.' : 'Aucune donnée disponible.'}</p> : null
+                        block.list.length === 0 ? <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>{t('adminConsole.noDataAvailable')}</p> : null
                       )}
                     </div>
                   ))}
@@ -2710,8 +2690,8 @@ export default function AdminClient() {
             <div>
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Users' : 'Utilisateurs'}</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{isEn ? 'Manage user accounts and approval requests.' : 'Gestion des comptes utilisateurs et demandes d’accès.'}</p>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.users')}</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{t('adminConsole.manageUserAccountsAndApprovalRequests')}</p>
                 </div>
                 <button
                   type="button"
@@ -2722,14 +2702,14 @@ export default function AdminClient() {
                     setShowNewUserForm((current) => !current);
                   }}
                 >
-                  {showNewUserForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Create user' : 'Créer un utilisateur')}
+                  {showNewUserForm ? t('adminConsole.closeForm') : t('adminConsole.createUser')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Pending requests' : 'Demandes en attente'} {pendingUsers.length > 0 ? `(${pendingUsers.length})` : ''}</h2>
-                  {pendingUsers.length === 0 ? <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>{isEn ? 'No pending request.' : 'Aucune demande.'}</p> : null}
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.pendingRequests')} {pendingUsers.length > 0 ? `(${pendingUsers.length})` : ''}</h2>
+                  {pendingUsers.length === 0 ? <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>{t('adminConsole.noPendingRequest')}</p> : null}
                   {pendingUsers.length > 0 ? (
                     <ul className="session-list" style={{ margin: 0 }}>
                       {pendingUsers.map((u) => (
@@ -2739,8 +2719,8 @@ export default function AdminClient() {
                             <p className="session-meta">{u.email}</p>
                           </div>
                           <div className="session-item-actions" style={{ flexShrink: 0 }}>
-                            <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '12px', padding: '5px 10px' }}>{isEn ? 'Approve' : 'Valider'}</button>
-                            <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '12px', padding: '5px 10px' }}>{isEn ? 'Reject' : 'Refuser'}</button>
+                            <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '12px', padding: '5px 10px' }}>{t('adminConsole.approve')}</button>
+                            <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '12px', padding: '5px 10px' }}>{t('adminConsole.reject')}</button>
                           </div>
                         </li>
                       ))}
@@ -2750,22 +2730,22 @@ export default function AdminClient() {
 
                 {showNewUserForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Create an account' : 'Créer un compte'}</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.createAnAccount')}</h2>
                     <form className="auth-form" onSubmit={submitNewUser} autoComplete="off">
                       <input type="text" name="fake_username" autoComplete="username" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
                       <input type="password" name="fake_password" autoComplete="current-password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
-                      <label>{isEn ? 'First name' : 'Prénom'}<input name="create_user_first_name" autoComplete="off" value={newUser.first_name} onChange={(e) => setNewUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
-                      <label>{isEn ? 'Last name' : 'Nom'}<input name="create_user_last_name" autoComplete="off" value={newUser.last_name} onChange={(e) => setNewUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
+                      <label>{t('adminConsole.firstName')}<input name="create_user_first_name" autoComplete="off" value={newUser.first_name} onChange={(e) => setNewUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
+                      <label>{t('adminConsole.lastName')}<input name="create_user_last_name" autoComplete="off" value={newUser.last_name} onChange={(e) => setNewUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
                       <label>Email<input type="email" name="create_user_email" autoComplete="off" value={newUser.email} onChange={(e) => setNewUser((p) => ({ ...p, email: e.target.value }))} required /></label>
-                      <label>{isEn ? 'Password' : 'Mot de passe'}<input type="password" name="create_user_password" autoComplete="new-password" minLength={8} value={newUser.password} onChange={(e) => setNewUser((p) => ({ ...p, password: e.target.value }))} required /></label>
-                      <label>{isEn ? 'Role' : 'Rôle'}
+                      <label>{t('adminConsole.password')}<input type="password" name="create_user_password" autoComplete="new-password" minLength={8} value={newUser.password} onChange={(e) => setNewUser((p) => ({ ...p, password: e.target.value }))} required /></label>
+                      <label>{t('adminConsole.role')}
                         <select value={newUser.role} onChange={(e) => setNewUser((p) => ({ ...p, role: e.target.value }))}>
-                          <option value="user">{isEn ? 'User' : 'Utilisateur'}</option>
+                          <option value="user">{t('adminConsole.user')}</option>
                           <option value="admin">Admin</option>
                         </select>
                       </label>
                       <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <button type="submit" className="btn-primary">{isEn ? 'Create account' : 'Créer le compte'}</button>
+                        <button type="submit" className="btn-primary">{t('adminConsole.createAccount')}</button>
                         <button
                           type="button"
                           className="btn-secondary"
@@ -2774,7 +2754,7 @@ export default function AdminClient() {
                             setNewUserMessage('');
                           }}
                         >
-                          {isEn ? 'Cancel' : 'Annuler'}
+                          {t('adminConsole.cancel')}
                         </button>
                       </div>
                     </form>
@@ -2785,26 +2765,26 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {isEn ? 'List' : 'Liste'} {users.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredUsers.length}/{users.length})</span> : null}
+                      {t('adminConsole.list')} {users.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredUsers.length}/{users.length})</span> : null}
                     </h2>
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder={isEn ? 'Search...' : 'Rechercher...'}
+                      placeholder={t('adminConsole.search')}
                       value={userQuery}
                       onChange={(e) => setUserQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
                     />
                   </div>
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredUsers.length === 0 ? <li className="list-empty">{isEn ? 'No matching user.' : 'Aucun utilisateur ne correspond.'}</li> : null}
+                    {filteredUsers.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingUser')}</li> : null}
                     {filteredUsers.map((u) => (
                       <li key={String(u.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
                           <p className="session-meta">
-                            {u.email} · {u.role || 'user'} · {u.disabled ? (isEn ? 'Inactive' : 'Inactif') : (isEn ? 'Active' : 'Actif')}
-                            {isPlatformAdminEmail(u.email) ? ` · ${isEn ? 'Verification not required' : 'Vérification non requise'}` : ''}
+                            {u.email} · {u.role || 'user'} · {u.disabled ? t('adminConsole.inactive') : t('adminConsole.active')}
+                            {isPlatformAdminEmail(u.email) ? ` · ${t('adminConsole.verificationNotRequired')}` : ''}
                           </p>
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
@@ -2814,8 +2794,8 @@ export default function AdminClient() {
                               className="icon-action-btn"
                               onClick={() => handleAdminUserVerificationOverride(u)}
                               disabled={busySaveKey === `verify-admin:user:${u.id}`}
-                              title={isEn ? 'Manual admin verification' : 'Validation manuelle admin'}
-                              aria-label={isEn ? 'Manual admin verification' : 'Validation manuelle admin'}
+                              title={t('adminConsole.manualAdminVerification')}
+                              aria-label={t('adminConsole.manualAdminVerification')}
                             >
                               {busySaveKey === `verify-admin:user:${u.id}` ? '…' : '✓'}
                             </button>
@@ -2826,8 +2806,8 @@ export default function AdminClient() {
                               className="icon-action-btn"
                               onClick={() => handleResendVerificationLink(u)}
                               disabled={busySaveKey === `verify:user:${u.id}`}
-                              title={isEn ? 'Resend verification link' : 'Renvoyer le lien de vérification'}
-                              aria-label={isEn ? 'Resend verification link' : 'Renvoyer le lien de vérification'}
+                              title={t('adminConsole.resendVerificationLink')}
+                              aria-label={t('adminConsole.resendVerificationLink')}
                             >
                               {busySaveKey === `verify:user:${u.id}` ? '…' : '✉'}
                             </button>
@@ -2836,8 +2816,8 @@ export default function AdminClient() {
                             type="button"
                             className="icon-action-btn"
                             onClick={() => beginEditUser(u)}
-                            title={isEn ? 'Edit' : 'Modifier'}
-                            aria-label={isEn ? 'Edit user' : 'Modifier utilisateur'}
+                            title={t('adminConsole.edit')}
+                            aria-label={t('adminConsole.editUser')}
                           >
                             ✎
                           </button>
@@ -2846,8 +2826,8 @@ export default function AdminClient() {
                             className="icon-action-btn"
                             onClick={() => handleToggleUserStatus(u)}
                             disabled={busySaveKey === `status:user:${u.id}` || String(u.id) === String(user?.id)}
-                            title={u.disabled ? (isEn ? 'Enable' : 'Activer') : (isEn ? 'Disable' : 'Désactiver')}
-                            aria-label={u.disabled ? (isEn ? 'Enable user' : 'Activer utilisateur') : (isEn ? 'Disable user' : 'Désactiver utilisateur')}
+                            title={u.disabled ? t('adminConsole.enable') : t('adminConsole.disable')}
+                            aria-label={u.disabled ? t('adminConsole.enableUser') : t('adminConsole.disableUser')}
                           >
                             {busySaveKey === `status:user:${u.id}` ? '…' : u.disabled ? '↺' : '⏸'}
                           </button>
@@ -2856,8 +2836,8 @@ export default function AdminClient() {
                             className="icon-action-btn icon-action-danger"
                             onClick={() => handleDeleteUser(u)}
                             disabled={busyDeleteKey === `user:${u.id}` || String(u.id) === String(user?.id)}
-                            title={isEn ? 'Delete' : 'Supprimer'}
-                            aria-label={isEn ? 'Delete user' : 'Supprimer utilisateur'}
+                            title={t('adminConsole.delete')}
+                            aria-label={t('adminConsole.deleteUser')}
                           >
                             {busyDeleteKey === `user:${u.id}` ? '…' : '🗑'}
                           </button>
@@ -2875,8 +2855,8 @@ export default function AdminClient() {
             <div>
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Participants' : 'Participants'}</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{isEn ? 'Manage participant accounts linked to users.' : 'Gestion des participants rattachés aux utilisateurs.'}</p>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.participants')}</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{t('adminConsole.manageParticipantAccountsLinkedToUsers')}</p>
                 </div>
                 <button
                   type="button"
@@ -2887,33 +2867,33 @@ export default function AdminClient() {
                     setShowNewParticipantForm((current) => !current);
                   }}
                 >
-                  {showNewParticipantForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Create participant' : 'Créer un participant')}
+                  {showNewParticipantForm ? t('adminConsole.closeForm') : t('adminConsole.createParticipant')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 {showNewParticipantForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Create participant' : 'Créer un participant'}</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.createParticipant')}</h2>
                     <form className="auth-form" onSubmit={submitNewParticipant} autoComplete="off">
                       <input type="text" name="fake_participant_username" autoComplete="username" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
                       <input type="password" name="fake_participant_password" autoComplete="current-password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
-                      <label>{isEn ? 'Owner' : 'Créateur'}
+                      <label>{t('adminConsole.owner')}
                         <select value={newParticipant.owner_id} onChange={(e) => setNewParticipant((prev) => ({ ...prev, owner_id: e.target.value }))} required>
-                          <option value="">{isEn ? 'Select a user' : 'Sélectionner un utilisateur'}</option>
+                          <option value="">{t('adminConsole.selectAUser')}</option>
                           {users.filter((u) => String(u.role || '') === 'user').map((u) => (
                             <option key={String(u.id)} value={String(u.id)}>{u.first_name || ''} {u.last_name || ''} ({u.email})</option>
                           ))}
                         </select>
                       </label>
-                      <label>{isEn ? 'First name' : 'Prénom'}<input name="create_participant_first_name" autoComplete="off" value={newParticipant.first_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
-                      <label>{isEn ? 'Last name' : 'Nom'}<input name="create_participant_last_name" autoComplete="off" value={newParticipant.last_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
+                      <label>{t('adminConsole.firstName')}<input name="create_participant_first_name" autoComplete="off" value={newParticipant.first_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
+                      <label>{t('adminConsole.lastName')}<input name="create_participant_last_name" autoComplete="off" value={newParticipant.last_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
                       <label>Email<input type="email" name="create_participant_email" autoComplete="off" value={newParticipant.email} onChange={(e) => setNewParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
-                      <label>{isEn ? 'Password' : 'Mot de passe'}<input type="password" name="create_participant_password" autoComplete="new-password" minLength={8} value={newParticipant.password} onChange={(e) => setNewParticipant((prev) => ({ ...prev, password: e.target.value }))} required /></label>
-                      <label>{isEn ? 'Job title' : 'Fonction'}<input value={newParticipant.job_title} onChange={(e) => setNewParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
-                      <label>{isEn ? 'Department' : 'Département'}<input value={newParticipant.department} onChange={(e) => setNewParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
+                      <label>{t('adminConsole.password')}<input type="password" name="create_participant_password" autoComplete="new-password" minLength={8} value={newParticipant.password} onChange={(e) => setNewParticipant((prev) => ({ ...prev, password: e.target.value }))} required /></label>
+                      <label>{t('adminConsole.jobTitle')}<input value={newParticipant.job_title} onChange={(e) => setNewParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
+                      <label>{t('adminConsole.department')}<input value={newParticipant.department} onChange={(e) => setNewParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
                       <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>{busySaveKey === 'create:participant' ? (isEn ? 'Creating...' : 'Création...') : (isEn ? 'Create participant' : 'Créer participant')}</button>
+                        <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>{busySaveKey === 'create:participant' ? t('adminConsole.creating') : t('adminConsole.createParticipant2')}</button>
                         <button
                           type="button"
                           className="btn-secondary"
@@ -2922,7 +2902,7 @@ export default function AdminClient() {
                             setNewParticipantMessage('');
                           }}
                         >
-                          {isEn ? 'Cancel' : 'Annuler'}
+                          {t('adminConsole.cancel')}
                         </button>
                       </div>
                     </form>
@@ -2933,24 +2913,24 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {isEn ? 'List' : 'Liste'} {participants.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredParticipants.length}/{participants.length})</span> : null}
+                      {t('adminConsole.list')} {participants.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredParticipants.length}/{participants.length})</span> : null}
                     </h2>
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder={isEn ? 'Search...' : 'Rechercher...'}
+                      placeholder={t('adminConsole.search')}
                       value={participantQuery}
                       onChange={(e) => setParticipantQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
                     />
                   </div>
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredParticipants.length === 0 ? <li className="list-empty">{isEn ? 'No matching participant.' : 'Aucun participant ne correspond.'}</li> : null}
+                    {filteredParticipants.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingParticipant')}</li> : null}
                     {filteredParticipants.map((p) => (
                       <li key={String(p.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{getParticipantDisplayName(p)}</p>
-                          <p className="session-meta">{p.email} · {p.disabled ? (isEn ? 'Inactive' : 'Inactif') : (isEn ? 'Active' : 'Actif')} · {p.creator?.email || `${isEn ? 'Owner' : 'Créateur'} #${p.created_by || '?'}`}</p>
+                          <p className="session-meta">{p.email} · {p.disabled ? t('adminConsole.inactive') : t('adminConsole.active')} · {p.creator?.email || `${t('adminConsole.owner')} #${p.created_by || '?'}`}</p>
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
                           <button
@@ -2958,8 +2938,8 @@ export default function AdminClient() {
                             className="icon-action-btn"
                             onClick={() => handleAdminParticipantVerificationOverride(p)}
                             disabled={busySaveKey === `verify-admin:participant:${p.id}`}
-                            title={isEn ? 'Manual admin verification' : 'Validation manuelle admin'}
-                            aria-label={isEn ? 'Manual participant verification' : 'Validation manuelle participant'}
+                            title={t('adminConsole.manualAdminVerification')}
+                            aria-label={t('adminConsole.manualParticipantVerification')}
                           >
                             {busySaveKey === `verify-admin:participant:${p.id}` ? '…' : '✓'}
                           </button>
@@ -2968,8 +2948,8 @@ export default function AdminClient() {
                             className="icon-action-btn"
                             onClick={() => handleResendParticipantVerificationLink(p)}
                             disabled={busySaveKey === `verify:participant:${p.id}`}
-                            title={isEn ? 'Resend verification link' : 'Renvoyer le lien de vérification'}
-                            aria-label={isEn ? 'Resend participant verification link' : 'Renvoyer le lien de vérification participant'}
+                            title={t('adminConsole.resendVerificationLink')}
+                            aria-label={t('adminConsole.resendParticipantVerificationLink')}
                           >
                             {busySaveKey === `verify:participant:${p.id}` ? '…' : '✉'}
                           </button>
@@ -2977,8 +2957,8 @@ export default function AdminClient() {
                             type="button"
                             className="icon-action-btn"
                             onClick={() => beginEditParticipant(p)}
-                            title={isEn ? 'Edit' : 'Modifier'}
-                            aria-label={isEn ? 'Edit participant' : 'Modifier participant'}
+                            title={t('adminConsole.edit')}
+                            aria-label={t('adminConsole.editParticipant')}
                           >
                             ✎
                           </button>
@@ -2987,8 +2967,8 @@ export default function AdminClient() {
                             className="icon-action-btn"
                             onClick={() => handleToggleParticipantStatus(p)}
                             disabled={busySaveKey === `status:participant:${p.id}`}
-                            title={p.disabled ? (isEn ? 'Enable' : 'Activer') : (isEn ? 'Disable' : 'Désactiver')}
-                            aria-label={p.disabled ? (isEn ? 'Enable participant' : 'Activer participant') : (isEn ? 'Disable participant' : 'Désactiver participant')}
+                            title={p.disabled ? t('adminConsole.enable') : t('adminConsole.disable')}
+                            aria-label={p.disabled ? t('adminConsole.enableParticipant') : t('adminConsole.disableParticipant')}
                           >
                             {busySaveKey === `status:participant:${p.id}` ? '…' : p.disabled ? '↺' : '⏸'}
                           </button>
@@ -2997,8 +2977,8 @@ export default function AdminClient() {
                             className="icon-action-btn icon-action-danger"
                             onClick={() => handleDeleteParticipant(p)}
                             disabled={busyDeleteKey === `participant:${p.id}`}
-                            title={isEn ? 'Delete' : 'Supprimer'}
-                            aria-label={isEn ? 'Delete participant' : 'Supprimer participant'}
+                            title={t('adminConsole.delete')}
+                            aria-label={t('adminConsole.deleteParticipant')}
                           >
                             {busyDeleteKey === `participant:${p.id}` ? '…' : '🗑'}
                           </button>
@@ -3013,41 +2993,41 @@ export default function AdminClient() {
 
           <Modal
             open={Boolean(editingUser)}
-            title={isEn ? 'Edit user' : 'Modifier utilisateur'}
+            title={t('adminConsole.editUser')}
             onClose={() => setEditingUser(null)}
             dialogClassName="admin-edit-modal"
             bodyClassName="admin-edit-modal-body"
           >
             {editingUser ? (
               <form className="auth-form" onSubmit={submitEditUser}>
-                <label>{isEn ? 'First name' : 'Prénom'}<input value={editingUser.first_name} onChange={(e) => setEditingUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
-                <label>{isEn ? 'Last name' : 'Nom'}<input value={editingUser.last_name} onChange={(e) => setEditingUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
+                <label>{t('adminConsole.firstName')}<input value={editingUser.first_name} onChange={(e) => setEditingUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
+                <label>{t('adminConsole.lastName')}<input value={editingUser.last_name} onChange={(e) => setEditingUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
                 <label>Email<input type="email" value={editingUser.email} onChange={(e) => setEditingUser((p) => ({ ...p, email: e.target.value }))} required /></label>
-                <label>{isEn ? 'Role' : 'Rôle'}
+                <label>{t('adminConsole.role')}
                   <select value={editingUser.role} onChange={(e) => setEditingUser((p) => ({ ...p, role: e.target.value }))}>
-                    <option value="user">{isEn ? 'User' : 'Utilisateur'}</option>
+                    <option value="user">{t('adminConsole.user')}</option>
                     <option value="admin">Admin</option>
                   </select>
                 </label>
-                <label>{isEn ? 'Current offer' : 'Offre actuelle'}
+                <label>{t('adminConsole.currentOffer')}
                   <select
                     value={normalizePricingPlanId(editingUser.pricing_plan_id)}
                     onChange={(e) => setEditingUser((p) => ({ ...p, pricing_plan_id: e.target.value }))}
                   >
-                    <option value="">{isEn ? 'No offer assigned' : 'Aucune offre assignée'}</option>
+                    <option value="">{t('adminConsole.noOfferAssigned')}</option>
                     {pricingPlans.map((plan) => (
                       <option key={String(plan.id)} value={String(plan.id)}>
-                        {plan.name || `${isEn ? 'Offer' : 'Offre'} #${plan.id}`}
+                        {plan.name || `${t('adminConsole.offer')} #${plan.id}`}
                       </option>
                     ))}
                   </select>
                 </label>
-                <label>{isEn ? 'Job title' : 'Fonction'}<input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} /></label>
-                <label>{isEn ? 'Department' : 'Département'}<input value={editingUser.department} onChange={(e) => setEditingUser((p) => ({ ...p, department: e.target.value }))} /></label>
-                <label>{isEn ? 'New password (optional)' : 'Nouveau mot de passe (optionnel)'}<input type="password" minLength={8} value={editingUser.password} onChange={(e) => setEditingUser((p) => ({ ...p, password: e.target.value }))} /></label>
+                <label>{t('adminConsole.jobTitle')}<input value={editingUser.job_title} onChange={(e) => setEditingUser((p) => ({ ...p, job_title: e.target.value }))} /></label>
+                <label>{t('adminConsole.department')}<input value={editingUser.department} onChange={(e) => setEditingUser((p) => ({ ...p, department: e.target.value }))} /></label>
+                <label>{t('adminConsole.newPasswordOptional')}<input type="password" minLength={8} value={editingUser.password} onChange={(e) => setEditingUser((p) => ({ ...p, password: e.target.value }))} /></label>
                 <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:user:${editingUser.id}`}>{busySaveKey === `save:user:${editingUser.id}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}</button>
-                  <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>{isEn ? 'Cancel' : 'Annuler'}</button>
+                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:user:${editingUser.id}`}>{busySaveKey === `save:user:${editingUser.id}` ? t('adminConsole.saving') : t('adminConsole.save')}</button>
+                  <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>{t('adminConsole.cancel')}</button>
                 </div>
               </form>
             ) : null}
@@ -3055,7 +3035,7 @@ export default function AdminClient() {
 
           <Modal
             open={Boolean(editingParticipant)}
-            title={isEn ? 'Edit participant' : 'Modifier participant'}
+            title={t('adminConsole.editParticipant')}
             onClose={() => {
               setEditingParticipant(null);
               setEditingParticipantError('');
@@ -3065,27 +3045,27 @@ export default function AdminClient() {
           >
             {editingParticipant ? (
               <form className="auth-form" onSubmit={submitEditParticipant}>
-                <label>{isEn ? 'First name' : 'Prénom'}<input value={editingParticipant.first_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
-                <label>{isEn ? 'Last name' : 'Nom'}<input value={editingParticipant.last_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
+                <label>{t('adminConsole.firstName')}<input value={editingParticipant.first_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
+                <label>{t('adminConsole.lastName')}<input value={editingParticipant.last_name} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
                 <label>Email<input type="email" value={editingParticipant.email} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
-                <label>{isEn ? 'Status' : 'Statut'}
+                <label>{t('adminConsole.status')}
                   <select value={editingParticipant.disabled ? 'disabled' : 'active'} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, disabled: e.target.value === 'disabled' }))}>
-                    <option value="active">{isEn ? 'Active' : 'Actif'}</option>
-                    <option value="disabled">{isEn ? 'Inactive' : 'Inactif'}</option>
+                    <option value="active">{t('adminConsole.active')}</option>
+                    <option value="disabled">{t('adminConsole.inactive')}</option>
                   </select>
                 </label>
-                <label>{isEn ? 'Job title' : 'Fonction'}<input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
-                <label>{isEn ? 'Department' : 'Département'}<input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
-                <label>{isEn ? 'New password (optional)' : 'Nouveau mot de passe (optionnel)'}<input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} /></label>
+                <label>{t('adminConsole.jobTitle')}<input value={editingParticipant.job_title} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
+                <label>{t('adminConsole.department')}<input value={editingParticipant.department} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
+                <label>{t('adminConsole.newPasswordOptional')}<input type="password" minLength={8} value={editingParticipant.password} onChange={(e) => setEditingParticipant((prev) => ({ ...prev, password: e.target.value }))} /></label>
                 {editingParticipantError ? (
                   <p className="participant-form-status participant-form-status--warn" role="alert" aria-live="polite">{editingParticipantError}</p>
                 ) : null}
                 <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>{busySaveKey === `save:participant:${editingParticipant.id}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}</button>
+                  <button type="submit" className="btn-primary" disabled={busySaveKey === `save:participant:${editingParticipant.id}`}>{busySaveKey === `save:participant:${editingParticipant.id}` ? t('adminConsole.saving') : t('adminConsole.save')}</button>
                   <button type="button" className="btn-secondary" onClick={() => {
                     setEditingParticipant(null);
                     setEditingParticipantError('');
-                  }}>{isEn ? 'Cancel' : 'Annuler'}</button>
+                  }}>{t('adminConsole.cancel')}</button>
                 </div>
               </form>
             ) : null}
@@ -3096,8 +3076,8 @@ export default function AdminClient() {
             <div>
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Sessions' : 'Sessions'}</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{isEn ? 'Create, supervise and update sessions from the admin console.' : 'Création, supervision et modification des sessions depuis la console admin.'}</p>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.sessions')}</h1>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{t('adminConsole.createSuperviseAndUpdateSessionsFrom')}</p>
                 </div>
                 <button
                   type="button"
@@ -3108,45 +3088,45 @@ export default function AdminClient() {
                     setShowNewSessionForm((current) => !current);
                   }}
                 >
-                  {showNewSessionForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Create session' : 'Créer une session')}
+                  {showNewSessionForm ? t('adminConsole.closeForm') : t('adminConsole.createSession')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 {showNewSessionForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Create session' : 'Créer une session'}</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.createSession')}</h2>
                     <form className="auth-form" onSubmit={submitNewSession}>
-                      <p style={{ margin: 0, fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>{isEn ? 'Step 1' : 'Étape 1'}</p>
-                      <label>{isEn ? 'Name' : 'Nom'}<input value={newSession.name} onChange={(e) => setNewSession((p) => ({ ...p, name: e.target.value }))} required /></label>
-                      <label>{isEn ? 'Status' : 'Statut'}
+                      <p style={{ margin: 0, fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>{t('adminConsole.step1')}</p>
+                      <label>{t('adminConsole.name')}<input value={newSession.name} onChange={(e) => setNewSession((p) => ({ ...p, name: e.target.value }))} required /></label>
+                      <label>{t('adminConsole.status')}
                         <select value={newSession.status} onChange={(e) => setNewSession((p) => ({ ...p, status: e.target.value }))}>
-                          <option value="preparee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.preparee, isEn)}</option>
-                          <option value="en_cours">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.en_cours, isEn)}</option>
-                          <option value="terminee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.terminee, isEn)}</option>
+                          <option value="preparee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.preparee, locale)}</option>
+                          <option value="en_cours">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.en_cours, locale)}</option>
+                          <option value="terminee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.terminee, locale)}</option>
                         </select>
                       </label>
-                      <label>{isEn ? 'Format' : 'Format'}<input value={newSession.format} onChange={(e) => setNewSession((p) => ({ ...p, format: e.target.value }))} placeholder={isEn ? 'Example: workshop' : 'Ex: atelier'} /></label>
-                      <label>{isEn ? 'Modality' : 'Modalité'}
+                      <label>{t('adminConsole.format')}<input value={newSession.format} onChange={(e) => setNewSession((p) => ({ ...p, format: e.target.value }))} placeholder={t('adminConsole.exampleWorkshop')} /></label>
+                      <label>{t('adminConsole.modality')}
                         <select value={newSession.modality} onChange={(e) => setNewSession((p) => ({ ...p, modality: e.target.value }))}>
-                          <option value="">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS[''], isEn)}</option>
-                          <option value="remote">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.remote, isEn)}</option>
-                          <option value="hybrid">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.hybrid, isEn)}</option>
-                          <option value="in-person">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS['in-person'], isEn)}</option>
+                          <option value="">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS[''], locale)}</option>
+                          <option value="remote">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.remote, locale)}</option>
+                          <option value="hybrid">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.hybrid, locale)}</option>
+                          <option value="in-person">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS['in-person'], locale)}</option>
                         </select>
                       </label>
-                      <label>{isEn ? 'Date' : 'Date'}<input type="date" value={newSession.session_date} onChange={(e) => setNewSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
-                      <label>{isEn ? 'Duration (minutes)' : 'Durée (minutes)'}<input type="number" min={1} value={newSession.duration_minutes} onChange={(e) => setNewSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
+                      <label>{t('adminConsole.date')}<input type="date" value={newSession.session_date} onChange={(e) => setNewSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
+                      <label>{t('adminConsole.durationMinutes')}<input type="number" min={1} value={newSession.duration_minutes} onChange={(e) => setNewSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
 
                       <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '12px' }}>
-                        <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>{isEn ? 'Step 2 (optional)' : 'Étape 2 (optionnelle)'}</p>
+                        <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>{t('adminConsole.step2Optional')}</p>
                         <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
-                          {isEn ? 'Assign participants now so they can see the session immediately.' : 'Assignez des participants maintenant pour qu’ils voient directement la session.'}
+                          {t('adminConsole.assignParticipantsNowSoTheyCan')}
                         </p>
                         <input
                           type="search"
                           className="inline-input"
-                          placeholder={isEn ? 'Search a participant...' : 'Rechercher un participant...'}
+                          placeholder={t('adminConsole.searchAParticipant')}
                           value={newSessionMemberQuery}
                           onChange={(e) => setNewSessionMemberQuery(e.target.value)}
                           style={{ marginBottom: '8px' }}
@@ -3158,7 +3138,7 @@ export default function AdminClient() {
                             onClick={() => setNewSessionMemberIds(filteredAssignableMembers.map((m) => String(m.id)))}
                             disabled={filteredAssignableMembers.length === 0}
                           >
-                            {isEn ? 'Select all' : 'Tout sélectionner'}
+                            {t('adminConsole.selectAll')}
                           </button>
                           <button
                             type="button"
@@ -3166,12 +3146,12 @@ export default function AdminClient() {
                             onClick={() => setNewSessionMemberIds([])}
                             disabled={newSessionMemberIds.length === 0}
                           >
-                            {isEn ? 'Unselect all' : 'Tout désélectionner'}
+                            {t('adminConsole.unselectAll')}
                           </button>
                         </div>
                         <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '8px' }}>
                           {filteredAssignableMembers.length === 0 ? (
-                            <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>{isEn ? 'No participant available.' : 'Aucun participant disponible.'}</p>
+                            <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>{t('adminConsole.noParticipantAvailable')}</p>
                           ) : (
                             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '6px' }}>
                               {filteredAssignableMembers.map((member) => {
@@ -3196,14 +3176,12 @@ export default function AdminClient() {
                           )}
                         </div>
                         <p className="session-meta" style={{ marginTop: '8px' }}>
-                          {isEn
-                            ? `${newSessionMemberIds.length} participant${newSessionMemberIds.length > 1 ? 's' : ''} assigned`
-                            : `${newSessionMemberIds.length} participant${newSessionMemberIds.length > 1 ? 's' : ''} assigne${newSessionMemberIds.length > 1 ? 's' : ''}`}
+                          {t('adminConsole.lengthParticipantValueAssigned', { length: newSessionMemberIds.length, value: newSessionMemberIds.length > 1 ? 's' : '' })}
                         </p>
                       </div>
 
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:session'}>
-                        {busySaveKey === 'create:session' ? (isEn ? 'Creating...' : 'Création...') : (isEn ? 'Create session' : 'Créer la session')}
+                        {busySaveKey === 'create:session' ? t('adminConsole.creating') : t('adminConsole.createSession2')}
                       </button>
                       <button
                         type="button"
@@ -3213,7 +3191,7 @@ export default function AdminClient() {
                           setNewSessionMessage('');
                         }}
                       >
-                        {isEn ? 'Cancel' : 'Annuler'}
+                        {t('adminConsole.cancel')}
                       </button>
                     </form>
                     {newSessionMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newSessionMessage}</p> : null}
@@ -3222,30 +3200,30 @@ export default function AdminClient() {
 
                 {editingSession ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Edit session' : 'Modifier une session'}</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.editSession')}</h2>
                     <form className="auth-form" onSubmit={submitEditSession}>
-                        <label>{isEn ? 'Name' : 'Nom'}<input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required /></label>
-                        <label>{isEn ? 'Status' : 'Statut'}
+                        <label>{t('adminConsole.name')}<input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required /></label>
+                        <label>{t('adminConsole.status')}
                           <select value={editingSession.status} onChange={(e) => setEditingSession((p) => ({ ...p, status: e.target.value }))}>
-                            <option value="preparee">{getSessionStatusLabel('preparee', isEn)}</option>
-                            <option value="en_cours">{getSessionStatusLabel('en_cours', isEn)}</option>
-                            <option value="terminee">{getSessionStatusLabel('terminee', isEn)}</option>
+                            <option value="preparee">{getSessionStatusLabel('preparee', locale)}</option>
+                            <option value="en_cours">{getSessionStatusLabel('en_cours', locale)}</option>
+                            <option value="terminee">{getSessionStatusLabel('terminee', locale)}</option>
                           </select>
                         </label>
-                        <label>{isEn ? 'Format' : 'Format'}<input value={editingSession.format} onChange={(e) => setEditingSession((p) => ({ ...p, format: e.target.value }))} /></label>
-                        <label>{isEn ? 'Modality' : 'Modalité'}
+                        <label>{t('adminConsole.format')}<input value={editingSession.format} onChange={(e) => setEditingSession((p) => ({ ...p, format: e.target.value }))} /></label>
+                        <label>{t('adminConsole.modality')}
                           <select value={editingSession.modality} onChange={(e) => setEditingSession((p) => ({ ...p, modality: e.target.value }))}>
-                            <option value="">{getSessionModalityLabel('', isEn)}</option>
-                            <option value="remote">{getSessionModalityLabel('remote', isEn)}</option>
-                            <option value="hybrid">{getSessionModalityLabel('hybrid', isEn)}</option>
-                            <option value="in-person">{getSessionModalityLabel('in-person', isEn)}</option>
+                            <option value="">{getSessionModalityLabel('', locale)}</option>
+                            <option value="remote">{getSessionModalityLabel('remote', locale)}</option>
+                            <option value="hybrid">{getSessionModalityLabel('hybrid', locale)}</option>
+                            <option value="in-person">{getSessionModalityLabel('in-person', locale)}</option>
                           </select>
                         </label>
-                        <label>{isEn ? 'Date' : 'Date'}<input type="date" value={editingSession.session_date} onChange={(e) => setEditingSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
-                        <label>{isEn ? 'Duration (minutes)' : 'Durée (minutes)'}<input type="number" min={1} value={editingSession.duration_minutes} onChange={(e) => setEditingSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
+                        <label>{t('adminConsole.date')}<input type="date" value={editingSession.session_date} onChange={(e) => setEditingSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
+                        <label>{t('adminConsole.durationMinutes')}<input type="number" min={1} value={editingSession.duration_minutes} onChange={(e) => setEditingSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:session:${editingSession.id}`}>{busySaveKey === `save:session:${editingSession.id}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}</button>
-                          <button type="button" className="btn-secondary" onClick={() => setEditingSession(null)}>{isEn ? 'Cancel' : 'Annuler'}</button>
+                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:session:${editingSession.id}`}>{busySaveKey === `save:session:${editingSession.id}` ? t('adminConsole.saving') : t('adminConsole.save')}</button>
+                          <button type="button" className="btn-secondary" onClick={() => setEditingSession(null)}>{t('adminConsole.cancel')}</button>
                         </div>
                     </form>
                   </div>
@@ -3254,35 +3232,35 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {isEn ? 'List' : 'Liste'} {sessions.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredSessions.length}/{sessions.length})</span> : null}
+                      {t('adminConsole.list')} {sessions.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredSessions.length}/{sessions.length})</span> : null}
                     </h2>
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder={isEn ? 'Search...' : 'Rechercher...'}
+                      placeholder={t('adminConsole.search')}
                       value={sessionQuery}
                       onChange={(e) => setSessionQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
                     />
                   </div>
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredSessions.length === 0 ? <li className="list-empty">{isEn ? 'No matching session.' : 'Aucune session ne correspond.'}</li> : null}
+                    {filteredSessions.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingSession')}</li> : null}
                     {filteredSessions.map((s) => (
                       <li key={String(s.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{s.name || `Session #${s.id}`}</p>
                           <p className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                             <span className={`status-pill status-${s.status || 'preparee'}`}>
-                              {getSessionStatusLabel(s.status, isEn)}
+                              {getSessionStatusLabel(s.status, locale)}
                             </span>
-                            {s.modality ? <span>{isEn ? 'Modality' : 'Modalité'}: {getSessionModalityLabel(s.modality, isEn) || s.modality}</span> : null}
-                            <span>{isEn ? 'Owner' : 'Créateur'}: {getSessionOwnerLabel(s)}</span>
+                            {s.modality ? <span>{t('adminConsole.modality')}: {getSessionModalityLabel(s.modality, locale) || s.modality}</span> : null}
+                            <span>{t('adminConsole.owner')}: {getSessionOwnerLabel(s)}</span>
                           </p>
                         </div>
                         <div className="session-item-actions" style={{ flexShrink: 0 }}>
-                          <button type="button" className="btn-secondary" onClick={() => beginEditSession(s)}>{isEn ? 'Edit' : 'Modifier'}</button>
+                          <button type="button" className="btn-secondary" onClick={() => beginEditSession(s)}>{t('adminConsole.edit')}</button>
                           <button type="button" className="btn-secondary" onClick={() => handleDeleteSession(s)} disabled={busyDeleteKey === `session:${s.id}`}>
-                            {busyDeleteKey === `session:${s.id}` ? '...' : (isEn ? 'Delete' : 'Supprimer')}
+                            {busyDeleteKey === `session:${s.id}` ? '...' : t('adminConsole.delete')}
                           </button>
                         </div>
                       </li>
@@ -3299,7 +3277,7 @@ export default function AdminClient() {
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
                   <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Challenges</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{isEn ? 'Manage the available challenge catalog.' : 'Gestion du catalogue de challenges disponibles.'}</p>
+                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{t('adminConsole.manageTheAvailableChallengeCatalog')}</p>
                 </div>
                 <button
                   type="button"
@@ -3311,47 +3289,47 @@ export default function AdminClient() {
                     setShowNewChallengeForm((current) => !current);
                   }}
                 >
-                  {showNewChallengeForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Add challenge' : 'Ajouter un challenge')}
+                  {showNewChallengeForm ? t('adminConsole.closeForm') : t('adminConsole.addChallenge')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 {showNewChallengeForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Add challenge' : 'Ajouter un challenge'}</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.addChallenge')}</h2>
                     <form className="auth-form" onSubmit={submitNewChallenge}>
-                      <label>{isEn ? 'Name' : 'Nom'}<input value={newChallenge.name} onChange={(e) => setNewChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
-                      <label>{isEn ? 'Type' : 'Type'}
+                      <label>{t('adminConsole.name')}<input value={newChallenge.name} onChange={(e) => setNewChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
+                      <label>{t('adminConsole.type')}
                         <select value={newChallenge.type} onChange={(e) => setNewChallenge((p) => ({ ...p, type: e.target.value }))}>
-                          <option value="individuel">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.individuel, isEn)}</option>
-                          <option value="equipe">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.equipe, isEn)}</option>
+                          <option value="individuel">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.individuel, locale)}</option>
+                          <option value="equipe">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.equipe, locale)}</option>
                         </select>
                       </label>
-                      <label>{isEn ? 'Status' : 'Statut'}
+                      <label>{t('adminConsole.status')}
                         <select value={newChallenge.status} onChange={(e) => setNewChallenge((p) => ({ ...p, status: e.target.value }))}>
-                          <option value="actif">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.actif, isEn)}</option>
-                          <option value="brouillon">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.brouillon, isEn)}</option>
-                          <option value="archive">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.archive, isEn)}</option>
+                          <option value="actif">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.actif, locale)}</option>
+                          <option value="brouillon">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.brouillon, locale)}</option>
+                          <option value="archive">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.archive, locale)}</option>
                         </select>
                       </label>
-                      <label>{isEn ? 'Source' : 'Source'}
+                      <label>{t('adminConsole.source')}
                         <select value={newChallenge.source} onChange={(e) => setNewChallenge((p) => ({ ...p, source: e.target.value }))}>
-                          <option value="local">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.local, isEn)}</option>
-                          <option value="external">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.external, isEn)}</option>
+                          <option value="local">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.local, locale)}</option>
+                          <option value="external">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.external, locale)}</option>
                         </select>
                       </label>
-                      <label>{isEn ? 'Category' : 'Catégorie'}
+                      <label>{t('adminConsole.category')}
                         <select value={newChallenge.category} onChange={(e) => setNewChallenge((p) => ({ ...p, category: e.target.value }))}>
-                          <option value="">{isEn ? '--- Select ---' : '--- Sélectionner ---'}</option>
+                          <option value="">{t('adminConsole.select')}</option>
                           {challengeCategoryOptions.map((option) => (
                             <option key={option.value} value={option.value}>{option.label}</option>
                           ))}
                         </select>
                       </label>
-                      <label>{isEn ? 'Objectives' : 'Objectifs'}
+                      <label>{t('adminConsole.objectives')}
                         <div style={{ display: 'grid', gap: '8px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
-                            <span>{isEn ? `Choose up to ${MAX_CHALLENGE_OBJECTIVES} objectives.` : `Choisissez jusqu’à ${MAX_CHALLENGE_OBJECTIVES} objectifs.`}</span>
+                            <span>{t('adminConsole.chooseUpToMaxChallengeObjectives', { MAX_CHALLENGE_OBJECTIVES })}</span>
                             <strong>{normalizeObjectivesInput(newChallenge.objectives).length}/{MAX_CHALLENGE_OBJECTIVES}</strong>
                           </div>
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -3375,37 +3353,37 @@ export default function AdminClient() {
                             })}
                           </div>
                           {normalizeObjectivesInput(newChallenge.objectives).length >= MAX_CHALLENGE_OBJECTIVES ? (
-                              <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'Limit reached: remove one objective to select another.' : 'Limite atteinte: retirez un objectif pour en sélectionner un autre.'}</p>
+                              <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.limitReachedRemoveOneObjectiveTo')}</p>
                           ) : null}
                         </div>
                       </label>
-                      <label>{isEn ? 'Duration' : 'Durée'}<input value={newChallenge.duration} onChange={(e) => setNewChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
-                      <label>{isEn ? 'Engine key' : 'Clé moteur'}
+                      <label>{t('adminConsole.duration')}<input value={newChallenge.duration} onChange={(e) => setNewChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
+                      <label>{t('adminConsole.engineKey')}
                         <input list="known-engine-keys" value={newChallenge.engine_key} onChange={(e) => setNewChallenge((p) => ({ ...p, engine_key: e.target.value }))} />
                       </label>
-                      <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={newChallenge.description} onChange={(e) => setNewChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
+                      <label>{t('adminConsole.description')}<textarea rows={4} value={newChallenge.description} onChange={(e) => setNewChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
                       <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                        <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Challenge rules' : 'Règles du challenge'}</p>
-                        <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'This content feeds the brief shown to facilitators and participants inside the challenge.' : 'Ce contenu alimente le brief affiché aux facilitateurs et aux participants dans le challenge.'}</p>
-                        <label>{isEn ? 'Mission brief' : 'Brief de mission'}
-                          <textarea rows={3} value={newChallenge.rules_objective} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={isEn ? 'Describe the main challenge objective' : 'Décrivez l’objectif principal du challenge'} />
+                        <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.challengeRules')}</p>
+                        <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.thisContentFeedsTheBriefShown')}</p>
+                        <label>{t('adminConsole.missionBrief')}
+                          <textarea rows={3} value={newChallenge.rules_objective} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={t('adminConsole.describeTheMainChallengeObjective')} />
                         </label>
-                        <label>{isEn ? 'Facilitator instructions (1 line = 1 rule)' : 'Instructions facilitateur (1 ligne = 1 règle)'}
-                          <textarea rows={4} value={newChallenge.rules_facilitator} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder={isEn ? 'Frame the challenge&#10;Start the timer' : 'Cadrez le challenge&#10;Lancez le timer'} />
+                        <label>{t('adminConsole.facilitatorInstructions1Line1Rule')}
+                          <textarea rows={4} value={newChallenge.rules_facilitator} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder={t('adminConsole.frameTheChallenge10StartThe')} />
                         </label>
-                        <label>{isEn ? 'Participant instructions (1 line = 1 rule)' : 'Instructions participants (1 ligne = 1 règle)'}
-                          <textarea rows={4} value={newChallenge.rules_participant} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={isEn ? 'Listen to the brief&#10;Collaborate as a team' : 'Écoutez le brief&#10;Collaborez en équipe'} />
+                        <label>{t('adminConsole.participantInstructions1Line1Rule')}
+                          <textarea rows={4} value={newChallenge.rules_participant} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={t('adminConsole.listenToTheBrief10Collaborate')} />
                         </label>
-                        <label>{isEn ? 'Closing note' : 'Note de clôture'}
-                          <textarea rows={2} value={newChallenge.rules_footnote} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={isEn ? 'Optional summary message' : 'Message de synthèse optionnel'} />
+                        <label>{t('adminConsole.closingNote')}
+                          <textarea rows={2} value={newChallenge.rules_footnote} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={t('adminConsole.optionalSummaryMessage')} />
                         </label>
                         <div style={{ borderTop: '1px dashed var(--color-border, #e5e7eb)', paddingTop: '10px', display: 'grid', gap: '10px' }}>
-                          <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Players (Min / Recommended / Max)' : 'Joueurs (Min / Recommandé / Max)'}</p>
+                          <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.playersMinRecommendedMax')}</p>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                             <label>Min
                               <input type="number" min="1" value={newChallenge.player_min} onChange={(e) => setNewChallenge((p) => ({ ...p, player_min: e.target.value }))} />
                             </label>
-                            <label>{isEn ? 'Recommended' : 'Recommandé'}
+                            <label>{t('adminConsole.recommended')}
                               <input type="number" min="1" value={newChallenge.player_recommended} onChange={(e) => setNewChallenge((p) => ({ ...p, player_recommended: e.target.value }))} />
                             </label>
                             <label>Max
@@ -3415,7 +3393,7 @@ export default function AdminClient() {
                         </div>
                       </div>
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:challenge'}>
-                        {busySaveKey === 'create:challenge' ? (isEn ? 'Creating...' : 'Création...') : (isEn ? 'Create challenge' : 'Créer le challenge')}
+                        {busySaveKey === 'create:challenge' ? t('adminConsole.creating') : t('adminConsole.createChallenge')}
                       </button>
                       <button
                         type="button"
@@ -3425,7 +3403,7 @@ export default function AdminClient() {
                           setNewChallengeMessage('');
                         }}
                       >
-                        {isEn ? 'Cancel' : 'Annuler'}
+                        {t('adminConsole.cancel')}
                       </button>
                     </form>
                     {newChallengeMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newChallengeMessage}</p> : null}
@@ -3439,36 +3417,36 @@ export default function AdminClient() {
                   >
                     <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '12px', padding: '24px 28px', width: '100%', maxWidth: '640px', position: 'relative', marginBottom: '40px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{isEn ? 'Edit challenge' : 'Modifier un challenge'}</h2>
-                        <button type="button" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--color-muted, #6b7280)', padding: '2px 8px', lineHeight: 1 }} aria-label={isEn ? 'Close window' : 'Fermer la fenêtre'}>✕</button>
+                        <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{t('adminConsole.editChallenge')}</h2>
+                        <button type="button" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--color-muted, #6b7280)', padding: '2px 8px', lineHeight: 1 }} aria-label={t('adminConsole.closeWindow')}>✕</button>
                       </div>
                     <form className="auth-form" onSubmit={submitEditChallenge}>
-                        <label>{isEn ? 'Name' : 'Nom'}<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
-                        <label>{isEn ? 'Type' : 'Type'}
+                        <label>{t('adminConsole.name')}<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
+                        <label>{t('adminConsole.type')}
                           <select value={editingChallenge.type} onChange={(e) => setEditingChallenge((p) => ({ ...p, type: e.target.value }))}>
-                            <option value="individuel">{getChallengeTypeLabel('individuel', isEn)}</option>
-                            <option value="equipe">{getChallengeTypeLabel('equipe', isEn)}</option>
+                            <option value="individuel">{getChallengeTypeLabel('individuel', locale)}</option>
+                            <option value="equipe">{getChallengeTypeLabel('equipe', locale)}</option>
                           </select>
                         </label>
-                        <label>{isEn ? 'Status' : 'Statut'}
+                        <label>{t('adminConsole.status')}
                           <select value={editingChallenge.status} onChange={(e) => setEditingChallenge((p) => ({ ...p, status: e.target.value }))}>
-                            <option value="actif">{getChallengeStatusLabel('actif', isEn)}</option>
-                            <option value="brouillon">{getChallengeStatusLabel('brouillon', isEn)}</option>
-                            <option value="archive">{getChallengeStatusLabel('archive', isEn)}</option>
+                            <option value="actif">{getChallengeStatusLabel('actif', locale)}</option>
+                            <option value="brouillon">{getChallengeStatusLabel('brouillon', locale)}</option>
+                            <option value="archive">{getChallengeStatusLabel('archive', locale)}</option>
                           </select>
                         </label>
-                        <label>{isEn ? 'Category' : 'Catégorie'}
+                        <label>{t('adminConsole.category')}
                           <select value={editingChallenge.category} onChange={(e) => setEditingChallenge((p) => ({ ...p, category: e.target.value }))}>
-                            <option value="">{isEn ? '--- Select ---' : '--- Sélectionner ---'}</option>
+                            <option value="">{t('adminConsole.select')}</option>
                             {challengeCategoryOptions.map((option) => (
                               <option key={option.value} value={option.value}>{option.label}</option>
                             ))}
                           </select>
                         </label>
-                        <label>{isEn ? 'Objectives' : 'Objectifs'}
+                        <label>{t('adminConsole.objectives')}
                           <div style={{ display: 'grid', gap: '8px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
-                              <span>{isEn ? `Choose up to ${MAX_CHALLENGE_OBJECTIVES} objectives.` : `Choisissez jusqu’à ${MAX_CHALLENGE_OBJECTIVES} objectifs.`}</span>
+                              <span>{t('adminConsole.chooseUpToMaxChallengeObjectives', { MAX_CHALLENGE_OBJECTIVES })}</span>
                               <strong>{normalizeObjectivesInput(editingChallenge.objectives).length}/{MAX_CHALLENGE_OBJECTIVES}</strong>
                             </div>
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -3492,32 +3470,32 @@ export default function AdminClient() {
                               })}
                             </div>
                             {normalizeObjectivesInput(editingChallenge.objectives).length >= MAX_CHALLENGE_OBJECTIVES ? (
-                              <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'Limit reached: remove one objective to select another.' : 'Limite atteinte: retirez un objectif pour en sélectionner un autre.'}</p>
+                              <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.limitReachedRemoveOneObjectiveTo')}</p>
                             ) : null}
                           </div>
                         </label>
-                        <label>{isEn ? 'Duration' : 'Durée'}<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
-                        <label>{isEn ? 'Engine key' : 'Clé moteur'}
+                        <label>{t('adminConsole.duration')}<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
+                        <label>{t('adminConsole.engineKey')}
                           <input list="known-engine-keys" value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} />
                         </label>
-                        <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
+                        <label>{t('adminConsole.description')}<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
                         <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                          <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Challenge rules' : 'Règles du challenge'}</p>
-                          <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'This content feeds the brief shown to facilitators and participants inside the challenge.' : 'Ce contenu alimente le brief affiché aux facilitateurs et aux participants dans le challenge.'}</p>
-                          <label>{isEn ? 'Mission brief' : 'Brief de mission'}
-                            <textarea rows={3} value={editingChallenge.rules_objective || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={isEn ? 'Describe the main challenge objective' : 'Décrivez l’objectif principal du challenge'} />
+                          <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.challengeRules')}</p>
+                          <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.thisContentFeedsTheBriefShown')}</p>
+                          <label>{t('adminConsole.missionBrief')}
+                            <textarea rows={3} value={editingChallenge.rules_objective || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={t('adminConsole.describeTheMainChallengeObjective')} />
                           </label>
-                          <label>{isEn ? 'Facilitator instructions (1 line = 1 rule)' : 'Instructions facilitateur (1 ligne = 1 règle)'}
-                            <textarea rows={4} value={editingChallenge.rules_facilitator || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder={isEn ? 'Frame the challenge&#10;Start the timer' : 'Cadrez le challenge&#10;Lancez le timer'} />
+                          <label>{t('adminConsole.facilitatorInstructions1Line1Rule')}
+                            <textarea rows={4} value={editingChallenge.rules_facilitator || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder={t('adminConsole.frameTheChallenge10StartThe')} />
                           </label>
-                          <label>{isEn ? 'Participant instructions (1 line = 1 rule)' : 'Instructions participants (1 ligne = 1 règle)'}
-                            <textarea rows={4} value={editingChallenge.rules_participant || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={isEn ? 'Listen to the brief&#10;Collaborate as a team' : 'Écoutez le brief&#10;Collaborez en équipe'} />
+                          <label>{t('adminConsole.participantInstructions1Line1Rule')}
+                            <textarea rows={4} value={editingChallenge.rules_participant || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={t('adminConsole.listenToTheBrief10Collaborate')} />
                           </label>
-                          <label>{isEn ? 'Closing note' : 'Note de clôture'}
-                            <textarea rows={2} value={editingChallenge.rules_footnote || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={isEn ? 'Optional summary message' : 'Message de synthèse optionnel'} />
+                          <label>{t('adminConsole.closingNote')}
+                            <textarea rows={2} value={editingChallenge.rules_footnote || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={t('adminConsole.optionalSummaryMessage')} />
                           </label>
                           <div style={{ borderTop: '1px dashed var(--color-border, #e5e7eb)', paddingTop: '10px', display: 'grid', gap: '10px' }}>
-                            <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'Players (Min / Recommended / Max)' : 'Joueurs (Min / Recommandé / Max)'}</p>
+                            <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.playersMinRecommendedMax')}</p>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                               <label>Min
                                 <input
@@ -3527,7 +3505,7 @@ export default function AdminClient() {
                                   onChange={(e) => setEditingChallenge((p) => ({ ...p, player_min: e.target.value }))}
                                 />
                               </label>
-                              <label>{isEn ? 'Recommended' : 'Recommandé'}
+                              <label>{t('adminConsole.recommended')}
                                 <input
                                   type="number"
                                   min="1"
@@ -3559,10 +3537,10 @@ export default function AdminClient() {
                             }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-                              <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-strong, #0f172a)' }}>{isEn ? 'Puzzle 5 image (secret room)' : 'Image énigme 5 (Salle secrète)'}</p>
-                              <span style={{ fontSize: '12px', color: 'var(--color-muted, #334155)', fontWeight: 600 }}>{isEn ? 'Persistent storage enabled' : 'Stockage persistant activé'}</span>
+                              <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-strong, #0f172a)' }}>{t('adminConsole.puzzle5ImageSecretRoom')}</p>
+                              <span style={{ fontSize: '12px', color: 'var(--color-muted, #334155)', fontWeight: 600 }}>{t('adminConsole.persistentStorageEnabled')}</span>
                             </div>
-                            <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'This image is used in the final puzzle and saved with challenge settings.' : 'Cette image est utilisée pour la dernière énigme et sauvegardée avec la configuration du challenge.'}</p>
+                            <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.thisImageIsUsedInThe')}</p>
                             <label style={{ display: 'inline-flex', width: 'fit-content' }}>
                               <input
                                 type="file"
@@ -3571,7 +3549,7 @@ export default function AdminClient() {
                                 disabled={challengeImageUploadBusy}
                                 style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }}
                               />
-                              {renderUploadInputLabel({ isEn, busy: challengeImageUploadBusy })}
+                              {renderUploadInputLabel({ locale, busy: challengeImageUploadBusy })}
                             </label>
                             {challengeImageUploadError ? (
                               <p className="session-meta" style={{ margin: 0, color: '#b91c1c', fontWeight: 600 }}>{challengeImageUploadError}</p>
@@ -3580,7 +3558,7 @@ export default function AdminClient() {
                               <div style={{ border: '1px solid var(--color-border, #dbe4f0)', borderRadius: '12px', padding: '8px', background: 'var(--color-surface, #f8fafc)' }}>
                                 <Image
                                   src={getEscapeRoomE5ImageSrc(editingChallenge.engine_config)}
-                                  alt={isEn ? 'Puzzle 5 preview' : 'Aperçu énigme 5'}
+                                  alt={t('adminConsole.puzzle5Preview')}
                                   unoptimized
                                   width={640}
                                   height={360}
@@ -3589,15 +3567,15 @@ export default function AdminClient() {
                                 />
                               </div>
                             ) : (
-                              <p className="session-meta" style={{ margin: 0 }}>{isEn ? 'No image configured for e5.' : 'Aucune image configurée pour e5.'}</p>
+                              <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.noImageConfiguredForE5')}</p>
                             )}
                           </div>
                         ) : null}
                         {(editingChallenge.engine_key || '').toLowerCase() === 'copuzzle_live_v1' ? (
                           <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                            <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? 'CoPuzzle configuration (3 admin reference images)' : 'Configuration CoPuzzle (3 images de référence administrateur)'}</p>
+                            <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.copuzzleConfiguration3AdminReferenceImages')}</p>
                             <p className="session-meta" style={{ margin: 0 }}>
-                              {isEn ? 'Define up to 3 reference images with their titles. They will be proposed to the facilitator in the Session Builder.' : 'Définissez jusqu’à 3 images de référence avec leur titre. Elles seront proposées au facilitateur dans le Session Builder.'}
+                              {t('adminConsole.defineUpTo3ReferenceImages')}
                             </p>
 
                             {getCopuzzleDefaultImages(editingChallenge.engine_config).map((imageItem, imageIndex) => {
@@ -3614,9 +3592,9 @@ export default function AdminClient() {
                                     background: 'var(--color-surface, #fff)',
                                   }}
                                 >
-                                  <p style={{ margin: 0, fontWeight: 600 }}>{isEn ? `Reference image ${slotIndex}` : `Image de référence ${slotIndex}`}</p>
+                                  <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.referenceImageSlotindex', { slotIndex })}</p>
 
-                                  <label>{isEn ? 'Title' : 'Titre'}
+                                  <label>{t('adminConsole.title')}
                                     <input
                                       value={String(imageItem.title || '')}
                                       onChange={(e) => {
@@ -3645,7 +3623,7 @@ export default function AdminClient() {
                                     />
                                   </label>
 
-                                  <label>{isEn ? 'Image URL' : 'URL image'}
+                                  <label>{t('adminConsole.imageUrl')}
                                     <input
                                       value={String(imageItem.src || '')}
                                       onChange={(e) => {
@@ -3676,7 +3654,7 @@ export default function AdminClient() {
                                           };
                                         });
                                       }}
-                                      placeholder={isEn ? 'https://... or /copuzzle/default-blue.svg' : 'https://... ou /copuzzle/default-blue.svg'}
+                                      placeholder={t('adminConsole.httpsOrCopuzzleDefaultBlueSvg')}
                                     />
                                   </label>
 
@@ -3688,14 +3666,14 @@ export default function AdminClient() {
                                       disabled={challengeImageUploadBusy}
                                       style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }}
                                     />
-                                    {renderUploadInputLabel({ isEn, busy: challengeImageUploadBusy })}
+                                    {renderUploadInputLabel({ locale, busy: challengeImageUploadBusy })}
                                   </label>
 
                                   {String(imageItem.src || '').trim() ? (
                                     <div style={{ border: '1px solid var(--color-border, #dbe4f0)', borderRadius: '10px', padding: '7px', background: 'var(--color-surface, #f8fafc)' }}>
                                       <Image
                                         src={String(imageItem.src || '').trim()}
-                                        alt={isEn ? `Image preview ${slotIndex}` : `Aperçu image ${slotIndex}`}
+                                        alt={t('adminConsole.imagePreviewSlotindex', { slotIndex })}
                                         unoptimized
                                         width={640}
                                         height={360}
@@ -3731,14 +3709,14 @@ export default function AdminClient() {
                                         });
                                       }}
                                     />
-                                    {isEn ? 'Default selected image' : 'Image sélectionnée par défaut'}
+                                    {t('adminConsole.defaultSelectedImage')}
                                   </label>
                                 </div>
                               );
                             })}
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <label>{isEn ? 'Grid (rows)' : 'Grille (lignes)'}
+                              <label>{t('adminConsole.gridRows')}
                                 <input
                                   type="number"
                                   min="2"
@@ -3763,7 +3741,7 @@ export default function AdminClient() {
                                   }}
                                 />
                               </label>
-                              <label>{isEn ? 'Grid (cols)' : 'Grille (colonnes)'}
+                              <label>{t('adminConsole.gridCols')}
                                 <input
                                   type="number"
                                   min="2"
@@ -3791,7 +3769,7 @@ export default function AdminClient() {
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <label>{isEn ? 'Timer (seconds)' : 'Timer (secondes)'}
+                              <label>{t('adminConsole.timerSeconds')}
                                 <input
                                   type="number"
                                   min="30"
@@ -3816,7 +3794,7 @@ export default function AdminClient() {
                                   }}
                                 />
                               </label>
-                              <label>{isEn ? 'Warning threshold (seconds)' : 'Seuil d’alerte (secondes)'}
+                              <label>{t('adminConsole.warningThresholdSeconds')}
                                 <input
                                   type="number"
                                   min="10"
@@ -3865,7 +3843,7 @@ export default function AdminClient() {
                                   });
                                 }}
                               />
-                              {isEn ? 'Timer enabled' : 'Timer actif'}
+                              {t('adminConsole.timerEnabled')}
                             </label>
 
                             <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
@@ -3890,11 +3868,11 @@ export default function AdminClient() {
                                   });
                                 }}
                               />
-                              {isEn ? 'Chat enabled' : 'Chat actif'}
+                              {t('adminConsole.chatEnabled')}
                             </label>
 
                             {challengeImageUploadBusy ? (
-                              <p className="session-meta" style={{ marginTop: '8px' }}>{isEn ? 'Upload in progress...' : 'Upload en cours...'}</p>
+                              <p className="session-meta" style={{ marginTop: '8px' }}>{t('adminConsole.uploadInProgress')}</p>
                             ) : null}
                             {challengeImageUploadError ? (
                               <p className="session-meta" style={{ marginTop: '8px', color: '#dc2626' }}>{challengeImageUploadError}</p>
@@ -3902,7 +3880,7 @@ export default function AdminClient() {
 
                             <Image
                               src={getCopuzzleImageSrc(editingChallenge.engine_config)}
-                              alt={isEn ? 'CoPuzzle preview' : 'Aperçu CoPuzzle'}
+                              alt={t('adminConsole.copuzzlePreview')}
                               unoptimized
                               width={840}
                               height={840}
@@ -3914,8 +3892,8 @@ export default function AdminClient() {
                           </div>
                         ) : null}
                         <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>{busySaveKey === `save:challenge:${editingChallenge.id}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}</button>
-                          <button type="button" className="btn-secondary" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }}>{isEn ? 'Cancel' : 'Annuler'}</button>
+                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>{busySaveKey === `save:challenge:${editingChallenge.id}` ? t('adminConsole.saving') : t('adminConsole.save')}</button>
+                          <button type="button" className="btn-secondary" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }}>{t('adminConsole.cancel')}</button>
                         </div>
                     </form>
                     </div>
@@ -3925,30 +3903,30 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {isEn ? 'List' : 'Liste'} {challenges.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredChallenges.length}/{challenges.length})</span> : null}
+                      {t('adminConsole.list')} {challenges.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredChallenges.length}/{challenges.length})</span> : null}
                     </h2>
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder={isEn ? 'Search...' : 'Rechercher...'}
+                      placeholder={t('adminConsole.search')}
                       value={challengeQuery}
                       onChange={(e) => setChallengeQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
                     />
                   </div>
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredChallenges.length === 0 ? <li className="list-empty">{isEn ? 'No matching challenge.' : 'Aucun challenge ne correspond.'}</li> : null}
+                    {filteredChallenges.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingChallenge')}</li> : null}
                     {filteredChallenges.map((c) => (
                       <li key={String(c.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
-                          <p className="session-meta">{getChallengeTypeLabel(c.type, isEn)} · {getChallengeStatusLabel(c.status, isEn)} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
+                          <p className="session-meta">{getChallengeTypeLabel(c.type, locale)} · {getChallengeStatusLabel(c.status, locale)} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
                           {(() => {
                             const playerRange = resolveChallengePlayerRange(c);
                             if (!playerRange.hasRange) return null;
                             return (
                               <p className="session-meta" style={{ marginTop: '4px' }}>
-                                ~{playerRange.recommended || '-'} {isEn ? 'players' : 'joueurs'} · Min {playerRange.min || '-'} · Max {playerRange.max || '-'}
+                                ~{playerRange.recommended || '-'} {t('adminConsole.players')} · Min {playerRange.min || '-'} · Max {playerRange.max || '-'}
                               </p>
                             );
                           })()}
@@ -3958,8 +3936,8 @@ export default function AdminClient() {
                             type="button"
                             className="icon-action-btn"
                             onClick={() => beginEditChallenge(c)}
-                            title={isEn ? 'Edit' : 'Modifier'}
-                            aria-label={isEn ? 'Edit challenge' : 'Modifier challenge'}
+                            title={t('adminConsole.edit')}
+                            aria-label={t('adminConsole.editChallenge2')}
                           >
                             ✎
                           </button>
@@ -3968,8 +3946,8 @@ export default function AdminClient() {
                             className="icon-action-btn icon-action-danger"
                             onClick={() => handleDeleteChallenge(c)}
                             disabled={busyDeleteKey === `challenge:${c.id}`}
-                            title={isEn ? 'Delete' : 'Supprimer'}
-                            aria-label={isEn ? 'Delete challenge' : 'Supprimer challenge'}
+                            title={t('adminConsole.delete')}
+                            aria-label={t('adminConsole.deleteChallenge')}
                           >
                             {busyDeleteKey === `challenge:${c.id}` ? '…' : '🗑'}
                           </button>
@@ -3987,9 +3965,9 @@ export default function AdminClient() {
             <div>
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Pricing' : 'Tarification'}</h1>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.pricing')}</h1>
                   <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                    {isEn ? 'Create and manage your commercial offers (name, features, price and advanced options).' : 'Créez et administrez vos offres commerciales (nom, fonctionnalités, prix et options avancées).'}
+                    {t('adminConsole.createAndManageYourCommercialOffers')}
                   </p>
                 </div>
                 <button
@@ -4001,54 +3979,54 @@ export default function AdminClient() {
                     setShowNewPricingPlanForm((current) => !current);
                   }}
                 >
-                  {showNewPricingPlanForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Create pricing plan' : 'Créer une formule')}
+                  {showNewPricingPlanForm ? t('adminConsole.closeForm') : t('adminConsole.createPricingPlan')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 {showNewPricingPlanForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Create pricing plan' : 'Créer une formule'}</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.createPricingPlan')}</h2>
                     <form className="auth-form" onSubmit={submitNewPricingPlan}>
-                      <label>{isEn ? 'Offer name' : 'Nom de l’offre'}<input value={newPricingPlan.name} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
-                      <label>{isEn ? 'Short description' : 'Description courte'}<textarea rows={3} value={newPricingPlan.description} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
-                      <label>{isEn ? 'Included features (1 line = 1 bullet)' : 'Fonctionnalités incluses (une ligne = un point)'}
-                        <textarea rows={5} value={newPricingPlan.features} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, features: e.target.value }))} placeholder={isEn ? 'Example: Manager dashboard\nLive session\nEmail support' : 'Ex: Dashboard manager\nSession live\nSupport email'} />
+                      <label>{t('adminConsole.offerName')}<input value={newPricingPlan.name} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
+                      <label>{t('adminConsole.shortDescription')}<textarea rows={3} value={newPricingPlan.description} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                      <label>{t('adminConsole.includedFeatures1Line1Bullet')}
+                        <textarea rows={5} value={newPricingPlan.features} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, features: e.target.value }))} placeholder={t('adminConsole.exampleManagerDashboardLiveSessionEmail')} />
                       </label>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>{isEn ? 'Price' : 'Prix'}<input type="number" min="0" step="0.01" value={newPricingPlan.price} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
-                        <label>{isEn ? 'Currency' : 'Devise'}<input value={newPricingPlan.currency} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
+                        <label>{t('adminConsole.price')}<input type="number" min="0" step="0.01" value={newPricingPlan.price} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
+                        <label>{t('adminConsole.currency')}<input value={newPricingPlan.currency} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
                       </div>
-                      <label>{isEn ? 'Billing cycle' : 'Cycle de facturation'}
+                      <label>{t('adminConsole.billingCycle')}
                         <select value={newPricingPlan.billing_cycle} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
-                          <option value="monthly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.monthly, isEn)}</option>
-                          <option value="yearly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.yearly, isEn)}</option>
-                          <option value="one_time">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.one_time, isEn)}</option>
-                          <option value="custom">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.custom, isEn)}</option>
+                          <option value="monthly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.monthly, locale)}</option>
+                          <option value="yearly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.yearly, locale)}</option>
+                          <option value="one_time">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.one_time, locale)}</option>
+                          <option value="custom">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.custom, locale)}</option>
                         </select>
                       </label>
-                      <label>{isEn ? 'CTA button label' : 'Libellé du bouton CTA'}<input value={newPricingPlan.cta_label} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                      <label>{t('adminConsole.ctaButtonLabel')}<input value={newPricingPlan.cta_label} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>{isEn ? 'Max users' : 'Max utilisateurs'}<input type="number" min="0" value={newPricingPlan.max_users} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
-                        <label>{isEn ? 'Max sessions/month' : 'Max sessions/mois'}<input type="number" min="0" value={newPricingPlan.max_sessions_per_month} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
+                        <label>{t('adminConsole.maxUsers')}<input type="number" min="0" value={newPricingPlan.max_users} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
+                        <label>{t('adminConsole.maxSessionsMonth')}<input type="number" min="0" value={newPricingPlan.max_sessions_per_month} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                        <label>{isEn ? 'Support level' : 'Niveau support'}<input value={newPricingPlan.support_level} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} placeholder={isEn ? 'Email, Priority...' : 'Email, Prioritaire...'} /></label>
-                        <label>{isEn ? 'Trial days' : 'Jours d’essai'}<input type="number" min="0" value={newPricingPlan.trial_days} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
-                        <label>{isEn ? 'Display order' : 'Ordre d’affichage'}<input type="number" min="0" value={newPricingPlan.display_order} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                        <label>{t('adminConsole.supportLevel')}<input value={newPricingPlan.support_level} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} placeholder={t('adminConsole.emailPriority')} /></label>
+                        <label>{t('adminConsole.trialDays')}<input type="number" min="0" value={newPricingPlan.trial_days} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
+                        <label>{t('adminConsole.displayOrder')}<input type="number" min="0" value={newPricingPlan.display_order} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
                       </div>
                       <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                           <input type="checkbox" checked={newPricingPlan.is_active} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                          {isEn ? 'Active offer' : 'Offre active'}
+                          {t('adminConsole.activeOffer')}
                         </label>
                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                           <input type="checkbox" checked={newPricingPlan.highlighted} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, highlighted: e.target.checked }))} />
-                          {isEn ? 'Highlighted' : 'Mise en avant'}
+                          {t('adminConsole.highlighted')}
                         </label>
                       </div>
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:pricing-plan'}>
-                        {busySaveKey === 'create:pricing-plan' ? (isEn ? 'Creating...' : 'Création...') : (isEn ? 'Create plan' : 'Créer la formule')}
+                        {busySaveKey === 'create:pricing-plan' ? t('adminConsole.creating') : t('adminConsole.createPlan')}
                       </button>
                       <button
                         type="button"
@@ -4058,7 +4036,7 @@ export default function AdminClient() {
                           setNewPricingMessage('');
                         }}
                       >
-                        {isEn ? 'Cancel' : 'Annuler'}
+                        {t('adminConsole.cancel')}
                       </button>
                     </form>
                     {newPricingMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newPricingMessage}</p> : null}
@@ -4072,59 +4050,59 @@ export default function AdminClient() {
                   >
                     <div style={{ background: 'var(--surface-elevated, #fff)', border: '1px solid var(--accent, var(--color-primary, #4f46e5))', borderRadius: '12px', width: '100%', maxWidth: '760px', maxHeight: 'calc(100vh - 80px)', overflowY: 'auto', padding: '22px 24px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{isEn ? 'Edit pricing plan' : 'Modifier une formule'}</h2>
+                        <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{t('adminConsole.editPricingPlan')}</h2>
                         <button
                           type="button"
                           onClick={() => setEditingPricingPlan(null)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--ink-soft, #6b7280)', padding: '2px 8px', lineHeight: 1 }}
-                          aria-label={isEn ? 'Close window' : 'Fermer la fenêtre'}
+                          aria-label={t('adminConsole.closeWindow')}
                         >
                           ✕
                         </button>
                       </div>
                     <form className="auth-form" onSubmit={submitEditPricingPlan}>
-                        <label>{isEn ? 'Offer name' : 'Nom de l’offre'}<input value={editingPricingPlan.name} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
-                        <label>{isEn ? 'Short description' : 'Description courte'}<textarea rows={3} value={editingPricingPlan.description} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
-                        <label>{isEn ? 'Included features (1 line = 1 bullet)' : 'Fonctionnalités incluses (une ligne = un point)'}
+                        <label>{t('adminConsole.offerName')}<input value={editingPricingPlan.name} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
+                        <label>{t('adminConsole.shortDescription')}<textarea rows={3} value={editingPricingPlan.description} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                        <label>{t('adminConsole.includedFeatures1Line1Bullet')}
                           <textarea rows={5} value={editingPricingPlan.features} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, features: e.target.value }))} />
                         </label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>{isEn ? 'Price' : 'Prix'}<input type="number" min="0" step="0.01" value={editingPricingPlan.price} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
-                          <label>{isEn ? 'Currency' : 'Devise'}<input value={editingPricingPlan.currency} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
+                          <label>{t('adminConsole.price')}<input type="number" min="0" step="0.01" value={editingPricingPlan.price} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
+                          <label>{t('adminConsole.currency')}<input value={editingPricingPlan.currency} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
                         </div>
-                        <label>{isEn ? 'Billing cycle' : 'Cycle de facturation'}
+                        <label>{t('adminConsole.billingCycle')}
                           <select value={editingPricingPlan.billing_cycle} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
-                            <option value="monthly">{getPricingBillingCycleLabel('monthly', isEn)}</option>
-                            <option value="yearly">{getPricingBillingCycleLabel('yearly', isEn)}</option>
-                            <option value="one_time">{getPricingBillingCycleLabel('one_time', isEn)}</option>
-                            <option value="custom">{getPricingBillingCycleLabel('custom', isEn)}</option>
+                            <option value="monthly">{getPricingBillingCycleLabel('monthly', locale)}</option>
+                            <option value="yearly">{getPricingBillingCycleLabel('yearly', locale)}</option>
+                            <option value="one_time">{getPricingBillingCycleLabel('one_time', locale)}</option>
+                            <option value="custom">{getPricingBillingCycleLabel('custom', locale)}</option>
                           </select>
                         </label>
-                        <label>{isEn ? 'CTA button label' : 'Libellé du bouton CTA'}<input value={editingPricingPlan.cta_label} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                        <label>{t('adminConsole.ctaButtonLabel')}<input value={editingPricingPlan.cta_label} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>{isEn ? 'Max users' : 'Max utilisateurs'}<input type="number" min="0" value={editingPricingPlan.max_users} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
-                          <label>{isEn ? 'Max sessions/month' : 'Max sessions/mois'}<input type="number" min="0" value={editingPricingPlan.max_sessions_per_month} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
+                          <label>{t('adminConsole.maxUsers')}<input type="number" min="0" value={editingPricingPlan.max_users} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
+                          <label>{t('adminConsole.maxSessionsMonth')}<input type="number" min="0" value={editingPricingPlan.max_sessions_per_month} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                          <label>{isEn ? 'Support level' : 'Niveau support'}<input value={editingPricingPlan.support_level} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} /></label>
-                          <label>{isEn ? 'Trial days' : 'Jours d’essai'}<input type="number" min="0" value={editingPricingPlan.trial_days} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
-                          <label>{isEn ? 'Display order' : 'Ordre d’affichage'}<input type="number" min="0" value={editingPricingPlan.display_order} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                          <label>{t('adminConsole.supportLevel')}<input value={editingPricingPlan.support_level} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} /></label>
+                          <label>{t('adminConsole.trialDays')}<input type="number" min="0" value={editingPricingPlan.trial_days} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
+                          <label>{t('adminConsole.displayOrder')}<input type="number" min="0" value={editingPricingPlan.display_order} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
                         </div>
                         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
                           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                             <input type="checkbox" checked={editingPricingPlan.is_active} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                            {isEn ? 'Active offer' : 'Offre active'}
+                            {t('adminConsole.activeOffer')}
                           </label>
                           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                             <input type="checkbox" checked={editingPricingPlan.highlighted} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, highlighted: e.target.checked }))} />
-                            {isEn ? 'Highlighted' : 'Mise en avant'}
+                            {t('adminConsole.highlighted')}
                           </label>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                           <button type="submit" className="btn-primary" disabled={busySaveKey === `save:pricing-plan:${editingPricingPlan.id}`}>
-                            {busySaveKey === `save:pricing-plan:${editingPricingPlan.id}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}
+                            {busySaveKey === `save:pricing-plan:${editingPricingPlan.id}` ? t('adminConsole.saving') : t('adminConsole.save')}
                           </button>
-                          <button type="button" className="btn-secondary" onClick={() => setEditingPricingPlan(null)}>{isEn ? 'Cancel' : 'Annuler'}</button>
+                          <button type="button" className="btn-secondary" onClick={() => setEditingPricingPlan(null)}>{t('adminConsole.cancel')}</button>
                         </div>
                     </form>
                     </div>
@@ -4134,12 +4112,12 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--surface-elevated, #fff)', border: '1px solid var(--line, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {isEn ? 'List' : 'Liste'} {pricingPlans.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--ink-soft, #6b7280)', fontSize: '13px' }}>({filteredPricingPlans.length}/{pricingPlans.length})</span> : null}
+                      {t('adminConsole.list')} {pricingPlans.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--ink-soft, #6b7280)', fontSize: '13px' }}>({filteredPricingPlans.length}/{pricingPlans.length})</span> : null}
                     </h2>
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder={isEn ? 'Search a plan...' : 'Rechercher une formule...'}
+                      placeholder={t('adminConsole.searchAPlan')}
                       value={pricingQuery}
                       onChange={(e) => setPricingQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
@@ -4147,20 +4125,20 @@ export default function AdminClient() {
                   </div>
 
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredPricingPlans.length === 0 ? <li className="list-empty">{isEn ? 'No matching plan.' : 'Aucune formule ne correspond.'}</li> : null}
+                    {filteredPricingPlans.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingPlan')}</li> : null}
                     {filteredPricingPlans.map((plan) => (
                       <li key={String(plan.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">
                             {plan.name}
-                            {getAdminPricingBadgeLabel(plan, isEn) ? <span className="pricing-badge admin-pricing-inline-badge">{getAdminPricingBadgeLabel(plan, isEn)}</span> : null}
+                            {getAdminPricingBadgeLabel(plan, locale) ? <span className="pricing-badge admin-pricing-inline-badge">{getAdminPricingBadgeLabel(plan, locale)}</span> : null}
                           </p>
                           <p className="session-meta">
-                            {formatPricingPlanAmount(plan, isEn)}
+                            {formatPricingPlanAmount(plan, locale)}
                             {' · '}
-                            {getPricingBillingCycleLabel(plan.billing_cycle, isEn)}
+                            {getPricingBillingCycleLabel(plan.billing_cycle, locale)}
                             {' · '}
-                            {plan.is_active ? (isEn ? 'Active' : 'Active') : (isEn ? 'Inactive' : 'Inactive')}
+                            {plan.is_active ? t('adminConsole.active2') : t('adminConsole.inactive2')}
                           </p>
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
@@ -4168,8 +4146,8 @@ export default function AdminClient() {
                             type="button"
                             className="icon-action-btn"
                             onClick={() => beginEditPricingPlan(plan)}
-                            title={isEn ? 'Edit' : 'Modifier'}
-                            aria-label={isEn ? 'Edit plan' : 'Modifier formule'}
+                            title={t('adminConsole.edit')}
+                            aria-label={t('adminConsole.editPlan')}
                           >
                             ✎
                           </button>
@@ -4178,8 +4156,8 @@ export default function AdminClient() {
                             className="icon-action-btn icon-action-danger"
                             onClick={() => handleDeletePricingPlan(plan)}
                             disabled={busyDeleteKey === `pricing-plan:${plan.id}`}
-                            title={isEn ? 'Delete' : 'Supprimer'}
-                            aria-label={isEn ? 'Delete plan' : 'Supprimer formule'}
+                            title={t('adminConsole.delete')}
+                            aria-label={t('adminConsole.deletePlan')}
                           >
                             {busyDeleteKey === `pricing-plan:${plan.id}` ? '…' : '🗑'}
                           </button>
@@ -4203,9 +4181,9 @@ export default function AdminClient() {
 
               <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                 <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{isEn ? 'Landing CMS' : 'Contenu de la page d’accueil'}</h1>
+                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.landingCms2')}</h1>
                   <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                    {isEn ? 'Reduced structure mode: hero, 3 proof points, 3-step flow and one final CTA.' : 'Mode structure réduite: hero, 3 preuves, parcours en 3 étapes et CTA final unique.'}
+                    {t('adminConsole.reducedStructureModeHero3Proof')}
                   </p>
                 </div>
                 <button
@@ -4217,35 +4195,35 @@ export default function AdminClient() {
                     setShowNewLandingBlockForm((current) => !current);
                   }}
                 >
-                  {showNewLandingBlockForm ? (isEn ? 'Close form' : 'Fermer le formulaire') : (isEn ? 'Create block' : 'Créer un bloc')}
+                  {showNewLandingBlockForm ? t('adminConsole.closeForm') : t('adminConsole.createBlock')}
                 </button>
               </div>
 
               <div style={{ display: 'grid', gap: '20px' }}>
                 {showNewLandingBlockForm ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Create block' : 'Créer un bloc'}</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.createBlock')}</h2>
                     <form className="auth-form" onSubmit={submitNewLandingBlock}>
-                      <label>{isEn ? 'Block key' : 'Clé bloc'}<input value={newLandingBlock.block_key} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} placeholder="hero_main" list="landing-allowed-keys" required /></label>
-                      <label>{isEn ? 'Admin label' : 'Libellé admin'}<input value={newLandingBlock.label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
-                      <label>{isEn ? 'Title' : 'Titre'}<input value={newLandingBlock.title} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
-                      <label>{isEn ? 'Subtitle' : 'Sous-titre'}<input value={newLandingBlock.subtitle} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
-                      <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={newLandingBlock.description} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
-                      <label>{isEn ? 'Image URL' : 'URL de l’image'}<input value={newLandingBlock.image_url} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, image_url: e.target.value }))} placeholder="https://..." /></label>
+                      <label>{t('adminConsole.blockKey')}<input value={newLandingBlock.block_key} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} placeholder="hero_main" list="landing-allowed-keys" required /></label>
+                      <label>{t('adminConsole.adminLabel')}<input value={newLandingBlock.label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
+                      <label>{t('adminConsole.title')}<input value={newLandingBlock.title} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
+                      <label>{t('adminConsole.subtitle')}<input value={newLandingBlock.subtitle} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
+                      <label>{t('adminConsole.description')}<textarea rows={4} value={newLandingBlock.description} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                      <label>{t('adminConsole.imageUrl2')}<input value={newLandingBlock.image_url} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, image_url: e.target.value }))} placeholder="https://..." /></label>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>{isEn ? 'CTA label' : 'Libellé du CTA'}<input value={newLandingBlock.cta_label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
-                        <label>{isEn ? 'CTA link' : 'Lien du CTA'}<input value={newLandingBlock.cta_href} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
+                        <label>{t('adminConsole.ctaLabel')}<input value={newLandingBlock.cta_label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                        <label>{t('adminConsole.ctaLink')}<input value={newLandingBlock.cta_href} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>{isEn ? 'Badge' : 'Badge'}<input value={newLandingBlock.badge_text} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
-                        <label>{isEn ? 'Order' : 'Ordre'}<input type="number" min="0" value={newLandingBlock.display_order} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                        <label>{t('adminConsole.badge')}<input value={newLandingBlock.badge_text} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
+                        <label>{t('adminConsole.order')}<input type="number" min="0" value={newLandingBlock.display_order} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
                       </div>
                       <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                         <input type="checkbox" checked={newLandingBlock.is_active} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                        {isEn ? 'Active block' : 'Bloc actif'}
+                        {t('adminConsole.activeBlock')}
                       </label>
                       <button type="submit" className="btn-primary" disabled={busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}`}>
-                        {busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Create block' : 'Créer le bloc')}
+                        {busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}` ? t('adminConsole.saving') : t('adminConsole.createBlock2')}
                       </button>
                       <button
                         type="button"
@@ -4255,7 +4233,7 @@ export default function AdminClient() {
                           setNewLandingMessage('');
                         }}
                       >
-                        {isEn ? 'Cancel' : 'Annuler'}
+                        {t('adminConsole.cancel')}
                       </button>
                     </form>
                     {newLandingMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newLandingMessage}</p> : null}
@@ -4264,31 +4242,31 @@ export default function AdminClient() {
 
                 {editingLandingBlock ? (
                   <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{isEn ? 'Edit block' : 'Modifier un bloc'}</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.editBlock')}</h2>
                     <form className="auth-form" onSubmit={submitEditLandingBlock}>
-                      <label>{isEn ? 'Block key' : 'Clé bloc'}<input value={editingLandingBlock.block_key} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} list="landing-allowed-keys" required /></label>
-                        <label>{isEn ? 'Admin label' : 'Libellé admin'}<input value={editingLandingBlock.label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
-                        <label>{isEn ? 'Title' : 'Titre'}<input value={editingLandingBlock.title} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
-                        <label>{isEn ? 'Subtitle' : 'Sous-titre'}<input value={editingLandingBlock.subtitle} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
-                        <label>{isEn ? 'Description' : 'Description'}<textarea rows={4} value={editingLandingBlock.description} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
-                        <label>{isEn ? 'Image URL' : 'URL de l’image'}<input value={editingLandingBlock.image_url} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, image_url: e.target.value }))} /></label>
+                      <label>{t('adminConsole.blockKey')}<input value={editingLandingBlock.block_key} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} list="landing-allowed-keys" required /></label>
+                        <label>{t('adminConsole.adminLabel')}<input value={editingLandingBlock.label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
+                        <label>{t('adminConsole.title')}<input value={editingLandingBlock.title} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
+                        <label>{t('adminConsole.subtitle')}<input value={editingLandingBlock.subtitle} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
+                        <label>{t('adminConsole.description')}<textarea rows={4} value={editingLandingBlock.description} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
+                        <label>{t('adminConsole.imageUrl2')}<input value={editingLandingBlock.image_url} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, image_url: e.target.value }))} /></label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>{isEn ? 'CTA label' : 'Libellé du CTA'}<input value={editingLandingBlock.cta_label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
-                          <label>{isEn ? 'CTA link' : 'Lien du CTA'}<input value={editingLandingBlock.cta_href} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
+                          <label>{t('adminConsole.ctaLabel')}<input value={editingLandingBlock.cta_label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
+                          <label>{t('adminConsole.ctaLink')}<input value={editingLandingBlock.cta_href} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>{isEn ? 'Badge' : 'Badge'}<input value={editingLandingBlock.badge_text} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
-                          <label>{isEn ? 'Order' : 'Ordre'}<input type="number" min="0" value={editingLandingBlock.display_order} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
+                          <label>{t('adminConsole.badge')}<input value={editingLandingBlock.badge_text} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
+                          <label>{t('adminConsole.order')}<input type="number" min="0" value={editingLandingBlock.display_order} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
                         </div>
                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                           <input type="checkbox" checked={editingLandingBlock.is_active} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                          {isEn ? 'Active block' : 'Bloc actif'}
+                          {t('adminConsole.activeBlock')}
                         </label>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                           <button type="submit" className="btn-primary" disabled={busySaveKey === `save:landing:${String(editingLandingBlock.block_key || '').trim().toLowerCase()}`}>
-                            {busySaveKey === `save:landing:${String(editingLandingBlock.block_key || '').trim().toLowerCase()}` ? (isEn ? 'Saving...' : 'Enregistrement...') : (isEn ? 'Save' : 'Enregistrer')}
+                            {busySaveKey === `save:landing:${String(editingLandingBlock.block_key || '').trim().toLowerCase()}` ? t('adminConsole.saving') : t('adminConsole.save')}
                           </button>
-                          <button type="button" className="btn-secondary" onClick={() => setEditingLandingBlock(null)}>{isEn ? 'Cancel' : 'Annuler'}</button>
+                          <button type="button" className="btn-secondary" onClick={() => setEditingLandingBlock(null)}>{t('adminConsole.cancel')}</button>
                         </div>
                     </form>
                   </div>
@@ -4297,12 +4275,12 @@ export default function AdminClient() {
                 <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {isEn ? 'Blocks' : 'Blocs'} {landingBlocks.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredLandingBlocks.length}/{landingBlocks.length})</span> : null}
+                      {t('adminConsole.blocks')} {landingBlocks.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredLandingBlocks.length}/{landingBlocks.length})</span> : null}
                     </h2>
                     <input
                       type="search"
                       className="inline-input"
-                      placeholder={isEn ? 'Search a block...' : 'Rechercher un bloc...'}
+                      placeholder={t('adminConsole.searchABlock')}
                       value={landingQuery}
                       onChange={(e) => setLandingQuery(e.target.value)}
                       style={{ width: 'min(360px, 100%)' }}
@@ -4310,20 +4288,20 @@ export default function AdminClient() {
                   </div>
 
                   <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredLandingBlocks.length === 0 ? <li className="list-empty">{isEn ? 'No matching block.' : 'Aucun bloc ne correspond.'}</li> : null}
+                    {filteredLandingBlocks.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingBlock')}</li> : null}
                     {filteredLandingBlocks.map((block) => (
                       <li key={String(block.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">{block.label || block.block_key}</p>
-                          <p className="session-meta">{block.block_key} · {block.is_active ? (isEn ? 'Active' : 'Actif') : (isEn ? 'Inactive' : 'Inactif')}</p>
+                          <p className="session-meta">{block.block_key} · {block.is_active ? t('adminConsole.active') : t('adminConsole.inactive')}</p>
                         </div>
                         <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
                           <button
                             type="button"
                             className="icon-action-btn"
                             onClick={() => beginEditLandingBlock(block)}
-                            title={isEn ? 'Edit' : 'Modifier'}
-                            aria-label={isEn ? 'Edit landing block' : 'Modifier bloc landing'}
+                            title={t('adminConsole.edit')}
+                            aria-label={t('adminConsole.editLandingBlock')}
                           >
                             ✎
                           </button>
@@ -4332,8 +4310,8 @@ export default function AdminClient() {
                             className="icon-action-btn icon-action-danger"
                             onClick={() => handleDeleteLandingBlock(block)}
                             disabled={busyDeleteKey === `landing:${block.block_key}`}
-                            title={isEn ? 'Delete' : 'Supprimer'}
-                            aria-label={isEn ? 'Delete landing block' : 'Supprimer bloc landing'}
+                            title={t('adminConsole.delete')}
+                            aria-label={t('adminConsole.deleteLandingBlock')}
                           >
                             {busyDeleteKey === `landing:${block.block_key}` ? '…' : '🗑'}
                           </button>

@@ -1,4 +1,5 @@
 "use client";
+import { translate } from '@/lib/i18n';
 
 // Dev-only warning panel surfaced when NEXT_PUBLIC_LANDING_CMS_STRICT is enabled.
 export default function LandingCmsAuditPanel({ locale, isStrict, loaded, cmsAudit }) {
@@ -8,20 +9,18 @@ export default function LandingCmsAuditPanel({ locale, isStrict, loaded, cmsAudi
   return (
     <section className="feature-card" aria-label="Audit Landing CMS" style={{ borderColor: 'var(--color-warning, #f59e0b)', background: 'var(--color-surface, #fff)' }}>
       <p className="eyebrow" style={{ color: 'var(--color-warning-dark, #9a3412)' }}>Audit CMS Strict</p>
-      <h2 style={{ marginTop: 0 }}>{locale === 'en' ? 'Incomplete CMS coverage' : 'Couverture CMS incomplete'}</h2>
+      <h2 style={{ marginTop: 0 }}>{translate(locale, 'landingUi.incompleteCmsCoverage')}</h2>
       <p style={{ marginBottom: '0.4rem' }}>
-        {locale === 'en'
-          ? 'Complete missing block keys before removing local defaults.'
-          : 'Completer les block_key manquants avant suppression des defaults locaux.'}
+        {translate(locale, 'landingUi.completeMissingBlockKeysBeforeRemoving')}
       </p>
       {cmsAudit.missingKeys.length > 0 ? (
         <p className="session-meta" style={{ margin: '0.2rem 0' }}>
-          {locale === 'en' ? 'Missing keys:' : 'Cles manquantes:'} {cmsAudit.missingKeys.join(', ')}
+          {translate(locale, 'landingUi.missingKeys')} {cmsAudit.missingKeys.join(', ')}
         </p>
       ) : null}
       {cmsAudit.missingFields.length > 0 ? (
         <p className="session-meta" style={{ margin: '0.2rem 0' }}>
-          {locale === 'en' ? 'Incomplete fields:' : 'Champs incomplets:'} {cmsAudit.missingFields.map((entry) => `${entry.key} (${entry.fields.join(', ')})`).join(' | ')}
+          {translate(locale, 'landingUi.incompleteFields')} {cmsAudit.missingFields.map((entry) => `${entry.key} (${entry.fields.join(', ')})`).join(' | ')}
         </p>
       ) : null}
     </section>

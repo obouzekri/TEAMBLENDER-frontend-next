@@ -1,13 +1,14 @@
 "use client";
 
 import GamifiedIcon from './GamifiedIcon';
+import { translate } from '@/lib/i18n';
 
 export default function LandingFlowSteps({ locale, flowHeader, flowStepsWithIcons }) {
   return (
     <section
       className="landing-flow landing-section-full relative overflow-hidden p-6 sm:p-8"
       style={{ '--reveal-delay': '190ms' }}
-      aria-label={locale === 'en' ? 'Three-step journey' : 'Parcours en 3 étapes'}
+      aria-label={translate(locale, 'landingUi.threeStepJourney')}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(14,165,233,0.10),transparent_40%)]" />
       <div className="landing-section-inner relative">
@@ -17,7 +18,7 @@ export default function LandingFlowSteps({ locale, flowHeader, flowStepsWithIcon
             <h2 className="landing-section-title text-white">{flowHeader.title}</h2>
           </div>
         </div>
-        <div className="landing-flow-timeline mt-8" role="list" aria-label={locale === 'en' ? 'How TeamBlender works in three steps' : 'Comment TeamBlender fonctionne en trois etapes'}>
+        <div className="landing-flow-timeline mt-8" role="list" aria-label={translate(locale, 'landingUi.howTeamblenderWorksInThreeSteps')}>
           {flowStepsWithIcons.map((step, index) => (
             <article
               key={`flow-step-${index}`}

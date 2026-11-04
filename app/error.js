@@ -7,8 +7,7 @@ import Footer from '@/components/Footer';
 import useI18n from '@/lib/i18n/useI18n';
 
 export default function GlobalError({ error, reset }) {
-  const { locale, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, withLocalePath, t } = useI18n();
 
   useEffect(() => {
     // Keep a trace in dev/prod logs for quicker incident triage.
@@ -20,22 +19,20 @@ export default function GlobalError({ error, reset }) {
       <TopNav />
       <main className="shell error-page">
         <section className="error-panel">
-          <p className="eyebrow error-page__eyebrow">{isEn ? 'APPLICATION ERROR' : 'ERREUR APPLICATION'}</p>
-          <h1 className="error-page__title">{isEn ? 'An unexpected error occurred.' : 'Une erreur inattendue est survenue.'}</h1>
+          <p className="eyebrow error-page__eyebrow">{t('errorPages.applicationError')}</p>
+          <h1 className="error-page__title">{t('errorPages.anUnexpectedErrorOccurred')}</h1>
           <p className="error-page__text">
-            {isEn
-              ? 'You can retry immediately. If the problem persists, return to manager home and restart your flow.'
-              : 'Vous pouvez réessayer immédiatement. Si le problème persiste, revenez à l’accueil manager puis relancez votre parcours.'}
+            {t('errorPages.youCanRetryImmediatelyIfThe')}
           </p>
           <div className="error-page__actions">
             <button type="button" className="btn-primary error-page__primary" onClick={reset}>
-              {isEn ? 'Retry' : 'Réessayer'}
+              {t('errorPages.retry')}
             </button>
             <Link href={withLocalePath('/home')} className="btn-secondary error-page__secondary">
-              {isEn ? 'Manager space' : 'Espace manager'}
+              {t('errorPages.managerSpace')}
             </Link>
             <Link href={withLocalePath('/login')} className="btn-secondary error-page__secondary">
-              {isEn ? 'Log in' : 'Connexion'}
+              {t('errorPages.logIn')}
             </Link>
           </div>
         </section>

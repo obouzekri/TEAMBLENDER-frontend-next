@@ -2,6 +2,9 @@ import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
+import { normalizeLocale } from '@/lib/i18n/routing';
+import { LOCALE_COOKIE } from '@/lib/i18n/detectLocale';
+import { translate } from '@/lib/i18n';
 
 export const metadata = {
   title: 'Privacy Policy | TeamBlender',
@@ -73,7 +76,7 @@ const COPY = {
 
 export default async function PolitiqueConfidentialitePage() {
   const cookieStore = await cookies();
-  const locale = String(cookieStore.get('tb_locale')?.value || 'fr').toLowerCase() === 'en' ? 'en' : 'fr';
+  const locale = normalizeLocale(cookieStore.get(LOCALE_COOKIE)?.value);
   const copy = COPY[locale];
   const rights = RIGHTS[locale];
   const legalHref = `/${locale}/mentions-legales`;
@@ -98,8 +101,8 @@ export default async function PolitiqueConfidentialitePage() {
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.controller}</h2>
             <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
-              <li><strong>{locale === 'en' ? 'Entity:' : 'Entité :'}</strong> [NOM DE LA SOCIÉTÉ]</li>
-              <li><strong>{locale === 'en' ? 'Address:' : 'Adresse :'}</strong> [ADRESSE]</li>
+              <li><strong>{translate(locale, 'privacyPage.entity')}</strong> [NOM DE LA SOCIÉTÉ]</li>
+              <li><strong>{translate(locale, 'privacyPage.address')}</strong> [ADRESSE]</li>
               <li><strong>Email :</strong> <a href="mailto:contact@teamblender.io">contact@teamblender.io</a></li>
             </ul>
           </section>
@@ -107,75 +110,75 @@ export default async function PolitiqueConfidentialitePage() {
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.data}</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)', marginBottom: '0.5rem' }}>
-              {locale === 'en' ? 'Depending on your platform usage, we may collect:' : 'Selon votre usage de la plateforme, nous sommes susceptibles de collecter :'}
+              {translate(locale, 'privacyPage.dependingOnYourPlatformUsageWe')}
             </p>
             <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
-              <li><strong>{locale === 'en' ? 'Account data:' : 'Données de compte :'}</strong> {locale === 'en' ? 'name, email, encrypted password, role (manager, HR, participant)' : 'nom, prénom, adresse email, mot de passe (chiffré), rôle (manager, RH, participant)'}</li>
-              <li><strong>{locale === 'en' ? 'Session data:' : 'Données de session :'}</strong> {locale === 'en' ? 'session name, selected challenges, activity results, team composition' : 'nom de la session, challenges sélectionnés, résultats des activités, équipes constituées'}</li>
-              <li><strong>{locale === 'en' ? 'Navigation data:' : 'Données de navigation :'}</strong> {locale === 'en' ? 'IP address, browser type, visited pages (if analytics enabled)' : 'adresse IP, type de navigateur, pages consultées (si analytics activés)'}</li>
-              <li><strong>{locale === 'en' ? 'Contact data:' : 'Données de contact :'}</strong> {locale === 'en' ? 'messages sent through the contact form' : 'messages envoyés via le formulaire de contact'}</li>
+              <li><strong>{translate(locale, 'privacyPage.accountData')}</strong> {translate(locale, 'privacyPage.nameEmailEncryptedPasswordRoleManager')}</li>
+              <li><strong>{translate(locale, 'privacyPage.sessionData')}</strong> {translate(locale, 'privacyPage.sessionNameSelectedChallengesActivityResults')}</li>
+              <li><strong>{translate(locale, 'privacyPage.navigationData')}</strong> {translate(locale, 'privacyPage.ipAddressBrowserTypeVisitedPages')}</li>
+              <li><strong>{translate(locale, 'privacyPage.contactData')}</strong> {translate(locale, 'privacyPage.messagesSentThroughTheContactForm')}</li>
             </ul>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)', marginTop: '0.75rem' }}>
-              {locale === 'en' ? 'We do not collect sensitive data under GDPR Article 9 (ethnic origin, political opinions, health data, etc.).' : 'Nous ne collectons pas de données sensibles au sens de l article 9 du RGPD (origine ethnique, opinions politiques, données de santé, etc.).'}
+              {translate(locale, 'privacyPage.weDoNotCollectSensitiveData')}
             </p>
           </section>
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.purposes}</h2>
             <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
-              <li>{locale === 'en' ? 'User account management and authentication' : 'Gestion des comptes utilisateurs et authentification'}</li>
-              <li>{locale === 'en' ? 'Organization and facilitation of team sessions' : 'Organisation et animation des sessions de team building'}</li>
-              <li>{locale === 'en' ? 'Session-related notifications (invites, confirmations)' : 'Envoi de notifications liées aux sessions (invitations, confirmations)'}</li>
-              <li>{locale === 'en' ? 'Contact request handling' : 'Réponse aux demandes de contact'}</li>
-              <li>{locale === 'en' ? 'Platform improvement and usage analytics (if enabled)' : 'Amélioration de la plateforme et analyse d usage (si analytics)'}</li>
-              <li>{locale === 'en' ? 'Compliance with legal and accounting obligations' : 'Respect des obligations légales et comptables'}</li>
+              <li>{translate(locale, 'privacyPage.userAccountManagementAndAuthentication')}</li>
+              <li>{translate(locale, 'privacyPage.organizationAndFacilitationOfTeamSessions')}</li>
+              <li>{translate(locale, 'privacyPage.sessionRelatedNotificationsInvitesConfirmations')}</li>
+              <li>{translate(locale, 'privacyPage.contactRequestHandling')}</li>
+              <li>{translate(locale, 'privacyPage.platformImprovementAndUsageAnalyticsIf')}</li>
+              <li>{translate(locale, 'privacyPage.complianceWithLegalAndAccountingObligations')}</li>
             </ul>
           </section>
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.legal}</h2>
             <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
-              <li><strong>{locale === 'en' ? 'Contract performance' : 'Exécution du contrat'}</strong> — {locale === 'en' ? 'for account management and feature access' : 'pour la gestion de votre compte et l accès aux fonctionnalités'}</li>
-              <li><strong>{locale === 'en' ? 'Legitimate interest' : 'Intérêt légitime'}</strong> — {locale === 'en' ? 'for platform improvement and fraud prevention' : 'pour l amélioration de la plateforme et la prévention de la fraude'}</li>
-              <li><strong>{locale === 'en' ? 'Consent' : 'Consentement'}</strong> — {locale === 'en' ? 'for marketing communications or analytics activation' : 'pour l envoi de communications marketing ou l activation d analytics'}</li>
-              <li><strong>{locale === 'en' ? 'Legal obligation' : 'Obligation légale'}</strong> — {locale === 'en' ? 'for accounting and tax retention obligations' : 'pour la conservation des données comptables et fiscales'}</li>
+              <li><strong>{translate(locale, 'privacyPage.contractPerformance')}</strong> — {translate(locale, 'privacyPage.forAccountManagementAndFeatureAccess')}</li>
+              <li><strong>{translate(locale, 'privacyPage.legitimateInterest')}</strong> — {translate(locale, 'privacyPage.forPlatformImprovementAndFraudPrevention')}</li>
+              <li><strong>{translate(locale, 'privacyPage.consent')}</strong> — {translate(locale, 'privacyPage.forMarketingCommunicationsOrAnalyticsActivation')}</li>
+              <li><strong>{translate(locale, 'privacyPage.legalObligation')}</strong> — {translate(locale, 'privacyPage.forAccountingAndTaxRetentionObligations')}</li>
             </ul>
           </section>
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.retention}</h2>
             <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
-              <li><strong>{locale === 'en' ? 'Active account data:' : 'Données de compte actif :'}</strong> {locale === 'en' ? 'duration of contractual relation + 3 years' : 'durée de la relation contractuelle + 3 ans'}</li>
-              <li><strong>{locale === 'en' ? 'Session data:' : 'Données de session :'}</strong> {locale === 'en' ? '12 months after session end' : '12 mois après la fin de la session'}</li>
-              <li><strong>{locale === 'en' ? 'Contact data:' : 'Données de contact :'}</strong> {locale === 'en' ? '3 years from last interaction' : '3 ans à compter de la dernière interaction'}</li>
-              <li><strong>{locale === 'en' ? 'Navigation data:' : 'Données de navigation :'}</strong> {locale === 'en' ? '13 months maximum (if analytics enabled)' : '13 mois maximum (si analytics activés)'}</li>
-              <li><strong>{locale === 'en' ? 'Accounting data:' : 'Données comptables :'}</strong> {locale === 'en' ? '10 years (legal obligation)' : '10 ans (obligation légale)'}</li>
+              <li><strong>{translate(locale, 'privacyPage.activeAccountData')}</strong> {translate(locale, 'privacyPage.durationOfContractualRelation3Years')}</li>
+              <li><strong>{translate(locale, 'privacyPage.sessionData')}</strong> {translate(locale, 'privacyPage.n12MonthsAfterSessionEnd')}</li>
+              <li><strong>{translate(locale, 'privacyPage.contactData')}</strong> {translate(locale, 'privacyPage.n3YearsFromLastInteraction')}</li>
+              <li><strong>{translate(locale, 'privacyPage.navigationData')}</strong> {translate(locale, 'privacyPage.n13MonthsMaximumIfAnalyticsEnabled')}</li>
+              <li><strong>{translate(locale, 'privacyPage.accountingData')}</strong> {translate(locale, 'privacyPage.n10YearsLegalObligation')}</li>
             </ul>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)', marginTop: '0.75rem' }}>
-              {locale === 'en' ? 'After these periods, your data is deleted or anonymized.' : 'À l expiration de ces délais, vos données sont supprimées ou anonymisées.'}
+              {translate(locale, 'privacyPage.afterThesePeriodsYourDataIs')}
             </p>
           </section>
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.recipients}</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)', marginBottom: '0.5rem' }}>
-              {locale === 'en' ? 'Your data is never sold. It may be shared with:' : 'Vos données ne sont pas vendues. Elles peuvent être transmises à :'}
+              {translate(locale, 'privacyPage.yourDataIsNeverSoldIt')}
             </p>
             <ul style={{ paddingLeft: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
-              <li><strong>{locale === 'en' ? 'Hosting provider:' : 'Hébergeur :'}</strong> [NOM HÉBERGEUR] — {locale === 'en' ? 'for secure data hosting' : 'pour le stockage sécurisé des données'}</li>
-              <li><strong>{locale === 'en' ? 'Email provider:' : 'Prestataire email :'}</strong> Brevo (Sendinblue) — {locale === 'en' ? 'for transactional notifications' : 'pour l envoi des notifications transactionnelles'}</li>
-              <li><strong>{locale === 'en' ? 'Payment provider:' : 'Prestataire de paiement :'}</strong> Stripe — {locale === 'en' ? 'for subscription processing (no banking data stored on our servers)' : 'pour le traitement des abonnements (aucune donnée bancaire stockée sur nos serveurs)'}</li>
-              <li><strong>{locale === 'en' ? 'Competent authorities:' : 'Autorités compétentes :'}</strong> {locale === 'en' ? 'only upon legal request' : 'uniquement sur demande légale'}</li>
+              <li><strong>{translate(locale, 'privacyPage.hostingProvider')}</strong> [NOM HÉBERGEUR] — {translate(locale, 'privacyPage.forSecureDataHosting')}</li>
+              <li><strong>{translate(locale, 'privacyPage.emailProvider')}</strong> Brevo (Sendinblue) — {translate(locale, 'privacyPage.forTransactionalNotifications')}</li>
+              <li><strong>{translate(locale, 'privacyPage.paymentProvider')}</strong> Stripe — {translate(locale, 'privacyPage.forSubscriptionProcessingNoBankingData')}</li>
+              <li><strong>{translate(locale, 'privacyPage.competentAuthorities')}</strong> {translate(locale, 'privacyPage.onlyUponLegalRequest')}</li>
             </ul>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)', marginTop: '0.75rem' }}>
-              {locale === 'en' ? 'All providers are contractually bound by strict confidentiality obligations and, whenever possible, host data in Europe.' : 'Tous nos prestataires sont soumis à des obligations contractuelles strictes de confidentialité et, dans la mesure du possible, hébergent leurs données en Europe.'}
+              {translate(locale, 'privacyPage.allProvidersAreContractuallyBoundBy')}
             </p>
           </section>
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.rights}</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)', marginBottom: '1rem' }}>
-              {locale === 'en' ? 'Under GDPR, you have the following rights. To exercise them, contact us at ' : 'Conformément au RGPD, vous disposez des droits suivants. Pour les exercer, contactez-nous à '}
+              {translate(locale, 'privacyPage.underGdprYouHaveTheFollowing')}
               <a href="mailto:contact@teamblender.io">contact@teamblender.io</a>.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
@@ -191,17 +194,15 @@ export default async function PolitiqueConfidentialitePage() {
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.cookies}</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
-              {locale === 'en'
-                ? 'TeamBlender only uses strictly necessary cookies for platform operation (session, authentication). No third-party advertising cookie is set without your explicit consent.'
-                : 'TeamBlender utilise uniquement des cookies strictement nécessaires au fonctionnement de la plateforme (session, authentification). Aucun cookie tiers à des fins publicitaires n est déposé sans votre consentement explicite.'}
+              {translate(locale, 'privacyPage.teamblenderOnlyUsesStrictlyNecessaryCookies')}
             </p>
           </section>
 
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.complaint}</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
-              {locale === 'en' ? 'If you believe your rights are not respected, you can submit a complaint to the ' : 'Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de la '}
-              <strong>{locale === 'en' ? 'CNIL' : 'CNIL'}</strong>{' '}
+              {translate(locale, 'privacyPage.ifYouBelieveYourRightsAre')}
+              <strong>{translate(locale, 'privacyPage.cnil')}</strong>{' '}
               <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer">www.cnil.fr</a>
             </p>
           </section>
@@ -209,9 +210,7 @@ export default async function PolitiqueConfidentialitePage() {
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.changes}</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
-              {locale === 'en'
-                ? 'We reserve the right to modify this policy at any time. The last update date is shown at the top of the page. By continuing to use TeamBlender after a change, you accept the updated policy.'
-                : 'Nous nous réservons le droit de modifier cette politique à tout moment. La date de dernière mise à jour figure en haut de page. En continuant à utiliser TeamBlender après une modification, vous acceptez la politique mise à jour.'}
+              {translate(locale, 'privacyPage.weReserveTheRightToModify')}
             </p>
           </section>
 

@@ -5,6 +5,7 @@ import { getLanguageAlternates } from '@/lib/seo';
 import { withLocalePath } from '@/lib/i18n/routing';
 import { TEAM_BUILDING_GUIDES } from '@/lib/teamBuildingGuides';
 import styles from '@/app/team-building/page.module.css';
+import { translate } from '@/lib/i18n';
 
 export default function TeamBuildingGuide({ content, locale, pathname }) {
   const url = getLanguageAlternates(pathname)[locale];
@@ -32,7 +33,7 @@ export default function TeamBuildingGuide({ content, locale, pathname }) {
       <TopNav />
       <main className={`shell ${styles.guide}`}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, '\\u003c') }} />
-        <nav aria-label={locale === 'en' ? 'Breadcrumb' : 'Fil d’Ariane'}>
+        <nav aria-label={translate(locale, 'landingUi.breadcrumb')}>
           <Link href={withLocalePath(locale, '/')}>{content.home}</Link>
           {' / '}
           {pathname !== '/team-building' && (
@@ -72,14 +73,14 @@ export default function TeamBuildingGuide({ content, locale, pathname }) {
             ))}
           </section>
           <section aria-labelledby="related-guides">
-            <h2 id="related-guides">{locale === 'en' ? 'Explore more team building guides' : 'Pour approfondir votre team building'}</h2>
+            <h2 id="related-guides">{translate(locale, 'landingUi.exploreMoreTeamBuildingGuides')}</h2>
             <ul>
               {relatedGuides.map(({ path, title }) => (
                 <li key={path}><Link href={withLocalePath(locale, path)}>{title}</Link></li>
               ))}
             </ul>
           </section>
-          <nav className={styles.actions} aria-label={locale === 'en' ? 'Next steps' : 'Pour aller plus loin'}>
+          <nav className={styles.actions} aria-label={translate(locale, 'landingUi.nextSteps')}>
             <Link className="btn btn-primary" href={withLocalePath(locale, '/pricing')}>{content.pricing}</Link>
             <Link className="btn btn-secondary" href={withLocalePath(locale, '/contact')}>{content.contact}</Link>
           </nav>

@@ -55,7 +55,6 @@ export default function SessionLiveHeader({
   challengeSlotRef = null,
 }) {
   const { locale, t } = useI18n();
-  const isEn = locale === 'en';
   const [infoOpen, setInfoOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const infoRef = useRef(null);
@@ -79,17 +78,17 @@ export default function SessionLiveHeader({
   const [contextError, setContextError] = useState('');
   const [contextSaving, setContextSaving] = useState(false);
   const [savedContext, setSavedContext] = useState(null);
-  const manageLabel = isEn ? 'Manage participants' : 'Gérer les participants';
-  const closeLabel = isEn ? 'Close' : 'Fermer';
-  const closeDialogLabel = isEn ? 'Close dialog' : 'Fermer la fenêtre';
+  const manageLabel = t('liveSession.manageParticipants');
+  const closeLabel = t('liveSession.close');
+  const closeDialogLabel = t('liveSession.closeDialog');
   const objectiveLabels = {
-    cohesion: isEn ? 'Team cohesion' : 'Cohésion',
-    communication: isEn ? 'Communication' : 'Communication',
-    collaboration: isEn ? 'Collaboration' : 'Collaboration',
-    leadership: isEn ? 'Leadership' : 'Leadership',
-    'resolution-problemes': isEn ? 'Problem solving' : 'Résolution de problèmes',
-    creativite: isEn ? 'Creativity' : 'Créativité',
-    'intelligence-collective': isEn ? 'Collective intelligence' : 'Intelligence collective',
+    cohesion: t('liveSession.teamCohesion'),
+    communication: t('liveSession.communication'),
+    collaboration: t('liveSession.collaboration'),
+    leadership: t('liveSession.leadership'),
+    'resolution-problemes': t('liveSession.problemSolving'),
+    creativite: t('liveSession.creativity'),
+    'intelligence-collective': t('liveSession.collectiveIntelligence'),
   };
   const parseObjectiveKeys = (value) =>
     value == null || value === ''
@@ -144,9 +143,7 @@ export default function SessionLiveHeader({
       (!Number.isInteger(expected) || expected < 1 || expected > 2147483647)
     ) {
       setContextError(
-        isEn
-          ? 'Expected count must be a positive integer.'
-          : 'Le nombre attendu doit être un entier positif.'
+        t('liveSession.expectedCountMustBeAPositive')
       );
       return;
     }
@@ -184,7 +181,7 @@ export default function SessionLiveHeader({
       { headers: getAuthHeaders(), credentials: 'include' }
     );
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `${isEn ? 'Error' : 'Erreur'} ${res.status}`);
+    if (!res.ok) throw new Error(data.error || `${t('liveSession.error')} ${res.status}`);
     setManagement(data);
   }
 
@@ -298,20 +295,16 @@ export default function SessionLiveHeader({
       ? Number(displayedExpectedCount)
       : null;
   const orderedChallenges = Array.isArray(challenges) ? challenges : [];
-  const sessionInfoLabel = isEn ? 'Session info' : 'Infos de session';
-  const sessionCodeLabel = isEn ? 'Session code' : 'Code de la session';
-  const copyLabel = isEn ? 'Copy' : 'Copier';
-  const copiedLabel = isEn ? 'Copied' : 'Copié';
+  const sessionInfoLabel = t('liveSession.sessionInfo');
+  const sessionCodeLabel = t('liveSession.sessionCode');
+  const copyLabel = t('liveSession.copy');
+  const copiedLabel = t('liveSession.copied');
   const participantSummaryLabel = canManageParticipants
-    ? isEn
-      ? 'Connected / expected participants'
-      : 'Participants connectés / attendus'
-    : isEn
-      ? 'Assigned / expected participants'
-      : 'Participants inscrits / attendus';
-  const challengeOrderLabel = isEn ? 'Challenge order' : 'Ordre des challenges';
-  const currentChallengeLabel = isEn ? 'Current' : 'En cours';
-  const noChallengeLabel = isEn ? 'No active challenge' : 'Aucun challenge actif';
+    ? t('liveSession.connectedExpectedParticipants')
+    : t('liveSession.assignedExpectedParticipants');
+  const challengeOrderLabel = t('liveSession.challengeOrder');
+  const currentChallengeLabel = t('liveSession.current');
+  const noChallengeLabel = t('liveSession.noActiveChallenge');
 
   const challengeRows = useMemo(() => {
     return orderedChallenges.map((challenge, index) => {
@@ -420,13 +413,13 @@ export default function SessionLiveHeader({
               {resolvedParticipantCount ?? '—'} <span>/ {resolvedExpectedCount ?? '—'}</span>
             </strong>
             <p className={styles.registeredCount}>
-              {isEn ? 'Registered' : 'Inscrits'} :{' '}
+              {t('liveSession.registered')} :{' '}
               {Number.isFinite(Number(participantCount)) ? Number(participantCount) : '—'}
             </p>
           </div>
           {resolvedExpectedCount == null ? (
             <p className={styles.popoverNote}>
-              {isEn ? 'Expected attendance not specified' : 'Nombre attendu non précisé'}
+              {t('liveSession.expectedAttendanceNotSpecified')}
             </p>
           ) : null}
           {canManageParticipants ? (
@@ -445,12 +438,12 @@ export default function SessionLiveHeader({
         </div>
         {displayedObjectiveLabel || canManageParticipants ? (
           <div className={styles.popoverSection}>
-            <p className={styles.popoverLabel}>{isEn ? 'Objectives' : 'Objectifs'}</p>
+            <p className={styles.popoverLabel}>{t('liveSession.objectives')}</p>
             {displayedObjectiveLabel ? (
               <p className={styles.objectiveValue}>{displayedObjectiveLabel}</p>
             ) : (
               <p className={styles.popoverNote}>
-                {isEn ? 'No objective specified' : 'Aucun objectif précisé'}
+                {t('liveSession.noObjectiveSpecified')}
               </p>
             )}
             {canManageParticipants ? (
@@ -460,7 +453,7 @@ export default function SessionLiveHeader({
                 className={styles.sectionAction}
                 onClick={openContextEditor}
               >
-                {isEn ? 'Edit session info' : 'Modifier les infos'}
+                {t('liveSession.editSessionInfo')}
               </Button>
             ) : null}
           </div>
@@ -567,7 +560,7 @@ export default function SessionLiveHeader({
               </span>
               <div>
                 <p className={styles.dialogEyebrow}>
-                  {isEn ? 'Session controls' : 'Contrôles de la session'}
+                  {t('liveSession.sessionControls')}
                 </p>
                 <h2 id="participant-management-title">{manageLabel}</h2>
               </div>
@@ -587,14 +580,10 @@ export default function SessionLiveHeader({
               <Info size={18} aria-hidden="true" />
               <div>
                 <p>
-                  {isEn
-                    ? 'Going offline does not remove a participant. Removing them now redistributes unfinished puzzle pieces or words without erasing completed work.'
-                    : 'Une déconnexion ne retire pas un participant. Un retrait immédiat redistribue les pièces ou mots inachevés sans effacer le travail déjà placé.'}
+                  {t('liveSession.goingOfflineDoesNotRemoveA')}
                 </p>
                 <p>
-                  {isEn
-                    ? 'Other engines support future challenges only: finish the current challenge or use its own reset controls. This change only affects this session; completed challenges and saved results remain unchanged.'
-                    : 'Pour les autres moteurs, seul le retrait des prochains challenges est disponible : terminez le challenge actuel ou utilisez ses commandes de réinitialisation. Ce changement concerne uniquement cette session ; les challenges terminés et les résultats enregistrés restent inchangés.'}
+                  {t('liveSession.otherEnginesSupportFutureChallengesOnly')}
                 </p>
               </div>
             </div>
@@ -605,12 +594,12 @@ export default function SessionLiveHeader({
             ) : null}
             {!management ? (
               <p className={styles.dialogStatus} role="status">
-                {isEn ? 'Presence unavailable' : 'Présence indisponible'}
+                {t('liveSession.presenceUnavailable')}
               </p>
             ) : (
               <>
                 <div className={styles.listHeading}>
-                  <h3>{isEn ? 'Participants' : 'Participants'}</h3>
+                  <h3>{t('liveSession.participants')}</h3>
                   <span>{management.participants.length}</span>
                 </div>
                 <ul className={styles.managementList}>
@@ -625,18 +614,14 @@ export default function SessionLiveHeader({
                           <span className={styles.participantStatus}>
                             {
                               {
-                                connected: isEn ? 'Connected' : 'Connecté',
-                                offline: isEn ? 'Offline' : 'Hors ligne',
-                                removed: isEn ? 'Removed' : 'Retiré',
-                                unavailable: isEn
-                                  ? 'Presence unavailable'
-                                  : 'Présence indisponible',
+                                connected: t('liveSession.connected'),
+                                offline: t('liveSession.offline'),
+                                removed: t('liveSession.removed'),
+                                unavailable: t('liveSession.presenceUnavailable'),
                               }[participant.presence]
                             }
                             {participant.removed_from_future && participant.presence !== 'removed'
-                              ? isEn
-                                ? ' · Removed from future challenges'
-                                : ' · Retiré des prochains challenges'
+                              ? t('liveSession.removedFromFutureChallenges')
                               : ''}
                           </span>
                         </div>
@@ -654,7 +639,7 @@ export default function SessionLiveHeader({
                               setManagementError('');
                             }}
                           >
-                            {isEn ? 'Restore access' : 'Rétablir l’accès'}
+                            {t('liveSession.restoreAccess')}
                           </Button>
                           {management.can_remove_current ? (
                             <Button
@@ -665,7 +650,7 @@ export default function SessionLiveHeader({
                                 setRemoval({ participant, scope: 'current_and_future' })
                               }
                             >
-                              {isEn ? 'Remove and reassign' : 'Retirer et redistribuer'}
+                              {t('liveSession.removeAndReassign')}
                             </Button>
                           ) : null}
                           {!participant.removed_from_future ? (
@@ -675,7 +660,7 @@ export default function SessionLiveHeader({
                               disabled={removing}
                               onClick={() => setRemoval({ participant, scope: 'future' })}
                             >
-                              {isEn ? 'Future challenges only' : 'Prochains challenges uniquement'}
+                              {t('liveSession.futureChallengesOnly')}
                             </Button>
                           ) : null}
                         </div>
@@ -689,30 +674,22 @@ export default function SessionLiveHeader({
               <div
                 className={styles.confirmRemoval}
                 role="group"
-                aria-label={isEn ? 'Restore participant access' : 'Rétablir l’accès du participant'}
+                aria-label={t('liveSession.restoreParticipantAccess')}
               >
                 <h3>
                   {recoveryParticipant.name} — #{recoveryParticipant.id}
                 </h3>
                 <p>
-                  {isEn
-                    ? 'Verify this participant’s identity in person or through a known channel before generating a link. It is valid for 10 minutes and one use. Using it replaces previous access to this participation, preserving the team and saved results.'
-                    : 'Vérifiez l’identité de ce participant sur place ou par un canal connu avant de générer un lien. Il est valable 10 minutes et une seule fois. Son utilisation remplace les anciens accès à cette participation, sans modifier l’équipe ni les résultats enregistrés.'}
+                  {t('liveSession.verifyThisParticipantSIdentityIn')}
                 </p>
                 {recoveryLink ? <RecoveryLinkDisplay {...recoveryLink} /> : null}
                 <div className={styles.inlineActions}>
                   <Button variant="primary" size="sm" disabled={recovering} onClick={restoreAccess}>
                     {recovering
-                      ? isEn
-                        ? 'Generating...'
-                        : 'Génération...'
+                      ? t('liveSession.generating')
                       : recoveryLink
-                        ? isEn
-                          ? 'Replace link'
-                          : 'Remplacer le lien'
-                        : isEn
-                          ? 'Identity verified: generate link'
-                          : 'Identité vérifiée : générer le lien'}
+                        ? t('liveSession.replaceLink')
+                        : t('liveSession.identityVerifiedGenerateLink')}
                   </Button>
                   <Button
                     variant="secondary"
@@ -723,7 +700,7 @@ export default function SessionLiveHeader({
                       setRecoveryLink(null);
                     }}
                   >
-                    {isEn ? 'Close recovery' : 'Fermer la reprise'}
+                    {t('liveSession.closeRecovery')}
                   </Button>
                 </div>
               </div>
@@ -732,26 +709,18 @@ export default function SessionLiveHeader({
               <div
                 className={styles.confirmRemoval}
                 role="group"
-                aria-label={isEn ? 'Confirm removal' : 'Confirmer le retrait'}
+                aria-label={t('liveSession.confirmRemoval')}
               >
                 <p>
                   {removal.scope === 'future'
-                    ? isEn
-                      ? `Remove ${removal.participant.name} from future challenges? Their current assignment stays unchanged.`
-                      : `Retirer ${removal.participant.name} des prochains challenges ? Son attribution actuelle reste inchangée.`
-                    : isEn
-                      ? `Remove ${removal.participant.name} now and from future challenges? Unfinished items will be redistributed; this cannot be undone by reconnecting.`
-                      : `Retirer ${removal.participant.name} maintenant et des prochains challenges ? Les éléments inachevés seront redistribués ; une reconnexion ne pourra pas annuler ce retrait.`}
+                    ? t('liveSession.removeNameFromFutureChallengesTheir', { name: removal.participant.name })
+                    : t('liveSession.removeNameNowAndFromFuture', { name: removal.participant.name })}
                 </p>
                 <div className={styles.inlineActions}>
                   <Button variant="primary" size="sm" disabled={removing} onClick={confirmRemoval}>
                     {removing
-                      ? isEn
-                        ? 'Removing…'
-                        : 'Retrait…'
-                      : isEn
-                        ? 'Confirm removal'
-                        : 'Confirmer le retrait'}
+                      ? t('liveSession.removing')
+                      : t('liveSession.confirmRemoval')}
                   </Button>
                   <Button
                     variant="secondary"
@@ -759,7 +728,7 @@ export default function SessionLiveHeader({
                     disabled={removing}
                     onClick={() => setRemoval(null)}
                   >
-                    {isEn ? 'Cancel' : 'Annuler'}
+                    {t('liveSession.cancel')}
                   </Button>
                 </div>
               </div>
@@ -798,10 +767,10 @@ export default function SessionLiveHeader({
               </span>
               <div>
                 <p className={styles.dialogEyebrow}>
-                  {isEn ? 'Session settings' : 'Paramètres de la session'}
+                  {t('liveSession.sessionSettings')}
                 </p>
                 <h2 id="session-context-title">
-                  {isEn ? 'Edit session info' : 'Modifier les infos'}
+                  {t('liveSession.editSessionInfo')}
                 </h2>
               </div>
             </div>
@@ -818,14 +787,14 @@ export default function SessionLiveHeader({
           <form onSubmit={saveContext} className={styles.contextForm}>
             <div className={styles.dialogBody}>
               <label className={styles.contextField}>
-                <span>{isEn ? 'Expected participants' : 'Participants attendus'}</span>
+                <span>{t('liveSession.expectedParticipants')}</span>
                 <input
                   type="number"
                   min="1"
                   max="2147483647"
                   step="1"
                   inputMode="numeric"
-                  placeholder={isEn ? 'e.g. 12' : 'ex. 12'}
+                  placeholder={t('liveSession.eG12')}
                   value={contextDraft.expected_participant_count}
                   onChange={(event) =>
                     setContextDraft((draft) => ({
@@ -836,7 +805,7 @@ export default function SessionLiveHeader({
                 />
               </label>
               <fieldset className={styles.contextObjectives}>
-                <legend>{isEn ? 'Session objectives' : 'Objectifs de la session'}</legend>
+                <legend>{t('liveSession.sessionObjectives')}</legend>
                 <div className={styles.contextObjectiveOptions}>
                   {Object.entries(objectiveLabels).map(([key, label]) => {
                     const checked = parseObjectiveKeys(contextDraft.objective).includes(key);
@@ -867,9 +836,7 @@ export default function SessionLiveHeader({
               <div className={styles.contextNote}>
                 <Info size={17} aria-hidden="true" />
                 <p>
-                  {isEn
-                    ? 'These details provide context only. They do not change assignments or restart the current challenge.'
-                    : 'Ces informations servent uniquement de contexte. Elles ne modifient pas les attributions et ne redémarrent pas le challenge actuel.'}
+                  {t('liveSession.theseDetailsProvideContextOnlyThey')}
                 </p>
               </div>
               {contextError ? (
@@ -881,12 +848,8 @@ export default function SessionLiveHeader({
             <div className={styles.dialogFooter}>
               <Button type="submit" variant="primary" size="sm" disabled={contextSaving}>
                 {contextSaving
-                  ? isEn
-                    ? 'Saving…'
-                    : 'Enregistrement…'
-                  : isEn
-                    ? 'Save'
-                    : 'Enregistrer'}
+                  ? t('liveSession.saving')
+                  : t('liveSession.save')}
               </Button>
               <Button
                 type="button"

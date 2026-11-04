@@ -1,4 +1,5 @@
 "use client";
+import { translate } from '@/lib/i18n';
 
 function normalizeItems(items) {
   return Array.isArray(items) ? items.filter(Boolean) : [];
@@ -18,7 +19,7 @@ export default function LandingSocialProofEvidence({ locale, socialProof }) {
       {logos.length > 0 ? (
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">
-            {locale === 'en' ? 'Trusted by teams such as' : 'Des équipes comme celles-ci nous font confiance'}
+            {translate(locale, 'landingUi.trustedByTeamsSuchAs')}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {logos.map((logo) => (

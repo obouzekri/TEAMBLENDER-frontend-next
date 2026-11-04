@@ -1,12 +1,13 @@
 "use client";
 
 import { GLASS_CARD_CLASS } from './landingStyles';
+import { translate } from '@/lib/i18n';
 
 export default function LandingImpactBand({ locale, impactItems }) {
   if (impactItems.length === 0) return null;
 
   return (
-    <section className="landing-impact-band landing-section-full" style={{ '--reveal-delay': '90ms' }} aria-label={locale === 'en' ? 'Key metrics' : 'Indicateurs cles'}>
+    <section className="landing-impact-band landing-section-full" style={{ '--reveal-delay': '90ms' }} aria-label={translate(locale, 'landingUi.keyMetrics2')}>
       <div className="landing-section-inner grid gap-4 md:grid-cols-3 landing-impact-carousel">
         {impactItems.map((item, index) => (
           <article

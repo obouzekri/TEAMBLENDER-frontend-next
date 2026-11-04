@@ -4,16 +4,21 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Activity, BarChart3, ListChecks, PlayCircle } from 'lucide-react';
 import { PILL_CLASS } from './landingStyles';
+import { translate, pickLocalized } from '@/lib/i18n';
 
 // Facilitator view of the /demo page while the team assembles CoPuzzle.
+// Captures disponibles par langue (repli sur la langue par défaut).
+const HERO_CAPTURES = {
+  fr: '/images/copuzzle-facilitator-live-fr.webp',
+  en: '/images/copuzzle-facilitator-live-en.webp',
+};
+
 export function heroCaptureSrc(locale) {
-  return `/images/copuzzle-facilitator-live-${locale === 'en' ? 'en' : 'fr'}.webp`;
+  return pickLocalized(HERO_CAPTURES, locale);
 }
 
 export function heroCaptureAlt(locale) {
-  return locale === 'en'
-    ? 'TeamBlender facilitator view: the team assembles the CoPuzzle board live, with the timer and reference image'
-    : 'Vue facilitateur TeamBlender : l’équipe assemble le plateau CoPuzzle en direct, avec le minuteur et l’image de référence';
+  return translate(locale, 'landingUi.teamblenderFacilitatorViewTheTeamAssembles');
 }
 
 export default function LandingHero({
@@ -36,7 +41,7 @@ export default function LandingHero({
     <section
       className="landing-hero-full relative overflow-hidden px-0"
       style={{ '--reveal-delay': '40ms' }}
-      aria-label={locale === 'en' ? 'TeamBlender overview' : 'Presentation TeamBlender'}
+      aria-label={translate(locale, 'landingUi.teamblenderOverview')}
     >
       <div className="landing-hero-aurora pointer-events-none absolute inset-0" />
       <div className="landing-hero-inner relative grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
@@ -86,7 +91,7 @@ export default function LandingHero({
             <button
               type="button"
               className="landing-hero-product-button"
-              aria-label={locale === 'en' ? 'Open the live preview in fullscreen' : 'Ouvrir l’aperçu en plein écran'}
+              aria-label={translate(locale, 'landingUi.openTheLivePreviewInFullscreen')}
               onClick={onOpenPreview}
             >
               <figure className="landing-hero-product-frame landing-hero-product-frame--interactive">

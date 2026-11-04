@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import AppNav from '@/components/AppNav';
 import { clearSessionAuth, getStoredCurrentUser } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
+import { formatDate as formatLocaleDate, NUMERIC_DATE_TIME } from '@/lib/i18n/format';
 import {
   createLinkedInDraft,
   deleteLinkedInDraft,
@@ -15,15 +16,12 @@ import './linkedin.css';
 const MAX_CONTENT_LENGTH = 3000;
 const EMPTY_DRAFT = { title: '', content: '' };
 
-function formatDate(value, isEn) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleString(isEn ? 'en-US' : 'fr-FR');
+function formatDate(value, locale) {
+  return formatLocaleDate(value, locale, NUMERIC_DATE_TIME) || '';
 }
 
 export default function LinkedInAdminClient() {
-  const { locale, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, withLocalePath, t } = useI18n();
   const [sessionUser, setSessionUser] = useState(null);
   const [drafts, setDrafts] = useState([]);
   const [draft, setDraft] = useState(EMPTY_DRAFT);
@@ -40,7 +38,7 @@ export default function LinkedInAdminClient() {
       const result = await getLinkedInDrafts();
       setDrafts(Array.isArray(result?.items) ? result.items : []);
     } catch (err) {
-      setError(err.message || (isEn ? 'Unable to load drafts.' : 'Impossible de charger les brouillons.'));
+      setError(err.message || t('adminLinkedIn.unableToLoadDrafts'));
     } finally {
       setLoading(false);
     }
@@ -70,22 +68,22 @@ export default function LinkedInAdminClient() {
       const payload = { title: draft.title.trim(), content: draft.content.trim() };
       if (editingId) {
         await updateLinkedInDraft(editingId, payload);
-        setNotice(isEn ? 'Draft updated.' : 'Brouillon mis à jour.');
+        setNotice(t('adminLinkedIn.draftUpdated'));
       } else {
         await createLinkedInDraft(payload);
-        setNotice(isEn ? 'Draft saved.' : 'Brouillon enregistré.');
+        setNotice(t('adminLinkedIn.draftSaved'));
       }
       resetForm();
       await refreshDrafts();
     } catch (err) {
-      setError(err.message || (isEn ? 'Unable to save the draft.' : 'Impossible d’enregistrer le brouillon.'));
+      setError(err.message || t('adminLinkedIn.unableToSaveTheDraft'));
     } finally {
       setBusy(false);
     }
   }
 
   async function handleDelete(id) {
-    const confirmed = window.confirm(isEn ? 'Delete this draft?' : 'Supprimer ce brouillon ?');
+    const confirmed = window.confirm(t('adminLinkedIn.deleteThisDraft'));
     if (!confirmed) return;
     setError('');
     setNotice('');
@@ -93,10 +91,10 @@ export default function LinkedInAdminClient() {
     try {
       await deleteLinkedInDraft(id);
       if (editingId === id) resetForm();
-      setNotice(isEn ? 'Draft deleted.' : 'Brouillon supprimé.');
+      setNotice(t('adminLinkedIn.draftDeleted'));
       await refreshDrafts();
     } catch (err) {
-      setError(err.message || (isEn ? 'Unable to delete the draft.' : 'Impossible de supprimer le brouillon.'));
+      setError(err.message || t('adminLinkedIn.unableToDeleteTheDraft'));
     } finally {
       setBusy(false);
     }
@@ -107,9 +105,9 @@ export default function LinkedInAdminClient() {
     setNotice('');
     try {
       await navigator.clipboard.writeText(content);
-      setNotice(isEn ? 'Post text copied.' : 'Texte du post copié.');
+      setNotice(t('adminLinkedIn.postTextCopied'));
     } catch {
-      setError(isEn ? 'Clipboard access is unavailable in this browser.' : 'La copie n’est pas disponible dans ce navigateur.');
+      setError(t('adminLinkedIn.clipboardAccessIsUnavailableInThis'));
     }
   }
 
@@ -122,7 +120,7 @@ export default function LinkedInAdminClient() {
 
   const userLabel = [sessionUser?.first_name, sessionUser?.last_name].filter(Boolean).join(' ')
     || sessionUser?.email
-    || (isEn ? 'Administrator' : 'Administrateur');
+    || t('adminLinkedIn.administrator');
 
   return (
     <>
@@ -130,11 +128,11 @@ export default function LinkedInAdminClient() {
       <main className="linkedin-admin-shell">
         <header className="linkedin-admin-header">
           <div>
-            <p className="linkedin-admin-eyebrow">{isEn ? 'ADMIN CONTENT' : 'CONTENU ADMIN'}</p>
-            <h1>{isEn ? 'LinkedIn drafts' : 'Publications LinkedIn'}</h1>
-            <p>{isEn ? 'Write, preview and save posts before publishing them manually.' : 'Rédige, prévisualise et enregistre tes posts avant de les publier manuellement.'}</p>
+            <p className="linkedin-admin-eyebrow">{t('adminLinkedIn.adminContent')}</p>
+            <h1>{t('adminLinkedIn.linkedinDrafts')}</h1>
+            <p>{t('adminLinkedIn.writePreviewAndSavePostsBefore')}</p>
           </div>
-          <a className="linkedin-admin-back" href={withLocalePath('/admin')}>{isEn ? 'Admin console' : 'Console admin'}</a>
+          <a className="linkedin-admin-back" href={withLocalePath('/admin')}>{t('adminLinkedIn.adminConsole')}</a>
         </header>
 
         {error ? <div className="linkedin-admin-alert linkedin-admin-alert--error" role="alert">{error}</div> : null}
@@ -142,34 +140,34 @@ export default function LinkedInAdminClient() {
 
         <div className="linkedin-admin-grid">
           <section className="linkedin-admin-card">
-            <h2>{editingId ? (isEn ? 'Edit draft' : 'Modifier le brouillon') : (isEn ? 'Create a post' : 'Créer un post')}</h2>
+            <h2>{editingId ? t('adminLinkedIn.editDraft') : t('adminLinkedIn.createAPost')}</h2>
             <form onSubmit={handleSubmit} className="linkedin-admin-form">
               <label>
-                {isEn ? 'Internal title (optional)' : 'Titre interne (facultatif)'}
+                {t('adminLinkedIn.internalTitleOptional')}
                 <input
                   value={draft.title}
                   maxLength={120}
                   onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
-                  placeholder={isEn ? 'e.g. Team-building tips' : 'Ex. Conseils de team building'}
+                  placeholder={t('adminLinkedIn.eGTeamBuildingTips')}
                 />
               </label>
               <label>
-                {isEn ? 'Post text' : 'Texte de la publication'}
+                {t('adminLinkedIn.postText')}
                 <textarea
                   value={draft.content}
                   maxLength={MAX_CONTENT_LENGTH}
                   rows={12}
                   required
                   onChange={(event) => setDraft((current) => ({ ...current, content: event.target.value }))}
-                  placeholder={isEn ? 'Write your LinkedIn post here...' : 'Rédige ici le texte de ta publication LinkedIn...'}
+                  placeholder={t('adminLinkedIn.writeYourLinkedinPostHere')}
                 />
               </label>
               <div className="linkedin-admin-form-footer">
                 <span>{draft.content.length}/{MAX_CONTENT_LENGTH}</span>
                 <div>
-                  {editingId ? <button type="button" className="linkedin-admin-secondary" onClick={resetForm}>{isEn ? 'Cancel' : 'Annuler'}</button> : null}
+                  {editingId ? <button type="button" className="linkedin-admin-secondary" onClick={resetForm}>{t('adminLinkedIn.cancel')}</button> : null}
                   <button type="submit" className="linkedin-admin-primary" disabled={busy || !draft.content.trim()}>
-                    {busy ? (isEn ? 'Saving...' : 'Enregistrement...') : (editingId ? (isEn ? 'Save changes' : 'Enregistrer') : (isEn ? 'Save draft' : 'Enregistrer le brouillon'))}
+                    {busy ? t('adminLinkedIn.saving') : (editingId ? t('adminLinkedIn.saveChanges') : t('adminLinkedIn.saveDraft'))}
                   </button>
                 </div>
               </div>
@@ -177,40 +175,40 @@ export default function LinkedInAdminClient() {
           </section>
 
           <section className="linkedin-admin-card">
-            <h2>{isEn ? 'Preview' : 'Aperçu'}</h2>
+            <h2>{t('adminLinkedIn.preview')}</h2>
             <article className="linkedin-preview">
               <div className="linkedin-preview-avatar" aria-hidden="true">T</div>
               <div className="linkedin-preview-main">
                 <strong>TeamBlender</strong>
-                <span>{isEn ? 'Team-building experiences for teams' : 'Expériences de team building pour les équipes'}</span>
-                <span>{isEn ? 'Preview · visible only to admins' : 'Aperçu · visible uniquement par les admins'}</span>
-                <p>{draft.content || (isEn ? 'Your post preview will appear here.' : 'L’aperçu de ton post apparaîtra ici.')}</p>
+                <span>{t('adminLinkedIn.teamBuildingExperiencesForTeams')}</span>
+                <span>{t('adminLinkedIn.previewVisibleOnlyToAdmins')}</span>
+                <p>{draft.content || t('adminLinkedIn.yourPostPreviewWillAppearHere')}</p>
               </div>
             </article>
-            <p className="linkedin-admin-note">{isEn ? 'This MVP saves drafts only. It does not connect to or publish on LinkedIn.' : 'Ce MVP enregistre uniquement des brouillons. Il ne se connecte pas à LinkedIn et ne publie rien automatiquement.'}</p>
+            <p className="linkedin-admin-note">{t('adminLinkedIn.thisMvpSavesDraftsOnlyIt')}</p>
           </section>
         </div>
 
         <section className="linkedin-admin-card linkedin-drafts-card">
           <div className="linkedin-drafts-heading">
-            <h2>{isEn ? 'Saved drafts' : 'Brouillons enregistrés'}</h2>
+            <h2>{t('adminLinkedIn.savedDrafts')}</h2>
             <span>{drafts.length}</span>
           </div>
-          {loading ? <p>{isEn ? 'Loading...' : 'Chargement...'}</p> : drafts.length === 0 ? (
-            <p className="linkedin-admin-empty">{isEn ? 'No saved drafts yet.' : 'Aucun brouillon enregistré pour le moment.'}</p>
+          {loading ? <p>{t('adminLinkedIn.loading')}</p> : drafts.length === 0 ? (
+            <p className="linkedin-admin-empty">{t('adminLinkedIn.noSavedDraftsYet')}</p>
           ) : (
             <ul className="linkedin-drafts-list">
               {drafts.map((item) => (
                 <li key={item.id} className="linkedin-draft-item">
                   <div className="linkedin-draft-copy">
-                    <strong>{item.title || (isEn ? 'Untitled post' : 'Publication sans titre')}</strong>
-                    <span>{formatDate(item.updated_at, isEn)}</span>
+                    <strong>{item.title || t('adminLinkedIn.untitledPost')}</strong>
+                    <span>{formatDate(item.updated_at, locale)}</span>
                     <p>{item.content}</p>
                   </div>
                   <div className="linkedin-draft-actions">
-                    <button type="button" className="linkedin-admin-secondary" onClick={() => handleEdit(item)}>{isEn ? 'Edit' : 'Modifier'}</button>
-                    <button type="button" className="linkedin-admin-secondary" onClick={() => handleCopy(item.content)}>{isEn ? 'Copy' : 'Copier'}</button>
-                    <button type="button" className="linkedin-admin-danger" disabled={busy} onClick={() => handleDelete(item.id)}>{isEn ? 'Delete' : 'Supprimer'}</button>
+                    <button type="button" className="linkedin-admin-secondary" onClick={() => handleEdit(item)}>{t('adminLinkedIn.edit')}</button>
+                    <button type="button" className="linkedin-admin-secondary" onClick={() => handleCopy(item.content)}>{t('adminLinkedIn.copy')}</button>
+                    <button type="button" className="linkedin-admin-danger" disabled={busy} onClick={() => handleDelete(item.id)}>{t('adminLinkedIn.delete')}</button>
                   </div>
                 </li>
               ))}

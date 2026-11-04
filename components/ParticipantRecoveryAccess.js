@@ -10,8 +10,7 @@ import { readPersonalLink } from '@/lib/participant-recovery';
 import useI18n from '@/lib/i18n/useI18n';
 
 export default function ParticipantRecoveryAccess({ sessionId }) {
-  const { locale } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, t } = useI18n();
   const [open, setOpen] = useState(false);
   const [link, setLink] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -45,18 +44,16 @@ export default function ParticipantRecoveryAccess({ sessionId }) {
   if (!sessionId) return null;
   return (
     <>
-      <button type="button" className="btn-mini" onClick={() => setOpen(true)}>{isEn ? 'Save my access' : 'Conserver mon acces'}</button>
-      <Modal open={open} title={isEn ? 'Resume without losing your progress' : 'Reprendre sans perdre votre progression'} onClose={() => { if (!busy) setOpen(false); }}>
-        <p>{isEn
-          ? 'Guests can return using the same session code and first and last names. You can also keep a personal link. Explicit logout invalidates your saved links.'
-          : 'Les invites peuvent revenir avec le meme code de session et les memes prenom et nom. Vous pouvez aussi conserver un lien personnel. Une deconnexion volontaire invalide vos liens memorises.'}</p>
-        <p>{isEn ? 'Your team and saved results are retained. You will rejoin the current step, not restart a challenge.' : 'Votre equipe et vos resultats enregistres sont conserves. Vous rejoindrez l etape actuelle, sans relancer de challenge.'}</p>
+      <button type="button" className="btn-mini" onClick={() => setOpen(true)}>{t('participantSpace.saveMyAccess')}</button>
+      <Modal open={open} title={t('participantSpace.resumeWithoutLosingYourProgress')} onClose={() => { if (!busy) setOpen(false); }}>
+        <p>{t('participantSpace.guestsCanReturnUsingTheSame')}</p>
+        <p>{t('participantSpace.yourTeamAndSavedResultsAre')}</p>
         {link ? <RecoveryLinkDisplay {...link} /> : null}
         {error ? <p role="alert">{error}</p> : null}
         <button type="button" className="btn-secondary" disabled={busy} onClick={generateLink}>
-          {busy ? (isEn ? 'Generating...' : 'Generation...') : link ? (isEn ? 'Replace personal link' : 'Remplacer le lien personnel') : (isEn ? 'Generate personal link' : 'Generer le lien personnel')}
+          {busy ? t('participantSpace.generating') : link ? t('participantSpace.replacePersonalLink') : t('participantSpace.generatePersonalLink')}
         </button>
-        <p>{isEn ? 'A new link invalidates the previous personal link. If you lose all access, contact your facilitator.' : 'Un nouveau lien invalide le lien personnel precedent. Si vous perdez tous vos acces, contactez votre animateur.'}</p>
+        <p>{t('participantSpace.aNewLinkInvalidatesThePrevious')}</p>
       </Modal>
     </>
   );

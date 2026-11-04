@@ -17,6 +17,7 @@ import { trackGaEvent, trackProductSessionEvent } from '@/lib/analytics';
 import useI18n from '@/lib/i18n/useI18n';
 import guideStyles from './StartupGuide.module.css';
 import homeStyles from './ManagerHome.module.css';
+import { translate } from '@/lib/i18n';
 
 function pickDisplayName(user) {
   if (!user || typeof user !== 'object') return 'Manager';
@@ -88,28 +89,23 @@ function formatPaywallMessage(payload, fallbackMessage) {
 
 function formatSessionDate(value, locale = 'en') {
   if (!value) return '';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return '';
-  return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'fr-FR', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(parsed);
+  return formatDateTime(value, locale);
 }
 
-function getSessionModalityLabel(value, isEn) {
+function getSessionModalityLabel(value, locale) {
   const normalized = String(value || '').trim().toLowerCase();
   if (!normalized) return '';
-  if (normalized === 'remote') return isEn ? 'Remote' : 'À distance';
-  if (normalized === 'hybrid') return isEn ? 'Hybrid' : 'Hybride';
-  if (normalized === 'in-person' || normalized === 'in_person') return isEn ? 'In person' : 'Présentiel';
+  if (normalized === 'remote') return translate(locale, 'managerHome.remote');
+  if (normalized === 'hybrid') return translate(locale, 'managerHome.hybrid');
+  if (normalized === 'in-person' || normalized === 'in_person') return translate(locale, 'managerHome.inPerson');
   return normalized;
 }
 
-function getSessionDurationLabel(session, isEn) {
+function getSessionDurationLabel(session, locale) {
   const raw = session?.duration_minutes ?? session?.durationMinutes ?? session?.duration;
   const duration = Number(raw);
   if (!Number.isFinite(duration) || duration <= 0) return '';
-  return isEn ? `${duration} min` : `${duration} min`;
+  return translate(locale, 'managerHome.durationMin', { duration });
 }
 
 function getSessionFormatLabel(session) {
@@ -206,34 +202,28 @@ async function fetchSessions(query = {}) {
   }
 }
 
-function getStartupGuideSteps(isEn) {
+function getStartupGuideSteps(locale) {
   return Object.freeze([
     {
       step: '1',
-      title: isEn ? 'Add your team' : 'Ajoutez votre équipe',
-      text: isEn
-        ? 'Add the people who will take part in your workshops.'
-        : 'Ajoutez les personnes qui participeront à vos ateliers.',
+      title: translate(locale, 'managerHome.addYourTeam'),
+      text: translate(locale, 'managerHome.addThePeopleWhoWillTake'),
       href: '/home#home-participants-block',
-      cta: isEn ? 'Add participants' : 'Ajouter des participants',
+      cta: translate(locale, 'managerHome.addParticipants'),
     },
     {
       step: '2',
-      title: isEn ? 'Create a session' : 'Créez une session',
-      text: isEn
-        ? 'Choose a challenge, add participants, and set the format.'
-        : 'Choisissez un challenge, ajoutez des participants et définissez le format.',
+      title: translate(locale, 'managerHome.createASession'),
+      text: translate(locale, 'managerHome.chooseAChallengeAddParticipantsAnd'),
       href: '/session-builder',
-      cta: isEn ? 'Create a session' : 'Créer une session',
+      cta: translate(locale, 'managerHome.createASession2'),
     },
     {
       step: '3',
-      title: isEn ? 'Launch and debrief' : 'Lancez et débriefez',
-      text: isEn
-        ? 'Open your session to facilitate it, then review its results.'
-        : 'Ouvrez votre session pour l’animer, puis consultez ses résultats.',
+      title: translate(locale, 'managerHome.launchAndDebrief'),
+      text: translate(locale, 'managerHome.openYourSessionToFacilitateIt'),
       href: '/home#home-sessions-block',
-      cta: isEn ? 'View sessions' : 'Voir mes sessions',
+      cta: translate(locale, 'managerHome.viewSessions'),
     }
   ]);
 }
@@ -364,9 +354,8 @@ export default function ManagerHome({
   onDemoCreateSession,
   renderDemoCreateAction = (action) => action,
 } = {}) {
-  const { locale, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
-  const startupGuideSteps = useMemo(() => getStartupGuideSteps(isEn), [isEn]);
+  const { locale, withLocalePath, t } = useI18n();
+  const startupGuideSteps = useMemo(() => getStartupGuideSteps(locale), [locale]);
   const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
   const guard = useManagerGuard(demoMode);
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
@@ -413,9 +402,9 @@ export default function ManagerHome({
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
 
   const STATUS_LABEL = {
-    en_cours: isEn ? 'In progress' : 'En cours',
-    preparee: isEn ? 'Upcoming' : 'À venir',
-    terminee: isEn ? 'Completed' : 'Terminée',
+    en_cours: t('managerHome.inProgress'),
+    preparee: t('managerHome.upcoming'),
+    terminee: t('managerHome.completed'),
   };
 
   const sessionStats = useMemo(() => ({
@@ -450,16 +439,16 @@ export default function ManagerHome({
   const isParticipantModalOpen = showParticipantForm || Boolean(editingMemberId);
   const asyncStatusMessage = creatingMember
     ? (editingMemberId
-      ? (isEn ? 'Updating participant...' : 'Mise à jour du participant...')
-      : (isEn ? 'Creating participant...' : 'Création du participant...'))
+      ? t('managerHome.updatingParticipant')
+      : t('managerHome.creatingParticipant'))
     : deletingMemberId
-      ? (isEn ? 'Deleting participant...' : 'Suppression du participant...')
+      ? t('managerHome.deletingParticipant')
       : deletingSessionId
-        ? (isEn ? 'Deleting session...' : 'Suppression de la session...')
+        ? t('managerHome.deletingSession')
         : loadingSessions
-          ? (isEn ? 'Loading sessions...' : 'Chargement des sessions...')
+          ? t('managerHome.loadingSessions')
           : loadingMembers
-            ? (isEn ? 'Loading participants...' : 'Chargement des participants...')
+            ? t('managerHome.loadingParticipants')
             : '';
 
   function handleCreateSessionClick(event) {
@@ -481,7 +470,7 @@ export default function ManagerHome({
     setSessionToDate('');
   }
 
-  function handleUnauthorizedAuth(message = isEn ? 'Session expired. Please sign in again.' : 'Session expirée. Veuillez vous reconnecter.') {
+  function handleUnauthorizedAuth(message = t('managerHome.sessionExpiredPleaseSignInAgain')) {
     if (authInvalid) return;
     setAuthInvalid(true);
     showErrorToast(message);
@@ -496,7 +485,7 @@ export default function ManagerHome({
     let loadingId = null;
     setLoadingSessions(true);
     if (withToast) {
-      loadingId = showLoadingToast(isEn ? 'Loading sessions...' : 'Chargement des sessions...');
+      loadingId = showLoadingToast(t('managerHome.loadingSessions'));
     }
 
     try {
@@ -522,7 +511,7 @@ export default function ManagerHome({
         handleUnauthorizedAuth();
         return;
       }
-      showErrorToast(err.message || (isEn ? 'Unable to load sessions.' : 'Impossible de charger les sessions.'));
+      showErrorToast(err.message || t('managerHome.unableToLoadSessions'));
     } finally {
       setLoadingSessions(false);
     }
@@ -530,7 +519,7 @@ export default function ManagerHome({
     authInvalid,
     demoMode,
     guard.allowed,
-    isEn,
+    locale,
     removeToast,
     sessionFromDate,
     sessionSearch,
@@ -581,11 +570,11 @@ export default function ManagerHome({
         handleUnauthorizedAuth();
         return;
       }
-      showErrorToast(err.message || (isEn ? 'Unable to load participants.' : 'Impossible de charger les participants.'));
+      showErrorToast(err.message || t('managerHome.unableToLoadParticipants'));
     } finally {
       setLoadingMembers(false);
     }
-  }, [authInvalid, demoMode, guard.allowed, isEn, showErrorToast]);
+  }, [authInvalid, demoMode, guard.allowed, locale, showErrorToast]);
 
 
 
@@ -641,9 +630,7 @@ export default function ManagerHome({
       setFormAttempted(false);
       setEditingMemberId(null);
       setShowParticipantForm(true);
-      setMemberFormStatus(isEn
-        ? 'Add your first participant to create sessions faster.'
-        : 'Ajoutez votre premier participant pour créer des sessions plus rapidement.');
+      setMemberFormStatus(t('managerHome.addYourFirstParticipantToCreate'));
     }
 
     params.delete('onboarding');
@@ -682,9 +669,7 @@ export default function ManagerHome({
     const sessionIdentifier = getSessionIdentifier(session);
     if (!sessionIdentifier) return;
     const label = session.name || `Session #${sessionIdentifier}`;
-    const accepted = window.confirm(isEn
-      ? `Delete ${label}? This action is irreversible.`
-      : `Supprimer ${label} ? Cette action est irréversible.`);
+    const accepted = window.confirm(t('managerHome.deleteLabelThisActionIsIrreversible', { label }));
     if (!accepted) return;
 
     setDeletingSessionId(sessionIdentifier);
@@ -700,9 +685,9 @@ export default function ManagerHome({
         throw new Error(body || `Error ${response.status}`);
       }
       await refreshSessions();
-      showSuccessToast(isEn ? 'Session deleted.' : 'Session supprimée.');
+      showSuccessToast(t('managerHome.sessionDeleted'));
     } catch (err) {
-      showErrorToast(err.message || (isEn ? 'Delete failed.' : 'La suppression a échoué.'));
+      showErrorToast(err.message || t('managerHome.deleteFailed'));
     } finally {
       setDeletingSessionId(null);
     }
@@ -771,13 +756,11 @@ export default function ManagerHome({
         return;
       }
       if (!response.ok || payload.success !== true) {
-        throw new Error(payload.error || (isEn ? 'Unable to send the password reset link.' : 'Impossible d’envoyer le lien de réinitialisation.'));
+        throw new Error(payload.error || t('managerHome.unableToSendThePasswordReset'));
       }
-      setPasswordResetMessage(isEn
-        ? `Password reset link sent to ${payload.email}.`
-        : `Lien de réinitialisation du mot de passe envoyé à ${payload.email}.`);
+      setPasswordResetMessage(t('managerHome.passwordResetLinkSentToEmail', { email: payload.email }));
     } catch (err) {
-      const message = err.message || (isEn ? 'Unable to send the password reset link.' : 'Impossible d’envoyer le lien de réinitialisation.');
+      const message = err.message || t('managerHome.unableToSendThePasswordReset');
       setMemberFormStatus(message);
       showErrorToast(message);
     } finally {
@@ -798,14 +781,14 @@ export default function ManagerHome({
     const department = String(memberForm.department || '').trim();
 
     if (!firstName || !email) {
-      const message = isEn ? 'First name and email are required.' : 'Le prénom et l’adresse e-mail sont requis.';
+      const message = t('managerHome.firstNameAndEmailAreRequired');
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
     }
 
     if (email && !isValidEmail(email)) {
-      const message = isEn ? 'A valid email address is required.' : 'Une adresse e-mail valide est requise.';
+      const message = t('managerHome.aValidEmailAddressIsRequired');
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
@@ -818,9 +801,7 @@ export default function ManagerHome({
     ));
 
     if (hasDuplicateEmail) {
-      const message = isEn
-        ? 'This email is already used by another participant.'
-        : 'Cette adresse e-mail est déjà utilisée par un autre participant.';
+      const message = t('managerHome.thisEmailIsAlreadyUsedBy');
       setMemberFormStatus(message);
       showErrorToast(message);
       return;
@@ -859,9 +840,7 @@ export default function ManagerHome({
         throw new Error(
           formatPaywallMessage(
             payload,
-            isEn
-              ? `${editingMemberId ? 'Participant update' : 'Participant creation'} failed (${response.status})`
-              : `${editingMemberId ? 'Échec de la mise à jour du participant' : 'Échec de la création du participant'} (${response.status})`
+            t(editingMemberId ? 'managerHome.participantUpdateFailedStatus' : 'managerHome.participantCreationFailedStatus', { status: response.status })
           )
         );
       }
@@ -893,7 +872,7 @@ export default function ManagerHome({
       }
 
       if (editingMemberId) {
-        showSuccessToast(isEn ? 'Participant updated successfully.' : 'Participant mis à jour avec succès.');
+        showSuccessToast(t('managerHome.participantUpdatedSuccessfully'));
         setShowParticipantForm(false);
         resetMemberForm();
       } else {
@@ -906,9 +885,7 @@ export default function ManagerHome({
 
       await refreshMembers();
     } catch (err) {
-      const message = err.message || (isEn
-        ? `Unable to ${editingMemberId ? 'update' : 'create'} participant.`
-        : `Impossible de ${editingMemberId ? 'mettre à jour' : 'créer'} le participant.`);
+      const message = err.message || t(editingMemberId ? 'managerHome.unableToUpdateParticipant' : 'managerHome.unableToCreateParticipant');
       setMemberFormStatus(message);
       showErrorToast(message);
     } finally {
@@ -935,15 +912,11 @@ export default function ManagerHome({
       hasParticipations = false;
     }
 
-    const participationWarning = isEn
-      ? `This participant has already taken part in challenges.\nTheir record will be permanently deleted.\nTheir name will remain visible in historical reports to preserve the consistency of results.\nThis action is irreversible.`
-      : `Ce participant a déjà participé à des défis.\nSa fiche sera supprimée définitivement.\nSon nom restera visible dans les rapports historiques afin de préserver la cohérence des résultats.\nCette action est irréversible.`;
+    const participationWarning = t('managerHome.thisParticipantHasAlreadyTakenPart');
 
     const accepted = window.confirm(hasParticipations
       ? `${label}\n\n${participationWarning}`
-      : (isEn
-        ? `Delete ${label}? This action is irreversible.`
-        : `Supprimer ${label} ? Cette action est irréversible.`));
+      : t('managerHome.deleteLabelThisActionIsIrreversible', { label }));
     if (!accepted) return;
 
     setDeletingMemberId(member.id);
@@ -965,9 +938,9 @@ export default function ManagerHome({
         throw new Error(parsedError || `Unable to delete participant (${response.status})`);
       }
       await refreshMembers();
-      showSuccessToast(isEn ? 'Participant deleted.' : 'Participant supprimé.');
+      showSuccessToast(t('managerHome.participantDeleted'));
     } catch (err) {
-      showErrorToast(err.message || (isEn ? 'Unable to delete participant.' : 'Impossible de supprimer le participant.'));
+      showErrorToast(err.message || t('managerHome.unableToDeleteParticipant'));
     } finally {
       setDeletingMemberId(null);
     }
@@ -977,8 +950,8 @@ export default function ManagerHome({
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>{isEn ? 'Checking session...' : 'Vérification de la session...'}</h1>
-          <p>{isEn ? 'Loading...' : 'Chargement...'}</p>
+          <h1>{t('managerHome.checkingSession')}</h1>
+          <p>{t('managerHome.loading')}</p>
         </section>
       </main>
     );
@@ -997,73 +970,71 @@ export default function ManagerHome({
         <section className="hero home-hero">
           <div className="home-hero-grid">
             <div className="home-hero-copy">
-              <p className="eyebrow">{isEn ? 'MANAGER SPACE' : 'ESPACE MANAGER'}</p>
-              <h1 className="home-hero-greeting">{isEn ? `Hello ${userLabel}` : `Bonjour ${userLabel}`}</h1>
-              <p>{isEn
-                ? 'Plan, launch, and analyze your gamified team workshops in one clear, actionable workspace.'
-                : 'Planifiez, lancez et analysez vos ateliers gamifiés dans un espace clair et actionnable.'}</p>
+              <p className="eyebrow">{t('managerHome.managerSpace')}</p>
+              <h1 className="home-hero-greeting">{t('managerHome.helloUserlabel', { userLabel })}</h1>
+              <p>{t('managerHome.planLaunchAndAnalyzeYourGamified')}</p>
               <div className="hero-actions home-hero-actions">
                 {guard.user?.role === 'admin' && (
                   <Link className="btn-secondary" href={withLocalePath('/admin')}>
-                    {isEn ? 'Admin console' : 'Console admin'}
+                    {t('managerHome.adminConsole')}
                   </Link>
                 )}
               </div>
             </div>
 
-            <aside className="home-hero-summary" aria-label={isEn ? 'Manager summary' : 'Résumé manager'}>
-              <p className="home-hero-summary__eyebrow">{isEn ? 'Quick view' : 'Vue rapide'}</p>
+            <aside className="home-hero-summary" aria-label={t('managerHome.managerSummary')}>
+              <p className="home-hero-summary__eyebrow">{t('managerHome.quickView')}</p>
               <strong className="home-hero-summary__title">
-                {isEn ? 'A simple cockpit to run your sessions.' : 'Un cockpit simple pour piloter vos sessions.'}
+                {t('managerHome.aSimpleCockpitToRunYour')}
               </strong>
               <button
                 type="button"
                 className="btn-secondary home-quickview-guide-cta"
                 onClick={openStartupGuide}
               >
-                {isEn ? 'Open getting started guide' : 'Ouvrir le guide de démarrage'}
+                {t('managerHome.openGettingStartedGuide')}
               </button>
             </aside>
           </div>
         </section>
-        <section className="cards-grid" aria-label={isEn ? 'Session statistics' : 'Statistiques des sessions'}>
+        <section className="cards-grid" aria-label={t('managerHome.sessionStatistics')}>
           <article className="feature-card stat-card stat-card-live">
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.enCours}</h2>
-            <p>{isEn ? 'Active sessions' : 'Sessions actives'}</p>
+            <p>{t('managerHome.activeSessions')}</p>
           </article>
           <article className="feature-card stat-card stat-card-ready">
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.preparee}</h2>
-            <p>{isEn ? 'To configure' : 'À configurer'}</p>
+            <p>{t('managerHome.toConfigure')}</p>
           </article>
           <article className="feature-card stat-card stat-card-done">
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.terminee}</h2>
-            <p>{isEn ? 'Completed' : 'Terminées'}</p>
+            <p>{t('managerHome.completed2')}</p>
           </article>
         </section>
 
         <section id="home-sessions-block" className="sessions-panel home-sessions-panel home-anchor-target">
           <div className="panel-head home-sessions-head">
             <div>
-              <h2 className="home-section-title">{isEn ? 'Sessions' : 'Sessions'}</h2>
-              <p>{isEn ? 'Track preparing, active, and completed sessions from one panel.' : 'Suivez les sessions en préparation, actives et terminées depuis un seul panneau.'}</p>
+              <h2 className="home-section-title">{t('managerHome.sessions')}</h2>
+              <p>{t('managerHome.trackPreparingActiveAndCompletedSessions')}</p>
             </div>
             {demoMode ? renderDemoCreateAction(
               <button
                 type="button"
                 className="btn-primary"
                 onClick={onDemoCreateSession}
-                title={isEn ? 'Create session' : 'Créer une session'}
+                title={t('managerHome.createSession')}
               >
-                {isEn ? 'Create session' : 'Créer une session'}
+                {t('managerHome.createSession')}
               </button>
             ) : (
               <Link
                 className="btn-primary"
                 href={withLocalePath('/session-builder')}
                 onClick={handleCreateSessionClick}
-                title={isEn ? 'Create session' : 'Créer une session'}
+                title={t('managerHome.createSession')}
               >
-                {isEn ? 'Create session' : 'Créer une session'}
+                {t('managerHome.createSession')}
               </Link>
             )}
           </div>
@@ -1071,32 +1042,32 @@ export default function ManagerHome({
           <div className="home-sessions-controls">
             <div className="home-sessions-filters">
               <label className="home-sessions-field">
-                <span className="home-sessions-field-label">{isEn ? 'Search' : 'Recherche'}</span>
+                <span className="home-sessions-field-label">{t('managerHome.search')}</span>
                 <input
                   type="search"
                   className="home-sessions-control"
                   value={sessionSearch}
                   onChange={(event) => setSessionSearch(event.target.value)}
-                  placeholder={isEn ? 'Search by session name…' : 'Rechercher par nom de session…'}
-                  aria-label={isEn ? 'Search sessions' : 'Rechercher des sessions'}
+                  placeholder={t('managerHome.searchBySessionName')}
+                  aria-label={t('managerHome.searchSessions')}
                 />
               </label>
               <label className="home-sessions-field">
-                <span className="home-sessions-field-label">{isEn ? 'Status' : 'Statut'}</span>
+                <span className="home-sessions-field-label">{t('managerHome.status')}</span>
                 <select
                   className="home-sessions-control"
                   value={sessionStatusFilter}
                   onChange={(event) => setSessionStatusFilter(event.target.value)}
-                  aria-label={isEn ? 'Filter by status' : 'Filtrer par statut'}
+                  aria-label={t('managerHome.filterByStatus')}
                 >
-                  <option value="all">{isEn ? 'All statuses' : 'Tous les statuts'}</option>
-                  <option value="preparee">{isEn ? 'Preparing' : 'En préparation'}</option>
-                  <option value="en_cours">{isEn ? 'In progress' : 'En cours'}</option>
-                  <option value="terminee">{isEn ? 'Completed' : 'Terminée'}</option>
+                  <option value="all">{t('managerHome.allStatuses')}</option>
+                  <option value="preparee">{t('managerHome.preparing')}</option>
+                  <option value="en_cours">{t('managerHome.inProgress')}</option>
+                  <option value="terminee">{t('managerHome.completed')}</option>
                 </select>
               </label>
               <div className="home-sessions-field">
-                <span className="home-sessions-field-label">{isEn ? 'Dates' : 'Dates'}</span>
+                <span className="home-sessions-field-label">{t('managerHome.dates')}</span>
                 <button
                   type="button"
                   className="home-sessions-control home-sessions-period-toggle"
@@ -1105,20 +1076,16 @@ export default function ManagerHome({
                   onClick={() => setShowSessionPeriod((open) => !open)}
                 >
                   <span>
-                    {isEn ? 'Period' : 'Période'}
+                    {t('managerHome.period')}
                     {sessionFromDate || sessionToDate ? (
                       <small>
                         {sessionFromDate
                           ? new Date(`${sessionFromDate}T12:00:00`).toLocaleDateString(locale)
-                          : isEn
-                            ? 'Any start'
-                            : 'Début libre'}
+                          : t('managerHome.anyStart')}
                         {' – '}
                         {sessionToDate
                           ? new Date(`${sessionToDate}T12:00:00`).toLocaleDateString(locale)
-                          : isEn
-                            ? 'Any end'
-                            : 'Fin libre'}
+                          : t('managerHome.anyEnd')}
                       </small>
                     ) : null}
                   </span>
@@ -1132,35 +1099,33 @@ export default function ManagerHome({
               hidden={!showSessionPeriod}
             >
               <label className="home-sessions-field">
-                <span className="home-sessions-field-label">{isEn ? 'From' : 'Du'}</span>
+                <span className="home-sessions-field-label">{t('managerHome.from')}</span>
                 <input
                   type="date"
                   className="home-sessions-control"
                   value={sessionFromDate}
                   onChange={(event) => setSessionFromDate(event.target.value)}
-                  aria-label={isEn ? 'From date' : 'Date de début'}
+                  aria-label={t('managerHome.fromDate')}
                 />
               </label>
               <label className="home-sessions-field">
-                <span className="home-sessions-field-label">{isEn ? 'To' : 'Au'}</span>
+                <span className="home-sessions-field-label">{t('managerHome.to')}</span>
                 <input
                   type="date"
                   className="home-sessions-control"
                   value={sessionToDate}
                   onChange={(event) => setSessionToDate(event.target.value)}
-                  aria-label={isEn ? 'To date' : 'Date de fin'}
+                  aria-label={t('managerHome.toDate')}
                 />
               </label>
             </div>
             <div className="home-sessions-controls-head">
               <p className="session-meta home-sessions-meta">
-                {isEn
-                  ? `Showing ${sessions.length} session(s) out of ${Number(sessionsPagination.total || 0)}`
-                  : `${sessions.length} session(s) affichée(s) sur ${Number(sessionsPagination.total || 0)}`}
+                {t('managerHome.showingLengthSessionSOutOf', { length: sessions.length, total: Number(sessionsPagination.total || 0) })}
               </p>
               {hasActiveSessionFilters ? (
                 <button type="button" className="home-sessions-clear" onClick={clearSessionFilters}>
-                  {isEn ? 'Reset filters' : 'Réinitialiser les filtres'}
+                  {t('managerHome.resetFilters')}
                 </button>
               ) : null}
             </div>
@@ -1175,7 +1140,7 @@ export default function ManagerHome({
           ) : null}
 
           {!loadingSessions && sessions.length === 0 ? (
-            <p className="team-empty">{isEn ? 'No sessions found yet.' : 'Aucune session pour le moment.'}</p>
+            <p className="team-empty">{t('managerHome.noSessionsFoundYet')}</p>
           ) : null}
 
           {!loadingSessions && sessions.length > 0 ? (
@@ -1188,9 +1153,9 @@ export default function ManagerHome({
                 const isDone = session.status === 'terminee';
                 const statusVariant = isActive ? 'en-cours' : isDone ? 'terminee' : 'a-venir';
                 const statusClass = `status-pill--${statusVariant}`;
-                const modalityLabel = getSessionModalityLabel(session.modality, isEn);
+                const modalityLabel = getSessionModalityLabel(session.modality, locale);
                 const formatLabel = getSessionFormatLabel(session);
-                const durationLabel = getSessionDurationLabel(session, isEn);
+                const durationLabel = getSessionDurationLabel(session, locale);
                 const openLink = isDone
                   ? withLocalePath(`/session-results/${sessionIdentifier}`)
                   : isActive
@@ -1200,27 +1165,21 @@ export default function ManagerHome({
                 const mobileSessionActions = [
                   {
                     key: 'edit',
-                    label: isEn ? 'Edit session' : 'Modifier la session',
+                    label: t('managerHome.editSession'),
                     href: editLink,
                   },
                   {
                     key: 'open',
                     label: isDone
-                      ? isEn
-                        ? 'View results'
-                        : 'Voir les résultats'
+                      ? t('managerHome.viewResults')
                       : isActive
-                        ? isEn
-                          ? 'Open session'
-                          : 'Ouvrir la session'
-                        : isEn
-                          ? 'Configure session'
-                          : 'Configurer la session',
+                        ? t('managerHome.openSession')
+                        : t('managerHome.configureSession'),
                     href: openLink,
                   },
                   {
                     key: 'delete',
-                    label: isEn ? 'Delete session' : 'Supprimer la session',
+                    label: t('managerHome.deleteSession'),
                     danger: true,
                     onClick: () => handleDeleteSession(session),
                     disabled: isDeleting,
@@ -1235,13 +1194,13 @@ export default function ManagerHome({
                       <p className="session-title">{session.name || `Session #${sessionIdentifier}`}</p>
                       <p className="session-meta">
                         <span className={`status-pill ${statusClass}`}>
-                          {STATUS_LABEL[session.status] || session.status || (isEn ? 'Preparing' : 'En préparation')}
+                          {STATUS_LABEL[session.status] || session.status || t('managerHome.preparing')}
                         </span>
                         {session.session_date ? (
                           <span className="session-date">{formatSessionDate(session.session_date, locale)}</span>
                         ) : null}
                       </p>
-                      <div className="session-tags" aria-label={isEn ? 'Session metadata' : 'Metadonnees de session'}>
+                      <div className="session-tags" aria-label={t('managerHome.sessionMetadata')}>
                         {modalityLabel ? (
                           <span className="session-tag session-tag--modality">{modalityLabel}</span>
                         ) : null}
@@ -1256,8 +1215,8 @@ export default function ManagerHome({
                     {!demoMode ? (
                       <div className="session-card-mobile-actions session-card-mobile-actions--top">
                         <MobileActionMenu
-                          triggerLabel={isEn ? 'Open session actions' : 'Ouvrir les actions session'}
-                          menuLabel={isEn ? 'Session actions' : 'Actions session'}
+                          triggerLabel={t('managerHome.openSessionActions')}
+                          menuLabel={t('managerHome.sessionActions')}
                           items={mobileSessionActions}
                           closeSignal={mobileMenuSignal}
                         />
@@ -1267,8 +1226,8 @@ export default function ManagerHome({
                       <Link
                         className="icon-action-btn"
                         href={editLink}
-                        title={isEn ? 'Edit' : 'Modifier'}
-                        aria-label={isEn ? 'Edit session' : 'Modifier la session'}
+                        title={t('managerHome.edit')}
+                        aria-label={t('managerHome.editSession')}
                       >
                         <Pencil size={16} aria-hidden="true" />
                       </Link>
@@ -1277,29 +1236,17 @@ export default function ManagerHome({
                         href={openLink}
                         title={
                           isDone
-                            ? isEn
-                              ? 'View results'
-                              : 'Voir les résultats'
+                            ? t('managerHome.viewResults')
                             : isActive
-                              ? isEn
-                                ? 'Open session'
-                                : 'Ouvrir la session'
-                              : isEn
-                                ? 'Configure'
-                                : 'Configurer'
+                              ? t('managerHome.openSession')
+                              : t('managerHome.configure')
                         }
                         aria-label={
                           isDone
-                            ? isEn
-                              ? 'View results'
-                              : 'Voir les résultats'
+                            ? t('managerHome.viewResults')
                             : isActive
-                              ? isEn
-                                ? 'Open session'
-                                : 'Ouvrir la session'
-                              : isEn
-                                ? 'Configure'
-                                : 'Configurer'
+                              ? t('managerHome.openSession')
+                              : t('managerHome.configure')
                         }
                       >
                         {isDone ? <BarChart3 size={16} aria-hidden="true" /> : isActive ? <Play size={16} aria-hidden="true" /> : <Settings size={16} aria-hidden="true" />}
@@ -1307,8 +1254,8 @@ export default function ManagerHome({
                       <button
                         type="button"
                         className="icon-action-btn icon-action-danger"
-                        title={isEn ? 'Delete' : 'Supprimer'}
-                        aria-label={isEn ? 'Delete session' : 'Supprimer la session'}
+                        title={t('managerHome.delete')}
+                        aria-label={t('managerHome.deleteSession')}
                         onClick={() => handleDeleteSession(session)}
                         disabled={isDeleting}
                       >
@@ -1324,7 +1271,7 @@ export default function ManagerHome({
           {!loadingSessions && Number(sessionsPagination.totalPages) > 1 ? (
             <nav
               className="home-sessions-pagination"
-              aria-label={isEn ? 'Session pages' : 'Pages des sessions'}
+              aria-label={t('managerHome.sessionPages')}
             >
               <button
                 type="button"
@@ -1332,10 +1279,10 @@ export default function ManagerHome({
                 disabled={!sessionsPagination.hasPrevPage}
                 onClick={() => setSessionsPage((prev) => Math.max(1, prev - 1))}
               >
-                {isEn ? 'Previous' : 'Précédent'}
+                {t('managerHome.previous')}
               </button>
               <span className="session-meta">
-                {isEn ? 'Page' : 'Page'} {Number(sessionsPagination.page || sessionsPage)} /{' '}
+                {t('managerHome.page')} {Number(sessionsPagination.page || sessionsPage)} /{' '}
                 {Number(sessionsPagination.totalPages || 1)}
               </span>
               <button
@@ -1344,16 +1291,16 @@ export default function ManagerHome({
                 disabled={!sessionsPagination.hasNextPage}
                 onClick={() => setSessionsPage((prev) => prev + 1)}
               >
-                {isEn ? 'Next' : 'Suivant'}
+                {t('managerHome.next')}
               </button>
             </nav>
           ) : null}
         </section>
 
-        <section id="home-participants-block" className="participants-panel home-anchor-target" aria-label={isEn ? 'Team participants' : 'Participants de l’équipe'}>
+        <section id="home-participants-block" className="participants-panel home-anchor-target" aria-label={t('managerHome.teamParticipants')}>
           <div className="participants-panel-head">
             <div>
-              <h2 className="home-section-title">{isEn ? 'Participants' : 'Participants'}</h2>
+              <h2 className="home-section-title">{t('managerHome.participants')}</h2>
             </div>
             {!demoMode ? (
               <div className="participants-panel-actions">
@@ -1362,26 +1309,24 @@ export default function ManagerHome({
                   className="btn-secondary"
                   onClick={openNewMemberForm}
                 >
-                  {isEn ? 'Create participant' : 'Créer un participant'}
+                  {t('managerHome.createParticipant')}
                 </button>
               </div>
             ) : null}
           </div>
 
-          <div className="participants-panel-kpis" aria-label={isEn ? 'Participant summary' : 'Résumé des participants'}>
+          <div className="participants-panel-kpis" aria-label={t('managerHome.participantSummary')}>
             <span>
-              {isEn
-                ? `${members.length} participant${members.length > 1 ? 's' : ''} total`
-                : `${members.length} participant${members.length > 1 ? 's' : ''} au total`}
+              {t('managerHome.lengthParticipantValueTotal', { length: members.length, value: members.length > 1 ? 's' : '' })}
             </span>
           </div>
 
           {loadingMembers ? (
-            <p>{isEn ? 'Loading participants...' : 'Chargement des participants...'}</p>
+            <p>{t('managerHome.loadingParticipants')}</p>
           ) : null}
 
           {!loadingMembers && members.length === 0 ? (
-            <p className="team-empty">{isEn ? 'No participants yet. You can add them here when you want to reuse them across sessions.' : 'Aucun participant pour le moment. Vous pourrez en ajouter ici pour les réutiliser dans vos sessions.'}</p>
+            <p className="team-empty">{t('managerHome.noParticipantsYetYouCanAdd')}</p>
           ) : null}
 
           {!loadingMembers && members.length > 0 ? (
@@ -1393,13 +1338,13 @@ export default function ManagerHome({
                 const mobileParticipantActions = [
                   {
                     key: 'edit',
-                    label: isEn ? 'Edit participant' : 'Modifier le participant',
+                    label: t('managerHome.editParticipant'),
                     onClick: () => beginEditMember(member),
                     disabled: deletingMemberId === member.id,
                   },
                   {
                     key: 'delete',
-                    label: isEn ? 'Delete participant' : 'Supprimer le participant',
+                    label: t('managerHome.deleteParticipant'),
                     danger: true,
                     onClick: () => handleDeleteMember(member),
                     disabled: deletingMemberId === member.id,
@@ -1413,14 +1358,14 @@ export default function ManagerHome({
                     <div className="participant-card__content">
                       <p className="participant-card__name">{title}</p>
                       <p className="participant-card__meta">
-                        {member.email || (isEn ? 'Email not provided' : 'E-mail non renseigné')}
+                        {member.email || t('managerHome.emailNotProvided')}
                         {details ? ` · ${details}` : ''}
                       </p>
                     </div>
                     {!demoMode ? <div className="team-member-mobile-actions">
                       <MobileActionMenu
-                        triggerLabel={isEn ? 'Open participant actions' : 'Ouvrir les actions participant'}
-                        menuLabel={isEn ? 'Participant actions' : 'Actions participant'}
+                        triggerLabel={t('managerHome.openParticipantActions')}
+                        menuLabel={t('managerHome.participantActions')}
                         items={mobileParticipantActions}
                         closeSignal={mobileMenuSignal}
                       />
@@ -1429,8 +1374,8 @@ export default function ManagerHome({
                       <button
                         type="button"
                         className="icon-action-btn icon-action-btn--mobile-friendly"
-                        title={isEn ? 'Edit' : 'Modifier'}
-                        aria-label={isEn ? 'Edit this participant' : 'Modifier ce participant'}
+                        title={t('managerHome.edit')}
+                        aria-label={t('managerHome.editThisParticipant')}
                         onClick={() => beginEditMember(member)}
                         disabled={deletingMemberId === member.id}
                       >
@@ -1439,8 +1384,8 @@ export default function ManagerHome({
                       <button
                         type="button"
                         className="icon-action-btn icon-action-btn--mobile-friendly icon-action-danger"
-                        title={isEn ? 'Delete' : 'Supprimer'}
-                        aria-label={isEn ? 'Delete this participant' : 'Supprimer ce participant'}
+                        title={t('managerHome.delete')}
+                        aria-label={t('managerHome.deleteThisParticipant')}
                         onClick={() => handleDeleteMember(member)}
                         disabled={deletingMemberId === member.id}
                       >
@@ -1456,7 +1401,7 @@ export default function ManagerHome({
       </HomeContainer>
       <Modal
         open={isStartupGuideOpen}
-        title={isEn ? 'Getting started guide' : 'Guide de démarrage'}
+        title={t('managerHome.gettingStartedGuide')}
         onClose={closeStartupGuide}
         hideHeader
         overlayClassName="manager-onboarding-modalOverlay"
@@ -1467,25 +1412,23 @@ export default function ManagerHome({
           <div className="manager-onboarding-shell">
             <header className={`manager-onboarding-hero manager-onboarding-hero--modal ${guideStyles.guideHeader}`}>
               <div className="manager-onboarding-copy">
-                <p className="eyebrow manager-onboarding-eyebrow">{isEn ? 'GETTING STARTED' : 'GUIDE DE DÉMARRAGE'}</p>
-                <h2 id="onboarding-guide-title">{isEn ? 'Your first session starts here.' : 'Votre première session commence ici.'}</h2>
+                <p className="eyebrow manager-onboarding-eyebrow">{t('managerHome.gettingStarted')}</p>
+                <h2 id="onboarding-guide-title">{t('managerHome.yourFirstSessionStartsHere')}</h2>
                 <p>
-                  {isEn
-                    ? 'Follow these three steps to get ready to run a workshop.'
-                    : 'Suivez ces trois étapes pour préparer votre atelier.'}
+                  {t('managerHome.followTheseThreeStepsToGet')}
                 </p>
               </div>
               <button
                 type="button"
                 className={`btn-secondary manager-onboarding-close ${guideStyles.guideClose}`}
                 onClick={closeStartupGuide}
-                aria-label={isEn ? 'Close the getting started guide' : 'Fermer le guide de démarrage'}
+                aria-label={t('managerHome.closeTheGettingStartedGuide')}
               >
-                {isEn ? 'Close' : 'Fermer'}
+                {t('managerHome.close')}
               </button>
             </header>
 
-            <ol className={`manager-onboarding-grid manager-onboarding-grid--modal ${guideStyles.guideGrid}`} aria-label={isEn ? 'Steps to create a session' : 'Étapes pour créer une session'}>
+            <ol className={`manager-onboarding-grid manager-onboarding-grid--modal ${guideStyles.guideGrid}`} aria-label={t('managerHome.stepsToCreateASession')}>
               {startupGuideSteps.map((item, index) => (
                 <li key={item.step}>
                   <article
@@ -1509,8 +1452,8 @@ export default function ManagerHome({
       <Modal
         open={isParticipantModalOpen}
         title={editingMemberId
-          ? (isEn ? 'Edit participant' : 'Modifier le participant')
-          : (isEn ? 'Create participant' : 'Créer un participant')}
+          ? t('managerHome.editParticipant')
+          : t('managerHome.createParticipant')}
         titleClassName="participant-modal-title"
         dialogClassName="participant-modal-dialog participant-modal-dialog--form"
         headerClassName="participant-modal-header"
@@ -1518,8 +1461,8 @@ export default function ManagerHome({
       >
         <p className="participant-modal-subtitle">
           {editingMemberId
-            ? (isEn ? 'Update the selected participant information.' : 'Mettez à jour les informations du participant sélectionné.')
-            : (isEn ? 'Add a participant to assign them to your sessions.' : 'Ajoutez un participant pour l’assigner à vos sessions.')}
+            ? t('managerHome.updateTheSelectedParticipantInformation')
+            : t('managerHome.addAParticipantToAssignThem')}
         </p>
         <div className="participant-modal-body">
           <article className="participant-inline-form participant-inline-form--modal">
@@ -1549,7 +1492,7 @@ export default function ManagerHome({
               />
               <div className="participant-form-grid">
                 <label>
-                  {isEn ? 'First name *' : 'Prénom *'}
+                  {t('managerHome.firstName')}
                   <input
                     type="text"
                     name="participant_first_name"
@@ -1561,11 +1504,11 @@ export default function ManagerHome({
                     required
                   />
                   {formAttempted && !memberFormChecks.firstNameOk ? (
-                    <span className="field-error">{isEn ? 'First name is required.' : 'Le prénom est requis.'}</span>
+                    <span className="field-error">{t('managerHome.firstNameIsRequired')}</span>
                   ) : null}
                 </label>
                 <label>
-                  {isEn ? 'Last name' : 'Nom'}
+                  {t('managerHome.lastName')}
                   <input
                     type="text"
                     name="participant_last_name"
@@ -1576,7 +1519,7 @@ export default function ManagerHome({
                   />
                 </label>
                 <label className="participant-field-full">
-                  {isEn ? 'Email *' : 'E-mail *'}
+                  {t('managerHome.email')}
                   <input
                     type="email"
                     name="participant_contact_email"
@@ -1590,11 +1533,11 @@ export default function ManagerHome({
                     required
                   />
                   {formAttempted && !memberFormChecks.emailOk ? (
-                    <span className="field-error">{isEn ? 'Email format is invalid.' : 'Le format de l’adresse e-mail est invalide.'}</span>
+                    <span className="field-error">{t('managerHome.emailFormatIsInvalid')}</span>
                   ) : null}
                 </label>
                 <label>
-                  {isEn ? 'Job title' : 'Poste'}
+                  {t('managerHome.jobTitle')}
                   <input
                     type="text"
                     name="participant_job_title"
@@ -1605,7 +1548,7 @@ export default function ManagerHome({
                   />
                 </label>
                 <label>
-                  {isEn ? 'Department' : 'Département'}
+                  {t('managerHome.department')}
                   <input
                     type="text"
                     name="participant_department"
@@ -1617,23 +1560,21 @@ export default function ManagerHome({
                 </label>
               </div>
               <p className="participant-form-hint">
-                {isEn
-                  ? 'Fields marked with * are required.'
-                  : 'Les champs marqués d’un * sont obligatoires.'}
+                {t('managerHome.fieldsMarkedWithAreRequired')}
               </p>
               {editingMemberId ? (
                 <section className="participant-password-reset" aria-labelledby="participant-password-reset-title">
                   <h3 id="participant-password-reset-title">
-                    {isEn ? 'Password reset' : 'Réinitialisation du mot de passe'}
+                    {t('managerHome.passwordReset')}
                   </h3>
                   <p className="participant-password-reset-description" id="participant-password-reset-description">
                     {editingMember?.email
-                      ? <>{isEn ? 'Send a reset link to ' : 'Envoyer un lien à '}<strong>{editingMember.email}</strong>.</>
-                      : (isEn ? 'Save an email address first to send a reset link.' : 'Enregistrez d’abord une adresse e-mail pour envoyer un lien de réinitialisation.')}
+                      ? <>{t('managerHome.sendAResetLinkTo')}<strong>{editingMember.email}</strong>.</>
+                      : t('managerHome.saveAnEmailAddressFirstTo')}
                   </p>
                   {editingMember?.email ? (
                     <p className="participant-form-hint" id="participant-password-reset-hint">
-                      {isEn ? 'Changing the email? Save your changes before sending.' : 'Vous modifiez l’e-mail ? Enregistrez-le avant l’envoi.'}
+                      {t('managerHome.changingTheEmailSaveYourChanges')}
                     </p>
                   ) : null}
                   <button
@@ -1645,8 +1586,8 @@ export default function ManagerHome({
                     aria-describedby={`participant-password-reset-description${editingMember?.email ? ' participant-password-reset-hint' : ''}`}
                   >
                     {sendingPasswordReset
-                      ? (isEn ? 'Sending...' : 'Envoi en cours...')
-                      : (isEn ? 'Resend password reset link' : 'Renvoyer le lien de réinitialisation')}
+                      ? t('managerHome.sending')
+                      : t('managerHome.resendPasswordResetLink')}
                   </button>
                   {passwordResetMessage ? (
                     <p className="participant-form-status participant-form-status--ok" role="status">{passwordResetMessage}</p>
@@ -1660,16 +1601,16 @@ export default function ManagerHome({
               ) : null}
               <div className="participant-form-actions">
                 <button type="button" className="btn-secondary" onClick={closeParticipantModal} disabled={creatingMember || sendingPasswordReset}>
-                  {isEn ? 'Cancel' : 'Annuler'}
+                  {t('managerHome.cancel')}
                 </button>
                 <button type="submit" className="btn-primary" disabled={!canSubmitMember}>
                   {creatingMember
                     ? (editingMemberId
-                      ? (isEn ? 'Updating...' : 'Mise à jour...')
-                      : (isEn ? 'Adding...' : 'Ajout...'))
+                      ? t('managerHome.updating')
+                      : t('managerHome.adding'))
                     : (editingMemberId
-                      ? (isEn ? 'Save changes' : 'Enregistrer')
-                      : (isEn ? 'Create participant' : 'Créer un participant'))}
+                      ? t('managerHome.saveChanges')
+                      : t('managerHome.createParticipant'))}
                 </button>
               </div>
             </form>
@@ -1678,20 +1619,21 @@ export default function ManagerHome({
       </Modal>
       <Modal
         open={Boolean(lastCreatedCredentials)}
-        title={isEn ? 'Participant created' : 'Participant créé'}
+        title={t('managerHome.participantCreated')}
         dialogClassName="participant-modal-dialog"
         onClose={() => setLastCreatedCredentials(null)}
       >
         {lastCreatedCredentials ? (
           <div style={{ padding: '0 1.35rem 1.25rem' }}>
             <p className="participant-form-status participant-form-status--ok" role="status" aria-live="polite">
-              {isEn
-                ? `Participant created. Login: ${lastCreatedCredentials.loginIdentifier || 'n/a'} · Password setup link sent to ${lastCreatedCredentials.deliveredEmail || 'the participant email'}.`
-                : `Participant créé. Identifiant : ${lastCreatedCredentials.loginIdentifier || 'non disponible'} · Lien de création du mot de passe envoyé à ${lastCreatedCredentials.deliveredEmail || 'l’adresse e-mail du participant'}.`}
+              {t('managerHome.participantCreatedLoginLoginidentifierPasswordSetup', {
+                loginIdentifier: lastCreatedCredentials.loginIdentifier || t('managerHome.notAvailable'),
+                deliveredEmail: lastCreatedCredentials.deliveredEmail || t('managerHome.theParticipantEmail'),
+              })}
             </p>
             <div className="participant-form-actions" style={{ marginTop: '1rem' }}>
               <button type="button" className="btn-primary" onClick={() => setLastCreatedCredentials(null)}>
-                {isEn ? 'Close' : 'Fermer'}
+                {t('managerHome.close')}
               </button>
             </div>
           </div>

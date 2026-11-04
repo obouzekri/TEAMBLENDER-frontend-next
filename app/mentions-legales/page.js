@@ -2,6 +2,9 @@ import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
+import { translate } from '@/lib/i18n';
+import { normalizeLocale } from '@/lib/i18n/routing';
+import { LOCALE_COOKIE } from '@/lib/i18n/detectLocale';
 
 export const metadata = {
   title: 'Legal Notice | TeamBlender',
@@ -140,7 +143,7 @@ const COPY = {
 
 export default async function MentionsLegalesPage() {
   const cookieStore = await cookies();
-  const locale = String(cookieStore.get('tb_locale')?.value || 'fr').toLowerCase() === 'en' ? 'en' : 'fr';
+  const locale = normalizeLocale(cookieStore.get(LOCALE_COOKIE)?.value);
   const copy = COPY[locale];
   const privacyHref = `/${locale}/politique-confidentialite`;
 
@@ -184,11 +187,9 @@ export default async function MentionsLegalesPage() {
                     {paragraph.includes('Privacy Policy') || paragraph.includes('Politique de confidentialité')
                       ? (
                         <>
-                          {locale === 'en' ? 'The processing of personal data collected through this site is described in our ' : 'Le traitement des données à caractère personnel collectées via ce site est décrit dans notre '}
+                          {translate(locale, 'legalPages.privacyIntro')}
                           <Link href={privacyHref}>{copy.privacyLabel}</Link>
-                          {locale === 'en'
-                            ? '. Under GDPR (EU 2016/679), you have rights of access, rectification, deletion, and portability of your data.'
-                            : '. Conformément au RGPD (UE 2016/679), vous disposez d un droit d accès, de rectification, de suppression et de portabilité de vos données.'}
+                          {translate(locale, 'legalPages.privacyRights')}
                         </>
                       )
                       : paragraph}

@@ -5,6 +5,7 @@ import { Button, EmptyState } from '@/components/ui';
 import useI18n from '@/lib/i18n/useI18n';
 import { useRef, useState } from 'react';
 import { GripVertical } from 'lucide-react';
+import { pickLocalized } from '@/lib/i18n';
 
 export default function SelectedChallengesList({
   challenges,
@@ -44,8 +45,7 @@ export default function SelectedChallengesList({
   function localizePlainValue(value) {
     if (value == null) return '';
     if (typeof value === 'object' && !Array.isArray(value)) {
-      const preferredLocale = locale === 'en' ? 'en' : 'fr';
-      return String(value[preferredLocale] || value.fr || value.en || '').trim();
+      return String(pickLocalized(value, locale) || value.fr || value.en || '').trim();
     }
     return String(value || '').trim();
   }

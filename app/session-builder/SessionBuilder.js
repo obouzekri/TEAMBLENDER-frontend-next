@@ -35,6 +35,7 @@ import styles from './SessionBuilder.module.css';
 import creationStyles from './CreationForm.module.css';
 import { mockChallenges } from '@/lib/mockChallenges';
 import useI18n from '@/lib/i18n/useI18n';
+import { formatDate } from '@/lib/i18n/format';
 import { ensureBuilderCatalogChallenges } from '@/lib/session-builder/catalog';
 import {
   CREATION_DRAFT_STORAGE_KEY,
@@ -1079,7 +1080,7 @@ export default function SessionBuilder() {
         return;
       }
 
-      const name = sessionName.trim() || `Session ${new Date().toLocaleDateString('en-US')}`;
+      const name = sessionName.trim() || `Session ${formatDate(new Date(), locale, {})}`;
       const sessionDate = sessionDateTime ? new Date(sessionDateTime) : null;
       if (sessionDateTime && Number.isNaN(sessionDate?.getTime())) {
         showErrorToast(t('sessionBuilder.invalidDateTimeDetailed'));

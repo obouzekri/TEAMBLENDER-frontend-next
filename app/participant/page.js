@@ -11,6 +11,7 @@ import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
 import { clearStoredAuth, getAuthHeaders, getStoredCurrentUser, joinParticipantAuthenticated } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
+import { formatDate } from '@/lib/i18n/format';
 
 export default function ParticipantPage() {
   const searchParams = useSearchParams();
@@ -19,8 +20,7 @@ export default function ParticipantPage() {
 }
 
 function ParticipantHome({ requestedSessionId }) {
-  const { locale, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, withLocalePath, t } = useI18n();
   const [user, setUser] = useState(null);
   const [runtime, setRuntime] = useState(null);
   const [runtimeError, setRuntimeError] = useState('');
@@ -149,11 +149,11 @@ function ParticipantHome({ requestedSessionId }) {
   }, [connected, pollingActive, reconnecting, sessionId]);
 
   const asyncStatusMessage = useMemo(() => {
-    if (joiningSessionId) return isEn ? 'Connecting to session...' : 'Connexion a la session en cours...';
-    if (joining) return isEn ? 'Loading active challenge...' : 'Chargement du challenge actif...';
-    if (loadingSessions) return isEn ? 'Loading assigned sessions...' : 'Chargement des sessions assignées...';
+    if (joiningSessionId) return t('participantSpace.connectingToSession');
+    if (joining) return t('participantSpace.loadingActiveChallenge');
+    if (loadingSessions) return t('participantSpace.loadingAssignedSessions');
     return '';
-  }, [isEn, joiningSessionId, joining, loadingSessions]);
+  }, [locale, joiningSessionId, joining, loadingSessions]);
 
   useEffect(() => {
     if (!ready || typeof window === 'undefined') return;
@@ -191,7 +191,7 @@ function ParticipantHome({ requestedSessionId }) {
       } catch (err) {
         if (!cancelled) {
           setSessionDetails(null);
-          setSessionDetailsError(`${isEn ? 'Unable to load session information.' : 'Impossible de charger les informations de session.'} ${err.message}`);
+          setSessionDetailsError(`${t('participantSpace.unableToLoadSessionInformation')} ${err.message}`);
         }
       }
     }
@@ -200,7 +200,7 @@ function ParticipantHome({ requestedSessionId }) {
     return () => {
       cancelled = true;
     };
-  }, [isEn, ready, sessionId]);
+  }, [locale, ready, sessionId]);
 
   useEffect(() => {
     if (!ready || !sessionId) return;
@@ -239,7 +239,7 @@ function ParticipantHome({ requestedSessionId }) {
       } catch (err) {
         if (!cancelled) {
           setRuntime(null);
-          setRuntimeError(err?.message || (isEn ? 'Unable to load active challenge.' : 'Impossible de charger le challenge actif.'));
+          setRuntimeError(err?.message || t('participantSpace.unableToLoadActiveChallenge'));
         }
       } finally {
         if (!cancelled) setJoining(false);
@@ -253,7 +253,7 @@ function ParticipantHome({ requestedSessionId }) {
     return () => {
       cancelled = true;
     };
-  }, [isEn, ready, sessionId, sessionState?.active_challenge_id, stateEngineKey]);
+  }, [locale, ready, sessionId, sessionState?.active_challenge_id, stateEngineKey]);
 
   // Keep assigned sessions accessible even when returning through a recovery link.
   useEffect(() => {
@@ -275,14 +275,14 @@ function ParticipantHome({ requestedSessionId }) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const sessions = Array.isArray(data) ? data : (data?.data || data?.sessions);
-        if (!Array.isArray(sessions)) throw new Error(isEn ? 'Invalid session list.' : 'Liste de sessions invalide.');
+        if (!Array.isArray(sessions)) throw new Error(t('participantSpace.invalidSessionList'));
         if (!controller.signal.aborted) {
           setAssignedSessions(sessions);
           setSessionsError('');
         }
       } catch (err) {
         if (!controller.signal.aborted) {
-          setSessionsError(`${isEn ? 'Unable to load your sessions. Retrying automatically.' : 'Impossible de charger vos sessions. Nouvelle tentative automatique.'} ${err.message}`);
+          setSessionsError(`${t('participantSpace.unableToLoadYourSessionsRetrying')} ${err.message}`);
         }
       } finally {
         fetching = false;
@@ -306,7 +306,7 @@ function ParticipantHome({ requestedSessionId }) {
       window.removeEventListener('focus', refreshAssignedSessions);
       document.removeEventListener('visibilitychange', refreshAssignedSessions);
     };
-  }, [ready, isEn]);
+  }, [ready, locale]);
 
   const challengeLink = useMemo(() => {
     const engine = String(stateEngineKey || runtime?.engine_key || '').trim();
@@ -343,7 +343,7 @@ function ParticipantHome({ requestedSessionId }) {
       if (!runtimeRes.ok) throw new Error(`HTTP ${runtimeRes.status}`);
       const payload = await runtimeRes.json();
       engine = String(payload?.engine_key || '').trim();
-      if (!engine) throw new Error(isEn ? 'Active challenge unavailable.' : 'Challenge actif indisponible.');
+      if (!engine) throw new Error(t('participantSpace.activeChallengeUnavailable'));
     }
     sessionStorage.setItem('targetSessionId', sessionIdentifier);
     router.push(withLocalePath(engine
@@ -363,7 +363,7 @@ function ParticipantHome({ requestedSessionId }) {
     try {
       await navigateToSession(sessionIdentifier);
     } catch (err) {
-      setJoinSessionError(`${isEn ? 'Unable to join this session. Please retry.' : 'Impossible de rejoindre cette session. Réessayez.'} ${err.message}`);
+      setJoinSessionError(`${t('participantSpace.unableToJoinThisSessionPlease')} ${err.message}`);
     } finally {
       joinInFlightRef.current = false;
       setJoiningSessionId(null);
@@ -377,7 +377,7 @@ function ParticipantHome({ requestedSessionId }) {
     setJoinCodeInvalid(false);
     const normalizedCode = String(joinCode || '').trim().toUpperCase();
     if (!normalizedCode) {
-      setJoinCodeMessage(isEn ? 'Enter a session code.' : 'Saisissez un code de session.');
+      setJoinCodeMessage(t('participantSpace.enterASessionCode'));
       return;
     }
 
@@ -389,20 +389,20 @@ function ParticipantHome({ requestedSessionId }) {
         const invalid = res.status === 404 || data?.code === 'SESSION_NOT_FOUND';
         setJoinCodeInvalid(invalid);
         setJoinCodeMessage(invalid
-          ? (isEn ? 'Invalid or unknown session code.' : 'Code de session invalide ou introuvable.')
-          : (data?.error || (isEn ? 'Unable to join this session.' : 'Impossible de rejoindre cette session.')));
+          ? t('participantSpace.invalidOrUnknownSessionCode')
+          : (data?.error || t('participantSpace.unableToJoinThisSession')));
         return;
       }
       const resolvedSessionId = String(data?.sessionId || '').trim();
       if (!resolvedSessionId) {
-        setJoinCodeMessage(isEn ? 'The server did not return a session. Please retry.' : 'Le serveur n’a pas renvoyé de session. Réessayez.');
+        setJoinCodeMessage(t('participantSpace.theServerDidNotReturnA'));
         return;
       }
       await navigateToSession(resolvedSessionId);
       setJoinCode('');
       setJoinModalOpen(false);
     } catch {
-      setJoinCodeMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Vérifiez votre connexion.');
+      setJoinCodeMessage(t('participantSpace.unableToReachTheServerCheck'));
     } finally {
       joinInFlightRef.current = false;
       setJoiningSessionId(null);
@@ -421,8 +421,8 @@ function ParticipantHome({ requestedSessionId }) {
     return (
       <main className="shell auth-page">
         <section className="feature-card">
-          <h1>{isEn ? 'Checking session...' : 'Verification de la session...'}</h1>
-          <p>{isEn ? 'Loading...' : 'Chargement en cours.'}</p>
+          <h1>{t('participantSpace.checkingSession')}</h1>
+          <p>{t('participantSpace.loading')}</p>
         </section>
       </main>
     );
@@ -435,13 +435,11 @@ function ParticipantHome({ requestedSessionId }) {
         <section className="hero participant-hero">
           <div className="participant-hero__top">
             <div className="participant-hero__copy">
-              <h1>{isEn ? `Welcome ${participantLabel}` : `Bienvenue ${participantLabel}`}</h1>
+              <h1>{t('participantSpace.welcomeParticipantlabel', { participantLabel })}</h1>
               <p>
                 {!sessionId
-                  ? (isEn ? 'Find your sessions and join your ongoing experiences.' : 'Retrouvez vos sessions et rejoignez vos expériences en cours.')
-                  : (isEn
-                    ? 'Your session is running. The active challenge will appear here automatically.'
-                    : 'Votre session est en cours. Le challenge actif s\'affichera ici automatiquement.')}
+                  ? t('participantSpace.findYourSessionsAndJoinYour')
+                  : t('participantSpace.yourSessionIsRunningTheActive')}
               </p>
             </div>
             <div className="participant-hero__actions">
@@ -454,53 +452,49 @@ function ParticipantHome({ requestedSessionId }) {
                   setJoinModalOpen(true);
                 }}
               >
-                {isEn ? '+ Join a session' : '+ Rejoindre une session'}
+                {t('participantSpace.joinASession')}
               </button> : null}
               {sessionId && challengeLink ? (
                 <Link className="btn-primary" href={challengeLink}>
-                  {isEn ? 'Join challenge' : 'Rejoindre le challenge'}
+                  {t('participantSpace.joinChallenge')}
                 </Link>
               ) : sessionId && !joining && !runtimeError && !sessionError ? (
                 <button type="button" className="btn-primary" disabled>
                   {flowMode === 'auto'
-                    ? (isEn ? 'Automatic progression is being prepared...' : 'Passage automatique en préparation...')
-                    : (isEn ? 'Waiting for facilitator...' : 'En attente du facilitateur...')}
+                    ? t('participantSpace.automaticProgressionIsBeingPrepared')
+                    : t('participantSpace.waitingForFacilitator')}
                 </button>
               ) : sessionId ? (
                 <button type="button" className="btn-primary" disabled>
-                  {joining ? (isEn ? 'Loading...' : 'Chargement...') : (isEn ? 'Challenge unavailable' : 'Challenge indisponible')}
+                  {joining ? t('participantSpace.loading2') : t('participantSpace.challengeUnavailable')}
                 </button>
               ) : assignedSessions.length === 0 && !loadingSessions && !sessionsError ? (
                 <Link className="btn-primary" href={withLocalePath('/login')}>
-                  {isEn ? 'Back to login' : 'Revenir à la connexion'}
+                  {t('participantSpace.backToLogin')}
                 </Link>
               ) : null}
             </div>
           </div>
-          <div className="participant-hero-trust" aria-label={isEn ? 'Participant guideposts' : 'Repères participant'}>
-            <span>{isEn ? 'Individual access' : 'Accès individuel'}</span>
-            <span>{isEn ? 'Real-time session' : 'Session en temps réel'}</span>
-            <span>{isEn ? 'Guided experience' : 'Expérience guidée'}</span>
+          <div className="participant-hero-trust" aria-label={t('participantSpace.participantGuideposts')}>
+            <span>{t('participantSpace.individualAccess')}</span>
+            <span>{t('participantSpace.realTimeSession')}</span>
+            <span>{t('participantSpace.guidedExperience')}</span>
           </div>
           {asyncStatusMessage ? (
             <p className="ui-async-status" role="status" aria-live="polite">{asyncStatusMessage}</p>
           ) : null}
           {showAccountCreatedNotice ? (
             <div className="participant-credentials-notice" role="status">
-              <strong>{isEn ? "You're all set!" : 'Tout est prêt !'}</strong>
+              <strong>{t('participantSpace.youReAllSet')}</strong>
               <p className="participant-credentials-hint">
-                {isEn
-                  ? 'Your participant account has been created automatically.'
-                  : 'Votre compte participant a été créé automatiquement.'}
+                {t('participantSpace.yourParticipantAccountHasBeenCreated')}
               </p>
               <p className="participant-credentials-hint">
-                {isEn
-                  ? 'You can set up your account later from My account.'
-                  : 'Vous pourrez configurer votre compte plus tard depuis Mon compte.'}
+                {t('participantSpace.youCanSetUpYourAccount')}
               </p>
               <div className="participant-credentials-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowAccountCreatedNotice(false)}>
-                  {isEn ? 'Continue' : 'Continuer'}
+                  {t('participantSpace.continue')}
                 </button>
               </div>
             </div>
@@ -513,11 +507,11 @@ function ParticipantHome({ requestedSessionId }) {
             <section className="feature-card participant-panel participant-panel--wide participant-sessions-panel">
               <div className="participant-panel__head">
                 <div>
-                  <h2 className="participant-sessions-title">{isEn ? 'Assigned sessions' : 'Sessions assignées'}</h2>
-                  <p className="participant-help-text">{isEn ? 'Loading your sessions...' : 'Chargement de vos sessions...'}</p>
+                  <h2 className="participant-sessions-title">{t('participantSpace.assignedSessions')}</h2>
+                  <p className="participant-help-text">{t('participantSpace.loadingYourSessions')}</p>
                 </div>
               </div>
-              <p className="participant-help-text">{isEn ? 'Retrieving data...' : 'Récupération en cours...'}</p>
+              <p className="participant-help-text">{t('participantSpace.retrievingData')}</p>
             </section>
           )}
 
@@ -527,7 +521,7 @@ function ParticipantHome({ requestedSessionId }) {
             <section className="feature-card participant-panel participant-panel--wide participant-sessions-panel">
               <div className="participant-panel__head">
                 <div>
-                  <h2 className="participant-sessions-title">{isEn ? 'Assigned sessions' : 'Sessions assignées'}</h2>
+                  <h2 className="participant-sessions-title">{t('participantSpace.assignedSessions')}</h2>
                 </div>
               </div>
               <div className="session-cards-grid participant-sessions-grid">
@@ -537,11 +531,11 @@ function ParticipantHome({ requestedSessionId }) {
                   const isSessionLive = String(session.status || '').trim().toLowerCase() === 'en_cours';
                   const statusVariant = isSessionLive ? 'en-cours' : session.status === 'terminee' ? 'terminee' : 'a-venir';
                   const statusLabel = session.status === 'en_cours'
-                    ? (isEn ? 'In progress' : 'En cours')
+                    ? t('participantSpace.inProgress')
                     : session.status === 'preparee'
-                      ? (isEn ? 'Prepared' : 'En préparation')
+                      ? t('participantSpace.prepared')
                       : session.status === 'terminee'
-                        ? (isEn ? 'Completed' : 'Terminée')
+                        ? t('participantSpace.completed')
                         : session.status || '';
                   return (
                     <article key={sessionIdentifier} className={`session-card session-card--${statusVariant} participant-session-card`}>
@@ -557,7 +551,7 @@ function ParticipantHome({ requestedSessionId }) {
                           )}
                           {session.session_date && (
                             <span className="session-date">
-                              {new Date(session.session_date).toLocaleDateString(isEn ? 'en-US' : 'fr-FR', { dateStyle: 'medium' })}
+                              {formatDate(session.session_date, locale)}
                             </span>
                           )}
                         </p>
@@ -571,12 +565,12 @@ function ParticipantHome({ requestedSessionId }) {
                             onClick={() => joinSession(sessionIdentifier)}
                           >
                             {joiningSessionId === sessionIdentifier
-                              ? (isEn ? 'Connecting...' : 'Connexion...')
-                              : (isEn ? 'Join' : 'Rejoindre')}
+                              ? t('participantSpace.connecting')
+                              : t('participantSpace.join')}
                           </button>
                         ) : (
                           <span className="participant-session-card__waiting-status">
-                            {isEn ? 'Waiting for launch' : 'En attente du lancement'}
+                            {t('participantSpace.waitingForLaunch')}
                           </span>
                         )}
                       </div>
@@ -590,11 +584,9 @@ function ParticipantHome({ requestedSessionId }) {
           {/* Empty state when no sessions and not loading */}
           {!sessionId && assignedSessions.length === 0 && !loadingSessions && !sessionsError && (
             <section className="feature-card participant-panel participant-empty-panel">
-              <h2>{isEn ? 'No assigned session' : 'Aucune session assignée'}</h2>
+              <h2>{t('participantSpace.noAssignedSession')}</h2>
               <p className="participant-help-text">
-                {isEn
-                  ? 'You do not have any assigned session yet. Please contact your administrator.'
-                  : "Vous n'avez pas encore de session assignée. Contactez votre administrateur."}
+                {t('participantSpace.youDoNotHaveAnyAssigned')}
               </p>
             </section>
           )}
@@ -623,30 +615,26 @@ function ParticipantHome({ requestedSessionId }) {
           <section className="feature-card participant-panel participant-panel--wide">
             <div className="participant-panel__head">
               <div>
-                <p className="eyebrow">{isEn ? 'ACTIVE SESSION' : 'SESSION ACTIVE'}</p>
-                <h2>{isEn ? 'Session information' : 'Informations de session'}</h2>
+                <p className="eyebrow">{t('participantSpace.activeSession')}</p>
+                <h2>{t('participantSpace.sessionInformation')}</h2>
               </div>
             </div>
             <p className="participant-meta-line">
-              {isEn ? 'Session ID:' : 'ID de session:'} <strong>{sessionId}</strong>
+              {t('participantSpace.sessionId')} <strong>{sessionId}</strong>
             </p>
             {stateEngineKey || runtime?.engine_key ? (
               <p className="participant-meta-line participant-meta-line--strong">
-                {isEn ? 'Active challenge:' : 'Challenge actif:'} <strong>{sessionState?.current_challenge?.name || stateEngineKey || runtime?.challenge_name || runtime?.engine_key}</strong>
+                {t('participantSpace.activeChallenge')} <strong>{sessionState?.current_challenge?.name || stateEngineKey || runtime?.challenge_name || runtime?.engine_key}</strong>
               </p>
             ) : sessionId && !joining && !sessionError && !runtimeError ? (
               <p className="participant-help-text">
                 {flowMode === 'auto'
-                  ? (isEn
-                    ? 'No active challenge yet. Progression will happen automatically as the session advances.'
-                    : 'Aucun challenge actif pour le moment. Le passage se fera automatiquement dès que la session avancera.')
-                  : (isEn
-                    ? 'No challenge in progress yet. The facilitator has not started or moved to the next challenge.'
-                    : "Aucun challenge en cours — le facilitateur n'a pas encore lancé ou n'a pas encore passé au challenge suivant.")}
+                  ? t('participantSpace.noActiveChallengeYetProgressionWill')
+                  : t('participantSpace.noChallengeInProgressYetThe')}
               </p>
             ) : null}
-            {joining && !runtime ? <p className="participant-help-text">{isEn ? 'Loading active challenge...' : 'Chargement du challenge actif...'}</p> : null}
-            {runtimeError ? <p className="participant-error-text">{isEn ? 'Error:' : 'Erreur :'} {runtimeError}</p> : null}
+            {joining && !runtime ? <p className="participant-help-text">{t('participantSpace.loadingActiveChallenge')}</p> : null}
+            {runtimeError ? <p className="participant-error-text">{t('participantSpace.error')} {runtimeError}</p> : null}
             {sessionError ? <p className="participant-error-text" role="alert">{sessionError}</p> : null}
             {sessionDetailsError ? <p className="participant-error-text" role="alert">{sessionDetailsError}</p> : null}
           </section>
@@ -655,24 +643,24 @@ function ParticipantHome({ requestedSessionId }) {
       </main>
       <Modal
         open={joinModalOpen}
-        title={isEn ? 'Join a session' : 'Rejoindre une session'}
+        title={t('participantSpace.joinASession2')}
         onClose={() => setJoinModalOpen(false)}
         dialogClassName="participant-join-modal"
         titleClassName="participant-join-modal__title"
         bodyClassName="participant-join-modal__body"
       >
         <p className="participant-join-modal__intro">
-          {isEn ? 'Enter the code shared by your facilitator.' : 'Saisissez le code partagé par votre facilitateur.'}
+          {t('participantSpace.enterTheCodeSharedByYour')}
         </p>
         <form onSubmit={joinNewSession} className="participant-inline-form participant-inline-form--join-modal">
           <label className="participant-join-modal__field">
-            <span>{isEn ? 'Session code' : 'Code de session'}</span>
+            <span>{t('participantSpace.sessionCode')}</span>
             <input
               type="text"
               value={joinCode}
               onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
-              placeholder={isEn ? 'Session code' : 'Code de session'}
-              aria-label={isEn ? 'Session code' : 'Code de session'}
+              placeholder={t('participantSpace.sessionCode')}
+              aria-label={t('participantSpace.sessionCode')}
               aria-invalid={joinCodeInvalid}
               autoComplete="off"
               maxLength={32}
@@ -680,10 +668,10 @@ function ParticipantHome({ requestedSessionId }) {
           </label>
           {joinCodeMessage ? <p className="participant-error-text" role="alert">{joinCodeMessage}</p> : null}
           <p className="participant-join-modal__help">
-            {isEn ? 'Ask your facilitator for the session code.' : 'Demandez le code de session à votre facilitateur.'}
+            {t('participantSpace.askYourFacilitatorForTheSession')}
           </p>
           <button type="submit" className="btn-primary" disabled={joiningSessionId === 'new'}>
-            {joiningSessionId === 'new' ? (isEn ? 'Joining...' : 'Connexion...') : (isEn ? 'Join session' : 'Rejoindre')}
+            {joiningSessionId === 'new' ? t('participantSpace.joining') : t('participantSpace.joinSession')}
           </button>
         </form>
       </Modal>

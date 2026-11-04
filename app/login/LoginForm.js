@@ -23,19 +23,20 @@ import {
 } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 import { saveRecovery } from '@/lib/participant-recovery';
+import { translate } from '@/lib/i18n';
 
 function looksLikeEmail(value) {
   const normalized = String(value || '').trim().toLowerCase();
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
 }
 
-function errorMessage(resStatus, data, isEn) {
-  if (data?.code === 'ACCOUNT_PENDING') return isEn ? 'Your account is pending admin approval.' : 'Votre compte est en attente de validation par un administrateur.';
-  if (data?.code === 'ACCOUNT_REJECTED') return isEn ? 'Your account request was rejected. Contact an administrator.' : 'Votre demande de compte a été refusée. Contactez un administrateur.';
-  if (data?.code === 'ACCOUNT_DISABLED') return isEn ? 'This account has been disabled. Contact an administrator.' : 'Ce compte a été désactivé. Contactez un administrateur.';
-  if (data?.code === 'EMAIL_NOT_VERIFIED') return isEn ? 'Please verify your email before logging in. Check your inbox and spam folder.' : 'Veuillez confirmer votre adresse email avant de vous connecter. Vérifiez votre boîte mail (et les spams).';
-  if (resStatus === 401) return isEn ? 'Invalid email or password.' : 'Email ou mot de passe invalide.';
-  return data?.error || (isEn ? 'Something went wrong. Please try again.' : 'Une erreur est survenue. Veuillez réessayer.');
+function errorMessage(resStatus, data, locale) {
+  if (data?.code === 'ACCOUNT_PENDING') return translate(locale, 'auth.yourAccountIsPendingAdminApproval');
+  if (data?.code === 'ACCOUNT_REJECTED') return translate(locale, 'auth.yourAccountRequestWasRejectedContact');
+  if (data?.code === 'ACCOUNT_DISABLED') return translate(locale, 'auth.thisAccountHasBeenDisabledContact');
+  if (data?.code === 'EMAIL_NOT_VERIFIED') return translate(locale, 'auth.pleaseVerifyYourEmailBeforeLogging');
+  if (resStatus === 401) return translate(locale, 'auth.invalidEmailOrPassword');
+  return data?.error || translate(locale, 'auth.somethingWentWrongPleaseTryAgain');
 }
 
 const TAB_JOIN = 'join';
@@ -59,8 +60,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { locale, withLocalePath } = useI18n();
-  const isEn = locale === 'en';
+  const { locale, withLocalePath, t } = useI18n();
   const normalizedRequestedSessionId = useMemo(() => String(requestedSessionId || '').trim(), [requestedSessionId]);
   const microsoftLoginEnabled = String(process.env.NEXT_PUBLIC_MICROSOFT_LOGIN_ENABLED || 'false').toLowerCase() === 'true';
   const normalizedRequestedInviteToken = useMemo(() => String(requestedInviteToken || '').trim(), [requestedInviteToken]);
@@ -98,8 +98,8 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
   const identifierIsEmail = useMemo(() => looksLikeEmail(normalizedIdentifier), [normalizedIdentifier]);
   const showIdentifierStatus = identifierTouched && normalizedIdentifier.length > 0 && identifierIsEmail;
   const identifierStatusLabel = identifierIsEmail
-    ? (isEn ? 'Email format looks valid' : 'Le format de l’email est valide')
-    : (isEn ? 'Participant alias login enabled' : 'Connexion participant par identifiant activee');
+    ? t('auth.emailFormatLooksValid')
+    : t('auth.participantAliasLoginEnabled');
   const joinSessionCodeRequired = !normalizedRequestedInviteToken;
   const canSubmitJoin = (Boolean(normalizedRequestedInviteToken) || String(joinSessionCode || '').trim().length > 0)
     && String(joinFirstName || '').trim().length > 0
@@ -146,8 +146,8 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
 
   useEffect(() => {
     if (!normalizedRequestedInviteToken) return;
-    setJoinMessage(isEn ? 'Secure invitation detected. Complete your participant details to join.' : 'Completez vos informations pour rejoindre la session.');
-  }, [isEn, normalizedRequestedInviteToken]);
+    setJoinMessage(t('auth.secureInvitationDetectedCompleteYourParticipant'));
+  }, [locale, normalizedRequestedInviteToken]);
 
   useEffect(() => {
     const oauth = readOAuthCallbackFromLocation();
@@ -156,12 +156,12 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     clearOAuthCallbackParamsFromUrl();
 
     if (oauth.error) {
-      setMessage(oauth.errorDescription || (isEn ? 'Social login failed. Please try again.' : 'Connexion sociale impossible. Veuillez réessayer.'));
+      setMessage(oauth.errorDescription || t('auth.socialLoginFailedPleaseTryAgain'));
       return;
     }
 
     if (!oauth.user) {
-      setMessage(isEn ? 'Invalid OAuth response. Please try again.' : 'Réponse OAuth invalide. Veuillez réessayer.');
+      setMessage(t('auth.invalidOauthResponsePleaseTryAgain'));
       return;
     }
 
@@ -195,7 +195,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
 
     const redirect = withLocalePath(getRedirectPath(oauth.user.role, normalizedRequestedSessionId, connectedUserId));
     window.location.href = redirect;
-  }, [isEn, normalizedRequestedSessionId, withLocalePath]);
+  }, [locale, normalizedRequestedSessionId, withLocalePath]);
 
   function pushTabInUrl(nextTab, nextCode = '') {
     const params = new URLSearchParams(searchParams.toString());
@@ -256,8 +256,8 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     const url = getOAuthStartUrl(provider, '/login');
     if (!url) {
       setMessage(provider === 'microsoft'
-        ? (isEn ? 'Microsoft login will be available soon.' : 'La connexion Microsoft sera disponible prochainement.')
-        : (isEn ? 'OAuth configuration unavailable.' : 'Configuration OAuth indisponible.'));
+        ? t('auth.microsoftLoginWillBeAvailableSoon')
+        : t('auth.oauthConfigurationUnavailable'));
       return;
     }
 
@@ -274,7 +274,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     setResendMessage('');
 
     if (!normalizedIdentifier || !password) {
-      setMessage(isEn ? 'Please fill in all fields.' : 'Veuillez remplir tous les champs.');
+      setMessage(t('auth.pleaseFillInAllFields'));
       return;
     }
 
@@ -287,7 +287,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         const user = data?.user || null;
 
         if (!user) {
-          setMessage(isEn ? 'Invalid login response. Please try again.' : 'Réponse de connexion invalide. Veuillez réessayer.');
+          setMessage(t('auth.invalidLoginResponsePleaseTryAgain'));
           return;
         }
 
@@ -323,9 +323,9 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       }
 
       setNeedsVerificationResend(data?.code === 'EMAIL_NOT_VERIFIED');
-      setMessage(errorMessage(response.status, data, isEn));
+      setMessage(errorMessage(response.status, data, locale));
     } catch {
-      setMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Vérifiez votre connexion.');
+      setMessage(t('auth.unableToReachTheServerCheck'));
     } finally {
       setLoading(false);
     }
@@ -335,29 +335,30 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     const normalizedEmail = identifier.trim().toLowerCase();
     if (!normalizedEmail || !looksLikeEmail(normalizedEmail)) {
       setResendStatus('error');
-      setResendMessage(isEn ? 'Enter a valid email to resend the link.' : 'Saisissez un email valide pour renvoyer le lien.');
+      setResendMessage(t('auth.enterAValidEmailToResend'));
       return;
     }
 
     setResendStatus('sending');
-    setResendMessage(isEn ? 'Sending...' : 'Envoi en cours...');
+    setResendMessage(t('auth.sending'));
     try {
       const { res, data } = await resendVerification({
         email: normalizedEmail,
         userType: lastAuthScope === 'participant' ? 'participant' : 'user',
+        locale,
       });
 
       if (res.ok && data?.success) {
         setResendStatus('done');
-        setResendMessage(data?.message || (isEn ? 'A new verification link has been sent.' : 'Un nouveau lien de verification a ete envoye.'));
+        setResendMessage(data?.message || t('auth.aNewVerificationLinkHasBeen'));
         return;
       }
 
       setResendStatus('error');
-      setResendMessage(data?.message || data?.error || (isEn ? 'Unable to resend the link right now.' : 'Impossible de renvoyer le lien pour le moment.'));
+      setResendMessage(data?.message || data?.error || t('auth.unableToResendTheLinkRight'));
     } catch {
       setResendStatus('error');
-      setResendMessage(isEn ? 'Unable to reach the server. Check your connection and try again.' : 'Impossible de contacter le serveur. Verifiez votre connexion et reessayez.');
+      setResendMessage(t('auth.unableToReachTheServerCheck2'));
     }
   }
 
@@ -373,12 +374,12 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     const inviteToken = normalizedRequestedInviteToken;
 
     if ((!sessionCode && !inviteToken) || !firstName || !lastName) {
-      setJoinMessage(isEn ? 'Session code, first name, and last name are required.' : 'Le code session, le prenom et le nom sont requis.');
+      setJoinMessage(t('auth.sessionCodeFirstNameAndLast'));
       return;
     }
 
     if (email && !looksLikeEmail(email)) {
-      setJoinMessage(isEn ? 'Enter a valid email address.' : 'Saisissez une adresse email valide.');
+      setJoinMessage(t('auth.enterAValidEmailAddress'));
       return;
     }
 
@@ -397,19 +398,17 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         const loginRequired = data?.code === 'JOIN_LOGIN_REQUIRED';
         setJoinCodeInvalid(codeRejected);
         setJoinMessage(codeRejected
-          ? (isEn ? 'Invalid code.' : 'Code invalide.')
+          ? t('auth.invalidCode')
           : loginRequired
-            ? (isEn
-              ? 'This participant account is protected. Sign in to your account or contact your facilitator.'
-              : 'Ce compte participant est protege. Connectez-vous au compte ou contactez votre animateur.')
-            : (data?.error || (isEn ? 'Unable to join session right now.' : 'Impossible de rejoindre la session pour le moment.')));
+            ? t('auth.thisParticipantAccountIsProtectedSign')
+            : (data?.error || t('auth.unableToJoinSessionRightNow')));
         return;
       }
 
       const user = data?.user || null;
       const resolvedSessionId = String(data?.sessionId || '').trim();
       if (!user) {
-        setJoinMessage(isEn ? 'Invalid join response. Please try again.' : 'Reponse de connexion invalide. Veuillez reessayer.');
+        setJoinMessage(t('auth.invalidJoinResponsePleaseTryAgain'));
         return;
       }
 
@@ -420,9 +419,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       try {
         saveRecovery({ ...data, user });
       } catch {
-        sessionStorage.setItem('tb_recovery_warning', isEn
-          ? 'Automatic recognition could not be saved. Keep a personal recovery link.'
-          : 'La reconnaissance automatique n a pas pu etre memorisee. Conservez un lien personnel de reprise.');
+        sessionStorage.setItem('tb_recovery_warning', t('auth.automaticRecognitionCouldNotBeSaved'));
       }
       identifyAnalyticsUser(resolveConnectedUserId(user), {
         role: 'participant',
@@ -436,7 +433,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       const redirect = withLocalePath(getRedirectPath('participant', resolvedSessionId, resolveConnectedUserId(user)));
       window.location.href = redirect;
     } catch {
-      setJoinMessage(isEn ? 'Unable to reach the server. Check your connection.' : 'Impossible de contacter le serveur. Verifiez votre connexion.');
+      setJoinMessage(t('auth.unableToReachTheServerCheck3'));
     } finally {
       setJoinLoading(false);
     }
@@ -479,7 +476,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
             const extracted = String(match?.[1] || rawValue).trim().toUpperCase();
             setJoinSessionCode(extracted);
             pushTabInUrl(TAB_JOIN, extracted);
-            setJoinMessage(isEn ? 'QR code detected. Session code pre-filled.' : 'QR detecte. Code session pre-rempli.');
+            setJoinMessage(t('auth.qrCodeDetectedSessionCodePre'));
             stopStream();
             setScannerActive(false);
             return;
@@ -490,9 +487,9 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       }
 
       stopStream();
-      setJoinMessage(isEn ? 'No QR code detected. Please try again.' : 'Aucun QR detecte. Veuillez reessayer.');
+      setJoinMessage(t('auth.noQrCodeDetectedPleaseTry'));
     } catch {
-      setJoinMessage(isEn ? 'Camera unavailable or permission denied.' : 'Camera indisponible ou permission refusee.');
+      setJoinMessage(t('auth.cameraUnavailableOrPermissionDenied'));
     } finally {
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
@@ -505,9 +502,9 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     <main className="auth-page auth-page--login">
       <div className={`auth-login-pane auth-login-pane--${activeTab}`}>
         <AuthCard
-          footer={<span>{isEn ? 'New to TeamBlender? ' : 'Nouveau sur TeamBlender ? '}<Link href={withLocalePath('/signup')}>{isEn ? 'Create an account' : 'Créer un compte'}</Link></span>}
+          footer={<span>{t('auth.newToTeamblender')}<Link href={withLocalePath('/signup')}>{t('auth.createAnAccount')}</Link></span>}
         >
-          <div className="auth-tabs" role="tablist" aria-label={isEn ? 'Select connection mode' : 'Selectionner le mode de connexion'}>
+          <div className="auth-tabs" role="tablist" aria-label={t('auth.selectConnectionMode')}>
             <button
               ref={joinTabRef}
               type="button"
@@ -520,7 +517,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
               onClick={() => changeTab(TAB_JOIN)}
               onKeyDown={onTabKeyDown}
             >
-              {isEn ? 'Join with a code' : 'Rejoindre avec un code'}
+              {t('auth.joinWithACode')}
             </button>
             <button
               ref={loginTabRef}
@@ -534,18 +531,14 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
               onClick={() => changeTab(TAB_LOGIN)}
               onKeyDown={onTabKeyDown}
             >
-              {isEn ? 'Sign in' : 'Se connecter'}
+              {t('auth.signIn')}
             </button>
           </div>
 
           <p className="auth-tabs-subtitle" aria-live="polite">
             {activeTab === TAB_JOIN
-              ? (isEn
-                ? 'Have a session code? Enter it below to join.'
-                : 'Vous avez un code de session ? Saisissez-le ci-dessous pour rejoindre la session.')
-              : (isEn
-                ? 'For organizers and participants registered by their manager.'
-                : 'Pour les organisateurs et les participants inscrits par leur manager.')}
+              ? t('auth.haveASessionCodeEnterIt')
+              : t('auth.forOrganizersAndParticipantsRegisteredBy')}
           </p>
 
           <div
@@ -556,7 +549,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
             className="auth-tab-panel"
           >
             <form onSubmit={onJoinInstant} className="auth-form auth-form--join" autoComplete="off">
-              <AuthField id="join-session-code" label={isEn ? 'Session code *' : 'Code de session *'}>
+              <AuthField id="join-session-code" label={t('auth.sessionCode')}>
                 <input
                   id="join-session-code"
                   type="text"
@@ -566,7 +559,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                     setJoinSessionCode(value);
                     pushTabInUrl(TAB_JOIN, value);
                   }}
-                  placeholder={isEn ? 'Ex: AB12' : 'Ex: AB12'}
+                  placeholder={t('auth.exAb12')}
                   autoComplete="off"
                   required={joinSessionCodeRequired}
                   className="join-field-input join-session-code-input join-session-code-placeholder"
@@ -582,30 +575,30 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                   aria-busy={scannerActive}
                 >
                   {scannerActive
-                    ? (isEn ? 'Scanning QR...' : 'Scan QR en cours...')
-                    : (isEn ? 'Scan QR with camera' : 'Scanner le QR avec la camera')}
+                    ? t('auth.scanningQr')
+                    : t('auth.scanQrWithCamera')}
                 </button>
               ) : null}
               <div className="auth-field-grid auth-field-grid--join">
-                <AuthField id="join-first-name" label={isEn ? 'First name *' : 'Prénom *'}>
+                <AuthField id="join-first-name" label={t('auth.firstName')}>
                   <input
                     id="join-first-name"
                     type="text"
                     value={joinFirstName}
                     onChange={(e) => setJoinFirstName(e.target.value)}
-                    placeholder={isEn ? 'Sophie' : 'Sophie'}
+                    placeholder={t('auth.sophie')}
                     autoComplete="given-name"
                     className="join-field-input"
                     required
                   />
                 </AuthField>
-                <AuthField id="join-last-name" label={isEn ? 'Last name *' : 'Nom *'}>
+                <AuthField id="join-last-name" label={t('auth.lastName')}>
                   <input
                     id="join-last-name"
                     type="text"
                     value={joinLastName}
                     onChange={(e) => setJoinLastName(e.target.value)}
-                    placeholder={isEn ? 'Martin' : 'Martin'}
+                    placeholder={t('auth.martin')}
                     autoComplete="family-name"
                     className="join-field-input"
                     required
@@ -615,12 +608,10 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
               {!normalizedRequestedInviteToken ? (
                 <AuthField
                   id="join-email"
-                  label={isEn ? 'Email (optional)' : 'Adresse e-mail (optionnel)'}
+                  label={t('auth.emailOptional')}
                   help={(
                     <span id="join-email-help" className="auth-field-help">
-                      {isEn
-                        ? 'Add your email to access your account later.'
-                        : 'Ajoutez votre adresse e-mail pour accéder à votre compte plus tard.'}
+                      {t('auth.addYourEmailToAccessYour')}
                     </span>
                   )}
                 >
@@ -629,7 +620,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                     type="email"
                     value={joinEmail}
                     onChange={(e) => setJoinEmail(e.target.value)}
-                    placeholder={isEn ? 'sophie@company.com' : 'sophie@entreprise.com'}
+                    placeholder={t('auth.sophieCompanyCom')}
                     autoComplete="email"
                     className="join-field-input"
                     aria-describedby="join-email-help"
@@ -642,7 +633,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                 disabled={joinLoading || !canSubmitJoin}
                 aria-busy={joinLoading}
               >
-                {joinLoading ? (isEn ? 'Joining...' : 'Connexion...') : <>{isEn ? 'Join session' : 'Rejoindre la session'} <span aria-hidden="true">→</span></>}
+                {joinLoading ? t('auth.joining') : <>{t('auth.joinSession')} <span aria-hidden="true">→</span></>}
               </button>
               {joinMessage ? (
                 <p className="form-error">
@@ -650,16 +641,16 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                   {joinCodeInvalid ? (
                     <>
                       {' '}
-                      {isEn ? 'No code yet? ' : 'Vous n’avez pas de code ? '}
+                      {t('auth.noCodeYet')}
                       <Link href={withLocalePath('/contact')} className="auth-inline-help-link">
-                        {isEn ? 'Contact your organizer.' : 'Contactez votre organisateur.'}
+                        {t('auth.contactYourOrganizer')}
                       </Link>
                     </>
                   ) : null}
                 </p>
               ) : null}
             </form>
-            <p className="auth-required-note">* {isEn ? 'Required fields' : 'Champs obligatoires'}</p>
+            <p className="auth-required-note">* {t('auth.requiredFields')}</p>
           </div>
 
           <div
@@ -674,15 +665,15 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
               loadingProvider={oauthLoadingProvider}
               microsoftEnabled={microsoftLoginEnabled}
               stacked
-              googleLabelOverride={isEn ? 'Continue with Google' : 'Continuer avec Google'}
-              separatorLabelOverride={isEn ? 'OR CONTINUE WITH YOUR EMAIL' : 'OU CONTINUER AVEC VOTRE E-MAIL'}
+              googleLabelOverride={t('auth.continueWithGoogle')}
+              separatorLabelOverride={t('auth.orContinueWithYourEmail')}
               onProviderClick={(provider) => startOAuth(provider)}
             />
 
             <form onSubmit={onSubmit} className="auth-form" autoComplete="off">
               <AuthField
                 id="login-email"
-                label={isEn ? 'Email or participant alias' : 'Email ou identifiant participant'}
+                label={t('auth.emailOrParticipantAlias')}
                 icon={<Mail size={18} strokeWidth={1.9} />}
                 after={showIdentifierStatus ? (
                   <span className={`auth-input-status${identifierIsEmail ? ' is-valid' : ''}`} aria-label={identifierStatusLabel} title={identifierStatusLabel}>
@@ -700,14 +691,14 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                   }}
                   onBlur={() => setIdentifierTouched(true)}
                   required
-                  placeholder={isEn ? 'you@company.com or sophie' : 'vous@entreprise.com ou sophie'}
+                  placeholder={t('auth.youCompanyComOrSophie')}
                   autoComplete="email"
-                  aria-label={isEn ? 'Email or participant alias' : 'Email ou identifiant participant'}
+                  aria-label={t('auth.emailOrParticipantAlias')}
                   aria-invalid={showIdentifierStatus ? String(false) : undefined}
                 />
               </AuthField>
 
-              <AuthField id="login-password" label={isEn ? 'Password' : 'Mot de passe'} icon={<LockKeyhole size={18} strokeWidth={1.9} />} className="auth-field--password">
+              <AuthField id="login-password" label={t('auth.password')} icon={<LockKeyhole size={18} strokeWidth={1.9} />} className="auth-field--password">
                 <div className="password-input-wrap">
                   <input
                     id="login-password"
@@ -715,16 +706,16 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    placeholder={isEn ? 'Your password' : 'Votre mot de passe'}
+                    placeholder={t('auth.yourPassword')}
                     autoComplete="current-password"
-                    aria-label={isEn ? 'Password' : 'Mot de passe'}
+                    aria-label={t('auth.password')}
                   />
                   <button
                     type="button"
                     className="password-toggle"
                     onClick={() => setShowPassword((prev) => !prev)}
                     aria-controls="login-password"
-                    aria-label={showPassword ? (isEn ? 'Hide password' : 'Masquer le mot de passe') : (isEn ? 'Show password' : 'Afficher le mot de passe')}
+                    aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                     aria-pressed={showPassword}
                   >
                     {showPassword ? <EyeOff size={18} strokeWidth={1.9} aria-hidden="true" /> : <Eye size={18} strokeWidth={1.9} aria-hidden="true" />}
@@ -740,10 +731,10 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
                   />
-                  <span>{isEn ? 'Remember me' : 'Se souvenir de moi'}</span>
+                  <span>{t('auth.rememberMe')}</span>
                 </label>
                 <Link href={withLocalePath('/forgot-password')} className="auth-inline-help-link">
-                  {isEn ? 'Forgot password?' : 'Mot de passe oublié ?'}
+                  {t('auth.forgotPassword')}
                 </Link>
               </div>
 
@@ -751,10 +742,10 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                 {loading ? (
                   <>
                     <LoaderCircle className="login-submit-spinner" size={18} strokeWidth={2.2} />
-                    <span>{isEn ? 'Signing in...' : 'Connexion...'}</span>
+                    <span>{t('auth.signingIn')}</span>
                   </>
                 ) : (
-                  isEn ? 'Log in' : 'Se connecter'
+                  t('auth.logIn')
                 )}
               </button>
 
@@ -768,7 +759,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                     onClick={onResendVerification}
                     disabled={resendStatus === 'sending'}
                   >
-                    {resendStatus === 'sending' ? (isEn ? 'Sending...' : 'Envoi...') : (isEn ? 'Resend verification link' : 'Renvoyer le lien de verification')}
+                    {resendStatus === 'sending' ? t('auth.sending2') : t('auth.resendVerificationLink')}
                   </button>
                   {resendStatus !== 'idle' ? (
                     <p className={resendStatus === 'error' ? 'form-error' : 'form-help'}>{resendMessage}</p>
