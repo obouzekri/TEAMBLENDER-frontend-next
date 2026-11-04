@@ -230,6 +230,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
   const [selectedCurrency, setSelectedCurrency] = useState('MAD');
   const [checkoutPlanId, setCheckoutPlanId] = useState('');
 
+  const hasInitialLivePlans = initialPlans.some((plan) => !plan?.is_fallback);
   const hasFallbackPlans = useMemo(() => plans.some((plan) => Boolean(plan?.is_fallback)), [plans]);
 
   useEffect(() => {
@@ -247,8 +248,11 @@ export default function PricingPageClient({ initialPlans = [] }) {
         const list = Array.isArray(payload) ? payload : [];
         setPlans(list.length > 0 ? list : getPricingPlansFallback());
       } catch (err) {
-        const fallbackPlans = getPricingPlansFallback();
-        setPlans((prev) => (Array.isArray(prev) && prev.length > 0 ? prev : fallbackPlans));
+        if (hasInitialLivePlans) {
+          // Server-rendered live plans are already shown: keep them silently.
+          return;
+        }
+        setPlans(getPricingPlansFallback());
         const timeoutError = err?.name === 'AbortError';
         setError(
           timeoutError
@@ -265,7 +269,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [isEn]);
+  }, [isEn, hasInitialLivePlans]);
 
   const sortedPlans = useMemo(() => {
     return [...plans].sort((a, b) => {
@@ -376,13 +380,6 @@ export default function PricingPageClient({ initialPlans = [] }) {
                 </select>
               </div>
             </div>
-            {selectedCurrency !== 'MAD' ? (
-              <p className="pricing-controls__note" style={getDarkModeTextStyle()}>
-                {isEn
-                  ? 'Indicative amounts converted from Moroccan dirhams. Payment is made in dirhams (MAD).'
-                  : 'Montants indicatifs convertis depuis le dirham marocain. Le paiement est effectué en dirhams (MAD).'}
-              </p>
-            ) : null}
           </section>
         ) : null}
 
@@ -607,13 +604,6 @@ export default function PricingPageClient({ initialPlans = [] }) {
           box-shadow: 0 12px 32px rgba(31, 55, 112, 0.07);
         }
 
-        .pricing-page .pricing-controls__note {
-          width: min(100%, 72rem);
-          margin: 0.6rem auto 0;
-          font-size: 0.82rem;
-          text-align: center;
-        }
-
         .pricing-page .pricing-terms-note {
           margin: 1.25rem auto 0;
           font-size: 0.85rem;
@@ -727,6 +717,8 @@ export default function PricingPageClient({ initialPlans = [] }) {
         .pricing-page .currency-select:hover,
         .pricing-page .currency-select:focus {
           outline: none;
+          background: rgba(255, 255, 255, 0.95);
+          color: #0f172a;
           border-color: var(--control-border-strong);
           box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent);
         }
