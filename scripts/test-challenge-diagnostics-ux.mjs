@@ -254,6 +254,11 @@ async function testLab(locale, width) {
   await page.getByRole('heading', { name: en ? 'Solution sheet' : 'Fiche solution' }).waitFor();
   await page.getByText('Monthly cross-team demo', { exact: true }).waitFor();
   await page.getByText('Kickoff with managers', { exact: true }).waitFor();
+  await page.getByRole('heading', { name: en ? 'Recommended approach' : 'Approche recommandée' }).waitFor();
+  await page.getByText(en ? 'Inspired by: Lean (value stream), ISO 9001 (process approach)' : 'Inspiré de : Lean (flux de valeur), ISO 9001 (approche processus)', { exact: true }).waitFor();
+  await page.getByRole('heading', { name: en ? 'Plan watch points' : 'Points de vigilance du plan' }).waitFor();
+  await page.getByRole('heading', { name: en ? 'Team indicators' : 'Indicateurs d’équipe' }).waitFor();
+  assert.equal(await page.getByText(en ? 'How it is computed' : 'Comment c’est calculé', { exact: true }).count(), 3, 'Each indicator explains its computation');
   await finish(fixture);
 }
 

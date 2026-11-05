@@ -590,7 +590,17 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     );
   }
 
+  // The weakest measured component drives the advice shown under an indicator.
+  function weakestComponent(indicator) {
+    const measured = Object.entries(indicator?.components || {}).filter(([, value]) => Number.isFinite(value));
+    if (measured.length === 0) return null;
+    const [key, value] = measured.reduce((low, item) => (item[1] < low[1] ? item : low));
+    return value < 70 ? key : null;
+  }
+
   function buildFicheText(result) {
+    const insight = result.problem_id ? `challengeLab.insights.${result.problem_id}` : null;
+    const indicators = Object.entries(result.indicators || {});
     const lines = [
       `${t('challengeLab.fiche.problem')} : ${result.problem_id ? problemTitle(result.problem_id) : '-'}`,
       `${t('challengeLab.fiche.solution')} : ${result.solutions.map((item) => item.text).join(' + ') || '-'}`,
@@ -600,7 +610,17 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
       '',
       `${t('challengeLab.fiche.budget')} : ${t('challengeLab.fiche.budgetByLevel', result.budget.by_level)}`,
       result.budget.amount_count > 0 ? t('challengeLab.fiche.amountTotal', { amount: formatNumber(result.budget.amount_total, locale), count: result.budget.amount_count }) : '',
-      result.stakeholders.length > 0 ? `${t('challengeLab.fiche.stakeholders')} : ${result.stakeholders.join(', ')}` : ''
+      result.stakeholders.length > 0 ? `${t('challengeLab.fiche.stakeholders')} : ${result.stakeholders.join(', ')}` : '',
+      '',
+      ...(insight ? [
+        `${t('challengeLab.debrief.approachTitle')} : ${t(`${insight}.approach`)}`,
+        ...[1, 2, 3].map((index) => `- ${t(`${insight}.practice${index}`)}`),
+        t('challengeLab.debrief.inspiredBy', { reference: t(`${insight}.reference`) })
+      ] : []),
+      '',
+      ...(result.plan_checks || []).map((check) => `! ${t(`challengeLab.planChecks.${check.key}`, { count: check.count })}`),
+      '',
+      ...indicators.map(([key, value]) => `${t(`challengeLab.indicators.${key}.title`)} : ${Number.isFinite(value.score) ? t('challengeLab.debrief.scoreOutOf', { score: value.score }) : t('challengeLab.debrief.notMeasured')}`)
     ];
     return lines.filter((line, index, all) => line !== '' || (all[index - 1] !== '' && index > 0)).join('\n');
   }
@@ -643,6 +663,18 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             {result.solution_decided_by ? <span className={styles.metaLine}>{t(`challengeLab.decidedBy.${result.solution_decided_by}`)}</span> : null}
           </div>
         </div>
+        {result.problem_id ? (
+          <section className={`${styles.listCard} ${styles.insightCard}`}>
+            <h3>{t('challengeLab.debrief.approachTitle')}</h3>
+            <p><strong>{t(`challengeLab.insights.${result.problem_id}.approach`)}</strong></p>
+            <span className={styles.fieldLabel}>{t('challengeLab.debrief.practicesTitle')}</span>
+            <ul className={styles.practiceList}>
+              {[1, 2, 3].map((index) => <li key={index}>{t(`challengeLab.insights.${result.problem_id}.practice${index}`)}</li>)}
+            </ul>
+            <p className={styles.categoryRef}>{t('challengeLab.debrief.inspiredBy', { reference: t(`challengeLab.insights.${result.problem_id}.reference`) })}</p>
+            <p className={styles.categoryRef}>{t('challengeLab.debrief.approachDisclaimer')}</p>
+          </section>
+        ) : null}
         <section className={styles.listCard}>
           <h3>{t('challengeLab.fiche.plan')}</h3>
           {result.steps.length === 0 ? <p className={styles.emptyHint}>{t('challengeLab.fiche.noSteps')}</p> : null}
@@ -650,6 +682,16 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             {result.steps.map((step, index) => renderStepCard(step, { index }))}
           </div>
         </section>
+        {result.steps.length > 0 && Array.isArray(result.plan_checks) ? (
+          <section className={styles.listCard}>
+            <h3>{t('challengeLab.debrief.planChecksTitle')}</h3>
+            {result.plan_checks.length === 0 ? <p className={styles.metaLine}>{t('challengeLab.debrief.planChecksNone')}</p> : (
+              <ul className={styles.checkList}>
+                {result.plan_checks.map((check) => <li key={check.key}>{t(`challengeLab.planChecks.${check.key}`, { count: check.count })}</li>)}
+              </ul>
+            )}
+          </section>
+        ) : null}
         <div className={styles.statGrid} data-debrief-metrics>
           <article className={styles.statTile}>
             <strong>{t('challengeLab.fiche.budgetByLevel', result.budget.by_level)}</strong>
@@ -665,6 +707,38 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             <span>{t('challengeLab.fiche.stakeholders')}{result.stakeholders.length ? ` : ${result.stakeholders.join(', ')}` : ''}</span>
           </article>
         </div>
+        {result.indicators ? (
+          <section className={styles.listCard}>
+            <h3>{t('challengeLab.debrief.indicatorsTitle')}</h3>
+            <p className={styles.metaLine}>{t('challengeLab.debrief.indicatorsNote')}</p>
+            <div className={styles.indicatorGrid}>
+              {Object.entries(result.indicators).map(([key, indicator]) => {
+                const weakest = weakestComponent(indicator);
+                const measured = Number.isFinite(indicator.score);
+                return (
+                  <article key={key} className={styles.indicatorCard}>
+                    <span className={styles.voteHeroLabel}>{t(`challengeLab.indicators.${key}.title`)}</span>
+                    <strong className={styles.indicatorScore}>{measured ? t('challengeLab.debrief.scoreOutOf', { score: indicator.score }) : t('challengeLab.debrief.notMeasured')}</strong>
+                    {measured ? <span className={styles.indicatorBar} aria-hidden="true"><span style={{ width: `${indicator.score}%` }} /></span> : null}
+                    <p className={styles.metaLine}>{t(`challengeLab.indicators.${key}.what`)}</p>
+                    {weakest ? <p className={styles.fieldHint}>{t('challengeLab.debrief.tip', { tip: t(`challengeLab.indicators.${key}.tips.${weakest}`) })}</p> : null}
+                    <details className={styles.indicatorDetails}>
+                      <summary>{t('challengeLab.debrief.howComputed')}</summary>
+                      <ul>
+                        {Object.entries(indicator.components || {}).map(([part, value]) => (
+                          <li key={part}>
+                            <span>{t(`challengeLab.indicators.${key}.components.${part}`)}</span>
+                            <strong>{Number.isFinite(value) ? t('challengeLab.debrief.scoreOutOf', { score: value }) : t('challengeLab.debrief.notMeasured')}</strong>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
         {lab?.stats ? <p className={styles.metaLine}>{t('challengeLab.fiche.participation', { rate: lab.stats.participation_rate })}</p> : null}
         <button type="button" className={styles.ghostBtn} onClick={() => copyFiche(result)}>{t('challengeLab.fiche.copy')}</button>
         {copied ? <p className={styles.voteFeedback} role="status">{t('challengeLab.fiche.copied')}</p> : null}

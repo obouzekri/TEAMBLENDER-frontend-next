@@ -841,6 +841,10 @@
   color: var(--text-soft);
 }
 
+.stepCard .cardTopline {
+  justify-content: flex-start;
+}
+
 .stepRemoved {
   opacity: 0.55;
 }
@@ -872,4 +876,93 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 12px;
+}
+
+/* Lab debrief: recommended approach, plan watch points and team indicators */
+.insightCard {
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line-soft));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface-1));
+}
+
+.insightCard p {
+  margin: 0;
+}
+
+.practiceList,
+.checkList {
+  margin: 0;
+  padding-inline-start: 20px;
+  list-style: disc;
+  display: grid;
+  gap: 4px;
+}
+
+.checkList li::marker {
+  content: '! ';
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.indicatorGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.indicatorCard {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface-2);
+}
+
+.indicatorCard p {
+  margin: 0;
+}
+
+.indicatorScore {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.indicatorBar {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line-soft);
+  overflow: hidden;
+}
+
+.indicatorBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.indicatorDetails summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.indicatorDetails ul {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 0.82rem;
+}
+
+.indicatorDetails li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
 }
