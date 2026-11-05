@@ -9,6 +9,7 @@ import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import { pickLocalized } from '@/lib/i18n';
+import { LAB_PROBLEM_CATALOG, LAB_DEFAULT_PROBLEM_IDS, LAB_MIN_PROBLEM_COUNT, normalizeLabProblemIds } from '@/lib/challenges/labInnovationRules';
 
 function ResilientPreviewImage({ src, alt }) {
   const candidates = useMemo(() => buildBackendAssetCandidates(src), [src]);
@@ -552,6 +553,9 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     if ((current?.engine_key || '').toLowerCase() === 'mission_critique_v1' || fingerprint.includes('mission critique')) {
       return 'mission_critique';
     }
+    if ((current?.engine_key || '').toLowerCase() === 'lab_d_innovation_v1') {
+      return 'lab_innovation';
+    }
     return 'generic';
   }
 
@@ -579,6 +583,16 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     pont_croise: { fr: 'Pont croisé', en: 'Cross Bridge' },
     agora_pixel: { fr: 'Agora Pixel', en: 'Pixel Agora' },
   };
+
+  const labProblemIds = Array.isArray(config?.problem_ids) ? config.problem_ids : normalizeLabProblemIds(null);
+  const labCategories = [...new Set(LAB_PROBLEM_CATALOG.map((item) => item.category))];
+
+  function toggleLabProblem(problemId) {
+    const next = labProblemIds.includes(problemId)
+      ? labProblemIds.filter((id) => id !== problemId)
+      : [...labProblemIds, problemId];
+    updateValue('problem_ids', LAB_PROBLEM_CATALOG.map((item) => item.id).filter((id) => next.includes(id)));
+  }
 
   function updateValue(path, value) {
     setConfig((prev) => {
@@ -674,6 +688,10 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
     }
     if (kind === 'the_quiz') {
       onSave(withQuizDefaults(config));
+      return;
+    }
+    if (kind === 'lab_innovation') {
+      onSave({ problem_ids: labProblemIds });
       return;
     }
     if (kind === 'mission_critique') {
@@ -1521,6 +1539,40 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                 </div>
               ))}
             </>
+          )}
+
+          {kind === 'lab_innovation' && (
+            <fieldset className={`${styles.configField} ${styles.labFieldset}`}>
+              <legend className={styles.label}>{t('builder.labProblemsTitle')}</legend>
+              <span className={styles.helpText}>{t('builder.labProblemsHelp', { min: LAB_MIN_PROBLEM_COUNT })}</span>
+              <div className={styles.labActions}>
+                <strong aria-live="polite">{t('builder.labProblemsCount', { count: labProblemIds.length, total: LAB_PROBLEM_CATALOG.length })}</strong>
+                <button type="button" className="btn-secondary" onClick={() => updateValue('problem_ids', [...LAB_DEFAULT_PROBLEM_IDS])}>{t('builder.labProblemsDefault', { count: LAB_DEFAULT_PROBLEM_IDS.length })}</button>
+                <button type="button" className="btn-secondary" onClick={() => updateValue('problem_ids', LAB_PROBLEM_CATALOG.map((item) => item.id))}>{t('builder.labProblemsAll', { count: LAB_PROBLEM_CATALOG.length })}</button>
+              </div>
+              {labCategories.map((category) => (
+                <div key={category} className={styles.labCategory}>
+                  <span className={styles.label}>{t(`challengeLab.categories.${category}`)}</span>
+                  {LAB_PROBLEM_CATALOG.filter((item) => item.category === category).map((item) => {
+                    const checked = labProblemIds.includes(item.id);
+                    return (
+                      <label key={item.id} className={styles.labProblemOption}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          disabled={checked && labProblemIds.length <= LAB_MIN_PROBLEM_COUNT}
+                          onChange={() => toggleLabProblem(item.id)}
+                        />
+                        <span>
+                          <strong>{t(`challengeLab.catalog.${item.id}.title`)}</strong>
+                          <span className={styles.helpText}>{t(`challengeLab.catalog.${item.id}.description`)}</span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              ))}
+            </fieldset>
           )}
 
           {kind === 'mission_critique' && (
