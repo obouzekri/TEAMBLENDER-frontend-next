@@ -31,86 +31,92 @@
 .stages {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .stage {
+  --stage-color: var(--line);
   min-width: 0;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface-muted, var(--surface-panel));
+  padding-top: 12px;
+  border-top: 3px solid var(--stage-color);
+}
+
+.stage[data-stage-status='done'] {
+  --stage-color: var(--success-line, var(--accent));
+}
+
+.stage[data-stage-status='active'] {
+  --stage-color: var(--accent);
 }
 
 .stageHeading {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 9px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .stageHeading h3 {
   min-width: 0;
   margin: 0;
-  font-size: 0.95rem;
+  overflow: hidden;
+  font-size: 0.92rem;
+  font-weight: 650;
   line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .stepNumber {
   display: inline-grid;
-  width: 30px;
-  height: 30px;
+  width: 22px;
+  height: 22px;
   flex: 0 0 auto;
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 50%;
   background: var(--surface-panel);
   color: var(--challenge-text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 700;
+}
+
+.stage[data-stage-status='active'] .stepNumber {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.stage[data-stage-status='done'] .stepNumber {
+  border-color: var(--stage-color);
+  color: var(--stage-color);
 }
 
 .status {
   margin-inline-start: auto;
-  padding: 3px 8px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface-panel);
   color: var(--challenge-text-secondary);
   font-size: 0.72rem;
   font-weight: 650;
   white-space: nowrap;
 }
 
-.stage[data-stage-status='done'] .stepNumber,
-.stage[data-stage-status='done'] .status {
-  color: var(--success-text, var(--challenge-text-primary));
-}
-
-.stage[data-stage-status='active'] {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 5%, var(--surface-panel));
-}
-
-.stage[data-stage-status='active'] .stepNumber,
 .stage[data-stage-status='active'] .status {
-  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface-panel));
-  color: var(--challenge-text-primary);
+  color: var(--accent);
 }
 
+.stage[data-stage-status='done'] .status,
 .stage[data-stage-status='ready'] .status {
-  color: var(--success-text, var(--challenge-text-primary));
+  color: var(--toast-success-text, var(--challenge-text-primary));
 }
 
 .detail {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   color: var(--challenge-text-secondary);
-  font-size: 0.84rem;
-  line-height: 1.5;
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 @media (max-width: 760px) {
@@ -120,6 +126,17 @@
 
   .stages {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 0;
+  }
+
+  .stage {
+    padding: 10px 0;
+    padding-inline-start: 14px;
+    border-top: 0;
+    border-inline-start: 3px solid var(--stage-color);
+  }
+
+  .stage + .stage {
+    margin-top: 4px;
   }
 }

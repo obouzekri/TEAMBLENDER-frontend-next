@@ -1,6 +1,7 @@
 'use client';
 
 import { useId } from 'react';
+import { Check } from 'lucide-react';
 import useI18n from '@/lib/i18n/useI18n';
 import styles from './SessionPreparation.module.css';
 
@@ -68,7 +69,7 @@ export default function SessionPreparation({
           >
             <div className={styles.stageHeading}>
               <span className={styles.stepNumber} aria-hidden="true">
-                {index + 1}
+                {stage.status === 'done' ? <Check size={13} strokeWidth={3} /> : index + 1}
               </span>
               <h3>{stage.label}</h3>
               <span className={styles.status}>{stage.statusLabel}</span>
