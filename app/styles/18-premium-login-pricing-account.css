@@ -503,34 +503,34 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :where(html:not([data-theme='light'])) .pricing-hero,:where(html:not([data-theme='light'])) .pricing-controls,:where(html:not([data-theme='light'])) .pricing-card,:where(html:not([data-theme='light'])) .pricing-footer-cta,:where(html:not([data-theme='light'])) .pricing-empty{
+  :where(html[data-theme='dark']) .pricing-hero,:where(html[data-theme='dark']) .pricing-controls,:where(html[data-theme='dark']) .pricing-card,:where(html[data-theme='dark']) .pricing-footer-cta,:where(html[data-theme='dark']) .pricing-empty{
     overflow: hidden;
   }
 
-  :where(html:not([data-theme='light'])) .pricing-card-featured,:where(html:not([data-theme='light'])) .pricing-footer-cta,:where(html:not([data-theme='light'])) .pricing-empty{
+  :where(html[data-theme='dark']) .pricing-card-featured,:where(html[data-theme='dark']) .pricing-footer-cta,:where(html[data-theme='dark']) .pricing-empty{
     border-end-start-radius: 32px;
     border-end-end-radius: 32px;
   }
 
-  :where(html:not([data-theme='light'])) .pricing-card .pricing-actions{
+  :where(html[data-theme='dark']) .pricing-card .pricing-actions{
     border-end-start-radius: inherit;
     border-end-end-radius: inherit;
     overflow: hidden;
   }
 
-  :where(html:not([data-theme='light'])) .pricing-card .pricing-actions .btn-primary,:where(html:not([data-theme='light'])) .pricing-card .pricing-actions .btn-secondary{
+  :where(html[data-theme='dark']) .pricing-card .pricing-actions .btn-primary,:where(html[data-theme='dark']) .pricing-card .pricing-actions .btn-secondary{
     width: 100%;
   }
 
-  :where(html:not([data-theme='light'])) .pricing-grid{
+  :where(html[data-theme='dark']) .pricing-grid{
     z-index: 3;
   }
 
-  :where(html:not([data-theme='light'])) .pricing-hero{
+  :where(html[data-theme='dark']) .pricing-hero{
     margin-bottom: 0.5rem;
   }
 
-  :where(html:not([data-theme='light'])) .pricing-hero > .grid > :last-child{
+  :where(html[data-theme='dark']) .pricing-hero > .grid > :last-child{
     max-height: 100%;
   }
 }
