@@ -31,7 +31,7 @@ async function open(engineKey, state, { locale = 'en', role = 'participant', wid
     if (/cannot.*descendant|validateDOMNesting|nested.*button/i.test(message.text())) nestingWarnings.push(message.text());
   });
   await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-  await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+  await page.getByRole('button', { name: /^(Refuser les cookies de mesure|Refuse analytics cookies)$/ }).click();
   if (role === 'participant') {
     await page.locator('[class*="challengeContainer"]').waitFor();
     assert.equal(await page.getByText(locale === 'en' ? 'Prepare your session' : 'Préparer votre session', { exact: true }).count(), 0, `${engineKey}: participants must not see the preparation guide`);
@@ -157,104 +157,103 @@ async function testCopuzzle(locale, role, width) {
 
 async function testLab(locale, width) {
   const engineKey = 'lab_d_innovation_v1';
+  const logic = require('../../backend/src/challenges/engines/lab_d_innovation_v1/game-logic.js');
+  const en = locale === 'en';
   const lab = runtime(engineKey).buildLabInnovationRuntime(config);
-  const fixture = await open(engineKey, { config, timer, labInnovation: lab }, { locale, width });
+  logic.syncLabRoster(lab, ['1', '2']);
+  logic.startLab(lab, Date.now());
+  const view = () => logic.buildLabPayloadForViewer(lab, '1', false);
+  const act = (actorId, type, payload = {}) => logic.applyLabAction(lab, { type, actorId, isParticipant: true, payload });
+  const fixture = await open(engineKey, { config, timer, labInnovation: view() }, { locale, width });
   const { page } = fixture;
-  const submit = page.getByRole('button', { name: locale === 'en' ? 'Submit' : 'Soumettre', exact: true });
-  await submit.waitFor();
-  await page.getByRole('heading', { name: locale === 'en' ? 'Clarify the key issues' : 'Clarifions les enjeux prioritaires' }).waitFor();
-  assert.equal(await page.locator('[class*="phaseClock"]').count(), 0, 'Redundant phase clock should not be shown');
-  assert.ok(await submit.isDisabled());
-  const problemInput = page.getByPlaceholder(locale === 'en' ? 'Describe a problem (200 chars max)' : 'Décrivez une problématique (200 caractères max)');
-  await problemInput.fill('   ');
-  assert.ok(await submit.isDisabled());
-  await problemInput.fill('Improve team communication');
-  assert.ok(await submit.isEnabled());
-  await submit.click();
-  await eventCount(fixture, 'lab.problem.submit', 1);
-  assert.equal(await problemInput.inputValue(), 'Improve team communication', 'Draft lost without server confirmation');
-  assert.ok(await problemInput.isDisabled(), 'Pending draft must not be editable and then cleared');
-  assert.ok(await submit.isDisabled());
-  const problem = { id: 'p1', text: 'Improve team communication', participant_id: '1', vote_count: 2 };
-  fixture.broadcast('lab.state', { labInnovation: { ...lab, problems: [problem] } });
-  await page.waitForFunction(() => document.querySelector('textarea')?.value === '');
-  const otherProblem = { id: 'p2', text: 'Other problem', participant_id: '2', vote_count: 1 };
-  fixture.broadcast('lab.state', { labInnovation: { ...lab, problems: [problem, otherProblem], top_problems: [problem, otherProblem] } });
-  const ownProblemVote = page.getByRole('button', { name: /Your proposal|Votre proposition/ });
-  await ownProblemVote.waitFor();
-  assert.ok(await ownProblemVote.isDisabled(), 'Participants cannot vote for their own proposals');
-  const otherProblemVote = page.getByRole('button', { name: /Vote : Other problem|Voter : Other problem/ });
-  await otherProblemVote.click();
-  await eventCount(fixture, 'lab.problem.vote', 1);
-  const sendingProblemVote = page.getByRole('button', { name: /Sending... : Other problem|Envoi... : Other problem/ });
-  await sendingProblemVote.waitFor();
-  assert.ok(await sendingProblemVote.isDisabled(), 'Prevent duplicate votes while awaiting server confirmation');
-  fixture.broadcast('lab.state', { labInnovation: { ...lab, problems: [problem, { ...otherProblem, votes: ['1'], vote_count: 2 }], top_problems: [problem, { ...otherProblem, votes: ['1'], vote_count: 2 }] } });
-  await page.getByText(locale === 'en' ? 'Vote confirmed by the server.' : 'Vote confirmé par le serveur.', { exact: true }).waitFor();
-  assert.equal(await page.getByRole('button', { name: /Voted : Other problem|Déjà votée : Other problem/ }).isDisabled(), true);
-  const otherSolution = { id: 's0', text: 'Create a shared team space', participant_id: '2', vote_count: 0 };
-  const solutionPhase = { ...lab, phase: 'solution', problems: [problem, otherProblem], top_problems: [otherProblem], solutions: [otherSolution] };
-  fixture.broadcast('lab.state', { labInnovation: solutionPhase });
-  await page.getByRole('heading', { name: locale === 'en' ? 'Shape practical solutions' : 'Imaginons des solutions concrètes' }).waitFor();
-  const otherSolutionVote = page.getByRole('button', { name: /Vote : Create a shared team space|Voter : Create a shared team space/ });
-  await otherSolutionVote.click();
-  await eventCount(fixture, 'lab.solution.vote', 1);
-  fixture.broadcast('lab.state', { labInnovation: { ...solutionPhase, solutions: [{ ...otherSolution, votes: ['1'], vote_count: 1 }] } });
-  await page.getByText(locale === 'en' ? 'Vote confirmed by the server.' : 'Vote confirmé par le serveur.', { exact: true }).waitFor();
-  const solutionInput = page.getByPlaceholder(locale === 'en' ? 'Describe a solution (200 chars max)' : 'Décrivez une solution (200 caractères max)');
-  await solutionInput.waitFor();
-  await solutionInput.fill('A team meeting');
-  assert.ok(await submit.isDisabled());
-  assert.equal(await page.locator('select option[value="p1"]').count(), 0, 'Only retained problems are eligible');
-  await page.locator('select').selectOption('p2');
-  assert.ok(await submit.isEnabled());
-  await submit.click();
-  await eventCount(fixture, 'lab.solution.submit', 1);
-  const solution = { id: 's1', text: 'A team meeting', problem_id: 'p2', participant_id: '1', vote_count: 3 };
-  const argumentPhase = { ...solutionPhase, phase: 'argument', solutions: [solution], finalist_solutions: [solution] };
-  fixture.broadcast('lab.state', { labInnovation: argumentPhase });
-  await page.getByRole('heading', { name: locale === 'en' ? 'Strengthen promising solutions' : 'Renforçons les solutions prometteuses' }).waitFor();
-  await page.getByPlaceholder(locale === 'en' ? 'Advantage (200 max)' : 'Avantage (200 max)').waitFor();
-  await page.locator('select').selectOption('s1');
-  await page.getByPlaceholder(locale === 'en' ? 'Advantage (200 max)' : 'Avantage (200 max)').fill('Shared context');
-  await page.getByPlaceholder(locale === 'en' ? 'Improvement (200 max)' : 'Amélioration (200 max)').fill('Weekly meeting');
-  assert.ok(await submit.isDisabled());
-  await page.getByPlaceholder('Impact (200 max)').fill('Fewer misunderstandings');
-  assert.ok(await submit.isEnabled());
-  await submit.click();
-  await eventCount(fixture, 'lab.contribution.submit', 1);
-  const finalPhase = { ...argumentPhase, phase: 'final_vote', contributions: [{ id: 'c1', participant_id: '1', ...fixture.receivedEvents.find((item) => item.type === 'lab.contribution.submit').payload }] };
-  fixture.broadcast('lab.state', { labInnovation: finalPhase });
-  await page.getByRole('heading', { name: locale === 'en' ? 'Choose the solution with the greatest impact' : 'Choisissons la solution à plus fort impact' }).waitFor();
-  const vote = page.getByRole('button', { name: locale === 'en' ? 'Submit vote' : 'Valider le vote', exact: true });
-  await vote.waitFor();
-  assert.ok(await vote.isDisabled());
-  await page.getByRole('button', { name: locale === 'en' ? 'Select' : 'Sélectionner', exact: true }).click();
-  assert.equal(await page.getByRole('button', { name: locale === 'en' ? 'Selected' : 'Sélectionnée', exact: true }).getAttribute('aria-pressed'), 'true');
-  assert.ok(await vote.isEnabled());
-  await vote.click();
-  await eventCount(fixture, 'lab.final.vote', 1);
-  fixture.broadcast('lab.state', { labInnovation: { ...finalPhase, final_votes: { '1': 's1' } } });
-  await page.getByText(locale === 'en' ? 'Confirmed by the server.' : 'Confirmé par le serveur.', { exact: true }).waitFor();
-  assert.ok(await page.getByRole('button', { name: locale === 'en' ? 'Vote recorded' : 'Vote enregistré', exact: true }).isDisabled());
-  await finish(fixture);
-}
 
-async function testLabMissingConfirmation() {
-  const engineKey = 'lab_d_innovation_v1';
-  const lab = runtime(engineKey).buildLabInnovationRuntime({ ...config, limits: { text_max_length: 50 } });
-  const fixture = await open(engineKey, { config, timer, labInnovation: lab });
-  const { page } = fixture;
-  const input = page.getByPlaceholder('Describe a problem (50 chars max)');
-  await input.waitFor();
-  assert.equal(await input.getAttribute('maxlength'), '50');
-  await input.fill('A preserved draft');
-  await page.getByRole('button', { name: 'Submit', exact: true }).click();
-  await eventCount(fixture, 'lab.problem.submit', 1);
-  await page.getByText(/No server confirmation received/).waitFor({ timeout: 20000 });
-  assert.equal(await input.inputValue(), 'A preserved draft');
-  assert.ok(await input.isEnabled());
-  assert.equal(await page.getByText('Confirmed by the server.', { exact: true }).count(), 0);
+  // 1. Problem selection: grouped catalog, at most 3 picks.
+  await page.getByRole('heading', { name: en ? 'Choose the problems to work on' : 'Choisissez les problèmes à traiter' }).waitFor();
+  await page.getByRole('heading', { name: en ? 'Governance and decisions' : 'Gouvernance et décision' }).waitFor();
+  const pickButtons = page.getByRole('button', { name: en ? 'Choose' : 'Choisir', exact: true });
+  assert.equal(await pickButtons.count(), 20, 'The 20 catalog problems are selectable');
+  await pickButtons.first().click();
+  await eventCount(fixture, 'lab.problem.toggle', 1);
+  const pickedId = fixture.receivedEvents.find((item) => item.type === 'lab.problem.toggle').payload.problem_id;
+  assert.equal(pickedId, 'unclear_governance');
+  act('1', 'lab.problem.toggle', { problem_id: 'unclear_governance' });
+  act('1', 'lab.problem.toggle', { problem_id: 'silos' });
+  act('2', 'lab.problem.toggle', { problem_id: 'silos' });
+  act('2', 'lab.problem.toggle', { problem_id: 'workload' });
+  fixture.broadcast('lab.state', { labInnovation: view() });
+  await page.getByText(en ? 'Your selection: 2/3' : 'Votre sélection : 2/3', { exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: en ? 'Chosen' : 'Choisi', exact: true }).count(), 2);
+
+  // 2. Defense in turns: only the speaker sees "Pass".
+  logic.advanceLab(lab, Date.now());
+  if (lab.turn.order[0] !== '1') logic.advanceLab(lab, Date.now());
+  fixture.broadcast('lab.state', { labInnovation: view() });
+  await page.getByText(en ? 'Your turn: defend your position.' : "C'est votre tour : défendez votre position.", { exact: true }).waitFor();
+  await page.getByText(en ? 'You can also defend your position in the chat.' : 'Vous pouvez aussi défendre votre position par message dans le chat.', { exact: true }).first().waitFor();
+  await page.getByRole('button', { name: en ? 'Pass' : 'Passer', exact: true }).click();
+  await eventCount(fixture, 'lab.turn.pass', 1);
+
+  // 3. Point voting on the shortlist.
+  while (/_defense$/.test(lab.phase)) logic.advanceLab(lab, Date.now());
+  fixture.broadcast('lab.state', { labInnovation: view() });
+  await page.getByRole('heading', { name: en ? 'Vote for the problem to work on' : 'Votez pour le problème à traiter' }).waitFor();
+  const submitVote = page.getByRole('button', { name: en ? 'Submit my vote' : 'Valider mon vote', exact: true });
+  assert.ok(await submitVote.isDisabled(), 'An empty vote cannot be submitted');
+  const silosTitle = en ? 'Working in silos' : 'Travail en silos';
+  const addPoint = page.getByRole('button', { name: `${en ? 'Add a point' : 'Ajouter un point'} : ${silosTitle}` });
+  for (let i = 0; i < 3; i += 1) await addPoint.click();
+  assert.ok(await addPoint.isDisabled(), 'No more than 3 points');
+  await submitVote.click();
+  await eventCount(fixture, 'lab.vote.submit', 1);
+  assert.deepEqual(fixture.receivedEvents.find((item) => item.type === 'lab.vote.submit').payload.allocation, { silos: 3 });
+
+  // 4. Anonymous solutions on the chosen problem.
+  act('1', 'lab.vote.submit', { allocation: { silos: 3 } });
+  act('2', 'lab.vote.submit', { allocation: { silos: 2, workload: 1 } });
+  act('2', 'lab.solution.submit', { text: 'Monthly cross-team demo' });
+  fixture.broadcast('lab.state', { labInnovation: view() });
+  await page.getByRole('heading', { name: en ? 'Propose your solutions' : 'Proposez vos solutions' }).waitFor();
+  await page.getByText(silosTitle, { exact: true }).first().waitFor();
+  await page.getByText(en ? 'Anonymous' : 'Anonyme', { exact: true }).waitFor();
+  const solutionInput = page.getByPlaceholder(en ? 'Describe your solution (200 characters max)' : 'Décrivez votre solution (200 caractères max)');
+  await solutionInput.fill('Shared roadmap');
+  await page.getByRole('button', { name: en ? 'Add' : 'Ajouter', exact: true }).click();
+  await eventCount(fixture, 'lab.solution.submit', 1);
+
+  // 5. Deployment template: the required fields gate the submit button.
+  act('1', 'lab.solution.submit', { text: 'Shared roadmap' });
+  logic.advanceLab(lab, Date.now());
+  while (/_defense$/.test(lab.phase)) logic.advanceLab(lab, Date.now());
+  const theirs = lab.solutions.find((item) => item.author_id === '2').id;
+  const mine = lab.solutions.find((item) => item.author_id === '1').id;
+  act('1', 'lab.vote.submit', { allocation: { [theirs]: 3 } });
+  act('2', 'lab.vote.submit', { allocation: { [mine]: 1 } });
+  fixture.broadcast('lab.state', { labInnovation: view() });
+  await page.getByRole('heading', { name: en ? 'Build the deployment plan' : 'Construisez le plan de déploiement' }).waitFor();
+  const addStep = page.getByRole('button', { name: en ? /^Add step/ : /^Ajouter l’étape/ });
+  await page.getByPlaceholder(en ? 'What we do' : 'Ce qu’on fait').fill('Kickoff with managers');
+  assert.ok(await addStep.isDisabled(), 'Risk level, budget and timeframe are required');
+  const selects = page.locator('select');
+  await selects.nth(0).selectOption('low');
+  await selects.nth(1).selectOption('medium');
+  await selects.nth(2).selectOption('short');
+  await page.getByRole('checkbox', { name: en ? 'Tools' : 'Outils' }).check();
+  assert.ok(await addStep.isEnabled());
+  await addStep.click();
+  await eventCount(fixture, 'lab.step.submit', 1);
+  const stepPayload = fixture.receivedEvents.find((item) => item.type === 'lab.step.submit').payload;
+  assert.equal(stepPayload.delay, 'short');
+  assert.deepEqual(stepPayload.resources, ['tools']);
+
+  // 6. Solution sheet once the plan is merged.
+  act('1', 'lab.step.submit', stepPayload);
+  logic.advanceLab(lab, Date.now());
+  logic.advanceLab(lab, Date.now());
+  fixture.broadcast('lab.state', { labInnovation: view() });
+  fixture.broadcast('puzzle.completed', { summary: { completion_percent: 100, collective_score: 100, action_count: 8, message_count: 0, total_time_seconds: 900, lab_result: logic.buildLabResult(lab) } });
+  await page.getByRole('heading', { name: en ? 'Solution sheet' : 'Fiche solution' }).waitFor();
+  await page.getByText('Monthly cross-team demo', { exact: true }).waitFor();
+  await page.getByText('Kickoff with managers', { exact: true }).waitFor();
   await finish(fixture);
 }
 
@@ -485,7 +484,6 @@ try {
       }
     }
   }
-  if (!noWebgl && !escapeOnly) await testLabMissingConfirmation();
   console.log(
     escapeOnly
       ? 'TEST_ESCAPE_ROOM_PARTICIPANTS_UX_OK'

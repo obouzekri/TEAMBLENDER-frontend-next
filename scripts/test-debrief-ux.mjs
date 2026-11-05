@@ -17,7 +17,12 @@ const player = { participant_id: '1', display_name: 'Fixture Player', score: 50,
 const phrase = runtime('phrase_collaborative_v1').buildPhraseRuntime(config);
 const pieces = runtime('copuzzle_live_v1').buildPieces({ ...config, participants: { expected_count: 2 } });
 const pixel = { ...runtime('pixel_architect_v1').buildInitialPixelState(config), phase: 'building' };
-const lab = runtime('lab_d_innovation_v1').buildLabInnovationRuntime(config);
+const labLogic = require('../../backend/src/challenges/engines/lab_d_innovation_v1/game-logic.js');
+const labState = runtime('lab_d_innovation_v1').buildLabInnovationRuntime(config);
+labLogic.syncLabRoster(labState, ['1']);
+labLogic.startLab(labState, Date.now());
+const lab = labLogic.buildLabPayloadForViewer(labState, '1', false);
+const labDone = { ...lab, phase: 'done', result: labLogic.buildLabResult(labState) };
 const maze = {
   phase: 'active', level: 1, levels_total: 1, cfg: { rows: 10, cols: 10 },
   maze: {
@@ -55,7 +60,7 @@ const cases = [
     pixel: { ...pixel, phase: 'debrief' },
     summary: { ...summary, pixel_metrics: { matched_count: 8, missing_count: 2, extra_count: 1, used_colors: 3 } },
   }],
-  ['lab_d_innovation_v1', { labInnovation: lab }, { labInnovation: { ...lab, phase: 'final_vote' }, summary }],
+  ['lab_d_innovation_v1', { labInnovation: lab }, { labInnovation: labDone, summary }],
   ['labyrinthe_live_v1', { labyrinthe: maze }, { labyrinthe: { ...maze, phase: 'done', result: { status: 'success' }, winner_participant_id: '1' } }],
   ['mission_critique_v1', { mission }, { mission: { ...mission, result, collective_result: result }, summary }],
   ['vrai_ou_mensonge_v1', { vom }, { vom: { ...vom, phase: 'finished', current_turn: null } }],
@@ -129,7 +134,7 @@ try {
             const errors = [];
             page.on('pageerror', (error) => errors.push(error.message));
             await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`, { waitUntil: 'domcontentloaded' });
-            await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+            await page.getByRole('button', { name: /^(Refuser les cookies de mesure|Refuse analytics cookies)$/ }).click();
             await page.getByRole('timer').first().waitFor({ state: 'attached' });
             assert.ok(await page.getByRole('timer').count() > 0, 'Playing clock missing');
             escapeState = { ...escape, status: 'completed', timer: finalTimer, current_enigme: null, finished_at: '2026-10-08T11:00:00Z' };

@@ -62,7 +62,7 @@ try {
         const errors = [];
         page.on('pageerror', (error) => errors.push(error.message));
         await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-        await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+        await page.getByRole('button', { name: /^(Refuser les cookies de mesure|Refuse analytics cookies)$/ }).click();
         await page.locator('[class*="rulesCard"]').first().waitFor();
         const clocks = page.getByRole('timer', { includeHidden: true });
         assert.equal(await clocks.count(), 0, `${engineKey}: no timer in the DOM before start`);
