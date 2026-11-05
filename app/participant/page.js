@@ -415,6 +415,12 @@ function ParticipantHome({ requestedSessionId }) {
     }
   }
 
+  function openJoinModal() {
+    setJoinCodeMessage('');
+    setJoinCodeInvalid(false);
+    setJoinModalOpen(true);
+  }
+
   function logout() {
     clearStoredAuth();
     sessionStorage.removeItem('targetSessionId');
@@ -448,38 +454,25 @@ function ParticipantHome({ requestedSessionId }) {
                   : t('participantSpace.yourSessionIsRunningTheActive')}
               </p>
             </div>
-            <div className="participant-hero__actions">
-              {!user.recovery_session_id ? <button
-                type="button"
-                className="btn-secondary participant-join-trigger"
-                onClick={() => {
-                  setJoinCodeMessage('');
-                  setJoinCodeInvalid(false);
-                  setJoinModalOpen(true);
-                }}
-              >
-                {t('participantSpace.joinASession')}
-              </button> : null}
-              {sessionId && challengeLink ? (
-                <Link className="btn-primary" href={challengeLink}>
-                  {t('participantSpace.joinChallenge')}
-                </Link>
-              ) : sessionId && !joining && !runtimeError && !sessionError ? (
-                <button type="button" className="btn-primary" disabled>
-                  {flowMode === 'auto'
-                    ? t('participantSpace.automaticProgressionIsBeingPrepared')
-                    : t('participantSpace.waitingForFacilitator')}
-                </button>
-              ) : sessionId ? (
-                <button type="button" className="btn-primary" disabled>
-                  {joining ? t('participantSpace.loading2') : t('participantSpace.challengeUnavailable')}
-                </button>
-              ) : assignedSessions.length === 0 && !loadingSessions && !sessionsError ? (
-                <Link className="btn-primary" href={withLocalePath('/login')}>
-                  {t('participantSpace.backToLogin')}
-                </Link>
-              ) : null}
-            </div>
+            {sessionId ? (
+              <div className="participant-hero__actions">
+                {challengeLink ? (
+                  <Link className="btn-primary" href={challengeLink}>
+                    {t('participantSpace.joinChallenge')}
+                  </Link>
+                ) : !joining && !runtimeError && !sessionError ? (
+                  <button type="button" className="btn-primary" disabled>
+                    {flowMode === 'auto'
+                      ? t('participantSpace.automaticProgressionIsBeingPrepared')
+                      : t('participantSpace.waitingForFacilitator')}
+                  </button>
+                ) : (
+                  <button type="button" className="btn-primary" disabled>
+                    {joining ? t('participantSpace.loading2') : t('participantSpace.challengeUnavailable')}
+                  </button>
+                )}
+              </div>
+            ) : null}
           </div>
           <div className="participant-hero-trust" aria-label={t('participantSpace.participantGuideposts')}>
             <span>{t('participantSpace.individualAccess')}</span>
@@ -584,6 +577,14 @@ function ParticipantHome({ requestedSessionId }) {
                   );
                 })}
               </div>
+              {!user.recovery_session_id ? (
+                <p className="participant-join-prompt">
+                  {t('participantSpace.haveASessionCode')}{' '}
+                  <button type="button" className="participant-join-trigger participant-join-trigger--link" onClick={openJoinModal}>
+                    {t('participantSpace.joinWithACode')}
+                  </button>
+                </p>
+              ) : null}
             </section>
           )}
 
@@ -594,6 +595,14 @@ function ParticipantHome({ requestedSessionId }) {
               <p className="participant-help-text">
                 {t('participantSpace.youDoNotHaveAnyAssigned')}
               </p>
+              {!user.recovery_session_id ? (
+                <div className="participant-empty-panel__actions">
+                  <p className="participant-help-text">{t('participantSpace.haveASessionCode')}</p>
+                  <button type="button" className="btn-primary participant-join-trigger" onClick={openJoinModal}>
+                    {t('participantSpace.joinWithACode')}
+                  </button>
+                </div>
+              ) : null}
             </section>
           )}
         </div>

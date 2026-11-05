@@ -13,7 +13,7 @@ async function fixture(locale, width, recovery = false, authenticated = true) {
   const context = await browser.newContext({ viewport: { width, height: 900 } });
   const requests = [];
   const errors = [];
-  const control = { active: false, runtimeFallback: false, listStatus: 200, stateStatus: 200, runtimeStatus: 200, malformed: false };
+  const control = { active: false, runtimeFallback: false, listStatus: 200, stateStatus: 200, runtimeStatus: 200, malformed: false, empty: false };
   await context.addInitScript(({ locale, recovery, authenticated }) => {
     if (authenticated) {
       sessionStorage.setItem('jwt', 'navigation-fixture');
@@ -40,7 +40,7 @@ async function fixture(locale, width, recovery = false, authenticated = true) {
       } else if (url.pathname.endsWith('/participants/me/sessions')) {
         await route.fulfill({
           status: control.listStatus,
-          json: control.malformed ? {} : recovery ? [sessions[0]] : sessions,
+          json: control.malformed ? {} : control.empty ? [] : recovery ? [sessions[0]] : sessions,
         });
       } else if (url.pathname.endsWith('/auth/join-participant-authenticated')) {
         assert.equal(route.request().postDataJSON().sessionCode, 'BETA');
@@ -162,10 +162,7 @@ try {
         await page.locator('.participant-session-card__cta').waitFor();
         assert.equal(await page.locator('.participant-session-card').count(), 1);
         assert.equal(await page.locator('.participant-join-trigger').count(), 0, 'Recovery access cannot add another session');
-        await page.getByRole('button', { name: locale === 'fr' ? 'Conserver mon acces' : 'Save my access', exact: true }).click();
-        const dialog = page.getByRole('dialog');
-        await dialog.waitFor();
-        await dialog.getByRole('button', { name: locale === 'fr' ? 'Fermer' : 'Close', exact: true }).click();
+        assert.equal(await page.getByRole('button', { name: locale === 'fr' ? 'Conserver mon acces' : 'Save my access', exact: true }).count(), 0, 'No save-my-access action in the participant header');
         control.active = true;
         control.runtimeFallback = true;
         await page.reload();
@@ -225,6 +222,24 @@ try {
     assert.deepEqual(errors, []);
     console.log('PASS session errors, retry and direct authenticated code join');
   } finally { await current.context.close(); }
+
+  const empty = await fixture('fr', 390);
+  try {
+    const { page, control, errors } = empty;
+    control.empty = true;
+    control.active = true;
+    await page.goto(`${baseUrl}/fr/participant`);
+    await page.getByText('Aucune session assignée', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('link', { name: 'Revenir à la connexion', exact: true }).count(), 0, 'No back-to-login action for a logged-in participant');
+    assert.equal(await page.locator('.participant-hero__actions').count(), 0, 'Header has no action without a selected session');
+    await page.locator('.participant-empty-panel .participant-join-trigger').click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('textbox').fill('beta');
+    await dialog.getByRole('button', { name: 'Rejoindre', exact: true }).click();
+    await page.waitForURL(/\/fr\/challenges\/the_quiz\?sessionId=43$/);
+    assert.deepEqual(errors, []);
+    console.log('PASS empty state code join without back-to-login');
+  } finally { await empty.context.close(); }
 } finally {
   await browser.close();
 }
