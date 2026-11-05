@@ -1536,19 +1536,19 @@ html[data-theme='dark'] .contact-page .contact-layout > .feature-card:last-child
   padding-top: 2rem;
   padding-bottom: 3rem;
   background:
-    radial-gradient(circle at top left, rgba(53, 160, 255, 0.14), transparent 34%),
-    radial-gradient(circle at right 12%, rgba(124, 58, 237, 0.12), transparent 30%),
-    linear-gradient(180deg, rgba(8, 15, 30, 0.98) 0%, rgba(12, 18, 34, 0.98) 100%);
+    radial-gradient(circle at top left, rgba(53, 160, 255, 0.1), transparent 34%),
+    radial-gradient(circle at right 12%, rgba(124, 58, 237, 0.08), transparent 30%),
+    var(--bg);
 }
 
 .error-page .error-panel {
   width: min(100%, 760px);
   margin: 0 auto;
   padding: clamp(1.5rem, 4vw, 3rem);
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  border: 1px solid var(--surface-soft-border);
   border-radius: 28px;
-  background: rgba(17, 26, 46, 0.96);
-  box-shadow: 0 28px 64px rgba(2, 6, 23, 0.5);
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-lg);
   text-align: center;
 }
 
@@ -1595,7 +1595,9 @@ html[data-theme='dark'] .contact-page .contact-layout > .feature-card:last-child
 
 .error-page .error-page__secondary {
   min-width: 10rem;
-  background: rgba(17, 26, 46, 0.98);
+  border-color: var(--control-border);
+  background: var(--surface-control);
+  color: var(--text-strong);
 }
 
 img,

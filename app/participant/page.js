@@ -272,6 +272,12 @@ function ParticipantHome({ requestedSessionId }) {
           cache: 'no-store',
           signal: controller.signal,
         });
+        if (res.status === 401) {
+          // Expired or missing session: stop polling and send the participant back to login.
+          controller.abort();
+          logout();
+          return;
+        }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const sessions = Array.isArray(data) ? data : (data?.data || data?.sessions);
