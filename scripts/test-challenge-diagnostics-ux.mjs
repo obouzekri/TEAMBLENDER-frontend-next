@@ -171,7 +171,7 @@ async function testLab(locale, width) {
   await page.getByRole('heading', { name: en ? 'Choose the problems to work on' : 'Choisissez les problèmes à traiter' }).waitFor();
   await page.getByRole('heading', { name: en ? 'Governance and decisions' : 'Gouvernance et décision' }).waitFor();
   const pickButtons = page.getByRole('button', { name: en ? 'Choose' : 'Choisir', exact: true });
-  assert.equal(await pickButtons.count(), 20, 'The 20 catalog problems are selectable');
+  assert.equal(await pickButtons.count(), 12, 'Without host configuration, the 12 default problems are offered');
   await pickButtons.first().click();
   await eventCount(fixture, 'lab.problem.toggle', 1);
   const pickedId = fixture.receivedEvents.find((item) => item.type === 'lab.problem.toggle').payload.problem_id;

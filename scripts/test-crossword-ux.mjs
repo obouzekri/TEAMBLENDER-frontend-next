@@ -23,6 +23,7 @@ const actionFeedbackSource = read('components/Challenges/ChallengeActionFeedback
 const modalFocusSource = read('lib/useModalFocus.js');
 const rulesPresetSource = read('lib/challenges/crosswordRules.js');
 const challengeRulesSource = read('lib/challenges/rules.js');
+const labRulesSource = read('lib/challenges/labInnovationRules.js');
 const sharedCss = ['ChallengeRulesPanel', 'ChallengeTimerCard', 'ChallengePresentation']
   .map((name) => read(`components/Challenges/${name}.module.css`).replace(/:global\(([^)]+)\)/g, '$1'))
   .join('\n');
@@ -63,7 +64,7 @@ try {
     globalThis.ReactDOM = { ...require('react-dom'), ...require('react-dom/client') };
   })();` });
   await page.addStyleTag({ content: `${globalCss}\nbody { margin: 0; padding: 12px; box-sizing: border-box; } ${sharedCss} ${css} ${modalCss}` });
-  await page.evaluate(({ ui, modal, hook, rules, timer, presentation, actionFeedback, rulesPreset, challengeRules, dictionaries, modalFocus }) => {
+  await page.evaluate(({ ui, modal, hook, rules, timer, presentation, actionFeedback, rulesPreset, challengeRules, labRules, dictionaries, modalFocus }) => {
     const R = globalThis.React;
     const h = R.createElement;
     globalThis.locale = 'en';
@@ -153,6 +154,7 @@ try {
     mocks['@/lib/useModalFocus'] = load(modalFocus).default;
     mocks['@/lib/challenges/crosswordRules'] = load(rulesPreset);
     mocks['@/lib/challenges/rules'] = load(challengeRules);
+    mocks['@/lib/challenges/labInnovationRules'] = load(labRules);
     mocks['../ChallengeRulesPanel'] = load(rules).default;
     mocks['../ChallengeTimerCard'] = load(timer).default;
     mocks['../ChallengePresentation'] = load(presentation).default;
@@ -167,7 +169,7 @@ try {
   }, {
     ui: transpile(uiSource), modal: transpile(modalSource), hook: transpile(hookSource),
     rules: transpile(rulesSource), timer: transpile(timerSource), challengeRules: transpile(challengeRulesSource),
-    presentation: transpile(presentationSource), rulesPreset: transpile(rulesPresetSource),
+    presentation: transpile(presentationSource), rulesPreset: transpile(rulesPresetSource), labRules: transpile(labRulesSource),
     actionFeedback: transpile(actionFeedbackSource), dictionaries, modalFocus: transpile(modalFocusSource),
   });
 
@@ -592,6 +594,28 @@ try {
   });
   await page.getByText('Aucune grille disponible dans cette langue.', { exact: true }).waitFor();
   assert.equal(await page.getByRole('button', { name: 'Enregistrer', exact: true }).isDisabled(), true);
+
+  // Lab d'Innovation: the host picks which problems are offered (12 by default, at least 4).
+  await page.evaluate(() => {
+    locale = 'en';
+    savedConfig = null;
+    catalog = { engine_key: 'lab_d_innovation_v1', name: "Lab d'Innovation", engine_config: { participants: { max_count: 5 } } };
+    renderModal();
+  });
+  const labOptions = page.locator('.labProblemOption input[type="checkbox"]');
+  await page.getByText('12 of 20 problems offered', { exact: true }).waitFor();
+  assert.equal(await labOptions.count(), 20);
+  assert.equal(await page.locator('.labProblemOption input:checked').count(), 12);
+  await page.getByRole('button', { name: 'Offer all (20)', exact: true }).click();
+  assert.equal(await page.locator('.labProblemOption input:checked').count(), 20);
+  await page.getByRole('button', { name: 'Default selection (12)', exact: true }).click();
+  for (let i = 0; i < 8; i += 1) await page.locator('.labProblemOption input:checked').first().uncheck();
+  await page.getByText('4 of 20 problems offered', { exact: true }).waitFor();
+  assert.equal(await page.locator('.labProblemOption input:checked:disabled').count(), 4, 'The last 4 problems cannot be unticked');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  assert.deepEqual(await page.evaluate(() => savedConfig), {
+    problem_ids: ['unsuitable_tools', 'workload', 'low_motivation', 'resistance_to_change'],
+  });
 
   // Exercise the actual realtime hook independently of the component mock.
   await page.evaluate(() => {
