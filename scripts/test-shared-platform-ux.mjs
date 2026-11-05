@@ -66,7 +66,7 @@ try {
     await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
     await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
 
-    const preparation = page.locator('details').filter({ has: page.getByText(locale === 'en' ? 'Session preparation and progress' : 'Préparation et déroulement de la session', { exact: true }) });
+    const preparation = page.locator('details').filter({ has: page.getByText(locale === 'en' ? 'Prepare your session' : 'Préparer votre session', { exact: true }) });
     const rules = page.getByRole('button', { name: dictionary.challengeRulesPanel.showRules, exact: true });
     await rules.waitFor();
     assert.equal(await preparation.count(), 0, 'Participants must not see the session preparation guide');
@@ -169,7 +169,7 @@ try {
       await facilitatorPage.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
       await facilitatorPage.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
 
-      const facilitatorPreparation = facilitatorPage.locator('details').filter({ has: facilitatorPage.getByText(locale === 'en' ? 'Session preparation and progress' : 'Préparation et déroulement de la session', { exact: true }) });
+      const facilitatorPreparation = facilitatorPage.locator('details').filter({ has: facilitatorPage.getByText(locale === 'en' ? 'Prepare your session' : 'Préparer votre session', { exact: true }) });
       await facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.pause, exact: true }).waitFor();
       await assertCompactTimerControl(facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.pause, exact: true }));
       assert.equal(await facilitatorPreparation.count(), 0, 'Facilitators must not see the session preparation guide during challenges');

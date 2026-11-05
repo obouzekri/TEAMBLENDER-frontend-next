@@ -43,7 +43,7 @@ export default function SessionPreparation({
         ? t('sessionPreparation.sessionMissing')
         : hasSelection
           ? t('sessionPreparation.launchHint')
-          : t('sessionPreparation.chooseActivity'),
+          : t('sessionPreparation.launchLocked'),
     },
   ];
 

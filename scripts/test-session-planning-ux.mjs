@@ -57,7 +57,7 @@ try {
     const cookieButton = page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true });
     await cookieButton.click();
     await page.locator('#session-name').fill('Session planning UX');
-    const choiceTitle = locale === 'fr' ? 'Choix des challenges' : 'Challenge selection';
+    const choiceTitle = locale === 'fr' ? 'Composer votre programme' : 'Build your program';
     assert.equal(await page.getByRole('region', { name: choiceTitle, exact: true }).count(), 0);
     assert.equal(await page.locator('#expected-participants').getAttribute('required'), null);
     const objectiveField = page.locator('#session-objective');
@@ -95,7 +95,7 @@ try {
     assert.equal(savedSession.expected_participant_count, 6);
     assert.equal(savedSession.objective, 'communication,collaboration');
     assert.equal(savedSession.participant_ids, undefined);
-    const preparationTitle = locale === 'fr' ? 'Préparation et déroulement de la session' : 'Session preparation and progress';
+    const preparationTitle = locale === 'fr' ? 'Préparer votre session' : 'Prepare your session';
     const preparation = page.getByRole('region', { name: preparationTitle, exact: true });
     const preparationSteps = preparation.locator('li[data-stage-status]');
     assert.equal(await preparationSteps.count(), 3);
