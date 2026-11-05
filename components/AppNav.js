@@ -11,7 +11,6 @@ import useI18n from '@/lib/i18n/useI18n';
 import { stripLocaleFromPath } from '@/lib/i18n/routing';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import { resolveUserAvatar } from '@/lib/avatar-profile';
-import ParticipantRecoveryAccess from './ParticipantRecoveryAccess';
 import { getStoredCurrentUser } from '@/lib/auth';
 import { revokeRememberedParticipation } from '@/lib/participant-recovery';
 
@@ -188,7 +187,6 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
               </Link>
               {!isManager && !isCompact && contextLabel ? <span className="nav-context">{contextLabel}</span> : null}
             </div>
-            <ParticipantRecoveryAccess sessionId={recoverySessionId} />
 
             {!isCompact ? (
               <button

@@ -93,20 +93,12 @@ try {
         await page.locator('.participant-session-card__cta').waitFor();
         assert.equal(await modal.count(), 0, 'No automatic recovery popup');
         assert.equal(await page.locator('.participant-credentials-notice').count(), 0, 'A returning guest does not see an account-created notice');
-        const save = page.getByRole('button', { name: en ? 'Save my access' : 'Conserver mon acces' });
-        await save.click();
-        await modal.waitFor();
-        await modal.getByRole('img', { name: en ? 'Scan to resume participation' : 'Scanner pour reprendre la participation' }).waitFor();
-        const url = new URL(await modal.getByRole('textbox').inputValue());
-        assert.equal(url.hash, `#recovery=${linkToken}`);
+        assert.equal(await page.getByRole('button', { name: en ? 'Save my access' : 'Conserver mon acces' }).count(), 0, 'No save-my-access action in the participant header');
         assert.equal(writes.filter((write) => write.path.endsWith('/resume-participant')).length, 0, 'Ordinary return uses only the code form');
         assert.deepEqual(writes.find((write) => write.path.endsWith('/join-participant')).body, {
           sessionCode: 'ABCDEF', first_name: 'Alex', last_name: 'Martin', email: '', nickname: 'Alex',
         });
-        await modal.getByRole('button', { name: en ? 'Close' : 'Fermer', exact: true }).click();
-        await page.locator('.participant-session-card__cta').waitFor();
         assert.equal(new URL(page.url()).search, '', 'Recovery must show the home page before joining the running session');
-        assert.ok(await save.isVisible(), 'Recovery access must be visible on mobile and desktop');
         // Remove local memory to verify logout still calls the server using the current JWT.
         await page.evaluate(() => localStorage.removeItem('tb_participant_recoveries'));
         if (mobile) {
