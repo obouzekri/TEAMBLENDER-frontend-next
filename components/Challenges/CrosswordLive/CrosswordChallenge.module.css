@@ -36,33 +36,35 @@
 .timerColumn { min-width: 0; position: sticky; top: calc(var(--header-height, 64px) + 8px); }
 .arenaColumn { display: grid; gap: var(--space-4); min-width: 0; }
 .singleColumnLayout { grid-template-columns: minmax(0, 1fr); }
-.playLayout { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); gap: var(--space-4); align-items: start; }
+.playLayout { display: grid; grid-template-columns: minmax(0, 13fr) minmax(0, 7fr); gap: var(--space-4); align-items: start; }
 .boardPanel { container-type: inline-size; }
 .clueLists { display: grid; align-content: start; gap: var(--space-4); min-width: 0; }
-.clueLists > .card { display: flex; flex-direction: column; min-height: 0; max-height: min(42vh, 360px); padding: 14px; }
+.clueLists > .card { display: flex; flex-direction: column; min-height: 0; max-height: min(40vh, 340px); padding: 14px; }
 .clueLists h2 { flex: 0 0 auto; margin-bottom: 10px; }
-.boardScroll { --board-max-height: min(72vh, 760px); overflow: auto; max-height: var(--board-max-height); padding: 6px; border-radius: var(--radius-sm); overscroll-behavior: contain; }
-.board { --cell-size: clamp(36px, min(calc((100cqw - 18px) / var(--columns) - 2px), calc((var(--board-max-height) - 24px) / var(--rows) - 2px)), 56px); display: grid; width: max-content; gap: 2px; padding: 3px; margin-inline: auto; background: var(--color-border); border-radius: 4px; }
+.boardScroll { --board-max-height: min(68vh, 680px); overflow: auto; max-height: var(--board-max-height); padding: 6px; border-radius: var(--radius-sm); overscroll-behavior: contain; }
+.board { --cell-size: clamp(30px, min(calc((100cqw - 18px) / var(--columns) - 2px), calc((var(--board-max-height) - 24px) / var(--rows) - 2px)), 46px); display: grid; width: max-content; gap: 2px; padding: 4px; margin-inline: auto; background: var(--color-border); border-radius: var(--radius-sm); box-shadow: 0 4px 14px rgb(0 0 0 / 8%); }
 .row { display: grid; grid-template-columns: repeat(var(--columns), var(--cell-size)); gap: 2px; }
 .cellSlot, .block { width: var(--cell-size); height: var(--cell-size); }
-.block { background: var(--ink); opacity: .85; }
+.block { border-radius: 3px; background: var(--ink); opacity: .82; }
 .cell {
   position: relative;
   display: grid;
   place-items: center;
   width: var(--cell-size);
   height: var(--cell-size);
-  min-width: 36px;
-  min-height: 36px;
-  padding: 9px 2px 0;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 8px 2px 0;
   border: 1px solid transparent;
-  border-radius: 2px;
+  border-radius: 3px;
   background-color: var(--surface-panel);
   background-image: none;
   color: var(--color-text);
   font-weight: 750;
-  font-size: clamp(1.15rem, 3cqw, 1.5rem);
+  font-size: calc(var(--cell-size) * .46);
+  transition: background-color 120ms ease, border-color 120ms ease;
 }
+.cell:hover { border-color: var(--color-primary); }
 .cellNumber {
   position: absolute;
   z-index: 1;
@@ -75,7 +77,7 @@
   padding-inline: 2px;
   border-radius: 2px;
   background: var(--surface-panel);
-  font-size: .65rem;
+  font-size: .6rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1;
@@ -83,10 +85,16 @@
 }
 .wordCell { background: var(--ch-accent-soft); color: var(--ch-text-main); border-color: var(--color-primary); }
 .activeCell { outline: 3px solid var(--color-primary); outline-offset: -3px; }
-.revealed span { text-decoration: underline; text-underline-offset: 4px; }
-.activeClue { padding: 14px; border-inline-start: 4px solid var(--color-primary); background: var(--field-bg); border-radius: var(--radius-sm); }
-.activeClue > span { font-size: .875rem; font-weight: 650; }
-.answerForm { display: grid; gap: 12px; margin-top: 16px; }
+.revealed { box-shadow: inset 0 -3px 0 var(--color-success); }
+.activeClue { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--color-primary) 40%, var(--color-border)); border-inline-start-width: 4px; border-inline-start-color: var(--color-primary); background: var(--field-bg); border-radius: var(--radius-sm); }
+.activeClueText { flex: 1 1 auto; min-width: 0; }
+.root .activeClueText h3 { margin: 2px 0 0; font-size: 1rem; line-height: 1.35; }
+.root .activeClueText p { margin: 4px 0 0; font-size: .85rem; }
+.activeClueSolved { border-inline-start-color: var(--color-success); }
+.clueMeta { color: var(--ink-soft); font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.answerTrigger { flex: 0 0 auto; min-height: 40px; padding: 8px 18px; border: 1px solid var(--color-primary); border-radius: 999px; background: var(--accent-strong); color: #fff; font-weight: 700; }
+.answerForm { display: grid; gap: 10px; }
+.root .validation:empty { display: none; }
 .answerForm label { font-weight: 650; }
 .inputLine { display: flex; gap: 10px; flex-wrap: wrap; }
 .inputLine input {
@@ -108,7 +116,8 @@
 .clueButton:hover, .selectedClue { border-color: var(--color-primary); background: var(--ch-accent-soft); }
 .clueButton:hover { transform: translateY(-1px); }
 .selectedClue { box-shadow: inset 3px 0 var(--color-primary); }
-.solvedClue { border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border)); }
+.solvedClue { border-color: color-mix(in srgb, var(--color-success) 45%, var(--color-border)); }
+.solvedClue .clueNumber { border-color: var(--color-success); }
 .clueNumber, .unresolvedNumber { display: inline-grid; flex: 0 0 auto; place-items: center; min-width: 28px; min-height: 28px; padding-inline: 5px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--surface-panel); font-size: .85rem; font-variant-numeric: tabular-nums; }
 .foundLabel { display: block; font-size: .8rem; margin-top: 6px; font-weight: 650; }
 .finalCard { display: grid; gap: 16px; padding: clamp(18px, 2.5vw, 30px); border-color: color-mix(in srgb, var(--color-primary) 38%, var(--color-border)); box-shadow: inset 0 3px var(--color-primary), 0 8px 24px rgb(0 0 0 / 10%); }
@@ -128,6 +137,45 @@
 .socialLayout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 .scores li, .activity li { display: flex; gap: 16px; justify-content: space-between; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--color-border); }
 .scores small { display: block; }
+.dialogOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--modal-scrim);
+  backdrop-filter: blur(2px);
+}
+.dialog {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 520px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: clamp(18px, 3vw, 24px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-panel);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+  overflow-wrap: anywhere;
+}
+.dialog:focus { outline: none; }
+.dialogHeader { display: flex; align-items: flex-start; gap: 12px; }
+.dialogHeader .clueNumber { min-width: 36px; min-height: 36px; border-color: var(--color-primary); color: var(--color-primary); font-weight: 800; font-size: 1rem; }
+.dialogHeading { flex: 1 1 auto; min-width: 0; }
+.root .dialogHeading h2 { margin: 4px 0 0; font-size: 1.15rem; line-height: 1.35; }
+.dialogClose { flex: 0 0 auto; display: grid; place-items: center; width: 40px; height: 40px; margin: -6px -6px 0 0; padding: 0; border: 1px solid transparent; border-radius: 999px; background: transparent; color: var(--ink-soft); font-size: 1.6rem; line-height: 1; }
+.dialogClose:hover { border-color: var(--color-border); color: var(--color-text); }
+.directionSwitch { display: flex; gap: 6px; flex-wrap: wrap; }
+.directionSwitch button { min-height: 36px; padding: 6px 14px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--field-bg); color: var(--color-text); font-size: .85rem; font-weight: 650; }
+.root .directionSwitch .directionActive { border-color: var(--color-primary); background: var(--ch-accent-soft); }
+.pattern { display: flex; gap: 4px; justify-content: center; container-type: inline-size; }
+.patternLetter { display: grid; flex: 1 1 0; place-items: center; min-width: 0; max-width: 38px; aspect-ratio: 1; border: 1px solid var(--field-line); border-radius: 4px; background: var(--field-bg); color: var(--color-text); font-weight: 750; font-size: min(1rem, 5cqw); text-transform: uppercase; }
+.patternRevealed { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 12%, var(--field-bg)); }
+.patternConflict { border-color: var(--color-danger); box-shadow: inset 0 0 0 1px var(--color-danger); }
+.root .dialogSolved { margin: 0; padding: 10px 12px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--color-success) 12%, var(--field-bg)); font-size: .9rem; }
 .notice { border-inline-start: 4px solid var(--color-primary); padding: 12px; background: var(--color-surface); border-radius: var(--radius-sm); }
 @media (max-width: 960px) {
   .challengeLayout { grid-template-columns: minmax(0, 1fr); }
@@ -144,6 +192,19 @@
   .finalHeading { align-items: flex-start; flex-direction: column; }
   .unresolvedList { max-height: 40vh; }
   .primary { width: 100%; }
+  /* Small screens: shrink the grid to fit; answers are typed in the dialog, not in the cells. */
+  .boardPanel { padding-inline: 8px; }
+  .boardPanel .sectionHeading, .boardPanel .activeClue, .boardPanel .help { margin-inline: 4px; }
+  .boardScroll { padding: 2px; }
+  .board { --cell-size: clamp(16px, calc((100cqw - 10px) / var(--columns) - 1px), 46px); gap: 1px; padding: 2px; }
+  .row { gap: 1px; }
+  .cell { place-items: end center; min-width: 16px; min-height: 16px; padding: 0 0 3px; font-size: calc(var(--cell-size) * .46); line-height: 1; }
+  .revealed { box-shadow: inset 0 -2px 0 var(--color-success); }
+  .cellNumber { top: 1px; inset-inline-start: 1px; min-width: 0; height: auto; padding-inline: 1px; font-size: max(6px, calc(var(--cell-size) * .3)); line-height: 1; background: transparent; }
+  .dialogOverlay { align-items: end; padding: 0; }
+  .dialog { width: 100%; max-height: 92dvh; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .activeClue { flex-wrap: wrap; }
+  .answerTrigger { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .root *, .root *::before, .root *::after { scroll-behavior: auto !important; }

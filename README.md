@@ -95,7 +95,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Validation des tags : `node scripts/test-catalog-tag-colors.mjs` (frontend sur 3100, Chrome disponible, API simulees) : FR/EN, clair/sombre/automatique, preference explicite opposee au systeme, 320 a 1440 px, transparence, contraste, absence de coupure et ajout d'un challenge.
 - Un repère de progression visible précède le choix des challenges : « Composer », « Configurer », puis « Lancer ». L’étape courante suit la sélection, et le lancement passe à l’état prêt quand au moins un challenge est choisi.
 - Le repère reste distinct des informations de session, se réorganise en colonne sur mobile et est disponible en FR/EN.
-- Apres la creation, la section « Choix des challenges » regroupe deux cartes de meme importance : « Selection manuelle » ouvre le catalogue et « Programme guide » ouvre la proposition selon les objectifs, l'effectif et la duree souhaitee.
+- Apres la creation, la section « Composer votre programme » regroupe deux cartes de meme importance, chacune avec une icone et un chevron : « Selection manuelle » ouvre le catalogue et « Programme guide » ouvre la proposition selon les objectifs, l'effectif et la duree souhaitee.
 - Ce choix n'ajoute aucune etape a la creation de session. Le catalogue reste accessible, et une proposition appliquee peut toujours etre configuree, retiree ou reordonnee avant le lancement.
 - Les cartes sont cote a cote sur grand ecran et empilees sur mobile, avec navigation clavier et libelles FR/EN.
 - Validation : `npm run test:ux:planning` (progression FR/EN, états et responsive) et `npm run test:ux:builder` (frontend sur 3100, Chrome disponible, API simulees).

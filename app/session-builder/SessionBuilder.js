@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { ChevronDown, UserPlus, Users } from 'lucide-react';
+import { ChevronDown, ChevronRight, ListChecks, Sparkles, UserPlus, Users } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
@@ -1694,12 +1694,18 @@ export default function SessionBuilder() {
               aria-labelledby="manual-selection-title"
               aria-describedby="manual-selection-hint"
             >
-              <span id="manual-selection-title" className={styles.challengeModeTitle}>
-                {t('sessionBuilder.manualSelection')}
+              <span className={styles.challengeModeIcon} aria-hidden="true">
+                <ListChecks size={20} />
               </span>
-              <span id="manual-selection-hint" className={styles.challengeModeHint}>
-                {t('sessionBuilder.manualSelectionHint')}
+              <span className={styles.challengeModeText}>
+                <span id="manual-selection-title" className={styles.challengeModeTitle}>
+                  {t('sessionBuilder.manualSelection')}
+                </span>
+                <span id="manual-selection-hint" className={styles.challengeModeHint}>
+                  {t('sessionBuilder.manualSelectionHint')}
+                </span>
               </span>
+              <ChevronRight className={styles.challengeModeChevron} size={20} aria-hidden="true" />
             </a>
             <button
               type="button"
@@ -1716,12 +1722,18 @@ export default function SessionBuilder() {
                 setProgramOpen(true);
               }}
             >
-              <span id="guided-program-title" className={styles.challengeModeTitle}>
-                {t('sessionBuilder.guidedProgram')}
+              <span className={styles.challengeModeIcon} aria-hidden="true">
+                <Sparkles size={20} />
               </span>
-              <span id="guided-program-hint" className={styles.challengeModeHint}>
-                {t('sessionBuilder.programHint')}
+              <span className={styles.challengeModeText}>
+                <span id="guided-program-title" className={styles.challengeModeTitle}>
+                  {t('sessionBuilder.guidedProgram')}
+                </span>
+                <span id="guided-program-hint" className={styles.challengeModeHint}>
+                  {t('sessionBuilder.programHint')}
+                </span>
               </span>
+              <ChevronRight className={styles.challengeModeChevron} size={20} aria-hidden="true" />
             </button>
           </div>
         </section>

@@ -20,12 +20,17 @@ const rulesSource = read('components/Challenges/ChallengeRulesPanel.js');
 const timerSource = read('components/Challenges/ChallengeTimerCard.js');
 const presentationSource = read('components/Challenges/ChallengePresentation.js');
 const actionFeedbackSource = read('components/Challenges/ChallengeActionFeedback.js');
+const modalFocusSource = read('lib/useModalFocus.js');
 const rulesPresetSource = read('lib/challenges/crosswordRules.js');
 const challengeRulesSource = read('lib/challenges/rules.js');
 const sharedCss = ['ChallengeRulesPanel', 'ChallengeTimerCard', 'ChallengePresentation']
   .map((name) => read(`components/Challenges/${name}.module.css`).replace(/:global\(([^)]+)\)/g, '$1'))
   .join('\n');
 const globalCss = readGlobalCss();
+const dictionaries = Object.fromEntries(await Promise.all(['fr', 'en'].map(async (code) => {
+  const { default: dictionary } = await import(new URL(`../lib/i18n/dictionaries/${code}.js`, import.meta.url));
+  return [code, { challengeRules: dictionary.challengeRules, builder: dictionary.builder }];
+})));
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
 const page = await browser.newPage();
 const errors = [];
@@ -58,7 +63,7 @@ try {
     globalThis.ReactDOM = { ...require('react-dom'), ...require('react-dom/client') };
   })();` });
   await page.addStyleTag({ content: `${globalCss}\nbody { margin: 0; padding: 12px; box-sizing: border-box; } ${sharedCss} ${css} ${modalCss}` });
-  await page.evaluate(({ ui, modal, hook, rules, timer, presentation, actionFeedback, rulesPreset, challengeRules }) => {
+  await page.evaluate(({ ui, modal, hook, rules, timer, presentation, actionFeedback, rulesPreset, challengeRules, dictionaries, modalFocus }) => {
     const R = globalThis.React;
     const h = R.createElement;
     globalThis.locale = 'en';
@@ -89,7 +94,14 @@ try {
       },
     };
     const styles = new Proxy({}, { get: (_, key) => key });
-    const i18n = () => ({ locale, t: (key) => key });
+    // Session-builder copy comes from the real dictionaries; other namespaces keep their keys.
+    const translateBuilder = (key, params = {}) => {
+      if (!key.startsWith('builder.')) return key;
+      let value = key.split('.').reduce((node, part) => node?.[part], dictionaries[locale] || dictionaries.fr);
+      if (value && typeof value === 'object') value = params.count === 1 ? value.one ?? value.other : value.other;
+      return typeof value === 'string' ? value.replace(/\{(\w+)\}/g, (_, token) => String(params[token] ?? `{${token}}`)) : key;
+    };
+    const i18n = () => ({ locale, t: translateBuilder });
     const mockRealtime = () => ({ state, error: globalThis.serverError || '', connected: socket.connected, isFacilitator: facilitator, emitEvent });
     const shared = (props) => h('section', {}, props.title || props.feedback?.message || '', props.actions);
     const connectionContext = R.createContext(true);
@@ -99,6 +111,10 @@ try {
       'lucide-react': { Pause: () => h('span'), Play: () => h('span') },
       '@/lib/i18n/useI18n': i18n,
       '@/lib/i18n/routing': { normalizeLocale: (value) => value },
+      '@/lib/i18n': {
+        getDictionary: (value) => dictionaries[value] || dictionaries.fr,
+        pickLocalized: (map, value) => map?.[value] ?? map?.fr,
+      },
       '@/lib/challenges/useRealtimeChallenge': mockRealtime,
       '@/lib/challenges/useFacilitatorTimerControls': () => ({
         busy: false, feedback: null,
@@ -120,8 +136,7 @@ try {
       'next/image': shared,
       '@/lib/config': {}, '@/lib/csrf': {}, '@/lib/challenges/playerRange': { resolveChallengePlayerRange: () => ({}) },
       '@/lib/useBodyScrollLock': () => {},
-      '@/lib/useModalFocus': () => {},
-      '@/lib/challenges/connection-context': { ChallengeConnectionContext: connectionContext },
+      '@/lib/challenges/connection-context': { ChallengeConnectionContext: connectionContext, ChallengeDemoContext: R.createContext(false) },
       '@/lib/challenges/debrief-context': { ChallengeDebriefContext: debriefContext },
       './connection-context': { ChallengeProgressContext: R.createContext(null) },
       './quiz-utils': { normalizeQuizAnswerIndex: (index) => index },
@@ -135,6 +150,7 @@ try {
       }, module, module.exports);
       return module.exports;
     };
+    mocks['@/lib/useModalFocus'] = load(modalFocus).default;
     mocks['@/lib/challenges/crosswordRules'] = load(rulesPreset);
     mocks['@/lib/challenges/rules'] = load(challengeRules);
     mocks['../ChallengeRulesPanel'] = load(rules).default;
@@ -152,7 +168,7 @@ try {
     ui: transpile(uiSource), modal: transpile(modalSource), hook: transpile(hookSource),
     rules: transpile(rulesSource), timer: transpile(timerSource), challengeRules: transpile(challengeRulesSource),
     presentation: transpile(presentationSource), rulesPreset: transpile(rulesPresetSource),
-    actionFeedback: transpile(actionFeedbackSource),
+    actionFeedback: transpile(actionFeedbackSource), dictionaries, modalFocus: transpile(modalFocusSource),
   });
 
   assert.equal(await page.evaluate(() => ui.normalizeCrosswordAnswer(' é-qui pe ’')), 'EQUIPE');
@@ -230,10 +246,11 @@ try {
           const boardBounds = await page.locator('.boardPanel').boundingBox();
           const clueBounds = await page.locator('.clueLists').boundingBox();
           const ratio = boardBounds.width / (boardBounds.width + clueBounds.width);
-          assert.ok(Math.abs(ratio - .7) < .01, 'Board/clues split is 70/30');
+          assert.ok(Math.abs(ratio - .65) < .01, 'Board/clues split is 65/35');
           assert.ok(boardBounds.x + boardBounds.width <= clueBounds.x, 'Clues are beside the board');
           assert.equal(await page.locator('.timerColumn').evaluate((node) => getComputedStyle(node).position), 'sticky');
-          assert.ok(await page.locator('.cell').first().evaluate((node) => node.getBoundingClientRect().width) > 44, 'Cells grow when board space allows');
+          const cellWidth = await page.locator('.cell').first().evaluate((node) => node.getBoundingClientRect().width);
+          assert.ok(cellWidth > 44 && cellWidth <= 46, 'Cells grow when board space allows, up to a compact maximum');
         } else {
           assert.ok(timerBounds.y + timerBounds.height <= arenaBounds.y, 'Timer is above the arena on mobile');
           assert.ok(Math.abs(timerBounds.width - arenaBounds.width) <= 1, 'Mobile timer spans the layout, as in the other challenges');
@@ -323,7 +340,12 @@ try {
   await page.getByRole('grid').waitFor();
   assert.equal(await page.locator('.rulesCard').count(), 0, 'Paused games do not return to the prestart rules');
   assert.equal(await pauseButton.count(), 0);
+  await page.getByRole('button', { name: 'Answer', exact: true }).click();
+  await page.getByRole('dialog', { name: 'A feline' }).waitFor();
   assert.equal(await page.getByRole('button', { name: 'Submit word', exact: true }).isDisabled(), true, 'Answers are disabled while paused');
+  await page.getByText('Game paused: answers resume when the timer restarts.', { exact: true }).waitFor();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.getByRole('dialog').count(), 0, 'Escape closes the answer dialog');
   await page.getByRole('button', { name: 'challengeTimer.resume', exact: true }).click();
   assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.resume')));
   await page.evaluate(() => {
@@ -343,7 +365,22 @@ try {
   }), [['en'], 'hard']);
   await page.waitForTimeout(100);
   assert.deepEqual(errors, []);
+  assert.equal(await page.getByLabel('Your answer', { exact: true }).count(), 0, 'Answer entry lives in the dialog only');
+  await page.locator('[data-cell="2:2"]').click();
+  await page.getByRole('dialog', { name: 'An organization' }).waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('.inputLine input')), true, 'Clicking a cell opens the dialog with the answer field focused');
+  assert.equal((await page.locator('.patternLetter').allTextContents()).join('|'), 'R||', 'Pattern shows the letters already revealed');
+  await page.locator('.dialogOverlay').click({ position: { x: 4, y: 4 } });
+  assert.equal(await page.getByRole('dialog').count(), 0, 'Clicking outside closes the answer dialog');
+  await page.locator('[data-cell="0:0"]').click();
+  await page.getByRole('dialog', { name: 'A feline' }).waitFor();
+  await page.getByRole('button', { name: '1 · Down', exact: true }).click();
+  await page.getByRole('dialog', { name: 'A vehicle' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Submit word' }).isDisabled(), true, 'Solved words cannot be submitted again');
+  await page.getByRole('button', { name: '1 · Across', exact: true }).click();
+  await page.getByRole('dialog', { name: 'A feline' }).waitFor();
   await page.getByLabel('Your answer', { exact: true }).fill('BAT');
+  assert.equal(await page.locator('.patternConflict').count(), 1, 'Conflicting letters are highlighted');
   assert.equal(await page.getByRole('button', { name: 'Submit word' }).isDisabled(), true);
   await page.getByLabel('Your answer', { exact: true }).fill('cât');
   await page.getByRole('button', { name: 'Submit word' }).click();
@@ -389,8 +426,11 @@ try {
     render();
   });
   await page.getByRole('heading', { name: 'An organization' }).waitFor();
+  assert.equal(await page.getByRole('dialog').count(), 0, 'The dialog closes once its word is solved');
   await page.getByRole('button', { name: '1 A feline (3)' }).click();
+  await page.getByRole('dialog', { name: 'A feline' }).waitFor();
   assert.equal(await page.getByLabel('Your answer', { exact: true }).inputValue(), 'cât');
+  await page.keyboard.press('Escape');
   const firstCell = page.locator('[data-cell="0:0"]');
   await firstCell.focus();
   await page.keyboard.press('Space');
@@ -399,6 +439,10 @@ try {
   assert.equal(await page.evaluate(() => document.activeElement.dataset.cell), '1:0');
   await page.keyboard.press('End');
   assert.equal(await page.evaluate(() => document.activeElement.dataset.cell), '2:0');
+  assert.equal(await page.getByRole('dialog').count(), 0, 'Keyboard navigation does not open the dialog');
+  await page.keyboard.press('Enter');
+  await page.getByRole('dialog', { name: 'A vehicle' }).waitFor();
+  await page.keyboard.press('Escape');
   await page.setViewportSize({ width: 375, height: 812 });
   assert.ok(await firstCell.evaluate((cell) => cell.getBoundingClientRect().width) >= 44);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
@@ -450,13 +494,21 @@ try {
     for (const width of [375, 1440]) {
       await page.setViewportSize({ width, height: 812 });
       await page.getByRole('button', { name: '15 The far edge of the board (15)' }).click();
+      await page.getByRole('dialog', { name: 'The far edge of the board' }).waitFor();
+      await page.keyboard.press('Escape');
       await page.getByRole('button', { name: '16 Rightmost column (15)' }).click();
+      await page.getByRole('dialog', { name: 'Rightmost column' }).waitFor();
+      assert.equal(await page.locator('.dialog').evaluate((node) => node.scrollWidth <= node.clientWidth + 1), true, `${theme}/${width}: 15-letter pattern fits the dialog`);
+      await page.keyboard.press('Escape');
       assert.equal(await page.evaluate(() => document.activeElement.classList.contains('clueButton')), true);
       assert.equal(await page.locator('[data-cell="0:14"]').evaluate((cell) => {
         const viewport = cell.closest('.boardScroll').getBoundingClientRect();
         const bounds = cell.getBoundingClientRect();
         return bounds.left >= viewport.left && bounds.right <= viewport.right && bounds.top >= viewport.top && bounds.bottom <= viewport.bottom;
       }), true, `${theme}/${width}: selected clue cell visible`);
+      if (width === 375) {
+        assert.equal(await page.locator('.boardScroll').evaluate((node) => node.scrollWidth <= node.clientWidth + 1), true, `${theme}: 15x15 board shrinks to fit mobile width`);
+      }
       if (width === 1440) {
         assert.equal(await page.locator('.boardScroll').evaluate((node) => node.scrollHeight <= node.clientHeight + 1), true, `${theme}: 15x15 board has no vertical inner scroll`);
         assert.equal(await page.locator('.clues').evaluateAll((lists) => lists.length === 2 && lists.every((list) => getComputedStyle(list).overflowY === 'auto' && list.scrollHeight > list.clientHeight)), true, `${theme}: horizontal and vertical clues scroll independently`);
@@ -467,6 +519,8 @@ try {
         }), true, `${theme}: two-digit cell numbers remain readable and inside their cells`);
       }
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${theme}/${width}: no page overflow`);
+      await page.getByRole('button', { name: 'Answer', exact: true }).click();
+      await page.getByRole('dialog').waitFor();
       const contrasts = await page.evaluate(() => {
         const composite = (front, back) => {
           const alpha = front[3] ?? 1;
@@ -487,8 +541,9 @@ try {
           const [low, high] = [luminance(foreground), luminance(background)].sort((a, b) => a - b);
           return (high + .05) / (low + .05);
         };
-        return Object.fromEntries(['.card', '.help', '.cell.revealed', '.wordCell', '.clueButton', '.primary', '.inputLine input'].map((selector) => [selector, contrast(selector)]));
+        return Object.fromEntries(['.card', '.help', '.cell.revealed', '.wordCell', '.clueButton', '.answerTrigger', '.dialog', '.clueMeta', '.primary', '.inputLine input'].map((selector) => [selector, contrast(selector)]));
       });
+      await page.keyboard.press('Escape');
       for (const [selector, contrast] of Object.entries(contrasts)) assert.ok(contrast >= 4.5, `${theme}/${width} ${selector}: contrast ${contrast}`);
       const missing = await page.locator('.root').evaluate((node, tokens) => tokens.filter((token) => !getComputedStyle(node).getPropertyValue(token).trim()), [...new Set(css.match(/--[a-z][\w-]+/g))].filter((token) => !['--board-max-height', '--columns', '--rows', '--cell-size', '--challenge-panel-bg'].includes(token)));
       assert.deepEqual(missing, [], `${theme}: every CSS token resolves from real globals`);
@@ -563,7 +618,7 @@ try {
   await page.waitForFunction(() => hookValue.state?.timer?.status === 'completed');
   assert.equal(await page.evaluate(() => completed.length), 1);
   assert.deepEqual(errors, []);
-  console.log('PASS crossword rules-first/server-confirmed arena, facilitator/participant FR/EN mobile/tablet/desktop, shared circular right timer, 70/30 board/clues, word count without progress bars, shared rules dialog and final review, normalization, correlated answers/errors, cooldown, saved drafts, auto-advance, keyboard/clue scrolling, 15x15 light/dark contrast >=4.5, no page overflow, config and realtime completion');
+  console.log('PASS crossword rules-first/server-confirmed arena, facilitator/participant FR/EN mobile/tablet/desktop, shared circular right timer, 65/35 board/clues, answer dialog from cells/clues/keyboard, word count without progress bars, shared rules dialog and final review, normalization, correlated answers/errors, cooldown, saved drafts, auto-advance, keyboard/clue scrolling, 15x15 light/dark contrast >=4.5, no page overflow, config and realtime completion');
 } finally {
   await browser.close();
 }
