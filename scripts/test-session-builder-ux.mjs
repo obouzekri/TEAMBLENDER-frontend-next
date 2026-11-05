@@ -248,7 +248,7 @@ try {
     const remove = page
       .locator('[data-activity-id="101"]')
       .getByRole('button', {
-        name: locale === 'en' ? 'Remove this activity' : 'Retirer cette activité',
+        name: locale === 'en' ? 'Remove this challenge' : 'Retirer ce challenge',
         exact: true,
       });
     await remove.focus();
