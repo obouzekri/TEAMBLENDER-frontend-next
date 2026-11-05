@@ -132,14 +132,14 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Reprise participant:
   - Un nouvel invite revient via le formulaire habituel avec le meme code, prenom et nom, y compris apres deconnexion ou sur un autre navigateur. Il retrouve sa participation et ses resultats, passe d'abord par l'accueil, puis clique sur Rejoindre. Les homonymes doivent utiliser des noms distinctifs; ce mode accepte le risque d'usurpation par une personne connaissant le code et le nom.
   - La page de connexion n'affiche plus de bloc « Reprendre ma participation », et aucune fenetre de conservation d'acces ne s'ouvre automatiquement. Les liens personnels restent disponibles en action secondaire et la page de secours `/resume` est conservee.
-  - Le participant peut generer un lien personnel de reprise depuis la navigation (`Conserver mon acces`) pour changer d appareil sans recreer de participation.
+  - La navigation participant n'affiche pas de bouton `Conserver mon acces`: le participant ne genere pas lui-meme de lien personnel. Pour changer d appareil, il revient avec le meme code, prenom et nom, ou demande un lien a l animateur.
   - Une deconnexion volontaire invalide l acces memorise du navigateur courant.
   - Les secrets memorises sont valables 30 jours au maximum. Les liens personnels sont a usage unique; leur utilisation conserve l identifiant participant, l equipe et les resultats enregistres. Les anciens comptes ne sont ni convertis ni supprimes automatiquement.
-  - Le bouton `Conserver mon acces` et son QR code fonctionnent sur desktop et mobile. Le QR code est genere dans le navigateur, sans service externe.
+  - Le QR code des liens personnels generes par l animateur est produit dans le navigateur, sans service externe.
   - L animateur retrouve `Retablir l acces` dans `Infos de session` > `Gerer les participants`, verifie l identite, puis genere un lien personnel valable 10 minutes.
   - La page `/resume` retire le secret du fragment URL et n initialise pas les outils analytiques. Ouvrir le lien ne le consomme pas: une confirmation est requise.
   - Un acces de reprise est limite a la session; les actions de compte et l ajout d autres sessions necessitent une connexion au compte participant.
-  - Validation: `node scripts/test-participant-recovery.mjs` et `node scripts/test-participant-recovery-ux.mjs` (frontend sur 3100 et Chrome disponible). La suite UX couvre FR/EN, desktop/mobile, retour par code apres deconnexion, absence de bloc et de popup de reprise, QR code a la demande, secours animateur, lien invalide, absence de collecte analytique sur la page de reprise et deconnexion sans stockage local. Les API sont simulees; aucun participant reel n est modifie.
+  - Validation: `node scripts/test-participant-recovery.mjs` et `node scripts/test-participant-recovery-ux.mjs` (frontend sur 3100 et Chrome disponible). La suite UX couvre FR/EN, desktop/mobile, retour par code apres deconnexion, absence de bloc, de popup et de bouton `Conserver mon acces`, secours animateur, lien invalide, absence de collecte analytique sur la page de reprise et deconnexion sans stockage local. Les API sont simulees; aucun participant reel n est modifie.
 
 ### Disposition des sessions en direct
 

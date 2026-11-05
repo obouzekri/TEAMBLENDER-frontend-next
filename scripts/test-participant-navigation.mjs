@@ -162,10 +162,7 @@ try {
         await page.locator('.participant-session-card__cta').waitFor();
         assert.equal(await page.locator('.participant-session-card').count(), 1);
         assert.equal(await page.locator('.participant-join-trigger').count(), 0, 'Recovery access cannot add another session');
-        await page.getByRole('button', { name: locale === 'fr' ? 'Conserver mon acces' : 'Save my access', exact: true }).click();
-        const dialog = page.getByRole('dialog');
-        await dialog.waitFor();
-        await dialog.getByRole('button', { name: locale === 'fr' ? 'Fermer' : 'Close', exact: true }).click();
+        assert.equal(await page.getByRole('button', { name: locale === 'fr' ? 'Conserver mon acces' : 'Save my access', exact: true }).count(), 0, 'No save-my-access action in the participant header');
         control.active = true;
         control.runtimeFallback = true;
         await page.reload();
