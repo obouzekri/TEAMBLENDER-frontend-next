@@ -18,6 +18,7 @@ import useI18n from '@/lib/i18n/useI18n';
 import guideStyles from './StartupGuide.module.css';
 import homeStyles from './ManagerHome.module.css';
 import { translate } from '@/lib/i18n';
+import { formatDateTime } from '@/lib/i18n/format';
 
 function pickDisplayName(user) {
   if (!user || typeof user !== 'object') return 'Manager';
