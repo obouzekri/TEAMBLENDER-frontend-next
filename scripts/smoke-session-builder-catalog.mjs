@@ -100,7 +100,7 @@ async function run() {
 
     await page.waitForFunction(() => {
       const bodyText = document.body?.innerText || '';
-      const isEmptyState = bodyText.includes('Aucune activité ne correspond à vos critères');
+      const isEmptyState = bodyText.includes('Aucun challenge ne correspond à vos critères');
       const buttons = Array.from(document.querySelectorAll('button'));
       const catalogButtons = buttons.filter((btn) => {
         const text = (btn.textContent || '').trim();
@@ -109,7 +109,7 @@ async function run() {
       return isEmptyState || catalogButtons.length > 0;
     }, { timeout: 20000 });
 
-    const emptyMessage = page.locator('text=Aucune activité ne correspond à vos critères');
+    const emptyMessage = page.locator('text=Aucun challenge ne correspond à vos critères');
     const addButtons = page.locator('button:has-text("Ajouter"), button:has-text("Ajoutée")');
 
     const hasEmpty = await emptyMessage.count();

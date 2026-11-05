@@ -185,7 +185,11 @@
 
 .challengeChoice {
   display: grid;
-  gap: 1rem;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-sm);
 }
 
 .challengeChoice h2 {
@@ -197,15 +201,16 @@
 }
 
 .challengeChoiceHint {
-  margin: 0;
+  margin: 6px 0 16px;
   color: var(--ink-soft);
-  font-size: 0.875rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .challengeModes {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 12px;
 }
 
 .challengeMode {
@@ -213,10 +218,10 @@
   align-items: flex-start;
   gap: 0.875rem;
   min-width: 0;
-  padding: 1.25rem;
+  padding: 1rem;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface-panel);
+  border-radius: 12px;
+  background: var(--surface-muted, var(--surface-panel));
   color: var(--ink);
   font: inherit;
   text-align: start;
@@ -291,6 +296,10 @@
 }
 
 @media (max-width: 640px) {
+  .challengeChoice {
+    padding: 16px;
+  }
+
   .challengeModes {
     grid-template-columns: 1fr;
   }
