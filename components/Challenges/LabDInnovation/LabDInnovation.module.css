@@ -147,8 +147,11 @@
 
 .progressBar {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .phaseTransition {
@@ -182,37 +185,89 @@
 .progressStep {
   border: 1px solid rgba(163, 190, 214, 0.18);
   border-radius: 14px;
-  padding: 10px;
-  display: grid;
-  gap: 6px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
   background: rgba(10, 22, 33, 0.72);
   color: var(--text-soft);
+  transition: border-color 160ms ease, background-color 160ms ease;
 }
 
 .progressStepActive {
-  border-color: rgba(91, 200, 215, 0.42);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface-1));
   color: var(--text-main);
-  box-shadow: 0 0 0 1px rgba(91, 200, 215, 0.12);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .progressStepDone {
   border-color: rgba(138, 211, 123, 0.38);
+  color: var(--text-main);
 }
 
 .progressStepDot {
   width: 28px;
   height: 28px;
   border-radius: 999px;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: rgba(163, 190, 214, 0.16);
+  font-size: 0.85rem;
   font-weight: 800;
+  line-height: 1;
+}
+
+.progressStepActive .progressStepDot {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.progressStepDone .progressStepDot {
+  background: var(--accent-2);
+  color: #06131b;
 }
 
 .progressStepLabel {
-  font-size: 0.82rem;
+  min-width: 0;
+  font-size: 0.86rem;
   font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.fieldHint,
+.emptyHint {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.fieldHint {
+  color: var(--text-soft);
+}
+
+.emptyHint {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--line-soft);
+  text-align: center;
+  font-style: italic;
+}
+
+.listCard {
+  display: grid;
+  gap: 10px;
+}
+
+.listCard h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
 }
 
 .inputGrid {
@@ -304,6 +359,13 @@
   cursor: not-allowed;
   opacity: 0.68;
   transform: none;
+}
+
+.primaryBtn:disabled {
+  background: rgba(163, 190, 214, 0.16);
+  border-color: var(--line-soft);
+  color: var(--text-soft);
+  opacity: 1;
 }
 
 .voteRecorded {
@@ -476,8 +538,31 @@
 }
 
 :global(html[data-theme='light']) .progressStepActive {
-  border-color: rgba(8, 127, 154, 0.42);
+  border-color: rgba(8, 127, 154, 0.55);
+  background: #e6f4f7;
   color: var(--text-main);
+  box-shadow: 0 0 0 3px rgba(8, 127, 154, 0.12);
+}
+
+:global(html[data-theme='light']) .progressStepDot {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+:global(html[data-theme='light']) .progressStepActive .progressStepDot {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+:global(html[data-theme='light']) .progressStepDone .progressStepDot {
+  background: #22a35a;
+  color: #ffffff;
+}
+
+:global(html[data-theme='light']) .primaryBtn:disabled {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #64748b;
 }
 
 :global(html[data-theme='light']) .rankBadge,
@@ -554,11 +639,6 @@
     grid-template-columns: 1fr;
   }
 
-  .progressStep {
-    grid-template-columns: auto 1fr;
-    align-items: center;
-  }
-
   .progressStepDot {
     width: 24px;
     height: 24px;
@@ -595,4 +675,201 @@
   .leaderboardGrid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Lab v2: problem catalog, turns, point voting, deployment steps and solution sheet */
+.categoryBlock {
+  display: grid;
+  gap: 8px;
+}
+
+.categoryHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.categoryHeader h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.categoryRef {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+.problemGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.problemCard {
+  display: grid;
+  gap: 6px;
+  align-content: space-between;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface-2);
+}
+
+.problemCard p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text-soft);
+}
+
+.problemCardPicked {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-1));
+}
+
+.readyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.retainedBanner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 45%, var(--line-soft));
+  background: color-mix(in srgb, var(--accent-2) 10%, var(--surface-1));
+}
+
+.retainedBanner > div {
+  display: grid;
+  gap: 4px;
+}
+
+.blockText {
+  display: block;
+}
+
+.turnBanner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface-2);
+}
+
+.turnBanner > div {
+  display: grid;
+  gap: 4px;
+}
+
+.turnBannerMine {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.pointsControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pointsValue {
+  min-width: 52px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.checkboxRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.stepForm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fieldLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.stepCard {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface-2);
+}
+
+.stepCard p {
+  margin: 2px 0 0;
+  font-size: 0.86rem;
+  color: var(--text-soft);
+}
+
+.stepRemoved {
+  opacity: 0.55;
+}
+
+.stepRemoved strong {
+  text-decoration: line-through;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line-soft);
+  font-size: 0.78rem;
+  color: var(--text-main);
+}
+
+.chipHigh {
+  border-color: color-mix(in srgb, var(--danger) 60%, transparent);
+  color: var(--danger);
+}
+
+.ficheGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
 }
