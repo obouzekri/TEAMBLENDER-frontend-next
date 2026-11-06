@@ -22,8 +22,8 @@ import { normalizeLocale, DEFAULT_LOCALE } from '@/lib/i18n/routing';
 
 const PHASES = Object.freeze([
   { key: 'cadrage', label: 'Cadrage', mobileLabel: 'Cadre', className: 'phaseCadrage' },
-  { key: 'preparation', label: 'Préparation', mobileLabel: 'Prépa', className: 'phasePreparation' },
-  { key: 'execution', label: 'Exécution', mobileLabel: 'Exéc.', className: 'phaseExecution' },
+  { key: 'preparation', label: 'Planification', mobileLabel: 'Planif.', className: 'phasePreparation' },
+  { key: 'execution', label: 'Jour J', mobileLabel: 'Jour J', className: 'phaseExecution' },
   { key: 'cloture', label: 'Clôture', mobileLabel: 'Clôt.', className: 'phaseCloture' },
 ]);
 
@@ -50,6 +50,21 @@ function phaseLabel(phase, locale) {
 function mobilePhaseLabel(phase, locale) {
   if (normalizeLocale(locale) === DEFAULT_LOCALE) return phase.mobileLabel;
   return translate(locale, `challengeMission.phaseShort_${phaseKey(phase)}`);
+}
+
+const INDICATOR_KEYS = Object.freeze(['time_management', 'communication', 'coordination', 'rigor', 'shared_leadership']);
+
+function formatGameTime(seconds) {
+  const safe = Math.max(0, Math.round(Number(seconds) || 0));
+  return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, '0')}`;
+}
+
+// The lowest measured component under 70/100, the one the debrief tip is about.
+function weakestComponent(indicator) {
+  const measured = Object.entries(indicator?.components || {}).filter(([, value]) => Number.isFinite(value));
+  if (!measured.length) return '';
+  const [key, value] = measured.reduce((low, entry) => (entry[1] < low[1] ? entry : low));
+  return value < 70 ? key : '';
 }
 
 function normalizeName(value) {
@@ -100,7 +115,7 @@ export default function MissionCritiqueChallenge({
     return {
       placed: placedTaskIds.size,
       submitted: facilitatorBoard.filter((item) => item.submitted).length,
-      errors: facilitatorBoard.reduce((total, item) => total + (item.submitted ? Number(item.errors_count || 0) : 0), 0),
+      errors: facilitatorBoard.reduce((total, item) => total + Number(item.errors_count || 0), 0),
     };
   }, [tasks, facilitatorBoard]);
 
@@ -206,6 +221,7 @@ export default function MissionCritiqueChallenge({
     Number(mission.participant_count || facilitatorBoard.length || 0)
   );
   const allParticipantsSubmitted = participantCount > 0 && submittedCount >= participantCount;
+  const missionDebrief = state?.summary?.mission_debrief || null;
   const rulesPreset = useMemo(() => getMissionCritiqueRulesPreset(locale), [locale]);
   const rulesContent = useMemo(
     () => ({
@@ -368,6 +384,121 @@ export default function MissionCritiqueChallenge({
 
   const roleViewClass = isFacilitator ? styles.facilitatorView : styles.participantView;
 
+  function renderTeamDebrief() {
+    if (!missionDebrief?.indicators) return null;
+    const { indicators, facts = {}, moments = [] } = missionDebrief;
+    const keys = INDICATOR_KEYS.filter((key) => indicators[key]);
+    const questions = keys
+      .filter((key) => Number.isFinite(indicators[key].score))
+      .sort((a, b) => indicators[a].score - indicators[b].score)
+      .slice(0, 2);
+    const factLines = [
+      facts.duration_seconds > 0
+        ? t('challengeMission.debrief.facts.timeUsed', { used: formatGameTime(facts.time_used_seconds), total: formatGameTime(facts.duration_seconds) })
+        : t('challengeMission.debrief.facts.timeUsedNoTimer', { used: formatGameTime(facts.time_used_seconds) }),
+      Number.isFinite(facts.first_action_seconds)
+        ? t('challengeMission.debrief.facts.firstAction', { time: formatGameTime(facts.first_action_seconds) })
+        : null,
+      Number.isFinite(facts.late_actions_percent)
+        ? t('challengeMission.debrief.facts.lateActions', { percent: facts.late_actions_percent })
+        : null,
+      t('challengeMission.debrief.facts.messages', { count: facts.message_count || 0, authors: facts.chat_authors || 0, total: facts.participant_count || 0 }),
+      Number.isFinite(facts.top_speaker_percent) && facts.participant_count > 1
+        ? t('challengeMission.debrief.facts.topSpeaker', { percent: facts.top_speaker_percent })
+        : null,
+      t('challengeMission.debrief.facts.tasksPlaced', { placed: facts.tasks_placed || 0, total: facts.tasks_total || 0, duplicates: facts.duplicates || 0 }),
+      facts.handoffs_total > 0
+        ? t('challengeMission.debrief.facts.handoffs', { respected: facts.handoffs_respected, total: facts.handoffs_total })
+        : null,
+      facts.dependencies_total > 0
+        ? t('challengeMission.debrief.facts.dependencies', { respected: facts.dependencies_respected, total: facts.dependencies_total })
+        : null,
+      t('challengeMission.debrief.facts.critical', { placed: facts.critical_placed || 0, total: facts.critical_total || 0 }),
+      t('challengeMission.debrief.facts.revisions', { count: facts.revisions || 0 }),
+    ].filter(Boolean);
+
+    return (
+      <section className={styles.teamDebrief} aria-labelledby="mission-team-indicators">
+        <div className={styles.resultTimelineHeader}>
+          <div>
+            <h3 id="mission-team-indicators">{t('challengeMission.debrief.indicatorsTitle')}</h3>
+            <p>{t('challengeMission.debrief.indicatorsNote')}</p>
+          </div>
+        </div>
+        <div className={styles.indicatorGrid}>
+          {keys.map((key) => {
+            const indicator = indicators[key];
+            const measured = Number.isFinite(indicator.score);
+            const weakest = weakestComponent(indicator);
+            return (
+              <article key={key} className={styles.indicatorCard}>
+                <span className={styles.indicatorTitle}>{t(`challengeMission.debrief.indicators.${key}.title`)}</span>
+                <strong className={styles.indicatorScore}>
+                  {measured ? t('challengeMission.debrief.scoreOutOf', { score: indicator.score }) : t('challengeMission.debrief.notMeasured')}
+                </strong>
+                {measured ? <span className={styles.indicatorBar} aria-hidden="true"><span style={{ width: `${indicator.score}%` }} /></span> : null}
+                <p>{t(`challengeMission.debrief.indicators.${key}.what`)}</p>
+                {weakest ? <p className={styles.indicatorTip}>{t('challengeMission.debrief.tip', { tip: t(`challengeMission.debrief.indicators.${key}.tips.${weakest}`) })}</p> : null}
+                <details className={styles.indicatorDetails}>
+                  <summary>{t('challengeMission.debrief.howComputed')}</summary>
+                  <ul>
+                    {Object.entries(indicator.components || {}).map(([part, value]) => (
+                      <li key={part}>
+                        <span>{t(`challengeMission.debrief.indicators.${key}.components.${part}`)}</span>
+                        <strong>{Number.isFinite(value) ? t('challengeMission.debrief.scoreOutOf', { score: value }) : t('challengeMission.debrief.notMeasured')}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </article>
+            );
+          })}
+        </div>
+        {indicators.communication ? <p className={styles.debriefNote}>{t('challengeMission.debrief.chatNote')}</p> : null}
+
+        <div className={styles.debriefColumns}>
+          <article className={styles.debriefPanel}>
+            <h3>{t('challengeMission.debrief.factsTitle')}</h3>
+            <ul className={styles.factList}>
+              {factLines.map((line) => <li key={line}>{line}</li>)}
+            </ul>
+          </article>
+          {moments.length > 0 ? (
+            <article className={styles.debriefPanel}>
+              <h3>{t('challengeMission.debrief.momentsTitle')}</h3>
+              <ol className={styles.momentList}>
+                {moments.map((moment) => {
+                  const labelKey = moment.key === 'end' ? `end_${moment.reason || 'not_all_submitted'}` : moment.key;
+                  return (
+                    <li key={labelKey}>
+                      <time>{formatGameTime(moment.t)}</time>
+                      <span>{t(`challengeMission.debrief.moments.${labelKey}`)}</span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </article>
+          ) : null}
+        </div>
+
+        {questions.length > 0 ? (
+          <article className={styles.debriefPanel}>
+            <h3>{t('challengeMission.debrief.questionsTitle')}</h3>
+            <p className={styles.debriefNote}>{t('challengeMission.debrief.questionsNote')}</p>
+            <ul className={styles.questionList}>
+              {questions.map((key) => (
+                <li key={key}>
+                  <strong>{t(`challengeMission.debrief.indicators.${key}.title`)}</strong>
+                  <span>{t(`challengeMission.debrief.indicators.${key}.question`)}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        ) : null}
+      </section>
+    );
+  }
+
   function handleStartChallenge() {
     refreshChallengeStateBeforeStart(emitEvent);
     emitEvent('timer.start');
@@ -493,6 +624,8 @@ export default function MissionCritiqueChallenge({
                     </article>
                   </div>
 
+                  {renderTeamDebrief()}
+
                   {(displayedResult.errors || []).length > 0 ? (
                     <ul className={styles.errorList}>
                       {displayedResult.errors.map((errMsg, idx) => (
@@ -536,11 +669,14 @@ export default function MissionCritiqueChallenge({
                   </div>
                 </>
               ) : (
-                <div className={styles.resultIncomplete}>
-                  <p>
-                    {t(submittedCount > 1 ? 'challengeMission.submittedOfParticipantsPluralEnd' : 'challengeMission.submittedOfParticipantsSingularEnd', { submittedCount, participantCount })}
-                  </p>
-                </div>
+                <>
+                  <div className={styles.resultIncomplete}>
+                    <p>
+                      {t(submittedCount > 1 ? 'challengeMission.submittedOfParticipantsPluralEnd' : 'challengeMission.submittedOfParticipantsSingularEnd', { submittedCount, participantCount })}
+                    </p>
+                  </div>
+                  {renderTeamDebrief()}
+                </>
               )}
             </section>
           ) : !isFacilitator ? (
@@ -817,7 +953,7 @@ export default function MissionCritiqueChallenge({
                 <article><Users size={20} aria-hidden="true" /><strong>{facilitatorBoard.length}</strong><span>{t('challengeMission.participants')}</span></article>
                 <article><ListTodo size={20} aria-hidden="true" /><strong>{boardSummary.placed}/{tasks.length}</strong><span>{t('challengeMission.uniqueTasksPlaced')}</span></article>
                 <article><CircleCheck size={20} aria-hidden="true" /><strong>{boardSummary.submitted}/{facilitatorBoard.length}</strong><span>{t('challengeMission.submissions')}</span></article>
-                <article><AlertTriangle size={20} aria-hidden="true" /><strong>{boardSummary.submitted ? boardSummary.errors : '—'}</strong><span>{t('challengeMission.errorsInSubmissions')}</span></article>
+                <article><AlertTriangle size={20} aria-hidden="true" /><strong>{boardSummary.errors}</strong><span>{t('challengeMission.teamPlanErrors')}</span></article>
               </div>
               {collectiveResult ? (
                 <p className={styles.score}>
@@ -850,7 +986,7 @@ export default function MissionCritiqueChallenge({
                       </div>
                       <div className={styles.participantMetrics}>
                         <div><span>{t('challengeMission.tasksPlaced')}</span><strong>{placed}/{tasks.length}</strong></div>
-                        <div><span>{t('challengeMission.errors')}</span><strong className={item.submitted && item.errors_count > 0 ? styles.metricError : ''}>{item.submitted ? (item.errors_count ?? 0) : '—'}</strong><small>{item.submitted ? t('challengeMission.validatedSubmission') : t('challengeMission.notEvaluatedYet')}</small></div>
+                        <div><span>{t('challengeMission.errors')}</span><strong className={item.errors_count > 0 ? styles.metricError : ''}>{item.errors_count ?? 0}</strong><small>{t('challengeMission.teamPlanErrorsHint')}</small></div>
                       </div>
                       <div className={styles.participantProgress}>
                         <span>{t('challengeMission.taskPlacement')} <strong>{progress}%</strong></span>

@@ -17,6 +17,7 @@ const mission = {
     { participant_id: '2', display_name: 'anne MARTIN', timeline: ['t2', 't3', 't4'], phases: {}, submitted: true, errors_count: 2 },
   ],
 };
+const refuseCookiesLabel = { fr: 'Refuser les cookies de mesure', en: 'Refuse analytics cookies' };
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
 try {
   for (const { locale, role, theme, width } of [
@@ -34,7 +35,7 @@ try {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-    await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+    await page.getByRole('button', { name: refuseCookiesLabel[locale], exact: true }).click({ timeout: 60000 });
     if (role === 'manager') {
       await page.getByRole('heading', { name: locale === 'fr' ? 'Tableau de bord facilitateur' : 'Facilitator dashboard', exact: true }).waitFor();
       const cards = page.locator('[class*="facilitatorCard"]');
@@ -44,7 +45,7 @@ try {
       assert.equal(await progress.getAttribute('value'), '2');
       assert.equal(await progress.getAttribute('max'), '4');
       assert.ok((await sophie.textContent()).includes('50%'));
-      assert.ok((await sophie.textContent()).includes(locale === 'fr' ? 'Non évalué' : 'Not evaluated yet'));
+      assert.ok((await sophie.textContent()).includes(locale === 'fr' ? 'Sur le plan d’équipe actuel' : 'In the current team plan'));
       const metrics = page.locator('[class*="dashboardMetrics"] article');
       assert.equal(await metrics.nth(1).locator('strong').textContent(), '4/4');
       assert.equal(await metrics.nth(2).locator('strong').textContent(), '1/2');
@@ -99,7 +100,7 @@ try {
       const titleBounds = await modal.getByRole('heading', { name: 'Préparer les supports' }).boundingBox();
       assert.ok(closeBounds.x > titleBounds.x + titleBounds.width);
       assert.ok(Math.abs(closeBounds.y - titleBounds.y) < 5);
-      const selected = modal.getByRole('button', { name: 'Préparation Sélectionnée', exact: true });
+      const selected = modal.getByRole('button', { name: 'Planification Sélectionnée', exact: true });
       assert.equal(await selected.getAttribute('aria-pressed'), 'true');
       assert.equal(await modal.locator('button[aria-pressed="true"]').count(), 1);
       const selectedColor = await selected.evaluate((item) => getComputedStyle(item).backgroundColor);
@@ -109,7 +110,7 @@ try {
       await modal.waitFor({ state: 'hidden' });
       assert.equal(await task.evaluate((item) => document.activeElement === item), true, 'Modal must restore focus');
       await task.click();
-      await modal.getByRole('button', { name: 'Exécution', exact: true }).click();
+      await modal.getByRole('button', { name: 'Jour J', exact: true }).click();
       await modal.waitFor({ state: 'hidden' });
       await page.waitForTimeout(150);
       assert.ok(receivedEvents.some((event) => event.type === 'mission.task.remove' && event.payload.taskId === 't1'));
@@ -153,7 +154,28 @@ try {
       challengeKey: engineKey,
       config: {},
       mission: completedMission,
-      summary: { collective_score: 84 },
+      summary: {
+        collective_score: 84,
+        mission_debrief: {
+          indicators: {
+            time_management: { score: 72, components: { quick_start: 90, steady_pace: 25, finished_in_time: 100 } },
+            communication: { score: 64, components: { participation: 100, chat_balance: 42, responsiveness: 50 } },
+            coordination: { score: 85, components: { coverage: 100, no_duplicates: 100, handoffs: 80, workload_balance: 60 } },
+            rigor: { score: 90, components: { dependencies: 88, critical_tasks: 92 } },
+            shared_leadership: { score: null, components: { early_engagement: null, activity_balance: null, role_clarity: null } },
+          },
+          facts: {
+            participant_count: 2, duration_seconds: 1200, time_used_seconds: 1080, first_action_seconds: 42, late_actions_percent: 38,
+            message_count: 12, chat_authors: 2, top_speaker_percent: 61, tasks_total: 4, tasks_placed: 4, duplicates: 0,
+            handoffs_total: 5, handoffs_respected: 4, dependencies_total: 8, dependencies_respected: 7, critical_total: 2, critical_placed: 2, revisions: 3,
+          },
+          moments: [
+            { key: 'first_message', t: 12 },
+            { key: 'first_action', t: 42 },
+            { key: 'end', t: 1080, reason: 'all_submitted' },
+          ],
+        },
+      },
       timer: { status: 'completed', duration_seconds: 1200, remaining_seconds: 120 },
     },
     viewport: { width: 390, height: 1000 },
@@ -164,7 +186,15 @@ try {
   await page.getByRole('heading', { name: "Débrief de l'équipe", exact: true }).waitFor();
   assert.equal(await page.getByRole('tab').count(), 0);
   assert.equal(await page.getByRole('heading', { name: 'Backlog mission', exact: true }).count(), 0);
-  assert.equal(await page.getByText('Timeline fusionnée de l’équipe', { exact: true }).count(), 1);
+  assert.equal(await page.getByText('Plan d’équipe', { exact: true }).count(), 1);
+  await page.getByRole('heading', { name: 'Indicateurs d’équipe', exact: true }).waitFor();
+  assert.equal(await page.locator('[class*="indicatorCard"]').count(), 5);
+  assert.equal(await page.getByText('Non mesuré', { exact: true }).first().isVisible(), true);
+  assert.equal(await page.getByText('Relais entre coéquipiers respectés : 4/5', { exact: true }).count(), 1);
+  assert.equal(await page.getByText('Plan validé par toute l’équipe', { exact: true }).count(), 1);
+  const questions = page.locator('[class*="questionList"] li');
+  assert.equal(await questions.count(), 2);
+  assert.ok((await questions.first().textContent()).startsWith('Communication'));
   assert.equal(await page.locator('[class*="resultTimelineItem"]').count(), 4);
   assert.equal(await page.getByText('Bon séquencement', { exact: true }).count(), 1);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Horizontal overflow in debrief');
