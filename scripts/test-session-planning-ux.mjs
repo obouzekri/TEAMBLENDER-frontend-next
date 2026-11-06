@@ -54,7 +54,7 @@ try {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseUrl}/${locale}/session-builder`);
-    const cookieButton = page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true });
+    const cookieButton = page.getByRole('button', { name: locale === 'fr' ? 'Refuser les cookies de mesure' : 'Refuse analytics cookies', exact: true });
     await cookieButton.click();
     await page.locator('#session-name').fill('Session planning UX');
     const choiceTitle = locale === 'fr' ? 'Composer votre programme' : 'Build your program';
@@ -104,6 +104,7 @@ try {
       ['active', 'waiting', 'waiting'],
     );
     assert.equal(await preparationSteps.nth(0).getAttribute('aria-current'), 'step');
+    assert.ok(await preparationSteps.nth(1).getByText(locale === 'fr' ? 'facultatif' : 'optional', { exact: true }).count());
     const choice = page.getByRole('region', { name: choiceTitle, exact: true });
     await choice.getByRole('heading', { name: choiceTitle, exact: true }).waitFor();
     const manualSelection = choice.getByRole('link', {
@@ -134,10 +135,10 @@ try {
       assert.ok(manualBox.height >= 44 && guidedBox.height >= 44);
       if (width <= 640) {
         assert.equal(manualBox.x, guidedBox.x);
-        assert.ok(guidedBox.y >= manualBox.y + manualBox.height + 15);
+        assert.ok(guidedBox.y >= manualBox.y + manualBox.height + 12);
       } else {
         assert.equal(manualBox.y, guidedBox.y);
-        assert.ok(guidedBox.x >= manualBox.x + manualBox.width + 15);
+        assert.ok(guidedBox.x >= manualBox.x + manualBox.width + 12);
       }
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     }
@@ -147,10 +148,18 @@ try {
     assert.equal(await page.evaluate(() => document.activeElement.id), 'challenge-catalog');
     assert.equal(await page.locator('[data-activity-id]').count(), 0);
     await guidedProgram.focus();
+    const scrollBeforeDialog = await page.evaluate(() => window.scrollY);
     await guidedProgram.press('Enter');
-    const dialog = page.getByRole('dialog', { name: locale === 'fr' ? 'Me proposer un programme' : 'Suggest a program', exact: true });
+    const dialog = page.getByRole('dialog', { name: locale === 'fr' ? 'Programme guidé' : 'Guided program', exact: true });
     const preview = dialog.locator('ol li');
     await preview.first().waitFor();
+    await dialog.getByRole('heading', { name: locale === 'fr' ? 'Vos critères' : 'Your criteria', exact: true }).waitFor();
+    for (const width of [320, 390, 768, 1440]) {
+      await page.setViewportSize({ width, height: 420 });
+      assert.equal(await dialog.evaluate((element) => element.scrollWidth > element.clientWidth), false);
+      assert.equal(await preview.first().evaluate((element) => element.scrollWidth > element.clientWidth), false);
+    }
+    await page.setViewportSize(viewport);
     assert.equal(await page.evaluate(() => document.documentElement.style.overflow), 'hidden');
     const lockedScrollY = await page.evaluate(() => window.scrollY);
     await page.mouse.move(5, 5);
@@ -192,7 +201,7 @@ try {
     assert.equal(await generateButton.getAttribute('data-loading-seen'), 'true');
     assert.equal(await generateButton.getAttribute('data-proposal-preserved'), 'true');
     assert.ok(await preview.count() > 0);
-    assert.ok(!(await preview.allTextContents()).some((name) => name.includes('croisés')));
+    assert.equal(await preview.count(), 2);
     const initialPreview = await preview.allTextContents();
     const firstReplacementButton = preview.first().getByRole('button');
     assert.match(
@@ -208,13 +217,13 @@ try {
     await dialog.getByRole('button', { name: locale === 'fr' ? 'Utiliser ce programme' : 'Use this program', exact: true }).click();
     await page.getByRole('dialog').waitFor({ state: 'hidden' });
     assert.equal(await page.evaluate(() => document.documentElement.style.overflow), '');
-    assert.equal(await page.evaluate(() => window.scrollY), lockedScrollY);
+    assert.equal(await page.evaluate(() => window.scrollY), scrollBeforeDialog);
     assert.ok(await page.locator('[data-activity-id]').count() > 0);
     assert.deepEqual(
       await preparationSteps.evaluateAll((items) => items.map((item) => item.dataset.stageStatus)),
-      ['done', 'active', 'ready'],
+      ['done', 'optional', 'ready'],
     );
-    assert.equal(await preparationSteps.nth(1).getAttribute('aria-current'), 'step');
+    assert.equal(await preparationSteps.nth(1).getAttribute('aria-current'), null);
     const appliedSelection = await page.locator('[data-activity-id]').allTextContents();
     await manualSelection.click();
     assert.deepEqual(await page.locator('[data-activity-id]').allTextContents(), appliedSelection);

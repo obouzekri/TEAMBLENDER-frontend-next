@@ -1746,6 +1746,8 @@ export default function SessionBuilder() {
             onMoveDown={moveChallengeDown}
             onReorder={reorderChallenge}
             onClearAll={clearAll}
+            onLaunch={handleRequestLaunch}
+            isLaunching={isLaunching}
           />
 
           <ChallengesCatalog
@@ -1859,7 +1861,7 @@ export default function SessionBuilder() {
 
       <Modal
         open={programOpen}
-        title={t('sessionBuilder.proposeProgram')}
+        title={t('sessionBuilder.guidedProgram')}
         onClose={() => setProgramOpen(false)}
         overlayClassName={styles.programDialogOverlay}
         dialogClassName={styles.programDialog}
@@ -1867,52 +1869,57 @@ export default function SessionBuilder() {
         bodyClassName={styles.programDialogBody}
       >
         <div className={styles.programForm}>
-          <p>{t('sessionBuilder.programDialogHint')}</p>
-          <div className={styles.programContext}>
-            <span>{objectiveLabel || t('sessionBuilder.noPreference')}</span>
-            <span className={!expectedCount ? styles.programContextNotice : undefined}>
-              {expectedCount
-                ? t('sessionBuilder.plannedCount', { count: expectedCount })
-                : t('sessionBuilder.programUnknownCount')}
-            </span>
-          </div>
-          <Input
-            id="program-duration"
-            type="number"
-            min="1"
-            max="240"
-            step="1"
-            label={t('sessionBuilder.targetDuration')}
-            value={targetMinutes}
-            hint={t('sessionBuilder.targetDurationHint')}
-            suffix={t('sessionBuilder.minutes')}
-            disabled={isGeneratingProgram}
-            onChange={(event) => {
-              setTargetMinutes(event.target.value);
-              setProgramProposalNeedsRefresh(Boolean(programProposal));
-              setProgramError('');
-              setProgramNotice('');
-            }}
-          />
-          <Button
-            variant="secondary"
-            onClick={generateProgram}
-            disabled={isGeneratingProgram}
-            className={styles.programRegenerateButton}
-          >
-            {isGeneratingProgram ? (
-              <>
-                <span className={styles.programLoadingIndicator} aria-hidden="true" />
-                {t('sessionBuilder.programGenerating')}
-              </>
-            ) : (
-              t(
-                programProposal
-                  ? 'sessionBuilder.regenerateProgram'
-                  : 'sessionBuilder.generateProgram'
-              )
-            )}
-          </Button>
+          <p className={styles.programIntro}>{t('sessionBuilder.programDialogHint')}</p>
+          <section className={styles.programCriteria} aria-labelledby="program-criteria-title">
+            <h3 id="program-criteria-title">{t('sessionBuilder.programCriteria')}</h3>
+            <div className={styles.programContext}>
+              <span>{objectiveLabel || t('sessionBuilder.noPreference')}</span>
+              <span className={!expectedCount ? styles.programContextNotice : undefined}>
+                {expectedCount
+                  ? t('sessionBuilder.plannedCount', { count: expectedCount })
+                  : t('sessionBuilder.programUnknownCount')}
+              </span>
+            </div>
+            <div className={styles.programCriteriaControls}>
+              <Input
+                id="program-duration"
+                type="number"
+                min="1"
+                max="240"
+                step="1"
+                label={t('sessionBuilder.targetDuration')}
+                value={targetMinutes}
+                hint={t('sessionBuilder.targetDurationHint')}
+                suffix={t('sessionBuilder.minutes')}
+                disabled={isGeneratingProgram}
+                onChange={(event) => {
+                  setTargetMinutes(event.target.value);
+                  setProgramProposalNeedsRefresh(Boolean(programProposal));
+                  setProgramError('');
+                  setProgramNotice('');
+                }}
+              />
+              <Button
+                variant="secondary"
+                onClick={generateProgram}
+                disabled={isGeneratingProgram}
+                className={styles.programRegenerateButton}
+              >
+                {isGeneratingProgram ? (
+                  <>
+                    <span className={styles.programLoadingIndicator} aria-hidden="true" />
+                    {t('sessionBuilder.programGenerating')}
+                  </>
+                ) : (
+                  t(
+                    programProposal
+                      ? 'sessionBuilder.regenerateProgram'
+                      : 'sessionBuilder.generateProgram'
+                  )
+                )}
+              </Button>
+            </div>
+          </section>
           {programProposalNeedsRefresh ? (
             <p className={styles.programFeedbackNotice} role="status">
               {t('sessionBuilder.programNeedsRefresh')}
@@ -1946,8 +1953,9 @@ export default function SessionBuilder() {
                     </p>
                   </div>
                   <ol className={styles.programPreview}>
-                    {programProposal.challenges.map((challenge) => (
+                    {programProposal.challenges.map((challenge, index) => (
                       <li key={challenge.id} className={styles.programPreviewItem}>
+                        <span className={styles.programStepNumber} aria-hidden="true">{index + 1}</span>
                         <div className={styles.programPreviewContent}>
                           <strong>{challenge.name}</strong>
                           <small>

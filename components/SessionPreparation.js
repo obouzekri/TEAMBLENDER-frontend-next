@@ -26,10 +26,8 @@ export default function SessionPreparation({
     },
     {
       label: t('sessionPreparation.stageConfigure'),
-      status: hasSelection ? 'active' : 'waiting',
-      statusLabel: t(
-        hasSelection ? 'sessionPreparation.statusActive' : 'sessionPreparation.statusWaiting'
-      ),
+      status: hasSelection ? 'optional' : 'waiting',
+      statusLabel: t('sessionBuilder.optionalLabel'),
       detail: t('sessionPreparation.configureHint'),
     },
     {

@@ -92,7 +92,10 @@ try {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseUrl}/${locale}/session-builder?sessionId=42`);
-    await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+    await page.getByRole('button', {
+      name: locale === 'en' ? 'Refuse analytics cookies' : 'Refuser les cookies de mesure',
+      exact: true,
+    }).click();
     await page.getByRole('heading', { name: session.name, exact: true }).waitFor();
     assert.ok(
       (await page
@@ -106,6 +109,29 @@ try {
         .evaluateAll((items) => items.map((item) => Number(item.dataset.activityId)));
     await page.locator('[data-activity-id="103"]').waitFor();
     assert.deepEqual(await order(), [101, 102, 103]);
+
+    const selection = list.locator('..');
+    const launchButton = selection.getByRole('button', {
+      name: locale === 'en' ? 'Launch session' : 'Lancer la session',
+      exact: true,
+    });
+    if (mobile) {
+      const buttonTop = (await launchButton.boundingBox()).y;
+      assert.ok(await list.evaluate((element) => element.scrollHeight > element.clientHeight));
+      await list.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+      assert.equal((await launchButton.boundingBox()).y, buttonTop);
+      await list.evaluate((element) => { element.scrollTop = 0; });
+    }
+    await launchButton.click();
+    const launchDialog = page.getByRole('dialog', {
+      name: locale === 'en' ? 'Confirm launch' : 'Confirmer le lancement',
+    });
+    await launchDialog.waitFor();
+    await launchDialog.getByRole('button', {
+      name: locale === 'en' ? 'Cancel' : 'Annuler',
+      exact: true,
+    }).click();
+    assert.equal(await launchDialog.count(), 0);
 
     const catalog = page.locator('[data-catalog]');
     const cards = catalog.locator('[class*="cardHeader"]').locator('..');
@@ -161,6 +187,7 @@ try {
     const source = await handle.boundingBox();
     const target = await page.locator('[data-activity-id="103"]').boundingBox();
     if (mobile) {
+      const listBounds = await list.boundingBox();
       const cdp = await context.newCDPSession(page);
       await cdp.send('Input.dispatchTouchEvent', {
         type: 'touchStart',
@@ -168,7 +195,10 @@ try {
       });
       await cdp.send('Input.dispatchTouchEvent', {
         type: 'touchMove',
-        touchPoints: [{ x: target.x + target.width / 2, y: target.y + target.height / 2 }],
+        touchPoints: [{
+          x: target.x + target.width / 2,
+          y: Math.min(target.y + target.height / 2, listBounds.y + listBounds.height - 5),
+        }],
       });
       await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
       await cdp.detach();

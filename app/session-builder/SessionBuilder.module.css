@@ -310,6 +310,33 @@
   gap: 1rem;
 }
 
+.programIntro {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.programCriteria {
+  display: grid;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.programCriteria h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.programCriteriaControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem;
+}
+
 .programDialog {
   max-width: min(52rem, 96vw);
   display: flex;
@@ -331,6 +358,11 @@
   flex: 0 0 auto;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--line);
+}
+
+.programDialogHeader h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
 }
 
 .programDialogBody {
@@ -366,6 +398,7 @@
 
 .programRegenerateButton {
   justify-self: start;
+  align-self: center;
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
@@ -444,14 +477,32 @@
   justify-content: space-between;
   align-items: center;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 0.65rem 0.8rem;
   background: var(--surface-panel-soft);
 }
 
+.programStepNumber {
+  display: grid;
+  flex: 0 0 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 .programPreviewContent {
   display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
   gap: 0.2rem;
+}
+
+.programPreviewContent strong {
+  overflow-wrap: anywhere;
 }
 
 .programPreviewContent small {
@@ -476,13 +527,16 @@
     display: grid;
   }
 
+  .programCriteriaControls {
+    grid-template-columns: 1fr;
+  }
+
   .programPreviewItem {
-    align-items: stretch;
-    flex-direction: column;
+    flex-wrap: wrap;
   }
 
   .programPreviewItem > button {
-    align-self: flex-start;
+    margin-inline-start: 2.55rem;
   }
 }
 

@@ -15,6 +15,8 @@ export default function SelectedChallengesList({
   onMoveDown,
   onReorder,
   onClearAll,
+  onLaunch,
+  isLaunching = false,
 }) {
   const { t, locale } = useI18n();
   const listRef = useRef(null);
@@ -172,6 +174,11 @@ export default function SelectedChallengesList({
       </ul>
 
       <div className={styles.footer}>
+        {onLaunch ? (
+          <Button block onClick={onLaunch} disabled={isLaunching} aria-busy={isLaunching}>
+            {t(isLaunching ? 'sessionBuilder.launching' : 'sessionBuilder.launchSession')}
+          </Button>
+        ) : null}
         <Button className={styles.clearSelectionButton} variant="secondary" size="sm" block onClick={onClearAll}>
           {t('sessionBuilder.clearSelection')}
         </Button>
