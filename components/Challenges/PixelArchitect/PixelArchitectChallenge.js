@@ -431,14 +431,14 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     const height = Math.max(320, container.clientHeight || 520);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x06151f);
+    scene.background = null;
 
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 200);
     camera.position.set(gridSize + 2, Math.max(8, grid.y + 2), gridSize + 2);
 
     const renderer = (() => {
       try {
-        const r = new THREE.WebGLRenderer({ antialias: true });
+        const r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         return r;
       } catch {
         setWebglUnavailable(true);
