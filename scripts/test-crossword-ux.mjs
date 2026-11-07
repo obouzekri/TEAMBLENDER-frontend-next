@@ -233,6 +233,13 @@ try {
         assert.equal(await page.getByRole('timer').count(), 1, 'Only one visible timer card');
         const timerSlot = width > 900 ? '.challenge-desktop-timer' : '.challenge-mobile-timer';
         assert.equal(await page.locator(`${timerSlot} .timerRing`).count(), 1, 'Timer uses the shared circular display');
+        const rankingSlot = width > 900 ? '.timerColumn' : '.mobileRankingSlot';
+        const rankingCard = page.locator(`${rankingSlot} .rankingCard`);
+        assert.equal(await rankingCard.isVisible(), true, 'Live ranking is visible below the timer');
+        const rankingBounds = await rankingCard.boundingBox();
+        const timerCardBounds = await page.locator(`${timerSlot} .timerCard`).boundingBox();
+        assert.ok(rankingBounds.y >= timerCardBounds.y + timerCardBounds.height, 'Live ranking follows the timer');
+        assert.equal(await rankingCard.getByText('#1', { exact: true }).count(), 1, 'Ranking rows show their rank');
         await page.getByRole('status').filter({ hasText: currentLocale === 'en' ? '1/2 words found' : '1/2 mots trouvés' }).waitFor();
         const timerBounds = await page.locator(timerSlot).boundingBox();
         const arenaBounds = await page.locator('.arenaColumn').boundingBox();
@@ -252,12 +259,7 @@ try {
           assert.ok(Math.abs(timerBounds.width - arenaBounds.width) <= 1, 'Mobile timer spans the layout, as in the other challenges');
         }
         assert.equal(await page.getByRole('button', { name: /^(End game|Terminer la partie)$/ }).count(), 0);
-        assert.equal(await page.getByRole('button', { name: 'challengeTimer.pause', exact: true }).count(), currentFacilitator ? 1 : 0);
-        if (currentFacilitator) {
-          const pauseBounds = await page.getByRole('button', { name: 'challengeTimer.pause', exact: true }).boundingBox();
-          const timeBounds = await page.getByRole('timer').boundingBox();
-          assert.ok(pauseBounds.y >= timeBounds.y + timeBounds.height, 'Pause stays below the timer');
-        }
+        assert.equal(await page.getByRole('button', { name: 'challengeTimer.pause', exact: true }).count(), 0, 'The server timer cannot be paused: no Pause button');
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${width}: no page overflow during play`);
         await page.getByRole('button', { name: 'challengeRulesPanel.showRules', exact: true }).click();
         await page.getByRole('dialog').waitFor();
@@ -320,35 +322,30 @@ try {
     render();
   });
   await page.getByRole('grid').waitFor();
-  const pauseButton = page.getByRole('button', { name: 'challengeTimer.pause', exact: true });
-  await pauseButton.waitFor();
-  await page.evaluate(() => { socket.connected = false; render(); });
-  assert.equal(await pauseButton.isDisabled(), true, 'Pause is unavailable while disconnected');
-  await page.evaluate(() => { socket.connected = true; render(); });
-  await pauseButton.click();
-  assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.pause')));
-  assert.equal(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.stop')), false);
-  assert.equal(await pauseButton.count(), 1, 'Pause waits for server confirmation');
-  await page.evaluate(() => {
-    state = { ...state, timer: { status: 'paused', remaining_seconds: 900 } };
-    render();
-  });
-  await page.getByRole('grid').waitFor();
-  assert.equal(await page.locator('.rulesCard').count(), 0, 'Paused games do not return to the prestart rules');
-  assert.equal(await pauseButton.count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'challengeTimer.pause', exact: true }).count(), 0, 'No Pause for the facilitator');
   await page.getByRole('button', { name: 'Answer', exact: true }).click();
   await page.getByRole('dialog', { name: 'A feline' }).waitFor();
-  assert.equal(await page.getByRole('button', { name: 'Submit word', exact: true }).isDisabled(), true, 'Answers are disabled while paused');
-  await page.getByText('Game paused: answers resume when the timer restarts.', { exact: true }).waitFor();
+  assert.equal(await page.locator('.dialogOverlay, [aria-modal="true"]').count(), 0, 'The answer panel does not block the page');
   await page.keyboard.press('Escape');
-  assert.equal(await page.getByRole('dialog').count(), 0, 'Escape closes the answer dialog');
-  await page.getByRole('button', { name: 'challengeTimer.resume', exact: true }).click();
-  assert.ok(await page.evaluate(() => emitted.some((entry) => entry.type === 'timer.resume')));
+  assert.equal(await page.getByRole('dialog').count(), 0, 'Escape closes the answer panel');
+  // Ranking: tied scores share a rank, nobody is ranked before finding a word. Activity: latest first.
   await page.evaluate(() => {
-    state = { ...state, timer: { status: 'running', remaining_seconds: 900 } };
+    globalThis.savedCrossword = state.crossword;
+    state = { ...state, crossword: { ...state.crossword,
+      scores: [
+        { participantId: 'p2', displayName: 'Sam', score: 2 },
+        { participantId: 'p3', displayName: 'Lee', score: 2 },
+        { participantId: 'p4', displayName: 'Kim', score: 1 },
+        { participantId: 'p5', displayName: 'Ana', score: 0 },
+      ],
+      activity: Array.from({ length: 10 }, (_, index) => ({ wordId: `w${index}`, answer: `WORD${index}`, displayName: 'Sam', ts: 1000 - index })),
+    } };
     render();
   });
-  await pauseButton.waitFor();
+  assert.deepEqual(await page.locator('.timerColumn .rankPill').allTextContents(), ['#1', '#1', '#3', '–']);
+  assert.deepEqual(await page.locator('.activity li strong').allTextContents(),
+    ['WORD0', 'WORD1', 'WORD2', 'WORD3', 'WORD4', 'WORD5', 'WORD6', 'WORD7'], 'Latest discoveries come first');
+  await page.evaluate(() => { state = { ...state, crossword: savedCrossword }; render(); });
   await page.evaluate(() => {
     facilitator = false;
     runtimeConfig = { participants: { assigned_count: 2 } };
@@ -364,15 +361,22 @@ try {
   assert.equal(await page.getByLabel('Your answer', { exact: true }).count(), 0, 'Answer entry lives in the dialog only');
   await page.locator('[data-cell="2:2"]').click();
   await page.getByRole('dialog', { name: 'An organization' }).waitFor();
-  assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('.inputLine input')), true, 'Clicking a cell opens the dialog with the answer field focused');
+  assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('.patternInput')), true, 'Clicking a cell opens the panel with the answer field focused');
   assert.equal((await page.locator('.patternLetter').allTextContents()).join('|'), 'R||', 'Pattern shows the letters already revealed');
-  await page.locator('.dialogOverlay').click({ position: { x: 4, y: 4 } });
-  assert.equal(await page.getByRole('dialog').count(), 0, 'Clicking outside closes the answer dialog');
   await page.locator('[data-cell="0:0"]').click();
   await page.getByRole('dialog', { name: 'A feline' }).waitFor();
+  assert.equal(await page.getByRole('dialog').count(), 1, 'The grid stays usable while the panel is open');
+  await page.getByRole('button', { name: 'Next word', exact: true }).click();
+  await page.getByRole('dialog', { name: 'An organization' }).waitFor();
+  await page.getByRole('button', { name: 'Previous word', exact: true }).click();
+  await page.getByRole('dialog', { name: 'A feline' }).waitFor();
+  await page.getByLabel('Your answer', { exact: true }).fill('at');
+  assert.equal((await page.locator('.patternLetter').allTextContents()).join('|'), 'C|A|T', 'Typed letters fill the empty boxes around revealed letters');
+  assert.equal(await page.getByRole('button', { name: 'Submit word' }).isDisabled(), false);
   await page.getByRole('button', { name: '1 · Down', exact: true }).click();
   await page.getByRole('dialog', { name: 'A vehicle' }).waitFor();
   assert.equal(await page.getByRole('button', { name: 'Submit word' }).isDisabled(), true, 'Solved words cannot be submitted again');
+  await page.locator('.dialogSolved').filter({ hasText: '✓ Found by Sam : CAR' }).waitFor();
   await page.getByRole('button', { name: '1 · Across', exact: true }).click();
   await page.getByRole('dialog', { name: 'A feline' }).waitFor();
   await page.getByLabel('Your answer', { exact: true }).fill('BAT');
@@ -410,7 +414,7 @@ try {
     dispatch('disconnect');
     render();
   });
-  await page.waitForFunction(() => !document.querySelector('.inputLine input').disabled);
+  await page.waitForFunction(() => !document.querySelector('.patternInput').disabled);
   assert.equal(await page.getByLabel('Your answer', { exact: true }).isDisabled(), false);
   assert.equal(await page.getByLabel('Your answer', { exact: true }).inputValue(), 'cât');
   await page.evaluate(() => { socket.connected = true; render(); });
@@ -421,10 +425,12 @@ try {
     state = { ...state, crossword: { ...state.crossword, grid: { ...state.crossword.grid, words: state.crossword.grid.words.map((word) => word.id === 'a' ? { ...word, answer: 'CAT', solvedBy: 'p2' } : word) } } };
     render();
   });
-  await page.getByRole('heading', { name: 'An organization' }).waitFor();
-  assert.equal(await page.getByRole('dialog').count(), 0, 'The dialog closes once its word is solved');
+  await page.getByText('This word has already been found by Sam.', { exact: true }).waitFor();
+  assert.equal(await page.getByRole('dialog', { name: 'A feline' }).count(), 1, 'The panel shows the outcome before moving on');
+  await page.getByRole('dialog', { name: 'An organization' }).waitFor();
   await page.getByRole('button', { name: '1 A feline (3)' }).click();
   await page.getByRole('dialog', { name: 'A feline' }).waitFor();
+  await page.locator('.dialogSolved').filter({ hasText: '✓ Found by Sam : CAT' }).waitFor();
   assert.equal(await page.getByLabel('Your answer', { exact: true }).inputValue(), 'cât');
   await page.keyboard.press('Escape');
   const firstCell = page.locator('[data-cell="0:0"]');
@@ -537,11 +543,11 @@ try {
           const [low, high] = [luminance(foreground), luminance(background)].sort((a, b) => a - b);
           return (high + .05) / (low + .05);
         };
-        return Object.fromEntries(['.card', '.help', '.cell.revealed', '.wordCell', '.clueButton', '.answerTrigger', '.dialog', '.clueMeta', '.primary', '.inputLine input'].map((selector) => [selector, contrast(selector)]));
+        return Object.fromEntries(['.card', '.help', '.cell.revealed', '.wordCell', '.clueButton', '.answerTrigger', '.dialog', '.clueMeta', '.primary', '.patternLetter:not(.patternRevealed)'].map((selector) => [selector, contrast(selector)]));
       });
       await page.keyboard.press('Escape');
       for (const [selector, contrast] of Object.entries(contrasts)) assert.ok(contrast >= 4.5, `${theme}/${width} ${selector}: contrast ${contrast}`);
-      const missing = await page.locator('.root').evaluate((node, tokens) => tokens.filter((token) => !getComputedStyle(node).getPropertyValue(token).trim()), [...new Set(css.match(/--[a-z][\w-]+/g))].filter((token) => !['--board-max-height', '--columns', '--rows', '--cell-size', '--challenge-panel-bg'].includes(token)));
+      const missing = await page.locator('.root').evaluate((node, tokens) => tokens.filter((token) => !getComputedStyle(node).getPropertyValue(token).trim()), [...new Set(css.match(/--[a-z][\w-]+/g))].filter((token) => !['--board-max-height', '--columns', '--rows', '--cell-size', '--challenge-panel-bg', '--answer-panel-height'].includes(token)));
       assert.deepEqual(missing, [], `${theme}: every CSS token resolves from real globals`);
       if (theme === 'light') {
         assert.equal(await page.locator('.card').first().evaluate((card) => getComputedStyle(card).backgroundColor), 'rgba(255, 255, 255, 0.99)', `${width}: light panels use the shared fallback surface`);
@@ -636,7 +642,7 @@ try {
   await page.waitForFunction(() => hookValue.state?.timer?.status === 'completed');
   assert.equal(await page.evaluate(() => completed.length), 1);
   assert.deepEqual(errors, []);
-  console.log('PASS crossword rules-first/server-confirmed arena, facilitator/participant FR/EN mobile/tablet/desktop, shared circular right timer, 65/35 board/clues, answer dialog from cells/clues/keyboard, word count without progress bars, shared rules dialog and final review, normalization, correlated answers/errors, cooldown, saved drafts, auto-advance, keyboard/clue scrolling, 15x15 light/dark contrast >=4.5, no page overflow, config and realtime completion');
+  console.log('PASS crossword rules-first/server-confirmed arena, facilitator/participant FR/EN mobile/tablet/desktop, shared circular right timer, 65/35 board/clues, non-blocking answer panel from cells/clues/keyboard with previous/next and typing into boxes, no pause, shared ranks, latest activity first, word count without progress bars, shared rules dialog and final review, normalization, correlated answers/errors, cooldown, saved drafts, auto-advance, keyboard/clue scrolling, 15x15 light/dark contrast >=4.5, no page overflow, config and realtime completion');
 } finally {
   await browser.close();
 }

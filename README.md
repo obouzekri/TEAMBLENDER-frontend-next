@@ -26,7 +26,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les commandes Pause / Reprendre sont compactes et centrees, sans occuper toute la largeur de la carte, avec une cible cliquable de 44 px de haut sur mobile et ordinateur. Validation FR/EN et clair/sombre : `npm run test:ux:shared`.
 - Pour tous les challenges, le minuteur (carte mobile/desktop et rappel dans l'en-tete) reste masque avant le demarrage, pour l'animateur comme pour les participants.
 - Il apparait au demarrage et reste disponible pendant les pauses et les transitions entre manches. Le retour a l'etat de preparation le masque de nouveau; le debrief conserve son comportement existant.
-- Pour les mots croises, l'animateur utilise les commandes communes Pause / Reprendre, sans bouton de fin de partie dans le minuteur. Les reponses sont bloquees pendant la pause.
+- Pour les mots croises, le chrono serveur ne se met pas en pause : le minuteur n'affiche ni Pause / Reprendre ni bouton de fin de partie.
 - Validation mots croises : `npm run test:ux:crossword` (Chrome disponible, sans serveur requis).
 - Validation : `node scripts/test-challenge-timer-visibility.mjs` (frontend sur 3100, Chrome disponible, API simulees) : les 10 challenges, animateur/desktop FR et participant/mobile EN, avant demarrage, en cours, en pause et apres reinitialisation.
 
@@ -161,12 +161,17 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 ### Mots croises Live
 
-- Un refus de lancement affiche un seul bandeau, sans alerte rouge en doublon. Il faut au moins 2 personnes connectees pour lancer; la limite de 5 participants assignes reste inchangee.
+- Un refus de lancement affiche un seul bandeau, sans alerte rouge en doublon.
 - Avant le lancement, les regles occupent toute la largeur disponible sur desktop et mobile, avec le bouton de demarrage du facilitateur a la place de l'arene. Les participants voient les regles et attendent le lancement confirme par le serveur.
 - Apres le lancement, la grille occupe environ 70 % de l'espace de jeu et les definitions 30 % sur desktop. Le compteur « 0/15 mots trouves » remplace la barre de progression et les pourcentages. Les regles restent consultables depuis l'en-tete.
-- Un seul chrono compact, sans anneau decoratif ni doublon dans l'en-tete, occupe une colonne fixe a droite sur desktop et passe en haut a droite sur mobile. Le bouton Terminer la partie reste sous le chrono pour le facilitateur; la reprise en pause est conservee. Le bilan final retire le chrono et utilise toute la largeur.
+- Un seul chrono compact, sans anneau decoratif ni doublon dans l'en-tete, occupe une colonne fixe a droite sur desktop et passe en haut a droite sur mobile. Le classement en direct suit le chrono. Le bilan final retire le chrono et utilise toute la largeur.
 - La grille utilise des cases adaptatives de 44 a 64 px et davantage de hauteur; les grandes grilles restent defilables sans debordement de la page.
-- Aucun nombre minimum ou maximum de participants ne bloque Crossword Live, y compris en solo, sans participant connecte ou au-dela de cinq participants. Les anciennes limites du catalogue ne filtrent plus les programmes proposes.
+- Aucun nombre minimum ou maximum de participants ne bloque Crossword Live, y compris en solo, sans participant connecte ou au-dela de cinq participants. Les regles le conseillent pour 2 a 5 participants. Les anciennes limites du catalogue ne filtrent plus les programmes proposes.
+- Le panneau de reponse n'est pas modal : sans voile, il se place en haut de la colonne des definitions sur desktop et en bas de l'ecran sous 960 px, la grille restant visible et cliquable au-dessus. Cliquer une autre case change de mot sans le fermer; Echap ou × le ferment.
+- On tape directement dans les cases du mot : les lettres deja revelees restent en place et la saisie remplit les cases vides. Taper le mot entier, lettres revelees comprises, est aussi accepte.
+- Les boutons ‹ / › passent au mot non resolu precedent ou suivant (ordre des definitions : horizontal puis vertical).
+- Quand le mot en cours est trouve, le panneau l'indique pendant 1,5 s (« Bravo » pour soi, « Trouve par … » pour un autre joueur), puis passe au mot non resolu suivant.
+- Classement : les scores egaux partagent le meme rang, un joueur sans mot trouve n'a pas de rang. « Dernieres decouvertes » affiche les 8 plus recentes, la plus recente en premier.
 - Validation: `npm run test:ux:crossword` (Chrome disponible, sans serveur). La suite couvre le parcours regles/lancement/arene, les deux roles, FR/EN, les dispositions desktop/mobile et les interactions temps reel simulees.
 
 ### Securite du compte
