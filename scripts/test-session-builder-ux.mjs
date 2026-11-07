@@ -241,12 +241,27 @@ try {
     );
     assert.deepEqual(savedOrder, [102, 103, 101]);
 
-    const copyButtons = page.locator('[class*="summaryInviteCopy"]');
-    assert.equal(await copyButtons.count(), 3);
-    assert.equal(
-      new Set(await copyButtons.evaluateAll((items) => items.map((item) => item.className))).size,
-      1
-    );
+    const invitePanel = page.getByRole('region', {
+      name: locale === 'en' ? 'Invite your team' : 'Invitez votre équipe',
+    });
+    assert.equal(await invitePanel.getByRole('button').count(), 3);
+    const inviteCode = invitePanel.getByText('UXTEST', { exact: true });
+    const inviteMessageButton = invitePanel.getByRole('button', {
+      name: locale === 'en' ? 'Copy invitation message' : "Copier le message d'invitation",
+      exact: true,
+    });
+    const inviteLink = invitePanel.getByRole('link');
+    assert.ok(await inviteCode.isVisible());
+    const [panelBox, codeBox, messageBox, linkBox] = await Promise.all([
+      invitePanel.boundingBox(),
+      inviteCode.boundingBox(),
+      inviteMessageButton.boundingBox(),
+      inviteLink.boundingBox(),
+    ]);
+    assert.ok(codeBox.y + codeBox.height <= messageBox.y);
+    assert.ok(messageBox.y + messageBox.height <= linkBox.y);
+    assert.ok(panelBox.x >= 0 && panelBox.x + panelBox.width <= page.viewportSize().width);
+    assert.ok(linkBox.x >= panelBox.x && linkBox.x + linkBox.width <= panelBox.x + panelBox.width);
     for (const [label, expected] of [
       [locale === 'en' ? 'Copy invitation message' : "Copier le message d'invitation", 'UXTEST'],
       [locale === 'en' ? 'Copy link' : 'Copier le lien', 'invite=ux-fixture'],
