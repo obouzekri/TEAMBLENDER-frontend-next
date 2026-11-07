@@ -4,9 +4,6 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import useI18n from '@/lib/i18n/useI18n';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useConfirmedAction from '@/lib/challenges/useConfirmedAction';
-import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
-import useBodyScrollLock from '@/lib/useBodyScrollLock';
-import useModalFocus from '@/lib/useModalFocus';
 import { getCrosswordRulesPreset } from '@/lib/challenges/crosswordRules';
 import ChallengeHeader from '../ChallengeHeader';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
@@ -20,10 +17,10 @@ import { pickLocalized } from '@/lib/i18n';
 const COPY = {
   fr: {
     title: 'Mots croisés Live', loading: 'Chargement de la grille…', across: 'Horizontal', down: 'Vertical',
-    board: 'Grille de mots croisés', help: 'Cliquez sur une case ou une définition pour répondre. Clavier : flèches pour se déplacer, Espace pour changer de sens, Entrée pour répondre.',
+    board: 'Grille de mots croisés', help: 'Cliquez sur une case ou une définition pour répondre.', keyboardHelp: 'Clavier : flèches pour se déplacer, Espace pour changer de sens, Entrée pour répondre.',
     openAnswer: 'Répondre', close: 'Fermer', switchDirection: 'Sens du mot',
     row: 'Ligne', col: 'colonne', empty: 'vide', found: 'Trouvé', letters: 'lettres', answer: 'Votre réponse', submit: 'Proposer le mot',
-    wordsFound: 'mots trouvés', leaderboard: 'Classement', activity: 'Dernières découvertes', none: 'Aucune découverte pour le moment.',
+    wordsFound: 'mots trouvés', leaderboard: 'Classement', liveUpdate: 'Mis à jour en direct', activity: 'Dernières découvertes', none: 'Aucune découverte pour le moment.',
     points: 'points', unresolved: 'Mots non résolus', perfect: 'Bravo ! Toute la grille est résolue.',
     solution: 'Réponse', answerUnavailable: 'Réponse indisponible',
     start: 'Démarrer la partie', waiting: 'En attente du démarrage par l’animateur.',
@@ -34,14 +31,14 @@ const COPY = {
     already_found: 'Ce mot a déjà été trouvé', rate_limited: 'Trop de tentatives. Patientez avant de réessayer.',
     invalid: 'Réponse invalide. Vérifiez votre saisie.', closed: 'La partie est terminée.', forbidden: 'Vous ne pouvez pas proposer de réponse.',
     failed: 'Action refusée. Votre brouillon est conservé.', by: 'par', cooldown: 'Nouvelle tentative dans', seconds: 's',
-    solvedDraft: 'Mot déjà trouvé. Votre brouillon est conservé.', paused: 'Partie en pause : les réponses reprendront à la reprise du chrono.', objective: 'Résolvez ensemble les définitions pour compléter la grille.',
+    foundBy: 'Trouvé par', previous: 'Mot précédent', next: 'Mot suivant', objective: 'Résolvez ensemble les définitions pour compléter la grille.',
   },
   en: {
     title: 'Crossword Live', loading: 'Loading the grid…', across: 'Across', down: 'Down',
-    board: 'Crossword board', help: 'Click a cell or a clue to answer. Keyboard: arrows to move, Space to switch direction, Enter to answer.',
+    board: 'Crossword board', help: 'Click a cell or a clue to answer.', keyboardHelp: 'Keyboard: arrows to move, Space to switch direction, Enter to answer.',
     openAnswer: 'Answer', close: 'Close', switchDirection: 'Word direction',
     row: 'Row', col: 'column', empty: 'empty', found: 'Found', letters: 'letters', answer: 'Your answer', submit: 'Submit word',
-    wordsFound: 'words found', leaderboard: 'Leaderboard', activity: 'Latest discoveries', none: 'No discoveries yet.',
+    wordsFound: 'words found', leaderboard: 'Leaderboard', liveUpdate: 'Live updates', activity: 'Latest discoveries', none: 'No discoveries yet.',
     points: 'points', unresolved: 'Unresolved words', perfect: 'Well done! The whole grid is solved.',
     solution: 'Answer', answerUnavailable: 'Answer unavailable',
     start: 'Start game', waiting: 'Waiting for the facilitator to start.',
@@ -52,7 +49,7 @@ const COPY = {
     already_found: 'This word has already been found', rate_limited: 'Too many attempts. Wait before trying again.',
     invalid: 'Invalid answer. Check your entry.', closed: 'The game is over.', forbidden: 'You cannot submit an answer.',
     failed: 'Action rejected. Your draft is saved.', by: 'by', cooldown: 'Try again in', seconds: 's',
-    solvedDraft: 'Word already found. Your draft is saved.', paused: 'Game paused: answers resume when the timer restarts.', objective: 'Solve the clues together to complete the grid.',
+    foundBy: 'Found by', previous: 'Previous word', next: 'Next word', objective: 'Solve the clues together to complete the grid.',
   },
 };
 
@@ -87,10 +84,37 @@ export function hasCrosswordConflict(word, answer, cells) {
   });
 }
 
+// Letters typed in the answer field fill the empty boxes; revealed letters are pre-filled.
+// Typing the whole word (revealed letters included) is accepted too.
+export function buildCrosswordAnswer(word, value, cells) {
+  const typed = normalizeCrosswordAnswer(value);
+  const revealed = Array.from({ length: word.length }, (_, index) => cells.get(`${word.row + (word.direction === 'down' ? index : 0)}:${word.col + (word.direction === 'across' ? index : 0)}`)?.letter || '');
+  const freeCount = revealed.filter((letter) => !letter).length;
+  const typesRevealed = revealed.some((letter, index) => letter && index < typed.length)
+    && revealed.every((letter, index) => !letter || index >= typed.length || typed[index] === letter);
+  const wholeWord = typesRevealed || typed.length > freeCount;
+  let next = 0;
+  const letters = revealed.map((letter, index) => {
+    if (wholeWord) return { letter: typed[index] || letter, revealed: Boolean(letter), conflict: Boolean(letter && typed[index] && typed[index] !== letter) };
+    if (letter) return { letter, revealed: true, conflict: false };
+    next += 1;
+    return { letter: typed[next - 1] || '', revealed: false, conflict: false };
+  });
+  const conflict = letters.some((item) => item.conflict);
+  const tooLong = typed.length > word.length;
+  return {
+    letters,
+    answer: letters.map((item) => item.letter).join(''),
+    conflict,
+    complete: !conflict && !tooLong && letters.every((item) => item.letter),
+    caret: letters.findIndex((item) => !item.letter),
+  };
+}
+
 export default function CrosswordChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
   const copy = pickLocalized(COPY, locale);
-  const { state, error, connected, isFacilitator, emitEvent } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
+  const { state, error, connected, isFacilitator, emitEvent, participantId } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
   const config = state?.config || runtimePayload?.config || {};
   const crossword = state?.crossword;
   const grid = crossword?.grid;
@@ -103,11 +127,14 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   const [retryAt, setRetryAt] = useState(0);
   const [now, setNow] = useState(0);
   const [answerOpen, setAnswerOpen] = useState(false);
+  const [handoffWordId, setHandoffWordId] = useState(null);
+  const [panelHeight, setPanelHeight] = useState(0);
   const requestRef = useRef(null);
   const timeoutRef = useRef(null);
   const boardRef = useRef(null);
   const dialogRef = useRef(null);
   const inputRef = useRef(null);
+  const returnFocusRef = useRef(null);
   const previousSolvedRef = useRef({ gridId: '', wordIds: new Set() });
   const id = useId();
   const timer = state?.timer || {};
@@ -118,19 +145,66 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   const selectedKey = selection?.key || (active ? `${active.row}:${active.col}` : '');
   const selectedCell = cells.get(selectedKey);
   const draft = drafts[active?.id] || '';
-  const normalized = normalizeCrosswordAnswer(draft);
-  const conflict = active ? hasCrosswordConflict(active, normalized, cells) : false;
+  const typedAnswer = useMemo(() => (active ? buildCrosswordAnswer(active, draft, cells) : null), [active, draft, cells]);
+  const conflict = Boolean(typedAnswer?.conflict);
   const cooldown = Math.max(0, Math.ceil((retryAt - now) / 1000));
   const controls = useConfirmedAction({ socket, emitEvent, state, resetKey: `${grid?.id}:${status}`, requiresRunningTimer: false });
-  const timerControls = useFacilitatorTimerControls({ socket, emitEvent, state, isFacilitator });
   const dialogOpen = answerOpen && Boolean(active) && started && !finished;
-  useBodyScrollLock(dialogOpen);
-  useModalFocus(dialogOpen, dialogRef, () => setAnswerOpen(false));
+  // Clue-list order: Previous/Next walk across clues, then down clues.
+  const clueOrder = useMemo(() => ['across', 'down'].flatMap((direction) => words.filter((word) => word.direction === direction)), [words]);
+
+  function findUnsolved(fromWord, step) {
+    const index = clueOrder.findIndex((word) => word.id === fromWord?.id);
+    for (let offset = 1; offset < clueOrder.length; offset += 1) {
+      const word = clueOrder[(index + step * offset + clueOrder.length * offset) % clueOrder.length];
+      if (word.solvedBy == null) return word;
+    }
+    return null;
+  }
 
   useEffect(() => {
-    // Runs after the focus trap has focused its first control: start typing right away.
-    if (dialogOpen) inputRef.current?.focus();
+    // Typing starts right away, also after Previous/Next or an automatic move.
+    if (dialogOpen) inputRef.current?.focus({ preventScroll: true });
   }, [dialogOpen, active?.id]);
+
+  useEffect(() => {
+    if (!dialogOpen) return undefined;
+    // The panel is not modal: the grid stays usable, Escape closes the panel from anywhere.
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape' || document.querySelector('[aria-modal="true"]')) return;
+      event.preventDefault();
+      setAnswerOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [dialogOpen]);
+
+  useEffect(() => {
+    if (dialogOpen) return;
+    setHandoffWordId(null);
+    const target = returnFocusRef.current;
+    returnFocusRef.current = null;
+    const focusLeftPanel = !document.activeElement || document.activeElement === document.body;
+    if (focusLeftPanel && target instanceof HTMLElement && target.isConnected) target.focus({ preventScroll: true });
+  }, [dialogOpen]);
+
+  useEffect(() => {
+    const panel = dialogRef.current;
+    if (!dialogOpen || !panel || typeof ResizeObserver === 'undefined') {
+      setPanelHeight(0);
+      return undefined;
+    }
+    // On small screens the panel is docked at the bottom: reserve its height below the page.
+    const observer = new ResizeObserver(() => setPanelHeight(getComputedStyle(panel).position === 'fixed' ? panel.offsetHeight : 0));
+    observer.observe(panel);
+    return () => observer.disconnect();
+  }, [dialogOpen]);
+
+  useEffect(() => {
+    if (!dialogOpen || !panelHeight || !active) return;
+    const cell = boardRef.current?.querySelector(`[data-cell="${active.row}:${active.col}"]`);
+    cell?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [dialogOpen, panelHeight, active]);
 
   useEffect(() => {
     setSelection(null);
@@ -138,6 +212,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
     setDrafts({});
     setFeedback(null);
     setRetryAt(0);
+    setHandoffWordId(null);
   }, [grid?.id]);
 
   useEffect(() => {
@@ -155,15 +230,33 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
     previousSolvedRef.current = { gridId: grid.id, wordIds: solvedWordIds };
     if (!currentWordWasJustSolved) return;
 
-    const currentIndex = words.findIndex((word) => word.id === active.id);
-    const nextWord = [...words.slice(currentIndex + 1), ...words.slice(0, currentIndex)]
-      .find((word) => word.solvedBy == null);
-    setAnswerOpen(false);
+    if (answerOpen) {
+      // Show who solved the word in the open panel, then move on (see the handoff effect).
+      setHandoffWordId(active.id);
+      return;
+    }
+    const nextWord = findUnsolved(active, 1);
     if (!nextWord) return;
-    // Keep the success message visible on the clue bar once the dialog closes.
+    // Keep the success message visible on the clue bar.
     setFeedback((current) => (current?.status === 'confirmed' ? current : null));
     setSelection({ key: `${nextWord.row}:${nextWord.col}`, wordId: nextWord.id });
-  }, [active, grid, words]);
+  }, [active, grid, words, answerOpen]);
+
+  useEffect(() => {
+    if (!handoffWordId || handoffWordId !== active?.id) return undefined;
+    const timeout = window.setTimeout(() => {
+      setHandoffWordId(null);
+      const nextWord = findUnsolved(active, 1);
+      if (!nextWord) {
+        setAnswerOpen(false);
+        return;
+      }
+      setFeedback(null);
+      setSelection({ key: `${nextWord.row}:${nextWord.col}`, wordId: nextWord.id });
+      revealCell(`${nextWord.row}:${nextWord.col}`);
+    }, 1500);
+    return () => window.clearTimeout(timeout);
+  }, [handoffWordId, active]);
 
   useEffect(() => {
     if (!retryAt) return;
@@ -235,7 +328,10 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
       : toggle && current && cell.words.length > 1
         ? cell.words.find((item) => item.id !== current.id)
         : current || cell.words[0];
-    if (word.id !== active?.id) setFeedback(null);
+    if (word.id !== active?.id) {
+      setFeedback(null);
+      setHandoffWordId(null);
+    }
     setSelection({ key: `${cell.row}:${cell.col}`, wordId: word.id });
   }
 
@@ -247,20 +343,43 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   }
 
   function openAnswer() {
-    if (!finished) setAnswerOpen(true);
+    if (finished) return;
+    if (!answerOpen) {
+      const trigger = document.activeElement;
+      returnFocusRef.current = trigger instanceof HTMLElement && trigger !== document.body ? trigger : null;
+    }
+    setAnswerOpen(true);
   }
 
   function switchWord(word) {
     if (word.id === active?.id) return;
     setFeedback(null);
+    setHandoffWordId(null);
     setSelection({ key: selectedKey, wordId: word.id });
+  }
+
+  function stepWord(step) {
+    const word = findUnsolved(active, step);
+    if (!word) return;
+    const key = `${word.row}:${word.col}`;
+    setFeedback(null);
+    setHandoffWordId(null);
+    setSelection({ wordId: word.id, key });
+    revealCell(key);
   }
 
   function selectClue(word) {
     const key = `${word.row}:${word.col}`;
-    if (word.id !== active?.id) setFeedback(null);
+    if (word.id !== active?.id) {
+      setFeedback(null);
+      setHandoffWordId(null);
+    }
     setSelection({ wordId: word.id, key });
     openAnswer();
+    revealCell(key);
+  }
+
+  function revealCell(key) {
     const cell = boardRef.current?.querySelector(`[data-cell="${key}"]`);
     const viewport = boardRef.current?.parentElement;
     if (!cell || !viewport) return;
@@ -312,7 +431,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   function submit(event) {
     event.preventDefault();
     if (!active || requestRef.current || pending || cooldown || !connected || status !== 'running' || active.solvedBy != null) return;
-    if (normalized.length !== active.length || conflict) {
+    if (!typedAnswer.complete) {
       setFeedback({ status: 'failed', message: conflict ? copy.conflict : copy.length });
       return;
     }
@@ -325,7 +444,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
       setPending(false);
       setFeedback({ status: 'failed', message: copy.timeout });
     }, 10000);
-    if (emitEvent('crossword.answer.submit', { wordId: active.id, answer: normalized, requestId }) !== true) {
+    if (emitEvent('crossword.answer.submit', { wordId: active.id, answer: typedAnswer.answer, requestId }) !== true) {
       requestRef.current = null;
       window.clearTimeout(timeoutRef.current);
       setPending(false);
@@ -357,6 +476,13 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   };
   const unresolved = words.filter((word) => word.solvedBy == null);
   const scores = [...(crossword?.scores || [])].sort((a, b) => b.score - a.score);
+  // Latest first, whatever order the server sends.
+  const recentActivity = [...(crossword?.activity || [])].sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0)).slice(0, 8);
+  const solverName = (word) => (crossword?.activity || []).find((item) => item.wordId === word?.id)?.displayName
+    || scores.find((item) => item.participantId === word?.solvedBy)?.displayName || '';
+  const solvedByMe = active?.solvedBy != null
+    && ((participantId && String(active.solvedBy) === String(participantId)) || feedback?.status === 'confirmed');
+  const otherUnsolved = active ? findUnsolved(active, 1) : null;
   const remaining = timer.remaining_seconds ?? timer.remainingSeconds ?? config.timer?.duration_seconds ?? 900;
 
   const timerCard = (
@@ -364,10 +490,28 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
       isStarted={started}
       remainingSeconds={remaining} durationSeconds={timer.duration_seconds || config.timer?.duration_seconds || 900}
       status={status} isFacilitator={isFacilitator}
-      onPause={timerControls.pause} onResume={timerControls.resume}
-      controlPending={timerControls.busy} controlFeedback={timerControls.feedback}
       waitingText={copy.waiting}
     />
+  );
+  const rankingCard = (
+    <section className={styles.rankingCard}>
+      <div className={styles.rankingCardHeader}>
+        <h2 className="challenge-section-title">{copy.leaderboard}</h2>
+        <span className={styles.rankingMeta}>{copy.liveUpdate}</span>
+      </div>
+      <div className={styles.leaderboardList}>
+        {scores.length ? scores.map((entry) => (
+          <article className={styles.leaderboardRow} key={entry.participantId}>
+            <div className={styles.leaderboardIdentity}>
+              {/* Equal scores share a rank; nobody is ranked before finding a word. */}
+              <span className={styles.rankPill}>{entry.score > 0 ? `#${1 + scores.filter((other) => other.score > entry.score).length}` : '–'}</span>
+              <strong className={styles.leaderboardName}>{entry.displayName}</strong>
+            </div>
+            <strong className={styles.leaderboardScore}>{entry.score} {copy.points}</strong>
+          </article>
+        )) : <p>{copy.none}</p>}
+      </div>
+    </section>
   );
 
   return (
@@ -378,6 +522,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
         headerAction={started ? <ChallengeRulesPanel {...rulesProps} inHeader showPrestartCard={false} /> : null}
       />
       <div className="challenge-mobile-timer">{timerCard}</div>
+      <div className={styles.mobileRankingSlot}>{started && !finished ? rankingCard : null}</div>
       <ChallengeActionFeedback feedback={error && error === controls.feedback?.message ? null : { ...controls.feedback, retry: null }} />
       {!connected && <p className={styles.notice} role="status">{copy.offline}</p>}
       {error && <p className={styles.notice} role="alert">{error}</p>}
@@ -418,7 +563,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
                   <h2>{grid.title || copy.board}</h2>
                   <span className={styles.wordCount} role="status">{crossword.solvedCount || 0}/{crossword.totalWords || words.length} {copy.wordsFound}</span>
                 </div>
-                <div className={styles.boardScroll} tabIndex={0} role="region" aria-label={copy.board}>
+                <div className={styles.boardScroll} tabIndex={0} role="region" aria-label={copy.board} style={{ '--answer-panel-height': `${panelHeight}px` }}>
                   <div ref={boardRef} className={styles.board} data-board-direction="ltr" role="grid" aria-label={copy.board} aria-describedby={`${id}-help`} style={{ '--columns': grid.width, '--rows': grid.height }}>
                     {Array.from({ length: grid.height }, (_, row) => <div className={styles.row} role="row" key={row}>
                       {Array.from({ length: grid.width }, (_, col) => {
@@ -449,9 +594,49 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
                   <button type="button" className={styles.answerTrigger} onClick={openAnswer} aria-haspopup="dialog">{copy.openAnswer}</button>
                 </div>}
                 {!dialogOpen && !finished && <ChallengeActionFeedback feedback={feedback} />}
-                <p id={`${id}-help`} className={styles.help}>{copy.help}</p>
+                <p id={`${id}-help`} className={styles.help}>{copy.help} <span className={styles.keyboardHelp}>{copy.keyboardHelp}</span></p>
               </section>
               {!finished && <aside className={styles.clueLists}>
+                {dialogOpen && <section ref={dialogRef} tabIndex={-1} className={styles.dialog} role="dialog" aria-modal="false"
+                  aria-labelledby={`${id}-dialog-title`} aria-describedby={`${id}-dialog-meta`}>
+                  <header className={styles.dialogHeader}>
+                    <span className={styles.clueNumber} aria-hidden="true">{active.number}</span>
+                    <div className={styles.dialogHeading}>
+                      <span id={`${id}-dialog-meta`} className={styles.clueMeta}>{copy[active.direction]} · {active.length} {copy.letters}</span>
+                      <h2 id={`${id}-dialog-title`}>{active.clue}</h2>
+                    </div>
+                    <button type="button" className={styles.dialogClose} onClick={() => setAnswerOpen(false)} aria-label={copy.close}>×</button>
+                  </header>
+                  {selectedCell?.words.length > 1 && <div className={styles.directionSwitch} role="group" aria-label={copy.switchDirection}>
+                    {selectedCell.words.map((word) => <button type="button" key={word.id} aria-pressed={word.id === active.id}
+                      className={word.id === active.id ? styles.directionActive : ''} onClick={() => switchWord(word)}>
+                      {word.number} · {copy[word.direction]}
+                    </button>)}
+                  </div>}
+                  {active.solvedBy != null && !solvedByMe && <p className={styles.dialogSolved} role="status">✓ {copy.foundBy} {solverName(active) || '…'} : <strong>{active.answer}</strong></p>}
+                  <form className={styles.answerForm} onSubmit={submit}>
+                    <label htmlFor={`${id}-answer`}>{copy.answer}</label>
+                    {/* The real field sits over the boxes: typing fills the empty boxes, revealed letters stay in place. */}
+                    <div className={styles.patternField} onClick={() => inputRef.current?.focus()}>
+                      <input ref={inputRef} id={`${id}-answer`} className={styles.patternInput} value={draft}
+                        autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck={false}
+                        aria-invalid={Boolean(draft && conflict)} aria-describedby={`${id}-dialog-meta ${id}-validation`}
+                        onChange={(event) => setDrafts((previous) => ({ ...previous, [active.id]: event.target.value }))}
+                        disabled={pending || active.solvedBy != null} />
+                      <div className={styles.pattern} aria-hidden="true" style={{ '--letters': active.length }}>
+                        {typedAnswer.letters.map((item, index) => <span key={index}
+                          className={`${styles.patternLetter} ${item.revealed ? styles.patternRevealed : ''} ${item.conflict ? styles.patternConflict : ''} ${index === typedAnswer.caret ? styles.patternCaret : ''}`}>{item.letter}</span>)}
+                      </div>
+                    </div>
+                    <p id={`${id}-validation`} className={styles.validation}>{conflict ? copy.conflict : cooldown > 0 ? `${copy.cooldown} ${cooldown} ${copy.seconds}` : ''}</p>
+                    <ChallengeActionFeedback feedback={feedback} />
+                    <div className={styles.answerActions}>
+                      <button type="button" className={styles.stepButton} onClick={() => stepWord(-1)} disabled={!otherUnsolved} aria-label={copy.previous} title={copy.previous}>‹</button>
+                      <button className={styles.primary} disabled={!connected || pending || cooldown > 0 || status !== 'running' || active.solvedBy != null || !typedAnswer.complete}>{pending ? copy.sending : copy.submit}</button>
+                      <button type="button" className={styles.stepButton} onClick={() => stepWord(1)} disabled={!otherUnsolved} aria-label={copy.next} title={copy.next}>›</button>
+                    </div>
+                  </form>
+                </section>}
                 {['across', 'down'].map((direction) => <section className={styles.card} key={direction}>
                   <h2>{copy[direction]}</h2>
                   <ol className={styles.clues}>{words.filter((word) => word.direction === direction).map((word) => <li key={word.id}>
@@ -463,59 +648,21 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
                 </section>)}
               </aside>}
             </div>
-            <div className={styles.socialLayout}>
-              <section className={styles.card}><h2>{copy.leaderboard}</h2>
-                {scores.length ? <ol className={styles.scores}>{scores.map((entry) => <li key={entry.participantId}><div><strong>{entry.displayName}</strong><small>{(entry.words || []).map((word) => word.answer).join(' · ')}</small></div><strong>{entry.score} <small>{copy.points}</small></strong></li>)}</ol> : <p>{copy.none}</p>}
-              </section>
+            <div className={styles.activityLayout}>
+              {finished ? rankingCard : null}
               <section className={styles.card}><h2>{copy.activity}</h2>
-                {crossword.activity?.length ? <ul className={styles.activity}>{[...crossword.activity].slice(-8).reverse().map((entry, index) => <li key={`${entry.wordId}-${entry.ts}-${index}`}><strong>{entry.answer}</strong><span>{copy.by} {entry.displayName}</span></li>)}</ul> : <p>{copy.none}</p>}
+                {crossword.activity?.length ? <ul className={styles.activity}>{recentActivity.map((entry, index) => <li key={`${entry.wordId}-${entry.ts}-${index}`}><strong>{entry.answer}</strong><span>{copy.by} {entry.displayName}</span></li>)}</ul> : <p>{copy.none}</p>}
               </section>
             </div>
           </>}
         </div>
         {!finished && started && <aside className={styles.timerColumn}>
           <div className="challenge-desktop-timer">{timerCard}</div>
+          {rankingCard}
         </aside>}
       </div>
-      {dialogOpen && <div className={styles.dialogOverlay} role="presentation" onClick={() => setAnswerOpen(false)}>
-        <section ref={dialogRef} tabIndex={-1} className={styles.dialog} role="dialog" aria-modal="true"
-          aria-labelledby={`${id}-dialog-title`} aria-describedby={`${id}-dialog-meta`} onClick={(event) => event.stopPropagation()}>
-          <header className={styles.dialogHeader}>
-            <span className={styles.clueNumber} aria-hidden="true">{active.number}</span>
-            <div className={styles.dialogHeading}>
-              <span id={`${id}-dialog-meta`} className={styles.clueMeta}>{copy[active.direction]} · {active.length} {copy.letters}</span>
-              <h2 id={`${id}-dialog-title`}>{active.clue}</h2>
-            </div>
-            <button type="button" className={styles.dialogClose} onClick={() => setAnswerOpen(false)} aria-label={copy.close}>×</button>
-          </header>
-          {selectedCell?.words.length > 1 && <div className={styles.directionSwitch} role="group" aria-label={copy.switchDirection}>
-            {selectedCell.words.map((word) => <button type="button" key={word.id} aria-pressed={word.id === active.id}
-              className={word.id === active.id ? styles.directionActive : ''} onClick={() => switchWord(word)}>
-              {word.number} · {copy[word.direction]}
-            </button>)}
-          </div>}
-          <div className={styles.pattern} aria-hidden="true" style={{ '--letters': active.length }}>
-            {Array.from({ length: active.length }, (_, index) => {
-              const revealed = cells.get(`${active.row + (active.direction === 'down' ? index : 0)}:${active.col + (active.direction === 'across' ? index : 0)}`)?.letter;
-              const typed = normalized[index];
-              return <span key={index} className={`${styles.patternLetter} ${revealed ? styles.patternRevealed : ''} ${revealed && typed && typed !== revealed ? styles.patternConflict : ''}`}>{revealed || typed || ''}</span>;
-            })}
-          </div>
-          {active.solvedBy != null && <p className={styles.dialogSolved}>{copy.found}: <strong>{active.answer}</strong> · {copy.solvedDraft}</p>}
-          <form className={styles.answerForm} onSubmit={submit}>
-            <label htmlFor={`${id}-answer`}>{copy.answer}</label>
-            <div className={styles.inputLine}>
-              <input ref={inputRef} id={`${id}-answer`} value={draft} autoComplete="off" autoCorrect="off" autoCapitalize="characters" spellCheck={false}
-                aria-invalid={Boolean(draft && conflict)} aria-describedby={`${id}-validation`}
-                onChange={(event) => setDrafts((previous) => ({ ...previous, [active.id]: event.target.value }))}
-                disabled={pending} placeholder={`${active.length} ${copy.letters}`} />
-              <button className={styles.primary} disabled={!connected || pending || cooldown > 0 || status !== 'running' || active.solvedBy != null || normalized.length !== active.length || conflict}>{pending ? copy.sending : copy.submit}</button>
-            </div>
-            <p id={`${id}-validation`} className={styles.validation}>{conflict ? copy.conflict : cooldown > 0 ? `${copy.cooldown} ${cooldown} ${copy.seconds}` : status === 'paused' ? copy.paused : ''}</p>
-            <ChallengeActionFeedback feedback={feedback} />
-          </form>
-        </section>
-      </div>}
+      {/* Room for the answer panel docked at the bottom of small screens. */}
+      {panelHeight > 0 && <div aria-hidden="true" style={{ height: panelHeight }} />}
     </ChallengePresentation>
   );
 }
