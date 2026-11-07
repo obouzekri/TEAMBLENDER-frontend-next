@@ -167,9 +167,11 @@ async function testLab(locale, width) {
   const fixture = await open(engineKey, { config, timer, labInnovation: view() }, { locale, width });
   const { page } = fixture;
 
-  // 1. Problem selection: grouped catalog, at most 3 picks.
+  // 1. Problem selection: flat catalog, each card shows its theme and reference; at most 3 picks.
   await page.getByRole('heading', { name: en ? 'Choose the problems to work on' : 'Choisissez les problèmes à traiter' }).waitFor();
-  await page.getByRole('heading', { name: en ? 'Governance and decisions' : 'Gouvernance et décision' }).waitFor();
+  const firstProblem = page.locator('article[data-category="governance"]').first();
+  await firstProblem.getByText(en ? 'Governance and decisions' : 'Gouvernance et décision', { exact: true }).waitFor();
+  await firstProblem.getByText(/ISO 37000/).waitFor();
   const pickButtons = page.getByRole('button', { name: en ? 'Choose' : 'Choisir', exact: true });
   assert.equal(await pickButtons.count(), 12, 'Without host configuration, the 12 default problems are offered');
   await pickButtons.first().click();
