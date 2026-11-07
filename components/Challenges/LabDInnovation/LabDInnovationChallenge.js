@@ -240,40 +240,43 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   function renderProblemSelect() {
     const picks = lab?.my_picks || [];
     const max = limits.max_problem_picks || 3;
-    const catalog = lab?.catalog || [];
     const categories = [];
-    catalog.forEach((item) => {
+    (lab?.catalog || []).forEach((item) => {
       if (!categories.includes(item.category)) categories.push(item.category);
     });
-    // One flat grid, still ordered by theme: each card carries its theme and reference.
-    const items = categories.flatMap((category) => catalog.filter((item) => item.category === category));
     return (
       <section className={styles.card}>
         {!isHost ? <p className={styles.voteGuidance}>{t('challengeLab.pickCount', { count: picks.length, max })}</p> : null}
-        <div className={styles.problemGrid}>
-          {items.map((item) => {
-            const picked = picks.includes(item.id);
-            return (
-              <article key={item.id} className={`${styles.problemCard}${picked ? ` ${styles.problemCardPicked}` : ''}`} data-category={item.category}>
-                <span className={styles.categoryChip}>{t(`challengeLab.categories.${item.category}`)}</span>
-                <strong>{problemTitle(item.id)}</strong>
-                <p>{t(`challengeLab.catalog.${item.id}.description`)}</p>
-                <span className={styles.problemCardRef}>{t(`challengeLab.categoryReferences.${item.category}`)}</span>
-                {!isHost ? (
-                  <button
-                    type="button"
-                    className={`${styles.ghostBtn}${picked ? ` ${styles.voteRecorded}` : ''}`}
-                    aria-pressed={picked}
-                    disabled={!canAct || (!picked && picks.length >= max)}
-                    onClick={() => send('lab.problem.toggle', { problem_id: item.id })}
-                  >
-                    {picked ? t('challengeLab.picked') : t('challengeLab.pick')}
-                  </button>
-                ) : null}
-              </article>
-            );
-          })}
-        </div>
+        {categories.map((category) => (
+          <div key={category} className={styles.categoryBlock}>
+            <div className={styles.categoryHeader}>
+              <h3>{t(`challengeLab.categories.${category}`)}</h3>
+              <span className={styles.categoryRef}>{t(`challengeLab.categoryReferences.${category}`)}</span>
+            </div>
+            <div className={styles.problemGrid}>
+              {lab.catalog.filter((item) => item.category === category).map((item) => {
+                const picked = picks.includes(item.id);
+                return (
+                  <article key={item.id} className={`${styles.problemCard}${picked ? ` ${styles.problemCardPicked}` : ''}`}>
+                    <strong>{problemTitle(item.id)}</strong>
+                    <p>{t(`challengeLab.catalog.${item.id}.description`)}</p>
+                    {!isHost ? (
+                      <button
+                        type="button"
+                        className={`${styles.ghostBtn}${picked ? ` ${styles.voteRecorded}` : ''}`}
+                        aria-pressed={picked}
+                        disabled={!canAct || (!picked && picks.length >= max)}
+                        onClick={() => send('lab.problem.toggle', { problem_id: item.id })}
+                      >
+                        {picked ? t('challengeLab.picked') : t('challengeLab.pick')}
+                      </button>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        ))}
         {renderReadyFooter()}
       </section>
     );
