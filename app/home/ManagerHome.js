@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, BarChart3, Hash, Link2, Pencil, Play, Send, Settings, Sparkles, Trash2, UserPlus, X } from 'lucide-react';
+import { Activity, ArrowRight, BarChart3, CalendarClock, CalendarDays, CheckCircle2, Hash, Link2, Pencil, Play, Send, Settings, Sparkles, Trash2, UserPlus, X } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import Modal from '@/components/ui/Modal';
+import StatusBadge, { getSessionStatusVariant } from '@/components/ui/StatusBadge';
 import ToastContainer from '@/components/ToastContainer';
 import SessionCardSkeleton from '@/components/SessionCardSkeleton';
 import { getApiUrl } from '@/lib/config';
@@ -399,12 +400,6 @@ export default function ManagerHome({
   });
 
   const userLabel = useMemo(() => pickDisplayName(guard.user), [guard.user]);
-
-  const STATUS_LABEL = {
-    en_cours: t('managerHome.inProgress'),
-    preparee: t('managerHome.upcoming'),
-    terminee: t('managerHome.completed'),
-  };
 
   const sessionStats = useMemo(() => ({
     enCours: sessions.filter((s) => s.status === 'en_cours').length,
@@ -1003,16 +998,25 @@ export default function ManagerHome({
         </section>
         <section className="cards-grid" aria-label={t('managerHome.sessionStatistics')}>
           <article className="feature-card stat-card stat-card-live">
+            <div className="stat-card__head">
+              <p>{t('managerHome.activeSessions')}</p>
+              <span className="stat-card__icon" aria-hidden="true"><Activity size={18} /></span>
+            </div>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.enCours}</h2>
-            <p>{t('managerHome.activeSessions')}</p>
           </article>
           <article className="feature-card stat-card stat-card-ready">
+            <div className="stat-card__head">
+              <p>{t('managerHome.toConfigure')}</p>
+              <span className="stat-card__icon" aria-hidden="true"><CalendarClock size={18} /></span>
+            </div>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.preparee}</h2>
-            <p>{t('managerHome.toConfigure')}</p>
           </article>
           <article className="feature-card stat-card stat-card-done">
+            <div className="stat-card__head">
+              <p>{t('managerHome.completed2')}</p>
+              <span className="stat-card__icon" aria-hidden="true"><CheckCircle2 size={18} /></span>
+            </div>
             <h2 className="stat-value">{loadingSessions ? '…' : sessionStats.terminee}</h2>
-            <p>{t('managerHome.completed2')}</p>
           </article>
         </section>
 
@@ -1153,10 +1157,9 @@ export default function ManagerHome({
                 const sessionIdentifier = getSessionIdentifier(session);
                 if (!sessionIdentifier) return null;
                 const isDeleting = String(deletingSessionId) === sessionIdentifier;
-                const isActive = session.status === 'en_cours';
-                const isDone = session.status === 'terminee';
-                const statusVariant = isActive ? 'en-cours' : isDone ? 'terminee' : 'a-venir';
-                const statusClass = `status-pill--${statusVariant}`;
+                const statusVariant = getSessionStatusVariant(session.status);
+                const isActive = statusVariant === 'en-cours';
+                const isDone = statusVariant === 'terminee';
                 const modalityLabel = getSessionModalityLabel(session.modality, locale);
                 const formatLabel = getSessionFormatLabel(session);
                 const durationLabel = getSessionDurationLabel(session, locale);
@@ -1197,13 +1200,14 @@ export default function ManagerHome({
                     <div className="session-card-body">
                       <p className="session-title">{session.name || `Session #${sessionIdentifier}`}</p>
                       <p className="session-meta">
-                        <span className={`status-pill ${statusClass}`}>
-                          {STATUS_LABEL[session.status] || session.status || t('managerHome.preparing')}
-                        </span>
-                        {session.session_date ? (
-                          <span className="session-date">{formatSessionDate(session.session_date, locale)}</span>
-                        ) : null}
+                        <StatusBadge status={session.status} />
                       </p>
+                      {session.session_date ? (
+                        <p className="session-date">
+                          <CalendarDays size={14} aria-hidden="true" />
+                          {formatSessionDate(session.session_date, locale)}
+                        </p>
+                      ) : null}
                       <div className="session-tags" aria-label={t('managerHome.sessionMetadata')}>
                         {modalityLabel ? (
                           <span className="session-tag session-tag--modality">{modalityLabel}</span>

@@ -7,11 +7,13 @@ import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import SessionLiveHeader from '@/components/SessionLiveHeader';
 import Modal from '@/components/ui/Modal';
+import StatusBadge, { getSessionStatusVariant } from '@/components/ui/StatusBadge';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
 import { clearStoredAuth, getAuthHeaders, getStoredCurrentUser, joinParticipantAuthenticated } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
 import { formatDate } from '@/lib/i18n/format';
+import { CalendarDays, CheckCircle2 } from 'lucide-react';
 
 export default function ParticipantPage() {
   const searchParams = useSearchParams();
@@ -444,7 +446,7 @@ function ParticipantHome({ requestedSessionId }) {
     <>
       <AppNav userLabel={participantLabel} onLogout={logout} role="participant" connectionState={connectionState} />
       <main className="shell app-home participant-home">
-        <section className="hero participant-hero">
+        <section className="participant-hero">
           <div className="participant-hero__top">
             <div className="participant-hero__copy">
               <h1>{t('participantSpace.welcomeParticipantlabel', { participantLabel })}</h1>
@@ -484,13 +486,16 @@ function ParticipantHome({ requestedSessionId }) {
           ) : null}
           {showAccountCreatedNotice ? (
             <div className="participant-credentials-notice" role="status">
-              <strong>{t('participantSpace.youReAllSet')}</strong>
-              <p className="participant-credentials-hint">
-                {t('participantSpace.yourParticipantAccountHasBeenCreated')}
-              </p>
-              <p className="participant-credentials-hint">
-                {t('participantSpace.youCanSetUpYourAccount')}
-              </p>
+              <CheckCircle2 className="participant-credentials-icon" size={20} aria-hidden="true" />
+              <div className="participant-credentials-copy">
+                <strong>{t('participantSpace.youReAllSet')}</strong>
+                <p className="participant-credentials-hint">
+                  {t('participantSpace.yourParticipantAccountHasBeenCreated')}
+                </p>
+                <p className="participant-credentials-hint">
+                  {t('participantSpace.youCanSetUpYourAccount')}
+                </p>
+              </div>
               <div className="participant-credentials-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowAccountCreatedNotice(false)}>
                   {t('participantSpace.continue')}
@@ -527,15 +532,8 @@ function ParticipantHome({ requestedSessionId }) {
                 {assignedSessions.map((session) => {
                   const sessionIdentifier = getSessionIdentifier(session);
                   if (!sessionIdentifier) return null;
-                  const isSessionLive = String(session.status || '').trim().toLowerCase() === 'en_cours';
-                  const statusVariant = isSessionLive ? 'en-cours' : session.status === 'terminee' ? 'terminee' : 'a-venir';
-                  const statusLabel = session.status === 'en_cours'
-                    ? t('participantSpace.inProgress')
-                    : session.status === 'preparee'
-                      ? t('participantSpace.prepared')
-                      : session.status === 'terminee'
-                        ? t('participantSpace.completed')
-                        : session.status || '';
+                  const statusVariant = getSessionStatusVariant(session.status);
+                  const isSessionLive = statusVariant === 'en-cours';
                   return (
                     <article key={sessionIdentifier} className={`session-card session-card--${statusVariant} participant-session-card`}>
                       <div className="session-card-body participant-session-card__body">
@@ -543,17 +541,14 @@ function ParticipantHome({ requestedSessionId }) {
                           {session.name || `Session #${sessionIdentifier}`}
                         </p>
                         <p className="session-meta">
-                          {statusLabel && (
-                            <span className={`status-pill status-pill--${statusVariant}`}>
-                              {statusLabel}
-                            </span>
-                          )}
-                          {session.session_date && (
-                            <span className="session-date">
-                              {formatDate(session.session_date, locale)}
-                            </span>
-                          )}
+                          <StatusBadge status={session.status} />
                         </p>
+                        {session.session_date && (
+                          <p className="session-date">
+                            <CalendarDays size={14} aria-hidden="true" />
+                            {formatDate(session.session_date, locale)}
+                          </p>
+                        )}
                       </div>
                       <div className="session-card-actions participant-session-card__footer">
                         {isSessionLive ? (
