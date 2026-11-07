@@ -190,6 +190,17 @@
   padding: 14px;
 }
 
+.pageShell:has([data-challenge-rules-card]) {
+  width: 100%;
+}
+
+.pageShell .challengeBoard:has([data-challenge-rules-card]) {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .challengeHeader {
   border-radius: 18px;
   padding: 18px;

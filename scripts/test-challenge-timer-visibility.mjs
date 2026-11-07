@@ -41,7 +41,7 @@ function startedState(engineKey, initial, status) {
 
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
 try {
-  for (const [role, width, locale] of [['manager', 1440, 'fr'], ['participant', 390, 'en']]) {
+  for (const [role, width, locale, sessionRoute] of [['manager', 1440, 'fr', false], ['participant', 390, 'en', false], ['user', 1440, 'fr', true]]) {
     for (const [engineKey, data] of cases) {
       const initial = { config, timer, ...data };
       const fixture = await createRealtimeFixture(browser, { baseUrl, locale, role, engineKey, state: initial, viewport: { width, height: 1000 } });
@@ -61,9 +61,52 @@ try {
         const page = await fixture.context.newPage();
         const errors = [];
         page.on('pageerror', (error) => errors.push(error.message));
-        await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
+        const route = sessionRoute ? 'session-live/42' : `challenges/${engineKey}?sessionId=42`;
+        await page.goto(`${baseUrl}/${locale}/${route}`);
         await page.getByRole('button', { name: /^(Refuser les cookies de mesure|Refuse analytics cookies)$/ }).click();
-        await page.locator('[class*="rulesCard"]').first().waitFor();
+        const rules = page.locator('[data-challenge-rules-card]').first();
+        await rules.waitFor();
+        const header = page.locator('section[class*="header"]').filter({ has: page.locator('[class*="topRow"]') });
+        await header.waitFor();
+        for (const viewportWidth of [390, 720, 768, 1440, 2560]) {
+          await page.setViewportSize({ width: viewportWidth, height: 1000 });
+          const headerBounds = await header.boundingBox();
+          const rulesBounds = await rules.boundingBox();
+          const label = `${engineKey}, ${role}, ${viewportWidth}px`;
+          if (Math.abs(headerBounds.x - rulesBounds.x) > 1 || Math.abs(headerBounds.width - rulesBounds.width) > 1) console.log(await header.evaluate((node) => {
+            const styles = getComputedStyle(node);
+            const matches = [];
+            const visit = (rules) => Array.from(rules).forEach((rule) => {
+              if (rule.cssRules && (!rule.conditionText || matchMedia(rule.conditionText).matches)) visit(rule.cssRules);
+              else if (rule.selectorText && rule.style?.width && node.matches(rule.selectorText)) matches.push([rule.selectorText, rule.style.width]);
+            });
+            for (const sheet of document.styleSheets) { try { visit(sheet.cssRules); } catch {} }
+            return { className: node.className, width: styles.width, margin: styles.margin, padding: styles.padding, matches };
+          }));
+          if (Math.abs(headerBounds.x - rulesBounds.x) > 1 || Math.abs(headerBounds.width - rulesBounds.width) > 1) console.log(await rules.evaluate((node) => {
+            const ancestors = [];
+            for (let element = node; element && ancestors.length < 7; element = element.parentElement) {
+              const style = getComputedStyle(element);
+              ancestors.push({ tag: element.tagName, className: element.className, x: element.getBoundingClientRect().x, padding: style.padding, border: style.border });
+            }
+            return ancestors;
+          }));
+          assert.ok(Math.abs(headerBounds.x - rulesBounds.x) <= 1, `${label}: brief left edge aligns with header (${JSON.stringify({ headerBounds, rulesBounds })})`);
+          assert.ok(Math.abs(headerBounds.width - rulesBounds.width) <= 1, `${label}: brief width matches header (${JSON.stringify({ headerBounds, rulesBounds })})`);
+          assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${label}: no horizontal overflow`);
+          const parent = await rules.evaluate((node) => {
+            const element = node.parentElement;
+            const style = getComputedStyle(element);
+            return { tag: element.tagName, background: style.backgroundImage, color: style.backgroundColor, border: style.borderTopWidth, shadow: style.boxShadow };
+          });
+          if (['SECTION', 'ARTICLE'].includes(parent.tag)) {
+            assert.equal(parent.background, 'none', `${label}: no parent background image`);
+            assert.equal(parent.color, 'rgba(0, 0, 0, 0)', `${label}: no parent background color`);
+            assert.equal(parent.border, '0px', `${label}: no parent border`);
+            assert.equal(parent.shadow, 'none', `${label}: no parent shadow`);
+          }
+        }
+        await page.setViewportSize({ width, height: 1000 });
         const clocks = page.getByRole('timer', { includeHidden: true });
         assert.equal(await clocks.count(), 0, `${engineKey}: no timer in the DOM before start`);
         assert.equal(await page.locator('[class*="timerCard"]').count(), 0, `${engineKey}: no empty timer card before start`);
