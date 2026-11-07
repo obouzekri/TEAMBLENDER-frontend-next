@@ -24,6 +24,21 @@
   padding: clamp(14px, 1.8vw, 26px) clamp(14px, 1.8vw, 26px) 0;
 }
 
+.headerSlot ~ .challengeContainer:has([data-challenge-rules-card]) {
+  box-sizing: border-box;
+  padding-inline: clamp(14px, 1.8vw, 26px);
+}
+
+:global(.session-live-challenge-frame) .challengeContainer:has([data-challenge-rules-card]) {
+  box-sizing: border-box;
+  padding-inline: clamp(14px, 1.8vw, 28px);
+}
+
+.headerSlot ~ .challengeContainer:has([data-challenge-rules-card]) > *,
+:global(.session-live-challenge-frame) .challengeContainer:has([data-challenge-rules-card]) > * {
+  padding-inline: 0 !important;
+}
+
 .connectionError {
   padding: 12px;
   margin: 12px;
@@ -108,6 +123,10 @@
     padding: 12px 12px 0;
   }
 
+  .headerSlot ~ .challengeContainer:has([data-challenge-rules-card]) {
+    padding-inline: 12px;
+  }
+
   .challengeContainer :global(.challenge-header) {
     padding: 12px;
     border-radius: 12px;
@@ -159,5 +178,11 @@
 
   .challengeContainer :global(.challenge-header) {
     padding: 10px 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  :global(.session-live-challenge-frame) .challengeContainer:has([data-challenge-rules-card]) {
+    padding-inline: 0;
   }
 }
