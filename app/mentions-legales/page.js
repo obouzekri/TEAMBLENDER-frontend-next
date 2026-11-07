@@ -139,6 +139,69 @@ const COPY = {
     ],
     privacyLabel: 'Privacy policy',
   },
+  ar: {
+    eyebrow: 'قانوني',
+    title: 'الإشعار القانوني',
+    intro: 'وفقًا لأحكام القانون الفرنسي رقم 2004-575 الصادر في 21 يونيو 2004 بشأن الثقة في الاقتصاد الرقمي (LCEN).',
+    updated: 'آخر تحديث: مايو 2026 · في حال وجود اختلاف بين هذه الترجمة والنسخة الفرنسية، تكون النسخة الفرنسية هي المعتمدة.',
+    sections: [
+      {
+        title: '1. ناشر الموقع',
+        body: 'يُنشر موقع TeamBlender هذا من قِبل:',
+        items: [
+          'الاسم التجاري: [NOM DE LA SOCIÉTÉ OU ENTREPRENEUR]',
+          'الشكل القانوني: [SAS / SARL / EI / Auto-entrepreneur]',
+          'رأس المال: [MONTANT] €',
+          'رقم التسجيل (SIRET): [SIRET]',
+          'المقر الرئيسي: [ADRESSE COMPLÈTE]',
+          'البريد الإلكتروني: contact@teamblender.io',
+          'مدير النشر: [NOM DU RESPONSABLE]',
+        ],
+      },
+      {
+        title: '2. الاستضافة',
+        body: 'يُستضاف الموقع لدى:',
+        items: [
+          'مزوّد الاستضافة: [NOM DE L HÉBERGEUR - ex. Railway, Render, OVH]',
+          'العنوان: [ADRESSE DE L HÉBERGEUR]',
+          'الموقع الإلكتروني: [URL DE L HÉBERGEUR]',
+        ],
+      },
+      {
+        title: '3. الملكية الفكرية',
+        paragraphs: [
+          'جميع محتويات موقع TeamBlender (النصوص، الصور، الرسومات، الشعار، الأيقونات، البنية) ملك حصري للناشر أو مُستخدمة بموجب إذن. ويُحظر تمامًا أي نسخ أو توزيع أو تعديل أو استغلال، ولو جزئيًا، دون إذن كتابي مسبق.',
+          'العلامات والشعارات الظاهرة على الموقع علامات مسجّلة أو محمية، ويُعدّ استنساخها دون موافقة تقليدًا.',
+        ],
+      },
+      {
+        title: '4. البيانات الشخصية',
+        paragraphs: [
+          'تُوضَّح معالجة البيانات الشخصية التي يتم جمعها عبر هذا الموقع في سياسة الخصوصية. وفقًا للائحة العامة لحماية البيانات (الاتحاد الأوروبي 2016/679)، يحق لك الوصول إلى بياناتك وتصحيحها وحذفها ونقلها.',
+          'لممارسة هذه الحقوق، راسلنا على contact@teamblender.io.',
+        ],
+      },
+      {
+        title: '5. الروابط التشعبية',
+        paragraphs: [
+          'قد يتضمن الموقع روابط إلى مواقع تابعة لجهات خارجية. لا تملك TeamBlender أي سيطرة على هذه المواقع، وتُخلي مسؤوليتها عن محتواها أو ممارساتها المتعلقة بالخصوصية.',
+        ],
+      },
+      {
+        title: '6. حدود المسؤولية',
+        paragraphs: [
+          'تحرص TeamBlender على إبقاء المعلومات المنشورة دقيقة ومحدّثة، لكنها لا تضمن اكتمالها أو خلوّها من الأخطاء. ويحتفظ الناشر بحق تعديل محتوى الموقع في أي وقت دون إشعار مسبق.',
+        ],
+      },
+      {
+        title: '7. القانون الواجب التطبيق',
+        paragraphs: [
+          'يخضع هذا الإشعار القانوني للقانون الفرنسي. وفي حال نشوء نزاع وتعذّر حلّه وديًا، تختص المحاكم الفرنسية حصريًا بالنظر فيه.',
+        ],
+      },
+    ],
+    privacyLabel: 'سياسة الخصوصية',
+  },
 };
 
 export default async function MentionsLegalesPage() {
@@ -184,7 +247,7 @@ export default async function MentionsLegalesPage() {
               {Array.isArray(section.paragraphs)
                 ? section.paragraphs.map((paragraph) => (
                   <p key={paragraph} style={{ lineHeight: 1.7, color: 'var(--muted)', marginTop: '0.75rem' }}>
-                    {paragraph.includes('Privacy Policy') || paragraph.includes('Politique de confidentialité')
+                    {paragraph.includes('Privacy Policy') || paragraph.includes(copy.privacyLabel)
                       ? (
                         <>
                           {translate(locale, 'legalPages.privacyIntro')}
