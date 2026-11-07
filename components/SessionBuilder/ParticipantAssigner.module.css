@@ -726,3 +726,35 @@
     font-size: 0.9rem;
   }
 }
+
+/* Embedded: quieter search field and empty state */
+.containerEmbedded .input {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--ink, #0f172a) 4%, transparent);
+  box-shadow: none;
+  min-height: 2.6rem;
+  border-radius: 12px;
+}
+
+.containerEmbedded .input:focus {
+  background: var(--card, #fff);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent, #2f62ff) 45%, transparent);
+}
+
+.containerEmbedded .empty {
+  padding: 1rem 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.88rem;
+  color: var(--ink-soft, #64748b);
+}
+
+.containerEmbedded .list {
+  border-color: transparent;
+  background: transparent;
+}
+
+.containerEmbedded .item {
+  border-radius: 12px;
+}
