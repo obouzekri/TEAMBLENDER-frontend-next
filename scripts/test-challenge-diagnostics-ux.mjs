@@ -186,17 +186,32 @@ async function testLab(locale, width) {
   await page.getByText(en ? 'Your selection: 2/3' : 'Votre sélection : 2/3', { exact: true }).waitFor();
   assert.equal(await page.getByRole('button', { name: en ? 'Chosen' : 'Choisi', exact: true }).count(), 2);
 
-  // 2. Defense in turns: only the speaker sees "Pass".
+  // 2. Written arguments: one text per own pick, saved shortly after typing stops.
   logic.advanceLab(lab, Date.now());
-  if (lab.turn.order[0] !== '1') logic.advanceLab(lab, Date.now());
   fixture.broadcast('lab.state', { labInnovation: view() });
-  await page.getByText(en ? 'Your turn: defend your position.' : "C'est votre tour : défendez votre position.", { exact: true }).waitFor();
-  await page.getByText(en ? 'You can also defend your position in the chat.' : 'Vous pouvez aussi défendre votre position par message dans le chat.', { exact: true }).first().waitFor();
-  await page.getByRole('button', { name: en ? 'Pass' : 'Passer', exact: true }).click();
-  await eventCount(fixture, 'lab.turn.pass', 1);
+  await page.getByRole('heading', { name: en ? 'Explain your choices' : 'Expliquez vos choix' }).waitFor();
+  const argueFields = page.getByPlaceholder(en ? 'What you see, the impact on the team… (200 characters max)' : 'Ce que vous constatez, l’impact sur l’équipe… (200 caractères max)');
+  assert.equal(await argueFields.count(), 2, 'One argument field per picked problem');
+  await argueFields.nth(1).fill('Teams never share their plans');
+  await eventCount(fixture, 'lab.problem.argue', 1);
+  const argued = fixture.receivedEvents.find((item) => item.type === 'lab.problem.argue').payload;
+  assert.deepEqual(argued, { problem_id: 'silos', text: 'Teams never share their plans' });
+  act('1', 'lab.problem.argue', argued);
+  act('2', 'lab.problem.argue', { problem_id: 'workload', text: 'Overtime every single week' });
+  fixture.broadcast('lab.state', { labInnovation: view() });
+  await page.getByText(en ? /^Arguments written: 1\/2/ : /^Arguments rédigés : 1\/2/).waitFor();
 
-  // 3. Point voting on the shortlist.
-  while (/_defense$/.test(lab.phase)) logic.advanceLab(lab, Date.now());
+  // 3. Reading: every argument at once, grouped by problem, with its author.
+  logic.advanceLab(lab, Date.now());
+  fixture.broadcast('lab.state', { labInnovation: view() });
+  await page.getByRole('heading', { name: en ? 'Read the team’s arguments' : 'Lisez les arguments de l’équipe' }).waitFor();
+  await page.getByText('Overtime every single week', { exact: true }).waitFor();
+  await page.getByText('Teams never share their plans', { exact: true }).waitFor();
+  await page.getByRole('button', { name: en ? "I've read them" : "J'ai lu", exact: true }).click();
+  await eventCount(fixture, 'lab.ready', 1);
+
+  // 4. Point voting on the shortlist.
+  logic.advanceLab(lab, Date.now());
   fixture.broadcast('lab.state', { labInnovation: view() });
   await page.getByRole('heading', { name: en ? 'Vote for the problem to work on' : 'Votez pour le problème à traiter' }).waitFor();
   const submitVote = page.getByRole('button', { name: en ? 'Submit my vote' : 'Valider mon vote', exact: true });
@@ -209,7 +224,7 @@ async function testLab(locale, width) {
   await eventCount(fixture, 'lab.vote.submit', 1);
   assert.deepEqual(fixture.receivedEvents.find((item) => item.type === 'lab.vote.submit').payload.allocation, { silos: 3 });
 
-  // 4. Anonymous solutions on the chosen problem.
+  // 5. Anonymous solutions on the chosen problem, each with an optional reason.
   act('1', 'lab.vote.submit', { allocation: { silos: 3 } });
   act('2', 'lab.vote.submit', { allocation: { silos: 2, workload: 1 } });
   act('2', 'lab.solution.submit', { text: 'Monthly cross-team demo' });
@@ -219,11 +234,14 @@ async function testLab(locale, width) {
   await page.getByText(en ? 'Anonymous' : 'Anonyme', { exact: true }).waitFor();
   const solutionInput = page.getByPlaceholder(en ? 'Describe your solution (200 characters max)' : 'Décrivez votre solution (200 caractères max)');
   await solutionInput.fill('Shared roadmap');
+  await page.getByPlaceholder(en ? 'What it changes, why it can work… (200 characters max)' : 'Ce qu’elle change, pourquoi elle peut marcher… (200 caractères max)').fill('Everyone sees the same priorities');
   await page.getByRole('button', { name: en ? 'Add' : 'Ajouter', exact: true }).click();
   await eventCount(fixture, 'lab.solution.submit', 1);
+  assert.deepEqual(fixture.receivedEvents.find((item) => item.type === 'lab.solution.submit').payload,
+    { text: 'Shared roadmap', rationale: 'Everyone sees the same priorities' });
 
-  // 5. Deployment template: the required fields gate the submit button.
-  act('1', 'lab.solution.submit', { text: 'Shared roadmap' });
+  // 6. Deployment template: the required fields gate the submit button.
+  act('1', 'lab.solution.submit', { text: 'Shared roadmap', rationale: 'Everyone sees the same priorities' });
   logic.advanceLab(lab, Date.now());
   while (/_defense$/.test(lab.phase)) logic.advanceLab(lab, Date.now());
   const theirs = lab.solutions.find((item) => item.author_id === '2').id;
@@ -247,20 +265,47 @@ async function testLab(locale, width) {
   assert.equal(stepPayload.delay, 'short');
   assert.deepEqual(stepPayload.resources, ['tools']);
 
-  // 6. Solution sheet once the plan is merged.
+  // 7. Debrief once the plan is merged: decision, recommendations, decision path, plan.
   act('1', 'lab.step.submit', stepPayload);
   logic.advanceLab(lab, Date.now());
   logic.advanceLab(lab, Date.now());
+  const summary = { completion_percent: 100, collective_score: 100, action_count: 8, message_count: 0, total_time_seconds: 900, lab_result: logic.buildLabResult(lab) };
   fixture.broadcast('lab.state', { labInnovation: view() });
-  fixture.broadcast('puzzle.completed', { summary: { completion_percent: 100, collective_score: 100, action_count: 8, message_count: 0, total_time_seconds: 900, lab_result: logic.buildLabResult(lab) } });
-  await page.getByRole('heading', { name: en ? 'Solution sheet' : 'Fiche solution' }).waitFor();
-  await page.getByText('Monthly cross-team demo', { exact: true }).waitFor();
+  fixture.broadcast('puzzle.completed', { summary });
+  await page.getByRole('heading', { name: en ? 'What the team decided' : 'Ce que l’équipe a décidé' }).waitFor();
+  await page.getByText('Monthly cross-team demo', { exact: true }).first().waitFor();
   await page.getByText('Kickoff with managers', { exact: true }).waitFor();
-  await page.getByRole('heading', { name: en ? 'Recommended approach' : 'Approche recommandée' }).waitFor();
+  await page.getByRole('heading', { name: en ? 'Our recommendations' : 'Nos recommandations' }).waitFor();
+  await page.getByText(en ? 'Recommended approach' : 'Approche recommandée', { exact: true }).waitFor();
   await page.getByText(en ? 'Inspired by: Lean (value stream), ISO 9001 (process approach)' : 'Inspiré de : Lean (flux de valeur), ISO 9001 (approche processus)', { exact: true }).waitFor();
-  await page.getByRole('heading', { name: en ? 'Plan watch points' : 'Points de vigilance du plan' }).waitFor();
+  await page.getByText(en ? 'Plan watch points' : 'Points de vigilance du plan', { exact: true }).waitFor();
+  await page.getByRole('heading', { name: en ? 'How the team decided' : 'Le parcours de décision' }).waitFor();
+  await page.getByText(en ? '5 pts' : '5 pts', { exact: true }).waitFor();
   await page.getByRole('heading', { name: en ? 'Team indicators' : 'Indicateurs d’équipe' }).waitFor();
   assert.equal(await page.getByText(en ? 'How it is computed' : 'Comment c’est calculé', { exact: true }).count(), 3, 'Each indicator explains its computation');
+  assert.equal(await page.getByRole('button', { name: en ? 'Export the report (PDF)' : 'Exporter le rapport (PDF)' }).count(), 0, 'Only the host exports the report');
+  await finish(fixture);
+  await testLabReport(locale, width, lab, summary);
+}
+
+// The host exports a printable report with every pick, argument, solution and recommendation.
+async function testLabReport(locale, width, lab, summary) {
+  const logic = require('../../backend/src/challenges/engines/lab_d_innovation_v1/game-logic.js');
+  const en = locale === 'en';
+  const fixture = await open('lab_d_innovation_v1', { config, timer: { ...timer, status: 'completed' }, labInnovation: logic.buildLabPayloadForViewer(lab, null, true), summary }, { locale, width, role: 'manager' });
+  const { page } = fixture;
+  await page.getByRole('heading', { name: en ? 'What the team decided' : 'Ce que l’équipe a décidé' }).waitFor();
+  const [report] = await Promise.all([
+    page.waitForEvent('popup'),
+    page.getByRole('button', { name: en ? 'Export the report (PDF)' : 'Exporter le rapport (PDF)' }).click()
+  ]);
+  await report.waitForLoadState();
+  const text = await report.locator('body').innerText();
+  ['Teams never share their plans', 'Overtime every single week', 'Monthly cross-team demo', 'Everyone sees the same priorities', 'Kickoff with managers']
+    .forEach((needle) => assert.ok(text.includes(needle), `The report contains "${needle}"`));
+  assert.ok(text.includes(en ? 'Our recommendations' : 'Nos recommandations'));
+  assert.ok(text.includes(en ? 'Recommended approach' : 'Approche recommandée'));
+  await report.close();
   await finish(fixture);
 }
 
