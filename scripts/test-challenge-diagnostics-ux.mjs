@@ -419,6 +419,15 @@ async function testPixel(locale, width, disableWebgl, role = 'participant') {
   assert.equal(await visibleCount(), role === 'manager' || width < 640 ? 1 : layerCount);
   const viewportHeight = await page.locator('[class*="viewport3dCompact"]').evaluate((node) => Number.parseFloat(getComputedStyle(node).height));
   assert.ok(viewportHeight >= (width < 640 ? 320 : width < 980 ? 340 : 360), 'The 3D construction view has enough height');
+  if (!disableWebgl && width >= 980) {
+    const viewport = page.locator('[class*="viewport3dCompact"]');
+    await viewport.locator('canvas').waitFor();
+    await page.waitForFunction(() => {
+      const node = document.querySelector('[class*="viewport3dCompact"]');
+      const canvas = node?.querySelector('canvas');
+      return Boolean(canvas) && Math.abs(canvas.clientWidth - node.clientWidth) <= 1;
+    }, null, { timeout: 3000 });
+  }
   await navigation.locator('select').selectOption('1');
   assert.equal(await navigation.locator('select').inputValue(), '1');
   if (role === 'manager') {
@@ -448,23 +457,11 @@ async function testPixel(locale, width, disableWebgl, role = 'participant') {
   if (role === 'participant') {
     await layers.first().getByRole('button', { name: locale === 'en' ? /^Layer 1, cell x2 z1/ : /^Couche 1, case x2 z1/ }).click();
     await eventCount(fixture, 'pixel.cube.place', 1);
-    const reset = page.getByRole('button', { name: locale === 'en' ? 'Reset layer' : 'Réinitialiser la couche', exact: true });
-    assert.ok(await reset.isEnabled());
-    page.once('dialog', async (dialog) => {
-      assert.equal(dialog.type(), 'confirm');
-      await dialog.dismiss();
-    });
-    await reset.click();
-    await page.waitForTimeout(200);
-    assert.equal(fixture.receivedEvents.filter((item) => item.type === 'pixel.cube.remove').length, 0);
-    page.once('dialog', (dialog) => dialog.accept());
-    await reset.click();
-    await eventCount(fixture, 'pixel.cube.remove', 1);
-    const allReset = page.getByRole('button', { name: locale === 'en' ? 'Reset cubes' : 'Réinitialiser les cubes', exact: true });
-    page.once('dialog', (dialog) => dialog.dismiss());
-    await allReset.click();
-    await page.waitForTimeout(200);
-    assert.equal(fixture.receivedEvents.filter((item) => item.type === 'pixel.cube.remove').length, 1);
+    assert.equal(
+      await page.getByRole('button', { name: locale === 'en' ? /^(Reset layer|Reset cubes|Submit final version)$/ : /^(Réinitialiser la couche|Réinitialiser les cubes|Soumettre version finale)$/ }).count(),
+      0,
+      'The reset and submit actions are removed',
+    );
   }
   await finish(fixture);
 }
