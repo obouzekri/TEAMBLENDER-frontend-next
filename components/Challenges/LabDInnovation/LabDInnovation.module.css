@@ -678,51 +678,68 @@
 }
 
 /* Lab v2: problem catalog, turns, point voting, deployment steps and solution sheet */
-.categoryBlock {
-  display: grid;
-  gap: 8px;
-}
-
-.categoryHeader {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px 12px;
-}
-
-.categoryHeader h3 {
-  margin: 0;
-  font-size: 0.95rem;
-  color: var(--text-main);
-}
-
 .categoryRef {
   margin: 0;
   font-size: 0.78rem;
   color: var(--text-soft);
 }
 
+/* At most 3 columns; fewer when a column would drop under 220px. */
 .problemGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(max(220px, calc((100% - 20px) / 3)), 1fr));
   gap: 10px;
 }
 
 .problemCard {
-  display: grid;
+  --category-color: var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 6px;
-  align-content: space-between;
   padding: 12px;
   border-radius: 14px;
   border: 1px solid var(--line-soft);
   background: var(--surface-2);
 }
 
+.problemCard[data-category='governance'] { --category-color: #4f6bed; }
+.problemCard[data-category='communication'] { --category-color: #0e9384; }
+.problemCard[data-category='project'] { --category-color: #d97706; }
+.problemCard[data-category='risk'] { --category-color: #dc4c4c; }
+.problemCard[data-category='process'] { --category-color: #7a5af8; }
+.problemCard[data-category='people'] { --category-color: #db2777; }
+.problemCard[data-category='change'] { --category-color: #0284c7; }
+
+.problemCard strong {
+  color: var(--text-main);
+}
+
 .problemCard p {
+  flex: 1;
   margin: 0;
   font-size: 0.86rem;
   color: var(--text-soft);
+}
+
+.categoryChip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--category-color) 75%, var(--text-main));
+  background: color-mix(in srgb, var(--category-color) 14%, transparent);
+}
+
+.problemCardRef {
+  font-size: 0.74rem;
+  color: var(--text-soft);
+}
+
+.problemCard .ghostBtn {
+  align-self: stretch;
 }
 
 .problemCardPicked {
