@@ -226,9 +226,13 @@ function mountMiniModelScene(container, { gridSize, grid, palette, targetCells, 
   };
 
   window.addEventListener('resize', onResize);
+  // The container can change size without a window resize (layout settling after mount).
+  const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(onResize) : null;
+  resizeObserver?.observe(container);
 
   return () => {
     window.removeEventListener('resize', onResize);
+    resizeObserver?.disconnect();
     window.cancelAnimationFrame(frameId);
     group.children.forEach((mesh) => {
       if (mesh.material) mesh.material.dispose();
@@ -740,6 +744,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     };
 
     window.addEventListener('resize', onResize);
+    // The sidebar container changes size without a window resize once the session starts.
+    const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(onResize) : null;
+    resizeObserver?.observe(container);
 
     let rafId = 0;
     let hasRenderedFrame = false;
@@ -785,6 +792,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
     return () => {
       window.removeEventListener('resize', onResize);
+      resizeObserver?.disconnect();
       renderer.domElement.removeEventListener('webglcontextlost', onWebglContextLost);
       renderer.domElement.removeEventListener('pointermove', onPointerMove);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
@@ -859,31 +867,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isModelMapOpen]);
-
-  function handleResetBuild() {
-    if (!canBuild) return;
-    if (!serverCubes.length) return;
-    if (!window.confirm(t('challengePixel.removeAllLengthCubesFromThe', { length: serverCubes.length }))) return;
-    serverCubes.forEach((cube) => {
-      emitEvent('pixel.cube.remove', { x: cube.x, y: cube.y, z: cube.z });
-    });
-  }
-
-  function handleResetLayer() {
-    if (!canBuild) return;
-    const cubes = serverCubes.filter((cube) => Number(cube.y) === safeLayer);
-    if (!cubes.length) return;
-    if (!window.confirm(t('challengePixel.removeLengthCubeSFromShared', { length: cubes.length, safeLayer: safeLayer + 1 }))) return;
-    cubes
-      .forEach((cube) => {
-        emitEvent('pixel.cube.remove', { x: cube.x, y: cube.y, z: cube.z });
-      });
-  }
-
-  function handleSubmitFinal() {
-    if (isFacilitator || !connected) return;
-    emitEvent('pixel.submit_final');
-  }
 
   function handleBoardCellToggle(x, z, layer = safeLayer) {
     if (!canBuild) return;
@@ -1034,9 +1017,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         <ul className={styles.howToList}>
           <li>{t('challengePixel.chooseALayerThenPlaceOr')}</li>
           <li>{t('challengePixel.checkTheModelMapAndProgress')}</li>
-          <li>{t('challengePixel.coordinateInChatToAvoidDuplicates')}</li>
-          <li>{t('challengePixel.submitTheFinalVersionWhenYour')}</li>
-        </ul>
+          <li>{t('challengePixel.coordinateInChatToAvoidDuplicates')}</li>        </ul>
         <div className={styles.helperRow}>
           <div className={styles.helperItem}>
             <span className={styles.helperDotTarget} /> {t('challengePixel.targetModelGhost')}
@@ -1205,46 +1186,46 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           ) : (
             <>
               <section className={styles.panel}>
-                <div className={styles.panelHead}>
-                  <div className={styles.workspaceCopy}>
-                    <h2>{t('challengePixel.layerBuildWorkspace')}</h2>
-                    <p>
-                      {t('challengePixel.chooseALayerThenClickCells')}
-                    </p>
-                  </div>
-                  {!isFacilitator ? (
-                    <div className={styles.paletteRow}>
-                      <p className={styles.paletteLabel}>{t('challengePixel.activePalette')}</p>
-                      <div className={styles.paletteSwatches} role="radiogroup" aria-label={t('challengePixel.colorPalette')}>
-                        {palette.map((color) => (
-                          <button
-                            key={color}
-                            type="button"
-                            role="radio"
-                            aria-checked={selectedColor === color}
-                            aria-label={describeColor(color)}
-                            title={describeColor(color)}
-                            className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
-                            style={{ background: color }}
-                            onClick={() => selectColor(color)}
-                          />
-                        ))}
-                      </div>
+                <div className={styles.workspaceHead}>
+                  <h2>{t('challengePixel.layerBuildWorkspace')}</h2>
+                  <div className={styles.workspaceToolbar}>
+                    <div role="group" aria-label={t('challengePixel.layerNavigation')}>
+                      <label className={styles.activeLayerControl}>
+                        <span className={styles.activeLayerLabel}>{t('challengePixel.activeLayer')}</span>
+                        <select value={safeLayer} onChange={(event) => setActiveLayer(Number(event.target.value))}>
+                          {layers.map((layer) => <option key={layer} value={layer}>{t('challengePixel.layer')} {layer + 1}</option>)}
+                        </select>
+                        <span className={styles.activeLayerCount} aria-live="polite" aria-atomic="true">
+                          {activeLayerIndex + 1} / {layers.length}
+                        </span>
+                      </label>
                     </div>
-                  ) : null}
+                    {!isFacilitator ? (
+                      <div className={styles.paletteRow}>
+                        <p className={styles.paletteLabel}>{t('challengePixel.activePalette')}</p>
+                        <div className={styles.paletteSwatches} role="radiogroup" aria-label={t('challengePixel.colorPalette')}>
+                          {palette.map((color) => (
+                            <button
+                              key={color}
+                              type="button"
+                              role="radio"
+                              aria-checked={selectedColor === color}
+                              aria-label={describeColor(color)}
+                              title={describeColor(color)}
+                              className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
+                              style={{ background: color }}
+                              onClick={() => selectColor(color)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                  <p className={styles.workspaceDescription}>
+                    {t('challengePixel.chooseALayerThenClickCells')}
+                  </p>
                 </div>
 
-                <div className={styles.layerNavigation} role="group" aria-label={t('challengePixel.layerNavigation')}>
-                  <label className={styles.activeLayerControl}>
-                    <span className={styles.activeLayerLabel}>{t('challengePixel.activeLayer')}</span>
-                    <select value={safeLayer} onChange={(event) => setActiveLayer(Number(event.target.value))}>
-                      {layers.map((layer) => <option key={layer} value={layer}>{t('challengePixel.layer')} {layer + 1}</option>)}
-                    </select>
-                    <span className={styles.activeLayerCount} aria-live="polite" aria-atomic="true">
-                      {activeLayerIndex + 1} / {layers.length}
-                    </span>
-                  </label>
-                </div>
                 <div className={`${styles.layerQuickList}${isFacilitator ? ` ${styles.layerQuickListFacilitator}` : ''}`}>
                   {liveLayerBoards.filter(({ layer }) => !isFacilitator || layer === safeLayer).map(({ layer, rows }) => {
                     const stats = layerStats.find((item) => Number(item.layer) === Number(layer)) || null;
@@ -1315,25 +1296,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   })}
                 </div>
 
-                {!isFacilitator ? (
-                  <div className={`${styles.actionsRow} ${styles.actionsRowSticky}`} aria-label="Actions de construction">
-                    <button type="button" className={styles.btnSecondary} onClick={handleResetLayer} disabled={!canBuild || !serverCubes.some((cube) => Number(cube.y) === safeLayer)}>
-                      {t('challengePixel.resetLayer')}
-                    </button>
-                    <button type="button" className={styles.btnSecondary} onClick={handleResetBuild} disabled={!canBuild || serverCubes.length === 0}>
-                      {t('challengePixel.resetCubes')}
-                    </button>
-                    <button type="button" className={styles.btnPrimary} onClick={handleSubmitFinal} disabled={!connected || isLockedByPhase}>
-                      {t('challengePixel.submitFinalVersion')}
-                    </button>
-                  </div>
-                ) : (
+                {isFacilitator ? (
                   <div className={styles.actionsRow}>
                     <button type="button" className={styles.btnSecondary} onClick={onRequestHint}>
                       {t('challengePixel.broadcastHint')}
                     </button>
                   </div>
-                )}
+                ) : null}
 
                 <div className={styles.attemptCard} role="status" aria-live="polite">
                   <h3>{t('challengePixel.buildProgress')}</h3>
