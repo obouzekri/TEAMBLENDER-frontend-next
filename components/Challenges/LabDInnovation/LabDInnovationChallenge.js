@@ -14,6 +14,7 @@ import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import ChallengeRulesPanel from '../ChallengeRulesPanel';
 import ChallengeTimerCard from '../ChallengeTimerCard';
 import ChallengeChatCard from '../ChallengeChatCard';
+import { buildLabReportHtml, openLabReport } from './labReport';
 import styles from './LabDInnovation.module.css';
 
 const LEVELS = ['low', 'medium', 'high'];
@@ -25,8 +26,14 @@ const EMPTY_STEP = {
   stakeholder: '', stakeholder_type: 'internal', resources: [], resources_detail: ''
 };
 
-function isTurnPhase(phase) {
+// Reading stages: every argument or rationale is shown at once.
+function isReadingPhase(phase) {
   return /_defense$/.test(phase);
+}
+
+// Same cleanup as the server, to know whether a draft still differs from what was saved.
+function cleanDraft(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
 function isVotePhase(phase) {
@@ -58,15 +65,31 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   const [voteDraft, setVoteDraft] = useState({});
   const [decisionIds, setDecisionIds] = useState([]);
   const [solutionText, setSolutionText] = useState('');
+  const [solutionRationale, setSolutionRationale] = useState('');
+  const [argueDrafts, setArgueDrafts] = useState({});
   const [stepDraft, setStepDraft] = useState(EMPTY_STEP);
   const [copied, setCopied] = useState(false);
+  const [exportBlocked, setExportBlocked] = useState(false);
 
-  // A new stage (phase or turn) starts with a clean vote and decision draft.
+  // A new stage starts with a clean vote, decision and argument draft.
   const stageSeq = lab?.stage_seq;
   useEffect(() => {
     setVoteDraft({});
     setDecisionIds([]);
+    setArgueDrafts({});
   }, [stageSeq]);
+
+  // Arguments are saved shortly after typing stops, so nothing is lost when the time runs out.
+  const savedArguments = lab?.my_arguments;
+  const unsavedArguments = useMemo(() => Object.entries(argueDrafts)
+    .filter(([id, text]) => cleanDraft(text) !== (savedArguments?.[id] || '')), [argueDrafts, savedArguments]);
+  useEffect(() => {
+    if (phase !== 'problem_argue' || unsavedArguments.length === 0) return undefined;
+    const timer = setTimeout(() => {
+      unsavedArguments.forEach(([id, text]) => emitEvent('lab.problem.argue', { problem_id: id, text }));
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [phase, unsavedArguments, emitEvent]);
 
   const names = useMemo(() => {
     const map = new Map();
@@ -146,18 +169,41 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     );
   }
 
-  function renderReadyFooter() {
+  function renderReadyFooter({ doneLabel = t('challengeLab.imDone') } = {}) {
     const ready = lab?.ready || {};
+    const toggleReady = () => {
+      unsavedArguments.forEach(([id, text]) => send('lab.problem.argue', { problem_id: id, text }));
+      send('lab.ready', { ready: !ready.me });
+    };
     return (
       <div className={styles.readyRow}>
         <span className={styles.metaLine}>{t('challengeLab.readyCount', { count: ready.count || 0, total: ready.total || 0 })}</span>
         {!isHost ? (
-          <button type="button" className={ready.me ? styles.ghostBtn : styles.primaryBtn} disabled={!canAct} onClick={() => send('lab.ready', { ready: !ready.me })}>
-            {ready.me ? t('challengeLab.editAgain') : t('challengeLab.imDone')}
+          <button type="button" className={ready.me ? styles.ghostBtn : styles.primaryBtn} disabled={!canAct} onClick={toggleReady}>
+            {ready.me ? t('challengeLab.editAgain') : doneLabel}
           </button>
         ) : null}
       </div>
     );
+  }
+
+  function renderArgumentList(items) {
+    if (!items || items.length === 0) return <p className={styles.emptyHint}>{t('challengeLab.reading.noArguments')}</p>;
+    return (
+      <ul className={styles.argumentList}>
+        {items.map((item) => (
+          <li key={`${item.author_id}-${item.text}`} className={styles.argumentItem}>
+            <p>{item.text}</p>
+            <span className={styles.argumentAuthor}>{nameOf(item.author_id)}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  function renderCategoryChip(problemId) {
+    const category = catalogById.get(problemId)?.category;
+    return category ? <span className={styles.categoryChip}>{t(`challengeLab.categories.${category}`)}</span> : null;
   }
 
   function renderRetained() {
@@ -279,42 +325,90 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     );
   }
 
-  function renderTurnBanner() {
-    const turn = lab?.turn;
-    if (!turn) return null;
-    const speaker = turn.speaker_id;
-    const next = turn.order[turn.index + 1];
-    const myTurn = speaker === me;
+  function renderArgue() {
+    const picks = lab?.my_picks || [];
+    const textMax = limits.text_max_length || 200;
+    const saved = lab?.my_arguments || {};
+    const written = picks.filter((id) => cleanDraft(argueDrafts[id] ?? saved[id])).length;
+    if (isHost) {
+      return (
+        <section className={styles.card}>
+          <p className={styles.voteGuidance}>{t('challengeLab.argue.hostHint')}</p>
+          {renderReadyFooter()}
+        </section>
+      );
+    }
     return (
-      <section className={`${styles.turnBanner}${myTurn ? ` ${styles.turnBannerMine}` : ''}`} role="status">
-        <div>
-          <span className={styles.voteHeroLabel}>{t('challengeLab.turnProgress', { index: turn.index + 1, total: turn.order.length })}</span>
-          <strong>{myTurn ? t('challengeLab.yourTurn') : t('challengeLab.speakingNow', { name: nameOf(speaker) })}</strong>
-          {next ? <span className={styles.metaLine}>{t('challengeLab.upNext', { name: nameOf(next) })}</span> : null}
-          <span className={styles.metaLine}>{t('challengeLab.chatHint')}</span>
-        </div>
-        {myTurn ? <button type="button" className={styles.primaryBtn} disabled={!canAct} onClick={() => send('lab.turn.pass')}>{t('challengeLab.pass')}</button> : null}
+      <section className={styles.card}>
+        {picks.length === 0 ? <p className={styles.emptyHint}>{t('challengeLab.argue.noPicks')}</p> : (
+          <>
+            <p className={styles.voteGuidance}>
+              {t('challengeLab.argue.progress', { count: written, total: picks.length })}
+              <span className={styles.saveState} role="status">
+                {unsavedArguments.length > 0 ? t('challengeLab.argue.saving') : written > 0 ? t('challengeLab.argue.saved') : ''}
+              </span>
+            </p>
+            <div className={styles.argueGrid}>
+              {picks.map((id) => {
+                const value = argueDrafts[id] ?? saved[id] ?? '';
+                return (
+                  <article key={id} className={styles.argueCard} data-category={catalogById.get(id)?.category}>
+                    {renderCategoryChip(id)}
+                    <strong>{problemTitle(id)}</strong>
+                    <label className={styles.textAreaWrap}>
+                      <span className={styles.fieldLabel}>{t('challengeLab.argue.why')}</span>
+                      <textarea
+                        className={styles.textArea}
+                        value={value}
+                        maxLength={textMax}
+                        disabled={!canAct}
+                        placeholder={t('challengeLab.argue.placeholder', { max: textMax })}
+                        onChange={(event) => setArgueDrafts((prev) => ({ ...prev, [id]: event.target.value }))}
+                      />
+                      <span className={styles.charCount}>{value.length}/{textMax}</span>
+                    </label>
+                  </article>
+                );
+              })}
+            </div>
+          </>
+        )}
+        {renderReadyFooter()}
       </section>
     );
   }
 
-  function renderShortlist() {
+  function renderProblemReading() {
     const counts = lab?.pick_counts || {};
+    const byProblem = lab?.arguments_by_problem || {};
     const candidates = lab?.problem_vote?.candidates?.length ? lab.problem_vote.candidates : lab?.shortlist || [];
-    return (
-      <section className={styles.listCard}>
-        <h3>{t('challengeLab.shortlistTitle')}</h3>
-        <div className={styles.compactList}>
-          {candidates.map((id) => (
-            <article key={id} className={styles.compactRow}>
-              <span className={styles.rankBadge}>{t('challengeLab.picksBadge', { count: counts[id] || 0 })}</span>
-              <div>
-                <strong>{problemTitle(id)}</strong>
-                <p>{t(`challengeLab.catalog.${id}.description`)}</p>
-              </div>
-            </article>
-          ))}
+    const others = (lab?.catalog || []).map((item) => item.id)
+      .filter((id) => !candidates.includes(id) && (byProblem[id] || []).length > 0);
+    const renderProblem = (id) => (
+      <article key={id} className={styles.readingCard} data-category={catalogById.get(id)?.category}>
+        <div className={styles.readingHead}>
+          {renderCategoryChip(id)}
+          <span className={styles.badge}>{t('challengeLab.picksBadge', { count: counts[id] || 0 })}</span>
         </div>
+        <strong>{problemTitle(id)}</strong>
+        <p className={styles.metaLine}>{t(`challengeLab.catalog.${id}.description`)}</p>
+        {renderArgumentList(byProblem[id])}
+      </article>
+    );
+    return (
+      <section className={styles.card}>
+        <section className={styles.listCard}>
+          <h3>{t('challengeLab.reading.inDebate')}</h3>
+          <div className={styles.readingGrid}>{candidates.map(renderProblem)}</div>
+        </section>
+        {others.length > 0 ? (
+          <section className={styles.listCard}>
+            <h3>{t('challengeLab.reading.others')}</h3>
+            <p className={styles.metaLine}>{t('challengeLab.reading.othersHint')}</p>
+            <div className={styles.readingGrid}>{others.map(renderProblem)}</div>
+          </section>
+        ) : null}
+        {renderReadyFooter({ doneLabel: t('challengeLab.reading.doneReading') })}
       </section>
     );
   }
@@ -326,7 +420,13 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
       <div className={styles.listGrid}>
         {list.map((item) => (
           <article key={item.id} className={styles.voteCard}>
-            <p>{item.text}</p>
+            <p className={styles.solutionText}>{item.text}</p>
+            {item.rationale ? (
+              <p className={styles.rationale}>
+                <span className={styles.fieldLabel}>{t('challengeLab.rationaleLabel')}</span>
+                {item.rationale}
+              </p>
+            ) : null}
             <span className={styles.badge}>
               {item.mine ? t('challengeLab.you') : item.author_id ? nameOf(item.author_id) : t('challengeLab.anonymous')}
             </span>
@@ -336,11 +436,11 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     );
   }
 
-  function renderDefense() {
+  function renderSolutionReading() {
     return (
       <section className={styles.card}>
-        {renderTurnBanner()}
-        {track === 'problem' ? renderShortlist() : renderSolutionList()}
+        {renderSolutionList()}
+        {renderReadyFooter({ doneLabel: t('challengeLab.reading.doneReading') })}
       </section>
     );
   }
@@ -383,6 +483,13 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
                 <div>
                   <strong>{label}</strong>
                   {track === 'problem' ? <p>{t(`challengeLab.catalog.${id}.description`)}</p> : null}
+                  {track === 'solution' && solutionsById.get(id)?.rationale ? <p className={styles.rationale}>{solutionsById.get(id).rationale}</p> : null}
+                  {track === 'problem' && (lab?.arguments_by_problem?.[id] || []).length > 0 ? (
+                    <details className={styles.argumentDetails}>
+                      <summary>{t('challengeLab.reading.argumentsCount', { count: lab.arguments_by_problem[id].length })}</summary>
+                      {renderArgumentList(lab.arguments_by_problem[id])}
+                    </details>
+                  ) : null}
                 </div>
                 {!isHost ? (
                   own ? <span className={styles.badge}>{t('challengeLab.ownProposal')}</span> : (
@@ -443,7 +550,10 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     const textMax = limits.text_max_length || 200;
     const mine = (lab?.solutions || []).filter((item) => item.mine);
     const submitSolution = () => {
-      if (send('lab.solution.submit', { text: solutionText.trim() })) setSolutionText('');
+      if (send('lab.solution.submit', { text: solutionText.trim(), rationale: solutionRationale.trim() })) {
+        setSolutionText('');
+        setSolutionRationale('');
+      }
     };
     return (
       <section className={styles.card}>
@@ -453,12 +563,20 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
               <textarea className={styles.textArea} value={solutionText} maxLength={textMax} disabled={!canAct || mine.length >= max} onChange={(event) => setSolutionText(event.target.value)} placeholder={t('challengeLab.solutionPlaceholder', { max: textMax })} aria-label={t('challengeLab.solutionPlaceholder', { max: textMax })} />
               <span className={styles.charCount}>{solutionText.length}/{textMax}</span>
             </div>
+            <label className={styles.textAreaWrap}>
+              <span className={styles.fieldLabel}>{t('challengeLab.solutionRationale')}</span>
+              <textarea className={styles.textArea} value={solutionRationale} maxLength={textMax} disabled={!canAct || mine.length >= max} onChange={(event) => setSolutionRationale(event.target.value)} placeholder={t('challengeLab.solutionRationalePlaceholder', { max: textMax })} />
+              <span className={styles.charCount}>{solutionRationale.length}/{textMax}</span>
+            </label>
             <button type="button" className={styles.primaryBtn} disabled={!canAct || !solutionText.trim() || mine.length >= max} onClick={submitSolution}>{t('challengeLab.add')}</button>
             <section className={styles.listCard}>
               <h3>{t('challengeLab.mySolutions', { count: mine.length, max })}</h3>
               {mine.map((item) => (
                 <article key={item.id} className={styles.compactRow}>
-                  <div><strong>{item.text}</strong></div>
+                  <div>
+                    <strong>{item.text}</strong>
+                    {item.rationale ? <p>{item.rationale}</p> : null}
+                  </div>
                   <button type="button" className={styles.ghostBtn} disabled={!canAct} onClick={() => send('lab.solution.delete', { solution_id: item.id })}>{t('challengeLab.delete')}</button>
                 </article>
               ))}
@@ -601,6 +719,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     const lines = [
       `${t('challengeLab.fiche.problem')} : ${result.problem_id ? problemTitle(result.problem_id) : '-'}`,
       `${t('challengeLab.fiche.solution')} : ${result.solutions.map((item) => item.text).join(' + ') || '-'}`,
+      ...result.solutions.filter((item) => item.rationale).map((item) => `${t('challengeLab.rationaleLabel')} : ${item.rationale}`),
       '',
       `${t('challengeLab.fiche.plan')} :`,
       ...result.steps.map((step, index) => `${index + 1}. ${step.text} — ${t(`challengeLab.delays.${step.delay}`)}, ${t('challengeLab.step.riskLevel')} ${t(`challengeLab.levels.${step.risk_level}`)}, ${t('challengeLab.step.budget')} ${t(`challengeLab.levels.${step.budget_level}`)}${Number.isFinite(step.budget_amount) ? ` (${formatNumber(step.budget_amount, locale)})` : ''}${step.stakeholder ? `, ${step.stakeholder}` : ''}${step.risk ? ` — ${t('challengeLab.step.risk')} : ${step.risk}` : ''}`),
@@ -631,65 +750,94 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     }
   }
 
+  function exportReport(result) {
+    const html = buildLabReportHtml({
+      result,
+      t,
+      locale,
+      title: rulesProps.challengeName,
+      fullName: (id) => names.get(id) || t('challengeLab.anonymous'),
+      stats: lab?.stats
+    });
+    setExportBlocked(!openLabReport(html));
+  }
+
+  // One horizontal bar per option, scaled on the best score of the list.
+  function renderVoteBars(items, { labelOf, renderDetails, retainedLabel }) {
+    const max = Math.max(1, ...items.map((item) => item.points || 0));
+    return (
+      <ol className={styles.voteBars}>
+        {items.map((item) => {
+          const voted = Number.isFinite(item.points);
+          return (
+            <li key={item.key} className={`${styles.voteBarRow}${item.retained ? ` ${styles.voteBarRetained}` : ''}`}>
+              <div className={styles.voteBarHead}>
+                <strong>{labelOf(item)}</strong>
+                {item.retained ? <span className={styles.badge}>{retainedLabel}</span> : null}
+                <span className={styles.voteBarValue}>{voted ? t('challengeLab.points', { count: item.points }) : t('challengeLab.debrief.notVoted')}</span>
+              </div>
+              {voted ? (
+                <span className={styles.voteBarTrack} aria-hidden="true">
+                  <span className={styles.voteBarFill} style={{ width: `${(item.points / max) * 100}%` }} />
+                </span>
+              ) : null}
+              {renderDetails(item)}
+            </li>
+          );
+        })}
+      </ol>
+    );
+  }
+
   function renderFiche() {
     const result = lab?.result || state?.summary?.lab_result;
     if (!result) return null;
+    const problems = result.problem_choices || [];
+    const solutions = result.solutions_proposed || [];
+    const insight = result.problem_id ? `challengeLab.insights.${result.problem_id}` : null;
     return (
-      <section className={styles.card} data-debrief-content>
-        <h2 className={styles.sectionTitle}>{t('challengeLab.phaseTitle.done')}</h2>
-        <div className={styles.ficheGrid}>
-          <div className={styles.listCard}>
-            <h3>{t('challengeLab.fiche.problem')}</h3>
+      <section className={`${styles.card} ${styles.debrief}`} data-debrief-content>
+        <div className={styles.debriefTop}>
+          <h2 className={styles.sectionTitle}>{t('challengeLab.debrief.resultTitle')}</h2>
+          <div className={styles.cardActions}>
+            {isHost ? <button type="button" className={styles.primaryBtn} onClick={() => exportReport(result)} title={t('challengeLab.debrief.exportHint')}>{t('challengeLab.debrief.export')}</button> : null}
+            <button type="button" className={styles.ghostBtn} onClick={() => copyFiche(result)}>{t('challengeLab.fiche.copy')}</button>
+          </div>
+        </div>
+        {copied ? <p className={styles.voteFeedback} role="status">{t('challengeLab.fiche.copied')}</p> : null}
+        {exportBlocked ? <p className={styles.errorBanner} role="alert">{t('challengeLab.debrief.exportBlocked')}</p> : null}
+
+        <div className={styles.decisionFlow}>
+          <article className={styles.decisionCard} data-category={catalogById.get(result.problem_id)?.category}>
+            <span className={styles.voteHeroLabel}>{t('challengeLab.retainedProblem')}</span>
             {result.problem_id ? (
               <>
+                {renderCategoryChip(result.problem_id)}
                 <strong>{problemTitle(result.problem_id)}</strong>
                 <p className={styles.metaLine}>{t(`challengeLab.catalog.${result.problem_id}.description`)}</p>
-                {catalogById.get(result.problem_id) ? <p className={styles.categoryRef}>{t(`challengeLab.categories.${catalogById.get(result.problem_id).category}`)}</p> : null}
+                {result.problem_decided_by ? <span className={styles.decidedBy}>{t(`challengeLab.decidedBy.${result.problem_decided_by}`)}</span> : null}
               </>
             ) : <p className={styles.emptyHint}>-</p>}
-          </div>
-          <div className={styles.listCard}>
-            <h3>{t('challengeLab.fiche.solution')}</h3>
+          </article>
+          <article className={styles.decisionCard}>
+            <span className={styles.voteHeroLabel}>{t('challengeLab.retainedSolution')}</span>
             {result.solutions.length === 0 ? <p className={styles.emptyHint}>{t('challengeLab.fiche.noSolution')}</p> : null}
             {result.solutions.map((item) => (
-              <div key={item.id}>
-                <strong className={styles.blockText}>{item.text}</strong>
+              <div key={item.id} className={styles.decisionSolution}>
+                <strong>{item.text}</strong>
+                {item.rationale ? <p className={styles.rationale}>{item.rationale}</p> : null}
                 <span className={styles.metaLine}>{t('challengeLab.proposedBy', { name: nameOf(item.author_id) })}</span>
               </div>
             ))}
-            {result.solution_decided_by ? <span className={styles.metaLine}>{t(`challengeLab.decidedBy.${result.solution_decided_by}`)}</span> : null}
-          </div>
+            {result.solution_decided_by ? <span className={styles.decidedBy}>{t(`challengeLab.decidedBy.${result.solution_decided_by}`)}</span> : null}
+          </article>
         </div>
-        {result.problem_id ? (
-          <section className={`${styles.listCard} ${styles.insightCard}`}>
-            <h3>{t('challengeLab.debrief.approachTitle')}</h3>
-            <p><strong>{t(`challengeLab.insights.${result.problem_id}.approach`)}</strong></p>
-            <span className={styles.fieldLabel}>{t('challengeLab.debrief.practicesTitle')}</span>
-            <ul className={styles.practiceList}>
-              {[1, 2, 3].map((index) => <li key={index}>{t(`challengeLab.insights.${result.problem_id}.practice${index}`)}</li>)}
-            </ul>
-            <p className={styles.categoryRef}>{t('challengeLab.debrief.inspiredBy', { reference: t(`challengeLab.insights.${result.problem_id}.reference`) })}</p>
-            <p className={styles.categoryRef}>{t('challengeLab.debrief.approachDisclaimer')}</p>
-          </section>
-        ) : null}
-        <section className={styles.listCard}>
-          <h3>{t('challengeLab.fiche.plan')}</h3>
-          {result.steps.length === 0 ? <p className={styles.emptyHint}>{t('challengeLab.fiche.noSteps')}</p> : null}
-          <div className={styles.compactList}>
-            {result.steps.map((step, index) => renderStepCard(step, { index }))}
-          </div>
-        </section>
-        {result.steps.length > 0 && Array.isArray(result.plan_checks) ? (
-          <section className={styles.listCard}>
-            <h3>{t('challengeLab.debrief.planChecksTitle')}</h3>
-            {result.plan_checks.length === 0 ? <p className={styles.metaLine}>{t('challengeLab.debrief.planChecksNone')}</p> : (
-              <ul className={styles.checkList}>
-                {result.plan_checks.map((check) => <li key={check.key}>{t(`challengeLab.planChecks.${check.key}`, { count: check.count })}</li>)}
-              </ul>
-            )}
-          </section>
-        ) : null}
-        <div className={styles.statGrid} data-debrief-metrics>
+
+        <div className={styles.keyFigures} data-debrief-metrics>
+          <article className={styles.statTile}>
+            <strong>{result.steps.length}</strong>
+            <span>{t('challengeLab.debrief.stepsCount')}</span>
+          </article>
           <article className={styles.statTile}>
             <strong>{t('challengeLab.fiche.budgetByLevel', result.budget.by_level)}</strong>
             <span>{t('challengeLab.fiche.budget')}</span>
@@ -697,13 +845,97 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
           </article>
           <article className={styles.statTile}>
             <strong>{result.high_risk_count}</strong>
-            <span>{t('challengeLab.fiche.highRisks', { count: result.high_risk_count })}</span>
+            <span>{t('challengeLab.debrief.highRiskLabel')}</span>
           </article>
           <article className={styles.statTile}>
             <strong>{result.stakeholders.length}</strong>
             <span>{t('challengeLab.fiche.stakeholders')}{result.stakeholders.length ? ` : ${result.stakeholders.join(', ')}` : ''}</span>
           </article>
+          {lab?.stats ? (
+            <article className={styles.statTile}>
+              <strong>{formatNumber(lab.stats.participation_rate / 100, locale, { style: 'percent' })}</strong>
+              <span>{t('challengeLab.debrief.participationLabel')}</span>
+            </article>
+          ) : null}
         </div>
+
+        {insight || result.steps.length > 0 ? (
+          <section className={`${styles.listCard} ${styles.insightCard}`}>
+            <h3>{t('challengeLab.debrief.recommendationsTitle')}</h3>
+            <div className={styles.recommendGrid}>
+              {insight ? (
+                <div>
+                  <span className={styles.fieldLabel}>{t('challengeLab.debrief.approachTitle')}</span>
+                  <p><strong>{t(`${insight}.approach`)}</strong></p>
+                  <span className={styles.fieldLabel}>{t('challengeLab.debrief.practicesTitle')}</span>
+                  <ul className={styles.practiceList}>
+                    {[1, 2, 3].map((index) => <li key={index}>{t(`${insight}.practice${index}`)}</li>)}
+                  </ul>
+                  <p className={styles.categoryRef}>{t('challengeLab.debrief.inspiredBy', { reference: t(`${insight}.reference`) })}</p>
+                  <p className={styles.categoryRef}>{t('challengeLab.debrief.approachDisclaimer')}</p>
+                </div>
+              ) : null}
+              {result.steps.length > 0 && Array.isArray(result.plan_checks) ? (
+                <div>
+                  <span className={styles.fieldLabel}>{t('challengeLab.debrief.planChecksTitle')}</span>
+                  {result.plan_checks.length === 0 ? <p className={styles.metaLine}>{t('challengeLab.debrief.planChecksNone')}</p> : (
+                    <ul className={styles.checkList}>
+                      {result.plan_checks.map((check) => <li key={check.key}>{t(`challengeLab.planChecks.${check.key}`, { count: check.count })}</li>)}
+                    </ul>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
+
+        {problems.length > 0 || solutions.length > 0 ? (
+          <section className={styles.listCard}>
+            <h3>{t('challengeLab.debrief.journeyTitle')}</h3>
+            <p className={styles.metaLine}>{t('challengeLab.debrief.votePointsHint')}</p>
+            <div className={styles.journeyGrid}>
+              {problems.length > 0 ? (
+                <div>
+                  <span className={styles.fieldLabel}>{t('challengeLab.debrief.problemsTitle')}</span>
+                  {renderVoteBars(problems.map((item) => ({ ...item, key: item.problem_id })), {
+                    labelOf: (item) => problemTitle(item.problem_id),
+                    retainedLabel: t('challengeLab.debrief.retainedProblemBadge'),
+                    renderDetails: (item) => (
+                      <details className={styles.argumentDetails}>
+                        <summary>{t('challengeLab.picksBadge', { count: item.picks })} · {t('challengeLab.reading.argumentsCount', { count: item.arguments.length })}</summary>
+                        {renderArgumentList(item.arguments)}
+                      </details>
+                    )
+                  })}
+                </div>
+              ) : null}
+              {solutions.length > 0 ? (
+                <div>
+                  <span className={styles.fieldLabel}>{t('challengeLab.debrief.solutionsTitle')}</span>
+                  {renderVoteBars(solutions.map((item) => ({ ...item, key: item.id })), {
+                    labelOf: (item) => item.text,
+                    retainedLabel: t('challengeLab.debrief.retainedSolutionBadge'),
+                    renderDetails: (item) => (
+                      <p className={styles.rationale}>
+                        {item.rationale || t('challengeLab.debrief.noRationale')}
+                        <span className={styles.argumentAuthor}>{nameOf(item.author_id)}</span>
+                      </p>
+                    )
+                  })}
+                </div>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
+
+        <section className={styles.listCard}>
+          <h3>{t('challengeLab.fiche.plan')}</h3>
+          {result.steps.length === 0 ? <p className={styles.emptyHint}>{t('challengeLab.fiche.noSteps')}</p> : null}
+          <div className={styles.compactList}>
+            {result.steps.map((step, index) => renderStepCard(step, { index }))}
+          </div>
+        </section>
+
         {result.indicators ? (
           <section className={styles.listCard}>
             <h3>{t('challengeLab.debrief.indicatorsTitle')}</h3>
@@ -736,9 +968,6 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             </div>
           </section>
         ) : null}
-        {lab?.stats ? <p className={styles.metaLine}>{t('challengeLab.fiche.participation', { rate: lab.stats.participation_rate })}</p> : null}
-        <button type="button" className={styles.ghostBtn} onClick={() => copyFiche(result)}>{t('challengeLab.fiche.copy')}</button>
-        {copied ? <p className={styles.voteFeedback} role="status">{t('challengeLab.fiche.copied')}</p> : null}
       </section>
     );
   }
@@ -746,7 +975,9 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
   function renderPhase() {
     if (!lab) return null;
     if (phase === 'problem_select') return renderProblemSelect();
-    if (isTurnPhase(phase)) return renderDefense();
+    if (phase === 'problem_argue') return renderArgue();
+    if (phase === 'problem_defense') return renderProblemReading();
+    if (isReadingPhase(phase)) return renderSolutionReading();
     if (phase.endsWith('_tiebreak_debate')) return renderTiebreakDebate();
     if (isVotePhase(phase)) return renderVote();
     if (phase.endsWith('_decision')) return renderDecision();

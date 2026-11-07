@@ -703,13 +703,13 @@
   background: var(--surface-2);
 }
 
-.problemCard[data-category='governance'] { --category-color: #4f6bed; }
-.problemCard[data-category='communication'] { --category-color: #0e9384; }
-.problemCard[data-category='project'] { --category-color: #d97706; }
-.problemCard[data-category='risk'] { --category-color: #dc4c4c; }
-.problemCard[data-category='process'] { --category-color: #7a5af8; }
-.problemCard[data-category='people'] { --category-color: #db2777; }
-.problemCard[data-category='change'] { --category-color: #0284c7; }
+:is(.problemCard, .argueCard, .readingCard, .decisionCard)[data-category='governance'] { --category-color: #4f6bed; }
+:is(.problemCard, .argueCard, .readingCard, .decisionCard)[data-category='communication'] { --category-color: #0e9384; }
+:is(.problemCard, .argueCard, .readingCard, .decisionCard)[data-category='project'] { --category-color: #d97706; }
+:is(.problemCard, .argueCard, .readingCard, .decisionCard)[data-category='risk'] { --category-color: #dc4c4c; }
+:is(.problemCard, .argueCard, .readingCard, .decisionCard)[data-category='process'] { --category-color: #7a5af8; }
+:is(.problemCard, .argueCard, .readingCard, .decisionCard)[data-category='people'] { --category-color: #db2777; }
+:is(.problemCard, .argueCard, .readingCard, .decisionCard)[data-category='change'] { --category-color: #0284c7; }
 
 .problemCard strong {
   color: var(--text-main);
@@ -729,8 +729,8 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--category-color) 75%, var(--text-main));
-  background: color-mix(in srgb, var(--category-color) 14%, transparent);
+  color: color-mix(in srgb, var(--category-color, var(--accent)) 75%, var(--text-main));
+  background: color-mix(in srgb, var(--category-color, var(--accent)) 14%, transparent);
 }
 
 .problemCardRef {
@@ -982,4 +982,241 @@
   display: flex;
   justify-content: space-between;
   gap: 8px;
+}
+
+/* Written arguments: each person explains their picks, then everyone reads them. */
+.saveState {
+  margin-inline-start: 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.argueGrid,
+.readingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(max(240px, calc((100% - 20px) / 3)), 1fr));
+  gap: 10px;
+}
+
+.argueCard,
+.readingCard,
+.decisionCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line-soft);
+  border-top: 3px solid var(--category-color, var(--accent));
+  background: var(--surface-2);
+}
+
+.argueCard strong,
+.readingCard strong,
+.decisionCard strong {
+  color: var(--text-main);
+}
+
+.argueCard .textAreaWrap {
+  align-self: stretch;
+}
+
+.readingHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  align-self: stretch;
+}
+
+.argumentList {
+  display: grid;
+  gap: 6px;
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.argumentItem {
+  padding: 8px 10px;
+  border-inline-start: 3px solid color-mix(in srgb, var(--accent) 55%, var(--line-soft));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface-1));
+}
+
+.argumentItem p {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 0.88rem;
+}
+
+.argumentAuthor {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.argumentDetails {
+  margin-top: 6px;
+}
+
+.argumentDetails summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.argumentDetails[open] summary {
+  margin-bottom: 6px;
+}
+
+.solutionText {
+  margin: 0;
+  color: var(--text-main);
+}
+
+.rationale {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+  font-size: 0.86rem;
+  font-style: italic;
+  color: var(--text-soft);
+}
+
+.rationale .fieldLabel,
+.rationale .argumentAuthor {
+  font-style: normal;
+}
+
+/* Debrief: decision first, then key figures, recommendations, the decision path and the plan. */
+.debriefTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.decisionFlow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.decisionCard {
+  padding: 16px;
+  background: color-mix(in srgb, var(--category-color, var(--accent)) 7%, var(--surface-1));
+}
+
+.decisionCard > strong {
+  font-size: 1.1rem;
+  line-height: 1.3;
+}
+
+.decisionSolution {
+  display: grid;
+  gap: 4px;
+}
+
+.decidedBy {
+  margin-top: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  border: 1px solid var(--line-soft);
+}
+
+.keyFigures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.recommendGrid,
+.journeyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.recommendGrid > div,
+.journeyGrid > div {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+/* Vote results: one series, so one hue; the value is written next to each bar. */
+.voteBars {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.voteBarRow {
+  display: grid;
+  gap: 6px;
+}
+
+.voteBarHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 8px;
+}
+
+.voteBarHead strong {
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+
+.voteBarValue {
+  margin-inline-start: auto;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
+}
+
+.voteBarTrack {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line-soft);
+  overflow: hidden;
+}
+
+.voteBarFill {
+  display: block;
+  height: 100%;
+  border-start-end-radius: 4px;
+  border-end-end-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 55%, var(--line-soft));
+}
+
+.voteBarRetained .voteBarFill {
+  background: var(--accent);
+}
+
+.voteBarRetained .badge {
+  padding: 2px 8px;
+  font-size: 0.72rem;
+}
+
+@media print {
+  .debriefTop .cardActions {
+    display: none;
+  }
 }
