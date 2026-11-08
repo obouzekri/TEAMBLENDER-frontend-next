@@ -53,8 +53,15 @@ export default function PreferencesPage() {
     setGuard({ loading: false, user: normalizedCurrent });
   }, [showError, t, withLocalePath]);
 
+  // Participants have no account-level notifications: the backend rejects this endpoint for them.
+  const canManageNotifications = Boolean(guard.user) && guard.user.role !== 'participant';
+
   useEffect(() => {
     if (guard.loading) return;
+    if (!canManageNotifications) {
+      setNotificationsLoading(false);
+      return;
+    }
     let cancelled = false;
     setNotificationsLoading(true);
     setNotificationsError(false);
@@ -66,7 +73,7 @@ export default function PreferencesPage() {
       })
       .finally(() => { if (!cancelled) setNotificationsLoading(false); });
     return () => { cancelled = true; };
-  }, [guard.loading, reloadNotifications]);
+  }, [guard.loading, canManageNotifications, reloadNotifications]);
 
   const userLabel = String(
     guard.user?.name ||
@@ -106,11 +113,13 @@ export default function PreferencesPage() {
     setThemePreference(nextPreference);
   }
 
+  const notificationsBlocking = canManageNotifications && (notificationsLoading || notificationsError || !notifications);
+
   async function savePreferences() {
-    if (saving || notificationsLoading || notificationsError || !notifications) return;
+    if (saving || notificationsBlocking) return;
     setSaving(true);
     try {
-      await updateNotificationPreferences(notifications);
+      if (canManageNotifications) await updateNotificationPreferences(notifications);
       const saved = saveDisplayPreferences(prefs, localStorage);
       applyDisplayPreferences(saved, document.documentElement);
       window.dispatchEvent(new Event(DISPLAY_PREFERENCES_EVENT));
@@ -153,7 +162,7 @@ export default function PreferencesPage() {
           <span className="preferences-hero-icon" aria-hidden="true"><SlidersHorizontal size={40} /></span>
         </section>
 
-        <section className="preferences-panel" aria-labelledby="preferences-notifications-title">
+        {canManageNotifications && <section className="preferences-panel" aria-labelledby="preferences-notifications-title">
           <header className="preferences-panel__header">
             <h2 id="preferences-notifications-title"><Bell size={20} aria-hidden="true" />{t('preferencesPage.notificationsTitle')}</h2>
             <p>{t('preferencesPage.notificationsIntro')}</p>
@@ -186,7 +195,7 @@ export default function PreferencesPage() {
               </span>
             </label>
           </div>
-        </section>
+        </section>}
 
         <section className="preferences-panel" aria-labelledby="preferences-appearance-title">
           <header className="preferences-panel__header">
@@ -243,7 +252,7 @@ export default function PreferencesPage() {
         </section>
 
         <div className="preferences-actions">
-          <button type="button" className="btn-primary" disabled={saving || notificationsLoading || notificationsError} onClick={savePreferences}><Save size={18} aria-hidden="true" />{t(saving ? 'preferencesPage.saving' : 'preferencesPage.save')}</button>
+          <button type="button" className="btn-primary" disabled={saving || notificationsBlocking} onClick={savePreferences}><Save size={18} aria-hidden="true" />{t(saving ? 'preferencesPage.saving' : 'preferencesPage.save')}</button>
         </div>
       </main>
       <Footer />

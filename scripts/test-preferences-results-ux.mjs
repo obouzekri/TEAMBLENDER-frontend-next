@@ -76,7 +76,7 @@ try {
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
       await page.goto(`${baseUrl}/${locale}/preferences`);
-      await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+      await page.getByRole('button', { name: dictionary.cookieConsent.refuse, exact: true }).click();
       const checkboxes = page.getByRole('checkbox');
       assert.equal(await checkboxes.count(), 4);
       await page.getByRole('button', { name: preferences.save, exact: true }).waitFor();
@@ -255,6 +255,39 @@ try {
     } finally {
       await context.close();
     }
+  }
+  console.log('Checking preferences: participant');
+  const participantContext = await browser.newContext({ locale: 'fr', viewport: { width: 1440, height: 1000 } });
+  try {
+    const participantCalls = [];
+    await participantContext.addInitScript(() => {
+      sessionStorage.setItem('currentUser', JSON.stringify({ id: 7, role: 'participant', first_name: 'Fixture', last_name: 'Participant' }));
+    });
+    await participantContext.route('**/*', async (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname.includes('/api/')) {
+        participantCalls.push(url.pathname);
+        if (url.pathname.endsWith('/notification-preferences')) return route.fulfill({ status: 403, json: { message: 'Insufficient role' } });
+        return route.fulfill({ json: url.pathname.endsWith('/auth/csrf-token') ? { csrfToken: 'fixture-csrf' } : {} });
+      }
+      if (url.origin === new URL(baseUrl).origin) return route.continue();
+      return route.abort();
+    });
+    const page = await participantContext.newPage();
+    const preferences = fr.preferencesPage;
+    await page.goto(`${baseUrl}/fr/preferences`);
+    await page.getByRole('button', { name: fr.cookieConsent.refuse, exact: true }).click();
+    await page.getByRole('heading', { name: preferences.appearanceTitle, exact: true }).waitFor();
+    assert.equal(await page.getByRole('heading', { name: preferences.notificationsTitle, exact: true }).count(), 0);
+    assert.equal(await page.getByText(preferences.notificationsLoadError, { exact: true }).count(), 0);
+    assert.equal(await page.getByRole('checkbox').count(), 2);
+    await page.getByRole('checkbox').nth(1).locator('xpath=ancestor::label').click();
+    await page.getByRole('button', { name: preferences.save, exact: true }).click();
+    await page.getByText(preferences.saved, { exact: true }).waitFor();
+    assert.equal(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)).highContrast, DISPLAY_PREFERENCES_KEY), true);
+    assert.ok(participantCalls.every((path) => !path.endsWith('/notification-preferences')));
+  } finally {
+    await participantContext.close();
   }
   console.log('TEST_PREFERENCES_RESULTS_UX_OK');
 } finally {
