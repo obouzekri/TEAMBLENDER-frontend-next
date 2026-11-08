@@ -2051,3 +2051,208 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Team plan visibility: live summary, backlog filters, teammate placements. */
+.teamSummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 0 0 12px;
+  padding: 9px 13px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--surface-1);
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
+
+.teamSummaryTitle {
+  color: var(--text-main);
+  font-weight: 800;
+}
+
+.teamSummaryStat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.teamSummaryWarn {
+  color: color-mix(in srgb, var(--warn) 72%, var(--text-main));
+  font-weight: 700;
+}
+
+.teamSummaryCritical {
+  color: color-mix(in srgb, var(--critical) 72%, var(--text-main));
+  font-weight: 700;
+}
+
+.backlogFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.filterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 11px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--surface-1);
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filterChip:hover {
+  border-color: var(--line-strong);
+}
+
+.filterChipActive {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface-1));
+  color: var(--text-main);
+}
+
+.filterChipCount {
+  min-width: 1.4em;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.taskRowMain {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 4px;
+  min-width: 0;
+}
+
+.taskRowMeta,
+.taskRowTeam {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  color: var(--text-soft);
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.taskRowMeta svg,
+.taskRowTeam svg {
+  flex: 0 0 auto;
+}
+
+.teammateChip {
+  --phase-accent: var(--accent);
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--phase-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--phase-accent) 12%, transparent);
+  color: var(--text-main);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Placed by a teammate only: still clickable, but visibly someone else's. */
+.taskRowTaken {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--surface-1) 70%, transparent);
+}
+
+.taskRowTaken .taskRowLabel {
+  color: var(--text-soft);
+}
+
+/* Placed by me and by a teammate: a team duplicate. */
+.taskRowDuplicate {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--line-soft));
+  border-inline-start: 3px solid var(--warn);
+  background: color-mix(in srgb, var(--warn) 8%, var(--surface-1));
+}
+
+.criticalBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-inline-start: 7px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--critical) 50%, transparent);
+  background: color-mix(in srgb, var(--critical) 12%, transparent);
+  color: color-mix(in srgb, var(--critical) 72%, var(--text-main));
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+
+.timelineItemStack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+}
+
+.timelineItemIssue {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--line-soft));
+}
+
+.timelineItemWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  color: color-mix(in srgb, var(--warn) 72%, var(--text-main));
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.timelineItemWarning svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.modalTaskFacts {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
+
+.modalTaskFacts li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.modalTaskFacts svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.modalTaskFactWarn {
+  color: color-mix(in srgb, var(--warn) 72%, var(--text-main));
+  font-weight: 600;
+}
+
+/* Desktop: two backlog tasks per row. */
+@media (min-width: 1180px) {
+  .backlogList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: 420px;
+  }
+}
