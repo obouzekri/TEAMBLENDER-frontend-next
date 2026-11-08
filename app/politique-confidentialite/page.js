@@ -29,6 +29,14 @@ const RIGHTS = {
     { title: 'Right to object', desc: 'Object to specific processing activities' },
     { title: 'Right to restriction', desc: 'Temporarily restrict a processing activity' },
   ],
+  ar: [
+    { title: 'حق الوصول', desc: 'الحصول على نسخة من بياناتك الشخصية' },
+    { title: 'حق التصحيح', desc: 'تصحيح البيانات غير الدقيقة أو غير المكتملة' },
+    { title: 'حق المحو', desc: 'طلب حذف بياناتك' },
+    { title: 'حق نقل البيانات', desc: 'استلام بياناتك بصيغة منظّمة' },
+    { title: 'حق الاعتراض', desc: 'الاعتراض على بعض عمليات المعالجة' },
+    { title: 'حق تقييد المعالجة', desc: 'تقييد إحدى عمليات المعالجة مؤقتًا' },
+  ],
 };
 
 const COPY = {
@@ -72,6 +80,26 @@ const COPY = {
       seeAlso: 'See also:',
     },
   },
+  ar: {
+    eyebrow: 'حماية البيانات',
+    title: 'سياسة الخصوصية',
+    intro: 'نلتزم بحماية بياناتك الشخصية. توضّح هذه الصفحة البيانات التي نجمعها وأسباب جمعها وكيف يمكنك ممارسة حقوقك.',
+    updated: 'آخر تحديث: مايو 2026 - تسري على جميع مستخدمي منصة TeamBlender. في حال وجود اختلاف بين هذه الترجمة والنسخة الفرنسية، تكون النسخة الفرنسية هي المعتمدة.',
+    sections: {
+      controller: '1. المسؤول عن المعالجة',
+      data: '2. البيانات المُجمَّعة',
+      purposes: '3. أغراض المعالجة',
+      legal: '4. الأساس القانوني',
+      retention: '5. مدة الاحتفاظ',
+      recipients: '6. الجهات المتلقية للبيانات',
+      rights: '7. حقوقك',
+      cookies: '8. ملفات تعريف الارتباط',
+      complaint: '9. تقديم شكوى',
+      changes: '10. التعديلات',
+      legalNotice: 'الإشعار القانوني',
+      seeAlso: 'انظر أيضًا:',
+    },
+  },
 };
 
 export default async function PolitiqueConfidentialitePage() {
@@ -103,7 +131,7 @@ export default async function PolitiqueConfidentialitePage() {
             <ul style={{ paddingInlineStart: '1.25rem', lineHeight: 1.8, color: 'var(--muted)' }}>
               <li><strong>{translate(locale, 'privacyPage.entity')}</strong> [NOM DE LA SOCIÉTÉ]</li>
               <li><strong>{translate(locale, 'privacyPage.address')}</strong> [ADRESSE]</li>
-              <li><strong>Email :</strong> <a href="mailto:contact@teamblender.io">contact@teamblender.io</a></li>
+              <li><strong>{translate(locale, 'privacyPage.email')}</strong> <a href="mailto:contact@teamblender.io">contact@teamblender.io</a></li>
             </ul>
           </section>
 
