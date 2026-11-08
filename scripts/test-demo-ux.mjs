@@ -4,8 +4,8 @@ import { chromium } from 'playwright';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const screenshotDir = process.env.DEMO_SCREENSHOT_DIR || '';
-// Pari sur moi is run by the facilitator, then played again in the participant preview.
-const PROGRAM_ENGINES = ['copuzzle_live_v1', 'labyrinthe_live_v1', 'vrai_ou_mensonge_v1'];
+// Pixel Architect is run by the facilitator, then played again in the participant preview.
+const PROGRAM_ENGINES = ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1'];
 
 const COPY = {
   fr: {
@@ -21,7 +21,6 @@ const COPY = {
     pause: 'Mettre en pause',
     resume: 'Reprendre',
     playHeading: 'Aperçu côté participant',
-    confirm: 'Confirmer',
     seeResults: 'Voir le bilan',
     results: 'Le bilan de la session',
     participation: '4 sur 4 participants',
@@ -40,7 +39,6 @@ const COPY = {
     pause: 'Pause',
     resume: 'Resume',
     playHeading: 'Participant preview',
-    confirm: 'Confirm',
     seeResults: 'See the results',
     results: 'Session results',
     participation: '4 of 4 participants',
@@ -139,7 +137,7 @@ async function runDemo(browser, locale, viewport, { flowMode }) {
     }
     if (played.length === 1) {
       await snap(page, `${tag}-2-facilitate-${engine}`);
-      if (flowMode === 'manual' && engine !== 'vrai_ou_mensonge_v1') {
+      if (flowMode === 'manual') {
         const timer = stage.getByRole('timer').filter({ visible: true }).first();
         await stage.getByRole('button', { name: copy.pause }).filter({ visible: true }).first().click();
         await stage.getByRole('button', { name: copy.resume }).filter({ visible: true }).first().waitFor();
@@ -166,37 +164,26 @@ async function runDemo(browser, locale, viewport, { flowMode }) {
   assert.deepEqual(played, PROGRAM_ENGINES, 'Every programme challenge was played in order');
   assert.ok(played.every((engine) => PROGRAM_ENGINES.includes(engine)), 'Only supported programme challenges were played');
 
-  // Participant preview: the visitor plays Pari sur moi in the real participant interface.
-  const stage = page.locator('[data-demo-challenge="vrai_ou_mensonge_v1"]');
+  // Participant preview: the visitor builds with three colleagues in the real participant interface.
+  const stage = page.locator('[data-demo-challenge="pixel_architect_v1"]');
   await stage.waitFor({ timeout: 20000 });
-  let posed = 0;
-  let voted = 0;
+  let placed = 0;
   const seeResults = page.getByRole('button', { name: copy.seeResults });
+  const freeTarget = stage.locator('button[class*="layerQuickCellTarget"]:not([class*="layerQuickCellPlaced"]):not([disabled])');
   for (let loop = 0; loop < 400 && !(await seeResults.count()); loop += 1) {
-    const dialog = page.getByRole('dialog');
-    const statement = stage.locator('button[class*="statementBtn"]:not([disabled])');
-    const votes = stage.locator('[class*="voteActions"] button:not([disabled])');
-    if (await dialog.getByRole('button', { name: copy.confirm }).count()) {
-      await dialog.locator('input[type="radio"]').first().check();
-      await dialog.getByRole('button', { name: copy.confirm }).click();
-      posed += 1;
-    } else if (await statement.count()) {
-      await statement.first().click();
-    } else if (await votes.count()) {
-      if (!voted) await snap(page, `${tag}-3-play`);
-      await votes.first().click();
-      voted += 1;
+    if (placed < 4 && await freeTarget.count()) {
+      if (!placed) await snap(page, `${tag}-3-play`);
+      await freeTarget.first().click({ timeout: 2000 }).then(() => { placed += 1; }).catch(() => {});
     }
     await page.waitForTimeout(400);
   }
-  assert.equal(posed, 1, 'The visitor poses one statement');
-  assert.ok(voted >= 3, 'The visitor votes on the other players');
+  assert.ok(placed >= 1, 'The visitor places cubes');
   await seeResults.click();
 
   // Results: real completions and the visitor's score.
   await page.getByRole('heading', { name: copy.results }).waitFor();
   await page.getByText(copy.participation, { exact: true }).waitFor();
-  assert.ok(await page.getByText(/\d+ pt\(s\)/).count(), 'The visitor score is shown');
+  assert.ok(await page.getByText(/^[1-9]\d* cube\(s\)$/).count(), 'The visitor contribution is shown');
   await snap(page, `${tag}-4-results`);
   assert.equal(await page.getByRole('link', { name: copy.signup }).getAttribute('href'), `/${locale}/signup`);
 

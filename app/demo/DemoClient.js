@@ -10,7 +10,6 @@ import useI18n from '@/lib/i18n/useI18n';
 import { trackProductEvent } from '@/lib/analytics';
 import { mockChallenges } from '@/lib/mockChallenges';
 import { localizeBuilderChallenge } from '@/lib/challenges/catalogLocalization';
-import { getVraiOuMensongeRulesPreset } from '@/lib/challenges/vraiOuMensongeRules';
 import { getPublicSiteOrigin } from '@/lib/siteMetadata';
 import { getChallengeDuration } from '@/lib/sessionProgram.mjs';
 import {
@@ -25,9 +24,9 @@ import {
   createRandom,
   getDebriefPrompts,
   getDemoParticipants,
-  getVisitorResult,
+  getVisitorContribution,
 } from '@/lib/demo/demoScenario.mjs';
-import { DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '@/lib/demo/challenges/index.mjs';
+import { DEMO_PLAY_ENGINE_KEY, DEMO_PROGRAM_ENGINE_KEYS, createDemoScenario } from '@/lib/demo/challenges/index.mjs';
 import ManagerHome from '../home/ManagerHome';
 import DemoChallengeStage from './DemoChallengeStage';
 import DemoHint from './DemoHint';
@@ -119,7 +118,7 @@ export default function DemoClient() {
     job_title: participant.role,
     department: '',
   })), [participants]);
-  const pariName = getVraiOuMensongeRulesPreset(locale).challengeName;
+  const playName = demoCatalog.find((challenge) => challenge.engine_key === DEMO_PLAY_ENGINE_KEY)?.name || '';
 
   useEffect(() => {
     track('started', { surface: 'demo_page' });
@@ -179,17 +178,15 @@ export default function DemoClient() {
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [seed, step]);
 
-  // Pari sur moi starts with its own action instead of the timer, so automatic flow schedules it.
   const activeScenario = useMemo(
     () => (activeChallenge
       ? createDemoScenario(activeChallenge.engine_key, {
         seed: seed + activeIndex,
         locale,
         players: participants,
-        autoStartMs: flowMode === 'auto' ? 1500 : null,
       })
       : null),
-    [activeChallenge, activeIndex, flowMode, locale, participants, seed]
+    [activeChallenge, activeIndex, locale, participants, seed]
   );
 
   const handleChallengeComplete = useCallback((summary) => {
@@ -202,7 +199,7 @@ export default function DemoClient() {
   // The add hint points at the first challenge not yet in the programme.
   const nextChallengeToAdd = demoCatalog.find((challenge) => !program.some((item) => item.id === challenge.id));
   let addHintKey = program.length ? 'addNext' : 'add';
-  if (nextChallengeToAdd?.engine_key === VOM_ENGINE_KEY) addHintKey = 'addSelf';
+  if (nextChallengeToAdd?.engine_key === DEMO_PLAY_ENGINE_KEY) addHintKey = 'addSelf';
 
   // One coach mark at a time, on the action that moves the demo forward.
   let activeHint = null;
@@ -227,7 +224,7 @@ export default function DemoClient() {
   }
 
   function renderHint(key, action, options = {}) {
-    let text = t(`demo.hints.${key}`, { challenge: pariName });
+    let text = t(`demo.hints.${key}`, { challenge: playName });
     if (key === 'facilitate' && activeIndex + 1 >= program.length) text = t('demo.hints.facilitateLast');
     return (
       <DemoHint show={activeHint === key} text={text} dismissLabel={t('demo.hints.dismiss')} onDismiss={hideHints} {...options}>
@@ -272,22 +269,21 @@ export default function DemoClient() {
     return () => window.clearInterval(timer);
   }, [activeDone, activeIndex, flowMode, step]);
 
-  // Participant preview: the visitor plays Pari sur moi with three fictional colleagues.
+  // Participant preview: the visitor builds the Pixel Architect model with three fictional colleagues.
   const visitorName = t('demo.play.you');
   const playScenario = useMemo(
     () => (step === 'play'
-      ? createDemoScenario(VOM_ENGINE_KEY, {
+      ? createDemoScenario(DEMO_PLAY_ENGINE_KEY, {
         seed: seed + 100,
         locale,
         players: [{ id: DEMO_VISITOR_ID, name: visitorName, bot: false }, ...participants.slice(0, 3)],
-        autoStartMs: 1500,
       })
       : null),
     [locale, participants, seed, step, visitorName]
   );
 
   const handlePlayComplete = useCallback((summary, state) => {
-    setVisitorResult(getVisitorResult(state?.vom, DEMO_VISITOR_ID));
+    setVisitorResult(getVisitorContribution(state?.pixel, DEMO_VISITOR_ID));
     setPlayDone(true);
   }, []);
 
@@ -362,7 +358,7 @@ export default function DemoClient() {
               {t(`demo.${step}.title`)}
             </h2>
             <p className={styles.panelIntro}>
-              {step === 'play' ? t('demo.play.intro', { challenge: pariName }) : t(`demo.${step}.intro`)}
+              {step === 'play' ? t('demo.play.intro', { challenge: playName }) : t(`demo.${step}.intro`)}
             </p>
           </div>
           {stepIndex > 0 ? (
@@ -441,7 +437,7 @@ export default function DemoClient() {
                   challenge.id === nextChallengeToAdd?.id ? renderHint(addHintKey, action, { align: 'start' }) : action
                 )}
               />
-              <p className={styles.hint}>{t('demo.prepare.playNote', { challenge: pariName })}</p>
+              <p className={styles.hint}>{t('demo.prepare.playNote', { challenge: playName })}</p>
               <div className={styles.actions}>
                 {renderHint('prepare', (
                   <Button disabled={!programReady} onClick={() => goToStep('invite')}>{t('demo.prepare.continue')}</Button>
@@ -567,7 +563,7 @@ export default function DemoClient() {
                   <span className={styles.liveDot} aria-hidden="true" />
                   {displayedSessionName}
                 </p>
-                <p className={styles.liveBarTitle}>{t('demo.play.barTitle', { challenge: pariName, name: visitorName })}</p>
+                <p className={styles.liveBarTitle}>{t('demo.play.barTitle', { challenge: playName, name: visitorName })}</p>
               </div>
               <div className={styles.liveBarActions}>
                 <Button variant={playDone ? 'primary' : 'ghost'} onClick={() => goToStep('results')}>
@@ -579,6 +575,7 @@ export default function DemoClient() {
               <DemoChallengeStage
                 key={`play-${seed}`}
                 scenario={playScenario}
+                autoStart
                 locale={locale}
                 role="participant"
                 participantId={DEMO_VISITOR_ID}
@@ -613,12 +610,12 @@ export default function DemoClient() {
               <div className={styles.kpi}>
                 <p className={styles.label}>{t('demo.results.yourScore')}</p>
                 <p className={styles.kpiValue}>
-                  {results.visitor ? t('demo.results.yourScoreValue', { score: results.visitor.score }) : '–'}
+                  {results.visitor ? t('demo.results.yourScoreValue', { count: results.visitor.cubes }) : '–'}
                 </p>
                 <p className={styles.kpiDetail}>
                   {results.visitor
-                    ? t('demo.results.yourScoreDetail', { rank: results.visitor.rank, total: results.visitor.total, challenge: pariName })
-                    : t('demo.results.yourScoreMissing', { challenge: pariName })}
+                    ? t('demo.results.yourScoreDetail', { share: results.visitor.share, challenge: playName })
+                    : t('demo.results.yourScoreMissing', { challenge: playName })}
                 </p>
               </div>
             </div>
