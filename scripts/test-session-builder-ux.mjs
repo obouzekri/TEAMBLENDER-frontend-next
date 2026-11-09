@@ -110,16 +110,23 @@ try {
     await page.locator('[data-activity-id="103"]').waitFor();
     assert.deepEqual(await order(), [101, 102, 103]);
 
-    const selection = list.locator('..');
-    const launchButton = selection.getByRole('button', {
-      name: locale === 'en' ? 'Launch session' : 'Lancer la session',
-      exact: true,
+    const preparation = page.getByRole('region', {
+      name: locale === 'en' ? 'Prepare your session' : 'Préparer votre session',
     });
+    const launchButton = preparation.getByRole('button', {
+      name: locale === 'en' ? 'Launch session' : 'Lancer la session',
+    });
+    assert.equal(
+      await list.locator('..').getByRole('button', {
+        name: locale === 'en' ? 'Launch session' : 'Lancer la session',
+      }).count(),
+      0
+    );
     if (mobile) {
-      const buttonTop = (await launchButton.boundingBox()).y;
+      assert.ok(await launchButton.isVisible());
       assert.ok(await list.evaluate((element) => element.scrollHeight > element.clientHeight));
       await list.evaluate((element) => { element.scrollTop = element.scrollHeight; });
-      assert.equal((await launchButton.boundingBox()).y, buttonTop);
+      assert.ok(await launchButton.isVisible());
       await list.evaluate((element) => { element.scrollTop = 0; });
     }
     await launchButton.click();
@@ -303,6 +310,34 @@ try {
       .getByRole('button', { name: locale === 'en' ? 'Add' : 'Ajouter', exact: true })
       .click();
     assert.deepEqual(await order(), [102, 103, 101]);
+
+    const clearSelectionButton = page.getByRole('button', {
+      name: locale === 'en' ? 'Clear selection' : 'Vider la sélection',
+      exact: true,
+    });
+    await clearSelectionButton.click();
+    const clearDialog = page.getByRole('dialog', {
+      name: locale === 'en' ? 'Clear the selection?' : 'Vider la sélection ?',
+    });
+    await clearDialog.waitFor();
+    await clearDialog.getByRole('button', {
+      name: locale === 'en' ? 'Cancel' : 'Annuler',
+      exact: true,
+    }).click();
+    assert.equal(await clearDialog.count(), 0);
+    assert.deepEqual(await order(), [102, 103, 101]);
+    await clearSelectionButton.click();
+    await page.getByRole('dialog', {
+      name: locale === 'en' ? 'Clear the selection?' : 'Vider la sélection ?',
+    }).getByRole('button', {
+      name: locale === 'en' ? 'Clear selection' : 'Vider la sélection',
+      exact: true,
+    }).click();
+    await page.getByText(
+      locale === 'en' ? 'No challenge selected' : 'Aucun challenge sélectionné',
+      { exact: true }
+    ).waitFor();
+    assert.equal(await list.locator('[data-activity-id]').count(), 0);
     assert.deepEqual(errors, []);
     await context.close();
   }

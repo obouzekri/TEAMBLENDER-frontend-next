@@ -98,6 +98,7 @@ export default function SessionBuilder() {
 
   const [isLaunching, setIsLaunching] = useState(false);
   const [isLaunchConfirmOpen, setIsLaunchConfirmOpen] = useState(false);
+  const [isClearSelectionConfirmOpen, setIsClearSelectionConfirmOpen] = useState(false);
   const [sessionChallengesLoaded, setSessionChallengesLoaded] = useState(false);
   const [hasRouteSessionId, setHasRouteSessionId] = useState(false);
   // Initialize as '' (matches SSR) — useEffect reads from URL after mount to avoid hydration mismatch.
@@ -1659,7 +1660,18 @@ export default function SessionBuilder() {
           objectiveLabel={objectiveLabel}
           selectedCount={selectedChallenges.length}
           totalDuration={getTotalDuration()}
+          invitePanel={invitePanel}
+        />
+        <SessionPreparation
+          participantCount={sessionParticipantCount}
+          participantCountLabel="assigned"
+          selectedCount={selectedChallenges.length}
+          configuration={selectedChallenges.length ? 'loaded' : 'missing'}
+          sessionAvailable={Boolean(sessionId)}
+          busy={isSavingDraft || isLaunching}
           isSavingDraft={isSavingDraft}
+          isLaunching={isLaunching}
+          isLaunchDisabled={selectedChallenges.length === 0}
           onEditSessionInfo={() => {
             setEditName(sessionName);
             setEditFlowMode(flowMode);
@@ -1670,18 +1682,7 @@ export default function SessionBuilder() {
             setIsEditingSessionInfo(true);
           }}
           onSaveConfig={handleSaveDraft}
-          isLaunchDisabled={selectedChallenges.length === 0}
-          isLaunching={isLaunching}
           onLaunch={handleRequestLaunch}
-          invitePanel={invitePanel}
-        />
-        <SessionPreparation
-          participantCount={sessionParticipantCount}
-          participantCountLabel="assigned"
-          selectedCount={selectedChallenges.length}
-          configuration={selectedChallenges.length ? 'loaded' : 'missing'}
-          sessionAvailable={Boolean(sessionId)}
-          busy={isSavingDraft || isLaunching}
         />
 
         <section className={styles.challengeChoice} aria-labelledby="challenge-choice-title">
@@ -1745,9 +1746,7 @@ export default function SessionBuilder() {
             onMoveUp={moveChallengeUp}
             onMoveDown={moveChallengeDown}
             onReorder={reorderChallenge}
-            onClearAll={clearAll}
-            onLaunch={handleRequestLaunch}
-            isLaunching={isLaunching}
+            onClearAll={() => setIsClearSelectionConfirmOpen(true)}
           />
 
           <ChallengesCatalog
@@ -2027,6 +2026,35 @@ export default function SessionBuilder() {
             disabled={isLaunching}
           >
             {isLaunching ? t('sessionBuilder.launching') : t('sessionBuilder.launchConfirmAction')}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={isClearSelectionConfirmOpen}
+        title={t('sessionBuilder.clearSelectionConfirmTitle')}
+        onClose={() => setIsClearSelectionConfirmOpen(false)}
+        dialogClassName={styles.launchConfirmDialog}
+        bodyClassName={styles.launchConfirmBody}
+      >
+        <div className={styles.clearSelectionConfirmNotice}>
+          <p className={styles.launchConfirmText}>{t('sessionBuilder.clearSelectionConfirmBody')}</p>
+        </div>
+        <div className={styles.launchConfirmActions}>
+          <Button
+            variant="secondary"
+            onClick={() => setIsClearSelectionConfirmOpen(false)}
+          >
+            {t('sessionBuilder.cancel')}
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              clearAll();
+              setIsClearSelectionConfirmOpen(false);
+            }}
+          >
+            {t('sessionBuilder.clearSelectionConfirmAction')}
           </Button>
         </div>
       </Modal>

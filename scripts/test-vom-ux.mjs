@@ -64,7 +64,7 @@ try {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-    await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+    await page.getByRole('button', { name: locale === 'fr' ? 'Refuser les cookies de mesure' : 'Refuse analytics cookies', exact: true }).click();
     await page.getByText(locale === 'fr' ? '✅ Bonne réponse : +1 point' : '✅ Correct answer: +1 point', { exact: true }).waitFor();
     assert.ok(await page.getByText(locale === 'fr' ? '❌ Mauvaise réponse : 0 point' : '❌ Wrong answer: 0 points', { exact: true }).count());
     assert.ok(await page.getByText(locale === 'fr' ? '⏱️ Hors délai : 0 point' : '⏱️ Time expired: 0 points', { exact: true }).count());
@@ -73,6 +73,19 @@ try {
     else await page.getByRole('heading', { name: 'Bet on me!', exact: true }).waitFor();
 
     let turn = { poser_id: '2', statement_id: 'ct_01', statement_text: catalog[0].text, answer_mode: 'boolean', votes: { '1': 'vrai' } };
+    const visibleRanks = page.locator('[class*="rankingCard"]:visible [class*="rankPill"]');
+    await visibleRanks.first().waitFor();
+    assert.deepEqual(await visibleRanks.allTextContents(), ['🥇', '🥇', '🥇']);
+    broadcast('vom.state', { vom: { ...baseVom, phase: 'voting_open', current_turn: turn, scores: { '1': 2, '2': 1, '3': 0 } } });
+    await page.waitForFunction(() => {
+      const ranks = [...document.querySelectorAll('[class*="rankingCard"] [class*="rankPill"]')];
+      return ranks.length === 3 && ranks.map((rank) => rank.textContent).join(',') === '🥇,🥈,🥉';
+    });
+    broadcast('vom.state', { vom: { ...baseVom, phase: 'voting_open', current_turn: turn, scores: { '1': 2, '2': 2, '3': 0 } } });
+    await page.waitForFunction(() => {
+      const ranks = [...document.querySelectorAll('[class*="rankingCard"] [class*="rankPill"]')];
+      return ranks.length === 3 && ranks.map((rank) => rank.textContent).join(',') === '🥇,🥇,🥉';
+    });
     broadcast('vom.state', { vom: { ...baseVom, phase: 'voting_open', current_turn: turn } });
     await page.getByText(locale === 'fr' ? 'Je maîtrise plus de trois langues' : 'I speak more than three languages', { exact: false }).first().waitFor();
     assert.equal(await page.getByText(locale === 'fr' ? 'Votre question' : 'Your question', { exact: true }).count(), 0);

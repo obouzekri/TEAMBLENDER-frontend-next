@@ -178,6 +178,24 @@ try {
   await page.getByText('Teamwork', { exact: true }).waitFor();
   assert.equal(await page.evaluate(() => ui.buildCrosswordCells(state.crossword.grid).get('0:0').letter), 'C');
   assert.equal(await page.evaluate(() => ui.hasCrosswordConflict(state.crossword.grid.words[0], 'BAT', ui.buildCrosswordCells(state.crossword.grid))), true);
+  const arabicCrossing = await page.evaluate(() => {
+    const grid = { words: [
+      { id: 'team', number: 1, row: 0, col: 3, direction: 'across', colStep: -1, length: 4, answer: null, solvedBy: null },
+      { id: 'sand', number: 2, row: 0, col: 2, direction: 'down', length: 3, answer: 'رمل', solvedBy: 'p2' },
+    ] };
+    const cells = ui.buildCrosswordCells(grid);
+    return {
+      crossing: cells.get('0:2').letter,
+      start: cells.get('0:3').number,
+      valid: ui.buildCrosswordAnswer(grid.words[0], 'فريق', cells),
+      conflict: ui.hasCrosswordConflict(grid.words[0], 'فديق', cells),
+    };
+  });
+  assert.equal(arabicCrossing.crossing, 'ر');
+  assert.equal(arabicCrossing.start, 1);
+  assert.equal(arabicCrossing.valid.answer, 'فريق');
+  assert.equal(arabicCrossing.valid.complete, true);
+  assert.equal(arabicCrossing.conflict, true);
   await page.evaluate(() => {
     state = { ...state, crossword: { ...state.crossword, solvedCount: 0, totalWords: 15 } };
     render();
@@ -342,6 +360,7 @@ try {
     } };
     render();
   });
+  await page.locator('.timerColumn .rankPill').nth(3).waitFor();
   assert.deepEqual(await page.locator('.timerColumn .rankPill').allTextContents(), ['#1', '#1', '#3', '–']);
   assert.deepEqual(await page.locator('.activity li strong').allTextContents(),
     ['WORD0', 'WORD1', 'WORD2', 'WORD3', 'WORD4', 'WORD5', 'WORD6', 'WORD7'], 'Latest discoveries come first');

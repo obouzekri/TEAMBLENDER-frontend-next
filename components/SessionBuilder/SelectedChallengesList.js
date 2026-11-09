@@ -4,7 +4,7 @@ import styles from './SelectedChallengesList.module.css';
 import { Button, EmptyState } from '@/components/ui';
 import useI18n from '@/lib/i18n/useI18n';
 import { useRef, useState } from 'react';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, Trash2 } from 'lucide-react';
 import { pickLocalized } from '@/lib/i18n';
 
 export default function SelectedChallengesList({
@@ -15,8 +15,6 @@ export default function SelectedChallengesList({
   onMoveDown,
   onReorder,
   onClearAll,
-  onLaunch,
-  isLaunching = false,
 }) {
   const { t, locale } = useI18n();
   const listRef = useRef(null);
@@ -174,12 +172,14 @@ export default function SelectedChallengesList({
       </ul>
 
       <div className={styles.footer}>
-        {onLaunch ? (
-          <Button block onClick={onLaunch} disabled={isLaunching} aria-busy={isLaunching}>
-            {t(isLaunching ? 'sessionBuilder.launching' : 'sessionBuilder.launchSession')}
-          </Button>
-        ) : null}
-        <Button className={styles.clearSelectionButton} variant="secondary" size="sm" block onClick={onClearAll}>
+        <Button
+          className={styles.clearSelectionButton}
+          variant="secondary"
+          size="sm"
+          block
+          onClick={onClearAll}
+        >
+          <Trash2 size={16} aria-hidden="true" />
           {t('sessionBuilder.clearSelection')}
         </Button>
       </div>

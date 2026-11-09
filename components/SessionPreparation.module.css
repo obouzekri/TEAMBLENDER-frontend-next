@@ -119,6 +119,92 @@
   line-height: 1.45;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.iconActionWrapper {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.iconActionWrapper:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.iconAction {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface-control);
+  color: var(--text-subtle);
+  cursor: pointer;
+}
+
+.iconAction:hover:not(:disabled) {
+  border-color: var(--control-border-strong);
+  background: var(--surface-control-hover);
+  color: var(--ink);
+}
+
+.iconAction:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.iconAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.actionTooltip {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% + 8px);
+  inset-inline-end: 0;
+  width: max-content;
+  max-width: min(220px, 65vw);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-panel);
+  color: var(--ink);
+  font-size: 0.78rem;
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.iconActionWrapper:hover .actionTooltip,
+.iconActionWrapper:focus-within .actionTooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.primaryAction {
+  min-width: 9rem;
+}
+
+.launchHint {
+  margin: 8px 0 0;
+  color: var(--challenge-text-secondary);
+  font-size: 0.8rem;
+  text-align: end;
+}
+
 @media (max-width: 760px) {
   .panel {
     padding: 16px;
@@ -138,5 +224,14 @@
 
   .stage + .stage {
     margin-top: 4px;
+  }
+
+  .actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .primaryAction {
+    flex: 1 1 100%;
   }
 }

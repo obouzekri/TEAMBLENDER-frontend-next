@@ -20,6 +20,8 @@ import { applyTimerEvent, createDemoChallengeServer } from '../lib/demo/demoChal
 import { DEMO_ENGINE_KEYS, DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '../lib/demo/challenges/index.mjs';
 import { buildCopuzzleSummary } from '../lib/demo/challenges/copuzzle.mjs';
 import { buildLabySummary } from '../lib/demo/challenges/labyrinthe.mjs';
+import { buildVomConfig } from '../lib/demo/challenges/vraiOuMensonge.mjs';
+import { SUPPORTED_LOCALES } from '../lib/i18n/routing.js';
 import { SESSION_OBJECTIVES } from '../lib/sessionProgram.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -36,7 +38,7 @@ for (let index = 0; index < 20; index += 1) {
 assert.equal(DEMO_STEPS[0], 'dashboard', 'The demo starts in the manager space');
 assert.deepEqual(DEMO_FLOW_MODES, ['manual', 'auto']);
 assert.ok(Object.keys(DEMO_DEBRIEF_PROMPTS).every((objective) => SESSION_OBJECTIVES.includes(objective)));
-assert.ok(DEMO_PAST_SESSIONS.every((session) => session.name.fr && session.name.en));
+assert.ok(DEMO_PAST_SESSIONS.every((session) => session.name.fr && session.name.en && session.name.ar));
 assert.deepEqual(
   [...DEMO_ENGINE_KEYS].sort(),
   ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1', 'vrai_ou_mensonge_v1'],
@@ -45,10 +47,11 @@ assert.deepEqual(DEMO_PROGRAM_ENGINE_KEYS, ['copuzzle_live_v1', 'labyrinthe_live
 
 // A fixed team of four, the minimum needed for every demo challenge.
 assert.equal(DEMO_TEAM_SIZE, 4);
-for (const locale of ['fr', 'en']) {
+for (const locale of SUPPORTED_LOCALES) {
   const participants = getDemoParticipants(locale);
   assert.equal(participants.length, DEMO_TEAM_SIZE);
   assert.ok(participants.every(({ email }) => email.endsWith('@example.com')));
+  assert.ok(participants.every(({ role }) => role));
 }
 const schedule = buildJoinSchedule(DEMO_TEAM_SIZE, createRandom(4));
 assert.equal(schedule.length, DEMO_TEAM_SIZE);
@@ -57,6 +60,13 @@ assert.ok(schedule.at(-1).delayMs <= 4000, 'Joining must stay short enough for a
 for (const objective of Object.keys(DEMO_DEBRIEF_PROMPTS)) {
   assert.equal(getDebriefPrompts(objective, 'fr').length, 3);
   assert.equal(getDebriefPrompts(objective, 'en').length, 3);
+  assert.equal(DEMO_DEBRIEF_PROMPTS[objective].ar.length, 3);
+}
+if (SUPPORTED_LOCALES.includes('ar')) {
+  assert.ok(getDemoParticipants('ar').every(({ role }) => /[\u0600-\u06ff]/.test(role)));
+  assert.ok(Object.keys(DEMO_DEBRIEF_PROMPTS).every((objective) => getDebriefPrompts(objective, 'ar').every((prompt) => /[\u0600-\u06ff]/.test(prompt))));
+  const arabicVom = buildVomConfig('ar');
+  assert.ok(arabicVom.catalog.every(({ text, category }) => /[\u0600-\u06ff]/.test(text) && /[\u0600-\u06ff]/.test(category)));
 }
 
 const program = [{ id: 'a', duration: 15 }, { id: 'b', duration: 12 }, { id: 'c', duration: 15 }];

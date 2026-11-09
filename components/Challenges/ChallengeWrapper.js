@@ -97,7 +97,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     if (!currentUser) {
       if (!cancelled) {
         removeToast(loadingId);
-        setError('Vous devez être connecté pour accéder au challenge');
+        setError(t('challengeCommon.signInToAccessChallenge'));
         setLoading(false);
       }
       return;
@@ -188,7 +188,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
     return () => {
       cancelled = true;
     };
-  }, [sessionId, showErrorToast, showLoadingToast, removeToast, normalizedEngineKey]);
+  }, [sessionId, showErrorToast, showLoadingToast, removeToast, normalizedEngineKey, t]);
 
   // Keep runtime payload synchronized after socket reconnects.
   // Challenge advancement is already handled by parent remount via key(sessionId+activeChallengeId+engineKey).
@@ -378,7 +378,7 @@ export default function ChallengeWrapper({ sessionId, engineKey, noNav = false, 
 
   // Render: Error state
   if (error) {
-    const isAuthError = /connect|session|authentif/i.test(error);
+    const isAuthError = error === t('challengeCommon.signInToAccessChallenge') || /connect|session|authentif/i.test(error);
     const userMessage = isAuthError
       ? t('challengeCommon.yourSessionHasExpiredOrYou')
       : t('challengeCommon.unableToLoadTheChallengeCheck');

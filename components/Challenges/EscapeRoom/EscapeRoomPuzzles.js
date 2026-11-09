@@ -244,11 +244,12 @@ export function ArithmeticPuzzle({ data, disabled, locale, onAnswerChange }) {
   );
 }
 
-export function LetterSequencePuzzle({ data }) {
+export function LetterSequencePuzzle({ data, locale }) {
+  const sequence = Array.isArray(data?.sequence) ? data.sequence : [];
   return (
-    <div className={styles.letterSequence} aria-label="D S V J M ? L">
-      {(data.sequence || []).map((letter, index) => (
-        <span key={index} className={letter === '?' ? styles.missingLetter : styles.letter}>{letter}</span>
+    <div className={styles.letterSequence} dir={locale === 'ar' ? 'rtl' : 'ltr'} aria-label={sequence.join(' ')}>
+      {sequence.map((letter, index) => (
+        <span key={index} className={letter === '?' ? styles.missingLetter : styles.letter}>{letter === '?' && locale === 'ar' ? '؟' : letter}</span>
       ))}
     </div>
   );

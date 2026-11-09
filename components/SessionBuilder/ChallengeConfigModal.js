@@ -570,18 +570,18 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
   const selectedCrossword = filteredCrosswordTemplates.find((template) => template.id === configuredCrossword?.id) || filteredCrosswordTemplates[0];
   const playerRange = resolveChallengePlayerRange(challenge);
   const localizedPhraseTemplateLabels = {
-    tpl_matchs_championnats: { fr: 'Le talent gagne des matchs... (moyen)', en: 'Talent wins games... (medium)' },
-    tpl_reussite_ensemble: { fr: 'Se réunir est un début... (moyen)', en: 'Coming together is a beginning... (medium)' },
-    tpl_grandes_choses: { fr: 'De grandes choses en entreprise... (facile)', en: 'Great things in business... (easy)' },
-    tpl_testez_apprenez: { fr: 'Tester vite, échouer vite... (difficile)', en: 'Test fast, fail fast... (hard)' },
-    tpl_plus_loin: { fr: 'Seul on va plus vite... (facile)', en: 'Alone we go faster... (easy)' },
-    tpl_aiguiser_hache: { fr: 'Donnez-moi six heures pour couper... (difficile)', en: 'Give me six hours to chop... (hard)' },
-    tpl_montagne_pierres: { fr: 'Celui qui déplace une montagne... (moyen)', en: 'The one who moves a mountain... (medium)' },
+    tpl_matchs_championnats: { fr: 'Le talent gagne des matchs... (moyen)', en: 'Talent wins games... (medium)', ar: 'الموهبة تفوز بالمباريات... (متوسط)' },
+    tpl_reussite_ensemble: { fr: 'Se réunir est un début... (moyen)', en: 'Coming together is a beginning... (medium)', ar: 'الاجتماع معًا بداية... (متوسط)' },
+    tpl_grandes_choses: { fr: 'De grandes choses en entreprise... (facile)', en: 'Great things in business... (easy)', ar: 'الأشياء العظيمة في العمل... (سهل)' },
+    tpl_testez_apprenez: { fr: 'Tester vite, échouer vite... (difficile)', en: 'Test fast, fail fast... (hard)', ar: 'اختبر سريعًا، وأخفق سريعًا... (صعب)' },
+    tpl_plus_loin: { fr: 'Seul on va plus vite... (facile)', en: 'Alone we go faster... (easy)', ar: 'وحدنا نذهب أسرع... (سهل)' },
+    tpl_aiguiser_hache: { fr: 'Donnez-moi six heures pour couper... (difficile)', en: 'Give me six hours to chop... (hard)', ar: 'أعطوني ست ساعات لقطع... (صعب)' },
+    tpl_montagne_pierres: { fr: 'Celui qui déplace une montagne... (moyen)', en: 'The one who moves a mountain... (medium)', ar: 'من ينقل جبلًا... (متوسط)' },
   };
   const localizedPixelTemplateLabels = {
-    tour_signal: { fr: 'Tour Signal', en: 'Signal Tower' },
-    pont_croise: { fr: 'Pont croisé', en: 'Cross Bridge' },
-    agora_pixel: { fr: 'Agora Pixel', en: 'Pixel Agora' },
+    tour_signal: { fr: 'Tour Signal', en: 'Signal Tower', ar: 'برج الإشارة' },
+    pont_croise: { fr: 'Pont croisé', en: 'Cross Bridge', ar: 'الجسر المتقاطع' },
+    agora_pixel: { fr: 'Agora Pixel', en: 'Pixel Agora', ar: 'ساحة البكسل' },
   };
 
   const labProblemIds = Array.isArray(config?.problem_ids) ? config.problem_ids : normalizeLabProblemIds(null);

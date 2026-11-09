@@ -167,6 +167,7 @@
 
 /* BOARD PANEL */
 .boardPanel {
+  box-sizing: border-box;
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   background: var(--challenge-panel-bg, rgba(20, 30, 54, 0.82));
@@ -785,11 +786,12 @@
 @media (max-width: 980px) {
   .shell,
   .facilitatorView .shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .boardPanel {
     padding: 12px;
+    min-height: auto;
   }
 
   .sidePanel {
