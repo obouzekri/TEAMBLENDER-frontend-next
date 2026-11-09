@@ -51,6 +51,24 @@ const COPY = {
     failed: 'Action rejected. Your draft is saved.', by: 'by', cooldown: 'Try again in', seconds: 's',
     foundBy: 'Found by', previous: 'Previous word', next: 'Next word', objective: 'Solve the clues together to complete the grid.',
   },
+  ar: {
+    title: 'الكلمات المتقاطعة المباشرة', loading: 'جارٍ تحميل الشبكة…', across: 'أفقي', down: 'عمودي',
+    board: 'شبكة الكلمات المتقاطعة', help: 'اختاروا خانة أو تعريفًا للإجابة.', keyboardHelp: 'استخدموا الأسهم للتنقل، والمسافة لتغيير الاتجاه، وEnter للإجابة.',
+    openAnswer: 'الإجابة', close: 'إغلاق', switchDirection: 'اتجاه الكلمة',
+    row: 'الصف', col: 'العمود', empty: 'فارغ', found: 'تم العثور عليها', letters: 'حروف', answer: 'إجابتكم', submit: 'إرسال الكلمة',
+    wordsFound: 'كلمات مكتشفة', leaderboard: 'الترتيب', liveUpdate: 'تحديث مباشر', activity: 'آخر الاكتشافات', none: 'لا توجد اكتشافات بعد.',
+    points: 'نقاط', unresolved: 'الكلمات غير المحلولة', perfect: 'أحسنتم! اكتملت الشبكة.',
+    solution: 'الإجابة', answerUnavailable: 'الإجابة غير متاحة',
+    start: 'بدء اللعبة', waiting: 'بانتظار بدء اللعبة من المنسق.',
+    offline: 'انقطع الاتصال. تم الاحتفاظ بمسودتكم.', sending: 'جارٍ التحقق من الإجابة…',
+    timeout: 'لم يصل تأكيد. تم الاحتفاظ بمسودتكم ويمكنكم المحاولة مجددًا.',
+    conflict: 'لا تتوافق الإجابة مع الحروف المكشوفة.', length: 'أدخلوا العدد المحدد من الحروف.',
+    correct: 'أحسنتم، وجدتم الكلمة!', incorrect: 'الإجابة غير صحيحة. حاولوا مجددًا.',
+    already_found: 'تم العثور على هذه الكلمة بالفعل', rate_limited: 'محاولات كثيرة. انتظروا قبل المحاولة مجددًا.',
+    invalid: 'إجابة غير صالحة. تحققوا من إدخالكم.', closed: 'انتهت اللعبة.', forbidden: 'لا يمكنكم إرسال إجابة.',
+    failed: 'تعذر تنفيذ الطلب. تم الاحتفاظ بمسودتكم.', by: 'بواسطة', cooldown: 'المحاولة التالية بعد', seconds: 'ث',
+    foundBy: 'اكتشفها', previous: 'الكلمة السابقة', next: 'الكلمة التالية', objective: 'حلوا التعريفات معًا لإكمال الشبكة.',
+  },
 };
 
 export function normalizeCrosswordAnswer(value) {
@@ -63,7 +81,7 @@ export function buildCrosswordCells(grid) {
     const revealed = word.solvedBy != null ? normalizeCrosswordAnswer(word.answer) : '';
     for (let index = 0; index < word.length; index += 1) {
       const row = word.row + (word.direction === 'down' ? index : 0);
-      const col = word.col + (word.direction === 'across' ? index : 0);
+      const col = word.col + (word.direction === 'across' ? index * (word.colStep ?? 1) : 0);
       const key = `${row}:${col}`;
       const cell = cells.get(key) || { row, col, words: [], letter: '', number: null };
       cell.words.push(word);
@@ -78,7 +96,7 @@ export function buildCrosswordCells(grid) {
 export function hasCrosswordConflict(word, answer, cells) {
   return Array.from(answer).some((letter, index) => {
     const row = word.row + (word.direction === 'down' ? index : 0);
-    const col = word.col + (word.direction === 'across' ? index : 0);
+    const col = word.col + (word.direction === 'across' ? index * (word.colStep ?? 1) : 0);
     const revealed = cells.get(`${row}:${col}`)?.letter;
     return revealed && revealed !== letter;
   });
@@ -88,7 +106,7 @@ export function hasCrosswordConflict(word, answer, cells) {
 // Typing the whole word (revealed letters included) is accepted too.
 export function buildCrosswordAnswer(word, value, cells) {
   const typed = normalizeCrosswordAnswer(value);
-  const revealed = Array.from({ length: word.length }, (_, index) => cells.get(`${word.row + (word.direction === 'down' ? index : 0)}:${word.col + (word.direction === 'across' ? index : 0)}`)?.letter || '');
+  const revealed = Array.from({ length: word.length }, (_, index) => cells.get(`${word.row + (word.direction === 'down' ? index : 0)}:${word.col + (word.direction === 'across' ? index * (word.colStep ?? 1) : 0)}`)?.letter || '');
   const freeCount = revealed.filter((letter) => !letter).length;
   const typesRevealed = revealed.some((letter, index) => letter && index < typed.length)
     && revealed.every((letter, index) => !letter || index >= typed.length || typed[index] === letter);
@@ -408,7 +426,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
     if (event.key === 'Home' || event.key === 'End') {
       event.preventDefault();
       const index = event.key === 'Home' ? 0 : active.length - 1;
-      focusCell(`${active.row + (active.direction === 'down' ? index : 0)}:${active.col + (active.direction === 'across' ? index : 0)}`);
+      focusCell(`${active.row + (active.direction === 'down' ? index : 0)}:${active.col + (active.direction === 'across' ? index * (active.colStep ?? 1) : 0)}`);
       return;
     }
     const offsets = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] };
@@ -623,7 +641,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
                         aria-invalid={Boolean(draft && conflict)} aria-describedby={`${id}-dialog-meta ${id}-validation`}
                         onChange={(event) => setDrafts((previous) => ({ ...previous, [active.id]: event.target.value }))}
                         disabled={pending || active.solvedBy != null} />
-                      <div className={styles.pattern} aria-hidden="true" style={{ '--letters': active.length }}>
+                      <div className={styles.pattern} dir={locale === 'ar' ? 'rtl' : 'ltr'} aria-hidden="true" style={{ '--letters': active.length }}>
                         {typedAnswer.letters.map((item, index) => <span key={index}
                           className={`${styles.patternLetter} ${item.revealed ? styles.patternRevealed : ''} ${item.conflict ? styles.patternConflict : ''} ${index === typedAnswer.caret ? styles.patternCaret : ''}`}>{item.letter}</span>)}
                       </div>

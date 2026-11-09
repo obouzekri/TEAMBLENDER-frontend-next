@@ -906,7 +906,7 @@ export default function EscapeRoomChallenge({
 
               {currentUiType === 'letter_sequence' ? (
                 <div className={styles.enigmeUiBlock}>
-                  <LetterSequencePuzzle data={currentUiData} />
+                  <LetterSequencePuzzle data={currentUiData} locale={locale} />
                 </div>
               ) : null}
 

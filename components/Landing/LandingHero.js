@@ -11,6 +11,7 @@ import { translate, pickLocalized } from '@/lib/i18n';
 const HERO_CAPTURES = {
   fr: '/images/copuzzle-facilitator-live-fr.webp',
   en: '/images/copuzzle-facilitator-live-en.webp',
+  ar: '/images/copuzzle-facilitator-live-ar.webp',
 };
 
 export function heroCaptureSrc(locale) {

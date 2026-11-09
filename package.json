@@ -33,12 +33,13 @@
     "test:unit:locale-detection": "node scripts/test-locale-detection.mjs",
     "test:unit:i18n": "node scripts/test-i18n-plural.mjs",
     "test:ux:preferences-results": "node scripts/test-preferences-results-ux.mjs",
-    "test:unit:builder": "node scripts/test-session-builder-utils.mjs && node scripts/test-session-program.mjs",
+    "test:unit:builder": "node scripts/test-session-builder-utils.mjs && node scripts/test-session-program.mjs && node scripts/test-catalog-rule-locales.mjs",
     "test:ux:builder": "node scripts/test-session-builder-ux.mjs",
     "test:ux:planning": "node scripts/test-session-planning-ux.mjs",
     "test:ux:account": "node scripts/test-account-navigation-ux.mjs && node scripts/test-account-security-ux.mjs",
     "test:ux:labyrinthe": "node scripts/test-labyrinthe-ux.mjs",
     "test:ux:vom": "node scripts/test-vom-ux.mjs",
+    "test:ux:vom:ar": "node scripts/test-vom-ar-ux.mjs",
     "test:ux:mission": "node scripts/test-mission-ux.mjs",
     "test:ux:challenges": "node scripts/test-challenge-diagnostics-ux.mjs",
     "test:ux:session-layout": "node scripts/test-session-live-layout.mjs",
@@ -79,6 +80,7 @@
     "globals": "^17.6.0",
     "playwright": "^1.59.1",
     "prettier": "^3.8.3",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.3.0",
     "typescript": "^5.9.3"
   }

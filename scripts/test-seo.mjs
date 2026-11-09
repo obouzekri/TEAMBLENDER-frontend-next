@@ -3,7 +3,7 @@ import { buildPageMetadata, getLanguageAlternates, getPublicSeoLocales, getPubli
 import { getPublicStructuredData } from '../lib/structuredData.js';
 import { HOME_FAQ_BY_LOCALE, TEAM_BUILDING_CONTENT } from '../lib/teamBuildingContent.js';
 import { getTeamBuildingGuide } from '../lib/teamBuildingGuides.js';
-import { withLocalePath } from '../lib/i18n/routing.js';
+import { SUPPORTED_LOCALES, withLocalePath } from '../lib/i18n/routing.js';
 
 const previousEnvironment = process.env.VERCEL_ENV;
 try {
@@ -24,7 +24,7 @@ try {
     assert.equal(rule.allow, '/');
     assert.deepEqual(rule.disallow, getRobotsDisallowPaths());
   }
-  for (const locale of ['fr', 'en']) {
+  for (const locale of SUPPORTED_LOCALES) {
     const titles = new Set();
     const descriptions = new Set();
     for (const path of PUBLIC_SEO_PATHS) {
@@ -37,7 +37,7 @@ try {
       assert.equal(metadata.robots.index, true);
       assert.equal(metadata.alternates.canonical, getLanguageAlternates(path)[locale]);
       assert.equal(metadata.openGraph.url, metadata.alternates.canonical);
-      // hreflang : seulement les langues qui ont cette page (l'arabe n'a pas encore les guides).
+      // hreflang : seulement les langues qui ont cette page.
       assert.deepEqual(Object.keys(metadata.alternates.languages), [...getPublicSeoLocales(path), 'x-default']);
       assert.deepEqual(getPublicSeoLocales(path).slice(0, 2), ['fr', 'en']);
       assert.ok(copy.keywords.length >= 3 && copy.keywords.length <= 5);
@@ -53,7 +53,7 @@ try {
           assert.equal(metadata.openGraph.description, copy.description);
           assert.equal(metadata.twitter.title, copy.title);
           assert.equal(metadata.twitter.description, copy.description);
-        } else {
+        } else if (locale === 'en') {
           assert.ok(copy.description.length >= 150 && copy.description.length <= 160, `Homepage description length is out of range for ${locale}`);
         }
       }
@@ -85,6 +85,11 @@ try {
       const guide = path === '/team-building' ? TEAM_BUILDING_CONTENT[locale]
         : getTeamBuildingGuide(path.replace('/team-building/', ''), locale);
       if (guide) {
+        if (locale === 'ar') {
+          assert.match(guide.title, /[\u0600-\u06ff]/);
+          assert.ok(guide.steps.every(({ title, text }) => /[\u0600-\u06ff]/.test(title) && /[\u0600-\u06ff]/.test(text)));
+          assert.ok(guide.faq.every(({ question, answer }) => /[\u0600-\u06ff]/.test(question) && /[\u0600-\u06ff]/.test(answer)));
+        }
         assert.equal(article.headline, guide.title);
         assert.equal(article.description, guide.intro);
         assert.deepEqual(article.keywords, copy.keywords);
@@ -132,7 +137,7 @@ try {
     assert.equal(rule.allow, undefined);
     assert.equal(rule.disallow, '/');
   }
-  for (const locale of ['fr', 'en']) {
+  for (const locale of SUPPORTED_LOCALES) {
     for (const path of PUBLIC_SEO_PATHS) {
       assert.equal(buildPageMetadata(path, locale).robots.index, false);
       assert.equal(getPublicStructuredData(path, locale), null);
@@ -151,8 +156,11 @@ if (process.argv.includes('--http')) {
   try {
     const context = await browser.newContext({ javaScriptEnabled: false, userAgent: 'Googlebot' });
     const page = await context.newPage();
-    for (const locale of ['fr', 'en']) {
-      for (const path of PUBLIC_SEO_PATHS) {
+    const httpPaths = process.argv.includes('--guides')
+      ? PUBLIC_SEO_PATHS.filter((path) => path.startsWith('/team-building/'))
+      : PUBLIC_SEO_PATHS;
+    for (const locale of SUPPORTED_LOCALES) {
+      for (const path of httpPaths) {
         const route = withLocalePath(locale, path);
         const metadata = buildPageMetadata(route, locale);
         const response = await page.goto(`${baseUrl}${route}`, { waitUntil: 'load' });
@@ -199,7 +207,7 @@ if (process.argv.includes('--http')) {
     const sitemap = await context.request.get(`${baseUrl}/sitemap.xml`);
     assert.equal(sitemap.status(), 200);
     const xml = await sitemap.text();
-    for (const locale of ['fr', 'en']) {
+    for (const locale of SUPPORTED_LOCALES) {
       for (const path of PUBLIC_SEO_PATHS) {
         assert.ok(xml.includes(`<loc>${getLanguageAlternates(path)[locale]}</loc>`), `Missing sitemap entry: ${locale}${path}`);
       }
@@ -207,7 +215,7 @@ if (process.argv.includes('--http')) {
     const discovery = await context.request.get(`${baseUrl}/llms.txt`);
     assert.equal(discovery.status(), 200);
     const text = await discovery.text();
-    for (const locale of ['fr', 'en']) {
+    for (const locale of SUPPORTED_LOCALES) {
       for (const path of PUBLIC_SEO_PATHS) {
         assert.ok(text.includes(PUBLIC_PAGE_COPY[locale][path].title), `Missing discovery title: ${locale}${path}`);
       }
@@ -215,7 +223,7 @@ if (process.argv.includes('--http')) {
     const missing = await page.goto(`${baseUrl}/fr/team-building/unknown`);
     assert.equal(missing.status(), 404);
     assert.ok((await page.locator('meta[name="robots"]').evaluateAll((elements) => elements.map((element) => element.content))).some((value) => value.includes('noindex')));
-    console.log('TEST_SEO_HTTP_OK: 14 public pages without JavaScript, FAQ parity, sitemap, llms.txt and 404');
+    console.log('TEST_SEO_HTTP_OK: public pages without JavaScript, FAQ parity, sitemap, llms.txt and 404');
   } finally {
     await browser.close();
   }

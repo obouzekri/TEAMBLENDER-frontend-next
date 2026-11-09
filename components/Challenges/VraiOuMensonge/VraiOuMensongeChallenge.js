@@ -116,58 +116,72 @@ const STATEMENT_TRANSLATIONS = Object.freeze({
   pr_01: {
     fr: { prompt: 'Je préfère', options: ['Café', 'Thé', 'Jus'] },
     en: { prompt: 'I prefer', options: ['Coffee', 'Tea', 'Juice'] },
+    ar: { prompt: 'أفضل', options: ['القهوة', 'الشاي', 'العصير'] },
   },
   pr_02: {
     fr: { prompt: 'Je préfère', options: ['Montagne', 'Plage', 'Forêt'] },
     en: { prompt: 'I prefer', options: ['Mountains', 'Beach', 'Forest'] },
+    ar: { prompt: 'أفضل', options: ['الجبال', 'الشاطئ', 'الغابة'] },
   },
   pr_03: {
     fr: { prompt: 'Je préfère', options: ['Ville', 'Campagne'] },
     en: { prompt: 'I prefer', options: ['City', 'Countryside'] },
+    ar: { prompt: 'أفضل', options: ['المدينة', 'الريف'] },
   },
   pr_04: {
     fr: { prompt: 'Je préfère', options: ['Films', 'Sorties'] },
     en: { prompt: 'I prefer', options: ['Movies', 'Going out'] },
+    ar: { prompt: 'أفضل', options: ['الأفلام', 'الخروج'] },
   },
   ct_01: {
     fr: { text: 'Je maîtrise plus de trois langues.' },
     en: { text: 'I speak more than three languages.' },
+    ar: { text: 'أتحدث أكثر من ثلاث لغات.' },
   },
   ct_02: {
     fr: { text: 'J’ai un talent caché.' },
     en: { text: 'I have a hidden talent.' },
+    ar: { text: 'لدي موهبة خفية.' },
   },
   ht_01: {
     fr: { prompt: 'Je me couche', options: ['Tard', 'Tôt'] },
     en: { prompt: 'I go to bed', options: ['Late', 'Early'] },
+    ar: { prompt: 'أنام', options: ['متأخرًا', 'مبكرًا'] },
   },
   ht_02: {
     fr: { text: 'Je fais du sport régulièrement.' },
     en: { text: 'I exercise regularly.' },
+    ar: { text: 'أمارس الرياضة بانتظام.' },
   },
   ht_03: {
     fr: { text: 'Je commence ma journée avec mon téléphone.' },
     en: { text: 'I start my day with my phone.' },
+    ar: { text: 'أبدأ يومي باستخدام هاتفي.' },
   },
   ht_04: {
     fr: { text: 'Je grignote entre les repas.' },
     en: { text: 'I snack between meals.' },
+    ar: { text: 'أتناول وجبات خفيفة بين الوجبات.' },
   },
   pa_01: {
     fr: { text: 'J’ai déjà oublié de me présenter en réunion importante.' },
     en: { text: 'I have forgotten to introduce myself in an important meeting.' },
+    ar: { text: 'سبق أن نسيت تقديم نفسي في اجتماع مهم.' },
   },
   pa_02: {
     fr: { text: 'J’ai déjà répondu “oui” sans avoir compris.' },
     en: { text: 'I have answered "yes" without understanding.' },
+    ar: { text: 'سبق أن أجبت بنعم دون أن أفهم.' },
   },
   pa_03: {
     fr: { prompt: 'J’ai déjà perdu', options: ['Téléphone', 'Portefeuille', 'Les deux'] },
     en: { prompt: 'I have already lost', options: ['Phone', 'Wallet', 'Both'] },
+    ar: { prompt: 'سبق أن أضعت', options: ['هاتفي', 'محفظتي', 'كليهما'] },
   },
   pe_01: {
     fr: { prompt: 'Je suis plutôt', options: ['Compétitif', 'Calme', 'Spontané'] },
     en: { prompt: 'I am more', options: ['Competitive', 'Calm', 'Spontaneous'] },
+    ar: { prompt: 'أنا أميل إلى', options: ['التنافس', 'الهدوء', 'العفوية'] },
   },
 });
 

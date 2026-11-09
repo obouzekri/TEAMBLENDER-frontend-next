@@ -5,6 +5,13 @@ const { translate } = await import('../lib/i18n/index.js');
 const { pluralCategory } = await import('../lib/i18n/plural.js');
 const { formatCurrency, formatDate, formatNumber } = await import('../lib/i18n/format.js');
 const { resolveLocale } = await import('../lib/i18n/detectLocale.js');
+const { getEngineLocales, isEngineAvailableInLocale } = await import('../lib/i18n/challengeLocales.js');
+
+assert.deepEqual(getEngineLocales('vrai_ou_mensonge_v1'), ['fr', 'en', 'ar']);
+assert.equal(isEngineAvailableInLocale('vrai_ou_mensonge_v1', 'ar'), true);
+for (const engineKey of ['the_quiz_v1', 'crossword_live_v1', 'escape_room_v1', 'icebreaker_v1', 'mission_critique_v1', 'phrase_collaborative_v1']) {
+	assert.equal(isEngineAvailableInLocale(engineKey, 'ar'), false);
+}
 
 // Pluriels : 2 formes en FR/EN, 6 en arabe (Intl.PluralRules).
 assert.equal(translate('fr', 'managerHome.participantsTotal', { count: 1 }), '1 participant au total');
@@ -16,6 +23,14 @@ assert.equal(translate('ar', 'managerHome.participantsTotal', { count: 2 }), 'م
 assert.equal(translate('ar', 'managerHome.participantsTotal', { count: 5 }), '5 مشاركين إجمالًا');
 // Forme absente dans une langue : `other`.
 assert.equal(translate('ar', 'challengeVom.votesReceived', { count: 1, answered: 1, total: 3 }), 'وصلت 1/3 إجابات');
+
+for (const locale of ['fr', 'en', 'ar']) {
+	for (const key of ['challengeCommon.signInToAccessChallenge', 'challengeCommon.connectionProblemCheckYourNetwork']) {
+		assert.notEqual(translate(locale, key), key);
+	}
+}
+assert.match(translate('ar', 'challengeCommon.signInToAccessChallenge'), /[\u0600-\u06ff]/);
+assert.match(translate('ar', 'challengeCommon.connectionProblemCheckYourNetwork'), /[\u0600-\u06ff]/);
 
 // Arabe : chiffres occidentaux, pas les chiffres arabes orientaux (٠١٢٣…).
 const easternDigits = /[٠-٩۰-۹]/;

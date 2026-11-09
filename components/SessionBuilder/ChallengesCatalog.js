@@ -42,31 +42,31 @@ function getApproximateDurationMinutes(challenge) {
 
 // Mapping technical values to display labels
 const CATEGORY_LABELS = {
-  'escape-game': { fr: 'Escape Game', en: 'Escape Game' },
-  'logique-reflexion': { fr: 'Logique & Reflexion', en: 'Logic & Reflection' },
-  'icebreaker': { fr: 'Icebreaker', en: 'Icebreaker' },
-  'creativite-innovation': { fr: 'Creativite & Innovation', en: 'Creativity & Innovation' },
-  'memoire-attention': { fr: 'Memoire & Attention', en: 'Memory & Attention' },
-  'culture-decouverte': { fr: 'Culture & Decouverte', en: 'Culture & Discovery' },
-  Collaboration: { fr: 'Collaboration', en: 'Collaboration' },
-  'Gestion de projet': { fr: 'Gestion de projet', en: 'Project Management' },
-  'Engagement collectif': { fr: 'Engagement collectif', en: 'Collective Engagement' },
+  'escape-game': { fr: 'Escape Game', en: 'Escape Game', ar: 'لعبة الهروب' },
+  'logique-reflexion': { fr: 'Logique & Reflexion', en: 'Logic & Reflection', ar: 'المنطق والتفكير' },
+  'icebreaker': { fr: 'Icebreaker', en: 'Icebreaker', ar: 'كسر الجليد' },
+  'creativite-innovation': { fr: 'Creativite & Innovation', en: 'Creativity & Innovation', ar: 'الإبداع والابتكار' },
+  'memoire-attention': { fr: 'Memoire & Attention', en: 'Memory & Attention', ar: 'الذاكرة والانتباه' },
+  'culture-decouverte': { fr: 'Culture & Decouverte', en: 'Culture & Discovery', ar: 'الثقافة والاكتشاف' },
+  Collaboration: { fr: 'Collaboration', en: 'Collaboration', ar: 'التعاون' },
+  'Gestion de projet': { fr: 'Gestion de projet', en: 'Project Management', ar: 'إدارة المشاريع' },
+  'Engagement collectif': { fr: 'Engagement collectif', en: 'Collective Engagement', ar: 'المشاركة الجماعية' },
 };
 
 const OBJECTIVE_LABELS = {
-  cohesion: { fr: 'Cohesion', en: 'Cohesion' },
-  communication: { fr: 'Communication', en: 'Communication' },
-  collaboration: { fr: 'Collaboration', en: 'Collaboration' },
-  leadership: { fr: 'Leadership', en: 'Leadership' },
-  'resolution-problemes': { fr: 'Resolution de problemes', en: 'Problem Solving' },
-  coordination: { fr: 'Coordination', en: 'Coordination' },
-  priorisation: { fr: 'Priorisation', en: 'Prioritization' },
-  dependances: { fr: 'Dependances', en: 'Dependencies' },
-  engagement: { fr: 'Engagement', en: 'Engagement' },
-  'ecoute active': { fr: 'Ecoute active', en: 'Active Listening' },
-  'intelligence-collective': { fr: 'Intelligence collective', en: 'Collective Intelligence' },
-  creativite: { fr: 'Creativite', en: 'Creativity' },
-  'gestion-temps': { fr: 'Gestion du temps', en: 'Time Management' },
+  cohesion: { fr: 'Cohesion', en: 'Cohesion', ar: 'التماسك' },
+  communication: { fr: 'Communication', en: 'Communication', ar: 'التواصل' },
+  collaboration: { fr: 'Collaboration', en: 'Collaboration', ar: 'التعاون' },
+  leadership: { fr: 'Leadership', en: 'Leadership', ar: 'القيادة' },
+  'resolution-problemes': { fr: 'Resolution de problemes', en: 'Problem Solving', ar: 'حل المشكلات' },
+  coordination: { fr: 'Coordination', en: 'Coordination', ar: 'التنسيق' },
+  priorisation: { fr: 'Priorisation', en: 'Prioritization', ar: 'تحديد الأولويات' },
+  dependances: { fr: 'Dependances', en: 'Dependencies', ar: 'الترابط بين المهام' },
+  engagement: { fr: 'Engagement', en: 'Engagement', ar: 'المشاركة' },
+  'ecoute active': { fr: 'Ecoute active', en: 'Active Listening', ar: 'الإصغاء الفعّال' },
+  'intelligence-collective': { fr: 'Intelligence collective', en: 'Collective Intelligence', ar: 'الذكاء الجماعي' },
+  creativite: { fr: 'Creativite', en: 'Creativity', ar: 'الإبداع' },
+  'gestion-temps': { fr: 'Gestion du temps', en: 'Time Management', ar: 'إدارة الوقت' },
 };
 
 function toObjectiveList(value) {

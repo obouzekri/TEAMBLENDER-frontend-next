@@ -60,6 +60,12 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Accès catalogue limité (4 challenges)',
         'Pas d’export',
         'Pas d’analyses avancées',
+      ], ar: [
+        'مستخدم واحد (مسؤول أو مدير)',
+        'جلسة واحدة شهريًا، بحد أقصى 6 مشاركين',
+        'وصول محدود إلى الكتالوج (4 تحديات)',
+        'لا يتضمن التصدير',
+        'لا يتضمن التحليلات المتقدمة',
       ] }, locale),
       ctaLabel: translate(locale, 'pricingPage.startForFree'),
     };
@@ -88,6 +94,15 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Espace manager',
         'Animation en direct',
         'Analyses avancées',
+      ], ar: [
+        'مستخدم واحد كحد أقصى',
+        '6 مشاركين كحد أقصى',
+        'جلسة واحدة مشمولة',
+        'وصول كامل إلى الكتالوج',
+        'النتائج والنقاط',
+        'لوحة تحكم المدير',
+        'إدارة الجلسة مباشرة',
+        'التحليلات المتقدمة',
       ] }, locale),
       ctaLabel: translate(locale, 'pricingPage.buyASession'),
     };
@@ -111,6 +126,12 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
           '60 sessions',
           'Toutes les fonctionnalités incluses dans l’offre PRO',
           'Gestion multi-comptes managers',
+        ], ar: [
+          '5 مستخدمين (مسؤولين أو مديرين)',
+          'حتى 150 مشاركًا، موزعين على فرق من 4 إلى 6',
+          '60 جلسة',
+          'جميع مزايا باقة PRO',
+          'إدارة حسابات متعددة للمديرين',
         ] }, locale),
         ctaLabel: translate(locale, 'pricingPage.subscribe'),
       };
@@ -138,6 +159,15 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         'Espace manager',
         'Animation en direct',
         'Analyses avancées',
+      ], ar: [
+        'مستخدم واحد (مسؤول أو مدير)',
+        'حتى 30 مشاركًا، موزعين على فرق من 4 إلى 6',
+        '10 جلسات',
+        'وصول كامل إلى الكتالوج',
+        'النتائج والنقاط',
+        'لوحة تحكم المدير',
+        'إدارة الجلسة مباشرة',
+        'التحليلات المتقدمة',
       ] }, locale),
       highlightedLabel: getPricingPlanBadgeLabel(plan, cardVariant) || translate(locale, 'pricingPage.mostPopular'),
       ctaLabel: translate(locale, 'pricingPage.subscribe'),
@@ -162,6 +192,12 @@ function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', loc
         '60 sessions',
         'Toutes les fonctionnalités incluses dans l’offre PRO',
         'Gestion multi-comptes managers',
+      ], ar: [
+        '5 مستخدمين (مسؤولين أو مديرين)',
+        'حتى 150 مشاركًا، موزعين على فرق من 4 إلى 6',
+        '60 جلسة',
+        'جميع مزايا باقة PRO',
+        'إدارة حسابات متعددة للمديرين',
       ] }, locale),
       ctaLabel: translate(locale, 'pricingPage.subscribe'),
     };

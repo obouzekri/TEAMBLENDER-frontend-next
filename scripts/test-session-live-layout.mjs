@@ -42,7 +42,8 @@ try {
         page.on('pageerror', (error) => errors.push(error.message));
         const route = role === 'user' ? 'session-live/42' : `challenges/${engineKey}?sessionId=42`;
         await page.goto(`${baseUrl}/${locale}/${route}`);
-        await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+        const cookieButtonName = locale === 'fr' ? 'Refuser les cookies de mesure' : 'Refuse analytics cookies';
+        await page.getByRole('button', { name: cookieButtonName, exact: true }).click();
         const header = page.locator('section[class*="header"]').filter({ has: page.locator('[class*="topRow"]') });
         const arena = page.locator('[class*="boardPanel"]');
         await arena.waitFor();
@@ -93,8 +94,28 @@ try {
               assert.ok(Math.abs(box.x - (width - box.width) / 2) <= 1, `${label}: session must be centered`);
             }
             if (width <= 720) {
-              const sideBox = await page.locator('[class*="sidePanel"]').boundingBox();
-              assert.ok(sideBox.y >= arenaBox.y + arenaBox.height - 1, `${label}: sidebar must stack below the board`);
+              const sidePanel = page.locator('[class*="sidePanel"]');
+              const sideBox = await sidePanel.boundingBox();
+              const layout = await sidePanel.evaluate((node) => {
+                const grid = getComputedStyle(node.parentElement);
+                const boardNode = node.parentElement.firstElementChild;
+                const board = getComputedStyle(boardNode);
+                return {
+                  columns: grid.gridTemplateColumns,
+                  rows: grid.gridTemplateRows,
+                  rowGap: grid.rowGap,
+                  boardHeight: board.height,
+                  boardMinHeight: board.minHeight,
+                  boardWidth: board.width,
+                  boardBoxSizing: board.boxSizing,
+                  boardPadding: `${board.paddingTop} ${board.paddingRight} ${board.paddingBottom} ${board.paddingLeft}`,
+                  boardInlineWidth: boardNode.style.width,
+                };
+              });
+              assert.ok(
+                sideBox.y >= arenaBox.y + arenaBox.height - 1,
+                `${label}: sidebar must stack below the board (board=${JSON.stringify(arenaBox)}, sidebar=${JSON.stringify(sideBox)}, grid=${JSON.stringify(layout)})`,
+              );
             }
           }
         }
