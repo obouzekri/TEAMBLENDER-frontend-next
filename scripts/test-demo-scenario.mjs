@@ -14,14 +14,15 @@ import {
   createRandom,
   getDebriefPrompts,
   getDemoParticipants,
-  getVisitorResult,
+  getVisitorContribution,
 } from '../lib/demo/demoScenario.mjs';
 import { applyTimerEvent, createDemoChallengeServer } from '../lib/demo/demoChallengeServer.mjs';
-import { DEMO_ENGINE_KEYS, DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '../lib/demo/challenges/index.mjs';
+import { DEMO_ENGINE_KEYS, DEMO_PLAY_ENGINE_KEY, DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '../lib/demo/challenges/index.mjs';
 import { buildCopuzzleSummary } from '../lib/demo/challenges/copuzzle.mjs';
 import { buildLabySummary } from '../lib/demo/challenges/labyrinthe.mjs';
 import { buildVomConfig } from '../lib/demo/challenges/vraiOuMensonge.mjs';
 import { SUPPORTED_LOCALES } from '../lib/i18n/routing.js';
+import { buildPixelTemplateCells } from '../lib/demo/challenges/pixelLogic.mjs';
 import { SESSION_OBJECTIVES } from '../lib/sessionProgram.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -43,7 +44,8 @@ assert.deepEqual(
   [...DEMO_ENGINE_KEYS].sort(),
   ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1', 'vrai_ou_mensonge_v1'],
 );
-assert.deepEqual(DEMO_PROGRAM_ENGINE_KEYS, ['copuzzle_live_v1', 'labyrinthe_live_v1', VOM_ENGINE_KEY], 'The facilitator runs the three challenges in order');
+assert.deepEqual(DEMO_PROGRAM_ENGINE_KEYS, ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1'], 'The facilitator runs the three challenges in order');
+assert.ok(DEMO_PROGRAM_ENGINE_KEYS.includes(DEMO_PLAY_ENGINE_KEY), 'The visitor plays a challenge from the programme');
 
 // A fixed team of four, the minimum needed for every demo challenge.
 assert.equal(DEMO_TEAM_SIZE, 4);
@@ -70,18 +72,14 @@ if (SUPPORTED_LOCALES.includes('ar')) {
 }
 
 const program = [{ id: 'a', duration: 15 }, { id: 'b', duration: 12 }, { id: 'c', duration: 15 }];
-const results = computeDemoResults({ program, completions: { a: 80, b: 100 }, actions: { a: 5, b: 7 }, visitor: { score: 3, rank: 1, total: 4 } });
+const results = computeDemoResults({ program, completions: { a: 80, b: 100 }, actions: { a: 5, b: 7 }, visitor: { cubes: 6, share: 25 } });
 assert.equal(results.participationRate, 100);
 assert.equal(results.challengesCompleted, 2, 'Skipped challenges have no result');
 assert.equal(results.totalMinutes, 42);
 assert.equal(results.totalActions, 12);
 assert.equal(computeDemoResults({ program }).totalActions, 0);
-assert.deepEqual(results.visitor, { score: 3, rank: 1, total: 4 });
-assert.equal(getVisitorResult({ ranking: [{ participant_id: 'x', score: 2, rank: 1 }] }, DEMO_VISITOR_ID), null);
-assert.deepEqual(
-  getVisitorResult({ ranking: [{ participant_id: 'x', score: 2, rank: 1 }, { participant_id: DEMO_VISITOR_ID, score: 1, rank: 2 }] }, DEMO_VISITOR_ID),
-  { score: 1, rank: 2, total: 2 },
-);
+assert.deepEqual(results.visitor, { cubes: 6, share: 25 });
+assert.equal(getVisitorContribution({ cubes: {}, evaluation: { matched_count: 0 } }, DEMO_VISITOR_ID), null);
 
 // Demo server: same Socket.IO protocol as the backend, driven by a manual scheduler.
 function createManualScheduler() {
@@ -251,9 +249,44 @@ function runFacilitator(engineKey, seed, { start = 'timer.start', clock } = {}) 
   assert.ok(state.vom.round_history.some((round) => round.poser_id === DEMO_VISITOR_ID && round.statement_id === 'pr_01'));
   const votedRounds = state.vom.round_history.filter((round) => round.votes.some((vote) => vote.participant_id === DEMO_VISITOR_ID && vote.vote));
   assert.equal(votedRounds.length, 3);
-  assert.ok(getVisitorResult(state.vom, DEMO_VISITOR_ID));
+  assert.ok(state.vom.ranking.some((entry) => entry.participant_id === DEMO_VISITOR_ID));
   assert.equal(scenario.handleEvent(state, 'vom.start', {}, ctx), null, 'Participants cannot start the game');
   assert.ok(maskedChoice || state.vom.round_history.every((round) => round.answer_mode !== 'choice'));
+}
+
+// Participant preview: the visitor builds part of the Pixel Architect model with three bots.
+{
+  let time = 12_000_000;
+  const visitorPlayers = [{ id: DEMO_VISITOR_ID, name: 'You', bot: false }, ...players.slice(0, 3)];
+  const scenario = createDemoScenario(DEMO_PLAY_ENGINE_KEY, { seed: 3, locale: 'en', players: visitorPlayers, now: () => time });
+  const ctx = { role: 'participant', participantId: DEMO_VISITOR_ID };
+  let state = scenario.createState();
+  assert.equal(scenario.handleEvent(state, 'pixel.cube.place', { x: 2, y: 0, z: 1 }, ctx), null, 'Building waits for the timer');
+  state = scenario.onTimer(applyTimerEvent(state, 'timer.start'), 'timer.start', ctx);
+  assert.equal(scenario.view(state, ctx).pixel.viewer_role, 'builder');
+  assert.equal(scenario.handleEvent(state, 'pixel.cube.place', { x: 2, y: 0, z: 1 }, { role: 'manager' }), null, 'The facilitator does not build');
+  state = scenario.handleEvent(state, 'pixel.layer.claim', { layer: 1 }, ctx);
+  assert.equal(state.pixel.layer_claims['1'].participant_id, DEMO_VISITOR_ID);
+  const layerOne = buildPixelTemplateCells(state.pixel.selected_template).filter((key) => key.split(':')[1] === '1');
+  let visitorMoves = 0;
+  for (let tick = 0; tick < 2000 && !state.summary; tick += 1) {
+    time += 300;
+    state = scenario.tick(state, ctx) || state;
+    const free = layerOne.find((key) => !state.pixel.cubes[key]);
+    if (!state.summary && free && tick % 5 === 0) {
+      const [x, y, z] = free.split(':').map(Number);
+      state = scenario.handleEvent(state, 'pixel.cube.place', { x, y, z, color: state.pixel.palette[1] }, ctx) || state;
+      visitorMoves += 1;
+    }
+  }
+  assert.equal(state.summary.pixel_metrics.accuracy_percent, 100);
+  assert.ok(Object.values(state.pixel.cubes).filter((cube) => cube.y === 1).every((cube) => cube.placed_by === DEMO_VISITOR_ID), 'Bots leave the reserved layer to the visitor');
+  assert.ok(state.timer.remaining_seconds > 0, 'The team finishes before the timer');
+  const contribution = getVisitorContribution(state.pixel, DEMO_VISITOR_ID);
+  assert.equal(contribution.cubes, layerOne.length);
+  assert.equal(contribution.cubes, visitorMoves);
+  assert.equal(contribution.share, Math.round((layerOne.length / state.pixel.evaluation.matched_count) * 100));
+  assert.equal(scenario.handleEvent(state, 'pixel.cube.remove', { x: 0, y: 0, z: 0 }, ctx), null, 'The finished build is locked');
 }
 
 // The copied engine logic must stay in line with the backend (checked when both repos are side by side).

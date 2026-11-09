@@ -6,9 +6,9 @@ const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const engineKey = 'mission_critique_v1';
 const tasks = [
   { id: 't1', label: 'Préparer les supports' },
-  { id: 't2', label: 'Valider le périmètre' },
+  { id: 't2', label: 'Valider le périmètre', critical: true },
   { id: 't3', label: 'Lancer la mission' },
-  { id: 't4', label: 'Clore la mission' },
+  { id: 't4', label: 'Clore la mission', dependencies: ['t3'] },
 ];
 const mission = {
   tasks, timeline: ['t1'], phases: { t1: 'preparation' },
@@ -16,6 +16,16 @@ const mission = {
     { participant_id: '1', first_name: 'sophie', last_name: 'bourger', timeline: ['t1', 't2'], phases: { t1: 'preparation', t2: 'cadrage' }, submitted: false, errors_count: 0 },
     { participant_id: '2', display_name: 'anne MARTIN', timeline: ['t2', 't3', 't4'], phases: {}, submitted: true, errors_count: 2 },
   ],
+  team: {
+    placements: {
+      t1: [{ name: 'Moi Même', phase: 'preparation', self: true }, { name: 'anne MARTIN', phase: 'cadrage', self: false }],
+      t2: [{ name: 'anne MARTIN', phase: 'cadrage', self: false }],
+    },
+    placed_count: 2,
+    duplicate_count: 1,
+    missing_critical_count: 0,
+    dependency_issues: { t1: ['t3'] },
+  },
 };
 const refuseCookiesLabel = { fr: 'Refuser les cookies de mesure', en: 'Refuse analytics cookies' };
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
@@ -74,6 +84,29 @@ try {
       assert.equal(await tabs.nth(1).getAttribute('aria-selected'), 'true');
       assert.equal(await tabs.nth(1).getAttribute('tabindex'), '0');
       assert.equal(await page.getByRole('tabpanel').getAttribute('aria-labelledby'), await tabs.nth(1).getAttribute('id'));
+      const summary = page.locator('[class*="teamSummary"]').first();
+      for (const text of ['Plan d’équipe', '2/4 tâches placées', '1 doublon', '0 tâches critiques à placer']) {
+        assert.ok((await summary.textContent()).includes(text), `Team summary: ${text}`);
+      }
+      const panelText = await page.getByRole('tabpanel').textContent();
+      assert.ok(panelText.includes('Doublon : aussi placée par Anne M.'), panelText);
+      assert.ok(panelText.includes('Prérequis absent ou placé trop tard : Lancer la mission'), panelText);
+      const rows = page.locator('[class*="backlogList"] > button');
+      assert.match(await rows.nth(0).getAttribute('class'), /taskRowDuplicate/);
+      assert.match(await rows.nth(1).getAttribute('class'), /taskRowTaken/);
+      assert.ok((await rows.nth(1).textContent()).includes('Critique'));
+      assert.ok((await rows.nth(1).textContent()).includes('Anne M. · Cadrage'));
+      assert.ok((await rows.nth(3).textContent()).includes('Après : Lancer la mission'));
+      const filters = page.getByRole('group', { name: 'Filtrer le backlog' });
+      await filters.getByRole('button', { name: /Libres/ }).click();
+      assert.equal(await rows.count(), 2);
+      await filters.getByRole('button', { name: /Prises par d’autres/ }).click();
+      assert.equal(await rows.count(), 2);
+      await filters.getByRole('button', { name: /Les miennes/ }).click();
+      assert.equal(await rows.count(), 1);
+      await filters.getByRole('button', { name: /Toutes/ }).click();
+      assert.equal(await rows.count(), 4);
+      await tabs.nth(1).focus();
       const controls = page.getByRole('tabpanel').locator('button');
       for (const control of await controls.all()) {
         const bounds = await control.boundingBox();
@@ -89,6 +122,7 @@ try {
       await task.click();
       const modal = page.getByRole('dialog', { name: 'Préparer les supports' });
       await modal.waitFor();
+      assert.ok((await modal.textContent()).includes('Déjà placée par Anne M.'));
       const closeButton = modal.getByRole('button', { name: 'Fermer', exact: true });
       const closeBounds = await closeButton.boundingBox();
       assert.ok(closeBounds.width >= 44 && closeBounds.height >= 44);

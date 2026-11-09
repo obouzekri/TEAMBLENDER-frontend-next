@@ -15,7 +15,7 @@ import ChallengePresentation from '../ChallengePresentation';
 import ChallengeDebriefHeading from '../ChallengeDebriefHeading';
 import useI18n from '@/lib/i18n/useI18n';
 import useModalFocus from '@/lib/useModalFocus';
-import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2, X, Check, Users, CircleCheck, AlertTriangle } from 'lucide-react';
+import { ClipboardList, ListTodo, ArrowUp, ArrowDown, Trash2, X, Check, Users, CircleCheck, AlertTriangle, Flag, Link2 } from 'lucide-react';
 import styles from './MissionCritique.module.css';
 import { translate } from '@/lib/i18n';
 import { normalizeLocale, DEFAULT_LOCALE } from '@/lib/i18n/routing';
@@ -80,6 +80,15 @@ function isEmailLike(value) {
   return normalizeName(value).includes('@');
 }
 
+// "Jeanne Dupont" -> "Jeanne D.", short enough for a backlog row.
+function shortParticipantName(value) {
+  const [first, ...rest] = formatParticipantName(value).split(/\s+/).filter(Boolean);
+  if (!first) return 'Participant';
+  const last = rest[rest.length - 1];
+  return last && !/^\d+$/.test(last) ? `${first} ${last.charAt(0)}.` : [first, ...rest].join(' ');
+}
+
+const BACKLOG_FILTERS = Object.freeze(['all', 'free', 'mine', 'taken']);
 export default function MissionCritiqueChallenge({
   engineKey,
   runtimePayload,
@@ -90,6 +99,7 @@ export default function MissionCritiqueChallenge({
   const { locale, t } = useI18n();
   const [activePhase, setActivePhase] = useState('cadrage');
   const [modalTaskId, setModalTaskId] = useState('');
+  const [backlogFilter, setBacklogFilter] = useState('all');
   const [submitResult, setSubmitResult] = useState(null);
 
   const { state, error, isFacilitator, emitEvent, connected } = useRealtimeChallenge({
@@ -179,9 +189,41 @@ export default function MissionCritiqueChallenge({
 
   const timelineSet = useMemo(() => new Set(timeline.map((taskId) => String(taskId))), [timeline]);
 
+  // Live view of the team plan sent to participants: who placed each task,
+  // team duplicates, critical tasks nobody placed, own dependency issues.
+  const team = mission.team && typeof mission.team === 'object' ? mission.team : null;
+  const teamPlacements = useMemo(
+    () => (team?.placements && typeof team.placements === 'object' ? team.placements : {}),
+    [team]
+  );
+  const dependencyIssues = team?.dependency_issues && typeof team.dependency_issues === 'object'
+    ? team.dependency_issues
+    : {};
+  function teammatePlacements(taskId) {
+    const placements = teamPlacements[String(taskId)];
+    return Array.isArray(placements) ? placements.filter((placement) => !placement.self) : [];
+  }
+  function teammateNames(taskId) {
+    return teammatePlacements(taskId).map((placement) => shortParticipantName(placement.name)).join(', ');
+  }
+  function taskLabels(taskIds) {
+    return (Array.isArray(taskIds) ? taskIds : [])
+      .map((taskId) => taskMap.get(String(taskId))?.label || String(taskId))
+      .join(' · ');
+  }
+  const backlogFilterMatches = useMemo(() => {
+    const matches = { all: tasks, free: [], mine: [], taken: [] };
+    tasks.forEach((task) => {
+      const id = String(task.id);
+      const placements = Array.isArray(teamPlacements[id]) ? teamPlacements[id] : [];
+      if (timelineSet.has(id)) matches.mine.push(task);
+      if (placements.some((placement) => !placement.self)) matches.taken.push(task);
+      if (!timelineSet.has(id) && !placements.length) matches.free.push(task);
+    });
+    return matches;
+  }, [tasks, teamPlacements, timelineSet]);
   // Keep the exact server order in backlog. No client-side sort.
-  const backlogTasks = useMemo(() => tasks, [tasks]);
-
+  const backlogTasks = backlogFilterMatches[backlogFilter] || tasks;
   const timerState = String(state?.timer?.status || 'idle').trim();
   const normalizedTimerState = timerState.toLowerCase();
   const isDebrief = Boolean(state?.summary) || ['completed', 'timeout'].includes(normalizedTimerState);
@@ -715,7 +757,23 @@ export default function MissionCritiqueChallenge({
                       : ''}
                   </span>
                 </div>
-
+                {team ? (
+                  <div className={styles.teamSummary}>
+                    <span className={styles.teamSummaryTitle}>{t('challengeMission.teamPlan')}</span>
+                    <span className={styles.teamSummaryStat}>
+                      <ListTodo size={15} aria-hidden="true" />
+                      {t('challengeMission.teamTasksPlaced', { placed: Number(team.placed_count || 0), total: tasks.length })}
+                    </span>
+                    <span className={`${styles.teamSummaryStat}${team.duplicate_count > 0 ? ` ${styles.teamSummaryWarn}` : ''}`}>
+                      <AlertTriangle size={15} aria-hidden="true" />
+                      {t(team.duplicate_count === 1 ? 'challengeMission.teamDuplicatesSingular' : 'challengeMission.teamDuplicatesPlural', { count: Number(team.duplicate_count || 0) })}
+                    </span>
+                    <span className={`${styles.teamSummaryStat}${team.missing_critical_count > 0 ? ` ${styles.teamSummaryCritical}` : ''}`}>
+                      <Flag size={15} aria-hidden="true" />
+                      {t(team.missing_critical_count === 1 ? 'challengeMission.teamMissingCriticalSingular' : 'challengeMission.teamMissingCriticalPlural', { count: Number(team.missing_critical_count || 0) })}
+                    </span>
+                  </div>
+                ) : null}
                 <div
                   className={styles.stepper}
                   role="tablist"
@@ -772,10 +830,16 @@ export default function MissionCritiqueChallenge({
                         ? activePhaseItems[indexInPhase + 1].timelineIndex
                         : item.timelineIndex;
                       const itemKey = `${item.taskId}-${item.timelineIndex}`;
+                      const missingDependencies = dependencyIssues[item.taskId] || [];
+                      const duplicateOwners = teammateNames(item.taskId);
+                      const hasIssue = missingDependencies.length > 0 || Boolean(duplicateOwners);
                       return (
-                        <article key={itemKey} className={styles.timelineCodeItem}>
+                        <article key={itemKey} className={`${styles.timelineCodeItem} ${styles.timelineItemStack}${hasIssue ? ` ${styles.timelineItemIssue}` : ''}`}>
                           <div className={styles.timelineItemRow}>
-                            <span className={styles.timelineItemLabel}>{task?.label || item.taskId}</span>
+                            <span className={styles.timelineItemLabel}>
+                              {task?.label || item.taskId}
+                              {task?.critical ? <span className={styles.criticalBadge}><Flag size={11} aria-hidden="true" />{t('challengeMission.critical')}</span> : null}
+                            </span>
                             <span className={styles.timelineItemInlineControls}>
                               <button
                                 type="button"
@@ -811,6 +875,18 @@ export default function MissionCritiqueChallenge({
                               </button>
                             </span>
                           </div>
+                          {missingDependencies.length > 0 ? (
+                            <p className={styles.timelineItemWarning}>
+                              <Link2 size={13} aria-hidden="true" />
+                              {t('challengeMission.dependencyIssue', { tasks: taskLabels(missingDependencies) })}
+                            </p>
+                          ) : null}
+                          {duplicateOwners ? (
+                            <p className={styles.timelineItemWarning}>
+                              <AlertTriangle size={13} aria-hidden="true" />
+                              {t('challengeMission.alsoPlacedBy', { names: duplicateOwners })}
+                            </p>
+                          ) : null}
                         </article>
                       );
                     })
@@ -844,10 +920,25 @@ export default function MissionCritiqueChallenge({
                     {t('challengeMission.clickATaskToAssignIt')}
                   </p>
                 </div>
-
+                {team && tasks.length > 0 ? (
+                  <div className={styles.backlogFilters} role="group" aria-label={t('challengeMission.backlogFilter')}>
+                    {BACKLOG_FILTERS.map((filter) => (
+                      <button
+                        key={filter}
+                        type="button"
+                        className={`${styles.filterChip}${backlogFilter === filter ? ` ${styles.filterChipActive}` : ''}`}
+                        aria-pressed={backlogFilter === filter}
+                        onClick={() => setBacklogFilter(filter)}
+                      >
+                        {t(`challengeMission.filter_${filter}`)}
+                        <span className={styles.filterChipCount}>{backlogFilterMatches[filter].length}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 {backlogTasks.length === 0 ? (
                   <p className={styles.empty}>
-                    {t('challengeMission.noTasksAvailable')}
+                    {tasks.length > 0 ? t('challengeMission.noTaskMatchesFilter') : t('challengeMission.noTasksAvailable')}
                   </p>
                 ) : (
                   <div className={styles.backlogList}>
@@ -858,16 +949,47 @@ export default function MissionCritiqueChallenge({
                         ? phaseOfTask(id, timeline.indexOf(task.id))
                         : '';
                       const assignedPhase = PHASES.find((phase) => phase.key === assignedPhaseKey);
+                      const teammates = teammatePlacements(id);
+                      const dependencies = Array.isArray(task.dependencies) ? task.dependencies : [];
+                      const rowState = assigned
+                        ? (teammates.length ? styles.taskRowDuplicate : styles.taskRowAssigned)
+                        : (teammates.length ? styles.taskRowTaken : '');
                       return (
                         <button
                           key={task.id}
                           type="button"
-                          className={`${styles.taskRow}${assigned ? ` ${styles.taskRowAssigned}` : ''}`}
+                          className={`${styles.taskRow}${rowState ? ` ${rowState}` : ''}`}
                           onClick={() => openTaskModal(id)}
                           disabled={!canEditTimeline}
                           title={String(task.label || '').trim()}
                         >
-                          <span className={styles.taskRowLabel}>{task.label}</span>
+                          <span className={styles.taskRowMain}>
+                            <span className={styles.taskRowLabel}>
+                              {task.label}
+                              {task.critical ? <span className={styles.criticalBadge}><Flag size={11} aria-hidden="true" />{t('challengeMission.critical')}</span> : null}
+                            </span>
+                            {dependencies.length > 0 ? (
+                              <span className={styles.taskRowMeta}>
+                                <Link2 size={12} aria-hidden="true" />
+                                {t('challengeMission.dependsOn', { tasks: taskLabels(dependencies) })}
+                              </span>
+                            ) : null}
+                            {teammates.length > 0 ? (
+                              <span className={styles.taskRowTeam}>
+                                <Users size={12} aria-hidden="true" />
+                                {t('challengeMission.placedByLabel')}
+                                {teammates.map((placement, index) => {
+                                  const phase = PHASES.find((entry) => entry.key === placement.phase);
+                                  return (
+                                    <span key={`${placement.name}-${index}`} className={`${styles.teammateChip}${phase ? ` ${styles[phase.className]}` : ''}`}>
+                                      {shortParticipantName(placement.name)}
+                                      {phase ? ` · ${phaseLabel(phase, locale)}` : ''}
+                                    </span>
+                                  );
+                                })}
+                              </span>
+                            ) : null}
+                          </span>
                           {assignedPhase ? (
                             <span
                               className={`${styles.phaseTag} ${styles[assignedPhase.className]}`}
@@ -908,6 +1030,19 @@ export default function MissionCritiqueChallenge({
                     <p className={styles.modalHint}>
                       {t('challengeMission.assignThisTaskToAPhase')}
                     </p>
+                    {modalTask.critical || (modalTask.dependencies || []).length > 0 || teammateNames(modalTask.id) ? (
+                      <ul className={styles.modalTaskFacts}>
+                        {modalTask.critical ? (
+                          <li><Flag size={14} aria-hidden="true" />{t('challengeMission.criticalTaskHint')}</li>
+                        ) : null}
+                        {(modalTask.dependencies || []).length > 0 ? (
+                          <li><Link2 size={14} aria-hidden="true" />{t('challengeMission.dependsOn', { tasks: taskLabels(modalTask.dependencies) })}</li>
+                        ) : null}
+                        {teammateNames(modalTask.id) ? (
+                          <li className={styles.modalTaskFactWarn}><Users size={14} aria-hidden="true" />{t('challengeMission.placedBy', { names: teammateNames(modalTask.id) })}</li>
+                        ) : null}
+                      </ul>
+                    ) : null}
                     <div className={styles.modalPhaseGrid}>
                       {PHASES.map((phase) => (
                         <button
