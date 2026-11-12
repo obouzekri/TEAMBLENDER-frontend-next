@@ -10,8 +10,11 @@ import {
   adminCreateManualPayment,
   adminGenerateInvoicePdf,
   adminRefundInvoice,
+  adminUpdateContactRequestStatus,
+  adminUpdateUserAccess,
   getBillingOverview,
   getBillingTimeline,
+  getContactRequests,
 } from '@/lib/admin-billing';
 import { listPricingPlans } from '@/lib/account';
 import './billing.css';
@@ -35,6 +38,22 @@ function formatDate(value, locale) {
   if (!value) return '-';
   return formatLocaleDate(value, locale, NUMERIC_DATE_TIME) || '-';
 }
+
+// <input type="date"> wants YYYY-MM-DD.
+function toDateInputValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toISOString().slice(0, 10);
+}
+
+const REQUEST_STATUSES = ['new', 'in_progress', 'activated', 'closed'];
+const REQUEST_STATUS_KEYS = {
+  new: 'adminBilling.requestStatusNew',
+  in_progress: 'adminBilling.requestStatusInProgress',
+  activated: 'adminBilling.requestStatusActivated',
+  closed: 'adminBilling.requestStatusClosed',
+};
 
 function normalizeStatus(value, fallback = 'unknown') {
   return String(value || fallback).trim().toLowerCase();
@@ -76,19 +95,25 @@ export default function BillingAdminClient() {
   const [plans, setPlans] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState('');
   const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [accessLimit, setAccessLimit] = useState('');
+  const [accessEndsAt, setAccessEndsAt] = useState('');
+  const [requests, setRequests] = useState([]);
+  const [requestFilter, setRequestFilter] = useState('activation');
 
   async function refresh() {
     setLoading(true);
     setError('');
     try {
-      const [overview, timelinePayload, pricingPlans] = await Promise.all([
+      const [overview, timelinePayload, pricingPlans, requestsPayload] = await Promise.all([
         getBillingOverview({ q: query, provider, status, limit: 100 }),
         getBillingTimeline(150),
         listPricingPlans(),
+        getContactRequests({ status: requestFilter, limit: 100 }),
       ]);
       setUsers(Array.isArray(overview?.items) ? overview.items : []);
       setTimeline(Array.isArray(timelinePayload?.items) ? timelinePayload.items : []);
       setPlans(Array.isArray(pricingPlans) ? pricingPlans : []);
+      setRequests(Array.isArray(requestsPayload?.items) ? requestsPayload.items : []);
     } catch (err) {
       setError(err.message || t('adminBilling.unableToLoadBilling'));
     } finally {
@@ -104,7 +129,7 @@ export default function BillingAdminClient() {
   useEffect(() => {
     setSessionUser(getStoredCurrentUser());
     refresh();
-  }, []);
+  }, [requestFilter]);
 
   useEffect(() => {
     if (!selectedUserId && users.length > 0) {
@@ -119,6 +144,11 @@ export default function BillingAdminClient() {
     () => users.find((entry) => String(entry.id) === String(selectedUserId)) || null,
     [users, selectedUserId]
   );
+
+  useEffect(() => {
+    setAccessLimit(selectedUser?.participant_limit != null ? String(selectedUser.participant_limit) : '');
+    setAccessEndsAt(toDateInputValue(selectedUser?.access_ends_at));
+  }, [selectedUser]);
 
   const stats = useMemo(() => {
     const subs = users.map((user) => (Array.isArray(user.subscriptions) ? user.subscriptions[0] : null)).filter(Boolean);
@@ -151,6 +181,35 @@ export default function BillingAdminClient() {
       await refresh();
     } catch (err) {
       setError(err.message || t('adminBilling.failedToChangePlan'));
+    }
+  }
+
+  async function handleUpdateAccess() {
+    if (!selectedUserId) return;
+    setError('');
+    setNotice('');
+    try {
+      await adminUpdateUserAccess(selectedUserId, {
+        participant_limit: accessLimit === '' ? null : Number(accessLimit),
+        access_ends_at: accessEndsAt ? new Date(`${accessEndsAt}T23:59:59`).toISOString() : null,
+        reason: 'Admin backoffice access update',
+      });
+      setNotice(t('adminBilling.accessUpdated'));
+      await refresh();
+    } catch (err) {
+      setError(err.message || t('adminBilling.failedToUpdateAccess'));
+    }
+  }
+
+  async function handleRequestStatus(requestId, nextStatus) {
+    setError('');
+    setNotice('');
+    try {
+      await adminUpdateContactRequestStatus(requestId, nextStatus);
+      setRequests((prev) => prev.map((item) => (String(item.id) === String(requestId) ? { ...item, status: nextStatus } : item)));
+      setNotice(t('adminBilling.requestStatusUpdated'));
+    } catch (err) {
+      setError(err.message || t('adminBilling.failedToUpdateRequest'));
     }
   }
 
@@ -322,6 +381,24 @@ export default function BillingAdminClient() {
                 <button type="button" className="btn-primary" onClick={handleApplyPlan} disabled={!selectedPlanId || loading}>{t('adminBilling.changePlan')}</button>
                 <button type="button" className="btn-secondary" onClick={handleRecordManualPayment} disabled={!selectedPlanId || loading}>{t('adminBilling.recordManualPayment')}</button>
               </div>
+              <h3>{t('adminBilling.accessSection')}</h3>
+              <div className="selected-user-summary">
+                <p><strong>{t('adminBilling.planLimit')}</strong> {selectedUser?.pricing_plan?.max_users ?? '-'}</p>
+                <p><strong>{t('adminBilling.trialEnd')}</strong> {formatDate(selectedUser?.trial_end, locale)}</p>
+              </div>
+              <div className="admin-billing-access">
+                <label>
+                  {t('adminBilling.participantLimit')}
+                  <input type="number" min={1} max={100000} value={accessLimit} onChange={(e) => setAccessLimit(e.target.value)} />
+                  <small>{t('adminBilling.participantLimitHint')}</small>
+                </label>
+                <label>
+                  {t('adminBilling.accessEndsAt')}
+                  <input type="date" value={accessEndsAt} onChange={(e) => setAccessEndsAt(e.target.value)} />
+                  <small>{t('adminBilling.accessEndsAtHint')}</small>
+                </label>
+                <button type="button" className="btn-primary" onClick={handleUpdateAccess} disabled={loading}>{t('adminBilling.updateAccess')}</button>
+              </div>
               <h3>{t('adminBilling.invoices')}</h3>
               <div className="admin-billing-invoices">
                 {(selectedUser.invoices || []).map((invoice) => (
@@ -345,6 +422,50 @@ export default function BillingAdminClient() {
             <p className="empty-state">{t('adminBilling.selectAnAccountToManageIts')}</p>
           )}
         </article>
+        </section>
+
+        <section className="admin-billing-card requests">
+        <div className="admin-billing-requests-head">
+          <h2>{t('adminBilling.activationRequests')}</h2>
+          <select value={requestFilter} onChange={(e) => setRequestFilter(e.target.value)} aria-label={t('adminBilling.activationRequests')}>
+            <option value="activation">{t('adminBilling.activationOnly')}</option>
+            <option value="">{t('adminBilling.allRequests')}</option>
+            {REQUEST_STATUSES.map((value) => (
+              <option key={value} value={value}>{t(REQUEST_STATUS_KEYS[value])}</option>
+            ))}
+          </select>
+        </div>
+        <div className="admin-billing-requests">
+          {requests.map((item) => (
+            <div key={item.id} className="request-row">
+              <div className="request-row-top">
+                <span>{formatDate(item.createdAt, locale)}</span>
+                <select
+                  value={REQUEST_STATUSES.includes(item.status) ? item.status : 'new'}
+                  onChange={(e) => handleRequestStatus(item.id, e.target.value)}
+                  aria-label={t('adminBilling.subscriptionStatus')}
+                >
+                  {REQUEST_STATUSES.map((value) => (
+                    <option key={value} value={value}>{t(REQUEST_STATUS_KEYS[value])}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="request-row-main">
+                <strong>{item.name}{item.company ? ` · ${item.company}` : ''}</strong>
+                <a href={`mailto:${item.email}`}>{item.email}</a>
+              </div>
+              <div className="request-row-meta">
+                {item.plan_code ? <span className="status-chip status-active">{t('adminBilling.requestPlan')} : {item.plan_code}</span> : null}
+                {item.headcount ? <span className="status-chip">{t('adminBilling.requestHeadcount')} : {item.headcount}</span> : null}
+                {item.country ? <span className="status-chip">{t('adminBilling.requestCountry')} : {item.country}</span> : null}
+                {item.company_size ? <span className="status-chip">{item.company_size}</span> : null}
+                <span className="status-chip">{item.need}</span>
+              </div>
+              <p className="request-row-message">{item.message}</p>
+            </div>
+          ))}
+          {requests.length === 0 ? <p className="empty-state">{t('adminBilling.noRequests')}</p> : null}
+        </div>
         </section>
 
         <section className="admin-billing-card timeline">

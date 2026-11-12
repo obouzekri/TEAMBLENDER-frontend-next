@@ -423,6 +423,25 @@ export default function ManagerHome({
   );
   const participantLimitReached = participantLimit > 0 && distinctParticipantCount >= participantLimit;
 
+  // Fin d'accès effective : date fixée par l'admin, sinon fin d'essai de l'offre Essai.
+  const accessEndsAt = useMemo(() => {
+    const user = guard.user;
+    if (!user) return null;
+    const explicit = user.access_ends_at ? new Date(user.access_ends_at) : null;
+    if (explicit && !Number.isNaN(explicit.getTime())) return explicit;
+    if (String(user.pricing_plan?.plan_code || '').toLowerCase() === 'trial' && user.trial_end) {
+      const trialEnd = new Date(user.trial_end);
+      return Number.isNaN(trialEnd.getTime()) ? null : trialEnd;
+    }
+    return null;
+  }, [guard.user]);
+  const accessExpired = Boolean(accessEndsAt && accessEndsAt.getTime() <= Date.now());
+  const accessDaysLeft = accessEndsAt && !accessExpired
+    ? Math.max(0, Math.ceil((accessEndsAt.getTime() - Date.now()) / 86400000))
+    : null;
+  const isTrialPlan = String(guard.user?.pricing_plan?.plan_code || '').toLowerCase() === 'trial';
+  const activationHref = withLocalePath('/contact?plan=team');
+
   const visibleSessions = useMemo(() => sessions, [sessions]);
   const hasActiveSessionFilters = useMemo(() => (
     sessionStatusFilter !== 'all'
@@ -1036,11 +1055,24 @@ export default function ManagerHome({
           </article>
         </section>
 
+        {accessExpired && !demoMode ? (
+          <section className="home-access-banner" role="alert" aria-live="polite">
+            <div>
+              <h2>{t('managerHome.accessExpiredTitle')}</h2>
+              <p>{t('managerHome.accessExpiredBody')}</p>
+            </div>
+            <Link className="btn-primary" href={activationHref}>{t('managerHome.requestActivation')}</Link>
+          </section>
+        ) : null}
+
         <section id="home-sessions-block" className="sessions-panel home-sessions-panel home-anchor-target">
           <div className="panel-head home-sessions-head">
             <div>
               <h2 className="home-section-title">{t('managerHome.sessions')}</h2>
               <p>{t('managerHome.trackPreparingActiveAndCompletedSessions')}</p>
+              {!demoMode && isTrialPlan && accessDaysLeft != null ? (
+                <p className="home-access-hint">{t('managerHome.trialDaysLeft', { count: accessDaysLeft })}</p>
+              ) : null}
             </div>
             {demoMode ? renderDemoCreateAction(
               <button
@@ -1052,6 +1084,11 @@ export default function ManagerHome({
                 {t('managerHome.createSession')}
               </button>
             ) : (
+              accessExpired ? (
+                <Link className="btn-primary" href={activationHref} title={t('managerHome.requestActivation')}>
+                  {t('managerHome.requestActivation')}
+                </Link>
+              ) : (
               <Link
                 className="btn-primary"
                 href={withLocalePath('/session-builder')}
@@ -1060,6 +1097,7 @@ export default function ManagerHome({
               >
                 {t('managerHome.createSession')}
               </Link>
+              )
             )}
           </div>
 
@@ -1341,7 +1379,9 @@ export default function ManagerHome({
 
           <div className="participants-panel-kpis" aria-label={t('managerHome.participantSummary')}>
             <span>
-              {t('managerHome.participantsTotal', { count: distinctParticipantCount })}
+              {participantLimit > 0
+                ? t('managerHome.participantsOfLimit', { count: distinctParticipantCount, limit: participantLimit })
+                : t('managerHome.participantsTotal', { count: distinctParticipantCount })}
             </span>
           </div>
 
@@ -1706,6 +1746,37 @@ export default function ManagerHome({
         ) : null}
       </Modal>
       <style jsx global>{`
+        .manager-home .home-access-banner {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          margin-bottom: 1.25rem;
+          padding: 1.1rem 1.25rem;
+          border: 1px solid color-mix(in srgb, #f59e0b 45%, transparent);
+          border-radius: 18px;
+          background: color-mix(in srgb, #f59e0b 12%, var(--surface-panel, #fff));
+        }
+
+        .manager-home .home-access-banner h2 {
+          margin: 0 0 0.25rem;
+          font-size: 1.05rem;
+        }
+
+        .manager-home .home-access-banner p {
+          margin: 0;
+          font-size: 0.92rem;
+          line-height: 1.5;
+        }
+
+        .manager-home .home-access-hint {
+          margin: 0.35rem 0 0;
+          font-size: 0.82rem;
+          font-weight: 600;
+          color: var(--accent-strong);
+        }
+
         .manager-home .home-sessions-controls {
           display: grid;
           gap: 1rem;

@@ -7,6 +7,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les libellés de la console admin et des paiements sont disponibles en FR/EN, avec accents et apostrophes françaises.
 - La facturation conserve au moins 20 px entre les titres et leur contenu, 12 px entre les cartes de comptes et 12 px entre les commandes. Les actions passent sur une colonne sur mobile et restent lisibles dans les thèmes clair et sombre.
 - Validation : `node scripts/test-admin-billing-ux.mjs` (frontend sur le port 3100, Chrome disponible, API simulées) couvre les deux langues, les deux thèmes, les largeurs 390/1440 px, les onglets admin et les changements de formule, paiements manuels et remboursements.
+- Activation manuelle (2026-11-12) : pour le compte sélectionné, le bloc « Accès et limites » affiche la limite de l'offre et la fin d'essai, et permet de fixer une limite de participants (Entreprise) et une date de fin d'accès (pilote, essai prolongé, licence annuelle). Vide = valeur de l'offre. Une section « Demandes d'activation et de contact » liste les demandes reçues (filtre activations seules / toutes / par statut) avec offre, effectif, pays et message, et permet de passer chaque demande en Nouvelle, En cours, Activée ou Clôturée.
 
 ## Etat actuel
 
@@ -44,6 +45,11 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Les grilles de chiffres sont centrees et limitees a 280 px, avec des cases de 56 px de haut (50 px sur mobile), y compris pour Code mural.
 - Validation : `node scripts/test-challenge-diagnostics-ux.mjs --escape-only` (frontend sur 3100, Chrome disponible, API simulees) : grilles, enigme textuelle et anagramme, themes clair/sombre, mobile EN et ordinateur FR, puis non-regression de la synchronisation et des commandes.
 
+### Fin d'acces et limite de participants (accueil animateur)
+
+- Le compteur du bloc Participants affiche « X / limite participants » (participants distincts du compte, `participant_limit` du compte sinon `max_users` de l'offre).
+- Quand la fin d'acces est depassee (`access_ends_at` fixe par l'admin, sinon `trial_end` pour l'offre Essai), un bandeau « Votre acces est termine » remplace le bouton « Creer une session » par « Demander l'activation » (`/contact?plan=team`). Les sessions et indicateurs restent consultables. Pour l'offre Essai en cours, le nombre de jours restants est affiche sous le titre Sessions.
+
 ### Filtres des sessions de l'accueil animateur
 
 - L'accueil privilegie le message de bienvenue, puis les chiffres des KPI, les sessions et les participants. Le theme clair utilise un fond blanc pur, des cartes blanches a bordure fine et ombre discrete, et des sections sans cadre externe. Le theme sombre reste disponible.
@@ -71,12 +77,14 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 - Une carte unique reunit les coordonnees, le delai de reponse et le formulaire, sans cartes imbriquees ni colonne vide. L'introduction est raccourcie.
 - Nom et email sont presentes ensemble, puis entreprise et effectif facultatifs. Le besoin et le message gardent toute la largeur. Les champs passent sur une colonne sur mobile.
+- Demande d'activation (2026-11-12) : `?plan=team` ou `?plan=enterprise` (boutons de la page Tarifs et de « Mon compte ») preselectionne l'offre souhaitee et le besoin correspondant, et affiche un encart « nous activons votre offre sous 24 h apres reception du virement ». Trois champs facultatifs s'ajoutent : offre souhaitee, nombre de personnes a faire jouer, pays des equipes (Maroc, France, Autre). Ils sont transmis a l'API (`planCode`, `headcount`, `country`) et repris dans l'email recu par l'equipe.
 - Les libelles obligatoires, l'autocompletion, le lien email et la politique de confidentialite restent accessibles au clavier. L'envoi conserve la protection CSRF, le champ anti-spam, les etats d'attente, les erreurs avec conservation du brouillon et la confirmation.
 - Validation : `node scripts/test-contact-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees sans envoi d'email) : FR/EN, clair/sombre/automatique, 320 a 1440 px, hauteur compacte, clavier, validation, champs facultatifs, requete et CSRF, attente, erreurs 429/500/reseau, nouvelle tentative et succes.
 
 ### Page Tarifs
 
 - L'introduction conserve le titre et le conseil sur les groupes, sans tag Tarification ni phrase promotionnelle intermediaire.
+- Business model participants (2026-11-12) : trois offres lues depuis `/pricing-plans` (secours : `lib/pricingFallbackPlans.js`, contrat verifie par `node scripts/test-pricing-display.mjs`). Un bandeau « Comment ca marche » (20 personnes → 4 groupes de 5 → 1 prix) et la mention « lien ou code, sans compte » precedent les cartes. Le choix Mensuel/Annuel est centre sans cadre et affiche l'economie annuelle. Les cartes sont centrees ; l'offre Equipe porte le badge « Recommande », une bordure marquee et le seul bouton plein ; Essai et Entreprise ont un bouton a contour. Prix : « 0 € / pendant 30 jours », « 39 €/mois » ou « 29 €/mois / facture 348 €/an », « A partir de / 1 800 €/an ». Essai mene a `/signup`, Equipe a `/contact?plan=team`, Entreprise a `/contact?plan=enterprise`. Une FAQ (participant, fin d'essai, paiement par virement, plus de 25 personnes) precede le bloc accompagnement.
 - Frequence de facturation, Mensuel, Annuel et Devise affichee sont alignes sur une ligne sur grand ecran. Sur mobile, le choix de periode occupe une ligne complete et le selecteur de devise reste facile a atteindre. La devise affichee par defaut depend du pays de l'IP (en-tete `x-vercel-ip-country` ou `cf-ipcountry`) : DH pour le Maroc, $ pour les Etats-Unis, € partout ailleurs et quand le pays est inconnu. Le visiteur peut toujours changer de devise. Les controles affichent un focus clavier visible; le mode sombre ne presente aucun cadre autour de la barre ni du groupe Mensuel/Annuel.
 - Validation : `node scripts/test-pricing-controls-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees) : FR/EN, clair/sombre/automatique, 320 a 1440 px, alignement, absence de cadres sombres, changement de frequence et de devise, devise par defaut selon le pays (aucun, MA, US, FR).
 
@@ -178,6 +186,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 
 - Les managers et admins disposent de quatre onglets distincts: Profil, Securite, Formules et Factures. Les participants conservent uniquement Securite.
 - Tous les onglets partagent une zone de meme largeur et de meme hauteur (`clamp(34rem, 70dvh, 48rem)`). Le contenu long defile a l'interieur sans deplacer les onglets ou le pied de page; la gouttiere de defilement reste reservee.
+- Formules (2026-11-12) : seules les offres gratuites peuvent etre choisies depuis le compte. Le bouton d'une offre payante envoie vers `/contact?plan=<code>` ; aucun paiement par carte n'est ouvert.
 - La barre reste sur une ligne et defile horizontalement sur les petits ecrans. Navigation au clavier: fleches gauche/droite, Home et End. L'URL `?tab=profile|security|pricing|invoices`, les liens directs et precedent/suivant du navigateur restent synchronises sans rechargement. Les brouillons et choix de formule sont conserves entre les onglets.
 - Les factures utilisent l'historique et le telechargement existants, desormais dans leur propre onglet, avec un etat vide explicite. Aucun nouveau service de facturation n'est ajoute.
 - Validation: `npm run test:ux:account` (frontend sur 3100, Chrome disponible, API simulees): geometrie stable a 1 px pres, absence de debordement de 320 a 1440 px, FR/EN, clair/sombre/automatique, liens directs et historique, clavier, conservation des valeurs, enregistrement du profil, selection d'une formule et telechargement.
